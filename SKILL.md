@@ -1,13 +1,183 @@
 ---
 name: kotoba-shokunin
-description: Domain specialist — prompt & skill craft — scopes SKILL.md/AGENTS.md quality, trigger fidelity. Rank: shonen.
+description: >
+  Prompt & skill craft — audits, writes, and rewrites SKILL.md / AGENTS.md / system
+  prompts for trigger fidelity and decision density. Use when asked to improve a
+  skill file's trigger surface, write frontmatter descriptions, add decision
+  tables, compress an overlong prompt, build an anti-pattern or error-pattern
+  section, or check whether a skill's claims are verifiable. Triggers: "skill
+  file", "SKILL.md", "frontmatter description", "trigger words", "prompt craft",
+  "write a skill", "audit this skill", "skill quality". Anti-triggers: general
+  prompt engineering for model outputs (not skill files), runtime code changes,
+  and domain content inside a skill's reference/ tree — those belong to the
+  owning domain skill, not this one.
 ---
 
-# kotoba-shokunin
+# kotoba-shokunin — prompt & skill craft
 
-Shonen seed. Develop: decision tables, error patterns, production checklists,
-anti-patterns, cited sources — verifiable, not generic.
+A SKILL.md is a **loader contract**: the frontmatter `description` is the only
+part the router always sees, and the body is the only part the executing agent
+always sees. Craft means both surfaces earn their tokens. Rank: shonen.
 
-## Domain
+Evidence base: 16 production skill files surveyed 2026-09-28
+(`~/.agents/skills/*/SKILL.md`, `~/.config/opencode/skills/ufo/SKILL.md`).
+and section. Verify before trusting: if a cited line has drifted, re-read the
+file and update the citation — do not propagate a claim whose source moved.
 
-prompt & skill craft — scopes SKILL.md/AGENTS.md quality, trigger fidelity
+## Skill-file anatomy
+
+Observed load order, top to bottom. A file that inverts this order (procedures
+before scope, examples before decision tables) reads worse under activation
+pressure.
+
+| # | Section | Function | Exemplar |
+|---|---------|----------|----------|
+| 0 | Frontmatter | Trigger index; the only always-loaded bytes | all |
+| 1 | H1 + role statement | What this skill is, in one line | wwkd L16–24 |
+| 2 | Prerequisite gate | Fail-closed dependency check before any action | bailian-cli "CRITICAL — MUST read bailian-protocol" |
+| 3 | Decision surface | Tables/protocols that route the request | bailian-protocol class table; sekhmet-l3 flag table |
+| 4 | Procedures | Numbered steps, copy-pasteable command blocks | bailian-train-deploy steps 1–7 |
+| 5 | Boundaries | Refusals, anti-triggers, hand-offs | wwkd "Refusals"; bailian-train-deploy 反触发表 |
+| 6 | References | Cited sources, relative links to depth files | wwkd "Source Excerpts"; bailian `reference/` links |
+
+Not every file needs every section. godspeed is 18 lines: frontmatter + one
+deferral ("Read `directive.md` … apply verbatim") + one invocation note. Anatomy
+is a checklist of *available* organs, not a mandatory skeleton.
+
+## Frontmatter craft — the trigger surface
+
+`description` is an index, not a summary. Field rules distilled from the survey:
+
+1. **Capability first, triggers second.** One clause naming what the skill does
+   ("xbreed ask — optional cross-model advisory protocol"), then trigger
+   material.
+2. **Quote literal trigger strings.** `Triggers: "sekhmet", "swarm", "L3", "fan
+   out"` (sekhmet-l3); `"/wwkd", "plan this", "break this down"` (wwkd). Quoted
+   strings match how routers and humans actually phrase intent.
+3. **Include implicit-intent triggers.** bailian-model-recommend activates on
+   "我想做一个XX" — a described need, not a named tool. If users arrive without
+   naming the skill, the description must catch the *need*, not the name.
+4. **Co-locate anti-triggers.** Every surveyed family carries exclusions in the
+   description itself: omarchy "Excludes Omarchy source development",
+   bailian-gen "反触发：普通问答、编程、写作、翻译不走本技能". An anti-trigger
+   in the body but not the frontmatter still causes false activation — the
+   router never reads the body.
+5. **State sibling boundaries when overlap exists.** bailian-model-recommend:
+   "当用户同时涉及模型查询和模型选择时，优先使用本 skill". Naming the neighbor
+   and the arbitration rule prevents double-activation.
+6. **Always-on skills say so explicitly.** godspeed: "Use on every prompt …
+   without waiting for a keyword." If activation is unconditional, the
+   description must override the trigger assumption, not rely on it.
+7. **Declare runtime needs in metadata, not prose.** `metadata.requires.bins:
+   ["bl"]` (bailian family), `compatibility:` (model-recommend). Machines read
+   metadata; prose warnings get skipped.
+
+## Decision tables — when to use one
+
+| Situation | Table? | Evidence |
+|-----------|--------|----------|
+| Intent → command/route mapping | Yes: `Intent | Command | Notes` | bailian-cli "When to use which command" |
+| Request classification with different actions | Yes: `Class | Pattern | Action` | bailian-protocol 4-class consent table |
+| Flag → effect reference | Yes: `Flag | Effect` | sekhmet-l3 |
+| Ordered pipeline | No — numbered steps or ASCII chain | bailian-finetune 7-step chain |
+| One conditional | No — one sentence | — |
+
+Table rule: every row must end in an **action** (command, route, or named
+fallback). A table whose last column is description-only is documentation, not a
+decision surface.
+
+## Compression rules
+
+1. **Spend tokens in the description; save tokens in the body.** The description
+   is always loaded — density there has the highest leverage. The body loads only
+   on activation, but still competes with the task context.
+2. **Depth moves to files, not prose.** Hub skills point to `reference/<group>.md`
+   and `bl <cmd> --help` instead of duplicating flag docs ("do not guess flags" —
+   bailian-cli). One authoritative home per fact; the skill keeps the pointer.
+3. **Command blocks verbatim-copyable.** Env setup first, then the command
+   (sekhmet-l3 live-wave block). No placeholders that require guessing the shape.
+4. **Failure signatures inline.** Pitfalls earn their lines only when they carry
+   the observed symptom: zsh `status` readonly-variable trap, 404 deploy
+   propagation delay, `--learning-rate` must be string `"3e-4"` not number
+   (bailian-train-deploy 反幻觉清单). "Be careful" without a signature is noise.
+5. **Never restate the trigger in the body.** The body assumes activation
+   succeeded; "when to use this skill" paragraphs in the body are dead weight —
+   move them to the description.
+6. **~600-line module bound.** wwkd principle 8: fits in one file, one screen,
+   single-sitting readable. Largest observed production skill: omarchy at 392
+   lines. Past ~600 lines, split: decision surface stays in SKILL.md, depth goes
+   to `reference/` / `assets/` with a pointer line. Gods-eye rule: if you can't
+   hold the whole file while editing it, the router can't either.
+
+## Trigger-fidelity checklist
+
+Run before shipping any SKILL.md. Every item is checkable by reading the file —
+no runtime needed.
+
+- [ ] `name` matches the directory / invocation surface.
+- [ ] `description` contains ≥1 literal trigger string in quotes or an explicit
+      `Triggers:` list.
+- [ ] `description` contains at least one anti-trigger or exclusion clause.
+- [ ] Overlapping sibling skills are named with an arbitration rule.
+- [ ] Body opens with a one-line role statement, not a restatement of triggers.
+- [ ] Every prerequisite has a **fail-closed** path stated ("if X is missing,
+      stop and do Y; do not guess" — bailian-cli pattern).
+- [ ] Every decision table row ends in an action.
+- [ ] Every command block is runnable as pasted (bins declared in metadata or
+      checked in a prerequisite step).
+- [ ] Every failure claim carries its observed signature (error text, exit code,
+      version constraint) — no bare warnings.
+- [ ] Every source citation resolves: file path exists, link target exists,
+      quote attributed.
+- [ ] Stale-risk facts (model names, versions, prices) are either pinned with a
+      source or deferred to `--help` / reference files.
+- [ ] File ≤ ~600 lines; overflow already moved to referenced depth files.
+- [ ] No `TODO`, placeholder sections, or "coming soon" — a skill ships complete
+      or names the missing prerequisite.
+
+## Anti-patterns
+
+| Smell | Why it fails | Fix |
+|-------|--------------|-----|
+| Description = capability only, no triggers | Router can't match unseen phrasings | Add quoted trigger strings + implicit intents |
+| Anti-trigger only in body | Router never sees it; false activation | Move exclusion clause into `description` |
+| Flags documented in prose | Drifts from `--help`; agents guess | Pointer to `reference/` or `--help` |
+| Procedures before scope | Agent acts before knowing boundaries | Anatomy order: gate → decide → act |
+| Warning without signature | "Be careful" teaches nothing | Attach observed error text / version / exit code |
+| Sibling skill hardcoded as path dep | Missing sibling = dead skill | Soft hand-off by name + `--help` fallback (bailian family rule) |
+| Recursive skill load | Skill that must read itself to work | In-line the essential rule; reference the rest |
+| 600+ line monolith | Router and agent both lose the thread | Split at anatomy boundary 3↔4 |
+
+## Refusals
+
+- Won't fabricate domain content: claims need a file, a command output, or a
+  cited source (repo AGENTS.md rule).
+- Won't audit the *content* of another skill's `reference/` tree — that's the
+  owning domain's province. Report cross-domain evidence back, don't absorb it.
+- Won't produce a description without anti-triggers, or a body without a
+  fail-closed path for its prerequisites.
+
+## Sources
+
+- `~/.agents/skills/wwkd/SKILL.md` — posture-skill anatomy: principles, phased
+  protocol, refusals, quoted source excerpts.
+- `~/.agents/skills/godspeed/SKILL.md` — minimal always-on skill (18 lines);
+  deferral pattern.
+- `~/.agents/skills/sekhmet-l3/SKILL.md` — ops-skill anatomy: env blocks, smoke
+  gate, flag table.
+- `~/.agents/skills/xbrd-ask/SKILL.md` — lane table, advisory protocol, epistemic
+  constraints.
+- `~/.agents/skills/bailian-protocol/SKILL.md` — consent decision table,
+  classification with actions.
+- `~/.agents/skills/bailian-cli/SKILL.md` — hub/routing tables, soft hand-offs,
+  `metadata.requires.bins`.
+- `~/.agents/skills/bailian-train-deploy/SKILL.md` — 反触发表, 反幻觉清单,
+  numbered end-to-end procedure, failure signatures.
+- `~/.agents/skills/bailian-model-recommend/SKILL.md` — implicit-intent triggers,
+  sibling boundary arbitration.
+- `~/.agents/skills/bailian-web-search/SKILL.md`, `bailian-gen/SKILL.md`,
+  `bailian-finetune/SKILL.md` — routing workflows, consent short-forms.
+- `~/.agents/skills/omarchy/SKILL.md` — largest observed file (392 lines);
+  safety-rule callouts, config-location tables.
+- `~/.config/opencode/skills/ufo/SKILL.md` — invariant lists (I1–I10), load-order
+  with fail-closed resolution, dispatch contract.
