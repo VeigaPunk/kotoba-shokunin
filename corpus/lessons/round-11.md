@@ -3,7 +3,7 @@
 Round: 11. Axis move: **consistency** (declared calibration sub-axis). Artifact
 half: `corpus/knowledge/corpus-integrity-round11.md`; machine half:
 `verifiers/verify_corpus_integrity.py` + `verifiers/corpus-baseline.json`.
-landing hash `assigned at landing`.
+landing hash `4dd7753`.
 
 ## Worked
 
