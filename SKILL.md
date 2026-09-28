@@ -142,7 +142,7 @@ a render — a rule proven on omp is wrong on opencode.
 
 | Harness | Catalogue tag | Description render | Offer gate (action) | Failure mode |
 |---------|---------------|--------------------|---------------------|--------------|
-| omp | `<skills>` (ELF template) | `cache.get(key) ?? previewSkillDescription` — cached LLM line, else deterministic truncator (`_8n=100`; first sentence if ≥40 chars, else last-space cut + `…`); hard 99-char cliff | Ship the dir under an omp discovery root (`.agents/skills`, `.claude/skills`, project walk-up) and front-load the capability + WHEN into the first ≤99 chars | Trigger material past offset 99 or in sentence 2 renders as nothing (all 13 observed `Triggers:`/反触发/`Excludes` clauses lost) |
+| omp | `<skills>` (ELF template) | `cache.get(key) ?? previewSkillDescription` — cached LLM line, else deterministic truncator (`_8n=100`; first sentence if ≥40 chars, else last-space cut + `…`); hard 99-char cliff | Ship the dir under an omp discovery root (`~/.agents/skills`, `~/.omp/agent/skills`, `~/.claude/skills`, project walk-up) and front-load the capability + WHEN into the first ≤99 chars | Trigger material past offset 99 or in sentence 2 renders as nothing (all 13 observed `Triggers:`/反触发/`Excludes` clauses lost) |
 | opencode | `<available_skills>` (`fmt(list,{verbose:true})`) | Full `description` byte-for-byte + `<location>` in the system-prompt catalogue; no truncation, no cache (the TUI skill list collapses whitespace only) | Define `description` and a frontmatter `name:`; leave the `skill` permission enabled; if a same-name duplicate exists, do not rely on which copy wins | Missing `description` is filtered out of the catalogue; a denied `skill` permission omits the whole block; duplicate names are last-parsed-wins under unbounded parse concurrency (round-9 re-verify: first-scanned-wins was wrong) |
 
 Check before predicting: on omp read the cache db
@@ -151,6 +151,22 @@ skill_descriptions;"`) **and** the newest `<skills>` block
 (`~/.omp/agent/sessions/**/*.jsonl`) — the catalogue freezes at session start,
 so db coverage is time-varying; on opencode read the global roots and
 `grep -o 'message=init count=[0-9]*' ~/.local/share/opencode/log/opencode.log`.
+
+### Run the verifier instead of re-typing the recipe
+
+`python3 verifiers/verify_harness_claims.py` recomputes this whole table from
+live state against `verifiers/baseline.json` and exits non-zero on drift —
+**27 checks**: the omp key prefix read out of the ELF
+(`omp.elf.template_sha256`, 273 B), `keys_reproduced` per offered skill under the
+style-aware salt, cache-miss/truncation count, the newest captured `<skills>`
+block matched line-by-line against the cache, offered vs dangling skill dirs,
+name==folder, unmodelled YAML scalar forms (excluded, never guessed), opencode
+`init count` max vs root-union+builtin, `<available_skills>` hits, per-root
+duplicate split, `skill`-permission allow lines. Exit 0 agree / 1 drift
+/ 2 environment unreadable / 3 no baseline; `--self-test` falsifies the script's
+own truncator + block-scalar model. Cite this file for any harness number rather
+than a hand-run recipe, and update the baseline only with a LOG entry naming the
+mechanism that moved. Model + gaps: `corpus/knowledge/harness-verifier-round10.md`.
 
 ## Frontmatter craft — the trigger surface
 
@@ -533,14 +549,24 @@ fails procedures/dates/style) in `corpus/knowledge/alwayson-checklist-round7.md`
   `^.*?[.!?](?=\s|$)` kept if ≥40 chars, else last-space + `…`; `_8n = 100`),
   `createSkillDescriptionCompressor` (LLM path + validator ≤160 chars, ≤12
   words), key `A8n` = `sha256(K7s ‖ \x00 ‖ name ‖ \x00 ‖ description)` with the
-  compressor template (`Compress into one routing hint …`) — the description is
-  hashed as the YAML loader yields it (`>` keeps a trailing newline, `>-`
-  strips it), so a ws-strip-only check under-reports coverage; cache
+  compressor template = the 273-byte bunfs prompt `compress-description-*.md`
+  (the routing-hint line **plus** `Skill: {{name}}` / `Description:
+  {{description}}`, placeholders included in the hash; sha256
+  `c1f03c8e248eb40e…`, recovered by anchoring, not by offset) — the description
+  is hashed as the YAML loader yields it (`>`/`|` keep a trailing newline,
+  `>-`/plain strip it), so a ws-strip-only check under-reports coverage; cache
   `~/.omp/agent/skill-descriptions.db` (17 rows at round 9, up from 5; all 17
-  keys reproduce, newest catalogue 17/17 cache, 0 truncations).
+  keys reproduce, newest catalogue 17/17 cache, 0 truncations — round 10
+  re-verified by `verifiers/verify_harness_claims.py`, 27/27 checks).
 - `corpus/knowledge/harness-router-models-round9.md` — the two-harness router
   model (tag, render, offer gate, failure mode, verify recipe) with the
   round-9 key-reproduction and freeze evidence.
+- `verifiers/verify_harness_claims.py` + `verifiers/baseline.json` — the round-10
+  executable form of the harness claim set (27 checks, 4 exit codes, `--self-test`);
+  the authority for every harness number in this file.
+- `corpus/knowledge/harness-verifier-round10.md` — what the verifier checks and
+  the facts behind each check (key prefix bytes + sha256, style-aware salt,
+  offer-gate roots, opencode counter checks) plus its open gaps.
 - `corpus/knowledge/claim-scope-audit-round9.md` — the round-9 consistency
   measurement: harness-claim scope before (31 claim units, 9 UNSCOPED) and after.
 - `corpus/knowledge/render-mechanism-round7.md` — mechanism + survival
@@ -550,7 +576,9 @@ fails procedures/dates/style) in `corpus/knowledge/alwayson-checklist-round7.md`
   (53/62 quoted spans, 13/13 `Triggers:` clauses) describe the cache-miss
   truncation path only.
 - `corpus/knowledge/dispatch-prompt-audit-round7.md` — 12-item dispatch
-  checklist + 43-file application (37 fail ≥1 item) + resolvability sweep
+  checklist (artifact numbering; § Dispatch-prompt fidelity checklist below
+  renders the same set as 9 merged boxes) + 43-file application (37 fail ≥1
+  item) + resolvability sweep
   (dead `~/wikillm` path, dead `~/.xbgst` env file, generator contract bugs).
 - `corpus/knowledge/alwayson-checklist-round7.md` — 8-item AGENTS.md
   checklist + application (host file FAIL), self-audit results (4 fails

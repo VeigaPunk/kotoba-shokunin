@@ -1,29 +1,58 @@
 # kotoba-shokunin — Scorecard
 
-Axes owned by this lane: **depth + consistency** (`../MISSION.md`, § Fleet shape).
-All six AXES.md axes are scored because the contract asks for the full table;
-only depth and consistency are worked as moves. Scores are the state after the
-round named in the last column. Every score carries a pointer; no pointer, no score.
+Axes owned by this lane: **depth + consistency** (`../MISSION.md` § Fleet shape).
+Every row carries `score — counting command @ tree`, per the fleet-2
+axis-score convention (`../PROTOCOL.md`, `../SCORECARD.md` protocol lane).
+
+**Axis-name reconciliation (aggregator audit r6, defect 3).** `AXES.md` defines
+six axes — depth, coverage, operability, freshness, calibration, adjacency —
+and does not contain `consistency`; `MISSION.md` assigns kotoba "depth +
+consistency" and kengaku "novelty + calibration", which is the same class of
+mismatch. This lane declares **`consistency` a sub-axis of `calibration`**
+(claim-scope coherence: a claim is scored on whether it says what it can
+support, which is self-assessment) and scores the five non-owned axes
+**advisory**. The `AXES.md`↔`MISSION.md` mismatch is routed to the protocol lane
+(round-10 report § Cross-domain; `../.ufo/l0-questions.md`).
+
+**Rubric (fractional scores).** 0–3 absent/wrong · 4–5 exists, claims uncited ·
+6 cited but dead pointers or unre-verified this round · 7 all pointers resolve
+and carry their command, lane-measured · 8 + independently re-measured by
+another lane · 9 + machine-checked or externally audited · 10 + repeated
+non-author verification in the opposite direction. `0.5` = one of the two
+criteria of the next band met.
 
 ## axes
 
-| Axis | Score 0–10 | Evidence pointer | Last-change round |
-|---|---:|---|---|
-| depth | 8 | `SKILL.md` — anatomy, decision-table, four fidelity checklists, anti-pattern table, Sources; `corpus/knowledge/render-mechanism-round7.md` + `knowledge/opencode-offer-trace-round8.md` mechanism sections. Not 10: checklist execution is still lane-attested (no external verifier) | 9 |
-| consistency | 7 | `SKILL.md` — `## Router model — which harness, which gate` (omp vs opencode tag/render/gate/failure) + harness-qualified intro, frontmatter-craft opener, rule 8, rules 9, anti-pattern rows; `corpus/README.md` coverage map now indexes both round-8 artifacts and both lesson files; `corpus/lessons/round-8.md` written. Was 5 at the start of round 9 (`UNSCOPED=9 UNSUPPORTED=7` over 31 claim units, baseline table in `corpus/knowledge/claim-scope-audit-round9.md`) | 9 |
-| coverage | 7 | `PROVINCE.md`; `SKILL.md` § Instruction surfaces (7 classes); `corpus/README.md` § Coverage map + Known gaps. Below exhaustive: implicit-intent fidelity unmeasured; no MCP/plugin surface exists on this host | 9 |
-| operability | 6.5 | `SKILL.md` four checklists (13/9/12/8 items) applied to real files (round-5/6/7 audits); both harness Verify command blocks in `knowledge/harness-router-models-round9.md`. Ceiling: promotion evidence remains lane-asserted (`SHONEN.md` all `[~]`) | 9 |
-| freshness | 7.5 | `LOG.md` round-9 drift re-measure: omp cache 5/17 → 17 rows with 17/17 keys reproduced (`sqlite3 -readonly ~/.omp/agent/skill-descriptions.db "select count(*) from skill_descriptions;"` → 17; style-aware salt recipe in `knowledge/harness-router-models-round9.md`); warns 10681 → 10925 (`grep -rh 'Skill description compression failed' ~/.omp/logs/ | wc -l`); session_init 3911 → ~4032–4116 (`grep -rh '"type":"session_init"' ~/.omp/agent/sessions/ | wc -l`); opencode.db 415/216 and opencode.log 471 permission lines unchanged. Round-9 corpus rows re-labelled truncation-era | 9 |
-| calibration | 6 | `SHONEN.md` regenerated to the canonical 4-box seed with one evidence line per box (round-8 audit had flagged kotoba's prose variant); all marks `[~]` with pointers — no `[x]` is claimed anywhere. Ceiling: no non-author verifier has run the checklists | 9 |
-| adjacency | 7 | Cross-domain defects audited and routed, never fixed: sibling description rewrites remain proposals (`knowledge/sibling-description-rewrites-round8.md`); round-9 connector lane swept the five sibling `SKILL.md` files for the same unscoped harness claims and found none (`grep -n 'cliff\|<skills>\|<available_skills>\|slice(0,99)\|router\|opencode\|omp'` per file → no harness-unscoped skill-router claim), so no handover was owed for this axis-move | 9 |
+| Axis | Score | Evidence — command @ tree | Owned? | Last change |
+|---|---:|---|---|---|
+| depth | 9 — was 8 | `python3 verifiers/verify_harness_claims.py` → `27/27 checks pass` (exit 0, ≈3 s), `--self-test` → `0 failure(s) over 10 assertions`; the newest captured catalogue renders `17/17` lines from cache; `grep -c '^- \[ \]' SKILL.md` → 39 checklist boxes still lane-attested (13/9/9/8 by section) @ round-10 worktree | owned | 10 |
+| consistency (calibration sub-axis) | 8 — was 7 | `grep -rn 'commit \`round-[0-9]\`' corpus/ \| wc -l` → 0 (was 8); unindexed corpus files `comm -13 <(grep -oE '(knowledge\|lessons)/[A-Za-z0-9._-]+\.md' corpus/README.md \| sort -u) <(git ls-files corpus/ \| sed 's\|^corpus/\|\|' \| sort -u)` → 0 (was 7: `lessons/round-{1,3,4}.md`, the four aggregator audits; `README.md` self-excluded); aggregator r6 audit rows open 9 → 0 @ round-10 worktree | owned | 10 |
+| coverage (advisory) | 7 | `PROVINCE.md`; `SKILL.md` § Instruction surfaces (7 classes); `corpus/README.md` § Coverage map (30 rows) + Known gaps. Below 8: implicit-intent fidelity unmeasured; no MCP/plugin surface on this host @ e997d45 | advisory | 9 |
+| operability (advisory) | 7 — was 6.5 | `verifiers/verify_harness_claims.py` runs from any cwd (`cd /tmp && python3 …/verify_harness_claims.py` → exit 0) with 4 exit codes proven (0/1/2/3) and `--self-test`; `SKILL.md` checklist boxes remain the only un-automated procedures (39 boxes) @ round-10 worktree | advisory | 10 |
+| freshness (advisory) | 8 — was 7.5 | round-10 re-measure inside the move: `sqlite3 -readonly ~/.omp/agent/skill-descriptions.db "select count(*),min(length(description)),max(length(description)) from skill_descriptions;"` → 17/44/98 (round 9: 17); `grep -c 'evaluated permission=skill' ~/.local/share/opencode/log/opencode.log` → 471 (unchanged); `grep -o 'message=init count=[0-9]*' … \| sort \| uniq -c` → 15×1 16×141 17×34 18×14 (unchanged); compression warns 10925 → re-run before citing; **new**: the round-9 file's template + root-list claims were re-read against the ELF and two were wrong → corrected @ round-10 worktree | advisory | 10 |
+| calibration (advisory) | 7 — was 6 | `SHONEN.md` regenerated with corrected counts (20 data-row anti-pattern table; `13/9/9/8` checkboxes by `git show HEAD:SKILL.md \| awk '/^## /{h=$0} /^- \[ \]/{c[h]++} END{print c[h]}'`; trailing newline present — aggregator r6 defects 1/9); every row above carries its command and tree; the depth row names what is *not* covered (39 checklist boxes) @ round-10 worktree | advisory | 10 |
+| adjacency (advisory) | 7 | Cross-domain defects audited and routed, never fixed: `corpus/knowledge/sibling-description-rewrites-round8.md` proposals unapplied; round-10 connector sweep found no sibling verifier overlap (`/tmp/round10/sibling-overlap.md`); the `8c300ad` non-lane git-identity class (kumitate `7a4c9a0`, kagi `ea77bf0`) reported, not repaired @ round-10 worktree | advisory | 10 |
 
 ## planned
 
-Round 10 — **depth**: convert the round-9 harness model into an executable
-verifier (a committed script that recomputes the omp cache-key coverage and the
-opencode `init count` reconstruction and exits non-zero on drift), so the two
-harness claim sets stop depending on hand-run recipes.
+Round 11 — **calibration** (lowest owned sub-axis after this move): promote the
+verifier from lane-run to *non-author-run* by attaching a reproducible
+`verifiers/` invocation record from a lane that did not author it (the depth row
+names the ceiling: 43 SKILL.md checklist boxes are still lane-attested). Second
+candidate, if calibration evidence lands early: `consistency` 8 → 9 by making
+`corpus/README.md` index coverage machine-checked (`comm` diff in a committed
+check) instead of hand-run. Move either way is falsified by the counting command
+above, re-run at round 11.
 
 ## retired
 
-None yet. No saturation or wrong-fit evidence (`../AXES.md`, § Working an axis).
+None. No saturation or wrong-fit evidence (`../AXES.md`, § Working an axis).
+
+## Move log
+
+| Round | Axis | Before | After | Evidence |
+|---|---|---|---|---|
+| 1–9 | see `LOG.md` rounds 1–9 and `corpus/lessons/round-*.md` | — | — | per-round reports `.ufo/reports/round-N/kotoba.md` |
+| 9 | consistency | 5 — 31 claim units, 9 UNSCOPED, 0 `<available_skills>` | 7 — UNSCOPED 0, 6 residuals re-worded, router model section | `corpus/knowledge/claim-scope-audit-round9.md` @ `e997d45` |
+| 10 | depth | 8 — harness claim set lived as 6 hand-run recipes; no committed verifier | 9 — `verifiers/verify_harness_claims.py` 27 checks, exit 0/1/2/3, `--self-test` 10 assertions, 17/17 keys reproduced, newest catalogue 17/17 from cache | `verifiers/baseline.json` @ round-10 worktree |
+| 10 | consistency (integration, not a second move) | 7 — 8 dead commit pointers, 4 unindexed files, 9 routed aggregator defects open | 8 — pointers 0, unindexed 0, routed defects 0 open | `corpus/lessons/round-10.md` § Audit closure @ round-10 worktree |

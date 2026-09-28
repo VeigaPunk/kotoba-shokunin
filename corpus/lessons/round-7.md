@@ -1,6 +1,6 @@
 # Lessons — round 7
 
-Round: 7. Evidence: `LOG.md` round-7 entry, commit `round-7`, report
+Round: 7. Evidence: `LOG.md` round-7 entry, commit `3b029b8`, report
 `/home/vgpnk/projects/shokunin/.ufo/reports/round-7/kotoba.md`, artifacts
 `knowledge/render-mechanism-round7.md`, `knowledge/dispatch-prompt-audit-round7.md`,
 `knowledge/alwayson-checklist-round7.md`. Nine L2 lanes in one batched

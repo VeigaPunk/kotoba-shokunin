@@ -1,6 +1,6 @@
 # Lessons — round 1
 
-Round: 1. Evidence: `LOG.md` round-1 entry, commit `round-1`,
+Round: 1. Evidence: `LOG.md` round-1 entry, commit `1d93182`,
 report `/home/vgpnk/projects/shokunin/.ufo/reports/round-1/kotoba.md`.
 
 ## Worked

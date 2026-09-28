@@ -1,6 +1,6 @@
 # Lessons — round 4
 
-Round: 4. Evidence: `LOG.md` round-4 entry, commit `round-4`,
+Round: 4. Evidence: `LOG.md` round-4 entry, commit `397b29c`,
 report `/home/vgpnk/projects/shokunin/.ufo/reports/round-4/kotoba.md`.
 
 ## Worked

@@ -175,3 +175,74 @@
   `corpus/knowledge/harness-router-models-round9.md`,
   `corpus/knowledge/claim-scope-audit-round9.md`, `corpus/lessons/round-9.md`,
   report `../.ufo/reports/round-9/kotoba.md`.
+
+## Round 10 — kotoba lane — depth axis-move: the harness claim set becomes executable
+
+- **Trigger.** `SCORECARD.md` planned round 10 on depth, whose recorded ceiling
+  was "the harness claim set lives as hand-run recipes, so nothing fails when a
+  claim stops being true". Round 10 also began with the aggregator's non-author
+  audit (`corpus/lessons/round-6-aggregator-audit.md`) landing in this tree with
+  a **not conformant** verdict: 9 kotoba-owned defects, several routed open for
+  4–6 rounds.
+- **Action (the move).** Landed `verifiers/verify_harness_claims.py` +
+  `verifiers/baseline.json`: **27 checks** over the two skill routers, exit 0
+  agree / 1 drift / 2 environment unreadable / 3 no baseline, `--self-test` over
+  the script's own model, and `--omp-bin/--omp-db/--oc-log/--oc-bin/--omp-sessions/
+  --cwd/--baseline` overrides so it can be tested on fixture worlds.
+  Key facts it pins: the omp key prefix recovered from the ELF by byte anchor
+  (273 B, sha256 `c1f03c8e248eb40e…`, placeholders included) and the cache key
+  `sha256(T ‖ 0x00 ‖ name ‖ 0x00 ‖ style-aware description)`; 17 offered skills
+  from the roots `~/.agents/skills` + `~/.omp/agent/skills` (+ shadowing
+  `.config/opencode` / `.claude` trees); 17/17 keys reproduced; 0 cache misses;
+  the **newest captured `<skills>` block matched line-by-line against the cache
+  (17/17)**; unmodelled YAML scalars excluded, never guessed; dangling skill
+  dirs counted; opencode `init count` max == root union + builtin,
+  `<available_skills>` 0 hits, per-root duplicate split both-sided, monotone
+  init counts, `skill`-permission allow lines.
+- **Authority upgrade.** omp ships as a Bun single-file executable with readable
+  embedded JS: `A8n` (key), `H7s` (`previewSkillDescription`), `ldl` (compressor
+  acceptance ≤160 chars / ≤12 words / single line), `_8n=100, idl=160, adl=12`.
+  Round-7/9 cited ELF offsets and a stale `slice(0,99)` literal; this round cites
+  functions and anchors, so a build change moves a recorded sha256 instead of
+  silently invalidating prose.
+- **A routed round-9 claim was falsified.** The hashed template is the whole
+  273-byte bunfs prompt (routing-hint sentence + `Skill: {{name}}` /
+  `Description: {{description}}`); round 9 recorded only the 226-byte first
+  line, which reproduces **0/17** keys. Corrected in
+  `corpus/knowledge/harness-router-models-round9.md`, `SKILL.md` § Sources and
+  the new artifact. Independently reproduced by three lanes (critic, executor's
+  own implementation, scout) — one of them also cross-checked 11/11 of this
+  repo's `omp.*` baseline values.
+- **Audit closure (aggregator r6, 9 defects → 0 open).** `SHONEN.md` regenerated
+  with the measured counts (20 data-row anti-pattern table; `13/9/9/8` checklist
+  boxes) and a trailing newline; 8 dead `commit round-N` pointers replaced by
+  real hashes (`1d93182`, `397b29c`, `4002b9f`, `a614927`, `3b029b8`); index rows
+  added for `lessons/round-{1,3,4}.md` and the four aggregator audits
+  (`comm` diff now returns only the self-referential `README.md`); the
+  falsified "compression is a model call" clause in
+  `knowledge/skill-activation-telemetry.md` given an appended, named correction;
+  CLAUDE.md census re-based 16 → 18; source-length range re-based to 163–818 with
+  its measuring command; `SCORECARD.md` rewritten so every row carries
+  `score — command @ tree`, an owned/advisory label, a fractional rubric and an
+  axis-name reconciliation (`consistency` declared a calibration sub-axis; the
+  `AXES.md`↔`MISSION.md` mismatch routed to the protocol lane). The audit file
+  itself arrived as the aggregator's own commit `778310d` (child of the round-9
+  close `8e22a41`), authored while this round was running; its findings were
+  taken as ground truth rather than re-run, and the audit-trail is now indexed.
+- **Outcome / evidence.** `python3 verifiers/verify_harness_claims.py` →
+  `27/27 checks pass` (exit 0, ≈3 s); perturbed baseline → exit 1 naming exactly
+  the perturbed checks; `HOME=/tmp/...emptyhome` → exit 2; baseline removed →
+  exit 3; `--self-test` → 0 failures / 10 assertions; 10 planted faults → 9
+  detected (the 10th is an equivalent mutation: `>-` trailing whitespace is
+  discarded by the loader, so the key is identical and agreement is correct).
+  Freshness inside the round: db 17 rows 44–98 chars; newest catalogue
+  2026-09-28T21:47:06Z 17/17 cache over 5924 session files (4116 real
+  `<skills>` blocks vs 8194 contaminated literals); opencode init distribution
+  15×1 16×141 17×34 18×14, permission lines 471/471 allow, dup split 3 roots
+  both-sided; `session_init` 4142; compression warns 10925; omp binary sha256
+  `55016ef5…`. 14 L2 lanes in two batched `task` calls (floor 8).
+- **Falsifiable next iteration (round 11).** calibration: make the depth
+  evidence non-author-verifiable (a reproducible run record from a lane that did
+  not author the round) — falsified if no non-author run record is attached, or
+  if `SHONEN.md` still needs a `[x]` for that reason. 39 `SKILL.md` checklist
+  boxes remain lane-attested and are named as the standing ceiling.

@@ -1,6 +1,6 @@
 # Lessons — round 6
 
-Round: 6. Evidence: `LOG.md` round-6 entry, commit `round-6`, report
+Round: 6. Evidence: `LOG.md` round-6 entry, commit `a614927`, report
 `/home/vgpnk/projects/shokunin/.ufo/reports/round-6/kotoba.md`,
 artifacts `knowledge/agent-def-audit-round6.md`,
 `knowledge/claude-md-surface.md`, `knowledge/trigger-miss-proxy-round6.md`.

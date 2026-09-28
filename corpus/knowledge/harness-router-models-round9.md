@@ -36,10 +36,17 @@ adding a skill or editing a description changes the key and re-opens the
 truncator path. [r9]
 
 ```bash
-# template recovered from the omp ELF: `strings -n 6 ~/.local/bin/omp`
-#   ... "Compress into one routing hint of at most 12 words: WHEN to use; WHEN NOT
-#        only if it prevents confusion. …  Output one line without bullets or quotes."
+# template recovered from the omp ELF by anchoring, not by offset (round 10):
+#   the keyed prompt is the whole NUL-terminated bunfs file
+#   `/$bunfs/root/compress-description-<hash>.md`, 273 bytes, sha256
+#   c1f03c8e248eb40ec7735baab67f686fc2f254e00d2a0241ff220628461bdb51:
+#     Compress into one routing hint of at most 12 words: WHEN to use; WHEN NOT
+#     only if it prevents confusion. Retain recognizable trigger words. Do not
+#     restate the skill name or market it. Output one line without bullets or
+#     quotes.\n\nSkill: {{name}}\nDescription: {{description}}\n
+#   round 9 quoted only the first line — the placeholders are part of the hash
 # key rule: sha256(template ‖ 0x00 ‖ name ‖ 0x00 ‖ loader-held description)
+# authority: readable embedded JS (A8n/H7s/ldl), round 10, not disassembly
 ```
 
 **Catalogue freeze (measured).** Scanning 230 captured `<skills>` blocks across
@@ -74,6 +81,11 @@ had. Same-key edits and an already-completed async write are exceptions. [r9]
   `~/.config/opencode/skills/ufo`). A file outside every root (e.g. this repo's
   `*-shokunin/SKILL.md` set) is never offered — its description craft is
   audit-hygiene, not routing. [r7]
+  **Round-10 correction:** `~/.agents/skills` is the root that carries 15 of the
+  17 offered names (round 9 named only `.agents/skills` in passing) and
+  `~/.omp/agent/skills` carries the other two; the 17-row cache is exactly this
+  union. Two entries there (`sekhmet`, `xbrd`) are dangling symlinks and are
+  therefore not offered — `verifiers/` records that count instead of ignoring it.
 - **Failure modes (cache-miss path):** hard cliff at offset 99 (chars ≥99
   contribute 0; effective keep 55–96, mean 83.9); 53/62 quoted trigger spans
   lost, 0/13 `Triggers:`/反触发/`Excludes`/`不用于` markers survive; CJK worse
@@ -83,6 +95,7 @@ had. Same-key edits and an already-completed async write are exceptions. [r9]
   sqlite3 -readonly ~/.omp/agent/skill-descriptions.db "select length(description), description from skill_descriptions;"
   grep -ho '<skills>' ~/.omp/agent/sessions/**/*.jsonl | wc -l    # catalogue blocks in captured sessions
   grep -rh '"type":"session_init"' ~/.omp/agent/sessions/ | wc -l   # counter drifts inside a round: re-run
+  python3 verifiers/verify_harness_claims.py   # round 10: the three probes above as pass/fail checks
   ```
 
 ## opencode
@@ -128,6 +141,7 @@ had. Same-key edits and an already-completed async write are exceptions. [r9]
   ```bash
   grep -o 'message=init count=[0-9]*' ~/.local/share/opencode/log/opencode.log | sort | uniq -c  # 15×1 16×141 17×34 18×14
   grep -c '<available_skills>' ~/.local/share/opencode/log/opencode.log   # 0 — never logged
+  python3 verifiers/verify_harness_claims.py   # round 10: init count vs root union + builtin, dup split
   ```
 
 ## Cross-harness craft rules

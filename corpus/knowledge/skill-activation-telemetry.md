@@ -30,6 +30,16 @@ measured sizes below as that era's snapshot.
   is a paraphrase), and it has a logged failure mode: 10191
   `"Skill description compression failed"` warns across `~/.omp/logs/`.
 
+> **Round-10 correction (aggregator audit r6, defect 4).** The clause above is
+> **falsified** and stands only as the round-5 statement it was. The live
+> mechanism is **cache-or-truncate**: `cache.get(key) ?? previewSkillDescription`
+> — the truncator is a deterministic `slice(0,99)` + last-space `…`, and the
+> model call only fills the cache asynchronously afterwards. See
+> `knowledge/render-mechanism-round7.md`, `knowledge/harness-router-models-round9.md`,
+> and the executable check `verifiers/verify_harness_claims.py`
+> (`omp.cache.keys_reproduced`, `omp.cache.misses`). The failed-warn count is
+> also live: 10925 at round 9, not 10191.
+
 **Craft consequence (opinion):** `description` bytes are *input to a
 compressor*, not router-visible text. Front-load the match-critical clause in
 the first ~95 chars; a trigger string or anti-trigger placed late in a long

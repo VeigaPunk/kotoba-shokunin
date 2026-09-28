@@ -1,6 +1,6 @@
 # Lessons — round 5
 
-Round: 5. Evidence: `LOG.md` round-5 entry, commit `round-5`,
+Round: 5. Evidence: `LOG.md` round-5 entry, commit `4002b9f`,
 report `/home/vgpnk/projects/shokunin/.ufo/reports/round-5/kotoba.md`,
 audit artifact `corpus/knowledge/fleet-skill-audit-round5.md`.
 
