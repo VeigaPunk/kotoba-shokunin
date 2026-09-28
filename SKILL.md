@@ -172,8 +172,9 @@ mechanism that moved. Model + gaps: `corpus/knowledge/harness-verifier-round10.m
 
 `description` is an index, not a summary. On **omp** the router ingests it
 through a **cache-or-truncate** render (mechanism proven from the omp binary,
-`corpus/knowledge/render-mechanism-round7.md`): if a `sha256(prompt + name +
-ws-collapsed description)` row exists in `~/.omp/agent/skill-descriptions.db`
+`corpus/knowledge/render-mechanism-round7.md`): if a
+`sha256(prompt ‖ 0x00 ‖ name ‖ 0x00 ‖ loader-held description)` row exists in
+`~/.omp/agent/skill-descriptions.db`
 the render is that LLM one-liner (≤160 chars, ≤12 words); otherwise a
 deterministic truncator keeps at most 99 chars — first sentence wins if ≥40
 chars, else last-space cut + `…`. Measured over the live 17-skill omp
@@ -182,7 +183,12 @@ quoted trigger spans are lost, and all 13 `Triggers:`/反触发/`Excludes`/`不�
 clause markers sit past the cliff — none render (round-7 measurement; round 9
 adds the drift: cache coverage 5/17 → 17/17 rows, so the truncator is now the
 fallback, not the default — a session started before a row landed still shows
-the truncation). On **opencode** the full `description` reaches the model
+the truncation. Round 10 re-read the salt from the shipped JS: it is the
+**loader-held** description (`>`/`|` keep their trailing newline, `>-`/plain do
+not), so a uniform ws-collapse check reproduces 11/17 and invents staleness;
+`verifiers/verify_harness_claims.py` checks all 17, and 17/17 lines of the newest
+captured catalogue render from cache). On **opencode** the full `description`
+reaches the model
 untruncated, so front-loading there is style, not survival; trigger strings and
 anti-triggers stay mandatory on both, because the offer gate and the model's own
 matching both read the description. Field rules distilled from the survey and
