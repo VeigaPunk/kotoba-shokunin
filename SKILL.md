@@ -339,8 +339,17 @@ in "Instruction surfaces" instead — this checklist assumes a routed file.)
       `opencode.json`); bare basenames that exist under multiple roots fail.
       The mechanically checkable subset — index coverage of `corpus/`, lane-report
       pointers, and `commit` citations — is enforced, not read:
-      `python3 verifiers/verify_corpus_integrity.py` exits non-zero on a dead
-      pointer or a non-hash commit token.
+      `python3 verifiers/verify_corpus_integrity.py` (run it from the repo root, or
+      give it `--repo <repo>`: a *relative* script path resolves against your cwd
+      while the checked repo defaults to the script's grandparent) exits non-zero
+      on a dead pointer or a non-hash commit token.
+- [ ] A claim that only its author's instrument settles names that as a gap, and
+      its second witness is a **derivation, not a re-run** — an independent
+      implementation of the class model compared check-for-check, red and green.
+      A re-run (or a cold run) of the author's own script reproduces its bugs with
+      it and cannot falsify it; agreement between two derivations is evidence, and
+      their first disagreement is the finding. Worked example:
+      `corpus/knowledge/independent-verification-round12.md`.
 - [ ] Stale-risk facts (model names, versions, prices) are either pinned with a
       source or deferred to `--help` / reference files.
 - [ ] File ≤ ~600 lines; overflow already moved to referenced depth files.
@@ -587,6 +596,21 @@ fails procedures/dates/style) in `corpus/knowledge/alwayson-checklist-round7.md`
 - `corpus/knowledge/cold-run-round11.md` — the non-author cold run of the corpus
   verifier (runner, tree, command, exit code, spot-checks); the evidence class
   this repo uses when a check must not be its author's only witness.
+- `verifiers/verify_corpus_independent.py` +
+  `corpus/knowledge/independent-verification-round12.md` — the **second**
+  witness, and the right shape for one: a derivation written from the class
+  spec by a lane that did not author `verify_corpus_integrity.py` (and did not
+  read it), compared check-for-check on two trees (green live, red on a clone at
+  `d49dfa5` with the same ten dead-pointer sites). A re-run of the author's
+  script is not a second witness — it launders a broken model; the comparison's
+  own artefacts this round were two claim/behaviour gaps in the author's script
+  (a documented quoted-context rule that could never fire; an index census that
+  read more of `README.md` than it claimed) and one shared property (pointer
+  resolution is host-anchored, so a clone's green verdict is not hermetic).
+- `verifiers/fault_injection_corpus.sh` — the planted-fault harness, in-repo so
+  the "the checks fire" claim stops depending on `/tmp` scratch; plants one
+  fault per clone and asserts the *class* that must fire, plus a must-not-fire
+  equivalent mutation.
 - `corpus/knowledge/harness-verifier-round10.md` — what the verifier checks and
   the facts behind each check (key prefix bytes + sha256, style-aware salt,
   offer-gate roots, opencode counter checks) plus its open gaps.

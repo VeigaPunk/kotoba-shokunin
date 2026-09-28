@@ -15,7 +15,17 @@ $ sha256sum <repo>/verifiers/verify_corpus_integrity.py
 631569277d112e8effab3428ca89af53cbcf09f85ad5dad714827deefa2eb4aa  <repo>/verifiers/verify_corpus_integrity.py
 ```
 
-Gate: **PASSED** — equals the round-11 brief's `631569277d112e8effab3428ca89af53cbcf09f85ad5dad714827deefa2eb4aa`; the artifact did not move, so the record stands.
+- Gate: **PASSED** — equals the round-11 brief's `631569277d112e8effab3428ca89af53cbcf09f85ad5dad714827deefa2eb4aa`; the artifact did not move, so the record stands.
+- **Reachability qualifier (added at landing, round 12).** `631569277d…` and the §6
+  re-gate value `2f07179c…` are *content* sha256s of an **untracked** file at the
+  capture instants; no commit contains them, so neither is recoverable from the repo
+  (`git cat-file -e 631569277d` fails — they are not object ids). The reachable
+  hashes of the same file are
+  `391a54f4a64b16620bfe68f66e021cff3ee4be5dd122bfebc34c6eb4c186f29c` at `4dd7753`
+  (`git show 4dd7753:verifiers/verify_corpus_integrity.py | sha256sum`) and
+  `747b1226feb05cfa49de8e300df62bd300aa03ed1886ef04d261e7ddd3d6c081` after the
+  round-12 repair (§7). The gate was true when taken; it is not independently
+  checkable today, and the record says so rather than implying otherwise.
 
 Baseline identity: `verifiers/corpus-baseline.json` sha256
 `bcbcfee1d8b66ef78fa24a5a52cd96654603c3a3c1f728601bb006d1f3da0e6e` — the DRAFT
@@ -307,13 +317,12 @@ the comment-only edit is behavior-neutral on every observable surface
 to tree movement.
 
 
-## 7. Round-12 landing note (declared)
+## 7. Round-12 landing and repair (declared)
 
 The round-11 landing was interrupted before its commit; the round-12 respawn
-resolved the working tree. Two site classes were re-presented so the landed tree
-passes the check this capture is about — presentation only, no number, command,
-or exit code changed, and the shipped script is byte-identical to the §6 re-gate
-sha256 (`2f07179c…`), so that gate still holds:
+resolved the working tree and landed it as `4dd7753`.
+
+**Landing edits (presentation only — no number, command, or exit code changed):**
 
 - §3(b): the reported-ABSENT token is now prose — the probe root and the missing
   file are named without a literal pointer. A live pointer to an absent path is
@@ -321,6 +330,55 @@ sha256 (`2f07179c…`), so that gate still holds:
 - §6: the bare form as captured is now the host-absolute path it names, so the
   "it landed" claim is also a resolving pointer.
 
-Re-verified after the edits: `test -e` still ABSENT at the prose-named probe
-root, EXISTS for the host-absolute path; the landing tree is green
-(`corpus/lessons/round-11.md` carries the landed counts).
+Re-verified after those edits: `test -e` still ABSENT at the prose-named probe
+root, EXISTS for the host-absolute path.
+
+**Round-12 repair to the instrument (behaviour change, re-gated here).** The
+docstring documents a quoted-context rule for report pointers, but the
+documented idiom could never fire: the tokenizer's char classes admitted `"`, so
+the match began at the opening quote and `inside_quotes` saw zero quotes before
+the span. Live proof on a fixture world (clone of HEAD, two lines appended to a
+tracked corpus file):
+
+```
+$ python3 <pre-fix script> --repo <fixture> --no-baseline --json     # tokens: ".../round-99/kotoba.md" and /home/.../round-99/kotoba.md
+report_total 26  dead 2   (dead_detail: line of the QUOTED token, and the unquoted one)
+$ python3 <repaired script> --repo <fixture> --no-baseline --json
+report_total 25  dead 1   quoted 1 (the quoted token, recorded as context)
+$ python3 <repaired script> --repo <fixture> --no-baseline ; echo exit=$?   # quoted line removed
+report_dead=0/24 … 9/9 checks pass  → exit=0
+```
+
+Change landed: `UFO_POINTER_RE`'s char classes exclude `"`, `citation_findings`
+returns `report_pointers_quoted[_detail]`, the collector aggregates and prints
+them, and `--self-test` pins the idiom (span excludes the quote; the quoted token
+is context, the same token unquoted is still checked and still dead).
+
+**Second round-12 repair, same file (index scan scope).** The docstring says the
+INDEX family reads "ONLY column 2 (File) of the coverage-map table rows in
+`corpus/README.md`"; the code read column 2 of *any* table row in that file. The
+independent derivation (`verifiers/verify_corpus_independent.py`, round 12) named
+the difference and measured it: 0 tokens outside the coverage-map section in
+either world, so no number moved — but a future README table about something else
+could have moved `corpus.index.{stale_patterns,missing_paths}`. The census is now
+scoped to the `## Coverage map` section (terminated by the next `## ` heading),
+with two new self-test assertions pinning that an outside-section column-2 token
+produces no pattern and no finding. Live effect: `index_patterns` stays 37, the
+nine verdicts unchanged.
+
+```
+$ sha256sum verifiers/verify_corpus_integrity.py
+a32da4a4224e9810549016ec3000583f3068bf552d7a92b0666114c32476dd56   # after both round-12 repairs
+$ python3 verifiers/verify_corpus_integrity.py --self-test ; echo exit=$?
+self-test: 0 failure(s) over 88 assertions
+exit=0
+$ python3 verifiers/verify_corpus_integrity.py | tail -1
+9/9 checks pass
+```
+
+So the §6 gate value (`2f07179c…`) describes the *pre-round-12* file, and §1's
+`631569277d…` the file before that; both are unreachable from the repo (see the
+qualifier in §1). `391a54f4…` is the content hash of the file as landed at
+`4dd7753`; `747b1226…` was the content hash after the quoted-token repair;
+`a32da4a4…` is the current content hash (quoted-token repair + index-scope
+repair), landed by the round-12 commit.

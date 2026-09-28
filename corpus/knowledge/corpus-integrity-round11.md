@@ -2,7 +2,11 @@
 
 Sourced 2026-09-28 (round 11). This file is the human-readable half of
 `verifiers/verify_corpus_integrity.py`; the script is the authority. Every number
-below was printed by the command next to it.
+below was printed by the command next to it — at the instant it was measured. The
+landing note at the end recites the seven values that moved when the round-11
+files landed, with the commands that re-derive them at the landed tree; the four
+zero-claims (`report_dead`, `commit_nonhash`, `commit_unresolvable`, and the index
+zeros) hold at both trees.
 
 Before-state = committed `HEAD` (`d49dfa5`), reproduced by cloning it — an
 uncommitted fix reads as "agree" to any check that reads the working tree, so
@@ -82,10 +86,10 @@ brace/glob-aware matching, is 0 unindexed with the index's own `README.md`
 excluded:
 
 ```bash
-git ls-files corpus/ | wc -l                    # → 33 tracked corpus files
+git ls-files corpus/ | wc -l                    # → 36 tracked corpus files (33 before the round-11 files landed)
 python3 verifiers/verify_corpus_integrity.py --json | \
   python3 -c 'import json,sys;o=json.load(sys.stdin)["observed"]["corpus"];print(o["index_patterns"], o["unindexed"], o["stale_patterns"], o["missing_paths"])'
-# → 32 0 0 0
+# → 37 0 0 0   (32 0 0 0 at the before-state: the round-11 rows add five FILE-column tokens)
 ```
 
 `L1` also reported this command emitting `comm: file 1 is not in sorted order`.
@@ -132,7 +136,9 @@ The counting trap that hides this class: a `../.ufo` substring pattern also coun
 a `../../.ufo` line, so `grep -c '\.\./\.ufo/reports/round-' corpus/README.md`
 printed **9 before and 9 after** the repair (measured while the rows briefly held
 the `../../.ufo` intermediate form). Only per-citing-directory resolution
-separates the two states.
+separates the two states. At the landed tree the same command prints `0` — every
+README row is host-absolute now, which is why the check's *shape* counters
+(`report_pointer_shapes`) and not a substring `grep` are the readable surface.
 
 ## The verifier — 9 checks, 4 exit codes
 
@@ -140,13 +146,13 @@ separates the two states.
 
 | Check id | Agrees when | Before → after |
 |---|---|---|
-| `corpus.index.tracked_files` | tracked-corpus census matches the baseline | 33 (unchanged) |
+| `corpus.index.tracked_files` | tracked-corpus census matches the baseline | 33 → 36 |
 | `corpus.index.unindexed` | every tracked corpus file has an index row under brace/glob expansion (self-reference excluded) | 0 → 0 |
 | `corpus.index.stale_patterns` | no index row names a corpus file that does not exist | 0 → 0 |
 | `corpus.index.missing_paths` | every FILE-column path (incl. `../verifiers/*`) exists | 0 → 0 |
-| `corpus.pointers.report_total` | checked pointer count matches the baseline | 19 → 19 |
+| `corpus.pointers.report_total` | checked pointer count matches the baseline | 19 → 24 |
 | `corpus.pointers.report_dead` | every checked pointer resolves from its citing file's directory | **10 → 0** |
-| `corpus.pointers.commit_total` | hex `commit`-citation count matches the baseline | 18 → 21 |
+| `corpus.pointers.commit_total` | hex `commit`-citation count matches the baseline | 18 → 22 |
 | `corpus.pointers.commit_unresolvable` | every cited hex resolves as a commit in this repo | 0 → 0 |
 | `corpus.pointers.commit_nonhash` | no live `commit` citation carries a non-hash token | **1 → 0** |
 
@@ -166,13 +172,17 @@ python3 verifiers/verify_corpus_integrity.py --repo /tmp/before-clone --no-basel
 # 7/9 checks pass; DRIFT: corpus.pointers.report_dead, corpus.pointers.commit_nonhash
 # exit=1
 python3 verifiers/verify_corpus_integrity.py ; echo "exit=$?"
-# corpus.pointers report_dead=0/19 commit_total=21 unresolvable=0 nonhash=0
-#                 (shapes [relative=0, absolute=18, tilde=1, bare=0], quoted-excluded=1, pointer-excluded=1)
+# corpus.pointers report_dead=0/24 commit_total=22 unresolvable=0 nonhash=0
+#                 (shapes [relative=0, absolute=23, tilde=1, bare=0], quoted-excluded=1, pointer-excluded=8)
 # 9/9 checks pass
 # exit=0
 ```
 
-Exit codes probed, not asserted: perturbed baseline (`commit_total` expect 21 → 18)
+The green-after block above is the landed tree (33 → 36 tracked files, 19 → 24
+checked pointers, 21 → 22 commit citations; the `19`/`21`/`1` values in the
+before-block are the clone's).
+
+Exit codes probed, not asserted: perturbed baseline (`commit_total` expect 22 → 18)
 → exit 1 naming exactly that id; `--repo /tmp/notgit` → exit 2; baseline removed
 → exit 3.
 
@@ -205,8 +215,9 @@ pointer. Each has a named reason, not a tolerance.
 |---|---|---|
 | illustrative prose (`../sibling/SKILL.md`, `../bailian-protocol/…`) | `corpus/knowledge/fail-closed-and-anti-patterns.md` | outside the `.ufo/reports/round-N/*.md` class |
 | quoted meta-finding (`../godspeed-core/directive.md`) | `corpus/knowledge/agent-def-audit-round6.md:77` | idem |
-| placeholder pointer (`.ufo/reports/round-1/<lane>.md`) | `corpus/knowledge/dispatch-prompt-audit-round7.md:42` | `is_excluded_pointer` (`<`/`>` marker) → counted as `pointer-excluded=1` |
+| placeholder pointer (`.ufo/reports/round-1/<lane>.md`) | `corpus/knowledge/dispatch-prompt-audit-round7.md:42` and six more sites in the round-11 records | `is_excluded_pointer` (`<`/`>` marker) → counted as `report_pointers_excluded` (8 at the landed tree, 1 at the before-state) |
 | quoted `commit` citation, non-hash token | `corpus/lessons/round-6-aggregator-audit.md:45` | `inside_quotes` → `commit_quoted` context |
+| quoted *report pointer* (a reported-absent path) | any corpus file that names an ABSENT path | `inside_quotes` → `report_pointers_quoted` context — **only after the round-12 repair**; before it the tokenizer swallowed the opening quote, so the match began at `"` and the rule could never fire (proof in `corpus/knowledge/cold-run-round11.md` §7) |
 | ellipsis-mimicking-`../` (`corpus/.../.ufo/…`) | schematic prose | `is_excluded_pointer` (segment containing `..`) |
 | glob spans, code literals, deliberate dead-path drift lists | `SKILL.md` (never scanned: outside `corpus/`) | scope |
 
@@ -234,7 +245,7 @@ actually needed.
   pattern), and so is a pointer from an untracked file. Planted-fault run: "add a
   new corpus file, `git add` it" → `corpus.index.unindexed` fires; "add it and do
   not stage it" → silent. `git status` is the guard; the checker cannot be.
-- The checked pointer population is 19, of which 18 are host-absolute. A check
+- The checked pointer population is 24, of which 23 are host-absolute. A check
   that asserts resolution is doing real work, but the host-absolute convention is
   machine-local: on another host the whole class fails at once. Repo-relative
   forms would be portable; the corpus has not been normalised to them.
@@ -242,15 +253,40 @@ actually needed.
   change-detectors: they fire when the corpus legitimately grows. The growth
   procedure is manual (re-record `verifiers/corpus-baseline.json` after confirming
   each moved value is explained).
-- `SKILL.md`'s 39 checklist boxes (13/9/9/8 by section, `grep -c '^- \[ \]' SKILL.md`)
+- `SKILL.md`'s 40 checklist boxes (14/9/9/8 by section at round 12 — 39/13/9/9/8 when this file was written; `grep -c '^- \[ \]' SKILL.md`)
   remain lane-attested. This round machine-checked counting, not execution: no
   verifier in this repo runs a single box.
 - Report pointers in `LOG.md`/`SCORECARD.md`/`SKILL.md` are unchecked (above).
 ## Landing note (round 12)
 
 The round-11 landing commit was taken by the round-12 respawn after the round-11
-working tree was finished: the two reported-absent tokens in this artifact (the
-bare pre-fix form above, and the same class in `corpus/README.md` rows already
-fixed) were rewritten as prose — a live pointer to an absent path is exactly what
-the check must flag — so the landed tree passes the very check this artifact
-documents. No count, command, or verdict in this file changed.
+working tree was finished (landed as `4dd7753`): the two reported-absent tokens in
+this artifact (the bare pre-fix form above, and the same class in `corpus/README.md`
+rows already fixed) were rewritten as prose — a live pointer to an absent path is
+exactly what the check must flag.
+
+**Counts that moved at landing** (round-12 census, `/tmp/round12/ScoutClaimCensus/census.md`;
+the moved values are stated above, so this table is the audit trail, not a second
+set of claims):
+
+| Value | Written as | At the landed tree | Command |
+|---|---|---|---|
+| tracked corpus files | 33 | **36** | `git ls-files corpus/ \| wc -l` |
+| FILE-column tokens | 32 | **37** | `python3 verifiers/verify_corpus_integrity.py --json` → `index_patterns` |
+| checked report pointers | 19 | **24** | same → `report_total` |
+| `report_pointers_excluded` | 1 | **8** | same → `report_pointers_excluded` |
+| `commit_total` (after) | 21 | **22** | same → `commit_total` |
+| host-absolute / tilde of checked | 18+1 of 19 | **23+1 of 24** | same → `report_pointer_shapes` |
+| `--self-test` assertions | 80 | **88** (86 after the quoted-token repair, +2 for the index-scope pins) | `python3 verifiers/verify_corpus_integrity.py --self-test` |
+
+Cause of every move: the round-11 corpus files landed (three new tracked files,
+five new index tokens, four new checked pointers) and the round-12 fill turned the
+README's round-11 `landing hash` prose into a `commit` citation. `report_dead`,
+`commit_nonhash`, `commit_unresolvable` and the index zeros are unchanged and zero
+at both trees.
+
+**One gap this file names and cannot close:** the planted-fault run above has no
+re-runnable artifact — its log lived in `/tmp/round11/`, wiped under disk pressure.
+The round-12 landing commits a fault harness
+(`verifiers/fault_injection_corpus.sh`) so that record class stops depending on
+`/tmp`.

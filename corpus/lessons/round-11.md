@@ -19,7 +19,8 @@ landing hash `4dd7753`.
   check over every relative-looking token fails on this corpus for six distinct,
   legitimate reasons (see the artifact's exclusion table). The landed class is
   narrow — `.ufo/reports/round-N/*.md` tokens that are not placeholders or
-  schematic — and covers 19 live pointers plus the 10 that were dead.
+  schematic — and covers 24 live pointers (19 at the before-state) plus the 10
+  that were dead.
 - **A digest is not a commit.** `SKILL.md` @ `143fe473…` was an **md5**, printed
   with the same `@` notation used for commits; `cat-file ^{commit}` on it fails by
   construction. The repair is a label (`@ md5 … (commit 3b029b8)`), not a hash
@@ -48,7 +49,7 @@ landing hash `4dd7753`.
 
 - `LOG.md`, `SCORECARD.md` and `SKILL.md` carry report pointers and commit
   citations that no check reads (the verifier scans tracked `corpus/*.md` only).
-- 18 of the 19 checked pointers are host-absolute: portable in this corpus,
+- 23 of the 24 checked pointers are host-absolute: portable in this corpus,
   brittle across hosts.
 - `SKILL.md`'s 39 checklist boxes remain lane-attested — machine-checked counting
   is not machine-checked execution.

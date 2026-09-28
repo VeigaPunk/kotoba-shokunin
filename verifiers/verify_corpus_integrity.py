@@ -57,7 +57,11 @@ fixture and the fixture asserts 0 findings):
     recorded in `report_pointers_quoted_detail` (context), never in
     `report_dead`. Without this, a corpus file cannot describe a defect it just
     documented: round 11's own cold-run record and artifact tripped the check
-    that way, which is how the idiom was forced.
+    that way, which is how the idiom was forced. (Round 12: a double quote is
+    not part of a token — the tokenizer's char classes exclude it — so the
+    quoted span's token starts at the path, which is what lets `inside_quotes`
+    see the opening quote. Before that fix the span began at the quote and the
+    rule could never fire for a report pointer.)
   * deliberately recorded dead paths (SKILL.md:588's `~/wikillm`, `~/.xbgst`
     drift list) — SKILL.md is outside corpus/ and is never scanned; inside
     corpus/ a `~`-anchored token that is not a `.ufo/reports/...` pointer is not
@@ -121,14 +125,22 @@ PLACEHOLDER_MARKS = ("<", ">", "\u2026", "$", "\\")
 # so a relative-only class would then read `0/0` — a check that pins nothing.
 # All shapes are checked; see `is_excluded_pointer` for the
 # schematic/placeholder shapes that are context instead of pointers.
+#
+# A double quote is NOT part of a token (round 12): with `"` inside the char
+# classes the engine swallowed the opening quote of a quoted span and the
+# documented quoted-context rule below could never fire for a report pointer
+# (the token started at the quote, so `inside_quotes` saw zero quotes before
+# it). Excluding `"` keeps the token boundary at the path itself.
 UFO_POINTER_RE = re.compile(
-    r"(?<![\w.\-/])((?:/|~|(?:\.\.?/)*)[^\s`]*?\.ufo/reports/round-\d+/[^\s`]*\.md)"
+    r"(?<![\w.\-/])((?:/|~|(?:\.\.?/)*)[^\s`\"]*?\.ufo/reports/round-\d+/[^\s`\"]*\.md)"
 )
 # `commit `<token>`` as a citation; the lookbehind keeps `pre-commit `/`commits `
 # out, and the token must be backticked.
 COMMIT_RE = re.compile(r"(?<![A-Za-z0-9_-])commit[ \t]+`([^`\n]+)`")
 HEX_RE = re.compile(r"\A[0-9a-fA-F]{7,40}\Z")
 BACKTICK_RE = re.compile(r"`([^`]+)`")
+SECTION_HEADING_RE = re.compile(r"^##[ \t]")
+COVERAGE_HEADING_RE = re.compile(r"^##[ \t]+Coverage map[ \t]*$")
 BRACE_RE = re.compile(r"\{([^{}]*)\}")
 BRACE_LIMIT = 64
 
@@ -251,10 +263,25 @@ def inside_quotes(line: str, start: int, end: int) -> bool:
 # INDEX: coverage-map table in corpus/README.md
 # ---------------------------------------------------------------------------
 def file_column_tokens(readme_text: str) -> list[tuple[int, str]]:
-    """(line, token) for every backticked token in column 2 of a table row."""
+    """(line, token) for every backticked token in column 2 of a coverage-map row.
+
+    Round 12 (found by the independent derivation): the census is a claim about the
+    *coverage map*, so it reads only that section — the next `## ` heading ends it.
+    The code used to read column 2 of ANY table row in the file while this docstring
+    said "the coverage-map table rows"; a README table about something else could
+    then move `corpus.index.{stale_patterns,missing_paths}`. No README table outside
+    the section carries a column-2 token today (`index_tokens_outside_coverage_map`
+    was 0 when the independent instrument measured it), so this changes no live
+    number — it makes the claim true and the failure mode impossible.
+    """
     out: list[tuple[int, str]] = []
-    for line_no, line in enumerate(readme_text.splitlines(), 1):
-        if not line.startswith("|"):
+    lines = readme_text.splitlines()
+    inside = False
+    for line_no, line in enumerate(lines, 1):
+        if SECTION_HEADING_RE.match(line):
+            inside = COVERAGE_HEADING_RE.match(line) is not None
+            continue
+        if not inside or not line.startswith("|"):
             continue
         cells = line.split("|")
         if len(cells) < 4:  # '', Area, File, Basis, ''
@@ -358,6 +385,8 @@ def citation_findings(rel: str, text: str, pointer_exists, commit_resolves) -> d
         "report_pointer_shapes": pointer_shapes,
         "report_pointers_excluded": len(report_excluded),
         "report_pointers_excluded_detail": sorted(report_excluded),
+        "report_pointers_quoted": len(report_quoted),
+        "report_pointers_quoted_detail": sorted(report_quoted),
         "report_dead": len(report_dead),
         "report_dead_detail": sorted(report_dead),
         "commit_total": commit_total,
@@ -432,6 +461,7 @@ def corpus_observations(repo: Path) -> dict:
     agg = {
         "report_total": 0,
         "report_pointers_excluded": 0,
+        "report_pointers_quoted": 0,
         "report_dead": 0,
         "commit_total": 0,
         "commit_unresolvable": 0,
@@ -442,6 +472,7 @@ def corpus_observations(repo: Path) -> dict:
     details: dict[str, list[str]] = {
         "report_dead_detail": [],
         "report_pointers_excluded_detail": [],
+        "report_pointers_quoted_detail": [],
         "commit_unresolvable_detail": [],
         "commit_nonhash_detail": [],
         "commit_quoted_detail": [],
@@ -499,6 +530,7 @@ DETAIL_KEYS = (
     "missing_paths_detail",
     "report_dead_detail",
     "report_pointers_excluded_detail",
+    "report_pointers_quoted_detail",
     "commit_unresolvable_detail",
     "commit_nonhash_detail",
     "commit_quoted_detail",
@@ -530,6 +562,8 @@ def evaluate(observed: dict, baseline: dict | None) -> list[dict]:
 # ---------------------------------------------------------------------------
 FIXTURE_README = """# fixture corpus
 
+## Coverage map
+
 | Area | File | Basis |
 |------|------|-------|
 | Knowledge a | `knowledge/a.md` | basis |
@@ -546,6 +580,12 @@ FIXTURE_README = """# fixture corpus
 - quoted meta-finding: `../godspeed-core/directive.md`
 - deliberate dead paths: `~/wikillm`, `~/.xbgst`
 - code literal: `t.slice(0, _8n-1)`
+
+## Outside the coverage map
+
+| Area | File | Basis |
+|------|------|-------|
+| Not an index row | `knowledge/outside.md` | a table that is not the coverage map |
 """
 
 FIXTURE_TRACKED = [
@@ -686,6 +726,37 @@ def self_test() -> int:
     eq("pointer/excluded/glued", is_excluded_pointer("x../.ufo/reports/round-3/kotoba.md"), True)
     eq("pointer/excluded/glob", is_excluded_pointer(".ufo/reports/round-*/*.md"), True)
     eq("pointer/kept/relative", is_excluded_pointer("../../.ufo/reports/round-7/kotoba.md"), False)
+    # round 12: a double quote is never part of a token, so the documented
+    # quoted-context rule can fire. Before the fix the match started at the
+    # opening quote and `inside_quotes` saw zero quotes before the span.
+    _quoted_line = 'the report "/r/.ufo/reports/round-9/kotoba.md" is ABSENT'
+    _quoted_match = UFO_POINTER_RE.search(_quoted_line)
+    assert _quoted_match is not None
+    eq(
+        "pointer/quoted/span-excludes-quote",
+        [_quoted_match.group(0)],
+        ["/r/.ufo/reports/round-9/kotoba.md"],
+    )
+    eq(
+        "pointer/quoted/is-context",
+        inside_quotes(_quoted_line, _quoted_match.start(0), _quoted_match.end(0)),
+        True,
+    )
+    quoted_fixture = citation_findings(
+        "corpus/knowledge/x.md",
+        'an absent path "/r/.ufo/reports/round-9/kotoba.md" is context\n'
+        "and this one is a promise `/r/.ufo/reports/round-9/kotoba.md`\n",
+        lambda base, token: False,  # neither resolves: the fixture is a dead-tree stand-in
+        lambda hex_id: True,
+    )
+    eq("pointer/quoted/not-checked", quoted_fixture["report_total"], 1)
+    eq("pointer/quoted/recorded-as-context", quoted_fixture["report_pointers_quoted"], 1)
+    eq(
+        "pointer/quoted/context-detail",
+        quoted_fixture["report_pointers_quoted_detail"],
+        ["corpus/knowledge/x.md:1: /r/.ufo/reports/round-9/kotoba.md"],
+    )
+    eq("pointer/quoted/still-dead-when-unquoted", quoted_fixture["report_dead"], 1)
     eq("pointer/kept/absolute", is_excluded_pointer("/home/x/.ufo/reports/round-7/kotoba.md"), False)
     eq("pointer/kept/bare", is_excluded_pointer(".ufo/reports/round-3/kotoba.md"), False)
     # every shape is harvested, and each is checked
@@ -800,13 +871,25 @@ def self_test() -> int:
     eq(
         "index/stale-detail",
         idx["stale_patterns_detail"],
-        ["corpus/README.md:9: lessons/gone.md"],
+        ["corpus/README.md:11: lessons/gone.md"],
     )
     eq("index/missing", idx["missing_paths"], 1)
     eq(
         "index/missing-detail",
         idx["missing_paths_detail"],
-        ["corpus/README.md:10: ../nowhere/absent.py -> ../nowhere/absent.py"],
+        ["corpus/README.md:12: ../nowhere/absent.py -> ../nowhere/absent.py"],
+    )
+    # round 12: the census reads the coverage-map section only, so a column-2 token
+    # in a table about something else is neither a pattern nor a finding.
+    eq(
+        "index/outside-coverage-map-ignored",
+        [t for _, t in file_column_tokens(FIXTURE_README) if "outside" in t],
+        [],
+    )
+    eq(
+        "index/outside-coverage-map-no-finding",
+        [d for d in idx["missing_paths_detail"] + idx["stale_patterns_detail"] if "outside" in d],
+        [],
     )
     # EXCLUDED: the Basis-column token, the prose shapes, the quoted
     # meta-finding and the code literal must produce no finding at all.

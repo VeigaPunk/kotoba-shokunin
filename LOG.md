@@ -246,3 +246,151 @@
   not author the round) — falsified if no non-author run record is attached, or
   if `SHONEN.md` still needs a `[x]` for that reason. 39 `SKILL.md` checklist
   boxes remain lane-attested and are named as the standing ceiling.
+
+## Round 11 — kotoba lane — consistency axis-move: the citation rules become executable (entry written at round 12)
+
+- **Status / provenance.** This round's work was complete in the working tree when
+  the mission was respawned; the round-12 process landed it as `4dd7753` and wrote
+  the missing `LOG.md` entry here. The round-11 report
+  (`../.ufo/reports/round-11/kotoba.md`) was filed late with it. Nothing in this
+  entry is claimed that the landing commit does not carry.
+- **Trigger.** Round 10 recorded three zeros (non-hash commit pointers,
+  unindexed corpus files, dead report pointers) with one hand-run command each —
+  and two of the three commands could not express the class they named:
+  `round-[0-9]` cannot match `round-10` (prints 0 *with the defect present*:
+  `git show HEAD:corpus/README.md | grep -cE "commit \`round-[0-9]\`"` → 0,
+  `…+\`"` → 1), and a `comm` whose regex cannot tokenize the brace row
+  `lessons/round-{1,4,5}-aggregator-audit.md` lists three *indexed* files as
+  unindexed. A claim whose counting command cannot express its scope is
+  calibration debt even when the number is right.
+- **Move.** `verifiers/verify_corpus_integrity.py` + `verifiers/corpus-baseline.json`:
+  **9 checks** — `corpus.index.{tracked_files,unindexed,stale_patterns,missing_paths}`,
+  `corpus.pointers.{report_total,report_dead,commit_total,commit_unresolvable,commit_nonhash}`
+  — exit 0 agree / 1 drift naming the firing ids / 2 environment unreadable /
+  3 no baseline, with `--json`, `--no-baseline`, `--baseline`, `--repo`,
+  `--self-test` (chain 80 as landed → 86 after the quoted-token repair → 88 after the index-scope pins). Scope:
+  tracked `corpus/*.md`; six false-positive shapes excluded by design and pinned
+  in `--self-test`.
+- **Measured before → after.** Real clone, never `git show` text (an uncommitted
+  repair reads as "agree" to a working-tree check):
+  `python3 verifiers/verify_corpus_integrity.py --repo <clone@d49dfa5> --no-baseline`
+  → `report_dead=10/19 commit_total=18 unresolvable=0 nonhash=1`, shapes
+  `[relative=9, absolute=8, tilde=1, bare=1]`, `7/9 checks pass` exit 1;
+  landed tree → `9/9 checks pass` exit 0. Defects repaired: 9 dead
+  `../.ufo/…` rows + 1 bare row in `corpus/README.md`/`corpus/lessons/round-3.md`,
+  1 non-hash `commit \`round-10\`` citation, 2 md5 pins printed in commit
+  notation (`SKILL.md` @ `143fe473…` was an md5 — `git cat-file` on it fails by
+  construction; relabelled `@ md5 … (commit 3b029b8)`).
+- **Verification of the verifier.** Exit codes probed on real inputs (perturbed
+  baseline → exit 1 naming exactly that id; `--repo /tmp/notgit` → 2; baseline
+  removed → 3); red-before on the clone exit 1 with exactly the two repaired
+  ids. Non-author cold run (`corpus/knowledge/cold-run-round11.md`): runner
+  `ColdRunRecord`, sha256 gate, coherence guard, verbatim runs + exit codes from
+  outside the repo, three independent spot-checks in its own Python
+  (`33`/`36` counts; every checked pointer via `test -e`; every `commit`
+  citation via `git cat-file -e <hex>^{commit}`), `Discrepancies: none found`.
+- **Artifacts.** `verifiers/verify_corpus_integrity.py`,
+  `verifiers/corpus-baseline.json`, `corpus/knowledge/corpus-integrity-round11.md`,
+  `corpus/knowledge/cold-run-round11.md`, `corpus/lessons/round-11.md`,
+  `corpus/README.md` rows, `SKILL.md` § Sources + the citation rule made
+  checkable, `SCORECARD.md` consistency row (8 → 9).
+- **Landing edits (declared).** Two reported-absent pointer tokens were rewritten
+  as prose (a live pointer to an absent path is what the check must flag) and one
+  bare form was re-presented as the host-absolute path it names; the baseline was
+  re-recorded with all nine ids (the draft omitted `corpus.pointers.report_total`,
+  which is why that id read `expected=None`).
+- **Carried into round 12.** The checked population is 24 pointers, 23 of them
+  host-absolute (correct here, brittle across hosts); the three `equal` ids are
+  change detectors needing a deliberate re-record; `LOG.md`/`SCORECARD.md`/`SKILL.md`
+  pointers are unchecked; the 39 `SKILL.md` checklist boxes are machine-checked
+  only as *counts*, never *executed*.
+
+## Round 12 — kotoba lane — consistency axis-move: the second witness is a derivation, not a re-run
+
+- **Opening move: the predecessor round was landed first.** Round 11 ended with its
+  working tree complete but uncommitted; per `../PROTOCOL.md` § respawn, this round
+  resolved it: three reported-absent pointer tokens were rewritten as prose (a live
+  pointer to an absent path is exactly what the check must flag), the baseline was
+  re-recorded with all nine ids (the draft omitted `corpus.pointers.report_total`, which
+  is why that id read `expected=None`), and the round-11 work landed as `4dd7753` with a
+  `round-11` `LOG.md` entry written here (the entry did not exist — one of the four
+  false-at-HEAD claims the round-12 census found). The round-11 report was filed late in
+  the main repo under the lane identity.
+- **The move (consistency 9 → 10, rubric band 10 = repeated non-author verification in the
+  opposite direction).** `verifiers/verify_corpus_independent.py` — written from the class
+  spec by L2 lane `ExecIndependentVerifier`, which authored neither the author's script nor
+  its baseline and **never read its source** — re-derives the index/pointer/commit classes
+  with its own tokenizer and counting code. Compared check-for-check in two worlds: live
+  tree both instruments exit 0 with identical numbers (39 tracked, 43 index tokens, 25
+  checked pointers, 0 dead, 23 hex citations, 8 excluded, shapes 24 absolute + 1 tilde
+  (measured on the landed tree)) and identical detail sites; clone at `d49dfa5` both exit 1 with the
+  same ten dead-pointer sites and the same non-hash site. Re-run in three live tree states
+  (corpus manifests `632a6b0e…` → `bc66c2a6…` → `d4c9eaa6…`), numbers unchanged. Seven
+  definitional differences adjudicated in `corpus/knowledge/independent-verification-round12.md`
+  §3 — none a verdict disagreement — and one shared caveat measured on both: pointer
+  resolution is host-anchored, so with the host `.ufo` hidden a clone goes dead = checked
+  (25/25 landed, 19/19 at `d49dfa5`).
+- **Two repairs the derivation forced on the author's script.** (a) The docstring's
+  quoted-context rule for report pointers could never fire: the tokenizer admitted `"` into
+  a token, so the match began at the opening quote and `inside_quotes` counted zero quotes.
+  Fixture world proof: pre-fix `report_total=26 dead=2` (the quoted token reported as a
+  promise) → repaired `dead=1, quoted=1`, and with the quoted line alone `9/9 checks pass`
+  exit 0. (b) The index census read column 2 of *any* table row in `corpus/README.md` while
+  its docstring promised the coverage map; it is now scoped to the `## Coverage map`
+  section with two self-test assertions pinning that an outside-section token produces no
+  pattern and no finding (measured difference today: 0 tokens; live `index_patterns` stays
+  37). Both repairs are declared in `corpus/knowledge/cold-run-round11.md` §7, which now
+  carries the full sha chain (`631569277d…` pre-commit → `391a54f4…` at `4dd7753` →
+  `747b1226…` → `a32da4a4…`) and the reachability qualifier that the two pre-commit digests
+  are not objects in this repo. `--self-test` 80 → 88 assertions.
+- **Counting-claim census and the repairs it forced (84 rows, executed commands).** 24
+  numbers were stale after the round-11 landing (33→39 tracked files, 19→25 checked
+  pointers, 21→23 citations, 1→8 excluded sites, 18/1→24/1 pointer shapes, 80→88
+  assertions); 4 claims were false at HEAD; 9 were unexpressible; 1 had no command at all
+  (`SCORECARD.md`'s round-10 "4 unindexed files" — a brace-aware `comm` reconstruction at
+  `e997d45` yields 7). All live sites repaired, the unexpressible ones labelled, the
+  commandless one re-qualified. The sharpest false claim was `SHONEN.md` box 1's own
+  command: `awk … END{print c[h]}` prints an empty line and cannot produce the `13/9/9/8`
+  it claimed — the fourth instance of the round-11 defect class, in the file the round-6
+  audit used that same expression to correct. It now prints the counts when run as written
+  (verified by executing the text as written), and the round-10/11 `LOG.md` entries and
+  `lessons/round-10.md` keep their round's values under the stated rule: **a per-round
+  record carries its round's number; a live document carries the current one.**
+- **One box added, and every live claim site moved with it.** `SKILL.md`'s trigger-fidelity
+  checklist gained "a claim that only its author's instrument settles names that as a gap,
+  and its second witness is a derivation, not a re-run" → box count 39 → 40, split
+  14/9/9/8; the sweep updated `SCORECARD.md` (4 rows), `corpus/README.md`,
+  `SHONEN.md`'s embedded expected output, and both artifacts' gap lists.
+- **Faults moved into the repo.** `verifiers/fault_injection_corpus.sh` (10 fault classes,
+  one `--no-hardlinks` clone per fault, JSON assertions against **both** instruments,
+  `--self-test` 4 probes, exit 0/1/2) replaces round 11's `/tmp` fault table, which was not
+  re-runnable after the scratch wipe. Every must-fire fault fires with its intended class,
+  the equivalent mutation stays clean, the repaired quoted idiom fires (context 0→1,
+  checked total unchanged), and one **shared blind spot** is now on record: a pointer moved
+  *out of* the `.ufo/reports/round-N/` grammar is invisible to both tokenizers and only the
+  `equal`-mode count detector notices (`report_total` 24→23, default mode only). That
+  narrows round 11's "pointer-shape-only rewrite ≡ no-op" (true in-grammar, incomplete
+  otherwise — the round-12 reviewer's RF-3); the correction sits in the round-12 artifact,
+  not rewritten into the round-11 record.
+- **Outcome / evidence.** `python3 verifiers/verify_corpus_integrity.py` → `9/9 checks pass`
+  exit 0; `python3 verifiers/verify_corpus_independent.py` → exit 0; `--self-test` → 0
+  failures over 88 and 52 assertions respectively; exit codes 2/3 re-probed; red-before on
+  a clone at `d49dfa5` → both exit 1 with identical sites; `verifiers/fault_injection_corpus.sh`
+  → all classes as tabulated; freshness re-measured inside the round (db 17 rows 44–98;
+  permission lines 471; init distribution 15×1 16×141 17×34 18×14; compression warns 10925;
+  harness verifier 27/27) — unchanged, so no drift to report.
+- **12 L2 lanes in two batched `task` calls** (floor 8): batch 1 —
+  `ExecIndependentVerifier`, `ScoutWorlds`, `LabratFaults`, `CriticSpec`, `SentinelCross`,
+  `ConnectorCross`, `PlanRound13`, `ScoutClaimCensus`; batch 2 — `CriticRound12`,
+  `ReviewerRound12`, `ScoutReCensus`, `ReviewSHONEN`.
+- **Operator directive honored outside the repo (recorded, not a lane change):** the global
+  cascade in `~/.omp/agent/config.yml` now lists `zai/glm-5.3-flash:max` before
+  `opencode-go/glm-5.3-flash:max` in `retry.fallbackChains.m_zfl` (the alias every
+  `@m_zfl` subagent route resolves to); YAML re-parsed, `cfg://retry/fallbackChains`
+  shows the new order, backup `config.yml.bak-zfl-zai-order-20260928-200540`. `m_z53`'s
+  identical-shaped chain was left untouched (not a z-flash alias).
+- **Carried into round 13.** Hermeticity (24 of 25 pointers host-absolute, so a clone's
+  green verdict depends on the host `.ufo`); `LOG.md`/`SCORECARD.md`/`SKILL.md` are outside
+  both instruments' scan; the 40 checklist boxes are still counted, never executed —
+  candidate: make one box executable with a missing-name fixture (scratch plan, not yet an
+  in-repo artifact).
