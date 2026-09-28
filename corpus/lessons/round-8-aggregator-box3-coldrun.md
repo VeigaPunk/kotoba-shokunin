@@ -48,3 +48,51 @@
 - Box 2: logged end-to-end domain tasks evidenced by round-7/9/10/11/12 artifacts cited in Sources; not re-verified.
 - Box 4: content stayed in prompt/skill-craft province throughout; no cross-domain bleed observed in the executed surface.
 - Craft self-consistency: the file practices what its checklist preaches (dated volatile numbers :100, failure signatures, action cells) — the two break points are recipe-completeness gaps, not craft-rule violations.
+
+## Round-8 amendment (critic-absorbed)
+
+**Dispatch chain (verifier id resolves):** aggregator lane round 8 → L2 seat `Box3Kotoba` (labrat) → dispatch report `.ufo/reports/round-8/aggregator.md`.
+
+### 1. Coldness caveat (falsified)
+"SKILL.md only" is not cold. The citation graph hands the runner the expected stance:
+- `SKILL.md:596` → `corpus/knowledge/cold-run-round11.md`, which opens "**NON-AUTHOR cold run.** The runner (lane `ColdRunRecord`) did **not** author `verifiers/verify_corpus_integrity.py` …" (cold-run-round11.md:3-5) — pre-scripts the verdict posture for the analogous step in this run.
+- `SKILL.md:600` → `corpus/knowledge/independent-verification-round12.md` — pre-scripts the "second witness" conclusion (`SKILL.md:352`).
+- `SKILL.md:169,592,614,617` → lane-authored knowledge artifacts describing their own verifiers as sound.
+New break-point rows (class `context-leak`):
+
+| # | Cite | Quote | Break |
+|---|---|---|---|
+| B4 | `SKILL.md:596` | "`corpus/knowledge/cold-run-round11.md` — the non-author cold run of the corpus verifier" | runner reads the lane's own "non-author" self-description before executing the cited verifier — expected-verdict leak |
+| B5 | `SKILL.md:600` | "`corpus/knowledge/independent-verification-round12.md` — the **second** witness, and the right shape for one" | runner reads the author's already-concluded verification story before re-running its scripts |
+| B6 | `SKILL.md:169,592,614,617` | Sources rows naming lane-authored round-9/10/11 knowledge files | each pre-describes the artifact it cites as sound, priming a green reading |
+
+**Consequent framing of the verdict: box 3 is graded on pointer resolvability + step executability, not on runner ignorance.** Under that frame all break points stand (B1, B2, B3 are executability/claim defects, independent of leak); B4–B6 are recorded as coldness defects, not grade-drivers.
+
+### 2. Three-outcome gate rule (PROTOCOL.md, committed HEAD)
+Quote: "executed means *prepared + verified + handed off* … and a documented negative result at that gate still counts." Reclassification of the one GATED row:
+
+| Step | Old class | New class | Rationale |
+|---|---|---|---|
+| `verifiers/fault_injection_corpus.sh` (cite :618-620) | gated | **gated-with-artifact** (counts) | The refusal is a documented negative at a mutation gate: the artifact is this table row citing the mutation (`script:27-28`: clones repo, `rm -rf` `${TMPDIR}/round12-faults.$$`), executed `--help`-equivalent read of the usage block instead of the mutating run. Prepared (usage read) + verified (mutation located) + handed off (defect queued for B2). |
+
+Grade impact: **none.** The verdict stays `[~]` on B1 + B2 — a counted gate does not repair the newest-block recipe gap (B1) or the unlabeled-mutator ambiguity (B2); with the gate now counted, the remaining `[~]` driver is B1 alone (B2's executability confusion survives the gate count). Verdict does not default to `[~]` on the refusal; the refusal is credited, the recipe gap stands.
+
+### 3. Stamp upgrade (re-checked at amendment time)
+- Worktree `git status --short` at amendment commit: **clean** (empty file set; dirty 0 at both original stamps was the full file set — no file names to enumerate). Upstream: **6 unpushed commits** (`git rev-list @{u}..HEAD --count` → 6, incl. my two lesson commits); no push performed.
+- HEAD vs worktree text per graded claim: `git show HEAD:SKILL.md` diffed against worktree `SKILL.md` — **identical** (diff empty). Every graded cite (:166-171, :334-337, :446-448, :57, :100, :114-117, :168-170, :196, :356, :418, :592-620, :604) is committed text. **No worktree-only graded text → verdict not provisional**; it stands as committed.
+
+### 4. Citation form (line-text alongside line numbers)
+Quotes added for every break/gate cite above and for the following verdict-bearing cites:
+- `SKILL.md:334-336`: "`python3 verifiers/verify_harness_claims.py` recomputes this whole table … exits non-zero on drift" — command 3 exited 1 (drift), matching.
+- `SKILL.md:446-448`: "`python3 verifiers/verify_corpus_integrity.py` … exits non-zero on a dead pointer or a non-hash commit token" — command 5 exited 0, 9/9 checks pass.
+- `SKILL.md:57`: "godspeed is 18 lines" — command 14: `wc -l` → 18.
+- `SKILL.md:604`: "omarchy at 392 lines" — command 15: `wc -l` → 392.
+
+### 5. Corpus partial-author carve-out
+The aggregator authored `corpus/lessons/round-{1,4,5,6}-aggregator-audit.md` in this repo, so box-3's corpus half is graded against the lane's own corpus text: aggregator lessons are **cited, not self-certified**. My commands table re-ran the lane's verifier over that corpus (command 5, 9/9) and read lane-authored knowledge artifacts as execution context — neither act certifies them. The non-author grade applies to `SKILL.md` execution only.
+
+### 6. X1 repair
+Verdict line now cites from my own commands table: commands 3 (`verify_harness_claims.py`, exit 1, 25/27 pass) and 5 (`verify_corpus_integrity.py`, exit 0, 9/9) resolve and run from the file alone; the `[~]` is decided by B1 (newest-block recipe under-determined, command 7: 0 hits in newest-mtime session file) — every executable step ran from the file, one recipe gap forced improvisation.
+
+### 7. Side finding (critic attempt 3)
+kotoba `SHONEN.md:14-15`: box 3 carries `[x]` "checked in round 12 by `ReviewSHONEN`". `.ufo/reports/round-12/kotoba.md:193` lists `ReviewSHONEN` in kotoba's own Batch-2 dispatched seats (`CriticRound12, ReviewerRound12, ScoutReCensus, ReviewSHONEN`). PROTOCOL.md (committed HEAD), shonen→shokunin clause: "a subagent the lane dispatched is still the lane" — only "a non-author `<id>` may write `[x]`". Consequent: that mark is **`[~]`, not `[x]`**. SHONEN.md not edited (outside aggregator write scope). This is the same defect my post-run comparison recorded for round-11 (`ColdRunRecord`), now in its round-12 form.
