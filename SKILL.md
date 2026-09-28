@@ -21,9 +21,12 @@ part the router always sees, and the body is the only part the executing agent
 always sees. Craft means both surfaces earn their tokens. Rank: shonen.
 
 Evidence base: 16 production skill files surveyed 2026-09-28
-(`~/.agents/skills/*/SKILL.md`, `~/.config/opencode/skills/ufo/SKILL.md`).
-and section. Verify before trusting: if a cited line has drifted, re-read the
-file and update the citation — do not propagate a claim whose source moved.
+(`~/.agents/skills/*/SKILL.md`, `~/.config/opencode/skills/ufo/SKILL.md`)
+plus the host's other instruction surfaces (agent definitions, AGENTS.md
+files, command files, dispatch prompts — see "Instruction surfaces").
+Cited line numbers are points-in-time. Verify before trusting: if a cited
+line has drifted, re-read the file and update the citation — do not
+propagate a claim whose source moved.
 
 ## Skill-file anatomy
 
@@ -47,15 +50,18 @@ is a checklist of *available* organs, not a mandatory skeleton.
 
 ## Instruction surfaces — pick the file before the fix
 
-Three surface classes observed on this host; each loads differently, so each
+Six surface classes observed on this host; each loads differently, so each
 has different craft rules. Applying skill-file rules to an always-loaded file
 (or vice versa) is the most common cross-surface mistake.
 
 | Surface | Load condition | Parse surface | Dominant failure | Craft rule |
 |---------|----------------|---------------|------------------|------------|
 | SKILL.md | Opt-in: activated when `description` matches intent | frontmatter = router index; body = executor contract | False activation / missed activation | All craft below (frontmatter, tables, gates) |
+| Agent definition (`opencode/agents/*.md`) | Roster: orchestrator picks by `description`, then body becomes the subagent's system prompt | `description` = delegation index; body = persistent identity | Wrong-lane delegation; stale routing metadata | Terse negative routing in description (`NOT general-purpose. NOT explore.`); identity + constraints in body, never a per-task job; dated operational notes belong in status files, not frontmatter |
 | AGENTS.md | Always-on: injected into every session in its repo | No frontmatter, no router — every byte loads every time | Token drag, stale constraint decay | Terse imperative rules only; no triggers, no prose, no procedures that belong in a skill |
-| Dispatch prompt (L1/L2 lanes) | Ephemeral: consumed once by a subagent | Whole file is the contract; no persistence | Missing stanza → unrecoverable agent (no conversation to clarify with) | Fixed stanza order; complete, self-contained; ends with `| godspeed` |
+| Command file (`opencode/command/*.md`) | Opt-in: user invokes `/<name>` | `description` + `agent:` frontmatter; body = command contract | Skill drift without a guardrail | Pointer-then-rules idiom: line 1 names the owning skill + `$ARGUMENTS`; then only the literal rules that must hold even if the skill drifts — procedures stay in the skill |
+| Dispatch prompt — spawn (L1/L2 lanes) | Ephemeral: consumed once by a subagent | Whole file is the contract; no persistence | Missing stanza → unrecoverable agent (no conversation to clarify with) | Fixed 6-stanza order; complete, self-contained; ends with `| godspeed` |
+| Dispatch prompt — round (`*-round-N.md`) | Ephemeral: re-ignites a live L1 lane | Relies on durable repo context (SKILL/LOG/corpus) | Stating stale per-round policy (routing maps drift between rounds) | 3–4 lines: role+round → method directive → land-scope+report → `| godspeed`; carry only what changed since spawn |
 
 **AGENTS.md evidence:** six shokunin child repos carry byte-identical 5-line
 operating rules (scope, LOG-evidence, no-fabrication) differing only in repo
@@ -64,18 +70,40 @@ name — `md5sum` differs, content shape identical
 host-level `~/.agents/AGENTS.md` is longer but still pure constraints
 (posture rules, bans, capability statements) — zero procedures, zero triggers.
 
-**Dispatch-prompt anatomy** (from `.ufo/prompts/*-L1.md`, 9–12 lines each):
+**Agent-definition evidence:** 18 files under `~/.config/opencode/agents/`
+(14–197 lines). Frontmatter keys beyond `name`/`description` are routing and
+grant policy — `model`/`cascade`/`effort` (distiller, ufo), `permission_mode`/
+`agents_md` (distiller), `whenToUse`/`subagents` (orch's delegation roster).
+7 of 18 descriptions end `NOT general-purpose. NOT explore.` — terse negative
+routing, the delegation-table analogue of anti-triggers. Posture text is
+copy-pasted: 13 files share one identical 9-line godspeed preamble (verified
+by `md5sum` over the region); `mutation-tester.md` carries it **twice**
+in-file — the observed cost of copy-paste zones in durable files.
+
+**Command-file evidence:** 3 files under `~/.config/opencode/command/`
+(10–13 lines). Two idioms: pointer-then-rules (sekhmet.md, xbrd.md — line 1
+names the owning skill + `$ARGUMENTS`, then 3–4 rules that must hold even if
+the skill drifts) and inline protocol (ufo.md — justified because no skill
+owns orchestration). `agent: <name>` in frontmatter delegates to a named
+roster agent (ufo.md → `agent: ufo`).
+
+**Spawn dispatch-prompt anatomy** (from `.ufo/prompts/*-L1.md`, 9–12 lines each):
 `role + working dir` → `context (domain + rank)` → `job (imperative, with
 verification commands embedded)` → `L2 routing map` → `report path + scope
-fence` → literal ` | godspeed` suffix. A stanza missing from a dispatch is
-permanently absent — the subagent cannot ask for it back. Budget the file for
-completeness, not brevity; the reader is a blank-context agent.
+fence` → literal ` | godspeed` suffix. A stanza missing from a spawn dispatch
+is permanently absent — the subagent cannot ask for it back. Budget the file
+for completeness, not brevity; the reader is a blank-context agent. Round
+prompts invert this: the reader re-loads its own repo, so the prompt carries
+only the round number and method — observed template variance is exactly
+`name` + `path` (`diff kake-round-4.md kasegi-round-4.md`).
 
 Craft asymmetry to respect: SKILL.md optimizes *match precision* (trigger
 density in the description); AGENTS.md optimizes *constraint survival* (a rule
 that must hold unconditionally, so it must be short enough to always be read);
-dispatch prompts optimize *one-shot completeness* (everything the reader needs,
-nothing it can look up).
+agent definitions optimize *delegation precision* (capability + exclusions an
+orchestrator matches); spawn prompts optimize *one-shot completeness*
+(everything the reader needs, nothing it can look up); round prompts optimize
+*delta-only weight* (everything durable is already in the repo).
 
 ## Frontmatter craft — the trigger surface
 
@@ -183,6 +211,12 @@ in "Instruction surfaces" instead — this checklist assumes a routed file.)
 | 600+ line monolith | Router and agent both lose the thread | Split at anatomy boundary 3↔4 |
 | Procedures in AGENTS.md | Always-loaded bytes pay every session; procedures belong in opt-in files | Move how-to to SKILL.md; keep only constraints |
 | Dispatch prompt missing a stanza | Blank-context subagent fails unrecoverably | Role → context → job → routing → report → `| godspeed` |
+| Copy-pasted posture block in durable files | One drifts silently — 13 copies observed, one file already carries it twice | Centralize: `agent:`/`agents_md:` frontmatter flags or a shared include |
+| Per-task job text in an agent-definition body | Body loads for every delegation; the job goes stale while the identity persists | Identity + constraints in body; the job lives in the dispatch prompt |
+| Dated operational note in frontmatter | No freshness mechanism — `cascade_note` past its `until` date still routes | Move dated facts to a status file; frontmatter holds stable policy |
+| Command file that re-states skill procedures | Two owners of the same steps; the skill drifts, command contradicts | Pointer-then-rules: name the skill, keep only rules that must hold anyway |
+| Spawn-mode prompt used for a round ignite | 6-stanza completeness when the reader re-loads its own repo is pure drag | 3–4 lines: role+round, method, land-scope, `| godspeed` |
+| Round-mode prompt used for a spawn | Reader has no repo context to recover from — stanza gaps are unrecoverable | Full 6-stanza spawn anatomy |
 
 ## Refusals
 
@@ -226,4 +260,13 @@ in "Instruction surfaces" instead — this checklist assumes a routed file.)
 - `/home/vgpnk/projects/shokunin/*/AGENTS.md` (6 files) + `~/.agents/AGENTS.md`
   — always-on constraint files; no frontmatter, terse imperatives.
 - `/home/vgpnk/projects/shokunin/.ufo/prompts/*-L1.md` (8 files, 9–12 lines) —
-  dispatch-prompt stanza order and `| godspeed` terminator.
+  spawn dispatch-prompt stanza order and `| godspeed` terminator.
+- `/home/vgpnk/projects/shokunin/.ufo/prompts/*-round-*.md` (6 files, 3–4
+  lines) — round self-iteration mode; template variance is name+path only.
+- `~/.config/opencode/agents/*.md` (18 files, 14–197 lines) — agent-definition
+  surface: roster frontmatter (`subagents`, `cascade`, `permission_mode`),
+  negative routing (`NOT general-purpose. NOT explore.` in 7/18), shared
+  godspeed preamble in 13/18 (doubled in mutation-tester.md), stale dated
+  `cascade_note` in ufo.md.
+- `~/.config/opencode/command/*.md` (3 files, 10–13 lines) — command surface:
+  pointer-then-rules idiom, `agent:` delegation key, `$ARGUMENTS`.

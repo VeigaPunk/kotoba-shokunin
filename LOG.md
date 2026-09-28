@@ -22,3 +22,16 @@
   5-line template), `diff` of .ufo/prompts/{kagi,kotoba}-L1.md, full reads of
   bailian-{docs-llm-wiki,managed-agent,sandbox}/SKILL.md, PROTOCOL.md file
   contract. Note: operator directive skipped round 2; LOG records actual rounds.
+- 2026-09-28 — round 4: extended the instruction-surfaces taxonomy 3→5 classes.
+  New surfaces surveyed: `~/.config/opencode/agents/*.md` (18 files, 14–197
+  lines; roster frontmatter with `subagents`/`cascade`/`permission_mode`;
+  `NOT general-purpose. NOT explore.` negative routing in 7/18; identical
+  9-line godspeed preamble in 13/18 — doubled in mutation-tester.md; stale
+  dated `cascade_note` in ufo.md), `~/.config/opencode/command/*.md` (3 files;
+  pointer-then-rules idiom + `agent:` key + `$ARGUMENTS`), and the round-N
+  dispatch mode (`.ufo/prompts/*-round-*.md`, 3–4 lines vs 9–12-line spawn
+  mode; `diff kake-round-4.md kasegi-round-4.md` shows name+path-only
+  variance). SKILL.md gained 3 table rows, 2 evidence paragraphs, spawn-vs-round
+  completeness rule, 6 anti-patterns, 3 source entries. Corpus: knowledge/
+  agent-defs-commands-and-round-prompts.md, lessons/round-4.md, README gap
+  list updated (5-class coverage; system-prompt/CLAUDE.md/MCP remain open).
