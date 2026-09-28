@@ -337,6 +337,10 @@ in "Instruction surfaces" instead — this checklist assumes a routed file.)
       resolve from the file's own repo by default; any other root must be
       named in the file (`~/.config/opencode/opencode.json`, not bare
       `opencode.json`); bare basenames that exist under multiple roots fail.
+      The mechanically checkable subset — index coverage of `corpus/`, lane-report
+      pointers, and `commit` citations — is enforced, not read:
+      `python3 verifiers/verify_corpus_integrity.py` exits non-zero on a dead
+      pointer or a non-hash commit token.
 - [ ] Stale-risk facts (model names, versions, prices) are either pinned with a
       source or deferred to `--help` / reference files.
 - [ ] File ≤ ~600 lines; overflow already moved to referenced depth files.
@@ -570,6 +574,19 @@ fails procedures/dates/style) in `corpus/knowledge/alwayson-checklist-round7.md`
 - `verifiers/verify_harness_claims.py` + `verifiers/baseline.json` — the round-10
   executable form of the harness claim set (27 checks, 4 exit codes, `--self-test`);
   the authority for every harness number in this file.
+- `verifiers/verify_corpus_integrity.py` + `verifiers/corpus-baseline.json` — the
+  round-11 executable form of the *citation* rules this file states (9 checks over
+  tracked `corpus/*.md`: index coverage, lane-report pointers in all four shapes,
+  `commit` citations resolve, no non-hash commit token; exit 0/1/2/3, `--self-test`).
+  Run it before shipping an artifact set; a dead pointer is then a drift report,
+  not a reviewer's memory.
+- `corpus/knowledge/corpus-integrity-round11.md` — what the corpus verifier checks,
+  the three counting recipes it replaced (why each could not express its class),
+  the exclusion shapes it must not report, and the check that was designed and
+  rejected (revision pins: digests are not commits).
+- `corpus/knowledge/cold-run-round11.md` — the non-author cold run of the corpus
+  verifier (runner, tree, command, exit code, spot-checks); the evidence class
+  this repo uses when a check must not be its author's only witness.
 - `corpus/knowledge/harness-verifier-round10.md` — what the verifier checks and
   the facts behind each check (key prefix bytes + sha256, style-aware salt,
   offer-gate roots, opencode counter checks) plus its open gaps.

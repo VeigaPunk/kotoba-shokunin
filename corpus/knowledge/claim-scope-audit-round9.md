@@ -12,7 +12,7 @@ Method: sweep every claim marker (`router`, `cliff`, `<skills>`, `slice(0,99)`,
 units, classify **SCOPED** (names its harness), **UNSCOPED** (universal wording,
 true on one harness only), **UNSUPPORTED** (no citation).
 
-## Before — `SKILL.md` @ `143fe473…` (31 claim units)
+## Before — `SKILL.md` @ md5 `143fe473…` (commit `3b029b8`, 31 claim units)
 
 `UNSCOPED=9 UNSCOPED-with-counterexample=9 UNSUPPORTED=7` (15 SCOPED).
 `grep -c '<available_skills>' SKILL.md` → `0` — the opencode surface was

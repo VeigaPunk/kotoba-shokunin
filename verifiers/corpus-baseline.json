@@ -1,0 +1,58 @@
+{
+  "as_of": "2026-09-28T19:45:39-03:00",
+  "host": "vgpnk",
+  "measured_against": {
+    "repo": "kotoba-shokunin",
+    "head": "d49dfa5",
+    "head_subject": "consistency: SKILL.md cache-key salt is loader-held, not uniform ws-collapse (round-10 executor falsification)",
+    "git_status": "M  SCORECARD.md; M  SHONEN.md; M  SKILL.md; M  corpus/README.md; M  corpus/knowledge/claim-scope-audit-round9.md; AM corpus/knowledge/cold-run-round11.md; AM corpus/knowledge/corpus-integrity-round11.md; A  corpus/lessons/round-11.md; M  corpus/lessons/round-3.md; A  verifiers/corpus-baseline.json; AM verifiers/verify_corpus_integrity.py; ?? verifiers/__pycache__/",
+    "command": "python3 verifiers/verify_corpus_integrity.py --no-baseline --json",
+    "note": "Re-recorded at the interrupted round-11 landing (resolved by the round-12 respawn): the dirty worktree described by git_status IS the landing commit's tree. Explained moves vs the draft: tracked_files 33 -> 36 (round-11's three corpus files land); report_total 20 -> 24 (README's round-11 row + the four checked pointers in the landed cold-run record); report_dead 3 -> 0 (two reported-absent tokens rewritten as prose, one bare form re-presented as the host-absolute path it names); commit_total 21 unchanged; the draft was missing corpus.pointers.report_total, which is why that id read expected=None before this re-record."
+  },
+  "checks": {
+    "corpus.index.tracked_files": {
+      "mode": "equal",
+      "expect": 36
+    },
+    "corpus.index.unindexed": {
+      "mode": "zero",
+      "expect": 0
+    },
+    "corpus.index.stale_patterns": {
+      "mode": "zero",
+      "expect": 0
+    },
+    "corpus.index.missing_paths": {
+      "mode": "zero",
+      "expect": 0
+    },
+    "corpus.pointers.report_total": {
+      "mode": "equal",
+      "expect": 24
+    },
+    "corpus.pointers.report_dead": {
+      "mode": "zero",
+      "expect": 0
+    },
+    "corpus.pointers.commit_total": {
+      "mode": "equal",
+      "expect": 21
+    },
+    "corpus.pointers.commit_unresolvable": {
+      "mode": "zero",
+      "expect": 0
+    },
+    "corpus.pointers.commit_nonhash": {
+      "mode": "zero",
+      "expect": 0
+    }
+  },
+  "notes": {
+    "read_side": "Both families read the WORKING TREE, not HEAD: an uncommitted corpus edit is a legitimate observation. Record `git status --porcelain` beside the numbers.",
+    "equal_mode": "corpus.index.tracked_files and corpus.pointers.commit_total are change detectors, not invariants: adding a corpus file or a new commit citation moves them and must move the baseline with it (same convention as verifiers/baseline.json).",
+    "zero_mode": "zero-mode ids ignore `expect` at evaluation time; they are listed so the baseline names every id the script checks. A zero-mode violation exits 1 even under --no-baseline.",
+    "out_of_scope_context": "corpus.pointers.commit_quoted_excluded and corpus.pointers.report_pointers_other are context, not checks. The first counts `commit `<token>`` citations fully enclosed in double quotes (quoted meta-findings, e.g. corpus/lessons/round-6-aggregator-audit.md:45; live: 1). The second counts report pointers that are NOT the spec'd `(../)+` class — host-absolute, `~/`-anchored or bare (live: 24 checked, 23 absolute + 1 tilde; the earlier bare form was re-presented at landing). A double-quoted report pointer is *documented* in the script docstring as recorded context (report_pointers_quoted_detail) — live-tree shape yet to be exercised; whether the documented idiom actually fires is a round-12 question for the independent derivation.",
+    "reproduce_before": "Against a clone of d49dfa5 with the landed script copied in (README pre-fix): report_dead=10/19, commit_total=18, commit_nonhash=1, exit 1 — the DRIFT the round-11 edit clears. The same clone run twice is byte-identical under --json.",
+    "environment": "exit 2 when the target is not a git repo / corpus/README.md is unreadable; exit 3 when this file is absent and --no-baseline was not passed."
+  }
+}
