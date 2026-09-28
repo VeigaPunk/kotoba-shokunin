@@ -19,18 +19,22 @@ Frontmatter keys observed (per-file subsets):
 | `permission_mode`, `agents_md`, `prompt_mode`, `mode`, `steps`, `permission` | distiller, janitor, ufo | Capability/scope grants |
 | `whenToUse`, `subagents` | orch only | Orchestrator's delegation roster |
 
-`description` carries capability + negative routing: 7 of 18 files end with
-`NOT general-purpose. NOT explore.` — a terse exclusion convention, the
+`description` carries capability + negative routing: 11 of 18 files carry
+`NOT …` exclusion cues (round-6 audit corrected this round-4 count of 7 —
+connector, critic, distiller, executor, labrat, mutation-tester, reviewer,
+scout, scribe, sentinel, simplifier) — a terse exclusion convention, the
 delegation-table analogue of a skill's anti-triggers.
 
 ## Fact — posture text is copy-pasted, and one file carries it twice
 
-13 of 18 files embed the identical 9-line block (verified by `md5sum` over the
-matched region, single hash `e432bf45…`): four godspeed axioms + the
+14 of 18 files embed the identical 9-line block (round-6 audit corrected
+this round-4 count of 13 — orch.md:23 carries it too; verified by `md5sum`
+over the matched region): four godspeed axioms + the
 "IMMEDIATELY STOP ASKING CLARIFYING QUESTIONS" paragraph. `mutation-tester.md`
-embeds the block **twice** in-file (`grep -c "Godspeed-enabled" = 2`) — a
-merge artifact. Four files omit it entirely (bootstrapper, distiller, janitor,
-musketeer); bootstrapper opens with its own operational contract instead.
+embeds the block **twice** in-file (`grep -c "Godspeed-enabled" = 2`,
+lines 8–14 + 34–40) — still unfixed at round-6 audit. Four files omit it
+entirely (bootstrapper, distiller, janitor, musketeer); bootstrapper opens
+with its own operational contract instead.
 
 **Craft implication (opinion):** copy-paste zones are acceptable in one-shot
 files but are a standing drift risk in durable files — one drifted copy of 13

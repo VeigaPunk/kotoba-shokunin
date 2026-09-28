@@ -53,7 +53,7 @@ is a checklist of *available* organs, not a mandatory skeleton.
 
 ## Instruction surfaces — pick the file before the fix
 
-Six surface classes observed on this host; each loads differently, so each
+Seven surface classes observed on this host; each loads differently, so each
 has different craft rules. Applying skill-file rules to an always-loaded file
 (or vice versa) is the most common cross-surface mistake.
 
@@ -65,6 +65,7 @@ has different craft rules. Applying skill-file rules to an always-loaded file
 | Command file (`opencode/command/*.md`) | Opt-in: user invokes `/<name>` | `description` + `agent:` frontmatter; body = command contract | Skill drift without a guardrail | Pointer-then-rules idiom: line 1 names the owning skill + `$ARGUMENTS`; then only the literal rules that must hold even if the skill drifts — procedures stay in the skill |
 | Dispatch prompt — spawn (L1/L2 lanes) | Ephemeral: consumed once by a subagent | Whole file is the contract; no persistence | Missing stanza → unrecoverable agent (no conversation to clarify with) | Fixed 6-stanza order; complete, self-contained; ends with `| godspeed` |
 | Dispatch prompt — round (`*-round-N.md`) | Ephemeral: re-ignites a live L1 lane | Relies on durable repo context (SKILL/LOG/corpus) | Stating stale per-round policy (routing maps drift between rounds) | 3–4 lines: role+round → method directive → land-scope+report → `| godspeed`; carry only what changed since spawn |
+| CLAUDE.md | Conditional always-on: loader exists in both harness binaries (9/17 string refs) but injects only when the repo carries the file — cold on this host (0 captured injections) | Same as AGENTS.md: every byte loads when present | Same as AGENTS.md + dual-name collision | One owner per repo: redirect file (llama.cpp 1-liner → AGENTS.md) or pick one name; a 4339-line file is an unconditional session tax |
 
 **AGENTS.md evidence:** six shokunin child repos carry byte-identical 5-line
 operating rules (scope, LOG-evidence, no-fabrication) differing only in repo
@@ -77,10 +78,11 @@ host-level `~/.agents/AGENTS.md` is longer but still pure constraints
 (14–197 lines). Frontmatter keys beyond `name`/`description` are routing and
 grant policy — `model`/`cascade`/`effort` (distiller, ufo), `permission_mode`/
 `agents_md` (distiller), `whenToUse`/`subagents` (orch's delegation roster).
-7 of 18 descriptions end `NOT general-purpose. NOT explore.` — terse negative
-routing, the delegation-table analogue of anti-triggers. Posture text is
-copy-pasted: 13 files share one identical 9-line godspeed preamble (verified
-by `md5sum` over the region); `mutation-tester.md` carries it **twice**
+11 of 18 descriptions carry `NOT …` negative routing (round-6 audit
+corrected the round-4 count of 7) — the delegation-table analogue of
+anti-triggers. Posture text is copy-pasted: 14 files share one identical
+9-line godspeed preamble (round-4 said 13; orch.md was missed), verified by
+`md5sum` over the region; `mutation-tester.md` carries it **twice**
 in-file — the observed cost of copy-paste zones in durable files.
 
 **Command-file evidence:** 3 files under `~/.config/opencode/command/`
@@ -149,6 +151,11 @@ so the render is advisory, not verbatim. Field rules distilled from the survey:
    later as strengthener, not guarantee. Quoted trigger strings still help —
    they give the compressor salient tokens to keep — but measure placement,
    not presence.
+9. **Invocation-shaped triggers for domain-term names.** When the skill's
+   name is also a domain term (ufo, omarchy), a bare noun trigger cannot
+   separate invocation from reference — measured 2026-09-28: all 5 literal
+   `ufo` misses in opencode.db were domain mentions, not calls. Pair the
+   noun with slash-form or imperative-context triggers.
 
 ## Decision tables — when to use one
 
@@ -223,6 +230,52 @@ in "Instruction surfaces" instead — this checklist assumes a routed file.)
 - [ ] No `TODO`, placeholder sections, or "coming soon" — a skill ships complete
       or names the missing prerequisite.
 
+## Agent-definition fidelity checklist
+
+Run before shipping any `opencode/agents/*.md`. Every item is checkable by
+reading the file plus two roster artifacts: `opencode.json` `agent` map and
+the `subagents:` lists of reachable orchestrator agents. (For SKILL.md files
+use the trigger-fidelity checklist; for AGENTS.md the surface row's craft
+rule — terse imperatives only.)
+
+- [ ] `name` matches the file stem. Absent `name:` fails latent (opencode
+      falls back to stem) — still a defect when every sibling declares it.
+- [ ] Reachability: the agent is enrolled in `opencode.json` `agent` map or in
+      a reachable agent's `subagents:` roster. An orphan file delegates to no
+      one — it is dead text until enrolled.
+- [ ] `description` carries a capability clause plus an explicit routing cue:
+      a named domain, tool, or axis — or negative routing (`NOT …`).
+      Capability-only descriptions are the agent-surface twin of the shonen
+      template defect.
+- [ ] Frontmatter keys resolve *against the target harness's agent schema*
+      (not a fixed list — observed extras: `mode`, `variant`,
+      `cascade_class`, `steps`, permission maps): `subagents` entries name
+      existing agent files/keys; `model`/`cascade` strings parse as
+      `provider/model`; delegated names in body tables match enrollment keys
+      (`the-scout` vs `scout` mismatch is a defect — only `the-janitor` is a
+      real `the-` binary on this host).
+- [ ] No dated operational text in frontmatter *including `description`*
+      (`until <date>`, timestamps, live seat assignments, round-indexed
+      routing notes like "Mandatory every PROPOSE round") — dated facts
+      belong in status files; frontmatter holds stable policy. Dated body
+      anecdotes are covered by the next item's staleness rule.
+- [ ] Body is persistent identity + constraints, not per-task job text — no
+      "your current task", round numbers, or one-shot instructions that go
+      stale between delegations.
+- [ ] No duplicated blocks in the body — the same paragraph must not appear
+      twice (copy-paste posture zones; check repeated line runs) *and* no
+      same-name blocks with differing content (labrat.md carries two
+      different DESPAWN templates; a conflicting near-duplicate is a
+      conflict defect, not a pass).
+- [ ] No trigger restatement: the body assumes delegation succeeded —
+      "when to use this agent" belongs in `description`/`whenToUse`.
+- [ ] Every external command *and file path* named in the body resolves:
+      binary on PATH (`command -v`), absolute path declared, file path
+      resolvable from the file's own dir or a named base, or a prerequisite
+      check stated (scout.md `aaron` on no PATH = fail). Harness tool/role
+      literals (`SendMessage`, `TaskCreate`) aren't commands — they're
+      governed by the host tool surface, not this item.
+
 ## Anti-patterns
 
 | Smell | Why it fails | Fix |
@@ -291,8 +344,16 @@ in "Instruction surfaces" instead — this checklist assumes a routed file.)
   lines) — round self-iteration mode; template variance is name+path only.
 - `~/.config/opencode/agents/*.md` (18 files, 14–197 lines) — agent-definition
   surface: roster frontmatter (`subagents`, `cascade`, `permission_mode`),
-  negative routing (`NOT general-purpose. NOT explore.` in 7/18), shared
-  godspeed preamble in 13/18 (doubled in mutation-tester.md), stale dated
-  `cascade_note` in ufo.md.
+  negative routing (`NOT …` family in 11/18 — round-6 audit corrected
+  round-4's 7), shared godspeed preamble in 14/18 (doubled in
+  mutation-tester.md), stale dated `cascade_note` and missing `name:` key
+  in ufo.md, `aaron` bin declared-but-absent in scout.md.
 - `~/.config/opencode/command/*.md` (3 files, 10–13 lines) — command surface:
   pointer-then-rules idiom, `agent:` delegation key, `$ARGUMENTS`.
+- CLAUDE.md files: `find ~ -maxdepth 6` → 16 hits (5 operator-authored, 1
+  dispatch template, 10 vendored/cache); loader strings in both harness
+  binaries but 0 captured injections — seventh surface class, cold channel.
+- `~/.local/share/opencode/opencode.db` — literal-trigger miss proxy over 398
+  sessions / 415 skill calls: unique-token triggers 0 misses; godspeed
+  always-on coverage 51.5%; domain-term names ambiguous (`ufo` misses are
+  references, not invocations).

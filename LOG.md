@@ -67,3 +67,30 @@
   `grep -abo`; 10191 compression-failure warns in ~/.omp/logs). SKILL.md
   gained the compressed-render caveat + front-load rule 8. Corpus:
   knowledge/skill-activation-telemetry.md.
+- 2026-09-28 — round 6: three convergent moves. (a) Second end-to-end domain
+  task: added a 9-item agent-definition fidelity checklist to SKILL.md and an
+  independent L2 reviewer lane applied it verbatim to all 18
+  `~/.config/opencode/agents/*.md` — 15/18 clean, 4 fail cells (ufo.md missing
+  `name:` + stale `cascade_note` "until 2026-08-29", mutation-tester.md
+  preamble doubled at lines 8-14+34-40, scout.md `aaron` bin absent from PATH),
+  all L1 re-verified (`command -v aaron` empty; frontmatter greps). 10
+  meta-findings resolved into the checklist (schema-not-list key rule,
+  description-dated-text scope, same-name-differing-content blocks, file-path
+  resolution, harness-literal carve-out). Audit corrected round-4 counts:
+  godspeed preamble 13→14/18 (orch.md missed), negative routing 7→11/18.
+  Artifact: `corpus/knowledge/agent-def-audit-round6.md`. (b) Seventh surface
+  class: CLAUDE.md census — 16 files (5 operator-authored incl. a 4339-line
+  outlier, 1 dispatch template, 10 vendored/cache); loader strings exist in
+  both harness binaries (9/17 refs) but 0 captured injections — a cold
+  always-on channel; SKILL.md gained a surfaces-table row. MCP/plugin
+  surfaces verified absent (`opencode.json` key set; plugin/ = one nudge
+  script). Artifact: `corpus/knowledge/claude-md-surface.md`. (c) First
+  fidelity measurement: literal-trigger miss proxy over opencode.db (398
+  sessions / 415 skill calls, command/directive text scrubbed) — unique-token
+  triggers miss 0%; godspeed always-on coverage only 51.5%; domain-term
+  names ambiguous (all 5 `ufo` misses are references, not calls). SKILL.md
+  gained frontmatter rule 9 (invocation-shaped triggers for domain-term
+  names). Artifact: `corpus/knowledge/trigger-miss-proxy-round6.md`.
+  SHONEN.md re-attributed `[~]` self-asserted per PROTOCOL.md round-6 rule.
+  Sibling defect re-check: all 5 sibling descriptions still unchanged
+  post-audit (fleet still fails trigger items — fix remains cross-domain).
