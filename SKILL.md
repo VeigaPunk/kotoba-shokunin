@@ -16,9 +16,12 @@ description: >
 
 # kotoba-shokunin — prompt & skill craft
 
-A SKILL.md is a **loader contract**: the frontmatter `description` is the only
-part the router always sees, and the body is the only part the executing agent
-always sees. Craft means both surfaces earn their tokens. Rank: shonen.
+A SKILL.md is a **loader contract**: the frontmatter `description` is the
+only part the router always sees — and on this host it is not seen raw. The
+`<skills>` catalogue (template embedded in the omp ELF, rendered per session)
+is a *model-compressed* render capped ~95–103 chars/skill; the body is the
+only part the executing agent always sees. Craft means both surfaces earn
+their tokens. Rank: shonen.
 
 Evidence base: 16 production skill files surveyed 2026-09-28
 (`~/.agents/skills/*/SKILL.md`, `~/.config/opencode/skills/ufo/SKILL.md`)
@@ -107,7 +110,10 @@ orchestrator matches); spawn prompts optimize *one-shot completeness*
 
 ## Frontmatter craft — the trigger surface
 
-`description` is an index, not a summary. Field rules distilled from the survey:
+`description` is an index, not a summary — and on this host it is an index
+*through a compressor*: measured renders run ~95–103 chars vs 160–820 source
+chars (10191 `Skill description compression failed` warns in `~/.omp/logs/`),
+so the render is advisory, not verbatim. Field rules distilled from the survey:
 
 1. **Capability first, triggers second.** One clause naming what the skill does
    ("xbreed ask — optional cross-model advisory protocol"), then trigger
@@ -116,13 +122,17 @@ orchestrator matches); spawn prompts optimize *one-shot completeness*
    out"` (sekhmet-l3); `"/wwkd", "plan this", "break this down"` (wwkd). Quoted
    strings match how routers and humans actually phrase intent.
 3. **Include implicit-intent triggers.** bailian-model-recommend activates on
-   "我想做一个XX" — a described need, not a named tool. If users arrive without
-   naming the skill, the description must catch the *need*, not the name.
-4. **Co-locate anti-triggers.** Every surveyed family carries exclusions in the
+   `"做一个XX"` in its frontmatter 触发词 (the fuller `"我想做一个XX"` sits in
+   its body 适用场景). If users arrive without naming the skill, the
+   description must catch the *need*, not the name.
+4. **Co-locate anti-triggers.** Most surveyed files carry exclusions in the
    description itself: omarchy "Excludes Omarchy source development",
-   bailian-gen "反触发：普通问答、编程、写作、翻译不走本技能". An anti-trigger
-   in the body but not the frontmatter still causes false activation — the
-   router never reads the body.
+   bailian-gen "反触发：普通问答、编程、写作、翻译不走本技能". Observed
+   exceptions (2 of 10 bailian files): bailian-train-deploy and
+   bailian-docs-llm-wiki keep exclusion lists only in the body (反触发表 /
+   何时不要使用) — a second-layer net for router error, not a substitute:
+   an anti-trigger in the body but not the frontmatter still causes false
+   activation — the router never reads the body.
 5. **State sibling boundaries when overlap exists.** bailian-model-recommend:
    "当用户同时涉及模型查询和模型选择时，优先使用本 skill". Naming the neighbor
    and the arbitration rule prevents double-activation.
@@ -130,8 +140,15 @@ orchestrator matches); spawn prompts optimize *one-shot completeness*
    without waiting for a keyword." If activation is unconditional, the
    description must override the trigger assumption, not rely on it.
 7. **Declare runtime needs in metadata, not prose.** `metadata.requires.bins:
-   ["bl"]` (bailian family), `compatibility:` (model-recommend). Machines read
-   metadata; prose warnings get skipped.
+   ["bl"]` on 7 of 10 bailian skills (docs-llm-wiki, model-recommend and
+   train-deploy omit `requires:`), `compatibility:` on model-recommend.
+   Machines read metadata; prose warnings get skipped.
+8. **Front-load match-critical text.** Because the router's input is a
+   compressed render of `description`, put the capability clause and the most
+   match-critical trigger material in the first ~95 chars; treat anything
+   later as strengthener, not guarantee. Quoted trigger strings still help —
+   they give the compressor salient tokens to keep — but measure placement,
+   not presence.
 
 ## Decision tables — when to use one
 
@@ -143,9 +160,11 @@ orchestrator matches); spawn prompts optimize *one-shot completeness*
 | Ordered pipeline | No — numbered steps or ASCII chain | bailian-finetune 7-step chain |
 | One conditional | No — one sentence | — |
 
-Table rule: every row must end in an **action** (command, route, or named
-fallback). A table whose last column is description-only is documentation, not a
-decision surface.
+Table rule: every row must contain an **action cell** (command, route, named
+fallback, or verdict) — it need not be the last column; a trailing
+Source/Evidence column is allowed only when an action cell exists earlier in
+the row. A table with no action column at all is documentation, not a
+decision surface, and must not be presented as one.
 
 ## Compression rules
 
@@ -180,17 +199,24 @@ in "Instruction surfaces" instead — this checklist assumes a routed file.)
 - [ ] `description` contains ≥1 literal trigger string in quotes or an explicit
       `Triggers:` list.
 - [ ] `description` contains at least one anti-trigger or exclusion clause.
-- [ ] Overlapping sibling skills are named with an arbitration rule.
+- [ ] Overlapping sibling skills are named with an arbitration rule in the
+      `description` (body/PROVINCE boundary text does not count — the router
+      never reads it). N/A only when no named overlap exists.
 - [ ] Body opens with a one-line role statement, not a restatement of triggers.
-- [ ] Every prerequisite has a **fail-closed** path stated ("if X is missing,
-      stop and do Y; do not guess" — bailian-cli pattern).
-- [ ] Every decision table row ends in an action.
-- [ ] Every command block is runnable as pasted (bins declared in metadata or
-      checked in a prerequisite step).
+- [ ] Every prerequisite — any binary, file, env var, or sibling artifact a
+      body command assumes, declared or implied — has a **fail-closed** path
+      stated ("if X is missing, stop and do Y; do not guess" — bailian-cli
+      pattern).
+- [ ] Every decision-table row contains an action cell (see the table rule
+      above — need not be the last column).
+- [ ] Every command (fenced block or inline) is runnable as pasted: its binary
+      resolves on PATH or at a location the file declares; bins are declared
+      in metadata or checked in a prerequisite step.
 - [ ] Every failure claim carries its observed signature (error text, exit code,
       version constraint) — no bare warnings.
-- [ ] Every source citation resolves: file path exists, link target exists,
-      quote attributed.
+- [ ] Every source citation resolves from a named base: repo-relative paths
+      resolve from the file's own repo by default; any other root must be
+      named in the file; bare basenames that exist under multiple roots fail.
 - [ ] Stale-risk facts (model names, versions, prices) are either pinned with a
       source or deferred to `--help` / reference files.
 - [ ] File ≤ ~600 lines; overflow already moved to referenced depth files.
@@ -201,7 +227,7 @@ in "Instruction surfaces" instead — this checklist assumes a routed file.)
 
 | Smell | Why it fails | Fix |
 |-------|--------------|-----|
-| Description = capability only, no triggers | Router can't match unseen phrasings | Add quoted trigger strings + implicit intents |
+| Description = capability only, no triggers | Router can't match unseen phrasings — the shonen mint template produces exactly this (`Domain specialist — scopes X`); 5/5 sibling SKILL.md files failed items 2–3 in the round-5 fleet audit | Add quoted trigger strings + implicit intents |
 | Anti-trigger only in body | Router never sees it; false activation | Move exclusion clause into `description` |
 | Flags documented in prose | Drifts from `--help`; agents guess | Pointer to `reference/` or `--help` |
 | Procedures before scope | Agent acts before knowing boundaries | Anatomy order: gate → decide → act |
@@ -216,7 +242,7 @@ in "Instruction surfaces" instead — this checklist assumes a routed file.)
 | Dated operational note in frontmatter | No freshness mechanism — `cascade_note` past its `until` date still routes | Move dated facts to a status file; frontmatter holds stable policy |
 | Command file that re-states skill procedures | Two owners of the same steps; the skill drifts, command contradicts | Pointer-then-rules: name the skill, keep only rules that must hold anyway |
 | Spawn-mode prompt used for a round ignite | 6-stanza completeness when the reader re-loads its own repo is pure drag | 3–4 lines: role+round, method, land-scope, `| godspeed` |
-| Round-mode prompt used for a spawn | Reader has no repo context to recover from — stanza gaps are unrecoverable | Full 6-stanza spawn anatomy |
+| Bin invoked without declared location | `command -v` returns nothing; agent guesses a path (kake: `webzites` on no PATH) | Declare the bin path or a prerequisite check step |
 
 ## Refusals
 

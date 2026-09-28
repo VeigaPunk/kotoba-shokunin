@@ -35,3 +35,35 @@
   completeness rule, 6 anti-patterns, 3 source entries. Corpus: knowledge/
   agent-defs-commands-and-round-prompts.md, lessons/round-4.md, README gap
   list updated (5-class coverage; system-prompt/CLAUDE.md/MCP remain open).
+
+- 2026-09-28 — round 5: first end-to-end domain task + round-1 defect repairs.
+  Audit: an independent L2 reviewer lane applied the 13-item trigger-fidelity
+  checklist verbatim to the 5 sibling `*-shokunin/SKILL.md` files (strict
+  reading); L1 verified frontmatter items and every cited defect line.
+  Result: all 5 fail — systemic template defect, all descriptions are
+  `Domain specialist — scopes X` with zero quoted triggers/anti-triggers
+  (items 2–3: 0/5), zero sibling arbitration (item 4: 0/5) despite named
+  overlaps found (kagi↔kake CDP, kengaku↔bailian-docs-llm-wiki). 5
+  checklist-ambiguity meta-findings filed and resolved in SKILL.md
+  (prerequisite defined, action-cell rule replaces last-column rule, command
+  scope widened, citation-base rule added, item 4 surface pinned to
+  `description`). Defect repairs (aggregator audit queue): dropped the
+  fabricated `bailian-train-deploy` 火山方舟/ark frontmatter quote (verified:
+  the text exists nowhere in that file); scoped `requires.bins` claim to
+  7-of-10 with named exceptions; replaced the unswept "counterexample none
+  found" claim with a grep sweep + 2/16 counterexample rate
+  (bailian-docs-llm-wiki body 何时使用/何时不要使用, bailian-model-recommend
+  body 适用场景). Corpus: knowledge/fleet-skill-audit-round5.md,
+  knowledge/harness-system-prompt.md (6th surface class — observed,
+  not owned), lessons/round-5.md, README coverage+gaps updated. SHONEN.md:
+  all 4 boxes ticked with evidence lines.
+  Telemetry (scout lane + L1 re-verified): a real activation trace exists —
+  `~/.local/share/opencode/opencode.db` `part` table, `$.tool='skill'` (415
+  calls / 216 sessions / 11 skills; histogram re-run by hand matches:
+  godspeed 239, wwkd 52, ufo 51, …); per-prompt attribution via
+  `part.message_id → message`. Bigger find: the `<skills>` catalogue the
+  router sees is a model-compressed render of `description` (~95–103 chars,
+  template embedded at ~/.local/bin/omp ELF offset 283082932 — re-verified by
+  `grep -abo`; 10191 compression-failure warns in ~/.omp/logs). SKILL.md
+  gained the compressed-render caveat + front-load rule 8. Corpus:
+  knowledge/skill-activation-telemetry.md.
