@@ -2,7 +2,7 @@
 
 - verifier: aggregator-lane round-8 L2 `labrat` seat `Box3Kotoba` — **non-author**; author lane: kotoba
 - dispatched by: `.ufo/reports/round-8/aggregator.md` (main repo `shokunin`)
-- stamp: start 2026-09-28T23:31:40Z HEAD `71963e6` dirty 0 → end 2026-09-28T23:33:14Z dirty 0 (one-file dirty window during write+commit; lane tree was already clean at start — the 15 modified files reported in dispatch landed as `71963e6` before 23:31Z)
+- stamp: start 2026-09-28T23:31:40Z HEAD `71963e6` dirty 0 → end 2026-09-28T23:33:45Z HEAD `683d147` dirty 0 (commit `683d147` aggregator-shokunin, 1 file changed, 50 insertions(+); one-file dirty window during write+commit; lane tree was already clean at start — the 15 modified files reported in dispatch landed as `71963e6` before 23:31Z)
 - entry: `SKILL.md` only (no LOG/SHONEN/SCORECARD/PROVINCE/report read before the run; SHONEN.md box-3 line read once, post-run, as sanctioned)
 
 ## Commands executed
