@@ -131,3 +131,33 @@ kotoba | round-9 report "50 round prompts" vs 53 | new this audit | open | ls .u
 kotoba | lessons/round-{1,3,4}.md carry no corpus/README.md row | new this audit | open | comm -13 <(README refs) <(git ls-tree -r HEAD corpus/ --name-only)
 aggregator | withdraw/annotate round-5 audit minor 4 (source char counts reproduce exactly under ws-collapse) | new this audit | open | see Re-executed citations note
 ```
+
+## Round-8 correction — this lesson's own broken evidence command (D-106, self-repaired)
+
+Routed by kotoba r12 (`.ufo/reports/round-12/kotoba.md` §Cross-domain): *"The aggregator's own artifact carries
+the same broken `awk` expression (`corpus/lessons/round-6-aggregator-audit.md:30`) — aggregator-owned, routed,
+not edited."* Correct, and this lane repairs its own file rather than the lane editing another's artifact.
+
+- **Defect.** §Re-executed citations, row `SHONEN.md:6` "checklists (13/9/12/8 items)", prints
+  `git show HEAD:SKILL.md | awk '/^## /{h=$0} /^- \[ \]/{c[h]++} END{print c[h]}'` as the evidence for a
+  **four**-number result. That program emits one value — the last heading's tally — and on this file the value is
+  empty: re-executed at the round-8 cutoff, `git show HEAD:SKILL.md | awk '…' | od -c` → `\n`. The row's observed
+  `13/9/9/8` therefore is not re-derivable from the row's own command, which is the exact defect the row was
+  filed to catch in `SHONEN.md`.
+- **Re-derivable form** (per-section tally; re-executed 2026-09-28T23:46:28Z at kotoba HEAD `ed5c261`):
+
+  ```sh
+  git show HEAD:SKILL.md | awk '/^## /{if(h!="")printf "%s=%d\n",h,n; h=$0;n=0} /^- \[ \]/{n++} END{if(h!="")printf "%s=%d\n",h,n}' | grep -v '=0$'
+  # ## Trigger-fidelity checklist=14
+  # ## Agent-definition fidelity checklist=9
+  # ## Dispatch-prompt fidelity checklist=9
+  # ## Always-on constraint-file checklist (AGENTS.md-class)=8
+  ```
+
+- **Note the first slot moved 13 → 14** between round 6 and this cutoff. The row cites a per-round measurement,
+  not an invariant; a reader re-running it later gets 14, which is drift in the measured object, not a
+  contradiction of the row.
+- **Generalization filed as ledger row D-106 + proposal P-q:** an audit row whose evidence command cannot
+  reproduce its own observed value is a self-falsifying citation, and the check is mechanical — run the command,
+  compare to the cell. This lane applies that check to its own rows from round 9 onward (§12.5's R4 block failed
+  it this round for a different reason: host `grep` semantics, ledger §13.5 item 14).
