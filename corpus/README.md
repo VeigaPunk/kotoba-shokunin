@@ -17,6 +17,10 @@ Domain: prompt & skill craft — SKILL.md/AGENTS.md quality, trigger fidelity.
 | Trigger-miss proxy (round-6) | `knowledge/trigger-miss-proxy-round6.md` | opencode.db 398 sessions: literal-trigger coverage + godspeed always-on hole (51.5%) |
 | CLAUDE.md surface (7th class) | `knowledge/claude-md-surface.md` | 16-file census; loader strings in binaries, 0 captured injections |
 | Agent-def audit (round-6) | `knowledge/agent-def-audit-round6.md` | 9-item checklist applied to 18 `opencode/agents/*.md` |
+| Render mechanism & trigger survival | `knowledge/render-mechanism-round7.md` | omp binary reverse-engineered: cache-or-truncate render, `slice(0,99)` cliff, 53/62 triggers lost, 14 catalogues / 3911 session_init census |
+| Dispatch-prompt audit + checklist | `knowledge/dispatch-prompt-audit-round7.md` | 12-item checklist applied to 43 `.ufo/prompts/*.md` (37 fail) + resolvability sweep incl. generator bugs |
+| Always-on checklist + self-audit | `knowledge/alwayson-checklist-round7.md` | 8-item AGENTS.md checklist (host file FAIL); 13-item self-audit of SKILL.md (4 fails cured); drift recount table |
+| Round-7 lessons | `lessons/round-7.md` | LOG.md round-7, commit `round-7`, report `../.ufo/reports/round-7/kotoba.md` |
 | Round-5 lessons | `lessons/round-5.md` | LOG.md round-5, commit `round-5`, report `../.ufo/reports/round-5/kotoba.md` |
 | Round-6 lessons | `lessons/round-6.md` | LOG.md round-6, commit `round-6`, report `../.ufo/reports/round-6/kotoba.md` |
 
@@ -31,5 +35,14 @@ Domain: prompt & skill craft — SKILL.md/AGENTS.md quality, trigger fidelity.
   unrelated nudge script, no manifest conventions to survey.
 - Sibling arbitration gap is *measured and persisted*: named overlaps exist
   (kagi↔kake CDP, kengaku↔bailian-docs-llm-wiki); 0/5 descriptions carry an
-  arbitration clause, still true at round-6 re-check (all 5 descriptions
-  unchanged post-audit). Fixes are cross-domain — relayed in reports.
+  arbitration clause, still true at round-7 sentinel re-check. Fixes are
+  cross-domain — routing map in `knowledge/alwayson-checklist-round7.md` +
+  the round-7 report. The mint-template producer itself has no identified
+  owner (integrator assignment needed).
+- opencode-side activation is the open fidelity axis: omp offer coverage is
+  100% for godspeed (3911/3911 session_init records) while opencode.db shows
+  51.5% session coverage — different hosts/stores; the offer-vs-consume split
+  needs an opencode-side offer trace, not more omp measurement.
+- The render cliff is measured for the 17 offered skills; whether the five
+  cached LLM renders *route better* than truncations is unmeasured (no
+  per-render activation attribution exists).

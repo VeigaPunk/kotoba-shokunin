@@ -7,6 +7,13 @@ this host and per-prompt attribution works; (2) the router never sees raw
 
 ## Fact — the `<skills>` catalogue is a compressed render, not source text
 
+**ROUND-7 SUPERSESSION:** the "model-compressed" framing below is only half
+the mechanism. Round 7 (`render-mechanism-round7.md`) proved the render is
+cache-or-truncate: 5/17 skills carry LLM cache rows; 12–14 render by
+deterministic `slice(0,99)`+`…` — and the compression did not exist before
+2026-09-27 (earlier catalogues render descriptions verbatim). Treat the
+measured sizes below as that era's snapshot.
+
 - The template is embedded plaintext in the omp ELF
   (`~/.local/bin/omp`, byte offset 283082932, found via `grep -abo '<skills>'`):
   `{{#each skills}}- {{name}}: {{description}}{{/each}}` with the directive

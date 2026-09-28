@@ -94,3 +94,44 @@
   SHONEN.md re-attributed `[~]` self-asserted per PROTOCOL.md round-6 rule.
   Sibling defect re-check: all 5 sibling descriptions still unchanged
   post-audit (fleet still fails trigger items — fix remains cross-domain).
+- 2026-09-28 — round 7: mechanism-level correction + three new checklists,
+  executed by 9 L2 lanes in one batch (MISSION.md minimum met: reviewer
+  self-audit, critic drift recount, sentinel defect re-verify, executor ×2,
+  scout ×2, connector routing map, planner AGENTS.md checklist).
+  **Primary measurement** (scout lanes, L1 spot-verified): the `<skills>`
+  description render is cache-or-truncate, not "model-compressed" as round 5
+  claimed — `previewSkillDescription` does `slice(0,99)` + first-sentence
+  (≥40 chars, no ellipsis) or last-space + `…`; an async LLM compressor fills
+  `~/.omp/agent/skill-descriptions.db` (5/17 skills cached, key
+  sha256(template+name+ws-description) reproduced 5/5). Compression activated
+  2026-09-24→27 (earlier catalogues render verbatim 163–818 chars; current
+  ≤98). Measured loss: 17.7% of description chars reach the router, 53/62
+  quoted triggers lost, 13/13 `Triggers:`/反触发/`Excludes` clauses absent —
+  all sit past the cliff. Also: 10681 compression-failure warns (99.92% Devin
+  `invalid_argument`); two live catalogue variants coexist same-hour;
+  godspeed offered 3911/3911 session_init records (round-6's 51.5% gap is
+  opencode-side activation, not omp offer); `xbgst-surface` dead offer;
+  `ufo` duplicate id (omp/agent copy wins); the six `*-shokunin` SKILL.md
+  files are outside every discovery root — never routed at all.
+  **Self-audit** (reviewer lane, verbatim 13-item checklist on own SKILL.md):
+  7/13 clean, 4 fails + 1 ambiguous — all resolved same round (concrete
+  sibling arbitration added to `description`; recipe-vs-prerequisite
+  carve-out; bare-path citations grounded; "failure claim" defined).
+  **New checklists landed**: dispatch-prompt (12 items, applied — 37/43
+  prompt files fail ≥1; `<lane>` placeholders cost kake/kengaku canonical
+  round-1 names; 38 files carry stale `m_composer`/`m_antigravity`/`m_grok`
+  aliases; generator `shokunin-watchdog.sh` already fixed, artifacts stale)
+  and AGENTS.md (8 items, applied — 6/6 repo files pass; host
+  `~/.agents/AGENTS.md` fails: procedures at :18/:55, dated text :48/:51 —
+  round-1 "zero procedures" claim corrected). SKILL.md rules 8→12 rewritten
+  for the cliff (first-sentence exploit, reproduce-don't-assume, discovery-
+  root gate); 4 new anti-patterns; Sources updated. **Drift recount**
+  (critic): CLAUDE.md census 16→18 (+2 vendored); compression warns
+  10191→10681; "byte-identical AGENTS.md" → shape-identical (6 distinct
+  md5s, shared body hash equal). Artifacts:
+  `corpus/knowledge/render-mechanism-round7.md`,
+  `corpus/knowledge/dispatch-prompt-audit-round7.md`,
+  `corpus/knowledge/alwayson-checklist-round7.md`, `lessons/round-7.md`.
+  Cross-domain queue re-verified by sentinel lane: all sibling/agent-fleet
+  defects still present (ufo.md cascade_note now 60d stale). `edit`
+  boundary-echo recurred once (intro paragraph tail); caught by re-read.

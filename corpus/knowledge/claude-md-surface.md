@@ -17,6 +17,10 @@ close the README gap.
   carries the file.
 
 ## File inventory (16 found, `find -maxdepth 6`)
+**ROUND-7 DRIFT:** `find ~ -maxdepth 6 -iname 'claude.md' -not -path
+'*/node_modules/*'` now returns **18** (5 authored / 1 template / **12**
+vendored — +2 vendored since this census). The inventory table below is the
+round-6 snapshot; recount before citing.
 
 | Class | Count | Examples |
 |-------|-------|----------|
