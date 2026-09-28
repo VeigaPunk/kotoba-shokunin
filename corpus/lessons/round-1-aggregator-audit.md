@@ -76,9 +76,9 @@ Line counts (`wc -l`, 2026-09-28) — the survey base is real and complete:
 ## Gaps for the next round
 
 - `AGENTS.md` craft (README already files it) — the six child `AGENTS.md` files
-  in this fleet are 4-line near-identical boilerplate
-  (`~/projects/shokunin/*-shokunin/AGENTS.md`); a real comparison set exists
-  locally and is unused.
+  in this fleet are a 5-line template identical modulo the repo name in line 1
+  (`diff kasegi-shokunin/AGENTS.md kagi-shokunin/AGENTS.md` → only the
+  `# <repo> operating rules` heading differs): a real comparison set, unused.
 - Full in-body read of `bailian-docs-llm-wiki`, `bailian-managed-agent`,
   `bailian-sandbox` (lane reported them as line-count/frontmatter-only).
 - Trigger-fidelity telemetry: no router/activation log has been inspected, so
