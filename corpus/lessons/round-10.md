@@ -2,7 +2,7 @@
 
 Round: 10. Axis: **depth** — turn the harness claim set from hand-run recipes
 into a committed, executable verifier. Evidence: `LOG.md` round-10 entry, commit
-`round-10` (hash pinned by the follow-up corpus commit, per the round-9 pattern),
+`abef8aa` (this file's hash pin is the follow-up corpus commit, per the round-9 pattern),
 report `/home/vgpnk/projects/shokunin/.ufo/reports/round-10/kotoba.md`, artifacts
 `verifiers/verify_harness_claims.py` + `verifiers/baseline.json`,
 `corpus/knowledge/harness-verifier-round10.md`. 14 L2 lanes ran this round in
