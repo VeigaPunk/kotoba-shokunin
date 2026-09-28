@@ -1,9 +1,10 @@
 ---
 name: kotoba-shokunin
 description: >
-  Prompt & skill craft — audits, writes, and rewrites SKILL.md / AGENTS.md / system
-  prompts for trigger fidelity and decision density. Use when asked to improve a
-  skill file's trigger surface, write frontmatter descriptions, add decision
+  Prompt & skill craft — audits, writes, and rewrites SKILL.md / AGENTS.md /
+  dispatch prompts / system prompts for trigger fidelity and decision density.
+  Use when asked to improve an instruction file's trigger surface, write
+  frontmatter descriptions, add decision
   tables, compress an overlong prompt, build an anti-pattern or error-pattern
   section, or check whether a skill's claims are verifiable. Triggers: "skill
   file", "SKILL.md", "frontmatter description", "trigger words", "prompt craft",
@@ -43,6 +44,38 @@ pressure.
 Not every file needs every section. godspeed is 18 lines: frontmatter + one
 deferral ("Read `directive.md` … apply verbatim") + one invocation note. Anatomy
 is a checklist of *available* organs, not a mandatory skeleton.
+
+## Instruction surfaces — pick the file before the fix
+
+Three surface classes observed on this host; each loads differently, so each
+has different craft rules. Applying skill-file rules to an always-loaded file
+(or vice versa) is the most common cross-surface mistake.
+
+| Surface | Load condition | Parse surface | Dominant failure | Craft rule |
+|---------|----------------|---------------|------------------|------------|
+| SKILL.md | Opt-in: activated when `description` matches intent | frontmatter = router index; body = executor contract | False activation / missed activation | All craft below (frontmatter, tables, gates) |
+| AGENTS.md | Always-on: injected into every session in its repo | No frontmatter, no router — every byte loads every time | Token drag, stale constraint decay | Terse imperative rules only; no triggers, no prose, no procedures that belong in a skill |
+| Dispatch prompt (L1/L2 lanes) | Ephemeral: consumed once by a subagent | Whole file is the contract; no persistence | Missing stanza → unrecoverable agent (no conversation to clarify with) | Fixed stanza order; complete, self-contained; ends with `| godspeed` |
+
+**AGENTS.md evidence:** six shokunin child repos carry byte-identical 5-line
+operating rules (scope, LOG-evidence, no-fabrication) differing only in repo
+name — `md5sum` differs, content shape identical
+(`/home/vgpnk/projects/shokunin/*/AGENTS.md`, surveyed 2026-09-28). The
+host-level `~/.agents/AGENTS.md` is longer but still pure constraints
+(posture rules, bans, capability statements) — zero procedures, zero triggers.
+
+**Dispatch-prompt anatomy** (from `.ufo/prompts/*-L1.md`, 9–12 lines each):
+`role + working dir` → `context (domain + rank)` → `job (imperative, with
+verification commands embedded)` → `L2 routing map` → `report path + scope
+fence` → literal ` | godspeed` suffix. A stanza missing from a dispatch is
+permanently absent — the subagent cannot ask for it back. Budget the file for
+completeness, not brevity; the reader is a blank-context agent.
+
+Craft asymmetry to respect: SKILL.md optimizes *match precision* (trigger
+density in the description); AGENTS.md optimizes *constraint survival* (a rule
+that must hold unconditionally, so it must be short enough to always be read);
+dispatch prompts optimize *one-shot completeness* (everything the reader needs,
+nothing it can look up).
 
 ## Frontmatter craft — the trigger surface
 
@@ -112,7 +145,8 @@ decision surface.
 ## Trigger-fidelity checklist
 
 Run before shipping any SKILL.md. Every item is checkable by reading the file —
-no runtime needed.
+no runtime needed. (For AGENTS.md / dispatch prompts, use the per-surface rows
+in "Instruction surfaces" instead — this checklist assumes a routed file.)
 
 - [ ] `name` matches the directory / invocation surface.
 - [ ] `description` contains ≥1 literal trigger string in quotes or an explicit
@@ -147,6 +181,8 @@ no runtime needed.
 | Sibling skill hardcoded as path dep | Missing sibling = dead skill | Soft hand-off by name + `--help` fallback (bailian family rule) |
 | Recursive skill load | Skill that must read itself to work | In-line the essential rule; reference the rest |
 | 600+ line monolith | Router and agent both lose the thread | Split at anatomy boundary 3↔4 |
+| Procedures in AGENTS.md | Always-loaded bytes pay every session; procedures belong in opt-in files | Move how-to to SKILL.md; keep only constraints |
+| Dispatch prompt missing a stanza | Blank-context subagent fails unrecoverably | Role → context → job → routing → report → `| godspeed` |
 
 ## Refusals
 
@@ -177,7 +213,17 @@ no runtime needed.
   sibling boundary arbitration.
 - `~/.agents/skills/bailian-web-search/SKILL.md`, `bailian-gen/SKILL.md`,
   `bailian-finetune/SKILL.md` — routing workflows, consent short-forms.
+- `~/.agents/skills/bailian-docs-llm-wiki/SKILL.md` — layered depth trees
+  (wiki/models/raw), quality-score fallback, grep/jq query recipes.
+- `~/.agents/skills/bailian-managed-agent/SKILL.md` — plan-before-apply
+  guardrail, secrets-never-in-preview rules.
+- `~/.agents/skills/bailian-sandbox/SKILL.md` — operational-boundary section,
+  credential-redaction defaults.
 - `~/.agents/skills/omarchy/SKILL.md` — largest observed file (392 lines);
   safety-rule callouts, config-location tables.
 - `~/.config/opencode/skills/ufo/SKILL.md` — invariant lists (I1–I10), load-order
   with fail-closed resolution, dispatch contract.
+- `/home/vgpnk/projects/shokunin/*/AGENTS.md` (6 files) + `~/.agents/AGENTS.md`
+  — always-on constraint files; no frontmatter, terse imperatives.
+- `/home/vgpnk/projects/shokunin/.ufo/prompts/*-L1.md` (8 files, 9–12 lines) —
+  dispatch-prompt stanza order and `| godspeed` terminator.
