@@ -28,7 +28,7 @@ Domain: prompt & skill craft — SKILL.md/AGENTS.md quality, trigger fidelity.
 | Harness router models (round-9) | `knowledge/harness-router-models-round9.md` | per-harness tag/render/gate/failure tables + verify recipes: omp `<skills>` = `cache.get(key) ?? previewSkillDescription` (99-char cliff, keep 55–96) vs opencode `<available_skills>` = untruncated `description` + `<location>`; offer gates differ (omp: dir in a discovery root; opencode: `description` defined + `skill` permission enabled, dedupe by name is nondeterministic); supersedes the round-5 omp framing and the round-7 opencode omission; carries the round-9 key-reproduction nuance and the WAL caveat on the db mtime |
 | Harness-claim scope audit (round-9) | `knowledge/claim-scope-audit-round9.md` | consistency measurement, before → after: 31 claim units swept by marker (`router`, `cliff`, `<skills>`, `slice(0,99)`, `render`, `truncat`, `catalogue`, `compressed`, `99`, `sees`) and classified SCOPED / UNSCOPED / UNSUPPORTED; before-state on `SKILL.md` @ `143fe473…` (487 lines) = 15 SCOPED / 9 UNSCOPED / 7 UNSUPPORTED with 0 `<available_skills>` occurrences; after-state grep counts + the landed `## Router model` table |
 | Round-8 lessons | `lessons/round-8.md` | LOG.md round-8 entry (never written — see the lesson), commit `8c300ad`, report `../.ufo/reports/round-8/kotoba.md` |
-| Round-9 lessons | `lessons/round-9.md` | LOG.md round-9 entry, commit `ROUND9_COMMIT`, report `../.ufo/reports/round-9/kotoba.md` |
+| Round-9 lessons | `lessons/round-9.md` | LOG.md round-9 entry, commit `e997d45`, report `../.ufo/reports/round-9/kotoba.md` |
 
 ## Known gaps
 

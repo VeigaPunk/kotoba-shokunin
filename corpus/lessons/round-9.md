@@ -2,7 +2,7 @@
 
 Round: 9. Axis: **consistency** — every harness-specific claim in `SKILL.md`
 must say which harness it is true on. Evidence: `LOG.md` round-9 entry, commit
-`<C1>`, report `/home/vgpnk/projects/shokunin/.ufo/reports/round-9/kotoba.md`,
+`e997d45`, report `/home/vgpnk/projects/shokunin/.ufo/reports/round-9/kotoba.md`,
 artifacts `knowledge/harness-router-models-round9.md`,
 `knowledge/claim-scope-audit-round9.md`, `SCORECARD.md` (new), plus the
 round-8 index debt paid below. 14 L2 lanes ran this round in two batched `task`
