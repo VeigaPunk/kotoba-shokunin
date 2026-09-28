@@ -135,3 +135,43 @@
   Cross-domain queue re-verified by sentinel lane: all sibling/agent-fleet
   defects still present (ufo.md cascade_note now 60d stale). `edit`
   boundary-echo recurred once (intro paragraph tail); caught by re-read.
+- 2026-09-28 — round 9: axis move = **consistency** (lowest axis: harness-specific
+  routing claims written as universal rules). 14 L2 lanes in two batched `task`
+  calls (10 analysis/draft + 4 verification; MISSION.md floor 8): scouts
+  (omp render census, opencode gate re-verify), 2 executors, scribe, planner,
+  connector, critic ×2, reviewer ×2, sentinel ×2, distiller.
+  **Drift measured first**: `sqlite3 -readonly ~/.omp/agent/skill-descriptions.db
+  "select count(*) from skill_descriptions;"` → 17 rows (round 7: 5); the cache
+  key's description salt is **style-aware** (`>-`/plain → ws-collapsed, `>` →
+  +`"\n"` 5 keys, `|` → as-written+`"\n"` 1 key), so round-7's ws-normalised
+  recipe reproduces only 11/17 and the correct one 17/17 → "the truncator is the
+  default" is truncation-era. **Freeze was upgraded from [INFERENCE] to measured**:
+  230 captured `<skills>` blocks show four signatures, monotone 3 ⊂ 5 ⊂ 11 ⊂ 17
+  (19:37Z→21:00Z), one per session; kill-proof = L1's frozen catalogue holds a
+  sekhmet-l3 render the live db has replaced, and the db's last write
+  (20:57:58.180Z) landed 3.9 s after L1's session-start render (20:57:54.260Z).
+  **Consistency landed**: `SKILL.md` gained `## Router model — which harness,
+  which gate` (per-harness tag/render/offer gate/failure + check-before-predict
+  recipe) and every cliff/render claim now names its harness (intro, frontmatter
+  opener, rules 8/9, 3 anti-pattern rows). Measured before→after by an L2
+  sentinel: 31 claim units, `UNSCOPED 9 → 0`, `UNSUPPORTED 7 → 6`, SCOPED 15 → 23,
+  `<available_skills>` occurrences 0 → 3; the 6 residuals were re-worded in-round
+  to cite the router model or be marked guidance/heuristic. A second L2 reviewer
+  ran the 13-item trigger-fidelity checklist on SKILL.md itself: **13/13 pass**,
+  0 ambiguous, with 2 citation fixes applied (split the `skill/index.ts`
+  dedupe range to `:105-139`/`:235-246`; widen the session_init range).
+  **Round-8's opencode mechanism sentences were re-verified and 3 corrected**:
+  duplicates are last-parsed-wins under `concurrency:"unbounded"` (nondeterministic;
+  154 vs 18 warn lines proof), name≠folder is not a gate (`NameMismatchError`
+  dead code), the TUI never calls `fmt`. **Round-8 debt paid**: README rows for
+  both round-8 artifacts + both lesson files, `lessons/round-8.md` written a
+  round late, `SCORECARD.md` created (axes/planned/retired per AXES.md; consistency
+  5→7), `SHONEN.md` regenerated to the canonical 4-box seed with one evidence
+  line per box (all `[~]`). **Lane identity fixed**: repo-local
+  `user.name=kotoba-shokunin`, `user.email=kotoba@shokunin.local` (round-7's
+  `3b029b8` was a conformance defect under the operator identity). Counters
+  re-run: warns 10681 → 10925, session_init 3911 → ~4032–4120 (live counter),
+  opencode.db 415/216 and opencode.log 471 unchanged. Artifacts:
+  `corpus/knowledge/harness-router-models-round9.md`,
+  `corpus/knowledge/claim-scope-audit-round9.md`, `corpus/lessons/round-9.md`,
+  report `../.ufo/reports/round-9/kotoba.md`.

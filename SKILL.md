@@ -18,15 +18,22 @@ description: >
 # kotoba-shokunin — prompt & skill craft
 
 A SKILL.md is a **loader contract**: the frontmatter `description` is the
-only part the router always sees — and on this host it is not seen raw. The
-`<skills>` catalogue (template embedded in the omp ELF, rendered per session)
-shows each skill as `- name: render` where `render` is a **cache-or-truncate**
-value: a cached LLM one-liner if the async compressor succeeded, else a
-deterministic `slice(0,99)` + last-space/`…` cut (`_8n=100`,
-`skill-descriptions.ts`; cache `~/.omp/agent/skill-descriptions.db`). As of
-2026-09-27+ only 5/17 skills have cached renders — 10681 compression-failure
-warns — so the truncator is the default. The body is the only part the
-executing agent always sees. Craft means both surfaces earn their tokens.
+only part any router ingests — and the two harnesses here show it differently.
+On **omp** the `<skills>` catalogue (template in the omp ELF, rendered per
+session) shows each skill as `- name: render` where `render` is
+`cache.get(key) ?? previewSkillDescription`: a cached LLM one-liner if the
+async compressor landed, else a deterministic `slice(0, _8n-1)` cut with
+`_8n=100` (i.e. offset 99) plus last-space/`…` fallback (`skill-descriptions.ts`;
+cache
+`~/.omp/agent/skill-descriptions.db`). Cache coverage is time-varying — 5/17
+rows at round 7, 17 rows at round 9 (**all 17 keys reproduced** against today's
+on-disk descriptions; `select count(*)` → 17, 2026-09-28) — and rows land
+*after* session start, so an already-open session keeps its truncator renders
+(and an edited `description` misses its key, reverting that skill until a new
+row lands). On **opencode** the `<available_skills>`
+catalogue renders the full `description` byte-for-byte plus `<location>` — no
+cliff. The body is the only part the executing agent always sees. Craft means
+both surfaces earn their tokens.
 Rank: shonen.
 
 Evidence base: 16 production skill files surveyed 2026-09-28
@@ -49,7 +56,7 @@ pressure.
 | 1 | H1 + role statement | What this skill is, in one line | wwkd L16–24 |
 | 2 | Prerequisite gate | Fail-closed dependency check before any action | bailian-cli "CRITICAL — MUST read bailian-protocol" |
 | 3 | Decision surface | Tables/protocols that route the request | bailian-protocol class table; sekhmet-l3 flag table |
-| 4 | Procedures | Numbered steps, copy-pasteable command blocks | bailian-train-deploy steps 1–7 |
+| 4 | Procedures | Numbered steps, copy-pasteable command blocks | bailian-finetune steps 1–7 |
 | 5 | Boundaries | Refusals, anti-triggers, hand-offs | wwkd "Refusals"; bailian-train-deploy 反触发表 |
 | 6 | References | Cited sources, relative links to depth files | wwkd "Source Excerpts"; bailian `reference/` links |
 
@@ -67,7 +74,7 @@ has different craft rules. Applying skill-file rules to an always-loaded file
 |---------|----------------|---------------|------------------|------------|
 | SKILL.md | Opt-in: activated when `description` matches intent | frontmatter = router index; body = executor contract | False activation / missed activation | All craft below (frontmatter, tables, gates) |
 | Agent definition (`opencode/agents/*.md`) | Roster: orchestrator picks by `description`, then body becomes the subagent's system prompt | `description` = delegation index; body = persistent identity | Wrong-lane delegation; stale routing metadata | Terse negative routing in description (`NOT general-purpose. NOT explore.`); identity + constraints in body, never a per-task job; dated operational notes belong in status files, not frontmatter |
-| AGENTS.md | Always-on: injected into every session in its repo | No frontmatter, no router — every byte loads every time | Token drag, stale constraint decay | Terse imperative rules only; no triggers, no prose, no procedures that belong in a skill |
+| AGENTS.md | Always-on: injected into every session in its repo | No frontmatter, no router — every byte loads on each injection (loader strings exist in both binaries; 0 captured injections on this host) | Token drag, stale constraint decay | Terse imperative rules only; no triggers, no prose, no procedures that belong in a skill |
 | Command file (`opencode/command/*.md`) | Opt-in: user invokes `/<name>` | `description` + `agent:` frontmatter; body = command contract | Skill drift without a guardrail | Pointer-then-rules idiom: line 1 names the owning skill + `$ARGUMENTS`; then only the literal rules that must hold even if the skill drifts — procedures stay in the skill |
 | Dispatch prompt — spawn (L1/L2 lanes) | Ephemeral: consumed once by a subagent | Whole file is the contract; no persistence | Missing stanza → unrecoverable agent (no conversation to clarify with) | Fixed 6-stanza order; complete, self-contained; ends with `| godspeed` |
 | Dispatch prompt — round (`*-round-N.md`) | Ephemeral: re-ignites a live L1 lane | Relies on durable repo context (SKILL/LOG/corpus) | Stating stale per-round policy (routing maps drift between rounds) | 3–4 lines: role+round → method directive → land-scope+report → `| godspeed`; carry only what changed since spawn |
@@ -127,26 +134,51 @@ orchestrator matches); spawn prompts optimize *one-shot completeness*
 (everything the reader needs, nothing it can look up); round prompts optimize
 *delta-only weight* (everything durable is already in the repo).
 
+## Router model — which harness, which gate
+
+Two harnesses consume skills here, and neither shares the other's catalogue
+tag, render, or offer gate. Read the harness's own artifacts before predicting
+a render — a rule proven on omp is wrong on opencode.
+
+| Harness | Catalogue tag | Description render | Offer gate (action) | Failure mode |
+|---------|---------------|--------------------|---------------------|--------------|
+| omp | `<skills>` (ELF template) | `cache.get(key) ?? previewSkillDescription` — cached LLM line, else deterministic truncator (`_8n=100`; first sentence if ≥40 chars, else last-space cut + `…`); hard 99-char cliff | Ship the dir under an omp discovery root (`.agents/skills`, `.claude/skills`, project walk-up) and front-load the capability + WHEN into the first ≤99 chars | Trigger material past offset 99 or in sentence 2 renders as nothing (all 13 observed `Triggers:`/反触发/`Excludes` clauses lost) |
+| opencode | `<available_skills>` (`fmt(list,{verbose:true})`) | Full `description` byte-for-byte + `<location>` in the system-prompt catalogue; no truncation, no cache (the TUI skill list collapses whitespace only) | Define `description` and a frontmatter `name:`; leave the `skill` permission enabled; if a same-name duplicate exists, do not rely on which copy wins | Missing `description` is filtered out of the catalogue; a denied `skill` permission omits the whole block; duplicate names are last-parsed-wins under unbounded parse concurrency (round-9 re-verify: first-scanned-wins was wrong) |
+
+Check before predicting: on omp read the cache db
+(`sqlite3 -readonly ~/.omp/agent/skill-descriptions.db "select count(*) from
+skill_descriptions;"`) **and** the newest `<skills>` block
+(`~/.omp/agent/sessions/**/*.jsonl`) — the catalogue freezes at session start,
+so db coverage is time-varying; on opencode read the global roots and
+`grep -o 'message=init count=[0-9]*' ~/.local/share/opencode/log/opencode.log`.
+
 ## Frontmatter craft — the trigger surface
 
-`description` is an index, not a summary — and on this host the router sees
-it through a **cache-or-truncate** render (mechanism proven from the omp
-binary, `corpus/knowledge/render-mechanism-round7.md`): if a
-`sha256(prompt + name + ws-collapsed description)` row exists in
-`~/.omp/agent/skill-descriptions.db` the render is that LLM one-liner
-(≤160 chars, ≤12 words); otherwise a deterministic truncator keeps at most
-99 chars — first sentence wins if ≥40 chars, else last-space cut + `…`.
-Measured over the live 17-skill catalogue: only 17.7% of source description
-chars reach the router, 53/62 quoted trigger spans are lost, and all 13
-`Triggers:`/反触发/`Excludes`/`不用于` clause markers sit past the cliff —
-none render. Field rules distilled from the survey and this measurement:
+`description` is an index, not a summary. On **omp** the router ingests it
+through a **cache-or-truncate** render (mechanism proven from the omp binary,
+`corpus/knowledge/render-mechanism-round7.md`): if a `sha256(prompt + name +
+ws-collapsed description)` row exists in `~/.omp/agent/skill-descriptions.db`
+the render is that LLM one-liner (≤160 chars, ≤12 words); otherwise a
+deterministic truncator keeps at most 99 chars — first sentence wins if ≥40
+chars, else last-space cut + `…`. Measured over the live 17-skill omp
+catalogue: only 17.7% of source description chars reach the router, 53/62
+quoted trigger spans are lost, and all 13 `Triggers:`/反触发/`Excludes`/`不用于`
+clause markers sit past the cliff — none render (round-7 measurement; round 9
+adds the drift: cache coverage 5/17 → 17/17 rows, so the truncator is now the
+fallback, not the default — a session started before a row landed still shows
+the truncation). On **opencode** the full `description` reaches the model
+untruncated, so front-loading there is style, not survival; trigger strings and
+anti-triggers stay mandatory on both, because the offer gate and the model's own
+matching both read the description. Field rules distilled from the survey and
+this measurement:
 
 1. **Capability first, triggers second.** One clause naming what the skill does
    ("xbreed ask — optional cross-model advisory protocol"), then trigger
    material.
 2. **Quote literal trigger strings.** `Triggers: "sekhmet", "swarm", "L3", "fan
    out"` (sekhmet-l3); `"/wwkd", "plan this", "break this down"` (wwkd). Quoted
-   strings match how routers and humans actually phrase intent.
+   strings match how routers and humans actually phrase intent (design
+   guidance — no matcher-level measurement exists for either harness).
 3. **Include implicit-intent triggers.** bailian-model-recommend activates on
    `"做一个XX"` in its frontmatter 触发词 (the fuller `"我想做一个XX"` sits in
    its body 适用场景). If users arrive without naming the skill, the
@@ -158,7 +190,7 @@ none render. Field rules distilled from the survey and this measurement:
    bailian-docs-llm-wiki keep exclusion lists only in the body (反触发表 /
    何时不要使用) — a second-layer net for router error, not a substitute:
    an anti-trigger in the body but not the frontmatter still causes false
-   activation — the router never reads the body.
+   activation — the catalogue is built from frontmatter only (see § Router model).
 5. **State sibling boundaries when overlap exists.** bailian-model-recommend:
    "当用户同时涉及模型查询和模型选择时，优先使用本 skill". Naming the neighbor
    and the arbitration rule prevents double-activation.
@@ -169,16 +201,22 @@ none render. Field rules distilled from the survey and this measurement:
    ["bl"]` on 7 of 10 bailian skills (docs-llm-wiki, model-recommend and
    train-deploy omit `requires:`), `compatibility:` on model-recommend.
    Machines read metadata; prose warnings get skipped.
-8. **The 99-char cliff is absolute — write for the truncator, not the
-   compressor.** Anything past ws-collapsed offset 99 is invisible in the
-   default path: 0 chars survive in all 14 measured truncations; effective
-   keep is 55–96 (last-space back-off). Put the capability clause + the most
+8. **On omp the 99-char cliff is absolute — write for the truncator, not the
+   compressor.** Anything past ws-collapsed offset 99 is invisible whenever the
+   cache misses: 0 chars survive in all 14 measured truncations; effective keep
+   is 55–96 (last-space back-off). Put the capability clause + the most
    match-critical WHEN material in the first ≤99 chars; everything later is
-   only reachable if the async LLM cache lands (5/17 skills today) — and that
-   cache path rewrites, so late text may return paraphrased, not verbatim.
-   CJK edge: the sentence regex knows only `[.!?]`, so 。；： don't count and
-   CJK text cuts mid-clause at an incidental ASCII space (549→44 observed).
-9. **Exploit the first-sentence branch.** If the first `.`/`!`/`?` sentence
+   only reachable if the async LLM cache has landed *for this session's
+   catalogue* — coverage is time-varying (5/17 rows at round 7; 17 rows at round
+   9, all 17 keys reproduced against today's on-disk descriptions) and the cache
+   key includes the description, so **editing a `description` invalidates its row
+   and reverts that skill to the truncator** until the compressor writes a new
+   one. The cache path also rewrites, so late text may return paraphrased, not
+   verbatim. opencode has no cliff: its system-prompt catalogue renders the full
+   description. CJK
+   edge (omp only): the sentence regex knows only `[.!?]`, so 。；： don't count
+   and CJK text cuts mid-clause at an incidental ASCII space (549→44 observed).
+9. **Exploit the omp first-sentence branch.** If the first `.`/`!`/`?` sentence
    is ≥40 chars it renders whole with NO ellipsis — a clean complete hint
    (godspeed does this: keeps "Use on every prompt…" verbatim). But the same
    branch *discards* sentence 2+: godspeed's own trigger list sits in its
@@ -238,7 +276,8 @@ decision surface, and must not be presented as one.
    single-sitting readable. Largest observed production skill: omarchy at 392
    lines. Past ~600 lines, split: decision surface stays in SKILL.md, depth goes
    to `reference/` / `assets/` with a pointer line. Gods-eye rule: if you can't
-   hold the whole file while editing it, the router can't either.
+   hold the whole file while editing it, the reader can't either (heuristic, not
+   measured).
 
 ## Trigger-fidelity checklist
 
@@ -252,8 +291,8 @@ in "Instruction surfaces" instead — this checklist assumes a routed file.)
 - [ ] `description` contains at least one anti-trigger or exclusion clause.
 - [ ] Overlapping sibling skills are named **concretely** with an arbitration
       rule in the `description` (a generic "the owning domain skill" does not
-      count; body/PROVINCE boundary text does not count — the router never
-      reads it). Write `N/A — no overlapping sibling exists` when applicable:
+      count; body/PROVINCE boundary text does not count — the offer stage reads
+      frontmatter only (§ Router model)). Write `N/A — no overlapping sibling exists` when applicable:
       a bare absence is indistinguishable from an unconsidered one.
 - [ ] Body opens with a one-line role statement, not a restatement of triggers.
 - [ ] Every prerequisite — any binary, file, env var, or sibling artifact a
@@ -384,7 +423,7 @@ fails procedures/dates/style) in `corpus/knowledge/alwayson-checklist-round7.md`
 | Smell | Why it fails | Fix |
 |-------|--------------|-----|
 | Description = capability only, no triggers | Router can't match unseen phrasings — the shonen mint template produces exactly this (`Domain specialist — scopes X`); 5/5 sibling SKILL.md files failed items 2–3 in the round-5 fleet audit | Add quoted trigger strings + implicit intents |
-| Anti-trigger only in body | Router never sees it; false activation | Move exclusion clause into `description` |
+| Anti-trigger only in body | The offer stage never sees it (frontmatter-only catalogue); false activation | Move exclusion clause into `description` |
 | Flags documented in prose | Drifts from `--help`; agents guess | Pointer to `reference/` or `--help` |
 | Procedures before scope | Agent acts before knowing boundaries | Anatomy order: gate → decide → act |
 | Warning without signature | "Be careful" teaches nothing | Attach observed error text / version / exit code |
@@ -399,9 +438,9 @@ fails procedures/dates/style) in `corpus/knowledge/alwayson-checklist-round7.md`
 | Command file that re-states skill procedures | Two owners of the same steps; the skill drifts, command contradicts | Pointer-then-rules: name the skill, keep only rules that must hold anyway |
 | Spawn-mode prompt used for a round ignite | 6-stanza completeness when the reader re-loads its own repo is pure drag | 3–4 lines: role+round, method, land-scope, `| godspeed` |
 | Bin invoked without declared location | `command -v` returns nothing; agent guesses a path (kake: `webzites` on no PATH) | Declare the bin path or a prerequisite check step |
-| Trigger list past the 99-char cliff | Default render is `slice(0,99)`+`…`: all 13 observed `Triggers:`/反触发/`Excludes` clauses sit past the cut and never reach the router (85.5% of quoted trigger spans lost) | Capability + WHEN-hint inside the first ≤99 chars; the rest is body material |
-| Trigger list in sentence 2 | The ≥40-char first-sentence branch renders sentence 1 verbatim and drops everything after — godspeed loses its own trigger list this way | Put trigger material inside sentence 1, or keep the description to one sentence |
-| CJK description with incidental ASCII spaces | Sentence regex knows only `[.!?]`; CJK text cuts at an incidental space mid-clause (549→44 chars observed) | CJK skills must front-load harder; expect sub-90-char keeps |
+| Trigger list past the omp 99-char cliff | omp's render is `cache.get(key) ?? slice(0,99)`+`…`: all 13 observed `Triggers:`/反触发/`Excludes` clauses sit past the cut and never reach the router when the cache misses (85.5% of quoted trigger spans lost); the cliff is omp-only — opencode's system-prompt catalogue renders the full description | Capability + WHEN-hint inside the first ≤99 chars; the rest is body material on omp; on opencode nothing is cut, so trigger order is not survival-critical |
+| Trigger list in sentence 2 (omp) | omp's ≥40-char first-sentence branch renders sentence 1 verbatim and drops everything after — godspeed loses its own trigger list this way; opencode renders every sentence | Put trigger material inside sentence 1, or keep the description to one sentence |
+| CJK description with incidental ASCII spaces (omp) | omp's sentence regex knows only `[.!?]`; CJK text cuts at an incidental space mid-clause (549→44 chars observed) | CJK skills must front-load harder; expect sub-90-char keeps |
 | Copy-pasted round prompt restating durable policy | The routing map in a round prompt drifts with every bucket change — 38 files carry `m_composer`/`m_antigravity`/`m_grok` aliases retired by MISSION.md | Round prompt carries delta only; durable policy lives where the lane re-reads it (MISSION.md) |
 
 ## Refusals
@@ -447,8 +486,9 @@ fails procedures/dates/style) in `corpus/knowledge/alwayson-checklist-round7.md`
   — always-on constraint files; no frontmatter, terse imperatives.
 - `/home/vgpnk/projects/shokunin/.ufo/prompts/*-L1.md` (8 files, 9–12 lines) —
   spawn dispatch-prompt stanza order and `| godspeed` terminator.
-- `/home/vgpnk/projects/shokunin/.ufo/prompts/*-round-*.md` (35 files, 3–6
-  lines; round-7 audit: 30 restate the L2 map with 3 stale aliases) — round
+- `/home/vgpnk/projects/shokunin/.ufo/prompts/*-round-*.md` (50 files, 3–11
+  lines at round-9 recount; round-7 audit: 30 restate the L2 map with stale
+  aliases) — round
   self-iteration mode; template variance is name+path only.
 - `~/.config/opencode/agents/*.md` (18 files, 14–197 lines) — agent-definition
   surface: roster frontmatter (`subagents`, `cascade`, `permission_mode`),
@@ -464,21 +504,51 @@ fails procedures/dates/style) in `corpus/knowledge/alwayson-checklist-round7.md`
   binaries (9 opencode / 17 omp) but 0 captured injections — seventh surface
   class, cold channel.
 - `~/.local/share/opencode/opencode.db` — literal-trigger miss proxy over 398
-  sessions / 415 skill calls: unique-token triggers 0 misses; godspeed
-  always-on coverage 51.5%; domain-term names ambiguous (`ufo` misses are
-  references, not invocations).
-- `~/.omp/agent/sessions/**/*.jsonl` (5706 files, 3911 `session_init`
-  records, 14 distinct catalogues) + `~/.omp/logs/http-400-requests/*.json`
-  (23 catalogue-bearing captures) — render census: godspeed offered
-  3911/3911; 2026-09-27 regime break 8.2K→1.75K block bytes.
-- `~/.local/bin/omp` embedded JS (`strings -n 6`,
-  `skill-descriptions.ts` region @177145052): `previewSkillDescription` truncator
-  (`_8n=100`), `createSkillDescriptionCompressor` LLM path + validator
-  (≤160 chars, ≤12 words), cache `~/.omp/agent/skill-descriptions.db` (5 rows,
-  key `sha256(template \0 name \0 ws-description)`).
+  sessions / 415 skill calls (415/216 re-verified round 9): unique-token
+  triggers 0 misses; godspeed always-on session coverage 51.5%, re-interpreted
+  round 8 as a consume-side gap (offer 387/387 = 100%, activation 205/399 =
+  51.4%); domain-term names ambiguous (`ufo` misses are references, not
+  invocations).
+- `~/.local/share/opencode/log/opencode.log` — opencode offer trace
+  (`message=init count=N` per instance, latest 18; `duplicate skill name`
+  warns) and the `<available_skills>`-vs-`<skills>` tag split (round-8/9).
+- `~/.opencode/bin/opencode` + upstream `github.com/sst/opencode` (dev):
+  `packages/opencode/src/skill/index.ts:321-343` (`fmt` verbose render,
+  `description` filter), `:105-139` (add/duplicate: warn then **unguarded**
+  assignment, last parsed wins), `:235-246` (`concurrency:"unbounded"` parse
+  order), `session/system.ts:107-119` (`SystemPrompt.skills`, `skill`
+  permission gate), `tui/src/component/dialog-skill.tsx:41` (TUI list =
+  whitespace-collapse only).
+- `~/.omp/agent/sessions/**/*.jsonl` (5842 files; `session_init` records
+  ~4032–4120 across round-9 lanes — the counter moves inside a round, re-run
+  before citing; 14 distinct catalogues at round 7) + `~/.omp/logs/
+  http-400-requests/*.json` (32 catalogue-bearing captures at round-9 recount;
+  23 at round 7) — render census:
+  godspeed offered 3911/3911 at round 7 (4056+ records now); 2026-09-27 regime
+  break 8.2K→1.75K block bytes.
+- `~/.local/bin/omp` embedded JS (`strings -n 6`; cite anchors, not offsets —
+  ELF offsets and `strings` line numbers shift across builds):
+  `previewSkillDescription` (truncator: `t.replace(/\s+/g," ").trim()`,
+  `if (t.length <= _8n) return t`, `t.slice(0, _8n-1)`, first-sentence
+  `^.*?[.!?](?=\s|$)` kept if ≥40 chars, else last-space + `…`; `_8n = 100`),
+  `createSkillDescriptionCompressor` (LLM path + validator ≤160 chars, ≤12
+  words), key `A8n` = `sha256(K7s ‖ \x00 ‖ name ‖ \x00 ‖ description)` with the
+  compressor template (`Compress into one routing hint …`) — the description is
+  hashed as the YAML loader yields it (`>` keeps a trailing newline, `>-`
+  strips it), so a ws-strip-only check under-reports coverage; cache
+  `~/.omp/agent/skill-descriptions.db` (17 rows at round 9, up from 5; all 17
+  keys reproduce, newest catalogue 17/17 cache, 0 truncations).
+- `corpus/knowledge/harness-router-models-round9.md` — the two-harness router
+  model (tag, render, offer gate, failure mode, verify recipe) with the
+  round-9 key-reproduction and freeze evidence.
+- `corpus/knowledge/claim-scope-audit-round9.md` — the round-9 consistency
+  measurement: harness-claim scope before (31 claim units, 9 UNSCOPED) and after.
 - `corpus/knowledge/render-mechanism-round7.md` — mechanism + survival
-  measurement: 17.7% of description chars reach the router; 53/62 quoted
-  triggers lost; cliff = offset 99, keep 55–96.
+  measurement: cliff = offset 99, keep 55–96; the char-survival figure (17.7% of
+  description chars reaching the router) is logged in `LOG.md` round 7 and
+  `../.ufo/reports/round-7/kotoba.md`, not in the artifact. Loss figures
+  (53/62 quoted spans, 13/13 `Triggers:` clauses) describe the cache-miss
+  truncation path only.
 - `corpus/knowledge/dispatch-prompt-audit-round7.md` — 12-item dispatch
   checklist + 43-file application (37 fail ≥1 item) + resolvability sweep
   (dead `~/wikillm` path, dead `~/.xbgst` env file, generator contract bugs).
