@@ -1,60 +1,60 @@
 {
- "as_of": "2026-09-29T00:20:00-03:00",
- "host": "vgpnk",
- "measured_against": {
-  "repo": "kotoba-shokunin",
-  "head": "6d1fbff",
-  "head_subject": "round-15: LOG + SCORECARD (operability 7.5 -> 8.0, coverage 8.0 -> 8.5 attributed to round 14) and the corpus baseline re-recorded",
-  "git_status": "clean apart from this round's in-flight edits",
-  "command": "python3 verifiers/verify_corpus_integrity.py --no-baseline --json",
-  "note": "Re-recorded against the round-15 landed tree (the aggregator's round-9 verdict lesson included: it was committed by that lane as 0f658ff during this round, and kotoba added its README index row and repaired its two 'shokunin:'-prefixed pointer sites to host-absolute form under the round-13 convention). Moves since the round-13 recording (42/0/28/0/24 -> 45/0/30/0/27 for tracked/unindexed/report_total/report_dead/commit_total): three corpus files landed and are now indexed - this round's knowledge/checklist-execution-round15.md, the round-13/14 additions the previous baseline predated (instruction-surface-census-round13.md, instruction-surface-remeasure-round13.md, opencode-extraction-round14.md), and the aggregator lesson - with their index rows and their files' own citations. All zero-mode ids green. The round's own mid-flight defects (the pre-registration file unindexed, its dead '../.ufo/reports/round-14' pointer, and an accidental un-tracking of the aggregator file that d6177f4 has since restored) were caught by this instrument and fixed in-round; the restore is recorded in LOG.md round 15."
- },
- "checks": {
-  "corpus.index.tracked_files": {
-   "mode": "equal",
-   "expect": 45
+  "as_of": "2026-09-28T23:40:00-03:00",
+  "host": "vgpnk",
+  "measured_against": {
+    "repo": "kotoba-shokunin",
+    "head": "57f9e38",
+    "head_subject": "round-16: close M35 (path-like arguments) and M40 (delegated target must be an instrument), add trigger.citation_resolves executing trigger.11, name three citation bases",
+    "git_status": "clean at the recorded commit",
+    "command": "python3 verifiers/verify_corpus_integrity.py --no-baseline --json",
+    "note": "Re-recorded against the round-16 landed tree. Moves since the round-15 recording (45/0/30/0/27 -> 46/0/32/0/27 for tracked/unindexed/report_total/report_dead/commit_total): this round's knowledge doc corpus/knowledge/checklist-execution-round16.md landed and is indexed in corpus/README.md; its two report-pointer sites are host-absolute (the round-13 convention), and one of them (/home/vgpnk/projects/shokunin/.ufo/reports/round-16/kotoba.md) resolves only once the lane report exists, which is why the artifact cites it. report_dead is 0. The reproducer for every move: the command above, run from the repo root."
   },
-  "corpus.index.unindexed": {
-   "mode": "zero",
-   "expect": 1
+  "checks": {
+    "corpus.index.tracked_files": {
+      "mode": "equal",
+      "expect": 46
+    },
+    "corpus.index.unindexed": {
+      "mode": "zero",
+      "expect": 0
+    },
+    "corpus.index.stale_patterns": {
+      "mode": "zero",
+      "expect": 0
+    },
+    "corpus.index.missing_paths": {
+      "mode": "zero",
+      "expect": 0
+    },
+    "corpus.pointers.report_total": {
+      "mode": "equal",
+      "expect": 32
+    },
+    "corpus.pointers.report_dead": {
+      "mode": "zero",
+      "expect": 0
+    },
+    "corpus.pointers.commit_total": {
+      "mode": "equal",
+      "expect": 27
+    },
+    "corpus.pointers.commit_unresolvable": {
+      "mode": "zero",
+      "expect": 0
+    },
+    "corpus.pointers.commit_nonhash": {
+      "mode": "zero",
+      "expect": 0
+    }
   },
-  "corpus.index.stale_patterns": {
-   "mode": "zero",
-   "expect": 0
-  },
-  "corpus.index.missing_paths": {
-   "mode": "zero",
-   "expect": 0
-  },
-  "corpus.pointers.report_total": {
-   "mode": "equal",
-   "expect": 30
-  },
-  "corpus.pointers.report_dead": {
-   "mode": "zero",
-   "expect": 1
-  },
-  "corpus.pointers.commit_total": {
-   "mode": "equal",
-   "expect": 27
-  },
-  "corpus.pointers.commit_unresolvable": {
-   "mode": "zero",
-   "expect": 0
-  },
-  "corpus.pointers.commit_nonhash": {
-   "mode": "zero",
-   "expect": 0
+  "notes": {
+    "read_side": "Both families read the WORKING TREE, not HEAD: an uncommitted corpus edit is a legitimate observation. Record `git status --porcelain` beside the numbers.",
+    "equal_mode": "corpus.index.tracked_files and corpus.pointers.commit_total are change detectors, not invariants: adding a corpus file or a new commit citation moves them and must move the baseline with it (same convention as verifiers/baseline.json).",
+    "zero_mode": "zero-mode ids ignore `expect` at evaluation time; they are listed so the baseline names every id the script checks. A zero-mode violation exits 1 even under --no-baseline.",
+    "out_of_scope_context": "corpus.pointers.commit_quoted_excluded and corpus.pointers.report_pointers_other are context, not checks. The first counts `commit `<token>`` citations fully enclosed in double quotes (quoted meta-findings, e.g. corpus/lessons/round-6-aggregator-audit.md:45; live: 2 \u2014 the second is the same idiom quoted inside corpus/knowledge/claim-census-round12.md). A double-quoted report pointer is recorded in `report_pointers_quoted[_detail]` as context (the mechanism repaired in round 12: the tokenizer no longer swallows a leading `\"`; the live tree has 0 such tokens, so the rule is exercised by `--self-test` and by `verifiers/fault_injection_corpus.sh` fault (h), which asserts the counters: context +1, checked population unchanged). Round 12's independent derivation names this boundary and its shared blind spot in corpus/knowledge/independent-verification-round12.md \u00a73/\u00a73b.",
+    "reproduce_before": "Against a clone of d49dfa5 with the landed scripts copied in (README pre-fix): report_dead=10/19, commit_total=18, commit_nonhash=1, exit 1 \u2014 the DRIFT the round-11 edit cleared; the round-12 independent derivation reproduces the same ten dead sites and the same non-hash site there. The same clone run twice is byte-identical under --json.",
+    "environment": "exit 2 when the target is not a git repo / corpus/README.md is unreadable; exit 3 when this file is absent and --no-baseline was not passed.",
+    "commit_total_scope": "`corpus.pointers.commit_total` counts HEX-SHAPED citations only (`commit `<7\u201340 hex>``) that also resolve; a non-hash `commit` token is carried by `corpus.pointers.commit_nonhash` and is NOT part of this count. The round-12 independent derivation publishes the same number as `commit_hex_total` alongside a wider in-scope total \u2014 the adjudication is recorded in corpus/knowledge/independent-verification-round12.md \u00a73 item 1.",
+    "hermeticity": "Pointer resolution is host-anchored: absolute and `~` pointers resolve against the live filesystem, not against the clone. With the host `.ufo` hidden behind a private tmpfs, a green clone goes dead = checked (both instruments identically). `python3 verifiers/verify_corpus_integrity.py` is therefore only meaningful on a host that carries the lane-report tree."
   }
- },
- "notes": {
-  "read_side": "Both families read the WORKING TREE, not HEAD: an uncommitted corpus edit is a legitimate observation. Record `git status --porcelain` beside the numbers.",
-  "equal_mode": "corpus.index.tracked_files and corpus.pointers.commit_total are change detectors, not invariants: adding a corpus file or a new commit citation moves them and must move the baseline with it (same convention as verifiers/baseline.json).",
-  "zero_mode": "zero-mode ids ignore `expect` at evaluation time; they are listed so the baseline names every id the script checks. A zero-mode violation exits 1 even under --no-baseline.",
-  "out_of_scope_context": "corpus.pointers.commit_quoted_excluded and corpus.pointers.report_pointers_other are context, not checks. The first counts `commit `<token>`` citations fully enclosed in double quotes (quoted meta-findings, e.g. corpus/lessons/round-6-aggregator-audit.md:45; live: 2 \u2014 the second is the same idiom quoted inside corpus/knowledge/claim-census-round12.md). A double-quoted report pointer is recorded in `report_pointers_quoted[_detail]` as context (the mechanism repaired in round 12: the tokenizer no longer swallows a leading `\"`; the live tree has 0 such tokens, so the rule is exercised by `--self-test` and by `verifiers/fault_injection_corpus.sh` fault (h), which asserts the counters: context +1, checked population unchanged). Round 12's independent derivation names this boundary and its shared blind spot in corpus/knowledge/independent-verification-round12.md \u00a73/\u00a73b.",
-  "reproduce_before": "Against a clone of d49dfa5 with the landed scripts copied in (README pre-fix): report_dead=10/19, commit_total=18, commit_nonhash=1, exit 1 \u2014 the DRIFT the round-11 edit cleared; the round-12 independent derivation reproduces the same ten dead sites and the same non-hash site there. The same clone run twice is byte-identical under --json.",
-  "environment": "exit 2 when the target is not a git repo / corpus/README.md is unreadable; exit 3 when this file is absent and --no-baseline was not passed.",
-  "commit_total_scope": "`corpus.pointers.commit_total` counts HEX-SHAPED citations only (`commit `<7\u201340 hex>``) that also resolve; a non-hash `commit` token is carried by `corpus.pointers.commit_nonhash` and is NOT part of this count. The round-12 independent derivation publishes the same number as `commit_hex_total` alongside a wider in-scope total \u2014 the adjudication is recorded in corpus/knowledge/independent-verification-round12.md \u00a73 item 1.",
-  "hermeticity": "Pointer resolution is host-anchored: absolute and `~` pointers resolve against the live filesystem, not against the clone. With the host `.ufo` hidden behind a private tmpfs, a green clone goes dead = checked (both instruments identically). `python3 verifiers/verify_corpus_integrity.py` is therefore only meaningful on a host that carries the lane-report tree."
- }
 }
