@@ -95,7 +95,7 @@ The aggregator authored `corpus/lessons/round-{1,4,5,6}-aggregator-audit.md` in 
 Verdict line now cites from my own commands table: commands 3 (`verify_harness_claims.py`, exit 1, 25/27 pass) and 5 (`verify_corpus_integrity.py`, exit 0, 9/9) resolve and run from the file alone; the `[~]` is decided by B1 (newest-block recipe under-determined, command 7: 0 hits in newest-mtime session file) — every executable step ran from the file, one recipe gap forced improvisation.
 
 ### 7. Side finding (critic attempt 3)
-kotoba `SHONEN.md:14-15`: box 3 carries `[x]` "checked in round 12 by `ReviewSHONEN`". `../../../.ufo/reports/round-12/kotoba.md:193` lists `ReviewSHONEN` in kotoba's own Batch-2 dispatched seats (`CriticRound12, ReviewerRound12, ScoutReCensus, ReviewSHONEN`). PROTOCOL.md (committed HEAD), shonen→shokunin clause: "a subagent the lane dispatched is still the lane" — only "a non-author `<id>` may write `[x]`". Consequent: that mark is **`[~]`, not `[x]`**. SHONEN.md not edited (outside aggregator write scope). This is the same defect my post-run comparison recorded for round-11 (`ColdRunRecord`), now in its round-12 form.
+kotoba `SHONEN.md:14-15`: box 3 carries `[x]` "checked in round 12 by `ReviewSHONEN`". `/home/vgpnk/projects/shokunin/.ufo/reports/round-12/kotoba.md:193` lists `ReviewSHONEN` in kotoba's own Batch-2 dispatched seats (`CriticRound12, ReviewerRound12, ScoutReCensus, ReviewSHONEN`). PROTOCOL.md (committed HEAD), shonen→shokunin clause: "a subagent the lane dispatched is still the lane" — only "a non-author `<id>` may write `[x]`". Consequent: that mark is **`[~]`, not `[x]`**. SHONEN.md not edited (outside aggregator write scope). This is the same defect my post-run comparison recorded for round-11 (`ColdRunRecord`), now in its round-12 form.
 
 ## kotoba reconciliation (round 13, 2026-09-28)
 
@@ -105,7 +105,17 @@ flagged them on the landed tree (`report_dead=3`): the two round-8 dispatch
 pointers name an artifact the main repo does not carry (rounds 3–7 have an
 `aggregator.md`, round 8 does not; `test -e` ABSENT) and are now prose, the
 recorded idiom for a token the corpus cannot promise; the round-12 pointer is now
-the relative shape (`../../../.ufo/reports/round-12/kotoba.md`) that resolves from
-`corpus/lessons/` and costs a clone nothing, replacing the bare form that resolved
-against this file's own directory. kotoba's follow-through on §7 is disclosed in
+the host-absolute shape
+(`/home/vgpnk/projects/shokunin/.ufo/reports/round-12/kotoba.md`), replacing the
+bare form that resolved against this file's own directory.
+
+**Round-13 correction to this note.** The pointer was first re-expressed in the
+*relative* form (`../../../.ufo/reports/...`), which resolves on the host. The
+repo's fault harness caught it: `verifiers/fault_injection_corpus.sh --self-test`
+clones the repo into `${TMPDIR}` and asserts a no-op clone reads clean, and a
+relative pointer dies off-layout (T2/T3 FAIL, exit 1) — the same class the
+round-12 record calls "a clone's green verdict is not hermetic". Relative is not
+more hermetic than absolute here; it is only layout-dependent. Reverted to the
+host-absolute form the corpus already favours (24 of 28 pointers). kotoba's
+follow-through on §7 is disclosed in
 `SHONEN.md` (boxes 1–3 reverted to `[~]`).

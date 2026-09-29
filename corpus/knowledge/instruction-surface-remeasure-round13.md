@@ -71,10 +71,13 @@ independent byte scan (`omp` `RULES.md` 6 hits, `enabledProviders` 4,
 
 ## Verdict
 
-**Agreement on every load-bearing class**, one lane-vs-lane disagreement resolved
-by the L1 against the host-census lane (see the census's § The disagreement this
-census had to adjudicate), five additions adopted, two description-vs-code gaps
-recorded. Round-12's rule applies unchanged: agreement between two derivations is
-evidence, and their first disagreement is the finding — here the round's first
-disagreement was *between L2 lanes*, and it was decided by reading the code, not
-by counting strings.
+**Agreement on every load-bearing file class**, one lane-vs-lane disagreement
+resolved by the L1 against the host-census lane (see the census's § The
+disagreement this census had to adjudicate), five additions adopted, two
+description-vs-code gaps recorded, and **one item left unresolved by both lanes**
+(whether `LDe`/`instructions` bodies ever enter the system prompt — a shared open
+question, not a disagreement; the verdict above says "class", not "every claim the
+two lanes make"). Round-12's rule applies unchanged: agreement between two
+derivations is evidence, and their first disagreement is the finding — here the
+round's first disagreement was *between L2 lanes*, and it was decided by reading
+the code, not by counting strings.

@@ -25,7 +25,10 @@ limits are enumerated in § Honest ceiling.
 | 5 | Injection probe (L2 lane `LabratInject`) | scratch project + marker strings + live session capture | read-by-loader vs actually-reaches-the-prompt |
 
 Binaries (2026-09-28): omp `sha256 55016ef5317af556…`, opencode `sha256
-f9dab32248695e9e…`, identical to the hashes `verifiers/baseline.json` pins.
+f9dab32248695e9e…`, identical to the binary hashes `verifiers/baseline.json`
+**records** in `measured_against` (recorded, not check-enforced: the enforced pin
+there is the 273-byte compression-template sha256, which is what invalidates every
+cache key when it moves).
 
 **Anchors are literals, never offsets.** The round-move brief carried `strings`
 line numbers from two different invocations (`-n 4` and `-n 6`); the reviewer
@@ -67,12 +70,68 @@ probed by `surfaces.literal_present`:
 | `omp:omp-dir/AGENTS.md` | AGENTS.md | loader-literal | AGENTS.md row | "Load AGENTS.md from `.omp/` directories" |
 | `omp:claude-dir/CLAUDE.md` | CLAUDE.md | loader-literal | CLAUDE.md row | "Load CLAUDE.md files from `.claude/` directories" |
 | `omp:codex/AGENTS.md` | AGENTS.md | loader-literal | AGENTS.md row | "Load context files from `~/.codex/AGENTS.md` (user-level only)" |
-| `omp:agent-system-prompt/SYSTEM.md` | SYSTEM.md | loader-literal | Cross-tool rule files | "Load SYSTEM.md and SYSTEM_TEMPLATE.md from `.agent` and `.agents` (project walk-up + user home)" |
+| `omp:agent-system-prompt/SYSTEM.md` | SYSTEM.md | loader-literal | Cross-tool rule files | one id for the whole **SYSTEM family**, which omp registers per provider (registry, verbatim): "Load SYSTEM.md and SYSTEM_TEMPLATE.md from `.agent` and `.agents` (project walk-up + user home)"; "Load SYSTEM.md and SYSTEM_TEMPLATE.md from `.codex` (project cwd + user home)"; "Load system prompt from `.claude/SYSTEM.md`"; "Load system.md custom system prompt files" + "Custom system prompt files (SYSTEM.md, SYSTEM_TEMPLATE.md)" (gemini); plus `SYSTEM.md`/`SYSTEM_TEMPLATE.md` under `~/.omp/agent` + nearest `<ancestor>/.omp` (second witness §3). Declared at family granularity deliberately — the craft rule is the same for every variant, and the critic lane's "`.codex/SYSTEM.md` undeclared" finding is this row |
 | `omp:marketplace/plugin-rules` | plugins | loader-literal | Cross-tool rule files | "Load rules from marketplace plugin rules directories" |
 | `omp:agents/prompts` | prompts | loader-literal | Cross-tool rule files | "Load prompts from `.agent/prompts` and `.agents/prompts` (project walk-up + user home)" |
 | `omp:github/prompts` | prompts | loader-literal | Cross-tool rule files | "Load `*.prompt.md` from `.github/prompts/` (VS Code Copilot prompt files)" |
 | `omp:codex/prompts` | prompts | loader-literal | Cross-tool rule files | "Load prompts from `~/.codex/prompts` and `.codex/prompts/`" |
 | `omp:agents/skills` | skills | loader-literal | § Instruction surfaces → SKILL.md | "Load skills from `.agent/skills` and `.agents/skills` (project walk-up + user home)" |
+
+### A2. omp — provider priority decides which file wins (single-lane derivation)
+
+Attributed to the omp scout lane (`DisciplinaryAlpaca`, round 13), **not**
+independently confirmed by the second witness (which did not read the merge):
+omp's registry is a capability table — `Ut(<id>, {id, displayName, description,
+priority, load})` — sorted by descending priority, and `xr()` merges with
+**first-wins dedupe by `key()`**. For the `context-files` capability the key is
+`user` | `project:<depth>`, so **exactly one file wins per directory depth**, by
+provider priority: `.omp/AGENTS.md` at depth 0 beats a root `AGENTS.md`. Reported
+priorities: native 100, skillshare 95, omp-plugins 90, claude 80, agents /
+agent-plugins 70–75, codex and claude-plugins 70, gemini 60, opencode 55, cursor
+50, windsurf 50, cline 40, github 30, agents-md / claude-md / mcp-json / ssh /
+omp-managed 1–10. Project-level foreign directories (`.gemini`, `.codex`,
+`.opencode`, `.cursor`, `.windsurf`, `.github`, `.vscode`) load unconditionally;
+user-level paths pass the `eu()`/`RTo` gate. Same lane: omp supports `@`-imports
+(inlining arbitrary files, reported depth 5), does **not** consume an
+`instructions` key from `opencode.json` (only `mcp`), and — as the critic lane
+also found — the `.cursorrules` / `.windsurfrules` literals live only in
+description strings.
+
+Craft consequence if it holds: "one owner per repo" is enforced *for you* by
+priority, not by the filename — you do not get to choose which of `.omp/AGENTS.md`
+and `AGENTS.md` is read at the same depth; the higher-priority provider wins.
+A future round should confirm the merge on the second witness's extractor before
+this becomes a checklist item.
+
+### A3. Wire-level probe (partial — the lane hit its model rate limit mid-run)
+
+Lane `LabratInject` drove `omp -p` against a local HTTP capture server in an
+isolated `PI_CONFIG_DIR` home and grepped the **request bodies** for marker
+strings. It failed part-way (provider rate limit), so this section records only
+what it established with a reproducer, not a finished probe:
+
+- **Established:** the capability that reads context files dedupes by
+  `level:depth` (`yf`), so **one project context file per depth bucket reaches the
+  prompt**; with a bare `AGENTS.md` alone it is injected, and with `AGENTS.md`
+  *and* `CLAUDE.md` at depth 0 only one survives — the same practical outcome as
+  opencode's first-name-wins, reached by a different mechanism (bucket collision
+  rather than an ordered name list). `.github/copilot-instructions.md` and an
+  `alwaysApply` `.instructions.md`/`.mdc` rule landed in the prompt (the latter in
+  a `<generic-rules>` section); `Cl(e,"gemini","GEMINI.md")` resolved to
+  `cwd/.gemini/GEMINI.md` only, with no walk-up.
+- **Established negative (a false friend killed twice):** the
+  `for (const s of ["AGENTS.md","CLAUDE.md"])` loop is **memory consolidation**,
+  not context loading — matching the host census's "false friend" reading and the
+  census's exclusion of that loop from the class inventory.
+- **Not established (carried):** the full provider-priority table (§ A2) is still
+  single-lane; whether the depth-bucket collision is deterministic across reruns
+  was mid-investigation when the lane died; opencode was reached but not
+  characterised by the same wire method.
+
+Consequence for the census's own ceiling: the floor under "a loader registration
+is not proof of injection" is now *measured for one host state and one harness*,
+which is a real narrowing — and the round still does not claim injection for any
+class the probe did not exercise.
 
 ### B. opencode — instruction model (code-anchored, byte-verified)
 
@@ -136,6 +195,7 @@ built.
 | `~/.agents/AGENTS.md` + `~/.agents/godspeed-core/*.md` | doc | reachable through the AGENTS.md *class*; listed here because the host file, not a harness, is what pulls the godspeed-core files in |
 | opencode non-file prompt surfaces: MCP server instructions (`<mcp_instructions>`), references (`<available_references>`), the plugin `experimental.chat.system.transform` hook, config `{file:…}`/`{env:…}` substitution, the API `system` field | doc | they reach the prompt but are **not file classes**, so they cannot be governed by a filename-convention craft row; recorded so the inventory's boundary is explicit (three lanes agree on this list: census, second witness §5, opencode scout) |
 | omp memory store (the `Vcl`-family reader) | doc | reads the harness's own memory files into prompt context — a state store, not a rule-file convention; boundary flagged by both the second witness (§5, "flagged as uncertain") and the critic lane (memory reader uncovered) |
+| omp extra non-registry prompt surfaces (omp scout lane, round 13): `PERSONALITY.md`, `TITLE_SYSTEM.md`, `APPEND_SYSTEM.md` (via `.omp`/`.claude`/`.codex`/`.gemini` dirs), `WATCHDOG.md` + `WATCHDOG.yml` `instructions:` keys, bundled rules/agents embedded in the binary, sharpshooter/hindsight memory files | doc | prompt-reaching but either single-harness extras outside the file-convention classes this craft skill governs, or embedded content with no file to write; listed so the boundary is explicit and attributable to one lane |
 
 ## The disagreement this census had to adjudicate
 
@@ -200,4 +260,14 @@ Second correction, same class: the round-move brief's "false friend" note said t
   `CLAUDE.md`, `pendle-core-v2-public`) is unobservable now and must never be
   reported as a governed pass. The loader-derived half of this file is unaffected:
   it reads the binaries, not the tree.
+- **ID-level parity only — the census's prose columns are lane-attested.**
+  Mutation lane round 13: of 13 planted mutations, 11 were caught (both parity
+  directions, literal presence, the call-shape requirement, the excluded-reason
+  rule, missing inventory/baseline → 2/3); **two escaped** — rewriting a census
+  row's *literal* column to `WRONG.md`, or its *evidence* column to
+  `NOT-EVIDENCE`, still exits 0, because `surfaces.table_parity` compares class
+  **ids** and `surfaces.literal_present` probes the **baseline's** literal. So the
+  census and the baseline can silently disagree on a literal. The baseline is the
+  checked source; the census text is not. Next round: compare the literal per id
+  (and treat a prose-column rewrite as a fault).
 - **Still unmeasured:** implicit-intent fidelity (unchanged from round 12).

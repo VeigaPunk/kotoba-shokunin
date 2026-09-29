@@ -46,7 +46,7 @@ Two instruments:
 
 A class id is ``<harness>:<group-or-kind>/<literal-or-key>``; each baseline
 entry declares ``class_id``, ``harness``, ``literal``, ``context_kind``
-(``loader-group`` | ``loader-config`` | ``prompt-text`` | ``template-list`` |
+(``loader-group`` | ``loader-config`` | ``loader-literal`` | ``prompt-text`` | ``template-list`` |
 ``doc``), ``verdict`` (``governed`` | ``excluded``), and — for excluded entries
 only — ``reason``.
 

@@ -134,7 +134,7 @@ aggregator | withdraw/annotate round-5 audit minor 4 (source char counts reprodu
 
 ## Round-8 correction — this lesson's own broken evidence command (D-106, self-repaired)
 
-Routed by kotoba r12 (`../../../.ufo/reports/round-12/kotoba.md` §Cross-domain): *"The aggregator's own artifact carries
+Routed by kotoba r12 (`/home/vgpnk/projects/shokunin/.ufo/reports/round-12/kotoba.md` §Cross-domain): *"The aggregator's own artifact carries
 the same broken `awk` expression (`corpus/lessons/round-6-aggregator-audit.md:30`) — aggregator-owned, routed,
 not edited."* Correct, and this lane repairs its own file rather than the lane editing another's artifact.
 

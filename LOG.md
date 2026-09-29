@@ -394,3 +394,131 @@
   both instruments' scan; the 40 checklist boxes are still counted, never executed —
   candidate: make one box executable with a missing-name fixture (scratch plan, not yet an
   in-repo artifact).
+
+## Round 13 — kotoba lane — coverage axis-move: the instruction-surface inventory derives from loader code (coverage 7 → 8.0)
+
+- **Why this axis.** `SCORECARD.md`'s lowest row was `coverage` (7, advisory), and
+  the mission's round rule is "pick the lowest-scoring axis"; `AXES.md` defines
+  coverage as "the fraction of the domain's real surfaces the skill governs",
+  which for a prompt/skill-craft lane *is* the instruction-surface inventory. The
+  round-12 plan's rank-1 candidate (execute one `SKILL.md` checklist box) was
+  **deferred with reason**: it improves `operability`, an axis this lane does not
+  own, and the plan itself recorded that it could not move an owned score without
+  a protocol ruling. The `planned` block therefore points at the checklist move
+  again, now with its axis-accounting question still open at L0.
+- **Landed.** `corpus/knowledge/instruction-surface-census-round13.md` (41 class
+  ids: 33 governed, 8 excluded with reasons; omp read from its registry
+  descriptions + call shapes, opencode's instruction service quoted from its
+  shipped JS), `verifiers/verify_surfaces.py` (4 checks, exit 0/1/2/3,
+  `--self-test` 28 assertions), `verifiers/surfaces-baseline.json` (derived from
+  the census by regenerating and diffing — the reviewer lane repeated the
+  derivation and found no difference), 12 synthetic fixtures,
+  `corpus/knowledge/instruction-surface-remeasure-round13.md` (the blind second
+  witness). `SKILL.md`: 7 → 9 surface rows, the CLAUDE.md row's "9/17 string refs"
+  proof replaced by code shapes plus the harness divergence (omp reads
+  AGENTS.md *and* CLAUDE.md; opencode reads one name per directory in the order
+  AGENTS.md → CLAUDE.md → CONTEXT.md), dispatch rows labelled host-observed, the
+  agent-definition roster counts corrected (18 `.md` + a 19th entry, the singular
+  `agent/` directory, 37 omp-side defs), and three repairs from the aggregator
+  lane's landed round-8 cold run: B1 (the "newest `<skills>` block" recipe now
+  states a *catalogue-bearing* selection rule and points at
+  `omp.catalogue_path`), B2 (the fault harness is labelled mutating, not a smoke
+  check), B3 (the cache-row count is a change detector; current 18 with all 17
+  live keys reproducing).
+- **Falsifiers, run.** `python3 verifiers/verify_surfaces.py` → 4/4 PASS, exit 0
+  (≈19 s); `--self-test` → `0 failure(s) over 28 assertions`, exit 0. Anti-vacuous
+  proof (from the checker's author lane): with the original empty baseline the
+  live tree produces `table_parity` FAIL naming all 41 census rows and
+  `no_uncovered_class` FAIL naming the 8 extracted classes — parity never passes
+  on 0==0; a missing inventory exits 2, a missing baseline 3.
+- **The finding that moved the score down.** Pre-registered 8.5; landed **8.0**.
+  The machine check is real for omp's 8 machine-extracted `.md` registrations and
+  **vacuous by construction for opencode** (its loaders are arrays/`join`/`findUp`
+  — no extractable call shape), so band 9's "machine-checked" criterion is not met
+  for the coverage claim as a whole; band 8's ("independently re-measured by
+  another lane") is. The critic lane independently recommended 8.0 for the
+  unqualified claim; that is the number recorded, with the ceiling stated in the
+  census rather than implied.
+- **A lane-vs-lane disagreement decided by bytes.** The host-census lane concluded
+  "opencode's CLAUDE.md is prompt text; the loader is omp-only"; the anchor-review
+  lane concluded the opposite. Adjudicated from the raw bytes: opencode's
+  instruction service carries `y = ["AGENTS.md", …!disableClaudeCodePrompt ?
+  ["CLAUDE.md"] : [], "CONTEXT.md"]` and `n = [<config>/AGENTS.md, ~/.claude/CLAUDE.md]`
+  — a real loader with an env gate, shadowed per directory by AGENTS.md because
+  `Instruction.find` breaks on the first name that exists. The opencode scout and
+  the critic lane reach the same conclusion independently. Consequence recorded:
+  a reference count is exactly the evidence class this round forbids.
+- **Second witness.** Blind lane `scout-independent` (own printable-run extractor,
+  `strings` never invoked) re-derived the class list and agrees check-for-check on
+  every load-bearing class; it added the omp provider-enablement gates (`RTo` /
+  `eu()` / `enabledProviders` / `disabledProviders`), `RULES.md`, opencode's
+  Read-tool `<system-reminder>` channel, and the two description-vs-code gaps
+  (`.cursorrules` and `.windsurfrules` exist only in registry *descriptions* — the
+  census rows now say so).
+- **The round's own instrument caught the round's own change.** Repairing four
+  dead pointer sites in the aggregator lane's two in-repo files, the first pass
+  used the *relative* shape; `verifiers/fault_injection_corpus.sh --self-test`
+  then failed T2/T3 — it clones the repo into `${TMPDIR}` and asserts a no-op clone
+  reads clean, and a relative `.ufo/reports` pointer dies off-layout. Reverted to
+  the host-absolute shape the corpus already favours (24 of 28 pointers) and the
+  gap is recorded in the reconciliation note. Same self-test also caught the
+  mid-landing state twice (an unindexed corpus file), which is its job.
+- **Baselines re-recorded, mechanisms named.** `verifiers/baseline.json`:
+  `omp.db.rows` + `rows_wellformed` 17 → 18 — recomputed with the verifier's own
+  `omp_key()`: the extra row is `name=ufo` against the *project-scoped* copy
+  `~/Projects/origin-work/ufo-fsd-alpha/skills/ufo/SKILL.md` (690-char description,
+  identical across the 10 substrate packs), i.e. the cache is append-only per
+  (name, description) pair and its count is a change detector. The binaries are
+  unchanged (sha256 equal to the round-12 recording), all 17 live keys still
+  reproduce. `verifiers/corpus-baseline.json`: re-recorded against this round's
+  landing commit (see that commit's message for the moved numbers).
+- **Freshness re-measure (same round).** cache db 18 rows (44–98 chars);
+  `evaluated permission=skill` 471; init distribution 1/141/34/14; harness
+  verifier 27/27 exit 0, `--self-test` 0/10; corpus verifier 9/9 after the
+  re-record; `verify_surfaces.py` 4/4.
+- **Operator-side / cross-domain, routed not fixed.** `~/Projects/bounties`
+  vanished mid-survey (connector lane §4b; kasegi's domain root — the census
+  records it as never-a-governed-pass); bootstrapper roster incompleteness (D1) →
+  kumitate; kumitate/kasegi `.omp`-tree contest and the `~/.codex/AGENTS.md`
+  class overlap; the kasegi↔kotoba `george/pendle` CLAUDE.md wording contest is
+  now unobservable. Aggregate.md-level detail lives in the round report.
+- **14 L2 lanes in two batched calls** (floor 8). Call 1 — `PlanCov13`,
+  `ScoutOmp`, `ScoutOpencode`, `ScoutIndependent`, `LabratInject`, `ExecChecker`,
+  `ExecHostCensus`, `CriticClass`, `ConnectorCross`, `SentinelScope`,
+  `ReviewerAnchors`. Call 2 — `MutationSurfaces`, `ReviewRound13`, `CriticFinal`.
+  Every lane's claim that landed is attributed in the census or the report; the
+  lanes that disagreed with each other are named rather than averaged.
+- **Carried into round 14.** (a) the checklist-execution move (its axis
+  accounting still needs the protocol lane); (b) an opencode-side machine check
+  (the .5 withheld this round); (c) the omp provider-priority/dedupe derivation is
+  single-lane and unconfirmed; (d) `LDe`/`instructions` consumer unresolved by two
+  lanes; (e) implicit-intent fidelity still unmeasured; (f) pointer hermeticity
+  (relative vs absolute both fail off-layout) is now recorded with a failing probe
+  rather than assumed.
+
+- **Batch-2 rigor, and what it changed.** Mutation lane: 13 planted faults, **11
+  caught** (both parity directions, literal presence, the call-shape requirement,
+  excluded-reason, missing inventory → 2, missing baseline → 3) and **2 escaped** —
+  rewriting a census row's *literal* or *evidence* column still exits 0, because
+  parity compares ids and `literal_present` probes the baseline's literal. Recorded
+  as an explicit id-level boundary in the census's ceiling, not smoothed over; it
+  is also why the withheld half-point stays withheld. Review lane: three defects,
+  all fixed here — a hash-"pins" overstatement (the baseline *records* binary
+  hashes; the enforced pin is the template sha256), a stale duplicate schema list in
+  the checker's module docstring (missing `loader-literal`), and an over-claimed
+  agreement verdict in the re-measure record (one item is unresolved *by both*
+  lanes, which is not agreement). Critic lane: recommended 8.0 over 8.5 for the
+  unqualified claim — adopted — and supplied the strongest falsifiers it could
+  find, all of which are extraction-set limits the census already declares.
+- **Partial wire-level injection evidence (lane died mid-run).** `LabratInject`
+  drove `omp -p` against a local capture server and read the request bodies: the
+  context-file capability dedupes by `level:depth`, so **one project context file
+  per depth bucket reaches the prompt** (bare `AGENTS.md` alone is injected; with
+  `AGENTS.md` + `CLAUDE.md` at depth 0, one wins) — wire-level corroboration of
+  the § A2 dedupe, from a different method; `.github/copilot-instructions.md` and
+  an `alwaysApply` rule landed in the prompt; and the
+  `for (const s of ["AGENTS.md","CLAUDE.md"])` loop is **memory consolidation**,
+  not loading (the false friend killed twice). The lane hit a model rate limit and
+  did not finish (determinism across reruns, opencode by wire) — recorded as
+  partial in `corpus/knowledge/instruction-surface-census-round13.md` § A3, with
+  only what it reproduced.
