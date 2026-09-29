@@ -61,3 +61,31 @@ Pattern: `reference/<group>.md` per command group (bailian-cli hub),
 `assets/*.md` for procedures (setup, issue-reporting, video post-processing),
 `models/*.jsonl` for data (model-recommend). SKILL.md holds the pointer line
 plus the fallback (`bl <cmd> --help`) — never a copy.
+
+## Compression rules — moved from `SKILL.md` (round 15)
+
+The six rules, verbatim as they stood in `SKILL.md` before the round-15
+line-budget move (the file was 675 lines at pre-registration commit `63ceba7`;
+`SKILL.md` now keeps a five-line summary plus this pointer).
+
+1. **Spend tokens in the description; save tokens in the body.** The description
+   is always loaded — density there has the highest leverage. The body loads only
+   on activation, but still competes with the task context.
+2. **Depth moves to files, not prose.** Hub skills point to `reference/<group>.md`
+   and `bl <cmd> --help` instead of duplicating flag docs ("do not guess flags" —
+   bailian-cli). One authoritative home per fact; the skill keeps the pointer.
+3. **Command blocks verbatim-copyable.** Env setup first, then the command
+   (sekhmet-l3 live-wave block). No placeholders that require guessing the shape.
+4. **Failure signatures inline.** Pitfalls earn their lines only when they carry
+   the observed symptom: zsh `status` readonly-variable trap, 404 deploy
+   propagation delay, `--learning-rate` must be string `"3e-4"` not number
+   (bailian-train-deploy 反幻觉清单). "Be careful" without a signature is noise.
+5. **Never restate the trigger in the body.** The body assumes activation
+   succeeded; "when to use this skill" paragraphs in the body are dead weight —
+   move them to the description.
+6. **~600-line module bound.** wwkd principle 8: fits in one file, one screen,
+   single-sitting readable. Largest observed production skill: omarchy at 392
+   lines. Past ~600 lines, split: decision surface stays in SKILL.md, depth goes
+   to `reference/` / `assets/` with a pointer line. Gods-eye rule: if you can't
+   hold the whole file while editing it, the reader can't either (heuristic, not
+   measured).

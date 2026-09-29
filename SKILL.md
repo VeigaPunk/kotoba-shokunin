@@ -178,13 +178,12 @@ Check before predicting: on omp read the cache db
 (`sqlite3 -readonly ~/.omp/agent/skill-descriptions.db "select count(*) from
 skill_descriptions;"`) **and** the newest *catalogue-bearing* `<skills>` block —
 mtime order is not a selection rule: the newest session file
-(`~/.omp/agent/sessions/<project-slug>/<timestamp-id>/<Agent>.jsonl`) may carry
-no `<skills>` block at all, so pick the newest file that contains one (the
-round-8 box-3 cold run's B1), or take the two fields the verifier already
-resolves: `python3 verifiers/verify_harness_claims.py --json` →
-`omp.catalogue_path` / `omp.catalogue_timestamp`. The catalogue freezes at
-session start, so db coverage is time-varying; on opencode read the global roots
-and `grep -o 'message=init count=[0-9]*' ~/.local/share/opencode/log/opencode.log`.
+(`~/.omp/agent/sessions/<project-slug>/<ts>/<Agent>.jsonl`) may carry no
+`<skills>` block (round-8 box-3 cold run's B1), so take the two fields the verifier already resolves:
+`python3 verifiers/verify_harness_claims.py --json` → `omp.catalogue_path` /
+`omp.catalogue_timestamp`. The catalogue freezes at session start, so db coverage
+is time-varying; on opencode read the global roots and
+`grep -o 'message=init count=[0-9]*' ~/.local/share/opencode/log/opencode.log`.
 
 ### Run the verifier instead of re-typing the recipe
 
@@ -202,101 +201,35 @@ own truncator + block-scalar model. Cite this file for any harness number rather
 than a hand-run recipe, and update the baseline only with a LOG entry naming the
 mechanism that moved. Model + gaps: `corpus/knowledge/harness-verifier-round10.md`.
 
+`python3 verifiers/verify_skill_checklist.py` executes this file's own checklist:
+**8 checks** (`checklist.box_map_complete` + the seven boxes marked
+`(executed: …)` below), each fail-closed on a fixture, `evaluated N` per check,
+exit 0/1/2/3 (`3` = box map missing, unparseable, or bound elsewhere).
+`verifiers/checklist-baseline.json` maps **all 41 boxes** (7 executed, 1
+delegated, 33 unexecuted with reason) by text hash, so drift FAILs. Limits and
+ceilings: `corpus/knowledge/checklist-execution-round15.md`.
+
 ## Frontmatter craft — the trigger surface
 
 `description` is an index, not a summary. On **omp** the router ingests it
 through a **cache-or-truncate** render (mechanism proven from the omp binary,
-`corpus/knowledge/render-mechanism-round7.md`): if a
-`sha256(prompt ‖ 0x00 ‖ name ‖ 0x00 ‖ loader-held description)` row exists in
-`~/.omp/agent/skill-descriptions.db`
-the render is that LLM one-liner (≤160 chars, ≤12 words); otherwise a
-deterministic truncator keeps at most 99 chars — first sentence wins if ≥40
-chars, else last-space cut + `…`. Measured over the live 17-skill omp
-catalogue: only 17.7% of source description chars reach the router, 53/62
-quoted trigger spans are lost, and all 13 `Triggers:`/反触发/`Excludes`/`不用于`
-clause markers sit past the cliff — none render (round-7 measurement; round 9
-adds the drift: cache coverage 5/17 → 17/17 rows, so the truncator is now the
-fallback, not the default — a session started before a row landed still shows
-the truncation. Round 10 re-read the salt from the shipped JS: it is the
-**loader-held** description (`>`/`|` keep their trailing newline, `>-`/plain do
-not), so a uniform ws-collapse check reproduces 11/17 and invents staleness;
-`verifiers/verify_harness_claims.py` checks all 17, and 17/17 lines of the newest
-captured catalogue render from cache). On **opencode** the full `description`
-reaches the model
-untruncated, so front-loading there is style, not survival; trigger strings and
-anti-triggers stay mandatory on both, because the offer gate and the model's own
-matching both read the description. Field rules distilled from the survey and
-this measurement:
+`corpus/knowledge/render-mechanism-round7.md`): a
+`sha256(prompt ‖ 0x00 ‖ name ‖ 0x00 ‖ loader-held description)` hit in
+`~/.omp/agent/skill-descriptions.db` renders that cache line; a miss keeps at
+most 99 chars. The cache key includes the description, so **editing a
+`description` invalidates its row and reverts the skill to the truncator** until
+the compressor rewrites it. On **opencode** the full description reaches the
+model untruncated; trigger strings and anti-triggers are mandatory on both
+because the offer gate and the model's own matching both read the description.
 
-1. **Capability first, triggers second.** One clause naming what the skill does
-   ("xbreed ask — optional cross-model advisory protocol"), then trigger
-   material.
-2. **Quote literal trigger strings.** `Triggers: "sekhmet", "swarm", "L3", "fan
-   out"` (sekhmet-l3); `"/wwkd", "plan this", "break this down"` (wwkd). Quoted
-   strings match how routers and humans actually phrase intent (design
-   guidance — no matcher-level measurement exists for either harness).
-3. **Include implicit-intent triggers.** bailian-model-recommend activates on
-   `"做一个XX"` in its frontmatter 触发词 (the fuller `"我想做一个XX"` sits in
-   its body 适用场景). If users arrive without naming the skill, the
-   description must catch the *need*, not the name.
-4. **Co-locate anti-triggers.** Most surveyed files carry exclusions in the
-   description itself: omarchy "Excludes Omarchy source development",
-   bailian-gen "反触发：普通问答、编程、写作、翻译不走本技能". Observed
-   exceptions (2 of 10 bailian files): bailian-train-deploy and
-   bailian-docs-llm-wiki keep exclusion lists only in the body (反触发表 /
-   何时不要使用) — a second-layer net for router error, not a substitute:
-   an anti-trigger in the body but not the frontmatter still causes false
-   activation — the catalogue is built from frontmatter only (see § Router model).
-5. **State sibling boundaries when overlap exists.** bailian-model-recommend:
-   "当用户同时涉及模型查询和模型选择时，优先使用本 skill". Naming the neighbor
-   and the arbitration rule prevents double-activation.
-6. **Always-on skills say so explicitly.** godspeed: "Use on every prompt …
-   without waiting for a keyword." If activation is unconditional, the
-   description must override the trigger assumption, not rely on it.
-7. **Declare runtime needs in metadata, not prose.** `metadata.requires.bins:
-   ["bl"]` on 7 of 10 bailian skills (docs-llm-wiki, model-recommend and
-   train-deploy omit `requires:`), `compatibility:` on model-recommend.
-   Machines read metadata; prose warnings get skipped.
-8. **On omp the 99-char cliff is absolute — write for the truncator, not the
-   compressor.** Anything past ws-collapsed offset 99 is invisible whenever the
-   cache misses: 0 chars survive in all 14 measured truncations; effective keep
-   is 55–96 (last-space back-off). Put the capability clause + the most
-   match-critical WHEN material in the first ≤99 chars; everything later is
-   only reachable if the async LLM cache has landed *for this session's
-   catalogue* — coverage is time-varying (5/17 rows at round 7; 17 rows at round
-   9, all 17 keys reproduced against today's on-disk descriptions) and the cache
-   key includes the description, so **editing a `description` invalidates its row
-   and reverts that skill to the truncator** until the compressor writes a new
-   one. The cache path also rewrites, so late text may return paraphrased, not
-   verbatim. opencode has no cliff: its system-prompt catalogue renders the full
-   description. CJK
-   edge (omp only): the sentence regex knows only `[.!?]`, so 。；： don't count
-   and CJK text cuts mid-clause at an incidental ASCII space (549→44 observed).
-9. **Exploit the omp first-sentence branch.** If the first `.`/`!`/`?` sentence
-   is ≥40 chars it renders whole with NO ellipsis — a clean complete hint
-   (godspeed does this: keeps "Use on every prompt…" verbatim). But the same
-   branch *discards* sentence 2+: godspeed's own trigger list sits in its
-   second sentence and is gone. Put trigger material inside sentence 1 or
-   accept the loss.
-10. **Verify the render by reproduction, not assumption.** H7s is ~10 lines —
-    re-run it (recipe in `corpus/knowledge/render-mechanism-round7.md`) or
-    read the newest *catalogue-bearing* `<skills>` block under
-    `~/.omp/agent/sessions/**/*.jsonl` — newest-mtime is not the rule; the
-    newest file often carries none (`python3 verifiers/verify_harness_claims.py
-    --json` → `omp.catalogue_path` names the one it resolved).
-    The catalogue is frozen per session at render time and two variants can
-    coexist same-hour, so today's render is evidence, not a spec.
-11. **Invocation-shaped triggers for domain-term names.** When the skill's
-    name is also a domain term (ufo, omarchy), a bare noun trigger cannot
-    separate invocation from reference — measured 2026-09-28: all 5 literal
-    `ufo` misses in opencode.db were domain mentions, not calls. Pair the
-    noun with slash-form or imperative-context triggers.
-12. **Skill files outside a discovery root never route.** omp loads
-    `.agent/skills` + `.agents/skills` (project walk-up + user home),
-    `.claude/skills`, marketplace cache. A SKILL.md at a bare repo root (the
-    six `*-shokunin` files) is never offered — for those, `description` craft
-    is audit-hygiene, not routing surface; check the discovery root before
-    predicting router behavior.
+Twelve rules with the measurements behind each — capability clause first, quote
+literal *and* implicit-need triggers, co-locate anti-triggers (body-only
+exclusions cannot prevent activation), name the overlapping sibling and its
+arbitration rule, the 99-char cliff and its 55–96 effective keep, the ≥40-char
+first-sentence branch that discards sentence 2+, the CJK `[.!?]`-only sentence
+regex, `metadata.requires` over prose, render-by-reproduction, invocation-shaped
+triggers for domain-term names, and the discovery roots:
+`corpus/knowledge/frontmatter-trigger-surface.md` § Craft rules.
 
 ## Decision tables — when to use one
 
@@ -316,27 +249,13 @@ decision surface, and must not be presented as one.
 
 ## Compression rules
 
-1. **Spend tokens in the description; save tokens in the body.** The description
-   is always loaded — density there has the highest leverage. The body loads only
-   on activation, but still competes with the task context.
-2. **Depth moves to files, not prose.** Hub skills point to `reference/<group>.md`
-   and `bl <cmd> --help` instead of duplicating flag docs ("do not guess flags" —
-   bailian-cli). One authoritative home per fact; the skill keeps the pointer.
-3. **Command blocks verbatim-copyable.** Env setup first, then the command
-   (sekhmet-l3 live-wave block). No placeholders that require guessing the shape.
-4. **Failure signatures inline.** Pitfalls earn their lines only when they carry
-   the observed symptom: zsh `status` readonly-variable trap, 404 deploy
-   propagation delay, `--learning-rate` must be string `"3e-4"` not number
-   (bailian-train-deploy 反幻觉清单). "Be careful" without a signature is noise.
-5. **Never restate the trigger in the body.** The body assumes activation
-   succeeded; "when to use this skill" paragraphs in the body are dead weight —
-   move them to the description.
-6. **~600-line module bound.** wwkd principle 8: fits in one file, one screen,
-   single-sitting readable. Largest observed production skill: omarchy at 392
-   lines. Past ~600 lines, split: decision surface stays in SKILL.md, depth goes
-   to `reference/` / `assets/` with a pointer line. Gods-eye rule: if you can't
-   hold the whole file while editing it, the reader can't either (heuristic, not
-   measured).
+Six rules with their evidence: `corpus/knowledge/anatomy-and-compression.md`
+§ Compression rules. The two that decide most edits: spend tokens in the
+`description`, not the body; and one authoritative home per fact — depth moves to
+a file and the skill keeps the pointer line. Also there: verbatim-copyable
+command blocks, failure signatures inline, never restate the trigger in the body,
+and the **~600-line module bound** (round 15 applies it to this file — §
+Trigger-fidelity checklist, line-budget box).
 
 ## Trigger-fidelity checklist
 
@@ -344,10 +263,25 @@ Run before shipping any SKILL.md. Every item is checkable by reading the file �
 no runtime needed. (For AGENTS.md / dispatch prompts, use the per-surface rows
 in "Instruction surfaces" instead — this checklist assumes a routed file.)
 
+Seven of the fifteen boxes are **executed, not read** — marked
+`(executed: <check-id>)`: `python3 verifiers/verify_skill_checklist.py` runs them
+and exits non-zero on any FAIL. `verifiers/checklist-baseline.json` maps every box
+in this file to `executed:` / `delegated:` / `unexecuted:<reason>`, pinned by the
+box's text hash — a reworded, added, or removed box FAILs the run rather than
+passing silently.
+
+- [ ] Frontmatter parses: the file opens with `---`, closes it, and carries a
+      non-empty `name:` and `description:`. A file with no frontmatter never
+      reaches a router catalogue, so every other box is vacuous on it.
+      (executed: `trigger.frontmatter_parses`)
 - [ ] `name` matches the directory / invocation surface.
+      (executed: `trigger.name_directory`)
 - [ ] `description` contains ≥1 literal trigger string in quotes or an explicit
-      `Triggers:` list.
+      `Triggers:` list. (executed: `trigger.literal_trigger_string`)
 - [ ] `description` contains at least one anti-trigger or exclusion clause.
+      (executed: `trigger.anti_trigger_clause` — vocabulary test, not semantics:
+      a marker-bearing but vacuous clause passes unearned, and a real exclusion
+      phrased outside the vocabulary fails unearned)
 - [ ] Overlapping sibling skills are named **concretely** with an arbitration
       rule in the `description` (a generic "the owning domain skill" does not
       count; body/PROVINCE boundary text does not count — the offer stage reads
@@ -366,6 +300,8 @@ in "Instruction surfaces" instead — this checklist assumes a routed file.)
 - [ ] Every command (fenced block or inline) is runnable as pasted: its binary
       resolves on PATH or at a location the file declares; bins are declared
       in metadata or checked in a prerequisite step.
+      (executed: `trigger.command_binary_resolves` — declared vocabulary + fenced
+      shell blocks; flags and command semantics are not covered)
 - [ ] Every failure claim — any warning, dominant-failure label, or causal
       "X breaks because Y" assertion — carries its observed signature (error
       text, exit code, version constraint) **or** is explicitly framed as
@@ -389,9 +325,13 @@ in "Instruction surfaces" instead — this checklist assumes a routed file.)
       `corpus/knowledge/independent-verification-round12.md`.
 - [ ] Stale-risk facts (model names, versions, prices) are either pinned with a
       source or deferred to `--help` / reference files.
-- [ ] File ≤ ~600 lines; overflow already moved to referenced depth files.
+- [ ] File ≤ 600 lines; overflow already moved to referenced depth files.
+      (executed: `trigger.line_budget` — the number in this box is the threshold;
+      `--max-lines` applies only when the box states none)
 - [ ] No `TODO`, placeholder sections, or "coming soon" — a skill ships complete
       or names the missing prerequisite.
+      (executed: `trigger.no_placeholder` — a line that names the marker after a
+      negation, or quotes it in backticks, is read as the rule, not a stub)
 
 ## Agent-definition fidelity checklist
 
@@ -492,28 +432,12 @@ fails procedures/dates/style) in `corpus/knowledge/alwayson-checklist-round7.md`
 
 ## Anti-patterns
 
-| Smell | Why it fails | Fix |
-|-------|--------------|-----|
-| Description = capability only, no triggers | Router can't match unseen phrasings — the shonen mint template produces exactly this (`Domain specialist — scopes X`); 5/5 sibling SKILL.md files failed items 2–3 in the round-5 fleet audit | Add quoted trigger strings + implicit intents |
-| Anti-trigger only in body | The offer stage never sees it (frontmatter-only catalogue); false activation | Move exclusion clause into `description` |
-| Flags documented in prose | Drifts from `--help`; agents guess | Pointer to `reference/` or `--help` |
-| Procedures before scope | Agent acts before knowing boundaries | Anatomy order: gate → decide → act |
-| Warning without signature | "Be careful" teaches nothing | Attach observed error text / version / exit code |
-| Sibling skill hardcoded as path dep | Missing sibling = dead skill | Soft hand-off by name + `--help` fallback (bailian family rule) |
-| Recursive skill load | Skill that must read itself to work | In-line the essential rule; reference the rest |
-| 600+ line monolith | Router and agent both lose the thread | Split at anatomy boundary 3↔4 |
-| Procedures in AGENTS.md | Always-loaded bytes pay every session; procedures belong in opt-in files | Move how-to to SKILL.md; keep only constraints |
-| Dispatch prompt missing a stanza | Blank-context subagent fails unrecoverably | Role → context → job → routing → report → `| godspeed` |
-| Copy-pasted posture block in durable files | One drifts silently — 13 copies observed, one file already carries it twice | Centralize: `agent:`/`agents_md:` frontmatter flags or a shared include |
-| Per-task job text in an agent-definition body | Body loads for every delegation; the job goes stale while the identity persists | Identity + constraints in body; the job lives in the dispatch prompt |
-| Dated operational note in frontmatter | No freshness mechanism — `cascade_note` past its `until` date still routes | Move dated facts to a status file; frontmatter holds stable policy |
-| Command file that re-states skill procedures | Two owners of the same steps; the skill drifts, command contradicts | Pointer-then-rules: name the skill, keep only rules that must hold anyway |
-| Spawn-mode prompt used for a round ignite | 6-stanza completeness when the reader re-loads its own repo is pure drag | 3–4 lines: role+round, method, land-scope, `| godspeed` |
-| Bin invoked without declared location | `command -v` returns nothing; agent guesses a path (kake: `webzites` on no PATH) | Declare the bin path or a prerequisite check step |
-| Trigger list past the omp 99-char cliff | omp's render is `cache.get(key) ?? slice(0,99)`+`…`: all 13 observed `Triggers:`/反触发/`Excludes` clauses sit past the cut and never reach the router when the cache misses (85.5% of quoted trigger spans lost); the cliff is omp-only — opencode's system-prompt catalogue renders the full description | Capability + WHEN-hint inside the first ≤99 chars; the rest is body material on omp; on opencode nothing is cut, so trigger order is not survival-critical |
-| Trigger list in sentence 2 (omp) | omp's ≥40-char first-sentence branch renders sentence 1 verbatim and drops everything after — godspeed loses its own trigger list this way; opencode renders every sentence | Put trigger material inside sentence 1, or keep the description to one sentence |
-| CJK description with incidental ASCII spaces (omp) | omp's sentence regex knows only `[.!?]`; CJK text cuts at an incidental space mid-clause (549→44 chars observed) | CJK skills must front-load harder; expect sub-90-char keeps |
-| Copy-pasted round prompt restating durable policy | The routing map in a round prompt drifts with every bucket change — 38 files carry `m_composer`/`m_antigravity`/`m_grok` aliases retired by MISSION.md | Round prompt carries delta only; durable policy lives where the lane re-reads it (MISSION.md) |
+Twenty rows with their observed evidence:
+`corpus/knowledge/fail-closed-and-anti-patterns.md` § Anti-pattern table (full,
+moved from `SKILL.md`, round 15 — read it before shipping any skill file). The
+five highest-frequency rows: description without trigger strings; anti-trigger in
+the body only; warning without a signature; a bin invoked with no declared
+location; durable policy copy-pasted into a dispatch prompt.
 
 ## Refusals
 
