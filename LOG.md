@@ -673,3 +673,28 @@
   (`--self-test` 0/75); `verify_skill_checklist.py` exit 0 (`--self-test` 0/772);
   `verify_corpus_integrity.py` 9/9 exit 0; `verify_corpus_independent.py` exit 0;
   `fault_injection_corpus.sh --self-test` OK, full run ALL PASS.
+
+### Round 15 — second correction entry (the first correction was itself wrong)
+
+- **The `git rm --cached` was the mistake, not the commit.** The aggregator lane
+  had *committed* `corpus/lessons/round-9-aggregator-corpus-verdict.md` in
+  `0f658ff` (24 lines, an ancestor of this round's commits) between writing it at
+  22:19 and this lane's landing commit; the file was therefore tracked and stayed
+  tracked through `0089974`. The correction commit `d6177f4` then un-tracked a file
+  its owner had legitimately landed — a second, worse error than the one it
+  claimed to fix, and the first entry above is wrong on that point. The next
+  commit restores tracking, and the record keeps both errors rather than rewriting
+  either commit.
+- **What the repo now does with that file, and why.** It is indexed in
+  `corpus/README.md` (a corpus file without an index row keeps this repo's own
+  `corpus.index.unindexed` non-zero) and its two `shokunin:`-prefixed pointer
+  sites are rewritten to host-absolute form — the round-13 convention for dead
+  pointer sites in in-repo corpus files, taken because the corpus verifier
+  resolves pointer bases and has no exception for a documented main-repo-relative
+  convention. A dated round-15 repair note is appended inside that file; no
+  finding, verdict or routed row is altered.
+- **Final instrument state at the landed tree** (`verifiers/corpus-baseline.json`
+  re-recorded, 45/0/30/0/27): `verify_corpus_integrity.py` **9/9 exit 0**,
+  `verify_corpus_independent.py` exit 0, `fault_injection_corpus.sh --self-test`
+  **OK** and full run ALL PASS, `verify_harness_claims.py` 27/27, `verify_surfaces.py`
+  7/7, `verify_skill_checklist.py` exit 0 with `--self-test` 0/772.
