@@ -108,8 +108,8 @@ not a formality.
 | 1 | `command_subjects` collects path-like arguments in fenced and vocabulary-headed inline segments; `path_like_arg` + `arg_subjects` define the class; redirect targets and declared output flags are skipped | `verifiers/verify_skill_checklist.py` |
 | 2 | `check_box_map` requires a `delegated:` target to be an instrument (`is_instrument`: declared script suffix or shebang) | same |
 | 3 | New check `trigger.citation_resolves` + `citation_resolve` (bounded `..` hops, ≤3) | same |
-| 4 | Twenty-one fixtures (47 cases at HEAD → 67): L1's six (`citation-dead`, `citation-base-named`, `command-path-arg`, `command-path-arg-ok`, `command-redirect-target`, `delegated-noninstrument`), the executor lane's boundary set (`citation-ok`, `citation-boundary-dirslash`, `citation-boundary-ufo`, `delegated-directory`), and the adversary-driven pins (`citation-dot-slash`, `citation-second-word{,-ok}`, `delegated-elf`, `delegated-py-suffix`, `command-output-flag`, `command-input-redirect`, `command-sh-c-inner`, `command-sh-c-ok`, `citation-anchor-ok`, `delegated-escape`) | `verifiers/fixtures/checklist/` |
-| 5 | Self-test grows 772 → 1283 assertions over 67 fixture cases; a check whose subject may be absent is N/A-allowed with an explicit non-vacuity assertion | same |
+| 4 | Twenty-two fixtures (47 cases at HEAD → 68): L1's six (`citation-dead`, `citation-base-named`, `command-path-arg`, `command-path-arg-ok`, `command-redirect-target`, `delegated-noninstrument`), the executor lane's boundary set (`citation-ok`, `citation-boundary-dirslash`, `citation-boundary-ufo`, `delegated-directory`), and the adversary-driven pins (`citation-dot-slash`, `citation-second-word{,-ok}`, `delegated-elf`, `delegated-py-suffix`, `command-output-flag`, `command-input-redirect`, `command-sh-c-inner`, `command-sh-c-ok`, `citation-anchor-ok`, `delegated-escape`) | `verifiers/fixtures/checklist/` |
+| 5 | Self-test grows 772 → 1302 assertions over 68 fixture cases; a check whose subject may be absent is N/A-allowed with an explicit non-vacuity assertion | same |
 | 6 | Map: `trigger.11` `delegated:…` → `executed:trigger.citation_resolves`, new box sha `c7ad2458…`; counts now 8/0/33 | `verifiers/checklist-baseline.json` |
 | 7 | `SKILL.md`: 3 citation sites named, box `trigger.11` rewritten to its executed subset, counts updated (9 checks, eight executed boxes, corpus instrument scoped to `corpus/*.md`), still 599 lines | `SKILL.md` |
 
@@ -119,7 +119,7 @@ not a formality.
 $ sha256sum verifiers/verify_skill_checklist.py
 70f8b38e9386ab1ee808c57aee29586887bad4320b899c954da1660ac020a8e4
 $ python3 verifiers/verify_skill_checklist.py --self-test
-0 failure(s) over 1283 assertions         # rc 0
+0 failure(s) over 1302 assertions         # rc 0
 $ python3 verifiers/verify_skill_checklist.py
 PASS checklist.box_map_complete: evaluated 41 — 41 boxes mapped (8 executed, 0 delegated, 33 unexecuted)
 PASS trigger.frontmatter_parses: evaluated 4
@@ -171,6 +171,7 @@ landed in-round, and the rest are named here.
 | `R16Blast` (scout) | R1 over 23 fleet `SKILL.md`: 77 path-like args, 27 would-FAIL, 3 verdict flips — **0 true positives**; classes: produced path without a declared output flag, deployed-tree path, example input, workdir-relative name | **25/2 after the URL + comment-tail fixes**; documented as the foreign-hint rate; tightening candidate = declared read-verb vocabulary (round 17) |
 | `R16Blast` | The two carve-outs (`REDIRECT_TOKENS`, `OUTPUT_FLAGS`) had zero live coverage | **fixture added**: `command-output-flag` pins the output-flag carve-out on the other side of `command-redirect-target` |
 | `R16Review` (reviewer) | The three `.ufo/prompts/` sites are **real** at HEAD (`test -e .ufo/prompts` → no; zero `.ufo` under the repo); HEAD reproduces every round-15 quote (8×PASS, 0/772, 41 boxes 7/1/33, 16/16 commands) | confirms the red-before |
+| `R16Plan` (planner) | rank 1 was the **`source`/`.` operand residual**: a builtin whose operand it acts on still hid a missing file (`source ./r17-missing.sh` → `No such file or directory`, exit 1) while `echo <word>` is a benign insertion | **already closed** by `READ_ARG_BUILTINS` + fixture `command-source-operand` (FAIL naming the operand); the planner's rank 3 also **refutes the round-15 `M36` fixture** — it closed a `<<~` heredoc with `PYEOF` instead of `~PYEOF`, conflating a delimiter mismatch with the parser over-catch (raw bash probe in `/tmp/round16/R16Plan/probes.log`) |
 | `R16Connector` | No sibling declares `delegated:` (repo-wide search: no matches); kumitate's `surface-probe.mjs` *executes* checklist commands but does not resolve arguments/targets/citations; kasegi has citation-resolver prior art (`resolve.py`, `anchorcheck.py`); sibling R3 dead tokens: kagi 2, kake 1, kasegi 1, kengaku 1, kumitate 5 | **routed**, not fixed — sibling surface belongs to those lanes |
 
 ## The `M35` re-labelling, stated plainly

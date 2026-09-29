@@ -721,8 +721,9 @@
   the host-absolute form the file already used five times, the `trigger.11` box
   rewritten to its executed subset with the annotation, the corpus instrument's scope
   corrected to `corpus/*.md`, and the check/box counts updated. 21 fixtures (6 mine,
-  4 boundary from the executor lane, 11 adversary-driven); 47 → 67 fixture cases;
-  `--self-test` 772 → **1283 assertions, 0 failures**.
+  4 boundary from the executor lane, 12 adversary-driven incl. the planner's rank-1
+  `source` operand fixture); 47 → 68 fixture cases;
+  `--self-test` 772 → **1302 assertions, 0 failures**.
 - **Red-before, per rule.** R1: the pre-patch verifier (`sha256 2ee8abae…`) on
   `fixtures/checklist/command-path-arg` → `rc=0`, the dead argument invisible. R2: same
   on `delegated-noninstrument` → `rc=0`. R3: the patched verifier on a clone of
@@ -775,3 +776,23 @@
   root set, symlinked instruments, backslash-continuation joins; (f) the
   `AXES.md`↔`MISSION.md` axis naming (rounds 13–16, `../.ufo/l0-questions.md`);
   (g) sibling R3 dead tokens, routed.
+
+### Round 16 — addendum (planner lane, appended after the landing commits)
+
+- **Rank-1 discharge.** `R16Plan` (planner) ranked the `source`/`.` operand residual
+  first: a builtin that acts on its operand still hid a missing file
+  (`source ./r17-plan-absent-source-fixture.sh` → `No such file or directory`, exit 1),
+  while `echo <word>` is benign. It is already closed here by `READ_ARG_BUILTINS`
+  (`source`, `.`, `exec`) and now carries the fixture `command-source-operand`
+  (`FAIL … 'verifiers/absent-round16-source.sh' (fenced-arg …) does not resolve`),
+  taking the fixture population to 68 cases and `--self-test` to 1302 assertions.
+- **Refutation of a round-15 fixture, recorded not rewritten.** The planner probed the
+  shell: `cat <<~R17EOF` terminates on `~R17EOF`, so the delimiter *word* includes the
+  `~`. Round 15's `M36` row closed a `<<~` heredoc with `PYEOF`, which conflated a
+  delimiter mismatch with the parser over-catch; the row's verdict (over-catch) stands,
+  but its fixture was not shell-valid and round 17 must close with `~EOF`.
+- **Planner ranking adopted for round 17**: D6 prompt literals (rank 2 there, rank 1 by
+  this round's measured blast radius), M36 `<<~WORD`, M23 executable heredocs, R3 scope
+  for `LOG.md`/`SCORECARD.md`, A9 gated on a named agent root. Ranks 7 (M38, no
+  numerical headroom at consistency 10) and 8 (M22, needs a marker convention) are
+  carried as policy calls.

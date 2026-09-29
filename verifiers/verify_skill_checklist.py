@@ -1382,6 +1382,9 @@ def self_test() -> int:
         ("citation-anchor-ok", 0, [], [], []),
         ("delegated-escape", 1, ["checklist.box_map_complete"], [],
          ["outside the map's repo"]),
+        # the planner's rank-1 residual: a builtin that acts on its operand
+        ("command-source-operand", 1, ["trigger.command_binary_resolves"], [],
+         ["verifiers/absent-round16-source.sh"]),
     ]
 
     # Checks whose subject may legitimately be absent from a fixture: an
