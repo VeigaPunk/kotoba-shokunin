@@ -2,7 +2,7 @@
 
 Round: 3 (no round-2 was run in this repo — numbering skipped 1→3 on operator
 directive; LOG.md records the actual sequence, report written to
-`/home/vgpnk/projects/shokunin/.ufo/reports/round-3/kotoba.md`).
+`/home/vgpnk/Projects/shokunin/.ufo/reports/round-3/kotoba.md`).
 
 ## Worked
 

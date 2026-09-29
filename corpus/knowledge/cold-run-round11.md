@@ -62,7 +62,7 @@ corpus.index    tracked=33 unindexed=0 stale=2 missing=0  (36 FILE-column patter
 corpus.pointers report_dead=1/20 commit_total=21 unresolvable=0 nonhash=0 (shapes [relative=0, absolute=19, tilde=1, bare=0], quoted-excluded=1, pointer-excluded=1; sites in --json)
            stale_patterns: corpus/README.md:35: knowledge/corpus-integrity-round11.md
            stale_patterns: corpus/README.md:40: lessons/round-11.md
-           report_dead: corpus/README.md:40: /home/vgpnk/projects/shokunin/.ufo/reports/round-11/kotoba.md
+           report_dead: corpus/README.md:40: /home/vgpnk/Projects/shokunin/.ufo/reports/round-11/kotoba.md
            report_pointers_excluded: corpus/knowledge/dispatch-prompt-audit-round7.md:42: .ufo/reports/round-1/<lane>.md
            commit_quoted: corpus/lessons/round-6-aggregator-audit.md:45: round-N (quoted meta-finding)
 DRIFT   corpus.index.stale_patterns: observed=2 expected=0 / empty
@@ -82,7 +82,7 @@ $ cd /tmp && python3 <repo>/verifiers/verify_corpus_integrity.py --repo <repo> -
 (corpus/README.md:35 → knowledge/corpus-integrity-round11.md; corpus/README.md:40 →
 lessons/round-11.md), missing_paths=0, report_total=20,
 report_pointers_excluded=1, report_dead=1 (corpus/README.md:40:
-/home/vgpnk/projects/shokunin/.ufo/reports/round-11/kotoba.md),
+/home/vgpnk/Projects/shokunin/.ufo/reports/round-11/kotoba.md),
 commit_total=21, commit_unresolvable=0, commit_nonhash=0,
 commit_quoted_excluded=1, report_pointer_shapes={relative=0, absolute=19,
 tilde=1, bare=0}, corpus_md_files=33`. `results`: 6 PASS, 3 DRIFT
@@ -138,7 +138,7 @@ exclusion marks `<>*`/whitespace/`..`-after-leading-hops, `os.path.exists`).
 ```
 pointers: raw=21 checked=20 dead=1 excluded=1
 shapes: absolute=19 tilde=1 relative=0 bare=0
-DEAD corpus/README.md:40: /home/vgpnk/projects/shokunin/.ufo/reports/round-11/kotoba.md
+DEAD corpus/README.md:40: /home/vgpnk/Projects/shokunin/.ufo/reports/round-11/kotoba.md
 EXCLUDED corpus/knowledge/dispatch-prompt-audit-round7.md:42: .ufo/reports/round-1/<lane>.md
 ```
 
@@ -299,7 +299,7 @@ single QUOTED `round-N`.
 
 Numbers moved since §2a and why — only the tree moved, not the edit:
 `report_dead` 1→0 because
-`/home/vgpnk/projects/shokunin/.ufo/reports/round-11/kotoba.md` landed between
+`/home/vgpnk/Projects/shokunin/.ufo/reports/round-11/kotoba.md` landed between
 19:26 and 19:33 (confirmed `test -e` EXISTS at the repo `.ufo` root), so all 20
 checked pointers now resolve; (the bare form as written in the capture was
 re-presented at landing as the host-absolute path it names — round-12 landing

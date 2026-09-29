@@ -209,8 +209,8 @@ plant_e() { # new tracked corpus file covered by no index row (git add, NO commi
 }
 
 plant_f() { # resolving pointer moved one directory up, out of reports/
-  local old=/home/vgpnk/projects/shokunin/.ufo/reports/round-4/kotoba.md
-  local new=/home/vgpnk/projects/shokunin/.ufo/round-4/kotoba.md
+  local old=/home/vgpnk/Projects/shokunin/.ufo/reports/round-4/kotoba.md
+  local new=/home/vgpnk/Projects/shokunin/.ufo/round-4/kotoba.md
   [ -e "$old" ] && [ ! -e "$new" ] || return 1 # vacuous if the host moved it
   replace_once "$1" "corpus/lessons/round-4.md" "$old" "$new" || return 1
   grep -qF '.ufo/round-4/kotoba.md' "$1/corpus/lessons/round-4.md" \

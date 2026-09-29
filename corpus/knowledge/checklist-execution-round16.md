@@ -68,7 +68,7 @@ checklist.box_map_complete … delegates to a target that is not an instrument:
 
 **R3 — citation resolution.** The rule applied to the *pre-round-16* tree, not to
 the edited one: a clone of `b25f37a` inside a faithful host layout (a sibling
-`/home/vgpnk/projects/shokunin/.ufo/reports/round-7/kotoba.md` beside the repo), with only the patched verifier
+`/home/vgpnk/Projects/shokunin/.ufo/reports/round-7/kotoba.md` beside the repo), with only the patched verifier
 copied in:
 
 ```
@@ -82,7 +82,7 @@ rc=1
 ```
 
 Three findings, one class: a token whose implied base is *this* repo written
-without a base. The `/home/vgpnk/projects/shokunin/.ufo/reports/round-7/kotoba.md` site on line 589 resolved
+without a base. The `/home/vgpnk/Projects/shokunin/.ufo/reports/round-7/kotoba.md` site on line 589 resolved
 (the bounded-hop rule), so the FAIL list is the defect class and nothing else. The
 fix is in the file's own words ("any other root must be named in the file"): all
 three sites now read `/home/vgpnk/projects/shokunin/.ufo/prompts/`, the form the

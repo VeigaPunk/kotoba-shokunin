@@ -176,6 +176,14 @@ trigger.citation_resolves       citations resolve from an implied base.
     is checked.  ``evaluated`` = subject count; ``N == 0`` prints ``N/A``
     (a file may cite nothing), so the non-vacuity guard is the fixture
     assertion, not the live count.
+governance.citation_resolves    the same existence predicate over repo-root
+    ``LOG.md`` and ``SCORECARD.md`` when the target is that repo's
+    ``SKILL.md``.  A token fully enclosed by double quotes on its own line is
+    a historical/meta finding, not a live promise.  Tokens carrying an
+    ellipsis or a literal ``round-N`` path segment are counted schematics and
+    excluded.  Every other subject must resolve at HEAD.  ``evaluated`` =
+    checked subjects after those two explicit exclusions; zero is a FAIL.
+
 
 DOCUMENTED LIMITS (what this instrument proves and what it never proves):
   - parity is on (section, text_sha256) multisets: a box reworded *and*
@@ -204,6 +212,13 @@ DOCUMENTED LIMITS (what this instrument proves and what it never proves):
     which is also the mandated repair, so prefixing a base quiets the check
     and the box's first sentence is what forbids the bad prefix.  The check
     verifies existence, never that the cited content supports the claim;
+  - governance citation resolution is a HEAD-navigability check, not proof of
+    historical truth, ownership, content support, commit pins or line anchors.
+    It runs only for repo-root ``LOG.md``/``SCORECARD.md`` with the repo's own
+    ``SKILL.md`` as target.  Same-line double-quoted meta-findings and the two
+    schematic forms (ellipsis, literal ``round-N``) are excluded and counted;
+    cross-line quote parity never suppresses a subject; symlinks are
+    existence-tested, not required to remain inside the repo;
   - delegation (round-16 R2) is instrument-ness by suffix or shebang: a
     ``.py`` data file and a shell script named ``x.txt`` are both
     misjudged, and the check never runs the delegated instrument;
@@ -247,6 +262,7 @@ import re
 import shlex
 import shutil
 import sys
+import tempfile
 from collections import Counter
 from pathlib import Path
 
@@ -273,6 +289,7 @@ CHECK_IDS = (
     "trigger.no_placeholder",
     "trigger.command_binary_resolves",
     "trigger.citation_resolves",
+    "governance.citation_resolves",
 )
 
 BOX_RE = re.compile(r"^(\s*)-\s+\[([ xX])\]\s?(.*)$")
@@ -291,7 +308,7 @@ ASSIGN_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*=")
 SEGMENT_SPLIT_RE = re.compile(r"&&|\|\||[;|]")
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 DISPOSITION_RE = re.compile(r"^(executed|delegated|unexecuted):(.+)$")
-HEREDOC_RE = re.compile(r"<<-?\s*['\"]?([A-Za-z_][A-Za-z0-9_]*)['\"]?")
+HEREDOC_RE = re.compile(r"<<-?\s*['\"]?(~?[A-Za-z_][A-Za-z0-9_]*)['\"]?")
 
 SHELL_SKIP = frozenset("""
 if for while until case do done then else elif fi esac in
@@ -323,6 +340,8 @@ OUTPUT_FLAGS = frozenset(["-o", "-O", "--out", "--output", "--write",
 # round-16 R3: a token whose implied base is this repo — it must resolve from
 # the repo root.  A named base (``~``, ``/``, ``$VAR``) is out of scope.
 CITATION_ROOTS = ("corpus/", "verifiers/", "opencode/", ".ufo/", "../")
+GOVERNANCE_FILES = ("LOG.md", "SCORECARD.md")
+SCHEMATIC_CITATION_RE = re.compile(r"(?:^|/)round-N(?:/|\.|$)")
 EMPTY_SCALARS = frozenset(["", "~", "null", "Null", "NULL"])
 
 PLACEHOLDER_RE = re.compile(r"\b(?:TODO|FIXME|TBD)\b|coming soon",
@@ -1121,36 +1140,79 @@ def citation_resolve(tok: str, repo: Path) -> bool:
         return False
 
 
+def advance_quote_state(text: str, start: int, end: int,
+                        state: bool) -> bool:
+    """Carry unescaped double-quote state through one text slice."""
+    for pos in range(start, end):
+        if text[pos] != '"':
+            continue
+        escapes = 0
+        prior = pos - 1
+        while prior >= 0 and text[prior] == "\\":
+            escapes += 1
+            prior -= 1
+        if escapes % 2 == 0:
+            state = not state
+    return state
+
+
+def citation_subjects(lines: list[str], source: str = "",
+                      exclude_quoted: bool = False,
+                      exclude_schematic: bool = False
+                      ) -> tuple[list[dict], dict[str, list[dict]]]:
+    """Extract repo-rooted backtick tokens and named exclusions.
+
+    A quoted exclusion must open and close on the token's own line; carrying
+    quote parity across Markdown lines suppresses unrelated live citations.
+    The trigger check leaves both exclusions disabled, preserving its contract.
+    """
+    subjects: list[dict] = []
+    excluded: dict[str, list[dict]] = {"quoted": [], "schematic": []}
+    for lineno, line in enumerate(lines, 1):
+        words: list[tuple[int, int, str]] = []
+        for span in INLINE_SPAN_RE.finditer(line):
+            base = span.start(1)
+            for word in re.finditer(r"\S+", span.group(1)):
+                words.append((base + word.start(), base + word.end(),
+                              word.group(0)))
+        for start, end, word in words:
+            at_start = advance_quote_state(line, 0, start, False)
+            at_end = advance_quote_state(line, start, end, at_start)
+            at_line_end = advance_quote_state(
+                line, end, len(line), at_end)
+            quoted = at_start and not at_line_end
+
+            tok = word.split("#", 1)[0]
+            if not tok or any(c in tok for c in "<>*?$"):
+                continue
+            if tok.startswith(("http", "~", "-")):
+                continue
+            norm = strip_token_dressing(tok)
+            norm = norm[2:] if norm.startswith("./") else norm
+            if not norm.startswith(CITATION_ROOTS):
+                continue
+            stripped = norm.rstrip("/")
+            if stripped and "/" not in stripped:
+                continue
+            row = {"line": lineno, "token": norm, "raw": word}
+            if source:
+                row["source"] = source
+            if exclude_quoted and quoted:
+                excluded["quoted"].append(row)
+                continue
+            if exclude_schematic and (
+                    "…" in norm or "..." in norm
+                    or SCHEMATIC_CITATION_RE.search(norm)):
+                excluded["schematic"].append(row)
+                continue
+            subjects.append(row)
+    return subjects, excluded
+
+
 def check_citation_resolves(lines: list[str],
                             repo: Path) -> tuple[str, int, str]:
-    """Round-16 R3 (executes the ``trigger.11`` box's decidable subset): a
-    backticked token whose implied base is this repo — it starts with a
-    repo top-level directory (``corpus/``, ``verifiers/``, ``opencode/``,
-    ``.ufo/``) or a ``../`` hop — must resolve from the repo root.  Tokens
-    with a placeholder, a glob, a ``$VAR``, a URL or a *named* base (``~``,
-    ``/``, a flag) are out of scope; that set is the named ceiling."""
-    subjects: list[dict] = []
-    for lineno, line in enumerate(lines, 1):
-        for m in INLINE_SPAN_RE.finditer(line):
-            for word in m.group(1).split():
-                tok = word.split("#", 1)[0]
-                if not tok or any(c in tok for c in "<>*?$"):
-                    continue
-                if tok.startswith(("http", "~", "-")):
-                    continue
-                # a leading `./` names the same implied base as a bare root
-                # (`./corpus/nope.md` is not a way out of the check)
-                norm = strip_token_dressing(tok)
-                norm = norm[2:] if norm.startswith("./") else norm
-                if not norm.startswith(CITATION_ROOTS):
-                    continue
-                # a single-segment directory name (`corpus/`, `.ufo/`) is a
-                # class label, not a pointer; a deeper one (`.ufo/prompts/`)
-                # is a pointer and is checked
-                stripped = norm.rstrip("/")
-                if stripped and "/" not in stripped:
-                    continue
-                subjects.append({"line": lineno, "token": norm, "raw": tok})
+    """Round-16 R3: repo-rooted backtick tokens resolve from repo."""
+    subjects, _ = citation_subjects(lines)
     evaluated = len(subjects)
     if evaluated == 0:
         return "N/A", 0, (
@@ -1158,16 +1220,60 @@ def check_citation_resolves(lines: list[str],
             "with %s and carries no placeholder, glob, $VAR or named base)"
             % ", ".join(CITATION_ROOTS))
     bad = []
-    for s in subjects:
-        if not citation_resolve(s["token"], repo):
+    for subject in subjects:
+        if not citation_resolve(subject["token"], repo):
             bad.append("line %d: %r does not resolve from %s"
-                       % (s["line"], s["token"], repo))
+                       % (subject["line"], subject["token"], repo))
     if bad:
         return "FAIL", evaluated, "; ".join(bad[:4]) + (
             " … (+%d more)" % (len(bad) - 4) if len(bad) > 4 else "")
     return "PASS", evaluated, (
         "%d repo-rooted citation token(s) resolve from the repo root"
         % evaluated)
+
+
+def check_governance_citations(repo: Path) -> tuple[str, int, str]:
+    """Round-17: root governance path claims remain navigable at HEAD."""
+    repo = repo.resolve()
+    subjects: list[dict] = []
+    excluded: dict[str, list[dict]] = {"quoted": [], "schematic": []}
+    unreadable = []
+    for name in GOVERNANCE_FILES:
+        path = repo / name
+        try:
+            lines = path.read_text(encoding="utf-8").splitlines()
+        except OSError as exc:
+            unreadable.append("%s (%s)" % (name, exc))
+            continue
+        found, skipped = citation_subjects(
+            lines, source=name, exclude_quoted=True,
+            exclude_schematic=True)
+        subjects.extend(found)
+        for kind in excluded:
+            excluded[kind].extend(skipped[kind])
+
+    evaluated = len(subjects)
+    context = ("%d quoted meta-finding(s), %d schematic token(s) excluded"
+               % (len(excluded["quoted"]), len(excluded["schematic"])))
+    if unreadable:
+        return "FAIL", evaluated, "unreadable governance file(s): %s; %s" % (
+            ", ".join(unreadable), context)
+    if evaluated == 0:
+        return "FAIL", 0, "no checked governance citation subjects; %s" % context
+    bad = []
+    for subject in subjects:
+        if not citation_resolve(subject["token"], repo):
+            bad.append("%s:%d: %r does not resolve from %s"
+                       % (subject["source"], subject["line"],
+                          subject["token"], repo))
+    if bad:
+        return "FAIL", evaluated, "%s; %s" % (
+            "; ".join(bad[:4]) + (
+                " … (+%d more)" % (len(bad) - 4) if len(bad) > 4 else ""),
+            context)
+    return "PASS", evaluated, (
+        "%d governance citation token(s) resolve across %d files; %s"
+        % (evaluated, len(GOVERNANCE_FILES), context))
 
 
 def check_commands(lines: list[str], repo: Path,
@@ -1302,6 +1408,11 @@ def self_test() -> int:
         ("command-skip-list", 0, [], [], []),
         ("command-fence-filter", 0, [], [], []),
         ("command-heredoc-cd", 0, [], [], []),
+        ("command-heredoc-tilde", 0, [], [], []),
+        ("command-heredoc-tilde-dead", 1,
+         ["trigger.command_binary_resolves"], [],
+         ["corpus/absent-round17.md"]),
+        ("command-heredoc-tilde-misterm", 0, [], [], []),
         ("map-box-reworded", 1, ["checklist.box_map_complete"], [],
          ["unmapped box", "has no live box"]),
         ("map-extra-entry", 1, ["checklist.box_map_complete"], [],
@@ -1390,7 +1501,8 @@ def self_test() -> int:
     # Checks whose subject may legitimately be absent from a fixture: an
     # absent subject is N/A, and the non-vacuity guard is the explicit
     # evaluated>0 assertion in the targeted extras below.
-    NA_ALLOWED = frozenset(["trigger.citation_resolves"])
+    NA_ALLOWED = frozenset([
+        "trigger.citation_resolves", "governance.citation_resolves"])
     for case, want_code, fails, nas, needles in CASES:
         code, out = run(case)
         rec("%s: exit %d" % (case, want_code), code == want_code, code)
@@ -1501,6 +1613,84 @@ def self_test() -> int:
     rec("delegated-directory: FAIL not-an-instrument, no traceback",
         ("not an instrument" in out) and ("Traceback" not in out), out)
 
+    # round-17 M36 correction: `~` is part of the delimiter word.  The body
+    # stays opaque, a correctly terminated block resumes scanning, and a bare
+    # `EOF` does not terminate a `<<~EOF` heredoc.
+    code, out = run("command-heredoc-tilde")
+    rec("command-heredoc-tilde: body opaque and live tail passes",
+        code == 0 and "nonexistent-binary-xyz" not in out
+        and evaluated_of(out, "trigger.command_binary_resolves") == 3, out)
+    code, out = run("command-heredoc-tilde-dead")
+    rec("command-heredoc-tilde-dead: tail caught, body opaque",
+        code == 1 and "corpus/absent-round17.md" in out
+        and "nonexistent-binary-xyz" not in out, out)
+    code, out = run("command-heredoc-tilde-misterm")
+    rec("command-heredoc-tilde-misterm: bare EOF remains body",
+        code == 0 and "absent-round17-misterm" not in out
+        and evaluated_of(out, "trigger.command_binary_resolves") == 1, out)
+
+    # Governance extraction is pure and hermetic: a same-line quoted dead
+    # finding plus two schematics are excluded, while an unquoted dead path
+    # fails.  Cross-line quote parity is deliberately not an exclusion.
+    with tempfile.TemporaryDirectory(prefix="kotoba-governance-") as td:
+        gov_repo = Path(td)
+        (gov_repo / "corpus").mkdir()
+        (gov_repo / "corpus" / "live.md").write_text("", encoding="utf-8")
+        log_path = gov_repo / "LOG.md"
+        log_path.write_text(
+            "\"historical `corpus/dead-quoted.md` finding\"\n"
+            "`corpus/live.md`\n`corpus/…/schematic.md`\n",
+            encoding="utf-8")
+        scorecard = gov_repo / "SCORECARD.md"
+        scorecard.write_text(
+            "`.ufo/reports/round-N/kotoba.md`\n", encoding="utf-8")
+        status, evaluated, detail = check_governance_citations(gov_repo)
+        rec("governance: quoted/schematic exclusions pass non-vacuously",
+            status == "PASS" and evaluated == 1
+            and "1 quoted meta-finding(s)" in detail
+            and "2 schematic token(s)" in detail,
+            (status, evaluated, detail))
+        scorecard.write_text(
+            "`.ufo/reports/round-N/kotoba.md`\n"
+            "`corpus/dead-unquoted.md`\n", encoding="utf-8")
+        status, evaluated, detail = check_governance_citations(gov_repo)
+        rec("governance: unquoted dead path fails and is named",
+            status == "FAIL" and evaluated == 2
+            and "corpus/dead-unquoted.md" in detail,
+            (status, evaluated, detail))
+        scorecard.write_text(
+            "`.ufo/reports/round-N/kotoba.md`\n", encoding="utf-8")
+        log_path.write_text(
+            "\"historical finding:\n`corpus/dead-cross-line.md`\n\"\n"
+            "`corpus/live.md`\n", encoding="utf-8")
+        status, evaluated, detail = check_governance_citations(gov_repo)
+        rec("governance: cross-line quotes do not suppress a subject",
+            status == "FAIL" and evaluated == 2
+            and "corpus/dead-cross-line.md" in detail,
+            (status, evaluated, detail))
+
+    # An explicit relative --repo must be normalized before bounded `..`
+    # hops; Path('.').parent otherwise stays '.', changing the verdict.
+    with tempfile.TemporaryDirectory(prefix="kotoba-relative-repo-") as td:
+        parent = Path(td)
+        child = parent / "child"
+        child.mkdir()
+        (parent / "shared").mkdir()
+        (parent / "shared" / "live.md").write_text("", encoding="utf-8")
+        (child / "SKILL.md").write_text(
+            "`../shared/live.md`\n", encoding="utf-8")
+        old_cwd = Path.cwd()
+        try:
+            os.chdir(child)
+            code, out = run_capture([
+                "--skill", "SKILL.md", "--repo", ".",
+                "--check", "trigger.citation_resolves"])
+        finally:
+            os.chdir(old_cwd)
+        rec("relative --repo: bounded hop resolves from absolute repo root",
+            code == 0
+            and "PASS trigger.citation_resolves: evaluated 1" in out, out)
+
     for f in failures:
         print("self-test FAIL: %s" % f)
     print("%d failure(s) over %d assertions" % (len(failures), total))
@@ -1559,9 +1749,11 @@ def main(argv: list[str] | None = None) -> int:
         return self_test()
 
     skill_path = Path(args.skill) if args.skill else DEFAULT_REPO / "SKILL.md"
-    repo = Path(args.repo) if args.repo else find_repo_root(skill_path)
+    repo = (Path(args.repo).resolve() if args.repo
+            else find_repo_root(skill_path))
     wanted = list(args.check) if args.check else list(CHECK_IDS)
     pinned = skill_path.resolve() == (DEFAULT_REPO / "SKILL.md").resolve()
+    governance_enabled = skill_path.resolve() == (repo / "SKILL.md").resolve()
 
     box_map = None
     map_repo: Path | None = None
@@ -1637,6 +1829,13 @@ def main(argv: list[str] | None = None) -> int:
             st, ev, detail = check_no_placeholder(lines)
         elif cid == "trigger.citation_resolves":
             st, ev, detail = check_citation_resolves(lines, repo)
+        elif cid == "governance.citation_resolves":
+            if governance_enabled:
+                st, ev, detail = check_governance_citations(repo)
+            else:
+                st, ev, detail = (
+                    "N/A", 0,
+                    "governance files are checked only with the repo SKILL.md")
         else:
             st, ev, detail = check_commands(lines, repo, vocab)
         results.append({"id": cid, "status": st,

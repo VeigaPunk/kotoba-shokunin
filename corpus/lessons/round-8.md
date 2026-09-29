@@ -2,7 +2,7 @@
 
 Round: 8. Evidence: commit `8c300ad` ("round-8 corpus entries (uncommitted on
 fleet pause)", 2 files, 799 insertions), report
-`/home/vgpnk/projects/shokunin/.ufo/reports/round-8/kotoba.md` (120 B, a respawn
+`/home/vgpnk/Projects/shokunin/.ufo/reports/round-8/kotoba.md` (120 B, a respawn
 marker), artifacts `knowledge/opencode-offer-trace-round8.md` and
 `knowledge/sibling-description-rewrites-round8.md`. **No `LOG.md` round-8 entry
 was written** and `SKILL.md` was not touched: the lane was retired mid-round by

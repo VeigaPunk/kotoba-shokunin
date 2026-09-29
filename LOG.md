@@ -459,7 +459,7 @@
   dead pointer sites in the aggregator lane's two in-repo files, the first pass
   used the *relative* shape; `verifiers/fault_injection_corpus.sh --self-test`
   then failed T2/T3 — it clones the repo into `${TMPDIR}` and asserts a no-op clone
-  reads clean, and a relative `.ufo/reports` pointer dies off-layout. Reverted to
+  reads clean, and a relative "`.ufo/reports`" pointer dies off-layout. Reverted to
   the host-absolute shape the corpus already favours (24 of 28 pointers) and the
   gap is recorded in the reconciliation note. Same self-test also caught the
   mid-landing state twice (an unindexed corpus file), which is its job.
@@ -717,7 +717,7 @@
   `strip_token_dressing`. `verifiers/checklist-baseline.json`: `trigger.11`
   `delegated:verifiers/verify_corpus_integrity.py` → `executed:trigger.citation_resolves`
   (new box sha `c7ad2458…`), map now **8 executed / 0 delegated / 33 unexecuted**.
-  `SKILL.md` (599 → 599 lines, budget 600): three `.ufo/prompts/` citations named to
+  `SKILL.md` (599 → 599 lines, budget 600): three "`.ufo/prompts/`" citations named to
   the host-absolute form the file already used five times, the `trigger.11` box
   rewritten to its executed subset with the annotation, the corpus instrument's scope
   corrected to `corpus/*.md`, and the check/box counts updated. 21 fixtures (6 mine,
@@ -752,7 +752,7 @@
   verdict cwd-dependent) → fixed. `R16Blast`: R1 over 23 fleet files gave 77 args / 27
   would-FAIL / 3 flips with **0 true positives**; after the URL + comment-tail fixes
   75 / 25 / 2 — recorded as the foreign-hint rate, with the declared read-verb
-  vocabulary as the round-17 tightening. `R16Review`: the three `.ufo/prompts/` sites
+  vocabulary as the round-17 tightening. `R16Review`: the three "`.ufo/prompts/`" sites
   are real at HEAD and HEAD reproduces every round-15 quote verbatim. `R16Fixtures`
   (executor): red-before for 9 cases (all exit 0 pre-patch), word-wise harvesting
   proven with a second-word fixture, and the **two-root replay probe** as the
@@ -764,7 +764,7 @@
 - **`M35` re-labelled, with the argument stated.** The planted
   `echo r15absent-echoed-bin` is a bare token after a skip-list builtin: pasting it
   succeeds, so under the box's claim ("runnable as pasted") it is not a defect. The
-  rule-covered class (`cat corpus/nope.md`) is closed with `command-path-arg`. Both
+  rule-covered class ("`cat corpus/nope.md`") is closed with `command-path-arg`. Both
   band readings are recorded in `corpus/knowledge/checklist-execution-round16.md`
   § Band decision (8.5 earned / 8.0 withheld) so the aggregator can move the row on
   that paragraph alone.
@@ -796,3 +796,92 @@
   for `LOG.md`/`SCORECARD.md`, A9 gated on a named agent root. Ranks 7 (M38, no
   numerical headroom at consistency 10) and 8 (M22, needs a marker convention) are
   carried as policy calls.
+
+## Round 17 — kotoba lane — calibration axis-move: governance paths become executable, `M36` corrected (8.0 → 8.5)
+
+- **Axis selection.** `freshness`, `calibration`, and `adjacency` started tied at
+  8.0. The pre-registered governance-path gap was a concrete calibration
+  defect; adjacency remained sibling-owned and freshness had no failed
+  instrument. This round therefore implements planned R3 scope for `LOG.md` +
+  `SCORECARD.md`, with `M36` as a parser-calibration repair. The detailed record
+  is `corpus/knowledge/checklist-execution-round17.md`.
+- **Red-before — governance.** Direct pre-rule runs of
+  `trigger.citation_resolves` over the two root files produced **74 subjects /
+  6 dead** (`LOG.md`) and **51 / 2** (`SCORECARD.md`), both exit 1.
+  `R17Review` independently reimplemented the extraction and reproduced both
+  counts. The eight sites classified as: ellipsis schematic 1, literal-`N`
+  templates 2, historical repair records 3, deliberate dead example 1, and an
+  ambiguous foreign sibling pointer 1.
+- **Landed governance gate.** `governance.citation_resolves` is the tenth
+  `verify_skill_checklist.py` check. On repo-root `SKILL.md` runs it reads the
+  explicit pair `LOG.md`/`SCORECARD.md`, reuses the bounded R3 resolver, and
+  excludes/counts only same-line quoted meta-findings plus ellipsis/literal
+  `round-N` schematics. Final population: **134 raw = 125 checked/resolving +
+  6 quoted meta + 3 schematic, 0 checked dead**. Four dead-by-assertion records
+  use the existing quote idiom; kasegi prior art now names
+  `../kasegi-shokunin/corpus/instruments/resolve.py` and `../kasegi-shokunin/corpus/instruments/anchorcheck.py`.
+- **Two governance designs were falsified before landing.** Weak prose-marker
+  exclusions could veto all eight dead sites and make the gate vacuous
+  (`R17Gov`), so they were rejected. File-level quote parity suppressed **17**
+  ordinary live citations; same-line enclosure replaced it, and a cross-line
+  quote evasion now FAILs in `--self-test`. A planted unquoted dead path FAILs
+  and is named.
+- **Red-before / green-after — `M36`.** The old regex did not open a
+  `<<~EOF` heredoc: the clean fixture FAILed on body token
+  `nonexistent-binary-xyz`; the dead-tail fixture reported both that phantom and
+  "`corpus/absent-round17.md`"; a bare-`EOF` fixture reported the whole remaining
+  body as commands. Bash probes (`R17Probe`) prove the delimiter word is
+  literal `~EOF`. The landed `~?WORD` capture yields: clean PASS 3 subjects / 2
+  segments; dead-tail FAIL naming only the real tail, 3 / 2; bare-`EOF`
+  mis-termination PASS 1 / 1 because the rest is still body. Three committed
+  fixture pairs pin those directions.
+- **Additional calibration fix.** Explicit `--repo .` was retained as
+  `Path('.')`; bounded `..` hops therefore resolved from the wrong base. The
+  CLI now normalizes explicit repos with `.resolve()`. A hermetic child/parent
+  self-test requires a valid "`../shared/live.md`" to pass.
+- **Landed checklist state.** `python3 verifiers/verify_skill_checklist.py` →
+  **10 × PASS**, including `governance.citation_resolves evaluated 125`; existing
+  counts remain 41 boxes (8 executed / 0 delegated / 33 unexecuted), 599/600
+  SKILL lines, 19 command subjects / 15 segments, 42 SKILL citation subjects.
+  `--self-test` → **0 failure(s) over 1504 assertions**; fixture directories
+  **68 → 71**; verifier sha256
+  `02ccf1b310f7910502f7938d24eb1cfcabe2c521ec42b7ce6420f1869af8df27`.
+- **Eleven L2 lanes, one batch.** `R17Plan` ranks next-round adjacency
+  remeasurement; `R17Gov` classified all 125 pre-state occurrences; `R17Probe`
+  established bash semantics; `R17Critic` narrowed the claim to HEAD
+  navigability and rejected corpus-verifier placement; `R17Sentinel` supplied
+  adversarial boundaries; `R17Revenger` proved corpus-only scope was deliberate;
+  `R17Fixtures` drafted the three pairs and refuted the requested bare-`EOF`
+  FAIL; `R17Connector` found no sibling overlap and resolved the kasegi base;
+  `R17Review` reproduced counts; `R17Mutate` designed M42–M50 (not claimed run);
+  `R17YAGNI` showed the existing corpus grammar was clean but vacuous here and
+  selected predicate reuse over a third instrument.
+- **Integration drift caught, not baselined away.** After staging the new
+  corpus file, `verify_corpus_integrity.py --no-baseline --json` observed
+  `tracked_files=47` and **report_dead=32/32**: every checked pointer used the
+  absent lowercase `/home/vgpnk/projects`, while the observed report tree is
+  `/home/vgpnk/Projects`. The 32 in-repo pointer occurrences across 16 corpus
+  files were case-corrected without changing target round/lane. Re-run:
+  `tracked=47 unindexed=0 stale=0 missing=0`, `report_dead=0/32`,
+  `commit_total=27 unresolvable=0 nonhash=0`, **9/9 checks pass**. Baseline
+  change: tracked files 46 → 47 only; this is unscored integration/freshness
+  repair, not a second axis move.
+- **Committed-state smoke.** The fault harness's `plant_f` anchor carried the
+  same lowercase host base and was corrected with the corpus pointers. Against
+  the committed `round-17` tree, `fault_injection_corpus.sh --self-test` reports four PASS /
+  `OK`; the full control + a–h matrix reports **ALL PASS**, including the
+  intended `fault-f` grammar blind spot. The other five instruments had already
+  run green on the same source bytes; the governance gate was re-run after this
+  LOG entry stabilized and reports 125 checked / 6 quoted / 3 schematic.
+- **Band.** Calibration **8.0 → 8.5**. The governance surface is now
+  machine-checked and non-vacuous in both directions, but 9 is withheld:
+  existence proves neither content, anchors, pins, symlink containment nor
+  historical truth, and every L2 lane remains author-side evidence under the
+  protocol.
+- **Carried into round 18.** `R17Plan` rank 1: classify and route the five
+  sibling `SKILL.md` populations (**225 subjects / 14 unresolved**, 2/1/5/1/5);
+  no score gain if the four-occurrence delta over round 16 is schematic noise.
+  Then: R1 read-verb tightening, `M23` executable heredocs, D6 over 113 prompt
+  markdown files, `agentdef.*`, `M22`, `M38`. Named ceilings: quoted/trailing
+  tilde delimiters, terminator whitespace, closed citation roots, anchors/pins/
+  content, symlinks, and the zero-live `delegated:` class.

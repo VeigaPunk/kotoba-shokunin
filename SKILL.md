@@ -202,12 +202,12 @@ than a hand-run recipe, and update the baseline only with a LOG entry naming the
 mechanism that moved. Model + gaps: `corpus/knowledge/harness-verifier-round10.md`.
 
 `python3 verifiers/verify_skill_checklist.py` executes this file's own checklist:
-**9 checks** (`checklist.box_map_complete` + the eight boxes marked
-`(executed: …)` below), each fail-closed on a fixture, `evaluated N` per check,
+**10 checks** (`checklist.box_map_complete` + the eight boxes marked
+`(executed: …)` below + `governance.citation_resolves` over the two root
+governance files), each fail-closed on fixtures, `evaluated N` per check,
 exit 0/1/2/3 (`3` = box map missing, unparseable, or bound elsewhere).
 `verifiers/checklist-baseline.json` maps **all 41 boxes** (8 executed, 0
-delegated, 33 unexecuted with reason) by text hash, so drift FAILs. Limits and
-ceilings: `corpus/knowledge/checklist-execution-round16.md`.
+delegated, 33 unexecuted with reason) by text hash, so drift FAILs. Limits and ceilings: `corpus/knowledge/checklist-execution-round17.md`.
 
 ## Frontmatter craft — the trigger surface
 
@@ -547,8 +547,8 @@ location; durable policy copy-pasted into a dispatch prompt.
   round-11 executable form of the *corpus-internal* citation rules (9 checks over
   tracked `corpus/*.md`: index coverage, lane-report pointers in all four shapes,
   `commit` citations resolve, no non-hash commit token; exit 0/1/2/3, `--self-test`).
-  This file's own citations are out of its scope and are executed instead by
-  `trigger.citation_resolves` in `verify_skill_checklist.py`.
+  This file's own citations and root `LOG.md`/`SCORECARD.md` citations are instead
+  executed by `trigger.citation_resolves` / `governance.citation_resolves` in `verify_skill_checklist.py`.
   Run it before shipping an artifact set; a dead pointer is then a drift report, not a reviewer's memory.
 - `corpus/knowledge/corpus-integrity-round11.md` — what the corpus verifier checks,
   the three counting recipes it replaced (why each could not express its class),

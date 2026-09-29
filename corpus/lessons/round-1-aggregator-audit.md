@@ -6,7 +6,7 @@ re-counted every line-count claim across `~/.agents/skills/*/SKILL.md` and
 `~/.config/opencode/skills/ufo/SKILL.md`. Scope: `corpus/` only.
 
 Round evidence: `LOG.md` round-1 entry; commit `1d93182`; lane report
-`~/projects/shokunin/.ufo/reports/round-1/kotoba.md`.
+`~/Projects/shokunin/.ufo/reports/round-1/kotoba.md`.
 
 This audit is held to a stricter standard on purpose: kotoba's province *is*
 citation and trigger fidelity in skill files, so a misattributed quote here is a

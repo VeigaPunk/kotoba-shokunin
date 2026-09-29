@@ -21,7 +21,7 @@ Measured against landed `kotoba-shokunin` commit `63ceba7`. The tree was clean a
 
 Round-8 box 3 remains `[~]` absent a fresh committed non-author cold-run artifact. `[x]` requires a named cross-lane/non-author record at the repaired `SKILL.md` revision, with explicit newest-session selection, fault-harness gate classification, exit codes, and finding IDs; a lane-authored rerun cannot provide that promotion evidence.
 
-The r13 L0 question remains unanswered: `/home/vgpnk/projects/shokunin/.ufo/l0-questions.md` (main repo) line filed `kotoba | round-13 | Axis-accounting ratification` records coverage 7→8.0 as an advisory lowest-axis move while mission assigns depth+consistency; `/home/vgpnk/projects/shokunin/.ufo/reports/round-14/kotoba.md:126-129` records that the question was still unanswered and coverage was worked again. This lesson reports both sides without making the operator-side ruling.
+The r13 L0 question remains unanswered: `/home/vgpnk/Projects/shokunin/.ufo/l0-questions.md` (main repo) line filed `kotoba | round-13 | Axis-accounting ratification` records coverage 7→8.0 as an advisory lowest-axis move while mission assigns depth+consistency; `/home/vgpnk/Projects/shokunin/.ufo/reports/round-14/kotoba.md:126-129` records that the question was still unanswered and coverage was worked again. This lesson reports both sides without making the operator-side ruling.
 
 ---
 

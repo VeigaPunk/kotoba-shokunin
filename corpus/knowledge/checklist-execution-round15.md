@@ -67,7 +67,7 @@ check whose `evaluated` count is 0 yet reports PASS.
 Round 14 landed the opencode-side machine check and the census row-column parity
 (`29c17be`) but the round terminated before the score was recorded: `SCORECARD.md`
 still reads `coverage … 8.0 … Last change 13`, and
-`/home/vgpnk/projects/shokunin/.ufo/reports/round-14/kotoba.md` is a DRAFT carrying `[PENDING]` markers.
+`/home/vgpnk/Projects/shokunin/.ufo/reports/round-14/kotoba.md` is a DRAFT carrying `[PENDING]` markers.
 Round 14's own pre-registration bands were full ⇒ 8.5 / partial ⇒ 8.25 /
 no-move ⇒ 8.0. Round 15 re-measures the landed artifacts against those bands and
 records the result **attributed to round 14** in `SCORECARD.md`, with the
