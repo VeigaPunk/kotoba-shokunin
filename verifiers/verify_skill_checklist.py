@@ -56,6 +56,13 @@ checklist.box_map_complete      MULTISET parity between the live file's
     unique; every ``executed:<id>`` must name a check in this file (an
     unknown id FAILs, it does not satisfy the executed floor).  Requires
     >=1 live box, >=1 map entry, >=1 valid ``executed:`` disposition.
+    A ``delegated:<path>`` target must exist AND be an *instrument* — a file
+    with a declared script suffix (``.py .sh .bash .mjs .js .ts .rb .pl``),
+    a shebang, or the ELF magic (a compiled instrument has neither suffix nor
+    shebang — the critic lane falsified a suffix-only test on
+    ``~/.local/bin/sekhmet``): delegating a box to a README, a JSON map, a
+    directory or a SKILL.md is a FAIL naming the target, not a pass
+    (round-16 R2).
     ``evaluated`` = live box count.
 trigger.frontmatter_parses      the file's frontmatter parses as a BLOCK:
     after optional blank lines/BOM, a ``---`` delimiter line, a closing
@@ -135,9 +142,40 @@ trigger.command_binary_resolves commands named in the file resolve.
     repo root: ``--repo``, else the nearest ancestor carrying ``.git``,
     else the target's directory).  A relative head containing ``..``
     segments never resolves against a base — it fails instead of becoming
-    a path-escape oracle.  ``evaluated`` = subjects checked; ``segments``
+    a path-escape oracle.  Round-16 R1: a *path-like argument* of a checked
+    segment is a subject too — it ends in a known file suffix, or carries a
+    slash and a dotted last segment, and is neither a flag, a ``VAR=value``
+    assignment, nor a token carrying a shell metacharacter.  A token whose
+    predecessor is a redirect operator or a declared output flag
+    (``-o --out --output --write --dest --log --to --target -O``) is a
+    *written* path and is skipped — but ``<`` is an *input* redirect, so its
+    target is a subject (the sentinel lane's A/B: ``wc -l < corpus/dead.md``
+    passed while ``cat corpus/dead.md`` failed on the same dead path); a ``#``
+    token ends the scan (a trailing comment is prose); URLs and ``~``-anchored or absolute arguments are out
+    of scope (host-dependent, the named ceiling); arguments are read from the
+    list the head came from, so ``sh -c 'cat corpus/x.md'`` is checked *inside
+    the script* rather than as one opaque string; a segment whose head is a
+    skip-list builtin yields no argument subjects except for the builtins that
+    act on their argument (``source``, ``.``, ``exec``) — pasting
+    ``echo <word>`` succeeds, so it is not a defect.
+    ``evaluated`` = subjects checked; ``segments``
     = segments examined.  ``N == 0``: ``N/A`` when no segments were seen,
     FAIL when segments were seen but produced no subjects.
+trigger.citation_resolves       citations resolve from an implied base.
+    Subjects: every whitespace-separated word of a backticked span (after
+    dropping a ``#`` fragment) that starts with ``corpus/``, ``verifiers/``,
+    ``opencode/``, ``.ufo/`` or a ``../`` hop — the class that means "this
+    repo" — and carries no placeholder (``<`` ``>``), glob (``*`` ``?``),
+    ``$VAR``, URL, ``~`` or leading ``-``.  Each must exist: a plain token
+    resolves from the repo root; a token with leading ``..`` hops resolves
+    against the repo's ancestors, bounded to 3 hops with no further ``..``
+    inside (the fleet's lane-report convention, which the corpus verifier
+    resolves the same way) — read-only, and the token is lane-authored.
+    A single-segment directory name (``corpus/``, ``.ufo/``) is a class
+    label, not a pointer, and is skipped; a deeper one (``.ufo/prompts/``)
+    is checked.  ``evaluated`` = subject count; ``N == 0`` prints ``N/A``
+    (a file may cite nothing), so the non-vacuity guard is the fixture
+    assertion, not the live count.
 
 DOCUMENTED LIMITS (what this instrument proves and what it never proves):
   - parity is on (section, text_sha256) multisets: a box reworded *and*
@@ -153,6 +191,30 @@ DOCUMENTED LIMITS (what this instrument proves and what it never proves):
     outside the declared set used *inline* is invisible; inside a
     shell-fenced block every segment head is checked, so wrappers,
     assignments and ``sh -c`` cannot hide a missing binary;
+  - argument resolution (round-16 R1) covers path-like relative arguments
+    only: an absolute or ``~``-anchored argument, an argument after a
+    skip-list builtin (``echo corpus/nope.md``), a bare non-path token
+    (``xargs r15absent``), and a path written under an output flag outside
+    the declared set are all invisible.  ``echo <word>`` is *not* a defect:
+    pasting it succeeds, so the M35 mutation row of the round-15 harness is
+    re-labelled, not closed by a rule;
+  - citation resolution (round-16 R3) is bounded by a closed root set
+    (``corpus/``, ``verifiers/``, ``opencode/``, ``.ufo/``, ``../``): a dead
+    ``docs/x.md`` escapes; a *named* base is out of scope by construction,
+    which is also the mandated repair, so prefixing a base quiets the check
+    and the box's first sentence is what forbids the bad prefix.  The check
+    verifies existence, never that the cited content supports the claim;
+  - delegation (round-16 R2) is instrument-ness by suffix or shebang: a
+    ``.py`` data file and a shell script named ``x.txt`` are both
+    misjudged, and the check never runs the delegated instrument;
+  - round-16 R1's foreign-file hint rate is *measured*, not assumed: over 23
+    fleet `SKILL.md` files the rule would FAIL 25 argument tokens of which 0
+    are true defects (the measured classes: a produced path with no declared
+    output flag, a deployed-tree path absent from the source repo, an example
+    input in help text, a workdir-relative name) — which is why a foreign R1
+    FAIL is a review prompt, never a verdict.  The tightening candidate is a
+    declared read-verb vocabulary; the lane runs on this file, whose own file
+    carries no fenced block, so none of those FAILs touch its gate;
   - on FOREIGN files, extraction FAILs are hints, not verdicts: the
     extractor cannot tell a Hyprland config block from a shell block, and
     a vocabulary hit in another project's prose is that project's
@@ -210,6 +272,7 @@ CHECK_IDS = (
     "trigger.line_budget",
     "trigger.no_placeholder",
     "trigger.command_binary_resolves",
+    "trigger.citation_resolves",
 )
 
 BOX_RE = re.compile(r"^(\s*)-\s+\[([ xX])\]\s?(.*)$")
@@ -239,6 +302,27 @@ typeset readonly break continue times dirs jobs fg bg
 kill disown suspend logout enable alias unalias fc history
 """.split())
 SHELL_METACHARS = frozenset("$`<>(){}[]*?~=!#&|;'\"\\")
+# builtins in SHELL_SKIP whose argument they *act on*: a missing path there is
+# a real defect (pasting `source nope.sh` fails), unlike `echo`/`printf`
+# arguments, which are display text.
+READ_ARG_BUILTINS = frozenset(["source", ".", "exec"])
+# round-16 R2: what may be a ``delegated:`` target — a runnable instrument,
+# not merely an existing file.
+INSTRUMENT_SUFFIXES = frozenset(
+    [".py", ".sh", ".bash", ".mjs", ".js", ".ts", ".rb", ".pl"])
+# round-16 R1: a fenced argument is path-like when it ends in a known file
+# suffix, or carries a slash and a dotted last segment.
+PATH_ARG_SUFFIXES = frozenset(
+    [".md", ".py", ".json", ".sh", ".bash", ".mjs", ".js", ".ts", ".yml",
+     ".yaml", ".txt", ".csv", ".log", ".html"])
+# arguments in these positions are *written*, not read: a redirect target or
+# the value of a declared output flag need not exist before the command runs.
+REDIRECT_TOKENS = frozenset([">", ">>", "2>", "2>>", "&>", "&>>", "|&"])
+OUTPUT_FLAGS = frozenset(["-o", "-O", "--out", "--output", "--write",
+                          "--dest", "--log", "--to", "--target"])
+# round-16 R3: a token whose implied base is this repo — it must resolve from
+# the repo root.  A named base (``~``, ``/``, ``$VAR``) is out of scope.
+CITATION_ROOTS = ("corpus/", "verifiers/", "opencode/", ".ufo/", "../")
 EMPTY_SCALARS = frozenset(["", "~", "null", "Null", "NULL"])
 
 PLACEHOLDER_RE = re.compile(r"\b(?:TODO|FIXME|TBD)\b|coming soon",
@@ -524,15 +608,19 @@ def logical_lines(block: list[tuple[int, str]]) -> list[tuple[int, str]]:
     return out
 
 
-def head_after_unwrap(tokens: list[str], depth: int = 0) -> str | None:
-    """Subject head: drop leading VAR=value assignments, consume wrapper
-    prefixes (sudo/env/command/nohup/time/builtin/xargs — flags that belong
-    to the wrapper, e.g. ``xargs -n1``, are skipped; a wrapper's *argument*
-    flag like ``sudo -u root ls`` misidentifies ``root`` — documented
-    limit), and unwrap one ``sh -c``/``bash -c``/``zsh -c`` level to its
-    script's first word."""
+def unwrap_tokens(tokens: list[str],
+                  depth: int = 0) -> tuple[str | None, list[str]]:
+    """(head, the token list the head was taken from).  Leading ``VAR=value``
+    assignments are dropped, wrapper prefixes (sudo/env/command/nohup/time/
+    builtin/xargs — flags that belong to the wrapper, e.g. ``xargs -n1``, are
+    skipped; a wrapper's *argument* flag like ``sudo -u root ls`` misidentifies
+    ``root`` — documented limit) are consumed, and one ``sh -c``/``bash -c``/
+    ``zsh -c`` level is unwrapped to its script.  The second element matters:
+    arguments must be read from the same list as the head, or a ``sh -c 'cat
+    corpus/x.md'`` segment tests the whole script string as a path (the
+    false positive the labrat lane planted at round 16)."""
     if depth > 4:
-        return None
+        return None, tokens
     i = 0
     while i < len(tokens) and ASSIGN_RE.match(tokens[i]):
         i += 1
@@ -548,26 +636,34 @@ def head_after_unwrap(tokens: list[str], depth: int = 0) -> str | None:
         while i < len(tokens) and ASSIGN_RE.match(tokens[i]):
             i += 1
     if i >= len(tokens):
-        return None
+        return None, tokens
     if (tokens[i] in SH_C_SHELLS and i + 2 < len(tokens)
             and tokens[i + 1] == "-c"):
         try:
             inner = shlex.split(tokens[i + 2], posix=True)
         except ValueError:
             inner = tokens[i + 2].split()
-        return head_after_unwrap(inner, depth + 1)
-    return tokens[i]
+        return unwrap_tokens(inner, depth + 1)
+    return tokens[i], tokens[i:]
+
+
+def head_after_unwrap(tokens: list[str], depth: int = 0) -> str | None:
+    """Subject head only (see ``unwrap_tokens``)."""
+    return unwrap_tokens(tokens, depth)[0]
 
 
 def safe_resolve(head: str, base: Path, repo: Path) -> bool:
     """``..`` segments never resolve against a base (path-escape oracle
     guard); absolute heads check exists(); relative heads check which(),
-    then the cd-tracked base, then the repo root."""
+    then the cd-tracked base, then the repo root.  A token carrying a slash
+    is a *path*, not a PATH lookup (POSIX), so ``shutil.which`` is skipped for
+    it — otherwise the verdict would depend on the verifier's cwd (the
+    independent lane's A13)."""
     if ".." in head.split("/"):
         return False
     if os.path.isabs(head):
         return os.path.exists(head)
-    if shutil.which(head):
+    if "/" not in head and shutil.which(head):
         return True
     for b in (base, repo):
         try:
@@ -576,6 +672,81 @@ def safe_resolve(head: str, base: Path, repo: Path) -> bool:
         except OSError:
             continue
     return False
+
+
+def is_instrument(path: Path) -> bool:
+    """Round-16 R2: a ``delegated:`` target must be an instrument — a file
+    whose suffix is a declared script suffix, whose first two bytes are a
+    shebang, or whose first four are the ELF magic (a compiled instrument
+    carries neither suffix nor shebang: the critic lane falsified the
+    suffix-only test with ``~/.local/bin/sekhmet``).  A README, a JSON map,
+    a directory or a SKILL.md is not an instrument."""
+    try:
+        if not path.is_file():
+            return False
+    except OSError:
+        return False
+    if path.suffix.lower() in INSTRUMENT_SUFFIXES:
+        return True
+    try:
+        with path.open("rb") as fh:
+            head = fh.read(4)
+    except OSError:
+        return False
+    return head[:2] == b"#!" or head == b"\x7fELF"
+
+
+TRAILING_PUNCT = ",;:)]}\"'"
+
+
+def strip_token_dressing(tok: str) -> str:
+    """A citation or argument may carry a line anchor (``file.md:42``) or be
+    glued to prose punctuation (``file.md,``); neither changes the path."""
+    tok = tok.rstrip(TRAILING_PUNCT)
+    m = re.match(r"^(.+\.\w+):\d+(-\d+)?$", tok)
+    return m.group(1) if m else tok
+
+
+def path_like_arg(tok: str) -> bool:
+    """Round-16 R1: does this fenced argument name a path?  Absolute tokens
+    are out of scope (host-dependent — the named ceiling), as are flags,
+    ``VAR=value`` assignments, URLs and anything carrying a shell
+    metacharacter.  A token qualifies when it ends in a known file suffix, or
+    carries a slash and a dotted last segment (so ``s/foo/bar/`` is not a
+    path)."""
+    tok = strip_token_dressing(tok)
+    if not tok or tok.startswith("-"):
+        return False
+    if os.path.isabs(tok) or "://" in tok:
+        return False
+    if ASSIGN_RE.match(tok) or any(c in SHELL_METACHARS for c in tok):
+        return False
+    if "/" in tok:
+        return "." in tok.rstrip("/").rsplit("/", 1)[-1]
+    return Path(tok).suffix.lower() in PATH_ARG_SUFFIXES
+
+
+def arg_subjects(tokens: list[str], segment: str, lineno: int,
+                 base: Path) -> list[dict]:
+    """Round-16 R1: path-like arguments after the head of a segment.  A token
+    whose predecessor is a redirect operator or a declared output flag is a
+    *written* path and is skipped; a ``#`` token ends the scan (a trailing
+    comment is prose — the blast census found comment tails harvested as
+    paths)."""
+    out: list[dict] = []
+    for i in range(1, len(tokens)):
+        tok = tokens[i]
+        if tok.startswith("#"):
+            break
+        if not path_like_arg(tok):
+            continue
+        prev = tokens[i - 1]
+        if prev in REDIRECT_TOKENS or prev in OUTPUT_FLAGS \
+                or prev.startswith(">"):
+            continue
+        out.append({"line": lineno, "source": "fenced-arg", "segment": segment,
+                    "head": tok, "base": base})
+    return out
 
 
 def command_subjects(lines: list[str], vocab: frozenset[str],
@@ -632,16 +803,25 @@ def command_subjects(lines: list[str], vocab: frozenset[str],
                     else:
                         subjects[-1]["unresolved"] = True
                     continue
-                head = head_after_unwrap(tokens)
+                head, eff = unwrap_tokens(tokens)
                 if head is None:
                     continue
                 if head in SHELL_SKIP or ASSIGN_RE.match(head):
+                    # a builtin whose argument it *acts on* still has
+                    # subjects: `source verifiers/nope.sh` fails when pasted.
+                    # `echo`/`printf`/`test` arguments are display or query
+                    # text and stay out of scope (M35's planted `echo <bare>`
+                    # is benign for the same reason).
+                    if head in READ_ARG_BUILTINS:
+                        subjects.extend(
+                            arg_subjects(eff, segment, lineno, base))
                     continue
                 if any(c in SHELL_METACHARS for c in head):
                     continue
                 subjects.append({"line": lineno, "source": "fenced",
                                  "segment": segment, "head": head,
                                  "base": base})
+                subjects.extend(arg_subjects(eff, segment, lineno, base))
     for lineno, line in enumerate(lines, 1):
         if lineno in fenced:
             continue
@@ -677,6 +857,7 @@ def command_subjects(lines: list[str], vocab: frozenset[str],
                 subjects.append({"line": lineno, "source": "inline",
                                  "segment": segment, "head": head,
                                  "base": repo})
+                subjects.extend(arg_subjects(tokens, segment, lineno, repo))
     return subjects, segments
 
 
@@ -721,10 +902,22 @@ def check_box_map(boxes: list[dict], m: dict, target_name: str,
             # the delegated instrument lives in the map's repo, not the
             # target's (a red-before run points the live map at a snapshot)
             base = map_repo or repo or Path(".")
-            if not (base / target).exists():
+            candidate = base / target
+            if ".." in target.split("/"):
+                problems.append(
+                    "map entry %s delegates outside the map's repo: %r"
+                    % (e["box_id"], target))
+            elif not candidate.exists():
                 problems.append(
                     "map entry %s delegates to a target that does not exist: %r"
                     % (e["box_id"], target))
+            elif not is_instrument(candidate):
+                problems.append(
+                    "map entry %s delegates to a target that is not an "
+                    "instrument: %r (a delegated target must carry a script "
+                    "suffix %s or a shebang)"
+                    % (e["box_id"], target,
+                       "/".join(sorted(INSTRUMENT_SUFFIXES))))
     live = Counter((b["section"], b["sha256"]) for b in boxes)
     mapped = Counter((e["section"], e["text_sha256"]) for e in entries)
     label_by_key: dict[tuple[str, str], str] = {}
@@ -902,6 +1095,81 @@ def check_no_placeholder(lines: list[str]) -> tuple[str, int, str]:
     return "PASS", scanned, "no placeholder markers in %d scanned lines" % scanned
 
 
+def citation_resolve(tok: str, repo: Path) -> bool:
+    """Resolution for a citation token.  A plain repo-rooted token uses
+    ``safe_resolve``; a token with leading ``..`` hops resolves against the
+    repo's ancestors, bounded to 3 hops with no further ``..`` inside (the
+    fleet's lane-report convention — the corpus verifier resolves the same
+    shape).  Read-only existence test; the token comes from a lane-authored
+    file, not from the checked command surface, which is why the strict
+    no-``..`` rule of ``safe_resolve`` is relaxed here and bounded."""
+    parts = tok.split("/")
+    if ".." not in parts:
+        return safe_resolve(tok, repo, repo)
+    hops = 0
+    while parts and parts[0] == "..":
+        parts.pop(0)
+        hops += 1
+    if hops > 3 or ".." in parts or not parts:
+        return False
+    base = repo
+    for _ in range(hops):
+        base = base.parent
+    try:
+        return (base / "/".join(parts)).exists()
+    except OSError:
+        return False
+
+
+def check_citation_resolves(lines: list[str],
+                            repo: Path) -> tuple[str, int, str]:
+    """Round-16 R3 (executes the ``trigger.11`` box's decidable subset): a
+    backticked token whose implied base is this repo — it starts with a
+    repo top-level directory (``corpus/``, ``verifiers/``, ``opencode/``,
+    ``.ufo/``) or a ``../`` hop — must resolve from the repo root.  Tokens
+    with a placeholder, a glob, a ``$VAR``, a URL or a *named* base (``~``,
+    ``/``, a flag) are out of scope; that set is the named ceiling."""
+    subjects: list[dict] = []
+    for lineno, line in enumerate(lines, 1):
+        for m in INLINE_SPAN_RE.finditer(line):
+            for word in m.group(1).split():
+                tok = word.split("#", 1)[0]
+                if not tok or any(c in tok for c in "<>*?$"):
+                    continue
+                if tok.startswith(("http", "~", "-")):
+                    continue
+                # a leading `./` names the same implied base as a bare root
+                # (`./corpus/nope.md` is not a way out of the check)
+                norm = strip_token_dressing(tok)
+                norm = norm[2:] if norm.startswith("./") else norm
+                if not norm.startswith(CITATION_ROOTS):
+                    continue
+                # a single-segment directory name (`corpus/`, `.ufo/`) is a
+                # class label, not a pointer; a deeper one (`.ufo/prompts/`)
+                # is a pointer and is checked
+                stripped = norm.rstrip("/")
+                if stripped and "/" not in stripped:
+                    continue
+                subjects.append({"line": lineno, "token": norm, "raw": tok})
+    evaluated = len(subjects)
+    if evaluated == 0:
+        return "N/A", 0, (
+            "no repo-rooted citation tokens (a token counts when it starts "
+            "with %s and carries no placeholder, glob, $VAR or named base)"
+            % ", ".join(CITATION_ROOTS))
+    bad = []
+    for s in subjects:
+        if not citation_resolve(s["token"], repo):
+            bad.append("line %d: %r does not resolve from %s"
+                       % (s["line"], s["token"], repo))
+    if bad:
+        return "FAIL", evaluated, "; ".join(bad[:4]) + (
+            " … (+%d more)" % (len(bad) - 4) if len(bad) > 4 else "")
+    return "PASS", evaluated, (
+        "%d repo-rooted citation token(s) resolve from the repo root"
+        % evaluated)
+
+
 def check_commands(lines: list[str], repo: Path,
                    vocab: frozenset[str]) -> tuple[str, int, str]:
     subjects, segments = command_subjects(lines, vocab, repo)
@@ -1064,9 +1332,62 @@ def self_test() -> int:
         ("commands-inline-only", 0, [], [], []),
         ("commands-both", 0, [], [], []),
         ("commands-none", 0, [], ["trigger.command_binary_resolves"], []),
+        # round-16 closures: R1 path-like arguments, R2 instrument-ness,
+        # R3 citation resolution.  Each lands with a fixture that was red
+        # before the rule (recorded in corpus/knowledge/
+        # checklist-execution-round16.md).
+        ("citation-dead", 1, ["trigger.citation_resolves"], [],
+         ["corpus/absent-round16-fixture.md"]),
+        ("citation-base-named", 0, [], [], ["no repo-rooted citation tokens"]),
+        ("command-path-arg", 1, ["trigger.command_binary_resolves"], [],
+         ["corpus/absent-round16-arg.md"]),
+        ("command-path-arg-ok", 0, [], [], []),
+        ("command-redirect-target", 0, [], [], []),
+        ("delegated-noninstrument", 1, ["checklist.box_map_complete"], [],
+         ["not an instrument"]),
+        # boundaries: the PASS side of the citation rule, the two declared
+        # ceilings (single-segment root, directory as a delegated target),
+        # and the class the live file carried.
+        ("citation-ok", 0, [],
+         ["trigger.command_binary_resolves"], []),
+        ("citation-boundary-dirslash", 0, [],
+         ["trigger.command_binary_resolves", "trigger.citation_resolves"],
+         ["no repo-rooted citation tokens"]),
+        ("citation-boundary-ufo", 1, ["trigger.citation_resolves"],
+         ["trigger.command_binary_resolves"], [".ufo/prompts/"]),
+        ("delegated-directory", 1, ["checklist.box_map_complete"],
+         ["trigger.command_binary_resolves"], ["not an instrument"]),
+        # critic-driven: the `./` launder, word-wise harvesting, and the two
+        # instrument boundary cases (ELF magic accepted, `.py` data pinned)
+        ("citation-dot-slash", 1, ["trigger.citation_resolves"], [],
+         ["corpus/absent-round16-dotslash.md"]),
+        ("citation-second-word", 1, ["trigger.citation_resolves"],
+         ["trigger.command_binary_resolves"],
+         ["corpus/absent-round16-second.md"]),
+        ("citation-second-word-ok", 0, [],
+         ["trigger.command_binary_resolves"], []),
+        ("delegated-elf", 0, [],
+         ["trigger.command_binary_resolves", "trigger.citation_resolves"], []),
+        ("delegated-py-suffix", 0, [],
+         ["trigger.command_binary_resolves", "trigger.citation_resolves"], []),
+        ("command-output-flag", 0, [], [], []),
+        # sentinel-driven: `<` is an input redirect (its target must exist),
+        # the `sh -c` inner script's arguments, a line-anchored citation, and
+        # a delegated target that escapes the map's repo
+        ("command-input-redirect", 1, ["trigger.command_binary_resolves"], [],
+         ["corpus/absent-round16-stdin.md"]),
+        ("command-sh-c-inner", 1, ["trigger.command_binary_resolves"], [],
+         ["corpus/absent-round16-shc.md"]),
+        ("command-sh-c-ok", 0, [], [], []),
+        ("citation-anchor-ok", 0, [], [], []),
+        ("delegated-escape", 1, ["checklist.box_map_complete"], [],
+         ["outside the map's repo"]),
     ]
 
-
+    # Checks whose subject may legitimately be absent from a fixture: an
+    # absent subject is N/A, and the non-vacuity guard is the explicit
+    # evaluated>0 assertion in the targeted extras below.
+    NA_ALLOWED = frozenset(["trigger.citation_resolves"])
     for case, want_code, fails, nas, needles in CASES:
         code, out = run(case)
         rec("%s: exit %d" % (case, want_code), code == want_code, code)
@@ -1078,6 +1399,10 @@ def self_test() -> int:
         for cid in fails:
             rec("%s: FAIL %s" % (case, cid), ("FAIL %s:" % cid) in out, out)
         for cid in passes:
+            if cid in NA_ALLOWED and evaluated_of(out, cid) == 0:
+                rec("%s: N/A-allowed %s" % (case, cid),
+                    ("N/A %s:" % cid) in out, out)
+                continue
             rec("%s: PASS %s" % (case, cid), ("PASS %s:" % cid) in out, out)
             rec("%s: PASS %s evaluated>0" % (case, cid),
                 (evaluated_of(out, cid) or 0) > 0, evaluated_of(out, cid))
@@ -1130,6 +1455,48 @@ def self_test() -> int:
     code, out = run("command-skip-list")
     rec("command-skip-list: reports segments",
         "segments" in out, out)
+
+    # round-16 non-vacuity: the citation check evaluates a subject on its own
+    # fixture (never "evaluated 0" while failing) …
+    for case, want in (("citation-dead", 1), ("citation-base-named", 0)):
+        code, out = run(case)
+        rec("%s: citation evaluated == %d" % (case, want),
+            evaluated_of(out, "trigger.citation_resolves") == want,
+            evaluated_of(out, "trigger.citation_resolves"))
+    # … the named base is out of scope (N/A, not FAIL) …
+    code, out = run("citation-base-named")
+    rec("citation-base-named: citation N/A",
+        "N/A trigger.citation_resolves:" in out, out)
+    # … and a redirect target is written, not read: no unresolved subject.
+    code, out = run("command-redirect-target")
+    rec("command-redirect-target: exit 0", code == 0, code)
+    rec("command-redirect-target: no unresolved subject",
+        "does not resolve" not in out, out)
+    # the argument half of R1 is a real subject, not a silently dropped token
+    code, out = run("command-path-arg-ok")
+    rec("command-path-arg-ok: 3 subjects incl. the argument",
+        (evaluated_of(out, "trigger.command_binary_resolves") or 0) >= 3,
+        evaluated_of(out, "trigger.command_binary_resolves"))
+    # the PASS side of the citation rule is non-vacuous too
+    code, out = run("citation-ok")
+    rec("citation-ok: exit 0", code == 0, code)
+    rec("citation-ok: citation evaluated == 2",
+        evaluated_of(out, "trigger.citation_resolves") == 2,
+        evaluated_of(out, "trigger.citation_resolves"))
+    # an anchored citation resolves (the line anchor is not part of the path)
+    code, out = run("citation-anchor-ok")
+    rec("citation-anchor-ok: evaluated 2",
+        evaluated_of(out, "trigger.citation_resolves") == 2,
+        evaluated_of(out, "trigger.citation_resolves"))
+    # a declared output flag exempts its target: `ls -la --out report.md`
+    code, out = run("command-output-flag")
+    rec("command-output-flag: exit 0, 2 subjects (target skipped)",
+        (code == 0) and (evaluated_of(out, "trigger.command_binary_resolves") == 2),
+        (code, evaluated_of(out, "trigger.command_binary_resolves")))
+    # a directory is not an instrument (is_file guard, no traceback)
+    code, out = run("delegated-directory")
+    rec("delegated-directory: FAIL not-an-instrument, no traceback",
+        ("not an instrument" in out) and ("Traceback" not in out), out)
 
     for f in failures:
         print("self-test FAIL: %s" % f)
@@ -1265,6 +1632,8 @@ def main(argv: list[str] | None = None) -> int:
             st, ev, detail = check_line_budget(lines, boxes, args.max_lines)
         elif cid == "trigger.no_placeholder":
             st, ev, detail = check_no_placeholder(lines)
+        elif cid == "trigger.citation_resolves":
+            st, ev, detail = check_citation_resolves(lines, repo)
         else:
             st, ev, detail = check_commands(lines, repo, vocab)
         results.append({"id": cid, "status": st,

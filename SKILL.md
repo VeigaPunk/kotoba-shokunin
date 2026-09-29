@@ -83,7 +83,7 @@ FAIL — and compares the census's id, literal and kind cells per id against
 `corpus/knowledge/opencode-extraction-round14.md`). Each class loads differently, so each
 has different craft rules. Applying skill-file rules to an always-loaded file
 (or vice versa) is the most common cross-surface mistake. Two of the nine
-(dispatch prompts) are **host-observed** — no harness loads `.ufo/prompts/`;
+(dispatch prompts) are **host-observed** — no harness loads `/home/vgpnk/projects/shokunin/.ufo/prompts/`;
 they are a fleet filesystem convention and say so in the table.
 
 | Surface | Load condition | Parse surface | Dominant failure | Craft rule |
@@ -92,7 +92,7 @@ they are a fleet filesystem convention and say so in the table.
 | Agent definition (`opencode/agents/*.md`) | Roster: orchestrator picks by `description`, then body becomes the subagent's system prompt | `description` = delegation index; body = persistent identity | Wrong-lane delegation; stale routing metadata | Terse negative routing in description (`NOT general-purpose. NOT explore.`); identity + constraints in body, never a per-task job; dated operational notes belong in status files, not frontmatter |
 | AGENTS.md | Always-on: injected into every session in its repo | No frontmatter, no router — every byte loads on each injection (loader code in both harnesses: omp class `agents-md` `jDe(e,Pqr,"AGENTS.md")`, opencode `y[0]` + config `instructions`; 0 captured injections on this host) | Token drag, stale constraint decay | Terse imperative rules only; no triggers, no prose, no procedures that belong in a skill |
 | Command file (`opencode/command/*.md`) | Opt-in: user invokes `/<name>` | `description` + `agent:` frontmatter; body = command contract | Skill drift without a guardrail | Pointer-then-rules idiom: line 1 names the owning skill + `$ARGUMENTS`; then only the literal rules that must hold even if the skill drifts — procedures stay in the skill |
-| Dispatch prompt — spawn (L1/L2 lanes) | Ephemeral: consumed once by a subagent (**host-observed** — no harness loads `.ufo/prompts/`; the class is a fleet filesystem convention) | Whole file is the contract; no persistence | Missing stanza → unrecoverable agent (no conversation to clarify with) | Fixed 6-stanza order; complete, self-contained; ends with `| godspeed` |
+| Dispatch prompt — spawn (L1/L2 lanes) | Ephemeral: consumed once by a subagent (**host-observed** — no harness loads `/home/vgpnk/projects/shokunin/.ufo/prompts/`; the class is a fleet filesystem convention) | Whole file is the contract; no persistence | Missing stanza → unrecoverable agent (no conversation to clarify with) | Fixed 6-stanza order; complete, self-contained; ends with `| godspeed` |
 | Dispatch prompt — round (`*-round-N.md`) | Ephemeral: re-ignites a live L1 lane (**host-observed**, same convention; ~72 round files under the shokunin tree) | Relies on durable repo context (SKILL/LOG/corpus) | Stating stale per-round policy (routing maps drift between rounds) | 3–4 lines: role+round → method directive → land-scope+report → `| godspeed`; carry only what changed since spawn |
 | CLAUDE.md | Conditional always-on: **omp** registers it as its own class (`claude-md`, "Standalone CLAUDE.md files (Claude Code style)") and reads it *alongside* AGENTS.md; **opencode** reads `CLAUDE.md` (project walk-up `y[1]`) and `~/.claude/CLAUDE.md` (`n[1]`) only while `OPENCODE_DISABLE_CLAUDE_CODE` / `_PROMPT` is unset, and only when no `AGENTS.md` exists in that directory (first name wins in `y`) — cold on this host (0 captured injections) | Same as AGENTS.md: every byte loads when present | Same as AGENTS.md + dual-name collision, now with a **harness divergence**: omp obeys both files, opencode obeys AGENTS.md alone | One owner per repo: redirect file (llama.cpp 1-liner → AGENTS.md) or pick one name; a 4339-line file is an unconditional session tax; never assume both files are read — check which harness you are writing for |
 | Cross-tool rule file (`GEMINI.md`, `.cursor/rules/*.mdc`, `.cursorrules`, `.github/copilot-instructions.md`, `.windsurf/rules/*.md`, `*.instructions.md`, `.clinerules`, `SYSTEM.md`/`SYSTEM_TEMPLATE.md`, `CONTEXT.md`) | Loaded as **separate** classes by omp (one per tool ecosystem: gemini/github/cursor/windsurf/clinerules); opencode folds three of the names into one priority list per directory (`y` = AGENTS.md → CLAUDE.md → CONTEXT.md, first hit wins) | Durable rule text wearing another agent's filename convention | Silent rule drift between two agents reading two files; a rename that quietly disables a class on one harness and not the other | One owner per *family*, not per filename: keep AGENTS.md, redirect or delete the rest; omp reads every registered class while opencode reads one name per directory, so agreement is an assumption — the per-class literals are in `corpus/knowledge/instruction-surface-census-round13.md` |
@@ -202,12 +202,12 @@ than a hand-run recipe, and update the baseline only with a LOG entry naming the
 mechanism that moved. Model + gaps: `corpus/knowledge/harness-verifier-round10.md`.
 
 `python3 verifiers/verify_skill_checklist.py` executes this file's own checklist:
-**8 checks** (`checklist.box_map_complete` + the seven boxes marked
+**9 checks** (`checklist.box_map_complete` + the eight boxes marked
 `(executed: …)` below), each fail-closed on a fixture, `evaluated N` per check,
 exit 0/1/2/3 (`3` = box map missing, unparseable, or bound elsewhere).
-`verifiers/checklist-baseline.json` maps **all 41 boxes** (7 executed, 1
+`verifiers/checklist-baseline.json` maps **all 41 boxes** (8 executed, 0
 delegated, 33 unexecuted with reason) by text hash, so drift FAILs. Limits and
-ceilings: `corpus/knowledge/checklist-execution-round15.md`.
+ceilings: `corpus/knowledge/checklist-execution-round16.md`.
 
 ## Frontmatter craft — the trigger surface
 
@@ -263,7 +263,7 @@ Run before shipping any SKILL.md. Every item is checkable by reading the file �
 no runtime needed. (For AGENTS.md / dispatch prompts, use the per-surface rows
 in "Instruction surfaces" instead — this checklist assumes a routed file.)
 
-Seven of the fifteen boxes are **executed, not read** — marked
+Eight of the fifteen boxes are **executed, not read** — marked
 `(executed: <check-id>)`: `python3 verifiers/verify_skill_checklist.py` runs them
 and exits non-zero on any FAIL. `verifiers/checklist-baseline.json` maps every box
 in this file to `executed:` / `delegated:` / `unexecuted:<reason>`, pinned by the
@@ -310,12 +310,11 @@ passing silently.
       resolve from the file's own repo by default; any other root must be
       named in the file (`~/.config/opencode/opencode.json`, not bare
       `opencode.json`); bare basenames that exist under multiple roots fail.
-      The mechanically checkable subset — index coverage of `corpus/`, lane-report
-      pointers, and `commit` citations — is enforced, not read:
-      `python3 verifiers/verify_corpus_integrity.py` (run it from the repo root, or
-      give it `--repo <repo>`: a *relative* script path resolves against your cwd
-      while the checked repo defaults to the script's grandparent) exits non-zero
-      on a dead pointer or a non-hash commit token.
+      The mechanically checkable subset is *executed*, not read: every backticked
+      token whose implied base is this repo (a `corpus/`, `verifiers/`, `opencode/`
+      or `.ufo/` prefix, or a `../` hop) resolves from the repo root, or this
+      build FAILs naming the line. The corpus-internal remainder (README index coverage,
+      lane-report pointers, corpus-file `commit` citations) is the corpus instrument's scope, not this box's. (executed: `trigger.citation_resolves`)
 - [ ] A claim that only its author's instrument settles names that as a gap, and
       its second witness is a **derivation, not a re-run** — an independent
       implementation of the class model compared check-for-check, red and green.
@@ -382,7 +381,7 @@ rule — terse imperatives only.)
 ## Dispatch-prompt fidelity checklist
 
 Run before shipping any `*-L1.md` / `*-round-N.md` dispatch prompt (observed
-form: `.ufo/prompts/`). Checkable by reading the file; round-7 application +
+form: `/home/vgpnk/projects/shokunin/.ufo/prompts/`). Checkable by reading the file; round-7 application +
 full failure matrix in `corpus/knowledge/dispatch-prompt-audit-round7.md`
 (37/43 files failed ≥1 item — the artifact population is dirtier than the
 template).
@@ -545,11 +544,12 @@ location; durable policy copy-pasted into a dispatch prompt.
   executable form of the harness claim set (27 checks, 4 exit codes, `--self-test`);
   the authority for every harness number in this file.
 - `verifiers/verify_corpus_integrity.py` + `verifiers/corpus-baseline.json` — the
-  round-11 executable form of the *citation* rules this file states (9 checks over
+  round-11 executable form of the *corpus-internal* citation rules (9 checks over
   tracked `corpus/*.md`: index coverage, lane-report pointers in all four shapes,
   `commit` citations resolve, no non-hash commit token; exit 0/1/2/3, `--self-test`).
-  Run it before shipping an artifact set; a dead pointer is then a drift report,
-  not a reviewer's memory.
+  This file's own citations are out of its scope and are executed instead by
+  `trigger.citation_resolves` in `verify_skill_checklist.py`.
+  Run it before shipping an artifact set; a dead pointer is then a drift report, not a reviewer's memory.
 - `corpus/knowledge/corpus-integrity-round11.md` — what the corpus verifier checks,
   the three counting recipes it replaced (why each could not express its class),
   the exclusion shapes it must not report, and the check that was designed and

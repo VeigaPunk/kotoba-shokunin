@@ -32,6 +32,11 @@ Promotion to shokunin requires all of:
   from a foreign cwd with the stated outcomes (sqlite3 count → 17; the init-count
   distribution → 1/141/34/14; the corpus verifier fires its contract), one
   cwd assumption found and now stated in `SKILL.md` (relative script paths).
+  round-16 note: the checklist half is executable too — `python3 verifiers/verify_skill_checklist.py` is now 9 checks
+  over 67 fixture cases (`--self-test` 0 failure(s) over 1283 assertions), 8 of the 41 boxes are `executed:` and the
+  map's `delegated:` count is 0 (the class is fixture-only); the round's own instrument FAILed on the live file until
+  `corpus/knowledge/checklist-execution-round16.md` was written, which is the fail-closed evidence for the new
+  `trigger.citation_resolves` check rather than a claim about it.
   evidence: LOG.md round-7 — a blank-context L2 reviewer ran the 13-item trigger-fidelity checklist on SKILL.md with zero clarification requests (13 verdicts + meta-findings); round-10 made the harness half of the file executable rather than prose (same verifier).
 - [~] No cross-domain bleed (PROVINCE.md still accurate)
   evidence: LOG.md round-7 — cross-domain defects in .ufo/prompts/, ~/.config/opencode/, scripts/shokunin-watchdog.sh audited and reported, not fixed; round-10 aggregator audit adopted as-is and its kotoba-owned defects closed inside this repo; PROVINCE.md unchanged.

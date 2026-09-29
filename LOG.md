@@ -698,3 +698,80 @@
   `verify_corpus_independent.py` exit 0, `fault_injection_corpus.sh --self-test`
   **OK** and full run ALL PASS, `verify_harness_claims.py` 27/27, `verify_surfaces.py`
   7/7, `verify_skill_checklist.py` exit 0 with `--self-test` 0/772.
+
+### Round 16 — operability 8.0 → 8.5 (two escapes closed, one box executed, three citations named)
+
+- **Move (pre-registered in round 15).** Close `M35` (path-like arguments never
+  resolved) and `M40` (a `delegated:` target was checked for existence only), then
+  execute one more checklist box. Round 15 wrote the falsifiers before the build:
+  one red-before fixture per escape, and the band condition "the mutation lane's
+  re-run catches both".
+- **Landed.** `verifiers/verify_skill_checklist.py` gains `path_like_arg` /
+  `arg_subjects` / `unwrap_tokens` (arguments resolve; `sh -c` arguments are read
+  from the inner token list; `<` input redirects do not exempt, output redirects and
+  a declared output-flag set do; URLs and comment tails are not paths),
+  `is_instrument` (script suffix, shebang or ELF magic; `..` in a target FAILs),
+  `citation_resolve` + the ninth check `trigger.citation_resolves` (every backticked
+  token rooted in this repo must resolve; line anchors and trailing punctuation are
+  stripped; a leading `./` is normalized; leading `..` hops are bounded to 3), and
+  `strip_token_dressing`. `verifiers/checklist-baseline.json`: `trigger.11`
+  `delegated:verifiers/verify_corpus_integrity.py` → `executed:trigger.citation_resolves`
+  (new box sha `c7ad2458…`), map now **8 executed / 0 delegated / 33 unexecuted**.
+  `SKILL.md` (599 → 599 lines, budget 600): three `.ufo/prompts/` citations named to
+  the host-absolute form the file already used five times, the `trigger.11` box
+  rewritten to its executed subset with the annotation, the corpus instrument's scope
+  corrected to `corpus/*.md`, and the check/box counts updated. 21 fixtures (6 mine,
+  4 boundary from the executor lane, 11 adversary-driven); 47 → 67 fixture cases;
+  `--self-test` 772 → **1283 assertions, 0 failures**.
+- **Red-before, per rule.** R1: the pre-patch verifier (`sha256 2ee8abae…`) on
+  `fixtures/checklist/command-path-arg` → `rc=0`, the dead argument invisible. R2: same
+  on `delegated-noninstrument` → `rc=0`. R3: the patched verifier on a clone of
+  `b25f37a` in a faithful host layout → 8 × PASS and
+  `FAIL trigger.citation_resolves: evaluated 46 — line 86/95/385: '.ufo/prompts/' does
+  not resolve`, exit 1. The check is also fail-closed on the live file: it FAILed on
+  line 210 (`corpus/knowledge/checklist-execution-round16.md`) until this round's
+  knowledge doc was written.
+- **Instrument state at the landed tree.** `verify_skill_checklist.py` 9 × PASS exit 0
+  (`41 boxes mapped (8 executed, 0 delegated, 33 unexecuted)`, `line_budget 599/600`,
+  `command_binary_resolves 19 subjects / 15 segments`, `citation_resolves 42/42`);
+  `verify_harness_claims.py` exit 0; `verify_surfaces.py` exit 0; `verify_corpus_integrity.py`
+  9/9 exit 0 and `verify_corpus_independent.py` exit 0 after the corpus baseline
+  re-record (45→46 tracked, 30→32 report pointers, 0 dead); `fault_injection_corpus.sh
+  --self-test` OK.
+- **Ten L2 lanes, six defects found in the new rules, all fixed in-round with fixtures.**
+  `R16Mutate`: 46-row harness unchanged at HEAD (35/5/5/1); patched flips exactly `M40`
+  → CAUGHT (36/4/5/1); `M35` stays escaped (bare `echo` argument — see below).
+  `R16M35` (labrat): `sh -c 'cat corpus/README.md'` was a false positive → fixed.
+  `R16Critic`: `is_instrument` rejected a compiled instrument (`~/.local/bin/sekhmet`,
+  ELF) → fixed; `./` citation laundering → fixed; the `delegated:` class now has zero
+  live entries (cost recorded). `R16Sentinel`: `<` treated as an output redirect →
+  fixed; `corpus/README.md:42` / `x.md,` false FAILs → fixed; `delegated:../x.py` → fixed;
+  its "empty `delegated:` passes" claim is **refuted** (exit 3 at map load).
+  `R16Indep`: 4/4 predictions matched; A13 (`shutil.which` on a slash token made the
+  verdict cwd-dependent) → fixed. `R16Blast`: R1 over 23 fleet files gave 77 args / 27
+  would-FAIL / 3 flips with **0 true positives**; after the URL + comment-tail fixes
+  75 / 25 / 2 — recorded as the foreign-hint rate, with the declared read-verb
+  vocabulary as the round-17 tightening. `R16Review`: the three `.ufo/prompts/` sites
+  are real at HEAD and HEAD reproduces every round-15 quote verbatim. `R16Fixtures`
+  (executor): red-before for 9 cases (all exit 0 pre-patch), word-wise harvesting
+  proven with a second-word fixture, and the **two-root replay probe** as the
+  hermeticity rule for any fixture that resolves through ancestor hops. `R16Connector`:
+  no sibling declares `delegated:`; kumitate executes checklist commands but resolves
+  neither arguments nor targets; kasegi's `resolve.py`/`anchorcheck.py` are the
+  citation/anchor prior art; sibling R3 dead tokens kagi 2 / kake 1 / kasegi 1 /
+  kengaku 1 / kumitate 5 → routed.
+- **`M35` re-labelled, with the argument stated.** The planted
+  `echo r15absent-echoed-bin` is a bare token after a skip-list builtin: pasting it
+  succeeds, so under the box's claim ("runnable as pasted") it is not a defect. The
+  rule-covered class (`cat corpus/nope.md`) is closed with `command-path-arg`. Both
+  band readings are recorded in `corpus/knowledge/checklist-execution-round16.md`
+  § Band decision (8.5 earned / 8.0 withheld) so the aggregator can move the row on
+  that paragraph alone.
+- **Carried into round 17.** (a) R1's foreign-hint rate and its read-verb vocabulary
+  tightening; (b) `D6` dispatch-prompt literals and `A9` agent-body resolution (the
+  round-15 planner's ranks 2 and 3); (c) `agentdef.*` (9 boxes) decidable subsets;
+  (d) the `delegated:` class with no live entry and `is_instrument()` fixture-only;
+  (e) ceilings `M22`, `M23`, `M36`, `M38`, the bare-token residual, `$VAR`/closed
+  root set, symlinked instruments, backslash-continuation joins; (f) the
+  `AXES.md`↔`MISSION.md` axis naming (rounds 13–16, `../.ufo/l0-questions.md`);
+  (g) sibling R3 dead tokens, routed.
