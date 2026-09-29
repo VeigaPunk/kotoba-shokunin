@@ -7,6 +7,17 @@ and either the craft row that governs it or a reason for excluding it. The
 derivation is machine-checked (`verifiers/verify_surfaces.py`) and independently
 re-measured by a non-author lane.
 
+**Round-14 amendment (2026-09-28, coverage 8.0 → 8.5).** Two pieces of this
+census changed status and are edited in place below rather than left stale:
+`surfaces.no_uncovered_class` remains omp-only by construction, and opencode is
+covered by its own machine check, `surfaces.opencode_extract` (seven code-shape
+rules, two-way parity, zero-extraction FAILs); the census row columns **id,
+literal and kind** are now compared per id against the baseline
+(`surfaces.literal_parity`, `surfaces.kind_parity`), closing the round-13
+mutation escape in the literal column and finding a third column in the same
+class. Evidence file: `opencode-extraction-round14.md`; the two ceilings that
+remain are stated in § Honest ceiling.
+
 **Scope of the machine-checked half (stated first, because it is narrower than the
 claim sounds).** `surfaces.no_uncovered_class` proves *set parity over a documented
 extraction set* — the `.md`-suffixed `(Id|Cl|jD[ef])(<v>, "<group>", "<file>.md")`
@@ -168,6 +179,7 @@ built.
 | `opencode:config/instructions` | instructions | loader-config | § Instruction surfaces → Declared instruction list | `.instructions` reader + schema example `"instructions": ["AGENTS.md","docs/style.md"]` |
 | `opencode:config/instructions-remote` | https:// | loader-config | Declared instruction list | `Instruction.system` fetches `https://`/`http://` entries (`concurrency: 4`, 5 s timeout) and renders `Instructions from: <url>` |
 | `opencode:read-hook/instructions` | <system-reminder> | loader-literal | Cross-tool rule files | second channel: `Instruction.resolve`, called from `ReadTool.execute`, appends the nearest ancestor instruction file to a **tool result** as a `<system-reminder>` — a rule can arrive mid-session attached to a read (second witness §4; 18 literal hits in the opencode bytes) |
+| `opencode:instruction-context/AGENTS.md` | AGENTS.md | loader-literal | AGENTS.md row | **second subsystem, its own load condition** (round 14, after the blind witness enumerated it and left it id-less): `A=M.fn("InstructionContext.observe")` registered as the `system-context-builtins` context with key `BP=XH.Key.make("core/instructions")`, walking `H.up({targets:["AGENTS.md"],start:cwd,stop:project})` **all-match** and keeping an **ungated** `<config>/AGENTS.md` candidate (`jX(L.config,"AGENTS.md")`). Same file class as `opencode:instructions/AGENTS.md`, different semantics (ambient, all-match, replace/remove on change vs first-match per directory), so it is declared separately rather than merged into that row's prose. Rule `OC-6` in `opencode-extraction-round14.md` owns it |
 
 ### C. Excluded loader-derived classes (each with its reason)
 
@@ -229,7 +241,7 @@ Second correction, same class: the round-move brief's "false friend" note said t
 | "Seven surface classes **observed on this host**" — enumeration method host observation | two harness loader models quoted from code, with the *class ids* in this file; the seven craft rows keep their craft rules and gain two rows (cross-tool rule files, declared instruction list) |
 | CLAUDE.md row: "loader exists in **both** harness binaries (9/17 string refs)" | omp class `claude-md` + opencode `y[1]`/`n[1]` with the env gate named — counts removed as evidence |
 | Dispatch-prompt rows: unqualified | labeled **host-observed; no harness loader** (the class is a `.ufo/prompts/` convention) |
-| No loader-derived inventory existed | this file + `verifiers/verify_surfaces.py` (4 checks, exit 0/1/2/3, `--self-test`) + `verifiers/surfaces-baseline.json` |
+| No loader-derived inventory existed | this file + `verifiers/verify_surfaces.py` (round 13: 4 checks; round 14: 7 checks incl. `surfaces.opencode_extract`, `surfaces.literal_parity`, `surfaces.kind_parity`, exit 0/1/2/3, `--self-test` 72 assertions) + `verifiers/surfaces-baseline.json` |
 | Coverage row gap: "no MCP/plugin surface on this host" | refined: *config* absent for the two target harnesses, but `~/.codex/config.toml [mcp_servers.node_repl]` and `~/.config/opencode/plugin/fnm-nudge.js` are live, and both binaries support the surfaces (host absence ≠ support absence) |
 
 ## Honest ceiling — what this census cannot decide
@@ -241,10 +253,14 @@ Second correction, same class: the round-move brief's "false friend" note said t
 - **Extraction-set completeness, per harness.** The call-shape regex misses
   (a) group names passed as variables other than the two resolved (`Pqr`, `BWr`),
   (b) non-`.md` literals by construction, (c) other binaries' differently-minified
-  shapes. **For opencode the check is vacuous by construction** — its loaders are
-  arrays/`join`/`findUp`/`globUp`, so `surfaces.no_uncovered_class` extracts zero
-  pairs there and cannot fail; opencode's half of this inventory rests on hand-read
-  code plus the second witness's independent agreement, not on the machine check.
+  shapes. **For opencode this file's ceiling was a hole and is now a named
+  boundary (round 14):** `surfaces.no_uncovered_class` still extracts zero pairs
+  there by construction, and opencode is instead covered by
+  `surfaces.opencode_extract` — seven code-shape rules (OC-1…OC-6, anchors and
+  derive-vs-witness stated per rule) that must reproduce all 9 declared opencode
+  class ids, must produce no undeclared id, must each match, and must not produce
+  zero classes (a zero extraction FAILs with `vacuity:`). Evidence, drop-one
+  matrix and residual ceilings: `opencode-extraction-round14.md`.
   For omp the check is real (8 extracted pairs, parity both ways, an empty baseline
   produces 41 `extra row` findings — recorded in the round's evidence). Parity is
   over the extraction set, never over the world.
@@ -260,14 +276,21 @@ Second correction, same class: the round-move brief's "false friend" note said t
   `CLAUDE.md`, `pendle-core-v2-public`) is unobservable now and must never be
   reported as a governed pass. The loader-derived half of this file is unaffected:
   it reads the binaries, not the tree.
-- **ID-level parity only — the census's prose columns are lane-attested.**
-  Mutation lane round 13: of 13 planted mutations, 11 were caught (both parity
-  directions, literal presence, the call-shape requirement, the excluded-reason
-  rule, missing inventory/baseline → 2/3); **two escaped** — rewriting a census
-  row's *literal* column to `WRONG.md`, or its *evidence* column to
-  `NOT-EVIDENCE`, still exits 0, because `surfaces.table_parity` compares class
-  **ids** and `surfaces.literal_present` probes the **baseline's** literal. So the
-  census and the baseline can silently disagree on a literal. The baseline is the
-  checked source; the census text is not. Next round: compare the literal per id
-  (and treat a prose-column rewrite as a fault).
+- **Row-column parity: three of five columns are machine-checked, two are prose.**
+  Mutation lane round 13: of 13 planted mutations, 11 were caught; **two escaped** —
+  rewriting a census row's *literal* column to `WRONG.md`, or its *evidence* column
+  to `NOT-EVIDENCE`, still exited 0, because `surfaces.table_parity` compares class
+  **ids** and `surfaces.literal_present` probes the **baseline's** literal.
+  **Round 14 closed the first of those and found a third column in the same
+  class:** `surfaces.literal_parity` compares the row's second cell and
+  `surfaces.kind_parity` the third cell against the baseline per id (both refuse
+  0-vs-0), and a declared id carried outside the row's first cell FAILs because no
+  per-id comparison could be anchored to it. Verified: a live census copy with
+  `AGENTS.md` → `WRONG.md` exits 1 naming the id and line while `table_parity`
+  stays PASS; a copy with `loader-group` → `loader-literal` exits 1 on
+  `kind_parity` alone. Standing residual: the `governed by` and `evidence` columns
+  have **no machine counterpart** in the baseline (its `reason` field is different
+  prose), so a rewrite there is caught by a reader, not by the checker — named here
+  rather than smoothed over. The baseline is the checked source; the census text is
+  now the checked source for id, literal and kind only.
 - **Still unmeasured:** implicit-intent fidelity (unchanged from round 12).

@@ -74,8 +74,13 @@ is a checklist of *available* organs, not a mandatory skeleton.
 
 Nine surface classes; the loader-derived class inventory behind them (per-harness
 literals, load conditions, exclusions with reasons) is
-`corpus/knowledge/instruction-surface-census-round13.md`, machine-checked by
-`verifiers/verify_surfaces.py`. Each class loads differently, so each
+`corpus/knowledge/instruction-surface-census-round13.md`, and its machine check
+covers **both** harnesses: `verifiers/verify_surfaces.py` (7 checks) extracts omp's
+`.md` registration call shapes and opencode's instruction-service shapes — seven
+named rules, all anchors load-bearing, an empty baseline or a zero extraction a
+FAIL — and compares the census's id, literal and kind cells per id against
+`verifiers/surfaces-baseline.json` (rule set and falsifier matrix:
+`corpus/knowledge/opencode-extraction-round14.md`). Each class loads differently, so each
 has different craft rules. Applying skill-file rules to an always-loaded file
 (or vice versa) is the most common cross-surface mistake. Two of the nine
 (dispatch prompts) are **host-observed** — no harness loads `.ufo/prompts/`;
