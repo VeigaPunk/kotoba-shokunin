@@ -1,11 +1,12 @@
 {
-  "as_of": "2026-09-28T18:52:36-03:00",
+  "as_of": "2026-09-28T20:47:40-03:00",
   "host": "vgpnk",
   "measured_against": {
     "omp_binary_sha256": "55016ef5317af556975f3a3dce02c8db41fc1d05d15b65147814fde019c2e203",
     "omp_binary_mtime": "2026-09-28 15:14:34.865414529 -0300",
     "opencode_binary_sha256": "f9dab32248695e9ebd56b16a1921798fd85112cf5a69c7dfd0cabc1e17be4a11",
-    "command": "python3 verifiers/verify_harness_claims.py --no-baseline --json"
+    "command": "python3 verifiers/verify_harness_claims.py --no-baseline --json",
+    "round13_move": "omp.db.rows 17 -> 18 and omp.db.rows_wellformed 17 -> 18. The binaries are unchanged (sha256 above equals the round-12 recording), all 17 live keys still reproduce (`omp.cache.keys_reproduced=17`, `omp.cache.verified_skills=17`, `omp.offered.skills=17`). Mechanism, recomputed with this verifier's own omp_key(): the extra row is sha256(template | 0x00 | 'ufo' | 0x00 | description-as-loaded), key 1742fee805bd6832..., for the project-scoped ufo copy ~/Projects/origin-work/ufo-fsd-alpha/skills/ufo/SKILL.md (690 chars, byte-identical across the 10 substrate-pack copies) — a session running under that tree offered it, and the cache is keyed per (name, description) pair, so it accumulates rows the live ~/.omp/agent/skills set never had. The count is a change detector; the invariants are keys_reproduced / verified_skills."
   },
   "checks": {
     "omp.elf.template_sha256": {
@@ -17,11 +18,11 @@
       "mode": "equal"
     },
     "omp.db.rows": {
-      "expect": 17,
+      "expect": 18,
       "mode": "equal"
     },
     "omp.db.rows_wellformed": {
-      "expect": 17,
+      "expect": 18,
       "mode": "equal"
     },
     "omp.offered.skills": {
@@ -118,6 +119,7 @@
     }
   },
   "notes": {
+    "omp.db.rows": "Rows in ~/.omp/agent/skill-descriptions.db are keyed by sha256(template | 0x00 | name | 0x00 | description-as-loaded) and are never pruned, so the count grows whenever the host ever offers a new (name, description) pair — including a project-scoped copy of a skill the user root also carries (round 13: a ufo copy under ~/Projects/origin-work/ufo-fsd-alpha). The equal pin is a change detector: a move means 're-record deliberately, naming the mechanism', not 'the live catalogue changed'. keys_reproduced and verified_skills are the invariants.",
     "omp.offered.dangling": "recorded dangling entries: sekhmet, xbrd in ~/.agents/skills (symlinks into a vanished port). Relinking or deleting them changes this count - a deliberate baseline move, not drift.",
     "omp.elf.template_sha256": "sha256 of the 273-byte compression prompt embedded in the omp ELF; a new omp build or a prompt edit moves it, which invalidates every cache key.",
     "oc.log.init_count_max": "max of `message=init count=N`; opencode logs only counts, never name sets.",

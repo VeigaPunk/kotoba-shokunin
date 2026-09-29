@@ -26,8 +26,14 @@ async compressor landed, else a deterministic `slice(0, _8n-1)` cut with
 `_8n=100` (i.e. offset 99) plus last-space/`…` fallback (`skill-descriptions.ts`;
 cache
 `~/.omp/agent/skill-descriptions.db`). Cache coverage is time-varying — 5/17
-rows at round 7, 17 rows at round 9 (**all 17 keys reproduced** against today's
-on-disk descriptions; `select count(*)` → 17, 2026-09-28) — and rows land
+rows at round 7, 17 rows at round 9, **18 at round 13** (2026-09-28T23:30Z) with
+**all 17 live keys still reproducing** against today's on-disk descriptions.
+The count is not a coverage meter: rows are keyed per
+`(name, description-as-loaded)` and never pruned, so the 18th row is a
+*project-scoped* `ufo` copy the host once offered
+(`~/Projects/origin-work/ufo-fsd-alpha/skills/ufo/SKILL.md`, 690-char
+description; recomputed key `1742fee805bd…` with the verifier's own `omp_key`),
+not a new live skill. Rows land
 *after* session start, so an already-open session keeps its truncator renders
 (and an edited `description` misses its key, reverting that skill until a new
 row lands). On **opencode** the `<available_skills>`
@@ -66,19 +72,26 @@ is a checklist of *available* organs, not a mandatory skeleton.
 
 ## Instruction surfaces — pick the file before the fix
 
-Seven surface classes observed on this host; each loads differently, so each
+Nine surface classes; the loader-derived class inventory behind them (per-harness
+literals, load conditions, exclusions with reasons) is
+`corpus/knowledge/instruction-surface-census-round13.md`, machine-checked by
+`verifiers/verify_surfaces.py`. Each class loads differently, so each
 has different craft rules. Applying skill-file rules to an always-loaded file
-(or vice versa) is the most common cross-surface mistake.
+(or vice versa) is the most common cross-surface mistake. Two of the nine
+(dispatch prompts) are **host-observed** — no harness loads `.ufo/prompts/`;
+they are a fleet filesystem convention and say so in the table.
 
 | Surface | Load condition | Parse surface | Dominant failure | Craft rule |
 |---------|----------------|---------------|------------------|------------|
 | SKILL.md | Opt-in: activated when `description` matches intent | frontmatter = router index; body = executor contract | False activation / missed activation | All craft below (frontmatter, tables, gates) |
 | Agent definition (`opencode/agents/*.md`) | Roster: orchestrator picks by `description`, then body becomes the subagent's system prompt | `description` = delegation index; body = persistent identity | Wrong-lane delegation; stale routing metadata | Terse negative routing in description (`NOT general-purpose. NOT explore.`); identity + constraints in body, never a per-task job; dated operational notes belong in status files, not frontmatter |
-| AGENTS.md | Always-on: injected into every session in its repo | No frontmatter, no router — every byte loads on each injection (loader strings exist in both binaries; 0 captured injections on this host) | Token drag, stale constraint decay | Terse imperative rules only; no triggers, no prose, no procedures that belong in a skill |
+| AGENTS.md | Always-on: injected into every session in its repo | No frontmatter, no router — every byte loads on each injection (loader code in both harnesses: omp class `agents-md` `jDe(e,Pqr,"AGENTS.md")`, opencode `y[0]` + config `instructions`; 0 captured injections on this host) | Token drag, stale constraint decay | Terse imperative rules only; no triggers, no prose, no procedures that belong in a skill |
 | Command file (`opencode/command/*.md`) | Opt-in: user invokes `/<name>` | `description` + `agent:` frontmatter; body = command contract | Skill drift without a guardrail | Pointer-then-rules idiom: line 1 names the owning skill + `$ARGUMENTS`; then only the literal rules that must hold even if the skill drifts — procedures stay in the skill |
-| Dispatch prompt — spawn (L1/L2 lanes) | Ephemeral: consumed once by a subagent | Whole file is the contract; no persistence | Missing stanza → unrecoverable agent (no conversation to clarify with) | Fixed 6-stanza order; complete, self-contained; ends with `| godspeed` |
-| Dispatch prompt — round (`*-round-N.md`) | Ephemeral: re-ignites a live L1 lane | Relies on durable repo context (SKILL/LOG/corpus) | Stating stale per-round policy (routing maps drift between rounds) | 3–4 lines: role+round → method directive → land-scope+report → `| godspeed`; carry only what changed since spawn |
-| CLAUDE.md | Conditional always-on: loader exists in both harness binaries (9/17 string refs) but injects only when the repo carries the file — cold on this host (0 captured injections) | Same as AGENTS.md: every byte loads when present | Same as AGENTS.md + dual-name collision | One owner per repo: redirect file (llama.cpp 1-liner → AGENTS.md) or pick one name; a 4339-line file is an unconditional session tax |
+| Dispatch prompt — spawn (L1/L2 lanes) | Ephemeral: consumed once by a subagent (**host-observed** — no harness loads `.ufo/prompts/`; the class is a fleet filesystem convention) | Whole file is the contract; no persistence | Missing stanza → unrecoverable agent (no conversation to clarify with) | Fixed 6-stanza order; complete, self-contained; ends with `| godspeed` |
+| Dispatch prompt — round (`*-round-N.md`) | Ephemeral: re-ignites a live L1 lane (**host-observed**, same convention; ~72 round files under the shokunin tree) | Relies on durable repo context (SKILL/LOG/corpus) | Stating stale per-round policy (routing maps drift between rounds) | 3–4 lines: role+round → method directive → land-scope+report → `| godspeed`; carry only what changed since spawn |
+| CLAUDE.md | Conditional always-on: **omp** registers it as its own class (`claude-md`, "Standalone CLAUDE.md files (Claude Code style)") and reads it *alongside* AGENTS.md; **opencode** reads `CLAUDE.md` (project walk-up `y[1]`) and `~/.claude/CLAUDE.md` (`n[1]`) only while `OPENCODE_DISABLE_CLAUDE_CODE` / `_PROMPT` is unset, and only when no `AGENTS.md` exists in that directory (first name wins in `y`) — cold on this host (0 captured injections) | Same as AGENTS.md: every byte loads when present | Same as AGENTS.md + dual-name collision, now with a **harness divergence**: omp obeys both files, opencode obeys AGENTS.md alone | One owner per repo: redirect file (llama.cpp 1-liner → AGENTS.md) or pick one name; a 4339-line file is an unconditional session tax; never assume both files are read — check which harness you are writing for |
+| Cross-tool rule file (`GEMINI.md`, `.cursor/rules/*.mdc`, `.cursorrules`, `.github/copilot-instructions.md`, `.windsurf/rules/*.md`, `*.instructions.md`, `.clinerules`, `SYSTEM.md`/`SYSTEM_TEMPLATE.md`, `CONTEXT.md`) | Loaded as **separate** classes by omp (one per tool ecosystem: gemini/github/cursor/windsurf/clinerules); opencode folds three of the names into one priority list per directory (`y` = AGENTS.md → CLAUDE.md → CONTEXT.md, first hit wins) | Durable rule text wearing another agent's filename convention | Silent rule drift between two agents reading two files; a rename that quietly disables a class on one harness and not the other | One owner per *family*, not per filename: keep AGENTS.md, redirect or delete the rest; omp reads every registered class while opencode reads one name per directory, so agreement is an assumption — the per-class literals are in `corpus/knowledge/instruction-surface-census-round13.md` |
+| Declared instruction list (`opencode.json` `instructions: []`) | Opt-in list: each entry is a path, a glob, or an `https://` URL that opencode fetches (`concurrency: 4`) and renders as an `Instructions from: <url>` block beside local files | Composed rule supply: several files, local or remote, merged by the harness | A stale URL or a moved path silently drops a whole rule layer — no diff to review | Prefer repo-relative paths/globs over remote URLs; treat a remote entry as a supply chain (pin it) and edit the target file rather than renaming it — the list is the only pointer |
 
 **AGENTS.md evidence:** six shokunin child repos carry shape-identical 5-line
 operating rules (scope, LOG-evidence, no-fabrication) — identical shared body
@@ -90,8 +103,17 @@ constraints: it carries procedures (`Load and obey
 and dated attestations (:48,:51) — a mixed surface, flagged by the round-7
 AGENTS.md checklist audit (`corpus/knowledge/alwayson-checklist-round7.md`).
 
-**Agent-definition evidence:** 18 files under `~/.config/opencode/agents/`
-(14–197 lines). Frontmatter keys beyond `name`/`description` are routing and
+**Agent-definition evidence:** 18 `.md` files under
+`~/.config/opencode/agents/` (14–197 lines) — plus **two count corrections
+found in round 13** (connector lane defect D3): that directory holds a 19th
+non-`.md` entry (`ls ~/.config/opencode/agents/ | wc -l` → 19), and opencode
+loads the *singular* `agent/` directory too (`~/.config/opencode/agent/ufo.md`
+is live and is the effective definition for that name; the loader's own doc
+table says `agent(s)/<name>.md`). The **omp-side roster** is separate and
+ungoverned here: `~/.omp/agent/agents/*.md` → 37 files (excluded in
+`corpus/knowledge/instruction-surface-census-round13.md` because its load path
+is inferred from `omp agents unpack`, not read from a session). Frontmatter keys
+beyond `name`/`description` are routing and
 grant policy — `model`/`cascade`/`effort` (distiller, ufo), `permission_mode`/
 `agents_md` (distiller), `whenToUse`/`subagents` (orch's delegation roster).
 11 of 18 descriptions carry `NOT …` negative routing (round-6 audit,
@@ -101,7 +123,9 @@ copy-pasted: 14 files share one identical 9-line godspeed preamble
 (round-4 said 13; orch.md was missed), verified by `md5sum` over the region
 and re-verified round 7 (shared md5 `c91c0d66…`, still 14/18);
 `mutation-tester.md` carries it **twice** in-file — the observed cost of
-copy-paste zones in durable files.
+copy-paste zones in durable files. The 18/14/11 counts are round-13-unverified
+(they are round-6/7 measurements of a directory whose membership has since
+changed); re-run the commands before citing them.
 
 **Command-file evidence:** 3 files under `~/.config/opencode/command/`
 (10–13 lines). Two idioms: pointer-then-rules (sekhmet.md, xbrd.md — line 1
@@ -147,10 +171,15 @@ a render — a rule proven on omp is wrong on opencode.
 
 Check before predicting: on omp read the cache db
 (`sqlite3 -readonly ~/.omp/agent/skill-descriptions.db "select count(*) from
-skill_descriptions;"`) **and** the newest `<skills>` block
-(`~/.omp/agent/sessions/**/*.jsonl`) — the catalogue freezes at session start,
-so db coverage is time-varying; on opencode read the global roots and
-`grep -o 'message=init count=[0-9]*' ~/.local/share/opencode/log/opencode.log`.
+skill_descriptions;"`) **and** the newest *catalogue-bearing* `<skills>` block —
+mtime order is not a selection rule: the newest session file
+(`~/.omp/agent/sessions/<project-slug>/<timestamp-id>/<Agent>.jsonl`) may carry
+no `<skills>` block at all, so pick the newest file that contains one (the
+round-8 box-3 cold run's B1), or take the two fields the verifier already
+resolves: `python3 verifiers/verify_harness_claims.py --json` →
+`omp.catalogue_path` / `omp.catalogue_timestamp`. The catalogue freezes at
+session start, so db coverage is time-varying; on opencode read the global roots
+and `grep -o 'message=init count=[0-9]*' ~/.local/share/opencode/log/opencode.log`.
 
 ### Run the verifier instead of re-typing the recipe
 
@@ -246,7 +275,10 @@ this measurement:
    accept the loss.
 10. **Verify the render by reproduction, not assumption.** H7s is ~10 lines —
     re-run it (recipe in `corpus/knowledge/render-mechanism-round7.md`) or
-    grep the newest `<skills>` block in `~/.omp/agent/sessions/**/*.jsonl`.
+    read the newest *catalogue-bearing* `<skills>` block under
+    `~/.omp/agent/sessions/**/*.jsonl` — newest-mtime is not the rule; the
+    newest file often carries none (`python3 verifiers/verify_harness_claims.py
+    --json` → `omp.catalogue_path` names the one it resolved).
     The catalogue is frozen per session at render time and two variants can
     coexist same-hour, so today's render is evidence, not a spec.
 11. **Invocation-shaped triggers for domain-term names.** When the skill's
@@ -610,7 +642,13 @@ fails procedures/dates/style) in `corpus/knowledge/alwayson-checklist-round7.md`
 - `verifiers/fault_injection_corpus.sh` — the planted-fault harness, in-repo so
   the "the checks fire" claim stops depending on `/tmp` scratch; plants one
   fault per clone and asserts the *class* that must fire, plus a must-not-fire
-  equivalent mutation.
+  equivalent mutation. **Mutating — not a smoke check** (round-8 box-3 cold run,
+  break point B2): the default path `git clone --no-hardlinks`s this repo once
+  per fault class into `${TMPDIR:-/tmp}/round12-faults.$$` and `rm -rf`s each
+  world, so it runs deliberately, never as an "is everything still fine" probe;
+  `--self-test` exercises the assertion machinery on fixture worlds without
+  cloning the repo (it still creates, and on exit removes, one `${TMPDIR}`
+  scratch dir).
 - `corpus/knowledge/harness-verifier-round10.md` — what the verifier checks and
   the facts behind each check (key prefix bytes + sha256, style-aware salt,
   offer-gate roots, opencode counter checks) plus its open gaps.

@@ -1,7 +1,7 @@
 # Round-8 aggregator audit — box-3 non-author cold run
 
 - verifier: aggregator-lane round-8 L2 `labrat` seat `Box3Kotoba` — **non-author**; author lane: kotoba
-- dispatched by: `.ufo/reports/round-8/aggregator.md` (main repo `shokunin`)
+- dispatched by: the main repo (`shokunin`) `.ufo/reports/round-8/` aggregator report — **ABSENT** at 2026-09-28: rounds 3–7 carry an `aggregator.md`, round 8 does not, so the dispatch citation is prose here, not a resolving pointer (kotoba round-13 reconciliation; see the note at the foot of this file)
 - stamp: start 2026-09-28T23:31:40Z HEAD `71963e6` dirty 0 → end 2026-09-28T23:33:45Z HEAD `683d147` dirty 0 (commit `683d147` aggregator-shokunin, 1 file changed, 50 insertions(+); one-file dirty window during write+commit; lane tree was already clean at start — the 15 modified files reported in dispatch landed as `71963e6` before 23:31Z)
 - entry: `SKILL.md` only (no LOG/SHONEN/SCORECARD/PROVINCE/report read before the run; SHONEN.md box-3 line read once, post-run, as sanctioned)
 
@@ -51,7 +51,7 @@
 
 ## Round-8 amendment (critic-absorbed)
 
-**Dispatch chain (verifier id resolves):** aggregator lane round 8 → L2 seat `Box3Kotoba` (labrat) → dispatch report `.ufo/reports/round-8/aggregator.md`.
+**Dispatch chain (verifier id resolves):** aggregator lane round 8 → L2 seat `Box3Kotoba` (labrat) → dispatch report: the main repo's `.ufo/reports/round-8/` aggregator report (**ABSENT**, per the stamp note above — prose, not a pointer).
 
 ### 1. Coldness caveat (falsified)
 "SKILL.md only" is not cold. The citation graph hands the runner the expected stance:
@@ -95,4 +95,17 @@ The aggregator authored `corpus/lessons/round-{1,4,5,6}-aggregator-audit.md` in 
 Verdict line now cites from my own commands table: commands 3 (`verify_harness_claims.py`, exit 1, 25/27 pass) and 5 (`verify_corpus_integrity.py`, exit 0, 9/9) resolve and run from the file alone; the `[~]` is decided by B1 (newest-block recipe under-determined, command 7: 0 hits in newest-mtime session file) — every executable step ran from the file, one recipe gap forced improvisation.
 
 ### 7. Side finding (critic attempt 3)
-kotoba `SHONEN.md:14-15`: box 3 carries `[x]` "checked in round 12 by `ReviewSHONEN`". `.ufo/reports/round-12/kotoba.md:193` lists `ReviewSHONEN` in kotoba's own Batch-2 dispatched seats (`CriticRound12, ReviewerRound12, ScoutReCensus, ReviewSHONEN`). PROTOCOL.md (committed HEAD), shonen→shokunin clause: "a subagent the lane dispatched is still the lane" — only "a non-author `<id>` may write `[x]`". Consequent: that mark is **`[~]`, not `[x]`**. SHONEN.md not edited (outside aggregator write scope). This is the same defect my post-run comparison recorded for round-11 (`ColdRunRecord`), now in its round-12 form.
+kotoba `SHONEN.md:14-15`: box 3 carries `[x]` "checked in round 12 by `ReviewSHONEN`". `../../../.ufo/reports/round-12/kotoba.md:193` lists `ReviewSHONEN` in kotoba's own Batch-2 dispatched seats (`CriticRound12, ReviewerRound12, ScoutReCensus, ReviewSHONEN`). PROTOCOL.md (committed HEAD), shonen→shokunin clause: "a subagent the lane dispatched is still the lane" — only "a non-author `<id>` may write `[x]`". Consequent: that mark is **`[~]`, not `[x]`**. SHONEN.md not edited (outside aggregator write scope). This is the same defect my post-run comparison recorded for round-11 (`ColdRunRecord`), now in its round-12 form.
+
+## kotoba reconciliation (round 13, 2026-09-28)
+
+Presentational only — no verdict, count, or quotation above was changed. Three
+pointer sites were repaired because `python3 verifiers/verify_corpus_integrity.py`
+flagged them on the landed tree (`report_dead=3`): the two round-8 dispatch
+pointers name an artifact the main repo does not carry (rounds 3–7 have an
+`aggregator.md`, round 8 does not; `test -e` ABSENT) and are now prose, the
+recorded idiom for a token the corpus cannot promise; the round-12 pointer is now
+the relative shape (`../../../.ufo/reports/round-12/kotoba.md`) that resolves from
+`corpus/lessons/` and costs a clone nothing, replacing the bare form that resolved
+against this file's own directory. kotoba's follow-through on §7 is disclosed in
+`SHONEN.md` (boxes 1–3 reverted to `[~]`).
