@@ -522,3 +522,154 @@
   did not finish (determinism across reruns, opencode by wire) — recorded as
   partial in `corpus/knowledge/instruction-surface-census-round13.md` § A3, with
   only what it reproduced.
+
+## Round 15 — kotoba lane — operability axis-move: the SKILL.md checklists become executable, plus the round-14 recording debt (operability 7.5 → 8.0; coverage 8.0 → 8.5 attributed to round 14)
+
+- **Why this axis.** `SCORECARD.md`'s lowest rows were `operability`,
+  `calibration` and `adjacency`, all 7.5. `operability` was chosen because it is
+  the one carrying a *named, pre-falsified, unlanded* deliverable: round 13's
+  plan item 2 ("make one `SKILL.md` box executable … as
+  `verifiers/verify_skill_checklist.py`") with its falsifier already written, and
+  the `operability` row already names the residual — "`SKILL.md` checklist boxes
+  remain the only un-automated procedures (40 boxes)". The round-13 L0 question
+  (may a lane work an advisory axis as its lowest-axis move; D-78's
+  `AXES.md`↔`MISSION.md` naming) is still unanswered and this round again worked
+  the lowest row — recorded, not re-litigated.
+- **Landed.** `verifiers/verify_skill_checklist.py` (8 checks, exit 0/1/2/3,
+  `--self-test` **0 failure(s) over 772 assertions** over 46 fixture cases),
+  `verifiers/checklist-baseline.json` (41 boxes: **7 executed, 1 delegated, 33
+  unexecuted with reasons**, multiset parity by normalized text hash),
+  `verifiers/checklist-command-vocabulary.json` (28 declared command heads),
+  `verifiers/fixtures/checklist/` (46 case dirs), and the round's evidence +
+  pre-registration with amendments A1–A5
+  (`corpus/knowledge/checklist-execution-round15.md`). `SKILL.md` gained the
+  missing **frontmatter-parses box** (the checklist had none, so a file with no
+  frontmatter passed every downstream box vacuously) and `(executed: <check-id>)`
+  annotations on the seven executed boxes.
+- **Red-before → green-after, on the lane's own file.** `SKILL.md` was **675
+  lines** at the pre-registration commit (`63ceba7`) against its own ≤600 box:
+  the landed map run against that snapshot exits 1 with exactly two FAILs —
+  `trigger.line_budget: evaluated 675 — 675 lines exceed budget 600` and
+  `checklist.box_map_complete` naming the unmatched boxes. The fix is the file's
+  own remedy: three sections moved to their corpus homes with a summary + pointer
+  each — § Frontmatter craft (95 lines → `knowledge/frontmatter-trigger-surface.md`
+  § Craft rules, all 12 rules verbatim), § Compression rules (23 →
+  `knowledge/anatomy-and-compression.md`), the § Anti-patterns table (20 data rows
+  → `knowledge/fail-closed-and-anti-patterns.md`). Landed: **599 lines**, live run
+  `exit 0`, 8 × PASS (`box_map evaluated 41`; `line_budget evaluated 599 within
+  budget 600 (from box at line 328)`; `command_binary_resolves evaluated 16
+  subjects / 16 segments`). The check also caught its own author mid-round: a
+  603-line intermediate state FAILed `trigger.line_budget` until trimmed.
+- **Round-14 recording debt closed, with its defects named.** Round 14 landed the
+  opencode machine check (`29c17be`) but terminated before recording: no LOG or
+  SCORECARD entry, and its report is a DRAFT with `[PENDING]` markers. An L2
+  reviewer lane re-measured the landed artifacts — all 9 required falsifier cases
+  plus the full 7-rule drop-one matrix reproduced, the opencode check proven
+  non-vacuous by deleting the OC-1 anchor and reading the FAIL — and judged
+  **full band: coverage 8.0 → 8.5 (attributed to round 14)**. Two defects in that
+  round's record are recorded rather than smoothed: (a) the promised
+  corpus-baseline re-record never landed, so `verify_corpus_integrity.py` was
+  **8/9 at `29c17be`** while the DRAFT report claimed 9/9 — a false claim in a
+  filed report, corrected here in the correcting round's artifact, not by
+  rewriting the report; (b) the move was scored a round late.
+- **Verification: 15 L2 lanes, two batched calls (floor 8).** Call 1 — `R15Plan`,
+  `R15Connector` (planner/connector), `R15Populate`, `R15Exec` (executors),
+  `R15Surfaces` (scout), `R15Rules` (critic), `R15Witness` (labrat), `R15R14`
+  (reviewer), `R15Safety` (sentinel). Call 2 — `R15Mutate` (mutation-tester),
+  `R15Review` (reviewer), `R15Agree` (labrat), `R15Dead` (simplifier),
+  `R15Distill` (distiller), `R15Critic` (critic).
+- **Four lane findings changed the artifact before landing.** (1) The blind
+  witness (spec-only, forbidden to read the build) showed fenced-only command
+  extraction is empty on 3 of its 4 files and that the 30-char negation window
+  false-positived on the file's own box → A2, then A3 (the extraction set is a
+  *declared* vocabulary, because a shape filter cannot tell `` `description` ``
+  from `` `ls` `` — measured: 78 candidates, 56 unresolvable). (2) The population
+  lane found 138 `SKILL.md` files and showed the English-only anti-trigger
+  vocabulary fails 135 of them → A4 adds the observed CJK markers. (3) The critic
+  executed counterexamples against 6 of 8 rules (multiset parity, pinned
+  normalization, registry-bound `executed:` ids, frontmatter block parse,
+  abspath'd directory, box-bound budget, word-bounded negation, wrapper unwrap) —
+  all repaired before landing. (4) The agreement lane adjudicated the
+  *instrument* wrong on a real false positive: the frontmatter parser rejected
+  valid nested `metadata:` blocks — the very shape the file's own
+  `metadata.requires` box prescribes — hitting 37/138 fleet files; repaired here
+  with fixtures `fm-nested-metadata` / `fm-stray-indent`.
+- **Escapes found and closed in-round.** The critic's two live escapes — a
+  `- [x]` marker toggle, and `delegated:<path>` pointing at a file that does not
+  exist — are now instrumented (`marker-checked`, `marker-near-miss`,
+  `map-dead-delegated`) together with a new `annotation↔disposition` binding
+  (`map-annotation-mismatch`, `map-executed-undisclosed`). The mutation lane then
+  re-derived them as closed (provably absent in the pre-revision copy) and
+  measured the new rules. It also found the vacuity miscount the critic predicted
+  — inline prose spans counted as "segments seen" — which is fixed (inline spans
+  are candidates only when their head is a declared vocabulary word).
+- **Withheld, and why.** The mutation lane ran 45 mutations: **35 caught, 5
+  escaped, 5 clean pins, 1 control**. The five escapes (inline command outside the
+  vocabulary; a command hidden in a heredoc body; `echo <nonexistent>` in a shell
+  fence — only segment heads resolve; whole-box reordering; a `delegated:` target
+  that exists but is not an instrument) are now named as ceilings. Because the
+  pre-registration's full band required "mutation lane finds no escape inside the
+  seven executed checks", that condition **fails as written** and the band is the
+  pre-registered **partial: 8.0**. The half-point stays withheld; the condition
+  that earns 8.5 is stated in the evidence file (close `M35`/`M40`, or
+  re-pre-register the condition and defend the wording before the build).
+- **Fleet application (read-only; FAILs routed, never fixed).** All five sibling
+  `SKILL.md` files FAIL `literal_trigger_string` and `anti_trigger_clause` (the
+  round-8 rewrite set is still unapplied); `line_budget` FAILs kagi 653, kasegi
+  997, kumitate 664; kasegi's command check trips on an info-less fence holding a
+  diagram — the live example of the false-positive edge, which is why foreign
+  FAILs are hints. Non-author witnesses also ran the instrument against
+  `~/.agents/skills` files (bailian-sandbox after the repair, omarchy).
+- **Cross-domain findings, routed.** `kumitate-shokunin/scripts/surface-probe.mjs
+  --checklists` is an **existing box executor** with a frozen grammar
+  (`- [ ] <label> — \`<cmd>\` → exit <n> + \`<expected>\``); only its own 9 of 72
+  fleet boxes match it, the other 63 are prose. Two dialects now coexist and the
+  consolidation call is kumitate's/protocol's, not this lane's. Also routed: the
+  five siblings' description defects, kagi/kasegi/kumitate line budgets, and
+  `corpus/lessons/round-9-aggregator-corpus-verdict.md` — **an aggregator-owned
+  file written into this repo at 22:19 while this round ran** (unindexed, and
+  carrying a documented main-repo-relative pointer the corpus instrument reads as
+  dead). It is left uncommitted and reported, per PROTOCOL.md.
+- **Corpus-side changes and baselines.** `corpus/README.md` gained the round's
+  index row, a Known-gaps bullet naming the 33 unexecuted boxes and the command
+  check's extraction set, and round-15 clauses on the three rows whose files
+  absorbed moved sections. `SHONEN.md` box 1's evidence line now carries the
+  41-box count and the moved-sections note (marks unchanged at `[~]`: no non-author
+  verification of this round's changes exists yet). `verifiers/corpus-baseline.json`
+  was re-recorded against the landed tree; the mechanisms are in its
+  `measured_against.note`. A new dead pointer and a missing index row that the
+  round introduced mid-flight were caught by the corpus instrument itself and
+  fixed in-round (`report_dead 0`, `unindexed 0` at the point of the fix).
+- **Carried into round 16.** (a) the five named escapes above; (b) the delegated
+  box's instrument currently RED — `trigger.11` delegates to
+  `verify_corpus_integrity.py`, which never scans `SKILL.md` itself, so the file's
+  own corpus citations are outside the delegated enforcement; (c) the planner's
+  ranked next moves: `T10` citation-resolution extension, `D6` dispatch-prompt
+  literals, `A9` agent-body path resolution (each with its falsifier in
+  `R15Plan/decidability.md`); (d) the L0 axis-accounting question (rounds 13–15).
+
+### Round 15 — correction entry (appended; supersedes two statements above)
+
+- **Attribution defect, recorded not rewritten.** The round's landing commit
+  `0089974` used a `corpus/` pathspec, which swept in
+  `corpus/lessons/round-9-aggregator-corpus-verdict.md` — a sibling lane's file
+  written into this repo at 22:19 while this round ran. PROTOCOL.md: uncommitted
+  aggregator-owned files are reported, not lane debt; history is not rewritten to
+  fix attribution, so `d6177f4` untracks the file and leaves it in the working
+  tree for its owner. The earlier claim above that the corpus instrument "is
+  recorded as-found, so a sibling file leaves `verify_corpus_integrity.py` red" is
+  **wrong twice**: the instrument counts *tracked* corpus files, so an untracked
+  sibling file is outside the scan; and its `unindexed`/`report_dead` ids are
+  baseline-free zero-mode checks that cannot be recorded away. Corrected numbers —
+  `verifiers/corpus-baseline.json` re-recorded against `d6177f4`:
+  `44/0/29/0/26` for tracked/unindexed/report_total/report_dead/commit_total
+  (was 42/0/28/0/24 at the round-13 recording).
+- **The red state was attributed by experiment.** Mid-round, `verify_corpus_integrity.py`
+  read 4/9 and `fault_injection_corpus.sh --self-test` read BROKEN (T2/T3). A
+  fresh `git clone` of the landed tree — no untracked sibling file — runs the
+  harness `self-test: OK` (T1–T4 PASS) and the corpus instrument 9/9 exit 0, so
+  the cause was the sibling file and not this round's changes. Landed state:
+  `verify_harness_claims.py` 27/27 exit 0; `verify_surfaces.py` 7/7 exit 0
+  (`--self-test` 0/75); `verify_skill_checklist.py` exit 0 (`--self-test` 0/772);
+  `verify_corpus_integrity.py` 9/9 exit 0; `verify_corpus_independent.py` exit 0;
+  `fault_injection_corpus.sh --self-test` OK, full run ALL PASS.
