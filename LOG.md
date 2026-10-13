@@ -885,3 +885,10 @@
   markdown files, `agentdef.*`, `M22`, `M38`. Named ceilings: quoted/trailing
   tilde delimiters, terminator whitespace, closed citation roots, anchors/pins/
   content, symlinks, and the zero-live `delegated:` class.
+
+## 2026-10-13 — HOURS.md ledger opened
+
+- Operator seed per PROTOCOL.md §Craft-hours: shonen→shokunin now requires
+  ≥10,000 verified craft-hours AND the SHONEN gate. Ledger starts at 0;
+  instrumented rounds accrue collective in-domain lane-minutes.
+- Evidence: fleet commit; PROTOCOL.md §Craft-hours.
