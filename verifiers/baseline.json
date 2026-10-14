@@ -1,129 +1,133 @@
 {
-  "as_of": "2026-09-28T20:47:40-03:00",
-  "host": "vgpnk",
-  "measured_against": {
-    "omp_binary_sha256": "55016ef5317af556975f3a3dce02c8db41fc1d05d15b65147814fde019c2e203",
-    "omp_binary_mtime": "2026-09-28 15:14:34.865414529 -0300",
-    "opencode_binary_sha256": "f9dab32248695e9ebd56b16a1921798fd85112cf5a69c7dfd0cabc1e17be4a11",
-    "command": "python3 verifiers/verify_harness_claims.py --no-baseline --json",
-    "round13_move": "omp.db.rows 17 -> 18 and omp.db.rows_wellformed 17 -> 18. The binaries are unchanged (sha256 above equals the round-12 recording), all 17 live keys still reproduce (`omp.cache.keys_reproduced=17`, `omp.cache.verified_skills=17`, `omp.offered.skills=17`). Mechanism, recomputed with this verifier's own omp_key(): the extra row is sha256(template | 0x00 | 'ufo' | 0x00 | description-as-loaded), key 1742fee805bd6832..., for the project-scoped ufo copy ~/Projects/origin-work/ufo-fsd-alpha/skills/ufo/SKILL.md (690 chars, byte-identical across the 10 substrate-pack copies) — a session running under that tree offered it, and the cache is keyed per (name, description) pair, so it accumulates rows the live ~/.omp/agent/skills set never had. The count is a change detector; the invariants are keys_reproduced / verified_skills."
+ "as_of": "2026-10-14T09:58:47.702772-03:00",
+ "host": "vgpnk",
+ "measured_against": {
+  "omp_binary_sha256": "ff59fc1b484c1308a7247ad208305005627b3fac62b440737c2b1835ac32074e",
+  "omp_binary_mtime": "2026-10-14T08:39:28.350702-03:00",
+  "opencode_binary_sha256": "d9123b9bcdb0a31f7ab9fe9812b58a9dc1768ad6d97e7b276dff1181813218c9",
+  "command": "python3 verifiers/verify_harness_claims.py --no-baseline --json",
+  "round18_move": "omp binary rebuilt 2026-10-14 (sha 55016ef5→ff59fc1b), opencode replaced by v2.0.26 (sha f9dab322→d9123b9b). Live skill set shrank 17→7 (~/.agents/skills now the only non-empty user root; the two dangling roots are gone). db holds 14 rows (7 skills × 2 description generations) — the cache is append-only per (name, description) so stale generations persist but never serve: keys_reproduced=7 with 0 misses. The catalogue guard now floors at min(10, len(offered)) so a 7-skill catalogue verifies (newest catalogue = this lane's session). The opencode log grammar changed: `init count`/`evaluated permission=skill`/`duplicate skill name` no longer appear (all expected 0); the live analogue is `skills rescanned` (skills_rescan_max=3 — only opencode-root skills are rescanned, not omp's). Legacy opencode pins are re-recorded at their new live values."
+ },
+ "checks": {
+  "omp.elf.template_sha256": {
+   "expect": "c1f03c8e248eb40ec7735baab67f686fc2f254e00d2a0241ff220628461bdb51",
+   "mode": "equal"
   },
-  "checks": {
-    "omp.elf.template_sha256": {
-      "expect": "c1f03c8e248eb40ec7735baab67f686fc2f254e00d2a0241ff220628461bdb51",
-      "mode": "equal"
-    },
-    "omp.elf.template_bytes": {
-      "expect": 273,
-      "mode": "equal"
-    },
-    "omp.db.rows": {
-      "expect": 18,
-      "mode": "equal"
-    },
-    "omp.db.rows_wellformed": {
-      "expect": 18,
-      "mode": "equal"
-    },
-    "omp.offered.skills": {
-      "expect": 17,
-      "mode": "equal"
-    },
-    "omp.offered.dangling": {
-      "expect": 2,
-      "mode": "equal"
-    },
-    "omp.cache.keys_reproduced": {
-      "expect": 17,
-      "mode": "equal"
-    },
-    "omp.cache.misses": {
-      "expect": 0,
-      "mode": "zero"
-    },
-    "omp.descriptions.over_cliff": {
-      "expect": 17,
-      "mode": "positive"
-    },
-    "omp.names.mismatches": {
-      "expect": [],
-      "mode": "zero"
-    },
-    "omp.descriptions.missing": {
-      "expect": [],
-      "mode": "zero"
-    },
-    "omp.descriptions.unmodelled": {
-      "expect": 0,
-      "mode": "zero"
-    },
-    "omp.catalogue.found": {
-      "expect": true,
-      "mode": "equal"
-    },
-    "omp.catalogue.total": {
-      "expect": 17,
-      "mode": "equal"
-    },
-    "omp.catalogue.matched": {
-      "expect": 17,
-      "mode": "equal"
-    },
-    "omp.catalogue.missing_names": {
-      "expect": [],
-      "mode": "zero"
-    },
-    "omp.cache.verified_skills": {
-      "expect": 17,
-      "mode": "equal"
-    },
-    "oc.log.init_count_max": {
-      "expect": 18,
-      "mode": "equal"
-    },
-    "oc.roots.names_plus_builtin": {
-      "expect": 18,
-      "mode": "equal"
-    },
-    "oc.log.available_skills_hits": {
-      "expect": 0,
-      "mode": "zero"
-    },
-    "oc.log.skills_tag_hits": {
-      "expect": 0,
-      "mode": "zero"
-    },
-    "oc.dup.roots_both_sided": {
-      "expect": 3,
-      "mode": "equal"
-    },
-    "oc.dup.onesided_roots": {
-      "expect": [],
-      "mode": "zero"
-    },
-    "oc.log.init_count_monotone": {
-      "expect": [],
-      "mode": "zero"
-    },
-    "oc.permission.skill_lines": {
-      "expect": 471,
-      "mode": "at_least"
-    },
-    "oc.permission.skill_allow": {
-      "expect": 471,
-      "mode": "at_least"
-    },
-    "oc.roots.plugins_cache": {
-      "expect": false,
-      "mode": "zero"
-    }
+  "omp.elf.template_bytes": {
+   "expect": 273,
+   "mode": "equal"
   },
-  "notes": {
-    "omp.db.rows": "Rows in ~/.omp/agent/skill-descriptions.db are keyed by sha256(template | 0x00 | name | 0x00 | description-as-loaded) and are never pruned, so the count grows whenever the host ever offers a new (name, description) pair — including a project-scoped copy of a skill the user root also carries (round 13: a ufo copy under ~/Projects/origin-work/ufo-fsd-alpha). The equal pin is a change detector: a move means 're-record deliberately, naming the mechanism', not 'the live catalogue changed'. keys_reproduced and verified_skills are the invariants.",
-    "omp.offered.dangling": "recorded dangling entries: sekhmet, xbrd in ~/.agents/skills (symlinks into a vanished port). Relinking or deleting them changes this count - a deliberate baseline move, not drift.",
-    "omp.elf.template_sha256": "sha256 of the 273-byte compression prompt embedded in the omp ELF; a new omp build or a prompt edit moves it, which invalidates every cache key.",
-    "oc.log.init_count_max": "max of `message=init count=N`; opencode logs only counts, never name sets.",
-    "oc.dup.existing_claude/oc.dup.duplicate_claude": "both must stay > 0 - that is the evidence for last-parsed-wins under unbounded discovery concurrency.",
-    "omp.catalogue.matched": "newest captured <skills> block; every line must byte-equal that skill's cached description (the freeze means a lagging block is the signal, not noise)"
+  "omp.db.rows": {
+   "expect": 14,
+   "mode": "equal"
+  },
+  "omp.db.rows_wellformed": {
+   "expect": 14,
+   "mode": "equal"
+  },
+  "omp.offered.skills": {
+   "expect": 7,
+   "mode": "equal"
+  },
+  "omp.offered.dangling": {
+   "expect": 0,
+   "mode": "equal"
+  },
+  "omp.cache.keys_reproduced": {
+   "expect": 7,
+   "mode": "equal"
+  },
+  "omp.cache.misses": {
+   "expect": 0,
+   "mode": "zero"
+  },
+  "omp.descriptions.over_cliff": {
+   "expect": 7,
+   "mode": "positive"
+  },
+  "omp.names.mismatches": {
+   "expect": [],
+   "mode": "zero"
+  },
+  "omp.descriptions.missing": {
+   "expect": [],
+   "mode": "zero"
+  },
+  "omp.descriptions.unmodelled": {
+   "expect": 0,
+   "mode": "zero"
+  },
+  "omp.catalogue.found": {
+   "expect": true,
+   "mode": "equal"
+  },
+  "omp.catalogue.total": {
+   "expect": 7,
+   "mode": "equal"
+  },
+  "omp.catalogue.matched": {
+   "expect": 7,
+   "mode": "equal"
+  },
+  "omp.catalogue.missing_names": {
+   "expect": [],
+   "mode": "zero"
+  },
+  "omp.cache.verified_skills": {
+   "expect": 7,
+   "mode": "equal"
+  },
+  "oc.log.init_count_max": {
+   "expect": 0,
+   "mode": "equal"
+  },
+  "oc.roots.names_plus_builtin": {
+   "expect": 7,
+   "mode": "equal"
+  },
+  "oc.log.available_skills_hits": {
+   "expect": 0,
+   "mode": "zero"
+  },
+  "oc.log.skills_tag_hits": {
+   "expect": 0,
+   "mode": "zero"
+  },
+  "oc.dup.roots_both_sided": {
+   "expect": 0,
+   "mode": "equal"
+  },
+  "oc.dup.onesided_roots": {
+   "expect": [],
+   "mode": "zero"
+  },
+  "oc.log.init_count_monotone": {
+   "expect": [],
+   "mode": "zero"
+  },
+  "oc.permission.skill_lines": {
+   "expect": 0,
+   "mode": "at_least"
+  },
+  "oc.permission.skill_allow": {
+   "expect": 0,
+   "mode": "at_least"
+  },
+  "oc.roots.plugins_cache": {
+   "expect": false,
+   "mode": "zero"
+  },
+  "oc.log.skills_rescan_max": {
+   "expect": 3,
+   "mode": "equal"
   }
+ },
+ "notes": {
+  "omp.db.rows": "Rows in ~/.omp/agent/skill-descriptions.db are keyed by sha256(template | 0x00 | name | 0x00 | description-as-loaded) and are never pruned, so the count grows whenever the host ever offers a new (name, description) pair — including a project-scoped copy of a skill the user root also carries (round 13: a ufo copy under ~/Projects/origin-work/ufo-fsd-alpha). The equal pin is a change detector: a move means 're-record deliberately, naming the mechanism', not 'the live catalogue changed'. keys_reproduced and verified_skills are the invariants.",
+  "omp.offered.dangling": "recorded dangling entries: sekhmet, xbrd in ~/.agents/skills (symlinks into a vanished port). Relinking or deleting them changes this count - a deliberate baseline move, not drift.",
+  "omp.elf.template_sha256": "sha256 of the 273-byte compression prompt embedded in the omp ELF; a new omp build or a prompt edit moves it, which invalidates every cache key.",
+  "oc.log.init_count_max": "max of `message=init count=N`; opencode logs only counts, never name sets.",
+  "oc.dup.existing_claude/oc.dup.duplicate_claude": "both must stay > 0 - that is the evidence for last-parsed-wins under unbounded discovery concurrency.",
+  "omp.catalogue.matched": "newest captured <skills> block; every line must byte-equal that skill's cached description (the freeze means a lagging block is the signal, not noise)"
+ }
 }

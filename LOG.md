@@ -467,8 +467,10 @@
   `omp.db.rows` + `rows_wellformed` 17 → 18 — recomputed with the verifier's own
   `omp_key()`: the extra row is `name=ufo` against the *project-scoped* copy
   `~/Projects/origin-work/ufo-fsd-alpha/skills/ufo/SKILL.md` (690-char description,
-  identical across the 10 substrate packs), i.e. the cache is append-only per
-  (name, description) pair and its count is a change detector. The binaries are
+  identical across the 10 substrate packs — 2026-10-14 errata: historical; the
+  tree moved to `~/Projects/ufo-fsd-alpha` and no longer carries that byte), i.e.
+  the cache is append-only per (name, description) pair and its count is a
+  change detector. The binaries are
   unchanged (sha256 equal to the round-12 recording), all 17 live keys still
   reproduce. `verifiers/corpus-baseline.json`: re-recorded against this round's
   landing commit (see that commit's message for the moved numbers).
@@ -885,3 +887,81 @@
   markdown files, `agentdef.*`, `M22`, `M38`. Named ceilings: quoted/trailing
   tilde delimiters, terminator whitespace, closed citation roots, anchors/pins/
   content, symlinks, and the zero-live `delegated:` class.
+
+## Round 18 — re-census against the moved substrate (2026-10-14)
+
+The fleet's OMP-era lanes sat still because their substrate moved twice at
+once: the origin tree relocated (`~/Projects/origin-work/ufo-fsd-alpha` →
+`~/Projects/ufo-fsd-alpha`, HEAD `964f443e`) and **both harness binaries were
+rebuilt** — `omp` `55016ef5…` → `ff59fc1b…`, opencode `f9dab322…` → `d9123b9b…`
+(v2.0.26). This lane's gates never hardcode the origin path — they probe live
+substrate artifacts — so the origin move itself was a citation problem
+(historical pointers, 4 sites), while the **binary rebuilds** were the real
+drift: the session-log grammar, the offered-skill set, and opencode's
+instruction-loader shapes all changed under the frozen pins.
+
+### Failure classification (round's survey)
+
+- **(a) stale `--src` defaults:** **none** — this lane's gates never took
+  `--src`; they probe the live host. The origin-work citations were the only
+  path-class defect (see below).
+- **(b) citations to upstream-deleted/moved files:** **4** — `SKILL.md` §
+  truncator-key example (690-char ufo SKILL.md at the dead origin-work path),
+  `LOG.md` round-13 baseline note (same file), `corpus/knowledge/
+  harness-verifier-round10.md` quoted `ports/xbgst-codex/skills` symlink root,
+  `corpus/knowledge/opencode-extraction-round14.md` (the whole v1 rule set —
+  the *binary's* anchors are gone, equivalent severity). All marked historical
+  with append-only errata; no claim deleted.
+- **(c) moved-and-restructured citations:** **0**.
+- **(d) genuine lane defects:** **0** — every failing check traced to
+  substrate drift, not a verifier bug, **except one lane-side gap** the drift
+  exposed: the catalogue guard demanded ≥10 matched names unconditionally,
+  which wrongly hard-codes a 17-skill world. Now `min(10, len(offered))`.
+
+### Live re-derivation (measured, never recalled)
+
+- **omp** (`ff59fc1b…`): 7 offered skills in `~/.agents/skills` (was 17; the
+  two dangling `sekhmet`/`xbrd` symlinks are gone), cache db 14 rows = 7
+  skills × 2 description generations — append-only rows persist, never serve:
+  `keys_reproduced=7`, `misses=0`. Newest `<skills>` catalogue parses 7/7
+  against cache rows. `baseline.json` re-recorded with named mechanism
+  (`measured_against.round18_move`).
+- **opencode** (`d9123b9b…`, v2.0.26): the log grammar changed —
+  `init count`, `evaluated permission=skill`, `duplicate skill name` no longer
+  appear (expected 0); the live analogue is `skills rescanned`
+  (`skills_rescan_max=3`, new check `oc.log.skills_rescan_max`).
+- **opencode instruction model re-derived from the bundle:** the v1
+  OC-1…OC-5 anchors are gone. New OC-1…OC-6 set over
+  `ConfigInstructionPlugin.projectSource` + `targets:["AGENTS.md"]` all-match
+  walk-up, `X(r.config,"AGENTS.md")` global candidate, schema-declared
+  `ambient instructions` (witness only — consumer unproven),
+  `ReadTool.Plugin` + `SessionInstructions.load` read-hook, the
+  `OPENCODE_DISABLE_PROJECT_CONFIG` env gate, and the API-managed
+  `/instructions/entries` + `session.instructions.entry.put` subsystem. Census
+  § B rewritten, § C gains `opencode:config/instructions` (excluded, witness
+  only), fixture drops regenerated for the new anchors.
+
+### Verdict lines — before → after
+
+- `verify_harness_claims.py`: **crash** (`KeyError: 'catalogue_timestamp'`,
+  catalogue 0/0, guard floor 10 under a 7-skill world) → `28/28 checks pass`.
+- `verify_surfaces.py`: `FAIL literal_present` (CONTEXT.md absent from omp
+  dump) + `FAIL opencode_extract` (9/9 classes produced by no rule) →
+  `7/7 PASS` (38 ids, 9 excluded, opencode 5/5 classes from 6/6 rules).
+  Self-test 70/70.
+- `verify_skill_checklist.py` — unchanged, `exit 0` (552 lines, 42 + 125
+  citation tokens resolve).
+- `verify_corpus_integrity.py` — unchanged, `9/9 checks pass`.
+- `verify_corpus_independent.py` — unchanged, `exit 0`.
+- `fault_injection_corpus.sh --self-test` — unchanged, `OK`.
+
+### Carried debt
+
+- The v1 opencode extraction doc (`opencode-extraction-round14.md`) is
+  historical evidence only; its live claims are discharged by errata, and the
+  current rule set stands on one author's reading — no blind second witness
+  this round. Unblock: a scout re-enumerates v2.0.26 instruction surfaces and
+  compares against OC-1…OC-6.
+- `skills rescanned` (opencode log) is a max over rescans, not a per-skill
+  record — if opencode gains a `names+builtin`-style line, the baseline should
+  re-pin the richer grammar. Unblock: opencode bump re-runs the verifier.

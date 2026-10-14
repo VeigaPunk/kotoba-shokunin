@@ -1,19 +1,18 @@
-# synthetic opencode strings-dump fixture (round 14) — clean anchors + one extra
-# config join. OC-2 derives `opencode:config/RULES.md` from the shape, which the
-# fixture baseline does not declare: extraction must report an undeclared class
-# rather than silently accepting it.
-y=["AGENTS.md",...!t.disableClaudeCodePrompt?["CLAUDE.md"]:[],"CONTEXT.md"]
-n=[X.join(r.config,"AGENTS.md"),...!t.disableClaudeCodePrompt?[X.join(r.home,".claude","CLAUDE.md")]:[]]
-X.join(r.config,"RULES.md")
-for(let O of T.instructions){if(O.startsWith("https://")||O.startsWith("http://"))continue}
-(T.instructions??[]).filter((q)=>q.startsWith("https://")||q.startsWith("http://"))
-`Instructions from: ${q}`
-s.fn("Instruction.resolve")
-<system-reminder>
-# OC-5  resolution switch: project walk-up versus config-only (owns no class id)
-if(!u.OPENCODE_DISABLE_PROJECT_CONFIG)return yield*e.globUp(T,d.directory,d.worktree)
-return yield*e.globUp(T,r.config,r.config)
-# OC-6  second instruction subsystem (instruction-context, ambient all-match)
-A=M.fn("InstructionContext.observe")(function*(){let U=new Set(yield*H.up({targets:["AGENTS.md"],start:S,stop:$}))})
-BP=XH.Key.make("core/instructions")
-kX=i({name:"system-context-builtins",layer:tX,deps:[s_.node]})
+# synthetic opencode strings-dump fixture (round 18) — clean anchors plus one
+# extra OC-2-style join: `X(r.config,"RULES.md")` matches the global-candidate
+# regex shape? NO — the rule anchors on the literal "AGENTS.md", so this extra
+# join must NOT be extracted; instead the fixture plants an extra *API-ish*
+# anchor? Also no. The real extra: a second project targets array that is NOT
+# a rule anchor — proves the rules are anchored, not literal-greedy.
+ConfigInstructionPlugin.projectSource
+i.up({targets:["AGENTS.md"],start:_,stop:P,type:"file"})
+U=yield*i.resolve(j5(r.config,"AGENTS.md"))
+instructions:t.pipe(E,b).annotate({description:"Additional paths or URLs supplying ambient instructions"})
+ReadTool.Plugin
+l.up({targets:[a$],start:B,stop:z,type:"file"})
+a$="AGENTS.md"
+SessionInstructions.load
+process.env.OPENCODE_DISABLE_PROJECT_CONFIG
+/api/experimental/session/:sessionID/instructions/entries
+session.instructions.entry.put
+i.up({targets:["RULES.md"],start:_,stop:P,type:"file"})

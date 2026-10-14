@@ -373,14 +373,17 @@ def omp_newest_catalogue(sessions: Path, db_descriptions: dict[str, str], known:
     the catalogue freezes at session start and the render is
     `cache.get(key) ?? previewSkillDescription`, so every line of the newest
     block must byte-equal a cached description. Guards: a block counts only if
-    it parses into ≥10 `- name: description` lines and ≥10 of the names are
-    known skills — the raw literal `<skills>` count is contaminated by captured
+    it parses into ≥`min_entries` `- name: description` lines and ≥`min_entries`
+    of the names are known skills, where `min_entries` is `min(10, len(known))`
+    — the floor tracks the offer set (a 7-skill catalogue is real when 7 skills
+    are offered), while raw `<skills>` literals stay contaminated by captured
     transcript/tool text (round-10 sentinel: 8194 literals vs 4116 catalogues).
     """
     if not sessions.is_dir():
         raise Inconclusive(f"omp session log dir not found: {sessions}")
     block_re = re.compile(r"<skills>(.*?)</skills>", re.S)
     iso_re = re.compile(r"20\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d+)?Z")
+    min_entries = min(10, len(known))
     best_epoch = -1.0
     best: tuple[str, str, list[tuple[str, str]]] | None = None
     files = 0
@@ -409,7 +412,8 @@ def omp_newest_catalogue(sessions: Path, db_descriptions: dict[str, str], known:
                                     for z in block.group(1).splitlines()
                                     if z.startswith("- ") and ": " in z[2:]
                                 ]
-                                if len(entries) < 10 or sum(n in known for n, _ in entries) < 10:
+                                if len(entries) < min_entries or \
+                                        sum(n in known for n, _ in entries) < min_entries:
                                     continue
                                 hit = iso_re.search(line)
                                 if hit:
@@ -456,6 +460,13 @@ def oc_observations(log: Path, binary: Path) -> dict:
     init_counts = [int(n) for n in re.findall(r"message=init count=(\d+)", text)]
     dup_lines = re.findall(r"duplicate skill name.*", text)
     perm_lines = re.findall(r"evaluated permission=skill.*", text)
+    # opencode 2.x (the log grammar after the 2.0.x rewrite): the skill loader
+    # logs `message="skills rescanned" … skills="[\"a\",\"b\"]"` per rescan
+    # event. The max name count is the live-era analogue of `init count`.
+    rescan_counts = [
+        m.group(1).count('\\"') // 2
+        for m in re.finditer(r'message="skills rescanned"[^\n]*skills="\[([^\]]*)\]"', text)
+    ]
 
     roots = [HOME / ".agents/skills", HOME / ".config/opencode/skills", HOME / ".claude/skills"]
     names: set[str] = set()
@@ -483,6 +494,8 @@ def oc_observations(log: Path, binary: Path) -> dict:
 
     return {
         "init_count_max": max(init_counts) if init_counts else 0,
+        "skills_rescan_max": max(rescan_counts) if rescan_counts else 0,
+        "skills_rescan_lines": len(rescan_counts),
         "init_count_lines": len(init_counts),
         "init_count_monotone_violations": monotone_violations,
         "root_live_names": len(names),
@@ -522,6 +535,7 @@ CHECKS: dict[str, tuple[str, str]] = {
     "omp.descriptions.unmodelled": ("zero", "unmodelled_count"),
     "omp.catalogue.found": ("equal", "catalogue_found"),
     "omp.catalogue.total": ("equal", "catalogue_total"),
+    "oc.log.skills_rescan_max": ("equal", "skills_rescan_max"),
     "omp.catalogue.matched": ("equal", "catalogue_matched"),
     "omp.catalogue.missing_names": ("zero", "catalogue_missing_names"),
     "omp.cache.verified_skills": ("equal", "verified_skills"),
@@ -646,13 +660,18 @@ def main(argv: list[str] | None = None) -> int:
     print(f"omp      template={omp['template_sha256'][:16]}… ({omp['template_bytes']} B)  "
           f"db_rows={omp['db_rows']}  offered={omp['offered_skills']}  "
           f"keys_reproduced={omp['keys_reproduced']}  misses={omp['cache_misses']}")
-    print(f"         newest catalogue {omp['catalogue_timestamp']} "
-          f"({omp['catalogue_matched']}/{omp['catalogue_total']} lines from cache, "
-          f"{omp['session_files_scanned']} session files scanned)")
+    if omp["catalogue_found"]:
+        print(f"         newest catalogue {omp['catalogue_timestamp']} "
+              f"({omp['catalogue_matched']}/{omp['catalogue_total']} lines from cache, "
+              f"{omp['session_files_scanned']} session files scanned)")
+    else:
+        print(f"         no qualifying catalogue found "
+              f"({omp['session_files_scanned']} session files scanned)")
     dangling = omp["dangling_entries"]
     if dangling:
         print(f"         dangling skill entries: {', '.join(f'{k} ({v})' for k, v in dangling.items())}")
-    print(f"opencode init_count_max={oc['init_count_max']}  names+builtin={oc['roots_plus_builtin']}  "
+    print(f"opencode init_count_max={oc['init_count_max']}  rescan_skills_max={oc['skills_rescan_max']}  "
+          f"names+builtin={oc['roots_plus_builtin']}  "
           f"<available_skills>={oc['available_skills_hits']}  "
           f"skill_perm={oc['permission_skill_allow']}/{oc['permission_skill_lines']}")
     for row in results:

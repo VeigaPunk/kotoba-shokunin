@@ -109,6 +109,10 @@ holds 15 live skills; `~/.omp/agent/skills` adds `kimi-webbridge` and `ufo`;
     (symlinks into ~/Projects/origin-work/ufo-fsd-alpha/ports/xbgst-codex/skills)
 ```
 
+(2026-10-14 errata: that path is historical — the tree moved to
+`~/Projects/ufo-fsd-alpha` and the `ports/xbgst-codex` subtree no longer
+exists; the observation stands for the tree as it was then.)
+
 The dangling pair is recorded as a baseline number (`omp.offered.dangling` = 2),
 not dropped: a broken symlink is exactly how a catalogue silently shrinks. It
 also explains why the host shows 17 offered names while 19 directories exist.

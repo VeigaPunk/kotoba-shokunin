@@ -1,5 +1,16 @@
 # opencode instruction-class extraction — round 14
 
+> **2026-10-14 errata (round 18, append-only).** The opencode substrate moved:
+> the v1 OC-1…OC-5 rule set no longer has anchors in the live binary (dump
+> `d9123b9b…`, opencode v2.0.26), and `InstructionContext.observe` /
+> `system-context-builtins` / `core/instructions` are gone. The subsystems
+> described below are **historical**: they were true of the round-14 binary and
+> are preserved verbatim as the round's evidence. The current rule set —
+> OC-1…OC-6 over `ConfigInstructionPlugin.projectSource`, `ReadTool.Plugin`,
+> the API-managed instruction entries and an env-gate — is the round-18
+> re-derivation recorded in `instruction-surface-census-round13.md` § B
+> (errata block) and `verifiers/verify_surfaces.py`.
+
 **Claim (the round's axis move, coverage 8.0 → 8.5).** The instruction-surface
 inventory's machine check is no longer vacuous for the **opencode** harness:
 opencode's instruction classes are now **derived from code shapes in its shipped

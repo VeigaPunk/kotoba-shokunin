@@ -7,6 +7,21 @@ and either the craft row that governs it or a reason for excluding it. The
 derivation is machine-checked (`verifiers/verify_surfaces.py`) and independently
 re-measured by a non-author lane.
 
+**Round-18 errata (2026-10-14, substrate rebuild, append-only).** Both binaries
+changed since this census: omp `55016ef531…` → `ff59fc1b48…` (2026-10-14) and
+opencode `f9dab32248…` → `d9123b9bcd…` (v2.0.26). § A stays live — the same
+`.md` registration shapes persist under renamed callees (`Id|Cl|jD[ef]` →
+`Tl|dr|GW`, allowlist re-pinned in the verifier) — but **§ B's opencode model
+was superseded and is rewritten below**: the name-priority array, the
+`.claude` home candidate, the remote-instructions fetcher, the
+`fn("Instruction.resolve")` read-hook and the `instruction-context` subsystem
+are all gone from the new binary; the five old class ids in § B's table are
+historical (falsified-pointer preservation — they describe the 2026-09-28
+binary, not the current one). The round-13/14 quotes of § B prose remain as
+historical records; the table and the prose above it now describe the live
+binary. Binaries at re-derivation: omp `ff59fc1b484c1308a7247ad208305005627b3fac62b440737c2b1835ac32074e`,
+opencode `d9123b9bcdb0a31f7ab9fe9812b58a9dc1768ad6d97e7b276dff1181813218c9`.
+
 **Round-14 amendment (2026-09-28, coverage 8.0 → 8.5).** Two pieces of this
 census changed status and are edited in place below rather than left stale:
 `surfaces.no_uncovered_class` remains omp-only by construction, and opencode is
@@ -144,42 +159,54 @@ is not proof of injection" is now *measured for one host state and one harness*,
 which is a real narrowing — and the round still does not claim injection for any
 class the probe did not exercise.
 
-### B. opencode — instruction model (code-anchored, byte-verified)
+### B. opencode — instruction model (re-derived 2026-10-14 for v2.0.26)
 
-The instruction service resolves, in this order (all four quoted from the shipped
-JS; the module registers itself as `Instruction.*`):
+**Historical note (append-only errata):** the round-13/14 § B described the
+2026-09-28 binary — a name-priority walk-up `["AGENTS.md","CLAUDE.md","CONTEXT.md"]`,
+a `~/.claude/CLAUDE.md` home candidate, a declared `instructions` list with
+remote `https://` fetches, a `fn("Instruction.resolve")` read-hook emitting
+`<system-reminder>` tool-result blocks, and a second `instruction-context`
+subsystem. None of those anchors exists in v2.0.26 (`CONTEXT.md`: 0
+occurrences; `disableClaudeCodePrompt`: 0; `Instruction.resolve`: 0;
+`InstructionContext.observe`: 0; `system-context-builtins`: 0). The ids it
+declared — `opencode:instructions/{AGENTS,CLAUDE,CONTEXT}.md`,
+`opencode:claude-home/CLAUDE.md`, `opencode:config/instructions-remote`,
+`opencode:read-hook/instructions`, `opencode:instruction-context/AGENTS.md` —
+are superseded-revision claims preserved as historical, not live classes.
 
-1. **User-level candidates** — `n = [X.join(config,"AGENTS.md"), …!disableClaudeCodePrompt ? [X.join(home,".claude","CLAUDE.md")] : []]`, first existing wins.
-2. **Project walk-up, name-priority** — `y = ["AGENTS.md", …!disableClaudeCodePrompt ? ["CLAUDE.md"] : [], "CONTEXT.md"]`, and `Instruction.find(T)` is
-   `for (let d of y) { let w = X.resolve(X.join(T,d)); if (existsSafe(w)) return w }` **per directory**, while `Instruction.resolve` walks `while (G.startsWith(N) && G !== N)` from cwd up to the worktree root. So *within one directory only the first name that exists is claimed*: AGENTS.md beats CLAUDE.md beats CONTEXT.md.
-3. **Declared list** — `if (T.instructions) for (let O of T.instructions) { … glob or literal path … }`.
-4. **Remote entries** — `Instruction.system` filters `instructions` to `https://`/`http://`, fetches them (`concurrency: 4`) and renders `Instructions from: <url>` blocks next to local ones (`concurrency: 8`).
+**The v2.0.26 model (byte-verified against sha256 `d9123b9b…`):** one
+`InstructionDiscovery` state (`core/instructions`) fed by three file sources
+and one API channel:
 
-**Two subsystems, two semantics — do not merge them** (critic lane, round 13):
-`Instruction.system`/`systemPaths` is *first-match* per directory
-(`Instruction.find` breaks on the first name that exists in `y`), while
-`InstructionContext.observe` (targets `["AGENTS.md"]` only, all-match `H.up` from
-cwd to the project dir plus `<config>/AGENTS.md`, registered as the
-`core/instructions` context provider; `XH.unavailable` when an unreadable project
-`AGENTS.md` is present) is *all-match* and ambient — it emits replace/remove
-messages when a file changes. Consequence: which rules a session obeys can differ
-between the two channels *within one session*. `jX` in `jX(L.config,"AGENTS.md")`
-is `path.join` (import verified in the same chunk), so the global candidate is the
-opencode config directory, not the cwd — an `[INFERENCE]` the host census left
-open — and the ambient channel is why a rule can appear *after* the prompt is
-built.
+1. **Project source** — `opencode.config.instruction` walks up **all-match**
+   for `AGENTS.md` only: `ConfigInstructionPlugin.projectSource` calls
+   `i.up({targets:["AGENTS.md"],start:<cwd>,stop:<project>,type:"file"})`.
+   Disabled by config `project:false` (`OPENCODE_CONFIG_PROJECT_DISABLE` /
+   `OPENCODE_DISABLE_PROJECT_CONFIG`, wired `V7({project:i.config?.project})`).
+2. **Global source** — `<opencode config dir>/AGENTS.md` via
+   `j5(r.config,"AGENTS.md")` (the `.claude` home candidate no longer exists).
+   The plugin subscribes every candidate file and republishes on change
+   (`instructions rescanned`).
+3. **Read-hook** — `ReadTool.Plugin` walks up from every read path for
+   `AGENTS.md` (`targets:[a$]`, `a$` = `"AGENTS.md"`), keeps only hits *outside*
+   the project root, and calls `SessionInstructions.load`, which publishes
+   `Instructions from: <path>` synthetic entries.
+4. **API-managed entries** — `session.instructions.entry.{list,put,remove}` at
+   `/api/experimental/session/:sessionID/instructions/entries`, durable and
+   announced at the next step boundary.
+
+Render/diff: `Instructions from:` initial, `New instructions apply from:` /
+`The instructions changed:` / `…no longer apply.` on watch events.
+`config.instructions` ("Additional paths or URLs supplying ambient
+instructions") remains **schema-declared only** — no consumer found in this
+binary; recorded as an excluded class, not a governed one.
 
 | class_id | literal | kind | governed by | evidence |
 |---|---|---|---|---|
-| `opencode:instructions/AGENTS.md` | AGENTS.md | loader-literal | AGENTS.md row | `y[0]` in the priority list; `globUp("AGENTS.md",cwd,worktree)` |
-| `opencode:instructions/CLAUDE.md` | CLAUDE.md | loader-literal | CLAUDE.md row | `y[1]`, gated by `disableClaudeCodePrompt` = `all({broad: OPENCODE_DISABLE_CLAUDE_CODE, direct: OPENCODE_DISABLE_CLAUDE_CODE_PROMPT})` |
-| `opencode:instructions/CONTEXT.md` | CONTEXT.md | loader-literal | Cross-tool rule files | `y[2]`; 1 occurrence of the literal in the opencode binary |
-| `opencode:config/AGENTS.md` | AGENTS.md | loader-config | AGENTS.md row | `n[0]` = `<config-dir>/AGENTS.md` |
-| `opencode:claude-home/CLAUDE.md` | CLAUDE.md | loader-config | CLAUDE.md row | `n[1]` = `~/.claude/CLAUDE.md` |
-| `opencode:config/instructions` | instructions | loader-config | § Instruction surfaces → Declared instruction list | `.instructions` reader + schema example `"instructions": ["AGENTS.md","docs/style.md"]` |
-| `opencode:config/instructions-remote` | https:// | loader-config | Declared instruction list | `Instruction.system` fetches `https://`/`http://` entries (`concurrency: 4`, 5 s timeout) and renders `Instructions from: <url>` |
-| `opencode:read-hook/instructions` | <system-reminder> | loader-literal | Cross-tool rule files | second channel: `Instruction.resolve`, called from `ReadTool.execute`, appends the nearest ancestor instruction file to a **tool result** as a `<system-reminder>` — a rule can arrive mid-session attached to a read (second witness §4; 18 literal hits in the opencode bytes) |
-| `opencode:instruction-context/AGENTS.md` | AGENTS.md | loader-literal | AGENTS.md row | **second subsystem, its own load condition** (round 14, after the blind witness enumerated it and left it id-less): `A=M.fn("InstructionContext.observe")` registered as the `system-context-builtins` context with key `BP=XH.Key.make("core/instructions")`, walking `H.up({targets:["AGENTS.md"],start:cwd,stop:project})` **all-match** and keeping an **ungated** `<config>/AGENTS.md` candidate (`jX(L.config,"AGENTS.md")`). Same file class as `opencode:instructions/AGENTS.md`, different semantics (ambient, all-match, replace/remove on change vs first-match per directory), so it is declared separately rather than merged into that row's prose. Rule `OC-6` in `opencode-extraction-round14.md` owns it |
+| `opencode:project/AGENTS.md` | AGENTS.md | loader-literal | AGENTS.md row | `ConfigInstructionPlugin.projectSource` + `targets:["AGENTS.md"]` all-match walk (OC-1) |
+| `opencode:config/AGENTS.md` | AGENTS.md | loader-config | AGENTS.md row | `j5(r.config,"AGENTS.md")` global candidate (OC-2) |
+| `opencode:read-hook/AGENTS.md` | AGENTS.md | loader-literal | Cross-tool rule files | `ReadTool.Plugin` + `targets:[a$]` + `SessionInstructions.load` → `Instructions from:` (OC-4) |
+| `opencode:api-entries/instructions` | instructions | loader-config | § Instruction surfaces → Declared instruction list | `/instructions/entries` + `session.instructions.entry.put` (OC-6) |
 
 ### C. Excluded loader-derived classes (each with its reason)
 
@@ -193,6 +220,7 @@ built.
 | `omp:discovery/skills-roots` | skills | loader-literal | Skill roots beyond `.agent(s)/skills` (`.github/skills`, `~/.codex/skills`, `~/.claude/skills`, `~/.omp/agent/managed-skills`): covered by the SKILL.md row's craft, which is name/render-scoped, not root-scoped |
 | `omp:unknown/managed-skills` | managed-skills | loader-literal | `~/.omp/agent/managed-skills` — omp-managed skill store; [INFERENCE] merge precedence with the user root is untraced, so it is excluded with this reason rather than claimed |
 | `omp:unknown/subagent-roster` | agents | loader-config | `omp agents unpack` → `~/.omp/agent/agents` (37 files live) — the **omp-side analogue of the opencode agent-definition row**, but the load path is inferred from the unpack target, not read from a session; excluded pending that trace |
+| `opencode:config/instructions` | instructions | loader-config | Schema-declared "ambient instructions" list in v2.0.26; **no loader consumer proven** in the binary — only the read-hook publishes file contents (round-18 re-derivation, OC-3 witness only) |
 
 ### D. Non-loader mentions (no class id — these are not classes at all)
 

@@ -27,13 +27,15 @@ async compressor landed, else a deterministic `slice(0, _8n-1)` cut with
 cache
 `~/.omp/agent/skill-descriptions.db`). Cache coverage is time-varying — 5/17
 rows at round 7, 17 rows at round 9, **18 at round 13** (2026-09-28T23:30Z) with
-**all 17 live keys still reproducing** against today's on-disk descriptions.
-The count is not a coverage meter: rows are keyed per
+**all 17 live keys still reproducing** against today's on-disk descriptions
+(2026-10-14 errata — the live set is now 7; see LOG.md round 18). The count is
+not a coverage meter: rows are keyed per
 `(name, description-as-loaded)` and never pruned, so the 18th row is a
 *project-scoped* `ufo` copy the host once offered
-(`~/Projects/origin-work/ufo-fsd-alpha/skills/ufo/SKILL.md`, 690-char
-description; recomputed key `1742fee805bd…` with the verifier's own `omp_key`),
-not a new live skill. Rows land
+(`~/Projects/origin-work/ufo-fsd-alpha/skills/ufo/SKILL.md` — 2026-10-14 errata:
+historical path; the tree moved to `~/Projects/ufo-fsd-alpha` and that file no
+longer carries the 690-char description the key was computed over, so the
+mechanism is described, not re-pinned), not a new live skill. Rows land
 *after* session start, so an already-open session keeps its truncator renders
 (and an edited `description` misses its key, reverting that skill until a new
 row lands). On **opencode** the `<available_skills>`
