@@ -12,7 +12,7 @@
   "checks": {
     "corpus.index.tracked_files": {
       "mode": "equal",
-      "expect": 47
+      "expect": 48
     },
     "corpus.index.unindexed": {
       "mode": "zero",
@@ -48,13 +48,6 @@
     }
   },
   "notes": {
-    "read_side": "Both families read the WORKING TREE, not HEAD: an uncommitted corpus edit is a legitimate observation. Record `git status --porcelain` beside the numbers.",
-    "equal_mode": "corpus.index.tracked_files and corpus.pointers.commit_total are change detectors, not invariants: adding a corpus file or a new commit citation moves them and must move the baseline with it (same convention as verifiers/baseline.json).",
-    "zero_mode": "zero-mode ids ignore `expect` at evaluation time; they are listed so the baseline names every id the script checks. A zero-mode violation exits 1 even under --no-baseline.",
-    "out_of_scope_context": "corpus.pointers.commit_quoted_excluded and corpus.pointers.report_pointers_other are context, not checks. The first counts `commit `<token>`` citations fully enclosed in double quotes (quoted meta-findings, e.g. corpus/lessons/round-6-aggregator-audit.md:45; live: 2 \u2014 the second is the same idiom quoted inside corpus/knowledge/claim-census-round12.md). A double-quoted report pointer is recorded in `report_pointers_quoted[_detail]` as context (the mechanism repaired in round 12: the tokenizer no longer swallows a leading `\"`; the live tree has 0 such tokens, so the rule is exercised by `--self-test` and by `verifiers/fault_injection_corpus.sh` fault (h), which asserts the counters: context +1, checked population unchanged). Round 12's independent derivation names this boundary and its shared blind spot in corpus/knowledge/independent-verification-round12.md \u00a73/\u00a73b.",
-    "reproduce_before": "Against a clone of d49dfa5 with the landed scripts copied in (README pre-fix): report_dead=10/19, commit_total=18, commit_nonhash=1, exit 1 \u2014 the DRIFT the round-11 edit cleared; the round-12 independent derivation reproduces the same ten dead sites and the same non-hash site there. The same clone run twice is byte-identical under --json.",
-    "environment": "exit 2 when the target is not a git repo / corpus/README.md is unreadable; exit 3 when this file is absent and --no-baseline was not passed.",
-    "commit_total_scope": "`corpus.pointers.commit_total` counts HEX-SHAPED citations only (`commit `<7\u201340 hex>``) that also resolve; a non-hash `commit` token is carried by `corpus.pointers.commit_nonhash` and is NOT part of this count. The round-12 independent derivation publishes the same number as `commit_hex_total` alongside a wider in-scope total \u2014 the adjudication is recorded in corpus/knowledge/independent-verification-round12.md \u00a73 item 1.",
-    "hermeticity": "Pointer resolution is host-anchored: absolute and `~` pointers resolve against the live filesystem, not against the clone. With the host `.ufo` hidden behind a private tmpfs, a green clone goes dead = checked (both instruments identically). `python3 verifiers/verify_corpus_integrity.py` is therefore only meaningful on a host that carries the lane-report tree."
+    "round19_recensus": "corpus.index.tracked_files 47 -> 48: the round landed corpus/lessons/round-19-recensus.md, a real new tracked corpus file, indexed in the coverage map. Expectation refresh, not a fitted denominator."
   }
 }

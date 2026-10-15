@@ -1,7 +1,7 @@
 # round-19 re-census — vacuous permission comparator tightened; live harness excluded
 
 2026-10-14. Steered round 19. Advisory inventories:
-`.ufo/waves/shokunin12h-20261014-p1-repair/members/Kotoba*.md`.
+`../.ufo/waves/shokunin12h-20261014-p1-repair/members/Kotoba*.md`.
 
 ## Landed change (one file, 2 lines)
 
