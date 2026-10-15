@@ -1177,3 +1177,23 @@ Full round detail: `corpus/lessons/round-19-recensus.md`. Advisory inventories:
   record is later than that snapshot; no frozen-byte or whole-checklist
   pass is asserted for the append itself. Empty stdout/stderr captures were
   removed, retaining the actual refusal and successful plan instead.
+
+### Round 20 publication — committed-work remeasurement and handoff
+
+- Owned work landed as `5e347837797dac186d3b4138c348bed2e4d6e275` under the
+  required lane identity. The later report is
+  `.ufo/reports/round-20/kotoba.md`; the fresh-session handoff is
+  `.ufo/round-20/continuation.json`. Both explicitly record dispatch-blocked,
+  zero verified-round credit, and no release/receipt/Sighting completion.
+  They preserve the historical launch-counter discrepancy instead of
+  overwriting earlier reports or inventing a completed-round tally.
+- Actual delivered-work runs at that exact revision are retained in
+  `.ufo/round-20/delivered-acceptance.json`: own corpus gate **9/9**, independent
+  instrument **exit 0**, bounded governance predicate **PASS / evaluated 148**,
+  and frozen inherited replay **226/14/14/0** (subjects/unresolved/classified/
+  unclassified). Every command exited 0. Full output and argv are retained;
+  none is a whole-checklist, live-session, live-sibling or native-judge pass.
+- Report and handoff publication finish the reachable local evidence work,
+  not the blocked craft move. Only the global routing owner can supply the
+  required aliases/fallback, and registry output containment must remain
+  lane-local before a later `run`. No successor has been released or started.
