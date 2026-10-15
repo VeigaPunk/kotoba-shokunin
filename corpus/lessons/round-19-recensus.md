@@ -33,3 +33,7 @@ than edited.
 ## Independent audit erratum (appended 2026-10-14)
 
 Independent audit: integrity 9/9, independent exit 0, fault-injection self-test OK after the index row and tracked-file pin refresh; the live harness verifier was excluded (reads real `~/.omp` sessions). Identity/pathspec/record confirmed. The audit DISAGREED with the parent pre-integration numbers because the round lesson was itself unindexed at that moment — fixed here (`corpus/README.md` row + `corpus.index.tracked_files` 47→48 with a recorded rationale). Remaining red: `trigger.line_budget` 601>600 (pre-existing; do not raise the budget). Named debt: stale v1 opencode prose, lowercase path cites, baseline documentary mode strings.
+
+### Audit detail (appended 2026-10-14)
+
+Dead-path sweep (`.ufo/waves/shokunin12h-20261014-p1-audit/members/KotobaDeadPathSweep.md`): **17 live lines** — 14 lowercase `/home/vgpnk/projects` cites (`SKILL.md:88,:97,:106,:144,:153,:386,:482,:484,:486`), 1 live webzites path (`fleet-skill-audit-round5.md:59`), 2 live `~/.bailian` cites (`harness-verifier-round10.md:105`, `sibling-description-rewrites-round8.md:377`) — plus 11 unresolved replayable-command/existence-quote lines. Owner kotoba; unblock: mark those lines historical and repoint to the capital-P survivor. The round-19 record's "4 deleted-path cites" is the marked subset, not the population; a green corpus gate cannot see this class (it checks `.ufo/reports` pointers only).
