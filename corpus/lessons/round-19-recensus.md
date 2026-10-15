@@ -29,3 +29,7 @@ than edited.
   touched by this wave); do not raise the budget to go green.
 - `SKILL.md` still teaches the v1 opencode model; lowercase
   `/home/vgpnk/projects/...` cites remain; harness-verifier count prose is stale.
+
+## Independent audit erratum (appended 2026-10-14)
+
+Independent audit: integrity 9/9, independent exit 0, fault-injection self-test OK after the index row and tracked-file pin refresh; the live harness verifier was excluded (reads real `~/.omp` sessions). Identity/pathspec/record confirmed. The audit DISAGREED with the parent pre-integration numbers because the round lesson was itself unindexed at that moment — fixed here (`corpus/README.md` row + `corpus.index.tracked_files` 47→48 with a recorded rationale). Remaining red: `trigger.line_budget` 601>600 (pre-existing; do not raise the budget). Named debt: stale v1 opencode prose, lowercase path cites, baseline documentary mode strings.
