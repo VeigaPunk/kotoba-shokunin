@@ -35,31 +35,32 @@ criteria of the next band met.
 
 ## planned
 
-Round 18 — **adjacency remeasurement/routing**, selected by `R17Plan` after
-round 17 moves calibration above the floor. Adjacency and freshness remain tied
-at 8.0; adjacency has the concrete falsified count, while freshness has no new
-failed instrument.
+**Round 20 interactive attempt — freshness, blocked before dispatch.** The
+current tie remains freshness/adjacency at 8.0; no axis is retired.
+`corpus/lessons/round-16.md:75-78` selects freshness after the adjacency hold.
+The previously recorded round-18 adjacency plan was addressed by the October 15
+round-16 redispatch at `292bbf8`, with its scalar held, not raised.
 
-1. Re-run the landed citation extractor over the five sibling `SKILL.md` files.
-   Current measurement: **225 checked subjects / 14 unresolved occurrences**
-   (kagi 2, kake 1, kasegi 5, kengaku 1, kumitate 5), versus round 16's recorded
-   10. Classify every occurrence with the round-17 schematic/meta rules.
-2. Route real findings to their owner; do not edit sibling repos. Record an
-   explicit no-gain result if the four-occurrence delta is placeholder,
-   ellipsis, or other extraction noise.
-3. Falsifier: any unclassified occurrence, any ownerless routing, or any score
-   gain derived only from the raw 14 count fails the move. A +0.5 reading
-   requires a stable classified population and a re-runnable routing record.
+Next authorized fresh-session attempt: the same lowest-axis freshness move,
+correcting current dispatch invocation/continuation advice against canonical
+run-logic §4.3. Preserve round-20 evidence; use a new attempt namespace rather
+than overwriting this attempt. The operator/global routing owner must first
+bind content roles to `@m_composer`, audit roles to `@m_grok`, and connector
+to `@m_antigravity` with the approved `@m_zfl` fallback. No local substitute,
+per-dispatch pin, overlay, or global configuration edit is authorized.
+Plan and exact observed mismatches: `plans/wwkd-round-20-interactive.md` and
+`.ufo/round-20/route-contract.json`.
 
-Ranked carry after that single move: R1 read-verb tightening (12 accessible
-foreign files, 60 path-like arguments, 8 would-FAIL; high suppression risk);
-`M23` executable heredocs (paired `bash`/`cat` fixture); D6 dispatch-prompt
-literals (113 prompt markdown files, two-HOME falsifier); nine `agentdef.*`
-boxes; `M22` marker policy; `M38` ordering (no headroom at consistency 10).
-Discharged in round 17: governance-file R3 and `M36`. Still named: quoted-tilde
-and trailing-tilde heredocs, terminator whitespace, closed citation roots,
-anchors/pins/content, symlink containment, the zero-live `delegated:` class,
-and the `AXES.md`↔`MISSION.md` naming question (`../.ufo/l0-questions.md`).
+Historical carry remains named, not silently absorbed: R1 read-verb tightening;
+`M23` executable heredocs; D6 prompt literals; nine `agentdef.*` boxes; `M22`
+marker policy; `M38` ordering; quoted/trailing-tilde heredocs and terminator
+whitespace; closed citation roots, anchors/pins/content and symlink containment;
+zero-live `delegated:`; the `AXES.md`/`MISSION.md` naming question.
+Round 19 additionally records stale harness/dispatch prose, documentary
+comparator metadata, and the inherited 601>600 budget failure. Do not rerun
+that unchanged failure merely to confirm it or raise the budget.
+"`corpus/QUALITY.md`" is absent in this checkout: no new corpus admission or
+criterion is manufactured during this dispatch-blocked attempt.
 
 ## retired
 
@@ -81,3 +82,34 @@ None. No saturation or wrong-fit evidence (`../AXES.md`, § Working an axis).
 | 17 | calibration | 8.0 — `LOG.md`/`SCORECARD.md` path claims had no live gate (125 extracted occurrences, 8 dead-at-HEAD); `M36`'s fixture used a delimiter bash would not accept; explicit `--repo .` changed bounded-hop verdicts | 8.5 — tenth check evaluates 125/134 governance occurrences with 6 quoted-meta + 3 schematic exclusions and 0 checked dead; three `<<~EOF` fixtures pin body/tail/mis-termination; explicit repo normalized; 10 × PASS, `--self-test` 0/1504 over 71 fixture dirs | `corpus/knowledge/checklist-execution-round17.md` + `verifiers/verify_skill_checklist.py` + three `command-heredoc-tilde*` fixture pairs @ round-17 |
 | 18 | depth (substrate re-census; hold, not a raise) | 9 — claim set verified vs frozen binaries; both rebuilt underneath it (harness gate crashed on the 7-skill catalogue guard; surfaces gate found zero anchors in v2.0.26) | 9 — all 28 harness checks + 7/7 surface checks re-derived live and pass against `ff59fc1b`/`d9123b9b`; opencode rule set OC-1…OC-6 re-anchored; 4 dead-path citations marked historical | `LOG.md` § Round 18 + `verifiers/baseline.json` `measured_against.round18_move` + `verifiers/verify_surfaces.py` OC-1…OC-6 + census § B errata @ round-18 |
 | 19 | freshness | measured at HEAD (see lesson) | verdicts recorded per gate, no scalar | `corpus/lessons/round-19-recensus.md` |
+
+## Round 20 — interactive dispatch-blocked assessment (2026-10-15)
+
+Attempt namespace, not completed-round count. Baseline:
+`292bbf8ca7527159570947dadd65bb5528554380`. The old launch counter 16 and the
+round-17–19 records are preserved; neither proves a cumulative verified tally.
+
+| Axis | Verdict | Evidence and limit |
+|---|---|---|
+| depth | unchanged | No craft instruction or verifier implementation changed. |
+| coverage | unchanged | No corpus entry, owned surface, or frontier admitted. |
+| operability | unchanged | Own corpus gate runs; required native wave does not dispatch. |
+| freshness | unchanged | Selected move blocked by existing global role bindings; no parent-only cutover. |
+| calibration / owned consistency sub-axis | unchanged | Blocker and evidence limits recorded; no new externally checked claim. |
+| adjacency | unchanged | Inherited owner packets replay, but no acknowledgment, mirror, or sibling repair is observed. |
+
+Expansion, quality, and discernment: **unchanged**. No new admits/rejects or
+outside non-author spot-check occurred. SHONEN remains author-asserted.
+
+Measured commands and full outputs are in `.ufo/round-20/acceptance-results.json`:
+corpus integrity `9/9 checks pass`, exit 0; independent instrument exit 0;
+isolated self-test `0 failure(s) over 88 assertions`, exit 0; inherited frozen
+replay 226 subjects / 14 unresolved / 14 classified / 0 unclassified / 3
+prepared routes, exit 0. Frozen replay does not re-probe live sibling sources.
+
+Canonical `ufo-swarm-wave.mjs plan --route-families` validates 32 distinct
+rendered tasks, exit 0 (`.ufo/round-20/wave-plan.validated.stdout.json`).
+Its route preflight is **unprobed**, with zero pings; validation is neither
+dispatch nor model availability. Existing bindings disagree with the required
+aliases. No `run`, registry persistence, native task call, worker, judgment,
+receipt, Sighting completion, verified-round credit, or saturation is claimed.

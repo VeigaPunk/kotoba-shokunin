@@ -1084,3 +1084,96 @@ Full round detail: `corpus/lessons/round-19-recensus.md`. Advisory inventories:
   PASS over 136 subjects, with six quoted-meta and three schematic exclusions.
   The inherited 601>600 checklist failure was not rerun, suppressed or fixed;
   harness/source gates unrelated to this evidence-only move were not rerun.
+
+## Round 20 — interactive cutover, blocked before native dispatch (2026-10-15)
+
+- **Evidence and reconciliation.** Entry `git status --short --branch`
+  reported `master...origin/master [ahead 6]` and only untracked `.ufo/`.
+  HEAD is `292bbf8ca7527159570947dadd65bb5528554380`, carrying the October 15
+  round-16 citation-routing redispatch. Existing round-17–19 records and the
+  shared original round-16 operability report are preserved, not overwritten.
+  The driver's launch counter 16 is not a verified completion count. Round 20
+  is the next chronological attempt namespace; no cumulative verified tally
+  is inferred. Native session filenames were inspected for shape only;
+  session bodies were not read, staged, or republished.
+- **Plan before work.** `plans/wwkd-round-20-interactive.md` records the data
+  walk, freshness selection from the 8.0 tie, one falsifiable dispatch-guidance
+  correction, gate/smoke, safety boundaries and the stop-before-dispatch rule.
+  The current lane lesson selects freshness after its adjacency hold
+  (`corpus/lessons/round-16.md:75-78`). No parent-only craft cutover bypasses
+  the operator's required specialist-wave contract.
+- **Canonical preflight.** `.ufo/round-20/wave-spec.json` assigns 32 distinct
+  existing evidence scopes (30 knowledge records, SKILL.md and documentary
+  baseline metadata), each with read-only ownership and no mid-flight
+  build/lint/tests/formatters. The first canonical plan refused an absolute
+  `reportDir`: `invalid_report_dir`, exit 1; its stderr and command record are
+  retained. Correcting the path to a relative label produced
+  `ufo-swarm-wave-v1`, exit 0, counts spawn=32/resume=0/total=32, 32 distinct
+  names/prompts, and a leading fresh Godspeed invocation in every task.
+  Full plan: `.ufo/round-20/wave-plan.validated.stdout.json`.
+- **Exact authority blocker.** Canonical route preflight read the global
+  authority at SHA-256
+  `08788ddcbbb48180b987e6f54b517af294c85cacceb07bdd594843a53e668dcc`.
+  Reviewer/sentinel/connector resolve through `@m_mid`, critic through
+  `@m_strong`, and scribe through `@m_fast`. Other observed global bindings
+  are executor/revenger `@m_mid` and scout/mutation-tester/simplifier `@m_fast`.
+  The operator requires content `@m_composer`, audit `@m_grok`, connector
+  `@m_antigravity` with `@m_zfl` fallback. The named aliases exist, but the
+  role bindings do not select them; the alias-level antigravity fallback is
+  `[]` at global config line 399. Exact comparison:
+  `.ufo/round-20/route-contract.json`. Preflight is **unprobed**, zero pings:
+  this is binding evidence, not a provider outage or availability claim.
+- **Dispatch decision.** No canonical `run`, persisted worker registry,
+  native `task` batch, worker, alternate L1, judged handoff, retry loop,
+  model pin, routing overlay or configuration edit occurred. No new corpus
+  admission, SKILL.md/verifier implementation change, or independent
+  spot-check is claimed. The absence of "`corpus/QUALITY.md`" and optional
+  MINT.md was observed during the scoped path lookup; no quality criterion
+  or mint history is fabricated to fill that gap.
+- **Measured safe acceptance.** All commands ran in this lane at
+  `292bbf8ca7527159570947dadd65bb5528554380`; argv, full stdout/stderr and
+  exit codes are retained in `.ufo/round-20/acceptance-results.json`.
+  `python3 verifiers/verify_corpus_integrity.py`: tracked=51, unindexed=0,
+  stale=0, missing=0, report_dead=0/32, commit_total=27, unresolvable=0,
+  nonhash=0; **9/9 checks pass**, exit 0.
+  `python3 verifiers/verify_corpus_independent.py`: the same relevant counts
+  and **exit 0**. Isolated integrity `--self-test`: **0 failure(s) over 88
+  assertions**, exit 0, with temporary fixtures confined to this repository.
+- **Actual inherited scenario.** The published counting command was executed
+  with the exact entry revision and `frozen`: **226 subjects, 14 unresolved,
+  14 classified, 0 unclassified, 4 actionable occurrences, 3 prepared routes**,
+  exit 0. This remeasures the retained projections/classification contract;
+  it neither re-probes live sibling sources nor proves owner acknowledgment.
+  Its exact invocation and full JSON outcome are in the same acceptance
+  artifact. Inherited work is preserved, not counted again as a new move.
+- **Intentionally unrun.** The unchanged 601>600 checklist failure and earlier
+  Phase 0/self-iteration failures are already recorded ground truth, not
+  rerun for confirmation. The live harness verifier reads native session
+  bodies and is excluded. No host/source/package fix is absorbed. No
+  substrate or sibling write, shared-report/ledger edit, native-session
+  mutation or push is authorized.
+- **Verdicts.** Freshness selected but **unchanged**; depth, coverage,
+  operability, calibration (including owned consistency), and adjacency all
+  **unchanged**. Expansion/quality/discernment **unchanged**. No score gain,
+  completed/verified-round credit, convergence, saturation, promotion, native
+  acceptance, successful receipt or Sighting completion. This attempt alone
+  does not establish three consecutive blocked rounds.
+- **Concrete unblock and continuation.** Operator/global routing owner must
+  supply the requested role bindings and connector fallback; L1 cannot
+  change them. Also resolve the canonical CLI's lane-local registry output
+  root before `run`: source lines 431–432 and 1871–1877 resolve/persist it
+  under the UFO authority root by default, outside this lane's write scope.
+  This output-root risk is source-derived, not an attempted write. Preserve
+  the at-least-100 verified-round target and use a fresh authorized native
+  L1 session for the next attempt, carrying this blocked evidence and the
+  existing owned work; do not loop rounds here or overwrite round 20.
+- **Changed-record smoke.** The isolated existing
+  `check_governance_citations` predicate was executed on the prepublication
+  LOG/SCORECARD snapshot, not the known-red full checklist:
+  `PASS governance.citation_resolves: evaluated 148 — 148 governance citation
+  token(s) resolve across 2 files; 8 quoted meta-finding(s), 3 schematic
+  token(s) excluded`, exit 0. `.ufo/round-20/governance-smoke.json` pins that
+  snapshot's two hashes and exact command/output. This appended measurement
+  record is later than that snapshot; no frozen-byte or whole-checklist
+  pass is asserted for the append itself. Empty stdout/stderr captures were
+  removed, retaining the actual refusal and successful plan instead.
