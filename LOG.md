@@ -972,3 +972,115 @@ instruction-loader shapes all changed under the frozen pins.
 
 Full round detail: `corpus/lessons/round-19-recensus.md`. Advisory inventories:
 `../.ufo/waves/shokunin12h-20261014-p1-repair/members/`.
+
+## Round 16 — 2026-10-15 redispatch: classified sibling citation routing
+
+- **Motivation and scope.** The current `SCORECARD.md` has freshness and
+  adjacency tied at 8.0; its planned adjacency claim is the more falsifiable
+  next move. This dispatch follows the operator's round-16 steer despite the
+  inherited round-17–19 records. It adds a dated supplement, not a rewrite of
+  the earlier round-16 work. One move only: classify sibling citation findings
+  and hand actionable craft defects to their owners; no sibling/domain edits.
+- **Before, measured at `581e2932850db9cb917844662651f533bfd98519`.**
+  A read-only Python census invoking `citation_subjects` and
+  `citation_resolve` from `verifiers/verify_skill_checklist.py:1117-1232`
+  reports raw subjects **226** (82/29/38/52/25 for kagi/kake/kasegi/kengaku/
+  kumitate), unresolved occurrences **14** (2/1/5/1/5), and no classification
+  ledger: **0 classified / 14 unclassified**. Governance-style exclusions
+  identify four schematics and zero quoted meta-findings. The planned 225
+  denominator is historical, not this run's population. The instrument SHA-256
+  is `02ccf1b310f7910502f7938d24eb1cfcabe2c521ec42b7ce6420f1869af8df27`.
+- **Integration baseline.** `python3 verifiers/verify_corpus_integrity.py
+  --no-baseline --json` reports 48 tracked corpus files, 0 unindexed/stale/
+  missing, 32 report citations with 0 dead, and 27 source-revision citations
+  with 0 unresolved/nonhash. A later tracked-file expectation change must name
+  the new indexed files; no zero-defect expectation will be weakened.
+- **L2 evidence floor.** One native host-routed `task` call dispatched nine
+  seats: `R16AdjPlan` (planner), `R16AdjConnector` (connector),
+  `R16AdjExecKake`/`R16AdjExecKasegi`/`R16AdjExecKumitate` (executors),
+  `R16AdjScribe` (scribe), `R16AdjScout` (scout), `R16AdjReviewer` (reviewer),
+  and `R16AdjCritic` (critic). No model override or routing mutation. These
+  are author-side evidence, not non-author SHONEN verification.
+
+### Round 16 continuation — observed integration evidence (2026-10-15)
+
+- **Inherited bytes are not this execution's evidence.** Lines 976–1003 were
+  already uncommitted at entry. They are preserved, not silently adopted.
+  This execution independently measured the same lane baseline
+  `581e2932850db9cb917844662651f533bfd98519`: the documented counting command
+  yields 226 raw subjects / 14 raw unresolved occurrences / 0 classified /
+  14 unclassified. Four schematic exclusions leave 222 checked subjects,
+  not the planned historical 225. Both corpus instruments were run before
+  editing: 48 tracked files, zero index/pointer defects; the baseline-bearing
+  instrument's `--no-baseline --json` and the independent instrument exit 0.
+- **Actual dispatch.** One native `task` call dispatched nine explicit roles:
+  `R16AdjPlanNow` (planner), `R16AdjConnectNow` (connector),
+  `R16AdjKakeNow`, `R16AdjKasegiNow`, `R16AdjKumitateNow` (executors),
+  `R16AdjScribeNow` (scribe), `R16AdjScoutNow` (scout),
+  `R16AdjReviewNow` (reviewer), `R16AdjCriticNow` (critic). All used the
+  existing host role overrides, without model parameters or routing edits.
+  This is the canonical Shokunin native batch, not a validated generic UFO
+  wave; the latter excludes the required planner. Every child is author-side.
+- **One improvement.** The sourced occurrence ledger
+  `corpus/knowledge/sibling-citation-routing-round16.json` preserves all
+  226 normalized observations, token-only replay projections and targeted
+  context excerpts, original source hashes, fourteen keyed dispositions,
+  and three owner-addressed routing packets. The two final-audit occurrences
+  remain separate. Role classification is not a declaration of live source
+  truth: four schematics, one brace-set, two fleet-base references, three
+  unavailable historical sources, and four conditional runtime artifacts.
+  Concrete findings are kasegi's unqualified historical occurrence and
+  kumitate's source-base/producer re-verification; two fleet-base wording
+  suggestions are optional. No sibling, domain, verifier-code, runtime,
+  counter, or router changes.
+- **Provenance limit.** Four sibling input hashes match their contextual
+  source revisions; kake's observed hash identifies working-tree bytes, not
+  its contextual HEAD. Each token projection re-extracts the exact original
+  subject rows, but neither reconstructs the full source hash nor verifies
+  historical content or runtime behavior. Frozen resolution booleans are
+  observations retained for classification replay, not a fresh live probe.
+- **Score decision.** Adjacency stays 8.0; no half-point from tokenizer noise
+  or author-side reviews. Planner and critic recommended hold. Owner
+  acknowledgment, integrator mirroring and actual outside-lane remeasurement
+  are not observed. SHONEN remains author-asserted, never promoted by these
+  children. The round-number/dispatch mismatch was appended to the L0 queue
+  under `kotoba | round-16 | Reconcile the relaunched round namespace`;
+  publication does not wait for that decision.
+- **Measured implementation, before commit.** The counting probe published in
+  `corpus/knowledge/sibling-citation-routing-round16.md` returns 226 subjects /
+  14 unresolved / 14 classified / 0 unclassified in both frozen and live
+  modes, exit 0; before-revision frozen replay returns 0 classified /
+  14 unclassified. Four actionable clarification/correction occurrences map
+  to three prepared owner packets. Five in-memory negative controls each
+  exit 1 with the intended finding: dropped row, duplicate replacing a row,
+  missing route, changed frozen observation and altered projection. These
+  are bounded evidence checks, not semantic proof or a new fleet gate.
+- **Late source evidence retained, not suppressed.** The kumitate executor
+  found the present-tense durable-latch claim unsupported by the current
+  named producer. Parent read
+  `/home/vgpnk/Projects/ufo-fsd-alpha/scripts/fleet-dispatcher.mjs:7920-7948`
+  at source revision `964f443ee53df0ce06bd689af01f0dea031b01f9`: Map state,
+  console/ledger emission, Map deletion. The ledger's runtime role therefore
+  carries an explicit actionable `unresolved-defect`; the owner must correct
+  or date-mark the claim, not create a latch file. Kasegi's line-720
+  `unresolved-defect` proposal is retained as a historical role plus a
+  wording-defect issue. Both disagreements are recorded in
+  `corpus/lessons/round-16.md` § Gate.
+- **Index/expectations.** The evidence note, companion JSON and round lesson
+  are added to `corpus/README.md`'s coverage map. They are the only intended
+  corpus-population increase: 48 → 51 tracked files. The tracked-file pin
+  will be refreshed with that exact rationale after staging; zero-defect
+  expectations and existing source/pointer populations are not relaxed.
+- **Integration verification.** After staging exactly the three new corpus
+  files and their index row, `python3 verifiers/verify_corpus_integrity.py
+  --no-baseline --json` observed tracked=51, unindexed=0, stale=0, missing=0,
+  report_dead=0/32, commit_total=27, unresolvable=0, nonhash=0.
+  `verifiers/corpus-baseline.json` refreshes only tracked=48→51 and appends
+  that rationale. The ordinary corpus run then returned **9/9 checks pass**;
+  `python3 verifiers/verify_corpus_independent.py` returned exit 0 with the
+  same relevant counts. The published one-line counting command, rather
+  than only its in-memory draft, was exercised in frozen and live modes:
+  226/14/14/0, exit 0. The changed governance-only citation predicate returned
+  PASS over 136 subjects, with six quoted-meta and three schematic exclusions.
+  The inherited 601>600 checklist failure was not rerun, suppressed or fixed;
+  harness/source gates unrelated to this evidence-only move were not rerun.
