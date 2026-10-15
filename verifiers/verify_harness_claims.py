@@ -546,8 +546,8 @@ CHECKS: dict[str, tuple[str, str]] = {
     "oc.dup.roots_both_sided": ("equal", "dup_roots_both_sided"),
     "oc.dup.onesided_roots": ("zero", "dup_onesided_roots"),
     "oc.log.init_count_monotone": ("zero", "init_count_monotone_violations"),
-    "oc.permission.skill_lines": ("at_least", "permission_skill_lines"),
-    "oc.permission.skill_allow": ("at_least", "permission_skill_allow"),
+    "oc.permission.skill_lines": ("equal", "permission_skill_lines"),
+    "oc.permission.skill_allow": ("equal", "permission_skill_allow"),
     "oc.roots.plugins_cache": ("zero", "plugins_cache_present"),
 }
 
