@@ -1202,3 +1202,15 @@ Full round detail: `corpus/lessons/round-19-recensus.md`. Advisory inventories:
 
 - Operator rollout of the 2026-10-16 fleet protocol amendment (fleet-root commit `84bade0`): this lane's `SCORECARD.md` already carried real `axes`, `planned`, and `retired` sections, so only the missing `Capabilities` and `Saturation` sections were appended, per `../AXES.md` § SCORECARD.md contract. Purely additive — existing bytes unchanged (verified by diff: additions only).
 - No axis claim was made, no score moved, no verdict changed, and no number invented; the capabilities table enters with no rows, pending a round that demonstrates a capability running.
+
+## 2026-10-17 — readable front door
+
+Root README was absent. `python3 verifiers/verify_skill_checklist.py` is the CLI in `verifiers/verify_skill_checklist.py` (`build_parser`, `--self-test`). SHONEN.md boxes are `[~]` after the lane-dispatched `[x]` revert.
+
+Corpus index: `corpus/README.md` is line-cited from `corpus/knowledge/` (including lines 35, 38, 40, and 42) and was not edited. `corpus/knowledge/`, `corpus/lessons/`, evidence, fixtures, and earlier LOG entries were not rewrapped.
+
+Lint fixes: none. Human-legible Markdown in this repo had no unpinned same-line defect.
+
+Lint left in place: none in the human-legible set (README, PROVINCE, SKILL, SHONEN, MINT, AGENTS, corpus/README, corpus/QUALITY, plans/*.md).
+
+Devin: a search for `devin.ai` in this repo found no URL to edit. No wiki URL was added.
