@@ -1202,3 +1202,11 @@ Full round detail: `corpus/lessons/round-19-recensus.md`. Advisory inventories:
 
 - Operator rollout of the 2026-10-16 fleet protocol amendment (fleet-root commit `84bade0`): this lane's `SCORECARD.md` already carried real `axes`, `planned`, and `retired` sections, so only the missing `Capabilities` and `Saturation` sections were appended, per `../AXES.md` § SCORECARD.md contract. Purely additive — existing bytes unchanged (verified by diff: additions only).
 - No axis claim was made, no score moved, no verdict changed, and no number invented; the capabilities table enters with no rows, pending a round that demonstrates a capability running.
+
+- 2026-10-17 — README: Devin wiki link. Operator directive (2026-10-17):
+  insert the Devin wiki link into the README header of every repository
+  with a generated wiki. `README.md` created (lane-header convention) with a `**Wiki:**` link to
+  https://app.devin.ai/org/veigapunk/wiki/VeigaPunk/kotoba-shokunin?branch=master.
+  Evidence: the org's Devin wiki index lists this repo's generated wiki;
+  sibling lane READMEs carry the same `**Wiki:**` header.
+  Documentation-only change; no round run, no axis moved.
