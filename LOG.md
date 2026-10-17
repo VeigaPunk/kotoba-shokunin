@@ -1202,3 +1202,11 @@ Full round detail: `corpus/lessons/round-19-recensus.md`. Advisory inventories:
 
 - Operator rollout of the 2026-10-16 fleet protocol amendment (fleet-root commit `84bade0`): this lane's `SCORECARD.md` already carried real `axes`, `planned`, and `retired` sections, so only the missing `Capabilities` and `Saturation` sections were appended, per `../AXES.md` § SCORECARD.md contract. Purely additive — existing bytes unchanged (verified by diff: additions only).
 - No axis claim was made, no score moved, no verdict changed, and no number invented; the capabilities table enters with no rows, pending a round that demonstrates a capability running.
+
+## 2026-10-17 — root README
+
+Motivating evidence: no root `README.md`. The page indexes `SKILL.md` (the
+description is the loader contract), `SHONEN.md` (why `[x]` reverted to
+`[~]`), and `verifiers/verify_corpus_integrity.py` plus the three sibling
+verifiers and their baseline JSON files, which are on disk. No Devin wiki
+URL exists in this repo.
