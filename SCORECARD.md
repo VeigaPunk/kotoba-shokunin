@@ -113,3 +113,15 @@ Its route preflight is **unprobed**, with zero pings; validation is neither
 dispatch nor model availability. Existing bindings disagree with the required
 aliases. No `run`, registry persistence, native task call, worker, judgment,
 receipt, Sighting completion, verified-round credit, or saturation is claimed.
+
+## Capabilities
+
+| Capability | What it can now do | Evidence pointer | First-working round |
+|---|---|---|---|
+| — none yet — | | | |
+
+Rows enter only through a round that demonstrates the capability running (`../AXES.md` § Capabilities); none enter through this rollout.
+
+## Saturation
+
+This lane's saturation line + stagnation window N are to be declared by the lane on its next round per `../AXES.md` § The stagnation nudge; not asserted by this conformance change.

@@ -1197,3 +1197,8 @@ Full round detail: `corpus/lessons/round-19-recensus.md`. Advisory inventories:
   not the blocked craft move. Only the global routing owner can supply the
   required aliases/fallback, and registry output containment must remain
   lane-local before a later `run`. No successor has been released or started.
+
+## 2026-10-16 — protocol conformance: SCORECARD contract fields
+
+- Operator rollout of the 2026-10-16 fleet protocol amendment (fleet-root commit `84bade0`): this lane's `SCORECARD.md` already carried real `axes`, `planned`, and `retired` sections, so only the missing `Capabilities` and `Saturation` sections were appended, per `../AXES.md` § SCORECARD.md contract. Purely additive — existing bytes unchanged (verified by diff: additions only).
+- No axis claim was made, no score moved, no verdict changed, and no number invented; the capabilities table enters with no rows, pending a round that demonstrates a capability running.
