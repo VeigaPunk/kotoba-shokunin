@@ -1202,3 +1202,10 @@ Full round detail: `corpus/lessons/round-19-recensus.md`. Advisory inventories:
 
 - Operator rollout of the 2026-10-16 fleet protocol amendment (fleet-root commit `84bade0`): this lane's `SCORECARD.md` already carried real `axes`, `planned`, and `retired` sections, so only the missing `Capabilities` and `Saturation` sections were appended, per `../AXES.md` § SCORECARD.md contract. Purely additive — existing bytes unchanged (verified by diff: additions only).
 - No axis claim was made, no score moved, no verdict changed, and no number invented; the capabilities table enters with no rows, pending a round that demonstrates a capability running.
+
+## 2026-10-17 — repository README
+
+- **Trigger.** The repository root had no `README.md`.
+- **Evidence.** Domain is `PROVINCE.md`. Triggers and the sibling-skill boundary are the frontmatter of `SKILL.md`. Checklist contract is the docstring of `verifiers/verify_skill_checklist.py`, which names `verifiers/checklist-baseline.json`.
+- **Action.** Added `README.md`. Corpus indexes were not edited. No Devin wiki URL was present.
+- **Outcome.** No axis claim; no score moved.
