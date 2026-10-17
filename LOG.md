@@ -1202,3 +1202,16 @@ Full round detail: `corpus/lessons/round-19-recensus.md`. Advisory inventories:
 
 - Operator rollout of the 2026-10-16 fleet protocol amendment (fleet-root commit `84bade0`): this lane's `SCORECARD.md` already carried real `axes`, `planned`, and `retired` sections, so only the missing `Capabilities` and `Saturation` sections were appended, per `../AXES.md` § SCORECARD.md contract. Purely additive — existing bytes unchanged (verified by diff: additions only).
 - No axis claim was made, no score moved, no verdict changed, and no number invented; the capabilities table enters with no rows, pending a round that demonstrates a capability running.
+
+## 2026-10-17 — first-class README (not a craft round)
+
+**Evidence.** This repository either had no root `README.md` or only the
+generic 22-line lane stub (`A **shokunin lane** — an expert agent for one
+domain…`). A new agent landing here had to reconstruct the province from
+`PROVINCE.md`, `SKILL.md` (when present), the directory listing, and
+`LOG.md`. Wrote `README.md` from those sources: owned domain and refusals
+from `PROVINCE.md`, start-here commands from files that exist in-tree
+(`tools/`, `scripts/`, `verifiers/`, `corpus/`), and fleet links to
+`VeigaPunk/shokunin`. No axis claim. No Devin wiki URL was added or
+rewritten (the only in-tree Devin wiki link remains the fleet-root
+`README.md` line).
