@@ -1,7 +1,7 @@
 # kotoba — round 30 report (2026-10-19)
 
 Lane: `kotoba-shokunin`. Round 30, loop 1 (loop-round 10), dispatched and admitted on critic-amended mechanisms.
-Dispatch HEAD: `b761cd6`. Work commit: `<pending — recorded at landing>`.
+Dispatch HEAD: `b761cd6`. Work commit: `8e0d53a` (this report lands in the follow-up publish commit).
 Claims: **F** freshness (fault-harness tautology) · **D** operability (heredoc scanner) — `.ufo/round-30/claims.json` (items array 28; prose said 32 — corrected, the r23/r24 count class).
 Swarm: 28/28 on `devin/deepseek-v4-1-flash-high`.
 Status: **completed craft round, admitted.**
