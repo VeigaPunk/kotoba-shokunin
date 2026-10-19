@@ -25,7 +25,7 @@ opencode `d9123b9bcdb0a31f7ab9fe9812b58a9dc1768ad6d97e7b276dff1181813218c9`.
 **Round-14 amendment (2026-09-28, coverage 8.0 → 8.5).** Two pieces of this
 census changed status and are edited in place below rather than left stale:
 `surfaces.no_uncovered_class` remains omp-only by construction, and opencode is
-covered by its own machine check, `surfaces.opencode_extract` (seven code-shape
+covered by its own machine check, `surfaces.opencode_extract` (six code-shape
 rules, two-way parity, zero-extraction FAILs); the census row columns **id,
 literal and kind** are now compared per id against the baseline
 (`surfaces.literal_parity`, `surfaces.kind_parity`), closing the round-13
@@ -269,7 +269,7 @@ Second correction, same class: the round-move brief's "false friend" note said t
 | "Seven surface classes **observed on this host**" — enumeration method host observation | two harness loader models quoted from code, with the *class ids* in this file; the seven craft rows keep their craft rules and gain two rows (cross-tool rule files, declared instruction list) |
 | CLAUDE.md row: "loader exists in **both** harness binaries (9/17 string refs)" | omp class `claude-md` + opencode `y[1]`/`n[1]` with the env gate named — counts removed as evidence |
 | Dispatch-prompt rows: unqualified | labeled **host-observed; no harness loader** (the class is a `.ufo/prompts/` convention) |
-| No loader-derived inventory existed | this file + `verifiers/verify_surfaces.py` (round 13: 4 checks; round 14: 7 checks incl. `surfaces.opencode_extract`, `surfaces.literal_parity`, `surfaces.kind_parity`, exit 0/1/2/3, `--self-test` 72 assertions) + `verifiers/surfaces-baseline.json` |
+| No loader-derived inventory existed | this file + `verifiers/verify_surfaces.py` (round 13: 4 checks; round 14: 7 checks incl. `surfaces.opencode_extract`, `surfaces.literal_parity`, `surfaces.kind_parity`, exit 0/1/2/3, `--self-test` 75 assertions) + `verifiers/surfaces-baseline.json` |
 | Coverage row gap: "no MCP/plugin surface on this host" | refined: *config* absent for the two target harnesses, but `~/.codex/config.toml [mcp_servers.node_repl]` and `~/.config/opencode/plugin/fnm-nudge.js` are live, and both binaries support the surfaces (host absence ≠ support absence) |
 
 ## Honest ceiling — what this census cannot decide
@@ -284,13 +284,13 @@ Second correction, same class: the round-move brief's "false friend" note said t
   shapes. **For opencode this file's ceiling was a hole and is now a named
   boundary (round 14):** `surfaces.no_uncovered_class` still extracts zero pairs
   there by construction, and opencode is instead covered by
-  `surfaces.opencode_extract` — seven code-shape rules (OC-1…OC-6, anchors and
-  derive-vs-witness stated per rule) that must reproduce all 9 declared opencode
+  `surfaces.opencode_extract` — six code-shape rules (OC-1…OC-6, anchors and
+  derive-vs-witness stated per rule) that must reproduce all 5 declared opencode
   class ids, must produce no undeclared id, must each match, and must not produce
   zero classes (a zero extraction FAILs with `vacuity:`). Evidence, drop-one
   matrix and residual ceilings: `opencode-extraction-round14.md`.
   For omp the check is real (8 extracted pairs, parity both ways, an empty baseline
-  produces 41 `extra row` findings — recorded in the round's evidence). Parity is
+  produces 38 `extra row` findings — recorded in the round's evidence). Parity is
   over the extraction set, never over the world.
 - **Craft adequacy.** Whether a repo *should* carry `.cursor/rules` next to
   `AGENTS.md` is a judgment this file does not make; it names the divergence and
@@ -328,6 +328,11 @@ Second correction, same class: the round-move brief's "false friend" note said t
 Provenance: moved verbatim from `SKILL.md` § Instruction surfaces at round 22 (dispatch HEAD `b16300f`, source lines 76-166; body sha256 `e046a0252cc96f173d148b419b7856e23fe789659cf02bc5b3237e8da26114f5`, the `sed`-canonical hash with trailing newline) under the
 ≤600-line budget — the round-15 idiom. Byte-preservation gate: `git show b16300f:SKILL.md | sed -n '76,166p' | sha256sum` must reproduce that hash; contiguity: this exact body block is a substring of this file.
 The table's "All craft below" cell refers to SKILL.md's craft sections — kept verbatim, noted not smoothed.
+
+> Round-24 erratum (append-only, outside the pinned block): the block below is
+> byte-preserved from round 22, so its own stale counts stand uncorrected inside
+> it — line 337 says "seven" code-shape rules (live: 6, OC-1…OC-6). The editable
+> sites (lines 28, 272, 287, 288, 293) were corrected in place at round 24.
 
 
 Nine surface classes; the loader-derived class inventory behind them (per-harness

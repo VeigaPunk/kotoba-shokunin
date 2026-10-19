@@ -106,7 +106,7 @@ is time-varying; on opencode read the global roots and
 
 `python3 verifiers/verify_harness_claims.py` recomputes this whole table from
 live state against `verifiers/baseline.json` and exits non-zero on drift —
-**27 checks**: the omp key prefix read out of the ELF
+**28 checks**: the omp key prefix read out of the ELF
 (`omp.elf.template_sha256`, 273 B), `keys_reproduced` per offered skill under the
 style-aware salt, cache-miss/truncation count, the newest captured `<skills>`
 block matched line-by-line against the cache, offered vs dangling skill dirs,
@@ -458,7 +458,7 @@ location; durable policy copy-pasted into a dispatch prompt.
   model (tag, render, offer gate, failure mode, verify recipe) with the
   round-9 key-reproduction and freeze evidence.
 - `verifiers/verify_harness_claims.py` + `verifiers/baseline.json` — the round-10
-  executable form of the harness claim set (27 checks, 4 exit codes, `--self-test`);
+  executable form of the harness claim set (28 checks, 4 exit codes, `--self-test`);
   the authority for every harness number in this file.
 - `verifiers/check_substrate_pins.py` — round 23: enforces the
   `verifiers/baseline.json` `measured_against` pins (omp sha256 + ns-exact mtime,

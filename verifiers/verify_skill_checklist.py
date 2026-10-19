@@ -1339,7 +1339,7 @@ def self_test() -> int:
     fx = str(FIXTURES)
 
     def run(case: str, *extra: str) -> tuple[int, str]:
-        argv = ["--skill", os.path.join(fx, case, "SKILL.md"),
+        argv = ["--repo", str(DEFAULT_REPO), "--skill", os.path.join(fx, case, "SKILL.md"),
                 "--map", os.path.join(fx, case, "map.json")]
         vfile = os.path.join(fx, case, "vocab.json")
         if os.path.exists(vfile):
@@ -1553,7 +1553,7 @@ def self_test() -> int:
 
     # foreign target, no map pinned -> N/A, not exit 3
     code, out = run_capture(
-        ["--skill", os.path.join(fx, "missing-map", "SKILL.md")])
+        ["--repo", str(DEFAULT_REPO), "--skill", os.path.join(fx, "missing-map", "SKILL.md")])
     rec("foreign-no-map: exit 0", code == 0, code)
     rec("foreign-no-map: box_map N/A",
         "N/A checklist.box_map_complete:" in out, out)

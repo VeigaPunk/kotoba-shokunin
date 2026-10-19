@@ -12,7 +12,7 @@ had to re-type `sqlite3 -readonly`, `strings`, and three `grep` pipelines, and
 then judge the output. A recipe re-run by a human is lane-attested evidence —
 nothing fails when it stops being true. Round 10 converts it into a committed
 program with a recorded baseline: `verifiers/verify_harness_claims.py`
-(**27 checks**, exit 0 agree / 1 drift / 2 environment unreadable / 3 no
+(**28 checks**, exit 0 agree / 1 drift / 2 environment unreadable / 3 no
 baseline; `--self-test` checks the script's own model). A claim now fails
 loudly the moment the host stops agreeing with it. Runtime ≈3 s (2.6 s of it is
 the session-log scan below).
@@ -183,7 +183,7 @@ claiming the parser is complete.
 | perturbed baseline (17→16 keys, 17→16 catalogue lines) | exit 1, `DRIFT` names exactly those two checks |
 | `HOME=/tmp/...emptyhome` | exit 2 `INCONCLUSIVE: omp binary not found` |
 | baseline deleted | exit 3, observations printed |
-| real host | exit 0, 27/27 |
+| real host | exit 0, 28/28 |
 | independent recomputation (3 other lanes) | critic: rule holds as mechanism / fails as documented (round-9 quote → 0/17); executor `omp_verify.py`: 17/17 and 11/11 of this baseline's omp values; scout: 17/17, 273 B template, sha256 match |
 | the round-9 hand recipe itself | `strings -n 6 \| grep 'Compress into one routing hint'` → 226-byte first line → **0/17 keys** — the recipe it replaces cannot reproduce the claim set |
 | 10 planted faults in `/tmp` fixture worlds (independent mutation lane) | 9 detected with exit 1 and the firing check id (deleted db row, edited db description, stale skill tree, uncached new skill, short description, low `init count`, leaked `<available_skills>`, name≠folder, altered template bytes); 1 undetected — a `>-` description differing **only** in trailing whitespace. That is an *equivalent* mutation: YAML strip-chomping discards the trailing blank, the loader-held description is byte-identical, the key is identical, and agreeing is correct. Recorded as an acceptable non-goal; the mutation must change the loader-held bytes to be a fault. |
@@ -212,3 +212,8 @@ claiming the parser is complete.
 - The catalogue check reads the *newest* block only; a host that stops producing
   catalogues freezes the check at the last one. `catalogue_timestamp` is printed
   so the reader can see the age, but no staleness threshold is enforced.
+> Round-24 erratum: 6 of the 11 opencode-side checks are vacuous on this host —
+> the v2.0.26 log grammar no longer prints `init count=` / `evaluated permission=skill` /
+> `duplicate skill name`, so those counters read 0 against both zero- and nonzero-expectations
+> (scout R3, round 22, reproduced by three /tmp probe logs). The pin `oc.log.skills_rescan_max`
+> (added at round 18) is the 28th check; the round-10 doc's '27' was correct at `abef8aa`.

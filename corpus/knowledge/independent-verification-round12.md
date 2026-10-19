@@ -290,3 +290,13 @@ The round-11 cold run (`corpus/knowledge/cold-run-round11.md`) is the *first* no
 act; this file is the second, and the direction is reversed: there, a non-author checked
 the author's numbers; here, a non-author derived the verdicts and the author's instrument
 is the thing that had to agree.
+## Round-24 erratum (append-only)
+
+Two corrections, both host-conditional, from scouts R4/R5 (round 22) and E3 (round 24):
+
+- The W0 block's `report_dead=10/19` at `d49dfa5` reads **19/19** on the current host — the
+  recorded 10 was the round-12 host's lowercase `/home/vgpnk/projects` base resolving 9
+  host-anchored tokens (reconstructed byte-exactly in `unshare -rm`; LOG records that base
+  as now absent). Both instruments agree on the 19-site dead set and identical shapes.
+- §2's `index_patterns 43 = index_tokens 37` glues two tree states: `43` is the `633859f`
+  live tree, `37` is `7d15407`; the correct pairing at either tree is `43 = 43`.
