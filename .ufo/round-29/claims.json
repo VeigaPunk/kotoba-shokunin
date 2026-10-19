@@ -1,0 +1,32 @@
+{
+  "round": 29,
+  "loop": 1,
+  "loop_round": 9,
+  "lane": "kotoba",
+  "dispatched_at_head": "daf701d",
+  "provider_plan": { "model": "openai-codex/gpt-6-luna-max", "swarm": 32, "fallback": null },
+  "axis_set": [
+    { "axis": "freshness", "score": "8.0", "owned": "advisory",
+      "direction": "up — close the harness expect-not-read class: 11 of 28 pins in zero/positive mode are never actually compared",
+      "observable": "a corrupted zero/positive pin flips the harness gate to exit 1; live green world byte-invariant; self-test count recorded" },
+    { "axis": "operability", "score": "8.5", "owned": "advisory",
+      "direction": "up — capability acquisition: an assertion-floor tripwire so no self-test can go green by silently dropping assertions (scout X10's class)",
+      "observable": "the guard lands, self-test green, deleting a self-test block on a /tmp copy flips it red, and the Capabilities table gains its second row" }
+  ],
+  "claims": [
+    { "id": "H", "axis": "freshness",
+      "claim": "Make verify_harness_claims.py actually evaluate `expect` for zero/positive-mode pins (11 of 28 currently pass regardless — scout M4), or fail closed on a pin that declares an expect its mode never reads.",
+      "before": "scout M4 (round 26): deleting or corrupting the 11 zero/positive pins still prints '28/28 checks pass' — the r23 PIN_ABSENT class, open in the harness.",
+      "after": "on /tmp copies: corrupting any of the 11 pins -> DRIFT exit 1 naming it; the 17 equal/at_least pins unchanged; live gate byte-invariant (28/28 -> 28/28 with real checks); self-test green with count recorded.",
+      "counting_command": "corrupt-each-pin matrix on a /tmp copy: all 28 flip; live: exit 0 28/28",
+      "falsifier": "a live-output change beyond the new checks, a formerly-checked pin regressing, or any of the 11 still passing when corrupted" },
+    { "id": "T", "type": "capability acquisition", "axis": "operability",
+      "claim": "Land a self-test assertion-floor guard (per-instrument recorded floors; a self-test that reports fewer assertions than its floor FAILs the guard), closing the X10 class where self-test blocks are deletable with counts green.",
+      "before": "scout X10 (round 27): deleting the round-21 new-callee self-test block leaves '0 failure(s) over 72 assertions' — no instrument anywhere enforces an assertion floor; floors are recorded only in prose.",
+      "after": "the guard runs live green (floors: harness 10, corpus_integrity 88, corpus_independent 52+new, surfaces 82, checklist 1504, pins 51); on /tmp copies with a block deleted the guard fails naming the instrument + observed-vs-floor; self-test green; Capabilities table gains row 2; the guard is read-only and hash-only (it runs each instrument's --self-test and parses the counts).",
+      "counting_command": "guard live -> exit 0; block-deletion probes on /tmp copies -> exit 1 naming the instrument",
+      "falsifier": "a floor that mismatches the instrument's live count, a false red on the live tree, or a guard that cannot see a deletion" }
+  ],
+  "lowest_axis_rule": "H works freshness (tied-lowest 8.0); T is a capability acquisition on operability (8.5) and, if landed, enters the Capabilities table (row 2) and resets the stagnation window.",
+  "shonen": "untouched."
+}

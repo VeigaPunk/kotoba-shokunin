@@ -568,10 +568,12 @@ def evaluate(observed: dict, baseline: dict | None) -> list[dict]:
         else:
             want = baseline["checks"].get(cid, {}).get("expect")
             row["expected"] = want
-            if mode == "equal":
+            if mode == "zero" or mode == "equal":
                 ok = value == want
-            else:  # at_least
+            elif mode == "positive" or mode == "at_least":
                 ok = isinstance(value, int) and isinstance(want, int) and value >= want
+            else:
+                ok = False
         row["verdict"] = "PASS" if ok else ("OBSERVE" if ok is None else "DRIFT")
         results.append(row)
     return results
