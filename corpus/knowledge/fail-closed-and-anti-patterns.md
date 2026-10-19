@@ -57,7 +57,7 @@ skill body keeps only stable semantics.
 
 ## Anti-pattern table (full, moved from `SKILL.md`, round 15)
 
-The 18-row table as it stood in `SKILL.md` before the round-15 line-budget move.
+The 20-row table as it stood in `SKILL.md` before the round-15 line-budget move.
 The distilled 5-row table above is a subset of this one — where they differ, this
 is authoritative. `SKILL.md` § Anti-patterns keeps the five highest-frequency
 rows plus this pointer.
