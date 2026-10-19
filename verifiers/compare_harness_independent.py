@@ -281,6 +281,11 @@ def _record_status(record, cid, where):
             raise CompareError(
                 f"{where}: status/state split for {cid}: status={show(status)} but "
                 f"state={show(state)} (both aliases must agree)")
+    for key in ("status", "state"):
+        if key in record and not isinstance(record[key], str):
+            raise CompareError(
+                f"{where}: non-string status for {cid}: {key}={show(record[key])} "
+                "(status/state fields must be strings)")
     status = record["status"] if "status" in record else record.get("state")
     return status if isinstance(status, str) else None
 
@@ -322,19 +327,27 @@ def _channel_maps(payload, where, value_keys=IND_VALUE_KEYS):
                     raise CompareError(
                         f"{where}: {key} record {cid} carries no value "
                         f"(keys {value_keys}): {show(record)}")
-                # WITHIN-RECORD CROSS-CHECK (round 40 — R1's F-2): a record that
-                # carries a harness-side `expected`/`expected_value` ALONGSIDE a
-                # derived channel reading "NOT DERIVED" launders a harvested
-                # value into the join — the read-first `vkey` picks `expected`
-                # and the non-derivation is never consulted.  The two must agree;
-                # an explicit non-derivation cannot be outranked by a harvested
-                # value.  A record carrying ONLY `expected` is a documented shape
-                # (the flat/nested map forms are contract), so it is not rejected
-                # here.  Applies to the independent side; the live side's
+                # WITHIN-RECORD CROSS-CHECK (round 40 — R1's F-2): foreign
+                # `expected`/`expected_value` keys and derived value keys each form
+                # an alias family.  Every alias in a family must agree; otherwise
+                # the priority order could discard a conflicting copy.  A foreign
+                # value must also agree with each derived value, and an explicit
+                # non-derivation cannot be outranked by a harvested value.  A
+                # record carrying ONLY `expected` is a documented shape (the
+                # flat/nested map forms are contract), so it is not rejected here.
+                # Applies to the independent side; the live side's
                 # `LIVE_VALUE_KEYS` carries no `expected` key.
                 if value_keys is IND_VALUE_KEYS:
                     derived = [k for k in ("re_derived", "value", "observed") if k in record]
                     foreign = [k for k in ("expected", "expected_value") if k in record]
+                    if len(foreign) > 1:
+                        primary = foreign[0]
+                        for alias in foreign[1:]:
+                            if canon(record[primary]) != canon(record[alias]):
+                                raise CompareError(
+                                    f"{where}: {key} record value alias conflict for {cid}: "
+                                    f"{primary}={show(record[primary])} vs "
+                                    f"{alias}={show(record[alias])} (foreign aliases must agree)")
                     if len(derived) > 1:
                         primary = derived[0]
                         for alias in derived[1:]:
@@ -1274,17 +1287,17 @@ def fixture_battery(check):
         return
     case_dirs = sorted(p for p in FIXTURE_DIR.iterdir()
                        if (p / "case.json").is_file())
-    check("fixtures: battery carries F-2/F-3, field-gate, alias, heldout-map, row-conflict, and record+map composition arms",
+    check("fixtures: battery carries F-2/F-3, field-gate, status/value-alias, heldout-map, row-conflict, and record+map composition arms",
           sorted(p.name for p in case_dirs) ==
           ["agree-control", "alias-nonstring-status-state", "alias-status-state-split",
            "alternatives-ignored", "checks-shadow", "dotted-id-top-level-map-shadow",
-           "expected-launder", "field-alternatives-ignored", "field-extra-key",
+           "expected-alias-conflict", "expected-launder", "field-alternatives-ignored", "field-extra-key",
            "field-metadata", "field-overrides", "heldout-expected-only-full-copy",
            "heldout-flat-dotted-map", "heldout-nested-checks-map",
            "heldout-nested-expected-wrapper", "heldout-nested-observations-wrapper",
            "heldout-wrapper-precedence-expected-over-observations",
            "record-check-id-conflict", "record-map-24-composition", "record-map-24-control",
-           "record-re-derived-observed-conflict", "rows-shadow",
+           "record-re-derived-observed-conflict", "rows-shadow", "status-lone-nonstring",
            "uncontracted-future-key", "uncontracted-metadata",
            "uncontracted-overrides", "value-map-override"])
     scope_file = FIXTURE_DIR / "scope.json"

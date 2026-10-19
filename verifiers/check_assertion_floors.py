@@ -6,7 +6,7 @@ still read green. Each instrument's --self-test prints an assertion count;
 this guard reruns every self-test and FAILs when the observed count is below
 the recorded floor (harness 10, corpus_integrity 150, corpus_independent 91,
 surfaces 87, checklist 1597, pins 62, harness_independent 104,
-compare_harness_independent 245, floors_guard 150; others @ round 36, the
+compare_harness_independent 255, floors_guard 150; others @ round 36, the
 checklist floor re-recorded at round 37 by the C3 fence battery plus the
 indented-code decoy battery and at round 38 by the three container-relative
 fence shapes (V6's named residual); the two round-38 C1 instruments registered
@@ -18,7 +18,7 @@ re-bumped at round 39 by seat P2's init_count predicate fix + grammar fixtures
 discriminator battery (83->97), and at round 40 by seat F1's committed F-2/F-3
 payload arms -- the expected-launder, rows-shadow and checks-shadow shapes plus
 the agree-control (97->117); at round 43 by seat P2's un-contract top-level
-field-gate fixture battery (118->143); round 43's scoped-map and status-alias battery (143->213); round 44 adds dotted top-level-map-shadow, record check/id, and re_derived/observed conflict fixtures (213->228); round 44 F1 adds record+map control/composition arms and local probe materialization (228->245). The two corpus floors re-bumped at round
+field-gate fixture battery (118->143); round 43's scoped-map and status-alias battery (143->213); round 44 adds dotted top-level-map-shadow, record check/id, and re_derived/observed conflict fixtures (213->228); round 44 F1 adds record+map control/composition arms and local probe materialization (228->245); round 45 P2 adds the lone non-string status fixture (245->250); round 45 P1 adds the expected-alias-conflict fixture (250->255). The two corpus floors re-bumped at round
 39 by seat P4's CommonMark 4.5 closer-rule battery (119->129, 59->68), and at
 round 40 by seat F2's indent-clause battery -- the 0/2/3-space controls plus
 the 4-space, tab, mixed-indent, opener-arm and tilde shapes, each expected set
@@ -121,7 +121,7 @@ EXPECTED_INSTRUMENTS = {
     "checklist": 1597,
     "pins": 62,
     "harness_independent": 104,
-    "compare_harness_independent": 245,
+    "compare_harness_independent": 255,
     "floors_guard": 150,
 }
 SELF_TEST_TIMEOUT_S = 120
@@ -145,7 +145,7 @@ INSTRUMENTS = {
              r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
     "harness_independent": ("verifiers/verify_harness_independent.py", 104,
                             r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
-    "compare_harness_independent": ("verifiers/compare_harness_independent.py", 245,
+    "compare_harness_independent": ("verifiers/compare_harness_independent.py", 255,
                                     r"self-test:\s*(\d+) failure\(s\) over (\d+) assertions", 2, 1),
     "floors_guard": ("verifiers/check_assertion_floors.py", 150,
                      r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
