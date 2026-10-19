@@ -15,8 +15,9 @@ mode, which carries the code in `exit_code`):
      non-mapping)
   2  a pinned binary cannot be read or stat'd (UNREADABLE), or a discovered pin
      names a substrate with no registered binary path (UNSUPPORTED), or a
-     pin-shaped key differs only in case from a contract pin (UNSUPPORTED:
-     pin keys are exact-case)
+     pin-shaped key differs only in case from a contract pin, or carries
+     whitespace/control/format characters, or both (UNSUPPORTED: pin keys
+     are exact bytes)
   3  the baseline document cannot be read or parsed (NO_BASELINE: missing file,
      directory, EACCES, bad JSON, JSON that is not an object), or a pin value
      cannot be interpreted as its kind (BAD_PIN)
@@ -52,6 +53,7 @@ import io
 import json
 import re
 import sys
+import unicodedata
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -74,6 +76,35 @@ EXPECTED_PINS = (
 )
 DISCOVER_RE = re.compile(r"^(?P<prefix>[a-z0-9_]+)_binary_(?P<kind>[A-Za-z0-9]+)$",
                          re.IGNORECASE)
+
+# Pin keys are exact bytes (round-32 claim W). A key that is not byte-identical
+# to its own canonical form is a hygiene violation and must FAIL, never skip.
+# The predicate is a Unicode-CATEGORY test, not str.strip(): str.strip() removes
+# whitespace (Zs/Zl/Zp and the ASCII controls) but leaves the FORMAT characters
+# (Cf) that render invisibly -- U+200B ZERO WIDTH SPACE, U+FEFF BOM/ZWNBSP,
+# U+00AD SOFT HYPHEN, the bidi marks. Scout M4 (round 31) found the padded-key
+# silent skip; a strip()-based fix still admits Cf-padded keys, so this guard
+# classifies by category (round-32 scout W3, the one named design difference
+# from the strip()-normalizing draft).
+HYGIENE_CATEGORIES = ("Zs", "Zl", "Zp", "Cc", "Cf")
+
+
+def hygiene_offenders(key: str) -> list[str]:
+    """Every character that makes `key` non-canonical, in key order."""
+    return [c for c in key if unicodedata.category(c) in HYGIENE_CATEGORIES]
+
+
+def canonical_pin_key(key: str) -> str:
+    """`key` with every hygiene offender removed: the exact-bytes identity a
+    pin key must already have. Legitimate keys are their own canonical form."""
+    return "".join(c for c in key
+                   if unicodedata.category(c) not in HYGIENE_CATEGORIES)
+
+
+def hygiene_detail(key: str) -> str:
+    return "pin key is not exact bytes: %s; pin keys are exact bytes" % ", ".join(
+        "U+%04X %s" % (ord(c), unicodedata.category(c))
+        for c in hygiene_offenders(key))
 KINDS = ("sha256", "mtime")
 SHA_RE = re.compile(r"^[0-9a-fA-F]{64}$")
 FRAC_RE = re.compile(r"\.(\d+)")
@@ -143,14 +174,21 @@ def check_pins(baseline: object, binaries: dict[str, Path]) -> list[dict]:
 
     keys: list[str] = [p[0] for p in EXPECTED_PINS]
     for key in sorted(ma):
-        if key not in keys and DISCOVER_RE.match(key):
+        if key in keys:
+            continue
+        # A pin-shaped key is discovered by its CANONICAL form, so a key that
+        # only differs from pin shape by hygiene characters still enters the
+        # report (and then fails there) instead of vanishing from it.
+        if (DISCOVER_RE.match(key) or DISCOVER_RE.match(canonical_pin_key(key))
+                or hygiene_offenders(key)):
             keys.append(key)
 
     results: list[dict] = []
     known = {p[0]: (p[1], p[2]) for p in EXPECTED_PINS}
     for key in keys:
-        m = DISCOVER_RE.match(key)
-        prefix, kind = known.get(key, (m.group("prefix"), m.group("kind")))
+        m = DISCOVER_RE.match(canonical_pin_key(key))
+        prefix, kind = known.get(key, (m.group("prefix"), m.group("kind"))
+                                 if m else ("-", "-"))
         entry: dict = {"pin": key, "kind": kind, "substrate": prefix}
         if key not in ma:
             entry.update(verdict="PIN_ABSENT", expect=None, observed=None,
@@ -158,8 +196,14 @@ def check_pins(baseline: object, binaries: dict[str, Path]) -> list[dict]:
                                 "from measured_against")
             results.append(entry)
             continue
+        if hygiene_offenders(key):
+            entry.update(verdict="UNSUPPORTED", observed=None,
+                         detail=hygiene_detail(key))
+            results.append(entry)
+            continue
+        key_canon = canonical_pin_key(key)
         canonical = next((p[0] for p in EXPECTED_PINS
-                          if p[0] != key and p[0].casefold() == key.casefold()),
+                          if p[0] != key and p[0].casefold() == key_canon.casefold()),
                          None)
         if canonical is not None:
             entry.update(verdict="UNSUPPORTED", observed=None,
@@ -410,6 +454,32 @@ def self_test() -> int:
         rec("mis-cased separator omp_Binary_sha256: exit 2", code == 2, code)
         code, _, _ = run(world(omp_binary_SHA256=sha))
         rec("mis-cased kind omp_binary_SHA256: exit 2", code == 2, code)
+        code, out, _ = run(world(**{" omp_binary_sha256": sha}))
+        rec("whitespace-padded key: exit 2 (exact bytes, never skipped)",
+            code == 2, code)
+        rec("whitespace-padded key: UNSUPPORTED names the key and the char",
+            "FAIL  omp_binary_sha256: UNSUPPORTED: pin key is not exact bytes: "
+            "U+0020 Zs" in out, out)
+        rec("whitespace-padded key: summary 1/4, the three real pins still PASS",
+            "UNSUPPORTED 1/4 pins failed:  omp_binary_sha256" in out
+            and sum(1 for ln in out.splitlines() if ln.startswith("PASS ")) == 3,
+            out)
+        for label, key in (("trailing space", "omp_binary_sha256 "),
+                           ("leading tab", "\tomp_binary_sha256"),
+                           ("NBSP", "\u00a0omp_binary_sha256"),
+                           ("ZWSP (Cf)", "\u200bomp_binary_sha256"),
+                           ("BOM (Cf)", "\ufeffomp_binary_sha256")):
+            code, out, _ = run(world(**{key: sha}))
+            rec("%s key: exit 2 (category test, not str.strip)" % label,
+                code == 2, (code, out))
+        code, out, _ = run(world(**{"   ": sha}))
+        rec("all-whitespace key (not pin-shaped): exit 2, never a silent 0",
+            code == 2 and "UNSUPPORTED" in out, (code, out))
+        code, out, _ = run(world(**{" cursor_binary_sha256": "0" * 64}))
+        rec("padded STRAY substrate key: exit 2, not a silent 0",
+            code == 2 and "UNSUPPORTED" in out, (code, out))
+        code, out, _ = run(world(**{"\u200bcursor_binary_sha256": "0" * 64}))
+        rec("Cf-padded stray substrate key: exit 2", code == 2, code)
         code, out, _ = run(world(opencode_binary_mtime=iso9))
         rec("extra pin on a registered substrate is compared: exit 0 when it holds",
             code == 0, code)

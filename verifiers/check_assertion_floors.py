@@ -5,7 +5,7 @@ The claim under test: a self-test that silently loses assertions must never
 still read green. Each instrument's --self-test prints an assertion count;
 this guard reruns every self-test and FAILs when the observed count is below
 the recorded floor (harness 10, corpus_integrity 88, corpus_independent 52,
-surfaces 87, checklist 1504, pins 51 @ round 29). Exit: 0 all floors hold;
+surfaces 87, checklist 1504, pins 62 @ round 29). Exit: 0 all floors hold;
 1 an instrument ran below its floor (named, observed-vs-floor); 2 an
 instrument could not run or its output was unparseable. Read-only.
 
@@ -29,7 +29,7 @@ EXPECTED_INSTRUMENTS = {
     "corpus_independent": 52,
     "surfaces": 87,
     "checklist": 1504,
-    "pins": 51,
+    "pins": 62,
 }
 SELF_TEST_TIMEOUT_S = 120
 
@@ -44,7 +44,7 @@ INSTRUMENTS = {
                  r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
     "checklist": ("verifiers/verify_skill_checklist.py", 1504,
                   r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
-    "pins": ("verifiers/check_substrate_pins.py", 51,
+    "pins": ("verifiers/check_substrate_pins.py", 62,
              r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
 }
 

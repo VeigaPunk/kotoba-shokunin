@@ -17,7 +17,7 @@ Promotion to shokunin requires all of:
   note (round 13): same defect — the round-11 promotion rested on `ColdRunRecord`, a
   subagent this lane dispatched, so the `[x]` reverts to `[~]`; a fresh-lane cold run
   of the same scripts is what would restore it.
-  evidence: LOG.md round-5 fleet SKILL.md audit (5 siblings, 13-item checklist); round-7 dispatch-prompt audit of 43 files; round-10 harness-claim verifier (`verifiers/verify_harness_claims.py`, 27 checks, exit 0 on the live host) — `corpus/knowledge/harness-verifier-round10.md`; round-11 corpus-integrity verifier (9 checks, red-before → green-after) plus its **non-author cold run**: reviewer `ColdRunRecord` (did not author the script or baseline), record `corpus/knowledge/cold-run-round11.md` — script sha256 gate, verbatim run + exit code, three independent spot-checks in its own code, `Discrepancies: none found`.
+  evidence: LOG.md round-5 fleet SKILL.md audit (5 siblings, 13-item checklist); round-7 dispatch-prompt audit of 43 files; round-10 harness-claim verifier (`verifiers/verify_harness_claims.py`, 28 checks, exit 0 on the live host) — `corpus/knowledge/harness-verifier-round10.md`; round-11 corpus-integrity verifier (9 checks, red-before → green-after) plus its **non-author cold run**: reviewer `ColdRunRecord` (did not author the script or baseline), record `corpus/knowledge/cold-run-round11.md` — script sha256 gate, verbatim run + exit code, three independent spot-checks in its own code, `Discrepancies: none found`.
   note: promoted from `[~]` in round 11; the reviewer is named and the record path is in-repo, per the round-6 attribution rule.
 - [~] Instructions executable by an agent without oral context
   note (round 13): the round-12 `[x]` rested on `ReviewSHONEN` (lane-dispatched) →
@@ -32,11 +32,11 @@ Promotion to shokunin requires all of:
   from a foreign cwd with the stated outcomes (sqlite3 count → 17; the init-count
   distribution → 1/141/34/14; the corpus verifier fires its contract), one
   cwd assumption found and now stated in `SKILL.md` (relative script paths).
-  round-16 note: the checklist half is executable too — `python3 verifiers/verify_skill_checklist.py` is now 9 checks
+  round-16 note: the checklist half is executable too — `python3 verifiers/verify_skill_checklist.py` is now 10 checks
   over 67 fixture cases (`--self-test` 0 failure(s) over 1283 assertions), 8 of the 41 boxes are `executed:` and the
   map's `delegated:` count is 0 (the class is fixture-only); the round's own instrument FAILed on the live file until
   `corpus/knowledge/checklist-execution-round16.md` was written, which is the fail-closed evidence for the new
-  `trigger.citation_resolves` check rather than a claim about it.
+  `trigger.citation_resolves` check rather than a claim about it. (round-32 recount: 10 checks, 71 fixture cases, 1504 assertions — the counts above are the round-16 values at `57f9e38`, the commit that added this note; 8 executed and delegated: 0 still hold)
   evidence: LOG.md round-7 — a blank-context L2 reviewer ran the 13-item trigger-fidelity checklist on SKILL.md with zero clarification requests (13 verdicts + meta-findings); round-10 made the harness half of the file executable rather than prose (same verifier).
 - [~] No cross-domain bleed (PROVINCE.md still accurate)
   evidence: LOG.md round-7 — cross-domain defects in .ufo/prompts/, ~/.config/opencode/, scripts/shokunin-watchdog.sh audited and reported, not fixed; round-10 aggregator audit adopted as-is and its kotoba-owned defects closed inside this repo; PROVINCE.md unchanged.

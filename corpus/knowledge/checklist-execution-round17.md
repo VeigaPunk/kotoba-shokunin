@@ -314,7 +314,7 @@ Two L2 recommendations were deliberately not followed verbatim:
 | two schematic classes only | other prose templates need `<…>`, glob, `$VAR`, or a new reviewed class |
 | symlinks | existence is checked; containment and referent type are not |
 | anchors and pins | `file:NN[-MM]` dressing is stripped; line existence, symbols, and `@commit` are not proved |
-| heredoc variants | `<<~'EOF'`, `<<\~EOF`, and delimiters ending in `~` still over-catch; misses stay the old safe direction |
+| heredoc variants | `<<~'EOF'` and `<<\~EOF` still over-catch; a single trailing `~` no longer does (`<<EOF~` matches bash since round 30), while `~~`-plus under-catches — body and tail swallowed; misses stay the old safe direction |
 | terminator whitespace | the scanner uses `strip()` while bash `<<-` strips tabs only and `<<~` strips nothing; space-indented terminators may close early in the model |
 | executable heredocs | bodies passed to `bash`/`python` are opaque today; `M23` remains planned with a `cat` control |
 
