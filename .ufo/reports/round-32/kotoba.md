@@ -1,7 +1,7 @@
 # kotoba — round 32 report (2026-10-19)
 
 Lane: `kotoba-shokunin`. Round 32, loop 1 (loop-of-round 12), dispatched and admitted on the critic-corrected set.
-Dispatch HEAD: `419a13b`. Work commit: `<pending — recorded at landing>`.
+Dispatch HEAD: `419a13b`. Work commit: `ecb26c3` (this report lands in the follow-up publish commit).
 Claims: **E** calibration (three filed errata) · **W** freshness (pins whitespace keys) — `.ufo/round-32/claims.json` (items array 29; prose said 32 — corrected).
 Provider: antigravity/gemini-3.8-flash **failed on all lanes** (`502 token/shim error` — the auth shim itself is broken; a retry probe confirmed); identical items reran on `devin/deepseek-v4-1-flash-high` per the exhaustion clause. **Round 13's gemini-4-argon will likely hit the same shim.**
 Swarm: 29/29 on the substitute lane.
