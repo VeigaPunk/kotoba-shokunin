@@ -460,6 +460,11 @@ location; durable policy copy-pasted into a dispatch prompt.
 - `verifiers/verify_harness_claims.py` + `verifiers/baseline.json` — the round-10
   executable form of the harness claim set (27 checks, 4 exit codes, `--self-test`);
   the authority for every harness number in this file.
+- `verifiers/check_substrate_pins.py` — round 23: enforces the
+  `verifiers/baseline.json` `measured_against` pins (omp sha256 + ns-exact mtime,
+  opencode sha256; exit 0/1/2/3, `--self-test` over `verifiers/fixtures/pins/`;
+  hashes bytes, never execs; a red guard is fixed by re-record + mechanism note,
+  never by weakening the pin).
 - `verifiers/verify_corpus_integrity.py` + `verifiers/corpus-baseline.json` — the
   round-11 executable form of the *corpus-internal* citation rules (9 checks over
   tracked `corpus/*.md`: index coverage, lane-report pointers in all four shapes,
