@@ -1203,7 +1203,6 @@ Full round detail: `corpus/lessons/round-19-recensus.md`. Advisory inventories:
 - Operator rollout of the 2026-10-16 fleet protocol amendment (fleet-root commit `84bade0`): this lane's `SCORECARD.md` already carried real `axes`, `planned`, and `retired` sections, so only the missing `Capabilities` and `Saturation` sections were appended, per `../AXES.md` § SCORECARD.md contract. Purely additive — existing bytes unchanged (verified by diff: additions only).
 - No axis claim was made, no score moved, no verdict changed, and no number invented; the capabilities table enters with no rows, pending a round that demonstrates a capability running.
 
-
 ## 2026-10-19 — Round 21 (loop 1, round-of-loop 1): freshness sweep + adjacency re-measure
 
 - Claims declared at `.ufo/round-21/claims.json` (F freshness, A adjacency); dispatched as a 64-lane scout swarm on `opencode-go/deepseek-v4.1-flash` (opencode-go key 1 of 7 — round-robin continues at key 2 next opencode-go round); evidence fragments `.ufo/round-21/scouts/*.md`; report `.ufo/reports/round-21/kotoba.md`.
@@ -2289,3 +2288,11 @@ Full round detail: `corpus/lessons/round-19-recensus.md`. Advisory inventories:
 - Final report `.ufo/round-46/scouts/B2.md` SHA-256 `3fe64da69d6b91e0ebf2a7e8125b1db15db06cf4e0ed1e89fb144deddbd504b4` supersedes the earlier B2 report hash recorded above. It retains exactly four tentative SHONEN marks, no rejected marks, and separate bounded C1/C2/C3 verdicts.
 - Corrected the C3 source pin to current `SCORECARD.md` SHA-256 `c4049aa94aa2b652efed1f848679a3ee64b176ea690486c6696b7728418cb127`; P4's candidate result remains scoped to registered reason/evidence/probe-target metadata, with calibration 8.5 and no whole-round closure (`.ufo/round-46/scouts/P4.md`).
 - The exact post-report/post-log checklist rerun is performed after this entry. Its stdout, stderr, exit status, and before/after pins are captured at `.ufo/round-46/evidence/b2-final-checklist.stdout.json`, `.ufo/round-46/evidence/b2-final-checklist.stderr.txt`, `.ufo/round-46/evidence/b2-final-checklist.exit.txt`, `.ufo/round-46/evidence/b2-final-checklist.pin-before.txt`, and `.ufo/round-46/evidence/b2-final-checklist.pin-after.txt`. No SHONEN, product, protocol, mission, axes, corpus, sibling-repository, or floors-registry file was changed; no Git add, commit, or ref operation was performed.
+
+- 2026-10-17 — README: Devin wiki link. Operator directive (2026-10-17):
+  insert the Devin wiki link into the README header of every repository
+  with a generated wiki. `README.md` created (lane-header convention) with a `**Wiki:**` link to
+  https://app.devin.ai/org/veigapunk/wiki/VeigaPunk/kotoba-shokunin?branch=master.
+  Evidence: the org's Devin wiki index lists this repo's generated wiki;
+  sibling lane READMEs carry the same `**Wiki:**` header.
+  Documentation-only change; no round run, no axis moved.
