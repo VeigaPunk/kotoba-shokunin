@@ -1,0 +1,1712 @@
+{
+  "command": [
+    "/usr/bin/python3",
+    ".ufo/round-44/drafts/x2/probe.py"
+  ],
+  "probe_sha256": "9e2cf12c34c3bf031325ca780e480dc8a74ea38fa300da5576ab0ffffa166f41",
+  "frozen_ref": "6fbbff5:verifiers/compare_harness_independent.py",
+  "frozen_commit_tree": "87e2517d7db26cb9b6522c2feca5a7d2f4621fbe",
+  "start": {
+    "instant_utc": "2026-10-19T18:07:03.692686Z",
+    "head": "6881ce31912cf52982de733d18d25e7ab7aae5c4",
+    "tree": "f005c7f1f8a46c2ddbcb4e6a48ca949afb2de56d",
+    "comparator_sha256": "a2bf6a2a93801dacef77f72509eb37f635d4f643c69cc41429d442dd4af3d10d",
+    "git_status_porcelain_v1": "M .ufo/round-41/evidence/cwd-replay-receipt.json\n M LOG.md\n M verifiers/check_assertion_floors.py\n M verifiers/compare_harness_independent.py\n M verifiers/floors-registry.json\n?? .ufo/round-44/\n?? verifiers/fixtures/compare-harness-independent/dotted-id-top-level-map-shadow/\n?? verifiers/fixtures/compare-harness-independent/record-check-id-conflict/\n?? verifiers/fixtures/compare-harness-independent/record-re-derived-observed-conflict/"
+  },
+  "finish": {
+    "instant_utc": "2026-10-19T18:07:03.719287Z",
+    "head": "6881ce31912cf52982de733d18d25e7ab7aae5c4",
+    "tree": "f005c7f1f8a46c2ddbcb4e6a48ca949afb2de56d",
+    "comparator_sha256": "a2bf6a2a93801dacef77f72509eb37f635d4f643c69cc41429d442dd4af3d10d",
+    "git_status_porcelain_v1": "M .ufo/round-41/evidence/cwd-replay-receipt.json\n M LOG.md\n M verifiers/check_assertion_floors.py\n M verifiers/compare_harness_independent.py\n M verifiers/floors-registry.json\n?? .ufo/round-44/\n?? verifiers/fixtures/compare-harness-independent/dotted-id-top-level-map-shadow/\n?? verifiers/fixtures/compare-harness-independent/record-check-id-conflict/\n?? verifiers/fixtures/compare-harness-independent/record-re-derived-observed-conflict/"
+  },
+  "source_bytes_equal": false,
+  "suites": {
+    "frozen_6fbbff5": {
+      "source_sha256": "d8b8c7f6001db7f47a294dc2a98db9179f61a281be20293dc5b104906073679d",
+      "direct_parser_cases": {
+        "check_name_conflict": {
+          "payload": {
+            "results": [
+              {
+                "check": "alias.row",
+                "name": "alias.other",
+                "expected": 1
+              }
+            ]
+          },
+          "parse_independent": {
+            "outcome": "accepted",
+            "result": {
+              "values": {
+                "alias.row": 1
+              },
+              "statuses": {}
+            }
+          }
+        },
+        "all_id_aliases_conflict": {
+          "payload": {
+            "results": [
+              {
+                "check": "alias.row",
+                "id": "alias.other",
+                "name": "alias.third",
+                "expected": 1
+              }
+            ]
+          },
+          "parse_independent": {
+            "outcome": "accepted",
+            "result": {
+              "values": {
+                "alias.row": 1
+              },
+              "statuses": {}
+            }
+          }
+        },
+        "value_observed_conflict": {
+          "payload": {
+            "results": [
+              {
+                "check": "alias.row",
+                "value": 1,
+                "observed": 2
+              }
+            ]
+          },
+          "parse_independent": {
+            "outcome": "accepted",
+            "result": {
+              "values": {
+                "alias.row": 1
+              },
+              "statuses": {}
+            }
+          }
+        },
+        "re_derived_observed_conflict": {
+          "payload": {
+            "results": [
+              {
+                "check": "alias.row",
+                "re_derived": 1,
+                "observed": 2
+              }
+            ]
+          },
+          "parse_independent": {
+            "outcome": "accepted",
+            "result": {
+              "values": {
+                "alias.row": 1
+              },
+              "statuses": {}
+            }
+          }
+        },
+        "expected_expected_value_conflict": {
+          "payload": {
+            "results": [
+              {
+                "check": "alias.row",
+                "expected": 1,
+                "expected_value": 2
+              }
+            ]
+          },
+          "parse_independent": {
+            "outcome": "accepted",
+            "result": {
+              "values": {
+                "alias.row": 1
+              },
+              "statuses": {}
+            }
+          }
+        },
+        "expected_re_derived_conflict": {
+          "payload": {
+            "results": [
+              {
+                "check": "alias.row",
+                "expected": 1,
+                "re_derived": 2
+              }
+            ]
+          },
+          "parse_independent": {
+            "outcome": "rejected",
+            "exception": "CompareError",
+            "message": "independent: results record alias.row disagrees with itself: expected=1 vs re_derived=2 (the value channels must agree)"
+          }
+        },
+        "status_state_conflict": {
+          "payload": {
+            "results": [
+              {
+                "check": "alias.row",
+                "expected": 1,
+                "status": "DERIVED",
+                "state": "UNLANDED"
+              }
+            ]
+          },
+          "parse_independent": {
+            "outcome": "rejected",
+            "exception": "CompareError",
+            "message": "independent results: status/state split for alias.row: status='DERIVED' but state='UNLANDED' (both aliases must agree)"
+          }
+        },
+        "status_state_match": {
+          "payload": {
+            "results": [
+              {
+                "check": "alias.row",
+                "expected": 1,
+                "status": "DERIVED",
+                "state": "DERIVED"
+              }
+            ]
+          },
+          "parse_independent": {
+            "outcome": "accepted",
+            "result": {
+              "values": {
+                "alias.row": 1
+              },
+              "statuses": {
+                "alias.row": "DERIVED"
+              }
+            }
+          }
+        },
+        "status_nonstring_only": {
+          "payload": {
+            "results": [
+              {
+                "check": "alias.row",
+                "expected": 1,
+                "status": [
+                  "UNLANDED"
+                ]
+              }
+            ]
+          },
+          "parse_independent": {
+            "outcome": "accepted",
+            "result": {
+              "values": {
+                "alias.row": 1
+              },
+              "statuses": {}
+            }
+          }
+        },
+        "substring_ids": {
+          "payload": {
+            "results": [
+              {
+                "check": "probe.item",
+                "expected": 1
+              },
+              {
+                "check": "probe.item.extra",
+                "expected": 2
+              }
+            ]
+          },
+          "parse_independent": {
+            "outcome": "accepted",
+            "result": {
+              "values": {
+                "probe.item": 1,
+                "probe.item.extra": 2
+              },
+              "statuses": {}
+            }
+          }
+        },
+        "unicode_check_name_conflict": {
+          "payload": {
+            "results": [
+              {
+                "check": "unicode.café",
+                "name": "unicode.café",
+                "expected": 1
+              }
+            ]
+          },
+          "parse_independent": {
+            "outcome": "accepted",
+            "result": {
+              "values": {
+                "unicode.café": 1
+              },
+              "statuses": {}
+            }
+          }
+        },
+        "unicode_distinct_record_ids": {
+          "payload": {
+            "results": [
+              {
+                "check": "unicode.café",
+                "expected": 1
+              },
+              {
+                "check": "unicode.café",
+                "expected": 2
+              }
+            ]
+          },
+          "parse_independent": {
+            "outcome": "accepted",
+            "result": {
+              "values": {
+                "unicode.café": 1,
+                "unicode.café": 2
+              },
+              "statuses": {}
+            }
+          }
+        },
+        "unicode_dotted_map_key": {
+          "payload": {
+            "checks": {
+              "unicode.café": 1
+            }
+          },
+          "parse_independent": {
+            "outcome": "rejected",
+            "exception": "CompareError",
+            "message": "independent: checks is a mapping that is not keyed by check id: {\"unicode.caf\\u00e9\": 1}"
+          }
+        },
+        "live_check_name_and_value_observed_conflict": {
+          "payload": {
+            "results": [
+              {
+                "check": "alias.row",
+                "name": "alias.other",
+                "observed": 2,
+                "value": 1,
+                "mode": "equal",
+                "verdict": "PASS"
+              }
+            ]
+          },
+          "parse_live": {
+            "outcome": "accepted",
+            "result": [
+              {
+                "alias.row": 2
+              },
+              {
+                "alias.row": "PASS"
+              },
+              {
+                "alias.row": "equal"
+              }
+            ]
+          }
+        },
+        "live_value_observed_conflict_only": {
+          "payload": {
+            "results": [
+              {
+                "check": "alias.row",
+                "observed": 2,
+                "value": 1,
+                "mode": "equal",
+                "verdict": "PASS"
+              }
+            ]
+          },
+          "parse_live": {
+            "outcome": "accepted",
+            "result": [
+              {
+                "alias.row": 2
+              },
+              {
+                "alias.row": "PASS"
+              },
+              {
+                "alias.row": "equal"
+              }
+            ]
+          }
+        },
+        "live_status_state_conflict": {
+          "payload": {
+            "results": [
+              {
+                "check": "alias.row",
+                "observed": 1,
+                "status": "DERIVED",
+                "state": "UNLANDED"
+              }
+            ]
+          },
+          "parse_live": {
+            "outcome": "rejected",
+            "exception": "CompareError",
+            "message": "live results: status/state split for alias.row: status='DERIVED' but state='UNLANDED' (both aliases must agree)"
+          }
+        },
+        "nonstring_check_with_string_name": {
+          "payload": {
+            "results": [
+              {
+                "check": [],
+                "name": "alias.row",
+                "expected": 1
+              }
+            ]
+          },
+          "parse_independent": {
+            "outcome": "accepted",
+            "result": {
+              "alias.row": 1
+            }
+          }
+        }
+      },
+      "join_cases": {
+        "check_name_conflict_can_join_green": {
+          "payloads": {
+            "live": {
+              "results": [
+                {
+                  "check": "alias.row",
+                  "observed": 1,
+                  "mode": "equal",
+                  "verdict": "PASS"
+                },
+                {
+                  "check": "alias.other",
+                  "observed": 2,
+                  "mode": "equal",
+                  "verdict": "PASS"
+                }
+              ]
+            },
+            "independent": {
+              "results": [
+                {
+                  "check": "alias.row",
+                  "name": "alias.other",
+                  "expected": 1
+                },
+                {
+                  "check": "alias.other",
+                  "expected": 2
+                }
+              ]
+            }
+          },
+          "result": {
+            "outcome": "joined",
+            "exit": 0,
+            "reason": "all checks agree, both instruments green",
+            "protocol_agree": 2,
+            "strict_agree": 2,
+            "disagree": 0,
+            "unknown": 0,
+            "uncovered": 0,
+            "independent_ids": [
+              "alias.other",
+              "alias.row"
+            ],
+            "live_ids": [
+              "alias.other",
+              "alias.row"
+            ],
+            "selected_independent_values": {
+              "alias.row": 1,
+              "alias.other": 2
+            },
+            "selected_live_values": {
+              "alias.row": 1,
+              "alias.other": 2
+            },
+            "selected_modes": {
+              "alias.row": "equal",
+              "alias.other": "equal"
+            },
+            "selected_verdicts": {
+              "alias.row": "PASS",
+              "alias.other": "PASS"
+            }
+          }
+        },
+        "value_observed_conflict_can_join_green": {
+          "payloads": {
+            "live": {
+              "results": [
+                {
+                  "check": "alias.row",
+                  "observed": 1,
+                  "mode": "equal",
+                  "verdict": "PASS"
+                }
+              ]
+            },
+            "independent": {
+              "results": [
+                {
+                  "check": "alias.row",
+                  "value": 1,
+                  "observed": 999
+                }
+              ]
+            }
+          },
+          "result": {
+            "outcome": "joined",
+            "exit": 0,
+            "reason": "all checks agree, both instruments green",
+            "protocol_agree": 1,
+            "strict_agree": 1,
+            "disagree": 0,
+            "unknown": 0,
+            "uncovered": 0,
+            "independent_ids": [
+              "alias.row"
+            ],
+            "live_ids": [
+              "alias.row"
+            ],
+            "selected_independent_values": {
+              "alias.row": 1
+            },
+            "selected_live_values": {
+              "alias.row": 1
+            },
+            "selected_modes": {
+              "alias.row": "equal"
+            },
+            "selected_verdicts": {
+              "alias.row": "PASS"
+            }
+          }
+        },
+        "expected_expected_value_conflict_can_join_green": {
+          "payloads": {
+            "live": {
+              "results": [
+                {
+                  "check": "alias.row",
+                  "observed": 1,
+                  "mode": "equal",
+                  "verdict": "PASS"
+                }
+              ]
+            },
+            "independent": {
+              "results": [
+                {
+                  "check": "alias.row",
+                  "expected": 1,
+                  "expected_value": 999
+                }
+              ]
+            }
+          },
+          "result": {
+            "outcome": "joined",
+            "exit": 0,
+            "reason": "all checks agree, both instruments green",
+            "protocol_agree": 1,
+            "strict_agree": 1,
+            "disagree": 0,
+            "unknown": 0,
+            "uncovered": 0,
+            "independent_ids": [
+              "alias.row"
+            ],
+            "live_ids": [
+              "alias.row"
+            ],
+            "selected_independent_values": {
+              "alias.row": 1
+            },
+            "selected_live_values": {
+              "alias.row": 1
+            },
+            "selected_modes": {
+              "alias.row": "equal"
+            },
+            "selected_verdicts": {
+              "alias.row": "PASS"
+            }
+          }
+        },
+        "status_nonstring_only_can_join_green": {
+          "payloads": {
+            "live": {
+              "results": [
+                {
+                  "check": "alias.row",
+                  "observed": 1,
+                  "mode": "equal",
+                  "verdict": "PASS"
+                }
+              ]
+            },
+            "independent": {
+              "results": [
+                {
+                  "check": "alias.row",
+                  "expected": 1,
+                  "status": [
+                    "UNLANDED"
+                  ]
+                }
+              ]
+            }
+          },
+          "result": {
+            "outcome": "joined",
+            "exit": 0,
+            "reason": "all checks agree, both instruments green",
+            "protocol_agree": 1,
+            "strict_agree": 1,
+            "disagree": 0,
+            "unknown": 0,
+            "uncovered": 0,
+            "independent_ids": [
+              "alias.row"
+            ],
+            "live_ids": [
+              "alias.row"
+            ],
+            "selected_independent_values": {
+              "alias.row": 1
+            },
+            "selected_live_values": {
+              "alias.row": 1
+            },
+            "selected_modes": {
+              "alias.row": "equal"
+            },
+            "selected_verdicts": {
+              "alias.row": "PASS"
+            }
+          }
+        },
+        "live_value_observed_alias_is_ignored": {
+          "payloads": {
+            "live": {
+              "results": [
+                {
+                  "check": "alias.row",
+                  "observed": 1,
+                  "value": 999,
+                  "mode": "equal",
+                  "verdict": "PASS"
+                }
+              ]
+            },
+            "independent": {
+              "results": [
+                {
+                  "check": "alias.row",
+                  "expected": 1
+                }
+              ]
+            }
+          },
+          "result": {
+            "outcome": "joined",
+            "exit": 0,
+            "reason": "all checks agree, both instruments green",
+            "protocol_agree": 1,
+            "strict_agree": 1,
+            "disagree": 0,
+            "unknown": 0,
+            "uncovered": 0,
+            "independent_ids": [
+              "alias.row"
+            ],
+            "live_ids": [
+              "alias.row"
+            ],
+            "selected_independent_values": {
+              "alias.row": 1
+            },
+            "selected_live_values": {
+              "alias.row": 1
+            },
+            "selected_modes": {
+              "alias.row": "equal"
+            },
+            "selected_verdicts": {
+              "alias.row": "PASS"
+            }
+          }
+        },
+        "verdict_fail_mode_equal": {
+          "payloads": {
+            "live": {
+              "results": [
+                {
+                  "check": "alias.row",
+                  "observed": 5,
+                  "mode": "equal",
+                  "verdict": "FAIL"
+                }
+              ]
+            },
+            "independent": {
+              "results": [
+                {
+                  "check": "alias.row",
+                  "expected": 5
+                }
+              ]
+            }
+          },
+          "result": {
+            "outcome": "joined",
+            "exit": 3,
+            "reason": "all checks agree but live non-PASS: alias.row",
+            "protocol_agree": 1,
+            "strict_agree": 1,
+            "disagree": 0,
+            "unknown": 0,
+            "uncovered": 0,
+            "independent_ids": [
+              "alias.row"
+            ],
+            "live_ids": [
+              "alias.row"
+            ],
+            "selected_independent_values": {
+              "alias.row": 5
+            },
+            "selected_live_values": {
+              "alias.row": 5
+            },
+            "selected_modes": {
+              "alias.row": "equal"
+            },
+            "selected_verdicts": {
+              "alias.row": "FAIL"
+            }
+          }
+        },
+        "verdict_pass_mode_unknown": {
+          "payloads": {
+            "live": {
+              "results": [
+                {
+                  "check": "alias.row",
+                  "observed": 5,
+                  "mode": "not-a-mode",
+                  "verdict": "PASS"
+                }
+              ]
+            },
+            "independent": {
+              "results": [
+                {
+                  "check": "alias.row",
+                  "expected": 5
+                }
+              ]
+            }
+          },
+          "result": {
+            "outcome": "joined",
+            "exit": 1,
+            "reason": "un-adjudicated mode(s): alias.row (mode=not-a-mode)",
+            "protocol_agree": 0,
+            "strict_agree": 1,
+            "disagree": 0,
+            "unknown": 0,
+            "uncovered": 0,
+            "independent_ids": [
+              "alias.row"
+            ],
+            "live_ids": [
+              "alias.row"
+            ],
+            "selected_independent_values": {
+              "alias.row": 5
+            },
+            "selected_live_values": {
+              "alias.row": 5
+            },
+            "selected_modes": {
+              "alias.row": "not-a-mode"
+            },
+            "selected_verdicts": {
+              "alias.row": "PASS"
+            }
+          }
+        },
+        "unicode_check_name_normalization_alias_can_join_green": {
+          "payloads": {
+            "live": {
+              "results": [
+                {
+                  "check": "unicode.café",
+                  "observed": 1,
+                  "mode": "equal",
+                  "verdict": "PASS"
+                }
+              ]
+            },
+            "independent": {
+              "results": [
+                {
+                  "check": "unicode.café",
+                  "name": "unicode.café",
+                  "expected": 1
+                }
+              ]
+            }
+          },
+          "result": {
+            "outcome": "joined",
+            "exit": 0,
+            "reason": "all checks agree, both instruments green",
+            "protocol_agree": 1,
+            "strict_agree": 1,
+            "disagree": 0,
+            "unknown": 0,
+            "uncovered": 0,
+            "independent_ids": [
+              "unicode.café"
+            ],
+            "live_ids": [
+              "unicode.café"
+            ],
+            "selected_independent_values": {
+              "unicode.café": 1
+            },
+            "selected_live_values": {
+              "unicode.café": 1
+            },
+            "selected_modes": {
+              "unicode.café": "equal"
+            },
+            "selected_verdicts": {
+              "unicode.café": "PASS"
+            }
+          }
+        },
+        "unicode_distinct_normalized_ids_join_as_two_rows": {
+          "payloads": {
+            "live": {
+              "results": [
+                {
+                  "check": "unicode.café",
+                  "observed": 1,
+                  "mode": "equal",
+                  "verdict": "PASS"
+                },
+                {
+                  "check": "unicode.café",
+                  "observed": 2,
+                  "mode": "equal",
+                  "verdict": "PASS"
+                }
+              ]
+            },
+            "independent": {
+              "results": [
+                {
+                  "check": "unicode.café",
+                  "expected": 1
+                },
+                {
+                  "check": "unicode.café",
+                  "expected": 2
+                }
+              ]
+            }
+          },
+          "result": {
+            "outcome": "joined",
+            "exit": 0,
+            "reason": "all checks agree, both instruments green",
+            "protocol_agree": 2,
+            "strict_agree": 2,
+            "disagree": 0,
+            "unknown": 0,
+            "uncovered": 0,
+            "independent_ids": [
+              "unicode.café",
+              "unicode.café"
+            ],
+            "live_ids": [
+              "unicode.café",
+              "unicode.café"
+            ],
+            "selected_independent_values": {
+              "unicode.café": 1,
+              "unicode.café": 2
+            },
+            "selected_live_values": {
+              "unicode.café": 1,
+              "unicode.café": 2
+            },
+            "selected_modes": {
+              "unicode.café": "equal",
+              "unicode.café": "equal"
+            },
+            "selected_verdicts": {
+              "unicode.café": "PASS",
+              "unicode.café": "PASS"
+            }
+          }
+        },
+        "unicode_cross_normalized_id_does_not_join": {
+          "payloads": {
+            "live": {
+              "results": [
+                {
+                  "check": "unicode.café",
+                  "observed": 1,
+                  "mode": "equal",
+                  "verdict": "PASS"
+                }
+              ]
+            },
+            "independent": {
+              "results": [
+                {
+                  "check": "unicode.café",
+                  "expected": 1
+                }
+              ]
+            }
+          },
+          "result": {
+            "outcome": "joined",
+            "exit": 2,
+            "reason": "uncovered checks (in live, missing from independent): unicode.café",
+            "protocol_agree": 0,
+            "strict_agree": 0,
+            "disagree": 0,
+            "unknown": 1,
+            "uncovered": 1,
+            "independent_ids": [
+              "unicode.café"
+            ],
+            "live_ids": [
+              "unicode.café"
+            ],
+            "selected_independent_values": {
+              "unicode.café": 1
+            },
+            "selected_live_values": {
+              "unicode.café": 1
+            },
+            "selected_modes": {
+              "unicode.café": "equal"
+            },
+            "selected_verdicts": {
+              "unicode.café": "PASS"
+            }
+          }
+        }
+      }
+    },
+    "worktree": {
+      "source_sha256": "a2bf6a2a93801dacef77f72509eb37f635d4f643c69cc41429d442dd4af3d10d",
+      "direct_parser_cases": {
+        "check_name_conflict": {
+          "payload": {
+            "results": [
+              {
+                "check": "alias.row",
+                "name": "alias.other",
+                "expected": 1
+              }
+            ]
+          },
+          "parse_independent": {
+            "outcome": "rejected",
+            "exception": "CompareError",
+            "message": "independent: record id conflict: aliases disagree (check='alias.row', name='alias.other')"
+          }
+        },
+        "all_id_aliases_conflict": {
+          "payload": {
+            "results": [
+              {
+                "check": "alias.row",
+                "id": "alias.other",
+                "name": "alias.third",
+                "expected": 1
+              }
+            ]
+          },
+          "parse_independent": {
+            "outcome": "rejected",
+            "exception": "CompareError",
+            "message": "independent: record id conflict: aliases disagree (check='alias.row', id='alias.other', name='alias.third')"
+          }
+        },
+        "value_observed_conflict": {
+          "payload": {
+            "results": [
+              {
+                "check": "alias.row",
+                "value": 1,
+                "observed": 2
+              }
+            ]
+          },
+          "parse_independent": {
+            "outcome": "rejected",
+            "exception": "CompareError",
+            "message": "independent: results record value alias conflict for alias.row: value=1 vs observed=2 (derived aliases must agree)"
+          }
+        },
+        "re_derived_observed_conflict": {
+          "payload": {
+            "results": [
+              {
+                "check": "alias.row",
+                "re_derived": 1,
+                "observed": 2
+              }
+            ]
+          },
+          "parse_independent": {
+            "outcome": "rejected",
+            "exception": "CompareError",
+            "message": "independent: results record value alias conflict for alias.row: re_derived=1 vs observed=2 (derived aliases must agree)"
+          }
+        },
+        "expected_expected_value_conflict": {
+          "payload": {
+            "results": [
+              {
+                "check": "alias.row",
+                "expected": 1,
+                "expected_value": 2
+              }
+            ]
+          },
+          "parse_independent": {
+            "outcome": "accepted",
+            "result": {
+              "values": {
+                "alias.row": 1
+              },
+              "statuses": {}
+            }
+          }
+        },
+        "expected_re_derived_conflict": {
+          "payload": {
+            "results": [
+              {
+                "check": "alias.row",
+                "expected": 1,
+                "re_derived": 2
+              }
+            ]
+          },
+          "parse_independent": {
+            "outcome": "rejected",
+            "exception": "CompareError",
+            "message": "independent: results record alias.row disagrees with itself: expected=1 vs re_derived=2 (the value channels must agree)"
+          }
+        },
+        "status_state_conflict": {
+          "payload": {
+            "results": [
+              {
+                "check": "alias.row",
+                "expected": 1,
+                "status": "DERIVED",
+                "state": "UNLANDED"
+              }
+            ]
+          },
+          "parse_independent": {
+            "outcome": "rejected",
+            "exception": "CompareError",
+            "message": "independent results: status/state split for alias.row: status='DERIVED' but state='UNLANDED' (both aliases must agree)"
+          }
+        },
+        "status_state_match": {
+          "payload": {
+            "results": [
+              {
+                "check": "alias.row",
+                "expected": 1,
+                "status": "DERIVED",
+                "state": "DERIVED"
+              }
+            ]
+          },
+          "parse_independent": {
+            "outcome": "accepted",
+            "result": {
+              "values": {
+                "alias.row": 1
+              },
+              "statuses": {
+                "alias.row": "DERIVED"
+              }
+            }
+          }
+        },
+        "status_nonstring_only": {
+          "payload": {
+            "results": [
+              {
+                "check": "alias.row",
+                "expected": 1,
+                "status": [
+                  "UNLANDED"
+                ]
+              }
+            ]
+          },
+          "parse_independent": {
+            "outcome": "accepted",
+            "result": {
+              "values": {
+                "alias.row": 1
+              },
+              "statuses": {}
+            }
+          }
+        },
+        "substring_ids": {
+          "payload": {
+            "results": [
+              {
+                "check": "probe.item",
+                "expected": 1
+              },
+              {
+                "check": "probe.item.extra",
+                "expected": 2
+              }
+            ]
+          },
+          "parse_independent": {
+            "outcome": "accepted",
+            "result": {
+              "values": {
+                "probe.item": 1,
+                "probe.item.extra": 2
+              },
+              "statuses": {}
+            }
+          }
+        },
+        "unicode_check_name_conflict": {
+          "payload": {
+            "results": [
+              {
+                "check": "unicode.café",
+                "name": "unicode.café",
+                "expected": 1
+              }
+            ]
+          },
+          "parse_independent": {
+            "outcome": "rejected",
+            "exception": "CompareError",
+            "message": "independent: record id conflict: aliases disagree (check='unicode.café', name='unicode.café')"
+          }
+        },
+        "unicode_distinct_record_ids": {
+          "payload": {
+            "results": [
+              {
+                "check": "unicode.café",
+                "expected": 1
+              },
+              {
+                "check": "unicode.café",
+                "expected": 2
+              }
+            ]
+          },
+          "parse_independent": {
+            "outcome": "accepted",
+            "result": {
+              "values": {
+                "unicode.café": 1,
+                "unicode.café": 2
+              },
+              "statuses": {}
+            }
+          }
+        },
+        "unicode_dotted_map_key": {
+          "payload": {
+            "checks": {
+              "unicode.café": 1
+            }
+          },
+          "parse_independent": {
+            "outcome": "rejected",
+            "exception": "CompareError",
+            "message": "independent: checks is a mapping that is not keyed by check id: {\"unicode.caf\\u00e9\": 1}"
+          }
+        },
+        "live_check_name_and_value_observed_conflict": {
+          "payload": {
+            "results": [
+              {
+                "check": "alias.row",
+                "name": "alias.other",
+                "observed": 2,
+                "value": 1,
+                "mode": "equal",
+                "verdict": "PASS"
+              }
+            ]
+          },
+          "parse_live": {
+            "outcome": "rejected",
+            "exception": "CompareError",
+            "message": "live: record id conflict: aliases disagree (check='alias.row', name='alias.other')"
+          }
+        },
+        "live_value_observed_conflict_only": {
+          "payload": {
+            "results": [
+              {
+                "check": "alias.row",
+                "observed": 2,
+                "value": 1,
+                "mode": "equal",
+                "verdict": "PASS"
+              }
+            ]
+          },
+          "parse_live": {
+            "outcome": "accepted",
+            "result": [
+              {
+                "alias.row": 2
+              },
+              {
+                "alias.row": "PASS"
+              },
+              {
+                "alias.row": "equal"
+              }
+            ]
+          }
+        },
+        "live_status_state_conflict": {
+          "payload": {
+            "results": [
+              {
+                "check": "alias.row",
+                "observed": 1,
+                "status": "DERIVED",
+                "state": "UNLANDED"
+              }
+            ]
+          },
+          "parse_live": {
+            "outcome": "rejected",
+            "exception": "CompareError",
+            "message": "live results: status/state split for alias.row: status='DERIVED' but state='UNLANDED' (both aliases must agree)"
+          }
+        },
+        "nonstring_check_with_string_name": {
+          "payload": {
+            "results": [
+              {
+                "check": [],
+                "name": "alias.row",
+                "expected": 1
+              }
+            ]
+          },
+          "parse_independent": {
+            "outcome": "accepted",
+            "result": {
+              "alias.row": 1
+            }
+          }
+        }
+      },
+      "join_cases": {
+        "check_name_conflict_can_join_green": {
+          "payloads": {
+            "live": {
+              "results": [
+                {
+                  "check": "alias.row",
+                  "observed": 1,
+                  "mode": "equal",
+                  "verdict": "PASS"
+                },
+                {
+                  "check": "alias.other",
+                  "observed": 2,
+                  "mode": "equal",
+                  "verdict": "PASS"
+                }
+              ]
+            },
+            "independent": {
+              "results": [
+                {
+                  "check": "alias.row",
+                  "name": "alias.other",
+                  "expected": 1
+                },
+                {
+                  "check": "alias.other",
+                  "expected": 2
+                }
+              ]
+            }
+          },
+          "result": {
+            "outcome": "rejected",
+            "exception": "CompareError",
+            "message": "independent: record id conflict: aliases disagree (check='alias.row', name='alias.other')"
+          }
+        },
+        "value_observed_conflict_can_join_green": {
+          "payloads": {
+            "live": {
+              "results": [
+                {
+                  "check": "alias.row",
+                  "observed": 1,
+                  "mode": "equal",
+                  "verdict": "PASS"
+                }
+              ]
+            },
+            "independent": {
+              "results": [
+                {
+                  "check": "alias.row",
+                  "value": 1,
+                  "observed": 999
+                }
+              ]
+            }
+          },
+          "result": {
+            "outcome": "rejected",
+            "exception": "CompareError",
+            "message": "independent: results record value alias conflict for alias.row: value=1 vs observed=999 (derived aliases must agree)"
+          }
+        },
+        "expected_expected_value_conflict_can_join_green": {
+          "payloads": {
+            "live": {
+              "results": [
+                {
+                  "check": "alias.row",
+                  "observed": 1,
+                  "mode": "equal",
+                  "verdict": "PASS"
+                }
+              ]
+            },
+            "independent": {
+              "results": [
+                {
+                  "check": "alias.row",
+                  "expected": 1,
+                  "expected_value": 999
+                }
+              ]
+            }
+          },
+          "result": {
+            "outcome": "joined",
+            "exit": 0,
+            "reason": "all checks agree, both instruments green",
+            "protocol_agree": 1,
+            "strict_agree": 1,
+            "disagree": 0,
+            "unknown": 0,
+            "uncovered": 0,
+            "independent_ids": [
+              "alias.row"
+            ],
+            "live_ids": [
+              "alias.row"
+            ],
+            "selected_independent_values": {
+              "alias.row": 1
+            },
+            "selected_live_values": {
+              "alias.row": 1
+            },
+            "selected_modes": {
+              "alias.row": "equal"
+            },
+            "selected_verdicts": {
+              "alias.row": "PASS"
+            }
+          }
+        },
+        "status_nonstring_only_can_join_green": {
+          "payloads": {
+            "live": {
+              "results": [
+                {
+                  "check": "alias.row",
+                  "observed": 1,
+                  "mode": "equal",
+                  "verdict": "PASS"
+                }
+              ]
+            },
+            "independent": {
+              "results": [
+                {
+                  "check": "alias.row",
+                  "expected": 1,
+                  "status": [
+                    "UNLANDED"
+                  ]
+                }
+              ]
+            }
+          },
+          "result": {
+            "outcome": "joined",
+            "exit": 0,
+            "reason": "all checks agree, both instruments green",
+            "protocol_agree": 1,
+            "strict_agree": 1,
+            "disagree": 0,
+            "unknown": 0,
+            "uncovered": 0,
+            "independent_ids": [
+              "alias.row"
+            ],
+            "live_ids": [
+              "alias.row"
+            ],
+            "selected_independent_values": {
+              "alias.row": 1
+            },
+            "selected_live_values": {
+              "alias.row": 1
+            },
+            "selected_modes": {
+              "alias.row": "equal"
+            },
+            "selected_verdicts": {
+              "alias.row": "PASS"
+            }
+          }
+        },
+        "live_value_observed_alias_is_ignored": {
+          "payloads": {
+            "live": {
+              "results": [
+                {
+                  "check": "alias.row",
+                  "observed": 1,
+                  "value": 999,
+                  "mode": "equal",
+                  "verdict": "PASS"
+                }
+              ]
+            },
+            "independent": {
+              "results": [
+                {
+                  "check": "alias.row",
+                  "expected": 1
+                }
+              ]
+            }
+          },
+          "result": {
+            "outcome": "joined",
+            "exit": 0,
+            "reason": "all checks agree, both instruments green",
+            "protocol_agree": 1,
+            "strict_agree": 1,
+            "disagree": 0,
+            "unknown": 0,
+            "uncovered": 0,
+            "independent_ids": [
+              "alias.row"
+            ],
+            "live_ids": [
+              "alias.row"
+            ],
+            "selected_independent_values": {
+              "alias.row": 1
+            },
+            "selected_live_values": {
+              "alias.row": 1
+            },
+            "selected_modes": {
+              "alias.row": "equal"
+            },
+            "selected_verdicts": {
+              "alias.row": "PASS"
+            }
+          }
+        },
+        "verdict_fail_mode_equal": {
+          "payloads": {
+            "live": {
+              "results": [
+                {
+                  "check": "alias.row",
+                  "observed": 5,
+                  "mode": "equal",
+                  "verdict": "FAIL"
+                }
+              ]
+            },
+            "independent": {
+              "results": [
+                {
+                  "check": "alias.row",
+                  "expected": 5
+                }
+              ]
+            }
+          },
+          "result": {
+            "outcome": "joined",
+            "exit": 3,
+            "reason": "all checks agree but live non-PASS: alias.row",
+            "protocol_agree": 1,
+            "strict_agree": 1,
+            "disagree": 0,
+            "unknown": 0,
+            "uncovered": 0,
+            "independent_ids": [
+              "alias.row"
+            ],
+            "live_ids": [
+              "alias.row"
+            ],
+            "selected_independent_values": {
+              "alias.row": 5
+            },
+            "selected_live_values": {
+              "alias.row": 5
+            },
+            "selected_modes": {
+              "alias.row": "equal"
+            },
+            "selected_verdicts": {
+              "alias.row": "FAIL"
+            }
+          }
+        },
+        "verdict_pass_mode_unknown": {
+          "payloads": {
+            "live": {
+              "results": [
+                {
+                  "check": "alias.row",
+                  "observed": 5,
+                  "mode": "not-a-mode",
+                  "verdict": "PASS"
+                }
+              ]
+            },
+            "independent": {
+              "results": [
+                {
+                  "check": "alias.row",
+                  "expected": 5
+                }
+              ]
+            }
+          },
+          "result": {
+            "outcome": "joined",
+            "exit": 1,
+            "reason": "un-adjudicated mode(s): alias.row (mode=not-a-mode)",
+            "protocol_agree": 0,
+            "strict_agree": 1,
+            "disagree": 0,
+            "unknown": 0,
+            "uncovered": 0,
+            "independent_ids": [
+              "alias.row"
+            ],
+            "live_ids": [
+              "alias.row"
+            ],
+            "selected_independent_values": {
+              "alias.row": 5
+            },
+            "selected_live_values": {
+              "alias.row": 5
+            },
+            "selected_modes": {
+              "alias.row": "not-a-mode"
+            },
+            "selected_verdicts": {
+              "alias.row": "PASS"
+            }
+          }
+        },
+        "unicode_check_name_normalization_alias_can_join_green": {
+          "payloads": {
+            "live": {
+              "results": [
+                {
+                  "check": "unicode.café",
+                  "observed": 1,
+                  "mode": "equal",
+                  "verdict": "PASS"
+                }
+              ]
+            },
+            "independent": {
+              "results": [
+                {
+                  "check": "unicode.café",
+                  "name": "unicode.café",
+                  "expected": 1
+                }
+              ]
+            }
+          },
+          "result": {
+            "outcome": "rejected",
+            "exception": "CompareError",
+            "message": "independent: record id conflict: aliases disagree (check='unicode.café', name='unicode.café')"
+          }
+        },
+        "unicode_distinct_normalized_ids_join_as_two_rows": {
+          "payloads": {
+            "live": {
+              "results": [
+                {
+                  "check": "unicode.café",
+                  "observed": 1,
+                  "mode": "equal",
+                  "verdict": "PASS"
+                },
+                {
+                  "check": "unicode.café",
+                  "observed": 2,
+                  "mode": "equal",
+                  "verdict": "PASS"
+                }
+              ]
+            },
+            "independent": {
+              "results": [
+                {
+                  "check": "unicode.café",
+                  "expected": 1
+                },
+                {
+                  "check": "unicode.café",
+                  "expected": 2
+                }
+              ]
+            }
+          },
+          "result": {
+            "outcome": "joined",
+            "exit": 0,
+            "reason": "all checks agree, both instruments green",
+            "protocol_agree": 2,
+            "strict_agree": 2,
+            "disagree": 0,
+            "unknown": 0,
+            "uncovered": 0,
+            "independent_ids": [
+              "unicode.café",
+              "unicode.café"
+            ],
+            "live_ids": [
+              "unicode.café",
+              "unicode.café"
+            ],
+            "selected_independent_values": {
+              "unicode.café": 1,
+              "unicode.café": 2
+            },
+            "selected_live_values": {
+              "unicode.café": 1,
+              "unicode.café": 2
+            },
+            "selected_modes": {
+              "unicode.café": "equal",
+              "unicode.café": "equal"
+            },
+            "selected_verdicts": {
+              "unicode.café": "PASS",
+              "unicode.café": "PASS"
+            }
+          }
+        },
+        "unicode_cross_normalized_id_does_not_join": {
+          "payloads": {
+            "live": {
+              "results": [
+                {
+                  "check": "unicode.café",
+                  "observed": 1,
+                  "mode": "equal",
+                  "verdict": "PASS"
+                }
+              ]
+            },
+            "independent": {
+              "results": [
+                {
+                  "check": "unicode.café",
+                  "expected": 1
+                }
+              ]
+            }
+          },
+          "result": {
+            "outcome": "joined",
+            "exit": 2,
+            "reason": "uncovered checks (in live, missing from independent): unicode.café",
+            "protocol_agree": 0,
+            "strict_agree": 0,
+            "disagree": 0,
+            "unknown": 1,
+            "uncovered": 1,
+            "independent_ids": [
+              "unicode.café"
+            ],
+            "live_ids": [
+              "unicode.café"
+            ],
+            "selected_independent_values": {
+              "unicode.café": 1
+            },
+            "selected_live_values": {
+              "unicode.café": 1
+            },
+            "selected_modes": {
+              "unicode.café": "equal"
+            },
+            "selected_verdicts": {
+              "unicode.café": "PASS"
+            }
+          }
+        }
+      }
+    }
+  }
+}

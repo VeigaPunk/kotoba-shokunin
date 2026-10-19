@@ -15,8 +15,10 @@ Two instruments:
 
        Id(e, "gemini", "GEMINI.md")              Cl(e, "github", "copilot-instructions.md")
        jDe(e, Pqr, "AGENTS.md")  with  var Pqr = "agents-md"
+       I5(d, d$, "AGENTS.md")  with  var d$ = "agents-md"
+       Gl(d, "gemini", "GEMINI.md")              Mo(d, "gemini", "GEMINI.md")
 
-   i.e. ``(Id|Cl|jD[ef])(<v>, <group>, "<file>.md")`` — the file argument must
+   i.e. ``(Id|Cl|jD[ef]|Tl|dr|GW|Co|Dl|Hj|I5|Gl|Mo)(<v>, <group>, "<file>.md")`` — the file argument must
    end in ``.md`` — where ``<group>`` is either a quoted literal or a bundle
    identifier resolvable to a string constant in the same dump
    (``var|let|const X = "..."``; the minified bundles register the
@@ -137,9 +139,8 @@ VERDICTS = ("governed", "excluded")
 # bundles have used, kept PER HARNESS (round 21: a name harmless in one bundle
 # over-matches the other, and the callee name is minification-volatile — the
 # FIRST thing to re-pin on a binary bump):
-#   omp:      Id, Cl, jDe, jDf (2026-09-28 build); Tl, dr, GW (2026-10-14
-#             rebuild); Co, Dl, Hj (2026-10-16 rebuild, omp 18.11.1 —
-#             unminified source chunks)
+#   omp: Id/Cl/jDe/jDf (2026-09-28); Tl/dr/GW (2026-10-14); Co/Dl/Hj
+#        (2026-10-16, 18.11.1); I5/Gl/Mo (2026-10-18, 18.12.2)
 #   opencode: historical names only — its live bundle is full of single-letter
 #             callees that must not feed this extractor; opencode's loaders
 #             are list/join shapes governed by the OC-1..OC-6 rules instead
@@ -152,12 +153,12 @@ CALL_RE = re.compile(
     r'"([A-Za-z0-9_./-]+\.md)"(?=\s*[,)])'
 )
 OMP_CALL_RE = re.compile(
-    r"(?<![A-Za-z0-9_$])(?:Id|Cl|jD[ef]|Tl|dr|GW|Co|Dl|Hj)\(\s*[^\s,()]+\s*,\s*"
+    r"(?<![A-Za-z0-9_$])(?:Id|Cl|jD[ef]|Tl|dr|GW|Co|Dl|Hj|I5|Gl|Mo)\(\s*[^\s,()]+\s*,\s*"
     r'(?:"([a-z0-9_-]+)"|([A-Za-z_$][A-Za-z0-9_$]*))\s*,\s*'
     r'"([A-Za-z0-9_./-]+\.md)"(?=\s*[,)])'
 )
 CALLEE_SHAPES = {
-    "omp": '(Id|Cl|jD[ef]|Tl|dr|GW|Co|Dl|Hj)(<v>, <group>, "<file>.md")',
+    "omp": '(Id|Cl|jD[ef]|Tl|dr|GW|Co|Dl|Hj|I5|Gl|Mo)(<v>, <group>, "<file>.md")',
     "opencode": '(Id|Cl|jD[ef]|Tl|dr|GW)(<v>, <group>, "<file>.md")',
 }
 # Identifier -> string bindings anywhere in the dump (`var Pqr = "agents-md"`,
@@ -811,8 +812,8 @@ def self_test() -> int:
         "FAIL surfaces.no_uncovered_class:" in out, out)
     rec("extra-class: names omp:foo/FOO.md", "omp:foo/FOO.md" in out, out)
 
-    # (b2) the 2026-10-16 omp rebuild registers through renamed callees
-    # (Co/Dl/Hj) — the per-harness allowlist must still extract the classes
+    # (b2) the 2026-10-16 and 2026-10-18 omp rebuilds renamed callees
+    # (Co/Dl/Hj and I5/Gl/Mo); both generations must extract the classes
     code, out = run(omp_dump=fx + "/strings-omp-newcallees.txt")
     rec("new-callees: exit 0", code == 0, code)
     rec("new-callees: PASS literal_present",

@@ -263,10 +263,15 @@ def _dotted_map(value):
 
 
 def _record_id(record, where):
-    for key in ID_KEYS:
-        if isinstance(record.get(key), str):
-            return record[key]
-    raise CompareError(f"{where}: record has no check id (keys {ID_KEYS}): {show(record)}")
+    aliases = [(key, record[key]) for key in ID_KEYS
+               if isinstance(record.get(key), str)]
+    if not aliases:
+        raise CompareError(f"{where}: record has no check id (keys {ID_KEYS}): {show(record)}")
+    cid = aliases[0][1]
+    if any(value != cid for _key, value in aliases[1:]):
+        detail = ", ".join(f"{key}={value!r}" for key, value in aliases)
+        raise CompareError(f"{where}: record id conflict: aliases disagree ({detail})")
+    return cid
 
 
 def _record_status(record, cid, where):
@@ -330,6 +335,14 @@ def _channel_maps(payload, where, value_keys=IND_VALUE_KEYS):
                 if value_keys is IND_VALUE_KEYS:
                     derived = [k for k in ("re_derived", "value", "observed") if k in record]
                     foreign = [k for k in ("expected", "expected_value") if k in record]
+                    if len(derived) > 1:
+                        primary = derived[0]
+                        for alias in derived[1:]:
+                            if canon(record[primary]) != canon(record[alias]):
+                                raise CompareError(
+                                    f"{where}: {key} record value alias conflict for {cid}: "
+                                    f"{primary}={show(record[primary])} vs "
+                                    f"{alias}={show(record[alias])} (derived aliases must agree)")
                     if foreign and derived:
                         fval = record[foreign[0]]
                         for dk in derived:
@@ -472,6 +485,14 @@ def parse_independent(payload, statuses=None, ignored_fields=None):
         aliases = [key for key in ("expected", "re_derived", "observations")
                    if key in payload]
         row_channels = [key for key in CHANNEL_KEYS if key in payload]
+        dotted_maps = sorted(key for key in payload
+                             if isinstance(key, str) and DOTTED_ID.fullmatch(key))
+        if row_channels and dotted_maps:
+            raise CompareError(
+                "independent: top-level map shadow: dotted-id key(s) "
+                + ", ".join(dotted_maps)
+                + " cannot accompany row channel(s) " + ", ".join(row_channels)
+            )
         if row_channels and aliases:
             raise CompareError(
                 "independent: value-map override: top-level " + ", ".join(aliases) +
@@ -661,25 +682,72 @@ def parse_scoped_out(payload, independent):
 
 
 def check_independent_scope_maps(payload, committed, live):
-    """Keep record-free map keys within the live derived set."""
-    if _record_list(payload) is not None:
+    """Limit maps to derived ids plus explicitly null scoped-out records."""
+    if not isinstance(payload, dict):
         return True
     derived_ids = set(live) - set(committed)
+    records = [(key, payload[key]) for key in CHANNEL_KEYS
+               if isinstance(payload.get(key), list)]
     maps = []
-    if isinstance(payload, dict):
-        for key in CHANNEL_KEYS:
-            nested = _dotted_map(payload.get(key))
-            if nested is not None:
-                maps.append((key, nested))
-        for key in ("expected", "re_derived", "observations"):
-            nested = _dotted_map(payload.get(key))
-            if nested is not None:
-                maps.append((key, nested))
-        nested = _dotted_map(payload)
+    for key in CHANNEL_KEYS:
+        nested = _dotted_map(payload.get(key))
         if nested is not None:
-            maps.append(("top-level", nested))
+            maps.append((key, nested))
+    for key in ("expected", "re_derived", "observations"):
+        nested = _dotted_map(payload.get(key))
+        if nested is not None:
+            maps.append((key, nested))
+    nested = _dotted_map(payload)
+    if nested is not None:
+        maps.append(("top-level", nested))
+    if not maps:
+        return True
+
+    explicit_scoped_out = set()
+    missing_derived = set()
+    value_keys = ("expected", "expected_value", "re_derived", "value", "observed")
+    derived_value_keys = ("re_derived", "value", "observed")
+    for channel, rows in records:
+        for record in rows:
+            if not isinstance(record, dict):
+                continue
+            cid = _record_id(record, "independent")
+            if cid in derived_ids:
+                if not any(key in record for key in derived_value_keys):
+                    missing_derived.add(cid)
+                continue
+            if cid not in committed or cid not in live:
+                continue
+            present_values = [key for key in value_keys if key in record]
+            nonnull_values = [key for key in present_values
+                              if record[key] is not None]
+            if nonnull_values:
+                key = nonnull_values[0]
+                raise CompareError(
+                    f"scope-out value laundering: independent record supplies "
+                    f"{cid}={show(record[key])}, but the committed scope file "
+                    "excludes that row from payload-derived agreement"
+                )
+            status = _record_status(record, cid, f"independent {channel}")
+            if status == "SCOPED_OUT" and present_values:
+                explicit_scoped_out.add(cid)
+
+    if missing_derived:
+        raise CompareError(
+            "derived-set overflow: in-scope record(s) lack an independent "
+            "derived-value field: " + show(sorted(missing_derived))
+        )
+
+    allowed_ids = derived_ids | explicit_scoped_out
     for channel, values in maps:
-        overflow = sorted(set(values) - derived_ids)
+        for cid in sorted(set(values) & set(committed) & set(live)):
+            if values[cid] is not None:
+                raise CompareError(
+                    f"scope-out value laundering: independent {channel} map "
+                    f"supplies {cid}={show(values[cid])}, but the committed "
+                    "scope file excludes that row from payload-derived agreement"
+                )
+        overflow = sorted(set(values) - allowed_ids)
         if overflow:
             raise CompareError(
                 f"derived-set overflow: {channel} map key-set includes "
@@ -1206,33 +1274,66 @@ def fixture_battery(check):
         return
     case_dirs = sorted(p for p in FIXTURE_DIR.iterdir()
                        if (p / "case.json").is_file())
-    check("fixtures: battery carries F-2/F-3, field-gate, alias, and heldout-map arms",
+    check("fixtures: battery carries F-2/F-3, field-gate, alias, heldout-map, row-conflict, and record+map composition arms",
           sorted(p.name for p in case_dirs) ==
           ["agree-control", "alias-nonstring-status-state", "alias-status-state-split",
-           "alternatives-ignored", "checks-shadow", "expected-launder",
-           "field-alternatives-ignored", "field-extra-key", "field-metadata",
-           "field-overrides", "heldout-expected-only-full-copy",
+           "alternatives-ignored", "checks-shadow", "dotted-id-top-level-map-shadow",
+           "expected-launder", "field-alternatives-ignored", "field-extra-key",
+           "field-metadata", "field-overrides", "heldout-expected-only-full-copy",
            "heldout-flat-dotted-map", "heldout-nested-checks-map",
            "heldout-nested-expected-wrapper", "heldout-nested-observations-wrapper",
-           "heldout-wrapper-precedence-expected-over-observations", "rows-shadow",
-           "uncontracted-future-key", "uncontracted-metadata", "uncontracted-overrides",
-           "value-map-override"])
+           "heldout-wrapper-precedence-expected-over-observations",
+           "record-check-id-conflict", "record-map-24-composition", "record-map-24-control",
+           "record-re-derived-observed-conflict", "rows-shadow",
+           "uncontracted-future-key", "uncontracted-metadata",
+           "uncontracted-overrides", "value-map-override"])
     scope_file = FIXTURE_DIR / "scope.json"
     for case_dir in case_dirs:
         case = json.loads((case_dir / "case.json").read_text(encoding="utf-8"))
         expect = case["expect"]
         case_scope = (case_dir / case["scope"] if case.get("scope")
                       else scope_file)
+        independent_path = case_dir / case["independent"]
+        probe_tmp = None
+        if "probe_carrier" in case:
+            marker = case["probe_target_marker"]
+            carrier = (case_dir / case["probe_carrier"]).resolve()
+            payload = json.loads(independent_path.read_text(encoding="utf-8"))
+            replacements = 0
+
+            def materialize_probe_targets(value):
+                nonlocal replacements
+                if isinstance(value, dict):
+                    return {key: materialize_probe_targets(child)
+                            for key, child in value.items()}
+                if isinstance(value, list):
+                    return [materialize_probe_targets(child) for child in value]
+                if value == marker:
+                    replacements += 1
+                    return str(carrier)
+                return value
+
+            payload = materialize_probe_targets(payload)
+            check("fixtures/%s: local probe targets materialized" % case["name"],
+                  replacements > 0)
+            probe_tmp = tempfile.TemporaryDirectory(prefix=".fixture-", dir=FIXTURE_DIR)
+            independent_path = Path(probe_tmp.name) / "independent.json"
+            independent_path.write_text(
+                json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         argv = [
             sys.executable,
             str(Path(__file__).resolve()),
             "--live-json", str(case_dir / case["live"]),
-            "--independent-json", str(case_dir / case["independent"]),
+            "--independent-json", str(independent_path),
             "--expect-n", str(case["expect_n"]),
             "--scope-file", str(case_scope),
             "--no-stamp",
         ]
-        proc = subprocess.run(argv, capture_output=True, text=True, timeout=120)
+        try:
+            proc = subprocess.run(argv, capture_output=True, text=True, timeout=120)
+        finally:
+            if probe_tmp is not None:
+                probe_tmp.cleanup()
         combined = proc.stdout + proc.stderr
         check("fixtures/%s: exit %d" % (case["name"], expect["exit"]),
               proc.returncode == expect["exit"])
