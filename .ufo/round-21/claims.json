@@ -1,0 +1,53 @@
+{
+  "round": 21,
+  "loop": 1,
+  "loop_round": 1,
+  "lane": "kotoba",
+  "dispatched_at_head": "4e92f36",
+  "provider_plan": {
+    "model": "opencode-go/deepseek-v4.1-flash",
+    "key": "opencode-go (key 1 of 7; round-robin continues key 2..7 across rounds 22-23 and later loops)",
+    "swarm": 64,
+    "fallback": null
+  },
+  "axis_set": [
+    {
+      "axis": "freshness",
+      "score": "8.0",
+      "owned": "advisory",
+      "direction": "up — verify every live gate is green at HEAD and the substrate census still matches the pinned artifacts",
+      "observable": "each instrument's exit code + key output captured at 4e92f36; omp/opencode versions re-measured vs round-18 pins (omp ff59fc1b, opencode d9123b9b v2.0.26)"
+    },
+    {
+      "axis": "adjacency",
+      "score": "8.0",
+      "owned": "advisory",
+      "direction": "up — re-measure the sibling dead-token predicate live and refresh the route evidence",
+      "observable": "per-sibling dead repo-rooted token count at round-21 dispatch, delta vs round-16 counts (kagi 2, kake 1, kasegi 1, kengaku 1, kumitate 5)"
+    }
+  ],
+  "claims": [
+    {
+      "id": "F",
+      "axis": "freshness",
+      "claim": "Every lane gate is re-run live at HEAD 4e92f36 with outputs captured, and the substrate versions are re-measured; any drift found is repaired in-round or recorded as named debt.",
+      "before": "No gate sweep exists at HEAD: the round-19 census (b0c7cb2 era) predates commits 13bf015 and 4e92f36; round-20 was dispatch-blocked with zero fresh sweep (its own report says so).",
+      "after": "All six instruments exit 0 at 4e92f36 with outputs + baseline hashes recorded; omp/opencode versions confirmed or their movement measured and recorded; every scout-named defect either repaired or filed as named debt in the round report.",
+      "counting_command": "for g in verify_harness_claims verify_corpus_integrity verify_corpus_independent verify_surfaces verify_skill_checklist fault_injection_corpus; run live at 4e92f36, record exit codes (expect all 0)",
+      "falsifier": "any gate exit != 0 at HEAD, or a substrate version moved since round-18 without a recorded re-measurement"
+    },
+    {
+      "id": "A",
+      "axis": "adjacency",
+      "claim": "The sibling dead-token predicate is re-measured live for all five siblings and the route evidence is refreshed with a round-21 delta record.",
+      "before": "Last live sibling measurement is round-16 (counts kagi 2, kake 1, kasegi 1, kengaku 1, kumitate 5); round-20 explicitly froze that replay and did not re-probe live sibling sources.",
+      "after": "Live per-sibling counts at round-21 dispatch recorded with deltas vs round-16; a corpus knowledge entry for round 21 lands the refreshed route evidence; repairs, if any sibling repaired itself, are acknowledged.",
+      "counting_command": "per sibling s in {kagi,kake,kasegi,kengaku,kumitate}: extract repo-rooted tokens from /home/vgpnk/Projects/shokunin/$s-shokunin/SKILL.md, count dead ones; compare to round-16 counts recorded in SCORECARD.md move log round 16",
+      "falsifier": "a sibling's live dead-token count differs from round-16 and the delta is not recorded, or a sibling repo is unreachable and that is not recorded"
+    }
+  ],
+  "separability": "F touches only this repo's gates and pinned substrate artifacts; A reads sibling repos read-only. Neither claim's verification depends on the other landing.",
+  "lowest_axis_rule": "Both claims work the tied-lowest non-retired axes (freshness 8.0, adjacency 8.0) per SCORECARD.md planned section.",
+  "shonen": "untouched this round — no [x] without a non-author verifier; C3 lane drafts loop-round-5 (round 25) targeting for genuine non-author candidates.",
+  "also_owed": "SCORECARD.md Saturation section: declare saturation line + stagnation window N this round (C2 lane drafts the proposal with evidence)."
+}

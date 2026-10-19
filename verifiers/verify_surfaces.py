@@ -134,19 +134,32 @@ CONTEXT_KINDS = LOADER_KINDS + ("prompt-text", "template-list", "doc")
 VERDICTS = ("governed", "excluded")
 
 # Registration calls: a callee allowlist of the minified names the loader
-# bundles have used (`Id`, `Cl`, `jDe`, `jDf` up to the 2026-09-28 build; the
-# 2026-10-14 rebuild renamed the same two-level resolution path to `Tl`, `dr`
-# — the callee name is minification-volatile and is the FIRST thing to re-pin
-# on a binary bump) with a constant first arg, then either a quoted group or
-# an identifier group, then a quoted *.md file, followed by a comma or
-# close-paren (wrapped calls like `s(Cl(...), "project", "text")` are the norm
-# in the bundle).
+# bundles have used, kept PER HARNESS (round 21: a name harmless in one bundle
+# over-matches the other, and the callee name is minification-volatile — the
+# FIRST thing to re-pin on a binary bump):
+#   omp:      Id, Cl, jDe, jDf (2026-09-28 build); Tl, dr, GW (2026-10-14
+#             rebuild); Co, Dl, Hj (2026-10-16 rebuild, omp 18.11.1 —
+#             unminified source chunks)
+#   opencode: historical names only — its live bundle is full of single-letter
+#             callees that must not feed this extractor; opencode's loaders
+#             are list/join shapes governed by the OC-1..OC-6 rules instead
+# Shape: a constant first arg, then either a quoted group or an identifier
+# group, then a quoted *.md file, followed by a comma or close-paren (wrapped
+# calls like `s(Cl(...), "project", "text")` are the norm in the bundle).
 CALL_RE = re.compile(
     r"(?<![A-Za-z0-9_$])(?:Id|Cl|jD[ef]|Tl|dr|GW)\(\s*[^\s,()]+\s*,\s*"
     r'(?:"([a-z0-9_-]+)"|([A-Za-z_$][A-Za-z0-9_$]*))\s*,\s*'
     r'"([A-Za-z0-9_./-]+\.md)"(?=\s*[,)])'
 )
-CALLEE_SHAPE = "(Id|Cl|jD[ef]|Tl|dr|GW)(<v>, <group>, \"<file>.md\")"
+OMP_CALL_RE = re.compile(
+    r"(?<![A-Za-z0-9_$])(?:Id|Cl|jD[ef]|Tl|dr|GW|Co|Dl|Hj)\(\s*[^\s,()]+\s*,\s*"
+    r'(?:"([a-z0-9_-]+)"|([A-Za-z_$][A-Za-z0-9_$]*))\s*,\s*'
+    r'"([A-Za-z0-9_./-]+\.md)"(?=\s*[,)])'
+)
+CALLEE_SHAPES = {
+    "omp": '(Id|Cl|jD[ef]|Tl|dr|GW|Co|Dl|Hj)(<v>, <group>, "<file>.md")',
+    "opencode": '(Id|Cl|jD[ef]|Tl|dr|GW)(<v>, <group>, "<file>.md")',
+}
 # Identifier -> string bindings anywhere in the dump (`var Pqr = "agents-md"`,
 # second declarators like `, Zou = "AGENTS.md"`, plain `X = "..."`).
 ASSIGN_RE = re.compile(
@@ -300,12 +313,14 @@ def constant_table(dump: str) -> dict[str, str]:
 
 def extract_classes(dump: str, harness: str) -> set[tuple[str, str]]:
     """All (group, file) pairs from `.md`-suffixed registration-call shapes.
-    Identifier group args are resolved through the dump's constant table;
-    unresolvable ones surface as a ``<unresolved-var:NAME>`` group so they
-    cannot pass silently."""
+    The callee allowlist is per-harness (CALL_RE/OMP_CALL_RE above).  Identifier
+    group args are resolved through the dump's constant table; unresolvable
+    ones surface as a ``<unresolved-var:NAME>`` group so they cannot pass
+    silently."""
     consts = constant_table(dump)
+    pattern = OMP_CALL_RE if harness == "omp" else CALL_RE
     pairs: set[tuple[str, str]] = set()
-    for quoted, ident, filename in CALL_RE.findall(dump):
+    for quoted, ident, filename in pattern.findall(dump):
         if quoted:
             group = quoted
         elif ident in consts:
@@ -509,7 +524,8 @@ def check_literal_present(entries: list[dict], dumps: dict[str, str],
         ):
             problems.append(
                 "%s (no %s call shape for (%s, %s) in %s dump)"
-                % (e["class_id"], CALLEE_SHAPE, e["group"], e["file"], e["harness"])
+                % (e["class_id"], CALLEE_SHAPES[e["harness"]],
+                   e["group"], e["file"], e["harness"])
             )
     if problems:
         return False, "%d loader literal(s) not verifiable: %s" % (
@@ -520,14 +536,36 @@ def check_literal_present(entries: list[dict], dumps: dict[str, str],
 
 def check_no_uncovered_class(entries: list[dict],
                              extracted: dict[str, set[tuple[str, str]]]) -> tuple[bool, str]:
+    """Set parity over the documented extraction, plus the round-21 vacuity
+    guard: a harness dump from which ZERO loader classes extract while the
+    baseline declares loader-group classes for it is a moved/renamed
+    substrate — a FAIL, never an empty-set pass (the 2026-10-16 omp rebuild
+    extracted 0 shapes here while literal_present failed every row, and this
+    check still said PASS).  Guarded per loader-group kind only: opencode's
+    declared classes are config/rule kinds covered by opencode_extract's own
+    zero-extraction rule, so an empty CALL_RE extraction is its documented
+    steady state, not drift."""
     declared = {e["class_id"] for e in entries}
     found: set[str] = set()
+    problems: list[str] = []
     for harness in HARNESS_IDS:
-        found |= {"%s:%s/%s" % (harness, g, f) for g, f in extracted[harness]}
+        pairs = extracted[harness]
+        loader_group_declared = sorted(
+            e["class_id"] for e in entries
+            if e["harness"] == harness and e["context_kind"] == "loader-group")
+        if loader_group_declared and not pairs:
+            problems.append(
+                "vacuity: 0 loader class(es) extracted from the %s dump while "
+                "the baseline declares %d loader-group class(es) for it — a "
+                "moved or renamed substrate must FAIL, never pass silently"
+                % (harness, len(loader_group_declared)))
+        found |= {"%s:%s/%s" % (harness, g, f) for g, f in pairs}
     uncovered = sorted(found - declared)
     if uncovered:
-        return False, "%d loader class(es) undeclared in baseline: %s" % (
-            len(uncovered), ", ".join(uncovered))
+        problems.append("%d loader class(es) undeclared in baseline: %s" % (
+            len(uncovered), ", ".join(uncovered)))
+    if problems:
+        return False, "; ".join(problems)
     return True, "all %d extracted loader class(es) declared" % len(found)
 
 
@@ -742,6 +780,22 @@ def self_test() -> int:
     rec("extra-class: FAIL no_uncovered_class",
         "FAIL surfaces.no_uncovered_class:" in out, out)
     rec("extra-class: names omp:foo/FOO.md", "omp:foo/FOO.md" in out, out)
+
+    # (b2) the 2026-10-16 omp rebuild registers through renamed callees
+    # (Co/Dl/Hj) — the per-harness allowlist must still extract the classes
+    code, out = run(omp_dump=fx + "/strings-omp-newcallees.txt")
+    rec("new-callees: exit 0", code == 0, code)
+    rec("new-callees: PASS literal_present",
+        "PASS surfaces.literal_present:" in out, out)
+    rec("new-callees: PASS no_uncovered_class",
+        "PASS surfaces.no_uncovered_class:" in out, out)
+
+    # (b3) a substrate whose call shapes all vanish is a vacuity FAIL, never
+    # an empty-set pass (the 2026-10-16 omp-move defect class round 21 fixed)
+    code, out = run(omp_dump=fx + "/strings-empty.txt")
+    rec("extract-vacuity: exit 1", code == 1, code)
+    rec("extract-vacuity: FAIL no_uncovered_class names vacuity",
+        "FAIL surfaces.no_uncovered_class:" in out and "vacuity" in out, out)
 
     # (c) declared loader shape dropped -> exit 1, literal_present names it
     code, out = run(omp_dump=fx + "/strings-drop-class.txt")
