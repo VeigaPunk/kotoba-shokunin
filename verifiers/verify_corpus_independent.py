@@ -607,7 +607,7 @@ def _fixture_index(root):
     _git_init(root)
 
 
-def _fixture_fence(root, fenced=True, pseudo=False, indent=None):
+def _fixture_fence(root, fenced=True, pseudo=False, indent=None, blockquote=False):
     lines = ["# t", "", "## Coverage map", "",
              "| Area | File | Basis |", "|------|------|-------|",
              "| Live | `knowledge/a.md` | x |"]
@@ -620,6 +620,8 @@ def _fixture_fence(root, fenced=True, pseudo=False, indent=None):
         # four or more columns (spaces or a tab) is indented code -- content --
         # so it cannot close the ```` block and the quoted row stays opaque.
         lines += ["````", indent, "| Fenced | `knowledge/b.md` | x |", "````"]
+    elif blockquote:
+        lines += ["> ````", "> | Fenced | `knowledge/b.md` | x |", "> ````"]
     elif fenced:
         lines += ["```", "| Fenced | `knowledge/b.md` | x |", "```"]
     else:
@@ -761,8 +763,25 @@ def self_test():
         st.eq(fenced_line_numbers(["x", "~~~", "a", "```", "b", "```", "c", "~~~", "d"]),
               {2, 3, 4, 5, 6, 7, 8},
               "fence: a mismatched fence char does not close")
-        st.eq(fenced_line_numbers(["a", "```", "b", "c"]), {2, 3, 4},
-              "fence: an unclosed fence runs to EOF")
+        # cmark 0.31.2 sourcepos classifies an unclosed tilde fence and a mixed
+        # backtick pseudo-closer as one code block through EOF. Its blockquote
+        # fence sourcepos is lines 1-3, which the line-only scanner misses; the
+        # coverage-path impact remains fail-safe because the row is prefixed by >.
+        st.eq(fenced_line_numbers(["before", "~~~", "body", "| row"]), {2, 3, 4},
+              "fence: an unclosed tilde fence runs to EOF")
+        st.eq(fenced_line_numbers(["~~~", "body", "```", "tail"]), {1, 2, 3, 4},
+              "fence: a mixed backtick pseudo-closer does not close tilde")
+        st.eq(fenced_line_numbers(["> ````", "> body", "> ````"]), set(),
+              "fence: blockquote container is outside the line scanner")
+        qroot = os.path.join(tmp, "fence-blockquote")
+        _fixture_fence(qroot, blockquote=True)
+        qidx = analyse_index(qroot, corpus_markdown(qroot))
+        st.eq(qidx["index_tokens"], 1,
+              "blockquote fence: only the live row is harvested")
+        st.eq(qidx["unindexed"], 1,
+              "blockquote fence: quoted row file remains unindexed")
+        st.eq(qidx["unindexed_detail"], ["corpus/knowledge/b.md"],
+              "blockquote fence: fail-safe impact names the unindexed file")
         # Round 39 (seat P4): the CommonMark 4.5 closer rule. A fence-looking line
         # closes the region only with the same char, length >= the opener's and no
         # info string; every other shape is content. Each assertion is one of

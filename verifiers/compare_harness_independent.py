@@ -269,6 +269,17 @@ def _record_id(record, where):
     raise CompareError(f"{where}: record has no check id (keys {ID_KEYS}): {show(record)}")
 
 
+def _record_status(record, cid, where):
+    if "status" in record and "state" in record:
+        status, state = record["status"], record["state"]
+        if canon(status) != canon(state):
+            raise CompareError(
+                f"{where}: status/state split for {cid}: status={show(status)} but "
+                f"state={show(state)} (both aliases must agree)")
+    status = record["status"] if "status" in record else record.get("state")
+    return status if isinstance(status, str) else None
+
+
 def _channel_maps(payload, where, value_keys=IND_VALUE_KEYS):
     """Every published row channel -> {check id: (value, status)}.
 
@@ -336,13 +347,13 @@ def _channel_maps(payload, where, value_keys=IND_VALUE_KEYS):
                                     f"{where}: {key} record {cid} disagrees with "
                                     f"itself: {foreign[0]}={show(fval)} vs "
                                     f"{dk}={show(dval)} (the value channels must agree)")
-                status = record.get("status", record.get("state"))
+                status = _record_status(record, cid, f"{where} {key}")
                 if cid in out and canon(out[cid][0]) != canon(record[vkey]):
                     raise CompareError(
                         f"{where}: duplicate id {cid} in {key} carries two values: "
                         f"{show(out[cid][0])} and {show(record[vkey])} (a repeated row "
                         f"must not let the divergent copy be the one that is dropped)")
-                out[cid] = (record[vkey], status if isinstance(status, str) else None)
+                out[cid] = (record[vkey], status)
             channels[key] = out
         elif isinstance(raw, dict):
             nested = _dotted_map(raw)
@@ -423,19 +434,57 @@ def _reconcile_channels(payload, where, value_keys=IND_VALUE_KEYS):
     return _reconcile(channels, where)
 
 
-def parse_independent(payload, statuses=None):
+def parse_independent(payload, statuses=None, ignored_fields=None):
     """payload -> {check id: re-derived value}.  Loud on any other shape.
 
     ``statuses``, when given, is filled with each record's own status field
     (``status`` | ``state``) so an UNLANDED derivation can never launder into
-    agreement unnoticed.
+    agreement unnoticed. ``ignored_fields`` receives the names of declared
+    diagnostic top-level fields that do not participate in the join.
+
+    The top-level contract is explicit: row channels (``results``/``rows``/
+    ``checks``), the legacy single-map aliases (``expected``/``re_derived``/
+    ``observations``), the flat dotted-id map, and the producer's scope/evidence
+    fields. ``landed``, ``unlanded`` and ``alternatives`` are diagnostic-only;
+    their names are surfaced in the report when ignored. Unknown keys and
+    competing map forms fail closed instead of riding alongside a clean channel.
 
     Round 40 (seat P2 — closes R1's r39 F-3): when the payload publishes row
     channels, every one of them is reconciled before any value is joined, so a
     divergent value in a shadowed channel is a loud error rather than an
-    invisible one.  ``statuses`` is read from every channel too, and a split is
+    invisible one. ``statuses`` is read from every channel too, and a split is
     itself a divergence.
     """
+    if isinstance(payload, dict):
+        allowed = set(CHANNEL_KEYS) | {
+            "expected", "re_derived", "observations", "landed", "unlanded",
+            "alternatives", "scoped_out", "scoped_out_probes",
+        }
+        unknown = [key for key in payload
+                   if not (isinstance(key, str) and
+                           (key in allowed or DOTTED_ID.fullmatch(key)))]
+        if unknown:
+            names = sorted(repr(key) for key in unknown)
+            raise CompareError(
+                "independent: uncontracted top-level key(s): " + ", ".join(names) +
+                " (rejecting fields outside the declared payload contract)"
+            )
+        aliases = [key for key in ("expected", "re_derived", "observations")
+                   if key in payload]
+        row_channels = [key for key in CHANNEL_KEYS if key in payload]
+        if row_channels and aliases:
+            raise CompareError(
+                "independent: value-map override: top-level " + ", ".join(aliases) +
+                " cannot accompany row channel(s) " + ", ".join(row_channels)
+            )
+        if len(aliases) > 1:
+            raise CompareError(
+                "independent: competing value-map aliases: " + ", ".join(aliases) +
+                " (publish one value form only)"
+            )
+        if ignored_fields is not None:
+            ignored_fields.extend(key for key in ("alternatives", "landed", "unlanded")
+                                  if key in payload)
     channels = _channel_maps(payload, "independent")
     if channels is not None:
         if statuses is not None:
@@ -588,9 +637,10 @@ def parse_scoped_out(payload, independent):
     if records is not None:
         for record in records:
             if isinstance(record, dict):
-                status = record.get("status", record.get("state"))
-                if isinstance(status, str):
-                    statuses[_record_id(record, "independent")] = status
+                cid = _record_id(record, "independent")
+                status = _record_status(record, cid, "independent scoped_out")
+                if status is not None:
+                    statuses[cid] = status
     out = {}
     for cid, reason in raw.items():
         if cid not in independent:
@@ -608,6 +658,46 @@ def parse_scoped_out(payload, independent):
                 f"blocker must be named, never silent)")
         out[cid] = reason
     return out
+
+
+def check_independent_scope_maps(payload, committed, live):
+    """Keep record-free map keys within the live derived set."""
+    if _record_list(payload) is not None:
+        return True
+    derived_ids = set(live) - set(committed)
+    maps = []
+    if isinstance(payload, dict):
+        for key in CHANNEL_KEYS:
+            nested = _dotted_map(payload.get(key))
+            if nested is not None:
+                maps.append((key, nested))
+        for key in ("expected", "re_derived", "observations"):
+            nested = _dotted_map(payload.get(key))
+            if nested is not None:
+                maps.append((key, nested))
+        nested = _dotted_map(payload)
+        if nested is not None:
+            maps.append(("top-level", nested))
+    for channel, values in maps:
+        overflow = sorted(set(values) - derived_ids)
+        if overflow:
+            raise CompareError(
+                f"derived-set overflow: {channel} map key-set includes "
+                f"{show(overflow)} outside the honest derived set"
+            )
+    return True
+
+
+def check_independent_scope_values(independent, committed, live):
+    """Reject any payload value supplied for a committed scope-out row."""
+    for cid in sorted(set(committed) & set(live) & set(independent)):
+        if independent[cid] is not None:
+            raise CompareError(
+                f"scope-out value laundering: independent payload supplies "
+                f"{cid}={show(independent[cid])}, but the committed scope file "
+                "excludes that row from payload-derived agreement"
+            )
+    return True
 
 
 def load_scope_file(path):
@@ -903,7 +993,7 @@ def summary_lines(meta):
     res = meta["result"]
     joined_n, scope_n, live_n = scope_totals(meta)
     label, headline_n = headline(meta)
-    return [
+    lines = [
         f"agreement: {headline_n}/{scope_n} ({label} headline; {live_n} live checks, "
         f"{len(res['scoped_out'])} scoped out by the independent instrument)",
         f"columns: protocol {len(res['agree'])}/{scope_n}; strict {res['strict_agree_n']}/{scope_n}; "
@@ -916,6 +1006,10 @@ def summary_lines(meta):
         f"secondary (independent expected vs live expected): {meta['secondary_agree']}/{scope_n}",
         f"verdict: exit {meta['exit']} \u2014 {meta['reason']}",
     ]
+    if meta["ignored_independent_fields"]:
+        lines.insert(5, "independent top-level diagnostics explicitly ignored: "
+                     + ", ".join(meta["ignored_independent_fields"]))
+    return lines
 
 
 HEADER = """# harness-independent agreement report — round 37/38 (C1, seats P4/P1)
@@ -1035,6 +1129,7 @@ def render_json(meta):
             "modes": meta["modes"],
         },
         "independent": {"cmd": meta["ind_cmd"], "exit": meta["ind_exit"], "n": len(meta["independent"])},
+        "ignored_independent_fields": meta["ignored_independent_fields"],
         "agreement": {
             "n_agree_protocol": len(res["agree"]),
             "n_agree_strict": res["strict_agree_n"],
@@ -1111,20 +1206,30 @@ def fixture_battery(check):
         return
     case_dirs = sorted(p for p in FIXTURE_DIR.iterdir()
                        if (p / "case.json").is_file())
-    check("fixtures: battery carries the four F-2/F-3 arms",
+    check("fixtures: battery carries F-2/F-3, field-gate, alias, and heldout-map arms",
           sorted(p.name for p in case_dirs) ==
-          ["agree-control", "checks-shadow", "expected-launder", "rows-shadow"])
+          ["agree-control", "alias-nonstring-status-state", "alias-status-state-split",
+           "alternatives-ignored", "checks-shadow", "expected-launder",
+           "field-alternatives-ignored", "field-extra-key", "field-metadata",
+           "field-overrides", "heldout-expected-only-full-copy",
+           "heldout-flat-dotted-map", "heldout-nested-checks-map",
+           "heldout-nested-expected-wrapper", "heldout-nested-observations-wrapper",
+           "heldout-wrapper-precedence-expected-over-observations", "rows-shadow",
+           "uncontracted-future-key", "uncontracted-metadata", "uncontracted-overrides",
+           "value-map-override"])
     scope_file = FIXTURE_DIR / "scope.json"
     for case_dir in case_dirs:
         case = json.loads((case_dir / "case.json").read_text(encoding="utf-8"))
         expect = case["expect"]
+        case_scope = (case_dir / case["scope"] if case.get("scope")
+                      else scope_file)
         argv = [
             sys.executable,
             str(Path(__file__).resolve()),
             "--live-json", str(case_dir / case["live"]),
             "--independent-json", str(case_dir / case["independent"]),
             "--expect-n", str(case["expect_n"]),
-            "--scope-file", str(scope_file),
+            "--scope-file", str(case_scope),
             "--no-stamp",
         ]
         proc = subprocess.run(argv, capture_output=True, text=True, timeout=120)
@@ -1317,6 +1422,24 @@ def self_test(quiet=False):
         "independent: observed fallback key",
         parse_independent({"results": [{"check": "a.b", "observed": 9}]}) == {"a.b": 9},
     )
+    alias_statuses = {}
+    check(
+        "independent: matching status/state aliases reconcile",
+        parse_independent({"results": [{"check": "a.b", "value": 1,
+                                         "status": "DERIVED", "state": "DERIVED"}]},
+                          alias_statuses) == {"a.b": 1}
+        and alias_statuses == {"a.b": "DERIVED"},
+    )
+    for label, status, state in (
+        ("independent: status/state split fails closed", "DERIVED", "UNLANDED"),
+        ("independent: non-string status cannot hide state", None, "UNLANDED"),
+    ):
+        try:
+            parse_independent({"results": [{"check": "a.b", "value": 1,
+                                             "status": status, "state": state}]})
+            check(label, False)
+        except CompareError as exc:
+            check(label, "status/state split" in str(exc) and "a.b" in str(exc))
     try:
         parse_independent({"omp": {"x": 1}, "opencode": {"y": 2}})
         check("independent: nested-by-subject shape rejected", False)
@@ -1595,11 +1718,11 @@ def self_test(quiet=False):
         }), encoding="utf-8")
 
         def stub_scoped(ind_path, observable_json, status="SCOPED_OUT", with_probe=True,
-                        target=None, kind="rule-spread-census"):
+                        target=None, kind="rule-spread-census", expected_value=None):
             probe = ("{'kind':%r,'target':%r,'observable':%s}"
                      % (kind, target if target is not None else str(carrier),
                         observable_json)) if with_probe else "None"
-            record = "{'check':'a.c','expected':None,'status':" + repr(status)
+            record = "{'check':'a.c','expected':" + repr(expected_value) + ",'status':" + repr(status)
             if with_probe:
                 record += ",'probe':" + probe
             record += "}"
@@ -1617,6 +1740,16 @@ def self_test(quiet=False):
                    want_text="agreement: 1/1", scope=scope_file)
         check("cli: scope-out stub reports the scoped row count",
               "1 scoped out" in proc.stdout)
+        (tmp_path / "live_scoped_secondary.py").write_text(
+            "import json;print(json.dumps({'results':["
+            "{'check':'a.b','observed':1,'expected':1,'verdict':'PASS','mode':'equal'},"
+            "{'check':'a.c','observed':1,'expected':None,'verdict':'PASS','mode':'equal'}]}))\n",
+            encoding="utf-8")
+        stub_scoped(tmp_path / "ind_scoped_secondary.py", json.dumps(observable))
+        e2e("secondary count excludes scoped-out row", "live_scoped_secondary.py",
+            "ind_scoped_secondary.py",
+            want_text="secondary (independent expected vs live expected): 1/1",
+            scope=scope_file)
         # round-39 counter-probes: each shape of the r38 laundering hole must
         # fail closed, and the decisive one is a row the committed file does not list
         stub_scoped(tmp_path / "ind_launder.py", json.dumps(observable))
@@ -1916,13 +2049,16 @@ def build_meta(args):
             )
         ind_receipt = side_receipt(text, ind_cmd, ind_exit, None, cwd)
     statuses = {}
+    ignored_independent_fields = []
     ind_payload = load_payload(text, "independent")
-    independent = parse_independent(ind_payload, statuses)
-    scoped_out = parse_scoped_out(ind_payload, independent)
     # Round 39 (C1, seat P1) — the three locks on the scope-out, in order:
     # the set is committed (not self-served), each row's blind probe is
     # recomputed here, and the blocker's falsifier is swept for.
     committed, contract = load_scope_file(args.scope_file)
+    check_independent_scope_maps(ind_payload, committed, live)
+    independent = parse_independent(ind_payload, statuses, ignored_independent_fields)
+    scoped_out = parse_scoped_out(ind_payload, independent)
+    check_independent_scope_values(independent, committed, live)
     probes = {}
     if isinstance(ind_payload, dict):
         raw_probes = ind_payload.get("scoped_out_probes")
@@ -1949,14 +2085,16 @@ def build_meta(args):
         res, len(live), args.expect_n, live_exit, ind_exit, verdicts, strict_headline=args.strict_headline
     )
 
-    # secondary join, recorded for the adjudicating seat but never the headline:
-    # the harness's own expected values (from its JSON) vs the independent ones.
+    # The secondary count uses the same joined rows as its displayed denominator;
+    # scoped-out and otherwise unjoined values cannot increase its numerator.
     expected_map = {}
     for record in _record_list(live_payload) or []:
         if isinstance(record, dict) and "expected" in record:
             expected_map[_record_id(record, "live")] = record["expected"]
     secondary = sum(
-        1 for cid, v in independent.items() if cid in expected_map and canon(v) == canon(expected_map[cid])
+        1 for row in res["rows"]
+        if row["check"] in expected_map
+        and canon(independent[row["check"]]) == canon(expected_map[row["check"]])
     )
 
     return {
@@ -1981,6 +2119,7 @@ def build_meta(args):
         "scope_file": args.scope_file,
         "committed_scope": sorted(committed),
         "scope_probe_kind": scope_probe_kind,
+        "ignored_independent_fields": sorted(ignored_independent_fields),
         "receipt": {"live": live_receipt, "independent": ind_receipt},
     }
 

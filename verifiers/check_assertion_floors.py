@@ -4,9 +4,9 @@
 The claim under test: a self-test that silently loses assertions must never
 still read green. Each instrument's --self-test prints an assertion count;
 this guard reruns every self-test and FAILs when the observed count is below
-the recorded floor (harness 10, corpus_integrity 145, corpus_independent 86,
+the recorded floor (harness 10, corpus_integrity 150, corpus_independent 91,
 surfaces 87, checklist 1597, pins 62, harness_independent 104,
-compare_harness_independent 118, floors_guard 150; others @ round 36, the
+compare_harness_independent 213, floors_guard 150; others @ round 36, the
 checklist floor re-recorded at round 37 by the C3 fence battery plus the
 indented-code decoy battery and at round 38 by the three container-relative
 fence shapes (V6's named residual); the two round-38 C1 instruments registered
@@ -17,12 +17,14 @@ re-bumped at round 39 by seat P2's init_count predicate fix + grammar fixtures
 `compare_harness_independent` re-bumped at round 39 by seat P1's scope-out
 discriminator battery (83->97), and at round 40 by seat F1's committed F-2/F-3
 payload arms -- the expected-launder, rows-shadow and checks-shadow shapes plus
-the agree-control (97->117); the two corpus floors re-bumped at round 39 by
-seat P4's CommonMark 4.5 closer-rule battery (119->129, 59->68), and at round
-40 by seat F2's indent-clause battery -- the 0/2/3-space controls plus the
-4-space, tab, mixed-indent, opener-arm and tilde shapes, each expected set
+the agree-control (97->117); at round 43 by seat P2's un-contract top-level
+field-gate fixture battery (118->143); round 43's scoped-map and status-alias battery (143->213). The two corpus floors re-bumped at round
+39 by seat P4's CommonMark 4.5 closer-rule battery (119->129, 59->68), and at
+round 40 by seat F2's indent-clause battery -- the 0/2/3-space controls plus
+the 4-space, tab, mixed-indent, opener-arm and tilde shapes, each expected set
 derived from cmark 0.31.2 alone (129->145, 68->86). Round 41 (claim C2/V16)
-adds this guard's own 150-assertion self-test as a floored instrument.
+adds this guard's own 150-assertion self-test as a floored instrument; round 43
+C3 adds unclosed/mixed/blockquote fence assertions (145->150, 86->91).
 Exit: 0 all floors hold;
 1 an instrument ran below its floor, or its summary could not be parsed or the
 instrument could not be run (named, observed-vs-floor); 2 the in-file registry
@@ -113,13 +115,13 @@ DEFAULT_REPO = Path(__file__).resolve().parent.parent
 # or a floor silently lowered -- fails loudly before any self-test runs.
 EXPECTED_INSTRUMENTS = {
     "harness": 10,
-    "corpus_integrity": 145,
-    "corpus_independent": 86,
+    "corpus_integrity": 150,
+    "corpus_independent": 91,
     "surfaces": 87,
     "checklist": 1597,
     "pins": 62,
     "harness_independent": 104,
-    "compare_harness_independent": 118,
+    "compare_harness_independent": 213,
     "floors_guard": 150,
 }
 SELF_TEST_TIMEOUT_S = 120
@@ -131,9 +133,9 @@ REGISTRY_REL = Path("verifiers/floors-registry.json")
 INSTRUMENTS = {
     "harness": ("verifiers/verify_harness_claims.py", 10,
                 r"self-test:\s*(\d+) failure\(s\) over (\d+) assertions", 2, 1),
-    "corpus_integrity": ("verifiers/verify_corpus_integrity.py", 145,
+    "corpus_integrity": ("verifiers/verify_corpus_integrity.py", 150,
                          r"self-test:\s*(\d+) failure\(s\) over (\d+) assertions", 2, 1),
-    "corpus_independent": ("verifiers/verify_corpus_independent.py", 86,
+    "corpus_independent": ("verifiers/verify_corpus_independent.py", 91,
                            r"self-test:\s*(\d+) assertions,\s*(\d+) failures", 1, 2),
     "surfaces": ("verifiers/verify_surfaces.py", 87,
                  r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
@@ -143,7 +145,7 @@ INSTRUMENTS = {
              r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
     "harness_independent": ("verifiers/verify_harness_independent.py", 104,
                             r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
-    "compare_harness_independent": ("verifiers/compare_harness_independent.py", 118,
+    "compare_harness_independent": ("verifiers/compare_harness_independent.py", 213,
                                     r"self-test:\s*(\d+) failure\(s\) over (\d+) assertions", 2, 1),
     "floors_guard": ("verifiers/check_assertion_floors.py", 150,
                      r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),

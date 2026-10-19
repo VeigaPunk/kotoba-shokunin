@@ -1088,7 +1088,17 @@ def self_test() -> int:
         fenced_lines(["x", "~~~", "a", "```", "b", "```", "c", "~~~", "d"]),
         {2, 3, 4, 5, 6, 7, 8},
     )
-    eq("fence/unclosed-runs-to-eof", fenced_lines(["a", "```", "b", "c"]), {2, 3, 4})
+    # cmark 0.31.2 sourcepos classifies an unclosed tilde fence and a mixed
+    # backtick pseudo-closer as one code block through EOF.
+    eq("fence/unclosed-tilde-runs-to-eof",
+       fenced_lines(["before", "~~~", "body", "| row"]), {2, 3, 4})
+    eq("fence/mixed-backtick-does-not-close-tilde-to-eof",
+       fenced_lines(["~~~", "body", "```", "tail"]), {1, 2, 3, 4})
+    # cmark 0.31.2 sees source lines 1-3 as a fenced code block inside a
+    # blockquote; this line-only scanner intentionally leaves that container
+    # unrecognized, and the coverage-path impact is pinned below.
+    eq("fence/blockquote-code-block-outside-line-scanner",
+       fenced_lines(["> ````", "> body", "> ````"]), set())
     # Round 39 (seat P4): the CommonMark 4.5 closer rule. A fence-looking line
     # closes the region only with the same char, length >= the opener's and no
     # info string; every other shape is content. Each assertion is one of V6b's
@@ -1123,6 +1133,20 @@ def self_test() -> int:
        fidx["index_tokens_fenced_detail"],
        ["corpus/README.md:7: knowledge/b.md"])
     eq("fence/fenced-file-unindexed", fidx["unindexed_detail"], ["corpus/knowledge/b.md"])
+    BLOCKQUOTE_README = (
+        "## Coverage map\n\n| Area | File | Basis |\n|---|---|---|\n"
+        "| Live | `knowledge/a.md` | basis |\n"
+        "> ````\n"
+        "> | Blockquoted | `knowledge/b.md` | basis |\n"
+        "> ````\n"
+    )
+    bqidx = index_findings(BLOCKQUOTE_README, FENCED_TRACKED,
+                           lambda p: p in FIXTURE_ON_DISK)
+    eq("fence/blockquote-row-not-harvested", bqidx["index_patterns"], 1)
+    eq("fence/blockquote-row-not-misreported-as-fenced",
+       bqidx["index_tokens_fenced"], 0)
+    eq("fence/blockquote-file-remains-unindexed",
+       bqidx["unindexed_detail"], ["corpus/knowledge/b.md"])
     uidx = index_findings(
         FENCED_README.replace("```\n", ""), FENCED_TRACKED, lambda p: p in FIXTURE_ON_DISK
     )

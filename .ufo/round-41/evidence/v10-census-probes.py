@@ -11,7 +11,9 @@ import subprocess
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[4]
+# round-41 r43 repair: moved from drafts/v10/ (depth 4) to evidence/ (depth 3) —
+# parents index corrected so ROOT still resolves to the lane repo root.
+ROOT = Path(__file__).resolve().parents[3]
 DRAFT = Path(__file__).resolve().parent
 DRIVER = DRAFT / "compare-b1be35f.py"
 LIVE_FILE = DRAFT / "live-b1be35f.json"
