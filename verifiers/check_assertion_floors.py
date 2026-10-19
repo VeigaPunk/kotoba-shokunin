@@ -4,7 +4,7 @@
 The claim under test: a self-test that silently loses assertions must never
 still read green. Each instrument's --self-test prints an assertion count;
 this guard reruns every self-test and FAILs when the observed count is below
-the recorded floor (harness 10, corpus_integrity 108, corpus_independent 52,
+the recorded floor (harness 10, corpus_integrity 119, corpus_independent 59,
 surfaces 87, checklist 1504, pins 62 @ round 29). Exit: 0 all floors hold;
 1 an instrument ran below its floor (named, observed-vs-floor); 2 an
 instrument could not run or its output was unparseable. Read-only.
@@ -25,8 +25,8 @@ from pathlib import Path
 # or a floor silently lowered -- fails loudly before any self-test runs.
 EXPECTED_INSTRUMENTS = {
     "harness": 10,
-    "corpus_integrity": 108,
-    "corpus_independent": 52,
+    "corpus_integrity": 119,
+    "corpus_independent": 59,
     "surfaces": 87,
     "checklist": 1504,
     "pins": 62,
@@ -36,9 +36,9 @@ SELF_TEST_TIMEOUT_S = 120
 INSTRUMENTS = {
     "harness": ("verifiers/verify_harness_claims.py", 10,
                 r"self-test:\s*(\d+) failure\(s\) over (\d+) assertions", 2, 1),
-    "corpus_integrity": ("verifiers/verify_corpus_integrity.py", 108,
+    "corpus_integrity": ("verifiers/verify_corpus_integrity.py", 119,
                          r"self-test:\s*(\d+) failure\(s\) over (\d+) assertions", 2, 1),
-    "corpus_independent": ("verifiers/verify_corpus_independent.py", 52,
+    "corpus_independent": ("verifiers/verify_corpus_independent.py", 59,
                            r"self-test:\s*(\d+) assertions,\s*(\d+) failures", 1, 2),
     "surfaces": ("verifiers/verify_surfaces.py", 87,
                  r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),

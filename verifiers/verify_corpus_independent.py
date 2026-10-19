@@ -101,6 +101,9 @@ POINTER_RE = re.compile(
     r"""[^\s`"()\[\],;:]*\.ufo/reports/round-\d+/[^`"]*?\.md"""
 )
 COMMIT_RE = re.compile(r"(?<![A-Za-z0-9_-])commit\s+`([^`\s]+)`")
+# Round 36 (scout P3b): a fenced region is opaque to the index census -- a
+# coverage row quoted inside a ``` block is an example, not an index promise.
+FENCE_RE = re.compile(r"^[ \t]*(`{3,}|~{3,})(.*)$")
 HEX_RE = re.compile(r"\A[0-9a-fA-F]+\Z")
 
 
@@ -210,27 +213,55 @@ def pointer_shape(token):
 # --------------------------------------------------------------------- index ---
 
 
+def fenced_line_numbers(lines):
+    """1-based line numbers of a fenced region, fence lines included.
+
+    An unclosed fence runs to EOF, so a half-deleted closer hides the tail
+    rather than resurrecting it.
+    """
+    inside, char, out = False, "", set()
+    for lineno, line in enumerate(lines, 1):
+        m = FENCE_RE.match(line)
+        if m:
+            out.add(lineno)
+            if not inside:
+                inside, char = True, m.group(1)[0]
+            elif m.group(1)[0] == char:
+                inside = False
+        elif inside:
+            out.add(lineno)
+    return out
+
+
 def coverage_cells(repo):
-    """[(lineno, cell)] of column 2 in coverage-map table rows of corpus/README.md."""
+    """[(lineno, cell)] of column 2 in coverage-map table rows of corpus/README.md.
+
+    Round 36 (scout P3b): rows inside a fenced region are skipped -- a quoted
+    example of a coverage row is not a coverage promise.
+    """
     readme = os.path.join(repo, "corpus", "README.md")
     if not os.path.exists(readme):
         raise EnvError("corpus/README.md missing")
-    cells, in_section, outside = [], False, []
     with _open_text(readme, "corpus/README.md") as fh:
-        for lineno, line in enumerate(fh, 1):
-            stripped = line.strip()
-            if stripped.startswith("## "):
-                in_section = stripped == "## Coverage map"
-                continue
-            if not stripped.startswith("|"):
-                continue
-            parts = stripped.split("|")
-            if len(parts) < 5:
-                continue
-            cell = parts[2]
-            if set(cell.strip()) <= set("-: "):
-                continue
-            (cells if in_section else outside).append((lineno, cell))
+        lines = fh.read().splitlines()
+    opaque = fenced_line_numbers(lines)
+    cells, in_section, outside = [], False, []
+    for lineno, line in enumerate(lines, 1):
+        if lineno in opaque:
+            continue
+        stripped = line.strip()
+        if stripped.startswith("## "):
+            in_section = stripped == "## Coverage map"
+            continue
+        if not stripped.startswith("|"):
+            continue
+        parts = stripped.split("|")
+        if len(parts) < 5:
+            continue
+        cell = parts[2]
+        if set(cell.strip()) <= set("-: "):
+            continue
+        (cells if in_section else outside).append((lineno, cell))
     return cells, outside
 
 
@@ -558,6 +589,20 @@ def _fixture_index(root):
     _git_init(root)
 
 
+def _fixture_fence(root, fenced=True):
+    lines = ["# t", "", "## Coverage map", "",
+             "| Area | File | Basis |", "|------|------|-------|",
+             "| Live | `knowledge/a.md` | x |"]
+    if fenced:
+        lines += ["```", "| Fenced | `knowledge/b.md` | x |", "```"]
+    else:
+        lines += ["| Fenced | `knowledge/b.md` | x |"]
+    _write(os.path.join(root, "corpus/README.md"), "\n".join(lines) + "\n")
+    for rel in ("corpus/knowledge/a.md", "corpus/knowledge/b.md"):
+        _write(os.path.join(root, rel), "# %s\n" % rel)
+    _git_init(root)
+
+
 def _fixture_pointers(root, home):
     _write(os.path.join(root, "corpus/README.md"), "# t\n")
     _write(os.path.join(root, "corpus/knowledge/p.md"), """
@@ -655,6 +700,31 @@ def self_test():
               "index: ../ token is not corpus-internal")
         st.eq(is_corpus_internal("/abs/x.md"), False,
               "index: rooted token is not corpus-internal")
+
+        # -- index: a fenced row is quoted text, not a coverage promise ----------
+        # Round 36 (scout P3b): the census used to harvest a coverage row that
+        # sits inside a ``` block, so a fenced copy of a real row kept the index
+        # satisfied. The unfenced fixture is the control that proves the fence
+        # (not something else) is the discriminator.
+        froot = os.path.join(tmp, "fence")
+        _fixture_fence(froot, fenced=True)
+        fidx = analyse_index(froot, corpus_markdown(froot))
+        st.eq(fidx["index_tokens"], 1,
+              "fence: only the live row's token is harvested")
+        st.eq(fidx["unindexed"], 1, "fence: the fenced row's file stays unindexed")
+        st.eq(fidx["unindexed_detail"], ["corpus/knowledge/b.md"],
+              "fence: unindexed detail names the fenced row's file")
+        uroot = os.path.join(tmp, "fence-unfenced")
+        _fixture_fence(uroot, fenced=False)
+        uidx = analyse_index(uroot, corpus_markdown(uroot))
+        st.eq(uidx["index_tokens"], 2,
+              "fence control: without the fence both rows count")
+        st.eq(uidx["unindexed"], 0, "fence control: both files are covered")
+        st.eq(fenced_line_numbers(["x", "~~~", "a", "```", "b", "```", "c", "~~~", "d"]),
+              {2, 3, 4, 5, 6, 7, 8},
+              "fence: a mismatched fence char does not close")
+        st.eq(fenced_line_numbers(["a", "```", "b", "c"]), {2, 3, 4},
+              "fence: an unclosed fence runs to EOF")
 
         # -- pointers: four shapes, every exclusion, quoted context, dead --------
         proot = os.path.join(tmp, "pointers")

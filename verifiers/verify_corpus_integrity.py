@@ -148,6 +148,10 @@ HEX_RE = re.compile(r"\A[0-9a-fA-F]{7,40}\Z")
 BACKTICK_RE = re.compile(r"`([^`]+)`")
 SECTION_HEADING_RE = re.compile(r"^##[ \t]")
 COVERAGE_HEADING_RE = re.compile(r"^##[ \t]+Coverage map[ \t]*$")
+# Round 36 (scout P3b): a fenced region is opaque -- a coverage row quoted inside
+# a ``` block is an example, not an index promise. Round 35 gave the box-map
+# extractor this same blindness fix; the census had it too.
+FENCE_RE = re.compile(r"^[ \t]*(`{3,}|~{3,})(.*)$")
 BRACE_RE = re.compile(r"\{([^{}]*)\}")
 BRACE_LIMIT = 64
 
@@ -297,6 +301,29 @@ def inside_quotes(line: str, start: int, end: int) -> bool:
 # ---------------------------------------------------------------------------
 # INDEX: coverage-map table in corpus/README.md
 # ---------------------------------------------------------------------------
+def fenced_lines(lines: list[str]) -> set[int]:
+    """1-based line numbers of a fenced region, fence lines included.
+
+    Pure and total: an unclosed fence runs to EOF, so a half-deleted closer
+    hides the tail rather than resurrecting it (fail-safe: rows stop counting).
+    """
+    inside = False
+    char = ""
+    out: set[int] = set()
+    for line_no, line in enumerate(lines, 1):
+        match = FENCE_RE.match(line)
+        if match:
+            out.add(line_no)
+            if not inside:
+                inside, char = True, match.group(1)[0]
+            elif match.group(1)[0] == char:
+                inside = False
+            continue
+        if inside:
+            out.add(line_no)
+    return out
+
+
 def file_column_tokens(readme_text: str) -> list[tuple[int, str]]:
     """(line, token) for every backticked token in column 2 of a coverage-map row.
 
@@ -342,7 +369,13 @@ def index_findings(
     exists:  corpus-relative path -> bool (on-disk, follows `../` out of corpus).
     """
     tracked_set = set(tracked)
-    all_tokens = file_column_tokens(readme_text)
+    harvested = file_column_tokens(readme_text)
+    # Round 36 (scout P3b): a coverage row quoted inside a ``` block is an
+    # example, not a promise -- but it is a *named, counted* class, never a
+    # silent drop (the round-33 rule this function already states below).
+    opaque = fenced_lines(readme_text.splitlines())
+    all_tokens = [t for t in harvested if t[0] not in opaque]
+    fenced_tokens = [t for t in harvested if t[0] in opaque]
 
     covered: set[str] = set()
     stale: list[str] = []
@@ -377,7 +410,11 @@ def index_findings(
     unindexed = [f"{CORPUS_DIR}/{t}" for t in unindexed_names]
     return {
         "index_patterns": checked,
-        "index_tokens_total": len(all_tokens),
+        "index_tokens_total": len(harvested),
+        "index_tokens_fenced": len(fenced_tokens),
+        "index_tokens_fenced_detail": sorted(
+            f"{index_rel}:{n}: {t}" for n, t in fenced_tokens
+        ),
         "index_tokens_excluded": len(excluded),
         "index_tokens_excluded_detail": sorted(excluded),
         "index_tokens_classified": shapes,
@@ -1015,6 +1052,41 @@ def self_test() -> int:
        [d for d in newidx["missing_paths_detail"] if "lane" in d], [])
     eq("corpus-internal/dotdot", is_corpus_internal("../verifiers/baseline.json"), False)
     eq("corpus-internal/relative", is_corpus_internal("lessons/round-3.md"), True)
+
+    # --- round 36 (scout P3b): a fenced region is opaque -------------------
+    # The census used to harvest a coverage row quoted inside a ``` block, so a
+    # fenced copy of a real row kept the index satisfied (the round-35 S7/C3
+    # class, live again at :300). These assertions pin the fence, and the
+    # control proves the fence itself is the discriminator.
+    eq("fence/empty", fenced_lines(["a", "b"]), set())
+    eq(
+        "fence/mismatched-char-does-not-close",
+        fenced_lines(["x", "~~~", "a", "```", "b", "```", "c", "~~~", "d"]),
+        {2, 3, 4, 5, 6, 7, 8},
+    )
+    eq("fence/unclosed-runs-to-eof", fenced_lines(["a", "```", "b", "c"]), {2, 3, 4})
+    FENCED_README = (
+        "## Coverage map\n\n| Area | File | Basis |\n|---|---|---|\n"
+        "| Live | `knowledge/a.md` | basis |\n"
+        "```\n"
+        "| Fenced | `knowledge/b.md` | basis |\n"
+        "```\n"
+    )
+    FENCED_TRACKED = ["README.md", "knowledge/a.md", "knowledge/b.md"]
+    fidx = index_findings(FENCED_README, FENCED_TRACKED, lambda p: p in FIXTURE_ON_DISK)
+    eq("fence/row-not-checked", fidx["index_patterns"], 1)
+    eq("fence/row-still-harvested", fidx["index_tokens_total"], 2)
+    eq("fence/row-counted-not-dropped", fidx["index_tokens_fenced"], 1)
+    eq("fence/counted-detail",
+       fidx["index_tokens_fenced_detail"],
+       ["corpus/README.md:7: knowledge/b.md"])
+    eq("fence/fenced-file-unindexed", fidx["unindexed_detail"], ["corpus/knowledge/b.md"])
+    uidx = index_findings(
+        FENCED_README.replace("```\n", ""), FENCED_TRACKED, lambda p: p in FIXTURE_ON_DISK
+    )
+    eq("fence/control-unfenced-both-count", uidx["index_patterns"], 2)
+    eq("fence/control-unfenced-covered", uidx["unindexed"], 0)
+    eq("fence/control-no-fenced-class", uidx["index_tokens_fenced"], 0)
 
     # --- check layer: verdicts, including the baseline-free zero mode ----
     clean = {key: 0 for _, key in CHECKS.values()}

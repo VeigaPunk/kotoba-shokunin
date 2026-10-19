@@ -557,10 +557,10 @@ def evaluate(observed: dict, baseline: dict | None) -> list[dict]:
     for cid, (mode, key) in CHECKS.items():
         value = observed[key]
         row = {"check": cid, "mode": mode, "observed": value}
-        if mode == "zero":
+        if mode == "zero" and baseline is None:
             ok = (value == 0) or (isinstance(value, (dict, list)) and not value)
             row["expected"] = "0 / empty"
-        elif mode == "positive":
+        elif mode == "positive" and baseline is None:
             ok = isinstance(value, int) and value > 0
             row["expected"] = "> 0"
         elif baseline is None:
