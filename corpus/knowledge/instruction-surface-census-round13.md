@@ -331,7 +331,7 @@ The table's "All craft below" cell refers to SKILL.md's craft sections — kept 
 
 > Round-24 erratum (append-only, outside the pinned block): the block below is
 > byte-preserved from round 22, so its own stale counts stand uncorrected inside
-> it — line 337 says "seven" code-shape rules (live: 6, OC-1…OC-6). The editable
+> it — the block's internal "seven" code-shape rules text (live: 6, OC-1…OC-6; census :337 at round-22 landing, shifted by this note's own insertion — round-25 fix). The editable
 > sites (lines 28, 272, 287, 288, 293) were corrected in place at round 24.
 
 

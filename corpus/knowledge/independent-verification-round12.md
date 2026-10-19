@@ -299,4 +299,4 @@ Two corrections, both host-conditional, from scouts R4/R5 (round 22) and E3 (rou
   host-anchored tokens (reconstructed byte-exactly in `unshare -rm`; LOG records that base
   as now absent). Both instruments agree on the 19-site dead set and identical shapes.
 - §2's `index_patterns 43 = index_tokens 37` glues two tree states: `43` is the `633859f`
-  live tree, `37` is `7d15407`; the correct pairing at either tree is `43 = 43`.
+  live tree, `37` is `7d15407`; the correct pairing is `43 = 43` at `633859f` and `37 = 37` at `7d15407` (round-25 correction of this erratum's first landing, per scouts N10/N12).
