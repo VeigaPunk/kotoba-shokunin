@@ -1,7 +1,7 @@
 # kotoba — round 36 report (2026-10-19)
 
 Lane: `kotoba-shokunin`. Round 36, loop 2 (round-of-loop 2), dispatched and admitted.
-Dispatch HEAD: `754197e`. Work commit: `<pending — recorded at landing>`.
+Dispatch HEAD: `754197e`. Work commit: `b7470d7` (this report lands in the follow-up publish commit).
 Claims: **Z** freshness (the r29 dead-code fix, real) · **P3** freshness (index fence blindness) — `.ufo/round-36/claims.json` (items array 29; prose said 32 — the count class, corrected).
 Provider: hyper dry (`remaining_credits: 0`) → `devin/deepseek-v4-1-flash-high` per the goal's stated fallback.
 Swarm: 29/29.
