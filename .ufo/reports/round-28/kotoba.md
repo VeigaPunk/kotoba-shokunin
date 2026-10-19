@@ -1,9 +1,9 @@
 # kotoba — round 28 report (2026-10-19)
 
 Lane: `kotoba-shokunin`. Round 28, loop 1 (loop-round 8), dispatched and admitted.
-Dispatch HEAD: `44b1733`. Work commit: `<pending — recorded at landing>`.
+Dispatch HEAD: `44b1733`. Work commit: `e8a81ac` (this report lands in the follow-up publish commit).
 Claims: **K** freshness (rekind escape) · **P** operability (pins exact-case + overclaims) — `.ufo/round-28/claims.json`.
-Swarm: 15/16 on `zai-coding-plan/glm-5.3-flash` (one scout fragment lost; the report scribe's skeleton landed).
+Swarm: 16/16 on `zai-coding-plan/glm-5.3-flash` (the summary showed 15; the 16th deliverable is C2's report skeleton — corrected here, the r23-A4 class).
 Status: **completed craft round, admitted.**
 
 ## Work performed
