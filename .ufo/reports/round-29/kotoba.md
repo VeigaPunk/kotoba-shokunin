@@ -1,7 +1,7 @@
 # kotoba — round 29 report (2026-10-19)
 
 Lane: `kotoba-shokunin`. Round 29, loop 1 (loop-round 9), dispatched and admitted on scout C1's resolutions.
-Dispatch HEAD: `daf701d`. Work commit: `<pending — recorded at landing>`.
+Dispatch HEAD: `daf701d`. Work commit: `b0b0410` (this report lands in the follow-up publish commit).
 Claims: **H** freshness (harness zero/positive pins) · **T** capability acquisition (assertion-floor guard) — `.ufo/round-29/claims.json` (the items array carried 27 lanes; prose said 32 — corrected, the r23/r24 count class).
 Swarm: 27/27 on `openai-codex/gpt-6-luna-max`.
 Status: **completed craft round, admitted.**
