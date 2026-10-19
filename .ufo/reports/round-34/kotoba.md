@@ -1,7 +1,7 @@
 # kotoba — round 34 report (2026-10-19) — LOOP-1 GIT-CORRECTNESS AUDIT
 
 Lane: `kotoba-shokunin`. Round 34, loop 1 (round-of-loop 14) — the prescribed git audit of everything landed in loop 1 (rounds 21-33).
-Dispatch HEAD: `df5b6a4`. Work commit: `<pending — recorded at landing>`.
+Dispatch HEAD: `df5b6a4`. Work commit: `a2dfc3a` (this report lands in the follow-up publish commit).
 Claim: **A** calibration — the 8-slice audit per scout X15's checklist — `.ufo/round-34/claims.json`.
 **Prescribed-tool deviation (recorded):** the 8 Devin CLI swe-2 agents were dispatched but stalled on the CLI's permission wall (every tool call rejected: "requires confirmation… use --permission-mode dangerous" — the MCP wrapper cannot pass that flag; a `permissions.allow` config fix was attempted and reverted after a probe failed identically). The identical 8 briefs were then executed read-only by the integrator; the audit made **no mutations**. The swe-2 lane needs `--permission-mode dangerous` wiring for loop-2's round 48 (operator-level).
 Status: **audit complete; loop-1 git correctness is CLEAN except one named defect.**
