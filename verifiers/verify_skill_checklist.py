@@ -429,6 +429,14 @@ def load_map(path: Path) -> dict:
             raise MapError("box map %s: boxes[%d].disposition must be "
                            "executed:|delegated:|unexecuted:<non-empty>"
                            % (path, i))
+    if "box_total" in data:
+        bt = data["box_total"]
+        if not isinstance(bt, int) or isinstance(bt, bool) or bt < 1:
+            raise MapError("box map %s: box_total must be a positive integer"
+                           % path)
+        if bt < len(boxes):
+            raise MapError("box map %s: box_total %d is below the declared "
+                           "entry count %d" % (path, bt, len(boxes)))
     return data
 
 
@@ -898,6 +906,11 @@ def check_box_map(boxes: list[dict], m: dict, target_name: str,
         problems.append("no checklist boxes in target file")
     if not entries:
         problems.append("no map entries")
+    floor = m.get("box_total")
+    if floor is not None and len(boxes) < floor:
+        problems.append("live box count %d is below the map's declared floor "
+                        "%d (a two-sided shrink: boxes and their map entries "
+                        "were removed together)" % (len(boxes), floor))
     seen_ids: Counter = Counter(e["box_id"] for e in entries)
     for bid, n in seen_ids.items():
         if n > 1:

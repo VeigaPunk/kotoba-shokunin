@@ -32,6 +32,13 @@ Scope, stated so the numbers are readable:
 
   * INDEX reads ONLY column 2 (File) of the coverage-map table rows in
     corpus/README.md. Matching is corpus-relative; findings print repo-relative.
+  * FILE-column exclusions are NAMED and counted, never silent (round 33, scout
+    S7). `index_tokens_excluded` counts tokens dropped as templates (`<lane>`,
+    `\u2026`, `$`, `\\`) with sites in `index_tokens_excluded_detail`. A token
+    ending `/`, rooted at `/` or `~`, or carrying internal whitespace is NOT
+    dropped: it is a checked path class, counted in `index_tokens_classified`,
+    because a dead such row used to exit 0 with no counter (and the two corpus
+    instruments then disagreed on the internal directory shape).
   * POINTERS reads every tracked *.md under corpus/ (repo-relative), including
     corpus/README.md itself — this is the corpus verifier, so a `commit `<hex>``
     citation elsewhere in the repo is a different (unchecked) surface.
@@ -178,15 +185,43 @@ def has_glob(token: str) -> bool:
     return any(c in token for c in GLOB_CHARS)
 
 
-def is_excluded_token(token: str) -> bool:
-    """Placeholder/prose/host-absolute token — never checked as a corpus path."""
-    if not token or any(mark in token for mark in PLACEHOLDER_MARKS):
-        return True
+def token_exclusion_reason(token: str) -> str | None:
+    """Why a FILE-column token is not a checked corpus path, or None if it is one.
+
+    Round 33 (scout S7's silent-skip class): only a *template* is dropped, and
+    the drop is named. A token carrying a placeholder mark (`<lane>`, `\u2026`,
+    `$`, `\\`) is a schematic, not a promise, so it stays context and is counted
+    in `index_tokens_excluded`. The rooted (`/`- or `~`-anchored), directory
+    (trailing `/`) and whitespace shapes used to be dropped here with no counter
+    at all, so a dead such row exited 0 and no gate could see it. They are path
+    shapes and are now checked (see `token_path_class`).
+    """
+    if not token:
+        return "empty"
+    if any(mark in token for mark in PLACEHOLDER_MARKS):
+        return "placeholder"
+    return None
+
+
+def token_path_class(token: str) -> str | None:
+    """Shape of a *checked* token, for the census: rooted | directory | whitespace.
+
+    None is the ordinary corpus-relative path shape. Order matters: a token can
+    carry two shapes (`/tmp/x/` is rooted and a directory); it is counted once,
+    under the first class it matches.
+    """
+    if token.startswith(("/", "~")):
+        return "rooted"
+    if token.endswith("/"):
+        return "directory"
     if any(c.isspace() for c in token):
-        return True
-    if token.startswith(("/", "~")) or token.endswith("/"):
-        return True
-    return False
+        return "whitespace"
+    return None
+
+
+def is_excluded_token(token: str) -> bool:
+    """Template/schematic token — never checked as a corpus path."""
+    return token_exclusion_reason(token) is not None
 
 
 def is_corpus_internal(token: str) -> bool:
@@ -291,8 +326,9 @@ def file_column_tokens(readme_text: str) -> list[tuple[int, str]]:
             continue
         for token in BACKTICK_RE.findall(file_cell):
             token = token.strip()
-            if is_excluded_token(token):
-                continue
+            # Round 33: the census harvests EVERY backticked column-2 token and
+            # classifies it in `index_findings`; the exclusion is a named class
+            # with a counter, never a silent drop at harvest time.
             out.append((line_no, token))
     return out
 
@@ -306,12 +342,25 @@ def index_findings(
     exists:  corpus-relative path -> bool (on-disk, follows `../` out of corpus).
     """
     tracked_set = set(tracked)
-    tokens = file_column_tokens(readme_text)
+    all_tokens = file_column_tokens(readme_text)
 
     covered: set[str] = set()
     stale: list[str] = []
     missing: list[str] = []
-    for line_no, token in tokens:
+    excluded: list[str] = []
+    shapes: dict[str, int] = {}
+    checked = 0
+    for line_no, token in all_tokens:
+        reason = token_exclusion_reason(token)
+        if reason is not None:
+            # A named exclusion, counted — never a silent skip. A token in this
+            # class promises nothing, so it is neither stale nor missing.
+            excluded.append(f"{index_rel}:{line_no}: {token} [{reason}]")
+            continue
+        checked += 1
+        shape = token_path_class(token)
+        if shape is not None:
+            shapes[shape] = shapes.get(shape, 0) + 1
         hits = expand_pattern(token, tracked_set)
         covered |= hits
         if is_corpus_internal(token) and not hits:
@@ -327,7 +376,11 @@ def index_findings(
     unindexed_names = [t for t in tracked if t != INDEX_NAME and t not in covered]
     unindexed = [f"{CORPUS_DIR}/{t}" for t in unindexed_names]
     return {
-        "index_patterns": len(tokens),
+        "index_patterns": checked,
+        "index_tokens_total": len(all_tokens),
+        "index_tokens_excluded": len(excluded),
+        "index_tokens_excluded_detail": sorted(excluded),
+        "index_tokens_classified": shapes,
         "unindexed": len(unindexed),
         "unindexed_detail": sorted(unindexed),
         "stale_patterns": len(stale),
@@ -912,7 +965,9 @@ def self_test() -> int:
     )
     eq("excluded-token/placeholder", is_excluded_token("round-<N>.md"), True)
     eq("excluded-token/ellipsis", is_excluded_token("../bailian-protocol/\u2026"), True)
-    eq("excluded-token/home", is_excluded_token("~/wikillm"), True)
+    # round 33: `~/wikillm` is no longer dropped — a rooted token is a checked
+    # path class (a dead one used to exit 0 silently; scout S7).
+    eq("excluded-token/home-now-checked", is_excluded_token("~/wikillm"), False)
     # a glob IS a harvested pattern (it drives index coverage); it is never
     # tested for on-disk existence — see index/excluded/glob-not-missing above.
     eq("excluded-token/glob-harvested", is_excluded_token("knowledge/*.md"), False)
@@ -920,6 +975,44 @@ def self_test() -> int:
     eq("glob/absent", has_glob("lessons/round-3.md"), False)
     eq("excluded-token/plain-path", is_excluded_token("lessons/round-3.md"), False)
     eq("excluded-token/dotdot-path", is_excluded_token("../verifiers/baseline.json"), False)
+    # round 33: only a template/empty token is an exclusion; rooted / directory /
+    # whitespace are CHECKED path classes, and the census counts each class.
+    eq("classify/placeholder", token_exclusion_reason("round-<N>.md"), "placeholder")
+    eq("classify/empty", token_exclusion_reason(""), "empty")
+    eq("classify/plain", token_exclusion_reason("lessons/round-3.md"), None)
+    eq("classify/rooted-checked", token_exclusion_reason("~/wikillm"), None)
+    eq("classify/dir-checked", token_exclusion_reason("../sibling/"), None)
+    eq("classify/ws-checked", token_exclusion_reason("knowledge/a b.md"), None)
+    eq("pathclass/rooted", token_path_class("/tmp/x/"), "rooted")
+    eq("pathclass/tilde", token_path_class("~/wikillm"), "rooted")
+    eq("pathclass/dir", token_path_class("../verifiers/nope-dir/"), "directory")
+    eq("pathclass/ws", token_path_class("knowledge/a b.md"), "whitespace")
+    eq("pathclass/plain", token_path_class("lessons/round-3.md"), None)
+    NEWCLASS_README = (
+        "## Coverage map\n\n| Area | File | Basis |\n|---|---|---|\n"
+        "| Dir | `../nowhere/dead-dir/` | basis |\n"
+        "| Rooted | `/tmp/x2-nowhere/` | basis |\n"
+        "| Ws | `knowledge/no such.md` | basis |\n"
+        "| Tmpl | `<lane>.md` | basis |\n"
+    )
+    newidx = index_findings(NEWCLASS_README, FIXTURE_TRACKED, lambda p: p in FIXTURE_ON_DISK)
+    eq("newclass/checked-count", newidx["index_patterns"], 3)
+    eq("newclass/total", newidx["index_tokens_total"], 4)
+    eq("newclass/excluded-count", newidx["index_tokens_excluded"], 1)
+    eq("newclass/classified", newidx["index_tokens_classified"],
+       {"directory": 1, "rooted": 1, "whitespace": 1})
+    eq("newclass/dir-flips",
+       [d for d in newidx["missing_paths_detail"] if "dead-dir" in d],
+       ["corpus/README.md:5: ../nowhere/dead-dir/ -> ../nowhere/dead-dir/"])
+    eq("newclass/rooted-flips",
+       [d for d in newidx["missing_paths_detail"] if "x2-nowhere" in d],
+       ["corpus/README.md:6: /tmp/x2-nowhere/ -> /tmp/x2-nowhere/"])
+    eq("newclass/ws-stale", newidx["stale_patterns"], 1)
+    eq("newclass/ws-flips",
+       [d for d in newidx["missing_paths_detail"] if "no such" in d],
+       ["corpus/README.md:7: knowledge/no such.md -> knowledge/no such.md"])
+    eq("newclass/template-not-checked",
+       [d for d in newidx["missing_paths_detail"] if "lane" in d], [])
     eq("corpus-internal/dotdot", is_corpus_internal("../verifiers/baseline.json"), False)
     eq("corpus-internal/relative", is_corpus_internal("lessons/round-3.md"), True)
 

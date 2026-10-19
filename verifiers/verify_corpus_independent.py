@@ -269,18 +269,23 @@ def analyse_index(repo, tracked_corpus):
 
     stale, missing, denoted = [], [], set()
     for lineno, token in tokens:
-        if not is_corpus_internal(token):
-            continue
         patterns = expand_braces(token)
-        hits = {
-            rel
-            for rel in all_rel
-            for pat in patterns
-            if _fnmatch(rel, pat)
-        }
-        denoted |= hits
-        if not hits:
-            stale.append("corpus/README.md:%d: %s" % (lineno, token))
+        # Round 33 (X2 companion): a rooted token (`/`, `~`, `../`) denotes no
+        # corpus file, so it can be neither stale nor a coverage hit — but it is
+        # still a path promise, and the checker now checks it. Skipping it here
+        # outright left the two instruments disagreeing on exactly those shapes
+        # (round-33 X4 defect 2). So: corpus-internal tokens get the full
+        # stale/denoted/path treatment; rooted tokens get the path test only.
+        if is_corpus_internal(token):
+            hits = {
+                rel
+                for rel in all_rel
+                for pat in patterns
+                if _fnmatch(rel, pat)
+            }
+            denoted |= hits
+            if not hits:
+                stale.append("corpus/README.md:%d: %s" % (lineno, token))
         # A token is path-checked when no expansion carries a glob character:
         # brace alternation is expanded first and every expansion is then read as
         # the literal corpus-relative path it names.
@@ -535,6 +540,8 @@ def _fixture_index(root):
 | Lessons | `lessons/*.md` | x |
 | Ghost | `knowledge/ghost.md` | x |
 | External | `../verifiers/other.py` | x |
+| Rooted dead | `/tmp/x2-nowhere.md` | x |
+| Rooted dead dir | `../nowhere/dead-dir/` | x |
 | Globby | `nomatch/*.md` | x |
 | Nothing | no token here | x |
 
@@ -623,13 +630,17 @@ def self_test():
         st.eq(idx["stale_tokens"], 2, "index: ghost.md + nomatch/*.md stale")
         st.eq(idx["stale_tokens_detail"],
               ["corpus/README.md:10: knowledge/ghost.md",
-               "corpus/README.md:12: nomatch/*.md"],
+               "corpus/README.md:14: nomatch/*.md"],
               "index: stale detail (glob token counts as stale pattern)")
-        st.eq(idx["missing_paths"], 1, "index: only the non-glob ghost is missing")
+        st.eq(idx["missing_paths"], 4,
+              "index: ghost + 3 rooted tokens (external, rooted dead, rooted dead dir)")
         st.eq(idx["missing_paths_detail"],
-              ["corpus/README.md:10: knowledge/ghost.md -> corpus/knowledge/ghost.md"],
-              "index: missing detail (brace expansions are path-checked per expansion)")
-        st.eq(idx["index_tokens"], 6, "index: six tokens in the coverage map")
+              ["corpus/README.md:10: knowledge/ghost.md -> corpus/knowledge/ghost.md",
+               "corpus/README.md:11: ../verifiers/other.py -> corpus/../verifiers/other.py",
+               "corpus/README.md:12: /tmp/x2-nowhere.md -> corpus//tmp/x2-nowhere.md",
+               "corpus/README.md:13: ../nowhere/dead-dir/ -> corpus/../nowhere/dead-dir/"],
+              "index: missing detail (brace expansions path-checked; rooted tokens checked)")
+        st.eq(idx["index_tokens"], 8, "index: eight tokens in the coverage map")
         st.eq(idx["index_tokens_outside_coverage_map"], 1,
               "index: one token outside the coverage map section, not counted")
         # brace expansion denotes both b and c; lessons/*.md denotes z.md
