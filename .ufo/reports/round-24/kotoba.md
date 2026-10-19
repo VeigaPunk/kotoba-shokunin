@@ -1,7 +1,7 @@
 # kotoba — round 24 report (2026-10-19)
 
 Lane: `kotoba-shokunin`. Round 24, loop 1 (loop-round 4), dispatched and admitted **on scout-corrected claims**.
-Dispatch HEAD: `b889e78`. Work commit: `<pending — recorded at landing, round-11 precedent>`.
+Dispatch HEAD: `b889e78`. Work commit: `4c1c2cf` (this report lands in the follow-up publish commit, round-11 precedent).
 Lane identity for the commits: `kotoba-shokunin <kotoba@shokunin.local>`.
 Claims: **E** freshness (documentary errata) · **H** operability (checklist self-test export hermeticity) — `.ufo/round-24/claims.json`, **both put on HOLD as filed by scout C1; landed on C1's corrections** (filed texts stand; corrections recorded in LOG § Round 24 and here).
 Provider: hyper `402 out of credits` on all lanes at dispatch → the stated fallback applied verbatim: `devin/deepseek-v4-1-flash-high`, 48 items, all fragments on disk (45 in the summary; three landed late).
