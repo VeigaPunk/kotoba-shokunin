@@ -59,7 +59,9 @@ criteria of the next band met.
 
 **Round 33 completed (loop 1, round-of-loop 13):** the corpus-index exclusion class and the box-map floor are closed — both r32 findings. Report `.ufo/reports/round-33/kotoba.md`.
 
-**Next: round 34 (loop 1, round-of-loop 14)** — the loop's git audit: 8 Devin CLI swe-2 agents per the goal, following scout X15's checklist (round 26). Antigravity remains out (operator-level).
+**Round 34 completed (loop 1, round-of-loop 14 — the loop's git audit):** loop-1 git correctness is CLEAN on 7 of 8 slices (ancestry, report ordering, identity, scope, durability, append-only, ref freshness); the one defect is the carried divergence (30/2, non-ff, no backup) with the repair path named: a merge commit — never a rebase (30 SHA-citing commits would break). The swe-2 CLI permission wall is recorded (operator-level; wire --permission-mode dangerous for loop-2's round 48). Report `.ufo/reports/round-34/kotoba.md`.
+
+**Next: round 35 (loop 2, round-of-loop 1)** — opencode-go key 7 (keys 3-5 dry at r23; re-probe 1-5 first), 64 lanes. The divergence merge is the operator's gate — the lane does not push. Loop-2 fresh debt queue: ~~-plus heredoc fix, M1 fenced-decoy class, S7-adjacent index notes, floors guard into SKILL.md's instrument list, report-completeness groups (S5), the L0 escalation's integrator handoff.
 
 Historical carry remains named, not silently absorbed: R1 read-verb tightening;
 `M23` executable heredocs; D6 prompt literals; nine `agentdef.*` boxes; `M22`
