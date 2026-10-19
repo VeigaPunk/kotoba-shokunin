@@ -535,7 +535,8 @@ def check_literal_present(entries: list[dict], dumps: dict[str, str],
 
 
 def check_no_uncovered_class(entries: list[dict],
-                             extracted: dict[str, set[tuple[str, str]]]) -> tuple[bool, str]:
+                             extracted: dict[str, set[tuple[str, str]]],
+                             dumps: dict[str, str] | None = None) -> tuple[bool, str]:
     """Set parity over the documented extraction, plus the round-21 vacuity
     guard: a harness dump from which ZERO loader classes extract while the
     baseline declares loader-group classes for it is a moved/renamed
@@ -568,6 +569,16 @@ def check_no_uncovered_class(entries: list[dict],
                 "the baseline declares %d loader-group class(es) for it — a "
                 "moved or renamed substrate must FAIL, never pass silently"
                 % (harness, len(loader_group_declared)))
+        if not pairs and dumps is not None and harness == "omp":
+            blind = sorted(e["class_id"] for e in entries
+                           if e["harness"] == harness
+                           and e["literal"] in dumps[harness])
+            if blind:
+                problems.append(
+                    "extractor blind: %d declared literal(s) present in the %s "
+                    "dump but no registration shape extracts (%s) — extractor "
+                    "blindness is a substrate move, not health"
+                    % (len(blind), harness, ", ".join(blind)))
         found |= {"%s:%s/%s" % (harness, g, f) for g, f in pairs}
     uncovered = sorted(found - declared)
     if uncovered:
@@ -841,6 +852,26 @@ def self_test() -> int:
         "omp:gemini/GEMINI.md->doc" not in out
         and "PASS surfaces.literal_present:" in out, out)
 
+    # (b5) round-31 extractor-blindness arm (the M6 residual): a dump that
+    # still carries the declared literals while yielding zero registration
+    # shapes — here with the rows re-kinded away from loader-group — is
+    # extractor blindness, not health.
+    code, out = run(omp_dump=fx + "/strings-omp-blind.txt",
+                    baseline=fx + "/baseline-rekind-doc.json",
+                    inventory=fx + "/inventory-rekind-doc.md")
+    rec("extractor-blind: exit 1", code == 1, code)
+    rec("extractor-blind: FAIL no_uncovered_class names blindness",
+        "FAIL surfaces.no_uncovered_class:" in out and "extractor blind" in out,
+        out)
+    rec("extractor-blind: names omp:gemini/GEMINI.md",
+        "omp:gemini/GEMINI.md" in out, out)
+
+    # (b5b) r21 semantics preserved: the same literal-bearing dead dump with
+    # loader-group rows still declared keeps the vacuity FAIL.
+    code, out = run(omp_dump=fx + "/strings-omp-blind.txt")
+    rec("blind-dead-dump: exit 1", code == 1, code)
+    rec("blind-dead-dump: vacuity named", "vacuity" in out, out)
+
     # (c) declared loader shape dropped -> exit 1, literal_present names it
     code, out = run(omp_dump=fx + "/strings-drop-class.txt")
     rec("drop-class: exit 1", code == 1, code)
@@ -1077,7 +1108,7 @@ def main(argv: list[str] | None = None) -> int:
         if cid == "surfaces.literal_present":
             ok, detail = check_literal_present(entries, dumps, extracted)
         elif cid == "surfaces.no_uncovered_class":
-            ok, detail = check_no_uncovered_class(entries, extracted)
+            ok, detail = check_no_uncovered_class(entries, extracted, dumps)
         elif cid == "surfaces.opencode_extract":
             ok, detail = check_opencode_extract(entries, dumps["opencode"])
         elif cid == "surfaces.table_parity":

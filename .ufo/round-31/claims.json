@@ -1,0 +1,32 @@
+{
+  "round": 31,
+  "loop": 1,
+  "loop_round": 11,
+  "lane": "kotoba",
+  "dispatched_at_head": "ec42466",
+  "provider_plan": { "model": "zai-coding-plan/glm-5.3-flash-low", "swarm": 32, "fallback": null },
+  "axis_set": [
+    { "axis": "freshness", "score": "8.0", "owned": "advisory",
+      "direction": "up — close the M6 residual: a stripped dump (0 extracted) plus a re-kinded baseline passes no_uncovered_class; the guard must fire when declared loader-group literals are present in the dump but the extractor finds no shapes",
+      "observable": "the combined probe (strip + rekind) exits 1 on a patched /tmp copy; live byte-invariant; self-test count recorded" },
+    { "axis": "operability", "score": "8.5", "owned": "advisory",
+      "direction": "up — harden check_assertion_floors.py: subprocess timeout (a hanging self-test hangs the guard — scout M5) + registry-shrink protection (dropping an INSTRUMENTS row exits 0 silent — scout S6)",
+      "observable": "a timeout probe and a registry-shrink probe both fail loudly on /tmp copies; live green" }
+  ],
+  "claims": [
+    { "id": "B", "axis": "freshness",
+      "claim": "Extend verify_surfaces.py's no_uncovered_class: when extraction yields 0 loader classes for a harness while the baseline declares loader-group entries whose literals occur in that harness's dump, FAIL ('extractor blind: literals present, no shapes' — the substrate-move class).",
+      "before": "scout M6 (round 30): rekind + empty dump makes no_uncovered_class pass with 0 extracted — the r28 arm needs extracted>0, and the r21 vacuity arm needs declared loader-group rows.",
+      "after": "on /tmp copies: the combined strip+rekind probe exits 1 naming the blindness; the plain dead-dump probe still exits 1 (r21 semantics preserved); live byte-invariant; self-test green with the count recorded.",
+      "counting_command": "combined probe -> exit 1; live 7/7",
+      "falsifier": "live-output change, a re-probe still passing, or the plain dead-dump arm regressing" },
+    { "id": "G", "axis": "operability",
+      "claim": "Patch check_assertion_floors.py: (a) subprocess.run gains a timeout (a self-test that hangs fails the guard, not the world); (b) the guard checks its own INSTRUMENTS registry against an expected-set constant — a dropped or renamed row fails loudly.",
+      "before": "scout M5: no subprocess timeout — a hanging self-test hangs the guard; scout S6: dropping the pins row (or emptying INSTRUMENTS) exits 0 with no output.",
+      "after": "on /tmp copies: a sleeping fake instrument times out and fails the guard naming it; a registry with a dropped row fails naming the missing instrument; live all-PASS.",
+      "counting_command": "timeout probe + shrink probe on /tmp copies -> both non-zero; live exit 0",
+      "falsifier": "a live regression or either probe still passing silently" }
+  ],
+  "lowest_axis_rule": "B works freshness (tied-lowest 8.0); G works operability (8.5).",
+  "shonen": "untouched."
+}
