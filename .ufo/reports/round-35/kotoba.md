@@ -1,7 +1,7 @@
 # kotoba — round 35 report (2026-10-19) — LOOP 2 OPENS
 
 Lane: `kotoba-shokunin`. Round 35, loop 2 (round-of-loop 1), dispatched and admitted.
-Dispatch HEAD: `48a0720`. Work commit: `<pending — recorded at landing>`.
+Dispatch HEAD: `48a0720`. Work commit: `cf9a440` (this report lands in the follow-up publish commit).
 Claims: **H** freshness (multi-tilde heredocs) · **D** operability (fenced-decoy boxes) — `.ufo/round-35/claims.json` (items array 59; prose said 64 — the count class, corrected).
 Swarm: 59/59 on `opencode-go-7` (key 7 probed alive; rotation per the plan).
 Status: **completed craft round, admitted.**
