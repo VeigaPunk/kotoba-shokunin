@@ -1,7 +1,7 @@
 # kotoba — round 21 report (2026-10-19)
 
 Lane: `kotoba-shokunin`. Round 21, loop 1 (loop-round 1), dispatched and admitted.
-Dispatch HEAD: `4e92f36`. Work commit: `<pending — recorded at landing, round-11 precedent>`.
+Dispatch HEAD: `4e92f36`. Work commit: `2ca8d01` (this report + evidence land in the follow-up publish commit, round-11 precedent).
 Lane identity for the commits: `kotoba-shokunin <kotoba@shokunin.local>`.
 Claims: **F** freshness (every live gate re-run at HEAD + substrate re-measure vs round-18 pins) · **A** adjacency (live per-sibling dead-token re-measure vs round-16 counts) — `.ufo/round-21/claims.json` (its stated kasegi baseline of 1 is retained as filed; the claim's own counting command falsified it — see A below).
 Status: **completed craft round, admitted** — every claim verified, no axis harmed.
