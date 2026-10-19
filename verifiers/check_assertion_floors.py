@@ -6,22 +6,23 @@ still read green. Each instrument's --self-test prints an assertion count;
 this guard reruns every self-test and FAILs when the observed count is below
 the recorded floor (harness 10, corpus_integrity 145, corpus_independent 86,
 surfaces 87, checklist 1597, pins 62, harness_independent 104,
-compare_harness_independent 118; others @ round 36, the checklist floor
-re-recorded at round 37 by the C3 fence battery plus the indented-code decoy
-battery and at round 38 by the three container-relative fence shapes (V6's
-named residual); the two round-38 C1 instruments registered by claim C1f/seat
-P3 (floors re-bumped in-step to the settled counts of the C1 closure seat P1
-landed in the same round: 71->86, 59->83); `harness_independent` re-bumped at
-round 39 by seat P2's init_count predicate fix + grammar fixtures (86->93) and
-again by seat P1's scoped-row probe battery (93->104); `compare_harness_independent`
-re-bumped at round 39 by seat P1's scope-out discriminator battery (83->97), and at
-round 40 by seat F1's committed F-2/F-3 payload arms -- the expected-launder,
-rows-shadow and checks-shadow shapes plus the agree-control (97->117);
-the two corpus floors re-bumped at
-round 39 by seat P4's CommonMark 4.5 closer-rule battery (119->129, 59->68),
-and at round 40 by seat F2's indent-clause battery -- the 0/2/3-space controls
-plus the 4-space, tab, mixed-indent, opener-arm and tilde shapes, each expected
-set derived from cmark 0.31.2 alone (129->145, 68->86).
+compare_harness_independent 118, floors_guard 150; others @ round 36, the
+checklist floor re-recorded at round 37 by the C3 fence battery plus the
+indented-code decoy battery and at round 38 by the three container-relative
+fence shapes (V6's named residual); the two round-38 C1 instruments registered
+by claim C1f/seat P3 (floors re-bumped in-step to the settled counts of the C1
+closure seat P1 landed in the same round: 71->86, 59->83); `harness_independent`
+re-bumped at round 39 by seat P2's init_count predicate fix + grammar fixtures
+(86->93) and again by seat P1's scoped-row probe battery (93->104);
+`compare_harness_independent` re-bumped at round 39 by seat P1's scope-out
+discriminator battery (83->97), and at round 40 by seat F1's committed F-2/F-3
+payload arms -- the expected-launder, rows-shadow and checks-shadow shapes plus
+the agree-control (97->117); the two corpus floors re-bumped at round 39 by
+seat P4's CommonMark 4.5 closer-rule battery (119->129, 59->68), and at round
+40 by seat F2's indent-clause battery -- the 0/2/3-space controls plus the
+4-space, tab, mixed-indent, opener-arm and tilde shapes, each expected set
+derived from cmark 0.31.2 alone (129->145, 68->86). Round 41 (claim C2/V16)
+adds this guard's own 150-assertion self-test as a floored instrument.
 Exit: 0 all floors hold;
 1 an instrument ran below its floor, or its summary could not be parsed or the
 instrument could not be run (named, observed-vs-floor); 2 the in-file registry
@@ -37,13 +38,15 @@ instrument never reran). The anchor is now verifiers/floors-registry.json, a
 file OUTSIDE this one: every registry entry must be covered by both tables
 with the same path and floor, the registry's own size must match its declared
 `instrument_total`, and each declared path must resolve to a non-empty file
-under --repo. Any disagreement fails loudly before a self-test runs. Run
-`--self-test` for the fixture battery (mutant copies in tempdirs), including
-the two true discriminators for the coordinated shapes. Round 38 (claim C2,
-seat P4) closes V4's two residuals: a non-str key in either table is now named
-('non-string key: ...', previously an uncaught TypeError traceback at exit 1,
-class unnamed), and a malformed row is named exactly once -- the anchor no
-longer derives a path/floor from a row whose shape it could not parse (V4-J's
+under --repo. Round 41 also registers `floors_guard` here: its self-test exits
+before main's instrument walk, so the self-reference terminates. Any
+disagreement fails loudly before a self-test runs. Run `--self-test` for the
+fixture battery (mutant copies in tempdirs), including the two true
+discriminators for the coordinated shapes. Round 38 (claim C2, seat P4) closes
+V4's two residuals: a non-str key in either table is now named ('non-string
+key: ...', previously an uncaught TypeError traceback at exit 1, class
+unnamed), and a malformed row is named exactly once -- the anchor no longer
+derives a path/floor from a row whose shape it could not parse (V4-J's
 self-contradictory 'floor drift: pins registry=62 expected=62 row=None').
 
 Round 39 (claim C2, seat P3) closes the two arms round 38 left -- the FIELD
@@ -117,6 +120,7 @@ EXPECTED_INSTRUMENTS = {
     "pins": 62,
     "harness_independent": 104,
     "compare_harness_independent": 118,
+    "floors_guard": 150,
 }
 SELF_TEST_TIMEOUT_S = 120
 
@@ -141,6 +145,8 @@ INSTRUMENTS = {
                             r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
     "compare_harness_independent": ("verifiers/compare_harness_independent.py", 118,
                                     r"self-test:\s*(\d+) failure\(s\) over (\d+) assertions", 2, 1),
+    "floors_guard": ("verifiers/check_assertion_floors.py", 150,
+                     r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
 }
 
 
@@ -676,10 +682,10 @@ def self_test() -> int:
             "FAIL registry absent: verifiers/floors-registry.json" in proc.stdout, proc.stdout)
 
         # F6 -- the registry's own declared size is load-bearing. The anchor is
-        # the live registry's own declared total (round 38: 8, after the two C1
-        # instruments were registered by seat P3); a stale literal here would
-        # stop landing and the count-check would name it.
-        text = swap(registry_text, '"instrument_total": 8', '"instrument_total": 7',
+        # the live registry's own declared total (round 41: 9, including this
+        # guard's self-test); a stale literal here would stop landing and the
+        # count-check would name it.
+        text = swap(registry_text, '"instrument_total": 9', '"instrument_total": 8',
                     "F6/total")
         proc = run(write_tree(tmp / "f6", source, text), tmp / "f6")
         rec("F6 size drift: exit 2", proc.returncode == 2, proc.returncode)

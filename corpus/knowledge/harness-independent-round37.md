@@ -65,6 +65,18 @@ class is a measurement, not an expectation — see §5.
 | exits | 0 pass · 1 drift · 2 inconclusive · 3 no baseline | 0 clean · 1 drift (`--freeze`/`--observed`) · 2 environment unreadable |
 | join driver | `verifiers/compare_harness_independent.py`, sha256 `bb8dcecd65f160d3…`, `--self-test` → `0 failure(s) over 97 assertions` (83 at the r38 closure, 93 mid-round-39) | same driver, mode-aware headline + strict column, `--receipt` (freeze receipt) |
 
+**Round 41 calibration erratum (append-only; join-driver row).** The table's
+`bb8dcecd…` / 97-assertion stamp is an earlier snapshot, not the settled r40
+or current comparator. At HEAD `b1be35f9522f21c0c5b39879358a011806ab9200`
+(tree `8bb24450a9c500c427019c7147013b4946525b09`),
+`sha256sum verifiers/compare_harness_independent.py` is
+`1742dcccad1118399f0aa959f7ea6884d5992834d8c4c8b94e108277ae87df76`;
+`python3 verifiers/compare_harness_independent.py --self-test` returned
+`0 failure(s) over 118 assertions`, exit 0, and the live comparator returned
+24/24 (strict 20/24; 4 adjudicated, 4 scoped out), exit 0. The old 97 remains
+as a historical reading; it is not the current self-test count. The round-39
+93/floor=93 reading below is also historical to that measurement.
+
 **Adjudication ledger.** The r38 witness seat's rulings for the rows this file
 adjudicates are at `.ufo/round-38/evidence/a1-adjudication-ledger.md`
 (rows `adj-r38-01` … `adj-r38-14`). §3 below and that ledger are the two records
@@ -352,6 +364,23 @@ and drops `.ufo/` (prior-round fragments quote the pins). Re-run at write time:
   fails closed on the (correctly) absent harness — `ERROR: live instrument
   failed with no stdout … exit 2` — which is the scrub working as designed.
 
+**Round 41 calibration erratum (append-only; §4 scrub rerun).** The `340`
+`tree_files` and nested pins-guard `exit 0` above are a round-40 snapshot, not
+current. Re-running the committed script
+`bash .ufo/round-37/evidence/R1-make_blind_tree.sh <fresh-temp-dir>` at
+`2026-10-19T13:37:10-03:00`, using `HEAD b1be35f9522f21c0c5b39879358a011806ab9200`
+(tree `8bb24450a9c500c427019c7147013b4946525b09`), produced
+`harness_pin_residual_count=5`, `tree_files=358`, `dot_git_present=no`, and
+`pins_guard_in_scrub_tree=NONZERO`; the scrub-builder itself exited 0. The
+script's SHA-256 is `077211322ba8bd2c7d14f0272dd20b1cd21761135369343049b0b34cc22fc298`
+(committed blob `225fcd31e8f46cd40a94c9fa803e53e0c869db88`). Direct
+`python3 verifiers/check_substrate_pins.py` at the same HEAD/worktree returned
+exit 1 (`DRIFT 2/3`): omp SHA expected `bf1e86a9…`, observed `9513ef9f…`, and
+mtime delta `285644401942067 ns`; the opencode SHA pin passed. This is live
+host-substrate drift, not a repository edit. The 104 IND assertions and 24/24
+join remain green; the old nested pins-guard result is retained as its earlier
+snapshot, not a current green.
+
 **Freeze-before-compare receipt.** The driver's `--json` output channel
 republishes each id's pinned `expected`, so "source-blind" must cover the
 output channel: a builder that reads the per-check table before freezing has
@@ -446,6 +475,17 @@ round-37 state the ordering was measured forward: IND freeze `01fd40ef…` at
   `tree_files=338`, `harness_pin_residual_count=4` (see §4). The r38 note that
   the fix lived only in a pruned draft copy is superseded by the repair.
 
+**Round 41 calibration erratum (append-only; §5 historical scrub count).**
+The `338` / residual `4` above remain the explicitly dated r39 reading; they
+are not the later §4 or current count. The r40 §4 snapshot is `340` / `5`, and
+the frozen committed-HEAD rerun at `b1be35f9522f21c0c5b39879358a011806ab9200`
+(tree `8bb24450a9c500c427019c7147013b4946525b09`) is `tree_files=358` /
+`harness_pin_residual_count=5` (`bash
+.ufo/round-37/evidence/R1-make_blind_tree.sh <fresh-temp-dir>`, exit 0;
+script SHA-256 `077211322ba8bd2c7d14f0272dd20b1cd21761135369343049b0b34cc22fc298`).
+The r39 values are retained as history; this note supplies the current value
+for readers following the `see §4` pointer.
+
 ## 6. Reproduce
 
 ```bash
@@ -476,6 +516,12 @@ echo "CMP exit=$?"                      # agreement 24/24, exit 0; receipt mode=
 python3 verifiers/compare_harness_independent.py --self-test  # 0 failure(s) over 97 assertions
                                                              # (was 83 at the r38 closure, 93 mid-r39;
                                                              # round 40 adds the fixture battery)
+# Round 41 current re-measure (the 97 above is historical): at HEAD
+# b1be35f9522f21c0c5b39879358a011806ab9200 / tree
+# 8bb24450a9c500c427019c7147013b4946525b09, driver SHA-256
+# 1742dcccad1118399f0aa959f7ea6884d5992834d8c4c8b94e108277ae87df76;
+# --self-test -> 0 failures / 118 assertions, exit 0; live join -> 24/24,
+# strict 20/24, 4 adjudicated / 4 scoped out, exit 0 (2026-10-19 13:36:30-41 -03).
 
 # the mutant leg (both instruments move; the frozen arm flips and names).
 # round 39: this fixture is durable at verifiers/fixtures/harness-independent/
