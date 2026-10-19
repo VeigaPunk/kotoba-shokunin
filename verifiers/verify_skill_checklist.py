@@ -295,7 +295,12 @@ CHECK_IDS = (
 BOX_RE = re.compile(r"^(\s*)-\s+\[([ xX])\]\s?(.*)$")
 NEAR_MISS_RE = re.compile(r"^\s*-\s*\[[^\]]*\]?")
 HEADING_RE = re.compile(r"^#{1,6}\s+(.+?)\s*$")
-FENCE_RE = re.compile(r"^\s*(`{3,}|~{3,})([^`]*)$")
+# round-37 C3: a fence line is only a *candidate* delimiter here -- whether it
+# opens, closes, or is ordinary content is decided per CommonMark 0.31.2
+# § Fenced code blocks by fence_open()/fence_close() below (indentation <= 3
+# columns; closer same character, at least as long, no info string; a
+# backtick fence's info string may not contain a backtick).
+FENCE_RE = re.compile(r"^([ \t]*)(`{3,}|~{3,})(.*)$")
 INLINE_SPAN_RE = re.compile(r"`([^`\n]+)`")
 BACKTICK_SPAN_RE = re.compile(r"`[^`\n]*`")
 FM_KEY_RE = re.compile(r"^([A-Za-z_][A-Za-z0-9_-]*)\s*:\s*(.*)$")
@@ -545,6 +550,41 @@ def parse_frontmatter(lines: list[str]) -> tuple[dict | None, str]:
     return fields, ""
 
 
+# round-37 C3 (seat P7, builder-1): the second decoy class round-35 D4 named --
+# an indented code block.  A marker line indented four or more spaces is code,
+# not a checkbox, unless it sits inside an open list item (the one container
+# this line scanner can see).  Marker lines with indent below four are never
+# touched by the rule, so no live or fixture box changes class.
+LIST_ITEM_RE = re.compile(r"^( *)(?:[-*+]|\d{1,9}[.)])(?:\s|$)")
+
+
+def is_indented_code_marker(lines: list[str], i: int,
+                            opaque: set[int]) -> bool:
+    """Is 0-based line *i* an indented-code decoy?  CommonMark reads a line
+    indented four or more spaces as indented code unless it continues an open
+    list item, and a lazy paragraph continuation is not a checkbox either --
+    both are text, not a marker.  Walk upward over blank, covered and
+    deeper-indented lines: an anchor shallower than two columns decides the
+    case -- a list-item marker above means this marker is a nested item, any
+    other shallow line (file start, heading, flush-left paragraph) means the
+    line is code.  Two-or-more-indented lines are skipped because they may be
+    the item's own content.  A box swapped for an indented copy therefore
+    stops satisfying its map entry (fail-loud through box-map custody)."""
+    indent = len(lines[i]) - len(lines[i].lstrip())
+    if indent < 4:
+        return False
+    j = i - 1
+    while j >= 0:
+        line = lines[j]
+        if not line.strip() or (j + 1) in opaque \
+                or len(line) - len(line.lstrip()) >= 2:
+            j -= 1
+            continue
+        lst = LIST_ITEM_RE.match(line)
+        return not (lst and len(lst.group(1)) < indent)
+    return True
+
+
 def extract_boxes(lines: list[str]) -> tuple[list[dict], list[dict]]:
     """Live checklist boxes and near-miss markers: {section, line, text,
     sha256, marker}.  Section = nearest preceding heading text; a box before
@@ -553,11 +593,19 @@ def extract_boxes(lines: list[str]) -> tuple[list[dict], list[dict]]:
     closure of the critic's marker-state escape).  Fenced lines are opaque:
     a ``- [ ]`` shown inside a code block is illustration, not a live box,
     and a fence ends a box's continuation (round-35 D: a fenced decoy kept
-    parity with a real box, so a box could be swapped for its own echo)."""
+    parity with a real box, so a box could be swapped for its own echo).
+    Delimiters follow CommonMark (round-37 C3): only the opener's info string
+    counts, a closer must repeat the opener's character at that length or
+    longer, and a fence left open at end of file runs to the last line -- it
+    is recorded as a near miss with ``kind: "unclosed fence"`` at its opener
+    line so the caller fails loud instead of silently ending the scan.  A
+    marker indented four or more spaces is indented code unless it nests in
+    an open list item (``is_indented_code_marker``): it is neither a live box
+    nor a near miss."""
     boxes: list[dict] = []
     near_misses: list[dict] = []
     section = ""
-    opaque = fenced_regions(lines)[0]
+    opaque, _, unclosed = fenced_regions(lines)
     i = 0
     while i < len(lines):
         if i + 1 in opaque:
@@ -566,6 +614,9 @@ def extract_boxes(lines: list[str]) -> tuple[list[dict], list[dict]]:
         hm = HEADING_RE.match(lines[i])
         if hm:
             section = hm.group(1).strip()
+            i += 1
+            continue
+        if is_indented_code_marker(lines, i, opaque):
             i += 1
             continue
         bm = BOX_RE.match(lines[i])
@@ -597,38 +648,97 @@ def extract_boxes(lines: list[str]) -> tuple[list[dict], list[dict]]:
             "sha256": hashlib.sha256(text.encode("utf-8")).hexdigest(),
         })
         i = j
+    if unclosed is not None:
+        open_section = ""
+        for k in range(unclosed - 1):
+            hm = HEADING_RE.match(lines[k])
+            if hm:
+                open_section = hm.group(1).strip()
+        near_misses.append({
+            "section": open_section, "line": unclosed,
+            "kind": "unclosed fence",
+            "text": "code fence opened here is never closed "
+                    "(CommonMark: such a block runs to end of file)"})
     return boxes, near_misses
 
 
-def fenced_regions(lines: list[str]) -> tuple[set[int], list[list[tuple[int, str]]]]:
-    """(all fenced line numbers, command-eligible blocks).
-    A block is command-eligible when its info string (first whitespace
-    token, lowercased) is in {'', bash, sh, shell, console}."""
+def fence_indent_columns(indent: str) -> int:
+    """Columns of a line's leading whitespace (a tab advances to the next
+    multiple of 4, CommonMark tabs)."""
+    cols = 0
+    for ch in indent:
+        cols = cols + 4 - (cols % 4) if ch == "\t" else cols + 1
+    return cols
+
+
+def fence_open(line: str) -> tuple[str, int, str] | None:
+    """(char, run length, info string) when the line is a CommonMark opening
+    code fence, else None.  Indentation is at most three columns (four make
+    indented code), and a backtick fence's info string may not contain a
+    backtick (spec § Fenced code blocks, rule 3)."""
+    fm = FENCE_RE.match(line)
+    if not fm or fence_indent_columns(fm.group(1)) > 3:
+        return None
+    run, info = fm.group(2), fm.group(3)
+    if run[0] == "`" and "`" in info:
+        return None
+    return run[0], len(run), info
+
+
+def fence_close(line: str, char: str, length: int) -> bool:
+    """Is the line a closing fence for an opener of ``char``/``length``?
+    Same character, at least as long, and no info string -- the tail may
+    carry only spaces or tabs (spec § Fenced code blocks, rule 2)."""
+    fm = FENCE_RE.match(line)
+    if not fm or fence_indent_columns(fm.group(1)) > 3:
+        return False
+    run, tail = fm.group(2), fm.group(3)
+    return run[0] == char and len(run) >= length and tail.strip() == ""
+
+
+def fenced_regions(lines: list[str]) -> tuple[set[int], list[list[tuple[int, str]]],
+                                              int | None]:
+    """(content line numbers, command-eligible blocks, unclosed opener line).
+    A block is command-eligible when the opening fence's info string (first
+    whitespace token, lowercased) is in {'', bash, sh, shell, console}.
+    Delimiters follow CommonMark 0.31.2 § Fenced code blocks: an opening
+    fence may be indented at most three columns, a closing fence must use the
+    same character, be at least as long as the opener, and carry no info
+    string -- so a shorter/different-character/info-bearing fence-looking
+    line inside a block is content, not a toggle.  An unclosed fence runs to
+    the end of the file (its block is still command-eligible) and its opener
+    line is returned so the caller can fail loud instead of scanning on."""
     inside: set[int] = set()
     blocks: list[list[tuple[int, str]]] = []
     in_fence = False
     fence_char = ""
+    fence_len = 0
     shell = False
     cur: list[tuple[int, str]] = []
+    opener = 0
     for lineno, line in enumerate(lines, 1):
-        fm = FENCE_RE.match(line)
-        if fm:
-            if not in_fence:
+        if not in_fence:
+            op = fence_open(line)
+            if op is not None:
                 in_fence = True
-                fence_char = fm.group(1)[0]
-                info = fm.group(2).strip().split()
-                shell = (info[0].lower() if info else "") in FENCED_INFO
+                fence_char, fence_len, info = op
+                words = info.strip().split()
+                shell = (words[0].lower() if words else "") in FENCED_INFO
                 cur = []
-            elif fm.group(1)[0] == fence_char:
-                in_fence = False
-                if shell:
-                    blocks.append(cur)
+                opener = lineno
+                continue
+        elif fence_close(line, fence_char, fence_len):
+            in_fence = False
+            if shell:
+                blocks.append(cur)
             continue
         if in_fence:
             inside.add(lineno)
             if shell:
                 cur.append((lineno, line))
-    return inside, blocks
+    if in_fence and shell:
+        blocks.append(cur)
+    return inside, blocks, (opener if in_fence else None)
 
 
 def logical_lines(block: list[tuple[int, str]]) -> list[tuple[int, str]]:
@@ -792,7 +902,7 @@ def command_subjects(lines: list[str], vocab: frozenset[str],
     vocabulary.  ``cd`` updates the relative resolution base."""
     subjects: list[dict] = []
     segments = 0
-    fenced, blocks = fenced_regions(lines)
+    fenced, blocks, _ = fenced_regions(lines)
     for block in blocks:
         base = repo
         stack: list[Path] = []
@@ -1000,8 +1110,12 @@ def check_box_map(boxes: list[dict], m: dict, target_name: str,
                 "line %d carries a non-procedure checkbox marker '[%s]'"
                 % (b["line"], b["marker"]))
     for nm in near_misses:
-        problems.append("line %d near-miss checkbox marker: %r"
-                        % (nm["line"], nm["text"]))
+        if nm.get("kind") == "unclosed fence":
+            problems.append("line %d unclosed code fence: %r"
+                            % (nm["line"], nm["text"]))
+        else:
+            problems.append("line %d near-miss checkbox marker: %r"
+                            % (nm["line"], nm["text"]))
     evaluated = len(boxes)
     if problems:
         return "FAIL", evaluated, "; ".join(problems[:6]) + (
@@ -1387,6 +1501,86 @@ def evaluated_of(out: str, cid: str) -> int | None:
     return None
 
 
+# round-37 C3: the planted CommonMark fence battery.  Each shape pins the
+# classification the spec requires — content line numbers, live-box line
+# numbers, command-eligible block lines and the unclosed-fence opener.  The
+# pinned values were derived from the cmark 0.31.2 oracle (`cmark --to xml
+# --sourcepos`, code_block sourcepos ranges) at authoring time and are
+# literals here, so the self-test stays hermetic (no cmark dependency).
+# Spec cited per shape: CommonMark 0.31.2 § Fenced code blocks,
+# <https://spec.commonmark.org/0.31.2/#fenced-code-blocks>.
+FENCE_SHAPES = [
+    {"id": "closer-same-char-same-length",
+     "spec": "closer repeats the opener's character at the same length",
+     "lines": ["```", "- [ ] decoy", "```", "- [ ] live"],
+     "content": [2], "boxes": [4], "unclosed": None},
+    {"id": "closer-shorter-than-opener",
+     "spec": "closer must be at least as long as the opener",
+     "lines": ["````", "- [ ] decoy", "```", "- [ ] still decoy", "````",
+               "- [ ] live"],
+     "content": [2, 3, 4], "boxes": [6], "unclosed": None},
+    {"id": "closer-other-char-backtick-opener",
+     "spec": "closer must use the same character as the opening fence",
+     "lines": ["```", "- [ ] decoy", "~~~", "- [ ] decoy", "```",
+               "- [ ] live"],
+     "content": [2, 3, 4], "boxes": [6], "unclosed": None},
+    {"id": "closer-other-char-tilde-opener",
+     "spec": "a backtick line never closes a tilde fence, so the block runs "
+             "to EOF and the fence stays unclosed",
+     "lines": ["~~~", "- [ ] decoy", "```", "- [ ] live"],
+     "content": [2, 3, 4], "boxes": [], "unclosed": 1},
+    {"id": "closer-with-info-string-is-content",
+     "spec": "a closing fence may be followed only by spaces or tabs",
+     "lines": ["```", "- [ ] decoy", "``` not a closer", "- [ ] decoy",
+               "```", "- [ ] live"],
+     "content": [2, 3, 4], "boxes": [6], "unclosed": None},
+    {"id": "tilde-opener-info-may-hold-backticks",
+     "spec": "the no-backtick info rule binds backtick fences only",
+     "lines": ["~~~ a `b` c", "- [ ] decoy", "~~~", "- [ ] live"],
+     "content": [2], "boxes": [4], "unclosed": None},
+    {"id": "backtick-opener-info-holds-backtick",
+     "spec": "info string of a backtick fence may not contain a backtick",
+     "lines": ["``` a `b` c", "- [ ] live"],
+     "content": [], "boxes": [2], "unclosed": None},
+    {"id": "indented-code-decoy-four-spaces",
+     "spec": "a fence may be indented at most three spaces",
+     "lines": ["    ```", "- [ ] live"],
+     "content": [], "boxes": [2], "unclosed": None},
+    {"id": "tab-indented-decoy-is-indented-code",
+     "spec": "a tab counts to the next multiple of four columns",
+     "lines": ["\t```", "- [ ] live"],
+     "content": [], "boxes": [2], "unclosed": None},
+    {"id": "unclosed-fence-at-eof",
+     "spec": "an unclosed fence runs to the end of the document",
+     "lines": ["```bash", "- [ ] decoy", "echo hi"],
+     "content": [2, 3], "boxes": [], "unclosed": 1, "block": [2, 3]},
+    {"id": "closer-longer-than-opener",
+     "spec": "a longer closing fence is valid",
+     "lines": ["```", "- [ ] decoy", "`````", "- [ ] live"],
+     "content": [2], "boxes": [4], "unclosed": None},
+    {"id": "closer-trailing-spaces",
+     "spec": "spaces or tabs after a closing fence are ignored",
+     "lines": ["```", "- [ ] decoy", "```   ", "- [ ] live"],
+     "content": [2], "boxes": [4], "unclosed": None},
+    {"id": "shorter-inner-fence-inside-longer-outer",
+     "spec": "a shorter fence line inside a block is content",
+     "lines": ["````", "```", "- [ ] decoy", "````", "- [ ] live"],
+     "content": [2, 3], "boxes": [5], "unclosed": None},
+    {"id": "shell-block-not-closed-by-info-fence",
+     "spec": "an info-bearing fence line does not close a block, so the "
+             "commands after it stay in the shell block",
+     "lines": ["```bash", "echo ok", "``` not a closer", "echo also-ok",
+               "```"],
+     "content": [2, 3, 4], "boxes": [], "unclosed": None,
+     "block": [2, 3, 4]},
+    {"id": "shell-block-not-closed-by-shorter-fence",
+     "spec": "a shorter fence line does not close a block",
+     "lines": ["````bash", "echo ok", "```", "echo still-in-block", "````"],
+     "content": [2, 3, 4], "boxes": [], "unclosed": None,
+     "block": [2, 3, 4]},
+]
+
+
 def self_test() -> int:
     failures: list[str] = []
     total = 0
@@ -1590,6 +1784,71 @@ def self_test() -> int:
             if "evaluated 0" in line:
                 rec("%s: 'evaluated 0' line is not a PASS" % case,
                     not line.startswith("PASS"), line)
+
+    # --- planted CommonMark fence battery (round 37 C3) ------------------------
+    # One rec per load-bearing observable per shape: the content set the fence
+    # skipper reports, the live boxes, the unclosed-fence record (which must be
+    # NAMED, never silently swallowed) and, where the shape is command-shaped,
+    # the eligible shell block's lines.
+    for shape in FENCE_SHAPES:
+        sid = shape["id"]
+        slines = shape["lines"]
+        content, blocks, unclosed = fenced_regions(slines)
+        rec("fence[%s]: content lines %s" % (sid, shape["content"]),
+            sorted(content) == shape["content"], sorted(content))
+        sboxes, snear = extract_boxes(slines)
+        got_boxes = [b["line"] for b in sboxes]
+        rec("fence[%s]: live boxes %s" % (sid, shape["boxes"]),
+            got_boxes == shape["boxes"], got_boxes)
+        rec("fence[%s]: unclosed opener %r" % (sid, shape["unclosed"]),
+            unclosed == shape["unclosed"], unclosed)
+        named = [nm["line"] for nm in snear
+                 if nm.get("kind") == "unclosed fence"]
+        if shape["unclosed"] is None:
+            rec("fence[%s]: no unclosed-fence record" % sid, not named, snear)
+        else:
+            rec("fence[%s]: unclosed fence named at %d"
+                % (sid, shape["unclosed"]), named == [shape["unclosed"]], snear)
+            rec("fence[%s]: unclosed record is not a box near-miss" % sid,
+                all(nm.get("kind") == "unclosed fence" for nm in snear), snear)
+        if "block" in shape:
+            got_block = [ln for block in blocks for ln, _ in block]
+            rec("fence[%s]: shell block lines %s" % (sid, shape["block"]),
+                got_block == shape["block"],
+                [[ln for ln, _ in block] for block in blocks])
+
+    # --- indented-code decoy battery (round 37 C3, seat P7) -------------------
+    # The second decoy class round-35 D4 named: a marker indented four or more
+    # spaces is code, not a checkbox, unless it nests in an open list item.
+    # Pinned values derive from the cmark 0.31.2 oracle (`cmark --to xml
+    # --sourcepos`): the expected line is the only marker line that STARTS an
+    # `<item>` element -- the other marker lines sit inside <code_block> or a
+    # <paragraph>, so they are text.  Expectations are literals, keeping the
+    # self-test hermetic (no cmark dependency).
+    INDENTED_DECOY_SHAPES = [
+        ("decoy-top-level", ["# t", "text", "", "    - [ ] DECOY", "",
+                             "- [ ] REAL"], [6]),
+        ("decoy-lazy-paragraph-tail", ["# t", "text", "    - [ ] DECOY", "",
+                                       "- [ ] REAL"], [5]),
+        ("decoy-after-indented-fence", ["# t", "    ```", "    - [ ] DECOY",
+                                        "", "- [ ] REAL"], [5]),
+        ("decoy-after-code-and-text", ["    ```", "    - [ ] DECOY", "",
+                                       "- [ ] REAL"], [4]),
+        ("nested-item-is-live", ["# t", "- parent", "    - [ ] CHILD"], [3]),
+        ("nested-item-after-content", ["# t", "- parent", "  text",
+                                       "    - [ ] CHILD"], [4]),
+        ("nested-item-after-fenced-block",
+         ["# t", "- parent", "    ```bash", "    echo hi", "    ```",
+          "    - [ ] CHILD"], [6]),
+    ]
+    for sid, slines, want in INDENTED_DECOY_SHAPES:
+        sboxes, snear = extract_boxes(slines)
+        got = [b["line"] for b in sboxes]
+        rec("indented[%s]: live boxes %s" % (sid, want), got == want, got)
+        rec("indented[%s]: no near-miss record" % sid, snear == [], snear)
+    # a decoy near-miss marker is code too: neither box nor near-miss report
+    _, snear = extract_boxes(["# t", "text", "", "    - [~] DECOY"])
+    rec("indented[decoy near-miss marker is not a marker]", snear == [], snear)
 
     # --- targeted extras ------------------------------------------------------
     code, out = run("negation-respected")

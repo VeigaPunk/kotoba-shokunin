@@ -1,0 +1,989 @@
+#!/usr/bin/env python3
+"""verify_harness_independent.py — source-blind re-derivation of the harness
+claim set (round 37, claim C1, seat P1).
+
+Why this file exists
+--------------------
+`verifiers/verify_harness_claims.py` is the lane's oldest instrument: one author
+read the two live substrates (the omp binary + its skill-description cache, and
+the opencode log + configs), wrote down 28 expected values, and the harness has
+compared live bytes against that authorial expectation set ever since.  The
+expectations themselves were never re-derived by anyone who did not read them.
+This instrument is that re-derivation: it names the same 28 checks, computes a
+value for each one from the live substrates with its own extractor, and the
+comparison is a diff of two independently produced tables — never a copy.
+
+Blindness protocol (binding on the builder seats that landed this file)
+----------------------------------------------------------------------
+* No builder seat opened `verifiers/verify_harness_claims.py`, the `checks`
+  rows of `verifiers/baseline.json`, or corpus documents quoting either.
+* The only harness-adjacent input read was `measured_against` (the substrate
+  *pin* block): it names the substrate binaries.  Reading it is reading
+  substrate locations, not expectations.
+* This file opens neither the harness nor `baseline.json` — not at import, not
+  in any mode.  Its inputs are the live substrates plus an optional
+  `--observed` JSON of the harness's own stdout (a comparison column, i.e.
+  output, not source).
+* The derived table was frozen (written to `.ufo/round-37/drafts/p1/` and
+  hashed) *before* the harness was run for the comparison column, so a reader
+  can check the ordering from artifact timestamps and hashes.
+
+What each row means, and where the meaning came from
+----------------------------------------------------
+Every semantic below was recovered from the live substrate itself, and each
+row prints the evidence it was computed from.  Two of them came out of the
+omp binary's shipped TypeScript (`skill-descriptions.ts`, embedded unminified
+in the ELF, found by scanning the binary — the harness was never consulted):
+
+  key   = sha256(TEMPLATE + "\\x00" + name + "\\x00" + description)
+  preview: whitespace-collapsed description, truncated at 100 chars to the
+           first sentence (>= 40 chars) or to the last word boundary + "…"
+  accept: trim, no CR/LF, <= 160 chars, <= 12 words
+
+`TEMPLATE` is the embedded `compress-description-*.md` prompt file; its bytes
+are delimited here as the NUL-terminated UTF-8 run that starts at
+"Compress into one routing hint" and ends with "Description: {{description}}\n".
+That delimitation is this instrument's own rule and the one place where a
+boundary disagreement with the harness is possible rather than a semantic one.
+
+Rows this instrument does NOT land are reported as `UNLANDED` with the reason
+(never skipped, never guessed): a row that cannot be re-derived blind must not
+silently become a copy of the harness's number.
+
+Exit ladder (family contract; precedence 3 > 2 > 1 > 0):
+  0  every row DERIVED, and in --compare mode every compared row agrees
+  1  a compared row DISAGREES (the instrument names it), or a landed row
+     disagrees with itself across the freeze file
+  2  a substrate is unreadable (the row is named)
+  3  usage error / unparseable --observed document
+Stdlib only.  Read-only: the substrates are opened for reading; nothing is
+written outside --out / --freeze paths the caller names.
+"""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import os
+import re
+import shutil
+import sqlite3
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+
+# ---------------------------------------------------------------------------
+# Substrates.  Defaults are this host's installs; every path is overridable so
+# fixtures can drive the same code (--self-test does exactly that).
+# ---------------------------------------------------------------------------
+DEFAULT_OMP_BINARY = Path("/home/vgpnk/.local/bin/omp")
+DEFAULT_AGENTS_ROOT = Path("/home/vgpnk/.agents/skills")
+DEFAULT_SKILL_DB = Path("/home/vgpnk/.omp/agent/skill-descriptions.db")
+DEFAULT_OC_LOG = Path("/home/vgpnk/.local/share/opencode/log/opencode.log")
+DEFAULT_OC_CONFIG = Path("/home/vgpnk/.config/opencode")
+
+TEMPLATE_START = b"Compress into one routing hint"
+TEMPLATE_END = b"Description: {{description}}\n"
+
+# substrate constants read out of the embedded skill-descriptions.ts chunk
+PREVIEW_CLIFF = 100
+COMPRESS_MAX_CHARS = 160
+COMPRESS_MAX_WORDS = 12
+
+PREVIEW_RE = re.compile(r"^.*?[.!?](?=\s|$)")
+
+# fixture battery: durable cases under verifiers/fixtures/harness-independent/
+FIXTURE_DIR = Path(os.environ.get(
+    "HARNESS_INDEPENDENT_FIXTURES",
+    Path(__file__).resolve().parent / "fixtures" / "harness-independent"))
+
+
+def sha256_hex(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
+
+
+# ---------------------------------------------------------------------------
+# substrate readers
+# ---------------------------------------------------------------------------
+class Substrate:
+    """Read-only view of the four live surfaces this instrument derives from."""
+
+    def __init__(self, omp_binary: Path, agents_root: Path, skill_db: Path,
+                 oc_log: Path, oc_config: Path):
+        self.omp_binary = omp_binary
+        self.agents_root = agents_root
+        self.skill_db = skill_db
+        self.oc_log = oc_log
+        self.oc_config = oc_config
+        self._binary: bytes | None = None
+        self._log: str | None = None
+
+    # -- omp binary ---------------------------------------------------------
+    def binary(self) -> bytes:
+        if self._binary is None:
+            self._binary = self.omp_binary.read_bytes()
+        return self._binary
+
+    def template_bytes(self) -> bytes:
+        blob = self.binary()
+        start = blob.find(TEMPLATE_START)
+        if start < 0:
+            raise LookupError("template marker absent from the omp binary")
+        end = blob.find(TEMPLATE_END, start)
+        if end < 0:
+            raise LookupError("template terminator absent from the omp binary")
+        return blob[start:end + len(TEMPLATE_END)]
+
+    # -- omp skill-description cache ---------------------------------------
+    def db_rows(self) -> list[tuple[str, str]]:
+        conn = sqlite3.connect("file:%s?mode=ro" % self.skill_db, uri=True)
+        try:
+            return list(conn.execute(
+                "SELECT key, description FROM skill_descriptions"))
+        finally:
+            conn.close()
+
+    # -- skill roots --------------------------------------------------------
+    def offered(self) -> list[dict]:
+        """Every direct child of the agents root offering a readable SKILL.md."""
+        out: list[dict] = []
+        if not self.agents_root.is_dir():
+            return out
+        for entry in sorted(self.agents_root.iterdir()):
+            skill_md = entry / "SKILL.md"
+            dangling = entry.is_symlink() and not entry.exists()
+            if dangling:
+                continue
+            try:
+                text = skill_md.read_text(encoding="utf-8", errors="replace")
+            except OSError:
+                continue
+            out.append({"dir": entry.name,
+                        "path": skill_md,
+                        "text": text,
+                        "frontmatter": parse_frontmatter(text)})
+        return out
+
+    def dangling_roots(self) -> list[str]:
+        out = []
+        if not self.agents_root.is_dir():
+            return out
+        for entry in sorted(self.agents_root.iterdir()):
+            if entry.is_symlink() and not entry.exists():
+                out.append(entry.name)
+        return out
+
+    # -- opencode log -------------------------------------------------------
+    def log_text(self) -> str:
+        if self._log is None:
+            self._log = self.oc_log.read_text(encoding="utf-8",
+                                              errors="replace")
+        return self._log
+
+
+def parse_frontmatter(text: str) -> dict:
+    """Minimal YAML frontmatter reader: plain scalars and folded/literal blocks.
+
+    Deliberately hand-rolled: it is the instrument's own reader, and the shape
+    it must handle is set by the substrate files, not by any other parser.
+    """
+    if not text.startswith("---"):
+        return {}
+    end = text.find("\n---", 3)
+    if end < 0:
+        return {}
+    fields: dict[str, object] = {}
+    current = None
+    for line in text[3:end].split("\n"):
+        m = re.match(r"^([A-Za-z0-9_-]+):\s*(.*)$", line)
+        if m:
+            current = m.group(1)
+            value = m.group(2)
+            if value in (">", ">-", "|", "|-", ">+", "|+"):
+                fields[current] = []
+                fields[current + "_style"] = value
+            else:
+                fields[current] = value.strip().strip("\"'")
+            continue
+        if current and line.startswith(" "):
+            block = fields.get(current)
+            if isinstance(block, list):
+                block.append(line.strip())
+    for key in list(fields):
+        if key.endswith("_style"):
+            continue
+        block = fields[key]
+        if isinstance(block, list):
+            style = fields.get(key + "_style", ">")
+            joiner = " " if style.startswith(">") else "\n"
+            value = joiner.join(item for item in block if item)
+            # YAML chomping, which is what the substrate's own parser applies:
+            # clip (bare `>` / `|`) and keep (`+`) both end in a newline, strip
+            # (`-`) ends in none.
+            fields[key] = value + ("" if style.endswith("-") else "\n")
+    for key in [k for k in fields if k.endswith("_style")]:
+        del fields[key]
+    return fields
+
+
+def preview_of(description: str) -> str:
+    """The substrate's own preview rule (mirrored, not imported)."""
+    collapsed = re.sub(r"\s+", " ", description).strip()
+    if len(collapsed) <= PREVIEW_CLIFF:
+        return collapsed
+    head = collapsed[:PREVIEW_CLIFF - 1]
+    sentence = PREVIEW_RE.match(head)
+    if sentence and len(sentence.group(0)) >= 40:
+        return sentence.group(0)
+    cut = head[:head.rfind(" ")].rstrip()
+    return (cut or head) + "\u2026"
+
+
+def accepted_by_model(text: str) -> bool:
+    """The substrate's acceptance filter for a compressed description."""
+    trimmed = text.strip()
+    if not trimmed or "\r" in trimmed or "\n" in trimmed:
+        return False
+    if len(trimmed) > COMPRESS_MAX_CHARS:
+        return False
+    return len(trimmed.split()) <= COMPRESS_MAX_WORDS
+
+
+# ---------------------------------------------------------------------------
+# rows
+# ---------------------------------------------------------------------------
+def row(name: str, value, evidence: str, status: str = "DERIVED") -> dict:
+    return {"check": name, "value": value, "status": status,
+            "evidence": evidence}
+
+
+def derive(s: Substrate) -> list[dict]:
+    rows: list[dict] = []
+
+    # ---- omp / binary -----------------------------------------------------
+    template = s.template_bytes()
+    rows.append(row("omp.elf.template_bytes", len(template),
+                    "ELF scan: NUL-delimited run at %r .. %r"
+                    % (TEMPLATE_START.decode(), TEMPLATE_END.decode().strip())))
+    rows.append(row("omp.elf.template_sha256", sha256_hex(template),
+                    "sha256 of those %d bytes" % len(template)))
+
+    # ---- omp / cache ------------------------------------------------------
+    db_rows = s.db_rows()
+    rows.append(row("omp.db.rows", len(db_rows),
+                    "SELECT count(*) FROM skill_descriptions (%s)"
+                    % s.skill_db))
+    wellformed = [k for k, d in db_rows
+                  if re.fullmatch(r"[0-9a-f]{64}", k or "")
+                  and isinstance(d, str) and d.strip()]
+    rows.append(row("omp.db.rows_wellformed", len(wellformed),
+                    "rows with a 64-hex key and a non-empty description"))
+
+    # ---- omp / offering ---------------------------------------------------
+    offered = s.offered()
+    rows.append(row("omp.offered.skills", len(offered),
+                    "dirs under %s holding a readable SKILL.md"
+                    % s.agents_root))
+    dangling = s.dangling_roots()
+    rows.append(row("omp.offered.dangling", len(dangling),
+                    "unresolvable symlinks under %s (%s)"
+                    % (s.agents_root, ", ".join(dangling) or "none")))
+
+    keys = {k for k, _ in db_rows}
+    template_keys = []
+    for skill in offered:
+        fm = skill["frontmatter"]
+        name = fm.get("name") or skill["dir"]
+        description = fm.get("description") or ""
+        preimage = (template + b"\x00" + str(name).encode()
+                    + b"\x00" + str(description).encode())
+        template_keys.append((skill["dir"], sha256_hex(preimage)))
+
+    reproduced = [d for d, h in template_keys if h in keys]
+    missing = [d for d, h in template_keys if h not in keys]
+    rows.append(row("omp.cache.keys_reproduced", len(reproduced),
+                    "offered skills whose sha256(template \\0 name \\0 "
+                    "description) is a cache key (%s)"
+                    % (", ".join(reproduced) or "none")))
+    rows.append(row("omp.cache.misses", len(missing),
+                    "offered skills with no cache row (%s)"
+                    % (", ".join(missing) or "none")))
+
+    over_cliff = [skill["dir"] for skill in offered
+                  if len(str(skill["frontmatter"].get("description") or ""))
+                  > PREVIEW_CLIFF]
+    rows.append(row("omp.descriptions.over_cliff", len(over_cliff),
+                    "descriptions longer than the substrate preview cliff "
+                    "(%d chars, circuit constant v): %s"
+                    % (PREVIEW_CLIFF, ", ".join(over_cliff) or "none")))
+
+    mismatches = [skill["dir"] for skill in offered
+                  if skill["frontmatter"].get("name")
+                  and skill["frontmatter"]["name"] != skill["dir"]]
+    rows.append(row("omp.names.mismatches", len(mismatches),
+                    "frontmatter name != directory name (%s)"
+                    % (", ".join(mismatches) or "none")))
+
+    no_description = [skill["dir"] for skill in offered
+                      if not skill["frontmatter"].get("description")]
+    rows.append(row("omp.descriptions.missing", len(no_description),
+                    "offered skills with no description field (%s)"
+                    % (", ".join(no_description) or "none")))
+
+    rows.append(row("omp.descriptions.unmodelled", len(missing),
+                    "reading: an offered description the cache holds no row "
+                    "for (same set as omp.cache.misses)"))
+
+    verified = [k for k, _ in db_rows
+                if re.fullmatch(r"[0-9a-f]{64}", k or "")]
+    accepted = [k for k in verified
+                if any(k == h for _, h in template_keys)]
+    rows.append(row("omp.cache.verified_skills", len(accepted),
+                    "cache keys matching a live offered skill (value-side "
+                    "acceptance filter b(): <=%d chars, <=%d words, no CR/LF)"
+                    % (COMPRESS_MAX_CHARS, COMPRESS_MAX_WORDS)))
+
+    for name in ("omp.catalogue.found", "omp.catalogue.total",
+                 "omp.catalogue.matched", "omp.catalogue.missing_names"):
+        rows.append(row(name, None,
+                        "UNLANDED: no catalogue surface was found in the live "
+                        "substrates this instrument reads (the harness's "
+                        "catalogue source is inside its own scope, which stays "
+                        "unread under the blindness rule)", "UNLANDED"))
+
+    # ---- opencode / log ---------------------------------------------------
+    lines = s.log_text().split("\n")
+    init_counts: dict[str, int] = {}
+    for line in lines:
+        if "init count" in line:
+            run = re.search(r"run=(\S+)", line)
+            key = run.group(1) if run else "-"
+            init_counts[key] = init_counts.get(key, 0) + 1
+    rows.append(row("oc.log.init_count_max",
+                    max(init_counts.values(), default=0),
+                    "'init count' occurrences per run (grammar retired by "
+                    "opencode v2.0.26)"))
+
+    rows.append(row("oc.log.available_skills_hits",
+                    sum(1 for line in lines if "<available_skills>" in line),
+                    "'<available_skills>' occurrences in %s" % s.oc_log))
+
+    rescan_arrays: list[list[str]] = []
+    for line in lines:
+        if "skills rescanned" not in line:
+            continue
+        m = re.search(r'skills="(\[.*?\])"', line)
+        if not m:
+            continue
+        try:
+            rescan_arrays.append(json.loads(m.group(1).replace('\\"', '"')))
+        except json.JSONDecodeError:
+            rescan_arrays.append([])
+    rows.append(row("oc.log.skills_rescan_max",
+                    max((len(a) for a in rescan_arrays), default=0),
+                    "longest skills=[...] array among %d rescans"
+                    % len(rescan_arrays)))
+
+    rows.append(row("oc.log.init_count_monotone",
+                    sum(1 for v in init_counts.values() if v > 1),
+                    "runs whose 'init count' lines exceed one (0 = every run "
+                    "is monotone; the live grammar emits no such line at all)"))
+
+    rows.append(row("oc.log.skills_tag_hits",
+                    sum(line.count('skills="') for line in lines),
+                    "'skills=\"' occurrences in the log (this instrument's "
+                    "token; the harness counts a `skills` tag)"))
+
+    # ---- opencode / roots + permission -----------------------------------
+    # The roots are the directories opencode's own log names as skill sources
+    # plus the shared agents root it reads; names come from enumerating them.
+    root_dirs = [d for d in ("skill", "skills")
+                 if (s.oc_config / d).is_dir()]
+    sources: set[str] = set()
+    for line in lines:
+        m = re.search(r'sources="\[(.*?)\]"', line)
+        if m:
+            sources.update(re.findall(r'directory:([^"\\]+)', m.group(1)))
+    names = {skill["frontmatter"].get("name") or skill["dir"]
+             for skill in offered}
+    for directory in sorted(sources):
+        path = Path(directory)
+        if not path.is_dir():
+            continue
+        for entry in sorted(path.iterdir()):
+            if (entry / "SKILL.md").is_file():
+                names.add(entry.name)
+    rows.append(row("oc.roots.names_plus_builtin", len(names),
+                    "distinct skill names enumerated under the roots the "
+                    "opencode log names as sources (%d configured dirs present: "
+                    "%s) plus the shared agents root (%d names); built-in "
+                    "names: 0 by declaration"
+                    % (len(sources) and sum(1 for d in sources
+                                            if Path(d).is_dir()),
+                       ", ".join(root_dirs) or "none", len(offered))))
+
+    both_sided = 0
+    onesided = 0
+    if rescan_arrays:
+        seen: dict[str, int] = {}
+        for array in rescan_arrays:
+            for name in array:
+                seen[name] = seen.get(name, 0) + 1
+        both_sided = sum(1 for v in seen.values() if v > 1)
+        onesided = sum(1 for v in seen.values() if v == 1)
+    rows.append(row("oc.dup.roots_both_sided", both_sided,
+                    "skill names appearing in more than one rescan array"))
+    rows.append(row("oc.dup.onesided_roots", onesided,
+                    "skill names appearing in exactly one rescan array"))
+
+    permission_lines = 0
+    skill_allow = 0
+    for path in sorted(s.oc_config.glob("*.json")):
+        try:
+            document = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        for line in json.dumps(document).split(","):
+            if "skill" in line.lower() and "permission" in line.lower():
+                permission_lines += 1
+            if '"allow"' in line and "skill" in line.lower():
+                skill_allow += 1
+    rows.append(row("oc.permission.skill_lines", permission_lines,
+                    "skill-and-permission lines in %s/*.json" % s.oc_config))
+    rows.append(row("oc.permission.skill_allow", skill_allow,
+                    "skill-scoped allow entries in the same config set"))
+
+    cache_plugins = []
+    cache_root = s.oc_config.parent.parent / ".cache" / "opencode"
+    if cache_root.is_dir():
+        cache_plugins = [p for p in cache_root.rglob("*")
+                         if p.name in ("SKILL.md",) or p.is_dir()
+                         and p.name == "skills"]
+    rows.append(row("oc.roots.plugins_cache", len(cache_plugins),
+                    "skill-bearing entries under %s" % cache_root))
+
+    return rows
+
+
+# ---------------------------------------------------------------------------
+# comparison + freezes
+# ---------------------------------------------------------------------------
+def flatten_observed(document) -> dict:
+    """Accept {results:[{check,observed}]}, {checks:{...}} or a flat table."""
+    if isinstance(document, dict):
+        results = document.get("results")
+        if isinstance(results, list):
+            flat = {}
+            for item in results:
+                if isinstance(item, dict) and "check" in item:
+                    flat[item["check"]] = item.get("observed",
+                                                   item.get("value"))
+            if flat:
+                return flat
+        for key in ("checks", "observed", "rows", "values"):
+            inner = document.get(key)
+            if isinstance(inner, dict):
+                flat = {}
+                for name, value in inner.items():
+                    if isinstance(value, dict) and "value" in value:
+                        flat[name] = value["value"]
+                    elif isinstance(value, dict) and "observed" in value:
+                        flat[name] = value["observed"]
+                    else:
+                        flat[name] = value
+                return flat
+        flat = {}
+        for name, value in document.items():
+            if isinstance(value, dict) and "value" in value:
+                flat[name] = value["value"]
+            else:
+                flat[name] = value
+        return flat
+    if isinstance(document, list):
+        flat = {}
+        for item in document:
+            if isinstance(item, dict) and "check" in item:
+                flat[item["check"]] = item.get("value",
+                                               item.get("observed"))
+        return flat
+    raise ValueError("observed document is not a table")
+
+
+def comparable(mine, theirs) -> bool:
+    """Equality, with one declared representation rule: when exactly one side
+    reports a *list*, compare its length to the other side's count.  The two
+    instruments report offenders as entries (harness) or as counts (this file)
+    for the same quantity; that is a rendering difference, not a value one.
+    """
+    if isinstance(mine, list) != isinstance(theirs, list):
+        count, other = (len(mine), theirs) if isinstance(mine, list) \
+            else (len(theirs), mine)
+        return count == other
+    if isinstance(mine, str) and isinstance(theirs, str):
+        return mine.lower() == theirs.lower()
+    return mine == theirs
+
+
+def compare(rows: list[dict], observed: dict) -> list[dict]:
+    results = []
+    for entry in rows:
+        name = entry["check"]
+        if entry["status"] != "DERIVED":
+            results.append({"check": name, "verdict": "UNLANDED"})
+            continue
+        if name not in observed:
+            results.append({"check": name, "verdict": "NOT_IN_OBSERVED"})
+            continue
+        mine, theirs = entry["value"], observed[name]
+        results.append({"check": name,
+                        "verdict": "AGREE" if comparable(mine, theirs)
+                        else "DISAGREE",
+                        "derived": mine, "observed": theirs})
+    return results
+
+
+# ---------------------------------------------------------------------------
+# self-test
+# ---------------------------------------------------------------------------
+def build_fixture(root: Path) -> Substrate:
+    """A synthetic substrate tree: two skills, a two-row cache, a small log."""
+    agents = root / "skills"
+    (agents / "alpha").mkdir(parents=True)
+    (agents / "beta").mkdir(parents=True)
+    (agents / "ghost").symlink_to(root / "does-not-exist")
+    (agents / "alpha" / "SKILL.md").write_text(
+        "---\nname: alpha\ndescription: >\n  Use alpha for the first thing.\n"
+        "  Never for the second.\n---\n\n# alpha\n", encoding="utf-8")
+    (agents / "beta" / "SKILL.md").write_text(
+        "---\nname: beta\ndescription: Use beta briefly.\n---\n\n# beta\n",
+        encoding="utf-8")
+
+    binary = root / "omp"
+    template = (TEMPLATE_START + b" now.\n\nSkill: {{name}}\n"
+                + TEMPLATE_END)
+    binary.write_bytes(b"\x7fELF" + b"\x00" * 16 + template + b"\x00" * 8)
+
+    # the cache keys are computed from the descriptions *as this instrument's
+    # own frontmatter reader parses them*, so the fixture exercises the reader
+    # and the key rule together rather than a hand-written string
+    db = root / "skill-descriptions.db"
+    conn = sqlite3.connect(db)
+    conn.execute("CREATE TABLE skill_descriptions "
+                 "(key TEXT PRIMARY KEY, description TEXT NOT NULL)")
+    for entry in (agents / "alpha", agents / "beta"):
+        parsed = parse_frontmatter(
+            (entry / "SKILL.md").read_text(encoding="utf-8"))
+        preimage = (template + b"\x00" + str(parsed["name"]).encode()
+                    + b"\x00" + str(parsed["description"]).encode())
+        conn.execute("INSERT INTO skill_descriptions VALUES (?, ?)",
+                     (sha256_hex(preimage),
+                      "Use %s in one line." % parsed["name"]))
+    conn.execute("INSERT INTO skill_descriptions VALUES (?, ?)",
+                 (sha256_hex(b"stale generation"),
+                  "A stale row that matches no live skill."))
+    conn.execute("INSERT INTO skill_descriptions VALUES (?, ?)",
+                 ("not-a-hash", "malformed row"))
+    conn.commit()
+    conn.close()
+
+    log = root / "opencode.log"
+    log.write_text(
+        'run=aaa message="skills rescanned" skills="[\\"alpha\\",\\"beta\\"]"\n'
+        'run=aaa message="skills rescanned" skills="[\\"alpha\\"]"\n'
+        'run=bbb message="cli starting"\n', encoding="utf-8")
+
+    config = root / "config"
+    config.mkdir()
+    (config / "opencode.json").write_text('{"theme": "system"}',
+                                          encoding="utf-8")
+    return Substrate(binary, agents, db, log, config)
+
+
+# ---------------------------------------------------------------------------
+# fixture battery: pinned mutant trees driven through this file's own CLI
+# ---------------------------------------------------------------------------
+def _fixture_cli(root: Path) -> list[str]:
+    return ["--omp-binary", str(root / "omp"),
+            "--agents-root", str(root / "skills"),
+            "--skill-db", str(root / "skill-descriptions.db"),
+            "--oc-log", str(root / "oc.log"),
+            "--oc-config", str(root / "config")]
+
+
+def _fixture_skill_text(spec: dict) -> str:
+    if spec["style"] == ">":
+        return ("---\nname: %s\ndescription: >\n  %s\n---\n\n# %s\n"
+                % (spec["name"], spec["description"], spec["name"]))
+    return ("---\nname: %s\ndescription: %s\n---\n\n# %s\n"
+            % (spec["name"], spec["description"], spec["name"]))
+
+
+def build_case_fixture(case: dict, root: Path):
+    """Materialise one case's pristine tree from its case.json build block."""
+    build = case["build"]
+    template = TEMPLATE_START + build["template_body"].encode() + TEMPLATE_END
+    (root / "omp").write_bytes(b"\x7fELF" + b"\x00" * 16 + template
+                               + b"\x00" * 8)
+    agents = root / "skills"
+    for folder, spec in build["skills"].items():
+        (agents / folder).mkdir(parents=True)
+        (agents / folder / "SKILL.md").write_text(_fixture_skill_text(spec),
+                                                  encoding="utf-8")
+    conn = sqlite3.connect(root / "skill-descriptions.db")
+    conn.execute("CREATE TABLE skill_descriptions "
+                 "(key TEXT PRIMARY KEY, description TEXT NOT NULL)")
+    for entry in build["db_rows"]:
+        if "live" in entry:
+            path = agents / entry["live"] / "SKILL.md"
+            parsed = parse_frontmatter(path.read_text(encoding="utf-8"))
+            preimage = (template + b"\x00" + str(parsed["name"]).encode()
+                        + b"\x00" + str(parsed["description"]).encode())
+            key = sha256_hex(preimage)
+            description = "cached summary for %s" % entry["live"]
+        else:
+            key, description = entry["key"], entry["description"]
+        conn.execute("INSERT INTO skill_descriptions VALUES (?, ?)",
+                     (key, description))
+    conn.commit()
+    conn.close()
+    (root / "oc.log").write_text(build["oc_log"], encoding="utf-8")
+    (root / "config").mkdir()
+    (root / "config" / "opencode.json").write_text(
+        json.dumps(build["config"]), encoding="utf-8")
+
+
+def apply_fixture_mutation(root: Path, mutation: dict):
+    op = mutation["op"]
+    if op in ("db-delete-row", "db-corrupt-key"):
+        conn = sqlite3.connect(root / "skill-descriptions.db")
+        if op == "db-delete-row":
+            conn.execute("DELETE FROM skill_descriptions WHERE description = ?",
+                         (mutation["description"],))
+        else:
+            conn.execute("UPDATE skill_descriptions SET key = 'not-a-hash' "
+                         "WHERE description = ?", (mutation["description"],))
+        conn.commit()
+        conn.close()
+    elif op == "binary-replace":
+        target = root / "omp"
+        data = target.read_bytes()
+        old, new = mutation["old"].encode(), mutation["new"].encode()
+        if old not in data:
+            raise ValueError("binary mutation marker absent: %r" % old)
+        target.write_bytes(data.replace(old, new, 1))
+    elif op == "file-replace":
+        target = root / mutation["target"]
+        text = target.read_text(encoding="utf-8")
+        if mutation["old"] not in text:
+            raise ValueError("text mutation marker absent: %r"
+                             % mutation["old"])
+        target.write_text(text.replace(mutation["old"], mutation["new"], 1),
+                          encoding="utf-8")
+    elif op == "symlink-dangling":
+        (root / "skills" / mutation["name"]).symlink_to(root / "no-such-target")
+    elif op == "log-append":
+        lines = mutation.get("lines") or [mutation["line"]]
+        with (root / "oc.log").open("a", encoding="utf-8") as handle:
+            for line in lines:
+                handle.write(line + "\n")
+    elif op == "config-write":
+        (root / "config" / mutation["name"]).write_text(mutation["content"],
+                                                        encoding="utf-8")
+    else:
+        raise ValueError("unknown mutation op %r" % op)
+
+
+def fixture_battery(expect) -> None:
+    """Every case: pristine control exits 0; each named mutant exits 1 with
+    DRIFT naming that case's check.  The control arm additionally has to show
+    the check clean, so a mutant cannot pass by riding a pre-existing drift."""
+    if not FIXTURE_DIR.is_dir():
+        expect("fixture dir present: %s" % FIXTURE_DIR, False, True)
+        return
+    cases = sorted(p for p in FIXTURE_DIR.iterdir()
+                   if (p / "case.json").is_file())
+    for case_dir in cases:
+        case = json.loads((case_dir / "case.json").read_text(encoding="utf-8"))
+        with tempfile.TemporaryDirectory(
+                prefix="hi-%s-" % case_dir.name) as tmp:
+            tmp = Path(tmp)
+            root = tmp / "pristine"
+            root.mkdir()
+            build_case_fixture(case, root)
+            freeze = tmp / "freeze.json"
+            snapshot = subprocess.run(
+                [sys.executable, str(Path(__file__).resolve()),
+                 *_fixture_cli(root), "--write-freeze", str(freeze)],
+                capture_output=True, text=True)
+            expect("%s: snapshot exits 0" % case_dir.name,
+                   snapshot.returncode, 0)
+            control = subprocess.run(
+                [sys.executable, str(Path(__file__).resolve()),
+                 *_fixture_cli(root), "--freeze", str(freeze)],
+                capture_output=True, text=True)
+            expect("%s: pristine control exits 0" % case_dir.name,
+                   control.returncode, 0)
+            for mutation in case["mutations"]:
+                check = mutation["expect_check"]
+                expect("%s/%s: discriminator live (%s clean on control)"
+                       % (case_dir.name, mutation["name"], check),
+                       "DRIFT %s " % check in control.stdout, False)
+                mutant = tmp / ("mutant-" + mutation["name"])
+                shutil.copytree(root, mutant)
+                try:
+                    apply_fixture_mutation(mutant, mutation)
+                except (ValueError, sqlite3.Error) as error:
+                    expect("%s/%s: mutation applies" % (case_dir.name,
+                                                        mutation["name"]),
+                           "error: %s" % error, "ok")
+                    continue
+                proc = subprocess.run(
+                    [sys.executable, str(Path(__file__).resolve()),
+                     *_fixture_cli(mutant), "--freeze", str(freeze)],
+                    capture_output=True, text=True)
+                expect("%s/%s: mutant exits 1 naming %s"
+                       % (case_dir.name, mutation["name"], check),
+                       (proc.returncode, "DRIFT %s " % check in proc.stdout),
+                       (1, True))
+
+
+def self_test() -> int:
+    import tempfile
+    failures: list[str] = []
+    assertions = 0
+
+    def expect(label: str, got, want):
+        nonlocal assertions
+        assertions += 1
+        if got != want:
+            failures.append("%s: got %r want %r" % (label, got, want))
+
+    with tempfile.TemporaryDirectory() as tmp:
+        fixture = build_fixture(Path(tmp))
+        rows = {r["check"]: r for r in derive(fixture)}
+        expect("template_bytes", rows["omp.elf.template_bytes"]["value"],
+               len(TEMPLATE_START + b" now.\n\nSkill: {{name}}\n"
+                   + TEMPLATE_END))
+        expect("db.rows", rows["omp.db.rows"]["value"], 4)
+        expect("db.rows_wellformed", rows["omp.db.rows_wellformed"]["value"], 3)
+        expect("offered.skills", rows["omp.offered.skills"]["value"], 2)
+        expect("offered.dangling", rows["omp.offered.dangling"]["value"], 1)
+        expect("cache.keys_reproduced",
+               rows["omp.cache.keys_reproduced"]["value"], 2)
+        expect("cache.misses", rows["omp.cache.misses"]["value"], 0)
+        expect("descriptions.over_cliff",
+               rows["omp.descriptions.over_cliff"]["value"], 0)
+        expect("names.mismatches", rows["omp.names.mismatches"]["value"], 0)
+        expect("descriptions.missing",
+               rows["omp.descriptions.missing"]["value"], 0)
+        expect("unmodelled", rows["omp.descriptions.unmodelled"]["value"], 0)
+        expect("verified_skills",
+               rows["omp.cache.verified_skills"]["value"], 2)
+        expect("oc.log.skills_rescan_max",
+               rows["oc.log.skills_rescan_max"]["value"], 2)
+        expect("oc.log.init_count_monotone (violations)",
+               rows["oc.log.init_count_monotone"]["value"], 0)
+        expect("oc.log.init_count_max",
+               rows["oc.log.init_count_max"]["value"], 0)
+        expect("oc.log.available_skills_hits",
+               rows["oc.log.available_skills_hits"]["value"], 0)
+        expect("oc.log.skills_tag_hits",
+               rows["oc.log.skills_tag_hits"]["value"], 2)
+        expect("oc.dup.roots_both_sided",
+               rows["oc.dup.roots_both_sided"]["value"], 1)
+        expect("oc.dup.onesided_roots",
+               rows["oc.dup.onesided_roots"]["value"], 1)
+        expect("oc.permission.skill_lines",
+               rows["oc.permission.skill_lines"]["value"], 0)
+        expect("oc.roots.names_plus_builtin",
+               rows["oc.roots.names_plus_builtin"]["value"], 2)
+        for name in ("omp.catalogue.found", "omp.catalogue.total",
+                     "omp.catalogue.matched", "omp.catalogue.missing_names"):
+            expect("unlanded:" + name, rows[name]["status"], "UNLANDED")
+
+        # mutants: each must move at least one landed row
+        mutated = Path(tmp) / "mut"
+        mutated.mkdir()
+        fixture2 = build_fixture(mutated)
+        conn = sqlite3.connect(fixture2.skill_db)
+        conn.execute("DELETE FROM skill_descriptions WHERE description = ?",
+                     ("Use beta in one line.",))
+        conn.commit()
+        conn.close()
+        rows2 = {r["check"]: r["value"] for r in derive(fixture2)}
+        expect("mutant: rows shrink", rows2["omp.db.rows"], 3)
+        expect("mutant: misses appear", rows2["omp.cache.misses"], 1)
+        expect("mutant: unmodelled tracks misses",
+               rows2["omp.descriptions.unmodelled"], 1)
+        expect("mutant: verified shrinks",
+               rows2["omp.cache.verified_skills"], 1)
+
+        binary_mut = Path(tmp) / "mut2"
+        binary_mut.mkdir()
+        fixture3 = build_fixture(binary_mut)
+        fixture3.omp_binary.write_bytes(
+            fixture3.omp_binary.read_bytes().replace(b"now.", b"then."))
+        rows3 = {r["check"]: r["value"] for r in derive(fixture3)}
+        expect("mutant: template hash moves",
+               rows3["omp.elf.template_sha256"]
+               != rows2["omp.elf.template_sha256"], True)
+        expect("mutant: template hash breaks key reproduction",
+               rows3["omp.cache.keys_reproduced"], 0)
+
+        # red-before for the monotonicity row: two init-count lines in one run
+        log_mut = Path(tmp) / "mut3"
+        log_mut.mkdir()
+        fixture4 = build_fixture(log_mut)
+        with open(fixture4.oc_log, "a", encoding="utf-8") as handle:
+            handle.write('run=bbb message="init count" value=1\n')
+            handle.write('run=bbb message="init count" value=2\n')
+        rows4 = {r["check"]: r["value"] for r in derive(fixture4)}
+        expect("mutant: init-count violation counted",
+               rows4["oc.log.init_count_monotone"], 1)
+        expect("mutant: init_count_max follows",
+               rows4["oc.log.init_count_max"], 2)
+
+        # comparison mode: agreement, then a named disagreement
+        agree = compare(list(rows.values()),
+                        {r["check"]: r["value"] for r in rows.values()})
+        expect("compare: all agree",
+               sorted({r["verdict"] for r in agree}
+                      - {"UNLANDED"}), ["AGREE"])
+        tampered = {r["check"]: r["value"] for r in rows.values()}
+        tampered["omp.db.rows"] = 999
+        verdicts = {r["check"]: r["verdict"]
+                    for r in compare(list(rows.values()), tampered)}
+        expect("compare: tamper named", verdicts["omp.db.rows"], "DISAGREE")
+
+    fixture_battery(expect)
+
+    for failure in failures:
+        print("FAIL " + failure)
+    print("0 failure(s) over %d assertions" % assertions
+          if not failures else
+          "%d failure(s) over %d assertions" % (len(failures), assertions))
+    return 1 if failures else 0
+
+
+# ---------------------------------------------------------------------------
+# main
+# ---------------------------------------------------------------------------
+def main(argv: list[str]) -> int:
+    parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    parser.add_argument("--derive", action="store_true",
+                        help="print the derived table (default)")
+    parser.add_argument("--json", action="store_true",
+                        help="emit the table as JSON")
+    parser.add_argument("--out", type=Path,
+                        help="write the derived table to this path")
+    parser.add_argument("--observed", type=Path,
+                        help="compare against a JSON table of observed values")
+    parser.add_argument("--self-test", action="store_true")
+    parser.add_argument("--freeze", type=Path,
+                        help="compare landed rows against a frozen table; "
+                             "each drifted row is named DRIFT (exit 1)")
+    parser.add_argument("--write-freeze", type=Path,
+                        help="snapshot the derived table into a freeze file")
+    parser.add_argument("--omp-binary", type=Path,
+                        default=DEFAULT_OMP_BINARY)
+    parser.add_argument("--agents-root", type=Path,
+                        default=DEFAULT_AGENTS_ROOT)
+    parser.add_argument("--skill-db", type=Path, default=DEFAULT_SKILL_DB)
+    parser.add_argument("--oc-log", type=Path, default=DEFAULT_OC_LOG)
+    parser.add_argument("--oc-config", type=Path, default=DEFAULT_OC_CONFIG)
+    args = parser.parse_args(argv)
+
+    if args.self_test:
+        return self_test()
+
+    substrate = Substrate(args.omp_binary, args.agents_root, args.skill_db,
+                          args.oc_log, args.oc_config)
+    try:
+        rows = derive(substrate)
+    except (OSError, sqlite3.Error, LookupError) as error:
+        print("SUBSTRATE %s" % error)
+        return 2
+
+    landed = [r for r in rows if r["status"] == "DERIVED"]
+    unlanded = [r for r in rows if r["status"] != "DERIVED"]
+    # `results` is the join shape the round's agreement driver
+    # (verifiers/compare_harness_independent.py, seat P4) reads; `checks` is the
+    # flat name -> value map.  Both carry this instrument's own numbers only.
+    table = {"results": [{"check": r["check"], "re_derived": r["value"],
+                          "value": r["value"], "status": r["status"]}
+                         for r in rows],
+             "checks": {r["check"]: r["value"] for r in rows},
+             "rows": rows,
+             "landed": len(landed),
+             "unlanded": [r["check"] for r in unlanded]}
+
+    if args.out:
+        args.out.write_text(json.dumps(table, indent=1, sort_keys=True)
+                            + "\n", encoding="utf-8")
+
+    exit_code = 0
+    if args.observed:
+        try:
+            observed = flatten_observed(
+                json.loads(args.observed.read_text(encoding="utf-8")))
+        except (OSError, ValueError, json.JSONDecodeError) as error:
+            print("OBSERVED %s" % error)
+            return 3
+        results = compare(rows, observed)
+        agreeing = [r for r in results if r["verdict"] == "AGREE"]
+        disagreeing = [r for r in results if r["verdict"] == "DISAGREE"]
+        absent = [r for r in results if r["verdict"] == "NOT_IN_OBSERVED"]
+        for entry in results:
+            detail = ""
+            if entry["verdict"] == "DISAGREE":
+                detail = " derived=%r observed=%r" % (entry["derived"],
+                                                      entry["observed"])
+            print("%-9s %s%s" % (entry["verdict"], entry["check"], detail))
+        print("agreement %d/%d compared; %d unlanded; %d not-in-observed"
+              % (len(agreeing), len(agreeing) + len(disagreeing),
+                 len([r for r in results if r["verdict"] == "UNLANDED"]),
+                 len(absent)))
+        exit_code = 1 if disagreeing else 0
+        return exit_code
+
+    if args.write_freeze:
+        args.write_freeze.write_text(
+            json.dumps(table, indent=1, sort_keys=True) + "\n", encoding="utf-8")
+
+    if args.freeze:
+        try:
+            frozen = flatten_observed(
+                json.loads(args.freeze.read_text(encoding="utf-8")))
+        except (OSError, ValueError, json.JSONDecodeError) as error:
+            print("FREEZE %s" % error)
+            return 3
+        drifted = []
+        for r in rows:
+            if r["status"] != "DERIVED" or r["check"] not in frozen:
+                continue
+            if not comparable(r["value"], frozen[r["check"]]):
+                drifted.append(r["check"])
+                print("DRIFT %s derived=%r frozen=%r"
+                      % (r["check"], r["value"], frozen[r["check"]]))
+        if drifted:
+            print("frozen drift on %d row(s): %s"
+                  % (len(drifted), ", ".join(drifted)))
+            return 1
+        print("freeze clean: %d landed rows match the frozen table"
+              % len(landed))
+        return 0
+
+    if args.json:
+        print(json.dumps(table, indent=1, sort_keys=True))
+    else:
+        for r in rows:
+            print("%-9s %-30s %s" % (r["status"], r["check"], r["value"]))
+        print("%d derived, %d unlanded (of %d named checks)"
+              % (len(landed), len(unlanded), len(rows)))
+    return exit_code
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

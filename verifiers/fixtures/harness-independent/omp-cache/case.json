@@ -1,0 +1,26 @@
+{
+ "name": "omp-cache",
+ "build": {
+  "template_body": " now.\n\nSkill: {{name}}\n",
+  "skills": {
+   "alpha": {"name": "alpha", "style": "plain", "description": "Use alpha for the first thing, whenever the operator asks for cross-round summaries of verifier evidence across all shokunin lanes and never for single-lane prose."},
+   "beta": {"name": "beta", "style": ">", "description": "Use beta for the second thing."}
+  },
+  "db_rows": [
+   {"live": "alpha"},
+   {"live": "beta"},
+   {"key": "53a4314b0b0ac6b4e2b0b2e9c0a0e6f59a5f4a2b2f70c1f7a5b1f8d1f0a7a1a7", "description": "stale row"},
+   {"key": "junk-row", "description": "malformed row"}
+  ],
+  "oc_log": "run=aaa message=\"skills rescanned\" skills=\"[\\\"alpha\\\",\\\"beta\\\"]\"\nrun=aaa message=\"skills rescanned\" skills=\"[\\\"alpha\\\"]\"\nrun=bbb message=\"cli starting\"\n",
+  "config": {"theme": "system"}
+ },
+ "mutations": [
+  {"name": "db-row-dropped", "op": "db-delete-row", "description": "stale row", "expect_check": "omp.db.rows"},
+  {"name": "db-key-corrupted", "op": "db-corrupt-key", "description": "stale row", "expect_check": "omp.db.rows_wellformed"},
+  {"name": "name-mismatch", "op": "file-replace", "target": "skills/alpha/SKILL.md", "old": "name: alpha", "new": "name: gamma", "expect_check": "omp.names.mismatches"},
+  {"name": "description-removed", "op": "file-replace", "target": "skills/beta/SKILL.md", "old": "description: >", "new": "description:", "expect_check": "omp.descriptions.missing"},
+  {"name": "cliff-crossed", "op": "file-replace", "target": "skills/alpha/SKILL.md", "old": "Use alpha for the first thing, whenever the operator asks for cross-round summaries of verifier evidence across all shokunin lanes and never for single-lane prose.", "new": "Short alpha summary.", "expect_check": "omp.descriptions.over_cliff"},
+  {"name": "dangling-added", "op": "symlink-dangling", "name": "ghost", "expect_check": "omp.offered.dangling"}
+ ]
+}
