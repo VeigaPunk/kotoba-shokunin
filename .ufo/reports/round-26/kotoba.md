@@ -1,7 +1,7 @@
 # kotoba — round 26 report (2026-10-19)
 
 Lane: `kotoba-shokunin`. Round 26, loop 1 (loop-round 6), dispatched and admitted.
-Dispatch HEAD: `10bf6d3`. Work commit: `<pending — recorded at landing>`.
+Dispatch HEAD: `10bf6d3`. Work commit: `6fa44f3` (this report lands in the follow-up publish commit).
 Claims: **R** adjacency (routing-replay guard repair) · **I** operability (independent-verifier crash class) — `.ufo/round-26/claims.json`.
 Provider: grok-4.7-fast 403-exhausted on all 46 reported lanes → recorded substitution to `devin/deepseek-v4-1-flash-high` (no stated fallback for loop-round 6; general exhaustion clause). 48 items, all fragments landed.
 Status: **completed craft round, admitted** — both claims verify; no axis harmed.
