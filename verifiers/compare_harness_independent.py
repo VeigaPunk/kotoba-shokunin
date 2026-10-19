@@ -38,6 +38,17 @@ one, a check id present in one channel and missing from another, a repeated id
 carrying two different values, or a channel whose shape this contract does not
 define.  A channel the driver cannot read is not one it may silently skip.
 
+Live decision metadata (round 46, claim C2a).  The live producer publishes
+check-keyed ``modes`` and ``verdicts`` mirrors plus ``summary_paths`` mapping each
+result row to its value in top-level ``observed``.  Full producer payloads must
+carry these maps, and every row channel must reconcile with them; a caller cannot
+change only a row's mode, verdict or source-summary value and retain a green
+join.  These are consistency checks, not provenance authentication: a caller who
+rewrites the rows, mirrors and summary coherently can still fabricate a
+``--live-json`` document.  The comparator has no signature or trusted producer
+receipt to distinguish that forgery, so the claim is bounded to contradictory
+copies rather than arbitrary caller-authored JSON.
+
 Comparison semantics (two columns, both always computed):
 
 * **strict** — type-tagged value equality (``1`` != ``True``, ``7`` != ``7.0``,
@@ -145,6 +156,21 @@ class CompareError(Exception):
     """Unreadable, unparseable or non-joinable input."""
 
 
+class DuplicateJSONMemberError(CompareError):
+    """A JSON object repeats a member name that decoding would otherwise hide."""
+
+
+def _unique_json_object(pairs):
+    out = {}
+    for key, value in pairs:
+        if key in out:
+            raise DuplicateJSONMemberError(
+                f"duplicate JSON member {key!r} (object member names must be unique)"
+            )
+        out[key] = value
+    return out
+
+
 # --------------------------------------------------------------------------
 # value canonicalisation: strict, type-tagged, container-order aware
 # --------------------------------------------------------------------------
@@ -205,10 +231,10 @@ def show(value, limit=72):
 # payload parsing
 # --------------------------------------------------------------------------
 def extract_json(text):
-    """The last balanced top-level JSON object embedded in ``text``, or None."""
+    """The last balanced top-level JSON object, rejecting repeated members."""
     text = text.strip()
     try:
-        return json.loads(text)
+        return json.loads(text, object_pairs_hook=_unique_json_object)
     except ValueError:
         pass
     depth = 0
@@ -236,7 +262,9 @@ def extract_json(text):
             depth -= 1
             if depth == 0 and start is not None:
                 try:
-                    found = json.loads(text[start : i + 1])
+                    found = json.loads(
+                        text[start : i + 1], object_pairs_hook=_unique_json_object
+                    )
                 except ValueError:
                     pass
                 start = None
@@ -549,17 +577,89 @@ def parse_independent(payload, statuses=None, ignored_fields=None):
     raise CompareError(f"independent: payload is not a JSON object: {show(payload)}")
 
 
-def parse_live(payload):
-    """payload -> ({id: observed}, {id: verdict}, {id: mode}).
+def validate_live_metadata(payload):
+    if isinstance(payload, list):
+        channels = {"results": payload}
+    elif isinstance(payload, dict):
+        channels = {key: payload[key] for key in CHANNEL_KEYS
+                    if isinstance(payload.get(key), list)}
+    else:
+        return
+    if not channels:
+        return
 
-    Round 40 (seat P2): the same channel-agreement lock as
-    ``parse_independent``, under the live side's own value contract
-    (``LIVE_VALUE_KEYS``).  The live instrument publishes one row channel today,
-    so this is a no-op on the landed tree; it is here because the read-first
-    shape was a property of the shared accessor, and a live payload that grew a
-    second channel must not be able to hide a divergence behind the first.
-    """
+    summary = payload.get("observed") if isinstance(payload, dict) else None
+    producer_payload = isinstance(summary, dict) and bool({"omp", "opencode"} & set(summary))
+    maps = {}
+    for key in ("modes", "verdicts", "summary_paths"):
+        if not isinstance(payload, dict) or key not in payload:
+            continue
+        values = _dotted_map(payload[key])
+        if values is None:
+            label = "mode" if key == "modes" else "verdict" if key == "verdicts" else "summary"
+            raise CompareError(f"live {label} shadow: {key} is not a check-id map")
+        maps[key] = values
+    if producer_payload:
+        missing = [key for key in ("modes", "verdicts", "summary_paths") if key not in maps]
+        if missing:
+            raise CompareError("live metadata missing: " + ", ".join(missing)
+                               + " (full producer payloads require row mirrors)")
+
+    ids = {_record_id(record, "live") for rows in channels.values() for record in rows}
+    for key, values in maps.items():
+        if set(values) != ids:
+            label = "mode" if key == "modes" else "verdict" if key == "verdicts" else "summary"
+            missing, extra = sorted(ids - set(values)), sorted(set(values) - ids)
+            raise CompareError(f"live {label} shadow key-set mismatch: missing={show(missing)} "
+                               f"extra={show(extra)}")
+
+    mode_map = maps.get("modes")
+    verdict_map = maps.get("verdicts")
+    summary_paths = maps.get("summary_paths")
+    seen_modes, seen_verdicts = {}, {}
+    for channel, rows in channels.items():
+        for i, record in enumerate(rows):
+            cid = _record_id(record, "live")
+            for field, mapping, seen, label in (
+                ("mode", mode_map, seen_modes, "mode"),
+                ("verdict", verdict_map, seen_verdicts, "verdict"),
+            ):
+                if mapping is not None and field not in record:
+                    raise CompareError(f"live {label} shadow: {channel}[{i}] for {cid} omits {field}")
+                if field not in record:
+                    continue
+                value = record[field]
+                if not isinstance(value, str):
+                    raise CompareError(f"live {label} shadow: {channel}[{i}] for {cid} has non-string "
+                                       f"{field}={show(value)}")
+                if mapping is not None and value != mapping[cid]:
+                    raise CompareError(f"live {label} shadow for {cid}: {channel}[{i}]={value!r} "
+                                       f"but {field}s[{cid!r}]={mapping[cid]!r}")
+                if cid in seen and seen[cid] != value:
+                    raise CompareError(f"live {label} channel split for {cid}: {seen[cid]!r} "
+                                       f"but {channel}[{i}]={value!r}")
+                seen[cid] = value
+
+            if summary_paths is not None:
+                path = summary_paths[cid]
+                if not (isinstance(path, list) and len(path) == 2
+                        and path[0] in ("omp", "opencode")
+                        and all(isinstance(part, str) and part for part in path)):
+                    raise CompareError(f"live summary shadow for {cid}: invalid summary path {show(path)}")
+                if not isinstance(summary, dict) or not isinstance(summary.get(path[0]), dict) \
+                        or path[1] not in summary[path[0]]:
+                    raise CompareError(f"live summary shadow for {cid}: missing observed path {show(path)}")
+                if "observed" not in record or canon(summary[path[0]][path[1]]) != canon(record["observed"]):
+                    summary_value = summary[path[0]][path[1]]
+                    row_value = record.get("observed")
+                    raise CompareError(f"live summary shadow for {cid}: row={show(row_value)} "
+                                       f"but observed.{path[0]}.{path[1]}={show(summary_value)}")
+
+
+def parse_live(payload):
+    """payload -> ({id: observed}, {id: verdict}, {id: mode})."""
     _reconcile_channels(payload, "live", value_keys=LIVE_VALUE_KEYS)
+    validate_live_metadata(payload)
     records = _record_list(payload)
     if records is None:
         raise CompareError(f"live: payload is not a results list: {show(payload)[:200]}")
@@ -589,7 +689,10 @@ def run_cmd(argv, cwd):
 
 
 def load_payload(text, where):
-    payload = extract_json(text)
+    try:
+        payload = extract_json(text)
+    except DuplicateJSONMemberError as exc:
+        raise CompareError(f"{where}: {exc}") from exc
     if payload is None:
         raise CompareError(f"{where}: no JSON object in output ({len(text)} bytes captured)")
     return payload
@@ -790,11 +893,16 @@ def load_scope_file(path):
     probe contract the driver will recompute.
     """
     try:
-        raw = Path(path).read_text(encoding="utf-8")
+        raw_bytes = Path(path).read_bytes()
+        raw = raw_bytes.decode("utf-8")
     except OSError as exc:
         raise CompareError(f"scope file unreadable: {path}: {exc}") from exc
+    except UnicodeDecodeError as exc:
+        raise CompareError(f"scope file is not UTF-8: {path}: {exc}") from exc
     try:
-        document = json.loads(raw)
+        document = json.loads(raw, object_pairs_hook=_unique_json_object)
+    except DuplicateJSONMemberError as exc:
+        raise CompareError(f"scope file: {exc}: {path}") from exc
     except ValueError as exc:
         raise CompareError(f"scope file is not JSON: {path}: {exc}") from exc
     if not isinstance(document, dict):
@@ -817,7 +925,7 @@ def load_scope_file(path):
                 f"{SCOPE_KINDS}")
         out[cid] = entry
     contract = document.get("probe_contract")
-    return out, contract if isinstance(contract, dict) else {}
+    return out, contract if isinstance(contract, dict) else {}, hashlib.sha256(raw_bytes).hexdigest()
 
 
 def recompute_probe(probe):
@@ -908,33 +1016,8 @@ def recompute_probe(probe):
     return out
 
 
-def check_scope_probes(scoped_out, probes, committed, contract, statuses=None):
-    """Validate every scoped row against the committed set and its own probe.
-
-    Failure classes, each named and each exit 2 by the caller:
-
-    * **laundering** — the payload declares a row scoped out that the committed
-      file does not list.  This is r38 R1-D1's exact shape: a real disagreement
-      (or a row the builder merely failed to derive) cannot buy its way out of
-      the join by declaring itself out; the set is committed, not self-served.
-      This is the decisive lock, and it is the one the payload cannot reach.
-    * **channel split** — a record whose own status says ``SCOPED_OUT`` while the
-      payload's ``scoped_out`` map omits it (or the reverse).  The two channels
-      must agree, or a row could leave one and re-enter the other.
-    * **false blocker** — the declared probe does not survive recomputation: a
-      probe block that is missing, misdirected, vacuous, whose declared
-      observable disagrees with the recomputed census, or whose blind-plausible
-      rules all land on one total (which would mean the row *is* derivable blind
-      and the scope-out is a false claim).
-
-    Deliberately NOT a failure: a committed row the payload now derives.  That is
-    the comparison getting *stronger* — the row re-enters the join and is checked
-    like any other — and the join's own uncovered/unknown rules already cover a
-    row that merely vanishes.  Failing it would punish a builder for succeeding.
-
-    The committed set may legitimately be empty (a tree with no scope-outs): then
-    any payload scope-out is laundering, and the live join proceeds normally.
-    """
+def check_scope_probes(scoped_out, payload, committed, contract, statuses=None):
+    """Validate scoped-out metadata and every probe copy against the committed scope."""
     problems = []
     for cid, status in sorted((statuses or {}).items()):
         if status == "SCOPED_OUT" and cid not in scoped_out:
@@ -945,25 +1028,111 @@ def check_scope_probes(scoped_out, probes, committed, contract, statuses=None):
             problems.append(
                 f"channel split: {cid} is in the scoped_out map but its own record "
                 f"status is {status!r}, not 'SCOPED_OUT'")
+
+    probe_copies = {}
+    for cid in scoped_out:
+        probe_copies[cid] = []
+    if isinstance(payload, dict) and "scoped_out_probes" in payload:
+        raw_probes = payload["scoped_out_probes"]
+        if not isinstance(raw_probes, dict):
+            raise CompareError("scope probe channel: scoped_out_probes is not a mapping")
+        extra = sorted(set(raw_probes) - set(scoped_out))
+        missing = sorted(set(scoped_out) - set(raw_probes))
+        if extra or missing:
+            raise CompareError(
+                f"scope probe channel membership drift: missing={show(missing)} extra={show(extra)}")
+        for cid, probe in raw_probes.items():
+            if not isinstance(probe, dict):
+                raise CompareError(f"scope probe channel: scoped_out_probes[{cid!r}] is not an object")
+            probe_copies[cid].append(("scoped_out_probes", probe))
+
+    if isinstance(payload, list):
+        channels = {"results": payload}
+    elif isinstance(payload, dict):
+        channels = {key: payload[key] for key in CHANNEL_KEYS
+                    if isinstance(payload.get(key), list)}
+    else:
+        channels = {}
+    for channel, records in channels.items():
+        by_id = {}
+        for index, record in enumerate(records):
+            if not isinstance(record, dict):
+                continue
+            cid = _record_id(record, "independent")
+            if cid not in scoped_out:
+                if "probe" in record:
+                    raise CompareError(
+                        f"scope probe channel: {channel}[{index}] has an unmatched probe for {cid}")
+                continue
+            by_id[cid] = (index, record)
+        for cid in scoped_out:
+            if cid not in by_id:
+                raise CompareError(f"scope probe channel membership drift: {channel} omits {cid}")
+            index, record = by_id[cid]
+            if "probe" not in record:
+                raise CompareError(f"scope probe channel: {channel}[{index}] for {cid} omits probe")
+            if not isinstance(record["probe"], dict):
+                raise CompareError(f"scope probe channel: {channel}[{index}] for {cid} has non-object probe")
+            probe_copies[cid].append((f"{channel}[{index}]", record["probe"]))
+
+    probes = {}
+    for cid, copies in probe_copies.items():
+        if not copies:
+            problems.append(
+                f"false blocker: scoped row {cid} carries no probe block (a blocker "
+                f"without a recomputable probe is an assertion, not a measurement)")
+            continue
+        probe = copies[0][1]
+        for source, copy in copies[1:]:
+            if canon(copy) != canon(probe):
+                raise CompareError(
+                    f"scope probe channel split for {cid}: {copies[0][0]} differs from {source}")
+        probes[cid] = probe
+
     for cid in sorted(scoped_out):
         if cid not in committed:
             problems.append(
                 f"laundering: the payload scopes out {cid}, which the committed scope "
                 f"file does not list (a scope-out must be committed, not self-declared)")
-    for cid in sorted(scoped_out):
-        if cid not in committed:
             continue
+        entry = committed[cid]
+        expected_reason = entry["reason"]
+        if scoped_out[cid] != expected_reason:
+            problems.append(f"scope reason drift for {cid}: payload differs from committed scope file")
+        expected_evidence = "SCOPED_OUT: " + expected_reason
+        evidence_records = []
+        for channel, records in channels.items():
+            for index, record in enumerate(records):
+                if isinstance(record, dict) and _record_id(record, "independent") == cid \
+                        and "evidence" in record:
+                    evidence_records.append((f"{channel}[{index}]", record["evidence"]))
+        if not evidence_records:
+            problems.append(f"scope evidence missing for {cid}: no record carries blocker evidence")
+        for source, evidence in evidence_records:
+            if evidence != expected_evidence:
+                problems.append(f"scope evidence drift for {cid} in {source}: differs from committed reason")
+
         probe = probes.get(cid)
         if not isinstance(probe, dict):
-            problems.append(
-                f"false blocker: scoped row {cid} carries no probe block (a blocker "
-                f"without a recomputable probe is an assertion, not a measurement)")
             continue
         declared_kind = contract.get("kind")
         if declared_kind and probe.get("kind") != declared_kind:
             problems.append(
                 f"false blocker: scoped row {cid} probe kind {probe.get('kind')!r} does "
                 f"not match the committed contract kind {declared_kind!r}")
+            continue
+        contract_target = contract.get("target")
+        expected_target = (str(Path.home() / ".omp" / "agent" / "sessions")
+                           if contract_target == "$HOME/.omp/agent/sessions"
+                           else contract_target if isinstance(contract_target, str)
+                           and Path(contract_target).is_absolute() else None)
+        if expected_target is None:
+            problems.append(f"scope probe target drift for {cid}: committed contract has no valid target")
+            continue
+        if probe.get("target") != expected_target:
+            problems.append(
+                f"scope probe target drift for {cid}: {probe.get('target')!r} does not match "
+                f"committed target {expected_target!r}")
             continue
         declared = probe.get("observable")
         try:
@@ -988,7 +1157,7 @@ def check_scope_probes(scoped_out, probes, committed, contract, statuses=None):
                 f"derivable without reading the harness's rule and is not out of scope")
     if problems:
         raise CompareError("; ".join(problems))
-    return True
+    return probes
 
 
 def annotate_statuses(res, statuses):
@@ -1279,27 +1448,33 @@ def fixture_battery(check):
 
     An arm whose declared verdict no longer holds is a failure of this
     instrument, not of the fixture: that is the point of committing them.  The
-    arms run under the committed ``scope.json`` beside them, so the battery is
-    independent of the live scope file a sibling seat may be bumping.
+    ordinary arms use fixture-local scope files.  The scope-file-cwd arm stages
+    an honest scope under ``--cwd`` and a planted scope under process CWD to
+    prove the two roots are not interchangeable.
     """
     if not FIXTURE_DIR.is_dir():
         check("fixtures: battery dir present: %s" % FIXTURE_DIR, False)
         return
     case_dirs = sorted(p for p in FIXTURE_DIR.iterdir()
                        if (p / "case.json").is_file())
-    check("fixtures: battery carries F-2/F-3, field-gate, status/value-alias, heldout-map, row-conflict, and record+map composition arms",
+    check("fixtures: battery carries laundering, live-shadow, raw-duplicate, scope-CWD, and scoped-out metadata/probe arms",
           sorted(p.name for p in case_dirs) ==
           ["agree-control", "alias-nonstring-status-state", "alias-status-state-split",
            "alternatives-ignored", "checks-shadow", "dotted-id-top-level-map-shadow",
-           "expected-alias-conflict", "expected-launder", "field-alternatives-ignored", "field-extra-key",
-           "field-metadata", "field-overrides", "heldout-expected-only-full-copy",
-           "heldout-flat-dotted-map", "heldout-nested-checks-map",
-           "heldout-nested-expected-wrapper", "heldout-nested-observations-wrapper",
+           "duplicate-independent-re-derived-member", "duplicate-independent-results-member",
+           "duplicate-live-results-member", "expected-alias-conflict", "expected-launder",
+           "field-alternatives-ignored", "field-extra-key", "field-metadata", "field-overrides",
+           "heldout-expected-only-full-copy", "heldout-flat-dotted-map",
+           "heldout-nested-checks-map", "heldout-nested-expected-wrapper",
+           "heldout-nested-observations-wrapper",
            "heldout-wrapper-precedence-expected-over-observations",
+           "live-mode-shadow", "live-summary-shadow", "live-verdict-shadow",
            "record-check-id-conflict", "record-map-24-composition", "record-map-24-control",
-           "record-re-derived-observed-conflict", "rows-shadow", "status-lone-nonstring",
-           "uncontracted-future-key", "uncontracted-metadata",
-           "uncontracted-overrides", "value-map-override"])
+           "record-re-derived-observed-conflict", "rows-shadow", "scope-file-cwd",
+           "scope-out-evidence-drift", "scope-out-probe-map-shadow",
+           "scope-out-probe-record-shadow", "scope-out-probe-target-drift",
+           "scope-out-reason-drift", "status-lone-nonstring", "uncontracted-future-key",
+           "uncontracted-metadata", "uncontracted-overrides", "value-map-override"])
     scope_file = FIXTURE_DIR / "scope.json"
     for case_dir in case_dirs:
         case = json.loads((case_dir / "case.json").read_text(encoding="utf-8"))
@@ -1308,10 +1483,59 @@ def fixture_battery(check):
                       else scope_file)
         independent_path = case_dir / case["independent"]
         probe_tmp = None
-        if "probe_carrier" in case:
-            marker = case["probe_target_marker"]
-            carrier = (case_dir / case["probe_carrier"]).resolve()
+        scope_tmp = None
+        scope_argument = str(case_scope)
+        process_cwd = None
+        cwd_root = None
+        if case.get("process_cwd"):
+            scope_tmp = tempfile.TemporaryDirectory(prefix=".scope-cwd-", dir=FIXTURE_DIR)
+            cwd_root = Path(scope_tmp.name)
+            scope_argument = case["scope_argument"]
+            honest_scope = cwd_root / scope_argument
+            honest_scope.parent.mkdir(parents=True, exist_ok=True)
+            honest_scope.write_bytes((case_dir / case["honest_scope"]).read_bytes())
+            process_cwd = cwd_root / "planted-cwd"
+
+        carrier_specs = case.get("probe_carriers")
+        if carrier_specs is None and "probe_carrier" in case:
+            carrier_specs = {case["probe_target_marker"]: case["probe_carrier"]}
+        if carrier_specs:
+            carriers = {marker: str((case_dir / path).resolve())
+                        for marker, path in carrier_specs.items()}
             payload = json.loads(independent_path.read_text(encoding="utf-8"))
+            mutation = case.get("mutation")
+            if mutation:
+                changed = 0
+                cid = mutation.get("check")
+                if mutation.get("kind") == "reason":
+                    scoped = payload.get("scoped_out", {})
+                    if cid in scoped:
+                        scoped[cid] = mutation["value"]
+                        changed += 1
+                elif mutation.get("kind") == "evidence":
+                    records = payload.get(mutation.get("channel"), [])
+                    for record in records if isinstance(records, list) else []:
+                        if isinstance(record, dict) and record.get("check") == cid:
+                            record["evidence"] = mutation["value"]
+                            changed += 1
+                elif mutation.get("kind") == "probe-target":
+                    where = mutation.get("where")
+                    if where in ("map", "all"):
+                        probe = payload.get("scoped_out_probes", {}).get(cid)
+                        if isinstance(probe, dict):
+                            probe["target"] = mutation["target"]
+                            changed += 1
+                    if where in ("records", "all"):
+                        for channel in CHANNEL_KEYS:
+                            records = payload.get(channel, [])
+                            for record in records if isinstance(records, list) else []:
+                                if isinstance(record, dict) and record.get("check") == cid \
+                                        and isinstance(record.get("probe"), dict):
+                                    record["probe"]["target"] = mutation["target"]
+                                    changed += 1
+                check("fixtures/%s: mutation changed its intended payload fields" % case["name"],
+                      changed == mutation.get("expect_changes", 1))
+
             replacements = 0
 
             def materialize_probe_targets(value):
@@ -1321,32 +1545,70 @@ def fixture_battery(check):
                             for key, child in value.items()}
                 if isinstance(value, list):
                     return [materialize_probe_targets(child) for child in value]
-                if value == marker:
+                if value in carriers:
                     replacements += 1
-                    return str(carrier)
+                    return carriers[value]
                 return value
 
             payload = materialize_probe_targets(payload)
+            if process_cwd is not None:
+                planted_scope = process_cwd / scope_argument
+                planted_scope.parent.mkdir(parents=True, exist_ok=True)
+                planted_template = json.loads(
+                    (case_dir / "planted-cwd" / scope_argument).read_text(encoding="utf-8"))
+                planted_scope.write_text(
+                    json.dumps(materialize_probe_targets(planted_template), indent=2,
+                               sort_keys=True) + "\n", encoding="utf-8")
+            else:
+                scope_document = json.loads(case_scope.read_text(encoding="utf-8"))
+                scope_document = materialize_probe_targets(scope_document)
+
             check("fixtures/%s: local probe targets materialized" % case["name"],
                   replacements > 0)
             probe_tmp = tempfile.TemporaryDirectory(prefix=".fixture-", dir=FIXTURE_DIR)
             independent_path = Path(probe_tmp.name) / "independent.json"
             independent_path.write_text(
                 json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+            if process_cwd is None:
+                staged_scope = Path(probe_tmp.name) / "scope.json"
+                staged_scope.write_text(
+                    json.dumps(scope_document, indent=2, sort_keys=True) + "\n",
+                    encoding="utf-8")
+                scope_argument = str(staged_scope)
         argv = [
             sys.executable,
             str(Path(__file__).resolve()),
             "--live-json", str(case_dir / case["live"]),
             "--independent-json", str(independent_path),
             "--expect-n", str(case["expect_n"]),
-            "--scope-file", str(case_scope),
+            "--scope-file", scope_argument,
             "--no-stamp",
         ]
+        if cwd_root is not None:
+            argv += ["--cwd", str(cwd_root)]
         try:
-            proc = subprocess.run(argv, capture_output=True, text=True, timeout=120)
+            proc = subprocess.run(argv, capture_output=True, text=True, timeout=120,
+                                  cwd=process_cwd)
+            if process_cwd is not None:
+                receipt_path = Path(scope_tmp.name) / "planted-control-receipt.json"
+                control_argv = list(argv)
+                control_argv[control_argv.index("--cwd") + 1] = str(process_cwd.resolve())
+                control_argv += ["--receipt", str(receipt_path)]
+                control = subprocess.run(control_argv, capture_output=True, text=True,
+                                         timeout=120, cwd=process_cwd)
+                receipt = json.loads(receipt_path.read_text(encoding="utf-8")) \
+                    if receipt_path.is_file() else {}
+                enforced_scope = (process_cwd / scope_argument).resolve()
+                enforced_digest = hashlib.sha256(enforced_scope.read_bytes()).hexdigest()
+                check("fixtures/%s: planted control receipt matches enforced scope" % case["name"],
+                      control.returncode == 0
+                      and receipt.get("scope_file", {}).get("path") == str(enforced_scope)
+                      and receipt.get("scope_file", {}).get("sha256") == enforced_digest)
         finally:
             if probe_tmp is not None:
                 probe_tmp.cleanup()
+            if scope_tmp is not None:
+                scope_tmp.cleanup()
         combined = proc.stdout + proc.stderr
         check("fixtures/%s: exit %d" % (case["name"], expect["exit"]),
               proc.returncode == expect["exit"])
@@ -1409,15 +1671,10 @@ def render_receipt(meta, argv, cwd):
             "path": rel,
             "sha256": hashlib.sha256(path.read_bytes()).hexdigest() if path.is_file() else None,
         }
-    # Round 39 (C1, seat P1): the committed scope-out set is a lock on the
-    # headline, so its bytes are recorded here too.  A receipt that names the two
-    # instruments but not the scope file cannot show which scope the join ran under.
-    scope_path = Path(meta.get("scope_file") or "")
-    if not scope_path.is_absolute():
-        scope_path = cwd / scope_path
+    # Both fields were captured from the exact bytes load_scope_file enforced.
     scope_record = {
-        "path": meta.get("scope_file"),
-        "sha256": hashlib.sha256(scope_path.read_bytes()).hexdigest() if scope_path.is_file() else None,
+        "path": meta["scope_file"],
+        "sha256": meta["scope_sha256"],
     }
     res = meta["result"]
     joined_n, scope_n, live_n = scope_totals(meta)
@@ -1567,11 +1824,20 @@ def self_test(quiet=False):
 
     # live payload shapes
     live_payload = {
-        "observed": {"omp": {}},
+        "observed": {"omp": {"x": 1}},
         "results": [{"check": "a.b", "observed": 1, "verdict": "PASS", "mode": "equal"}],
+        "modes": {"a.b": "equal"},
+        "verdicts": {"a.b": "PASS"},
+        "summary_paths": {"a.b": ["omp", "x"]},
     }
     live_map, verdicts, modes = parse_live(live_payload)
     check("live: results list parsed", live_map == {"a.b": 1} and verdicts == {"a.b": "PASS"} and modes == {"a.b": "equal"})
+    try:
+        parse_live({"observed": {"omp": {"x": 1}},
+                    "results": [{"check": "a.b", "observed": 1, "verdict": "PASS", "mode": "equal"}]})
+        check("live: producer metadata required", False)
+    except CompareError as exc:
+        check("live: producer metadata required", "live metadata missing" in str(exc))
     check("live: bare list accepted", parse_live([{"id": "a.b", "observed": 5}])[0] == {"a.b": 5})
     try:
         parse_live({"observed": {}})
@@ -1824,11 +2090,12 @@ def self_test(quiet=False):
         observable = recompute_probe(
             {"kind": "rule-spread-census", "target": str(carrier)}
         )["observable"]
+        scope_reason = "the carrier rule is the author's scope"
         scope_file.write_text(json.dumps({
             "schema": "kotoba-harness-independent-scope-v1",
-            "probe_contract": {"kind": "rule-spread-census"},
+            "probe_contract": {"kind": "rule-spread-census", "target": str(carrier)},
             "scope_out": {"a.c": {"kind": "rule-in-author-scope",
-                                  "reason": "the carrier rule is the author's scope"}},
+                                  "reason": scope_reason}},
         }), encoding="utf-8")
 
         def stub_scoped(ind_path, observable_json, status="SCOPED_OUT", with_probe=True,
@@ -1836,15 +2103,18 @@ def self_test(quiet=False):
             probe = ("{'kind':%r,'target':%r,'observable':%s}"
                      % (kind, target if target is not None else str(carrier),
                         observable_json)) if with_probe else "None"
-            record = "{'check':'a.c','expected':" + repr(expected_value) + ",'status':" + repr(status)
+            record = ("{'check':'a.c','expected':" + repr(expected_value)
+                      + ",'status':" + repr(status)
+                      + ",'evidence':" + repr("SCOPED_OUT: " + scope_reason))
             if with_probe:
                 record += ",'probe':" + probe
             record += "}"
             body = ("import json;print(json.dumps({'results':["
                     "{'check':'a.b','expected':1,'status':'DERIVED'},"
                     + record + "],"
-                    "'scoped_out':{'a.c':'the carrier rule is the author scope'},"
-                    "'scoped_out_probes':{'a.c':" + probe + "}}))")
+                    + "'scoped_out':{'a.c':" + repr(scope_reason) + "}"
+                    + (",'scoped_out_probes':{'a.c':" + probe + "}" if with_probe else "")
+                    + "}))")
             ind_path.write_text(body + "\n", encoding="utf-8")
 
         stub_scoped(tmp_path / "ind_scoped.py", json.dumps(observable))
@@ -1882,20 +2152,22 @@ def self_test(quiet=False):
         stub_scoped(tmp_path / "ind_noprobe.py", "{}", with_probe=False)
         proc = e2e("false blocker: a scoped row with no probe", "live_scoped.py",
                    "ind_noprobe.py", want_exit=2, scope=scope_file)
-        check("cli: a probe-less scope-out is named", "no probe block" in proc.stderr)
-        # a probe pointed at a tree that cannot corroborate anything
+        check("cli: a probe-less scope-out is named", "omits probe" in proc.stderr)
+        # a probe retargeted away from the committed carrier is rejected before recomputation
         stub_scoped(tmp_path / "ind_redirect.py", json.dumps(observable),
                     target=str(empty_carrier))
         proc = e2e("false blocker: a redirected probe", "live_scoped.py",
                    "ind_redirect.py", want_exit=2, scope=scope_file)
-        check("cli: a redirected probe is named", "no candidate block" in proc.stderr)
+        check("cli: a redirected probe is named", "scope probe target drift" in proc.stderr)
         # a record marked SCOPED_OUT that the map omits: the two channels must agree.
         # The map must be non-empty and well-formed for this arm to reach the
         # channel check, so it declares a.c and the split is on a.d.
         (tmp_path / "ind_split.py").write_text(
             "import json;print(json.dumps({'results':["
             "{'check':'a.b','expected':1,'status':'DERIVED'},"
-            "{'check':'a.c','expected':None,'status':'SCOPED_OUT'},"
+            "{'check':'a.c','expected':None,'status':'SCOPED_OUT',"
+            "'evidence':'SCOPED_OUT: the carrier rule is the author scope','probe':"
+            + probe_for_c() + "},"
             "{'check':'a.d','expected':None,'status':'SCOPED_OUT'}],"
             "'scoped_out':{'a.c':'the carrier rule is the author scope'},"
             "'scoped_out_probes':{'a.c':" + probe_for_c() + "}}))\n", encoding="utf-8")
@@ -2001,14 +2273,12 @@ def self_test(quiet=False):
         check("receipt: invocation record carries the driver argv and verdict",
               isinstance(receipt.get("driver_argv"), list)
               and receipt.get("join", {}).get("exit") == 0)
-        # round 39: the committed scope file is a lock on the headline, so the
-        # receipt must show which scope bytes the join ran under.  The path is
-        # recorded repo-relative (as given on the command line); the digest is
-        # the load-bearing part.
-        check("receipt: the committed scope file's digest is recorded",
-              receipt.get("scope_file", {}).get("path") == DEFAULT_SCOPE
-              and isinstance(receipt.get("scope_file", {}).get("sha256"), str)
-              and len(receipt["scope_file"]["sha256"]) == 64)
+        # The receipt carries the resolved scope path and the exact enforced bytes.
+        expected_scope_path = (REPO / DEFAULT_SCOPE).resolve()
+        check("receipt: the committed scope path and enforced digest are recorded",
+              receipt.get("scope_file", {}).get("path") == str(expected_scope_path)
+              and receipt.get("scope_file", {}).get("sha256") ==
+              hashlib.sha256(expected_scope_path.read_bytes()).hexdigest())
         check("receipt: the receipt records the committed scope set and probe kind",
               isinstance(receipt.get("scope_locks", {}).get("committed_set"), list)
               and len(receipt["scope_locks"]["committed_set"]) == 4)
@@ -2168,22 +2438,16 @@ def build_meta(args):
     # Round 39 (C1, seat P1) — the three locks on the scope-out, in order:
     # the set is committed (not self-served), each row's blind probe is
     # recomputed here, and the blocker's falsifier is swept for.
-    committed, contract = load_scope_file(args.scope_file)
+    scope_path = Path(args.scope_file)
+    if not scope_path.is_absolute():
+        scope_path = cwd / scope_path
+    scope_path = scope_path.resolve()
+    committed, contract, scope_sha256 = load_scope_file(scope_path)
     check_independent_scope_maps(ind_payload, committed, live)
     independent = parse_independent(ind_payload, statuses, ignored_independent_fields)
     scoped_out = parse_scoped_out(ind_payload, independent)
     check_independent_scope_values(independent, committed, live)
-    probes = {}
-    if isinstance(ind_payload, dict):
-        raw_probes = ind_payload.get("scoped_out_probes")
-        if isinstance(raw_probes, dict):
-            probes = {k: v for k, v in raw_probes.items() if isinstance(v, dict)}
-        if not probes:
-            # the per-record channel the instrument also publishes
-            for record in _record_list(ind_payload) or []:
-                if isinstance(record, dict) and isinstance(record.get("probe"), dict):
-                    probes[_record_id(record, "independent")] = record["probe"]
-    check_scope_probes(scoped_out, probes, committed, contract, statuses)
+    probes = check_scope_probes(scoped_out, ind_payload, committed, contract, statuses)
     scoped_out = {cid: scoped_out[cid] for cid in sorted(scoped_out)}
     scope_probe_kind = None
     for probe in probes.values():
@@ -2230,7 +2494,8 @@ def build_meta(args):
         "stamp": "" if args.no_stamp else args.stamp,
         "live_json_used": bool(args.live_json),
         "ind_json_used": bool(args.independent_json),
-        "scope_file": args.scope_file,
+        "scope_file": str(scope_path),
+        "scope_sha256": scope_sha256,
         "committed_scope": sorted(committed),
         "scope_probe_kind": scope_probe_kind,
         "ignored_independent_fields": sorted(ignored_independent_fields),

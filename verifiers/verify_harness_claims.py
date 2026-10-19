@@ -656,7 +656,16 @@ def main(argv: list[str] | None = None) -> int:
     results = evaluate(flat, baseline)
 
     if args.json:
-        print(json.dumps({"observed": observed, "results": results}, indent=2, ensure_ascii=False))
+        modes = {row["check"]: row["mode"] for row in results}
+        verdicts = {row["check"]: row["verdict"] for row in results}
+        summary_paths = {
+            row["check"]: ["omp" if row["check"].startswith("omp.") else "opencode",
+                           CHECKS[row["check"]][1]]
+            for row in results
+        }
+        print(json.dumps({"observed": observed, "results": results, "modes": modes,
+                          "verdicts": verdicts, "summary_paths": summary_paths},
+                         indent=2, ensure_ascii=False))
         return 0 if (baseline is None or all(r["verdict"] != "DRIFT" for r in results)) else 1
 
     print(f"omp      template={omp['template_sha256'][:16]}… ({omp['template_bytes']} B)  "

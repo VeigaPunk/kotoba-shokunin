@@ -1,0 +1,1 @@
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/round-46/evidence/S2/union/head-055d3b9-c2/work/guard-world/verifiers/stub_b.py

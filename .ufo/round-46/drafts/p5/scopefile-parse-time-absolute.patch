@@ -1,0 +1,80 @@
+diff --git a/verifiers/compare_harness_independent.py b/verifiers/compare_harness_independent.py
+--- a/verifiers/compare_harness_independent.py
++++ b/verifiers/compare_harness_independent.py
+@@ -781,6 +781,20 @@
+     return True
+ 
+ 
++def resolve_scope_path(path, cwd):
++    path = Path(path)
++    if not path.is_absolute():
++        path = Path(cwd) / path
++    return str(path.resolve())
++
++
++def require_absolute_scope_path(path):
++    path = Path(path)
++    if not path.is_absolute():
++        raise CompareError(f"scope file path must be absolute: {path}")
++    return path
++
++
+ def load_scope_file(path):
+     """The committed scope-out set: {check id: entry}, read from a repo file.
+ 
+@@ -789,8 +803,9 @@
+     by the payload under test.  Each entry carries the blocker kind and the
+     probe contract the driver will recompute.
+     """
++    path = require_absolute_scope_path(path)
+     try:
+-        raw = Path(path).read_text(encoding="utf-8")
++        raw = path.read_text(encoding="utf-8")
+     except OSError as exc:
+         raise CompareError(f"scope file unreadable: {path}: {exc}") from exc
+     try:
+@@ -1412,9 +1427,7 @@
+     # Round 39 (C1, seat P1): the committed scope-out set is a lock on the
+     # headline, so its bytes are recorded here too.  A receipt that names the two
+     # instruments but not the scope file cannot show which scope the join ran under.
+-    scope_path = Path(meta.get("scope_file") or "")
+-    if not scope_path.is_absolute():
+-        scope_path = cwd / scope_path
++    scope_path = require_absolute_scope_path(meta.get("scope_file") or "")
+     scope_record = {
+         "path": meta.get("scope_file"),
+         "sha256": hashlib.sha256(scope_path.read_bytes()).hexdigest() if scope_path.is_file() else None,
+@@ -2002,11 +2015,10 @@
+               isinstance(receipt.get("driver_argv"), list)
+               and receipt.get("join", {}).get("exit") == 0)
+         # round 39: the committed scope file is a lock on the headline, so the
+-        # receipt must show which scope bytes the join ran under.  The path is
+-        # recorded repo-relative (as given on the command line); the digest is
+-        # the load-bearing part.
++        # receipt records the absolute path selected at argument parsing; the digest
++        # is taken from those same bytes.
+         check("receipt: the committed scope file's digest is recorded",
+-              receipt.get("scope_file", {}).get("path") == DEFAULT_SCOPE
++              receipt.get("scope_file", {}).get("path") == str((REPO / DEFAULT_SCOPE).resolve())
+               and isinstance(receipt.get("scope_file", {}).get("sha256"), str)
+               and len(receipt["scope_file"]["sha256"]) == 64)
+         check("receipt: the receipt records the committed scope set and probe kind",
+@@ -2273,6 +2285,8 @@
+     )
+     parser.add_argument("--self-test", action="store_true", help="check the driver's own model")
+     args = parser.parse_args(argv)
++    args.cwd = str(Path(args.cwd).resolve())
++    args.scope_file = resolve_scope_path(args.scope_file, args.cwd)
+ 
+     if args.self_test:
+         return 1 if self_test() else 0
+@@ -2290,6 +2304,9 @@
+         try:
+             receipt = render_receipt(meta, argv if argv is not None else sys.argv[1:], Path(args.cwd).resolve())
+             Path(args.receipt).write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n")
++        except CompareError as exc:
++            print(f"compare_harness_independent: ERROR: {exc}", file=sys.stderr)
++            return 2
+         except OSError as exc:
+             print(f"compare_harness_independent: ERROR: receipt path unwritable: {args.receipt}: {exc}", file=sys.stderr)
+             return 2
