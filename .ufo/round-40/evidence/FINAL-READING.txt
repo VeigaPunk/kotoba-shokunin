@@ -1,0 +1,144 @@
+=== FINAL UNION READING ===
+2026-10-19T15:47:00Z
+HEAD: 1c32b43521598ba37de6460222f63e06449de624
+698ad2d5c4a0f9345c0009d59a50cc16e78dcf1ae94335fb4e57e18090601c8b  verifiers/compare_harness_independent.py
+fed8f1afd33e1a66c59066c984eac2088840f61a09576e2cafe9d2908d185fba  verifiers/check_assertion_floors.py
+2ebaee420451ee70c7d67bd83a09232c7a6b9fb383e648db4220d4884651fa46  verifiers/floors-registry.json
+c5b39165edfa628e791eae9b767af4a0191cd6ae2c0145458ca796cfeec4b9a6  verifiers/verify_corpus_integrity.py
+5066aa79b65fdd1e5982f15d3e5de0633cf3bd8eca59695fae2aa450d1ab5137  verifiers/verify_corpus_independent.py
+
+--- floors guard ---
+PASS harness observed=10 floor=10
+PASS corpus_integrity observed=145 floor=145
+PASS corpus_independent observed=86 floor=86
+PASS surfaces observed=87 floor=87
+PASS checklist observed=1597 floor=1597
+PASS pins observed=62 floor=62
+PASS harness_independent observed=104 floor=104
+FAIL compare_harness_independent observed=118 floor=118 self_test_failures=3
+FLOORS_EXIT=1
+
+--- comparator self-test ---
+ok 1 - canon: bool is not int
+ok 2 - canon: int is not float
+ok 3 - canon: dict key order insignificant
+ok 4 - canon: list order significant
+ok 5 - canon: nested types kept distinct
+ok 6 - empty: zero/[]/false/{}/null all empty
+ok 7 - empty: 1 and 'x' not empty
+ok 8 - empty: empty list != nonempty list
+ok 9 - predicate equal: value equality
+ok 10 - predicate zero: [] vs 0 agrees
+ok 11 - predicate zero: 0 vs 1 disagrees
+ok 12 - predicate positive: ind >= obs agrees
+ok 13 - predicate positive: ind < obs disagrees
+ok 14 - predicate positive: non-numeric is un-adjudicated
+ok 15 - predicate unknown mode is un-adjudicated
+ok 16 - extract_json: whole text
+ok 17 - extract_json: noisy stdout
+ok 18 - extract_json: last balanced object
+ok 19 - extract_json: braces inside strings
+ok 20 - extract_json: none when absent
+ok 21 - independent: results list
+ok 22 - independent: checks list, id aliases
+ok 23 - independent: flat dotted map
+ok 24 - independent: rows list with value key
+ok 25 - independent: nested dotted checks map beside meta keys
+ok 26 - independent: a divergent sibling channel fails closed
+ok 27 - independent: agreeing channels still parse
+ok 28 - independent: nested expected map
+ok 29 - independent: observed fallback key
+ok 30 - independent: nested-by-subject shape rejected
+ok 31 - independent: value-less record rejected
+ok 32 - live: results list parsed
+ok 33 - live: bare list accepted
+ok 34 - live: shape without results rejected
+ok 35 - live: record without observed rejected
+ok 36 - compare: all agree -> exit 0
+ok 37 - compare: mismatch -> exit 1 naming the check
+ok 38 - compare: uncovered -> exit 2 naming the check
+ok 39 - compare: unknown -> exit 2 naming the check
+ok 40 - compare: non-PASS verdict -> exit 3 named
+ok 41 - compare: count shortfall -> exit 2 named
+ok 42 - mode zero: [] vs 0 adjudicated, protocol agrees
+ok 43 - mode zero: adjudicated row does not fail the run
+ok 44 - strict-headline: adjudicated row fails
+ok 45 - un-adjudicated mode -> exit 1 named
+ok 46 - mode positive: direction preserved agrees
+ok 47 - no-mode-predicates falls back to strict
+ok 48 - status capture: rows carry their own status
+ok 49 - provisional: unlanded-based agreement fails named
+ok 50 - provisional: a disagreeing unlanded row is a disagreement, not provisional
+ok 51 - headline: default is protocol
+ok 52 - headline: strict-headline switches label and count
+ok 53 - headline: predicates off reports strict
+ok 54 - provisional: only the unlanded row is provisional; the derived row stays ordinary
+ok 55 - scoped: named row parsed from its own status
+ok 56 - scoped: set validated from the payload itself
+ok 57 - scoped: the row leaves the join and is not a disagreement
+ok 58 - scoped: the scope-out is named with its blocker and narrows the scope
+ok 59 - scoped: a declared scope-out is not a failure
+ok 60 - scoped: without the declaration the same tree disagrees (no free agreement)
+ok 61 - scoped: a scoped row's live reading never enters the comparison
+ok 62 - scoped: rejected — empty declaration is ambiguous
+ok 63 - scoped: rejected — a named row absent from the payload
+ok 64 - scoped: rejected — a row whose status is not SCOPED_OUT
+ok 65 - scoped: rejected — an empty reason
+ok 66 - scoped: rejected — a non-mapping declaration
+ok 67 - scoped: an id absent from the live set is exit 2 named
+ok 68 - cli: agreeing stubs -> exit 0
+ok 69 - cli: mismatched stub -> exit 1
+ok 70 - cli: red live instrument -> exit 3
+ok 71 - cli: scope-out stub narrows the scope -> exit 0
+ok 72 - cli: scope-out stub reports the scoped row count
+ok 73 - cli: laundering: an uncommitted scope-out fails closed -> exit 2
+ok 74 - cli: laundering is named as the class
+ok 75 - cli: false blocker: a declared census that does not recompute -> exit 2
+ok 76 - cli: false blocker is named as the class
+ok 77 - cli: false blocker: a scoped row with no probe -> exit 2
+ok 78 - cli: a probe-less scope-out is named
+ok 79 - cli: false blocker: a redirected probe -> exit 2
+ok 80 - cli: a redirected probe is named
+ok 81 - cli: channel split: status and map disagree -> exit 2
+ok 82 - cli: a split channel is named
+ok 83 - cli: false blocker: an unknown probe kind -> exit 2
+ok 84 - cli: an unknown probe kind is named
+ok 85 - cli: scope-out with a mismatched status fails closed -> exit 2
+ok 86 - cli: scope-out status mismatch names the class and the row
+ok 87 - cli: absent default instrument -> exit 2 named
+ok 88 - cli: failing independent command -> exit 2
+ok 89 - receipt: written with the freeze-before-compare label
+ok 90 - receipt: live-capture mode when both sides run
+ok 91 - receipt: both sides' input digests recorded before the join
+ok 92 - receipt: invocation record carries the driver argv and verdict
+ok 93 - receipt: the committed scope file's digest is recorded
+ok 94 - receipt: the receipt records the committed scope set and probe kind
+ok 95 - receipt: frozen-inputs mode when both sides consume files
+ok 96 - receipt: a frozen side records its own file digest
+ok 97 - receipt: unwritable path is a named exit 2, never a traceback
+ok 98 - cli: markdown report written with 2/2 header
+ok 99 - fixtures: battery carries the four F-2/F-3 arms
+ok 100 - fixtures/agree-control: exit 0
+ok 101 - fixtures/agree-control: headline 'agreement: 3/3'
+ok 102 - fixtures/agree-control: green, no failure line
+ok 103 - fixtures/agree-control: no 'Traceback'
+ok 104 - fixtures/agree-control: no 'disagreements:'
+ok 105 - fixtures/agree-control: no 'uncovered checks'
+ok 106 - fixtures/agree-control: no 'unknown checks'
+ok 107 - fixtures/checks-shadow: exit 2
+ok 108 - fixtures/checks-shadow: names 'a.c'
+ok 109 - fixtures/checks-shadow: named failure
+ok 110 - fixtures/checks-shadow: no 'Traceback'
+NOT OK 111 - fixtures/expected-launder: exit 2
+NOT OK 112 - fixtures/expected-launder: names 'a.c'
+NOT OK 113 - fixtures/expected-launder: named failure
+ok 114 - fixtures/expected-launder: no 'Traceback'
+ok 115 - fixtures/rows-shadow: exit 2
+ok 116 - fixtures/rows-shadow: names 'a.c'
+ok 117 - fixtures/rows-shadow: named failure
+ok 118 - fixtures/rows-shadow: no 'Traceback'
+self-test: 3 failure(s) over 118 assertions
+  FAILED: fixtures/expected-launder: exit 2
+  FAILED: fixtures/expected-launder: names 'a.c'
+  FAILED: fixtures/expected-launder: named failure
+CMP_SELFTEST_EXIT=1

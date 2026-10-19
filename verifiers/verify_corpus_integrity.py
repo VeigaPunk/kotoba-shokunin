@@ -155,7 +155,14 @@ COVERAGE_HEADING_RE = re.compile(r"^##[ \t]+Coverage map[ \t]*$")
 # rule -- same fence character, length >= the opener's, and no info string --
 # or a spec-illegal pseudo-closer (``` closing a ```` block, ```python, ``` nope)
 # silently reopens the region and a quoted row counts as a promise.
-FENCE_RE = re.compile(r"^[ \t]*(`{3,}|~{3,})(.*)$")
+# Round 40 (seat F2, from V4's r39 residual): 4.5 also caps the fence line's
+# indentation at three columns -- a tab advances to the next multiple of 4
+# (spec, Tabs), so any leading tab already sits at column 4 -- and a fence-like
+# line indented four or more columns is indented code, content. Read as a
+# closer it ends the region early and the quoted row counts as a promise again
+# (V4's 4-space/tab exploit). `^ {0,3}` is exactly that rule: spaces only, and
+# no tab can begin a legal fence line.
+FENCE_RE = re.compile(r"^ {0,3}(`{3,}|~{3,})(.*)$")
 BRACE_RE = re.compile(r"\{([^{}]*)\}")
 BRACE_LIMIT = 64
 
@@ -315,6 +322,12 @@ def fenced_lines(lines: list[str]) -> set[int]:
     satisfies CommonMark 4.5 -- same fence character, at least as long as the
     opener, and no info string. Anything else (``` inside a ```` block,
     ```python, ``` nope) is content, not a closer, so the region stays opaque.
+
+    Round 40 (seat F2): 4.5 also caps the fence line's indentation at three
+    columns (a tab reaches column 4), so a fence-like line indented four or
+    more columns is indented code -- content -- and neither opens nor closes
+    the region. FENCE_RE carries the cap; this function reads `match` as the
+    only source of a fence line.
     """
     inside = False
     char = ""
@@ -1133,6 +1146,52 @@ def self_test() -> int:
     eq("fence/pseudo-closer-row-counted-fenced", pidx["index_tokens_fenced"], 1)
     eq("fence/pseudo-closer-file-unindexed",
        pidx["unindexed_detail"], ["corpus/knowledge/b.md"])
+    # Round 40 (seat F2, from V4's r39 residual): CommonMark 4.5 also caps the
+    # fence line's indentation at three columns, and a tab advances to column 4
+    # (spec § Tabs), so any leading tab is already too deep. A fence-like line
+    # indented four or more columns is indented code -- content: it neither
+    # opens nor closes a region. Before the cap, a 4-space or tab pseudo-closer
+    # ended the ```` block early and the quoted row read as a live promise
+    # (unindexed=0, exit 0). Every expected set below is derived from cmark
+    # 0.31.2 alone (sourcepos XML cross-checked against HTML `<pre>` placement);
+    # the 0/2/3-space controls prove the cap, not the shape, is the
+    # discriminator.
+    eq("fence/indent-control-0space-closer-closes",
+       fenced_lines(["x", "````", "````", "after"]), {2, 3})
+    eq("fence/indent-control-2space-closer-closes",
+       fenced_lines(["x", "````", "  ````", "after"]), {2, 3})
+    eq("fence/indent-control-3space-closer-closes",
+       fenced_lines(["x", "````", "   ````", "row", "````"]), {2, 3, 5})
+    eq("fence/indent-4space-closer-is-content",
+       fenced_lines(["x", "````", "    ````", "row", "````"]), {2, 3, 4, 5})
+    eq("fence/indent-tab-closer-is-content",
+       fenced_lines(["x", "````", "\t````", "row", "````"]), {2, 3, 4, 5})
+    eq("fence/indent-mixed-closer-is-content",
+       fenced_lines(["x", "````", "  \t````", "row", "````"]), {2, 3, 4, 5})
+    eq("fence/indent-4space-opener-is-content",
+       fenced_lines(["x", "    ````", "row", "````", "after"]), {4, 5})
+    eq("fence/indent-tab-opener-is-content",
+       fenced_lines(["x", "\t````", "row", "````", "after"]), {4, 5})
+    eq("fence/indent-tilde-4space-closer-is-content",
+       fenced_lines(["x", "~~~~", "    ~~~~", "row", "~~~~"]), {2, 3, 4, 5})
+    eq("fence/indent-tilde-tab-closer-is-content",
+       fenced_lines(["x", "~~~~", "\t~~~~", "row", "~~~~"]), {2, 3, 4, 5})
+    # End to end on the census path: the quoted row must stay opaque, so
+    # knowledge/b.md stays unindexed and the gate fails safe.
+    for tag, closer in (("4space", "    ````"), ("tab", "\t````")):
+        INDENT_README = (
+            "## Coverage map\n\n| Area | File | Basis |\n|---|---|---|\n"
+            "| Live | `knowledge/a.md` | basis |\n"
+            "````\n"
+            + closer + "\n"
+            "| Fenced | `knowledge/b.md` | basis |\n"
+            "````\n"
+        )
+        iidx = index_findings(INDENT_README, FENCED_TRACKED, lambda p: p in FIXTURE_ON_DISK)
+        eq(f"fence/indent-{tag}-row-not-checked", iidx["index_patterns"], 1)
+        eq(f"fence/indent-{tag}-row-counted-fenced", iidx["index_tokens_fenced"], 1)
+        eq(f"fence/indent-{tag}-file-unindexed",
+           iidx["unindexed_detail"], ["corpus/knowledge/b.md"])
 
     # --- check layer: verdicts, including the baseline-free zero mode ----
     clean = {key: 0 for _, key in CHECKS.values()}

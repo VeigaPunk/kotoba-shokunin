@@ -4,9 +4,9 @@
 The claim under test: a self-test that silently loses assertions must never
 still read green. Each instrument's --self-test prints an assertion count;
 this guard reruns every self-test and FAILs when the observed count is below
-the recorded floor (harness 10, corpus_integrity 129, corpus_independent 68,
+the recorded floor (harness 10, corpus_integrity 145, corpus_independent 86,
 surfaces 87, checklist 1597, pins 62, harness_independent 104,
-compare_harness_independent 97; others @ round 36, the checklist floor
+compare_harness_independent 118; others @ round 36, the checklist floor
 re-recorded at round 37 by the C3 fence battery plus the indented-code decoy
 battery and at round 38 by the three container-relative fence shapes (V6's
 named residual); the two round-38 C1 instruments registered by claim C1f/seat
@@ -14,13 +14,19 @@ P3 (floors re-bumped in-step to the settled counts of the C1 closure seat P1
 landed in the same round: 71->86, 59->83); `harness_independent` re-bumped at
 round 39 by seat P2's init_count predicate fix + grammar fixtures (86->93) and
 again by seat P1's scoped-row probe battery (93->104); `compare_harness_independent`
-re-bumped at round 39 by seat P1's scope-out discriminator battery (83->97);
+re-bumped at round 39 by seat P1's scope-out discriminator battery (83->97), and at
+round 40 by seat F1's committed F-2/F-3 payload arms -- the expected-launder,
+rows-shadow and checks-shadow shapes plus the agree-control (97->117);
 the two corpus floors re-bumped at
-round 39 by seat P4's CommonMark 4.5 closer-rule battery (119->129, 59->68).
+round 39 by seat P4's CommonMark 4.5 closer-rule battery (119->129, 59->68),
+and at round 40 by seat F2's indent-clause battery -- the 0/2/3-space controls
+plus the 4-space, tab, mixed-indent, opener-arm and tilde shapes, each expected
+set derived from cmark 0.31.2 alone (129->145, 68->86).
 Exit: 0 all floors hold;
 1 an instrument ran below its floor, or its summary could not be parsed or the
 instrument could not be run (named, observed-vs-floor); 2 the in-file registry
-or the external anchor disagrees (named), or a self-test timed out. Read-only.
+or the external anchor disagrees (named), or a self-test timed out, or a
+declared instrument path escapes --repo (named 'escape:'). Read-only.
 
 REGISTRY ANCHORS. Rounds 31 (scout G2/G3) added the two-way in-file registry
 self-check; round 37 (claim C2a, scouts C2/M7) closed its residual: those two
@@ -66,9 +72,32 @@ seat P6, fixtures F9-F11). Red-before on this guard: `--script
 harness=verifiers/verify_corpus_integrity.py` printed 'PASS harness
 observed=119 floor=10' and exited 0; a vanished override target read 'FAIL
 harness observed=0 floor=10 summary=missing', exit 1, class unnamed.
+
+Round 40 (claim C2, seat P3) closes V3's two pre-existing residuals -- the arms
+that survived r39 because both were inside the boundary as WRITTEN rather than
+as ENFORCED. (a) An absolute-argv override aimed at a symlink, hardlink or copy
+of another row's instrument was silent-green (V3: 1/24-1/30; E2's A5/A6/A8/A11/
+A12; M1's a1-a3): the override is now canonicalized on both spellings and
+compared by resolved path AND by content digest, so a symlink lands on the other
+row's real path and a hardlink/copy is named by its bytes (F21-F23); a copy of
+the row's OWN instrument or a unique-bytes stub stays allowed (F24/F25) -- that
+probe affordance is unchanged. (b) `--repo /outside` and `../` traversals read
+outside the tree, silently: `confinement_problem()` now names an absolute or
+escaping DECLARED path (both the in-file tables and the registry entry, plus a
+fail-closed re-check at the `repo / spec[0]` join), while an in-repo `..`
+-- the probe-world idiom every seat's mirror world uses -- stays allowed
+(F26-F28). Two boundaries are DECLARED here rather than enforced, and named so
+they are not mistaken for closures: a symlink INSIDE the tree pointing outside
+is not a declared-path escape (a resolved-path confinement test would red every
+mirror world), and a `--script` override to a unique-bytes file outside --repo
+stays the operator's affordance -- the guard polices the row/registry
+declarations, not where a probe's own stub lives. Both were measured before
+being declared (out/ARMS-BEFORE.txt, out/MUTANTS.txt).
 '''
 import argparse
+import hashlib
 import json
+import os
 import re
 import subprocess
 import sys
@@ -81,13 +110,13 @@ DEFAULT_REPO = Path(__file__).resolve().parent.parent
 # or a floor silently lowered -- fails loudly before any self-test runs.
 EXPECTED_INSTRUMENTS = {
     "harness": 10,
-    "corpus_integrity": 129,
-    "corpus_independent": 68,
+    "corpus_integrity": 145,
+    "corpus_independent": 86,
     "surfaces": 87,
     "checklist": 1597,
     "pins": 62,
     "harness_independent": 104,
-    "compare_harness_independent": 97,
+    "compare_harness_independent": 118,
 }
 SELF_TEST_TIMEOUT_S = 120
 
@@ -98,9 +127,9 @@ REGISTRY_REL = Path("verifiers/floors-registry.json")
 INSTRUMENTS = {
     "harness": ("verifiers/verify_harness_claims.py", 10,
                 r"self-test:\s*(\d+) failure\(s\) over (\d+) assertions", 2, 1),
-    "corpus_integrity": ("verifiers/verify_corpus_integrity.py", 129,
+    "corpus_integrity": ("verifiers/verify_corpus_integrity.py", 145,
                          r"self-test:\s*(\d+) failure\(s\) over (\d+) assertions", 2, 1),
-    "corpus_independent": ("verifiers/verify_corpus_independent.py", 68,
+    "corpus_independent": ("verifiers/verify_corpus_independent.py", 86,
                            r"self-test:\s*(\d+) assertions,\s*(\d+) failures", 1, 2),
     "surfaces": ("verifiers/verify_surfaces.py", 87,
                  r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
@@ -110,7 +139,7 @@ INSTRUMENTS = {
              r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
     "harness_independent": ("verifiers/verify_harness_independent.py", 104,
                             r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
-    "compare_harness_independent": ("verifiers/compare_harness_independent.py", 97,
+    "compare_harness_independent": ("verifiers/compare_harness_independent.py", 118,
                                     r"self-test:\s*(\d+) failure\(s\) over (\d+) assertions", 2, 1),
 }
 
@@ -164,7 +193,43 @@ def row_problem(name, spec):
     return None
 
 
-def registry_drift():
+def confinement_problem(name, declared, repo, source):
+    '''Name the reason a DECLARED instrument path is not confined under --repo,
+    or None when it is.
+
+    Round 40 (claim C2, seat P3): V3's residual (b). Both channels declare a
+    path (the INSTRUMENTS row and the registry entry) and both are joined as
+    `repo / declared`; a path that is absolute, or that traverses out of the
+    tree, therefore reads a file OUTSIDE --repo and the guard reruns a foreign
+    instrument while printing PASS (red-before, frozen bytes df6ddbc2: a
+    `../outside.py` row and an `/abs/outside.py` row each read exit 0, and the
+    same shapes read exit 0 with BOTH channels agreeing). The join is
+    `Path.__truediv__`, which DISCARDS the left operand for an absolute right
+    operand -- so the escape is silent at the join itself. `source` names the
+    channel the declaration came from, so a both-channel escape prints one
+    line per channel rather than a repeated line.
+
+    The check is lexical on purpose. `os.path.normpath` folds in-repo `..`
+    (`verifiers/../verifiers/x.py` stays allowed -- the probe-world idiom), and
+    a symlink *inside* the tree pointing outside is NOT named here: the mirror
+    idiom (a world whose whole tree is symlinks to the lane) is load-bearing
+    for the guard's own fixtures and for every seat's probe worlds, so a
+    resolved-path test would red every one of them. What this predicate names
+    is the declared path itself leaving --repo.
+    '''
+    if not isinstance(declared, str) or not declared:
+        return None  # shape is row_problem()'s remit, not this predicate's
+    if Path(declared).is_absolute():
+        return "escape: %s %s declared path %s is absolute (outside %s)" % (
+            name, source, declared, repo)
+    normalized = os.path.normpath(declared)
+    if normalized == ".." or normalized.startswith(".." + os.sep):
+        return "escape: %s %s declared path %s traverses outside %s" % (
+            name, source, declared, repo)
+    return None
+
+
+def registry_drift(repo=DEFAULT_REPO):
     drift = []
     names = set(INSTRUMENTS)
     # Round-38 claim C2b (V4-S): keys are interpolated into drift strings and
@@ -198,6 +263,13 @@ def registry_drift():
             continue
         if spec[1] != expected_floor:
             drift.append("floor drift: %s floor=%r expected=%d" % (n, spec[1], expected_floor))
+        # Round 40 (claim C2, seat P3): the tables channel of V3's residual (b).
+        # The registry channel is checked in registry_anchor_drift(); both are
+        # joined as `repo / declared`, so both must be confined. An in-repo `..`
+        # (the probe-world idiom) passes; an absolute or escaping path is named.
+        escape = confinement_problem(n, spec[0], repo, "row")
+        if escape is not None:
+            drift.append(escape)
     return drift
 
 
@@ -243,6 +315,15 @@ def registry_anchor_drift(repo):
         if n not in INSTRUMENTS and n not in EXPECTED_INSTRUMENTS:
             drift.append("row vanish: %s (listed in %s, absent from both guard tables)" % (
                 n, REGISTRY_REL))
+        # Round 40 (claim C2, seat P3): the registry channel of V3's residual
+        # (b). The entry's declared path is joined as `repo / entry["path"]`
+        # below; an absolute path DISCARDS the repo operand at that join, so
+        # the escape has to be named here, before the join. Both channels
+        # agreeing on an outside path is exactly the shape E2's A25b and
+        # B2's arm B measured green.
+        escape = confinement_problem(n, entry["path"], repo, "registry")
+        if escape is not None:
+            drift.append(escape)
         if n in EXPECTED_INSTRUMENTS and n in INSTRUMENTS:
             # Round 39 (claim C2, seat P3): a row the tables carry but cannot
             # vouch for derives NOTHING here -- not a path, not a floor. Round
@@ -271,6 +352,14 @@ def registry_anchor_drift(repo):
     return drift
 
 
+def _sha256(path):
+    '''Content digest of a file, or None when it cannot be read.'''
+    try:
+        return hashlib.sha256(path.read_bytes()).hexdigest()
+    except OSError:
+        return None
+
+
 def override_drift(overrides, repo):
     '''--script NAME=PATH is the deliberate probe vector (round 37, seat P6): a
     probe may point a row at a stub or a temporary copy, but never at another
@@ -281,16 +370,45 @@ def override_drift(overrides, repo):
     read 'FAIL harness observed=0 floor=10 summary=missing', exit 1, and never
     named the class. Rows are anchor-verified by the time this runs, so
     INSTRUMENTS carries the canonical paths.
+
+    Round 40 (claim C2, seat P3) closes V3's residual (a). At r39 bytes
+    (df6ddbc2) `main()` kept an ABSOLUTE argv path raw while the canonical map
+    is `.resolve()`d, so an override that was a SYMLINK, HARDLINK or byte COPY
+    of another row's instrument never compared equal and stayed silent-green
+    (V3's 1/24-1/30 measurement; E2's A5/A6/A8/A11/A12 and M1's a1-a3 reproduce
+    it). Three layers now run; each closes the class on its own, and the mutant
+    battery (drafts/p3/mutants40.py, out/MUTANTS.txt) pins what each is worth:
+      * resolved-path equality here (`Path(...).resolve()` on the override,
+        `.resolve()`d canonical map): closes the SYMLINK shape -- reverting it
+        alone changes nothing only because the two other layers also catch that
+        shape (M-ovr-res rc=0);
+      * content-digest equality against every other row's canonical instrument:
+        the ONLY discriminator for a HARDLINK or a byte COPY -- distinct paths,
+        distinct resolutions, identical bytes. Reverting it alone reddens F22
+        and F23 (M-digest 6 failures), and it is the only single move that
+        does;
+      * the join in main() canonicalizes an absolute argv override (see there).
+    Reverting all three (M-nores-nodigest) reddens F21 as well, which is what
+    proves the symlink shape is closed by the set and not by luck.
+    A copy of the row's OWN instrument, or any stub with unique bytes, stays
+    allowed: that is the documented probe affordance (F24/F25).
     '''
     canonical = {n: (repo / spec[0]).resolve() for n, spec in INSTRUMENTS.items()
                  if row_problem(n, spec) is None}
+    canonical_sha = {n: _sha256(path) for n, path in canonical.items()}
     drift = []
     for name in sorted(overrides):
-        path = Path(overrides[name])
+        path = Path(overrides[name]).resolve()
+        digest = _sha256(path) if path.is_file() else None
         for other in sorted(canonical):
-            if other != name and path == canonical[other]:
+            if other == name:
+                continue
+            if path == canonical[other]:
                 drift.append("override repoint: %s -> %s (canonical instrument for %s)"
                              % (name, path, other))
+            elif digest is not None and digest == canonical_sha.get(other):
+                drift.append("override repoint: %s -> %s (same content as the canonical "
+                             "instrument for %s)" % (name, path, other))
         if not path.is_file():
             drift.append("override path missing: %s -> %s (not a file)" % (name, path))
     return drift
@@ -312,7 +430,7 @@ def main(argv=None):
     # anchor runs -- the anchor's own set arithmetic (`sorted(set(...) - set(...))`)
     # would raise TypeError against a mixed-type key, re-opening the crash class
     # this claim closes. registry_drift() reports it, so stop there.
-    drift = registry_drift()
+    drift = registry_drift(repo)
     if any(line.startswith("non-string key:") for line in drift):
         for line in drift:
             print("FAIL registry " + line)
@@ -326,11 +444,19 @@ def main(argv=None):
     # a row the tables cannot vouch for can never reach `repo / spec[0]` even if
     # a future edit reorders the checks above. Pre-round-39 bytes died here with
     # an uncaught TypeError (V4's headline: exit 1 where r37 named it exit 2).
+    # Round 40 (claim C2, seat P3): confinement_problem() is re-checked here as
+    # well, for the same reason -- an escape that somehow survived the drift
+    # pass must not reach the join, where an absolute operand would silently
+    # discard `repo`.
     paths = {}
     for name, spec in INSTRUMENTS.items():
         problem = row_problem(name, spec)
         if problem is not None:
             print("FAIL registry " + problem)
+            return 2
+        escape = confinement_problem(name, spec[0], repo, "row")
+        if escape is not None:
+            print("FAIL registry " + escape)
             return 2
         paths[name] = repo / spec[0]
     overrides = {}
@@ -340,8 +466,16 @@ def main(argv=None):
         name, value = override.split("=", 1)
         if name not in paths:
             parser.error("unknown instrument: " + name)
+        # Round 40 (claim C2, seat P3): the override is canonicalized whichever
+        # way it was spelled. At r39 bytes an ABSOLUTE argv path was kept raw
+        # (only the relative form was resolved), which is why a symlink to
+        # another row's instrument stayed silent -- resolve() now runs on both
+        # forms, so the symlink case lands on the other row's real path and
+        # override_drift()'s path comparison sees it. Hardlinks and byte copies
+        # are distinct paths and stay invisible to that comparison; the content
+        # digest in override_drift() is what names them.
         path = Path(value)
-        path = path if path.is_absolute() else (repo / path).resolve()
+        path = path.resolve() if path.is_absolute() else (repo / path).resolve()
         overrides[name] = path
         paths[name] = path
     drift = override_drift(overrides, repo)
@@ -402,6 +536,24 @@ def self_test() -> int:
     F18 no malformed line at all), F19 a non-str non-None path, and F20 the
     predicate itself over twelve shapes, so a regression names the cause rather
     than only reddening a fixture.
+
+    Round 40 (claim C2, seat P3) adds V3's two pre-existing residuals. The
+    override arms F21-F25 use a two-row stub world whose stubs have DISTINCT
+    bytes, because the digest comparison needs "another row's target" to differ
+    from "the row's own target": F21 an absolute-argv symlink to another row's
+    instrument, F22 a byte copy, F23 a hardlink (all red-before: exit 0,
+    out/ARMS-BEFORE.txt), F24 a copy of the row's OWN instrument and F25 a
+    unique-bytes stub outside --repo (both still allowed -- the probe
+    affordance). F26-F28 cover path confinement: a `../` declaration and an
+    absolute declaration each named on BOTH channels (red-before: exit 0 with
+    both channels agreeing), and an in-repo `..` control that must stay allowed
+    (the mirror-world idiom). F29 pins confinement_problem() over ten shapes.
+    The override closure is LAYERED, so the mutant battery is compound as well
+    as single-move (drafts/p3/mutants40.py, out/MUTANTS.txt): M-digest alone
+    reddens F22/F23, M-row-esc and M-reg-esc each redden F26/F27, while F21's
+    symlink shape needs M-nores-nodigest (both resolves AND the digest) to
+    redden -- recorded, because a single-move revert there is masked by the
+    other layers rather than harmless.
     '''
     import tempfile
 
@@ -822,6 +974,191 @@ def self_test() -> int:
             rec("F20 row_problem(%r) -> %r" % (spec, want), got == want, got)
         rec("F20 a sound row yields no problem", row_problem("pins", sound) is None,
             row_problem("pins", sound))
+
+        # F21-F25 (round 40, claim C2, seat P3) -- V3's residual (a), the
+        # absolute-argv override channel. Red-before on the frozen bytes
+        # (df6ddbc2, rebuilt probe drafts/p3/arms40.py, out/ARMS-BEFORE.txt):
+        # an absolute-argv SYMLINK, byte COPY or HARDLINK of another row's
+        # instrument each read exit 0 with PASS lines (V3: 1/24-1/30 green;
+        # E2's A5/A6/A8/A11/A12 and M1's a1-a3 reproduce it). The r39 `main()`
+        # kept an absolute argv path raw while the canonical map is resolved,
+        # so the symlink never compared equal; a hardlink or byte copy is a
+        # distinct path with a distinct resolution in any case, so the closure
+        # needs BOTH the resolve (symlink) and the content digest (copy /
+        # hardlink). The two-row world here gives the stubs DISTINCT bytes: in
+        # the older F9 world both stubs were byte-identical, which would make
+        # "a copy of the row's OWN instrument" indistinguishable from a copy of
+        # the other row's -- the digest check needs the difference to be real.
+        stub_alt_script = ("print('0 failure(s) over 4 assertions')\n"
+                           "raise SystemExit(0)\n")
+        distinct_tables = (
+            'INSTRUMENTS = {"stub": ("verifiers/stub-instrument.py", 3, %r, 2, 1),\n'
+            '               "stub2": ("verifiers/stub-instrument-2.py", 4, %r, 2, 1)}\n'
+            'EXPECTED_INSTRUMENTS = {"stub": 3, "stub2": 4}\n\n'
+            % (summary_pattern, summary_pattern))
+        distinct_registry = json.dumps({"instrument_total": 2, "instruments": {
+            "stub": {"path": "verifiers/stub-instrument.py", "floor": 3},
+            "stub2": {"path": "verifiers/stub-instrument-2.py", "floor": 4}}})
+
+        def distinct_world(name):
+            text = swap(source, entry_anchor, distinct_tables + entry_anchor, name + "/tables")
+            script = write_tree(tmp / name, text, distinct_registry)
+            (tmp / name / "verifiers" / "stub-instrument.py").write_text(stub_script)
+            (tmp / name / "verifiers" / "stub-instrument-2.py").write_text(stub_alt_script)
+            return script
+
+        # F21 -- absolute-argv symlink to another row's target. Red-before on the
+        # frozen bytes: raw absolute path, no comparison, exit 0 (out/ARMS-BEFORE.txt
+        # W3; E2's A11, M1's a1). The closure is LAYERED: the symlink shape is
+        # caught by any one of main()'s resolve, override_drift's own resolve, or
+        # the content digest, so reverting one layer alone leaves this fixture
+        # green (M-resolve/M-ovr-res/M-digest each rc=0 on F21 -- measured, see
+        # out/MUTANTS.txt). The compound mutant M-nores-nodigest, which reverts
+        # both resolves AND the digest, is what reddens it; that is the true
+        # discriminator for this fixture, and it is recorded rather than hidden.
+        link = tmp / "f21" / "verifiers" / "link-to-stub2.py"
+        script = distinct_world("f21")
+        link.symlink_to("stub-instrument-2.py")
+        proc = run_override(script, tmp / "f21", "stub=%s" % link)
+        rec("F21 abs-argv symlink to another row: exit 2", proc.returncode == 2, proc.returncode)
+        rec("F21 abs-argv symlink to another row: names the class and the row",
+            "FAIL registry override repoint: stub" in proc.stdout
+            and "canonical instrument for stub2" in proc.stdout, proc.stdout)
+        rec("F21 abs-argv symlink to another row: no instrument reran",
+            "PASS " not in proc.stdout, proc.stdout)
+
+        # F22 -- absolute-argv byte copy of another row's target. Distinct path,
+        # distinct resolution: only the content digest can name it.
+        script = distinct_world("f22")
+        copy2 = tmp / "f22" / "copy-of-stub2.py"
+        copy2.write_bytes((tmp / "f22" / "verifiers" / "stub-instrument-2.py").read_bytes())
+        proc = run_override(script, tmp / "f22", "stub=%s" % copy2)
+        rec("F22 abs-argv byte copy of another row: exit 2", proc.returncode == 2,
+            proc.returncode)
+        rec("F22 abs-argv byte copy of another row: names the class, row and cause",
+            "FAIL registry override repoint: stub" in proc.stdout
+            and "same content as the canonical instrument for stub2" in proc.stdout,
+            proc.stdout)
+        rec("F22 abs-argv byte copy of another row: no instrument reran",
+            "PASS " not in proc.stdout, proc.stdout)
+
+        # F23 -- absolute-argv hardlink of another row's target (same closure
+        # path as F22; a separate fixture because a hardlink and a copy fail
+        # differently under a resolve-only design).
+        script = distinct_world("f23")
+        hard = tmp / "f23" / "hardlink-of-stub2.py"
+        os.link(tmp / "f23" / "verifiers" / "stub-instrument-2.py", hard)
+        proc = run_override(script, tmp / "f23", "stub=%s" % hard)
+        rec("F23 abs-argv hardlink to another row: exit 2", proc.returncode == 2,
+            proc.returncode)
+        rec("F23 abs-argv hardlink to another row: names the class, row and cause",
+            "FAIL registry override repoint: stub" in proc.stdout
+            and "same content as the canonical instrument for stub2" in proc.stdout,
+            proc.stdout)
+        rec("F23 abs-argv hardlink to another row: no instrument reran",
+            "PASS " not in proc.stdout, proc.stdout)
+
+        # F24 -- the affordance survives: an absolute-argv byte copy of the row's
+        # OWN instrument stays allowed (it is the same program, and the digest
+        # loop skips the row itself).
+        script = distinct_world("f24")
+        own = tmp / "f24" / "copy-of-own.py"
+        own.write_bytes((tmp / "f24" / "verifiers" / "stub-instrument.py").read_bytes())
+        proc = run_override(script, tmp / "f24", "stub=%s" % own)
+        rec("F24 abs-argv copy of the row's OWN instrument: still allowed",
+            proc.returncode == 0, proc.returncode)
+        rec("F24 abs-argv copy of the row's OWN instrument: both rows reran",
+            "PASS stub observed=3 floor=3" in proc.stdout
+            and "PASS stub2 observed=4 floor=4" in proc.stdout, proc.stdout)
+
+        # F25 -- and a unique-bytes stub outside --repo stays allowed: this is
+        # the documented operator affordance, and the boundary this round does
+        # NOT move. A tweaked copy of another instrument (E2's A9) is this same
+        # shape -- different bytes, hence a different program, hence a stub.
+        outside_stub = tmp / "unique-outside-instrument.py"
+        outside_stub.write_text("print('0 failure(s) over 5 assertions')\n"
+                                "raise SystemExit(0)\n")
+        script = distinct_world("f25")
+        proc = run_override(script, tmp / "f25", "stub=%s" % outside_stub)
+        rec("F25 unique-bytes stub outside --repo: still allowed",
+            proc.returncode == 0, proc.returncode)
+        rec("F25 unique-bytes stub outside --repo: the stub reran",
+            "PASS stub observed=5 floor=3" in proc.stdout, proc.stdout)
+
+        # F26/F27/F28 (round 40, claim C2, seat P3) -- V3's residual (b), path
+        # confinement. Red-before on the frozen bytes: a `../outside.py` row and
+        # an `/abs/outside.py` row each read exit 0 with BOTH channels agreeing
+        # (out/ARMS-BEFORE.txt C1/C2; E2's A25b and B2's arm B measured the same
+        # green). The discriminator is the class name, so each arm asserts the
+        # channel word ("row" / "registry") as well as the shape word.
+        def escape_world(name, declared_path):
+            outside = tmp / ("%s-outside-instrument.py" % name)
+            outside.write_text(stub_script)
+            tables = ('INSTRUMENTS = {"stub": (%r, 3, %r, 2, 1)}\n'
+                      'EXPECTED_INSTRUMENTS = {"stub": 3}\n\n' % (declared_path, summary_pattern))
+            registry = json.dumps({"instrument_total": 1, "instruments": {
+                "stub": {"path": declared_path, "floor": 3}}})
+            text = swap(source, entry_anchor, tables + entry_anchor, name + "/tables")
+            script = write_tree(tmp / name, text, registry)
+            # The in-repo control's declared path lands on this stub; for the
+            # escaping arms it is written and never read (the escape is named
+            # before the join), which also pins that the guard fails closed on
+            # the declaration rather than on the file being absent.
+            (tmp / name / "verifiers" / "stub-instrument.py").write_text(stub_script)
+            return script
+
+        script = escape_world("f26", "../f26-outside-instrument.py")
+        proc = run(script, tmp / "f26")
+        rec("F26 `../` declaration escape: exit 2", proc.returncode == 2, proc.returncode)
+        rec("F26 `../` declaration escape: names the class, the row and the row channel",
+            "FAIL registry escape: stub row declared path ../f26-outside-instrument.py "
+            "traverses outside" in proc.stdout, proc.stdout)
+        rec("F26 `../` declaration escape: names the registry channel too",
+            "FAIL registry escape: stub registry declared path" in proc.stdout, proc.stdout)
+        rec("F26 `../` declaration escape: no instrument reran", "PASS " not in proc.stdout,
+            proc.stdout)
+
+        script = escape_world("f27", str(tmp / "f27-outside-instrument.py"))
+        proc = run(script, tmp / "f27")
+        rec("F27 absolute declaration escape: exit 2", proc.returncode == 2, proc.returncode)
+        rec("F27 absolute declaration escape: names the class, the row and the row channel",
+            "FAIL registry escape: stub row declared path" in proc.stdout
+            and "is absolute" in proc.stdout, proc.stdout)
+        rec("F27 absolute declaration escape: names the registry channel too",
+            "FAIL registry escape: stub registry declared path" in proc.stdout, proc.stdout)
+        rec("F27 absolute declaration escape: no instrument reran", "PASS " not in proc.stdout,
+            proc.stdout)
+
+        # F28 -- the control: an in-repo `..` (the probe-world idiom every seat's
+        # mirror world uses) stays allowed, in BOTH channels. A resolved-path
+        # confinement test would red every mirror world; the predicate is
+        # lexical on purpose.
+        script = escape_world("f28", "verifiers/../verifiers/stub-instrument.py")
+        proc = run(script, tmp / "f28")
+        rec("F28 in-repo `..` declaration: still allowed", proc.returncode == 0,
+            proc.returncode)
+        rec("F28 in-repo `..` declaration: the row reran",
+            "PASS stub observed=3 floor=3" in proc.stdout, proc.stdout)
+
+        # F29 -- the predicate itself, pinned independently of the subprocess
+        # path, and over the shapes F26-F28 reach through the tables.
+        conf_cases = [
+            ("verifiers/x.py", None),
+            ("./verifiers/x.py", None),
+            ("verifiers/../verifiers/x.py", None),
+            ("verifiers/sub/x.py", None),
+            ("../outside.py", "traverses outside"),
+            ("verifiers/../../outside.py", "traverses outside"),
+            ("..", "traverses outside"),
+            ("/abs/outside.py", "is absolute"),
+            (None, None),
+            ("", None),
+        ]
+        for declared, expected in conf_cases:
+            got = confinement_problem("stub", declared, DEFAULT_REPO, "row")
+            want_ok = (got is None) if expected is None else (
+                got is not None and expected in got and got.startswith("escape: stub row"))
+            rec("F29 confinement_problem(%r) -> %r" % (declared, expected), want_ok, got)
 
     print("%d failure(s) over %d assertions" % (len(failures), total))
     for f in failures:

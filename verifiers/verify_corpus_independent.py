@@ -106,7 +106,11 @@ COMMIT_RE = re.compile(r"(?<![A-Za-z0-9_-])commit\s+`([^`\s]+)`")
 # Round 39 (seat P4, from V6b's r38 proof): closing needs CommonMark 4.5's rule
 # -- same fence character, length >= the opener's, and no info string -- or a
 # spec-illegal pseudo-closer silently ends the region early.
-FENCE_RE = re.compile(r"^[ \t]*(`{3,}|~{3,})(.*)$")
+# Round 40 (seat F2, from V4's r39 residual): 4.5 also caps the fence line's
+# indentation at three columns, and a tab reaches column 4, so the fence line
+# may carry spaces only. A fence-like line indented four or more columns is
+# indented code, content -- it neither opens nor closes a region.
+FENCE_RE = re.compile(r"^ {0,3}(`{3,}|~{3,})(.*)$")
 HEX_RE = re.compile(r"\A[0-9a-fA-F]+\Z")
 
 
@@ -226,6 +230,11 @@ def fenced_line_numbers(lines):
     satisfies CommonMark 4.5 -- same fence character, at least as long as the
     opener, and no info string. Anything else (``` inside a ```` block,
     ```python, ``` nope) is content, not a closer, so the region stays opaque.
+
+    Round 40 (seat F2): 4.5 also caps the fence line's indentation at three
+    columns (a tab reaches column 4), so a fence-like line indented four or
+    more columns is indented code -- content -- and neither opens nor closes
+    the region. FENCE_RE carries the cap.
     """
     inside, char, open_len, out = False, "", 0, set()
     for lineno, line in enumerate(lines, 1):
@@ -598,7 +607,7 @@ def _fixture_index(root):
     _git_init(root)
 
 
-def _fixture_fence(root, fenced=True, pseudo=False):
+def _fixture_fence(root, fenced=True, pseudo=False, indent=None):
     lines = ["# t", "", "## Coverage map", "",
              "| Area | File | Basis |", "|------|------|-------|",
              "| Live | `knowledge/a.md` | x |"]
@@ -606,6 +615,11 @@ def _fixture_fence(root, fenced=True, pseudo=False):
         # Round 39 (seat P4): the r38 exploit shape -- a ```` block whose only
         # pseudo-closer is a shorter ```. The quoted row must stay opaque.
         lines += ["````", "```", "| Fenced | `knowledge/b.md` | x |", "````"]
+    elif indent is not None:
+        # Round 40 (seat F2, from V4's r39 residual): a fence-like line indented
+        # four or more columns (spaces or a tab) is indented code -- content --
+        # so it cannot close the ```` block and the quoted row stays opaque.
+        lines += ["````", indent, "| Fenced | `knowledge/b.md` | x |", "````"]
     elif fenced:
         lines += ["```", "| Fenced | `knowledge/b.md` | x |", "```"]
     else:
@@ -768,6 +782,56 @@ def self_test():
         st.eq(fenced_line_numbers(["x", "````python", "row", "```", "````"]),
               {2, 3, 4, 5},
               "fence: a legal info opener still needs a >= opener-length closer")
+        # Round 40 (seat F2, from V4's r39 residual): CommonMark 4.5 also caps
+        # the fence line's indentation at three columns, and a tab advances to
+        # column 4 (spec § Tabs), so any leading tab is already too deep. A
+        # fence-like line indented four or more columns is indented code --
+        # content: it neither opens nor closes a region. Before the cap a
+        # 4-space or tab pseudo-closer ended the ```` block early and the
+        # quoted row read as a live promise (unindexed=0, exit 0). Every
+        # expected set below is derived from cmark 0.31.2 alone; the
+        # 0/2/3-space controls prove the cap, not the shape, is the
+        # discriminator.
+        st.eq(fenced_line_numbers(["x", "````", "````", "after"]), {2, 3},
+              "fence indent: a 0-space closer closes")
+        st.eq(fenced_line_numbers(["x", "````", "  ````", "after"]), {2, 3},
+              "fence indent: a 2-space closer closes")
+        st.eq(fenced_line_numbers(["x", "````", "   ````", "row", "````"]),
+              {2, 3, 5}, "fence indent: a 3-space closer closes")
+        st.eq(fenced_line_numbers(["x", "````", "    ````", "row", "````"]),
+              {2, 3, 4, 5}, "fence indent: a 4-space closer is content")
+        st.eq(fenced_line_numbers(["x", "````", "\t````", "row", "````"]),
+              {2, 3, 4, 5}, "fence indent: a tab closer is content")
+        st.eq(fenced_line_numbers(["x", "````", "  \t````", "row", "````"]),
+              {2, 3, 4, 5}, "fence indent: a mixed space+tab closer is content")
+        st.eq(fenced_line_numbers(["x", "    ````", "row", "````", "after"]),
+              {4, 5}, "fence indent: a 4-space opener is content")
+        st.eq(fenced_line_numbers(["x", "\t````", "row", "````", "after"]),
+              {4, 5}, "fence indent: a tab opener is content")
+        st.eq(fenced_line_numbers(["x", "~~~~", "    ~~~~", "row", "~~~~"]),
+              {2, 3, 4, 5}, "fence indent: a 4-space tilde closer is content")
+        st.eq(fenced_line_numbers(["x", "~~~~", "\t~~~~", "row", "~~~~"]),
+              {2, 3, 4, 5}, "fence indent: a tab tilde closer is content")
+        # End to end on the census path: the quoted row must stay opaque, so
+        # knowledge/b.md stays unindexed and the gate fails safe. The 3-space
+        # control closes, so both rows count and b.md is covered.
+        for tag, closer in (("4space", "    ````"), ("tab", "\t````")):
+            iroot2 = os.path.join(tmp, "fence-indent-" + tag)
+            _fixture_fence(iroot2, indent=closer)
+            iidx = analyse_index(iroot2, corpus_markdown(iroot2))
+            st.eq(iidx["index_tokens"], 1,
+                  f"fence indent {tag}: only the live row's token is harvested")
+            st.eq(iidx["unindexed"], 1,
+                  f"fence indent {tag}: the quoted row's file stays unindexed")
+            st.eq(iidx["unindexed_detail"], ["corpus/knowledge/b.md"],
+                  f"fence indent {tag}: unindexed detail names the quoted file")
+        croot = os.path.join(tmp, "fence-indent-3space-control")
+        _fixture_fence(croot, indent="   ````")
+        cidx = analyse_index(croot, corpus_markdown(croot))
+        st.eq(cidx["index_tokens"], 2,
+              "fence indent control: a 3-space closer closes, both rows count")
+        st.eq(cidx["unindexed"], 0,
+              "fence indent control: a 3-space closer covers the second file")
 
         # -- pointers: four shapes, every exclusion, quoted context, dead --------
         proot = os.path.join(tmp, "pointers")

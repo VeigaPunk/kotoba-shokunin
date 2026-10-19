@@ -26,6 +26,18 @@ priority order: ``expected`` | ``expected_value`` | ``re_derived`` | ``value`` |
 ``observed``.  Any other shape — e.g. observations nested by subject rather
 than keyed by check id — is a loud error here (exit 2), never a silent pass.
 
+Channel agreement (round 40, seat P2 — closes R1's r39 F-3).  A payload may
+publish the same rows more than once: the live instrument publishes ``results``,
+``rows`` and the dotted ``checks`` map.  Reading only the first of them let a
+divergent value hide in a shadowed channel (R1's F-3 payload parked 999 in
+``rows``; V1's A7 parked it in ``checks``), and the join read a full agreement
+over a self-contradictory payload.  Every published channel is now parsed and
+cross-checked, and each disagreement is a loud error (exit 2) named by class: a
+divergent value, a status that disagrees between two channels that both publish
+one, a check id present in one channel and missing from another, a repeated id
+carrying two different values, or a channel whose shape this contract does not
+define.  A channel the driver cannot read is not one it may silently skip.
+
 Comparison semantics (two columns, both always computed):
 
 * **strict** — type-tagged value equality (``1`` != ``True``, ``7`` != ``7.0``,
@@ -117,6 +129,10 @@ RUN_TIMEOUT_S = 300
 
 ID_KEYS = ("check", "id", "name")
 IND_VALUE_KEYS = ("expected", "expected_value", "re_derived", "value", "observed")
+# the live side's own value contract: a live record carries its reading in
+# `observed`, and reconciling it against `expected` would compare it with a key
+# the live contract never defined (round 40, seat P2).
+LIVE_VALUE_KEYS = ("observed",)
 DOTTED_ID = re.compile(r"^[A-Za-z][A-Za-z0-9_]*(\.[A-Za-z0-9_]+)+$")
 KNOWN_MODES = ("equal", "zero", "positive")
 SCOPE_KINDS = ("rule-in-author-scope", "substrate-absent", "external-authority")
@@ -227,11 +243,14 @@ def extract_json(text):
     return found
 
 
+CHANNEL_KEYS = ("results", "rows", "checks")
+
+
 def _record_list(payload):
     if isinstance(payload, list):
         return payload
     if isinstance(payload, dict):
-        for key in ("results", "rows", "checks"):
+        for key in CHANNEL_KEYS:
             if isinstance(payload.get(key), list):
                 return payload[key]
     return None
@@ -250,31 +269,187 @@ def _record_id(record, where):
     raise CompareError(f"{where}: record has no check id (keys {ID_KEYS}): {show(record)}")
 
 
+def _channel_maps(payload, where, value_keys=IND_VALUE_KEYS):
+    """Every published row channel -> {check id: (value, status)}.
+
+    Round 40 (seat P2 — closes R1's r39 F-3).  ``_record_list`` read the first of
+    ``results``/``rows``/``checks``; the others were never opened, so a divergent
+    value parked in a shadowed channel left the join reading a clean agreement.
+    A channel is a *list* of records, a *dotted map* (the shape the live
+    instrument publishes for ``checks``), or absent; anything else is named here
+    rather than skipped, because a channel the driver cannot read must not become
+    a channel it silently ignores.  ``None`` is returned when the payload
+    publishes no row channel at all, so the caller can fall through to the
+    nested-map shapes this contract also accepts.
+
+    ``value_keys`` is the caller's own contract: the independent side reads
+    ``IND_VALUE_KEYS``, the live side its ``observed`` (a live payload that
+    carried an ``expected`` beside its ``observed`` would otherwise be reconciled
+    against a key the live contract never defined).
+    """
+    if not isinstance(payload, dict):
+        return None
+    channels = {}
+    for key in CHANNEL_KEYS:
+        raw = payload.get(key)
+        if raw is None:
+            continue
+        if isinstance(raw, list):
+            out = {}
+            for i, record in enumerate(raw):
+                if not isinstance(record, dict):
+                    raise CompareError(
+                        f"{where}: {key}[{i}] is not an object: {show(record)}")
+                cid = _record_id(record, where)
+                vkey = next((k for k in value_keys if k in record), None)
+                if vkey is None:
+                    raise CompareError(
+                        f"{where}: {key} record {cid} carries no value "
+                        f"(keys {value_keys}): {show(record)}")
+                # WITHIN-RECORD CROSS-CHECK (round 40 — R1's F-2): a record that
+                # carries a harness-side `expected`/`expected_value` ALONGSIDE a
+                # derived channel reading "NOT DERIVED" launders a harvested
+                # value into the join — the read-first `vkey` picks `expected`
+                # and the non-derivation is never consulted.  The two must agree;
+                # an explicit non-derivation cannot be outranked by a harvested
+                # value.  A record carrying ONLY `expected` is a documented shape
+                # (the flat/nested map forms are contract), so it is not rejected
+                # here.  Applies to the independent side; the live side's
+                # `LIVE_VALUE_KEYS` carries no `expected` key.
+                if value_keys is IND_VALUE_KEYS:
+                    derived = [k for k in ("re_derived", "value", "observed") if k in record]
+                    foreign = [k for k in ("expected", "expected_value") if k in record]
+                    if foreign and derived:
+                        fval = record[foreign[0]]
+                        for dk in derived:
+                            dval = record[dk]
+                            if isinstance(dval, str) and dval.strip().upper() in (
+                                "NOT DERIVED", "NOT-DERIVED", "UNDERIVED", "N/A"
+                            ):
+                                raise CompareError(
+                                    f"{where}: {key} record {cid} claims "
+                                    f"{foreign[0]}={show(fval)} while {dk} reads "
+                                    f"{show(dval)}; a harvested value cannot outrank "
+                                    f"an explicit non-derivation: {show(record)}")
+                            if canon(dval) != canon(fval):
+                                raise CompareError(
+                                    f"{where}: {key} record {cid} disagrees with "
+                                    f"itself: {foreign[0]}={show(fval)} vs "
+                                    f"{dk}={show(dval)} (the value channels must agree)")
+                status = record.get("status", record.get("state"))
+                if cid in out and canon(out[cid][0]) != canon(record[vkey]):
+                    raise CompareError(
+                        f"{where}: duplicate id {cid} in {key} carries two values: "
+                        f"{show(out[cid][0])} and {show(record[vkey])} (a repeated row "
+                        f"must not let the divergent copy be the one that is dropped)")
+                out[cid] = (record[vkey], status if isinstance(status, str) else None)
+            channels[key] = out
+        elif isinstance(raw, dict):
+            nested = _dotted_map(raw)
+            if nested is None:
+                raise CompareError(
+                    f"{where}: {key} is a mapping that is not keyed by check id: "
+                    f"{show(raw)[:160]}")
+            channels[key] = {cid: (val, None) for cid, val in nested.items()}
+        else:
+            raise CompareError(
+                f"{where}: {key} is neither a record list nor a check-id map: "
+                f"{show(raw)[:160]}")
+    return channels or None
+
+
+def _reconcile(channels, where):
+    """Cross-check the parsed channels and return the joined {id: value}.
+
+    Round 40 (seat P2 — closes R1's r39 F-3).  This is the agreement lock: a
+    payload that publishes the same row twice must publish the *same row* twice.
+    Three classes, each named and each a loud error:
+
+    * **channel divergence** — the same check id carries different values in two
+      channels (R1's F-3: clean ``results``, divergent ``rows``; V1's A7:
+      divergent ``checks``).  Compared canonically, so ``7`` vs ``7.0`` and
+      ``True`` vs ``1`` are divergences too, not coincidences of ``==``.
+    * **channel split** — two channels that both publish a status disagree about
+      it (the r39 channel-split idiom, one level up).  The status channel decides
+      whether a row is provisional, so a split there could relabel a row on one
+      path and not the other.
+    * **channel membership** — a check id present in one channel and absent from
+      another: the payload does not say what it derived for that row.
+
+    The returned mapping is the reconciled join; on the live payload it is the
+    same ``{id: value}`` ``_record_list``+``parse_independent`` produced before,
+    because the live instrument's three channels agree by construction
+    (measured: 28/28 records, canon-identical, at every r40 reading).
+    """
+    names = sorted(channels)
+    base_name = names[0]
+    base = channels[base_name]
+    for name in names[1:]:
+        other = channels[name]
+        for cid in sorted(set(base) & set(other)):
+            b_val, b_status = base[cid]
+            o_val, o_status = other[cid]
+            if canon(b_val) != canon(o_val):
+                raise CompareError(
+                    f"{where}: channel divergence for {cid}: {base_name}={show(b_val)} "
+                    f"but {name}={show(o_val)} (every published channel must agree; a "
+                    f"divergent value cannot hide behind a clean one)")
+            if b_status is not None and o_status is not None and b_status != o_status:
+                raise CompareError(
+                    f"{where}: channel split for {cid}: {base_name} status "
+                    f"{b_status!r} but {name} status {o_status!r} (the status channel "
+                    f"must agree across channels; a split could relabel a row on one "
+                    f"path only)")
+        only_base = sorted(set(base) - set(other))
+        only_other = sorted(set(other) - set(base))
+        if only_base or only_other:
+            raise CompareError(
+                f"{where}: channel membership differs between {base_name} and {name}: "
+                f"only in {base_name}: {show(only_base)}; only in {name}: "
+                f"{show(only_other)} (a row must be published in every channel or "
+                f"none)")
+    return {cid: val for cid, (val, _status) in base.items()}
+
+
+def _reconcile_channels(payload, where, value_keys=IND_VALUE_KEYS):
+    """Parse every published channel, cross-check them, return the joined map.
+
+    Convenience wrapper over ``_channel_maps`` + ``_reconcile`` for callers that
+    only want the verdict; ``None`` when the payload publishes no row channel.
+    """
+    channels = _channel_maps(payload, where, value_keys=value_keys)
+    if channels is None:
+        return None
+    return _reconcile(channels, where)
+
+
 def parse_independent(payload, statuses=None):
     """payload -> {check id: re-derived value}.  Loud on any other shape.
 
     ``statuses``, when given, is filled with each record's own status field
     (``status`` | ``state``) so an UNLANDED derivation can never launder into
     agreement unnoticed.
+
+    Round 40 (seat P2 — closes R1's r39 F-3): when the payload publishes row
+    channels, every one of them is reconciled before any value is joined, so a
+    divergent value in a shadowed channel is a loud error rather than an
+    invisible one.  ``statuses`` is read from every channel too, and a split is
+    itself a divergence.
     """
-    records = _record_list(payload)
-    if records is not None:
-        out = {}
-        for i, record in enumerate(records):
-            if not isinstance(record, dict):
-                raise CompareError(f"independent: record {i} is not an object: {show(record)}")
-            cid = _record_id(record, "independent")
-            key = next((k for k in IND_VALUE_KEYS if k in record), None)
-            if key is None:
-                raise CompareError(
-                    f"independent: record {cid} carries no value (keys {IND_VALUE_KEYS}): {show(record)}"
-                )
-            out[cid] = record[key]
-            if statuses is not None:
-                status = record.get("status", record.get("state"))
-                if isinstance(status, str):
+    channels = _channel_maps(payload, "independent")
+    if channels is not None:
+        if statuses is not None:
+            for name in sorted(channels):
+                for cid, (_val, status) in channels[name].items():
+                    if status is None:
+                        continue
+                    if cid in statuses and statuses[cid] != status:
+                        raise CompareError(
+                            f"independent: channel split for {cid}: status "
+                            f"{statuses[cid]!r} in one channel but {status!r} in "
+                            f"{name} (the status channel must agree across channels)")
                     statuses[cid] = status
-        return out
+        return _reconcile(channels, "independent")
     if isinstance(payload, dict):
         for key in ("checks", "expected", "re_derived", "observations"):
             nested = _dotted_map(payload.get(key))
@@ -292,7 +467,16 @@ def parse_independent(payload, statuses=None):
 
 
 def parse_live(payload):
-    """payload -> ({id: observed}, {id: verdict}, {id: mode})."""
+    """payload -> ({id: observed}, {id: verdict}, {id: mode}).
+
+    Round 40 (seat P2): the same channel-agreement lock as
+    ``parse_independent``, under the live side's own value contract
+    (``LIVE_VALUE_KEYS``).  The live instrument publishes one row channel today,
+    so this is a no-op on the landed tree; it is here because the read-first
+    shape was a property of the shared accessor, and a live payload that grew a
+    second channel must not be able to hide a divergence behind the first.
+    """
+    _reconcile_channels(payload, "live", value_keys=LIVE_VALUE_KEYS)
     records = _record_list(payload)
     if records is None:
         raise CompareError(f"live: payload is not a results list: {show(payload)[:200]}")
@@ -893,6 +1077,75 @@ def render_json(meta):
 # --------------------------------------------------------------------------
 # self-test
 # --------------------------------------------------------------------------
+FIXTURE_DIR = REPO / "verifiers" / "fixtures" / "compare-harness-independent"
+
+
+def fixture_battery(check):
+    """The committed payload arms: the F-2/F-3 laundering shapes, durable.
+
+    Round 40 (claim C1, seat F1).  The inline stubs above prove the driver's
+    model against synthetic *processes*; this battery proves it against
+    synthetic *payloads* over frozen bytes (``--live-json`` /
+    ``--independent-json``), which is where R1's r39 findings lived.  Every arm
+    is a directory under ``FIXTURE_DIR`` with a ``case.json`` naming its two
+    payloads and the verdict it must produce:
+
+    * ``expect.exit`` — the exit code (0 for the true positive, 2 for a shape
+      that must fail closed);
+    * ``expect.named`` — substrings that must appear in stdout+stderr (the
+      failing check id, so a closure cannot pass by rejecting everything for an
+      unrelated reason);
+    * ``expect.text`` — a substring the stdout must carry (the headline);
+    * ``expect.failure_named`` — whether the driver must say it failed, rather
+      than exit non-zero with an unexplained traceback;
+    * ``expect.absent`` — substrings that must NOT appear (a traceback, or a
+      class line the arm is not about).
+
+    An arm whose declared verdict no longer holds is a failure of this
+    instrument, not of the fixture: that is the point of committing them.  The
+    arms run under the committed ``scope.json`` beside them, so the battery is
+    independent of the live scope file a sibling seat may be bumping.
+    """
+    if not FIXTURE_DIR.is_dir():
+        check("fixtures: battery dir present: %s" % FIXTURE_DIR, False)
+        return
+    case_dirs = sorted(p for p in FIXTURE_DIR.iterdir()
+                       if (p / "case.json").is_file())
+    check("fixtures: battery carries the four F-2/F-3 arms",
+          sorted(p.name for p in case_dirs) ==
+          ["agree-control", "checks-shadow", "expected-launder", "rows-shadow"])
+    scope_file = FIXTURE_DIR / "scope.json"
+    for case_dir in case_dirs:
+        case = json.loads((case_dir / "case.json").read_text(encoding="utf-8"))
+        expect = case["expect"]
+        argv = [
+            sys.executable,
+            str(Path(__file__).resolve()),
+            "--live-json", str(case_dir / case["live"]),
+            "--independent-json", str(case_dir / case["independent"]),
+            "--expect-n", str(case["expect_n"]),
+            "--scope-file", str(scope_file),
+            "--no-stamp",
+        ]
+        proc = subprocess.run(argv, capture_output=True, text=True, timeout=120)
+        combined = proc.stdout + proc.stderr
+        check("fixtures/%s: exit %d" % (case["name"], expect["exit"]),
+              proc.returncode == expect["exit"])
+        for token in expect["named"]:
+            check("fixtures/%s: names %r" % (case["name"], token),
+                  token in combined)
+        if expect["text"]:
+            check("fixtures/%s: headline %r" % (case["name"], expect["text"]),
+                  expect["text"] in proc.stdout)
+        check("fixtures/%s: %s" % (case["name"],
+                                   "named failure" if expect["failure_named"]
+                                   else "green, no failure line"),
+              bool(proc.stderr.strip()) == expect["failure_named"])
+        for token in expect["absent"]:
+            check("fixtures/%s: no %r" % (case["name"], token),
+                  token not in combined)
+
+
 def side_receipt(text, cmd, exit_code, json_path, cwd):
     """One side's frozen-input record: the exact bytes the join consumed.
 
@@ -1043,9 +1296,18 @@ def self_test(quiet=False):
         "independent: nested dotted checks map beside meta keys",
         parse_independent({"checks": {"a.b": 1, "a.c": []}, "landed": 2, "unlanded": []}) == {"a.b": 1, "a.c": []},
     )
+    # round 40 (seat P2): the sibling-channel arm, inverted.  It used to assert
+    # read-first as the contract (`checks` 99 losing to `rows` 1); the divergent
+    # payload must now fail closed, and the agreeing form must still parse.
+    try:
+        parse_independent({"checks": {"a.b": 99}, "rows": [{"check": "a.b", "value": 1}]})
+        check("independent: a divergent sibling channel fails closed", False)
+    except CompareError as exc:
+        check("independent: a divergent sibling channel fails closed",
+              "channel divergence" in str(exc) and "a.b" in str(exc))
     check(
-        "independent: rows preferred over a sibling checks map",
-        parse_independent({"checks": {"a.b": 99}, "rows": [{"check": "a.b", "value": 1}]}) == {"a.b": 1},
+        "independent: agreeing channels still parse",
+        parse_independent({"checks": {"a.b": 1}, "rows": [{"check": "a.b", "value": 1}]}) == {"a.b": 1},
     )
     check(
         "independent: nested expected map",
@@ -1588,6 +1850,8 @@ def self_test(quiet=False):
             "cli: markdown report written with 2/2 header",
             "agreement: 2/2" in body and "| `a.b` |" in body,
         )
+
+    fixture_battery(check)
     print(f"self-test: {len(failures)} failure(s) over {count} assertions")
     for label in failures:
         print(f"  FAILED: {label}")

@@ -1,0 +1,44 @@
+== union battery ==
+repo /home/vgpnk/Projects/shokunin/kotoba-shokunin head 1c32b43
+  698ad2d5c4a0f934 compare_harness_independent.py
+  872993f875338f4f verify_harness_independent.py
+  fed8f1afd33e1a66 check_assertion_floors.py
+  2ebaee420451ee70 floors-registry.json
+  c5b39165edfa628e verify_corpus_integrity.py
+  5066aa79b65fdd1e verify_corpus_independent.py
+  fbcdc8d247475a5f harness-independent-scope.json
+
+-- C1 (comparator payload arms) --
+  F-2-copy-satisfaction    exit=0  all checks agree, both instruments green
+  F-2b-expected-outranks-value exit=0  all checks agree, both instruments green
+  F-2c-consistent-divergence exit=1  disagreements: oc.dup.onesided_roots (mode=zero: expected 999, observed []), oc.dup.roots_both_sided (mode=equal: expected 999, observed 0), oc.log.available_skills_hits (mode=zero: expected 999, obse
+  F-3-rows-shadow          exit=2  compare_harness_independent: ERROR: independent: channel divergence for omp.offered.skills: checks=7 but rows=999 (every published channel must agree; a diverge
+  F-3b-rows-missing        exit=2  compare_harness_independent: ERROR: independent: channel membership differs between checks and rows: only in checks: ["omp.offered.skills"]; only in rows: [] (a
+  F-3c-rows-all-divergent  exit=2  compare_harness_independent: ERROR: independent: channel divergence for oc.dup.onesided_roots: checks=0 but rows=999 (every published channel must agree; a dive
+  A7-checks-shadow         exit=2  compare_harness_independent: ERROR: independent: channel divergence for omp.offered.skills: checks=999 but results=7 (every published channel must agree; a dive
+  CONTROL-unmutated        exit=0  all checks agree, both instruments green
+
+-- C2 (floors guard arms) --
+  CONTROL-stub-world               exit=0  PASS stub_a observed=3 floor=3
+  V3a-copy-variant-absolute-argv   exit=2  FAIL registry override repoint: stub_a -> /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/round-40/drafts/r3/union/work/guard-world/verifiers/copy-of-stub-b.py (same content as the canonical instrument for stub_b)
+  V3a-b-symlink-absolute-argv      exit=2  FAIL registry override repoint: stub_a -> /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/round-40/drafts/r3/union/work/guard-world/verifiers/stub_b.py (canonical instrument for stub_b)
+  V3a-c-canonical-path-control     exit=2  FAIL registry override repoint: stub_a -> /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/round-40/drafts/r3/union/work/guard-world/verifiers/stub_b.py (canonical instrument for stub_b)
+  V3b-outside-world-override       exit=0  PASS stub_a observed=999 floor=3
+  V3b-b-dotdot-traversal           exit=0  PASS stub_a observed=999 floor=3
+  V3b-d-registry-outside-path      exit=2  FAIL registry escape: stub_b registry declared path /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/round-40/drafts/r3/union/work/outside-stub.py is absolute (outside /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/round-40/drafts/r3/union/work/guard-world)
+  V3b-e-row-path-outside-repo      exit=2  FAIL registry escape: stub_b row declared path /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/round-40/drafts/r3/union/work/outside-stub.py is absolute (outside /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/round-40/drafts/r3/union/work/guard-world)
+  V3b-c-repo-without-anchor        exit=2  FAIL registry absent: verifiers/floors-registry.json (No such file or directory; the external anchor inventory is required)
+
+-- C3 (corpus gate arms) --
+  4-space-closer/integrity         exit=1 unindexed=1 cmark=(8, 11) cmark_says=content gate_says=content  AGREES
+  4-space-closer/independent       exit=1 unindexed=1 cmark=(8, 11) cmark_says=content gate_says=content  AGREES
+  tab-closer/integrity             exit=1 unindexed=1 cmark=(8, 11) cmark_says=content gate_says=content  AGREES
+  tab-closer/independent           exit=1 unindexed=1 cmark=(8, 11) cmark_says=content gate_says=content  AGREES
+  3-space-closer/integrity         exit=0 unindexed=0 cmark=(8, 9) cmark_says=live gate_says=live  AGREES
+  3-space-closer/independent       exit=0 unindexed=0 cmark=(8, 9) cmark_says=live gate_says=live  AGREES
+  0-space-closer-control/integrity exit=0 unindexed=0 cmark=(8, 9) cmark_says=live gate_says=live  AGREES
+  0-space-closer-control/independent exit=0 unindexed=0 cmark=(8, 9) cmark_says=live gate_says=live  AGREES
+
+-- live join --
+  exit=0  all checks agree, both instruments green
+  headline=mode-aware protocol joined=24

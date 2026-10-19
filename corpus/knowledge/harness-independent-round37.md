@@ -18,6 +18,44 @@ file records the closure: the adjudications and their probes, the scope-out and
 its validation, the freeze-before-compare receipt, and the blindness-by-
 construction scrub.
 
+**What the exit 0 does not mean (round 40, seat W1 — the honest state).** The
+24/24 is real over the landed scope, but it is **not** evidence that a copier
+cannot reach it, and the class round 39 meant to close survives in channels the
+three locks do not cover. Measured at the round-40 dispatch state (HEAD
+`1c32b43`, driver `bb8dcecd`, IND `872993f8`; probe
+`.ufo/round-40/drafts/w1/probe-channels.py`, transcript `probe-preland.txt`):
+ten attack payloads built from the live instruments' own captures all read
+**exit 0 / 24/24** while the same divergence placed in the channel the driver
+actually reads reads exit 1. The named survivors:
+
+- **F-2 (r39 R1, HIGH).** `IND_VALUE_KEYS` accepts `expected`/`expected_value`
+  first, and the live IND never emits them, so a record carrying the harvested
+  value in `expected` and `"NOT DERIVED"` in both derived fields is scored as
+  derived agreement.
+- **F-3 (r39 R1, MEDIUM).** `_record_list` returns the first of
+  `results`/`rows`/`checks`; the other two are never cross-checked.
+- **Round 40 additions, same class, measured by this seat on the same bytes:**
+  the top-level `landed`/`unlanded` counts are unread; a **committed** scoped
+  row may carry a divergent value beside its `SCOPED_OUT` flag (the flag, not
+  the value, decides the row leaves the join); the probe `target` is
+  payload-chosen (the committed scope file stores `kind`+`reason` only, no
+  target — measured), so a payload-built census tree satisfies the recomputation;
+  a `state` alias shadows `status`; a stringified value in a shadow channel is
+  invisible; and a duplicate id divergent-first is dropped.
+- **The scope-file CWD door (round 40, R1 filed, W1 reproduced).**
+  `load_scope_file(args.scope_file)` resolves the path against the **process
+  CWD** while the receipt records its digest against `--cwd`, so a driver run
+  from a planted directory enforces a *different* scope file than the receipt
+  attests: exit 0, 5 rows scoped out, while the receipt's own `sha256` names the
+  honest 4-row repo file. Reproduction:
+  `.ufo/round-40/drafts/w1/cwd-door.py` → `cwd-door-preland.txt` (arm A exit 0,
+  arm B control exit 2, arm C digest mismatch).
+
+So the reader should treat §1's exit 0 as **conditional on the payload being
+honest**, which is the opposite of what a counter-instrument is for. The
+pending C1' fix (round 40) is aimed at F-2/F-3; whether it closes the wider
+class is a measurement, not an expectation — see §5.
+
 | | author's instrument (HAR) | independent derivation (IND) |
 |---|---|---|
 | file | `verifiers/verify_harness_claims.py` | `verifiers/verify_harness_independent.py` |
@@ -293,22 +331,24 @@ attestation. `R1-make_blind_tree.sh` builds a worktree from `git archive HEAD`
 leaked `keys_reproduced=7`, `17→7`), deletes the docs that quote the pin set,
 and drops `.ufo/` (prior-round fragments quote the pins). Re-run at write time:
 
-- **pin-value residual = 4 (round 39; was 0 at the r38 write time)** — the four
-  files the scrub now reports are `verifiers/verify_harness_independent.py`,
-  its two fixtures (`verifiers/fixtures/harness-independent/{oc-log,omp-cache}/case.json`)
-  and **this document**, which quotes the pinned stdout forms in its own §1–§2.
+- **pin-value residual = 5 (round 40; was 4 at the r39 write time, 0 at r38)** —
+  the five files the scrub now reports are `verifiers/verify_harness_independent.py`,
+  `verifiers/harness-independent-scope.json` (its blocker prose names
+  `omp.catalogue.matched`), its two fixtures
+  (`verifiers/fixtures/harness-independent/{oc-log,omp-cache}/case.json`) and
+  **this document**, which quotes the pinned stdout forms in its own §1–§2.
   The doc is new to the surface (the script's delete list is a measured
   inventory taken before this file existed, so the doc survives the scrub) and
   is the honest case: a file that publishes the pins belongs in the surface, so
-  it is counted, not waved away. The other three are the builder's own artifacts
+  it is counted, not waved away. The others are the builder's own artifacts
   naming their own rows; none is harness source. (The script prints
-  `harness_pin_residual_count=4`; at the r38 write time its token list predated
+  `harness_pin_residual_count=5`; at the r38 write time its token list predated
   these landed artifacts and printed 3.)
 - The scrubbed tree still **runs green**: with the current instrument and
   fixtures copied in, `24 derived, 4 scoped out, 0 unlanded`, exit 0,
-  `--self-test 0 failure(s) over 93 assertions`; the pins guard runs inside it
+  `--self-test 0 failure(s) over 104 assertions`; the pins guard runs inside it
   (`exit 0`); the substrate stays reachable (the db is outside the repo);
-  `tree_files=338`, `dot_git_present=no`. The driver inside the scrub tree
+  `tree_files=340`, `dot_git_present=no`. The driver inside the scrub tree
   fails closed on the (correctly) absent harness — `ERROR: live instrument
   failed with no stdout … exit 2` — which is the scrub working as designed.
 
@@ -330,6 +370,28 @@ round-37 state the ordering was measured forward: IND freeze `01fd40ef…` at
   28 live checks are excluded by the instrument's own declaration. A reader who
   quotes the headline without the scope is quoting a different claim, which is
   why §1 quotes the driver's full line.
+- **The green is also payload-conditional (round 40, seat W1).** Ten attack
+  payloads reach exit 0 / 24/24 against the driver at the round-40 dispatch
+  state (the F-2 and F-3 channels plus the seven round-40 additions named in
+  the header note), while the same divergence in the read channel is named.
+  A green from this driver therefore bounds *drift between two honest
+  instruments*, not a copier's ability to satisfy the join. Measured:
+  `.ufo/round-40/drafts/w1/probe-channels.py` at driver `bb8dcecd` (transcript
+  `probe-channels-preland.txt`); the round-40 C1' landing is aimed at the first
+  two of these, and the rest stand until measured closed.
+- **The probe target is payload-supplied.** The committed
+  `verifiers/harness-independent-scope.json` stores `kind` and `reason` per
+  scoped row but no `target` (measured: `sorted(entry)` → `['kind', 'reason']`
+  for all four rows), so the census the driver recomputes is computed over the
+  tree the *payload* names. A payload that builds a tree with a spread of
+  totals satisfies `distinct_totals >= 2` and keeps its scope-out. The
+  `false blocker` classes catch a vacuous or single-total surface, not a
+  fabricated one.
+- **The scope-file path is resolved against the process CWD.** `--scope-file`
+  is opened relative to the process CWD while the receipt's `scope_file.sha256`
+  is computed relative to `--cwd`, so the enforced set and the attested digest
+  can describe different files (round 40: exit 0 with a 5-row planted set,
+  receipt digest = honest 4-row file). Repro `.ufo/round-40/drafts/w1/cwd-door.py`.
 - **Agreement falsifies implementations, never specs.** A second same-spec
   instrument inherits the class spec's scope choices; the 24/24 is evidence
   about two implementations, not about the substrate model. The adjudications
@@ -411,7 +473,9 @@ python3 verifiers/verify_harness_claims.py --json > /tmp/har-freeze.json
 python3 verifiers/compare_harness_independent.py --live-json /tmp/har-freeze.json \
   --independent-json /tmp/ind-freeze.json --receipt /tmp/receipt.json
 echo "CMP exit=$?"                      # agreement 24/24, exit 0; receipt mode=frozen-inputs
-python3 verifiers/compare_harness_independent.py --self-test  # 0 failure(s) over 83 assertions
+python3 verifiers/compare_harness_independent.py --self-test  # 0 failure(s) over 97 assertions
+                                                             # (was 83 at the r38 closure, 93 mid-r39;
+                                                             # round 40 adds the fixture battery)
 
 # the mutant leg (both instruments move; the frozen arm flips and names).
 # round 39: this fixture is durable at verifiers/fixtures/harness-independent/
@@ -424,21 +488,32 @@ python3 verifiers/compare_harness_independent.py \
                                                                  # and the driver names the live side's own
                                                                  # non-PASS rows instead of a disagreement
 
-# the round-39 predicate arms, each re-runnable against both instruments
+# the round-39 predicate arms, each re-runnable against both instruments.
+# round 40: the four logs this loop used to read from .ufo/round-39/drafts/p2/
+# were pruned by the r39 integrator (only b2/ and PRUNE.log survive), so the
+# block rebuilds them from the grammar the r39 adjudication landed. Each log
+# carries one occurrence sequence; the r39 ruling is that both init_count rows
+# derive from it in file order.
+mkdir -p /tmp/w1-pred
+printf 'run=aaa message=init count=1\nrun=aaa message=init count=2\n' > /tmp/w1-pred/mut-hargrammar-inc.log
+printf 'run=aaa message=init count=3\nrun=aaa message=init count=2\nrun=aaa message=init count=1\n' > /tmp/w1-pred/mut-hargrammar-dec.log
+printf 'run=aaa message="init count" value=2\n' > /tmp/w1-pred/mut-quoted.log
+printf 'run=aaa message=init count=2\nrun=bbb message=init count=1\n' > /tmp/w1-pred/mut-hargrammar-crossrun.log
 for LOG in mut-hargrammar-inc mut-hargrammar-dec mut-quoted mut-hargrammar-crossrun; do
   python3 verifiers/verify_harness_claims.py --no-baseline --json \
-    --oc-log .ufo/round-39/drafts/p2/$LOG.log > /dev/null   # live column
+    --oc-log /tmp/w1-pred/$LOG.log > /dev/null   # live column
   python3 verifiers/verify_harness_independent.py --json \
-    --oc-log .ufo/round-39/drafts/p2/$LOG.log > /dev/null   # independent column
+    --oc-log /tmp/w1-pred/$LOG.log > /dev/null   # independent column
 done
+# both columns move together: inc -> []/0, dec -> ['3->2','2->1'], quoted -> 0/[]
 
 # blindness by construction + the controls + the scope-out validation.
 # round 39: every input these lines used to read from .ufo/round-38/drafts/w1/
 # was pruned by the r38 integrator (PRUNE.log: drafts 95M -> 548K). The script
 # below rebuilds each input it needs, so the block is self-contained.
 bash .ufo/round-37/evidence/R1-make_blind_tree.sh /tmp/blind-tree
-                                                    # round-39 re-run: pin-value residual 4
-                                                    # (see §4 for why it moved off 0), tree_files=338
+                                                    # round-40 re-run: pin-value residual 5
+                                                    # (see §4), tree_files=340
 python3 .ufo/round-37/evidence/R1-counter_blind.py  # 28/28 with zero derivation, exit 0
 cat > /tmp/null_echo.py <<'PY'
 import json, subprocess, sys
