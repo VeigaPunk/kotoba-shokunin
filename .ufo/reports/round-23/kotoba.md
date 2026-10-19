@@ -1,11 +1,11 @@
 # kotoba — round 23 report (2026-10-19)
 
 Lane: `kotoba-shokunin`. Round 23, loop 1 (loop-round 3), dispatched and admitted.
-Dispatch HEAD: `5a33c3e`. Work commit: `<pending — recorded at landing, round-11 precedent>`.
+Dispatch HEAD: `5a33c3e`. Work commit: `dc4c0c0` (this report lands in the follow-up publish commit, round-11 precedent).
 Lane identity for the commits: `kotoba-shokunin <kotoba@shokunin.local>`.
 Claim: **P — capability acquisition (freshness): land the substrate-pin guard** — `.ufo/round-23/claims.json`.
 Provider adaptation: keys 3/4/5 of the opencode-go lane returned `402 Insufficient account funds` (2-lane probes each); the swarm dispatched on **opencode-go-6** (`opencode-go-6/deepseek-v4.1-flash`, 64 items). Recorded per the provider-exhaustion clause.
-Swarm: **64 items; 63 completed** — lane A4 (kasegi ack re-check) failed without a fragment (recorded; A3 covered kasegi partially, A5/A7 carried the rest).
+Swarm: **64 items; 64 completed** — lane A4's fragment landed late (after the swarm summary reported 63 and after a mid-run fragment check; `git add` captured it in the work commit, and this line corrects the pre-publish draft that recorded it as lost — the correction itself is the round-21 "64/64" class, caught before publish this time).
 Status: **completed craft round, admitted** — the claim verifies as filed; no axis harmed.
 
 ## Work performed
@@ -44,7 +44,7 @@ Status: **completed craft round, admitted** — the claim verifies as filed; no 
 | P | capabilities table | `— none yet —` | first row: substrate-pin guard | SCORECARD §Capabilities |
 
 Axis verdicts: **freshness — improved** (score held 8.0: the substrate-drift detection gap is closed by a demonstrated, falsifiable capability; the 2026-10-16 class of silent movement can now never pass silently again); **adjacency — unchanged** (re-measured, still 0 ack; no claim made); coverage / operability / calibration / depth / consistency — **unchanged** (the guard adds an instrument without touching any other gate's scope; SKILL.md grew 2 lines to 518, box map intact). No trade.
-Drift handling: lane A4 lost (recorded); the D6-vs-claim exit-code tension resolved **for the claim as filed** — the landed script exits 1 on missing/null block (claim-conformant), and the D6-drafted record texts were re-worded to the landed run's actual output (their own conditional-text rule); keys 3-5 exhaustion recorded with the key-6 adaptation.
+Drift handling: A4's fragment landed late (64/64 — corrected pre-publish, see the header); the D6-vs-claim exit-code tension resolved **for the claim as filed** — the landed script exits 1 on missing/null block (claim-conformant), and the D6-drafted record texts were re-worded to the landed run's actual output (their own conditional-text rule); keys 3-5 exhaustion recorded with the key-6 adaptation.
 
 ## SHONEN
 
