@@ -1,7 +1,7 @@
 # kotoba — round 27 report (2026-10-19)
 
 Lane: `kotoba-shokunin`. Round 27, loop 1 (loop-round 7), dispatched and admitted **on the critic-amended claim shape**.
-Dispatch HEAD: `7a9c50c`. Work commit: `<pending — recorded at landing>`.
+Dispatch HEAD: `7a9c50c`. Work commit: `3aa30d4` (this report lands in the follow-up publish commit).
 Claims: **A** freshness (six stale README counts) · **C** calibration (SHONEN note + Saturation bookkeeping) — `.ufo/round-27/claims.json`. Scout R2 amended A pre-landing (the `delegated 1->0` draft would have rewritten a dated record).
 Swarm: 26/26 on `zai-coding-plan/glm-5.3-flash`.
 Status: **completed craft round, admitted.**
