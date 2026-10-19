@@ -1,7 +1,7 @@
 # kotoba — round 31 report (2026-10-19)
 
 Lane: `kotoba-shokunin`. Round 31, loop 1 (loop-round 11), dispatched and admitted on critic-shaped designs.
-Dispatch HEAD: `ec42466`. Work commit: `<pending — recorded at landing>`.
+Dispatch HEAD: `ec42466`. Work commit: `eb39e1d` (this report lands in the follow-up publish commit).
 Claims: **B** freshness (extractor-blindness arm) · **G** operability (floors-guard hardening) — `.ufo/round-31/claims.json` (items array 27; prose said 32 — corrected, the count class).
 Swarm: 27/27 on `zai-coding-plan/glm-5.3-flash-low` (max-effort pin).
 Status: **completed craft round, admitted.**
