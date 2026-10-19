@@ -148,7 +148,7 @@ regex, `metadata.requires` over prose, render-by-reproduction, invocation-shaped
 triggers for domain-term names, and the discovery roots:
 `corpus/knowledge/frontmatter-trigger-surface.md` § Craft rules.
 
-Portability floor (spec + vendor + YAML, `corpus/SOURCES.md` S001–S003, S008): `name` ≤64 lowercase-hyphen chars equal to the directory; `description` ≤1024 chars, no XML tags (Anthropic rule), quoted when it holds `: ` or ` #` (illegal in a YAML plain scalar — lenient loaders hide it, strict ones reject). This file's own description still carries `<skills>`; the repair is planned (`SCORECARD.md` § planned, round 47).
+Portability floor (spec + vendor + YAML, `corpus/SOURCES.md` S001, S002, S003, S008): `name` ≤64 lowercase-hyphen chars equal to the directory; `description` ≤1024 chars, no XML tags (Anthropic rule), quoted when it holds `: ` or ` #` (illegal in a YAML plain scalar — lenient loaders hide it, strict ones reject). This file's own description still carries `<skills>`; the repair is planned (`SCORECARD.md` § planned, round 47).
 
 ## Decision tables — when to use one
 
