@@ -74,96 +74,11 @@ is a checklist of *available* organs, not a mandatory skeleton.
 
 ## Instruction surfaces — pick the file before the fix
 
-Nine surface classes; the loader-derived class inventory behind them (per-harness
-literals, load conditions, exclusions with reasons) is
-`corpus/knowledge/instruction-surface-census-round13.md`, and its machine check
-covers **both** harnesses: `verifiers/verify_surfaces.py` (7 checks) extracts omp's
-`.md` registration call shapes and opencode's instruction-service shapes — seven
-named rules, all anchors load-bearing, an empty baseline or a zero extraction a
-FAIL — and compares the census's id, literal and kind cells per id against
-`verifiers/surfaces-baseline.json` (rule set and falsifier matrix:
-`corpus/knowledge/opencode-extraction-round14.md`). Each class loads differently, so each
-has different craft rules. Applying skill-file rules to an always-loaded file
-(or vice versa) is the most common cross-surface mistake. Two of the nine
-(dispatch prompts) are **host-observed** — no harness loads `/home/vgpnk/projects/shokunin/.ufo/prompts/`;
-they are a fleet filesystem convention and say so in the table.
-
-| Surface | Load condition | Parse surface | Dominant failure | Craft rule |
-|---------|----------------|---------------|------------------|------------|
-| SKILL.md | Opt-in: activated when `description` matches intent | frontmatter = router index; body = executor contract | False activation / missed activation | All craft below (frontmatter, tables, gates) |
-| Agent definition (`opencode/agents/*.md`) | Roster: orchestrator picks by `description`, then body becomes the subagent's system prompt | `description` = delegation index; body = persistent identity | Wrong-lane delegation; stale routing metadata | Terse negative routing in description (`NOT general-purpose. NOT explore.`); identity + constraints in body, never a per-task job; dated operational notes belong in status files, not frontmatter |
-| AGENTS.md | Always-on: injected into every session in its repo | No frontmatter, no router — every byte loads on each injection (loader code in both harnesses: omp class `agents-md` `jDe(e,Pqr,"AGENTS.md")`, opencode `y[0]` + config `instructions`; 0 captured injections on this host) | Token drag, stale constraint decay | Terse imperative rules only; no triggers, no prose, no procedures that belong in a skill |
-| Command file (`opencode/command/*.md`) | Opt-in: user invokes `/<name>` | `description` + `agent:` frontmatter; body = command contract | Skill drift without a guardrail | Pointer-then-rules idiom: line 1 names the owning skill + `$ARGUMENTS`; then only the literal rules that must hold even if the skill drifts — procedures stay in the skill |
-| Dispatch prompt — spawn (L1/L2 lanes) | Ephemeral: consumed once by a subagent (**host-observed** — no harness loads `/home/vgpnk/projects/shokunin/.ufo/prompts/`; the class is a fleet filesystem convention) | Whole file is the contract; no persistence | Missing stanza → unrecoverable agent (no conversation to clarify with) | Fixed 6-stanza order; complete, self-contained; ends with `| godspeed` |
-| Dispatch prompt — round (`*-round-N.md`) | Ephemeral: re-ignites a live L1 lane (**host-observed**, same convention; ~72 round files under the shokunin tree) | Relies on durable repo context (SKILL/LOG/corpus) | Stating stale per-round policy (routing maps drift between rounds) | 3–4 lines: role+round → method directive → land-scope+report → `| godspeed`; carry only what changed since spawn |
-| CLAUDE.md | Conditional always-on: **omp** registers it as its own class (`claude-md`, "Standalone CLAUDE.md files (Claude Code style)") and reads it *alongside* AGENTS.md; **opencode** reads `CLAUDE.md` (project walk-up `y[1]`) and `~/.claude/CLAUDE.md` (`n[1]`) only while `OPENCODE_DISABLE_CLAUDE_CODE` / `_PROMPT` is unset, and only when no `AGENTS.md` exists in that directory (first name wins in `y`) — cold on this host (0 captured injections) | Same as AGENTS.md: every byte loads when present | Same as AGENTS.md + dual-name collision, now with a **harness divergence**: omp obeys both files, opencode obeys AGENTS.md alone | One owner per repo: redirect file (llama.cpp 1-liner → AGENTS.md) or pick one name; a 4339-line file is an unconditional session tax; never assume both files are read — check which harness you are writing for |
-| Cross-tool rule file (`GEMINI.md`, `.cursor/rules/*.mdc`, `.cursorrules`, `.github/copilot-instructions.md`, `.windsurf/rules/*.md`, `*.instructions.md`, `.clinerules`, `SYSTEM.md`/`SYSTEM_TEMPLATE.md`, `CONTEXT.md`) | Loaded as **separate** classes by omp (one per tool ecosystem: gemini/github/cursor/windsurf/clinerules); opencode folds three of the names into one priority list per directory (`y` = AGENTS.md → CLAUDE.md → CONTEXT.md, first hit wins) | Durable rule text wearing another agent's filename convention | Silent rule drift between two agents reading two files; a rename that quietly disables a class on one harness and not the other | One owner per *family*, not per filename: keep AGENTS.md, redirect or delete the rest; omp reads every registered class while opencode reads one name per directory, so agreement is an assumption — the per-class literals are in `corpus/knowledge/instruction-surface-census-round13.md` |
-| Declared instruction list (`opencode.json` `instructions: []`) | Opt-in list: each entry is a path, a glob, or an `https://` URL that opencode fetches (`concurrency: 4`) and renders as an `Instructions from: <url>` block beside local files | Composed rule supply: several files, local or remote, merged by the harness | A stale URL or a moved path silently drops a whole rule layer — no diff to review | Prefer repo-relative paths/globs over remote URLs; treat a remote entry as a supply chain (pin it) and edit the target file rather than renaming it — the list is the only pointer |
-
-**AGENTS.md evidence:** six shokunin child repos carry shape-identical 5-line
-operating rules (scope, LOG-evidence, no-fabrication) — identical shared body
-under a per-repo first line (`md5sum` differs across the six; hashing lines
-2+ gives one hash — `/home/vgpnk/projects/shokunin/*/AGENTS.md`, re-verified
-round 7). The host-level `~/.agents/AGENTS.md` (75 lines) is NOT pure
-constraints: it carries procedures (`Load and obey
-~/.agents/godspeed-core/directive.md` at :18, `the-janitor tac-check` at :55)
-and dated attestations (:48,:51) — a mixed surface, flagged by the round-7
-AGENTS.md checklist audit (`corpus/knowledge/alwayson-checklist-round7.md`).
-
-**Agent-definition evidence:** 18 `.md` files under
-`~/.config/opencode/agents/` (14–197 lines) — plus **two count corrections
-found in round 13** (connector lane defect D3): that directory holds a 19th
-non-`.md` entry (`ls ~/.config/opencode/agents/ | wc -l` → 19), and opencode
-loads the *singular* `agent/` directory too (`~/.config/opencode/agent/ufo.md`
-is live and is the effective definition for that name; the loader's own doc
-table says `agent(s)/<name>.md`). The **omp-side roster** is separate and
-ungoverned here: `~/.omp/agent/agents/*.md` → 37 files (excluded in
-`corpus/knowledge/instruction-surface-census-round13.md` because its load path
-is inferred from `omp agents unpack`, not read from a session). Frontmatter keys
-beyond `name`/`description` are routing and
-grant policy — `model`/`cascade`/`effort` (distiller, ufo), `permission_mode`/
-`agents_md` (distiller), `whenToUse`/`subagents` (orch's delegation roster).
-11 of 18 descriptions carry `NOT …` negative routing (round-6 audit,
-`corpus/knowledge/agent-def-audit-round6.md`, corrected the round-4 count of
-7) — the delegation-table analogue of anti-triggers. Posture text is
-copy-pasted: 14 files share one identical 9-line godspeed preamble
-(round-4 said 13; orch.md was missed), verified by `md5sum` over the region
-and re-verified round 7 (shared md5 `c91c0d66…`, still 14/18);
-`mutation-tester.md` carries it **twice** in-file — the observed cost of
-copy-paste zones in durable files. The 18/14/11 counts are round-13-unverified
-(they are round-6/7 measurements of a directory whose membership has since
-changed); re-run the commands before citing them.
-
-**Command-file evidence:** 3 files under `~/.config/opencode/command/`
-(10–13 lines). Two idioms: pointer-then-rules (sekhmet.md, xbrd.md — line 1
-names the owning skill + `$ARGUMENTS`, then 3–4 rules that must hold even if
-the skill drifts) and inline protocol (ufo.md — justified because no skill
-owns orchestration). `agent: <name>` in frontmatter delegates to a named
-roster agent (ufo.md → `agent: ufo`).
-
-**Spawn dispatch-prompt anatomy** (from `/home/vgpnk/projects/shokunin/.ufo/prompts/*-L1.md`, nominally 9–12 lines each):
-`role + working dir` → `context (domain + rank)` → `job (imperative, with
-verification commands embedded)` → `L2 routing map` → `report path + scope
-fence` → literal ` | godspeed` suffix. A stanza missing from a spawn dispatch
-is permanently absent — the subagent cannot ask for it back. Budget the file
-for completeness, not brevity; the reader is a blank-context agent. Round
-prompts invert this: the reader re-loads its own repo, so the prompt carries
-only the round number and method — observed template variance is name + path
-(`diff` of `kake-round-4.md` vs `kasegi-round-4.md`, both under
-`/home/vgpnk/projects/shokunin/.ufo/prompts/`). Round-7 audit caveat
-(`corpus/knowledge/dispatch-prompt-audit-round7.md`): 6 of 8 spawn files
-reach 12 lines only by duplicating their first 5 lines with literal `\n`
-escapes, and 30/35 round files restate the L2 map (with stale model aliases
-`m_composer`/`m_antigravity`/`m_grok` that predate the MISSION.md bucket) —
-the artifact population, not the template, is what's dirty.
-
-Craft asymmetry to respect: SKILL.md optimizes *match precision* (trigger
-density in the description); AGENTS.md optimizes *constraint survival* (a rule
-that must hold unconditionally, so it must be short enough to always be read);
-agent definitions optimize *delegation precision* (capability + exclusions an
-orchestrator matches); spawn prompts optimize *one-shot completeness*
-(everything the reader needs, nothing it can look up); round prompts optimize
-*delta-only weight* (everything durable is already in the repo).
+The nine-class surface table with its evidence paragraphs moved verbatim to
+`corpus/knowledge/instruction-surface-census-round13.md` § SKILL.md instruction-surfaces
+table (round 22; sha256 `e046a0252cc96f17…` pinned there). The machine check is unchanged:
+`verifiers/verify_surfaces.py` (7 checks) reads that same census file. The table's
+"All craft below" cell refers to this file's craft sections below — kept verbatim.
 
 ## Router model — which harness, which gate
 

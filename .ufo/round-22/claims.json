@@ -1,0 +1,53 @@
+{
+  "round": 22,
+  "loop": 1,
+  "loop_round": 2,
+  "lane": "kotoba",
+  "dispatched_at_head": "b16300f",
+  "provider_plan": {
+    "model": "opencode-go-2/deepseek-v4.1-flash",
+    "key": "opencode-go-2 (key 2 of 7; rotation continues key 3 next opencode-go round and across loops)",
+    "swarm": 64,
+    "fallback": null
+  },
+  "axis_set": [
+    {
+      "axis": "freshness",
+      "score": "8.0",
+      "owned": "advisory",
+      "direction": "up — clear the carried gate red (trigger.line_budget 601>600) by moving a non-checklist section of SKILL.md out to its corpus home, per the round-15 idiom",
+      "observable": "verify_skill_checklist.py live exit 0 with all 10 checks PASS including line_budget; SKILL.md <= 600 lines; moved content preserved verbatim in corpus/knowledge/ with a summary+pointer; 41 boxes and the box map unchanged"
+    },
+    {
+      "axis": "adjacency",
+      "score": "8.0",
+      "owned": "advisory",
+      "direction": "up — escalate the unacknowledged round-16 route packets through the protocol's L0 side channel and measure live acknowledgment state across the five siblings",
+      "observable": "an append-only line `kotoba | round-22 | <question>` in ../.ufo/l0-questions.md (protocol-designated operator channel); an in-repo record of per-sibling acknowledgment counts with evidence pointers"
+    }
+  ],
+  "claims": [
+    {
+      "id": "B",
+      "axis": "freshness",
+      "claim": "SKILL.md returns to <= 600 lines by moving exactly one non-checklist section to its corpus home (round-15 idiom: verbatim move + summary + pointer + README index row), and the checklist gate goes fully green live.",
+      "before": "SKILL.md is 601 lines (grew at 02302c5); verify_skill_checklist.py live exits 1 on trigger.line_budget 601>600; the red has been carried since round 19 under explicit instruction not to raise the budget.",
+      "after": "SKILL.md <= 600 lines; python3 verifiers/verify_skill_checklist.py exits 0 with 10 x PASS including line_budget evaluated within budget; the moved section's bytes live verbatim under corpus/knowledge/ with a pointer from SKILL.md; grep -c '^- \\[ \\]' SKILL.md still yields 41 and the box map still evaluates 41 mapped; no other check is harmed (surfaces/harness/corpus/fault all still exit 0).",
+      "counting_command": "wc -l SKILL.md (<=600) && python3 verifiers/verify_skill_checklist.py (exit 0)",
+      "falsifier": "any check that flips red, any box lost from the map, any moved byte altered, or the line count still > 600 at the landing commit"
+    },
+    {
+      "id": "A2",
+      "axis": "adjacency",
+      "claim": "The five round-16 route packets — re-confirmed unacknowledged at round 21 — are escalated to the operator via the protocol's L0 side channel, and the acknowledgment state is measured live across all five sibling repos with an in-repo record.",
+      "before": "Since round 16: zero sibling repairs (delta 0 at round 21), kake's r16adj-route-kake occurrence byte-identical, no sibling references the packets anywhere (round-20 verdict: 'Inherited owner packets replay, but no acknowledgment, mirror, or sibling repair is observed').",
+      "after": "../.ufo/l0-questions.md carries an append-only `kotoba | round-22 | <one-line question>` entry; the round-22 report and corpus record carry per-sibling acknowledgment counts (0..n) with grep evidence pointers; siblings remain read-only and no sibling content is edited.",
+      "counting_command": "grep -c '^kotoba | round-22' ../.ufo/l0-questions.md (expect 1) and per-sibling: grep -rn 'r16adj\\|sibling-citation-routing-round16\\|kotoba' <sibling>/LOG.md <sibling>/.ufo/reports/ (counts recorded)",
+      "falsifier": "the L0 append is not append-only (any existing byte changed), a sibling repo is written, or the acknowledgment counts are asserted without grep evidence"
+    }
+  ],
+  "separability": "B touches only SKILL.md + corpus/knowledge/ + corpus/README.md; A2 appends one line to the fleet L0 channel and reads siblings read-only. Neither claim's verification depends on the other landing.",
+  "lowest_axis_rule": "Both claims work the tied-lowest non-retired axes (freshness 8.0, adjacency 8.0).",
+  "exploratory_not_claimed": "scout lanes P1-P8 prototype a substrate-pin guard (addresses the round-21 'inert measured_against pins' named debt) on /tmp only — preparation for a future capability claim; it enters SCORECARD's capabilities table only if a later round demonstrates it running, per AXES.md.",
+  "shonen": "untouched again — no non-author verifier; round-25 (loop-round 5) targeting refinement is scout lane C3."
+}
