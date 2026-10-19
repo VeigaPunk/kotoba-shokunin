@@ -671,13 +671,15 @@ def fence_indent_columns(indent: str) -> int:
     return cols
 
 
-def fence_open(line: str) -> tuple[str, int, str] | None:
+def fence_open(line: str, rel: int) -> tuple[str, int, str] | None:
     """(char, run length, info string) when the line is a CommonMark opening
-    code fence, else None.  Indentation is at most three columns (four make
-    indented code), and a backtick fence's info string may not contain a
-    backtick (spec § Fenced code blocks, rule 3)."""
+    code fence, else None.  ``rel`` is the line's indentation in columns
+    measured inside its container (absolute for a top-level line): at most
+    three columns make an opener, four make indented code.  A backtick
+    fence's info string may not contain a backtick (spec § Fenced code
+    blocks, rules 1 and 3)."""
     fm = FENCE_RE.match(line)
-    if not fm or fence_indent_columns(fm.group(1)) > 3:
+    if not fm or rel > 3:
         return None
     run, info = fm.group(2), fm.group(3)
     if run[0] == "`" and "`" in info:
@@ -685,60 +687,102 @@ def fence_open(line: str) -> tuple[str, int, str] | None:
     return run[0], len(run), info
 
 
-def fence_close(line: str, char: str, length: int) -> bool:
-    """Is the line a closing fence for an opener of ``char``/``length``?
-    Same character, at least as long, and no info string -- the tail may
-    carry only spaces or tabs (spec § Fenced code blocks, rule 2)."""
+def fence_close(line: str, char: str, length: int, rel: int) -> bool:
+    """Is the line a closing fence for an opener of ``char``/``length`` at
+    container-relative indentation ``rel``?  Same character, at least as
+    long, no info string; the tail may carry only spaces or tabs, and the
+    closer may sit up to three columns inside its container (spec § Fenced
+    code blocks, rule 2)."""
     fm = FENCE_RE.match(line)
-    if not fm or fence_indent_columns(fm.group(1)) > 3:
+    if not fm or rel > 3:
         return False
     run, tail = fm.group(2), fm.group(3)
     return run[0] == char and len(run) >= length and tail.strip() == ""
 
 
+LIST_MARKER_RE = re.compile(r"^([ \t]*)([-*+]|\d{1,9}[.)])([ \t]+)")
+
+
+def list_content_column(line: str, rel: int) -> int | None:
+    """Column a list item opened by ``line`` hands to its children, or None
+    when the line is not a marker at a legal depth.  Children measure their
+    fence indentation from here, not from column 0 (spec § List items)."""
+    if rel > 3:
+        return None
+    fm = LIST_MARKER_RE.match(line)
+    if not fm:
+        return None
+    return (fence_indent_columns(fm.group(1)) + len(fm.group(2))
+            + len(fm.group(3)))
+
+
 def fenced_regions(lines: list[str]) -> tuple[set[int], list[list[tuple[int, str]]],
                                               int | None]:
-    """(content line numbers, command-eligible blocks, unclosed opener line).
+    """(opaque line numbers, command-eligible blocks, unclosed opener line).
     A block is command-eligible when the opening fence's info string (first
     whitespace token, lowercased) is in {'', bash, sh, shell, console}.
-    Delimiters follow CommonMark 0.31.2 § Fenced code blocks: an opening
-    fence may be indented at most three columns, a closing fence must use the
-    same character, be at least as long as the opener, and carry no info
-    string -- so a shorter/different-character/info-bearing fence-looking
-    line inside a block is content, not a toggle.  An unclosed fence runs to
-    the end of the file (its block is still command-eligible) and its opener
-    line is returned so the caller can fail loud instead of scanning on."""
+    Delimiters follow CommonMark 0.31.2 § Fenced code blocks with container
+    relative indentation: opener and closer may sit up to three columns inside
+    the innermost open list item; a closer repeats the opener's character at
+    that length or longer and carries no info string; a fence whose container
+    ends is terminated by that container (not an unclosed-fence defect); a
+    fence still open at end of file runs to the last line and its opener is
+    returned so the caller can fail loud."""
     inside: set[int] = set()
     blocks: list[list[tuple[int, str]]] = []
     in_fence = False
     fence_char = ""
     fence_len = 0
+    fence_depth = 0
     shell = False
     cur: list[tuple[int, str]] = []
     opener = 0
+    containers: list[int] = []
     for lineno, line in enumerate(lines, 1):
-        if not in_fence:
-            op = fence_open(line)
-            if op is not None:
-                in_fence = True
-                fence_char, fence_len, info = op
-                words = info.strip().split()
-                shell = (words[0].lower() if words else "") in FENCED_INFO
-                cur = []
-                opener = lineno
-                continue
-        elif fence_close(line, fence_char, fence_len):
-            in_fence = False
-            if shell:
-                blocks.append(cur)
-            continue
+        col = fence_indent_columns(re.match(r"^[ \t]*", line).group(0))
+        if line.strip():
+            while containers and col < containers[-1]:
+                containers.pop()
+                if in_fence and len(containers) < fence_depth:
+                    in_fence = False
+                    if shell:
+                        blocks.append(cur)
+        rel = col - containers[-1] if containers else col
         if in_fence:
+            if line.strip() and fence_close(line, fence_char, fence_len, rel):
+                in_fence = False
+                if shell:
+                    blocks.append(cur)
+                continue
             inside.add(lineno)
             if shell:
                 cur.append((lineno, line))
-    if in_fence and shell:
-        blocks.append(cur)
-    return inside, blocks, (opener if in_fence else None)
+            continue
+        if not line.strip():
+            continue
+        content_col = list_content_column(line, rel)
+        if content_col is not None:
+            while containers and content_col <= containers[-1]:
+                containers.pop()
+            containers.append(content_col)
+            continue
+        op = fence_open(line, rel)
+        if op is not None:
+            in_fence = True
+            fence_char, fence_len, info = op
+            fence_depth = len(containers)
+            words = info.strip().split()
+            shell = (words[0].lower() if words else "") in FENCED_INFO
+            cur = []
+            opener = lineno
+            continue
+    if in_fence:
+        if shell:
+            blocks.append(cur)
+        if fence_depth == 0:
+            return inside, blocks, opener
+        return inside, blocks, None
+    return inside, blocks, None
 
 
 def logical_lines(block: list[tuple[int, str]]) -> list[tuple[int, str]]:
@@ -1578,6 +1622,33 @@ FENCE_SHAPES = [
      "lines": ["````bash", "echo ok", "```", "echo still-in-block", "````"],
      "content": [2, 3, 4], "boxes": [], "unclosed": None,
      "block": [2, 3, 4]},
+    # round-38 C3: the container-relative class V6 named at round 37.  The
+    # three-column cap is read inside the innermost open list item, so a fence
+    # at four absolute columns under a two-column item content column is a
+    # legal opener (spec § Fenced code blocks read with § List items); a fence
+    # whose container ends is terminated by that container.  Pinned values
+    # re-derived from cmark 0.31.2 at authoring time (sourcepos
+    # 5:5-7:7 / 6:5-8:7 / 4:3-6:3 + 6:1-8:3).
+    {"id": "container-fence-four-abs-columns-in-item",
+     "spec": "opener indentation is measured inside the list item, so four "
+             "absolute columns under a two-column item are legal",
+     "lines": ["intro", "", "- item", "", "    ```",
+               "    - [ ] decoy-in-list-fence", "    ```", ""],
+     "content": [6], "boxes": [], "unclosed": None},
+    {"id": "container-fence-nested-item",
+     "spec": "the cap is read inside the innermost item (nested content "
+             "column four)",
+     "lines": ["intro", "", "- item", "  - nested", "", "    ```",
+               "    - [ ] decoy-in-nested-list-fence", "    ```", ""],
+     "content": [7], "boxes": [], "unclosed": None},
+    {"id": "container-fence-outdented-closer",
+     "spec": "a fence whose container ends is terminated by the container, "
+             "not left unclosed",
+     "lines": ["intro", "", "- item", "  ```",
+               "  - [ ] decoy-in-item-fence", "```",
+               "- [ ] decoy-in-doc-fence", "```", "", "- [ ] live-after"],
+     "content": [5, 7], "boxes": [10], "unclosed": None,
+     "block": [5, 7]},
 ]
 
 

@@ -42,19 +42,49 @@ the protocol predicate agrees are ADJUDICATED: recorded by name in the report
 and never counted as a failure.  ``--strict-headline`` makes the strict column
 decisive instead (red-team mode).
 
+Scoped-out rows (round 38, seat P1 — C1 closure).  A row the independent
+instrument cannot derive blind is not a disagreement and must not be smoothed
+into agreement either: the instrument publishes it with status ``SCOPED_OUT``
+and a non-empty reason, plus a top-level ``scoped_out`` map.  This driver reads
+that set from the independent payload's own output — it embeds no id list — and
+fails closed (exit 2) when the set is malformed: a named row absent from the
+independent payload, a named row whose own status is not ``SCOPED_OUT``, or a
+missing/empty reason.  Scoped-out rows leave the join entirely: they are listed
+by name in both report shapes, they never count as agreement (the numerator
+cannot gain from a scope-out, only the denominator narrows), and the headline
+is stated over the landed scope.  A scope-out set that the live side does not
+know about cannot hide a check: the driver's ``--expect-n`` count still covers
+the live check set.
+
+Freeze-before-compare receipt (round 38, seat P2 — A1-D1).  The protocol's §6
+receipt is executable here: ``--receipt FILE`` writes, per run, the sha256 and
+byte count of the exact bytes the join consumed on *both* sides (the captured
+file bytes under ``--live-json`` / ``--independent-json``, or the instrument's
+stdout text under a live run), the instrument file hashes where the path is
+known, and the full invocation record (each side's producer command plus this
+driver's own argv and verdict).  The hashes are taken at input read, before the
+join runs, so a reader can check the ordering from the receipt alone; the
+strongest form — both sides consumed from files captured by their own
+instruments — is labelled ``frozen-inputs``, a live capture is labelled
+``live-capture`` (a narrowing, not a proof: the residue stays stated in the
+corpus doc's §5).  Receipts are JSON, deterministic apart from the timestamp.
+
 Exit: 0 every check agrees and both instruments are green; 1 protocol
 disagreement(s) or un-adjudicated rows; 2 unreadable / unparseable /
 non-joinable inputs; 3 joined but an instrument reported failure.  Read-only
-apart from the paths given on the command line.  Deterministic output.
+apart from the paths given on the command line (and ``--receipt``).
+Deterministic output.
 """
 
 import argparse
+import hashlib
 import json
 import re
 import shlex
 import subprocess
 import sys
 import tempfile
+from datetime import datetime, timezone
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
@@ -271,13 +301,23 @@ def load_payload(text, where):
     return payload
 
 
-def compare(live, independent, modes, use_predicates=True):
-    """Two columns: strict value equality and the mode-aware protocol predicate."""
-    uncovered = sorted(set(live) - set(independent))
-    unknown = sorted(set(independent) - set(live))
+def compare(live, independent, modes, use_predicates=True, scoped_out=None):
+    """Two columns: strict value equality and the mode-aware protocol predicate.
+
+    ``scoped_out`` (round 38) is the independent instrument's own declared set of
+    rows it cannot derive blind.  Those rows leave the join by name: they are
+    never counted as agreement or disagreement, and they do not read as
+    "uncovered" (a scope-out is a declared exclusion, not a missing reading).
+    A scoped-out id the live side does not carry is recorded separately so the
+    caller can fail loudly rather than let an invented id hide there.
+    """
+    scoped_out = scoped_out or {}
+    covered = set(independent) | set(scoped_out)
+    uncovered = sorted(set(live) - covered)
+    unknown = sorted(set(covered) - set(live))
     rows = []
     for cid in sorted(live):
-        if cid not in independent:
+        if cid not in independent or cid in scoped_out:
             continue
         live_value, ind_value = live[cid], independent[cid]
         mode = modes.get(cid, "equal" if not modes else "unknown")
@@ -304,7 +344,59 @@ def compare(live, independent, modes, use_predicates=True):
         "unadjudicated": [r for r in rows if r["protocol"] is None],
         "provisional": [],  # filled by the caller from the independent statuses
         "strict_agree_n": sum(1 for r in rows if r["strict"]),
+        "scoped_out_rows": sorted(cid for cid in scoped_out if cid in live),
+        "scoped_out": {cid: scoped_out[cid] for cid in sorted(scoped_out)},
+        "scoped_out_absent_from_live": sorted(set(scoped_out) - set(live)),
     }
+
+
+def parse_scoped_out(payload, independent):
+    """The independent payload's own scoped-out declaration, validated loudly.
+
+    Round-38 C1 closure: a row the independent instrument cannot derive blind is
+    neither a disagreement nor agreement.  It publishes the set; this driver
+    checks it is well formed — every name present in the independent payload,
+    its own status literally ``SCOPED_OUT``, and a non-empty reason — and
+    returns {check id: reason}.  Any other shape is a loud error (exit 2): a
+    scope-out must never be a way to make a check disappear quietly.
+    """
+    if not isinstance(payload, dict):
+        return {}
+    raw = payload.get("scoped_out")
+    if raw is None:
+        return {}
+    if not isinstance(raw, dict):
+        raise CompareError(
+            f"independent: scoped_out is not a mapping: {show(raw)}")
+    if not raw:
+        raise CompareError(
+            "independent: scoped_out is present but empty (declare the set or "
+            "omit the key; an empty declaration is ambiguous)")
+    statuses = {}
+    records = _record_list(payload)
+    if records is not None:
+        for record in records:
+            if isinstance(record, dict):
+                status = record.get("status", record.get("state"))
+                if isinstance(status, str):
+                    statuses[_record_id(record, "independent")] = status
+    out = {}
+    for cid, reason in raw.items():
+        if cid not in independent:
+            raise CompareError(
+                f"independent: scoped_out names {cid}, absent from its own "
+                f"payload (a scope-out must not hide an unlanded row)")
+        status = statuses.get(cid, "")
+        if status != "SCOPED_OUT":
+            raise CompareError(
+                f"independent: scoped_out names {cid} but its status is "
+                f"{status!r}, not 'SCOPED_OUT'")
+        if not (isinstance(reason, str) and reason.strip()):
+            raise CompareError(
+                f"independent: scoped_out reason for {cid} is empty (the "
+                f"blocker must be named, never silent)")
+        out[cid] = reason
+    return out
 
 
 def annotate_statuses(res, statuses):
@@ -322,9 +414,26 @@ def annotate_statuses(res, statuses):
     return res
 
 
+def scope_totals(meta):
+    """(joined_n, scope_n, live_n) — the headline is stated over the joined scope.
+
+    Round 38: scoped-out rows stay in ``live`` (the instrument's check set) but
+    leave the join, so they narrow the denominator instead of the numerator.  A
+    scope-out can therefore never buy agreement; it can only shrink the claim.
+    """
+    res = meta["result"]
+    joined_n = len(res["rows"])
+    scope_n = joined_n + len(res["uncovered"])
+    live_n = len(meta["live"]) + len(res["uncovered"])
+    return joined_n, scope_n, live_n
+
+
 def decide_exit(res, live_n, expect_n, live_exit, ind_exit, verdicts, strict_headline=False):
     if expect_n and live_n != expect_n:
         return 2, f"live check set has {live_n} checks, expected {expect_n}"
+    if res["scoped_out_absent_from_live"]:
+        return 2, ("scoped-out ids absent from the live check set: "
+                   + ", ".join(res["scoped_out_absent_from_live"]))
     if res["uncovered"]:
         return 2, "uncovered checks (in live, missing from independent): " + ", ".join(res["uncovered"])
     if res["unknown"]:
@@ -371,23 +480,24 @@ def headline(meta):
 
 def summary_lines(meta):
     res = meta["result"]
-    total = len(meta["live"]) + len(res["uncovered"])
+    joined_n, scope_n, live_n = scope_totals(meta)
     label, headline_n = headline(meta)
     return [
-        f"agreement: {headline_n}/{total} ({label} headline)",
-        f"columns: protocol {len(res['agree'])}/{total}; strict {res['strict_agree_n']}/{total}; "
+        f"agreement: {headline_n}/{scope_n} ({label} headline; {live_n} live checks, "
+        f"{len(res['scoped_out'])} scoped out by the independent instrument)",
+        f"columns: protocol {len(res['agree'])}/{scope_n}; strict {res['strict_agree_n']}/{scope_n}; "
         f"adjudicated rows: {len(res['adjudicated'])}; un-adjudicated modes: {len(res['unadjudicated'])}",
         f"disagree: {len(res['disagree'])}; uncovered: {len(res['uncovered'])}; unknown: {len(res['unknown'])}; "
-        f"provisional (unlanded-based agreement): {len(res['provisional'])}",
+        f"provisional (unlanded-based agreement): {len(res['provisional'])}; scoped-out: {len(res['scoped_out'])}",
         f"live: {meta['live_cmd']} -> exit {meta['live_exit']}, {len(meta['live'])} checks, "
         f"{sum(1 for v in meta['verdicts'].values() if v == 'PASS')} PASS",
         f"independent: {meta['ind_cmd']} -> exit {meta['ind_exit']}, {len(meta['independent'])} checks",
-        f"secondary (independent expected vs live expected): {meta['secondary_agree']}/{total}",
+        f"secondary (independent expected vs live expected): {meta['secondary_agree']}/{scope_n}",
         f"verdict: exit {meta['exit']} \u2014 {meta['reason']}",
     ]
 
 
-HEADER = """# harness-independent agreement report — round 37 (C1, seat P4)
+HEADER = """# harness-independent agreement report — round 37/38 (C1, seats P4/P1)
 
 Driver: `verifiers/compare_harness_independent.py` (embeds no expected value; joins both
 instruments' outputs only). Source-blindness rule honoured while building it: no harness
@@ -397,12 +507,17 @@ Agreement predicate follows the round-37 C1 adjudication protocol §2 (frozen su
 `equal` -> value equality; `zero` -> both readings empty; `positive` -> numeric direction.
 Strict value equality is reported alongside; rows where it fails but the predicate holds
 are adjudicated and named, never smoothed.
+
+Round-38 C1 closure: rows the independent instrument scopes out (status `SCOPED_OUT`,
+blocker named by that instrument) leave the join by name and are listed below with their
+blockers. The headline is stated over the joined scope, so a scope-out can only narrow
+the claim, never add to the numerator.
 """
 
 
 def render_markdown(meta):
     res = meta["result"]
-    total = len(meta["live"]) + len(res["uncovered"])
+    joined_n, scope_n, live_n = scope_totals(meta)
     out = [HEADER]
     if meta.get("head"):
         out.append(f"- HEAD scanned: `{meta['head']}`")
@@ -412,8 +527,9 @@ def render_markdown(meta):
     out += [
         f"- live command: `{meta['live_cmd']}` (exit {meta['live_exit']})",
         f"- independent command: `{meta['ind_cmd']}` (exit {meta['ind_exit']})",
-        f"- **agreement: {headline_n}/{total}** ({label} headline) — protocol {len(res['agree'])}/{total}, "
-        f"strict {res['strict_agree_n']}/{total} — {meta['reason']}",
+        f"- **agreement: {headline_n}/{scope_n}** ({label} headline over the joined scope; "
+        f"{live_n} live checks, {len(res['scoped_out'])} scoped out) — protocol {len(res['agree'])}/{scope_n}, "
+        f"strict {res['strict_agree_n']}/{scope_n} — {meta['reason']}",
         "",
         "| # | check | mode | live observed | independent expected | ind status | protocol | strict |",
         "|---|-------|------|---------------|----------------------|------------|----------|--------|",
@@ -429,6 +545,12 @@ def render_markdown(meta):
         out.append(f"| + | `{cid}` | ? | `{show(meta['live'][cid])}` | _(uncovered)_ | - | ERROR | ERROR |")
     for cid in res["unknown"]:
         out.append(f"| + | `{cid}` | ? | _(absent)_ | `{show(meta['independent'][cid])}` | - | ERROR | ERROR |")
+    out += ["", "## Scoped out by the independent instrument (blocker named — not a disagreement, not agreement)", ""]
+    if res["scoped_out"]:
+        for cid, reason in res["scoped_out"].items():
+            out.append(f"- `{cid}`: {reason}")
+    else:
+        out.append("- none")
     out += ["", "## Provisional rows (agreement resting on unlanded derivations — named, not counted)", ""]
     if res["provisional"]:
         for row in res["provisional"]:
@@ -469,7 +591,7 @@ def render_markdown(meta):
         "",
         f"- live verdicts: {sum(1 for v in meta['verdicts'].values() if v == 'PASS')} PASS, "
         f"{len(failed)} non-PASS" + (f" ({', '.join('`' + c + '`' for c in failed)})" if failed else ""),
-        f"- secondary join (independent expected vs live expected): {meta['secondary_agree']}/{total}",
+        f"- secondary join (independent expected vs live expected): {meta['secondary_agree']}/{scope_n}",
         f"- driver exit: {meta['exit']} — {meta['reason']}",
         "",
     ]
@@ -478,11 +600,12 @@ def render_markdown(meta):
 
 def render_json(meta):
     res = meta["result"]
-    total = len(meta["live"]) + len(res["uncovered"])
+    joined_n, scope_n, live_n = scope_totals(meta)
     label, headline_n = headline(meta)
     return {
         "head": meta.get("head"),
-        "headline": {"column": label, "n": headline_n, "total": total},
+        "headline": {"column": label, "n": headline_n, "total": scope_n,
+                     "joined_scope": scope_n, "live_checks": live_n},
         "live": {
             "cmd": meta["live_cmd"],
             "exit": meta["live_exit"],
@@ -500,8 +623,10 @@ def render_json(meta):
             "n_provisional": len(res["provisional"]),
             "n_uncovered": len(res["uncovered"]),
             "n_unknown": len(res["unknown"]),
-            "total": total,
+            "n_scoped_out": len(res["scoped_out"]),
+            "total": scope_n,
         },
+        "scoped_out": res["scoped_out"],
         "disagreements": [
             {"check": r["check"], "mode": r["mode"], "live_observed": r["live"], "independent_expected": r["ind"]}
             for r in res["disagree"]
@@ -531,6 +656,84 @@ def render_json(meta):
 # --------------------------------------------------------------------------
 # self-test
 # --------------------------------------------------------------------------
+def side_receipt(text, cmd, exit_code, json_path, cwd):
+    """One side's frozen-input record: the exact bytes the join consumed.
+
+    ``sha256`` is taken from the captured text at input-read time, before any
+    join runs.  When the side came from a file (``--live-json`` /
+    ``--independent-json``) the file's own digest is recorded as the source of
+    truth; otherwise the captured stdout text is hashed and labelled as such.
+    """
+    payload = text.encode("utf-8")
+    record = {
+        "cmd": cmd,
+        "exit": exit_code,
+        "bytes": len(payload),
+        "sha256": hashlib.sha256(payload).hexdigest(),
+    }
+    if json_path:
+        path = Path(json_path)
+        record["source"] = f"file:{json_path}"
+        record["file_exists"] = path.is_file()
+        if path.is_file():
+            record["file_bytes"] = path.stat().st_size
+            record["file_sha256"] = hashlib.sha256(path.read_bytes()).hexdigest()
+    else:
+        record["source"] = "stdout-capture"
+    return record
+
+
+def render_receipt(meta, argv, cwd):
+    """The freeze-before-compare receipt (protocol §6, A1-D1), executable.
+
+    Both sides' input digests plus the invocation record.  The receipt is a
+    *narrowing* of the blindness residue, not a proof; its mode field says
+    which form it is: ``frozen-inputs`` (both sides consumed from files
+    captured beforehand) or ``live-capture`` (at least one side's bytes are
+    this run's own stdout).
+    """
+    frozen = bool(meta.get("live_json_used") and meta.get("ind_json_used"))
+    instruments = {}
+    for name, rel in (("harness", DEFAULT_LIVE), ("independent", DEFAULT_INDEPENDENT)):
+        path = cwd / rel
+        instruments[name] = {
+            "path": rel,
+            "sha256": hashlib.sha256(path.read_bytes()).hexdigest() if path.is_file() else None,
+        }
+    res = meta["result"]
+    joined_n, scope_n, live_n = scope_totals(meta)
+    label, headline_n = headline(meta)
+    return {
+        "receipt": "freeze-before-compare",
+        "round": 38,
+        "claim": "C1 (depth) — source-blind harness re-derivation",
+        "recorded_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "head": meta.get("head"),
+        "mode": "frozen-inputs" if frozen else "live-capture",
+        "driver_argv": list(argv),
+        "driver_cwd": str(cwd),
+        "inputs": {
+            "live": meta["receipt"]["live"],
+            "independent": meta["receipt"]["independent"],
+        },
+        "instrument_files": instruments,
+        "join": {
+            "headline_column": label,
+            "n": headline_n,
+            "joined_scope": scope_n,
+            "live_checks": live_n,
+            "joined_rows": joined_n,
+            "n_scoped_out": len(res["scoped_out"]),
+            "scoped_out": res["scoped_out"],
+            "n_disagree": len(res["disagree"]),
+            "exit": meta["exit"],
+            "reason": meta["reason"],
+        },
+    }
+
+
+
+
 def self_test(quiet=False):
     failures = []
     count = 0
@@ -706,6 +909,76 @@ def self_test(quiet=False):
         [r["check"] for r in res_pr3["provisional"]] == ["a.b"] and not res_pr3["disagree"],
     )
 
+    # scoped-out rows (round 38): a declared scope-out leaves the join, never
+    # counts as agreement, and every malformed declaration fails loudly
+    scoped_payload = {"results": [
+        {"check": "a.b", "expected": 1, "status": "DERIVED"},
+        {"check": "a.c", "expected": None, "status": "SCOPED_OUT"},
+    ], "scoped_out": {"a.c": "the carrier's selection rule is the author's own scope"}}
+    scoped_vals = parse_independent(scoped_payload, {})
+    check("scoped: named row parsed from its own status",
+          scoped_vals == {"a.b": 1, "a.c": None})
+    scoped_map = parse_scoped_out(scoped_payload, scoped_vals)
+    check("scoped: set validated from the payload itself",
+          list(scoped_map) == ["a.c"] and "selection rule" in scoped_map["a.c"])
+    live_scoped = {"a.b": 1, "a.c": 1}
+    modes_scoped = {"a.b": "equal", "a.c": "equal"}
+    res_so = compare(live_scoped, scoped_vals, modes_scoped, scoped_out=scoped_map)
+    check(
+        "scoped: the row leaves the join and is not a disagreement",
+        [r["check"] for r in res_so["rows"]] == ["a.b"]
+        and not res_so["disagree"] and not res_so["uncovered"] and not res_so["unknown"],
+    )
+    check(
+        "scoped: the scope-out is named with its blocker and narrows the scope",
+        res_so["scoped_out_rows"] == ["a.c"] and len(res_so["scoped_out"]) == 1,
+    )
+    code_so, _ = decide_exit(res_so, 2, 2, 0, 0, {"a.b": "PASS", "a.c": "PASS"})
+    check("scoped: a declared scope-out is not a failure", code_so == 0)
+    # the numerator cannot gain: dropping the scope-out map turns the same tree red
+    res_no = compare(live_scoped, scoped_vals, modes_scoped)
+    code_no, reason_no = decide_exit(res_no, 2, 2, 0, 0, {"a.b": "PASS", "a.c": "PASS"})
+    check(
+        "scoped: without the declaration the same tree disagrees (no free agreement)",
+        code_no == 1 and "a.c" in reason_no,
+    )
+    # the empty-payload row that would otherwise be a silent pass
+    res_so2 = compare({"a.b": 1, "a.c": 1, "a.d": 0},
+                      {"a.b": 1, "a.c": None, "a.d": 0}, modes_scoped,
+                      scoped_out={"a.c": "blocked", "a.d": "blocked"})
+    check(
+        "scoped: a scoped row's live reading never enters the comparison",
+        [r["check"] for r in res_so2["rows"]] == ["a.b"] and res_so2["strict_agree_n"] == 1,
+    )
+    # malformed declarations: each shape is a loud error, never a quiet pass
+    for label, payload, vals, want in (
+        ("empty declaration is ambiguous",
+         {"results": [{"check": "a.b", "expected": 1}], "scoped_out": {}}, {"a.b": 1},
+         "present but empty"),
+        ("a named row absent from the payload",
+         {"results": [{"check": "a.b", "expected": 1}], "scoped_out": {"a.z": "x"}}, {"a.b": 1},
+         "absent from its own payload"),
+        ("a row whose status is not SCOPED_OUT",
+         {"results": [{"check": "a.b", "expected": 1, "status": "DERIVED"}], "scoped_out": {"a.b": "x"}},
+         {"a.b": 1}, "not 'SCOPED_OUT'"),
+        ("an empty reason",
+         {"results": [{"check": "a.b", "expected": 1, "status": "SCOPED_OUT"}], "scoped_out": {"a.b": "  "}},
+         {"a.b": 1}, "reason"),
+        ("a non-mapping declaration",
+         {"results": [{"check": "a.b", "expected": 1}], "scoped_out": ["a.b"]}, {"a.b": 1},
+         "not a mapping"),
+    ):
+        try:
+            parse_scoped_out(payload, vals)
+            check(f"scoped: rejected — {label}", False)
+        except CompareError as exc:
+            check(f"scoped: rejected — {label}", want in str(exc))
+    # a scoped id the live side does not carry is exit 2, not a silent exclusion
+    res_so3 = compare({"a.b": 1}, {"a.b": 1}, {"a.b": "equal"}, scoped_out={"a.z": "x"})
+    code_so3, reason_so3 = decide_exit(res_so3, 1, 1, 0, 0, {"a.b": "PASS"})
+    check("scoped: an id absent from the live set is exit 2 named",
+          code_so3 == 2 and "a.z" in reason_so3)
+
     # end-to-end CLI against stub instruments in a throwaway temp tree
     stub_live = (
         "import json;print(json.dumps({'results':["
@@ -725,6 +998,25 @@ def self_test(quiet=False):
         "{'check':'a.b','observed':1,'verdict':'DRIFT','mode':'equal'},"
         "{'check':'a.c','observed':'x','verdict':'PASS','mode':'equal'}]}));sys.exit(1)"
     )
+    # round-38 scope-out arms: the independent stub scopes a.c out, so a tree
+    # whose live reading would disagree still exits 0 with a 1/1 joined scope
+    stub_live_scoped = (
+        "import json;print(json.dumps({'results':["
+        "{'check':'a.b','observed':1,'verdict':'PASS','mode':'equal'},"
+        "{'check':'a.c','observed':1,'verdict':'PASS','mode':'equal'}]}))"
+    )
+    stub_ind_scoped = (
+        "import json;print(json.dumps({'results':["
+        "{'check':'a.b','expected':1,'status':'DERIVED'},"
+        "{'check':'a.c','expected':None,'status':'SCOPED_OUT'}],"
+        "'scoped_out':{'a.c':'the carrier rule is the author scope'}}))"
+    )
+    stub_ind_scoped_bad = (
+        "import json;print(json.dumps({'results':["
+        "{'check':'a.b','expected':1,'status':'DERIVED'},"
+        "{'check':'a.c','expected':None,'status':'DERIVED'}],"
+        "'scoped_out':{'a.c':'the carrier rule is the author scope'}}))"
+    )
     with tempfile.TemporaryDirectory(prefix="cmp-ind-selftest-") as tmp:
         tmp_path = Path(tmp)
         for name, body in (
@@ -732,6 +1024,9 @@ def self_test(quiet=False):
             ("ind_ok.py", stub_ind_ok),
             ("ind_bad.py", stub_ind_bad),
             ("live_red.py", stub_live_red),
+            ("live_scoped.py", stub_live_scoped),
+            ("ind_scoped.py", stub_ind_scoped),
+            ("ind_scoped_bad.py", stub_ind_scoped_bad),
         ):
             (tmp_path / name).write_text(body + "\n")
         report = tmp_path / "report.md"
@@ -758,6 +1053,32 @@ def self_test(quiet=False):
         e2e("agreeing stubs", "live.py", "ind_ok.py", want_text="agreement: 2/2")
         e2e("mismatched stub", "live.py", "ind_bad.py", want_exit=1, want_text="a.c")
         e2e("red live instrument", "live_red.py", "ind_ok.py", want_exit=3)
+        # a.c is scoped out, so the live 1 vs the independent None never joins:
+        # 1/1 joined, exit 0, and the report names the scope-out and its blocker
+        proc = e2e("scope-out stub narrows the scope", "live_scoped.py", "ind_scoped.py",
+                   want_text="agreement: 1/1")
+        check("cli: scope-out stub reports the scoped row count",
+              "1 scoped out" in proc.stdout)
+        e2e("scope-out with a mismatched status fails closed", "live_scoped.py",
+            "ind_scoped_bad.py", want_exit=2)
+        proc = subprocess.run(
+            [
+                sys.executable,
+                str(Path(__file__).resolve()),
+                "--live-cmd",
+                f"{sys.executable} {tmp_path / 'live_scoped.py'}",
+                "--independent-cmd",
+                f"{sys.executable} {tmp_path / 'ind_scoped_bad.py'}",
+                "--expect-n",
+                "2",
+                "--no-stamp",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+        check("cli: scope-out status mismatch names the class and the row",
+              proc.returncode == 2 and "SCOPED_OUT" in proc.stderr and "a.c" in proc.stderr)
         proc = subprocess.run(
             [
                 sys.executable,
@@ -795,6 +1116,104 @@ def self_test(quiet=False):
             timeout=120,
         )
         check("cli: failing independent command -> exit 2", proc.returncode == 2)
+
+        # round-38 receipt arms (seat P2, A1-D1): the freeze receipt is a
+        # first-class output, and its mode field must distinguish a fully frozen
+        # comparison from one side's own stdout capture
+        receipt_path = tmp_path / "receipt.json"
+        subprocess.run(
+            [
+                sys.executable,
+                str(Path(__file__).resolve()),
+                "--live-cmd",
+                f"{sys.executable} {tmp_path / 'live.py'}",
+                "--independent-cmd",
+                f"{sys.executable} {tmp_path / 'ind_ok.py'}",
+                "--expect-n",
+                "2",
+                "--no-stamp",
+                "--receipt",
+                str(receipt_path),
+            ],
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+        receipt = json.loads(receipt_path.read_text()) if receipt_path.exists() else {}
+        check("receipt: written with the freeze-before-compare label",
+              receipt.get("receipt") == "freeze-before-compare")
+        check("receipt: live-capture mode when both sides run",
+              receipt.get("mode") == "live-capture")
+        check(
+            "receipt: both sides' input digests recorded before the join",
+            all(isinstance(receipt.get("inputs", {}).get(side, {}).get("sha256"), str)
+                and len(receipt["inputs"][side]["sha256"]) == 64
+                for side in ("live", "independent")),
+        )
+        check("receipt: invocation record carries the driver argv and verdict",
+              isinstance(receipt.get("driver_argv"), list)
+              and receipt.get("join", {}).get("exit") == 0)
+        live_bytes = (tmp_path / "live.json")
+        ind_bytes = (tmp_path / "ind.json")
+        subprocess.run(
+            [sys.executable, str(tmp_path / "live.py")], capture_output=True, text=True,
+            timeout=60,
+        )
+        live_bytes.write_text(
+            subprocess.run([sys.executable, str(tmp_path / "live.py")],
+                           capture_output=True, text=True, timeout=60).stdout)
+        ind_bytes.write_text(
+            subprocess.run([sys.executable, str(tmp_path / "ind_ok.py")],
+                           capture_output=True, text=True, timeout=60).stdout)
+        receipt_frozen = tmp_path / "receipt-frozen.json"
+        subprocess.run(
+            [
+                sys.executable,
+                str(Path(__file__).resolve()),
+                "--live-json",
+                str(live_bytes),
+                "--independent-json",
+                str(ind_bytes),
+                "--expect-n",
+                "2",
+                "--no-stamp",
+                "--receipt",
+                str(receipt_frozen),
+            ],
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+        frozen = json.loads(receipt_frozen.read_text()) if receipt_frozen.exists() else {}
+        check("receipt: frozen-inputs mode when both sides consume files",
+              frozen.get("mode") == "frozen-inputs")
+        check(
+            "receipt: a frozen side records its own file digest",
+            all(frozen.get("inputs", {}).get(side, {}).get("file_sha256") ==
+                frozen.get("inputs", {}).get(side, {}).get("sha256")
+                for side in ("live", "independent")),
+        )
+        proc = subprocess.run(
+            [
+                sys.executable,
+                str(Path(__file__).resolve()),
+                "--live-cmd",
+                f"{sys.executable} {tmp_path / 'live.py'}",
+                "--independent-cmd",
+                f"{sys.executable} {tmp_path / 'ind_ok.py'}",
+                "--expect-n",
+                "2",
+                "--no-stamp",
+                "--receipt",
+                str(tmp_path / "no-such-dir" / "receipt.json"),
+            ],
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+        check("receipt: unwritable path is a named exit 2, never a traceback",
+              proc.returncode == 2 and "receipt path unwritable" in proc.stderr)
+
         subprocess.run(
             [
                 sys.executable,
@@ -846,17 +1265,20 @@ def build_meta(args):
     if args.live_json:
         text = Path(args.live_json).read_text()
         live_cmd, live_exit = f"file:{args.live_json}", 0
+        live_receipt = side_receipt(text, live_cmd, live_exit, args.live_json, cwd)
     else:
         live_cmd = args.live_cmd
         live_exit, text, live_err = run_cmd(shlex.split(live_cmd), cwd)
         if live_exit != 0 and not text.strip():
             raise CompareError(f"live instrument failed with no stdout: exit {live_exit}: {live_err.strip()[:300]}")
+        live_receipt = side_receipt(text, live_cmd, live_exit, None, cwd)
     live_payload = load_payload(text, "live")
     live, verdicts, modes = parse_live(live_payload)
 
     if args.independent_json:
         text = Path(args.independent_json).read_text()
         ind_cmd, ind_exit = f"file:{args.independent_json}", 0
+        ind_receipt = side_receipt(text, ind_cmd, ind_exit, args.independent_json, cwd)
     elif args.independent_cmd:
         ind_cmd = args.independent_cmd
         ind_exit, text, ind_err = run_cmd(shlex.split(ind_cmd), cwd)
@@ -864,6 +1286,7 @@ def build_meta(args):
             raise CompareError(
                 f"independent instrument failed with no stdout: exit {ind_exit}: {ind_err.strip()[:300]}"
             )
+        ind_receipt = side_receipt(text, ind_cmd, ind_exit, None, cwd)
     else:
         ind_path = Path(args.independent) if Path(args.independent).is_absolute() else cwd / args.independent
         if not ind_path.exists():
@@ -877,11 +1300,15 @@ def build_meta(args):
             raise CompareError(
                 f"independent instrument failed with no stdout: exit {ind_exit}: {ind_err.strip()[:300]}"
             )
+        ind_receipt = side_receipt(text, ind_cmd, ind_exit, None, cwd)
     statuses = {}
-    independent = parse_independent(load_payload(text, "independent"), statuses)
+    ind_payload = load_payload(text, "independent")
+    independent = parse_independent(ind_payload, statuses)
+    scoped_out = parse_scoped_out(ind_payload, independent)
 
     res = annotate_statuses(
-        compare(live, independent, modes, use_predicates=not args.no_mode_predicates), statuses
+        compare(live, independent, modes, use_predicates=not args.no_mode_predicates,
+                scoped_out=scoped_out), statuses
     )
     exit_code, reason = decide_exit(
         res, len(live), args.expect_n, live_exit, ind_exit, verdicts, strict_headline=args.strict_headline
@@ -914,6 +1341,9 @@ def build_meta(args):
         "strict_headline": args.strict_headline,
         "use_predicates": not args.no_mode_predicates,
         "stamp": "" if args.no_stamp else args.stamp,
+        "live_json_used": bool(args.live_json),
+        "ind_json_used": bool(args.independent_json),
+        "receipt": {"live": live_receipt, "independent": ind_receipt},
     }
 
 
@@ -931,6 +1361,11 @@ def main(argv=None):
     parser.add_argument("--cwd", default=str(REPO), help="repo root to run in and scan")
     parser.add_argument("--json", action="store_true", help="emit the machine-readable report on stdout")
     parser.add_argument("--report", default=None, help="write the markdown agreement report to this path")
+    parser.add_argument(
+        "--receipt",
+        default=None,
+        help="write the freeze-before-compare receipt (both sides' input sha256 + invocation record) to this path",
+    )
     parser.add_argument("--stamp", default="", help="free-text provenance line for the markdown report")
     parser.add_argument("--no-stamp", action="store_true", help="omit the stamp line")
     parser.add_argument(
@@ -953,6 +1388,15 @@ def main(argv=None):
     except (OSError, subprocess.SubprocessError, ValueError) as exc:
         print(f"compare_harness_independent: ERROR: {exc}", file=sys.stderr)
         return 2
+
+    if args.receipt:
+        try:
+            receipt = render_receipt(meta, argv if argv is not None else sys.argv[1:], Path(args.cwd).resolve())
+            Path(args.receipt).write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n")
+        except OSError as exc:
+            print(f"compare_harness_independent: ERROR: receipt path unwritable: {args.receipt}: {exc}", file=sys.stderr)
+            return 2
+        print(f"receipt: {args.receipt}", file=sys.stderr if args.json else sys.stdout)
 
     if args.json:
         # machine-readable stdout: JSON only, so `--json > file` is directly parseable

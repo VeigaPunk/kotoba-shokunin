@@ -1,0 +1,133 @@
+diff --git 1/dev/fd/63 2/.ufo/round-38/drafts/p4/out/iso-b/verifiers/check_assertion_floors.py
+index 0000000..87eb59b 100644
+--- 1/dev/fd/63
++++ 2/.ufo/round-38/drafts/p4/out/iso-b/verifiers/check_assertion_floors.py
+@@ -82,9 +82,36 @@ INSTRUMENTS = {
+ }
+ 
+ 
++def _row_parts(spec):
++    '''The (path, floor) a row carries, or (None, None) when its shape is not a
++    well-formed 5-field tuple.
++
++    Round-38 claim C2a (V4-J): the anchor must not derive a path or a floor from
++    a row whose shape it could not parse. A malformed row is named once by the
++    caller; silently reading `row[0]`/`row[1]` off a 4-field tuple produced the
++    self-contradictory extras 'path drift ... row=None' and 'floor drift ...
++    registry=62 expected=62 row=None'.
++    '''
++    if isinstance(spec, tuple) and len(spec) == 5:
++        return spec[0], spec[1]
++    return None, None
++
++
+ def registry_drift():
+     drift = []
+     names = set(INSTRUMENTS)
++    # Round-38 claim C2b (V4-S): keys are interpolated into drift strings and
++    # passed to sorted(); a non-str key made `"missing row: " + n` raise
++    # TypeError (exit 1 traceback, class unnamed). Every key is named here
++    # instead, before any concatenation or ordering can touch it.
++    for table, mapping in (("INSTRUMENTS", INSTRUMENTS),
++                           ("EXPECTED_INSTRUMENTS", EXPECTED_INSTRUMENTS)):
++        for k in mapping:
++            if not isinstance(k, str):
++                drift.append("non-string key: %s has %r (instrument names must be str)"
++                             % (table, k))
++    if drift:
++        return drift
+     drift += ["missing row: " + n for n in sorted(EXPECTED_INSTRUMENTS.keys() - names)]
+     drift += ["unexpected row: " + n for n in sorted(names - EXPECTED_INSTRUMENTS.keys())]
+     for n in sorted(names & EXPECTED_INSTRUMENTS.keys()):
+@@ -137,12 +164,11 @@ def registry_anchor_drift(repo):
+             drift.append("row vanish: %s (listed in %s, absent from both guard tables)" % (
+                 n, REGISTRY_REL))
+         if n in EXPECTED_INSTRUMENTS and n in INSTRUMENTS:
+-            row = INSTRUMENTS[n]
+-            row_path = row[0] if isinstance(row, tuple) and len(row) == 5 else None
+-            row_floor = row[1] if isinstance(row, tuple) and len(row) == 5 else None
+-            if row_path != entry["path"]:
++            row_path, row_floor = _row_parts(INSTRUMENTS[n])
++            if row_path is not None and row_path != entry["path"]:
+                 drift.append("path drift: %s registry=%s row=%s" % (n, entry["path"], row_path))
+-            if row_floor != entry["floor"] or EXPECTED_INSTRUMENTS[n] != entry["floor"]:
++            if row_path is not None and (row_floor != entry["floor"]
++                                         or EXPECTED_INSTRUMENTS[n] != entry["floor"]):
+                 drift.append("floor drift: %s registry=%r expected=%r row=%r" % (
+                     n, entry["floor"], EXPECTED_INSTRUMENTS[n], row_floor))
+         target = repo / entry["path"]
+@@ -192,7 +218,16 @@ def main(argv=None):
+     if args.self_test:
+         return self_test()
+     repo = args.repo.resolve()
+-    drift = registry_drift() + registry_anchor_drift(repo)
++    # Round-38 claim C2b (V4-S): a non-str table key is fail-closed BEFORE the
++    # anchor runs -- the anchor's own set arithmetic (`sorted(set(...) - set(...))`)
++    # would raise TypeError against a mixed-type key, re-opening the crash class
++    # this claim closes. registry_drift() reports it, so stop there.
++    drift = registry_drift()
++    if any(line.startswith("non-string key:") for line in drift):
++        for line in drift:
++            print("FAIL registry " + line)
++        return 2
++    drift += registry_anchor_drift(repo)
+     if drift:
+         for line in drift:
+             print("FAIL registry " + line)
+@@ -453,6 +488,56 @@ def self_test() -> int:
+                 {"harness": DEFAULT_REPO / "verifiers/verify_corpus_integrity.py"},
+                 DEFAULT_REPO))
+ 
++        # F12 (round 38, seat P4) -- a non-str key in either guard table. Red-
++        # before on the landed r37 bytes (probes/S-nonstr-key.py): the key hit
++        # `"missing row: " + n` and `sorted()` unguarded -> TypeError traceback,
++        # exit 1, no class named. Both tables are exercised: the early return
++        # must fire before any concatenation or ordering touches a key.
++        f12_expected = swap(source, expected_pins, '    None: 7,\n' + expected_pins,
++                            "F12/expected-key")
++        proc = run(write_tree(tmp / "f12a", f12_expected, registry_text), DEFAULT_REPO)
++        rec("F12a non-str key (EXPECTED): exit 2", proc.returncode == 2, proc.returncode)
++        rec("F12a non-str key (EXPECTED): names the class, the table and the key",
++            "FAIL registry non-string key: EXPECTED_INSTRUMENTS has None" in proc.stdout,
++            proc.stdout)
++        rec("F12a non-str key (EXPECTED): no Traceback",
++            "Traceback" not in proc.stdout + proc.stderr, proc.stdout + proc.stderr)
++        rec("F12a non-str key (EXPECTED): no instrument reran", "PASS " not in proc.stdout,
++            proc.stdout)
++
++        f12_instruments = swap(source, row_pins, '    None: ("x", 1),\n' + row_pins,
++                               "F12/instruments-key")
++        proc = run(write_tree(tmp / "f12b", f12_instruments, registry_text), DEFAULT_REPO)
++        rec("F12b non-str key (INSTRUMENTS): exit 2", proc.returncode == 2, proc.returncode)
++        rec("F12b non-str key (INSTRUMENTS): names the class, the table and the key",
++            "FAIL registry non-string key: INSTRUMENTS has None" in proc.stdout, proc.stdout)
++        rec("F12b non-str key (INSTRUMENTS): no Traceback",
++            "Traceback" not in proc.stdout + proc.stderr, proc.stdout + proc.stderr)
++        rec("F12b non-str key (INSTRUMENTS): no instrument reran", "PASS " not in proc.stdout,
++            proc.stdout)
++
++        # F13 (round 38, seat P4) -- a malformed row shape. Red-before on the
++        # landed r37 bytes (probes/J-malformed-tuple.py): the named malformed-row
++        # line PLUS 'path drift: pins ... row=None' and the self-contradictory
++        # 'floor drift: pins registry=62 expected=62 row=None' (V4-J). The anchor
++        # must name the shape once and derive nothing from it.
++        malformed_row = anchor('    "pins": ("verifiers/check_substrate', '_pins.py", 62),\n')
++        text = swap(source, row_pins, malformed_row, "F13/malformed")
++        proc = run(write_tree(tmp / "f13", text, registry_text), DEFAULT_REPO)
++        rec("F13 malformed row: exit 2", proc.returncode == 2, proc.returncode)
++        rec("F13 malformed row: names the class and the row",
++            "FAIL registry malformed row: pins" in proc.stdout, proc.stdout)
++        # The discriminator is the *derived* pair, not a total line count: an
++        # unrelated live drift line (another seat mid-bump) must not turn this
++        # fixture red, while any path/floor reading taken off the unparsed row
++        # must. Red-before on the landed r37 bytes: both lines present.
++        rec("F13 malformed row: no derived path/floor line",
++            "path drift: pins" not in proc.stdout and "floor drift: pins" not in proc.stdout,
++            proc.stdout)
++        rec("F13 malformed row: no derived contradiction",
++            "row=None" not in proc.stdout, proc.stdout)
++        rec("F13 malformed row: no instrument reran", "PASS " not in proc.stdout, proc.stdout)
++
+     print("%d failure(s) over %d assertions" % (len(failures), total))
+     for f in failures:
+         print("FAIL: %s" % f)

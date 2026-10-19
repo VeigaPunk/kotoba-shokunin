@@ -5,9 +5,13 @@ The claim under test: a self-test that silently loses assertions must never
 still read green. Each instrument's --self-test prints an assertion count;
 this guard reruns every self-test and FAILs when the observed count is below
 the recorded floor (harness 10, corpus_integrity 119, corpus_independent 59,
-surfaces 87, checklist 1584, pins 62; others @ round 36, the checklist floor
+surfaces 87, checklist 1597, pins 62, harness_independent 86,
+compare_harness_independent 83; others @ round 36, the checklist floor
 re-recorded at round 37 by the C3 fence battery plus the indented-code decoy
-battery). Exit: 0 all floors hold;
+battery and at round 38 by the three container-relative fence shapes (V6's
+named residual); the two round-38 C1 instruments registered by claim C1f/seat
+P3 (floors re-bumped in-step to the settled counts of the C1 closure seat P1
+landed in the same round: 71->86, 59->83). Exit: 0 all floors hold;
 1 an instrument ran below its floor, or its summary could not be parsed or the
 instrument could not be run (named, observed-vs-floor); 2 the in-file registry
 or the external anchor disagrees (named), or a self-test timed out. Read-only.
@@ -23,7 +27,12 @@ with the same path and floor, the registry's own size must match its declared
 `instrument_total`, and each declared path must resolve to a non-empty file
 under --repo. Any disagreement fails loudly before a self-test runs. Run
 `--self-test` for the fixture battery (mutant copies in tempdirs), including
-the two true discriminators for the coordinated shapes.
+the two true discriminators for the coordinated shapes. Round 38 (claim C2,
+seat P4) closes V4's two residuals: a non-str key in either table is now named
+('non-string key: ...', previously an uncaught TypeError traceback at exit 1,
+class unnamed), and a malformed row is named exactly once -- the anchor no
+longer derives a path/floor from a row whose shape it could not parse (V4-J's
+self-contradictory 'floor drift: pins registry=62 expected=62 row=None').
 
 DOCUMENTED TRUST BOUNDARY (scout T4). The guard trusts each instrument's own
 self-test output -- it detects silent block deletion and count drift, not a
@@ -57,8 +66,10 @@ EXPECTED_INSTRUMENTS = {
     "corpus_integrity": 119,
     "corpus_independent": 59,
     "surfaces": 87,
-    "checklist": 1584,
+    "checklist": 1597,
     "pins": 62,
+    "harness_independent": 86,
+    "compare_harness_independent": 83,
 }
 SELF_TEST_TIMEOUT_S = 120
 
@@ -75,16 +86,47 @@ INSTRUMENTS = {
                            r"self-test:\s*(\d+) assertions,\s*(\d+) failures", 1, 2),
     "surfaces": ("verifiers/verify_surfaces.py", 87,
                  r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
-    "checklist": ("verifiers/verify_skill_checklist.py", 1584,
+    "checklist": ("verifiers/verify_skill_checklist.py", 1597,
                   r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
     "pins": ("verifiers/check_substrate_pins.py", 62,
              r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
+    "harness_independent": ("verifiers/verify_harness_independent.py", 86,
+                            r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
+    "compare_harness_independent": ("verifiers/compare_harness_independent.py", 83,
+                                    r"self-test:\s*(\d+) failure\(s\) over (\d+) assertions", 2, 1),
 }
+
+
+def _row_parts(spec):
+    '''The (path, floor) a row carries, or (None, None) when its shape is not a
+    well-formed 5-field tuple.
+
+    Round-38 claim C2a (V4-J): the anchor must not derive a path or a floor from
+    a row whose shape it could not parse. A malformed row is named once by the
+    caller; silently reading `row[0]`/`row[1]` off a 4-field tuple produced the
+    self-contradictory extras 'path drift ... row=None' and 'floor drift ...
+    registry=62 expected=62 row=None'.
+    '''
+    if isinstance(spec, tuple) and len(spec) == 5:
+        return spec[0], spec[1]
+    return None, None
 
 
 def registry_drift():
     drift = []
     names = set(INSTRUMENTS)
+    # Round-38 claim C2b (V4-S): keys are interpolated into drift strings and
+    # passed to sorted(); a non-str key made `"missing row: " + n` raise
+    # TypeError (exit 1 traceback, class unnamed). Every key is named here
+    # instead, before any concatenation or ordering can touch it.
+    for table, mapping in (("INSTRUMENTS", INSTRUMENTS),
+                           ("EXPECTED_INSTRUMENTS", EXPECTED_INSTRUMENTS)):
+        for k in mapping:
+            if not isinstance(k, str):
+                drift.append("non-string key: %s has %r (instrument names must be str)"
+                             % (table, k))
+    if drift:
+        return drift
     drift += ["missing row: " + n for n in sorted(EXPECTED_INSTRUMENTS.keys() - names)]
     drift += ["unexpected row: " + n for n in sorted(names - EXPECTED_INSTRUMENTS.keys())]
     for n in sorted(names & EXPECTED_INSTRUMENTS.keys()):
@@ -120,6 +162,10 @@ def registry_anchor_drift(repo):
     entries = payload["instruments"]
     total = payload.get("instrument_total")
     drift = []
+    # No non-str-key arm here: json.loads always yields str object keys, so such
+    # a check would be an unexercised arm (round 38, seat P4). The in-file
+    # tables are the reachable site for V4-S; a malformed row is handled by
+    # _row_parts() below.
     if not isinstance(total, int) or isinstance(total, bool):
         drift.append("malformed: %s instrument_total is not an integer" % REGISTRY_REL)
     elif total != len(entries):
@@ -137,12 +183,11 @@ def registry_anchor_drift(repo):
             drift.append("row vanish: %s (listed in %s, absent from both guard tables)" % (
                 n, REGISTRY_REL))
         if n in EXPECTED_INSTRUMENTS and n in INSTRUMENTS:
-            row = INSTRUMENTS[n]
-            row_path = row[0] if isinstance(row, tuple) and len(row) == 5 else None
-            row_floor = row[1] if isinstance(row, tuple) and len(row) == 5 else None
-            if row_path != entry["path"]:
+            row_path, row_floor = _row_parts(INSTRUMENTS[n])
+            if row_path is not None and row_path != entry["path"]:
                 drift.append("path drift: %s registry=%s row=%s" % (n, entry["path"], row_path))
-            if row_floor != entry["floor"] or EXPECTED_INSTRUMENTS[n] != entry["floor"]:
+            if row_path is not None and (row_floor != entry["floor"]
+                                         or EXPECTED_INSTRUMENTS[n] != entry["floor"]):
                 drift.append("floor drift: %s registry=%r expected=%r row=%r" % (
                     n, entry["floor"], EXPECTED_INSTRUMENTS[n], row_floor))
         target = repo / entry["path"]
@@ -192,7 +237,16 @@ def main(argv=None):
     if args.self_test:
         return self_test()
     repo = args.repo.resolve()
-    drift = registry_drift() + registry_anchor_drift(repo)
+    # Round-38 claim C2b (V4-S): a non-str table key is fail-closed BEFORE the
+    # anchor runs -- the anchor's own set arithmetic (`sorted(set(...) - set(...))`)
+    # would raise TypeError against a mixed-type key, re-opening the crash class
+    # this claim closes. registry_drift() reports it, so stop there.
+    drift = registry_drift()
+    if any(line.startswith("non-string key:") for line in drift):
+        for line in drift:
+            print("FAIL registry " + line)
+        return 2
+    drift += registry_anchor_drift(repo)
     if drift:
         for line in drift:
             print("FAIL registry " + line)
@@ -249,8 +303,15 @@ def self_test() -> int:
     exit 0 (scouts C2/M7). F4-F6 pin the pre-existing one-table class, the
     fail-closed absent anchor, and the registry's own size; F7 is a hermetic
     all-green control in a one-instrument stub world; F8 covers the
-    removed-instrument-file arm. Mutation anchors are count-checked, so a
-    no-op mutation cannot masquerade as a passing fixture.
+    removed-instrument-file arm. F9-F11 pin the --script override vector.
+
+    Round 38 (claim C2, seat P4) adds the two true discriminators for V4's
+    residuals: F12 a non-str key in a guard table (red-before: an uncaught
+    TypeError traceback, exit 1, class unnamed) and F13 a malformed row shape
+    (red-before: the named malformed-row line PLUS the self-contradictory
+    'path drift ... row=None' / 'floor drift ... registry=62 expected=62
+    row=None' pair). Mutation anchors are count-checked, so a no-op mutation
+    cannot masquerade as a passing fixture.
     '''
     import tempfile
 
@@ -285,6 +346,12 @@ def self_test() -> int:
                       ' (\\d+) assertions$", 2, 1),\n')
     expected_surfaces = anchor('    "surfa', 'ces": 87,\n')
     row_surfaces = anchor('    "surfaces": ("verifiers/verify_surfa', 'ces.py", 87,\n')
+    expected_ind = anchor('    "harness_indep',
+                          'endent": %d,\n' % EXPECTED_INSTRUMENTS["harness_independent"])
+    row_ind = anchor('    "harness_independent": ("verifiers/verify_harness_indep',
+                     'endent.py", %d,\n' % INSTRUMENTS["harness_independent"][1],
+                     '                            r"(?m)^(\\d+) failure\\(s\\) over',
+                     ' (\\d+) assertions$", 2, 1),\n')
     entry_anchor = anchor('if __name__', ' == "__main__":')
     summary_pattern = r"(?m)^(\d+) failure\(s\) over (\d+) assertions$"
     hermetic_tables = (
@@ -366,8 +433,11 @@ def self_test() -> int:
         rec("F5 absent anchor: named with the path",
             "FAIL registry absent: verifiers/floors-registry.json" in proc.stdout, proc.stdout)
 
-        # F6 -- the registry's own declared size is load-bearing
-        text = swap(registry_text, '"instrument_total": 6', '"instrument_total": 5',
+        # F6 -- the registry's own declared size is load-bearing. The anchor is
+        # the live registry's own declared total (round 38: 8, after the two C1
+        # instruments were registered by seat P3); a stale literal here would
+        # stop landing and the count-check would name it.
+        text = swap(registry_text, '"instrument_total": 8', '"instrument_total": 7',
                     "F6/total")
         proc = run(write_tree(tmp / "f6", source, text), tmp / "f6")
         rec("F6 size drift: exit 2", proc.returncode == 2, proc.returncode)
@@ -452,6 +522,95 @@ def self_test() -> int:
             override_drift(
                 {"harness": DEFAULT_REPO / "verifiers/verify_corpus_integrity.py"},
                 DEFAULT_REPO))
+
+        # F12 (round 38, seat P4) -- a non-str key in either guard table. Red-
+        # before on the landed r37 bytes (probes/S-nonstr-key.py): the key hit
+        # `"missing row: " + n` and `sorted()` unguarded -> TypeError traceback,
+        # exit 1, no class named. Both tables are exercised: the early return
+        # must fire before any concatenation or ordering touches a key.
+        f12_expected = swap(source, expected_pins, '    None: 7,\n' + expected_pins,
+                            "F12/expected-key")
+        proc = run(write_tree(tmp / "f12a", f12_expected, registry_text), DEFAULT_REPO)
+        rec("F12a non-str key (EXPECTED): exit 2", proc.returncode == 2, proc.returncode)
+        rec("F12a non-str key (EXPECTED): names the class, the table and the key",
+            "FAIL registry non-string key: EXPECTED_INSTRUMENTS has None" in proc.stdout,
+            proc.stdout)
+        rec("F12a non-str key (EXPECTED): no Traceback",
+            "Traceback" not in proc.stdout + proc.stderr, proc.stdout + proc.stderr)
+        rec("F12a non-str key (EXPECTED): no instrument reran", "PASS " not in proc.stdout,
+            proc.stdout)
+
+        f12_instruments = swap(source, row_pins, '    None: ("x", 1),\n' + row_pins,
+                               "F12/instruments-key")
+        proc = run(write_tree(tmp / "f12b", f12_instruments, registry_text), DEFAULT_REPO)
+        rec("F12b non-str key (INSTRUMENTS): exit 2", proc.returncode == 2, proc.returncode)
+        rec("F12b non-str key (INSTRUMENTS): names the class, the table and the key",
+            "FAIL registry non-string key: INSTRUMENTS has None" in proc.stdout, proc.stdout)
+        rec("F12b non-str key (INSTRUMENTS): no Traceback",
+            "Traceback" not in proc.stdout + proc.stderr, proc.stdout + proc.stderr)
+        rec("F12b non-str key (INSTRUMENTS): no instrument reran", "PASS " not in proc.stdout,
+            proc.stdout)
+
+        # F13 (round 38, seat P4) -- a malformed row shape. Red-before on the
+        # landed r37 bytes (probes/J-malformed-tuple.py): the named malformed-row
+        # line PLUS 'path drift: pins ... row=None' and the self-contradictory
+        # 'floor drift: pins registry=62 expected=62 row=None' (V4-J). The anchor
+        # must name the shape once and derive nothing from it.
+        malformed_row = anchor('    "pins": ("verifiers/check_substrate', '_pins.py", 62),\n')
+        text = swap(source, row_pins, malformed_row, "F13/malformed")
+        proc = run(write_tree(tmp / "f13", text, registry_text), DEFAULT_REPO)
+        rec("F13 malformed row: exit 2", proc.returncode == 2, proc.returncode)
+        rec("F13 malformed row: names the class and the row",
+            "FAIL registry malformed row: pins" in proc.stdout, proc.stdout)
+        # The discriminator is the *derived* pair, not a total line count: an
+        # unrelated live drift line (another seat mid-bump) must not turn this
+        # fixture red, while any path/floor reading taken off the unparsed row
+        # must. Red-before on the landed r37 bytes: both lines present.
+        rec("F13 malformed row: no derived path/floor line",
+            "path drift: pins" not in proc.stdout and "floor drift: pins" not in proc.stdout,
+            proc.stdout)
+        rec("F13 malformed row: no derived contradiction",
+            "row=None" not in proc.stdout, proc.stdout)
+        rec("F13 malformed row: no instrument reran", "PASS " not in proc.stdout, proc.stdout)
+
+        # F14/F15 (round 38, claim C1f, seat P3) -- the two newly registered C1
+        # instruments must be covered by the SAME anchor as the original six.
+        # Without these, adding a row to both in-file tables but not to the
+        # registry (or vice versa) is exactly the half-bump the anchor exists to
+        # catch, and the newest rows are where a half-bump is likeliest.
+        # F14 drops the new row from BOTH in-file tables: the anchor must name
+        # the vanish, not silently keep rerunning nothing.
+        text = swap(source, expected_ind, "", "F14/expected")
+        text = swap(text, row_ind, "", "F14/instruments")
+        rec("F14 mutation dropped exactly the two new table rows",
+            len(source) - len(text) == len(expected_ind) + len(row_ind),
+            len(source) - len(text))
+        proc = run(write_tree(tmp / "f14", text, registry_text), DEFAULT_REPO)
+        rec("F14 new-row two-table deletion: exit 2", proc.returncode == 2, proc.returncode)
+        rec("F14 new-row two-table deletion: names the class and the row",
+            "FAIL registry row vanish: harness_independent" in proc.stdout, proc.stdout)
+        rec("F14 new-row two-table deletion: no instrument reran",
+            "PASS " not in proc.stdout, proc.stdout)
+        rec("F14 new-row two-table deletion: no Traceback",
+            "Traceback" not in proc.stdout + proc.stderr, proc.stdout + proc.stderr)
+
+        # F15 repoints the new row's path at a foreign instrument. A new row is
+        # the cheapest place to hide a repoint, because its path has no history
+        # to diff against; the anchor must compare the path, not just the floor.
+        # The target is chosen to make the repoint GENUINELY silent without the
+        # anchor: verify_surfaces.py prints the same summary pattern and 87
+        # assertions, so the no-anchor world reads 'PASS harness_independent
+        # observed=87 floor=71', exit 0 (proved by drafts/p3/true_discriminator.py).
+        text = swap(source, row_ind,
+                    row_ind.replace("verify_harness_independent.py",
+                                    "verify_surfaces.py"),
+                    "F15/repoint")
+        proc = run(write_tree(tmp / "f15", text, registry_text), DEFAULT_REPO)
+        rec("F15 new-row repointed path: exit 2", proc.returncode == 2, proc.returncode)
+        rec("F15 new-row repointed path: names the class and the row",
+            "FAIL registry path drift: harness_independent" in proc.stdout, proc.stdout)
+        rec("F15 new-row repointed path: no instrument reran",
+            "PASS " not in proc.stdout, proc.stdout)
 
     print("%d failure(s) over %d assertions" % (len(failures), total))
     for f in failures:

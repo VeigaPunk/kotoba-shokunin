@@ -28,6 +28,40 @@ Blindness protocol (binding on the builder seats that landed this file)
   hashed) *before* the harness was run for the comparison column, so a reader
   can check the ordering from artifact timestamps and hashes.
 
+Adjudication of the five round-37 open rows (round 38, seat P1 — C1 closure)
+---------------------------------------------------------------------------
+Round 37 landed this instrument with five rows open: two definitional
+disagreements and the catalogue family, which carried no derivation. Round 38
+ruled them under `.ufo/round-37/evidence/a1-adjudication-protocol.md` §3–§5,
+and the rulings are recorded in `corpus/knowledge/harness-independent-round37.md`
+§3. Each ruling is implemented here, not described:
+
+* `oc.log.skills_tag_hits` — the id's spec sentence names the literal `<skills>`
+  tag, and the raw log carries 0 of them (`grep -c '<skills>' <log>` → 0). The
+  harness's reading is adopted. The round-37 reading (the attribute token
+  `skills="`, 13 hits) is kept as the **named definitional alternative**
+  `oc.log.skills_attr_hits`, published in the table's `alternatives` map — never
+  as a check id, so it can never enter the comparison surface.
+* `oc.dup.roots_both_sided` / `oc.dup.onesided_roots` — same ruling: the id
+  names the log's `duplicate skill name … existing=… duplicate=…` per-root
+  split, and the raw log carries 0 such lines (`grep -c 'duplicate skill name'
+  <log>` → 0). The round-37 reading (names repeating across rescan arrays) is
+  kept as `oc.dup.rescan_repeat_names`.
+* `omp.catalogue.*` (4 rows) — **SCOPED_OUT**, status `SCOPED_OUT` with the
+  blindness blocker carried per row and in the table's `scoped_out` map: the
+  catalogue carrier's selection rule (newest session-jsonl `<skills>` block
+  with ≥min(10,len(known)) entries matched against the cache) is the harness's
+  own authored scope, not a substrate fact this instrument's substrate set can
+  read blind — named, never guessed (r12 §3b (f), P3's idiom). The driver
+  `compare_harness_independent.py` excludes these rows from the join by name
+  and reports them; the headline is stated over the landed scope.
+
+Per protocol §1/§9, this closure was made by an *adjudicating* seat, which may
+read both sides' sources to classify a row; the disclosure is carried in each
+ruled row's evidence string (`adjudicated r38:`). The original derivation
+stayed blind — the round-37 freeze file and its sha256 remain the record of
+that, and nothing above was derived from it.
+
 What each row means, and where the meaning came from
 ----------------------------------------------------
 Every semantic below was recovered from the live substrate itself, and each
@@ -228,6 +262,33 @@ def parse_frontmatter(text: str) -> dict:
     return fields
 
 
+def root_key(path: str) -> str:
+    """`<home>/.claude/skills/x/SKILL.md` -> `.claude/skills`.
+
+    The id `oc.dup.roots_both_sided` names the log's own duplicate split, whose
+    root key is the two path segments under the home directory; a path with no
+    home prefix is its own key. Round-38 adjudication: this rule is the
+    harness's (source-read(author) by the adjudicating seat), adopted because
+    the id's spec sentence names that grammar — it is not this instrument's
+    round-37 reading, which is kept as `oc.dup.rescan_repeat_names`.
+    """
+    prefix = str(Path.home()) + "/"
+    parts = path.split(prefix)
+    return "/".join(parts[1].split("/")[:2]) if len(parts) > 1 else path
+
+
+CATALOGUE_BLOCKER = (
+    "the catalogue carrier's selection rule is inside the harness's own "
+    "authored scope (the newest session-jsonl <skills> block with at least "
+    "min(10, len(known)) entries, matched line-by-line against the skill "
+    "cache). This instrument's substrate set is the omp binary, the skill "
+    "cache, the skill roots, the opencode log and the opencode configs; none "
+    "of them carries the selection rule, so re-deriving the row blind would "
+    "be guessing. Named out of scope instead (r38 adjudication, "
+    "source-read(author); P3's 'named UNSUPPORTED rather than guessed' idiom)."
+)
+
+
 def preview_of(description: str) -> str:
     """The substrate's own preview rule (mirrored, not imported)."""
     collapsed = re.sub(r"\s+", " ", description).strip()
@@ -257,6 +318,11 @@ def accepted_by_model(text: str) -> bool:
 def row(name: str, value, evidence: str, status: str = "DERIVED") -> dict:
     return {"check": name, "value": value, "status": status,
             "evidence": evidence}
+
+
+def scoped_out_row(name: str, blocker: str) -> dict:
+    return {"check": name, "value": None, "status": "SCOPED_OUT",
+            "evidence": "SCOPED_OUT: %s" % blocker}
 
 
 def derive(s: Substrate) -> list[dict]:
@@ -347,11 +413,7 @@ def derive(s: Substrate) -> list[dict]:
 
     for name in ("omp.catalogue.found", "omp.catalogue.total",
                  "omp.catalogue.matched", "omp.catalogue.missing_names"):
-        rows.append(row(name, None,
-                        "UNLANDED: no catalogue surface was found in the live "
-                        "substrates this instrument reads (the harness's "
-                        "catalogue source is inside its own scope, which stays "
-                        "unread under the blindness rule)", "UNLANDED"))
+        rows.append(scoped_out_row(name, CATALOGUE_BLOCKER))
 
     # ---- opencode / log ---------------------------------------------------
     lines = s.log_text().split("\n")
@@ -392,9 +454,13 @@ def derive(s: Substrate) -> list[dict]:
                     "is monotone; the live grammar emits no such line at all)"))
 
     rows.append(row("oc.log.skills_tag_hits",
-                    sum(line.count('skills="') for line in lines),
-                    "'skills=\"' occurrences in the log (this instrument's "
-                    "token; the harness counts a `skills` tag)"))
+                    sum(line.count("<skills>") for line in lines),
+                    "literal '<skills>' occurrences in the log; adjudicated r38 "
+                    "(D2, source-read(author)): the id's spec sentence names the "
+                    "literal tag and the raw log carries 0 of them, so the "
+                    "harness's reading is adopted over this instrument's "
+                    "round-37 attribute token, which is kept as the named "
+                    "definitional alternative oc.log.skills_attr_hits"))
 
     # ---- opencode / roots + permission -----------------------------------
     # The roots are the directories opencode's own log names as skill sources
@@ -433,10 +499,33 @@ def derive(s: Substrate) -> list[dict]:
                 seen[name] = seen.get(name, 0) + 1
         both_sided = sum(1 for v in seen.values() if v > 1)
         onesided = sum(1 for v in seen.values() if v == 1)
-    rows.append(row("oc.dup.roots_both_sided", both_sided,
-                    "skill names appearing in more than one rescan array"))
-    rows.append(row("oc.dup.onesided_roots", onesided,
-                    "skill names appearing in exactly one rescan array"))
+    # Round-38 adjudication (D2, source-read(author)): the ids name the log's
+    # own duplicate split -- `duplicate skill name ... existing=<path>
+    # duplicate=<path>` lines keyed by the two path segments under home -- and
+    # the raw log carries 0 such lines. The harness's reading is adopted; this
+    # instrument's round-37 reading (names repeating across rescan arrays) is
+    # kept as the named definitional alternative oc.dup.rescan_repeat_names.
+    dup_split: dict[str, dict[str, int]] = {}
+    for line in lines:
+        if "duplicate skill name" not in line:
+            continue
+        ex = re.search(r"existing=(\S+)", line)
+        du = re.search(r"duplicate=(\S+)", line)
+        for side, m in (("existing", ex), ("duplicate", du)):
+            if m:
+                bucket = dup_split.setdefault(root_key(m.group(1)),
+                                              {"existing": 0, "duplicate": 0})
+                bucket[side] += 1
+    dup_onesided = sorted(r for r, c in dup_split.items()
+                          if not (c["existing"] > 0 and c["duplicate"] > 0))
+    rows.append(row("oc.dup.roots_both_sided", len(dup_split) - len(dup_onesided),
+                    "'duplicate skill name' lines whose root key appears on both "
+                    "sides (%d line(s) in the log; %d root key(s) split)"
+                    % (sum(sum(c.values()) for c in dup_split.values()),
+                       len(dup_split))))
+    rows.append(row("oc.dup.onesided_roots", len(dup_onesided),
+                    "root keys seen on one side only (%s)"
+                    % (", ".join(dup_onesided) or "none")))
 
     permission_lines = 0
     skill_allow = 0
@@ -465,6 +554,52 @@ def derive(s: Substrate) -> list[dict]:
                     "skill-bearing entries under %s" % cache_root))
 
     return rows
+
+
+def alternatives(s: Substrate) -> dict:
+    """The round-37 readings, kept as named definitional alternatives.
+
+    Protocol §5's D2 ruling requires both scopes' probe blocks; the probes are
+    the strings below, and the alternative names are prefixed `alt.` so no
+    consumer can mistake them for check ids: they are absent from the harness's
+    check set by construction and this instrument never publishes them in
+    `results`/`checks`. A definitional difference is recorded, never smoothed —
+    and never allowed to enter the agreement surface (r12 §3 idiom).
+    """
+    lines = s.log_text().split("\n")
+    rescan_arrays: list[list[str]] = []
+    for line in lines:
+        if "skills rescanned" not in line:
+            continue
+        m = re.search(r'skills="(\[.*?\])"', line)
+        if not m:
+            continue
+        try:
+            rescan_arrays.append(json.loads(m.group(1).replace('\\"', '"')))
+        except json.JSONDecodeError:
+            rescan_arrays.append([])
+    seen: dict[str, int] = {}
+    for array in rescan_arrays:
+        for name in array:
+            seen[name] = seen.get(name, 0) + 1
+    return {
+        "alt.oc.log.skills_attr_hits": {
+            "value": sum(line.count('skills="') for line in lines),
+            "probe": "sum of 'skills=\"' occurrences in %s" % s.oc_log,
+            "superseded_by": "oc.log.skills_tag_hits",
+            "why": "round-37 reading: the attribute token, not the literal tag "
+                   "the id names; the id's spec sentence governs (r38 D2)",
+        },
+        "alt.oc.dup.rescan_repeat_names": {
+            "value": sum(1 for v in seen.values() if v > 1),
+            "probe": "names appearing in more than one `skills rescanned` "
+                     "array (%d arrays) in %s" % (len(rescan_arrays), s.oc_log),
+            "superseded_by": "oc.dup.roots_both_sided",
+            "why": "round-37 reading: rescan-array repeats, a different "
+                   "population from the log's duplicate-skill-name split the "
+                   "id names (r38 D2)",
+        },
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -531,7 +666,9 @@ def compare(rows: list[dict], observed: dict) -> list[dict]:
     for entry in rows:
         name = entry["check"]
         if entry["status"] != "DERIVED":
-            results.append({"check": name, "verdict": "UNLANDED"})
+            results.append({"check": name,
+                            "verdict": entry["status"],  # UNLANDED / SCOPED_OUT
+                            "reason": entry.get("evidence", "")})
             continue
         if name not in observed:
             results.append({"check": name, "verdict": "NOT_IN_OBSERVED"})
@@ -790,18 +927,37 @@ def self_test() -> int:
         expect("oc.log.available_skills_hits",
                rows["oc.log.available_skills_hits"]["value"], 0)
         expect("oc.log.skills_tag_hits",
-               rows["oc.log.skills_tag_hits"]["value"], 2)
+               rows["oc.log.skills_tag_hits"]["value"], 0)
         expect("oc.dup.roots_both_sided",
-               rows["oc.dup.roots_both_sided"]["value"], 1)
+               rows["oc.dup.roots_both_sided"]["value"], 0)
         expect("oc.dup.onesided_roots",
-               rows["oc.dup.onesided_roots"]["value"], 1)
+               rows["oc.dup.onesided_roots"]["value"], 0)
         expect("oc.permission.skill_lines",
                rows["oc.permission.skill_lines"]["value"], 0)
         expect("oc.roots.names_plus_builtin",
                rows["oc.roots.names_plus_builtin"]["value"], 2)
         for name in ("omp.catalogue.found", "omp.catalogue.total",
                      "omp.catalogue.matched", "omp.catalogue.missing_names"):
-            expect("unlanded:" + name, rows[name]["status"], "UNLANDED")
+            expect("scoped-out:" + name, rows[name]["status"], "SCOPED_OUT")
+            expect("scoped-out reason named:" + name,
+                   rows[name]["evidence"].startswith("SCOPED_OUT: the catalogue "
+                                                     "carrier's selection rule"),
+                   True)
+
+        # round-38 adjudication: the superseded round-37 readings are kept as
+        # named definitional alternatives, under `alt.` names, and must not
+        # collide with any check id
+        alts = alternatives(fixture)
+        expect("alternative: attribute token reading kept",
+               alts["alt.oc.log.skills_attr_hits"]["value"], 2)
+        expect("alternative: rescan-repeat reading kept",
+               alts["alt.oc.dup.rescan_repeat_names"]["value"], 1)
+        expect("alternative: names are not check ids",
+               sorted(set(alts) & {r["check"] for r in rows.values()}), [])
+        for key, entry in alts.items():
+            expect("alternative probe block present:" + key,
+                   bool(entry.get("probe")) and bool(entry.get("superseded_by")),
+                   True)
 
         # mutants: each must move at least one landed row
         mutated = Path(tmp) / "mut"
@@ -850,12 +1006,59 @@ def self_test() -> int:
                         {r["check"]: r["value"] for r in rows.values()})
         expect("compare: all agree",
                sorted({r["verdict"] for r in agree}
-                      - {"UNLANDED"}), ["AGREE"])
+                      - {"UNLANDED", "SCOPED_OUT"}), ["AGREE"])
         tampered = {r["check"]: r["value"] for r in rows.values()}
         tampered["omp.db.rows"] = 999
         verdicts = {r["check"]: r["verdict"]
                     for r in compare(list(rows.values()), tampered)}
         expect("compare: tamper named", verdicts["omp.db.rows"], "DISAGREE")
+
+        # round-38: a scoped-out row is neither agreement nor disagreement, and
+        # a scoped-out row can never be counted as agreement (the numerator
+        # cannot gain from a scope-out)
+        scoped_verdicts = {r["check"]: r["verdict"] for r in agree
+                           if r["check"].startswith("omp.catalogue.")}
+        expect("compare: scoped-out rows leave the join",
+               set(scoped_verdicts.values()), {"SCOPED_OUT"})
+
+        # red-before for the dup split: the id names the log's own duplicate
+        # grammar, where a root key is both-sided when it appears on both the
+        # existing= and the duplicate= side. One line naming two *different*
+        # roots is therefore 0 both-sided / 2 one-sided; the superseded
+        # alternative (rescan-array repeats) does not move at all.
+        dup_mut = Path(tmp) / "mut4"
+        dup_mut.mkdir()
+        fixture5 = build_fixture(dup_mut)
+        home = Path.home()
+        with open(fixture5.oc_log, "a", encoding="utf-8") as handle:
+            handle.write('message="duplicate skill name" existing=%s/.agents/skills/alpha/SKILL.md '
+                         'duplicate=%s/.claude/skills/alpha/SKILL.md\n'
+                         % (home, home))
+        rows5 = {r["check"]: r["value"] for r in derive(fixture5)}
+        expect("dup split: one line, two distinct roots -> one-sided",
+               (rows5["oc.dup.roots_both_sided"], rows5["oc.dup.onesided_roots"]),
+               (0, 2))
+        with open(fixture5.oc_log, "a", encoding="utf-8") as handle:
+            handle.write('message="duplicate skill name" existing=%s/.claude/skills/alpha/SKILL.md '
+                         'duplicate=%s/.agents/skills/alpha/SKILL.md\n'
+                         % (home, home))
+        # a fresh view: Substrate memoises the log, so a re-derivation over an
+        # appended file must construct a new reader (the fixture-battery CLI
+        # path does this by construction, one process per run)
+        fixture5 = Substrate(fixture5.omp_binary, fixture5.agents_root,
+                             fixture5.skill_db, fixture5.oc_log,
+                             fixture5.oc_config)
+        rows5 = {r["check"]: r["value"] for r in derive(fixture5)}
+        expect("dup split: the same roots on both sides -> both-sided",
+               (rows5["oc.dup.roots_both_sided"], rows5["oc.dup.onesided_roots"]),
+               (2, 0))
+        expect("dup split: alternative does not move",
+               alternatives(fixture5)["alt.oc.dup.rescan_repeat_names"]["value"], 1)
+        expect("dup split: root_key maps a home path to two segments",
+               root_key(str(home) + "/.agents/skills/alpha/SKILL.md"),
+               ".agents/skills")
+        expect("dup split: a path without the home prefix is its own key",
+               root_key("/opt/elsewhere/SKILL.md"), "/opt/elsewhere/SKILL.md")
 
     fixture_battery(expect)
 
@@ -907,17 +1110,23 @@ def main(argv: list[str]) -> int:
         return 2
 
     landed = [r for r in rows if r["status"] == "DERIVED"]
-    unlanded = [r for r in rows if r["status"] != "DERIVED"]
+    unlanded = [r for r in rows if r["status"] == "UNLANDED"]
+    scoped = {r["check"]: r["evidence"].split("SCOPED_OUT: ", 1)[-1]
+              for r in rows if r["status"] == "SCOPED_OUT"}
     # `results` is the join shape the round's agreement driver
     # (verifiers/compare_harness_independent.py, seat P4) reads; `checks` is the
     # flat name -> value map.  Both carry this instrument's own numbers only.
+    # `alternatives` carries the round-37 readings the round-38 adjudication
+    # superseded, under `alt.` names: definitional, recorded, never compared.
     table = {"results": [{"check": r["check"], "re_derived": r["value"],
                           "value": r["value"], "status": r["status"]}
                          for r in rows],
              "checks": {r["check"]: r["value"] for r in rows},
              "rows": rows,
              "landed": len(landed),
-             "unlanded": [r["check"] for r in unlanded]}
+             "unlanded": [r["check"] for r in unlanded],
+             "scoped_out": scoped,
+             "alternatives": alternatives(substrate)}
 
     if args.out:
         args.out.write_text(json.dumps(table, indent=1, sort_keys=True)
@@ -941,8 +1150,9 @@ def main(argv: list[str]) -> int:
                 detail = " derived=%r observed=%r" % (entry["derived"],
                                                       entry["observed"])
             print("%-9s %s%s" % (entry["verdict"], entry["check"], detail))
-        print("agreement %d/%d compared; %d unlanded; %d not-in-observed"
+        print("agreement %d/%d compared; %d scoped-out; %d unlanded; %d not-in-observed"
               % (len(agreeing), len(agreeing) + len(disagreeing),
+                 len([r for r in results if r["verdict"] == "SCOPED_OUT"]),
                  len([r for r in results if r["verdict"] == "UNLANDED"]),
                  len(absent)))
         exit_code = 1 if disagreeing else 0
@@ -980,8 +1190,8 @@ def main(argv: list[str]) -> int:
     else:
         for r in rows:
             print("%-9s %-30s %s" % (r["status"], r["check"], r["value"]))
-        print("%d derived, %d unlanded (of %d named checks)"
-              % (len(landed), len(unlanded), len(rows)))
+        print("%d derived, %d scoped out, %d unlanded (of %d named checks)"
+              % (len(landed), len(scoped), len(unlanded), len(rows)))
     return exit_code
 
 

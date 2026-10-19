@@ -19,7 +19,13 @@ import pathlib
 import subprocess
 import sys
 
-REPO = pathlib.Path(__file__).resolve().parents[4]
+def _repo_root(start: pathlib.Path) -> pathlib.Path:
+    for p in [start, *start.parents]:
+        if (p / "verifiers/verify_harness_claims.py").is_file():
+            return p
+    raise SystemExit(f"repo root not found above {start}")
+
+REPO = _repo_root(pathlib.Path(__file__).resolve().parent)
 HARNESS = REPO / "verifiers/verify_harness_claims.py"
 
 

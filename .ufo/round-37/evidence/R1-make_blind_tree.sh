@@ -7,7 +7,13 @@
 set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO="$(cd "$HERE/../../../.." && pwd)"
+# Depth-independent repo root: walk up until the harness source is found, so the
+# script keeps working when moved between .ufo/round-*/evidence and drafts/*/.
+REPO="$(cd "$HERE" && while [ "$PWD" != / ]; do
+  [ -f "$PWD/verifiers/verify_harness_claims.py" ] && break
+  cd ..
+done; pwd)"
+[ -f "$REPO/verifiers/verify_harness_claims.py" ] || { echo "repo root not found from $HERE" >&2; exit 3; }
 TARGET="${1:-$HERE/blind-tree}"
 
 # HARNESS_TOKENS = the C1 pin surface: the harness's expected 64-hex value, its
