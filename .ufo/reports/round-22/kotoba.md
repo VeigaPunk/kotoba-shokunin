@@ -1,7 +1,7 @@
 # kotoba — round 22 report (2026-10-19)
 
 Lane: `kotoba-shokunin`. Round 22, loop 1 (loop-round 2), dispatched and admitted.
-Dispatch HEAD: `b16300f`. Work commit: `<pending — recorded at landing, round-11 precedent>`.
+Dispatch HEAD: `b16300f`. Work commit: `4b50d8d` (+ record fix `2e8eb64`; this report lands in the follow-up publish commit, round-11 precedent).
 Lane identity for the commits: `kotoba-shokunin <kotoba@shokunin.local>`.
 Claims: **B** freshness (SKILL.md ≤600 by verbatim section move; checklist gate fully green) · **A2** adjacency (r16adj escalation via the L0 side channel + live acknowledgment measure) — `.ufo/round-22/claims.json` (its "five packets" wording was a count error — corrected by scouts A2/A4/A7 and in the records).
 Swarm: **62 lanes** on `opencode-go-2/deepseek-v4.1-flash` (key 2 of 7); the item list carried 62 of the designed 64 (two lanes merged in design); all 62 completed, zero lost — the deviation is recorded in LOG, not papered over.
