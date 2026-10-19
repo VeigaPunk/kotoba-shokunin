@@ -151,7 +151,11 @@ revision, mode = sys.argv[1], sys.argv[2]
 relative = "corpus/knowledge/sibling-citation-routing-round16.json"
 fixture = json.loads((repo / relative).read_text())
 module = repo / "verifiers/verify_skill_checklist.py"
-if hashlib.sha256(module.read_bytes()).hexdigest() != "02ccf1b310f7910502f7938d24eb1cfcabe2c521ec42b7ce6420f1869af8df27":
+try:
+    expected = fixture["instrument"]["sha256"]
+except (KeyError, TypeError):
+    raise SystemExit("instrument_pin_absent")
+if hashlib.sha256(module.read_bytes()).hexdigest() != expected:
     raise SystemExit("instrument_drift")
 canonical = json.dumps(fixture["observations"], ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
 if hashlib.sha256(canonical).hexdigest() != "61e3fd60afd6477caabcea49321b4ac082c54fe878ef2046e8a47042fc74e627":

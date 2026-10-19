@@ -55,13 +55,27 @@ CHECK_IDS = (
 
 
 class EnvError(Exception):
-    """Environment unreadable: not a git repo, corpus/ or corpus/README.md absent."""
+    """Environment unreadable: not a git repo, corpus/ or corpus/README.md absent,
+    or a tracked corpus file that cannot be read (deleted, a directory, unreadable)."""
 
 
 def _git(repo, *args):
     return subprocess.run(
         ["git", "-C", repo, *args], capture_output=True, text=True
     )
+
+
+def _open_text(path, label):
+    """Open a corpus file for reading, or raise EnvError (exit 2) naming it.
+
+    ``label`` is the repo-relative name, matching the primary instrument's
+    ``cannot read tracked file <rel>`` idiom; the absolute path stays in the
+    OSError text.
+    """
+    try:
+        return open(path, encoding="utf-8")
+    except OSError as exc:
+        raise EnvError("cannot read tracked file %s: %s" % (label, exc)) from exc
 
 
 def tracked_paths(repo, prefix):
@@ -202,7 +216,7 @@ def coverage_cells(repo):
     if not os.path.exists(readme):
         raise EnvError("corpus/README.md missing")
     cells, in_section, outside = [], False, []
-    with open(readme, encoding="utf-8") as fh:
+    with _open_text(readme, "corpus/README.md") as fh:
         for lineno, line in enumerate(fh, 1):
             stripped = line.strip()
             if stripped.startswith("## "):
@@ -310,7 +324,7 @@ def analyse_pointers(repo, tracked_corpus):
     candidates = 0
     for rel in tracked_corpus:
         path = os.path.join(repo, rel)
-        with open(path, encoding="utf-8") as fh:
+        with _open_text(path, rel) as fh:
             for lineno, line in enumerate(fh, 1):
                 quotes = quote_spans(line)
                 for token, start, end in pointer_tokens(line):
@@ -343,7 +357,7 @@ def analyse_commits(repo, tracked_corpus):
     quoted, nonhash, unresolvable, citations = [], [], [], []
     for rel in tracked_corpus:
         path = os.path.join(repo, rel)
-        with open(path, encoding="utf-8") as fh:
+        with _open_text(path, rel) as fh:
             for lineno, line in enumerate(fh, 1):
                 quotes = quote_spans(line)
                 for token, start, end in commit_tokens(line):
@@ -382,7 +396,7 @@ def analyse(repo):
         raise EnvError("not a git repository: %s" % repo)
     if not os.path.isdir(os.path.join(repo, "corpus")):
         raise EnvError("corpus/ missing in %s" % repo)
-    if not os.path.exists(os.path.join(repo, "corpus", "README.md")):
+    if not os.path.isfile(os.path.join(repo, "corpus", "README.md")):
         raise EnvError("corpus/README.md missing in %s" % repo)
     tracked = corpus_markdown(repo)
     head = _git(repo, "rev-parse", "--short", "HEAD").stdout.strip()
