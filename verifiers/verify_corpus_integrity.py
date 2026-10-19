@@ -151,6 +151,10 @@ COVERAGE_HEADING_RE = re.compile(r"^##[ \t]+Coverage map[ \t]*$")
 # Round 36 (scout P3b): a fenced region is opaque -- a coverage row quoted inside
 # a ``` block is an example, not an index promise. Round 35 gave the box-map
 # extractor this same blindness fix; the census had it too.
+# Round 39 (seat P4, from V6b's r38 proof): the closer needs CommonMark 4.5's
+# rule -- same fence character, length >= the opener's, and no info string --
+# or a spec-illegal pseudo-closer (``` closing a ```` block, ```python, ``` nope)
+# silently reopens the region and a quoted row counts as a promise.
 FENCE_RE = re.compile(r"^[ \t]*(`{3,}|~{3,})(.*)$")
 BRACE_RE = re.compile(r"\{([^{}]*)\}")
 BRACE_LIMIT = 64
@@ -306,17 +310,24 @@ def fenced_lines(lines: list[str]) -> set[int]:
 
     Pure and total: an unclosed fence runs to EOF, so a half-deleted closer
     hides the tail rather than resurrecting it (fail-safe: rows stop counting).
+
+    Round 39 (seat P4): a fence-looking line closes the region only when it
+    satisfies CommonMark 4.5 -- same fence character, at least as long as the
+    opener, and no info string. Anything else (``` inside a ```` block,
+    ```python, ``` nope) is content, not a closer, so the region stays opaque.
     """
     inside = False
     char = ""
+    open_len = 0
     out: set[int] = set()
     for line_no, line in enumerate(lines, 1):
         match = FENCE_RE.match(line)
         if match:
             out.add(line_no)
+            run = match.group(1)
             if not inside:
-                inside, char = True, match.group(1)[0]
-            elif match.group(1)[0] == char:
+                inside, char, open_len = True, run[0], len(run)
+            elif run[0] == char and len(run) >= open_len and not match.group(2).strip():
                 inside = False
             continue
         if inside:
@@ -1065,6 +1076,24 @@ def self_test() -> int:
         {2, 3, 4, 5, 6, 7, 8},
     )
     eq("fence/unclosed-runs-to-eof", fenced_lines(["a", "```", "b", "c"]), {2, 3, 4})
+    # Round 39 (seat P4): the CommonMark 4.5 closer rule. A fence-looking line
+    # closes the region only with the same char, length >= the opener's and no
+    # info string; every other shape is content. Each assertion is one of V6b's
+    # three silent false-PASS exploits or a boundary the rule must not cross.
+    eq("fence/short-closer-is-content",
+       fenced_lines(["x", "````", "row", "```", "more", "````"]), {2, 3, 4, 5, 6})
+    eq("fence/info-closer-is-content",
+       fenced_lines(["x", "````", "row", "```python", "more", "````"]), {2, 3, 4, 5, 6})
+    eq("fence/closer-trailing-text-is-content",
+       fenced_lines(["x", "```", "row", "``` nope", "more", "```"]), {2, 3, 4, 5, 6})
+    eq("fence/longer-closer-closes",
+       fenced_lines(["x", "```", "row", "`````", "after"]), {2, 3, 4})
+    eq("fence/same-length-closer-closes",
+       fenced_lines(["x", "````", "row", "````", "after"]), {2, 3, 4})
+    eq("fence/empty-info-closer-closes",
+       fenced_lines(["x", "```", "row", "```   ", "after"]), {2, 3, 4})
+    eq("fence/legal-info-opener-then-short-closer",
+       fenced_lines(["x", "````python", "row", "```", "````"]), {2, 3, 4, 5})
     FENCED_README = (
         "## Coverage map\n\n| Area | File | Basis |\n|---|---|---|\n"
         "| Live | `knowledge/a.md` | basis |\n"
@@ -1087,6 +1116,23 @@ def self_test() -> int:
     eq("fence/control-unfenced-both-count", uidx["index_patterns"], 2)
     eq("fence/control-unfenced-covered", uidx["unindexed"], 0)
     eq("fence/control-no-fenced-class", uidx["index_tokens_fenced"], 0)
+    # Round 39 (seat P4) end to end: the r38 exploit shape -- a ```` block whose
+    # only pseudo-closer is a shorter ``` -- must keep the quoted row opaque.
+    # Before the closer rule this README read the row as a live promise and
+    # reported unindexed=0 (V6b's silent false-PASS, exit 0).
+    PSEUDO_README = (
+        "## Coverage map\n\n| Area | File | Basis |\n|---|---|---|\n"
+        "| Live | `knowledge/a.md` | basis |\n"
+        "````\n"
+        "```\n"
+        "| Fenced | `knowledge/b.md` | basis |\n"
+        "````\n"
+    )
+    pidx = index_findings(PSEUDO_README, FENCED_TRACKED, lambda p: p in FIXTURE_ON_DISK)
+    eq("fence/pseudo-closer-row-not-checked", pidx["index_patterns"], 1)
+    eq("fence/pseudo-closer-row-counted-fenced", pidx["index_tokens_fenced"], 1)
+    eq("fence/pseudo-closer-file-unindexed",
+       pidx["unindexed_detail"], ["corpus/knowledge/b.md"])
 
     # --- check layer: verdicts, including the baseline-free zero mode ----
     clean = {key: 0 for _, key in CHECKS.values()}

@@ -103,6 +103,9 @@ POINTER_RE = re.compile(
 COMMIT_RE = re.compile(r"(?<![A-Za-z0-9_-])commit\s+`([^`\s]+)`")
 # Round 36 (scout P3b): a fenced region is opaque to the index census -- a
 # coverage row quoted inside a ``` block is an example, not an index promise.
+# Round 39 (seat P4, from V6b's r38 proof): closing needs CommonMark 4.5's rule
+# -- same fence character, length >= the opener's, and no info string -- or a
+# spec-illegal pseudo-closer silently ends the region early.
 FENCE_RE = re.compile(r"^[ \t]*(`{3,}|~{3,})(.*)$")
 HEX_RE = re.compile(r"\A[0-9a-fA-F]+\Z")
 
@@ -218,15 +221,21 @@ def fenced_line_numbers(lines):
 
     An unclosed fence runs to EOF, so a half-deleted closer hides the tail
     rather than resurrecting it.
+
+    Round 39 (seat P4): a fence-looking line closes the region only when it
+    satisfies CommonMark 4.5 -- same fence character, at least as long as the
+    opener, and no info string. Anything else (``` inside a ```` block,
+    ```python, ``` nope) is content, not a closer, so the region stays opaque.
     """
-    inside, char, out = False, "", set()
+    inside, char, open_len, out = False, "", 0, set()
     for lineno, line in enumerate(lines, 1):
         m = FENCE_RE.match(line)
         if m:
             out.add(lineno)
+            run = m.group(1)
             if not inside:
-                inside, char = True, m.group(1)[0]
-            elif m.group(1)[0] == char:
+                inside, char, open_len = True, run[0], len(run)
+            elif run[0] == char and len(run) >= open_len and not m.group(2).strip():
                 inside = False
         elif inside:
             out.add(lineno)
@@ -589,11 +598,15 @@ def _fixture_index(root):
     _git_init(root)
 
 
-def _fixture_fence(root, fenced=True):
+def _fixture_fence(root, fenced=True, pseudo=False):
     lines = ["# t", "", "## Coverage map", "",
              "| Area | File | Basis |", "|------|------|-------|",
              "| Live | `knowledge/a.md` | x |"]
-    if fenced:
+    if pseudo:
+        # Round 39 (seat P4): the r38 exploit shape -- a ```` block whose only
+        # pseudo-closer is a shorter ```. The quoted row must stay opaque.
+        lines += ["````", "```", "| Fenced | `knowledge/b.md` | x |", "````"]
+    elif fenced:
         lines += ["```", "| Fenced | `knowledge/b.md` | x |", "```"]
     else:
         lines += ["| Fenced | `knowledge/b.md` | x |"]
@@ -720,11 +733,41 @@ def self_test():
         st.eq(uidx["index_tokens"], 2,
               "fence control: without the fence both rows count")
         st.eq(uidx["unindexed"], 0, "fence control: both files are covered")
+        # Round 39 (seat P4) end to end: the r38 exploit shape on the real path --
+        # a ```` block closed only by a shorter ```. Before the closer rule this
+        # fixture harvested the quoted row and reported unindexed=0 (silent
+        # false-PASS, exit 0); the row must now stay opaque.
+        proot = os.path.join(tmp, "fence-pseudo-closer")
+        _fixture_fence(proot, pseudo=True)
+        pidx = analyse_index(proot, corpus_markdown(proot))
+        st.eq(pidx["index_tokens"], 1,
+              "fence pseudo-closer: only the live row's token is harvested")
+        st.eq(pidx["unindexed"], 1,
+              "fence pseudo-closer: the quoted row's file stays unindexed")
         st.eq(fenced_line_numbers(["x", "~~~", "a", "```", "b", "```", "c", "~~~", "d"]),
               {2, 3, 4, 5, 6, 7, 8},
               "fence: a mismatched fence char does not close")
         st.eq(fenced_line_numbers(["a", "```", "b", "c"]), {2, 3, 4},
               "fence: an unclosed fence runs to EOF")
+        # Round 39 (seat P4): the CommonMark 4.5 closer rule. A fence-looking line
+        # closes the region only with the same char, length >= the opener's and no
+        # info string; every other shape is content. Each assertion is one of
+        # V6b's three silent false-PASS exploits or a boundary of the rule.
+        st.eq(fenced_line_numbers(["x", "````", "row", "```", "more", "````"]),
+              {2, 3, 4, 5, 6}, "fence: a shorter closer is content, not a closer")
+        st.eq(fenced_line_numbers(["x", "````", "row", "```python", "more", "````"]),
+              {2, 3, 4, 5, 6}, "fence: a closer with an info string is content")
+        st.eq(fenced_line_numbers(["x", "```", "row", "``` nope", "more", "```"]),
+              {2, 3, 4, 5, 6}, "fence: a closer with trailing text is content")
+        st.eq(fenced_line_numbers(["x", "```", "row", "`````", "after"]), {2, 3, 4},
+              "fence: a longer closer closes")
+        st.eq(fenced_line_numbers(["x", "````", "row", "````", "after"]), {2, 3, 4},
+              "fence: a same-length closer closes")
+        st.eq(fenced_line_numbers(["x", "```", "row", "```   ", "after"]), {2, 3, 4},
+              "fence: an empty-info closer with trailing blanks closes")
+        st.eq(fenced_line_numbers(["x", "````python", "row", "```", "````"]),
+              {2, 3, 4, 5},
+              "fence: a legal info opener still needs a >= opener-length closer")
 
         # -- pointers: four shapes, every exclusion, quoted context, dead --------
         proot = os.path.join(tmp, "pointers")

@@ -4,14 +4,20 @@
 The claim under test: a self-test that silently loses assertions must never
 still read green. Each instrument's --self-test prints an assertion count;
 this guard reruns every self-test and FAILs when the observed count is below
-the recorded floor (harness 10, corpus_integrity 119, corpus_independent 59,
-surfaces 87, checklist 1597, pins 62, harness_independent 86,
-compare_harness_independent 83; others @ round 36, the checklist floor
+the recorded floor (harness 10, corpus_integrity 129, corpus_independent 68,
+surfaces 87, checklist 1597, pins 62, harness_independent 104,
+compare_harness_independent 97; others @ round 36, the checklist floor
 re-recorded at round 37 by the C3 fence battery plus the indented-code decoy
 battery and at round 38 by the three container-relative fence shapes (V6's
 named residual); the two round-38 C1 instruments registered by claim C1f/seat
 P3 (floors re-bumped in-step to the settled counts of the C1 closure seat P1
-landed in the same round: 71->86, 59->83). Exit: 0 all floors hold;
+landed in the same round: 71->86, 59->83); `harness_independent` re-bumped at
+round 39 by seat P2's init_count predicate fix + grammar fixtures (86->93) and
+again by seat P1's scoped-row probe battery (93->104); `compare_harness_independent`
+re-bumped at round 39 by seat P1's scope-out discriminator battery (83->97);
+the two corpus floors re-bumped at
+round 39 by seat P4's CommonMark 4.5 closer-rule battery (119->129, 59->68).
+Exit: 0 all floors hold;
 1 an instrument ran below its floor, or its summary could not be parsed or the
 instrument could not be run (named, observed-vs-floor); 2 the in-file registry
 or the external anchor disagrees (named), or a self-test timed out. Read-only.
@@ -33,6 +39,18 @@ seat P4) closes V4's two residuals: a non-str key in either table is now named
 class unnamed), and a malformed row is named exactly once -- the anchor no
 longer derives a path/floor from a row whose shape it could not parse (V4-J's
 self-contradictory 'floor drift: pins registry=62 expected=62 row=None').
+
+Round 39 (claim C2, seat P3) closes the two arms round 38 left -- the FIELD
+shapes of a well-formed-arity row. A row whose path is not a non-empty str
+(V4's headline: path=None) was skipped by the `row_path is not None` guards, so
+no drift line was appended, main() fell through to `repo / spec[0]` and died
+with an uncaught TypeError (exit 1) -- a crash where the pre-round-38 guard
+named it exit 2. A row whose floor is not a plain int (floor=(62,) or
+floor=True, bool being an int subclass) re-derived the self-contradictory
+'floor drift: pins registry=62 expected=(62,) row=(62,)' pair. `row_problem()`
+is now the single source of truth for row shape: it names the offending field
+once, and neither table's drift check nor the anchor derives anything -- not a
+path, not a floor, and not the `repo / spec[0]` join -- from a row it rejects.
 
 DOCUMENTED TRUST BOUNDARY (scout T4). The guard trusts each instrument's own
 self-test output -- it detects silent block deletion and count drift, not a
@@ -63,13 +81,13 @@ DEFAULT_REPO = Path(__file__).resolve().parent.parent
 # or a floor silently lowered -- fails loudly before any self-test runs.
 EXPECTED_INSTRUMENTS = {
     "harness": 10,
-    "corpus_integrity": 119,
-    "corpus_independent": 59,
+    "corpus_integrity": 129,
+    "corpus_independent": 68,
     "surfaces": 87,
     "checklist": 1597,
     "pins": 62,
-    "harness_independent": 86,
-    "compare_harness_independent": 83,
+    "harness_independent": 104,
+    "compare_harness_independent": 97,
 }
 SELF_TEST_TIMEOUT_S = 120
 
@@ -80,9 +98,9 @@ REGISTRY_REL = Path("verifiers/floors-registry.json")
 INSTRUMENTS = {
     "harness": ("verifiers/verify_harness_claims.py", 10,
                 r"self-test:\s*(\d+) failure\(s\) over (\d+) assertions", 2, 1),
-    "corpus_integrity": ("verifiers/verify_corpus_integrity.py", 119,
+    "corpus_integrity": ("verifiers/verify_corpus_integrity.py", 129,
                          r"self-test:\s*(\d+) failure\(s\) over (\d+) assertions", 2, 1),
-    "corpus_independent": ("verifiers/verify_corpus_independent.py", 59,
+    "corpus_independent": ("verifiers/verify_corpus_independent.py", 68,
                            r"self-test:\s*(\d+) assertions,\s*(\d+) failures", 1, 2),
     "surfaces": ("verifiers/verify_surfaces.py", 87,
                  r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
@@ -90,9 +108,9 @@ INSTRUMENTS = {
                   r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
     "pins": ("verifiers/check_substrate_pins.py", 62,
              r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
-    "harness_independent": ("verifiers/verify_harness_independent.py", 86,
+    "harness_independent": ("verifiers/verify_harness_independent.py", 104,
                             r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
-    "compare_harness_independent": ("verifiers/compare_harness_independent.py", 83,
+    "compare_harness_independent": ("verifiers/compare_harness_independent.py", 97,
                                     r"self-test:\s*(\d+) failure\(s\) over (\d+) assertions", 2, 1),
 }
 
@@ -106,10 +124,44 @@ def _row_parts(spec):
     caller; silently reading `row[0]`/`row[1]` off a 4-field tuple produced the
     self-contradictory extras 'path drift ... row=None' and 'floor drift ...
     registry=62 expected=62 row=None'.
+
+    Round 39 (claim C2, seat P3): a 5-field row is not enough -- the two FIELDS
+    this function hands out must themselves be usable. V4's headline regression
+    was a 5-field row with path=None: `_row_parts()` returned it, the caller's
+    `row_path is not None` guards skipped every named line, and main() died at
+    `repo / spec[0]`. The path must now be a non-empty str and the floor a plain
+    int (bool excluded: it is an int subclass and `floor=True` reads as an
+    int-floor row while printing the contradiction). A rejected row yields
+    (None, None) so the caller derives nothing from it.
     '''
     if isinstance(spec, tuple) and len(spec) == 5:
-        return spec[0], spec[1]
+        path, floor = spec[0], spec[1]
+        if isinstance(path, str) and path and isinstance(floor, int) and not isinstance(floor, bool):
+            return path, floor
     return None, None
+
+
+def row_problem(name, spec):
+    '''Name the FIELD that makes a row unusable, or None when the row is sound.
+
+    Round 39 (claim C2, seat P3): one place decides what a sound row is, so the
+    two drift checks (registry_drift, registry_anchor_drift), the `repo /
+    spec[0]` join in main() and override_drift's canonical map can never
+    disagree about which rows to trust. Before this, a row could pass
+    `_row_parts()`'s arity test and still reach the join with a None path
+    (uncaught TypeError, exit 1) or re-derive the 'registry=62 expected=62'
+    contradiction from a malformed floor. The message is built here, so callers
+    append it verbatim and cannot re-introduce the contradiction by formatting
+    a rejected row's fields.
+    '''
+    if not (isinstance(spec, tuple) and len(spec) == 5):
+        return "malformed row: %s (expected 5-field tuple)" % name
+    path, floor = spec[0], spec[1]
+    if not (isinstance(path, str) and path):
+        return "malformed row: %s (non-string path %r)" % (name, path)
+    if not (isinstance(floor, int) and not isinstance(floor, bool)):
+        return "malformed row: %s (non-integer floor %r)" % (name, floor)
+    return None
 
 
 def registry_drift():
@@ -132,11 +184,19 @@ def registry_drift():
     for n in sorted(names & EXPECTED_INSTRUMENTS.keys()):
         spec = INSTRUMENTS[n]
         expected_floor = EXPECTED_INSTRUMENTS[n]
-        if not (isinstance(spec, tuple) and len(spec) == 5):
-            drift.append("malformed row: %s (expected 5-field tuple)" % n)
-        elif not (isinstance(spec[1], int) and isinstance(expected_floor, int)):
-            drift.append("malformed row: %s (non-integer floor)" % n)
-        elif spec[1] != expected_floor:
+        # Round 39 (claim C2, seat P3): both tables are field-checked, not just
+        # the INSTRUMENTS row -- EXPECTED_INSTRUMENTS' own value is what the
+        # `floor drift` line prints as `expected`, so a bool/None there would
+        # reach the same formatting site.
+        problem = row_problem(n, spec)
+        if problem is not None:
+            drift.append(problem)
+            continue
+        if not (isinstance(expected_floor, int) and not isinstance(expected_floor, bool)):
+            drift.append("malformed row: %s (expected-floor is not an integer: %r)"
+                         % (n, expected_floor))
+            continue
+        if spec[1] != expected_floor:
             drift.append("floor drift: %s floor=%r expected=%d" % (n, spec[1], expected_floor))
     return drift
 
@@ -165,7 +225,7 @@ def registry_anchor_drift(repo):
     # No non-str-key arm here: json.loads always yields str object keys, so such
     # a check would be an unexercised arm (round 38, seat P4). The in-file
     # tables are the reachable site for V4-S; a malformed row is handled by
-    # _row_parts() below.
+    # row_problem() below.
     if not isinstance(total, int) or isinstance(total, bool):
         drift.append("malformed: %s instrument_total is not an integer" % REGISTRY_REL)
     elif total != len(entries):
@@ -175,6 +235,7 @@ def registry_anchor_drift(repo):
     for n in names:
         entry = entries[n]
         if not (isinstance(entry, dict) and isinstance(entry.get("path"), str)
+                and entry.get("path")
                 and isinstance(entry.get("floor"), int) and not isinstance(entry.get("floor"), bool)):
             drift.append("malformed: %s entry %s (expected {path: str, floor: int})" % (
                 REGISTRY_REL, n))
@@ -183,13 +244,23 @@ def registry_anchor_drift(repo):
             drift.append("row vanish: %s (listed in %s, absent from both guard tables)" % (
                 n, REGISTRY_REL))
         if n in EXPECTED_INSTRUMENTS and n in INSTRUMENTS:
-            row_path, row_floor = _row_parts(INSTRUMENTS[n])
-            if row_path is not None and row_path != entry["path"]:
-                drift.append("path drift: %s registry=%s row=%s" % (n, entry["path"], row_path))
-            if row_path is not None and (row_floor != entry["floor"]
-                                         or EXPECTED_INSTRUMENTS[n] != entry["floor"]):
-                drift.append("floor drift: %s registry=%r expected=%r row=%r" % (
-                    n, entry["floor"], EXPECTED_INSTRUMENTS[n], row_floor))
+            # Round 39 (claim C2, seat P3): a row the tables carry but cannot
+            # vouch for derives NOTHING here -- not a path, not a floor. Round
+            # 38's `row_path is not None` suppression did exactly that for a
+            # None path, which is how the crash reached main()'s join. The
+            # row's own malformation is named by registry_drift(); naming it
+            # again from the anchor would be the self-contradictory pair V4
+            # reported.
+            spec = INSTRUMENTS[n]
+            if row_problem(n, spec) is None and isinstance(EXPECTED_INSTRUMENTS[n], int) \
+                    and not isinstance(EXPECTED_INSTRUMENTS[n], bool):
+                row_path, row_floor = _row_parts(spec)
+                if row_path != entry["path"]:
+                    drift.append("path drift: %s registry=%s row=%s" % (
+                        n, entry["path"], row_path))
+                if row_floor != entry["floor"] or EXPECTED_INSTRUMENTS[n] != entry["floor"]:
+                    drift.append("floor drift: %s registry=%r expected=%r row=%r" % (
+                        n, entry["floor"], EXPECTED_INSTRUMENTS[n], row_floor))
         target = repo / entry["path"]
         if not (target.is_file() and target.stat().st_size > 0):
             drift.append("path absent: %s %s (declared in %s, not a non-empty file under %s)" % (
@@ -212,7 +283,7 @@ def override_drift(overrides, repo):
     INSTRUMENTS carries the canonical paths.
     '''
     canonical = {n: (repo / spec[0]).resolve() for n, spec in INSTRUMENTS.items()
-                 if isinstance(spec, tuple) and len(spec) == 5}
+                 if row_problem(n, spec) is None}
     drift = []
     for name in sorted(overrides):
         path = Path(overrides[name])
@@ -251,7 +322,17 @@ def main(argv=None):
         for line in drift:
             print("FAIL registry " + line)
         return 2
-    paths = {name: repo / spec[0] for name, spec in INSTRUMENTS.items()}
+    # Round 39 (claim C2, seat P3): the join is guarded by row_problem() too, so
+    # a row the tables cannot vouch for can never reach `repo / spec[0]` even if
+    # a future edit reorders the checks above. Pre-round-39 bytes died here with
+    # an uncaught TypeError (V4's headline: exit 1 where r37 named it exit 2).
+    paths = {}
+    for name, spec in INSTRUMENTS.items():
+        problem = row_problem(name, spec)
+        if problem is not None:
+            print("FAIL registry " + problem)
+            return 2
+        paths[name] = repo / spec[0]
     overrides = {}
     for override in args.script:
         if "=" not in override:
@@ -312,6 +393,15 @@ def self_test() -> int:
     'path drift ... row=None' / 'floor drift ... registry=62 expected=62
     row=None' pair). Mutation anchors are count-checked, so a no-op mutation
     cannot masquerade as a passing fixture.
+
+    Round 39 (claim C2, seat P3) adds the FIELD arms of that class: F16 a
+    5-field row with path=None (red-before on the landed r38 bytes: an uncaught
+    TypeError at `repo / spec[0]`, exit 1 -- where the r37 PREFIX guard named it
+    exit 2), F17 floor=(62,), F18 floor=True (both red-before on both revisions:
+    the derived 'floor drift ... registry=62 expected=... row=...' pair, and for
+    F18 no malformed line at all), F19 a non-str non-None path, and F20 the
+    predicate itself over twelve shapes, so a regression names the cause rather
+    than only reddening a fixture.
     '''
     import tempfile
 
@@ -611,6 +701,127 @@ def self_test() -> int:
             "FAIL registry path drift: harness_independent" in proc.stdout, proc.stdout)
         rec("F15 new-row repointed path: no instrument reran",
             "PASS " not in proc.stdout, proc.stdout)
+
+        # F16-F19 (round 39, claim C2, seat P3) -- the FIELD shapes of a
+        # well-formed-arity row. Round 38's F12/F13 cover a non-str KEY and a
+        # short row; neither covers a bad VALUE inside a 5-field row, which is
+        # where V4 found both surviving arms. Red-before per arm (reproduced by
+        # drafts/p3/probe_arms.py; outputs in drafts/p3/out/before/ and
+        # out/prefix/ -- the r37 bytes 162006498182 are the PREFIX guard):
+        #   F16 path=None  -> on the landed r38 bytes eaf5bf46b61f an uncaught
+        #                     TypeError at `repo / spec[0]`, exit 1; the r37
+        #                     PREFIX guard named it exit 2 instead, so the fix
+        #                     had turned a named failure into a crash.
+        #   F17 floor=(62,) -> on BOTH revisions: 'malformed row' PLUS the
+        #                     self-contradictory 'floor drift: pins registry=62
+        #                     expected=(62,) row=(62,)' -- never closed by r38.
+        #   F18 floor=True  -> on BOTH revisions: no malformed line at all (bool
+        #                     is an int subclass), only 'floor drift: pins
+        #                     registry=62 expected=True row=True'.
+        # The discriminator is the *derived* line, not a line count: an unrelated
+        # live drift line must not turn these red, while any path/floor reading
+        # taken off a rejected row must.
+        def variant(row, old, new, label):
+            '''A row mutated in ONE field, with the inner swap count-checked too:
+            a `replace()` that silently matched nothing would leave the row sound
+            and the fixture would pass for the wrong reason (the same no-op
+            hazard `swap()` guards against one level up).'''
+            n = row.count(old)
+            rec("F16-F19 field anchor lands exactly once (%s)" % label, n == 1, n)
+            return row.replace(old, new) if n == 1 else row
+
+        bad_path = variant(row_pins, '"verifiers/check_substrate_pins.py"', "None", "F16")
+        text = swap(source, row_pins, bad_path, "F16/none-path")
+        proc = run(write_tree(tmp / "f16", text, registry_text), DEFAULT_REPO)
+        rec("F16 None row path: exit 2", proc.returncode == 2, proc.returncode)
+        rec("F16 None row path: names the class, the row and the field",
+            "FAIL registry malformed row: pins (non-string path None)" in proc.stdout,
+            proc.stdout)
+        rec("F16 None row path: no Traceback",
+            "Traceback" not in proc.stdout + proc.stderr, proc.stdout + proc.stderr)
+        rec("F16 None row path: no derived path/floor line",
+            "path drift: pins" not in proc.stdout and "floor drift: pins" not in proc.stdout,
+            proc.stdout)
+        rec("F16 None row path: no instrument reran", "PASS " not in proc.stdout, proc.stdout)
+
+        # F17: a well-formed 5-field row whose FLOOR is a nested tuple, in BOTH
+        # tables (V4-H2's shape). Both, because the registry's own line prints
+        # the EXPECTED table's value as `expected` -- mutating one table only
+        # would leave the other half of the contradiction untested.
+        nested_floor_row = variant(row_pins, '_pins.py", 62,\n', '_pins.py", (62,),\n', "F17")
+        text = swap(source, row_pins, nested_floor_row, "F17/nested-floor-row")
+        text = swap(text, expected_pins, '    "pins": (62,),\n', "F17/nested-floor-expected")
+        proc = run(write_tree(tmp / "f17", text, registry_text), DEFAULT_REPO)
+        rec("F17 nested-tuple floor: exit 2", proc.returncode == 2, proc.returncode)
+        rec("F17 nested-tuple floor: names the class, the row and the field",
+            "FAIL registry malformed row: pins (non-integer floor (62,))" in proc.stdout,
+            proc.stdout)
+        rec("F17 nested-tuple floor: no derived floor line",
+            "floor drift: pins" not in proc.stdout, proc.stdout)
+        rec("F17 nested-tuple floor: no self-contradiction",
+            "expected=62 row=62" not in proc.stdout, proc.stdout)
+        rec("F17 nested-tuple floor: no instrument reran", "PASS " not in proc.stdout,
+            proc.stdout)
+
+        # F18: floor=True in BOTH tables (V4-H4's shape). bool is an int
+        # subclass, so r38's isinstance floor test passed and the row reached the
+        # drift formatting site with no malformed line at all.
+        bool_floor_row = variant(row_pins, '_pins.py", 62,\n', '_pins.py", True,\n', "F18")
+        text = swap(source, row_pins, bool_floor_row, "F18/bool-floor-row")
+        text = swap(text, expected_pins, '    "pins": True,\n', "F18/bool-floor-expected")
+        proc = run(write_tree(tmp / "f18", text, registry_text), DEFAULT_REPO)
+        rec("F18 bool floor: exit 2", proc.returncode == 2, proc.returncode)
+        rec("F18 bool floor: names the class, the row and the field",
+            "FAIL registry malformed row: pins (non-integer floor True)" in proc.stdout,
+            proc.stdout)
+        rec("F18 bool floor: no derived floor line",
+            "floor drift: pins" not in proc.stdout, proc.stdout)
+        rec("F18 bool floor: no self-contradiction",
+            "expected=True row=True" not in proc.stdout, proc.stdout)
+        rec("F18 bool floor: no instrument reran", "PASS " not in proc.stdout, proc.stdout)
+
+        # F19: a non-str path that is NOT None (V4's PATH-VALUE-BOUND: int/bool
+        # named rc=2 pre-fix as 'path drift ... row=7'). The exit code is
+        # unchanged, but the class is now the accurate one -- an unusable field,
+        # not a repoint -- so the drift line the anchor used to print off an
+        # unvouched row is gone.
+        text = swap(source, row_pins,
+                    variant(row_pins, '"verifiers/check_substrate_pins.py"', "7", "F19"),
+                    "F19/int-path")
+        proc = run(write_tree(tmp / "f19", text, registry_text), DEFAULT_REPO)
+        rec("F19 int row path: exit 2", proc.returncode == 2, proc.returncode)
+        rec("F19 int row path: names the class, the row and the field",
+            "FAIL registry malformed row: pins (non-string path 7)" in proc.stdout,
+            proc.stdout)
+        rec("F19 int row path: no derived path line",
+            "path drift: pins" not in proc.stdout, proc.stdout)
+        rec("F19 int row path: no instrument reran", "PASS " not in proc.stdout, proc.stdout)
+
+        # F20 -- the predicate itself, pinned independently of the subprocess
+        # path: every row shape F16-F19 reach through the tables, plus the sound
+        # shape that must stay silent. A regression that let a bad field read as
+        # sound would turn every F16-F19 fixture red at once, but this names the
+        # cause directly.
+        sound = ("verifiers/check_substrate_pins.py", 62, r"x", 2, 1)
+        cases = [
+            (sound, None),
+            (("verifiers/check_substrate_pins.py", 62), "expected 5-field tuple"),
+            (("verifiers/check_substrate_pins.py", 62, r"x", 2), "expected 5-field tuple"),
+            ((None, 62, r"x", 2, 1), "non-string path None"),
+            ((7, 62, r"x", 2, 1), "non-string path 7"),
+            (("", 62, r"x", 2, 1), "non-string path ''"),
+            (("verifiers/check_substrate_pins.py", (62,), r"x", 2, 1), "non-integer floor (62,)"),
+            (("verifiers/check_substrate_pins.py", True, r"x", 2, 1), "non-integer floor True"),
+            (("verifiers/check_substrate_pins.py", None, r"x", 2, 1), "non-integer floor None"),
+            (("verifiers/check_substrate_pins.py", 62.0, r"x", 2, 1), "non-integer floor 62.0"),
+            ("not-a-tuple", "expected 5-field tuple"),
+        ]
+        for spec, expected in cases:
+            got = row_problem("pins", spec)
+            want = None if expected is None else "malformed row: pins (%s)" % expected
+            rec("F20 row_problem(%r) -> %r" % (spec, want), got == want, got)
+        rec("F20 a sound row yields no problem", row_problem("pins", sound) is None,
+            row_problem("pins", sound))
 
     print("%d failure(s) over %d assertions" % (len(failures), total))
     for f in failures:

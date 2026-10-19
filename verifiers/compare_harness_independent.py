@@ -42,19 +42,41 @@ the protocol predicate agrees are ADJUDICATED: recorded by name in the report
 and never counted as a failure.  ``--strict-headline`` makes the strict column
 decisive instead (red-team mode).
 
-Scoped-out rows (round 38, seat P1 — C1 closure).  A row the independent
-instrument cannot derive blind is not a disagreement and must not be smoothed
-into agreement either: the instrument publishes it with status ``SCOPED_OUT``
-and a non-empty reason, plus a top-level ``scoped_out`` map.  This driver reads
-that set from the independent payload's own output — it embeds no id list — and
-fails closed (exit 2) when the set is malformed: a named row absent from the
-independent payload, a named row whose own status is not ``SCOPED_OUT``, or a
-missing/empty reason.  Scoped-out rows leave the join entirely: they are listed
-by name in both report shapes, they never count as agreement (the numerator
-cannot gain from a scope-out, only the denominator narrows), and the headline
-is stated over the landed scope.  A scope-out set that the live side does not
-know about cannot hide a check: the driver's ``--expect-n`` count still covers
-the live check set.
+Scoped-out rows (round 38, seat P1 — C1 closure; hardened round 39, seat P1).
+A row the independent instrument cannot derive blind is not a disagreement and
+must not be smoothed into agreement either: the instrument publishes it with
+status ``SCOPED_OUT`` and a non-empty reason, plus a top-level ``scoped_out``
+map.  Round 38 read that set from the payload under test and validated only its
+*shape*, so a builder that simply failed to derive a row could declare it
+scoped out (in both payload channels plus the map) and the row left the join
+with no failure — a self-consistent declaration was enough to launder a real
+disagreement into exit 0 (r38 R1-D1, HIGH).
+
+Round 39 closes that hole with three independent locks, none of which the
+payload under test controls:
+
+1. **The set is read from a committed file**, ``verifiers/harness-independent-scope.json``
+   (``--scope-file``), not from the payload.  A scope-out exists because that
+   file lists it.  The payload's own declaration must match the committed set
+   exactly: a row declared scoped out that the file does not list is exit 2 (the
+   laundering shape), and a committed row the payload no longer declares is exit
+   2 (an undeclared deletion).
+2. **Every scoped row must carry a machine-checkable probe** — a blind,
+   value-free structural census (kind ``structural-census``) the driver
+   *recomputes itself* from the substrate root the committed file pins.  The
+   declared observable must equal the recomputed one exactly and must be
+   non-vacuous, and the probe's falsifying tokens must be absent.  A fabricated
+   or redirected probe is exit 2.
+3. **The blocker's falsifier is checked**: the strings whose presence would put
+   the rule back inside the substrate set are swept for; any occurrence is exit
+   2.
+
+So a genuine disagreement cannot self-declare its way out of the join: the
+declaration needs a committed entry *and* a probe whose recomputed fact holds.
+Scoped-out rows still leave the join entirely: they are listed by name in both
+report shapes, they never count as agreement (the numerator cannot gain from a
+scope-out, only the denominator narrows), and the headline is stated over the
+landed scope.  ``--expect-n`` still covers the live check set.
 
 Freeze-before-compare receipt (round 38, seat P2 — A1-D1).  The protocol's §6
 receipt is executable here: ``--receipt FILE`` writes, per run, the sha256 and
@@ -89,6 +111,7 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
 DEFAULT_LIVE = "verifiers/verify_harness_claims.py"
+DEFAULT_SCOPE = "verifiers/harness-independent-scope.json"
 DEFAULT_INDEPENDENT = "verifiers/verify_harness_independent.py"
 RUN_TIMEOUT_S = 300
 
@@ -96,6 +119,10 @@ ID_KEYS = ("check", "id", "name")
 IND_VALUE_KEYS = ("expected", "expected_value", "re_derived", "value", "observed")
 DOTTED_ID = re.compile(r"^[A-Za-z][A-Za-z0-9_]*(\.[A-Za-z0-9_]+)+$")
 KNOWN_MODES = ("equal", "zero", "positive")
+SCOPE_KINDS = ("rule-in-author-scope", "substrate-absent", "external-authority")
+ISO_STAMP_RE = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z")
+ENTRY_LINE_RE = re.compile(r"(?m)^\s*-\s+\S")
+_PROBE_CACHE = {}
 
 
 class CompareError(Exception):
@@ -399,6 +426,216 @@ def parse_scoped_out(payload, independent):
     return out
 
 
+def load_scope_file(path):
+    """The committed scope-out set: {check id: entry}, read from a repo file.
+
+    Round 39 (C1, seat P1).  This is lock 1 against the r38 laundering hole: the
+    set of rows allowed to leave the join is committed, so it cannot be extended
+    by the payload under test.  Each entry carries the blocker kind and the
+    probe contract the driver will recompute.
+    """
+    try:
+        raw = Path(path).read_text(encoding="utf-8")
+    except OSError as exc:
+        raise CompareError(f"scope file unreadable: {path}: {exc}") from exc
+    try:
+        document = json.loads(raw)
+    except ValueError as exc:
+        raise CompareError(f"scope file is not JSON: {path}: {exc}") from exc
+    if not isinstance(document, dict):
+        raise CompareError(f"scope file is not an object: {path}: {show(document)}")
+    entries = document.get("scope_out")
+    if entries is None:
+        raise CompareError(f"scope file carries no 'scope_out' mapping: {path}")
+    if not isinstance(entries, dict):
+        raise CompareError(
+            f"scope file 'scope_out' is not a mapping: {path}: {show(entries)}")
+    out = {}
+    for cid, entry in entries.items():
+        if not isinstance(entry, dict):
+            raise CompareError(f"scope file row {cid} is not an object: {show(entry)}")
+        if not isinstance(entry.get("reason"), str) or not entry["reason"].strip():
+            raise CompareError(f"scope file row {cid} carries no blocker reason")
+        if entry.get("kind") not in SCOPE_KINDS:
+            raise CompareError(
+                f"scope file row {cid} has kind {entry.get('kind')!r}, not one of "
+                f"{SCOPE_KINDS}")
+        out[cid] = entry
+    contract = document.get("probe_contract")
+    return out, contract if isinstance(contract, dict) else {}
+
+
+def recompute_probe(probe):
+    """Recompute a scoped row's blind probe in this process; return its observable.
+
+    Lock 2 against the laundering hole.  The probe is deliberately narrow: it is
+    a *structural census*, not the row's value (the value needs the rule the
+    instrument may not read).  It answers the question the blocker actually
+    rests on — is the carrier surface large, and does the row's value move when
+    a blind builder varies the rule it cannot see? — and it is computed here
+    rather than trusted from the payload.
+
+    A substring sweep for the rule's own literals was tried first and rejected:
+    the carrier is this lane's own session tree, so its transcripts *quote* the
+    rule's text (measured: `min(10, len(known))` occurs in
+    `KotobaLane.jsonl` and others), and any such sweep fails the true rows.  The
+    census below is the sound form: it reads structure, never prose.
+
+    Only ``rule-spread-census`` is defined; any other kind is a loud error, so a
+    future probe shape cannot slip through as un-verified.
+    """
+    kind = probe.get("kind")
+    if kind != "rule-spread-census":
+        raise CompareError(f"probe kind {kind!r} is not 'rule-spread-census'")
+    target = probe.get("target")
+    if not isinstance(target, str) or not target.startswith("/"):
+        raise CompareError(
+            f"probe target must be an absolute path (relative targets would be "
+            f"resolved against the wrong tree): {show(target)}")
+    key = (kind, target)
+    if key in _PROBE_CACHE:
+        return _PROBE_CACHE[key]
+    carrier = Path(target)
+    if not carrier.is_dir():
+        raise CompareError(f"probe target is not a directory: {target}")
+    cands = []
+    session_files = files_with_block = 0
+    for path in sorted(carrier.rglob("*.jsonl")):
+        session_files += 1
+        try:
+            text = path.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+        stamps = ISO_STAMP_RE.findall(text)
+        newest = max(stamps) if stamps else ""
+        mtime = path.stat().st_mtime
+        start = 0
+        while True:
+            start = text.find("<skills>", start)
+            if start < 0:
+                break
+            end = text.find("</skills>", start)
+            if end < 0:
+                break
+            block = text[start:end].replace("\\n", "\n")
+            cands.append({
+                "entries": len(ENTRY_LINE_RE.findall(block)),
+                "newest_stamp": newest,
+                "mtime": mtime,
+                "order": len(cands),
+            })
+            start = end + len("</skills>")
+        if text.count("<skills>"):
+            files_with_block += 1
+    if not cands:
+        raise CompareError(f"probe target carries no candidate block: {target}")
+    rule_totals = {}
+    for name, picker in (
+        ("newest-mtime", lambda c: (c["mtime"], -c["order"])),
+        ("newest-iso-stamp", lambda c: (c["newest_stamp"], -c["order"])),
+        ("first-in-scan-order", lambda c: (-c["order"],)),
+        ("last-in-scan-order", lambda c: (c["order"],)),
+        ("newest-nonempty", lambda c: (c["mtime"],) if c["entries"] else (-1, 0,)),
+    ):
+        chosen = max(cands, key=picker)
+        rule_totals[name] = chosen["entries"]
+    out = {
+        "observable": {
+            "session_files": session_files,
+            "files_with_skills_block": files_with_block,
+            "candidate_blocks": len(cands),
+            "distinct_totals": sorted(set(rule_totals.values())),
+            "rule_totals": rule_totals,
+        },
+        "present_tokens": [],
+    }
+    _PROBE_CACHE[key] = out
+    return out
+
+
+def check_scope_probes(scoped_out, probes, committed, contract, statuses=None):
+    """Validate every scoped row against the committed set and its own probe.
+
+    Failure classes, each named and each exit 2 by the caller:
+
+    * **laundering** — the payload declares a row scoped out that the committed
+      file does not list.  This is r38 R1-D1's exact shape: a real disagreement
+      (or a row the builder merely failed to derive) cannot buy its way out of
+      the join by declaring itself out; the set is committed, not self-served.
+      This is the decisive lock, and it is the one the payload cannot reach.
+    * **channel split** — a record whose own status says ``SCOPED_OUT`` while the
+      payload's ``scoped_out`` map omits it (or the reverse).  The two channels
+      must agree, or a row could leave one and re-enter the other.
+    * **false blocker** — the declared probe does not survive recomputation: a
+      probe block that is missing, misdirected, vacuous, whose declared
+      observable disagrees with the recomputed census, or whose blind-plausible
+      rules all land on one total (which would mean the row *is* derivable blind
+      and the scope-out is a false claim).
+
+    Deliberately NOT a failure: a committed row the payload now derives.  That is
+    the comparison getting *stronger* — the row re-enters the join and is checked
+    like any other — and the join's own uncovered/unknown rules already cover a
+    row that merely vanishes.  Failing it would punish a builder for succeeding.
+
+    The committed set may legitimately be empty (a tree with no scope-outs): then
+    any payload scope-out is laundering, and the live join proceeds normally.
+    """
+    problems = []
+    for cid, status in sorted((statuses or {}).items()):
+        if status == "SCOPED_OUT" and cid not in scoped_out:
+            problems.append(
+                f"channel split: record {cid} carries status SCOPED_OUT but the "
+                f"payload's scoped_out map omits it (declare it in both channels)")
+        elif status != "SCOPED_OUT" and cid in scoped_out:
+            problems.append(
+                f"channel split: {cid} is in the scoped_out map but its own record "
+                f"status is {status!r}, not 'SCOPED_OUT'")
+    for cid in sorted(scoped_out):
+        if cid not in committed:
+            problems.append(
+                f"laundering: the payload scopes out {cid}, which the committed scope "
+                f"file does not list (a scope-out must be committed, not self-declared)")
+    for cid in sorted(scoped_out):
+        if cid not in committed:
+            continue
+        probe = probes.get(cid)
+        if not isinstance(probe, dict):
+            problems.append(
+                f"false blocker: scoped row {cid} carries no probe block (a blocker "
+                f"without a recomputable probe is an assertion, not a measurement)")
+            continue
+        declared_kind = contract.get("kind")
+        if declared_kind and probe.get("kind") != declared_kind:
+            problems.append(
+                f"false blocker: scoped row {cid} probe kind {probe.get('kind')!r} does "
+                f"not match the committed contract kind {declared_kind!r}")
+            continue
+        declared = probe.get("observable")
+        try:
+            recomputed = recompute_probe(probe)
+        except CompareError as exc:
+            problems.append(f"false blocker: scoped row {cid}: {exc}")
+            continue
+        if declared != recomputed["observable"]:
+            problems.append(
+                f"false blocker: scoped row {cid} declares observable "
+                f"{show(declared)} but recomputation gives {show(recomputed['observable'])}")
+            continue
+        obs = recomputed["observable"]
+        if obs["session_files"] == 0 or obs["candidate_blocks"] == 0:
+            problems.append(
+                f"false blocker: scoped row {cid} probe is vacuous "
+                f"({show(obs)}): 'cannot derive' must not rest on an empty surface")
+        elif len(obs.get("distinct_totals") or []) < 2:
+            problems.append(
+                f"false blocker: scoped row {cid}: every blind-plausible rule agrees "
+                f"on one total {show(obs.get('distinct_totals'))}, so the row is "
+                f"derivable without reading the harness's rule and is not out of scope")
+    if problems:
+        raise CompareError("; ".join(problems))
+    return True
+
+
 def annotate_statuses(res, statuses):
     """Mark agreements that rest on a non-derived independent reading as provisional.
 
@@ -700,12 +937,22 @@ def render_receipt(meta, argv, cwd):
             "path": rel,
             "sha256": hashlib.sha256(path.read_bytes()).hexdigest() if path.is_file() else None,
         }
+    # Round 39 (C1, seat P1): the committed scope-out set is a lock on the
+    # headline, so its bytes are recorded here too.  A receipt that names the two
+    # instruments but not the scope file cannot show which scope the join ran under.
+    scope_path = Path(meta.get("scope_file") or "")
+    if not scope_path.is_absolute():
+        scope_path = cwd / scope_path
+    scope_record = {
+        "path": meta.get("scope_file"),
+        "sha256": hashlib.sha256(scope_path.read_bytes()).hexdigest() if scope_path.is_file() else None,
+    }
     res = meta["result"]
     joined_n, scope_n, live_n = scope_totals(meta)
     label, headline_n = headline(meta)
     return {
         "receipt": "freeze-before-compare",
-        "round": 38,
+        "round": 39,
         "claim": "C1 (depth) — source-blind harness re-derivation",
         "recorded_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "head": meta.get("head"),
@@ -717,6 +964,11 @@ def render_receipt(meta, argv, cwd):
             "independent": meta["receipt"]["independent"],
         },
         "instrument_files": instruments,
+        "scope_file": scope_record,
+        "scope_locks": {
+            "committed_set": sorted(meta.get("committed_scope") or []),
+            "probe_kind": meta.get("scope_probe_kind"),
+        },
         "join": {
             "headline_column": label,
             "n": headline_n,
@@ -1031,7 +1283,7 @@ def self_test(quiet=False):
             (tmp_path / name).write_text(body + "\n")
         report = tmp_path / "report.md"
 
-        def e2e(name, live, indi, want_exit=0, want_text=""):
+        def e2e(name, live, indi, want_exit=0, want_text="", scope=None):
             argv = [
                 sys.executable,
                 str(Path(__file__).resolve()),
@@ -1043,6 +1295,8 @@ def self_test(quiet=False):
                 "2",
                 "--no-stamp",
             ]
+            if scope is not None:
+                argv += ["--scope-file", str(scope)]
             proc = subprocess.run(argv, capture_output=True, text=True, timeout=120)
             check(
                 f"cli: {name} -> exit {want_exit}",
@@ -1054,13 +1308,98 @@ def self_test(quiet=False):
         e2e("mismatched stub", "live.py", "ind_bad.py", want_exit=1, want_text="a.c")
         e2e("red live instrument", "live_red.py", "ind_ok.py", want_exit=3)
         # a.c is scoped out, so the live 1 vs the independent None never joins:
-        # 1/1 joined, exit 0, and the report names the scope-out and its blocker
+        # 1/1 joined, exit 0, and the report names the scope-out and its blocker.
+        # Round 39: the scope-out now has to be committed in the scope file AND
+        # carry a probe the driver recomputes, so the arm builds both.
+        carrier = tmp_path / "carrier"
+        carrier.mkdir()
+        for i, (stamp, entries) in enumerate((("2026-01-01T00:00:00.000Z", 2),
+                                              ("2026-02-02T00:00:00.000Z", 5))):
+            block = "\\n".join("- entry %d" % n for n in range(entries))
+            (carrier / f"s{i}.jsonl").write_text(
+                '{"stamp":"%s","text":"<skills>%s\\n</skills>"}\n' % (stamp, block),
+                encoding="utf-8")
+        empty_carrier = tmp_path / "empty-carrier"
+        empty_carrier.mkdir()
+        scope_file = tmp_path / "scope.json"
+        observable = recompute_probe(
+            {"kind": "rule-spread-census", "target": str(carrier)}
+        )["observable"]
+        scope_file.write_text(json.dumps({
+            "schema": "kotoba-harness-independent-scope-v1",
+            "probe_contract": {"kind": "rule-spread-census"},
+            "scope_out": {"a.c": {"kind": "rule-in-author-scope",
+                                  "reason": "the carrier rule is the author's scope"}},
+        }), encoding="utf-8")
+
+        def stub_scoped(ind_path, observable_json, status="SCOPED_OUT", with_probe=True,
+                        target=None, kind="rule-spread-census"):
+            probe = ("{'kind':%r,'target':%r,'observable':%s}"
+                     % (kind, target if target is not None else str(carrier),
+                        observable_json)) if with_probe else "None"
+            record = "{'check':'a.c','expected':None,'status':" + repr(status)
+            if with_probe:
+                record += ",'probe':" + probe
+            record += "}"
+            body = ("import json;print(json.dumps({'results':["
+                    "{'check':'a.b','expected':1,'status':'DERIVED'},"
+                    + record + "],"
+                    "'scoped_out':{'a.c':'the carrier rule is the author scope'},"
+                    "'scoped_out_probes':{'a.c':" + probe + "}}))")
+            ind_path.write_text(body + "\n", encoding="utf-8")
+
+        stub_scoped(tmp_path / "ind_scoped.py", json.dumps(observable))
+        probe_for_c = lambda: ("{'kind':'rule-spread-census','target':%r,'observable':%s}"
+                               % (str(carrier), json.dumps(observable)))
         proc = e2e("scope-out stub narrows the scope", "live_scoped.py", "ind_scoped.py",
-                   want_text="agreement: 1/1")
+                   want_text="agreement: 1/1", scope=scope_file)
         check("cli: scope-out stub reports the scoped row count",
               "1 scoped out" in proc.stdout)
+        # round-39 counter-probes: each shape of the r38 laundering hole must
+        # fail closed, and the decisive one is a row the committed file does not list
+        stub_scoped(tmp_path / "ind_launder.py", json.dumps(observable))
+        uncommitted = tmp_path / "scope-empty.json"
+        uncommitted.write_text(json.dumps({"scope_out": {}}), encoding="utf-8")
+        proc = e2e("laundering: an uncommitted scope-out fails closed", "live_scoped.py",
+                   "ind_launder.py", want_exit=2, scope=uncommitted)
+        check("cli: laundering is named as the class",
+              "laundering" in proc.stderr and "a.c" in proc.stderr)
+        # a committed row whose declared census does not recompute
+        stub_scoped(tmp_path / "ind_fake.py", json.dumps(dict(observable, distinct_totals=[7])))
+        proc = e2e("false blocker: a declared census that does not recompute", "live_scoped.py",
+                   "ind_fake.py", want_exit=2, scope=scope_file)
+        check("cli: false blocker is named as the class", "false blocker" in proc.stderr)
+        # a probe with no probe block at all
+        stub_scoped(tmp_path / "ind_noprobe.py", "{}", with_probe=False)
+        proc = e2e("false blocker: a scoped row with no probe", "live_scoped.py",
+                   "ind_noprobe.py", want_exit=2, scope=scope_file)
+        check("cli: a probe-less scope-out is named", "no probe block" in proc.stderr)
+        # a probe pointed at a tree that cannot corroborate anything
+        stub_scoped(tmp_path / "ind_redirect.py", json.dumps(observable),
+                    target=str(empty_carrier))
+        proc = e2e("false blocker: a redirected probe", "live_scoped.py",
+                   "ind_redirect.py", want_exit=2, scope=scope_file)
+        check("cli: a redirected probe is named", "no candidate block" in proc.stderr)
+        # a record marked SCOPED_OUT that the map omits: the two channels must agree.
+        # The map must be non-empty and well-formed for this arm to reach the
+        # channel check, so it declares a.c and the split is on a.d.
+        (tmp_path / "ind_split.py").write_text(
+            "import json;print(json.dumps({'results':["
+            "{'check':'a.b','expected':1,'status':'DERIVED'},"
+            "{'check':'a.c','expected':None,'status':'SCOPED_OUT'},"
+            "{'check':'a.d','expected':None,'status':'SCOPED_OUT'}],"
+            "'scoped_out':{'a.c':'the carrier rule is the author scope'},"
+            "'scoped_out_probes':{'a.c':" + probe_for_c() + "}}))\n", encoding="utf-8")
+        proc = e2e("channel split: status and map disagree", "live_scoped.py",
+                   "ind_split.py", want_exit=2, scope=scope_file)
+        check("cli: a split channel is named", "channel split" in proc.stderr)
+        # an unknown probe kind cannot slip through as un-verified
+        stub_scoped(tmp_path / "ind_kind.py", json.dumps(observable), kind="assertion")
+        proc = e2e("false blocker: an unknown probe kind", "live_scoped.py",
+                   "ind_kind.py", want_exit=2, scope=scope_file)
+        check("cli: an unknown probe kind is named", "probe kind" in proc.stderr)
         e2e("scope-out with a mismatched status fails closed", "live_scoped.py",
-            "ind_scoped_bad.py", want_exit=2)
+            "ind_scoped_bad.py", want_exit=2, scope=scope_file)
         proc = subprocess.run(
             [
                 sys.executable,
@@ -1153,6 +1492,17 @@ def self_test(quiet=False):
         check("receipt: invocation record carries the driver argv and verdict",
               isinstance(receipt.get("driver_argv"), list)
               and receipt.get("join", {}).get("exit") == 0)
+        # round 39: the committed scope file is a lock on the headline, so the
+        # receipt must show which scope bytes the join ran under.  The path is
+        # recorded repo-relative (as given on the command line); the digest is
+        # the load-bearing part.
+        check("receipt: the committed scope file's digest is recorded",
+              receipt.get("scope_file", {}).get("path") == DEFAULT_SCOPE
+              and isinstance(receipt.get("scope_file", {}).get("sha256"), str)
+              and len(receipt["scope_file"]["sha256"]) == 64)
+        check("receipt: the receipt records the committed scope set and probe kind",
+              isinstance(receipt.get("scope_locks", {}).get("committed_set"), list)
+              and len(receipt["scope_locks"]["committed_set"]) == 4)
         live_bytes = (tmp_path / "live.json")
         ind_bytes = (tmp_path / "ind.json")
         subprocess.run(
@@ -1305,6 +1655,27 @@ def build_meta(args):
     ind_payload = load_payload(text, "independent")
     independent = parse_independent(ind_payload, statuses)
     scoped_out = parse_scoped_out(ind_payload, independent)
+    # Round 39 (C1, seat P1) — the three locks on the scope-out, in order:
+    # the set is committed (not self-served), each row's blind probe is
+    # recomputed here, and the blocker's falsifier is swept for.
+    committed, contract = load_scope_file(args.scope_file)
+    probes = {}
+    if isinstance(ind_payload, dict):
+        raw_probes = ind_payload.get("scoped_out_probes")
+        if isinstance(raw_probes, dict):
+            probes = {k: v for k, v in raw_probes.items() if isinstance(v, dict)}
+        if not probes:
+            # the per-record channel the instrument also publishes
+            for record in _record_list(ind_payload) or []:
+                if isinstance(record, dict) and isinstance(record.get("probe"), dict):
+                    probes[_record_id(record, "independent")] = record["probe"]
+    check_scope_probes(scoped_out, probes, committed, contract, statuses)
+    scoped_out = {cid: scoped_out[cid] for cid in sorted(scoped_out)}
+    scope_probe_kind = None
+    for probe in probes.values():
+        if isinstance(probe, dict) and probe.get("kind"):
+            scope_probe_kind = probe["kind"]
+            break
 
     res = annotate_statuses(
         compare(live, independent, modes, use_predicates=not args.no_mode_predicates,
@@ -1343,6 +1714,9 @@ def build_meta(args):
         "stamp": "" if args.no_stamp else args.stamp,
         "live_json_used": bool(args.live_json),
         "ind_json_used": bool(args.independent_json),
+        "scope_file": args.scope_file,
+        "committed_scope": sorted(committed),
+        "scope_probe_kind": scope_probe_kind,
         "receipt": {"live": live_receipt, "independent": ind_receipt},
     }
 
@@ -1370,6 +1744,12 @@ def main(argv=None):
     parser.add_argument("--no-stamp", action="store_true", help="omit the stamp line")
     parser.add_argument(
         "--strict-headline", action="store_true", help="make strict value equality decisive (red-team mode)"
+    )
+    parser.add_argument(
+        "--scope-file",
+        default=DEFAULT_SCOPE,
+        help="committed scope-out set the payload's own declaration is checked against "
+             "(round 39: a scope-out must be committed, never self-declared)",
     )
     parser.add_argument(
         "--no-mode-predicates", action="store_true", help="ignore the live mode field; strict equality only"

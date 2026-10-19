@@ -21,34 +21,51 @@ construction scrub.
 | | author's instrument (HAR) | independent derivation (IND) |
 |---|---|---|
 | file | `verifiers/verify_harness_claims.py` | `verifiers/verify_harness_independent.py` |
-| sha256 | `6b8eb4b6e85b1640cbdbfedd10a6ee9055923caaad226736e7f672e8dff934f3` | `82ad9700a59cf7cff63e75cda2272a9450ca9407358b884a35166c1f8e044f03` |
+| sha256 | `6b8eb4b6e85b1640cbdbfedd10a6ee9055923caaad226736e7f672e8dff934f3` | `872993f875338f4f…` (round 39: the init_count predicate fix and seat P1's scoped-row probes landed here; `82ad9700a59cf7cf…` is the r38-closure sha this doc was written against) |
 | author | r10/r23 lanes (author side) | round-37 builder seats, blinded to the harness source, `baseline.json`'s harness rows, and corpus docs quoting them |
-| self-test | `--self-test` → `0 failure(s) over 10 assertions` | `--self-test` → `0 failure(s) over 86 assertions` |
+| self-test | `--self-test` → `0 failure(s) over 10 assertions` | `--self-test` → `0 failure(s) over 104 assertions` (86 at the r38 closure; 93 after the round-39 init_count grammar fixtures; 104 after seat P1's scope-out probe battery) |
 | exits | 0 pass · 1 drift · 2 inconclusive · 3 no baseline | 0 clean · 1 drift (`--freeze`/`--observed`) · 2 environment unreadable |
-| join driver | `verifiers/compare_harness_independent.py`, sha256 `9a8c4cb4fdacdc58…`, `--self-test` → `0 failure(s) over 83 assertions` | same driver, mode-aware headline + strict column, `--receipt` (freeze receipt) |
+| join driver | `verifiers/compare_harness_independent.py`, sha256 `bb8dcecd65f160d3…`, `--self-test` → `0 failure(s) over 97 assertions` (83 at the r38 closure, 93 mid-round-39) | same driver, mode-aware headline + strict column, `--receipt` (freeze receipt) |
+
+**Adjudication ledger.** The r38 witness seat's rulings for the rows this file
+adjudicates are at `.ufo/round-38/evidence/a1-adjudication-ledger.md`
+(rows `adj-r38-01` … `adj-r38-14`). §3 below and that ledger are the two records
+of the same rows; where they differ, this file was the stale one — round 39
+re-files `oc.log.init_count_monotone` under its true class per that ledger's
+row 3 (see §3).
 
 Agreement predicate (round-37 C1 adjudication protocol §2, frozen before the
 first join): `equal` → value equality; `zero` → both readings empty; `positive`
 → inequality direction. Strict type-tagged equality is published beside it.
-All numbers below were re-measured at write time (2026-10-19, HEAD `cb4e0f3`,
-IND `82ad9700…`, driver `c1538342…`) by the commands in §6.
+All numbers below were re-measured at write time (2026-10-19; the r38 closure
+at HEAD `cb4e0f3`, IND `82ad9700…`, driver `c1538342…`; the round-39
+init_count re-filing at IND `872993f8…` against driver `8cfdefdf…`) by the
+commands in §6.
 
 **Measurement stamp, not a pin.** Both C1 instruments were edited by sibling
-seats while this file was written (IND moved `27ae80ae…` → `82ad9700…`, the
-driver `de2bd8ab…` → `0f7f59e8…` → `c1538342…`, with identical headline
-`24/24, exit 0` at the last two). Every number here is stamped with the sha it
-was measured on; the shas are re-read from `git status`-visible working bytes,
-so a reader re-running §6 after the round lands should expect the assertion
-counts to have moved and must re-measure before quoting them.
+seats while this file was written (IND moved `27ae80ae…` → `82ad9700…`, then
+`872993f8…` at round 39; the driver `de2bd8ab…` → `0f7f59e8…` → `c1538342…` →
+`8cfdefdf…`, with identical headline `24/24, exit 0` at the last three). Every
+number here is stamped with the sha it was measured on; the shas are re-read
+from `git status`-visible working bytes, so a reader re-running §6 after the
+round lands should expect the assertion counts to have moved and must
+re-measure before quoting them. The round-39 counts were re-read a second time
+after the sibling edits settled, and the floors guard was re-run at that state
+(`PASS harness_independent observed=104 floor=104`, `PASS
+compare_harness_independent observed=93 floor=93`, exit 0).
 
 ## 1. The claim this round lands
 
 *Live tree*: the driver prints
 `agreement: 24/24 (mode-aware protocol headline; 28 live checks, 4 scoped out by
-the independent instrument)`, `strict 19/24`, `adjudicated rows: 5`,
+the independent instrument)`, `strict 20/24`, `adjudicated rows: 4`,
 `disagree: 0`, `scoped-out: 4`, and **exits 0** — `all checks agree, both
 instruments green`. The after-state the claim declares is met **over the landed
 scope**, and the scope is declared by the instrument itself, not by the driver.
+(Round 39 moved the strict column 19 → 20 and the adjudicated set 5 → 4: the
+`oc.log.init_count_monotone` pair used to agree only because both sides were
+empty; with the predicate fixed the row is a list-vs-list agreement, so it left
+the adjudicated column rather than changing the headline.)
 
 *The round-37 state* (the reason this file exists): the same driver at
 `de2bd8ab…` against IND `27ae80ae…` printed `23/28`, `disagree: 5`, exit 1.
@@ -57,11 +74,15 @@ closure is therefore traceable, not asserted: each row has a probe, a ruling,
 and a landed change.
 
 *Mutant tree* (a fabricated `init count` / duplicate-name log fed to both
-instruments via their own `--oc-log` flags): both move; the driver reports
-`21/24`, exit 1, naming `oc.log.init_count_max (2 vs 5)`,
-`oc.log.init_count_monotone (1 vs [])` and `oc.dup.onesided_roots (2 vs the
-root list)`. *Frozen-vs-mutant* (the frozen receipt against the mutated live
-side): `21/24`, exit 1, naming the same class set from the frozen values
+instruments via their own `--oc-log` flags; round-39 re-measurement, log kept at
+`.ufo/round-39/drafts/p2/fixtures-oc-log-mutant.log`): both instruments move;
+the driver reports `24/24`, exit 3, naming the *live* side's own non-PASS rows
+(`oc.dup.roots_both_sided`, `oc.log.init_count_max`) — the init_count rows are no
+longer disagreements, because round 39 gave IND the same occurrence grammar and
+the same violation rendering as HAR (before the fix the same leg read `21/24`,
+exit 1, `init_count_max (2 vs 5)` and `init_count_monotone (1 vs [])`).
+*Frozen-vs-mutant* (the frozen receipt against the mutated live side): `21/24`,
+exit 1, naming the same class set from the frozen values
 (`init_count_max 0 vs 5`, `skills_rescan_max 3 vs 2`) — the semantics the
 claim's after-text requires, and the reason the freeze receipt is load-bearing.
 
@@ -78,7 +99,7 @@ four-number blocks (one line per row, with the pin column) are reproduced by
 | 2 | `oc.dup.roots_both_sided` | equal | `0` | `0` | `0` | yes |
 | 3 | `oc.log.available_skills_hits` | zero | `0` | `0` | `0` | yes |
 | 4 | `oc.log.init_count_max` | equal | `0` | `0` | `0` | yes |
-| 5 | `oc.log.init_count_monotone` | zero | `0` | `[]` | `[]` | yes |
+| 5 | `oc.log.init_count_monotone` | zero | `[]` | `[]` | `[]` | yes |
 | 6 | `oc.log.skills_rescan_max` | equal | `3` | `3` | `3` | yes |
 | 7 | `oc.log.skills_tag_hits` | zero | `0` | `0` | `0` | yes |
 | 8 | `oc.permission.skill_allow` | equal | `0` | `0` | `0` | yes |
@@ -104,9 +125,9 @@ four-number blocks (one line per row, with the pin column) are reproduced by
 | 28 | `omp.offered.skills` | equal | `7` | `7` | `7` | yes |
 
 **24/24 over the landed scope** (4 scoped out); the strict type-tagged column
-is 19/24 — 5 rows agree under the mode predicate while their encodings differ
-(`0` vs `[]`, `0` vs `False`), and the driver names all 5. A naive `!=` check
-scores 20/24 on the same data because Python's `0 == False` is true; that is
+is 20/24 — 4 rows agree under the mode predicate while their encodings differ
+(`0` vs `[]`, `0` vs `False`), and the driver names all 4. A naive `!=` check
+scores 21/24 on the same data because Python's `0 == False` is true; that is
 exactly the type laundering the driver's strict column exists to catch, so the
 driver's number is the one quoted here. HAR's own live verdicts are `28/28 checks pass`, exit 0, in the same run — the
 two are answers to different questions (drift-from-pin vs independent
@@ -127,8 +148,16 @@ repaired). The newest qualifying catalogue (`2026-10-15T05:02:56.169Z`) matches
 
 ## 3. Adjudications
 
-One row per disagreement or definitional difference. Probe outputs saved under
-`.ufo/round-38/drafts/w1/`. A row without a probe is not a ruling.
+One row per disagreement or definitional difference. The r38 witness seat's
+rulings for these rows are the **adjudication ledger** at
+`.ufo/round-38/evidence/a1-adjudication-ledger.md` (rows `adj-r38-01` …
+`adj-r38-14`, one class/readings/probe/ruling/action/`blind:` block per row);
+this section is the corpus-side record of the same rows, and the round-39
+re-filings below supersede the labels this file carried at the r38 closure.
+The probe outputs quoted by the r38 rows lived under `.ufo/round-38/drafts/w1/`,
+which the r38 integrator pruned (`.ufo/round-38/evidence/PRUNE.log`); every
+number a reader wants to check is re-derivable by the commands in §6. A row
+without a probe is not a ruling.
 
 **adj-r37-01 — `oc.log.skills_tag_hits` (D2, definitional → fixed).**
 At the round-37 state IND derived **13**, HAR observed **0**. Hand probe:
@@ -172,12 +201,45 @@ So a scope-out cannot hide a derived row, cannot be an empty gesture, and
 cannot be a way to make a check disappear quietly. Deleting the rows from the
 payload instead is exit 2 (`uncovered checks`), never agreement.
 
+**adj-r39-01 — `oc.log.init_count_monotone` / `oc.log.init_count_max` (D1, defect(independent) → fixed).**
+The r38 witness ledger's row 3 (`adj-r38-03`) ruled IND's predicate a
+`defect(independent)`: IND counted *runs carrying more than one `init count`
+line* while the id names *decreases between consecutive counts* — the opposite
+predicate over a different population, invisible live because the opencode log
+carries **0** `init count` lines. R1's counter-probe and V1's mutant leg
+(`.ufo/round-38/scouts/R1.md` F-3, `V1.md` DEFECTS 2) both named the sibling
+divergence on `init_count_max` as unadjudicated; A1's erratum `adj-r38-14`
+already flagged the comparator's own `adjudicated_rows` label as the smoothing
+trap. Round 39 re-files both rows under **D1** here and lands the fix:
+
+```
+# before (predicate), on a log whose counts only grow (1,2) -- no violation exists
+HAR init_count_monotone_violations = []            IND oc.log.init_count_monotone = 1
+# after, same log
+HAR init_count_monotone_violations = []            IND oc.log.init_count_monotone = []
+# a real decrease, both sides, same rendering
+HAR ['3->2', '2->1']                               IND ['3->2', '2->1']
+# the non-grammar form the old fixture used (message="init count" value=N)
+HAR 0                                             IND 0   (was: IND 2)
+```
+
+Landed action: both rows derive from one `message=init count=(\d+)` occurrence
+sequence in file order (`verifiers/verify_harness_independent.py:517-552`), the
+violation is rendered `a->b` as HAR renders it, and the self-test's
+bug-restating arm (`1` where the predicate requires `0`) is replaced by five
+true discriminators (increasing ⇒ `[]`; decrease ⇒ `['3->2']`; cross-run
+decrease ⇒ `['2->1']`; quoted form ⇒ `0`/`[]`; max = largest, not last).
+Self-test 86 → 93 assertions; floor bumped in-step (86 → 93). Fixture-backed
+logs: `.ufo/round-39/drafts/p2/{mut-hargrammar-inc,mut-hargrammar-dec,mut-quoted,mut-hargrammar-crossrun}.log`.
+Blind: `source-read(author)` (adjudicating seat).
+
 **Zero-delta representation rows (D5, cosmetic).** `[]` vs `0`
-(`oc.dup.onesided_roots`, `oc.log.init_count_monotone`,
-`omp.descriptions.missing`, `omp.names.mismatches`), `False` vs `0`
-(`oc.roots.plugins_cache`). Same population, different emptiness encoding; the
-driver's `zero` predicate handles them and publishes the strict column beside
-it. No action.
+(`oc.dup.onesided_roots`, `omp.descriptions.missing`, `omp.names.mismatches`),
+`False` vs `0` (`oc.roots.plugins_cache`). Same population, different emptiness
+encoding; the driver's `zero` predicate handles them and publishes the strict
+column beside it. No action. (`oc.log.init_count_monotone` stood in this list
+until round 39; it was removed because its two readings were *different
+predicates*, not two encodings — see adj-r39-01.)
 
 **Mode source (D5, named).** `verify_harness_claims.py`'s `CHECKS` table and
 `baseline.json` disagree on exactly 2 ids: `oc.permission.skill_lines` and
@@ -209,15 +271,18 @@ strict column and the adjudication table beside it.
 driver exits 1 naming them (§1). The frozen arm is what flips *and* names, which
 is R1's structural point made executable.
 
-**Pre-existing red, found and recorded at write time.**
-`python3 verifiers/verify_skill_checklist.py` **exits 1 at HEAD bytes** (the
-worktree is unmodified vs `cb4e0f3` for `SCORECARD.md`):
-`FAIL governance.citation_resolves … SCORECARD.md:131,132,133` — the round-37
-rows' brace-glob citations (`.ufo/round-37/scouts/{P5,P6,V4,V5,I1,I2,S2}.md`)
-are not expanded by the gate's brace-unaware citation predicate
-(`SCHEMATIC_CITATION_RE` covers `round-N` only). The gate's `--self-test` is
-green (`0 failure(s) over 1597 assertions`) and every other gate passes; the
-red is a live-gate defect in committed bytes, recorded here, not smoothed.
+**Pre-existing red, found at write time and since closed (re-measured round 39).**
+At the r38 write time `python3 verifiers/verify_skill_checklist.py` **exited 1
+at HEAD bytes**: `FAIL governance.citation_resolves … SCORECARD.md:131,132,133`
+— the round-37 rows' brace-glob citations
+(`.ufo/round-37/scouts/{P5,P6,V4,V5,I1,I2,S2}.md`) were not expanded by the
+gate's brace-unaware citation predicate (`SCHEMATIC_CITATION_RE` covers `round-N`
+only). Round 38 reworded those SCORECARD rows and the gate now **exits 0**
+(`grep -c 'scouts/{P5,P6' SCORECARD.md` → `0`; `python3
+verifiers/verify_skill_checklist.py; echo $?` → `0`), with `--self-test`
+green at `0 failure(s) over 1597 assertions`. The red was a live-gate defect in
+the then-committed bytes, recorded here rather than smoothed; this paragraph is
+the record of it, not a live claim.
 
 ## 4. Blindness — method and scrub residual
 
@@ -228,22 +293,22 @@ attestation. `R1-make_blind_tree.sh` builds a worktree from `git archive HEAD`
 leaked `keys_reproduced=7`, `17→7`), deletes the docs that quote the pin set,
 and drops `.ufo/` (prior-round fragments quote the pins). Re-run at write time:
 
-- **pin-value residual = 0** — no file in the scrub tree carries the 64-hex
-  template value, the pinned stdout forms (`keys_reproduced=7`, `db_rows=14`,
-  `offered=7`, `28/28 checks pass`) or the pins-guard substrate shas outside
-  the guard's own baseline block.
-- **id-string residual = 3** — `verifiers/verify_harness_independent.py` and
+- **pin-value residual = 4 (round 39; was 0 at the r38 write time)** — the four
+  files the scrub now reports are `verifiers/verify_harness_independent.py`,
   its two fixtures (`verifiers/fixtures/harness-independent/{oc-log,omp-cache}/case.json`)
-  carry check-id strings. These are the builder's own artifacts naming their
-  own rows; they are not harness source and carry no pinned value. Named so the
-  residual is counted, never waved away. (R1's script prints
-  `harness_pin_residual_count=3` because its token list predates these landed
-  artifacts.)
+  and **this document**, which quotes the pinned stdout forms in its own §1–§2.
+  The doc is new to the surface (the script's delete list is a measured
+  inventory taken before this file existed, so the doc survives the scrub) and
+  is the honest case: a file that publishes the pins belongs in the surface, so
+  it is counted, not waved away. The other three are the builder's own artifacts
+  naming their own rows; none is harness source. (The script prints
+  `harness_pin_residual_count=4`; at the r38 write time its token list predated
+  these landed artifacts and printed 3.)
 - The scrubbed tree still **runs green**: with the current instrument and
   fixtures copied in, `24 derived, 4 scoped out, 0 unlanded`, exit 0,
-  `--self-test 0 failure(s) over 86 assertions`; the pins guard runs inside it
+  `--self-test 0 failure(s) over 93 assertions`; the pins guard runs inside it
   (`exit 0`); the substrate stays reachable (the db is outside the repo);
-  `tree_files=337`, `dot_git_present=no`. The driver inside the scrub tree
+  `tree_files=338`, `dot_git_present=no`. The driver inside the scrub tree
   fails closed on the (correctly) absent harness — `ERROR: live instrument
   failed with no stdout … exit 2` — which is the scrub working as designed.
 
@@ -267,9 +332,38 @@ round-37 state the ordering was measured forward: IND freeze `01fd40ef…` at
   why §1 quotes the driver's full line.
 - **Agreement falsifies implementations, never specs.** A second same-spec
   instrument inherits the class spec's scope choices; the 24/24 is evidence
-  about two implementations, not about the substrate model. The two
-  adjudications moved *IND* to HAR's reading — the harness side won both rows,
-  so this comparison has never falsified the author instrument on a value.
+  about two implementations, not about the substrate model. The adjudications
+  moved *IND* to HAR's reading in every row decided so far — the harness side
+  has won each one — so this comparison has never falsified the author
+  instrument on a value. Round 39's init_count ruling is the fourth such move
+  (the r38 ledger's rows 1-3 plus this pair) and the first where the two
+  readings had been *predicates* rather than populations.
+- **The r38 ledger's own §6 is a dispatch-state transcript, not a live command
+  set (round-39 reconciliation).** Its `compare_harness_independent.py` line is
+  annotated `exit 1, 23/28, 5 disagreements`, which is the state at IND
+  `27ae80ae…`; at the settled state it prints `24/24`, `disagree: 0`, `exit 0`.
+  The ledger says so in its own footnote and pins both ends in
+  `final-state.txt`/`freeze-receipt.txt`, so the two records agree — but a
+  reader who runs the ledger's block expecting exit 1 at the current tree will
+  see exit 0, and that is the ledger's stale end, not a regression. This file
+  is the live record; the ledger is the r38 witness's ruling set.
+- **The r38 ledger's `blind:` and probe pointers name pruned drafts.** Every
+  `drafts/a1/*` and `drafts/w1/*` path in `.ufo/round-38/evidence/`'s ledger is
+  gone (`.ufo/round-38/evidence/PRUNE.log`); the rulings survive, the probe
+  transcripts do not. Where this file quotes a r38 probe number it is quoting
+  the ledger, and §6's commands re-derive the live ones.
+- **Two rows are known-defective on the harness side and still pass.**
+  `oc.roots.plugins_cache` reads two different paths (HAR `~/.claude/plugins/cache`,
+  IND `~/.config/../.cache/opencode`) and agrees only because both are empty —
+  the r38 ledger's unclosed erratum `adj-r38-14`, and not this seat's to fix.
+  A one-sided plant moves HAR alone; the agreement is coincidental, not measured.
+- **The driver's disagreement line can print identical values.** On a `zero`-mode
+  row whose readings are non-empty *and equal*, the line reads
+  `expected ['3->2','2->1'], observed ['3->2','2->1']` — the verdict is correct
+  (a `zero`-mode row with a non-empty reading is a failure) but the rendering is
+  self-contradictory to a reader. Measured round 39 on the decreasing mutant log
+  (`.ufo/round-39/drafts/p2/`); not introduced by the predicate fix, which merely
+  made such a reading reachable for the first time.
 - **Blindness is attested plus structural.** The scrub bounds the *file*
   channel; the `--json` output channel is bounded by the freeze receipt; a
   negative (nobody read the source) is still not provable from inside the repo.
@@ -279,12 +373,16 @@ round-37 state the ordering was measured forward: IND freeze `01fd40ef…` at
 - **`oc.roots.names_plus_builtin`'s built-in term is declared 0** in both
   instruments (the string `customize-opencode` is absent from the binary); a
   future binary carrying it would move both readings together, un-adjudicated.
-- **`R1-make_blind_tree.sh` at `.ufo/round-37/evidence/` resolves its repo root
-  one level too high** (`$HERE/../../../..` from `.ufo/round-37/evidence` lands
-  on the parent directory, not this repo), so the committed script archives the
-  wrong tree; the copy this round ran from `.ufo/round-38/drafts/w1/` resolves
-  correctly. The finding is recorded, not silently patched in a prior round's
-  file.
+- **`R1-make_blind_tree.sh`'s r37 depth bug is repaired in the committed copy
+  (re-measured round 39).** The r37 evidence copy resolved its repo root one
+  level too high (`$HERE/../../../..` from `.ufo/round-37/evidence` landed on
+  the parent directory), so it archived the wrong tree; round 38 rewrote it to
+  walk up until `verifiers/verify_harness_claims.py` is found. The committed
+  script now runs from its own path — round-39 re-run:
+  `bash .ufo/round-37/evidence/R1-make_blind_tree.sh /tmp/blind-tree` →
+  `repo=/home/vgpnk/Projects/shokunin/kotoba-shokunin`,
+  `tree_files=338`, `harness_pin_residual_count=4` (see §4). The r38 note that
+  the fix lived only in a pruned draft copy is superseded by the repair.
 
 ## 6. Reproduce
 
@@ -294,11 +392,17 @@ cd /home/vgpnk/Projects/shokunin/kotoba-shokunin
 python3 verifiers/verify_harness_claims.py            ; echo "HAR exit=$?"   # 28/28, exit 0
 python3 verifiers/verify_harness_independent.py       ; echo "IND exit=$?"   # 24 derived, 4 scoped out, exit 0
 python3 verifiers/verify_harness_claims.py --self-test       # 0 failure(s) over 10 assertions
-python3 verifiers/verify_harness_independent.py --self-test  # 0 failure(s) over 86 assertions
+python3 verifiers/verify_harness_independent.py --self-test  # 0 failure(s) over 104 assertions
+                                                             # (86 at the r38 closure, 93 after the
+                                                             # round-39 init_count grammar fixtures)
 
 # the join, with the freeze receipt
 python3 verifiers/verify_harness_independent.py --write-freeze /tmp/ind-freeze.json
-sha256sum /tmp/ind-freeze.json          # 09fb71ca5e79d7f1… (at this tree)
+sha256sum /tmp/ind-freeze.json          # 09fb71ca5e79d7f1… at the r38 closure tree;
+                                        # re-measured round 39 the capture is a function of
+                                        # the instrument's payload, not of this doc, so a
+                                        # re-run prints the sha of whatever instrument bytes
+                                        # are live at that moment (ae4baa55… at IND 872993f8…)
 python3 verifiers/compare_harness_independent.py --independent-json /tmp/ind-freeze.json
 echo "CMP exit=$?"                      # agreement 24/24 (4 scoped out), exit 0
 # the executable receipt (round-38 seat P2, A1-D1): both sides' input digests +
@@ -309,27 +413,69 @@ python3 verifiers/compare_harness_independent.py --live-json /tmp/har-freeze.jso
 echo "CMP exit=$?"                      # agreement 24/24, exit 0; receipt mode=frozen-inputs
 python3 verifiers/compare_harness_independent.py --self-test  # 0 failure(s) over 83 assertions
 
-# the mutant leg (both instruments move; the frozen arm flips and names)
+# the mutant leg (both instruments move; the frozen arm flips and names).
+# round 39: this fixture is durable at verifiers/fixtures/harness-independent/
+# (the round-38 drafts it used to live in were pruned after measurement).
 python3 verifiers/compare_harness_independent.py \
-  --live-cmd "python3 verifiers/verify_harness_claims.py --json --oc-log .ufo/round-38/drafts/w1/fixtures/oc-log-mutant.log" \
-  --independent-cmd "python3 verifiers/verify_harness_independent.py --json --oc-log .ufo/round-38/drafts/w1/fixtures/oc-log-mutant.log"
-                                                                 # 21/24, exit 1, names the mutated rows
+  --live-cmd "python3 verifiers/verify_harness_claims.py --json --oc-log verifiers/fixtures/harness-independent/oc-log/mutant-init-count.log" \
+  --independent-cmd "python3 verifiers/verify_harness_independent.py --json --oc-log verifiers/fixtures/harness-independent/oc-log/mutant-init-count.log"
+                                                                 # 24/24, exit 3: both instruments move
+                                                                 # together on the init_count rows (round 39),
+                                                                 # and the driver names the live side's own
+                                                                 # non-PASS rows instead of a disagreement
 
-# blindness by construction + the controls + the scope-out validation
-bash .ufo/round-38/drafts/w1/R1-make_blind_tree.sh /tmp/blind-tree  # pin-value residual 0; id-string residual 3
-python3 .ufo/round-37/evidence/R1-counter_blind.py                  # 28/28 with zero derivation, exit 0
-python3 verifiers/compare_harness_independent.py --independent-cmd "python3 .ufo/round-38/drafts/w1/null_echo.py"  # 15/28, exit 1
-python3 verifiers/compare_harness_independent.py --independent-json .ufo/round-38/drafts/w1/ind-bad-scope.json     # exit 2, class named
+# the round-39 predicate arms, each re-runnable against both instruments
+for LOG in mut-hargrammar-inc mut-hargrammar-dec mut-quoted mut-hargrammar-crossrun; do
+  python3 verifiers/verify_harness_claims.py --no-baseline --json \
+    --oc-log .ufo/round-39/drafts/p2/$LOG.log > /dev/null   # live column
+  python3 verifiers/verify_harness_independent.py --json \
+    --oc-log .ufo/round-39/drafts/p2/$LOG.log > /dev/null   # independent column
+done
 
-# the four-number blocks used by §2 (writer's script, prints ind/har/pin per row)
+# blindness by construction + the controls + the scope-out validation.
+# round 39: every input these lines used to read from .ufo/round-38/drafts/w1/
+# was pruned by the r38 integrator (PRUNE.log: drafts 95M -> 548K). The script
+# below rebuilds each input it needs, so the block is self-contained.
+bash .ufo/round-37/evidence/R1-make_blind_tree.sh /tmp/blind-tree
+                                                    # round-39 re-run: pin-value residual 4
+                                                    # (see §4 for why it moved off 0), tree_files=338
+python3 .ufo/round-37/evidence/R1-counter_blind.py  # 28/28 with zero derivation, exit 0
+cat > /tmp/null_echo.py <<'PY'
+import json, subprocess, sys
+ids = [r["check"] for r in json.loads(subprocess.run(
+    [sys.executable, "verifiers/verify_harness_claims.py", "--json"],
+    capture_output=True, text=True, check=True).stdout)["results"]]
+print(json.dumps({"checks": {i: 0 for i in ids}}))
+PY
+python3 verifiers/compare_harness_independent.py --independent-cmd "python3 /tmp/null_echo.py"
+echo "CMP exit=$?"                      # 15/28, exit 1 (vacuity control)
 python3 - <<'PY'
-import json
-ind = json.load(open(".ufo/round-38/drafts/w1/ind-final.json"))["checks"]
-har = json.load(open(".ufo/round-38/drafts/w1/har-final.json"))["results"]
+import json, subprocess, sys, pathlib
+out = subprocess.run([sys.executable, "verifiers/verify_harness_independent.py", "--json"],
+                     capture_output=True, text=True, check=True).stdout
+bad = json.loads(out); bad["scoped_out"]["omp.db.rows"] = "names a derived row"
+pathlib.Path("/tmp/ind-bad-scope.json").write_text(json.dumps(bad))
+emp = json.loads(out); emp["scoped_out"] = {}
+pathlib.Path("/tmp/ind-empty-scope.json").write_text(json.dumps(emp))
+PY
+python3 verifiers/compare_harness_independent.py --independent-json /tmp/ind-bad-scope.json
+echo "CMP exit=$?"                      # exit 2, class named
+python3 verifiers/compare_harness_independent.py --independent-json /tmp/ind-empty-scope.json
+echo "CMP exit=$?"                      # exit 2, empty declaration named
+
+# the four-number blocks used by §2 (runs both instruments live, prints ind/har/pin per row)
+python3 - <<'PY'
+import json, subprocess, sys
+ind = json.loads(subprocess.run([sys.executable, "verifiers/verify_harness_independent.py", "--json"],
+                                capture_output=True, text=True, check=True).stdout)["checks"]
+har = {r["check"]: r for r in json.loads(subprocess.run(
+    [sys.executable, "verifiers/verify_harness_claims.py", "--json"],
+    capture_output=True, text=True, check=True).stdout)["results"]}
 pin = json.load(open("verifiers/baseline.json"))["checks"]
-for r in sorted(har, key=lambda x: x["check"]):
-    print(f'{r["check"]:32s} {r["mode"]:8s} ind={ind.get(r["check"])!r:10} '
-          f'har={r["observed"]!r:10} pin={pin.get(r["check"],{}).get("expect")!r}')
+for cid in sorted(har):
+    r = har[cid]
+    print(f'{cid:32s} {r["mode"]:8s} ind={ind.get(cid)!r:12} '
+          f'har={r["observed"]!r:12} pin={pin.get(cid,{}).get("expect")!r}')
 PY
 ```
 
@@ -339,7 +485,13 @@ derivation, P4's live report) and the 22 seat fragments at
 `.ufo/round-37/scouts/`. The round-37 report is at
 `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/reports/round-37/kotoba.md`;
 the work landed as `commit c8e233d` with the report at `commit cb4e0f3`. The
-round-38 closure probes are at `.ufo/round-38/drafts/w1/`.
+round-38 closure probes were at `.ufo/round-38/drafts/w1/` and were **pruned by
+the r38 integrator** (`.ufo/round-38/evidence/PRUNE.log`); what survives is the
+curated `.ufo/round-38/evidence/` set — the adjudication ledger, the r38 scouts'
+quoted numbers, the C2 residuals patch and the V6b fence-divergence probe — plus
+the durable fixtures the r39 seats landed under
+`verifiers/fixtures/harness-independent/` and `verifiers/harness-independent-scope.json`.
+Every number this file quotes is re-derivable by §6.
 
 This file is the harness counterpart of
 `corpus/knowledge/independent-verification-round12.md`; the direction is the

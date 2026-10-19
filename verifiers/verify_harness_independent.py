@@ -47,6 +47,14 @@ and the rulings are recorded in `corpus/knowledge/harness-independent-round37.md
   split, and the raw log carries 0 such lines (`grep -c 'duplicate skill name'
   <log>` → 0). The round-37 reading (names repeating across rescan arrays) is
   kept as `oc.dup.rescan_repeat_names`.
+* `oc.log.init_count_monotone` / `oc.log.init_count_max` — adjudicated r39
+  (D2): both ids name the substrate's own `message=init count=N` occurrences.
+  The round-37 reading keyed them by `run=` and called a run with more than one
+  occurrence a violation — a different population and the opposite predicate
+  (the counts only grow; a *decrease* is the signal). Both rows now derive from
+  one occurrence sequence in file order, the violation is rendered as the
+  harness renders it (`a->b`), and the round-37 population is recorded in the
+  fixture battery as the non-grammar form it is.
 * `omp.catalogue.*` (4 rows) — **SCOPED_OUT**, status `SCOPED_OUT` with the
   blindness blocker carried per row and in the table's `scoped_out` map: the
   catalogue carrier's selection rule (newest session-jsonl `<skills>` block
@@ -145,12 +153,17 @@ class Substrate:
     """Read-only view of the four live surfaces this instrument derives from."""
 
     def __init__(self, omp_binary: Path, agents_root: Path, skill_db: Path,
-                 oc_log: Path, oc_config: Path):
+                 oc_log: Path, oc_config: Path,
+                 catalogue_carrier: Path | None = None):
         self.omp_binary = omp_binary
         self.agents_root = agents_root
         self.skill_db = skill_db
         self.oc_log = oc_log
         self.oc_config = oc_config
+        # Round 39 (C1, seat P1): the session tree the scoped-out catalogue
+        # rows' probe censuses.  A fixture tree passes its own so the probe
+        # never reads this host's live sessions from a synthetic case.
+        self.catalogue_carrier = Path(catalogue_carrier or CATALOGUE_CARRIER)
         self._binary: bytes | None = None
         self._log: str | None = None
 
@@ -288,6 +301,98 @@ CATALOGUE_BLOCKER = (
     "source-read(author); P3's 'named UNSUPPORTED rather than guessed' idiom)."
 )
 
+# The catalogue carrier's substrate root: the session tree the harness's own
+# selection rule scans.  Overridable so the fixture battery can drive the same
+# probe against a synthetic tree.
+CATALOGUE_CARRIER = Path(os.environ.get(
+    "HARNESS_INDEPENDENT_CARRIER",
+    str(Path.home() / ".omp" / "agent" / "sessions")))
+
+ISO_STAMP_RE = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z")
+ENTRY_LINE_RE = re.compile(r"(?m)^\s*-\s+\S")
+_CATALOGUE_CACHE: dict[str, dict] = {}
+
+
+def catalogue_probe(carrier: Path | None = None) -> dict:
+    """A blind, value-free rule-spread census of the catalogue carrier.
+
+    Round 39 (C1, seat P1 — closes r38 R1-D1).  A scope-out that is a free-text
+    assertion cannot be checked; this probe can.  It is *not* the row's value
+    (that needs the harness's selection rule, which this instrument may not
+    read): it is the fact the blocker actually rests on — the carrier surface is
+    large, and a builder that varies the one rule it cannot see lands on
+    *different* totals, so no blind derivation of the row is possible.
+
+    A substring sweep for the rule's own literals was tried first and rejected:
+    the carrier is this lane's own session tree, so its transcripts quote the
+    rule's text and any such sweep fails the true rows (measured — the driver's
+    first live run exited 2 on exactly that).  Reading structure, never prose,
+    is the sound form.
+
+    Memoised per carrier: the census reads the whole session tree, and both
+    `derive()` (called repeatedly by the self-test) and the driver's own
+    recomputation would otherwise pay for it every time.
+    """
+    carrier = CATALOGUE_CARRIER if carrier is None else carrier
+    key = str(carrier)
+    if key in _CATALOGUE_CACHE:
+        return _CATALOGUE_CACHE[key]
+    cands: list[dict] = []
+    session_files = files_with_block = 0
+    if carrier.is_dir():
+        for path in sorted(carrier.rglob("*.jsonl")):
+            session_files += 1
+            try:
+                text = path.read_text(encoding="utf-8", errors="replace")
+            except OSError:
+                continue
+            stamps = ISO_STAMP_RE.findall(text)
+            newest = max(stamps) if stamps else ""
+            mtime = path.stat().st_mtime
+            start = 0
+            while True:
+                start = text.find("<skills>", start)
+                if start < 0:
+                    break
+                end = text.find("</skills>", start)
+                if end < 0:
+                    break
+                block = text[start:end].replace("\\n", "\n")
+                cands.append({"entries": len(ENTRY_LINE_RE.findall(block)),
+                              "newest_stamp": newest, "mtime": mtime,
+                              "order": len(cands)})
+                start = end + len("</skills>")
+            if text.count("<skills>"):
+                files_with_block += 1
+    rule_totals = {}
+    if cands:
+        for name, picker in (
+            ("newest-mtime", lambda c: (c["mtime"], -c["order"])),
+            ("newest-iso-stamp", lambda c: (c["newest_stamp"], -c["order"])),
+            ("first-in-scan-order", lambda c: (-c["order"],)),
+            ("last-in-scan-order", lambda c: (c["order"],)),
+            ("newest-nonempty", lambda c: (c["mtime"],) if c["entries"] else (-1, 0,)),
+        ):
+            rule_totals[name] = max(cands, key=picker)["entries"]
+    result = {
+        "kind": "rule-spread-census",
+        "target": str(carrier),
+        "observable": {
+            "session_files": session_files,
+            "files_with_skills_block": files_with_block,
+            "candidate_blocks": len(cands),
+            "distinct_totals": sorted(set(rule_totals.values())),
+            "rule_totals": rule_totals,
+        },
+        "claim": "the carrier surface is large (non-vacuous) and five blind-plausible "
+                 "selection rules land on more than one total, so the row's value "
+                 "cannot be derived without the harness's authored rule",
+        "falsified_by": ("a single distinct total across every blind-plausible rule "
+                         "(the row would then be derivable blind) or an empty carrier"),
+    }
+    _CATALOGUE_CACHE[key] = result
+    return result
+
 
 def preview_of(description: str) -> str:
     """The substrate's own preview rule (mirrored, not imported)."""
@@ -320,9 +425,20 @@ def row(name: str, value, evidence: str, status: str = "DERIVED") -> dict:
             "evidence": evidence}
 
 
-def scoped_out_row(name: str, blocker: str) -> dict:
-    return {"check": name, "value": None, "status": "SCOPED_OUT",
-            "evidence": "SCOPED_OUT: %s" % blocker}
+def scoped_out_row(name: str, blocker: str, probe: dict | None = None) -> dict:
+    """A row this instrument cannot derive blind, with its blocker *and* the
+    blind probe that corroborates it.
+
+    Round 39 (C1, seat P1): the blocker is no longer free text.  Each scoped row
+    carries a machine-checkable probe block; the driver recomputes it and fails
+    closed when the declared observable does not hold.  A scope-out is therefore
+    a measured exclusion, not a self-declaration.
+    """
+    entry = {"check": name, "value": None, "status": "SCOPED_OUT",
+             "evidence": "SCOPED_OUT: %s" % blocker}
+    if probe is not None:
+        entry["probe"] = probe
+    return entry
 
 
 def derive(s: Substrate) -> list[dict]:
@@ -411,22 +527,29 @@ def derive(s: Substrate) -> list[dict]:
                     "acceptance filter b(): <=%d chars, <=%d words, no CR/LF)"
                     % (COMPRESS_MAX_CHARS, COMPRESS_MAX_WORDS)))
 
+    catalogue_evidence = catalogue_probe(s.catalogue_carrier)
     for name in ("omp.catalogue.found", "omp.catalogue.total",
                  "omp.catalogue.matched", "omp.catalogue.missing_names"):
-        rows.append(scoped_out_row(name, CATALOGUE_BLOCKER))
+        rows.append(scoped_out_row(name, CATALOGUE_BLOCKER, catalogue_evidence))
 
     # ---- opencode / log ---------------------------------------------------
     lines = s.log_text().split("\n")
-    init_counts: dict[str, int] = {}
-    for line in lines:
-        if "init count" in line:
-            run = re.search(r"run=(\S+)", line)
-            key = run.group(1) if run else "-"
-            init_counts[key] = init_counts.get(key, 0) + 1
+    # The two init-count ids name the substrate's own occurrence grammar,
+    # `message=init count=<N>` (the pin note reads "max of `message=init
+    # count=N`; opencode logs only counts, never name sets").  Adjudicated r39
+    # (D2): the round-37 reading keyed those occurrences by `run=` and called a
+    # run carrying more than one of them a monotone violation -- a different
+    # population *and* the opposite predicate, since the counts only grow.
+    # Both rows now derive from one occurrence sequence in file order, and the
+    # violation is rendered the way the harness renders it (`a->b`), so the two
+    # columns are the same measurement rather than equal emptiness.
+    init_values = [int(n) for n in
+                   re.findall(r"message=init count=(\d+)", s.log_text())]
     rows.append(row("oc.log.init_count_max",
-                    max(init_counts.values(), default=0),
-                    "'init count' occurrences per run (grammar retired by "
-                    "opencode v2.0.26)"))
+                    max(init_values, default=0),
+                    "max `message=init count=N` value in %s (%d occurrence(s); "
+                    "opencode logs only counts, never name sets)"
+                    % (s.oc_log, len(init_values))))
 
     rows.append(row("oc.log.available_skills_hits",
                     sum(1 for line in lines if "<available_skills>" in line),
@@ -449,9 +572,13 @@ def derive(s: Substrate) -> list[dict]:
                     % len(rescan_arrays)))
 
     rows.append(row("oc.log.init_count_monotone",
-                    sum(1 for v in init_counts.values() if v > 1),
-                    "runs whose 'init count' lines exceed one (0 = every run "
-                    "is monotone; the live grammar emits no such line at all)"))
+                    [f"{init_values[i - 1]}->{init_values[i]}"
+                     for i in range(1, len(init_values))
+                     if init_values[i] < init_values[i - 1]],
+                    "decreases between consecutive `message=init count=N` values "
+                    "in file order (%d occurrence(s); the counts only grow, so a "
+                    "decrease means the roots changed incompatibly) -- the same "
+                    "violation strings the harness reports, adjudicated r39" % len(init_values)))
 
     rows.append(row("oc.log.skills_tag_hits",
                     sum(line.count("<skills>") for line in lines),
@@ -735,6 +862,16 @@ def build_fixture(root: Path) -> Substrate:
     config.mkdir()
     (config / "opencode.json").write_text('{"theme": "system"}',
                                           encoding="utf-8")
+    # a synthetic catalogue carrier, so the scoped-row probe does not have to
+    # read this host's 527 MB session tree from every fixture subprocess
+    carrier = root / "carrier"
+    carrier.mkdir()
+    for name, stamp, entries in (("a.jsonl", "2026-01-01T00:00:00.000Z", 1),
+                                 ("b.jsonl", "2026-02-02T00:00:00.000Z", 4)):
+        block = "\\n".join("- entry %d" % n for n in range(entries))
+        (carrier / name).write_text(
+            '{"stamp":"%s","text":"<skills>%s\\n</skills>"}\n' % (stamp, block),
+            encoding="utf-8")
     return Substrate(binary, agents, db, log, config)
 
 
@@ -746,7 +883,8 @@ def _fixture_cli(root: Path) -> list[str]:
             "--agents-root", str(root / "skills"),
             "--skill-db", str(root / "skill-descriptions.db"),
             "--oc-log", str(root / "oc.log"),
-            "--oc-config", str(root / "config")]
+            "--oc-config", str(root / "config"),
+            "--catalogue-carrier", str(root / "carrier")]
 
 
 def _fixture_skill_text(spec: dict) -> str:
@@ -920,8 +1058,8 @@ def self_test() -> int:
                rows["omp.cache.verified_skills"]["value"], 2)
         expect("oc.log.skills_rescan_max",
                rows["oc.log.skills_rescan_max"]["value"], 2)
-        expect("oc.log.init_count_monotone (violations)",
-               rows["oc.log.init_count_monotone"]["value"], 0)
+        expect("oc.log.init_count_monotone (violations, empty list)",
+               rows["oc.log.init_count_monotone"]["value"], [])
         expect("oc.log.init_count_max",
                rows["oc.log.init_count_max"]["value"], 0)
         expect("oc.log.available_skills_hits",
@@ -943,6 +1081,42 @@ def self_test() -> int:
                    rows[name]["evidence"].startswith("SCOPED_OUT: the catalogue "
                                                      "carrier's selection rule"),
                    True)
+            # round 39 (C1, seat P1): a scope-out is not free text -- every
+            # scoped row carries a probe block the driver recomputes
+            probe = rows[name].get("probe")
+            expect("scoped-out probe present:" + name,
+                   isinstance(probe, dict) and probe.get("kind") == "rule-spread-census",
+                   True)
+            expect("scoped-out probe is absolute and non-vacuous:" + name,
+                   bool(probe) and str(probe["target"]).startswith("/")
+                   and probe["observable"]["candidate_blocks"] > 0,
+                   True)
+        # the probe's own discriminator: a carrier whose blocks all have the same
+        # entry count has zero rule spread, so the row would be derivable blind
+        # and the scope-out is false.  The synthetic carrier proves both ends.
+        carrier = Path(tmp) / "carrier"
+        (carrier / "sessions").mkdir(parents=True)
+        (carrier / "sessions" / "a.jsonl").write_text(
+            '{"stamp":"2026-01-01T00:00:00.000Z","text":"<skills>\\n- x\\n</skills>"}\n',
+            encoding="utf-8")
+        (carrier / "sessions" / "b.jsonl").write_text(
+            '{"stamp":"2026-02-02T00:00:00.000Z","text":"<skills>\\n- x\\n- y\\n- z\\n'
+            '- w\\n</skills>"}\n', encoding="utf-8")
+        spread = catalogue_probe(carrier / "sessions")["observable"]
+        expect("probe: differing rules give a rule spread",
+               len(spread["distinct_totals"]) > 1, True)
+        expect("probe: the census counts the carrier surface",
+               (spread["session_files"], spread["candidate_blocks"]), (2, 2))
+        flat = Path(tmp) / "carrier-flat"
+        (flat / "sessions").mkdir(parents=True)
+        for name, stamp in (("a.jsonl", "2026-01-01T00:00:00.000Z"),
+                            ("b.jsonl", "2026-02-02T00:00:00.000Z")):
+            (flat / "sessions" / name).write_text(
+                '{"stamp":"%s","text":"<skills>\\n- x\\n- y\\n</skills>"}\n' % stamp,
+                encoding="utf-8")
+        flat_obs = catalogue_probe(flat / "sessions")["observable"]
+        expect("probe: identical totals collapse the spread (scope-out would be false)",
+               flat_obs["distinct_totals"], [2])
 
         # round-38 adjudication: the superseded round-37 readings are kept as
         # named definitional alternatives, under `alt.` names, and must not
@@ -988,18 +1162,61 @@ def self_test() -> int:
         expect("mutant: template hash breaks key reproduction",
                rows3["omp.cache.keys_reproduced"], 0)
 
-        # red-before for the monotonicity row: two init-count lines in one run
+        # init-count rows, adjudicated r39 (D2): the id names *decreases*
+        # between consecutive `message=init count=N` occurrences, not "more
+        # than one occurrence in a run".  Both arms below are true
+        # discriminators: the round-37 predicate fails each of them.
         log_mut = Path(tmp) / "mut3"
         log_mut.mkdir()
         fixture4 = build_fixture(log_mut)
         with open(fixture4.oc_log, "a", encoding="utf-8") as handle:
-            handle.write('run=bbb message="init count" value=1\n')
-            handle.write('run=bbb message="init count" value=2\n')
+            # strictly increasing (1,2,3) -- no violation exists, so the
+            # violation row must stay empty where the round-37 predicate
+            # read 1 for any run carrying two or more lines
+            handle.write('run=bbb message=init count=1\n')
+            handle.write('run=bbb message=init count=2\n')
+            handle.write('run=bbb message=init count=3\n')
         rows4 = {r["check"]: r["value"] for r in derive(fixture4)}
-        expect("mutant: init-count violation counted",
-               rows4["oc.log.init_count_monotone"], 1)
-        expect("mutant: init_count_max follows",
-               rows4["oc.log.init_count_max"], 2)
+        expect("init-count: increasing counts are not a violation",
+               rows4["oc.log.init_count_monotone"], [])
+        expect("init-count: max follows the occurrence sequence",
+               rows4["oc.log.init_count_max"], 3)
+        with open(fixture4.oc_log, "a", encoding="utf-8") as handle:
+            # a decrease, rendered the way the harness renders it
+            handle.write('run=bbb message=init count=2\n')
+        fixture4 = Substrate(fixture4.omp_binary, fixture4.agents_root,
+                             fixture4.skill_db, fixture4.oc_log,
+                             fixture4.oc_config)
+        rows4 = {r["check"]: r["value"] for r in derive(fixture4)}
+        expect("init-count: a decrease is the violation, in HAR's rendering",
+               rows4["oc.log.init_count_monotone"], ["3->2"])
+        expect("init-count: max is the largest value, not the last",
+               rows4["oc.log.init_count_max"], 3)
+        # the superseded round-37 population: the quoted non-grammar form
+        # (`message="init count" value=N`) is not an occurrence of the id's
+        # grammar, so it must move neither row
+        quoted_mut = Path(tmp) / "mut3b"
+        quoted_mut.mkdir()
+        fixture4b = build_fixture(quoted_mut)
+        with open(fixture4b.oc_log, "a", encoding="utf-8") as handle:
+            handle.write('run=ccc message="init count" value=1\n')
+            handle.write('run=ccc message="init count" value=2\n')
+        rows4b = {r["check"]: r["value"] for r in derive(fixture4b)}
+        expect("init-count: the quoted form is not the id's grammar (monotone)",
+               rows4b["oc.log.init_count_monotone"], [])
+        expect("init-count: the quoted form is not the id's grammar (max)",
+               rows4b["oc.log.init_count_max"], 0)
+        # cross-run: the harness's own extractor is not run-keyed, and neither
+        # is this instrument's; a decrease across two runs is still a decrease
+        cross_mut = Path(tmp) / "mut3c"
+        cross_mut.mkdir()
+        fixture4c = build_fixture(cross_mut)
+        with open(fixture4c.oc_log, "a", encoding="utf-8") as handle:
+            handle.write('run=aaa message=init count=2\n')
+            handle.write('run=bbb message=init count=1\n')
+        rows4c = {r["check"]: r["value"] for r in derive(fixture4c)}
+        expect("init-count: a cross-run decrease is a violation",
+               rows4c["oc.log.init_count_monotone"], ["2->1"])
 
         # comparison mode: agreement, then a named disagreement
         agree = compare(list(rows.values()),
@@ -1096,13 +1313,16 @@ def main(argv: list[str]) -> int:
     parser.add_argument("--skill-db", type=Path, default=DEFAULT_SKILL_DB)
     parser.add_argument("--oc-log", type=Path, default=DEFAULT_OC_LOG)
     parser.add_argument("--oc-config", type=Path, default=DEFAULT_OC_CONFIG)
+    parser.add_argument("--catalogue-carrier", type=Path, default=CATALOGUE_CARRIER,
+                        help="session tree the scoped-out catalogue rows' probe censuses")
     args = parser.parse_args(argv)
 
     if args.self_test:
         return self_test()
 
     substrate = Substrate(args.omp_binary, args.agents_root, args.skill_db,
-                          args.oc_log, args.oc_config)
+                          args.oc_log, args.oc_config,
+                          catalogue_carrier=args.catalogue_carrier)
     try:
         rows = derive(substrate)
     except (OSError, sqlite3.Error, LookupError) as error:
@@ -1113,19 +1333,26 @@ def main(argv: list[str]) -> int:
     unlanded = [r for r in rows if r["status"] == "UNLANDED"]
     scoped = {r["check"]: r["evidence"].split("SCOPED_OUT: ", 1)[-1]
               for r in rows if r["status"] == "SCOPED_OUT"}
+    # Round 39 (C1, seat P1): the blind probe block each scoped row carries, in
+    # its own top-level channel so the driver can recompute it.  A scope-out
+    # without one is not a scope-out.
+    scoped_probes = {r["check"]: r["probe"] for r in rows
+                     if r["status"] == "SCOPED_OUT" and r.get("probe")}
     # `results` is the join shape the round's agreement driver
     # (verifiers/compare_harness_independent.py, seat P4) reads; `checks` is the
     # flat name -> value map.  Both carry this instrument's own numbers only.
     # `alternatives` carries the round-37 readings the round-38 adjudication
     # superseded, under `alt.` names: definitional, recorded, never compared.
     table = {"results": [{"check": r["check"], "re_derived": r["value"],
-                          "value": r["value"], "status": r["status"]}
+                          "value": r["value"], "status": r["status"],
+                          **({"probe": r["probe"]} if r.get("probe") else {})}
                          for r in rows],
              "checks": {r["check"]: r["value"] for r in rows},
              "rows": rows,
              "landed": len(landed),
              "unlanded": [r["check"] for r in unlanded],
              "scoped_out": scoped,
+             "scoped_out_probes": scoped_probes,
              "alternatives": alternatives(substrate)}
 
     if args.out:
