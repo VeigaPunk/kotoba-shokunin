@@ -1,0 +1,33 @@
+{
+  "round": 35,
+  "loop": 2,
+  "loop_round": 1,
+  "lane": "kotoba",
+  "dispatched_at_head": "48a0720",
+  "provider_plan": { "model": "opencode-go-7/deepseek-v4.1-flash", "swarm": 64,
+    "key": "opencode-go-7 (rotation: keys 1-2 at r21-22, 3-5 dry at r23, 6 at r23, 7 here; loop-2 continues re-probing)" },
+  "axis_set": [
+    { "axis": "freshness", "score": "8.0", "owned": "advisory",
+      "direction": "up — close the `~~`-plus heredoc residual named at round 32: `<<EOF~~` captures one tilde, the terminator never matches, body+tail swallowed",
+      "observable": "the `<<EOF~~` probe exits 1 on a patched copy; the r30 11/11 form matrix and round-17/32 fixtures unchanged; live byte-invariant" },
+    { "axis": "operability", "score": "8.5", "owned": "advisory",
+      "direction": "up — close the fenced-decoy class named at round 32 (M1): a fenced block containing `- [ ]` text counts as a live box, so a box swapped for a decoy keeps parity",
+      "observable": "the decoy probe flips on a patched copy; the 41-box live count and all fixtures unchanged; live byte-invariant" }
+  ],
+  "claims": [
+    { "id": "H", "axis": "freshness",
+      "claim": "Fix the heredoc delimiter capture for multi-tilde delimiters: `<<EOF~~`/`<<EOF~~~` must capture the full tilde run so the terminator matches (the r32-named residual: RE captures `EOF~`, terminator `EOF~~` never matches, body+tail swallowed, dead-tail path unscanned).",
+      "before": "round-32 E1: `<<EOF~~` -> 1 subject/1 segment (body and tail swallowed, exit 0) where bash closes at `EOF~~`; pre-existing since round 17, unnamed until r32.",
+      "after": "on /tmp copies: the `<<EOF~~` and `<<EOF~~~` probes exit 1 naming the dead tail; the r30 11/11 form matrix (incl. `<<EOF~` matching bash) and the round-17/32 heredoc fixtures are unchanged; self-test count recorded; live byte-invariant.",
+      "counting_command": "multi-tilde probes -> exit 1; the 11/11 matrix re-runs clean; live 10 x PASS",
+      "falsifier": "a matrix row regressing, a fixture flipping, a live-output change, or a multi-tilde probe still passing" },
+    { "id": "D", "axis": "operability",
+      "claim": "Make extract_boxes skip fenced code regions so a fenced block containing `- [ ]` text is not counted as a live box (round-32 M1: a box swapped for a fenced decoy with identical text keeps parity — silent neutralization at exit 0).",
+      "before": "scout M1 (round 32): `extract_boxes` never calls the existing `fenced_regions` — a fenced decoy box passes parity exact, '41 boxes mapped' unchanged.",
+      "after": "on /tmp copies: the decoy probe fails (the decoy is not counted; the missing real box is named); the live 41-box count, the 71 fixture cases, and the self-test count are unchanged; live byte-invariant.",
+      "counting_command": "decoy probe -> exit 1; live box_map 41/41 PASS",
+      "falsifier": "a fixture flipping, the live box count changing, a live-output change, or the decoy probe still passing" }
+  ],
+  "lowest_axis_rule": "H works freshness (tied-lowest 8.0); D works operability (8.5). Loop-2 opens; the r34 audit's repair queue feeds rounds 36+.",
+  "shonen": "untouched."
+}

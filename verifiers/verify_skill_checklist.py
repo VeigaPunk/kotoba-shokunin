@@ -308,7 +308,7 @@ ASSIGN_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*=")
 SEGMENT_SPLIT_RE = re.compile(r"&&|\|\||[;|]")
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 DISPOSITION_RE = re.compile(r"^(executed|delegated|unexecuted):(.+)$")
-HEREDOC_RE = re.compile(r"<<-?\s*['\"]?(~?[A-Za-z_][A-Za-z0-9_]*~?)['\"]?")
+HEREDOC_RE = re.compile(r"<<-?\s*['\"]?(~*[A-Za-z_][~A-Za-z0-9_]*)['\"]?")
 
 SHELL_SKIP = frozenset("""
 if for while until case do done then else elif fi esac in
@@ -550,12 +550,19 @@ def extract_boxes(lines: list[str]) -> tuple[list[dict], list[dict]]:
     sha256, marker}.  Section = nearest preceding heading text; a box before
     any heading gets section ''.   A ``- […]`` line inside a checklist that is
     not a ``- [ ]``/``- [x]`` box is recorded as a near miss (round-15
-    closure of the critic's marker-state escape)."""
+    closure of the critic's marker-state escape).  Fenced lines are opaque:
+    a ``- [ ]`` shown inside a code block is illustration, not a live box,
+    and a fence ends a box's continuation (round-35 D: a fenced decoy kept
+    parity with a real box, so a box could be swapped for its own echo)."""
     boxes: list[dict] = []
     near_misses: list[dict] = []
     section = ""
+    opaque = fenced_regions(lines)[0]
     i = 0
     while i < len(lines):
+        if i + 1 in opaque:
+            i += 1
+            continue
         hm = HEADING_RE.match(lines[i])
         if hm:
             section = hm.group(1).strip()
@@ -575,7 +582,7 @@ def extract_boxes(lines: list[str]) -> tuple[list[dict], list[dict]]:
             line = lines[j]
             if HEADING_RE.match(line) or BOX_RE.match(line):
                 break
-            if not line.strip():
+            if not line.strip() or j + 1 in opaque:
                 break
             if len(line) - len(line.lstrip()) <= indent:
                 break
