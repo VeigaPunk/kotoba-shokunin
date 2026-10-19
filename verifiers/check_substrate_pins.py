@@ -14,7 +14,9 @@ mode, which carries the code in `exit_code`):
      declares no pins at all (VACUOUS: measured_against absent / null /
      non-mapping)
   2  a pinned binary cannot be read or stat'd (UNREADABLE), or a discovered pin
-     names a substrate with no registered binary path (UNSUPPORTED)
+     names a substrate with no registered binary path (UNSUPPORTED), or a
+     pin-shaped key differs only in case from a contract pin (UNSUPPORTED:
+     pin keys are exact-case)
   3  the baseline document cannot be read or parsed (NO_BASELINE: missing file,
      directory, EACCES, bad JSON, JSON that is not an object), or a pin value
      cannot be interpreted as its kind (BAD_PIN)
@@ -61,13 +63,17 @@ BINARIES = {
 # The pin set the guard's contract requires. Discovery additionally checks any
 # other measured_against key shaped like `<substrate>_binary_<kind>`: a pin the
 # guard cannot resolve is UNSUPPORTED (exit 2), never a silent skip — the
-# round-21 vacuity lesson applied to coverage.
+# round-21 vacuity lesson applied to coverage. The shape matches
+# case-insensitively, but pin names are exact-case: a key differing only in
+# case from a contract pin (e.g. OMP_binary_sha256) is discovered and reported
+# UNSUPPORTED, not skipped.
 EXPECTED_PINS = (
     ("omp_binary_sha256", "omp", "sha256"),
     ("omp_binary_mtime", "omp", "mtime"),
     ("opencode_binary_sha256", "opencode", "sha256"),
 )
-DISCOVER_RE = re.compile(r"^(?P<prefix>[a-z0-9_]+)_binary_(?P<kind>[A-Za-z0-9]+)$")
+DISCOVER_RE = re.compile(r"^(?P<prefix>[a-z0-9_]+)_binary_(?P<kind>[A-Za-z0-9]+)$",
+                         re.IGNORECASE)
 KINDS = ("sha256", "mtime")
 SHA_RE = re.compile(r"^[0-9a-fA-F]{64}$")
 FRAC_RE = re.compile(r"\.(\d+)")
@@ -150,6 +156,15 @@ def check_pins(baseline: object, binaries: dict[str, Path]) -> list[dict]:
             entry.update(verdict="PIN_ABSENT", expect=None, observed=None,
                          detail="pin declared by the guard's contract, absent "
                                 "from measured_against")
+            results.append(entry)
+            continue
+        canonical = next((p[0] for p in EXPECTED_PINS
+                          if p[0] != key and p[0].casefold() == key.casefold()),
+                         None)
+        if canonical is not None:
+            entry.update(verdict="UNSUPPORTED", observed=None,
+                         detail="mis-cased pin key: matches %s except for case; "
+                                "pin keys are exact-case" % canonical)
             results.append(entry)
             continue
         expect = ma[key]
@@ -381,6 +396,20 @@ def self_test() -> int:
             code == 2, code)
         rec("stray pin: UNSUPPORTED named",
             "FAIL cursor_binary_sha256: UNSUPPORTED" in out, out)
+        code, out, _ = run(world(OMP_binary_sha256="0" * 64))
+        rec("mis-cased key OMP_binary_sha256: exit 2 (exact-case, never skipped)",
+            code == 2, code)
+        rec("mis-cased key: UNSUPPORTED names key and canonical pin",
+            "FAIL OMP_binary_sha256: UNSUPPORTED: mis-cased pin key: matches "
+            "omp_binary_sha256 except for case" in out, out)
+        rec("mis-cased key: summary 1/4 names it, the three real pins still PASS",
+            "UNSUPPORTED 1/4 pins failed: OMP_binary_sha256" in out
+            and sum(1 for ln in out.splitlines() if ln.startswith("PASS ")) == 3,
+            out)
+        code, _, _ = run(world(omp_Binary_sha256="0" * 64))
+        rec("mis-cased separator omp_Binary_sha256: exit 2", code == 2, code)
+        code, _, _ = run(world(omp_binary_SHA256=sha))
+        rec("mis-cased kind omp_binary_SHA256: exit 2", code == 2, code)
         code, out, _ = run(world(opencode_binary_mtime=iso9))
         rec("extra pin on a registered substrate is compared: exit 0 when it holds",
             code == 0, code)

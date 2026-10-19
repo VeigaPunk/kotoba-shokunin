@@ -462,7 +462,7 @@ location; durable policy copy-pasted into a dispatch prompt.
   the authority for every harness number in this file.
 - `verifiers/check_substrate_pins.py` — round 23: enforces the
   `verifiers/baseline.json` `measured_against` pins (omp sha256 + ns-exact mtime,
-  opencode sha256; exit 0/1/2/3, `--self-test` over `verifiers/fixtures/pins/`;
+  opencode sha256; exit 0/1/2/3, '--self-test' builds inline tempdir fixtures (the committed `verifiers/fixtures/pins/` is evidence-only — round 28);
   hashes bytes, never execs; a red guard is fixed by re-record + mechanism note,
   never by weakening the pin).
 - `verifiers/verify_corpus_integrity.py` + `verifiers/corpus-baseline.json` — the

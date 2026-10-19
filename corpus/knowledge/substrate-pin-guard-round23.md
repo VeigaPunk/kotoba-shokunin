@@ -31,8 +31,8 @@ TypeError class — no tracebacks, ever). `--json` mirrors the ladder in an
 
 - live: `python3 verifiers/check_substrate_pins.py` → exit 0, `OK 3/3 pins
   hold`, omp mtime `delta 0 ns`.
-- `--self-test` → `0 failure(s) over 46 assertions` over
-  `verifiers/fixtures/pins/` (mini.bin sha256 `d3b4640e…` — byte-identical to
+- `--self-test` → `0 failure(s) over 51 assertions` over inline tempdir
+  fixtures (`verifiers/fixtures/pins/` is evidence-only; mini.bin sha256 `d3b4640e…` — byte-identical to
   the round-22 P4 design; tripwire.bin is a 0755 sentinel that appears only if
   exec'd, turning hash-never-exec into an assertion; per-case pin JSONs are
   generated in tmp because mtimes are not checkout-stable — scout D4).

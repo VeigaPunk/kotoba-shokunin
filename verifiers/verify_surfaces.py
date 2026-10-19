@@ -544,8 +544,17 @@ def check_no_uncovered_class(entries: list[dict],
     check still said PASS).  Guarded per loader-group kind only: opencode's
     declared classes are config/rule kinds covered by opencode_extract's own
     zero-extraction rule, so an empty CALL_RE extraction is its documented
-    steady state, not drift."""
+    steady state, not drift.
+
+    Round-28 kind-consistency arm: an extracted class id is machine PROOF of a
+    ``(group, file).md`` registration-call shape in the dump, so its baseline
+    entry must declare ``loader-group``.  An id the dump still yields but the
+    baseline re-kinded to ``doc``/``loader-literal``/... is kind laundering —
+    a FAIL naming each ``id->kind`` (scout M2's rekind escape; also covers the
+    PARTIAL rekind where some loader-group rows survive and the zero-declared
+    vacuity arm above stays silent)."""
     declared = {e["class_id"] for e in entries}
+    by_id = {e["class_id"]: e for e in entries}
     found: set[str] = set()
     problems: list[str] = []
     for harness in HARNESS_IDS:
@@ -564,6 +573,16 @@ def check_no_uncovered_class(entries: list[dict],
     if uncovered:
         problems.append("%d loader class(es) undeclared in baseline: %s" % (
             len(uncovered), ", ".join(uncovered)))
+    laundered = sorted(cid for cid in found
+                       if cid in by_id
+                       and by_id[cid]["context_kind"] != "loader-group")
+    if laundered:
+        problems.append(
+            "%d extracted loader class(es) re-kinded in the baseline — kind "
+            "reassignment is not a bypass: %s" % (
+                len(laundered),
+                ", ".join("%s->%s" % (cid, by_id[cid]["context_kind"])
+                          for cid in laundered)))
     if problems:
         return False, "; ".join(problems)
     return True, "all %d extracted loader class(es) declared" % len(found)
@@ -796,6 +815,31 @@ def self_test() -> int:
     rec("extract-vacuity: exit 1", code == 1, code)
     rec("extract-vacuity: FAIL no_uncovered_class names vacuity",
         "FAIL surfaces.no_uncovered_class:" in out and "vacuity" in out, out)
+
+    # (b4) round-28 kind-reassignment escape (scout M2): the dump still yields
+    # the registration-call shapes while the baseline re-kinds omp loader-group
+    # rows to `doc` (census kind cells re-kinded with it) -> the kind-consistency
+    # arm FAILs naming id->kind.  The partial case keeps omp:gemini a live
+    # loader-group row, so the zero-declared vacuity arm alone would stay
+    # silent — re-kinding is not a bypass, not even partially.
+    code, out = run(baseline=fx + "/baseline-rekind-doc.json",
+                    inventory=fx + "/inventory-rekind-doc.md")
+    rec("rekind-doc: exit 1", code == 1, code)
+    rec("rekind-doc: FAIL no_uncovered_class names laundering",
+        "FAIL surfaces.no_uncovered_class:" in out and "not a bypass" in out,
+        out)
+    rec("rekind-doc: names omp:gemini/GEMINI.md->doc",
+        "omp:gemini/GEMINI.md->doc" in out, out)
+    rec("rekind-doc: names omp:claude-md/CLAUDE.md->doc",
+        "omp:claude-md/CLAUDE.md->doc" in out, out)
+    code, out = run(baseline=fx + "/baseline-rekind-partial.json",
+                    inventory=fx + "/inventory-rekind-partial.md")
+    rec("rekind-partial: exit 1", code == 1, code)
+    rec("rekind-partial: names omp:claude-md/CLAUDE.md->doc",
+        "omp:claude-md/CLAUDE.md->doc" in out, out)
+    rec("rekind-partial: gemini row untouched (no gemini->doc, literal_present green)",
+        "omp:gemini/GEMINI.md->doc" not in out
+        and "PASS surfaces.literal_present:" in out, out)
 
     # (c) declared loader shape dropped -> exit 1, literal_present names it
     code, out = run(omp_dump=fx + "/strings-drop-class.txt")
