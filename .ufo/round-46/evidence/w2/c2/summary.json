@@ -1,0 +1,288 @@
+{
+  "schema": "kotoba-round-46-c2-remeasurement-v1",
+  "claim": "C2",
+  "verdict": "improved-bounded",
+  "reason": "Four live shadow arms and both raw duplicate-member arms change from frozen exit 0 to committed exit 2 with named errors; the separate mirror-opt-out remains green on both but the declared trust boundary disclaims arbitrary caller-authored live JSON, so this is bounded rather than closed.",
+  "pins": {
+    "head": {
+      "commit": "78ee57e5ed6fa409476dabea6bd8146ba37425dd",
+      "comparator_sha256": "ccf41c23d2c766124b27f60653508cd1590aa625cbf8afd8da68b56f7b5bc04d"
+    },
+    "frozen_comparator": {
+      "ref": "055d3b9:verifiers/compare_harness_independent.py",
+      "sha256": "1101213a7bed5410151564aeb5a4b49030a4821c86e7469286f046253fbc51e4"
+    },
+    "scope_file_sha256": "3d8500ed1757b6da2ca7842ad411c5025faa1d094a04b383139e9caeeb0871e4"
+  },
+  "matrix": {
+    "runner": {
+      "path": ".ufo/round-46/evidence/w2/c2/run_c2.py",
+      "sha256": "9cc7a7ad6999316ee31ab631976f08736668bc77c5e9ee4bdd6f1092ebd18d05",
+      "invocation_shape": "<runner> <comparator-path> --label <label> --repo <worktree> --live <fresh-producer-json> --independent <fresh-independent-json> --scope <committed-scope-file> --inputs-dir <scratch>",
+      "environment": "PYTHONDONTWRITEBYTECODE=1; HOME=/var/tmp/kotoba-r46-home for both comparator replays"
+    },
+    "source_captures": {
+      "live": {
+        "path": "/tmp/kotoba-r46-c2b/stable-live.json",
+        "producer_exit": 0,
+        "sha256": "a33874156e14e4526c2b515efb95d353ae2e986cd22bb2dbbd1091ec31d2ad30",
+        "rows": 28,
+        "producer_home": "real HOME"
+      },
+      "independent": {
+        "path": "/tmp/kotoba-r46-c2b/stable-independent-source.json",
+        "producer_exit": 0,
+        "sha256": "2f83329537c65c488dacc51adcbdf3224349233dd1e677b862e66f4a3aec138c",
+        "rows": 28,
+        "producer_home": "real HOME"
+      },
+      "scope_file_sha256": "3d8500ed1757b6da2ca7842ad411c5025faa1d094a04b383139e9caeeb0871e4"
+    },
+    "arm_projection": "Each arm uses the selected oc.log.skills_rescan_max row projected from the fresh 28-row producers (expect_n=1), keeping unrelated volatile scope-out census probes out of the C2 parser test. Observed=3; independent skew=1002; original mode=equal; shadow/opt-out mode=positive.",
+    "result_files": {
+      "frozen_matrix": {
+        "path": "/tmp/kotoba-r46-c2b/stable-frozen-matrix.json",
+        "sha256": "7124d6ae535f0323d6ab5a95c00fcfd28f896c8aa26746f1546f252392edda7a"
+      },
+      "committed_matrix": {
+        "path": "/tmp/kotoba-r46-c2b/stable-committed-matrix.json",
+        "sha256": "99d38ba6e5cf11ab4e0e26991cb67dd62beb922c539e11c0db4742e7a7f9465c"
+      }
+    },
+    "live_shadow_arms": [
+      {
+        "name": "live-mode-row-shadow-vs-mirror",
+        "input_sha256": {
+          "live": "0f0685083349ef8011aea3146e984b5cb2e6f6658f031e20588115de480ab67a",
+          "independent": "70947df03cdbbb2d5edf2d2680f8205eff76cdc9b4eb9cb0ac71b7b65903a2bc",
+          "scope": "3d8500ed1757b6da2ca7842ad411c5025faa1d094a04b383139e9caeeb0871e4"
+        },
+        "frozen": {"exit": 0, "stderr_class": "none"},
+        "committed": {"exit": 2, "stderr_class": "live mode shadow"}
+      },
+      {
+        "name": "live-summary-path-shadow",
+        "input_sha256": {
+          "live": "e2bb6f5ebcd8235c8eb5530e02c633f79ab6b9de4935fd4df217094e07a4fdb0",
+          "independent": "27cf5d89e51ef477f023a02f069292d0613a5eef4f657f37adf7698827000fe9",
+          "scope": "3d8500ed1757b6da2ca7842ad411c5025faa1d094a04b383139e9caeeb0871e4"
+        },
+        "frozen": {"exit": 0, "stderr_class": "none"},
+        "committed": {"exit": 2, "stderr_class": "live summary shadow"}
+      },
+      {
+        "name": "live-nonstring-verdict",
+        "input_sha256": {
+          "live": "aa1d05c09e7e18256e3fcd5fe554074f161b41072effd5c7706fdbad4d34d601",
+          "independent": "27cf5d89e51ef477f023a02f069292d0613a5eef4f657f37adf7698827000fe9",
+          "scope": "3d8500ed1757b6da2ca7842ad411c5025faa1d094a04b383139e9caeeb0871e4"
+        },
+        "frozen": {"exit": 0, "stderr_class": "none"},
+        "committed": {"exit": 2, "stderr_class": "live verdict shadow"}
+      },
+      {
+        "name": "live-same-id-mode-duplicate",
+        "input_sha256": {
+          "live": "f09483549226ce362f33dcb6b10b91c6ae1b643e7f8036f4a8e731fa1278d47f",
+          "independent": "70947df03cdbbb2d5edf2d2680f8205eff76cdc9b4eb9cb0ac71b7b65903a2bc",
+          "scope": "3d8500ed1757b6da2ca7842ad411c5025faa1d094a04b383139e9caeeb0871e4"
+        },
+        "frozen": {"exit": 0, "stderr_class": "none"},
+        "committed": {"exit": 2, "stderr_class": "live mode shadow"}
+      }
+    ],
+    "side_channel_optout": {
+      "name": "live-summary-and-mirror-optout",
+      "mutation": "Skew independent oc.log.skills_rescan_max from 3 to 1002; set the live row mode to positive; remove top-level observed, modes, verdicts, summary_paths.",
+      "input_sha256": {
+        "live": "bb64ceb2d9335e952a63e36aa2a1eac91e7c640e762d7155d7c90f37d2a46987",
+        "independent": "70947df03cdbbb2d5edf2d2680f8205eff76cdc9b4eb9cb0ac71b7b65903a2bc",
+        "scope": "3d8500ed1757b6da2ca7842ad411c5025faa1d094a04b383139e9caeeb0871e4"
+      },
+      "frozen": {"exit": 0, "stderr_class": "none"},
+      "committed": {"exit": 0, "stderr_class": "none", "protocol": "1/1", "strict": "0/1"},
+      "assessment": "The bypass remains reproducible. A generic no-provenance boundary exists, but no cited source specifically names removing these four mirrors as an opt-out; retain this as a bounded residual."
+    },
+    "raw_duplicate_member_arms": [
+      {
+        "name": "raw-duplicate-top-level-results",
+        "duplicate_member": "top-level results",
+        "input_sha256": {
+          "live": "e4682577d47614b52258141dce31bb367b8c695acc9fe22bf4c4cd571dbd02cf",
+          "independent": "98430536bf18730f6d966c887a56bb68db08ca0b296c61c377d4f2db1a9b9f5e",
+          "scope": "3d8500ed1757b6da2ca7842ad411c5025faa1d094a04b383139e9caeeb0871e4"
+        },
+        "frozen": {"exit": 0, "stderr_class": "none"},
+        "committed": {"exit": 2, "stderr_class": "duplicate JSON member 'results'"}
+      },
+      {
+        "name": "raw-duplicate-record-rederived",
+        "duplicate_member": "per-record re_derived",
+        "input_sha256": {
+          "live": "e4682577d47614b52258141dce31bb367b8c695acc9fe22bf4c4cd571dbd02cf",
+          "independent": "16752d987a3d3c1dc6e488186367485694f137d9bf38ad8bf59c0aa652e7d800",
+          "scope": "3d8500ed1757b6da2ca7842ad411c5025faa1d094a04b383139e9caeeb0871e4"
+        },
+        "frozen": {"exit": 0, "stderr_class": "none"},
+        "committed": {"exit": 2, "stderr_class": "duplicate JSON member 're_derived'"}
+      }
+    ]
+  },
+  "honest_join": {
+    "dynamic_home_attempts": [
+      {
+        "producer_inputs": {
+          "live_sha256": "cc6691c51361fe74620721e81ec12d61506600f929e17bc6deed47738651e5ef",
+          "independent_sha256": "b5cc7dcdcb96b4ca7c8bf7ca1d3843633c93cb48350936ba4d1b36fa168c6b36"
+        },
+        "attempt": "first real-HOME fresh join",
+        "exit": 2,
+        "stderr_class": "false blocker",
+        "detail": "The four committed scoped-out rows declared candidate_blocks=1351 while recomputation observed 1360.",
+        "stderr_sha256": "805a7c1efc6f43e4c721cac3bf62e76979e8472bc2e1647d560f2a9c1fd7a21f"
+      },
+      {
+        "producer_inputs": {
+          "live_sha256": "cc6691c51361fe74620721e81ec12d61506600f929e17bc6deed47738651e5ef",
+          "independent_sha256": "b5cc7dcdcb96b4ca7c8bf7ca1d3843633c93cb48350936ba4d1b36fa168c6b36"
+        },
+        "attempt": "one retry with same inputs",
+        "exit": 2,
+        "stderr_class": "false blocker",
+        "detail": "The declared candidate_blocks=1351 recomputed as 1372.",
+        "stderr_sha256": "93eabe13ee4723b7f36aa911609aa7f975c1792bfe6ed1b49474b3d4bf803b4f"
+      },
+      {
+        "producer_inputs": {
+          "live_sha256": "cc6691c51361fe74620721e81ec12d61506600f929e17bc6deed47738651e5ef",
+          "independent_sha256": "b5cc7dcdcb96b4ca7c8bf7ca1d3843633c93cb48350936ba4d1b36fa168c6b36"
+        },
+        "attempt": "frozen comparator on the same inputs",
+        "exit": 2,
+        "stderr_class": "false blocker",
+        "detail": "Same 1351-to-1372 census diagnostic as the retry; same stderr SHA-256, so this blocker was pre-existing on 055d3b9.",
+        "stderr_sha256": "93eabe13ee4723b7f36aa911609aa7f975c1792bfe6ed1b49474b3d4bf803b4f"
+      }
+    ],
+    "stable_home_run": {
+      "producer_commands": [
+        {
+          "argv": ["python3", "-B", "verifiers/verify_harness_claims.py", "--json"],
+          "cwd": "/home/vgpnk/Projects/shokunin/.tower/worktrees/kaika/kotoba-shokunin",
+          "home": "real HOME",
+          "environment": {"PYTHONDONTWRITEBYTECODE": "1"},
+          "exit": 0,
+          "stdout_sha256": "a33874156e14e4526c2b515efb95d353ae2e986cd22bb2dbbd1091ec31d2ad30",
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "argv": ["python3", "-B", "verifiers/verify_harness_independent.py", "--json"],
+          "cwd": "/home/vgpnk/Projects/shokunin/.tower/worktrees/kaika/kotoba-shokunin",
+          "home": "real HOME",
+          "environment": {"PYTHONDONTWRITEBYTECODE": "1"},
+          "exit": 0,
+          "stdout_sha256": "2f83329537c65c488dacc51adcbdf3224349233dd1e677b862e66f4a3aec138c",
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "probe_refresh": {
+        "path": "/tmp/kotoba-r46-c2b/refresh_probes.py",
+        "method": "Loaded the committed comparator module and called recompute_probe for each of the four committed scoped_out_probes under HOME=/var/tmp/kotoba-r46-home; updated target and observable in the top-level map and matching row probe copies. Only structural census aggregates were retained.",
+        "exit": 0,
+        "home": "/var/tmp/kotoba-r46-home",
+        "environment": {"PYTHONDONTWRITEBYTECODE": "1"},
+        "target": "/var/tmp/kotoba-r46-home/.omp/agent/sessions",
+        "source_sha256": "2f83329537c65c488dacc51adcbdf3224349233dd1e677b862e66f4a3aec138c",
+        "output_sha256": "836996451e34fe2f1b9e2747dcbab589d4f146fa6e06bac25fd5a2eb95482199",
+        "report_sha256": "6fa03cfce1c3f0d11b0774765c1ff68e927b7119b8f49f73262429d7dab67266",
+        "probe_counts_each": {
+          "session_files": 1249,
+          "files_with_skills_block": 1104,
+          "candidate_blocks": 1390,
+          "distinct_totals": [2, 7],
+          "rule_totals": {
+            "first-in-scan-order": 2,
+            "last-in-scan-order": 2,
+            "newest-iso-stamp": 7,
+            "newest-mtime": 7,
+            "newest-nonempty": 7
+          }
+        }
+      },
+      "comparator_environment": {"HOME": "/var/tmp/kotoba-r46-home", "PYTHONDONTWRITEBYTECODE": "1", "snapshot_modified": false},
+      "join_command": [
+        "python3", "-B", "verifiers/compare_harness_independent.py",
+        "--live-json", "/tmp/kotoba-r46-c2b/stable-live.json",
+        "--independent-json", "/tmp/kotoba-r46-c2b/stable-independent.json",
+        "--cwd", "/home/vgpnk/Projects/shokunin/.tower/worktrees/kaika/kotoba-shokunin",
+        "--scope-file", "verifiers/harness-independent-scope.json",
+        "--expect-n", "28", "--no-stamp", "--json",
+        "--receipt", "/tmp/kotoba-r46-c2b/stable-join.receipt.json"
+      ],
+      "environment": {"HOME": "/var/tmp/kotoba-r46-home", "PYTHONDONTWRITEBYTECODE": "1"},
+      "exit": 0,
+      "protocol": "24/24",
+      "strict": "20/24",
+      "live_checks": 28,
+      "joined_scope": 24,
+      "adjudicated": 4,
+      "scoped_out": 4,
+      "disagreements": 0,
+      "reason": "all checks agree, both instruments green",
+      "live_input_sha256": "a33874156e14e4526c2b515efb95d353ae2e986cd22bb2dbbd1091ec31d2ad30",
+      "independent_input_sha256": "836996451e34fe2f1b9e2747dcbab589d4f146fa6e06bac25fd5a2eb95482199",
+      "scope_file_sha256": "3d8500ed1757b6da2ca7842ad411c5025faa1d094a04b383139e9caeeb0871e4",
+      "join_json_sha256": "87957e1f0efb8fb8b903e2b44e439b1ee5295cfdc8d42a8f6368fa169f2b9f9e",
+      "join_stderr_sha256": "d3f4a864982ee990db3617504724f952a26b1f764644c3c0d4049e36834fe66d",
+      "receipt_sha256": "a4060cacb5845d9d8db34b01ffdc8e5d7c76bb0508b13b49ae94aa2bf2d74f3a"
+    }
+  },
+  "assertion_floors": {
+    "argv": [
+      "python3", "-B", "verifiers/check_assertion_floors.py",
+      "--repo", "/home/vgpnk/Projects/shokunin/.tower/worktrees/kaika/kotoba-shokunin"
+    ],
+    "environment": {"PYTHONDONTWRITEBYTECODE": "1", "HOME": "real HOME"},
+    "exit": 0,
+    "stdout_sha256": "ef091efb957f0e4c38e883a813761fa6a2a4cf1f22d94522bfa1f3e757478b49",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "vector": {
+      "harness": {"observed": 10, "floor": 10, "status": "PASS"},
+      "corpus_integrity": {"observed": 150, "floor": 150, "status": "PASS"},
+      "corpus_independent": {"observed": 91, "floor": 91, "status": "PASS"},
+      "surfaces": {"observed": 87, "floor": 87, "status": "PASS"},
+      "checklist": {"observed": 1597, "floor": 1597, "status": "PASS"},
+      "pins": {"observed": 62, "floor": 62, "status": "PASS"},
+      "harness_independent": {"observed": 104, "floor": 104, "status": "PASS"},
+      "compare_harness_independent": {"observed": 328, "floor": 328, "status": "PASS"},
+      "floors_guard": {"observed": 150, "floor": 150, "status": "PASS"}
+    }
+  },
+  "trust_boundary_evidence": [
+    {
+      "source": "verifiers/compare_harness_independent.py:41-50",
+      "quote": "Full producer payloads must carry these maps, and every row channel must reconcile with them; a caller cannot change only a row's mode, verdict or source-summary value and retain a green join. These are consistency checks, not provenance authentication: a caller who rewrites the rows, mirrors and summary coherently can still fabricate a --live-json document. The comparator has no signature or trusted producer receipt to distinguish that forgery, so the claim is bounded to contradictory copies rather than arbitrary caller-authored JSON."
+    },
+    {
+      "source": ".ufo/round-46/scouts/H1.md:19,22-26,49",
+      "quote": "In --live-json mode, none of the live measurements is re-derived from the host. The row mode is what parse_live returns and compare uses; the map is a mirror, not an independently sourced rule, and supported modes are not authenticated against the producer's CHECKS table. The row verdicts are not recomputed from the live observation or baseline. The live receipt is an input digest, not a producer signature or attestation. The candidate's consistency contract does not turn --live-json into authenticated evidence."
+    },
+    {
+      "source": ".ufo/round-46/scouts/V4.md:11",
+      "quote": "With --live-json, the comparator reads the caller-selected file directly and sets its input exit to 0; it does not rerun the live producer. Row-level mode/verdict are trusted from the supplied bytes; this does not establish producer provenance."
+    },
+    {
+      "source": "verifiers/harness-independent-scope.json:5-6",
+      "quote": "This file is the AUTHORITATIVE scope-out set. The comparator reads it from here, never from the payload under test, so a builder cannot make a check leave the join by self-declaration. Each payload reason and scoped-row evidence string must match the committed row; each blind probe must match the committed kind and target before recomputation.",
+      "relevance": "Scope-out contract only; it does not declare live-JSON producer trust."
+    }
+  ],
+  "retained_files": {
+    "runner": ".ufo/round-46/evidence/w2/c2/run_c2.py",
+    "summary": ".ufo/round-46/evidence/w2/c2/summary.json"
+  },
+  "risks_and_limits": [
+    "The mirror-opt-out arm still exits 0 on both comparators. The comparator's generic no-authentication statement places caller-authored live JSON outside the claimed consistency guarantee, but no source specifically names this four-field-removal bypass.",
+    "The initial real-HOME join pair raced the changing session carrier and raised a false blocker on both frozen and committed comparators; the frozen snapshot rerun is the retained successful 24/24 control."
+  ]
+}

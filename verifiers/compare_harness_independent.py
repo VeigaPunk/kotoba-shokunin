@@ -231,17 +231,24 @@ def show(value, limit=72):
 # payload parsing
 # --------------------------------------------------------------------------
 def extract_json(text):
-    """The last balanced top-level JSON object, rejecting repeated members."""
+    """The last balanced top-level JSON object, rejecting repeated members.
+
+    Selection uses a plain decode (as before round 46) so a duplicate-member
+    fragment in surrounding prose cannot abort the load (round-46 W2 reviewer
+    MED-3); only the selected payload is re-decoded with the unique-member hook,
+    so a repeated member inside the payload itself still fails closed."""
     text = text.strip()
     try:
-        return json.loads(text, object_pairs_hook=_unique_json_object)
+        json.loads(text)
     except ValueError:
         pass
+    else:
+        return json.loads(text, object_pairs_hook=_unique_json_object)
     depth = 0
     in_str = False
     esc = False
     start = None
-    found = None
+    selected = None
     for i, ch in enumerate(text):
         if in_str:
             if esc:
@@ -262,13 +269,14 @@ def extract_json(text):
             depth -= 1
             if depth == 0 and start is not None:
                 try:
-                    found = json.loads(
-                        text[start : i + 1], object_pairs_hook=_unique_json_object
-                    )
+                    json.loads(text[start : i + 1])
+                    selected = text[start : i + 1]
                 except ValueError:
                     pass
                 start = None
-    return found
+    if selected is None:
+        return None
+    return json.loads(selected, object_pairs_hook=_unique_json_object)
 
 
 CHANNEL_KEYS = ("results", "rows", "checks")
@@ -1756,6 +1764,14 @@ def self_test(quiet=False):
     check("extract_json: last balanced object", extract_json('{"a": 1} tail {"b": 2}') == {"b": 2})
     check("extract_json: braces inside strings", extract_json('x {"a": "}{"} y') == {"a": "}{"})
     check("extract_json: none when absent", extract_json("no json here") is None)
+    check("extract_json: duplicate-member prose fragment does not abort the payload",
+          extract_json('warn: saw {"a":1,"a":2} in log\n{"b": 2}') == {"b": 2})
+    try:
+        extract_json('log line\n{"b": 1, "b": 2}')
+        dup_selected_rejected = False
+    except DuplicateJSONMemberError:
+        dup_selected_rejected = True
+    check("extract_json: duplicate member inside the selected payload still rejects", dup_selected_rejected)
 
     # independent payload shapes
     ind_records = {"results": [{"check": "a.b", "expected": 1}, {"check": "a.c", "expected": "x"}]}
