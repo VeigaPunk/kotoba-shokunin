@@ -308,7 +308,7 @@ ASSIGN_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*=")
 SEGMENT_SPLIT_RE = re.compile(r"&&|\|\||[;|]")
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 DISPOSITION_RE = re.compile(r"^(executed|delegated|unexecuted):(.+)$")
-HEREDOC_RE = re.compile(r"<<-?\s*['\"]?(~?[A-Za-z_][A-Za-z0-9_]*)['\"]?")
+HEREDOC_RE = re.compile(r"<<-?\s*['\"]?(~?[A-Za-z_][A-Za-z0-9_]*~?)['\"]?")
 
 SHELL_SKIP = frozenset("""
 if for while until case do done then else elif fi esac in
@@ -790,9 +790,9 @@ def command_subjects(lines: list[str], vocab: frozenset[str],
                 continue
             if not stripped or stripped.startswith("#"):
                 continue
-            hm = HEREDOC_RE.search(line)
+            hm = heredoc_delimiter(line)
             if hm:
-                heredoc_end = hm.group(1)
+                heredoc_end = hm
             for raw in SEGMENT_SPLIT_RE.split(line):
                 segment = raw.strip()
                 if not segment or segment.startswith("#"):
@@ -1154,6 +1154,47 @@ def advance_quote_state(text: str, start: int, end: int,
         if escapes % 2 == 0:
             state = not state
     return state
+
+
+def heredoc_delimiter(line: str) -> str | None:
+    """Delimiter of the first ``<<WORD`` operator at a live position: not
+    inside a quoted span and not after an unquoted ``#`` comment.  Bash starts
+    a comment only where ``#`` begins a word, so ``a#b`` stays literal.  A
+    ``$(`` inside double quotes re-opens a command context, where a heredoc is
+    real.  A quoted delimiter (``<<'EOF'``) is a real operator; an operator
+    appearing inside display text or prose is not."""
+    sq = False
+    dq = False
+    subst = 0
+    pos = 0
+    while pos < len(line):
+        ch = line[pos]
+        if ch == "\\" and not sq:
+            pos += 2
+            continue
+        if sq:
+            if ch == "'":
+                sq = False
+        elif ch == "'" and not dq:
+            sq = True
+        elif dq and line.startswith("$(", pos):
+            subst += 1
+            pos += 2
+            continue
+        elif dq and ch == ")" and subst:
+            subst -= 1
+        elif ch == '"' and not subst:
+            dq = not dq
+        elif (ch == "#" and not sq and not dq
+              and (pos == 0 or line[pos - 1] in " \t;&|(")):
+            return None
+        elif ch == "<" and not sq and (not dq or subst) \
+                and line.startswith("<<", pos):
+            hm = HEREDOC_RE.match(line, pos)
+            if hm:
+                return hm.group(1)
+        pos += 1
+    return None
 
 
 def citation_subjects(lines: list[str], source: str = "",

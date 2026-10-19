@@ -1,0 +1,32 @@
+{
+  "round": 30,
+  "loop": 1,
+  "loop_round": 10,
+  "lane": "kotoba",
+  "dispatched_at_head": "b761cd6",
+  "provider_plan": { "model": "devin/deepseek-v4-1-flash-high", "swarm": 32, "fallback": null },
+  "axis_set": [
+    { "axis": "freshness", "score": "8.0", "owned": "advisory",
+      "direction": "up — close the fault harness's two inert gates (scout M7): (f)'s count detector compares a value to itself; (h) gates the independent instrument by exit code only",
+      "observable": "the mutated-blind-spot probe FAILs on a patched copy; a stub-instrument probe FAILs; all other fault classes still pass; live harness green" },
+    { "axis": "operability", "score": "8.5", "owned": "advisory",
+      "direction": "up — close the checklist heredoc mis-scan (scout X11): `<<EOF` inside quotes/comment opens a heredoc and swallows the block; `<<EOF~` mis-captures the terminator",
+      "observable": "the two X11 repro probes fail closed on a patched copy; the round-17 heredoc fixtures still pass; live gate byte-invariant" }
+  ],
+  "claims": [
+    { "id": "F", "axis": "freshness",
+      "claim": "Patch verifiers/fault_injection_corpus.sh: (f) compares the planted world's report_total against the BASELINE world's total (out-baseline.txt) so a no-op plant FAILs; (h) verifies the independent instrument's verdict content (class attribution), not just its exit code.",
+      "before": "scout M7 (round 26): (f)'s 'count detector notices report_total' parses the same out.json twice (tautology — a no-pointer-moved mutant prints PASS); (h) leaves all six must-fire rows PASS when the independent is a stub always exiting 2.",
+      "after": "on /tmp copies: M7's no-op mutant FAILs (f); a stub independent FAILs (h); the other nine classes still pass both instruments; self-test green; the live harness ALL PASS unchanged.",
+      "counting_command": "the two M7 probes on a patched copy -> both FAIL; full harness -> ALL PASS",
+      "falsifier": "a live-behavior change, a fault class regression, or either probe still passing" },
+    { "id": "D", "axis": "operability",
+      "claim": "Patch verify_skill_checklist.py's heredoc scanner (HEREDOC_RE and the terminator capture): a `<<EOF` appearing inside quoted text or a trailing comment must not open a heredoc; `<<EOF~`-style delimiters capture the full terminator (round-17 fixtures intact).",
+      "before": "scout X11 (round 27): the scanner opens a heredoc on `<<EOF` inside quoted text or a trailing comment and swallows the rest of the block; `:311` mis-captures `EOF` from `<<EOF~` so the body never closes; the ceiling table states the wrong direction for the latter.",
+      "after": "on /tmp copies: both X11 repro probes now parse correctly (the dead tail after a real heredoc still fails — round-17 behavior preserved); the three round-17 heredoc fixtures pass; self-test count recorded; live gate byte-invariant.",
+      "counting_command": "X11 repro probes on a /tmp copy -> fail-closed as designed; seven/eight-gate sweep green",
+      "falsifier": "a round-17 heredoc fixture regressing, a live-output change, or either X11 repro still mis-scanning" }
+  ],
+  "lowest_axis_rule": "F works freshness (tied-lowest 8.0); D works operability (8.5). Window reset at r29's capability; no nudge pressure.",
+  "shonen": "untouched."
+}

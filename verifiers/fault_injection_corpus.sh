@@ -142,11 +142,24 @@ run_integrity() { # <world> -> echoes exit; captures out.json/err.txt
   echo $?
 }
 
-run_independent() { # <world> -> echoes "skip" or exit code
+run_independent() { # <world> -> echoes "skip" or exit code; writes indep.json
   local w=$1
   [ "$INDEP" = present ] || { echo skip; return 0; }
-  ( cd "$w" && python3 "$INDEPENDENT" --repo "$w" ) >"$w/indep.out" 2>&1
+  ( cd "$w" && python3 "$INDEPENDENT" --repo "$w" --json ) >"$w/indep.json" 2>"$w/indep.err"
   echo $?
+}
+
+indep_drift_ids() { # <world> -> comma-joined DRIFT check ids, "-", or UNPARSEABLE
+  python3 - "$1/indep.json" <<'PY'
+import json, sys
+try:
+    raw = open(sys.argv[1], encoding="utf-8").read()
+    d = json.loads(raw[raw.find("{"):])
+    ids = [r["check"] for r in d["results"] if r["verdict"] == "DRIFT"]
+    print(",".join(ids) if ids else "-")
+except Exception:
+    print("UNPARSEABLE")
+PY
 }
 
 drift_ids() { # <world> -> comma-joined DRIFT check ids, "-", or UNPARSEABLE
@@ -245,7 +258,7 @@ row() { # <fault> <script> <exit> <fired> <verdict>
 }
 
 fault_must_fire() { # <id> <planter> <expected-class>
-  local id=$1 planter=$2 cls=$3 w ex fired indep verdict
+  local id=$1 planter=$2 cls=$3 w ex fired indep indep_fired verdict
   w=$(new_world "fault-$id") || { row "fault-$id" "world" "-" "-" "FAIL"; return 0; }
   if ! "$planter" "$w"; then
     row "fault-$id" "$id" "-" "-" "INVALID-PLANT"
@@ -254,6 +267,7 @@ fault_must_fire() { # <id> <planter> <expected-class>
   ex=$(run_integrity "$w")
   fired=$(drift_ids "$w")
   indep=$(run_independent "$w")
+  indep_fired=$(indep_drift_ids "$w")
   verdict=FAIL
   if [ "$ex" = 0 ]; then
     verdict=MISS
@@ -265,11 +279,13 @@ fault_must_fire() { # <id> <planter> <expected-class>
     verdict="PASS(author-only; independent=absent)"
   elif [ "$indep" = 0 ]; then
     verdict="MISS(independent-verdict)"
+  elif ! printf '%s' "$indep_fired" | grep -qF -- "$cls"; then
+    verdict="WRONG-CLASS(independent expected=$cls got=${indep_fired:-none})"
   else
     verdict=PASS
   fi
   row "fault-$id" "integrity" "$ex" "$fired" "$verdict"
-  row "fault-$id" "independent" "$indep" "-" "$([ "$indep" = skip ] && echo SKIP || echo "INFO(gating)")"
+  row "fault-$id" "independent" "$indep" "$indep_fired" "$([ "$indep" = skip ] && echo SKIP || echo "INFO(gating)")"
 }
 
 # (f) is the class's documented blind spot, not a must-fire: a pointer moved OUT
@@ -278,7 +294,10 @@ fault_must_fire() { # <id> <planter> <expected-class>
 # --no-baseline (faithfully blind) AND the equal-mode count detector notices
 # report_total moving 1 down against the baseline. Anything else is a FAIL.
 fault_known_blind_f() { # <id> <planter>
-  local id=$1 planter=$2 w ex fired indep base_ex base_total blind_total verdict
+  local id=$1 planter=$2 w ex fired indep indep_fired base_ex blind_total ctl_w ctl_total delta verdict
+  ctl_w=$(new_world "fault-$id-control") || { row "fault-$id" "world" "-" "-" "FAIL"; return 0; }
+  run_integrity "$ctl_w" >/dev/null
+  ctl_total=$(json_field "$ctl_w" "observed.corpus.report_total")
   w=$(new_world "fault-$id") || { row "fault-$id" "world" "-" "-" "FAIL"; return 0; }
   if ! "$planter" "$w"; then
     row "fault-$id" "$id" "-" "-" "INVALID-PLANT"
@@ -287,14 +306,17 @@ fault_known_blind_f() { # <id> <planter>
   ex=$(run_integrity "$w")
   fired=$(drift_ids "$w")
   indep=$(run_independent "$w")
+  indep_fired=$(indep_drift_ids "$w")
   blind_total=$(json_field "$w" "observed.corpus.report_total")
   ( cd "$w" && python3 "$INSTRUMENT" --repo "$w" ) >"$w/out-baseline.txt" 2>&1
   base_ex=$?
-  base_total=$(json_field "$w" "observed.corpus.report_total")
+  delta=""
+  if [ -n "$ctl_total" ] && [ -n "$blind_total" ]; then
+    delta=$(( ctl_total - blind_total ))
+  fi
   verdict=FAIL
-  if [ "$ex" = 0 ] && [ "$fired" = "-" ] && [ "$base_ex" != 0 ] \
-     && [ "$blind_total" = "$base_total" ] && [ -n "$blind_total" ]; then
-    verdict="PASS(blind-spot documented: --no-baseline exit 0; baseline-mode exit $base_ex)"
+  if [ "$ex" = 0 ] && [ "$fired" = "-" ] && [ "$base_ex" != 0 ] && [ "$delta" = 1 ]; then
+    verdict="PASS(blind-spot documented: control_total=$ctl_total plant_total=$blind_total delta=$delta; --no-baseline exit 0; baseline-mode exit $base_ex)"
   fi
   row "fault-$id" "integrity" "$ex" "$fired" "$verdict"
   row "fault-$id" "independent" "$indep" "-" "$([ "$indep" = skip ] && echo SKIP || echo "INFO(non-gating)")"
