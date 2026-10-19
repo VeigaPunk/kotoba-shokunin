@@ -1,7 +1,7 @@
 # kotoba — round 25 report (2026-10-19)
 
 Lane: `kotoba-shokunin`. Round 25, loop 1 (loop-round 5) — the loop's verification/correctness sweep over rounds 21-24.
-Dispatch HEAD: `123ea62`. Work commit: `<pending — recorded at landing>`.
+Dispatch HEAD: `123ea62`. Work commit: `a46321c` (+ record fix `1e899a1`; this report lands in the follow-up publish commit).
 Claims: **V1** freshness (re-verify every artifact landed in rounds 21-24) · **V2** calibration (re-measure every number in rounds 21-24's records) — `.ufo/round-25/claims.json`. Scout C1 put both on HOLD as filed (shape only: no command manifest; L0 uncommitted; count discrepancies) — corrected in the round record; substance verified.
 Swarm: 64/64 on `openai-codex/gpt-6-luna-max`.
 Non-author rule: a lane-dispatched swarm is the lane — **no SHONEN [x] claimed**; scout C2 delivered the [x]-readiness pack (per-box procedures + aggregator repair request) for a non-kotoba verifier.
