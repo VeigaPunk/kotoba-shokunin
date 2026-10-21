@@ -27,6 +27,7 @@ here, the research method stays chousa's).
 | Q16 | `[x]` marks and verdicts come from a non-author; disagreements are recorded verbatim, not averaged. | identity/verdict surfaces | M12 Non-author gate disagreements (preserve) | — |
 | Q17 | Fleet-root LOG/SCORECARD identity names the fleet/protocol lane, not a child lane; report it, never edit it from here. | fleet-root files (report-only) | M8 Fleet-root identity contamination | — |
 | Q18 | A hardening ships a control arm from every input class the instrument promises to tolerate (e.g. prose around the payload) and it must stay green; a new false red is harm, like a new crash (Q05). | any fix/hardening claim | M17 Fix that silently narrows accepted input (false red) | — |
+| Q19 | A carried or planned before-value is re-measured at round start and printed with its command and commit; a value copied from an earlier record is struck, never scored against. | SCORECARD `planned` rows, plan before-columns, Frontier figures | M20 Stale planned premise (`corpus/lessons/round-47.md` § Mistakes) | — |
 
 Rejections are recorded in the round lesson's `## Gate` with their reason; a rejection is
 evidence of taste. A criterion that fails its own spot-check is superseded by a new row

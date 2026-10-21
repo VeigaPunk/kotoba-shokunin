@@ -1,0 +1,286 @@
+diff --git i/verifiers/baseline.json w/verifiers/baseline.json
+index fc5b22b..af45b0f 100644
+--- i/verifiers/baseline.json
++++ w/verifiers/baseline.json
+@@ -1,12 +1,13 @@
+ {
+- "as_of": "2026-10-14T09:58:47.702772-03:00",
++ "as_of": "2026-10-21T13:00:49-03:00",
+  "host": "vgpnk",
+  "measured_against": {
+-  "omp_binary_sha256": "9513ef9f19d7991aac6ae0cb6077bcf16662092ddde861c002a91cedc6f47f9a",
+-  "omp_binary_mtime": "2026-10-19T12:35:55.628149917-03:00",
++  "omp_binary_sha256": "fdbc8136084c9a10439569157b2af62312e2b0d801cab54c73e89476da798e7e",
++  "omp_binary_mtime": "2026-10-21T03:30:38.135013187-03:00",
+   "omp_round21_note": "omp rebuilt 2026-10-16 (ff59fc1b->bf1e86a9, v18.11.1, unminified source chunks; registration callees now Co/Dl/Hj). Re-pinned by round 21; enforced since round 23 by verifiers/check_substrate_pins.py (the round-21 'named debt' note was stale from r23 on — corrected at round 25).",
+   "omp_round44_note": "Re-pinned at 2026-10-19T18:09:38.022309182Z: /home/vgpnk/.local/bin/omp --version reports omp/18.12.2 (embedded changelog: ## [18.12.2] - 2026-10-18), sha256 9513ef9f19d7991aac6ae0cb6077bcf16662092ddde861c002a91cedc6f47f9a, mtime 2026-10-19T12:35:55.628149917-03:00. Git predecessor evidence: 6fbbff5:verifiers/baseline.json pins v18.11.1 at bf1e86a9; the 18.12.2 registry retains the 8 loader classes but renames call shapes to I5/Gl/Mo. Census evidence: .ufo/round-44/evidence/p3/live-loader-census.json.",
+-  "opencode_binary_sha256": "d9123b9bcdb0a31f7ab9fe9812b58a9dc1768ad6d97e7b276dff1181813218c9",
++  "omp_round47_note": "Re-pinned at 2026-10-21T16:00Z: omp/18.12.5 sha256 fdbc8136…, mtime 2026-10-21T03:30:38.135013187-03:00. The store gained a second key space: verifiers/verify_harness_claims.py now resolves a bare content key or `<bare>:<provider>/<model>` (the preview fallback cached when a model's compression output fails validation; source string 'Skill description compression unusable; keeping the preview for this model'). Three user-root skills appeared on the host between rounds (create-toolset, unreal-mcp, unreal-skill; birth 2026-10-20T13:50:21-03:00), moving offered 7->10 and db rows 14->17 (one model-scoped fallback row each, values = the 88/99/97-char previews). keys_reproduced stays 7 (bare, compressed); cache_misses is 0 because the three fallbacks are served; cache_preview_fallbacks=3 is reported but not gated (it is compressor quality, not claim verification). opencode is resolved through the npx package ELF (sha256 179ca421…, 1.19.3) because ~/.opencode/bin/opencode no longer exists; the builtin marker is visible there, so oc.roots.names_plus_builtin is 10 names + 1 = 11.",
++  "opencode_binary_sha256": "179ca421d61eefeadfa0c50e084a6e79c1623734732f0f4593f81ccfd3ab7ee9",
+   "command": "python3 verifiers/verify_harness_claims.py --no-baseline --json",
+   "round18_move": "omp binary rebuilt 2026-10-14 (sha 55016ef5→ff59fc1b), opencode replaced by v2.0.26 (sha f9dab322→d9123b9b). Live skill set shrank 17→7 (~/.agents/skills now the only non-empty user root; the two dangling roots are gone). db holds 14 rows (7 skills × 2 description generations) — the cache is append-only per (name, description) so stale generations persist but never serve: keys_reproduced=7 with 0 misses. The catalogue guard now floors at min(10, len(offered)) so a 7-skill catalogue verifies (newest catalogue = this lane's session). The opencode log grammar changed: `init count`/`evaluated permission=skill`/`duplicate skill name` no longer appear (all expected 0); the live analogue is `skills rescanned` (skills_rescan_max=3 — only opencode-root skills are rescanned, not omp's). Legacy opencode pins are re-recorded at their new live values."
+  },
+@@ -20,7 +21,7 @@
+    "mode": "equal"
+   },
+   "omp.db.rows": {
+-   "expect": 14,
++   "expect": 17,
+    "mode": "equal"
+   },
+   "omp.db.rows_wellformed": {
+@@ -28,7 +29,7 @@
+    "mode": "equal"
+   },
+   "omp.offered.skills": {
+-   "expect": 7,
++   "expect": 10,
+    "mode": "equal"
+   },
+   "omp.offered.dangling": {
+@@ -64,11 +65,11 @@
+    "mode": "equal"
+   },
+   "omp.catalogue.total": {
+-   "expect": 7,
++   "expect": 10,
+    "mode": "equal"
+   },
+   "omp.catalogue.matched": {
+-   "expect": 7,
++   "expect": 10,
+    "mode": "equal"
+   },
+   "omp.catalogue.missing_names": {
+@@ -76,7 +77,7 @@
+    "mode": "zero"
+   },
+   "omp.cache.verified_skills": {
+-   "expect": 7,
++   "expect": 10,
+    "mode": "equal"
+   },
+   "oc.log.init_count_max": {
+@@ -84,7 +85,7 @@
+    "mode": "equal"
+   },
+   "oc.roots.names_plus_builtin": {
+-   "expect": 7,
++   "expect": 11,
+    "mode": "equal"
+   },
+   "oc.log.available_skills_hits": {
+@@ -125,11 +126,13 @@
+   }
+  },
+  "notes": {
+-  "omp.db.rows": "Rows in ~/.omp/agent/skill-descriptions.db are keyed by sha256(template | 0x00 | name | 0x00 | description-as-loaded) and are never pruned, so the count grows whenever the host ever offers a new (name, description) pair — including a project-scoped copy of a skill the user root also carries (round 13: a ufo copy under ~/Projects/origin-work/ufo-fsd-alpha). The equal pin is a change detector: a move means 're-record deliberately, naming the mechanism', not 'the live catalogue changed'. keys_reproduced and verified_skills are the invariants.",
++  "omp.db.rows": "Rows in ~/.omp/agent/skill-descriptions.db are keyed by sha256(template | 0x00 | name | 0x00 | description-as-loaded) and are never pruned, so the count grows whenever the host ever offers a new (name, description) pair — including a project-scoped copy of a skill the user root also carries (round 13: a ufo copy under ~/Projects/origin-work/ufo-fsd-alpha). The equal pin is a change detector: a move means 're-record deliberately, naming the mechanism', not 'the live catalogue changed'. Round 47: 14 -> 17 because create-toolset, unreal-mcp and unreal-skill were born in ~/.agents/skills at 2026-10-20T13:50:21-03:00 and each wrote exactly one fallback row; keys_reproduced and verified_skills are the invariants.",
++  "omp.db.rows_wellformed": "17 rows minus the 3 model-scoped preview fallbacks = 14. The fallback values are the 88/99/97-char previews (15-16 words), so they fail the 12-word acceptance rule by construction; a successful compression replaces the same `<bare>:<model>` key instead of appending.",
++  "omp.cache.preview_fallbacks": "Not gated: count of skills served from a `<bare>:<provider>/<model>` row whose value is the preview (compression unusable for that model, 18.12.5 source). It is compressor quality, not claim verification; keys_reproduced + cache_preview_fallbacks + cache_misses must equal verified_skills.",
+   "omp.offered.dangling": "recorded dangling entries: sekhmet, xbrd in ~/.agents/skills (symlinks into a vanished port). Relinking or deleting them changes this count - a deliberate baseline move, not drift.",
+   "omp.elf.template_sha256": "sha256 of the 273-byte compression prompt embedded in the omp ELF; a new omp build or a prompt edit moves it, which invalidates every cache key.",
+   "oc.log.init_count_max": "max of `message=init count=N`; opencode logs only counts, never name sets.",
+   "oc.dup.existing_claude/oc.dup.duplicate_claude": "both must stay > 0 - that is the evidence for last-parsed-wins under unbounded discovery concurrency.",
+-  "omp.catalogue.matched": "newest captured <skills> block; every line must byte-equal that skill's cached description (the freeze means a lagging block is the signal, not noise)"
++  "omp.catalogue.matched": "newest captured <skills> block; every line must byte-equal that skill's cached description (the freeze means a lagging block is the signal, not noise). Round 47: a fallback row is a cached description too, so the three preview lines count as matched; catalogue_preview_lines reports how many of them are previews."
+  }
+ }
+diff --git i/verifiers/verify_harness_claims.py w/verifiers/verify_harness_claims.py
+index 3302e08..40b0b3d 100755
+--- i/verifiers/verify_harness_claims.py
++++ w/verifiers/verify_harness_claims.py
+@@ -53,6 +53,7 @@ OMP_BIN = HOME / ".local/bin/omp"
+ OMP_DB = HOME / ".omp/agent/skill-descriptions.db"
+ OC_LOG = HOME / ".local/share/opencode/log/opencode.log"
+ OC_BIN = HOME / ".opencode/bin/opencode"
++OC_BIN_NPX_GLOB = ".npm/_npx/*/node_modules/opencode-linux-x64/bin/opencode"
+ OMP_SESSIONS = HOME / ".omp/agent/sessions"
+ BASELINE = Path(__file__).resolve().parent / "baseline.json"
+ 
+@@ -232,6 +233,25 @@ def omp_key(template: bytes, name: str, description: str) -> str:
+     return h.hexdigest()
+ 
+ 
++def cache_lookup(rows: dict[str, str], bare: str) -> tuple[str, str] | None:
++    """Resolve a bare content key in the store's two key spaces.
++
++    `skill-descriptions.ts` (18.12.5, read from the shipped chunk): a successful
++    compression is stored under the bare key `D({name, description})`; when the
++    model's output fails validation the preview is cached as
++    `<bare>:<provider>/<id>` ("keeping the preview for this model") so each
++    model retries independently and a failing model never masks a working one.
++    A bare-key-only reader therefore counts a served fallback as a miss.
++    """
++    if bare in rows:
++        return ("compressed", rows[bare])
++    prefix = bare + ":"
++    for key in rows:
++        if key.startswith(prefix):
++            return ("preview-fallback", rows[key])
++    return None
++
++
+ def preview(description: str) -> str:
+     """`H7s` — previewSkillDescription: ws-collapse, cliff at 100, sentence
+     back-off (>=40 chars, no ellipsis) else last-space cut + U+2026. [source-read]"""
+@@ -283,14 +303,15 @@ def omp_observations(binary: Path, db: Path, cwd: Path, sessions: Path = OMP_SES
+         raise Inconclusive(f"omp skill-description cache not found: {db}")
+     template = omp_template(binary)
+     con = sqlite3.connect(f"file:{db}?mode=ro", uri=True)
+-    rows = {k: d for k, d in con.execute("select key, description from skill_descriptions")}
++    rows = {k: d for k, d in con.execute(
++        "select key, description from skill_descriptions order by key")}
+     con.close()
+ 
+     roots = [cwd / rel for rel in WALKUP_REL] + USER_ROOTS
+     offered, dangling = discover_skills(roots)
+ 
+     per_skill = []
+-    reproduced = truncating = accepted = 0
++    reproduced = truncating = accepted = fallbacks = 0
+     unmodelled: list[str] = []
+     for name, path in sorted(offered.items()):
+         fm = parse_frontmatter(path.read_text())
+@@ -306,13 +327,19 @@ def omp_observations(binary: Path, db: Path, cwd: Path, sessions: Path = OMP_SES
+             per_skill.append({"name": name, "style": fm["style"], "status": "no-description",
+                               "cache": "not-offered"})
+             continue
+-        hit = omp_key(template, name, desc) in rows
+-        render = desc if hit else preview(desc)
++        bare = omp_key(template, name, desc)
++        found = cache_lookup(rows, bare)
++        cached_value = found[1] if found else None
++        hit = found is not None and found[0] == "compressed"
++        fallback = found is not None and found[0] == "preview-fallback"
++        render = cached_value if found else preview(desc)
+         if hit:
+             reproduced += 1
++        elif fallback:
++            fallbacks += 1
+         else:
+             truncating += 1
+-        if compressor_accepts(rows.get(omp_key(template, name, desc), desc)):
++        if compressor_accepts(cached_value if cached_value is not None else desc):
+             accepted += 1
+         per_skill.append({
+             "name": name,
+@@ -322,17 +349,19 @@ def omp_observations(binary: Path, db: Path, cwd: Path, sessions: Path = OMP_SES
+             "name_matches_folder": fm["name"] == name,
+             "description_chars": len(re.sub(r"\s+", " ", desc).strip()),
+             "source_description": desc,
+-            "cache": "hit" if hit else "miss",
++            "cache": "hit" if hit else "preview-fallback" if fallback else "miss",
++            "cached_description": cached_value,
+             "rendered_chars": len(render),
+             "rendered": render if not hit else None,
+         })
+ 
+     cached_by_name = {
+-        entry["name"]: rows[omp_key(template, entry["name"], entry["source_description"])]
++        entry["name"]: entry["cached_description"]
+         for entry in per_skill
+-        if entry.get("cache") == "hit"
++        if entry.get("cache") in ("hit", "preview-fallback")
+     }
+-    catalogue = omp_newest_catalogue(sessions, cached_by_name, set(offered))
++    preview_fallbacks = {e["name"] for e in per_skill if e.get("cache") == "preview-fallback"}
++    catalogue = omp_newest_catalogue(sessions, cached_by_name, set(offered), preview_fallbacks)
+     return {
+         **catalogue,
+         "template_sha256": hashlib.sha256(template).hexdigest(),
+@@ -343,6 +372,7 @@ def omp_observations(binary: Path, db: Path, cwd: Path, sessions: Path = OMP_SES
+         "dangling_entries": dangling,
+         "dangling_count": len(dangling),
+         "keys_reproduced": reproduced,
++        "cache_preview_fallbacks": fallbacks,
+         "cache_misses": truncating,
+         "descriptions_over_cliff": sum(1 for s in per_skill if s.get("description_chars", 0) > CLIFF),
+         "name_mismatches": [s["name"] for s in per_skill if s.get("name_matches_folder") is False],
+@@ -366,7 +396,8 @@ def _strings(obj):
+             yield from _strings(value)
+ 
+ 
+-def omp_newest_catalogue(sessions: Path, db_descriptions: dict[str, str], known: set[str]) -> dict:
++def omp_newest_catalogue(sessions: Path, db_descriptions: dict[str, str], known: set[str],
++                         preview_fallbacks: set[str] | frozenset[str] = frozenset()) -> dict:
+     """Newest captured `<skills>` block, matched line-by-line against the cache.
+ 
+     This is the only check that ties the *keys* to what a model actually saw:
+@@ -429,6 +460,7 @@ def omp_newest_catalogue(sessions: Path, db_descriptions: dict[str, str], known:
+                 continue
+     if best is None:
+         return {"catalogue_total": 0, "catalogue_matched": 0, "catalogue_missing_names": [],
++                "catalogue_preview_lines": 0,
+                 "catalogue_found": False, "session_files_scanned": files}
+     stamp, path_str, entries = best
+     matched = [n for n, d in entries if db_descriptions.get(n) == d]
+@@ -437,6 +469,8 @@ def omp_newest_catalogue(sessions: Path, db_descriptions: dict[str, str], known:
+         "catalogue_total": len(entries),
+         "catalogue_matched": len(matched),
+         "catalogue_missing_names": missing,
++        "catalogue_preview_lines": sum(1 for n, d in entries
++                                       if n in preview_fallbacks and db_descriptions.get(n) == d),
+         "catalogue_timestamp": stamp,
+         "catalogue_path": path_str,
+         "catalogue_found": True,
+@@ -453,6 +487,21 @@ def _root_key(path: str) -> str:
+     return "/".join(parts[1].split("/")[:2]) if len(parts) > 1 else path
+ 
+ 
++def resolve_oc_bin(explicit: Path | None) -> Path:
++    """Resolve the opencode ELF for the builtin-marker probe.
++
++    opencode is an npx wrapper since 1.19 and the old `~/.opencode/bin/opencode`
++    pin is gone. A missing binary would report `builtin_names=0` — a quiet
++    "unreadable read as absent". Fall back to the npx package ELF instead.
++    """
++    if explicit is not None:
++        return explicit
++    if OC_BIN.is_file():
++        return OC_BIN
++    candidates = [p for p in HOME.glob(OC_BIN_NPX_GLOB) if p.is_file()]
++    return max(candidates, key=lambda p: p.stat().st_mtime) if candidates else OC_BIN
++
++
+ def oc_observations(log: Path, binary: Path) -> dict:
+     if not log.is_file():
+         raise Inconclusive(f"opencode log not found: {log}")
+@@ -612,9 +661,18 @@ def self_test() -> int:
+     fm = parse_frontmatter("---\nname: x\ndescription: plain one\n---\n")
+     if fm["description"] != "plain one":
+         failures.append(f"plain: got {fm['description']!r}")
++    # store key spaces: bare = compressed, `<bare>:<provider>/<id>` = preview
++    # fallback for a model whose output was unusable (18.12.5 source)
++    store = {"a" * 64: "compressed hint", "b" * 64 + ":provider/model": "preview"}
++    if cache_lookup(store, "a" * 64) != ("compressed", "compressed hint"):
++        failures.append("cache_lookup: bare key not resolved")
++    if cache_lookup(store, "b" * 64) != ("preview-fallback", "preview"):
++        failures.append("cache_lookup: model-scoped fallback not resolved")
++    if cache_lookup(store, "c" * 64) is not None:
++        failures.append("cache_lookup: absent key resolved")
+     for f in failures:
+         print(f"FAIL {f}")
+-    print(f"self-test: {len(failures)} failure(s) over {len(cases) + 3} assertions")
++    print(f"self-test: {len(failures)} failure(s) over {len(cases) + 6} assertions")
+     return 1 if failures else 0
+ 
+ 
+@@ -628,7 +686,7 @@ def main(argv: list[str] | None = None) -> int:
+     ap.add_argument("--omp-bin", type=Path, default=OMP_BIN, help="override for fixture testing")
+     ap.add_argument("--omp-db", type=Path, default=OMP_DB, help="override for fixture testing")
+     ap.add_argument("--oc-log", type=Path, default=OC_LOG, help="override for fixture testing")
+-    ap.add_argument("--oc-bin", type=Path, default=OC_BIN, help="override for fixture testing")
++    ap.add_argument("--oc-bin", type=Path, default=None, help="override for fixture testing")
+     ap.add_argument("--omp-sessions", type=Path, default=OMP_SESSIONS, help="override for fixture testing")
+     args = ap.parse_args(argv)
+ 
+@@ -637,7 +695,7 @@ def main(argv: list[str] | None = None) -> int:
+ 
+     try:
+         omp = omp_observations(args.omp_bin, args.omp_db, args.cwd, args.omp_sessions)
+-        oc = oc_observations(args.oc_log, args.oc_bin)
++        oc = oc_observations(args.oc_log, resolve_oc_bin(args.oc_bin))
+     except Inconclusive as exc:
+         print(f"INCONCLUSIVE: {exc}", file=sys.stderr)
+         return 2

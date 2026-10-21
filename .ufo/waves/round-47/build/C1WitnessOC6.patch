@@ -1,0 +1,194 @@
+diff --git i/corpus/knowledge/instruction-surface-census-round13.md w/corpus/knowledge/instruction-surface-census-round13.md
+index 0d29cc4..ba017df 100644
+--- i/corpus/knowledge/instruction-surface-census-round13.md
++++ w/corpus/knowledge/instruction-surface-census-round13.md
+@@ -191,9 +191,13 @@ and one API channel:
+    `AGENTS.md` (`targets:[a$]`, `a$` = `"AGENTS.md"`), keeps only hits *outside*
+    the project root, and calls `SessionInstructions.load`, which publishes
+    `Instructions from: <path>` synthetic entries.
+-4. **API-managed entries** — `session.instructions.entry.{list,put,remove}` at
+-   `/api/experimental/session/:sessionID/instructions/entries`, durable and
+-   announced at the next step boundary.
++4. **API-managed entries (excluded in 1.19.3)** — the generated client SDK still
++   carries `instructions.entry.{list,put,remove}` over
++   `/api/session/:sessionID/instructions/entries` (no `experimental` prefix in
++   1.19.3), but **no server route id carries an instructions member** (534 route
++   ids, 0 containing `instruct`; legacy and v2 session groups clean), no caller
++   and no schema; the round-18 id `session.instructions.entry.put` is 0-hit.
++   Carried as an excluded class with this sweep, not as a governed surface.
+ 
+ Render/diff: `Instructions from:` initial, `New instructions apply from:` /
+ `The instructions changed:` / `…no longer apply.` on watch events.
+@@ -206,7 +210,6 @@ binary; recorded as an excluded class, not a governed one.
+ | `opencode:project/AGENTS.md` | AGENTS.md | loader-literal | AGENTS.md row | `ConfigInstructionPlugin.projectSource` + `targets:["AGENTS.md"]` all-match walk (OC-1) |
+ | `opencode:config/AGENTS.md` | AGENTS.md | loader-config | AGENTS.md row | `j5(r.config,"AGENTS.md")` global candidate (OC-2) |
+ | `opencode:read-hook/AGENTS.md` | AGENTS.md | loader-literal | Cross-tool rule files | `ReadTool.Plugin` + `targets:[a$]` + `SessionInstructions.load` → `Instructions from:` (OC-4) |
+-| `opencode:api-entries/instructions` | instructions | loader-config | § Instruction surfaces → Declared instruction list | `/instructions/entries` + `session.instructions.entry.put` (OC-6) |
+ 
+ ### C. Excluded loader-derived classes (each with its reason)
+ 
+@@ -221,6 +224,7 @@ binary; recorded as an excluded class, not a governed one.
+ | `omp:unknown/managed-skills` | managed-skills | loader-literal | `~/.omp/agent/managed-skills` — omp-managed skill store; [INFERENCE] merge precedence with the user root is untraced, so it is excluded with this reason rather than claimed |
+ | `omp:unknown/subagent-roster` | agents | loader-config | `omp agents unpack` → `~/.omp/agent/agents` (37 files live) — the **omp-side analogue of the opencode agent-definition row**, but the load path is inferred from the unpack target, not read from a session; excluded pending that trace |
+ | `opencode:config/instructions` | instructions | loader-config | Schema-declared "ambient instructions" list in v2.0.26; **no loader consumer proven** in the binary — only the read-hook publishes file contents (round-18 re-derivation, OC-3 witness only) |
++| `opencode:api-entries/instructions` | instructions | loader-config | Client-SDK namespace `instructions.entry.{list,put,remove}` over `/api/session/:sessionID/instructions/entries` is still declared in 1.19.3, but no server route id carries an instructions member (534 ids, 0 with `instruct`), no caller and no schema; round-18 id `session.instructions.entry.put` is 0-hit — a declared stub with no operative instruction surface (round-47 sweep, OC-6 witness) |
+ 
+ ### D. Non-loader mentions (no class id — these are not classes at all)
+ 
+diff --git i/verifiers/fixtures/surfaces/strings-opencode-clean.txt w/verifiers/fixtures/surfaces/strings-opencode-clean.txt
+index fae902c..f5f5f78 100644
+--- i/verifiers/fixtures/surfaces/strings-opencode-clean.txt
++++ w/verifiers/fixtures/surfaces/strings-opencode-clean.txt
+@@ -16,8 +16,8 @@ a$="AGENTS.md"
+ SessionInstructions.load
+ # OC-5  resolution switch (owns no class id)
+ process.env.OPENCODE_DISABLE_PROJECT_CONFIG
+-# OC-6  API-managed instruction entries
+-/api/experimental/session/:sessionID/instructions/entries
+-session.instructions.entry.put
++# OC-6  API instruction entries (client SDK; class excluded)
++instructions:{entry:{list:
++instructions/entries/${encodeURIComponent(
+ # markers: shapes that must never be counted as classes
+ no-rule-anchor marker line
+diff --git i/verifiers/fixtures/surfaces/strings-opencode-drop-oc1.txt w/verifiers/fixtures/surfaces/strings-opencode-drop-oc1.txt
+index 2b0f54e..03ec989 100644
+--- i/verifiers/fixtures/surfaces/strings-opencode-drop-oc1.txt
++++ w/verifiers/fixtures/surfaces/strings-opencode-drop-oc1.txt
+@@ -9,5 +9,5 @@ l.up({targets:[a$],start:B,stop:z,type:"file"})
+ a$="AGENTS.md"
+ SessionInstructions.load
+ process.env.OPENCODE_DISABLE_PROJECT_CONFIG
+-/api/experimental/session/:sessionID/instructions/entries
+-session.instructions.entry.put
++instructions:{entry:{list:
++instructions/entries/${encodeURIComponent(
+diff --git i/verifiers/fixtures/surfaces/strings-opencode-drop-oc2.txt w/verifiers/fixtures/surfaces/strings-opencode-drop-oc2.txt
+index 7dc83ba..8ae0478 100644
+--- i/verifiers/fixtures/surfaces/strings-opencode-drop-oc2.txt
++++ w/verifiers/fixtures/surfaces/strings-opencode-drop-oc2.txt
+@@ -10,5 +10,5 @@ l.up({targets:[a$],start:B,stop:z,type:"file"})
+ a$="AGENTS.md"
+ SessionInstructions.load
+ process.env.OPENCODE_DISABLE_PROJECT_CONFIG
+-/api/experimental/session/:sessionID/instructions/entries
+-session.instructions.entry.put
++instructions:{entry:{list:
++instructions/entries/${encodeURIComponent(
+diff --git i/verifiers/fixtures/surfaces/strings-opencode-drop-oc3.txt w/verifiers/fixtures/surfaces/strings-opencode-drop-oc3.txt
+index b8a3984..1944aa4 100644
+--- i/verifiers/fixtures/surfaces/strings-opencode-drop-oc3.txt
++++ w/verifiers/fixtures/surfaces/strings-opencode-drop-oc3.txt
+@@ -10,5 +10,5 @@ l.up({targets:[a$],start:B,stop:z,type:"file"})
+ a$="AGENTS.md"
+ SessionInstructions.load
+ process.env.OPENCODE_DISABLE_PROJECT_CONFIG
+-/api/experimental/session/:sessionID/instructions/entries
+-session.instructions.entry.put
++instructions:{entry:{list:
++instructions/entries/${encodeURIComponent(
+diff --git i/verifiers/fixtures/surfaces/strings-opencode-drop-oc4.txt w/verifiers/fixtures/surfaces/strings-opencode-drop-oc4.txt
+index 667d12f..cae303b 100644
+--- i/verifiers/fixtures/surfaces/strings-opencode-drop-oc4.txt
++++ w/verifiers/fixtures/surfaces/strings-opencode-drop-oc4.txt
+@@ -7,5 +7,5 @@ i.up({targets:["AGENTS.md"],start:_,stop:P,type:"file"})
+ U=yield*i.resolve(j5(r.config,"AGENTS.md"))
+ instructions:t.pipe(E,b).annotate({description:"Additional paths or URLs supplying ambient instructions"})
+ process.env.OPENCODE_DISABLE_PROJECT_CONFIG
+-/api/experimental/session/:sessionID/instructions/entries
+-session.instructions.entry.put
++instructions:{entry:{list:
++instructions/entries/${encodeURIComponent(
+diff --git i/verifiers/fixtures/surfaces/strings-opencode-drop-oc5.txt w/verifiers/fixtures/surfaces/strings-opencode-drop-oc5.txt
+index ec376ab..f02f967 100644
+--- i/verifiers/fixtures/surfaces/strings-opencode-drop-oc5.txt
++++ w/verifiers/fixtures/surfaces/strings-opencode-drop-oc5.txt
+@@ -9,5 +9,5 @@ ReadTool.Plugin
+ l.up({targets:[a$],start:B,stop:z,type:"file"})
+ a$="AGENTS.md"
+ SessionInstructions.load
+-/api/experimental/session/:sessionID/instructions/entries
+-session.instructions.entry.put
++instructions:{entry:{list:
++instructions/entries/${encodeURIComponent(
+diff --git i/verifiers/fixtures/surfaces/strings-opencode-drop-oc6.txt w/verifiers/fixtures/surfaces/strings-opencode-drop-oc6.txt
+index 9c5d771..e9d6632 100644
+--- i/verifiers/fixtures/surfaces/strings-opencode-drop-oc6.txt
++++ w/verifiers/fixtures/surfaces/strings-opencode-drop-oc6.txt
+@@ -1,6 +1,6 @@
+ # synthetic opencode strings-dump fixture (round 18) — OC-6 anchors removed.
+-# The API route + entry id are gone; the rest stays.
+-# surfaces.opencode_extract must report OC-6 unmatched and name
++# The OC-6 client-SDK namespace head and its keyed entries tail are gone; the
++# rest stays.  surfaces.opencode_extract must report OC-6 unmatched and name
+ # opencode:api-entries/instructions.
+ ConfigInstructionPlugin.projectSource
+ i.up({targets:["AGENTS.md"],start:_,stop:P,type:"file"})
+diff --git i/verifiers/fixtures/surfaces/strings-opencode-extra.txt w/verifiers/fixtures/surfaces/strings-opencode-extra.txt
+index f829671..04c27d0 100644
+--- i/verifiers/fixtures/surfaces/strings-opencode-extra.txt
++++ w/verifiers/fixtures/surfaces/strings-opencode-extra.txt
+@@ -13,6 +13,6 @@ l.up({targets:[a$],start:B,stop:z,type:"file"})
+ a$="AGENTS.md"
+ SessionInstructions.load
+ process.env.OPENCODE_DISABLE_PROJECT_CONFIG
+-/api/experimental/session/:sessionID/instructions/entries
+-session.instructions.entry.put
++instructions:{entry:{list:
++instructions/entries/${encodeURIComponent(
+ i.up({targets:["RULES.md"],start:_,stop:P,type:"file"})
+diff --git i/verifiers/surfaces-baseline.json w/verifiers/surfaces-baseline.json
+index 3c08b50..0271fdc 100644
+--- i/verifiers/surfaces-baseline.json
++++ w/verifiers/surfaces-baseline.json
+@@ -267,7 +267,8 @@
+    "harness": "opencode",
+    "literal": "instructions",
+    "context_kind": "loader-config",
+-   "verdict": "governed"
++   "verdict": "excluded",
++   "reason": "generated client-SDK namespace `instructions.entry.{list,put,remove}` over `/api/session/:sessionID/instructions/entries` survives in 1.19.3, but no server route id carries an instructions member (534 route ids, 0 containing 'instruct'; legacy and v2 session groups both clean), no caller and no schema: a declared API stub with no operative instruction surface (round-47 sweep; round-18 id `session.instructions.entry.put` is 0-hit)"
+   },
+   {
+    "class_id": "opencode:config/instructions",
+diff --git i/verifiers/verify_surfaces.py w/verifiers/verify_surfaces.py
+index 56e65ea..2780376 100755
+--- i/verifiers/verify_surfaces.py
++++ w/verifiers/verify_surfaces.py
+@@ -386,12 +386,16 @@ OC_SESSION_LOAD = 'SessionInstructions.load'
+ OC_ENV_PROJECT_CONFIG = "OPENCODE_DISABLE_PROJECT_CONFIG"
+ OC_ENV_PROJECT_CONFIG_2 = "OPENCODE_CONFIG_PROJECT_DISABLE"
+ 
+-# OC-6: the experimental API instruction entries —
+-# `session.instructions.entry.{list,put,remove}` over
+-# `/api/experimental/session/:sessionID/instructions/entries` — API-managed
+-# durable entries announced to the model at the next step boundary.
+-OC_API_ROUTE = "/instructions/entries"
+-OC_API_ID = "session.instructions.entry.put"
++# OC-6: the API-managed instruction-entry namespace survives in 1.19.3 ONLY as a
++# generated client-SDK shape — `instructions.entry.{list,put,remove}` over
++# `/api/session/:sessionID/instructions/entries` (round 47: the round-18 dotted
++# id `session.instructions.entry.put` is 0-hit, no server route id carries an
++# instructions member (534 ids, 0 with "instruct"; legacy + v2 groups clean),
++# and no caller remains, so the class is carried EXCLUDED, never governed).
++# Anchors are structural and minifier-free: the nested namespace head plus the
++# keyed put/remove tail.
++OC_API_NS = "instructions:{entry:{list:"
++OC_API_KEYED = "instructions/entries/${encodeURIComponent("
+ 
+ 
+ def extract_opencode_classes(dump: str) -> tuple[set[str], list[dict]]:
+@@ -437,10 +441,10 @@ def extract_opencode_classes(dump: str) -> tuple[set[str], list[dict]]:
+     rule("OC-5", [], switch,
+          ["%s | %s" % (OC_ENV_PROJECT_CONFIG, OC_ENV_PROJECT_CONFIG_2)])
+ 
+-    # OC-6 — API-managed instruction entries
+-    api = OC_API_ROUTE in dump and OC_API_ID in dump
++    # OC-6 — API instruction entries (client-SDK stub only; class excluded)
++    api = OC_API_NS in dump and OC_API_KEYED in dump
+     rule("OC-6", ["opencode:api-entries/instructions"], api,
+-         [OC_API_ROUTE, OC_API_ID])
++         [OC_API_NS, OC_API_KEYED])
+ 
+     return ids, report
+ 

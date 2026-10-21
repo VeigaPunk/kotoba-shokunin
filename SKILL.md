@@ -11,7 +11,7 @@ description: >
   (kagi, kake, kasegi, kengaku, kumitate) own their own SKILL.md content —
   this skill audits and reports; fixes route to the owning lane. Note: the
   shokunin files are not in an omp skill discovery root, so their descriptions
-  never reach the `<skills>` router — craft here is audit-side, not
+  never reach the omp skills router — craft here is audit-side, not
   router-visible.
 ---
 
@@ -148,7 +148,7 @@ regex, `metadata.requires` over prose, render-by-reproduction, invocation-shaped
 triggers for domain-term names, and the discovery roots:
 `corpus/knowledge/frontmatter-trigger-surface.md` § Craft rules.
 
-Portability floor (spec + vendor + YAML, `corpus/SOURCES.md` S001, S002, S003, S008): `name` ≤64 lowercase-hyphen chars equal to the directory; `description` ≤1024 chars, no XML tags (Anthropic rule), quoted when it holds `: ` or ` #` (illegal in a YAML plain scalar — lenient loaders hide it, strict ones reject). This file's own description still carries `<skills>`; the repair is planned (`SCORECARD.md` § planned, round 47).
+Portability floor (spec + vendor + YAML, `corpus/SOURCES.md` S001, S002, S003, S008): `name` ≤64 lowercase-hyphen chars equal to the directory; `description` ≤1024 chars, no XML tags (Anthropic rule), quoted when it holds `: ` or ` #` (illegal in a YAML plain scalar — lenient loaders hide it, strict ones reject). `verifiers/verify_skill_checklist.py` `trigger.no_xml_tag` gates the XML-tag rule on `name` and `description`; Anthropic's reference packager (S012) is stricter and refuses any `<`/`>`.
 
 ## Decision tables — when to use one
 
@@ -428,7 +428,10 @@ location; durable policy copy-pasted into a dispatch prompt.
 - `~/.local/share/opencode/log/opencode.log` — opencode offer trace
   (`message=init count=N` per instance, latest 18; `duplicate skill name`
   warns) and the `<available_skills>`-vs-`<skills>` tag split (round-8/9).
-- `~/.opencode/bin/opencode` + upstream `github.com/sst/opencode` (dev):
+- opencode — npm `opencode-ai` 1.19.3 since round 47 (the `~/.local/bin/opencode`
+  npx wrapper; pinned ELF and lineage in `verifiers/baseline.json` and
+  `corpus/knowledge/instruction-surface-census-round13.md` § B′; the round-8/18
+  `~/.opencode/bin` install is gone) + upstream `github.com/sst/opencode` (dev):
   `packages/opencode/src/skill/index.ts:321-343` (`fmt` verbose render,
   `description` filter), `:105-139` (add/duplicate: warn then **unguarded**
   assignment, last parsed wins), `:235-246` (`concurrency:"unbounded"` parse

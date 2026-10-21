@@ -1,0 +1,2318 @@
+{
+ "generated_utc": "2026-10-21T16:02:54Z",
+ "today_default": "2026-10-21",
+ "base": "c61a973b2e02e1ded169703ddcb06466f4edd8bd",
+ "base_blob": "a048aef0997e68881c9740e878d2fe01402bb04b",
+ "base_sha256": "ef331658e398dd552f8df992aade49d25025eb7b0309e7f2d3c00a7fd92e16d3",
+ "prod_sources_sha256": "ef331658e398dd552f8df992aade49d25025eb7b0309e7f2d3c00a7fd92e16d3",
+ "prod_equals_base": true,
+ "frozen_lines_in_CORPUS_md": [
+  135,
+  137,
+  139,
+  141,
+  143,
+  145,
+  147
+ ],
+ "frozen_commands": [
+  "grep -cE '^\\|[[:space:]]*S[0-9]{3,}[[:space:]]*\\|' corpus/SOURCES.md",
+  "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ && NF!=13 {n++} END{print n+0}' corpus/SOURCES.md",
+  "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ {t=$5; gsub(/[[:space:]]/,\"\",t); n[t]++} END{for(k in n) printf \"%s=%d \", k, n[k]; print \"\"}' corpus/SOURCES.md",
+  "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ {s=$9; gsub(/[[:space:]]/,\"\",s); n[s]++} END{for(k in n) printf \"%s=%d \", k, n[k]; print \"\"}' corpus/SOURCES.md",
+  "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ {i=$2; gsub(/[[:space:]]/,\"\",i); print i}' corpus/SOURCES.md | sort | uniq -d",
+  "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ && NF==13 {i=$2;k=$4;t=$5;s=$9; gsub(/[[:space:]]/,\"\",i); gsub(/[[:space:]]/,\"\",k); gsub(/[[:space:]]/,\"\",t); gsub(/[[:space:]]/,\"\",s); if (t !~ /^[ABC]$/) print \"tier\", i, t; if (s !~ /^(queued|mined|rejected)$/) print \"status\", i, s; if (k !~ /^(spec|docs|paper|code|tool|dataset|talk|book|community|own-work)$/) print \"kind\", i, k; if (t==\"A\" && k==\"community\") print \"tier-inflation\", i}' corpus/SOURCES.md",
+  "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ && NF==13 {s=$9; gsub(/[[:space:]]/,\"\",s); if (s==\"mined\") {n=split($12, a, /[,;]/); for (j=1;j<=n;j++) {p=a[j]; gsub(/^[[:space:]]+|[[:space:]]+$/,\"\",p); if (p!=\"\" && p!=\"—\") print p}}}' corpus/SOURCES.md | while read -r p; do [ -e \"$p\" ] || echo \"missing: $p\"; done"
+ ],
+ "rows": {
+  "REQ_A": "| S012 | Synthetic malformed row — https://malformed.example/source | docs | B | synthetic-malformed | §1 | synthetic row carrying a twelfth cell | queued | 2026-10-19 | 90d | — | extra-cell |",
+  "REQ_B": "| S013 | Synthetic community post — https://community.example/post | community | A | synthetic-community | §1 | synthetic community claim at tier A | queued | 2026-10-19 | 90d | — |",
+  "REQ_C": "| S014 | Synthetic mined source — https://mined.example/source | docs | B | synthetic-mined | §1 | synthetic mined evidence | mined | 2026-10-19 | 90d | corpus/knowledge/does-not-exist.md |",
+  "P1": "  | S015 | Synthetic indented malformed row — https://indented.example/source | docs | B | synthetic-indented | §1 | indented row carrying a twelfth cell | queued | 2026-10-19 | 90d | — | extra-cell |",
+  "P2": "| S015 | Synthetic row outside Registry — https://outside.example/source | docs | B | synthetic-outside | §1 | row appended after the Leads section | queued | 2026-10-19 | 90d | — |",
+  "P3": "| S016 | Synthetic blank used-by — https://blank.example/source | docs | B | synthetic-blank | §1 | mined row with a blank used-by cell | mined | 2026-10-19 | 90d |  |",
+  "P4": "| S017 | Synthetic unused mined — https://unused.example/source | docs | B | synthetic-unused | §1 | mined row whose used-by is an em dash | mined | 2026-10-19 | 90d | — |",
+  "P5": "| S011 | Synthetic duplicate id — https://dup-id.example/source | docs | B | synthetic-dup | §1 | duplicate of the existing S011 id | queued | 2026-10-19 | 90d | — |",
+  "P6": "| S018 | Synthetic enum violations — https://enum.example/source | blog | D | synthetic-enum | §1 | kind blog, tier D and status watch are all out of enum | watch | 2026-10-19 | 90d | — |",
+  "P7": "| S019 | Synthetic future opened — https://future.example/source | docs | B | synthetic-future | §1 | row opened after the run date | queued | 2026-12-01 | 90d | — |",
+  "P8": "| S020 | Synthetic prose recheck — https://recheck.example/source | docs | B | synthetic-recheck | §1 | recheck cell is prose, not a date or cadence | queued | 2026-10-19 | 90 days | — |",
+  "P9": "| S021 | Synthetic duplicate source — https://agentskills.io/specification | docs | B | SKILL.md frontmatter format and file-structure rules | §1 | same URL and scope as S001 with no supersedes marker | queued | 2026-10-19 | 90d | — |",
+  "P10": "| S22 | Synthetic short id — https://shortid.example/source | docs | B | synthetic-short-id | §1 | two-digit id that the S[0-9]{3,} frozen regex skips | queued | 2026-10-19 | 90d | — |"
+ },
+ "variants": {
+  "base_BASE": {
+   "sha256": "ef331658e398dd552f8df992aade49d25025eb7b0309e7f2d3c00a7fd92e16d3",
+   "root": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/base_BASE",
+   "frozen": {
+    "F1": {
+     "argv": [
+      "bash",
+      "-c",
+      "grep -cE '^\\|[[:space:]]*S[0-9]{3,}[[:space:]]*\\|' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/base_BASE/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "11\n",
+     "stderr": ""
+    },
+    "F2": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ && NF!=13 {n++} END{print n+0}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/base_BASE/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "0\n",
+     "stderr": ""
+    },
+    "F3": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ {t=$5; gsub(/[[:space:]]/,\"\",t); n[t]++} END{for(k in n) printf \"%s=%d \", k, n[k]; print \"\"}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/base_BASE/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "A=10 C=1 \n",
+     "stderr": ""
+    },
+    "F4": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ {s=$9; gsub(/[[:space:]]/,\"\",s); n[s]++} END{for(k in n) printf \"%s=%d \", k, n[k]; print \"\"}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/base_BASE/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "mined=4 queued=6 rejected=1 \n",
+     "stderr": ""
+    },
+    "F5": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ {i=$2; gsub(/[[:space:]]/,\"\",i); print i}' corpus/SOURCES.md | sort | uniq -d"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/base_BASE/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    },
+    "F6": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ && NF==13 {i=$2;k=$4;t=$5;s=$9; gsub(/[[:space:]]/,\"\",i); gsub(/[[:space:]]/,\"\",k); gsub(/[[:space:]]/,\"\",t); gsub(/[[:space:]]/,\"\",s); if (t !~ /^[ABC]$/) print \"tier\", i, t; if (s !~ /^(queued|mined|rejected)$/) print \"status\", i, s; if (k !~ /^(spec|docs|paper|code|tool|dataset|talk|book|community|own-work)$/) print \"kind\", i, k; if (t==\"A\" && k==\"community\") print \"tier-inflation\", i}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/base_BASE/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    },
+    "F7": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ && NF==13 {s=$9; gsub(/[[:space:]]/,\"\",s); if (s==\"mined\") {n=split($12, a, /[,;]/); for (j=1;j<=n;j++) {p=a[j]; gsub(/^[[:space:]]+|[[:space:]]+$/,\"\",p); if (p!=\"\" && p!=\"—\") print p}}}' corpus/SOURCES.md | while read -r p; do [ -e \"$p\" ] || echo \"missing: $p\"; done"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/base_BASE/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    }
+   },
+   "script": {
+    "validate": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "validate",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/base_BASE",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 0,
+     "stdout": "kotoba\tok\t/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/base_BASE/kotoba-shokunin/corpus/SOURCES.md\n",
+     "stderr": ""
+    },
+    "census": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "census",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/base_BASE",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 0,
+     "stdout": "kotoba\trows\t11\nkotoba\ttier.A\t10\nkotoba\ttier.C\t1\nkotoba\tstatus.mined\t4\nkotoba\tstatus.queued\t6\nkotoba\tstatus.rejected\t1\nFLEET\trows\t11\nFLEET\ttier.A\t10\nFLEET\ttier.B\t0\nFLEET\ttier.C\t1\nFLEET\ttier.invalid\t0\nFLEET\tstatus.queued\t6\nFLEET\tstatus.mined\t4\nFLEET\tstatus.rejected\t1\nFLEET\tstatus.invalid\t0\nFLEET\tmissing\t0\n",
+     "stderr": ""
+    },
+    "overdue": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "overdue",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/base_BASE",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 0,
+     "stdout": "kotoba\tcadence\tS001 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS002 recheck=90d opened=2026-10-19\nkotoba\tcadence\tS003 recheck=90d opened=2026-10-19\nkotoba\tcadence\tS004 recheck=90d opened=2026-10-19\nkotoba\tcadence\tS005 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS006 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS007 recheck=365d opened=2026-10-19\nkotoba\tcadence\tS008 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS009 recheck=on-commit opened=2026-10-19\nkotoba\tcadence\tS010 recheck=on-commit opened=2026-10-19\nkotoba\tcadence\tS011 recheck=180d opened=2026-10-19\n",
+     "stderr": ""
+    },
+    "shared": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "shared",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/base_BASE",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    }
+   }
+  },
+  "reqA_malformed_12cells": {
+   "sha256": "9f7b600e8a4470ee704762bc16d7bc68a963cfee2e563b75367fb1d1070ca322",
+   "root": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/reqA_malformed_12cells",
+   "frozen": {
+    "F1": {
+     "argv": [
+      "bash",
+      "-c",
+      "grep -cE '^\\|[[:space:]]*S[0-9]{3,}[[:space:]]*\\|' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/reqA_malformed_12cells/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "12\n",
+     "stderr": ""
+    },
+    "F2": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ && NF!=13 {n++} END{print n+0}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/reqA_malformed_12cells/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "1\n",
+     "stderr": ""
+    },
+    "F3": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ {t=$5; gsub(/[[:space:]]/,\"\",t); n[t]++} END{for(k in n) printf \"%s=%d \", k, n[k]; print \"\"}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/reqA_malformed_12cells/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "A=10 B=1 C=1 \n",
+     "stderr": ""
+    },
+    "F4": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ {s=$9; gsub(/[[:space:]]/,\"\",s); n[s]++} END{for(k in n) printf \"%s=%d \", k, n[k]; print \"\"}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/reqA_malformed_12cells/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "mined=4 queued=7 rejected=1 \n",
+     "stderr": ""
+    },
+    "F5": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ {i=$2; gsub(/[[:space:]]/,\"\",i); print i}' corpus/SOURCES.md | sort | uniq -d"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/reqA_malformed_12cells/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    },
+    "F6": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ && NF==13 {i=$2;k=$4;t=$5;s=$9; gsub(/[[:space:]]/,\"\",i); gsub(/[[:space:]]/,\"\",k); gsub(/[[:space:]]/,\"\",t); gsub(/[[:space:]]/,\"\",s); if (t !~ /^[ABC]$/) print \"tier\", i, t; if (s !~ /^(queued|mined|rejected)$/) print \"status\", i, s; if (k !~ /^(spec|docs|paper|code|tool|dataset|talk|book|community|own-work)$/) print \"kind\", i, k; if (t==\"A\" && k==\"community\") print \"tier-inflation\", i}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/reqA_malformed_12cells/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    },
+    "F7": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ && NF==13 {s=$9; gsub(/[[:space:]]/,\"\",s); if (s==\"mined\") {n=split($12, a, /[,;]/); for (j=1;j<=n;j++) {p=a[j]; gsub(/^[[:space:]]+|[[:space:]]+$/,\"\",p); if (p!=\"\" && p!=\"—\") print p}}}' corpus/SOURCES.md | while read -r p; do [ -e \"$p\" ] || echo \"missing: $p\"; done"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/reqA_malformed_12cells/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    }
+   },
+   "script": {
+    "validate": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "validate",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/reqA_malformed_12cells",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 1,
+     "stdout": "kotoba\tE01\tS012 fields=12\n",
+     "stderr": ""
+    },
+    "census": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "census",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/reqA_malformed_12cells",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 0,
+     "stdout": "kotoba\trows\t12\nkotoba\ttier.A\t10\nkotoba\ttier.B\t1\nkotoba\ttier.C\t1\nkotoba\tstatus.mined\t4\nkotoba\tstatus.queued\t7\nkotoba\tstatus.rejected\t1\nFLEET\trows\t12\nFLEET\ttier.A\t10\nFLEET\ttier.B\t1\nFLEET\ttier.C\t1\nFLEET\ttier.invalid\t0\nFLEET\tstatus.queued\t7\nFLEET\tstatus.mined\t4\nFLEET\tstatus.rejected\t1\nFLEET\tstatus.invalid\t0\nFLEET\tmissing\t0\n",
+     "stderr": ""
+    },
+    "overdue": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "overdue",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/reqA_malformed_12cells",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 0,
+     "stdout": "kotoba\tcadence\tS001 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS002 recheck=90d opened=2026-10-19\nkotoba\tcadence\tS003 recheck=90d opened=2026-10-19\nkotoba\tcadence\tS004 recheck=90d opened=2026-10-19\nkotoba\tcadence\tS005 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS006 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS007 recheck=365d opened=2026-10-19\nkotoba\tcadence\tS008 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS009 recheck=on-commit opened=2026-10-19\nkotoba\tcadence\tS010 recheck=on-commit opened=2026-10-19\nkotoba\tcadence\tS011 recheck=180d opened=2026-10-19\nkotoba\tcadence\tS012 recheck=90d opened=2026-10-19\n",
+     "stderr": ""
+    },
+    "shared": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "shared",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/reqA_malformed_12cells",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    }
+   }
+  },
+  "reqB_tierA_community": {
+   "sha256": "477dd02c3f8ff1b6b084422bed6548d56fdfa8f0516b851ac65eabb82a3ac2f1",
+   "root": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/reqB_tierA_community",
+   "frozen": {
+    "F1": {
+     "argv": [
+      "bash",
+      "-c",
+      "grep -cE '^\\|[[:space:]]*S[0-9]{3,}[[:space:]]*\\|' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/reqB_tierA_community/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "12\n",
+     "stderr": ""
+    },
+    "F2": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ && NF!=13 {n++} END{print n+0}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/reqB_tierA_community/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "0\n",
+     "stderr": ""
+    },
+    "F3": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ {t=$5; gsub(/[[:space:]]/,\"\",t); n[t]++} END{for(k in n) printf \"%s=%d \", k, n[k]; print \"\"}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/reqB_tierA_community/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "A=11 C=1 \n",
+     "stderr": ""
+    },
+    "F4": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ {s=$9; gsub(/[[:space:]]/,\"\",s); n[s]++} END{for(k in n) printf \"%s=%d \", k, n[k]; print \"\"}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/reqB_tierA_community/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "mined=4 queued=7 rejected=1 \n",
+     "stderr": ""
+    },
+    "F5": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ {i=$2; gsub(/[[:space:]]/,\"\",i); print i}' corpus/SOURCES.md | sort | uniq -d"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/reqB_tierA_community/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    },
+    "F6": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ && NF==13 {i=$2;k=$4;t=$5;s=$9; gsub(/[[:space:]]/,\"\",i); gsub(/[[:space:]]/,\"\",k); gsub(/[[:space:]]/,\"\",t); gsub(/[[:space:]]/,\"\",s); if (t !~ /^[ABC]$/) print \"tier\", i, t; if (s !~ /^(queued|mined|rejected)$/) print \"status\", i, s; if (k !~ /^(spec|docs|paper|code|tool|dataset|talk|book|community|own-work)$/) print \"kind\", i, k; if (t==\"A\" && k==\"community\") print \"tier-inflation\", i}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/reqB_tierA_community/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "tier-inflation S013\n",
+     "stderr": ""
+    },
+    "F7": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ && NF==13 {s=$9; gsub(/[[:space:]]/,\"\",s); if (s==\"mined\") {n=split($12, a, /[,;]/); for (j=1;j<=n;j++) {p=a[j]; gsub(/^[[:space:]]+|[[:space:]]+$/,\"\",p); if (p!=\"\" && p!=\"—\") print p}}}' corpus/SOURCES.md | while read -r p; do [ -e \"$p\" ] || echo \"missing: $p\"; done"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/reqB_tierA_community/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    }
+   },
+   "script": {
+    "validate": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "validate",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/reqB_tierA_community",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 1,
+     "stdout": "kotoba\tE10\tS013 community-at-A\n",
+     "stderr": ""
+    },
+    "census": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "census",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/reqB_tierA_community",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 0,
+     "stdout": "kotoba\trows\t12\nkotoba\ttier.A\t11\nkotoba\ttier.C\t1\nkotoba\tstatus.mined\t4\nkotoba\tstatus.queued\t7\nkotoba\tstatus.rejected\t1\nFLEET\trows\t12\nFLEET\ttier.A\t11\nFLEET\ttier.B\t0\nFLEET\ttier.C\t1\nFLEET\ttier.invalid\t0\nFLEET\tstatus.queued\t7\nFLEET\tstatus.mined\t4\nFLEET\tstatus.rejected\t1\nFLEET\tstatus.invalid\t0\nFLEET\tmissing\t0\n",
+     "stderr": ""
+    },
+    "overdue": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "overdue",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/reqB_tierA_community",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 0,
+     "stdout": "kotoba\tcadence\tS001 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS002 recheck=90d opened=2026-10-19\nkotoba\tcadence\tS003 recheck=90d opened=2026-10-19\nkotoba\tcadence\tS004 recheck=90d opened=2026-10-19\nkotoba\tcadence\tS005 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS006 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS007 recheck=365d opened=2026-10-19\nkotoba\tcadence\tS008 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS009 recheck=on-commit opened=2026-10-19\nkotoba\tcadence\tS010 recheck=on-commit opened=2026-10-19\nkotoba\tcadence\tS011 recheck=180d opened=2026-10-19\nkotoba\tcadence\tS013 recheck=90d opened=2026-10-19\n",
+     "stderr": ""
+    },
+    "shared": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "shared",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/reqB_tierA_community",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    }
+   }
+  },
+  "reqC_mined_missing_usedby": {
+   "sha256": "1fea9d4e937fe0a4c58b653e6275d31eee3567e1672cbd2712fbdf80332c7e14",
+   "root": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/reqC_mined_missing_usedby",
+   "frozen": {
+    "F1": {
+     "argv": [
+      "bash",
+      "-c",
+      "grep -cE '^\\|[[:space:]]*S[0-9]{3,}[[:space:]]*\\|' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/reqC_mined_missing_usedby/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "12\n",
+     "stderr": ""
+    },
+    "F2": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ && NF!=13 {n++} END{print n+0}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/reqC_mined_missing_usedby/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "0\n",
+     "stderr": ""
+    },
+    "F3": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ {t=$5; gsub(/[[:space:]]/,\"\",t); n[t]++} END{for(k in n) printf \"%s=%d \", k, n[k]; print \"\"}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/reqC_mined_missing_usedby/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "A=10 B=1 C=1 \n",
+     "stderr": ""
+    },
+    "F4": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ {s=$9; gsub(/[[:space:]]/,\"\",s); n[s]++} END{for(k in n) printf \"%s=%d \", k, n[k]; print \"\"}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/reqC_mined_missing_usedby/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "mined=5 queued=6 rejected=1 \n",
+     "stderr": ""
+    },
+    "F5": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ {i=$2; gsub(/[[:space:]]/,\"\",i); print i}' corpus/SOURCES.md | sort | uniq -d"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/reqC_mined_missing_usedby/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    },
+    "F6": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ && NF==13 {i=$2;k=$4;t=$5;s=$9; gsub(/[[:space:]]/,\"\",i); gsub(/[[:space:]]/,\"\",k); gsub(/[[:space:]]/,\"\",t); gsub(/[[:space:]]/,\"\",s); if (t !~ /^[ABC]$/) print \"tier\", i, t; if (s !~ /^(queued|mined|rejected)$/) print \"status\", i, s; if (k !~ /^(spec|docs|paper|code|tool|dataset|talk|book|community|own-work)$/) print \"kind\", i, k; if (t==\"A\" && k==\"community\") print \"tier-inflation\", i}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/reqC_mined_missing_usedby/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    },
+    "F7": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ && NF==13 {s=$9; gsub(/[[:space:]]/,\"\",s); if (s==\"mined\") {n=split($12, a, /[,;]/); for (j=1;j<=n;j++) {p=a[j]; gsub(/^[[:space:]]+|[[:space:]]+$/,\"\",p); if (p!=\"\" && p!=\"—\") print p}}}' corpus/SOURCES.md | while read -r p; do [ -e \"$p\" ] || echo \"missing: $p\"; done"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/reqC_mined_missing_usedby/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "missing: corpus/knowledge/does-not-exist.md\n",
+     "stderr": ""
+    }
+   },
+   "script": {
+    "validate": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "validate",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/reqC_mined_missing_usedby",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 1,
+     "stdout": "kotoba\tE11\tS014 missing used-by corpus/knowledge/does-not-exist.md\n",
+     "stderr": ""
+    },
+    "census": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "census",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/reqC_mined_missing_usedby",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 0,
+     "stdout": "kotoba\trows\t12\nkotoba\ttier.A\t10\nkotoba\ttier.B\t1\nkotoba\ttier.C\t1\nkotoba\tstatus.mined\t5\nkotoba\tstatus.queued\t6\nkotoba\tstatus.rejected\t1\nFLEET\trows\t12\nFLEET\ttier.A\t10\nFLEET\ttier.B\t1\nFLEET\ttier.C\t1\nFLEET\ttier.invalid\t0\nFLEET\tstatus.queued\t6\nFLEET\tstatus.mined\t5\nFLEET\tstatus.rejected\t1\nFLEET\tstatus.invalid\t0\nFLEET\tmissing\t0\n",
+     "stderr": ""
+    },
+    "overdue": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "overdue",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/reqC_mined_missing_usedby",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 0,
+     "stdout": "kotoba\tcadence\tS001 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS002 recheck=90d opened=2026-10-19\nkotoba\tcadence\tS003 recheck=90d opened=2026-10-19\nkotoba\tcadence\tS004 recheck=90d opened=2026-10-19\nkotoba\tcadence\tS005 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS006 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS007 recheck=365d opened=2026-10-19\nkotoba\tcadence\tS008 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS009 recheck=on-commit opened=2026-10-19\nkotoba\tcadence\tS010 recheck=on-commit opened=2026-10-19\nkotoba\tcadence\tS011 recheck=180d opened=2026-10-19\nkotoba\tcadence\tS014 recheck=90d opened=2026-10-19\n",
+     "stderr": ""
+    },
+    "shared": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "shared",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/reqC_mined_missing_usedby",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    }
+   }
+  },
+  "reqABC_combined": {
+   "sha256": "4e55c7570a8ef1b23bbb6803ed89fbb374061f99260c06b1723b869a0e0c2c1b",
+   "root": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/reqABC_combined",
+   "frozen": {
+    "F1": {
+     "argv": [
+      "bash",
+      "-c",
+      "grep -cE '^\\|[[:space:]]*S[0-9]{3,}[[:space:]]*\\|' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/reqABC_combined/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "14\n",
+     "stderr": ""
+    },
+    "F2": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ && NF!=13 {n++} END{print n+0}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/reqABC_combined/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "1\n",
+     "stderr": ""
+    },
+    "F3": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ {t=$5; gsub(/[[:space:]]/,\"\",t); n[t]++} END{for(k in n) printf \"%s=%d \", k, n[k]; print \"\"}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/reqABC_combined/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "A=11 B=2 C=1 \n",
+     "stderr": ""
+    },
+    "F4": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ {s=$9; gsub(/[[:space:]]/,\"\",s); n[s]++} END{for(k in n) printf \"%s=%d \", k, n[k]; print \"\"}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/reqABC_combined/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "mined=5 queued=8 rejected=1 \n",
+     "stderr": ""
+    },
+    "F5": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ {i=$2; gsub(/[[:space:]]/,\"\",i); print i}' corpus/SOURCES.md | sort | uniq -d"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/reqABC_combined/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    },
+    "F6": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ && NF==13 {i=$2;k=$4;t=$5;s=$9; gsub(/[[:space:]]/,\"\",i); gsub(/[[:space:]]/,\"\",k); gsub(/[[:space:]]/,\"\",t); gsub(/[[:space:]]/,\"\",s); if (t !~ /^[ABC]$/) print \"tier\", i, t; if (s !~ /^(queued|mined|rejected)$/) print \"status\", i, s; if (k !~ /^(spec|docs|paper|code|tool|dataset|talk|book|community|own-work)$/) print \"kind\", i, k; if (t==\"A\" && k==\"community\") print \"tier-inflation\", i}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/reqABC_combined/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "tier-inflation S013\n",
+     "stderr": ""
+    },
+    "F7": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ && NF==13 {s=$9; gsub(/[[:space:]]/,\"\",s); if (s==\"mined\") {n=split($12, a, /[,;]/); for (j=1;j<=n;j++) {p=a[j]; gsub(/^[[:space:]]+|[[:space:]]+$/,\"\",p); if (p!=\"\" && p!=\"—\") print p}}}' corpus/SOURCES.md | while read -r p; do [ -e \"$p\" ] || echo \"missing: $p\"; done"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/reqABC_combined/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "missing: corpus/knowledge/does-not-exist.md\n",
+     "stderr": ""
+    }
+   },
+   "script": {
+    "validate": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "validate",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/reqABC_combined",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 1,
+     "stdout": "kotoba\tE01\tS012 fields=12\nkotoba\tE10\tS013 community-at-A\nkotoba\tE11\tS014 missing used-by corpus/knowledge/does-not-exist.md\n",
+     "stderr": ""
+    },
+    "census": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "census",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/reqABC_combined",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 0,
+     "stdout": "kotoba\trows\t14\nkotoba\ttier.A\t11\nkotoba\ttier.B\t2\nkotoba\ttier.C\t1\nkotoba\tstatus.mined\t5\nkotoba\tstatus.queued\t8\nkotoba\tstatus.rejected\t1\nFLEET\trows\t14\nFLEET\ttier.A\t11\nFLEET\ttier.B\t2\nFLEET\ttier.C\t1\nFLEET\ttier.invalid\t0\nFLEET\tstatus.queued\t8\nFLEET\tstatus.mined\t5\nFLEET\tstatus.rejected\t1\nFLEET\tstatus.invalid\t0\nFLEET\tmissing\t0\n",
+     "stderr": ""
+    },
+    "overdue": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "overdue",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/reqABC_combined",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 0,
+     "stdout": "kotoba\tcadence\tS001 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS002 recheck=90d opened=2026-10-19\nkotoba\tcadence\tS003 recheck=90d opened=2026-10-19\nkotoba\tcadence\tS004 recheck=90d opened=2026-10-19\nkotoba\tcadence\tS005 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS006 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS007 recheck=365d opened=2026-10-19\nkotoba\tcadence\tS008 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS009 recheck=on-commit opened=2026-10-19\nkotoba\tcadence\tS010 recheck=on-commit opened=2026-10-19\nkotoba\tcadence\tS011 recheck=180d opened=2026-10-19\nkotoba\tcadence\tS012 recheck=90d opened=2026-10-19\nkotoba\tcadence\tS013 recheck=90d opened=2026-10-19\nkotoba\tcadence\tS014 recheck=90d opened=2026-10-19\n",
+     "stderr": ""
+    },
+    "shared": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "shared",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/reqABC_combined",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    }
+   }
+  },
+  "P1_indented_12cells": {
+   "sha256": "df7da147d5d13fa3d117b6eeda9c26f3dadc388597a12cd83a1ebe165fdf8694",
+   "root": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P1_indented_12cells",
+   "frozen": {
+    "F1": {
+     "argv": [
+      "bash",
+      "-c",
+      "grep -cE '^\\|[[:space:]]*S[0-9]{3,}[[:space:]]*\\|' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P1_indented_12cells/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "11\n",
+     "stderr": ""
+    },
+    "F2": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ && NF!=13 {n++} END{print n+0}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P1_indented_12cells/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "0\n",
+     "stderr": ""
+    },
+    "F3": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ {t=$5; gsub(/[[:space:]]/,\"\",t); n[t]++} END{for(k in n) printf \"%s=%d \", k, n[k]; print \"\"}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P1_indented_12cells/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "A=10 C=1 \n",
+     "stderr": ""
+    },
+    "F4": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ {s=$9; gsub(/[[:space:]]/,\"\",s); n[s]++} END{for(k in n) printf \"%s=%d \", k, n[k]; print \"\"}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P1_indented_12cells/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "mined=4 queued=6 rejected=1 \n",
+     "stderr": ""
+    },
+    "F5": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ {i=$2; gsub(/[[:space:]]/,\"\",i); print i}' corpus/SOURCES.md | sort | uniq -d"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P1_indented_12cells/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    },
+    "F6": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ && NF==13 {i=$2;k=$4;t=$5;s=$9; gsub(/[[:space:]]/,\"\",i); gsub(/[[:space:]]/,\"\",k); gsub(/[[:space:]]/,\"\",t); gsub(/[[:space:]]/,\"\",s); if (t !~ /^[ABC]$/) print \"tier\", i, t; if (s !~ /^(queued|mined|rejected)$/) print \"status\", i, s; if (k !~ /^(spec|docs|paper|code|tool|dataset|talk|book|community|own-work)$/) print \"kind\", i, k; if (t==\"A\" && k==\"community\") print \"tier-inflation\", i}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P1_indented_12cells/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    },
+    "F7": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ && NF==13 {s=$9; gsub(/[[:space:]]/,\"\",s); if (s==\"mined\") {n=split($12, a, /[,;]/); for (j=1;j<=n;j++) {p=a[j]; gsub(/^[[:space:]]+|[[:space:]]+$/,\"\",p); if (p!=\"\" && p!=\"—\") print p}}}' corpus/SOURCES.md | while read -r p; do [ -e \"$p\" ] || echo \"missing: $p\"; done"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P1_indented_12cells/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    }
+   },
+   "script": {
+    "validate": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "validate",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P1_indented_12cells",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 1,
+     "stdout": "kotoba\tE01\tS015 fields=12\n",
+     "stderr": ""
+    },
+    "census": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "census",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P1_indented_12cells",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 0,
+     "stdout": "kotoba\trows\t12\nkotoba\ttier.A\t10\nkotoba\ttier.B\t1\nkotoba\ttier.C\t1\nkotoba\tstatus.mined\t4\nkotoba\tstatus.queued\t7\nkotoba\tstatus.rejected\t1\nFLEET\trows\t12\nFLEET\ttier.A\t10\nFLEET\ttier.B\t1\nFLEET\ttier.C\t1\nFLEET\ttier.invalid\t0\nFLEET\tstatus.queued\t7\nFLEET\tstatus.mined\t4\nFLEET\tstatus.rejected\t1\nFLEET\tstatus.invalid\t0\nFLEET\tmissing\t0\n",
+     "stderr": ""
+    },
+    "overdue": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "overdue",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P1_indented_12cells",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 0,
+     "stdout": "kotoba\tcadence\tS001 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS002 recheck=90d opened=2026-10-19\nkotoba\tcadence\tS003 recheck=90d opened=2026-10-19\nkotoba\tcadence\tS004 recheck=90d opened=2026-10-19\nkotoba\tcadence\tS005 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS006 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS007 recheck=365d opened=2026-10-19\nkotoba\tcadence\tS008 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS009 recheck=on-commit opened=2026-10-19\nkotoba\tcadence\tS010 recheck=on-commit opened=2026-10-19\nkotoba\tcadence\tS011 recheck=180d opened=2026-10-19\nkotoba\tcadence\tS015 recheck=90d opened=2026-10-19\n",
+     "stderr": ""
+    },
+    "shared": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "shared",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P1_indented_12cells",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    }
+   }
+  },
+  "P2_row_outside_registry": {
+   "sha256": "0a2ba94a22ed536c92d26b8eff7d09e068f9866c207cc30082936f4165855fe5",
+   "root": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P2_row_outside_registry",
+   "frozen": {
+    "F1": {
+     "argv": [
+      "bash",
+      "-c",
+      "grep -cE '^\\|[[:space:]]*S[0-9]{3,}[[:space:]]*\\|' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P2_row_outside_registry/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "12\n",
+     "stderr": ""
+    },
+    "F2": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ && NF!=13 {n++} END{print n+0}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P2_row_outside_registry/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "0\n",
+     "stderr": ""
+    },
+    "F3": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ {t=$5; gsub(/[[:space:]]/,\"\",t); n[t]++} END{for(k in n) printf \"%s=%d \", k, n[k]; print \"\"}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P2_row_outside_registry/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "A=10 B=1 C=1 \n",
+     "stderr": ""
+    },
+    "F4": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ {s=$9; gsub(/[[:space:]]/,\"\",s); n[s]++} END{for(k in n) printf \"%s=%d \", k, n[k]; print \"\"}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P2_row_outside_registry/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "mined=4 queued=7 rejected=1 \n",
+     "stderr": ""
+    },
+    "F5": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ {i=$2; gsub(/[[:space:]]/,\"\",i); print i}' corpus/SOURCES.md | sort | uniq -d"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P2_row_outside_registry/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    },
+    "F6": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ && NF==13 {i=$2;k=$4;t=$5;s=$9; gsub(/[[:space:]]/,\"\",i); gsub(/[[:space:]]/,\"\",k); gsub(/[[:space:]]/,\"\",t); gsub(/[[:space:]]/,\"\",s); if (t !~ /^[ABC]$/) print \"tier\", i, t; if (s !~ /^(queued|mined|rejected)$/) print \"status\", i, s; if (k !~ /^(spec|docs|paper|code|tool|dataset|talk|book|community|own-work)$/) print \"kind\", i, k; if (t==\"A\" && k==\"community\") print \"tier-inflation\", i}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P2_row_outside_registry/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    },
+    "F7": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ && NF==13 {s=$9; gsub(/[[:space:]]/,\"\",s); if (s==\"mined\") {n=split($12, a, /[,;]/); for (j=1;j<=n;j++) {p=a[j]; gsub(/^[[:space:]]+|[[:space:]]+$/,\"\",p); if (p!=\"\" && p!=\"—\") print p}}}' corpus/SOURCES.md | while read -r p; do [ -e \"$p\" ] || echo \"missing: $p\"; done"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P2_row_outside_registry/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    }
+   },
+   "script": {
+    "validate": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "validate",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P2_row_outside_registry",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 1,
+     "stdout": "kotoba\tE12\tS015 row outside Registry section\n",
+     "stderr": ""
+    },
+    "census": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "census",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P2_row_outside_registry",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 0,
+     "stdout": "kotoba\trows\t11\nkotoba\ttier.A\t10\nkotoba\ttier.C\t1\nkotoba\tstatus.mined\t4\nkotoba\tstatus.queued\t6\nkotoba\tstatus.rejected\t1\nFLEET\trows\t11\nFLEET\ttier.A\t10\nFLEET\ttier.B\t0\nFLEET\ttier.C\t1\nFLEET\ttier.invalid\t0\nFLEET\tstatus.queued\t6\nFLEET\tstatus.mined\t4\nFLEET\tstatus.rejected\t1\nFLEET\tstatus.invalid\t0\nFLEET\tmissing\t0\n",
+     "stderr": ""
+    },
+    "overdue": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "overdue",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P2_row_outside_registry",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 0,
+     "stdout": "kotoba\tcadence\tS001 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS002 recheck=90d opened=2026-10-19\nkotoba\tcadence\tS003 recheck=90d opened=2026-10-19\nkotoba\tcadence\tS004 recheck=90d opened=2026-10-19\nkotoba\tcadence\tS005 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS006 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS007 recheck=365d opened=2026-10-19\nkotoba\tcadence\tS008 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS009 recheck=on-commit opened=2026-10-19\nkotoba\tcadence\tS010 recheck=on-commit opened=2026-10-19\nkotoba\tcadence\tS011 recheck=180d opened=2026-10-19\n",
+     "stderr": ""
+    },
+    "shared": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "shared",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P2_row_outside_registry",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    }
+   }
+  },
+  "P3_mined_blank_usedby": {
+   "sha256": "bdb53b4698235b7b7a9a9a3824c83e53956aa1b9f704dcf772f6b687732a650c",
+   "root": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P3_mined_blank_usedby",
+   "frozen": {
+    "F1": {
+     "argv": [
+      "bash",
+      "-c",
+      "grep -cE '^\\|[[:space:]]*S[0-9]{3,}[[:space:]]*\\|' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P3_mined_blank_usedby/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "12\n",
+     "stderr": ""
+    },
+    "F2": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ && NF!=13 {n++} END{print n+0}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P3_mined_blank_usedby/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "0\n",
+     "stderr": ""
+    },
+    "F3": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ {t=$5; gsub(/[[:space:]]/,\"\",t); n[t]++} END{for(k in n) printf \"%s=%d \", k, n[k]; print \"\"}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P3_mined_blank_usedby/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "A=10 B=1 C=1 \n",
+     "stderr": ""
+    },
+    "F4": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ {s=$9; gsub(/[[:space:]]/,\"\",s); n[s]++} END{for(k in n) printf \"%s=%d \", k, n[k]; print \"\"}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P3_mined_blank_usedby/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "mined=5 queued=6 rejected=1 \n",
+     "stderr": ""
+    },
+    "F5": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ {i=$2; gsub(/[[:space:]]/,\"\",i); print i}' corpus/SOURCES.md | sort | uniq -d"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P3_mined_blank_usedby/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    },
+    "F6": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ && NF==13 {i=$2;k=$4;t=$5;s=$9; gsub(/[[:space:]]/,\"\",i); gsub(/[[:space:]]/,\"\",k); gsub(/[[:space:]]/,\"\",t); gsub(/[[:space:]]/,\"\",s); if (t !~ /^[ABC]$/) print \"tier\", i, t; if (s !~ /^(queued|mined|rejected)$/) print \"status\", i, s; if (k !~ /^(spec|docs|paper|code|tool|dataset|talk|book|community|own-work)$/) print \"kind\", i, k; if (t==\"A\" && k==\"community\") print \"tier-inflation\", i}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P3_mined_blank_usedby/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    },
+    "F7": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ && NF==13 {s=$9; gsub(/[[:space:]]/,\"\",s); if (s==\"mined\") {n=split($12, a, /[,;]/); for (j=1;j<=n;j++) {p=a[j]; gsub(/^[[:space:]]+|[[:space:]]+$/,\"\",p); if (p!=\"\" && p!=\"—\") print p}}}' corpus/SOURCES.md | while read -r p; do [ -e \"$p\" ] || echo \"missing: $p\"; done"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P3_mined_blank_usedby/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    }
+   },
+   "script": {
+    "validate": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "validate",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P3_mined_blank_usedby",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 0,
+     "stdout": "kotoba\tok\t/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P3_mined_blank_usedby/kotoba-shokunin/corpus/SOURCES.md\n",
+     "stderr": ""
+    },
+    "census": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "census",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P3_mined_blank_usedby",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 0,
+     "stdout": "kotoba\trows\t12\nkotoba\ttier.A\t10\nkotoba\ttier.B\t1\nkotoba\ttier.C\t1\nkotoba\tstatus.mined\t5\nkotoba\tstatus.queued\t6\nkotoba\tstatus.rejected\t1\nFLEET\trows\t12\nFLEET\ttier.A\t10\nFLEET\ttier.B\t1\nFLEET\ttier.C\t1\nFLEET\ttier.invalid\t0\nFLEET\tstatus.queued\t6\nFLEET\tstatus.mined\t5\nFLEET\tstatus.rejected\t1\nFLEET\tstatus.invalid\t0\nFLEET\tmissing\t0\n",
+     "stderr": ""
+    },
+    "overdue": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "overdue",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P3_mined_blank_usedby",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 0,
+     "stdout": "kotoba\tcadence\tS001 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS002 recheck=90d opened=2026-10-19\nkotoba\tcadence\tS003 recheck=90d opened=2026-10-19\nkotoba\tcadence\tS004 recheck=90d opened=2026-10-19\nkotoba\tcadence\tS005 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS006 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS007 recheck=365d opened=2026-10-19\nkotoba\tcadence\tS008 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS009 recheck=on-commit opened=2026-10-19\nkotoba\tcadence\tS010 recheck=on-commit opened=2026-10-19\nkotoba\tcadence\tS011 recheck=180d opened=2026-10-19\nkotoba\tcadence\tS016 recheck=90d opened=2026-10-19\n",
+     "stderr": ""
+    },
+    "shared": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "shared",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P3_mined_blank_usedby",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    }
+   }
+  },
+  "P4_mined_usedby_dash": {
+   "sha256": "3ff05a95e87c70e25e6e7b5aa2db8fac0f2e715fa2b1900cbc9485e0b89b9084",
+   "root": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P4_mined_usedby_dash",
+   "frozen": {
+    "F1": {
+     "argv": [
+      "bash",
+      "-c",
+      "grep -cE '^\\|[[:space:]]*S[0-9]{3,}[[:space:]]*\\|' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P4_mined_usedby_dash/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "12\n",
+     "stderr": ""
+    },
+    "F2": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ && NF!=13 {n++} END{print n+0}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P4_mined_usedby_dash/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "0\n",
+     "stderr": ""
+    },
+    "F3": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ {t=$5; gsub(/[[:space:]]/,\"\",t); n[t]++} END{for(k in n) printf \"%s=%d \", k, n[k]; print \"\"}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P4_mined_usedby_dash/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "A=10 B=1 C=1 \n",
+     "stderr": ""
+    },
+    "F4": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ {s=$9; gsub(/[[:space:]]/,\"\",s); n[s]++} END{for(k in n) printf \"%s=%d \", k, n[k]; print \"\"}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P4_mined_usedby_dash/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "mined=5 queued=6 rejected=1 \n",
+     "stderr": ""
+    },
+    "F5": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ {i=$2; gsub(/[[:space:]]/,\"\",i); print i}' corpus/SOURCES.md | sort | uniq -d"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P4_mined_usedby_dash/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    },
+    "F6": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ && NF==13 {i=$2;k=$4;t=$5;s=$9; gsub(/[[:space:]]/,\"\",i); gsub(/[[:space:]]/,\"\",k); gsub(/[[:space:]]/,\"\",t); gsub(/[[:space:]]/,\"\",s); if (t !~ /^[ABC]$/) print \"tier\", i, t; if (s !~ /^(queued|mined|rejected)$/) print \"status\", i, s; if (k !~ /^(spec|docs|paper|code|tool|dataset|talk|book|community|own-work)$/) print \"kind\", i, k; if (t==\"A\" && k==\"community\") print \"tier-inflation\", i}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P4_mined_usedby_dash/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    },
+    "F7": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ && NF==13 {s=$9; gsub(/[[:space:]]/,\"\",s); if (s==\"mined\") {n=split($12, a, /[,;]/); for (j=1;j<=n;j++) {p=a[j]; gsub(/^[[:space:]]+|[[:space:]]+$/,\"\",p); if (p!=\"\" && p!=\"—\") print p}}}' corpus/SOURCES.md | while read -r p; do [ -e \"$p\" ] || echo \"missing: $p\"; done"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P4_mined_usedby_dash/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    }
+   },
+   "script": {
+    "validate": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "validate",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P4_mined_usedby_dash",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 0,
+     "stdout": "kotoba\tW03\tS017 mined but unused\nkotoba\tok\t/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P4_mined_usedby_dash/kotoba-shokunin/corpus/SOURCES.md\n",
+     "stderr": ""
+    },
+    "census": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "census",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P4_mined_usedby_dash",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 0,
+     "stdout": "kotoba\trows\t12\nkotoba\ttier.A\t10\nkotoba\ttier.B\t1\nkotoba\ttier.C\t1\nkotoba\tstatus.mined\t5\nkotoba\tstatus.queued\t6\nkotoba\tstatus.rejected\t1\nFLEET\trows\t12\nFLEET\ttier.A\t10\nFLEET\ttier.B\t1\nFLEET\ttier.C\t1\nFLEET\ttier.invalid\t0\nFLEET\tstatus.queued\t6\nFLEET\tstatus.mined\t5\nFLEET\tstatus.rejected\t1\nFLEET\tstatus.invalid\t0\nFLEET\tmissing\t0\n",
+     "stderr": ""
+    },
+    "overdue": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "overdue",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P4_mined_usedby_dash",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 0,
+     "stdout": "kotoba\tcadence\tS001 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS002 recheck=90d opened=2026-10-19\nkotoba\tcadence\tS003 recheck=90d opened=2026-10-19\nkotoba\tcadence\tS004 recheck=90d opened=2026-10-19\nkotoba\tcadence\tS005 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS006 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS007 recheck=365d opened=2026-10-19\nkotoba\tcadence\tS008 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS009 recheck=on-commit opened=2026-10-19\nkotoba\tcadence\tS010 recheck=on-commit opened=2026-10-19\nkotoba\tcadence\tS011 recheck=180d opened=2026-10-19\nkotoba\tcadence\tS017 recheck=90d opened=2026-10-19\n",
+     "stderr": ""
+    },
+    "shared": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "shared",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P4_mined_usedby_dash",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    }
+   }
+  },
+  "P5_duplicate_id": {
+   "sha256": "2f322f5bbe63431f4f023aa821466f11928e622ad58fdace942ba57f5fed1b72",
+   "root": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P5_duplicate_id",
+   "frozen": {
+    "F1": {
+     "argv": [
+      "bash",
+      "-c",
+      "grep -cE '^\\|[[:space:]]*S[0-9]{3,}[[:space:]]*\\|' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P5_duplicate_id/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "12\n",
+     "stderr": ""
+    },
+    "F2": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ && NF!=13 {n++} END{print n+0}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P5_duplicate_id/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "0\n",
+     "stderr": ""
+    },
+    "F3": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ {t=$5; gsub(/[[:space:]]/,\"\",t); n[t]++} END{for(k in n) printf \"%s=%d \", k, n[k]; print \"\"}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P5_duplicate_id/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "A=10 B=1 C=1 \n",
+     "stderr": ""
+    },
+    "F4": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ {s=$9; gsub(/[[:space:]]/,\"\",s); n[s]++} END{for(k in n) printf \"%s=%d \", k, n[k]; print \"\"}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P5_duplicate_id/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "mined=4 queued=7 rejected=1 \n",
+     "stderr": ""
+    },
+    "F5": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ {i=$2; gsub(/[[:space:]]/,\"\",i); print i}' corpus/SOURCES.md | sort | uniq -d"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P5_duplicate_id/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "S011\n",
+     "stderr": ""
+    },
+    "F6": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ && NF==13 {i=$2;k=$4;t=$5;s=$9; gsub(/[[:space:]]/,\"\",i); gsub(/[[:space:]]/,\"\",k); gsub(/[[:space:]]/,\"\",t); gsub(/[[:space:]]/,\"\",s); if (t !~ /^[ABC]$/) print \"tier\", i, t; if (s !~ /^(queued|mined|rejected)$/) print \"status\", i, s; if (k !~ /^(spec|docs|paper|code|tool|dataset|talk|book|community|own-work)$/) print \"kind\", i, k; if (t==\"A\" && k==\"community\") print \"tier-inflation\", i}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P5_duplicate_id/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    },
+    "F7": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ && NF==13 {s=$9; gsub(/[[:space:]]/,\"\",s); if (s==\"mined\") {n=split($12, a, /[,;]/); for (j=1;j<=n;j++) {p=a[j]; gsub(/^[[:space:]]+|[[:space:]]+$/,\"\",p); if (p!=\"\" && p!=\"—\") print p}}}' corpus/SOURCES.md | while read -r p; do [ -e \"$p\" ] || echo \"missing: $p\"; done"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P5_duplicate_id/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    }
+   },
+   "script": {
+    "validate": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "validate",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P5_duplicate_id",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 1,
+     "stdout": "kotoba\tE03\tS011 duplicate id\n",
+     "stderr": ""
+    },
+    "census": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "census",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P5_duplicate_id",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 0,
+     "stdout": "kotoba\trows\t12\nkotoba\ttier.A\t10\nkotoba\ttier.B\t1\nkotoba\ttier.C\t1\nkotoba\tstatus.mined\t4\nkotoba\tstatus.queued\t7\nkotoba\tstatus.rejected\t1\nFLEET\trows\t12\nFLEET\ttier.A\t10\nFLEET\ttier.B\t1\nFLEET\ttier.C\t1\nFLEET\ttier.invalid\t0\nFLEET\tstatus.queued\t7\nFLEET\tstatus.mined\t4\nFLEET\tstatus.rejected\t1\nFLEET\tstatus.invalid\t0\nFLEET\tmissing\t0\n",
+     "stderr": ""
+    },
+    "overdue": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "overdue",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P5_duplicate_id",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 0,
+     "stdout": "kotoba\tcadence\tS001 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS002 recheck=90d opened=2026-10-19\nkotoba\tcadence\tS003 recheck=90d opened=2026-10-19\nkotoba\tcadence\tS004 recheck=90d opened=2026-10-19\nkotoba\tcadence\tS005 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS006 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS007 recheck=365d opened=2026-10-19\nkotoba\tcadence\tS008 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS009 recheck=on-commit opened=2026-10-19\nkotoba\tcadence\tS010 recheck=on-commit opened=2026-10-19\nkotoba\tcadence\tS011 recheck=180d opened=2026-10-19\nkotoba\tcadence\tS011 recheck=90d opened=2026-10-19\n",
+     "stderr": ""
+    },
+    "shared": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "shared",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P5_duplicate_id",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    }
+   }
+  },
+  "P6_enum_violations": {
+   "sha256": "6cf24cadb74f8e1693c88168a0dfa260a6e9652c0e748800282314ebc44e819c",
+   "root": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P6_enum_violations",
+   "frozen": {
+    "F1": {
+     "argv": [
+      "bash",
+      "-c",
+      "grep -cE '^\\|[[:space:]]*S[0-9]{3,}[[:space:]]*\\|' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P6_enum_violations/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "12\n",
+     "stderr": ""
+    },
+    "F2": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ && NF!=13 {n++} END{print n+0}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P6_enum_violations/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "0\n",
+     "stderr": ""
+    },
+    "F3": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ {t=$5; gsub(/[[:space:]]/,\"\",t); n[t]++} END{for(k in n) printf \"%s=%d \", k, n[k]; print \"\"}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P6_enum_violations/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "A=10 C=1 D=1 \n",
+     "stderr": ""
+    },
+    "F4": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ {s=$9; gsub(/[[:space:]]/,\"\",s); n[s]++} END{for(k in n) printf \"%s=%d \", k, n[k]; print \"\"}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P6_enum_violations/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "mined=4 watch=1 queued=6 rejected=1 \n",
+     "stderr": ""
+    },
+    "F5": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ {i=$2; gsub(/[[:space:]]/,\"\",i); print i}' corpus/SOURCES.md | sort | uniq -d"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P6_enum_violations/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    },
+    "F6": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ && NF==13 {i=$2;k=$4;t=$5;s=$9; gsub(/[[:space:]]/,\"\",i); gsub(/[[:space:]]/,\"\",k); gsub(/[[:space:]]/,\"\",t); gsub(/[[:space:]]/,\"\",s); if (t !~ /^[ABC]$/) print \"tier\", i, t; if (s !~ /^(queued|mined|rejected)$/) print \"status\", i, s; if (k !~ /^(spec|docs|paper|code|tool|dataset|talk|book|community|own-work)$/) print \"kind\", i, k; if (t==\"A\" && k==\"community\") print \"tier-inflation\", i}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P6_enum_violations/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "tier S018 D\nstatus S018 watch\nkind S018 blog\n",
+     "stderr": ""
+    },
+    "F7": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ && NF==13 {s=$9; gsub(/[[:space:]]/,\"\",s); if (s==\"mined\") {n=split($12, a, /[,;]/); for (j=1;j<=n;j++) {p=a[j]; gsub(/^[[:space:]]+|[[:space:]]+$/,\"\",p); if (p!=\"\" && p!=\"—\") print p}}}' corpus/SOURCES.md | while read -r p; do [ -e \"$p\" ] || echo \"missing: $p\"; done"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P6_enum_violations/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    }
+   },
+   "script": {
+    "validate": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "validate",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P6_enum_violations",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 1,
+     "stdout": "kotoba\tE05\tS018 kind=blog\nkotoba\tE06\tS018 tier=D\nkotoba\tE07\tS018 status=watch\n",
+     "stderr": ""
+    },
+    "census": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "census",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P6_enum_violations",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 0,
+     "stdout": "kotoba\trows\t12\nkotoba\ttier.A\t10\nkotoba\ttier.C\t1\nkotoba\ttier.invalid\t1\nkotoba\tstatus.mined\t4\nkotoba\tstatus.invalid\t1\nkotoba\tstatus.queued\t6\nkotoba\tstatus.rejected\t1\nFLEET\trows\t12\nFLEET\ttier.A\t10\nFLEET\ttier.B\t0\nFLEET\ttier.C\t1\nFLEET\ttier.invalid\t1\nFLEET\tstatus.queued\t6\nFLEET\tstatus.mined\t4\nFLEET\tstatus.rejected\t1\nFLEET\tstatus.invalid\t1\nFLEET\tmissing\t0\n",
+     "stderr": ""
+    },
+    "overdue": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "overdue",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P6_enum_violations",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 0,
+     "stdout": "kotoba\tcadence\tS001 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS002 recheck=90d opened=2026-10-19\nkotoba\tcadence\tS003 recheck=90d opened=2026-10-19\nkotoba\tcadence\tS004 recheck=90d opened=2026-10-19\nkotoba\tcadence\tS005 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS006 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS007 recheck=365d opened=2026-10-19\nkotoba\tcadence\tS008 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS009 recheck=on-commit opened=2026-10-19\nkotoba\tcadence\tS010 recheck=on-commit opened=2026-10-19\nkotoba\tcadence\tS011 recheck=180d opened=2026-10-19\nkotoba\tcadence\tS018 recheck=90d opened=2026-10-19\n",
+     "stderr": ""
+    },
+    "shared": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "shared",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P6_enum_violations",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    }
+   }
+  },
+  "P7_future_opened": {
+   "sha256": "d1896f3a1a34dd604dc3c2892e735fb33ba24958cfc0c3a5aa423205dcfedb8d",
+   "root": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P7_future_opened",
+   "frozen": {
+    "F1": {
+     "argv": [
+      "bash",
+      "-c",
+      "grep -cE '^\\|[[:space:]]*S[0-9]{3,}[[:space:]]*\\|' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P7_future_opened/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "12\n",
+     "stderr": ""
+    },
+    "F2": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ && NF!=13 {n++} END{print n+0}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P7_future_opened/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "0\n",
+     "stderr": ""
+    },
+    "F3": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ {t=$5; gsub(/[[:space:]]/,\"\",t); n[t]++} END{for(k in n) printf \"%s=%d \", k, n[k]; print \"\"}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P7_future_opened/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "A=10 B=1 C=1 \n",
+     "stderr": ""
+    },
+    "F4": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ {s=$9; gsub(/[[:space:]]/,\"\",s); n[s]++} END{for(k in n) printf \"%s=%d \", k, n[k]; print \"\"}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P7_future_opened/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "mined=4 queued=7 rejected=1 \n",
+     "stderr": ""
+    },
+    "F5": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ {i=$2; gsub(/[[:space:]]/,\"\",i); print i}' corpus/SOURCES.md | sort | uniq -d"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P7_future_opened/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    },
+    "F6": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ && NF==13 {i=$2;k=$4;t=$5;s=$9; gsub(/[[:space:]]/,\"\",i); gsub(/[[:space:]]/,\"\",k); gsub(/[[:space:]]/,\"\",t); gsub(/[[:space:]]/,\"\",s); if (t !~ /^[ABC]$/) print \"tier\", i, t; if (s !~ /^(queued|mined|rejected)$/) print \"status\", i, s; if (k !~ /^(spec|docs|paper|code|tool|dataset|talk|book|community|own-work)$/) print \"kind\", i, k; if (t==\"A\" && k==\"community\") print \"tier-inflation\", i}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P7_future_opened/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    },
+    "F7": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ && NF==13 {s=$9; gsub(/[[:space:]]/,\"\",s); if (s==\"mined\") {n=split($12, a, /[,;]/); for (j=1;j<=n;j++) {p=a[j]; gsub(/^[[:space:]]+|[[:space:]]+$/,\"\",p); if (p!=\"\" && p!=\"—\") print p}}}' corpus/SOURCES.md | while read -r p; do [ -e \"$p\" ] || echo \"missing: $p\"; done"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P7_future_opened/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    }
+   },
+   "script": {
+    "validate": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "validate",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P7_future_opened",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 1,
+     "stdout": "kotoba\tE08\tS019 opened=2026-12-01\n",
+     "stderr": ""
+    },
+    "census": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "census",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P7_future_opened",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 0,
+     "stdout": "kotoba\trows\t12\nkotoba\ttier.A\t10\nkotoba\ttier.B\t1\nkotoba\ttier.C\t1\nkotoba\tstatus.mined\t4\nkotoba\tstatus.queued\t7\nkotoba\tstatus.rejected\t1\nFLEET\trows\t12\nFLEET\ttier.A\t10\nFLEET\ttier.B\t1\nFLEET\ttier.C\t1\nFLEET\ttier.invalid\t0\nFLEET\tstatus.queued\t7\nFLEET\tstatus.mined\t4\nFLEET\tstatus.rejected\t1\nFLEET\tstatus.invalid\t0\nFLEET\tmissing\t0\n",
+     "stderr": ""
+    },
+    "overdue": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "overdue",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P7_future_opened",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 0,
+     "stdout": "kotoba\tcadence\tS001 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS002 recheck=90d opened=2026-10-19\nkotoba\tcadence\tS003 recheck=90d opened=2026-10-19\nkotoba\tcadence\tS004 recheck=90d opened=2026-10-19\nkotoba\tcadence\tS005 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS006 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS007 recheck=365d opened=2026-10-19\nkotoba\tcadence\tS008 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS009 recheck=on-commit opened=2026-10-19\nkotoba\tcadence\tS010 recheck=on-commit opened=2026-10-19\nkotoba\tcadence\tS011 recheck=180d opened=2026-10-19\nkotoba\tcadence\tS019 recheck=90d opened=2026-12-01\n",
+     "stderr": ""
+    },
+    "shared": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "shared",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P7_future_opened",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    }
+   }
+  },
+  "P8_prose_recheck": {
+   "sha256": "4db3eec5b52987eb13091a79bc53b4c6c496ce26c987f6dad5a8b546205dfd0e",
+   "root": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P8_prose_recheck",
+   "frozen": {
+    "F1": {
+     "argv": [
+      "bash",
+      "-c",
+      "grep -cE '^\\|[[:space:]]*S[0-9]{3,}[[:space:]]*\\|' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P8_prose_recheck/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "12\n",
+     "stderr": ""
+    },
+    "F2": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ && NF!=13 {n++} END{print n+0}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P8_prose_recheck/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "0\n",
+     "stderr": ""
+    },
+    "F3": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ {t=$5; gsub(/[[:space:]]/,\"\",t); n[t]++} END{for(k in n) printf \"%s=%d \", k, n[k]; print \"\"}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P8_prose_recheck/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "A=10 B=1 C=1 \n",
+     "stderr": ""
+    },
+    "F4": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ {s=$9; gsub(/[[:space:]]/,\"\",s); n[s]++} END{for(k in n) printf \"%s=%d \", k, n[k]; print \"\"}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P8_prose_recheck/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "mined=4 queued=7 rejected=1 \n",
+     "stderr": ""
+    },
+    "F5": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ {i=$2; gsub(/[[:space:]]/,\"\",i); print i}' corpus/SOURCES.md | sort | uniq -d"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P8_prose_recheck/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    },
+    "F6": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ && NF==13 {i=$2;k=$4;t=$5;s=$9; gsub(/[[:space:]]/,\"\",i); gsub(/[[:space:]]/,\"\",k); gsub(/[[:space:]]/,\"\",t); gsub(/[[:space:]]/,\"\",s); if (t !~ /^[ABC]$/) print \"tier\", i, t; if (s !~ /^(queued|mined|rejected)$/) print \"status\", i, s; if (k !~ /^(spec|docs|paper|code|tool|dataset|talk|book|community|own-work)$/) print \"kind\", i, k; if (t==\"A\" && k==\"community\") print \"tier-inflation\", i}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P8_prose_recheck/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    },
+    "F7": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ && NF==13 {s=$9; gsub(/[[:space:]]/,\"\",s); if (s==\"mined\") {n=split($12, a, /[,;]/); for (j=1;j<=n;j++) {p=a[j]; gsub(/^[[:space:]]+|[[:space:]]+$/,\"\",p); if (p!=\"\" && p!=\"—\") print p}}}' corpus/SOURCES.md | while read -r p; do [ -e \"$p\" ] || echo \"missing: $p\"; done"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P8_prose_recheck/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    }
+   },
+   "script": {
+    "validate": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "validate",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P8_prose_recheck",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 1,
+     "stdout": "kotoba\tE09\tS020 recheck=90 days\n",
+     "stderr": ""
+    },
+    "census": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "census",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P8_prose_recheck",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 0,
+     "stdout": "kotoba\trows\t12\nkotoba\ttier.A\t10\nkotoba\ttier.B\t1\nkotoba\ttier.C\t1\nkotoba\tstatus.mined\t4\nkotoba\tstatus.queued\t7\nkotoba\tstatus.rejected\t1\nFLEET\trows\t12\nFLEET\ttier.A\t10\nFLEET\ttier.B\t1\nFLEET\ttier.C\t1\nFLEET\ttier.invalid\t0\nFLEET\tstatus.queued\t7\nFLEET\tstatus.mined\t4\nFLEET\tstatus.rejected\t1\nFLEET\tstatus.invalid\t0\nFLEET\tmissing\t0\n",
+     "stderr": ""
+    },
+    "overdue": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "overdue",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P8_prose_recheck",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 0,
+     "stdout": "kotoba\tcadence\tS001 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS002 recheck=90d opened=2026-10-19\nkotoba\tcadence\tS003 recheck=90d opened=2026-10-19\nkotoba\tcadence\tS004 recheck=90d opened=2026-10-19\nkotoba\tcadence\tS005 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS006 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS007 recheck=365d opened=2026-10-19\nkotoba\tcadence\tS008 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS009 recheck=on-commit opened=2026-10-19\nkotoba\tcadence\tS010 recheck=on-commit opened=2026-10-19\nkotoba\tcadence\tS011 recheck=180d opened=2026-10-19\n",
+     "stderr": ""
+    },
+    "shared": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "shared",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P8_prose_recheck",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    }
+   }
+  },
+  "P9_duplicate_url_scope": {
+   "sha256": "653bac5285191b04185d649787359141b9a4ff30957b917d8bb2230d938fa921",
+   "root": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P9_duplicate_url_scope",
+   "frozen": {
+    "F1": {
+     "argv": [
+      "bash",
+      "-c",
+      "grep -cE '^\\|[[:space:]]*S[0-9]{3,}[[:space:]]*\\|' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P9_duplicate_url_scope/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "12\n",
+     "stderr": ""
+    },
+    "F2": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ && NF!=13 {n++} END{print n+0}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P9_duplicate_url_scope/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "0\n",
+     "stderr": ""
+    },
+    "F3": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ {t=$5; gsub(/[[:space:]]/,\"\",t); n[t]++} END{for(k in n) printf \"%s=%d \", k, n[k]; print \"\"}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P9_duplicate_url_scope/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "A=10 B=1 C=1 \n",
+     "stderr": ""
+    },
+    "F4": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ {s=$9; gsub(/[[:space:]]/,\"\",s); n[s]++} END{for(k in n) printf \"%s=%d \", k, n[k]; print \"\"}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P9_duplicate_url_scope/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "mined=4 queued=7 rejected=1 \n",
+     "stderr": ""
+    },
+    "F5": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ {i=$2; gsub(/[[:space:]]/,\"\",i); print i}' corpus/SOURCES.md | sort | uniq -d"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P9_duplicate_url_scope/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    },
+    "F6": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ && NF==13 {i=$2;k=$4;t=$5;s=$9; gsub(/[[:space:]]/,\"\",i); gsub(/[[:space:]]/,\"\",k); gsub(/[[:space:]]/,\"\",t); gsub(/[[:space:]]/,\"\",s); if (t !~ /^[ABC]$/) print \"tier\", i, t; if (s !~ /^(queued|mined|rejected)$/) print \"status\", i, s; if (k !~ /^(spec|docs|paper|code|tool|dataset|talk|book|community|own-work)$/) print \"kind\", i, k; if (t==\"A\" && k==\"community\") print \"tier-inflation\", i}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P9_duplicate_url_scope/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    },
+    "F7": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ && NF==13 {s=$9; gsub(/[[:space:]]/,\"\",s); if (s==\"mined\") {n=split($12, a, /[,;]/); for (j=1;j<=n;j++) {p=a[j]; gsub(/^[[:space:]]+|[[:space:]]+$/,\"\",p); if (p!=\"\" && p!=\"—\") print p}}}' corpus/SOURCES.md | while read -r p; do [ -e \"$p\" ] || echo \"missing: $p\"; done"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P9_duplicate_url_scope/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    }
+   },
+   "script": {
+    "validate": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "validate",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P9_duplicate_url_scope",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 1,
+     "stdout": "kotoba\tE04\tS021 duplicate url agentskills.io/specification within scope SKILL.md frontmatter format and file-structure rules\n",
+     "stderr": ""
+    },
+    "census": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "census",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P9_duplicate_url_scope",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 0,
+     "stdout": "kotoba\trows\t12\nkotoba\ttier.A\t10\nkotoba\ttier.B\t1\nkotoba\ttier.C\t1\nkotoba\tstatus.mined\t4\nkotoba\tstatus.queued\t7\nkotoba\tstatus.rejected\t1\nFLEET\trows\t12\nFLEET\ttier.A\t10\nFLEET\ttier.B\t1\nFLEET\ttier.C\t1\nFLEET\ttier.invalid\t0\nFLEET\tstatus.queued\t7\nFLEET\tstatus.mined\t4\nFLEET\tstatus.rejected\t1\nFLEET\tstatus.invalid\t0\nFLEET\tmissing\t0\n",
+     "stderr": ""
+    },
+    "overdue": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "overdue",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P9_duplicate_url_scope",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 0,
+     "stdout": "kotoba\tcadence\tS001 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS002 recheck=90d opened=2026-10-19\nkotoba\tcadence\tS003 recheck=90d opened=2026-10-19\nkotoba\tcadence\tS004 recheck=90d opened=2026-10-19\nkotoba\tcadence\tS005 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS006 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS007 recheck=365d opened=2026-10-19\nkotoba\tcadence\tS008 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS009 recheck=on-commit opened=2026-10-19\nkotoba\tcadence\tS010 recheck=on-commit opened=2026-10-19\nkotoba\tcadence\tS011 recheck=180d opened=2026-10-19\nkotoba\tcadence\tS021 recheck=90d opened=2026-10-19\n",
+     "stderr": ""
+    },
+    "shared": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "shared",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P9_duplicate_url_scope",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    }
+   }
+  },
+  "P10_short_id": {
+   "sha256": "0e1801067bb722162d293ff8749fd2f90fb1f60ab6a623aff9175ac007a5ebe9",
+   "root": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P10_short_id",
+   "frozen": {
+    "F1": {
+     "argv": [
+      "bash",
+      "-c",
+      "grep -cE '^\\|[[:space:]]*S[0-9]{3,}[[:space:]]*\\|' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P10_short_id/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "11\n",
+     "stderr": ""
+    },
+    "F2": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ && NF!=13 {n++} END{print n+0}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P10_short_id/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "0\n",
+     "stderr": ""
+    },
+    "F3": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ {t=$5; gsub(/[[:space:]]/,\"\",t); n[t]++} END{for(k in n) printf \"%s=%d \", k, n[k]; print \"\"}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P10_short_id/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "A=10 C=1 \n",
+     "stderr": ""
+    },
+    "F4": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ {s=$9; gsub(/[[:space:]]/,\"\",s); n[s]++} END{for(k in n) printf \"%s=%d \", k, n[k]; print \"\"}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P10_short_id/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "mined=4 queued=6 rejected=1 \n",
+     "stderr": ""
+    },
+    "F5": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ {i=$2; gsub(/[[:space:]]/,\"\",i); print i}' corpus/SOURCES.md | sort | uniq -d"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P10_short_id/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    },
+    "F6": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ && NF==13 {i=$2;k=$4;t=$5;s=$9; gsub(/[[:space:]]/,\"\",i); gsub(/[[:space:]]/,\"\",k); gsub(/[[:space:]]/,\"\",t); gsub(/[[:space:]]/,\"\",s); if (t !~ /^[ABC]$/) print \"tier\", i, t; if (s !~ /^(queued|mined|rejected)$/) print \"status\", i, s; if (k !~ /^(spec|docs|paper|code|tool|dataset|talk|book|community|own-work)$/) print \"kind\", i, k; if (t==\"A\" && k==\"community\") print \"tier-inflation\", i}' corpus/SOURCES.md"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P10_short_id/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    },
+    "F7": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ && NF==13 {s=$9; gsub(/[[:space:]]/,\"\",s); if (s==\"mined\") {n=split($12, a, /[,;]/); for (j=1;j<=n;j++) {p=a[j]; gsub(/^[[:space:]]+|[[:space:]]+$/,\"\",p); if (p!=\"\" && p!=\"—\") print p}}}' corpus/SOURCES.md | while read -r p; do [ -e \"$p\" ] || echo \"missing: $p\"; done"
+     ],
+     "cwd": "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P10_short_id/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    }
+   },
+   "script": {
+    "validate": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "validate",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P10_short_id",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 1,
+     "stdout": "kotoba\tE02\tS22\n",
+     "stderr": ""
+    },
+    "census": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "census",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P10_short_id",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 0,
+     "stdout": "kotoba\trows\t12\nkotoba\ttier.A\t10\nkotoba\ttier.B\t1\nkotoba\ttier.C\t1\nkotoba\tstatus.mined\t4\nkotoba\tstatus.queued\t7\nkotoba\tstatus.rejected\t1\nFLEET\trows\t12\nFLEET\ttier.A\t10\nFLEET\ttier.B\t1\nFLEET\ttier.C\t1\nFLEET\ttier.invalid\t0\nFLEET\tstatus.queued\t7\nFLEET\tstatus.mined\t4\nFLEET\tstatus.rejected\t1\nFLEET\tstatus.invalid\t0\nFLEET\tmissing\t0\n",
+     "stderr": ""
+    },
+    "overdue": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "overdue",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P10_short_id",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 0,
+     "stdout": "kotoba\tcadence\tS001 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS002 recheck=90d opened=2026-10-19\nkotoba\tcadence\tS003 recheck=90d opened=2026-10-19\nkotoba\tcadence\tS004 recheck=90d opened=2026-10-19\nkotoba\tcadence\tS005 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS006 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS007 recheck=365d opened=2026-10-19\nkotoba\tcadence\tS008 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS009 recheck=on-commit opened=2026-10-19\nkotoba\tcadence\tS010 recheck=on-commit opened=2026-10-19\nkotoba\tcadence\tS011 recheck=180d opened=2026-10-19\nkotoba\tcadence\tS22 recheck=90d opened=2026-10-19\n",
+     "stderr": ""
+    },
+    "shared": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "shared",
+      "--root",
+      "/fast/scratch/kotoba-r47/SrcCensusDryRun/roots/P10_short_id",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    }
+   }
+  },
+  "PRODUCTION_worktree": {
+   "sha256": "ef331658e398dd552f8df992aade49d25025eb7b0309e7f2d3c00a7fd92e16d3",
+   "root": "/home/vgpnk/Projects/shokunin",
+   "frozen": {
+    "F1": {
+     "argv": [
+      "bash",
+      "-c",
+      "grep -cE '^\\|[[:space:]]*S[0-9]{3,}[[:space:]]*\\|' corpus/SOURCES.md"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "11\n",
+     "stderr": ""
+    },
+    "F2": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ && NF!=13 {n++} END{print n+0}' corpus/SOURCES.md"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "0\n",
+     "stderr": ""
+    },
+    "F3": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ {t=$5; gsub(/[[:space:]]/,\"\",t); n[t]++} END{for(k in n) printf \"%s=%d \", k, n[k]; print \"\"}' corpus/SOURCES.md"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "A=10 C=1 \n",
+     "stderr": ""
+    },
+    "F4": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ {s=$9; gsub(/[[:space:]]/,\"\",s); n[s]++} END{for(k in n) printf \"%s=%d \", k, n[k]; print \"\"}' corpus/SOURCES.md"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "mined=4 queued=6 rejected=1 \n",
+     "stderr": ""
+    },
+    "F5": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ {i=$2; gsub(/[[:space:]]/,\"\",i); print i}' corpus/SOURCES.md | sort | uniq -d"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    },
+    "F6": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ && NF==13 {i=$2;k=$4;t=$5;s=$9; gsub(/[[:space:]]/,\"\",i); gsub(/[[:space:]]/,\"\",k); gsub(/[[:space:]]/,\"\",t); gsub(/[[:space:]]/,\"\",s); if (t !~ /^[ABC]$/) print \"tier\", i, t; if (s !~ /^(queued|mined|rejected)$/) print \"status\", i, s; if (k !~ /^(spec|docs|paper|code|tool|dataset|talk|book|community|own-work)$/) print \"kind\", i, k; if (t==\"A\" && k==\"community\") print \"tier-inflation\", i}' corpus/SOURCES.md"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    },
+    "F7": {
+     "argv": [
+      "bash",
+      "-c",
+      "awk -F'|' '/^\\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\\|/ && NF==13 {s=$9; gsub(/[[:space:]]/,\"\",s); if (s==\"mined\") {n=split($12, a, /[,;]/); for (j=1;j<=n;j++) {p=a[j]; gsub(/^[[:space:]]+|[[:space:]]+$/,\"\",p); if (p!=\"\" && p!=\"—\") print p}}}' corpus/SOURCES.md | while read -r p; do [ -e \"$p\" ] || echo \"missing: $p\"; done"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin/kotoba-shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    }
+   },
+   "script": {
+    "validate": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "validate",
+      "--root",
+      "/home/vgpnk/Projects/shokunin",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 0,
+     "stdout": "kotoba\tok\t/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md\n",
+     "stderr": ""
+    },
+    "census": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "census",
+      "--root",
+      "/home/vgpnk/Projects/shokunin",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 0,
+     "stdout": "kotoba\trows\t11\nkotoba\ttier.A\t10\nkotoba\ttier.C\t1\nkotoba\tstatus.mined\t4\nkotoba\tstatus.queued\t6\nkotoba\tstatus.rejected\t1\nFLEET\trows\t11\nFLEET\ttier.A\t10\nFLEET\ttier.B\t0\nFLEET\ttier.C\t1\nFLEET\ttier.invalid\t0\nFLEET\tstatus.queued\t6\nFLEET\tstatus.mined\t4\nFLEET\tstatus.rejected\t1\nFLEET\tstatus.invalid\t0\nFLEET\tmissing\t0\n",
+     "stderr": ""
+    },
+    "overdue": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "overdue",
+      "--root",
+      "/home/vgpnk/Projects/shokunin",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 0,
+     "stdout": "kotoba\tcadence\tS001 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS002 recheck=90d opened=2026-10-19\nkotoba\tcadence\tS003 recheck=90d opened=2026-10-19\nkotoba\tcadence\tS004 recheck=90d opened=2026-10-19\nkotoba\tcadence\tS005 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS006 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS007 recheck=365d opened=2026-10-19\nkotoba\tcadence\tS008 recheck=on-release opened=2026-10-19\nkotoba\tcadence\tS009 recheck=on-commit opened=2026-10-19\nkotoba\tcadence\tS010 recheck=on-commit opened=2026-10-19\nkotoba\tcadence\tS011 recheck=180d opened=2026-10-19\n",
+     "stderr": ""
+    },
+    "shared": {
+     "argv": [
+      "bash",
+      "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+      "shared",
+      "--root",
+      "/home/vgpnk/Projects/shokunin",
+      "kotoba"
+     ],
+     "cwd": "/home/vgpnk/Projects/shokunin",
+     "rc": 0,
+     "stdout": "",
+     "stderr": ""
+    }
+   }
+  }
+ },
+ "selftest": {
+  "argv": [
+   "bash",
+   "/home/vgpnk/Projects/shokunin/scripts/sources-census.sh",
+   "selftest"
+  ],
+  "cwd": "/home/vgpnk/Projects/shokunin",
+  "rc": 0,
+  "stdout": "killed\tE01-malformed-row\nkilled\tE02-malformed-id\nkilled\tE03-duplicate-id\nkilled\tE04-duplicate-url\nkilled\tE05-bad-kind\nkilled\tE06-bad-tier\nkilled\tE07-bad-status\nkilled\tE08-future-opened\nkilled\tE09-bad-recheck\nkilled\tE10-community-at-A\nkilled\tE11-dangling-usedby\nkilled\tW01-tierC-mined\nkilled\tW02-thin-reject\nkilled\tW03-mined-unused\nkilled\tclean-lane-ok\nkilled\tvalidate-findings-exit-1\nkilled\tvalidate-clean-exit-0\nkilled\tvalidate-missing-line\nkilled\tvalidate-missing-exit-2\nkilled\toverdue-exit-1\nkilled\toverdue-finds-row\nkilled\tcadence-due-on-opened-plus-N\nkilled\tsymbolic-on-release-reported\nkilled\tsymbolic-annual-reported\nkilled\tinvalid-recheck-not-overdue\nkilled\toverdue-clean-exit-0\nkilled\tshared-across-lanes\nkilled\tcensus-missing\nkilled\tcensus-missing-exit-1\nkilled\tunlisted-directory-warning\nkilled\tunlisted-validation-warning\nkilled\tunlisted-warning-not-failure\nkilled\tW-only-warning-reported\nkilled\tW-only-registry-exit-0\nkilled\tUTC-date-in-Sao-Paulo\nkilled\tUTC-date-in-Sao-Paulo-exit-0\nkilled\texplicit-lane-dir\nkilled\tFLEET-rows\nkilled\tFLEET-tier-A\nkilled\tFLEET-tier-B\nkilled\tFLEET-tier-C\nkilled\tFLEET-tier-invalid\nkilled\tFLEET-status-queued\nkilled\tFLEET-status-mined\nkilled\tFLEET-status-rejected\nkilled\tFLEET-status-invalid\nkilled\tFLEET-missing\nkilled\troot-dot-default-census-keeps-child-totals\nkilled\troot-dot-default-validate-and-text-conf-parsing\nkilled\troot-only-default-fails-closed\nkilled\tE12-outside-registry-mutant\nkilled\tE12-row-outside-registry-exit-1\nkilled\tindented-valid-0-counted\nkilled\tindented-valid-0-clean\nkilled\tindented-overdue-0-row\nkilled\tindented-overdue-0-exit-1\nkilled\tindented-invalid-0-E06\nkilled\tindented-invalid-0-E11\nkilled\tindented-invalid-0-exit-1\nkilled\tindented-outside-0-E12\nkilled\tindented-outside-0-exit-1\nkilled\tindented-valid-1-counted\nkilled\tindented-valid-1-clean\nkilled\tindented-overdue-1-row\nkilled\tindented-overdue-1-exit-1\nkilled\tindented-invalid-1-E06\nkilled\tindented-invalid-1-E11\nkilled\tindented-invalid-1-exit-1\nkilled\tindented-outside-1-E12\nkilled\tindented-outside-1-exit-1\nkilled\tindented-valid-2-counted\nkilled\tindented-valid-2-clean\nkilled\tindented-overdue-2-row\nkilled\tindented-overdue-2-exit-1\nkilled\tindented-invalid-2-E06\nkilled\tindented-invalid-2-E11\nkilled\tindented-invalid-2-exit-1\nkilled\tindented-outside-2-E12\nkilled\tindented-outside-2-exit-1\nkilled\tindented-valid-3-counted\nkilled\tindented-valid-3-clean\nkilled\tindented-overdue-3-row\nkilled\tindented-overdue-3-exit-1\nkilled\tindented-invalid-3-E06\nkilled\tindented-invalid-3-E11\nkilled\tindented-invalid-3-exit-1\nkilled\tindented-outside-3-E12\nkilled\tindented-outside-3-exit-1\nkilled\tindented-shared-across-lanes\nkilled\tW04-scope-sensitive-mutant\nkilled\tW04-does-not-fail-validation\nkilled\tE04-rejected-pair-exemption-mutant\nkilled\tE04-rejected-pair-exemption-exit-0\nkilled\tout-not-truncated-before-target-resolution\nkilled\tH1-no-table-cell-execution\nkilled\tgawk-failure-is-error-not-ok\nselftest ok\n",
+  "stderr": ""
+ },
+ "selftest_counts": {
+  "killed": 96,
+  "SURVIVED": 0
+ },
+ "patch_bytes": 2533,
+ "patch_sha256": "48fd727e8cc0b34366c2f72f98a8cded07cc4ca464f1e1ceb25ba2f2b2288eeb",
+ "lane_head": "c61a973b2e02e1ded169703ddcb06466f4edd8bd"
+}

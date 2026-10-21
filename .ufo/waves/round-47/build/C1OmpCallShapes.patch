@@ -1,0 +1,149 @@
+diff --git a/verifiers/fixtures/surfaces/baseline-18.12.5.json b/verifiers/fixtures/surfaces/baseline-18.12.5.json
+new file mode 100644
+index 0000000..6acef76
+--- /dev/null
++++ b/verifiers/fixtures/surfaces/baseline-18.12.5.json
+@@ -0,0 +1,61 @@
++{
++  "$comment": "Fixture baseline for strings-omp-18.12.5.txt (round 47, C1). The eight omp loader-group rows are copied verbatim from verifiers/surfaces-baseline.json (class_id, literal, context_kind, verdict). strings-omp-18.12.5.txt holds the exact dump lines of omp-18.12.5 that carry the eight registration shapes (lq/Xl/Fo callees; f$ and m$ var-bound groups) plus one synthetic 2-char alias decoy (`const q = Xl; q(u, \"evil\", \"EVIL.md\")`) that must NOT extract.",
++  "classes": [
++    {
++      "class_id": "omp:agents-md/AGENTS.md",
++      "harness": "omp",
++      "literal": "AGENTS.md",
++      "context_kind": "loader-group",
++      "verdict": "governed"
++    },
++    {
++      "class_id": "omp:claude-md/CLAUDE.md",
++      "harness": "omp",
++      "literal": "CLAUDE.md",
++      "context_kind": "loader-group",
++      "verdict": "governed"
++    },
++    {
++      "class_id": "omp:opencode/AGENTS.md",
++      "harness": "omp",
++      "literal": "AGENTS.md",
++      "context_kind": "loader-group",
++      "verdict": "governed"
++    },
++    {
++      "class_id": "omp:gemini/GEMINI.md",
++      "harness": "omp",
++      "literal": "GEMINI.md",
++      "context_kind": "loader-group",
++      "verdict": "governed"
++    },
++    {
++      "class_id": "omp:gemini/system.md",
++      "harness": "omp",
++      "literal": "system.md",
++      "context_kind": "loader-group",
++      "verdict": "governed"
++    },
++    {
++      "class_id": "omp:gemini/SYSTEM_TEMPLATE.md",
++      "harness": "omp",
++      "literal": "SYSTEM_TEMPLATE.md",
++      "context_kind": "loader-group",
++      "verdict": "governed"
++    },
++    {
++      "class_id": "omp:github/copilot-instructions.md",
++      "harness": "omp",
++      "literal": "copilot-instructions.md",
++      "context_kind": "loader-group",
++      "verdict": "governed"
++    },
++    {
++      "class_id": "omp:windsurf/memories/global_rules.md",
++      "harness": "omp",
++      "literal": "memories/global_rules.md",
++      "context_kind": "loader-group",
++      "verdict": "governed"
++    }
++  ]
++}
+diff --git a/verifiers/fixtures/surfaces/strings-omp-18.12.5.txt b/verifiers/fixtures/surfaces/strings-omp-18.12.5.txt
+new file mode 100644
+index 0000000..3de3c8a
+--- /dev/null
++++ b/verifiers/fixtures/surfaces/strings-omp-18.12.5.txt
+@@ -0,0 +1,14 @@
++var f$ = "agents-md";
++  return lq(u, f$, "AGENTS.md");
++var m$ = "claude-md";
++  return lq(u, m$, "CLAUDE.md");
++  const T = Xl(u, "gemini", "GEMINI.md");
++  const M = Fo(u, "gemini", "GEMINI.md");
++  await R(Fo(u, "gemini", "SYSTEM_TEMPLATE.md"), "project", "template");
++  await R(Fo(u, "gemini", "system.md"), "project", "text");
++  await R(Xl(u, "gemini", "SYSTEM_TEMPLATE.md"), "user", "template");
++  await R(Xl(u, "gemini", "system.md"), "user", "text");
++  const T = Xl(u, "opencode", "AGENTS.md");
++  const T = Fo(u, "github", "copilot-instructions.md");
++  const T = Xl(u, "windsurf", "memories/global_rules.md");
++const q = Xl; var decoy = q(u, "evil", "EVIL.md");
+diff --git a/verifiers/verify_surfaces.py b/verifiers/verify_surfaces.py
+index 56e65ea..481c18c 100755
+--- a/verifiers/verify_surfaces.py
++++ b/verifiers/verify_surfaces.py
+@@ -18,7 +18,7 @@ Two instruments:
+        I5(d, d$, "AGENTS.md")  with  var d$ = "agents-md"
+        Gl(d, "gemini", "GEMINI.md")              Mo(d, "gemini", "GEMINI.md")
+ 
+-   i.e. ``(Id|Cl|jD[ef]|Tl|dr|GW|Co|Dl|Hj|I5|Gl|Mo)(<v>, <group>, "<file>.md")`` — the file argument must
++   i.e. ``(Id|Cl|jD[ef]|Tl|dr|GW|Co|Dl|Hj|I5|Gl|Mo|lq|Xl|Fo)(<v>, <group>, "<file>.md")`` — the file argument must
+    end in ``.md`` — where ``<group>`` is either a quoted literal or a bundle
+    identifier resolvable to a string constant in the same dump
+    (``var|let|const X = "..."``; the minified bundles register the
+@@ -140,7 +140,8 @@ VERDICTS = ("governed", "excluded")
+ # over-matches the other, and the callee name is minification-volatile — the
+ # FIRST thing to re-pin on a binary bump):
+ #   omp: Id/Cl/jDe/jDf (2026-09-28); Tl/dr/GW (2026-10-14); Co/Dl/Hj
+-#        (2026-10-16, 18.11.1); I5/Gl/Mo (2026-10-18, 18.12.2)
++#        (2026-10-16, 18.11.1); I5/Gl/Mo (2026-10-18, 18.12.2);
++#        lq/Xl/Fo (2026-10-21, 18.12.5: discovery helpers; f$/m$ var-bound groups)
+ #   opencode: historical names only — its live bundle is full of single-letter
+ #             callees that must not feed this extractor; opencode's loaders
+ #             are list/join shapes governed by the OC-1..OC-6 rules instead
+@@ -153,12 +154,12 @@ CALL_RE = re.compile(
+     r'"([A-Za-z0-9_./-]+\.md)"(?=\s*[,)])'
+ )
+ OMP_CALL_RE = re.compile(
+-    r"(?<![A-Za-z0-9_$])(?:Id|Cl|jD[ef]|Tl|dr|GW|Co|Dl|Hj|I5|Gl|Mo)\(\s*[^\s,()]+\s*,\s*"
++    r"(?<![A-Za-z0-9_$])(?:Id|Cl|jD[ef]|Tl|dr|GW|Co|Dl|Hj|I5|Gl|Mo|lq|Xl|Fo)\(\s*[^\s,()]+\s*,\s*"
+     r'(?:"([a-z0-9_-]+)"|([A-Za-z_$][A-Za-z0-9_$]*))\s*,\s*'
+     r'"([A-Za-z0-9_./-]+\.md)"(?=\s*[,)])'
+ )
+ CALLEE_SHAPES = {
+-    "omp": '(Id|Cl|jD[ef]|Tl|dr|GW|Co|Dl|Hj|I5|Gl|Mo)(<v>, <group>, "<file>.md")',
++    "omp": '(Id|Cl|jD[ef]|Tl|dr|GW|Co|Dl|Hj|I5|Gl|Mo|lq|Xl|Fo)(<v>, <group>, "<file>.md")',
+     "opencode": '(Id|Cl|jD[ef]|Tl|dr|GW)(<v>, <group>, "<file>.md")',
+ }
+ # Identifier -> string bindings anywhere in the dump (`var Pqr = "agents-md"`,
+@@ -821,6 +822,23 @@ def self_test() -> int:
+     rec("new-callees: PASS no_uncovered_class",
+         "PASS surfaces.no_uncovered_class:" in out, out)
+ 
++    # (b2c) the 2026-10-21 rebuild (18.12.5) renamed the callees again: lq/Xl/Fo,
++    # with the agents-md/claude-md groups var-bound (f$, m$). The eight omp
++    # loader-group pairs must extract, and the 2-char alias decoy `q = Xl`
++    # must not (it would surface as an undeclared class).
++    code, out = run_capture(
++        ["--repo", fx, "--omp-strings", fx + "/strings-omp-18.12.5.txt",
++         "--opencode-strings", oc_clean,
++         "--baseline", fx + "/baseline-18.12.5.json", "--inventory", inv_clean,
++         "--check", "surfaces.literal_present",
++         "--check", "surfaces.no_uncovered_class"])
++    rec("18.12.5-callees: exit 0", code == 0, code)
++    rec("18.12.5-callees: PASS literal_present",
++        "PASS surfaces.literal_present:" in out, out)
++    rec("18.12.5-callees: PASS no_uncovered_class, all 8 pairs",
++        "PASS surfaces.no_uncovered_class: all 8 extracted loader class(es) declared" in out,
++        out)
++
+     # (b3) a substrate whose call shapes all vanish is a vacuity FAIL, never
+     # an empty-set pass (the 2026-10-16 omp-move defect class round 21 fixed)
+     code, out = run(omp_dump=fx + "/strings-empty.txt")

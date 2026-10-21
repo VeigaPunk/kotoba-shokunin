@@ -4,8 +4,8 @@
 from — what each teaches, how far to trust it for which scope, and when to look
 again. Contract: fleet `SOURCES-CONTRACT-v1.md` (2026-10-19). A row exists only
 for a source the row's author opened this round; access evidence lives in
-`.ufo/round-46/evidence/w2/sources/fetch-log.json` and the round lesson's
-`## Gate`.
+`.ufo/round-46/evidence/w2/sources/fetch-log.json` (round 46), the seat reports under
+`.ufo/waves/round-47/build/` (round 47), and the round lesson's `## Gate`.
 
 ## Registry
 
@@ -22,6 +22,10 @@ for a source the row's author opened this round; access evidence lives in
 | S009 | kotoba own work — verifiers/compare_harness_independent.py --self-test — run 2026-10-19, exit 0 | own-work | A | The comparator's own self-model at the round-46 landing commit | Final line "self-test: 0 failure(s) over 328 assertions"; commit 78ee57e | The join driver's channel-agreement model, including cross-channel divergence classes, is exercisable on committed fixtures without either live instrument | queued | 2026-10-19 | on-commit | — |
 | S010 | kotoba own work — verifiers/verify_skill_checklist.py — --self-test exit 0 and --json exit 1 (9 PASS / 1 FAIL governance.citation_resolves at LOG.md:2111) runs 2026-10-19 | own-work | A | The lane's executed-box gate and frontmatter parse coverage | Final line "0 failure(s) over 1597 assertions"; --json "checklist.box_map_complete ... 41 boxes mapped" | All 41 prose boxes are accounted for as executed, delegated, or unexecuted under a sha256-pinned normalization; the frontmatter check is a lenient structural parse with no XML-tag rule | queued | 2026-10-19 | on-commit | — |
 | S011 | Agentman — How Do You Build Your First Agent Skill? — https://agentman.ai/blog/build-your-first-agent-skill-skillmd-anatomy | community | C | SKILL.md authoring claims for beginners | Field-table paragraph and "safety note" paragraph; opened 2026-10-19 | REJECTED: claims a name/folder mismatch means the skill "will not load" where the client guide (S002) says warn and load; credits an angle-bracket ban to the agentskills.io spec which has none (0 mentions); quantitative claims cite unnamed analyses; flip: re-check if the spec gains the rule or the client guide tightens to refuse mismatched names | rejected | 2026-10-19 | 180d | — |
+| S012 | anthropics/skills — skill-creator reference skill (quick_validate.py) — https://github.com/anthropics/skills/tree/dbd4588f9e1033efb41dad4bef2f7947c8993d44/skills/skill-creator | code | A | SKILL.md `description` validation in Anthropic's own reference packaging tooling | `skills/skill-creator/scripts/quick_validate.py:79-81` "Check for angle brackets"; tree `dbd4588` (2026-10-09); opened 2026-10-21 | Anthropic's packager refuses any `<` or `>` in `description`, not only well-formed XML tags — stricter than the S003 prose rule; the open spec states neither | mined | 2026-10-21 | 90d | SKILL.md |
+| S013 | OpenAI — Build skills (ChatGPT and Codex) — https://learn.chatgpt.com/docs/build-skills | docs | A | Codex client skill routing: initial-list budget, description shortening, implicit invocation | § How ChatGPT and Codex use skills; page Last-Modified 2026-10-21T15:05:00Z; opened 2026-10-21 (308 from developers.openai.com/codex/skills) | Codex caps its initial skill list at 2% of context (8,000 characters when unknown), shortens descriptions first, and gates implicit invocation on the description | queued | 2026-10-21 | 90d | — |
+| S014 | Anthropic Engineering — Equipping agents for the real world with Agent Skills — https://www.anthropic.com/research/equipping-agents-for-the-real-world-with-agent-skills | docs | A | Anthropic's three-level progressive-disclosure loading model for skills | § The anatomy of a skill, "At startup" paragraph; published 2025-10-16, modified 2026-10-18; opened 2026-10-21 | Name and description are preloaded for every installed skill as disclosure level one; the SKILL.md body loads only when the skill is judged relevant | queued | 2026-10-21 | 90d | — |
+| S015 | kotoba own work — `sha256sum -c SHA256SUMS` in /fast/scratch/kotoba-r47/shared (frozen omp 18.12.5 and opencode 1.19.3 snapshot) — run 2026-10-21, exit 0 | own-work | A | Identity of the substrate bytes the round-47 instruction-surface re-derivation and re-pin measure | SHA256SUMS lines `bin/omp-18.12.5` fdbc8136… and `bin/opencode-1.19.3` 179ca421…; live `~/.local/bin/omp` and the npx-cache ELF hash equal | A substrate pin is the binary's sha256, not its version string or path: the opencode path moved channel (2.0.26 → npm 1.19.3) while the version string went down | mined | 2026-10-21 | on-release | corpus/knowledge/instruction-surface-census-round13.md |
 
 ## Paths
 
@@ -65,12 +69,23 @@ for a source the row's author opened this round; access evidence lives in
   Stop rationale: contract requires at least one rejected row and a rejection
   is evidence of taste.
 
+- **2026-10-21 — round-47 sources sweep (C1, C2 grounding).** Question: which opened
+  sources ground the description XML-tag rule beyond S003, how the skill-routing hosts
+  load descriptions, and which bytes the substrate re-pin measures. Where: the round-46
+  `## Leads (unopened)` list (anthropics/skills, Anthropic Engineering, learn.chatgpt.com
+  Build skills) plus the opencode skills docs and Anthropic platform skills pages, and the
+  frozen snapshot directory. Identified 7 candidates; screened 7; included 4 (S012–S015);
+  excluded 3 — the anthropics/skills `spec/agent-skills-spec.md` (a 3-line pointer, no
+  rule content), the opencode skills docs (documents keys 1.19.3 lacks; tier B at best,
+  no claim rests on it), the Anthropic platform skills guide (states the rule S003
+  already carries, no upload rejection). Re-opened S001–S005 and S008 (no status change;
+  S001 anchor-label defect recorded in `lessons/round-47.md` § Gate). Stop rationale:
+  every round-47 claim now rests on an opened row; further leads serve no claim.
+
 ## Leads (unopened)
 
-- Anthropic Engineering — Equipping agents for the real world with Agent Skills (origin of the 3-level progressive-disclosure model).
 - anthropics/skills — skill-creator/SKILL.md (executable trigger-optimization loop: 20 queries, 3 runs, 60/40 held-out split).
 - Claude blog — Improving skill-creator: Test, measure, and refine Agent Skills.
-- learn.chatgpt.com — Build skills (Codex router contract: 2% catalog budget, front-loaded trigger words).
 - developers.openai.com — Testing Agent Skills Systematically with Evals (should_trigger CSV protocol).
 - SkillsBench (arXiv 2602.12670) — paired with/without-skill efficacy; cite v1 for the self-generated condition.
 - SkillRouter (arXiv 2603.22455) — metadata-only routing loses 37–44 points at ~80K skills.

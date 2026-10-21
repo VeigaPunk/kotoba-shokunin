@@ -1,0 +1,926 @@
+{
+  "assignment": "C1MutationPins",
+  "axes": [
+    "freshness",
+    "operability",
+    "calibration"
+  ],
+  "base_commit": "c61a973b2e02e1ded169703ddcb06466f4edd8bd",
+  "mutations": {
+    "M01": {
+      "base_location": "verifiers/check_substrate_pins.py:254",
+      "defect": "Force mtime comparison verdict to PASS (skip mtime enforcement).",
+      "diff": "--- BASE/verifiers/check_substrate_pins.py\n+++ M01/verifiers/check_substrate_pins.py\n@@ -251,7 +251,7 @@\n             delta = live_ns - expect_ns\n             entry.update(observed=str(live_ns), delta_ns=delta,\n                          tolerance_ns=tolerance_ns,\n-                         verdict=\"PASS\" if abs(delta) <= tolerance_ns else \"DRIFT\")\n+                         verdict=\"PASS\")\n         results.append(entry)\n     return results\n \n",
+      "self_test_verdict": "killed",
+      "source_path": "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M01/verifiers/check_substrate_pins.py"
+    },
+    "M02": {
+      "base_location": "verifiers/check_substrate_pins.py:223",
+      "defect": "Treat a nonexistent binary as PASS before hashing/stat checking.",
+      "diff": "--- BASE/verifiers/check_substrate_pins.py\n+++ M02/verifiers/check_substrate_pins.py\n@@ -221,6 +221,10 @@\n             continue\n         binary = binaries[prefix]\n         entry[\"binary\"] = str(binary)\n+        if not binary.exists():\n+            entry.update(verdict=\"PASS\", observed=\"missing accepted\")\n+            results.append(entry)\n+            continue\n         if kind == \"sha256\":\n             if not (isinstance(expect, str) and SHA_RE.match(expect)):\n                 entry.update(verdict=\"BAD_PIN\", observed=None,\n",
+      "self_test_verdict": "killed",
+      "source_path": "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M02/verifiers/check_substrate_pins.py"
+    },
+    "M03": {
+      "base_location": "verifiers/check_substrate_pins.py:173",
+      "defect": "Case-fold measured_against pin names before discovery/checking.",
+      "diff": "--- BASE/verifiers/check_substrate_pins.py\n+++ M03/verifiers/check_substrate_pins.py\n@@ -171,6 +171,7 @@\n         return [{\"pin\": \"-\", \"verdict\": \"VACUOUS\",\n                  \"detail\": \"measured_against is %s, declares no pins\"\n                            % (\"absent\" if ma is None else type(ma).__name__)}]\n+    ma = {key.casefold(): value for key, value in ma.items()}\n \n     keys: list[str] = [p[0] for p in EXPECTED_PINS]\n     for key in sorted(ma):\n",
+      "self_test_verdict": "killed",
+      "source_path": "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M03/verifiers/check_substrate_pins.py"
+    },
+    "M04": {
+      "base_location": "verifiers/check_substrate_pins.py:182-184",
+      "defect": "Discover extra keys only for registered substrates; ignore unknown pins.",
+      "diff": "--- BASE/verifiers/check_substrate_pins.py\n+++ M04/verifiers/check_substrate_pins.py\n@@ -181,7 +181,8 @@\n         # report (and then fails there) instead of vanishing from it.\n         if (DISCOVER_RE.match(key) or DISCOVER_RE.match(canonical_pin_key(key))\n                 or hygiene_offenders(key)):\n-            keys.append(key)\n+            if canonical_pin_key(key).casefold().split(\"_binary_\", 1)[0] in BINARIES:\n+                keys.append(key)\n \n     results: list[dict] = []\n     known = {p[0]: (p[1], p[2]) for p in EXPECTED_PINS}\n",
+      "self_test_verdict": "killed",
+      "source_path": "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M04/verifiers/check_substrate_pins.py"
+    },
+    "M05": {
+      "base_location": "verifiers/check_substrate_pins.py:237",
+      "defect": "Compare only the first eight SHA-256 hex characters.",
+      "diff": "--- BASE/verifiers/check_substrate_pins.py\n+++ M05/verifiers/check_substrate_pins.py\n@@ -234,7 +234,7 @@\n                 results.append(entry)\n                 continue\n             entry[\"observed\"] = live\n-            entry[\"verdict\"] = \"PASS\" if live == expect.lower() else \"DRIFT\"\n+            entry[\"verdict\"] = \"PASS\" if live[:8] == expect.lower()[:8] else \"DRIFT\"\n         else:\n             try:\n                 expect_ns, tolerance_ns = parse_iso_ns(expect)\n",
+      "self_test_verdict": "survived",
+      "source_path": "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M05/verifiers/check_substrate_pins.py"
+    },
+    "M06": {
+      "base_location": "verifiers/check_substrate_pins.py:109",
+      "defect": "Drop the SHA-256 syntax regex end anchor.",
+      "diff": "--- BASE/verifiers/check_substrate_pins.py\n+++ M06/verifiers/check_substrate_pins.py\n@@ -106,7 +106,7 @@\n         \"U+%04X %s\" % (ord(c), unicodedata.category(c))\n         for c in hygiene_offenders(key))\n KINDS = (\"sha256\", \"mtime\")\n-SHA_RE = re.compile(r\"^[0-9a-fA-F]{64}$\")\n+SHA_RE = re.compile(r\"^[0-9a-fA-F]{64}\")\n FRAC_RE = re.compile(r\"\\.(\\d+)\")\n \n # Verdict -> exit code. Anything not listed is a bug, not a pass.\n",
+      "self_test_verdict": "survived",
+      "source_path": "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M06/verifiers/check_substrate_pins.py"
+    },
+    "M07": {
+      "base_location": "verifiers/check_substrate_pins.py:254",
+      "defect": "Compare signed mtime delta instead of absolute delta.",
+      "diff": "--- BASE/verifiers/check_substrate_pins.py\n+++ M07/verifiers/check_substrate_pins.py\n@@ -251,7 +251,7 @@\n             delta = live_ns - expect_ns\n             entry.update(observed=str(live_ns), delta_ns=delta,\n                          tolerance_ns=tolerance_ns,\n-                         verdict=\"PASS\" if abs(delta) <= tolerance_ns else \"DRIFT\")\n+                         verdict=\"PASS\" if delta <= tolerance_ns else \"DRIFT\")\n         results.append(entry)\n     return results\n \n",
+      "self_test_verdict": "killed",
+      "source_path": "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M07/verifiers/check_substrate_pins.py"
+    },
+    "M08": {
+      "base_location": "verifiers/check_substrate_pins.py:182-184",
+      "defect": "Skip discovery of extra *_binary_mtime keys.",
+      "diff": "--- BASE/verifiers/check_substrate_pins.py\n+++ M08/verifiers/check_substrate_pins.py\n@@ -181,7 +181,8 @@\n         # report (and then fails there) instead of vanishing from it.\n         if (DISCOVER_RE.match(key) or DISCOVER_RE.match(canonical_pin_key(key))\n                 or hygiene_offenders(key)):\n-            keys.append(key)\n+            if not key.endswith(\"_binary_mtime\"):\n+                keys.append(key)\n \n     results: list[dict] = []\n     known = {p[0]: (p[1], p[2]) for p in EXPECTED_PINS}\n",
+      "self_test_verdict": "survived",
+      "source_path": "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M08/verifiers/check_substrate_pins.py"
+    },
+    "M09": {
+      "base_location": "verifiers/check_substrate_pins.py:134",
+      "defect": "Stop SHA-256 streaming after the first 1 MiB chunk.",
+      "diff": "--- BASE/verifiers/check_substrate_pins.py\n+++ M09/verifiers/check_substrate_pins.py\n@@ -132,6 +132,7 @@\n     with open(path, \"rb\") as fh:\n         for chunk in iter(lambda: fh.read(1 << 20), b\"\"):\n             h.update(chunk)\n+            break\n     return h.hexdigest()\n \n \n",
+      "self_test_verdict": "survived",
+      "source_path": "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M09/verifiers/check_substrate_pins.py"
+    },
+    "M10": {
+      "base_location": "verifiers/check_substrate_pins.py:152-153",
+      "defect": "Truncate fractional mtime digits past nine instead of rejecting the pin.",
+      "diff": "--- BASE/verifiers/check_substrate_pins.py\n+++ M10/verifiers/check_substrate_pins.py\n@@ -150,7 +150,7 @@\n     m = FRAC_RE.search(text)\n     digits = m.group(1) if m else \"\"\n     if len(digits) > 9:\n-        raise ValueError(\"more than 9 fractional digits\")\n+        digits = digits[:9]\n     frac_ns = int(digits.ljust(9, \"0\")) if digits else 0\n     tolerance_ns = 10 ** (9 - len(digits)) - 1 if digits else 10**9 - 1\n     base = FRAC_RE.sub(\"\", text, count=1)\n",
+      "self_test_verdict": "survived",
+      "source_path": "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M10/verifiers/check_substrate_pins.py"
+    }
+  },
+  "observations": {
+    "M01": {
+      "mutated": {
+        "contract_witness": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/mutation_witness.py",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M01/verifiers/check_substrate_pins.py",
+            "M01"
+          ],
+          "exit_code": 1,
+          "stderr": "",
+          "stdout": "{\n  \"actual_gate_exit\": 0,\n  \"argv\": [\n    \"--baseline\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M01/verifiers/contract-witness-lycmltz4/baseline.json\",\n    \"--omp-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M01/verifiers/contract-witness-lycmltz4/mini.bin\",\n    \"--opencode-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M01/verifiers/contract-witness-lycmltz4/mini.bin\",\n    \"--json\"\n  ],\n  \"expected_contract_exit\": 1,\n  \"facts\": {\n    \"binary_size\": 91,\n    \"full_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\"\n  },\n  \"focus_pin\": \"omp_binary_mtime\",\n  \"focus_verdict\": \"PASS\",\n  \"gate_stderr\": \"\",\n  \"gate_stdout\": \"{\\n  \\\"checks\\\": [\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M01/verifiers/contract-witness-lycmltz4/mini.bin\\\",\\n      \\\"expect\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"pin\\\": \\\"omp_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M01/verifiers/contract-witness-lycmltz4/mini.bin\\\",\\n      \\\"delta_ns\\\": 753315200123456789,\\n      \\\"expect\\\": \\\"2000-01-01T00:00:00.000000000+00:00\\\",\\n      \\\"kind\\\": \\\"mtime\\\",\\n      \\\"observed\\\": \\\"1700000000123456789\\\",\\n      \\\"pin\\\": \\\"omp_binary_mtime\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"tolerance_ns\\\": 0,\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M01/verifiers/contract-witness-lycmltz4/mini.bin\\\",\\n      \\\"expect\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"pin\\\": \\\"opencode_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"opencode\\\",\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    }\\n  ],\\n  \\\"exit_code\\\": 0,\\n  \\\"fail\\\": 0,\\n  \\\"pass\\\": 3\\n}\\n\",\n  \"input_pins\": {\n    \"omp_binary_mtime\": \"2000-01-01T00:00:00.000000000+00:00\",\n    \"omp_binary_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\",\n    \"opencode_binary_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\"\n  },\n  \"mutant\": \"M01\"\n}\n"
+        },
+        "self_test": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M01/verifiers/check_substrate_pins.py",
+            "--self-test"
+          ],
+          "exit_code": 1,
+          "stderr": "",
+          "stdout": "4 failure(s) over 62 assertions\nFAIL: mtime drift: exit 1: got 0\nFAIL: mtime drift: names the pin: got 'PASS omp_binary_sha256: d3b4640ed5eb408197d7922ca1f2984d93fe7d7cbeb60c831f43f65c3952705c\\nPASS omp_binary_mtime: delta 845913369302188733 ns (tolerance 0 ns)\\nPASS opencode_binary_sha256: d3b4640ed5eb408197d7922ca1f2984d93fe7d7cbeb60c831f43f65c3952705c\\nOK 3/3 pins hold\\n'\nFAIL: mtime drift of 1 ns: exit 1 (ns-exact on a 9-digit pin): got 0\nFAIL: mtime pin 2 us off at us precision: exit 1 \u2014 the window is the pin's own quantum, not a blob tolerance: got 0\n"
+        }
+      },
+      "mutated_sha256": "70ba66ba4e8590e631964ce6959e206dbd23dac64f47c03367b7bed3e424ed45",
+      "pristine": {
+        "contract_witness": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/mutation_witness.py",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M01/verifiers/check_substrate_pins.py",
+            "M01"
+          ],
+          "exit_code": 0,
+          "stderr": "",
+          "stdout": "{\n  \"actual_gate_exit\": 1,\n  \"argv\": [\n    \"--baseline\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M01/verifiers/contract-witness-wgwkwr5b/baseline.json\",\n    \"--omp-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M01/verifiers/contract-witness-wgwkwr5b/mini.bin\",\n    \"--opencode-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M01/verifiers/contract-witness-wgwkwr5b/mini.bin\",\n    \"--json\"\n  ],\n  \"expected_contract_exit\": 1,\n  \"facts\": {\n    \"binary_size\": 91,\n    \"full_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\"\n  },\n  \"focus_pin\": \"omp_binary_mtime\",\n  \"focus_verdict\": \"DRIFT\",\n  \"gate_stderr\": \"\",\n  \"gate_stdout\": \"{\\n  \\\"checks\\\": [\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M01/verifiers/contract-witness-wgwkwr5b/mini.bin\\\",\\n      \\\"expect\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"pin\\\": \\\"omp_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M01/verifiers/contract-witness-wgwkwr5b/mini.bin\\\",\\n      \\\"delta_ns\\\": 753315200123456789,\\n      \\\"expect\\\": \\\"2000-01-01T00:00:00.000000000+00:00\\\",\\n      \\\"kind\\\": \\\"mtime\\\",\\n      \\\"observed\\\": \\\"1700000000123456789\\\",\\n      \\\"pin\\\": \\\"omp_binary_mtime\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"tolerance_ns\\\": 0,\\n      \\\"verdict\\\": \\\"DRIFT\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M01/verifiers/contract-witness-wgwkwr5b/mini.bin\\\",\\n      \\\"expect\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"pin\\\": \\\"opencode_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"opencode\\\",\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    }\\n  ],\\n  \\\"exit_code\\\": 1,\\n  \\\"fail\\\": 1,\\n  \\\"pass\\\": 2\\n}\\n\",\n  \"input_pins\": {\n    \"omp_binary_mtime\": \"2000-01-01T00:00:00.000000000+00:00\",\n    \"omp_binary_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\",\n    \"opencode_binary_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\"\n  },\n  \"mutant\": \"M01\"\n}\n"
+        },
+        "self_test": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M01/verifiers/check_substrate_pins.py",
+            "--self-test"
+          ],
+          "exit_code": 0,
+          "stderr": "",
+          "stdout": "0 failure(s) over 62 assertions\n"
+        }
+      },
+      "pristine_sha256": "bcfd5230eabb8b16343e11b21ec354d9860c65e4712187fc6650fc3f329495ce",
+      "restored": {
+        "contract_witness": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/mutation_witness.py",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M01/verifiers/check_substrate_pins.py",
+            "M01"
+          ],
+          "exit_code": 0,
+          "stderr": "",
+          "stdout": "{\n  \"actual_gate_exit\": 1,\n  \"argv\": [\n    \"--baseline\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M01/verifiers/contract-witness-x22sern0/baseline.json\",\n    \"--omp-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M01/verifiers/contract-witness-x22sern0/mini.bin\",\n    \"--opencode-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M01/verifiers/contract-witness-x22sern0/mini.bin\",\n    \"--json\"\n  ],\n  \"expected_contract_exit\": 1,\n  \"facts\": {\n    \"binary_size\": 91,\n    \"full_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\"\n  },\n  \"focus_pin\": \"omp_binary_mtime\",\n  \"focus_verdict\": \"DRIFT\",\n  \"gate_stderr\": \"\",\n  \"gate_stdout\": \"{\\n  \\\"checks\\\": [\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M01/verifiers/contract-witness-x22sern0/mini.bin\\\",\\n      \\\"expect\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"pin\\\": \\\"omp_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M01/verifiers/contract-witness-x22sern0/mini.bin\\\",\\n      \\\"delta_ns\\\": 753315200123456789,\\n      \\\"expect\\\": \\\"2000-01-01T00:00:00.000000000+00:00\\\",\\n      \\\"kind\\\": \\\"mtime\\\",\\n      \\\"observed\\\": \\\"1700000000123456789\\\",\\n      \\\"pin\\\": \\\"omp_binary_mtime\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"tolerance_ns\\\": 0,\\n      \\\"verdict\\\": \\\"DRIFT\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M01/verifiers/contract-witness-x22sern0/mini.bin\\\",\\n      \\\"expect\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"pin\\\": \\\"opencode_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"opencode\\\",\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    }\\n  ],\\n  \\\"exit_code\\\": 1,\\n  \\\"fail\\\": 1,\\n  \\\"pass\\\": 2\\n}\\n\",\n  \"input_pins\": {\n    \"omp_binary_mtime\": \"2000-01-01T00:00:00.000000000+00:00\",\n    \"omp_binary_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\",\n    \"opencode_binary_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\"\n  },\n  \"mutant\": \"M01\"\n}\n"
+        },
+        "self_test": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M01/verifiers/check_substrate_pins.py",
+            "--self-test"
+          ],
+          "exit_code": 0,
+          "stderr": "",
+          "stdout": "0 failure(s) over 62 assertions\n"
+        }
+      },
+      "restored_sha256": "bcfd5230eabb8b16343e11b21ec354d9860c65e4712187fc6650fc3f329495ce"
+    },
+    "M02": {
+      "mutated": {
+        "contract_witness": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/mutation_witness.py",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M02/verifiers/check_substrate_pins.py",
+            "M02"
+          ],
+          "exit_code": 1,
+          "stderr": "",
+          "stdout": "{\n  \"actual_gate_exit\": 0,\n  \"argv\": [\n    \"--baseline\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M02/verifiers/contract-witness-ymvzcv2a/baseline.json\",\n    \"--omp-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M02/verifiers/contract-witness-ymvzcv2a/mini.bin\",\n    \"--opencode-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M02/verifiers/contract-witness-ymvzcv2a/absent.bin\",\n    \"--json\"\n  ],\n  \"expected_contract_exit\": 2,\n  \"facts\": {\n    \"binary_size\": 91,\n    \"full_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\"\n  },\n  \"focus_pin\": \"opencode_binary_sha256\",\n  \"focus_verdict\": \"PASS\",\n  \"gate_stderr\": \"\",\n  \"gate_stdout\": \"{\\n  \\\"checks\\\": [\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M02/verifiers/contract-witness-ymvzcv2a/mini.bin\\\",\\n      \\\"expect\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"pin\\\": \\\"omp_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M02/verifiers/contract-witness-ymvzcv2a/mini.bin\\\",\\n      \\\"delta_ns\\\": 0,\\n      \\\"expect\\\": \\\"2023-11-14T22:13:20.123456789+00:00\\\",\\n      \\\"kind\\\": \\\"mtime\\\",\\n      \\\"observed\\\": \\\"1700000000123456789\\\",\\n      \\\"pin\\\": \\\"omp_binary_mtime\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"tolerance_ns\\\": 0,\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M02/verifiers/contract-witness-ymvzcv2a/absent.bin\\\",\\n      \\\"expect\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": \\\"missing accepted\\\",\\n      \\\"pin\\\": \\\"opencode_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"opencode\\\",\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    }\\n  ],\\n  \\\"exit_code\\\": 0,\\n  \\\"fail\\\": 0,\\n  \\\"pass\\\": 3\\n}\\n\",\n  \"input_pins\": {\n    \"omp_binary_mtime\": \"2023-11-14T22:13:20.123456789+00:00\",\n    \"omp_binary_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\",\n    \"opencode_binary_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\"\n  },\n  \"mutant\": \"M02\"\n}\n"
+        },
+        "self_test": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M02/verifiers/check_substrate_pins.py",
+            "--self-test"
+          ],
+          "exit_code": 1,
+          "stderr": "",
+          "stdout": "5 failure(s) over 62 assertions\nFAIL: missing binary: exit 2: got 0\nFAIL: missing binary: UNREADABLE names the pin: got 'PASS omp_binary_sha256: missing accepted\\nPASS omp_binary_mtime: missing accepted\\nPASS opencode_binary_sha256: d3b4640ed5eb408197d7922ca1f2984d93fe7d7cbeb60c831f43f65c3952705c\\nOK 3/3 pins hold\\n'\nFAIL: dangling symlink: exit 2: got 0\nFAIL: UNREADABLE outranks DRIFT: exit 2: got 1\nFAIL: json missing binary: exit 2 and exit_code agrees: got (0, '{\\n  \"checks\": [\\n    {\\n      \"binary\": \"/tmp/pins-selftest-9tlepz4d/mini.bin\",\\n      \"expect\": \"d3b4640ed5eb408197d7922ca1f2984d93fe7d7cbeb60c831f43f65c3952705c\",\\n      \"kind\": \"sha256\",\\n      \"observed\": \"d3b4640ed5eb408197d7922ca1f2984d93fe7d7cbeb60c831f43f65c3952705c\",\\n      \"pin\": \"omp_binary_sha256\",\\n      \"substrate\": \"omp\",\\n      \"verdict\": \"PASS\"\\n    },\\n    {\\n      \"binary\": \"/tmp/pins-selftest-9tlepz4d/mini.bin\",\\n      \"delta_ns\": 0,\\n      \"expect\": \"2026-10-21T15:56:09.314207102+00:00\",\\n      \"kind\": \"mtime\",\\n      \"observed\": \"1792598169314207102\",\\n      \"pin\": \"omp_binary_mtime\",\\n      \"substrate\": \"omp\",\\n      \"tolerance_ns\": 0,\\n      \"verdict\": \"PASS\"\\n    },\\n    {\\n      \"binary\": \"/tmp/pins-selftest-9tlepz4d/nope\",\\n      \"expect\": \"d3b4640ed5eb408197d7922ca1f2984d93fe7d7cbeb60c831f43f65c3952705c\",\\n      \"kind\": \"sha256\",\\n      \"observed\": \"missing accepted\",\\n      \"pin\": \"opencode_binary_sha256\",\\n      \"substrate\": \"opencode\",\\n      \"verdict\": \"PASS\"\\n    }\\n  ],\\n  \"exit_code\": 0,\\n  \"fail\": 0,\\n  \"pass\": 3\\n}\\n')\n"
+        }
+      },
+      "mutated_sha256": "6a4e270428e47a5b4e205441aef1e3b12e18217207d17389498e41a5df8091d4",
+      "pristine": {
+        "contract_witness": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/mutation_witness.py",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M02/verifiers/check_substrate_pins.py",
+            "M02"
+          ],
+          "exit_code": 0,
+          "stderr": "",
+          "stdout": "{\n  \"actual_gate_exit\": 2,\n  \"argv\": [\n    \"--baseline\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M02/verifiers/contract-witness-kj030bdq/baseline.json\",\n    \"--omp-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M02/verifiers/contract-witness-kj030bdq/mini.bin\",\n    \"--opencode-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M02/verifiers/contract-witness-kj030bdq/absent.bin\",\n    \"--json\"\n  ],\n  \"expected_contract_exit\": 2,\n  \"facts\": {\n    \"binary_size\": 91,\n    \"full_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\"\n  },\n  \"focus_pin\": \"opencode_binary_sha256\",\n  \"focus_verdict\": \"UNREADABLE\",\n  \"gate_stderr\": \"\",\n  \"gate_stdout\": \"{\\n  \\\"checks\\\": [\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M02/verifiers/contract-witness-kj030bdq/mini.bin\\\",\\n      \\\"expect\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"pin\\\": \\\"omp_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M02/verifiers/contract-witness-kj030bdq/mini.bin\\\",\\n      \\\"delta_ns\\\": 0,\\n      \\\"expect\\\": \\\"2023-11-14T22:13:20.123456789+00:00\\\",\\n      \\\"kind\\\": \\\"mtime\\\",\\n      \\\"observed\\\": \\\"1700000000123456789\\\",\\n      \\\"pin\\\": \\\"omp_binary_mtime\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"tolerance_ns\\\": 0,\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M02/verifiers/contract-witness-kj030bdq/absent.bin\\\",\\n      \\\"detail\\\": \\\"[Errno 2] No such file or directory: '/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M02/verifiers/contract-witness-kj030bdq/absent.bin'\\\",\\n      \\\"expect\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": null,\\n      \\\"pin\\\": \\\"opencode_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"opencode\\\",\\n      \\\"verdict\\\": \\\"UNREADABLE\\\"\\n    }\\n  ],\\n  \\\"exit_code\\\": 2,\\n  \\\"fail\\\": 1,\\n  \\\"pass\\\": 2\\n}\\n\",\n  \"input_pins\": {\n    \"omp_binary_mtime\": \"2023-11-14T22:13:20.123456789+00:00\",\n    \"omp_binary_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\",\n    \"opencode_binary_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\"\n  },\n  \"mutant\": \"M02\"\n}\n"
+        },
+        "self_test": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M02/verifiers/check_substrate_pins.py",
+            "--self-test"
+          ],
+          "exit_code": 0,
+          "stderr": "",
+          "stdout": "0 failure(s) over 62 assertions\n"
+        }
+      },
+      "pristine_sha256": "bcfd5230eabb8b16343e11b21ec354d9860c65e4712187fc6650fc3f329495ce",
+      "restored": {
+        "contract_witness": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/mutation_witness.py",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M02/verifiers/check_substrate_pins.py",
+            "M02"
+          ],
+          "exit_code": 0,
+          "stderr": "",
+          "stdout": "{\n  \"actual_gate_exit\": 2,\n  \"argv\": [\n    \"--baseline\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M02/verifiers/contract-witness-deg_sqfg/baseline.json\",\n    \"--omp-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M02/verifiers/contract-witness-deg_sqfg/mini.bin\",\n    \"--opencode-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M02/verifiers/contract-witness-deg_sqfg/absent.bin\",\n    \"--json\"\n  ],\n  \"expected_contract_exit\": 2,\n  \"facts\": {\n    \"binary_size\": 91,\n    \"full_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\"\n  },\n  \"focus_pin\": \"opencode_binary_sha256\",\n  \"focus_verdict\": \"UNREADABLE\",\n  \"gate_stderr\": \"\",\n  \"gate_stdout\": \"{\\n  \\\"checks\\\": [\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M02/verifiers/contract-witness-deg_sqfg/mini.bin\\\",\\n      \\\"expect\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"pin\\\": \\\"omp_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M02/verifiers/contract-witness-deg_sqfg/mini.bin\\\",\\n      \\\"delta_ns\\\": 0,\\n      \\\"expect\\\": \\\"2023-11-14T22:13:20.123456789+00:00\\\",\\n      \\\"kind\\\": \\\"mtime\\\",\\n      \\\"observed\\\": \\\"1700000000123456789\\\",\\n      \\\"pin\\\": \\\"omp_binary_mtime\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"tolerance_ns\\\": 0,\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M02/verifiers/contract-witness-deg_sqfg/absent.bin\\\",\\n      \\\"detail\\\": \\\"[Errno 2] No such file or directory: '/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M02/verifiers/contract-witness-deg_sqfg/absent.bin'\\\",\\n      \\\"expect\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": null,\\n      \\\"pin\\\": \\\"opencode_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"opencode\\\",\\n      \\\"verdict\\\": \\\"UNREADABLE\\\"\\n    }\\n  ],\\n  \\\"exit_code\\\": 2,\\n  \\\"fail\\\": 1,\\n  \\\"pass\\\": 2\\n}\\n\",\n  \"input_pins\": {\n    \"omp_binary_mtime\": \"2023-11-14T22:13:20.123456789+00:00\",\n    \"omp_binary_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\",\n    \"opencode_binary_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\"\n  },\n  \"mutant\": \"M02\"\n}\n"
+        },
+        "self_test": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M02/verifiers/check_substrate_pins.py",
+            "--self-test"
+          ],
+          "exit_code": 0,
+          "stderr": "",
+          "stdout": "0 failure(s) over 62 assertions\n"
+        }
+      },
+      "restored_sha256": "bcfd5230eabb8b16343e11b21ec354d9860c65e4712187fc6650fc3f329495ce"
+    },
+    "M03": {
+      "mutated": {
+        "contract_witness": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/mutation_witness.py",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M03/verifiers/check_substrate_pins.py",
+            "M03"
+          ],
+          "exit_code": 1,
+          "stderr": "",
+          "stdout": "{\n  \"actual_gate_exit\": 0,\n  \"argv\": [\n    \"--baseline\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M03/verifiers/contract-witness-w_w8nty9/baseline.json\",\n    \"--omp-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M03/verifiers/contract-witness-w_w8nty9/mini.bin\",\n    \"--opencode-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M03/verifiers/contract-witness-w_w8nty9/mini.bin\",\n    \"--json\"\n  ],\n  \"expected_contract_exit\": 2,\n  \"facts\": {\n    \"binary_size\": 91,\n    \"full_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\"\n  },\n  \"focus_pin\": \"OMP_binary_sha256\",\n  \"focus_verdict\": \"ABSENT_FROM_REPORT\",\n  \"gate_stderr\": \"\",\n  \"gate_stdout\": \"{\\n  \\\"checks\\\": [\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M03/verifiers/contract-witness-w_w8nty9/mini.bin\\\",\\n      \\\"expect\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"pin\\\": \\\"omp_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M03/verifiers/contract-witness-w_w8nty9/mini.bin\\\",\\n      \\\"delta_ns\\\": 0,\\n      \\\"expect\\\": \\\"2023-11-14T22:13:20.123456789+00:00\\\",\\n      \\\"kind\\\": \\\"mtime\\\",\\n      \\\"observed\\\": \\\"1700000000123456789\\\",\\n      \\\"pin\\\": \\\"omp_binary_mtime\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"tolerance_ns\\\": 0,\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M03/verifiers/contract-witness-w_w8nty9/mini.bin\\\",\\n      \\\"expect\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"pin\\\": \\\"opencode_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"opencode\\\",\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    }\\n  ],\\n  \\\"exit_code\\\": 0,\\n  \\\"fail\\\": 0,\\n  \\\"pass\\\": 3\\n}\\n\",\n  \"input_pins\": {\n    \"OMP_binary_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\",\n    \"omp_binary_mtime\": \"2023-11-14T22:13:20.123456789+00:00\",\n    \"opencode_binary_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\"\n  },\n  \"mutant\": \"M03\"\n}\n"
+        },
+        "self_test": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M03/verifiers/check_substrate_pins.py",
+            "--self-test"
+          ],
+          "exit_code": 1,
+          "stderr": "",
+          "stdout": "5 failure(s) over 62 assertions\nFAIL: mis-cased key OMP_binary_sha256: exit 2 (exact-case, never skipped): got 1\nFAIL: mis-cased key: UNSUPPORTED names key and canonical pin: got 'FAIL omp_binary_sha256: sha256 drift: expect=0000000000000000000000000000000000000000000000000000000000000000 got=d3b4640ed5eb408197d7922ca1f2984d93fe7d7cbeb60c831f43f65c3952705c\\nPASS omp_binary_mtime: delta 0 ns (tolerance 0 ns)\\nPASS opencode_binary_sha256: d3b4640ed5eb408197d7922ca1f2984d93fe7d7cbeb60c831f43f65c3952705c\\nDRIFT 1/3 pins failed: omp_binary_sha256\\n'\nFAIL: mis-cased key: summary 1/4 names it, the three real pins still PASS: got 'FAIL omp_binary_sha256: sha256 drift: expect=0000000000000000000000000000000000000000000000000000000000000000 got=d3b4640ed5eb408197d7922ca1f2984d93fe7d7cbeb60c831f43f65c3952705c\\nPASS omp_binary_mtime: delta 0 ns (tolerance 0 ns)\\nPASS opencode_binary_sha256: d3b4640ed5eb408197d7922ca1f2984d93fe7d7cbeb60c831f43f65c3952705c\\nDRIFT 1/3 pins failed: omp_binary_sha256\\n'\nFAIL: mis-cased separator omp_Binary_sha256: exit 2: got 1\nFAIL: mis-cased kind omp_binary_SHA256: exit 2: got 0\n"
+        }
+      },
+      "mutated_sha256": "6ad9cac05fd04fbe5f845da2ca86ca87b36111a00cf9bba3b7db7a02937b035f",
+      "pristine": {
+        "contract_witness": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/mutation_witness.py",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M03/verifiers/check_substrate_pins.py",
+            "M03"
+          ],
+          "exit_code": 0,
+          "stderr": "",
+          "stdout": "{\n  \"actual_gate_exit\": 2,\n  \"argv\": [\n    \"--baseline\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M03/verifiers/contract-witness-fq4i9eqk/baseline.json\",\n    \"--omp-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M03/verifiers/contract-witness-fq4i9eqk/mini.bin\",\n    \"--opencode-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M03/verifiers/contract-witness-fq4i9eqk/mini.bin\",\n    \"--json\"\n  ],\n  \"expected_contract_exit\": 2,\n  \"facts\": {\n    \"binary_size\": 91,\n    \"full_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\"\n  },\n  \"focus_pin\": \"OMP_binary_sha256\",\n  \"focus_verdict\": \"UNSUPPORTED\",\n  \"gate_stderr\": \"\",\n  \"gate_stdout\": \"{\\n  \\\"checks\\\": [\\n    {\\n      \\\"detail\\\": \\\"pin declared by the guard's contract, absent from measured_against\\\",\\n      \\\"expect\\\": null,\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": null,\\n      \\\"pin\\\": \\\"omp_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"verdict\\\": \\\"PIN_ABSENT\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M03/verifiers/contract-witness-fq4i9eqk/mini.bin\\\",\\n      \\\"delta_ns\\\": 0,\\n      \\\"expect\\\": \\\"2023-11-14T22:13:20.123456789+00:00\\\",\\n      \\\"kind\\\": \\\"mtime\\\",\\n      \\\"observed\\\": \\\"1700000000123456789\\\",\\n      \\\"pin\\\": \\\"omp_binary_mtime\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"tolerance_ns\\\": 0,\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M03/verifiers/contract-witness-fq4i9eqk/mini.bin\\\",\\n      \\\"expect\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"pin\\\": \\\"opencode_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"opencode\\\",\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    },\\n    {\\n      \\\"detail\\\": \\\"mis-cased pin key: matches omp_binary_sha256 except for case; pin keys are exact-case\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": null,\\n      \\\"pin\\\": \\\"OMP_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"OMP\\\",\\n      \\\"verdict\\\": \\\"UNSUPPORTED\\\"\\n    }\\n  ],\\n  \\\"exit_code\\\": 2,\\n  \\\"fail\\\": 2,\\n  \\\"pass\\\": 2\\n}\\n\",\n  \"input_pins\": {\n    \"OMP_binary_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\",\n    \"omp_binary_mtime\": \"2023-11-14T22:13:20.123456789+00:00\",\n    \"opencode_binary_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\"\n  },\n  \"mutant\": \"M03\"\n}\n"
+        },
+        "self_test": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M03/verifiers/check_substrate_pins.py",
+            "--self-test"
+          ],
+          "exit_code": 0,
+          "stderr": "",
+          "stdout": "0 failure(s) over 62 assertions\n"
+        }
+      },
+      "pristine_sha256": "bcfd5230eabb8b16343e11b21ec354d9860c65e4712187fc6650fc3f329495ce",
+      "restored": {
+        "contract_witness": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/mutation_witness.py",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M03/verifiers/check_substrate_pins.py",
+            "M03"
+          ],
+          "exit_code": 0,
+          "stderr": "",
+          "stdout": "{\n  \"actual_gate_exit\": 2,\n  \"argv\": [\n    \"--baseline\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M03/verifiers/contract-witness-wknbhmv6/baseline.json\",\n    \"--omp-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M03/verifiers/contract-witness-wknbhmv6/mini.bin\",\n    \"--opencode-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M03/verifiers/contract-witness-wknbhmv6/mini.bin\",\n    \"--json\"\n  ],\n  \"expected_contract_exit\": 2,\n  \"facts\": {\n    \"binary_size\": 91,\n    \"full_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\"\n  },\n  \"focus_pin\": \"OMP_binary_sha256\",\n  \"focus_verdict\": \"UNSUPPORTED\",\n  \"gate_stderr\": \"\",\n  \"gate_stdout\": \"{\\n  \\\"checks\\\": [\\n    {\\n      \\\"detail\\\": \\\"pin declared by the guard's contract, absent from measured_against\\\",\\n      \\\"expect\\\": null,\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": null,\\n      \\\"pin\\\": \\\"omp_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"verdict\\\": \\\"PIN_ABSENT\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M03/verifiers/contract-witness-wknbhmv6/mini.bin\\\",\\n      \\\"delta_ns\\\": 0,\\n      \\\"expect\\\": \\\"2023-11-14T22:13:20.123456789+00:00\\\",\\n      \\\"kind\\\": \\\"mtime\\\",\\n      \\\"observed\\\": \\\"1700000000123456789\\\",\\n      \\\"pin\\\": \\\"omp_binary_mtime\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"tolerance_ns\\\": 0,\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M03/verifiers/contract-witness-wknbhmv6/mini.bin\\\",\\n      \\\"expect\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"pin\\\": \\\"opencode_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"opencode\\\",\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    },\\n    {\\n      \\\"detail\\\": \\\"mis-cased pin key: matches omp_binary_sha256 except for case; pin keys are exact-case\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": null,\\n      \\\"pin\\\": \\\"OMP_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"OMP\\\",\\n      \\\"verdict\\\": \\\"UNSUPPORTED\\\"\\n    }\\n  ],\\n  \\\"exit_code\\\": 2,\\n  \\\"fail\\\": 2,\\n  \\\"pass\\\": 2\\n}\\n\",\n  \"input_pins\": {\n    \"OMP_binary_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\",\n    \"omp_binary_mtime\": \"2023-11-14T22:13:20.123456789+00:00\",\n    \"opencode_binary_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\"\n  },\n  \"mutant\": \"M03\"\n}\n"
+        },
+        "self_test": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M03/verifiers/check_substrate_pins.py",
+            "--self-test"
+          ],
+          "exit_code": 0,
+          "stderr": "",
+          "stdout": "0 failure(s) over 62 assertions\n"
+        }
+      },
+      "restored_sha256": "bcfd5230eabb8b16343e11b21ec354d9860c65e4712187fc6650fc3f329495ce"
+    },
+    "M04": {
+      "mutated": {
+        "contract_witness": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/mutation_witness.py",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M04/verifiers/check_substrate_pins.py",
+            "M04"
+          ],
+          "exit_code": 1,
+          "stderr": "",
+          "stdout": "{\n  \"actual_gate_exit\": 0,\n  \"argv\": [\n    \"--baseline\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M04/verifiers/contract-witness-3x74138x/baseline.json\",\n    \"--omp-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M04/verifiers/contract-witness-3x74138x/mini.bin\",\n    \"--opencode-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M04/verifiers/contract-witness-3x74138x/mini.bin\",\n    \"--json\"\n  ],\n  \"expected_contract_exit\": 2,\n  \"facts\": {\n    \"binary_size\": 91,\n    \"full_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\"\n  },\n  \"focus_pin\": \"cursor_binary_sha256\",\n  \"focus_verdict\": \"ABSENT_FROM_REPORT\",\n  \"gate_stderr\": \"\",\n  \"gate_stdout\": \"{\\n  \\\"checks\\\": [\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M04/verifiers/contract-witness-3x74138x/mini.bin\\\",\\n      \\\"expect\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"pin\\\": \\\"omp_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M04/verifiers/contract-witness-3x74138x/mini.bin\\\",\\n      \\\"delta_ns\\\": 0,\\n      \\\"expect\\\": \\\"2023-11-14T22:13:20.123456789+00:00\\\",\\n      \\\"kind\\\": \\\"mtime\\\",\\n      \\\"observed\\\": \\\"1700000000123456789\\\",\\n      \\\"pin\\\": \\\"omp_binary_mtime\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"tolerance_ns\\\": 0,\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M04/verifiers/contract-witness-3x74138x/mini.bin\\\",\\n      \\\"expect\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"pin\\\": \\\"opencode_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"opencode\\\",\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    }\\n  ],\\n  \\\"exit_code\\\": 0,\\n  \\\"fail\\\": 0,\\n  \\\"pass\\\": 3\\n}\\n\",\n  \"input_pins\": {\n    \"cursor_binary_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\",\n    \"omp_binary_mtime\": \"2023-11-14T22:13:20.123456789+00:00\",\n    \"omp_binary_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\",\n    \"opencode_binary_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\"\n  },\n  \"mutant\": \"M04\"\n}\n"
+        },
+        "self_test": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M04/verifiers/check_substrate_pins.py",
+            "--self-test"
+          ],
+          "exit_code": 1,
+          "stderr": "",
+          "stdout": "5 failure(s) over 62 assertions\nFAIL: stray pin from an unregistered substrate: exit 2 (never silent): got 0\nFAIL: stray pin: UNSUPPORTED named: got 'PASS omp_binary_sha256: d3b4640ed5eb408197d7922ca1f2984d93fe7d7cbeb60c831f43f65c3952705c\\nPASS omp_binary_mtime: delta 0 ns (tolerance 0 ns)\\nPASS opencode_binary_sha256: d3b4640ed5eb408197d7922ca1f2984d93fe7d7cbeb60c831f43f65c3952705c\\nOK 3/3 pins hold\\n'\nFAIL: all-whitespace key (not pin-shaped): exit 2, never a silent 0: got (0, 'PASS omp_binary_sha256: d3b4640ed5eb408197d7922ca1f2984d93fe7d7cbeb60c831f43f65c3952705c\\nPASS omp_binary_mtime: delta 0 ns (tolerance 0 ns)\\nPASS opencode_binary_sha256: d3b4640ed5eb408197d7922ca1f2984d93fe7d7cbeb60c831f43f65c3952705c\\nOK 3/3 pins hold\\n')\nFAIL: padded STRAY substrate key: exit 2, not a silent 0: got (0, 'PASS omp_binary_sha256: d3b4640ed5eb408197d7922ca1f2984d93fe7d7cbeb60c831f43f65c3952705c\\nPASS omp_binary_mtime: delta 0 ns (tolerance 0 ns)\\nPASS opencode_binary_sha256: d3b4640ed5eb408197d7922ca1f2984d93fe7d7cbeb60c831f43f65c3952705c\\nOK 3/3 pins hold\\n')\nFAIL: Cf-padded stray substrate key: exit 2: got 0\n"
+        }
+      },
+      "mutated_sha256": "74b98d23709246e92872436c3fc909b3b0520cbece425cffea0608823fe51e86",
+      "pristine": {
+        "contract_witness": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/mutation_witness.py",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M04/verifiers/check_substrate_pins.py",
+            "M04"
+          ],
+          "exit_code": 0,
+          "stderr": "",
+          "stdout": "{\n  \"actual_gate_exit\": 2,\n  \"argv\": [\n    \"--baseline\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M04/verifiers/contract-witness-f6cy7h07/baseline.json\",\n    \"--omp-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M04/verifiers/contract-witness-f6cy7h07/mini.bin\",\n    \"--opencode-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M04/verifiers/contract-witness-f6cy7h07/mini.bin\",\n    \"--json\"\n  ],\n  \"expected_contract_exit\": 2,\n  \"facts\": {\n    \"binary_size\": 91,\n    \"full_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\"\n  },\n  \"focus_pin\": \"cursor_binary_sha256\",\n  \"focus_verdict\": \"UNSUPPORTED\",\n  \"gate_stderr\": \"\",\n  \"gate_stdout\": \"{\\n  \\\"checks\\\": [\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M04/verifiers/contract-witness-f6cy7h07/mini.bin\\\",\\n      \\\"expect\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"pin\\\": \\\"omp_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M04/verifiers/contract-witness-f6cy7h07/mini.bin\\\",\\n      \\\"delta_ns\\\": 0,\\n      \\\"expect\\\": \\\"2023-11-14T22:13:20.123456789+00:00\\\",\\n      \\\"kind\\\": \\\"mtime\\\",\\n      \\\"observed\\\": \\\"1700000000123456789\\\",\\n      \\\"pin\\\": \\\"omp_binary_mtime\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"tolerance_ns\\\": 0,\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M04/verifiers/contract-witness-f6cy7h07/mini.bin\\\",\\n      \\\"expect\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"pin\\\": \\\"opencode_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"opencode\\\",\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    },\\n    {\\n      \\\"detail\\\": \\\"pinned substrate/kind not resolvable by this guard (cursor_binary_sha256)\\\",\\n      \\\"expect\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": null,\\n      \\\"pin\\\": \\\"cursor_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"cursor\\\",\\n      \\\"verdict\\\": \\\"UNSUPPORTED\\\"\\n    }\\n  ],\\n  \\\"exit_code\\\": 2,\\n  \\\"fail\\\": 1,\\n  \\\"pass\\\": 3\\n}\\n\",\n  \"input_pins\": {\n    \"cursor_binary_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\",\n    \"omp_binary_mtime\": \"2023-11-14T22:13:20.123456789+00:00\",\n    \"omp_binary_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\",\n    \"opencode_binary_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\"\n  },\n  \"mutant\": \"M04\"\n}\n"
+        },
+        "self_test": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M04/verifiers/check_substrate_pins.py",
+            "--self-test"
+          ],
+          "exit_code": 0,
+          "stderr": "",
+          "stdout": "0 failure(s) over 62 assertions\n"
+        }
+      },
+      "pristine_sha256": "bcfd5230eabb8b16343e11b21ec354d9860c65e4712187fc6650fc3f329495ce",
+      "restored": {
+        "contract_witness": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/mutation_witness.py",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M04/verifiers/check_substrate_pins.py",
+            "M04"
+          ],
+          "exit_code": 0,
+          "stderr": "",
+          "stdout": "{\n  \"actual_gate_exit\": 2,\n  \"argv\": [\n    \"--baseline\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M04/verifiers/contract-witness-_vn5z7bs/baseline.json\",\n    \"--omp-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M04/verifiers/contract-witness-_vn5z7bs/mini.bin\",\n    \"--opencode-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M04/verifiers/contract-witness-_vn5z7bs/mini.bin\",\n    \"--json\"\n  ],\n  \"expected_contract_exit\": 2,\n  \"facts\": {\n    \"binary_size\": 91,\n    \"full_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\"\n  },\n  \"focus_pin\": \"cursor_binary_sha256\",\n  \"focus_verdict\": \"UNSUPPORTED\",\n  \"gate_stderr\": \"\",\n  \"gate_stdout\": \"{\\n  \\\"checks\\\": [\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M04/verifiers/contract-witness-_vn5z7bs/mini.bin\\\",\\n      \\\"expect\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"pin\\\": \\\"omp_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M04/verifiers/contract-witness-_vn5z7bs/mini.bin\\\",\\n      \\\"delta_ns\\\": 0,\\n      \\\"expect\\\": \\\"2023-11-14T22:13:20.123456789+00:00\\\",\\n      \\\"kind\\\": \\\"mtime\\\",\\n      \\\"observed\\\": \\\"1700000000123456789\\\",\\n      \\\"pin\\\": \\\"omp_binary_mtime\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"tolerance_ns\\\": 0,\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M04/verifiers/contract-witness-_vn5z7bs/mini.bin\\\",\\n      \\\"expect\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"pin\\\": \\\"opencode_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"opencode\\\",\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    },\\n    {\\n      \\\"detail\\\": \\\"pinned substrate/kind not resolvable by this guard (cursor_binary_sha256)\\\",\\n      \\\"expect\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": null,\\n      \\\"pin\\\": \\\"cursor_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"cursor\\\",\\n      \\\"verdict\\\": \\\"UNSUPPORTED\\\"\\n    }\\n  ],\\n  \\\"exit_code\\\": 2,\\n  \\\"fail\\\": 1,\\n  \\\"pass\\\": 3\\n}\\n\",\n  \"input_pins\": {\n    \"cursor_binary_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\",\n    \"omp_binary_mtime\": \"2023-11-14T22:13:20.123456789+00:00\",\n    \"omp_binary_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\",\n    \"opencode_binary_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\"\n  },\n  \"mutant\": \"M04\"\n}\n"
+        },
+        "self_test": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M04/verifiers/check_substrate_pins.py",
+            "--self-test"
+          ],
+          "exit_code": 0,
+          "stderr": "",
+          "stdout": "0 failure(s) over 62 assertions\n"
+        }
+      },
+      "restored_sha256": "bcfd5230eabb8b16343e11b21ec354d9860c65e4712187fc6650fc3f329495ce"
+    },
+    "M05": {
+      "mutated": {
+        "contract_witness": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/mutation_witness.py",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M05/verifiers/check_substrate_pins.py",
+            "M05"
+          ],
+          "exit_code": 1,
+          "stderr": "",
+          "stdout": "{\n  \"actual_gate_exit\": 0,\n  \"argv\": [\n    \"--baseline\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M05/verifiers/contract-witness-abikgam5/baseline.json\",\n    \"--omp-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M05/verifiers/contract-witness-abikgam5/mini.bin\",\n    \"--opencode-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M05/verifiers/contract-witness-abikgam5/mini.bin\",\n    \"--json\"\n  ],\n  \"expected_contract_exit\": 1,\n  \"facts\": {\n    \"binary_size\": 91,\n    \"full_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\"\n  },\n  \"focus_pin\": \"omp_binary_sha256\",\n  \"focus_verdict\": \"PASS\",\n  \"gate_stderr\": \"\",\n  \"gate_stdout\": \"{\\n  \\\"checks\\\": [\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M05/verifiers/contract-witness-abikgam5/mini.bin\\\",\\n      \\\"expect\\\": \\\"cf8bc79a0f46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"pin\\\": \\\"omp_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M05/verifiers/contract-witness-abikgam5/mini.bin\\\",\\n      \\\"delta_ns\\\": 0,\\n      \\\"expect\\\": \\\"2023-11-14T22:13:20.123456789+00:00\\\",\\n      \\\"kind\\\": \\\"mtime\\\",\\n      \\\"observed\\\": \\\"1700000000123456789\\\",\\n      \\\"pin\\\": \\\"omp_binary_mtime\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"tolerance_ns\\\": 0,\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M05/verifiers/contract-witness-abikgam5/mini.bin\\\",\\n      \\\"expect\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"pin\\\": \\\"opencode_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"opencode\\\",\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    }\\n  ],\\n  \\\"exit_code\\\": 0,\\n  \\\"fail\\\": 0,\\n  \\\"pass\\\": 3\\n}\\n\",\n  \"input_pins\": {\n    \"omp_binary_mtime\": \"2023-11-14T22:13:20.123456789+00:00\",\n    \"omp_binary_sha256\": \"cf8bc79a0f46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\",\n    \"opencode_binary_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\"\n  },\n  \"mutant\": \"M05\"\n}\n"
+        },
+        "self_test": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M05/verifiers/check_substrate_pins.py",
+            "--self-test"
+          ],
+          "exit_code": 0,
+          "stderr": "",
+          "stdout": "0 failure(s) over 62 assertions\n"
+        }
+      },
+      "mutated_sha256": "2fde9534bbc434f650d8dc39bb367b6abde7a6d0654693f23414eba8d7351b3a",
+      "pristine": {
+        "contract_witness": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/mutation_witness.py",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M05/verifiers/check_substrate_pins.py",
+            "M05"
+          ],
+          "exit_code": 0,
+          "stderr": "",
+          "stdout": "{\n  \"actual_gate_exit\": 1,\n  \"argv\": [\n    \"--baseline\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M05/verifiers/contract-witness-k967rn_g/baseline.json\",\n    \"--omp-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M05/verifiers/contract-witness-k967rn_g/mini.bin\",\n    \"--opencode-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M05/verifiers/contract-witness-k967rn_g/mini.bin\",\n    \"--json\"\n  ],\n  \"expected_contract_exit\": 1,\n  \"facts\": {\n    \"binary_size\": 91,\n    \"full_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\"\n  },\n  \"focus_pin\": \"omp_binary_sha256\",\n  \"focus_verdict\": \"DRIFT\",\n  \"gate_stderr\": \"\",\n  \"gate_stdout\": \"{\\n  \\\"checks\\\": [\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M05/verifiers/contract-witness-k967rn_g/mini.bin\\\",\\n      \\\"expect\\\": \\\"cf8bc79a0f46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"pin\\\": \\\"omp_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"verdict\\\": \\\"DRIFT\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M05/verifiers/contract-witness-k967rn_g/mini.bin\\\",\\n      \\\"delta_ns\\\": 0,\\n      \\\"expect\\\": \\\"2023-11-14T22:13:20.123456789+00:00\\\",\\n      \\\"kind\\\": \\\"mtime\\\",\\n      \\\"observed\\\": \\\"1700000000123456789\\\",\\n      \\\"pin\\\": \\\"omp_binary_mtime\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"tolerance_ns\\\": 0,\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M05/verifiers/contract-witness-k967rn_g/mini.bin\\\",\\n      \\\"expect\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"pin\\\": \\\"opencode_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"opencode\\\",\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    }\\n  ],\\n  \\\"exit_code\\\": 1,\\n  \\\"fail\\\": 1,\\n  \\\"pass\\\": 2\\n}\\n\",\n  \"input_pins\": {\n    \"omp_binary_mtime\": \"2023-11-14T22:13:20.123456789+00:00\",\n    \"omp_binary_sha256\": \"cf8bc79a0f46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\",\n    \"opencode_binary_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\"\n  },\n  \"mutant\": \"M05\"\n}\n"
+        },
+        "self_test": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M05/verifiers/check_substrate_pins.py",
+            "--self-test"
+          ],
+          "exit_code": 0,
+          "stderr": "",
+          "stdout": "0 failure(s) over 62 assertions\n"
+        }
+      },
+      "pristine_sha256": "bcfd5230eabb8b16343e11b21ec354d9860c65e4712187fc6650fc3f329495ce",
+      "restored": {
+        "contract_witness": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/mutation_witness.py",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M05/verifiers/check_substrate_pins.py",
+            "M05"
+          ],
+          "exit_code": 0,
+          "stderr": "",
+          "stdout": "{\n  \"actual_gate_exit\": 1,\n  \"argv\": [\n    \"--baseline\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M05/verifiers/contract-witness-uuz5qm_0/baseline.json\",\n    \"--omp-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M05/verifiers/contract-witness-uuz5qm_0/mini.bin\",\n    \"--opencode-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M05/verifiers/contract-witness-uuz5qm_0/mini.bin\",\n    \"--json\"\n  ],\n  \"expected_contract_exit\": 1,\n  \"facts\": {\n    \"binary_size\": 91,\n    \"full_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\"\n  },\n  \"focus_pin\": \"omp_binary_sha256\",\n  \"focus_verdict\": \"DRIFT\",\n  \"gate_stderr\": \"\",\n  \"gate_stdout\": \"{\\n  \\\"checks\\\": [\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M05/verifiers/contract-witness-uuz5qm_0/mini.bin\\\",\\n      \\\"expect\\\": \\\"cf8bc79a0f46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"pin\\\": \\\"omp_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"verdict\\\": \\\"DRIFT\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M05/verifiers/contract-witness-uuz5qm_0/mini.bin\\\",\\n      \\\"delta_ns\\\": 0,\\n      \\\"expect\\\": \\\"2023-11-14T22:13:20.123456789+00:00\\\",\\n      \\\"kind\\\": \\\"mtime\\\",\\n      \\\"observed\\\": \\\"1700000000123456789\\\",\\n      \\\"pin\\\": \\\"omp_binary_mtime\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"tolerance_ns\\\": 0,\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M05/verifiers/contract-witness-uuz5qm_0/mini.bin\\\",\\n      \\\"expect\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"pin\\\": \\\"opencode_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"opencode\\\",\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    }\\n  ],\\n  \\\"exit_code\\\": 1,\\n  \\\"fail\\\": 1,\\n  \\\"pass\\\": 2\\n}\\n\",\n  \"input_pins\": {\n    \"omp_binary_mtime\": \"2023-11-14T22:13:20.123456789+00:00\",\n    \"omp_binary_sha256\": \"cf8bc79a0f46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\",\n    \"opencode_binary_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\"\n  },\n  \"mutant\": \"M05\"\n}\n"
+        },
+        "self_test": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M05/verifiers/check_substrate_pins.py",
+            "--self-test"
+          ],
+          "exit_code": 0,
+          "stderr": "",
+          "stdout": "0 failure(s) over 62 assertions\n"
+        }
+      },
+      "restored_sha256": "bcfd5230eabb8b16343e11b21ec354d9860c65e4712187fc6650fc3f329495ce"
+    },
+    "M06": {
+      "mutated": {
+        "contract_witness": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/mutation_witness.py",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M06/verifiers/check_substrate_pins.py",
+            "M06"
+          ],
+          "exit_code": 1,
+          "stderr": "",
+          "stdout": "{\n  \"actual_gate_exit\": 1,\n  \"argv\": [\n    \"--baseline\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M06/verifiers/contract-witness-mlmql6ln/baseline.json\",\n    \"--omp-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M06/verifiers/contract-witness-mlmql6ln/mini.bin\",\n    \"--opencode-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M06/verifiers/contract-witness-mlmql6ln/mini.bin\",\n    \"--json\"\n  ],\n  \"expected_contract_exit\": 3,\n  \"facts\": {\n    \"binary_size\": 91,\n    \"full_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\"\n  },\n  \"focus_pin\": \"omp_binary_sha256\",\n  \"focus_verdict\": \"DRIFT\",\n  \"gate_stderr\": \"\",\n  \"gate_stdout\": \"{\\n  \\\"checks\\\": [\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M06/verifiers/contract-witness-mlmql6ln/mini.bin\\\",\\n      \\\"expect\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f:ignored\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"pin\\\": \\\"omp_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"verdict\\\": \\\"DRIFT\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M06/verifiers/contract-witness-mlmql6ln/mini.bin\\\",\\n      \\\"delta_ns\\\": 0,\\n      \\\"expect\\\": \\\"2023-11-14T22:13:20.123456789+00:00\\\",\\n      \\\"kind\\\": \\\"mtime\\\",\\n      \\\"observed\\\": \\\"1700000000123456789\\\",\\n      \\\"pin\\\": \\\"omp_binary_mtime\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"tolerance_ns\\\": 0,\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M06/verifiers/contract-witness-mlmql6ln/mini.bin\\\",\\n      \\\"expect\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"pin\\\": \\\"opencode_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"opencode\\\",\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    }\\n  ],\\n  \\\"exit_code\\\": 1,\\n  \\\"fail\\\": 1,\\n  \\\"pass\\\": 2\\n}\\n\",\n  \"input_pins\": {\n    \"omp_binary_mtime\": \"2023-11-14T22:13:20.123456789+00:00\",\n    \"omp_binary_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f:ignored\",\n    \"opencode_binary_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\"\n  },\n  \"mutant\": \"M06\"\n}\n"
+        },
+        "self_test": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M06/verifiers/check_substrate_pins.py",
+            "--self-test"
+          ],
+          "exit_code": 0,
+          "stderr": "",
+          "stdout": "0 failure(s) over 62 assertions\n"
+        }
+      },
+      "mutated_sha256": "24f073271699180536cc1a0471d76ab221756ec3e456e7fe76d94b81e5739973",
+      "pristine": {
+        "contract_witness": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/mutation_witness.py",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M06/verifiers/check_substrate_pins.py",
+            "M06"
+          ],
+          "exit_code": 0,
+          "stderr": "",
+          "stdout": "{\n  \"actual_gate_exit\": 3,\n  \"argv\": [\n    \"--baseline\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M06/verifiers/contract-witness-ibdg0oi8/baseline.json\",\n    \"--omp-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M06/verifiers/contract-witness-ibdg0oi8/mini.bin\",\n    \"--opencode-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M06/verifiers/contract-witness-ibdg0oi8/mini.bin\",\n    \"--json\"\n  ],\n  \"expected_contract_exit\": 3,\n  \"facts\": {\n    \"binary_size\": 91,\n    \"full_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\"\n  },\n  \"focus_pin\": \"omp_binary_sha256\",\n  \"focus_verdict\": \"BAD_PIN\",\n  \"gate_stderr\": \"\",\n  \"gate_stdout\": \"{\\n  \\\"checks\\\": [\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M06/verifiers/contract-witness-ibdg0oi8/mini.bin\\\",\\n      \\\"detail\\\": \\\"sha256 pin is not 64 hex characters\\\",\\n      \\\"expect\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f:ignored\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": null,\\n      \\\"pin\\\": \\\"omp_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"verdict\\\": \\\"BAD_PIN\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M06/verifiers/contract-witness-ibdg0oi8/mini.bin\\\",\\n      \\\"delta_ns\\\": 0,\\n      \\\"expect\\\": \\\"2023-11-14T22:13:20.123456789+00:00\\\",\\n      \\\"kind\\\": \\\"mtime\\\",\\n      \\\"observed\\\": \\\"1700000000123456789\\\",\\n      \\\"pin\\\": \\\"omp_binary_mtime\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"tolerance_ns\\\": 0,\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M06/verifiers/contract-witness-ibdg0oi8/mini.bin\\\",\\n      \\\"expect\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"pin\\\": \\\"opencode_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"opencode\\\",\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    }\\n  ],\\n  \\\"exit_code\\\": 3,\\n  \\\"fail\\\": 1,\\n  \\\"pass\\\": 2\\n}\\n\",\n  \"input_pins\": {\n    \"omp_binary_mtime\": \"2023-11-14T22:13:20.123456789+00:00\",\n    \"omp_binary_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f:ignored\",\n    \"opencode_binary_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\"\n  },\n  \"mutant\": \"M06\"\n}\n"
+        },
+        "self_test": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M06/verifiers/check_substrate_pins.py",
+            "--self-test"
+          ],
+          "exit_code": 0,
+          "stderr": "",
+          "stdout": "0 failure(s) over 62 assertions\n"
+        }
+      },
+      "pristine_sha256": "bcfd5230eabb8b16343e11b21ec354d9860c65e4712187fc6650fc3f329495ce",
+      "restored": {
+        "contract_witness": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/mutation_witness.py",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M06/verifiers/check_substrate_pins.py",
+            "M06"
+          ],
+          "exit_code": 0,
+          "stderr": "",
+          "stdout": "{\n  \"actual_gate_exit\": 3,\n  \"argv\": [\n    \"--baseline\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M06/verifiers/contract-witness-_r_m7ip7/baseline.json\",\n    \"--omp-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M06/verifiers/contract-witness-_r_m7ip7/mini.bin\",\n    \"--opencode-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M06/verifiers/contract-witness-_r_m7ip7/mini.bin\",\n    \"--json\"\n  ],\n  \"expected_contract_exit\": 3,\n  \"facts\": {\n    \"binary_size\": 91,\n    \"full_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\"\n  },\n  \"focus_pin\": \"omp_binary_sha256\",\n  \"focus_verdict\": \"BAD_PIN\",\n  \"gate_stderr\": \"\",\n  \"gate_stdout\": \"{\\n  \\\"checks\\\": [\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M06/verifiers/contract-witness-_r_m7ip7/mini.bin\\\",\\n      \\\"detail\\\": \\\"sha256 pin is not 64 hex characters\\\",\\n      \\\"expect\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f:ignored\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": null,\\n      \\\"pin\\\": \\\"omp_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"verdict\\\": \\\"BAD_PIN\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M06/verifiers/contract-witness-_r_m7ip7/mini.bin\\\",\\n      \\\"delta_ns\\\": 0,\\n      \\\"expect\\\": \\\"2023-11-14T22:13:20.123456789+00:00\\\",\\n      \\\"kind\\\": \\\"mtime\\\",\\n      \\\"observed\\\": \\\"1700000000123456789\\\",\\n      \\\"pin\\\": \\\"omp_binary_mtime\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"tolerance_ns\\\": 0,\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M06/verifiers/contract-witness-_r_m7ip7/mini.bin\\\",\\n      \\\"expect\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"pin\\\": \\\"opencode_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"opencode\\\",\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    }\\n  ],\\n  \\\"exit_code\\\": 3,\\n  \\\"fail\\\": 1,\\n  \\\"pass\\\": 2\\n}\\n\",\n  \"input_pins\": {\n    \"omp_binary_mtime\": \"2023-11-14T22:13:20.123456789+00:00\",\n    \"omp_binary_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f:ignored\",\n    \"opencode_binary_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\"\n  },\n  \"mutant\": \"M06\"\n}\n"
+        },
+        "self_test": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M06/verifiers/check_substrate_pins.py",
+            "--self-test"
+          ],
+          "exit_code": 0,
+          "stderr": "",
+          "stdout": "0 failure(s) over 62 assertions\n"
+        }
+      },
+      "restored_sha256": "bcfd5230eabb8b16343e11b21ec354d9860c65e4712187fc6650fc3f329495ce"
+    },
+    "M07": {
+      "mutated": {
+        "contract_witness": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/mutation_witness.py",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M07/verifiers/check_substrate_pins.py",
+            "M07"
+          ],
+          "exit_code": 1,
+          "stderr": "",
+          "stdout": "{\n  \"actual_gate_exit\": 0,\n  \"argv\": [\n    \"--baseline\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M07/verifiers/contract-witness-jas5xja4/baseline.json\",\n    \"--omp-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M07/verifiers/contract-witness-jas5xja4/mini.bin\",\n    \"--opencode-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M07/verifiers/contract-witness-jas5xja4/mini.bin\",\n    \"--json\"\n  ],\n  \"expected_contract_exit\": 1,\n  \"facts\": {\n    \"binary_size\": 91,\n    \"full_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\"\n  },\n  \"focus_pin\": \"omp_binary_mtime\",\n  \"focus_verdict\": \"PASS\",\n  \"gate_stderr\": \"\",\n  \"gate_stdout\": \"{\\n  \\\"checks\\\": [\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M07/verifiers/contract-witness-jas5xja4/mini.bin\\\",\\n      \\\"expect\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"pin\\\": \\\"omp_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M07/verifiers/contract-witness-jas5xja4/mini.bin\\\",\\n      \\\"delta_ns\\\": -1,\\n      \\\"expect\\\": \\\"2023-11-14T22:13:20.123456790+00:00\\\",\\n      \\\"kind\\\": \\\"mtime\\\",\\n      \\\"observed\\\": \\\"1700000000123456789\\\",\\n      \\\"pin\\\": \\\"omp_binary_mtime\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"tolerance_ns\\\": 0,\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M07/verifiers/contract-witness-jas5xja4/mini.bin\\\",\\n      \\\"expect\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"pin\\\": \\\"opencode_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"opencode\\\",\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    }\\n  ],\\n  \\\"exit_code\\\": 0,\\n  \\\"fail\\\": 0,\\n  \\\"pass\\\": 3\\n}\\n\",\n  \"input_pins\": {\n    \"omp_binary_mtime\": \"2023-11-14T22:13:20.123456790+00:00\",\n    \"omp_binary_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\",\n    \"opencode_binary_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\"\n  },\n  \"mutant\": \"M07\"\n}\n"
+        },
+        "self_test": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M07/verifiers/check_substrate_pins.py",
+            "--self-test"
+          ],
+          "exit_code": 1,
+          "stderr": "",
+          "stdout": "1 failure(s) over 62 assertions\nFAIL: mtime pin 2 us off at us precision: exit 1 \u2014 the window is the pin's own quantum, not a blob tolerance: got 0\n"
+        }
+      },
+      "mutated_sha256": "073e3051958323b697265a73836ac7b37d1608aec5f1b11f5a3916a2af1fcbe7",
+      "pristine": {
+        "contract_witness": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/mutation_witness.py",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M07/verifiers/check_substrate_pins.py",
+            "M07"
+          ],
+          "exit_code": 0,
+          "stderr": "",
+          "stdout": "{\n  \"actual_gate_exit\": 1,\n  \"argv\": [\n    \"--baseline\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M07/verifiers/contract-witness-yok2yrxc/baseline.json\",\n    \"--omp-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M07/verifiers/contract-witness-yok2yrxc/mini.bin\",\n    \"--opencode-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M07/verifiers/contract-witness-yok2yrxc/mini.bin\",\n    \"--json\"\n  ],\n  \"expected_contract_exit\": 1,\n  \"facts\": {\n    \"binary_size\": 91,\n    \"full_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\"\n  },\n  \"focus_pin\": \"omp_binary_mtime\",\n  \"focus_verdict\": \"DRIFT\",\n  \"gate_stderr\": \"\",\n  \"gate_stdout\": \"{\\n  \\\"checks\\\": [\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M07/verifiers/contract-witness-yok2yrxc/mini.bin\\\",\\n      \\\"expect\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"pin\\\": \\\"omp_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M07/verifiers/contract-witness-yok2yrxc/mini.bin\\\",\\n      \\\"delta_ns\\\": -1,\\n      \\\"expect\\\": \\\"2023-11-14T22:13:20.123456790+00:00\\\",\\n      \\\"kind\\\": \\\"mtime\\\",\\n      \\\"observed\\\": \\\"1700000000123456789\\\",\\n      \\\"pin\\\": \\\"omp_binary_mtime\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"tolerance_ns\\\": 0,\\n      \\\"verdict\\\": \\\"DRIFT\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M07/verifiers/contract-witness-yok2yrxc/mini.bin\\\",\\n      \\\"expect\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"pin\\\": \\\"opencode_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"opencode\\\",\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    }\\n  ],\\n  \\\"exit_code\\\": 1,\\n  \\\"fail\\\": 1,\\n  \\\"pass\\\": 2\\n}\\n\",\n  \"input_pins\": {\n    \"omp_binary_mtime\": \"2023-11-14T22:13:20.123456790+00:00\",\n    \"omp_binary_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\",\n    \"opencode_binary_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\"\n  },\n  \"mutant\": \"M07\"\n}\n"
+        },
+        "self_test": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M07/verifiers/check_substrate_pins.py",
+            "--self-test"
+          ],
+          "exit_code": 0,
+          "stderr": "",
+          "stdout": "0 failure(s) over 62 assertions\n"
+        }
+      },
+      "pristine_sha256": "bcfd5230eabb8b16343e11b21ec354d9860c65e4712187fc6650fc3f329495ce",
+      "restored": {
+        "contract_witness": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/mutation_witness.py",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M07/verifiers/check_substrate_pins.py",
+            "M07"
+          ],
+          "exit_code": 0,
+          "stderr": "",
+          "stdout": "{\n  \"actual_gate_exit\": 1,\n  \"argv\": [\n    \"--baseline\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M07/verifiers/contract-witness-xj_j0r92/baseline.json\",\n    \"--omp-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M07/verifiers/contract-witness-xj_j0r92/mini.bin\",\n    \"--opencode-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M07/verifiers/contract-witness-xj_j0r92/mini.bin\",\n    \"--json\"\n  ],\n  \"expected_contract_exit\": 1,\n  \"facts\": {\n    \"binary_size\": 91,\n    \"full_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\"\n  },\n  \"focus_pin\": \"omp_binary_mtime\",\n  \"focus_verdict\": \"DRIFT\",\n  \"gate_stderr\": \"\",\n  \"gate_stdout\": \"{\\n  \\\"checks\\\": [\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M07/verifiers/contract-witness-xj_j0r92/mini.bin\\\",\\n      \\\"expect\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"pin\\\": \\\"omp_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M07/verifiers/contract-witness-xj_j0r92/mini.bin\\\",\\n      \\\"delta_ns\\\": -1,\\n      \\\"expect\\\": \\\"2023-11-14T22:13:20.123456790+00:00\\\",\\n      \\\"kind\\\": \\\"mtime\\\",\\n      \\\"observed\\\": \\\"1700000000123456789\\\",\\n      \\\"pin\\\": \\\"omp_binary_mtime\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"tolerance_ns\\\": 0,\\n      \\\"verdict\\\": \\\"DRIFT\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M07/verifiers/contract-witness-xj_j0r92/mini.bin\\\",\\n      \\\"expect\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"pin\\\": \\\"opencode_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"opencode\\\",\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    }\\n  ],\\n  \\\"exit_code\\\": 1,\\n  \\\"fail\\\": 1,\\n  \\\"pass\\\": 2\\n}\\n\",\n  \"input_pins\": {\n    \"omp_binary_mtime\": \"2023-11-14T22:13:20.123456790+00:00\",\n    \"omp_binary_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\",\n    \"opencode_binary_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\"\n  },\n  \"mutant\": \"M07\"\n}\n"
+        },
+        "self_test": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M07/verifiers/check_substrate_pins.py",
+            "--self-test"
+          ],
+          "exit_code": 0,
+          "stderr": "",
+          "stdout": "0 failure(s) over 62 assertions\n"
+        }
+      },
+      "restored_sha256": "bcfd5230eabb8b16343e11b21ec354d9860c65e4712187fc6650fc3f329495ce"
+    },
+    "M08": {
+      "mutated": {
+        "contract_witness": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/mutation_witness.py",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M08/verifiers/check_substrate_pins.py",
+            "M08"
+          ],
+          "exit_code": 1,
+          "stderr": "",
+          "stdout": "{\n  \"actual_gate_exit\": 0,\n  \"argv\": [\n    \"--baseline\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M08/verifiers/contract-witness-lq2ufwtz/baseline.json\",\n    \"--omp-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M08/verifiers/contract-witness-lq2ufwtz/mini.bin\",\n    \"--opencode-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M08/verifiers/contract-witness-lq2ufwtz/mini.bin\",\n    \"--json\"\n  ],\n  \"expected_contract_exit\": 1,\n  \"facts\": {\n    \"binary_size\": 91,\n    \"full_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\"\n  },\n  \"focus_pin\": \"opencode_binary_mtime\",\n  \"focus_verdict\": \"ABSENT_FROM_REPORT\",\n  \"gate_stderr\": \"\",\n  \"gate_stdout\": \"{\\n  \\\"checks\\\": [\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M08/verifiers/contract-witness-lq2ufwtz/mini.bin\\\",\\n      \\\"expect\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"pin\\\": \\\"omp_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M08/verifiers/contract-witness-lq2ufwtz/mini.bin\\\",\\n      \\\"delta_ns\\\": 0,\\n      \\\"expect\\\": \\\"2023-11-14T22:13:20.123456789+00:00\\\",\\n      \\\"kind\\\": \\\"mtime\\\",\\n      \\\"observed\\\": \\\"1700000000123456789\\\",\\n      \\\"pin\\\": \\\"omp_binary_mtime\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"tolerance_ns\\\": 0,\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M08/verifiers/contract-witness-lq2ufwtz/mini.bin\\\",\\n      \\\"expect\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"pin\\\": \\\"opencode_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"opencode\\\",\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    }\\n  ],\\n  \\\"exit_code\\\": 0,\\n  \\\"fail\\\": 0,\\n  \\\"pass\\\": 3\\n}\\n\",\n  \"input_pins\": {\n    \"omp_binary_mtime\": \"2023-11-14T22:13:20.123456789+00:00\",\n    \"omp_binary_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\",\n    \"opencode_binary_mtime\": \"2000-01-01T00:00:00.000000000+00:00\",\n    \"opencode_binary_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\"\n  },\n  \"mutant\": \"M08\"\n}\n"
+        },
+        "self_test": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M08/verifiers/check_substrate_pins.py",
+            "--self-test"
+          ],
+          "exit_code": 0,
+          "stderr": "",
+          "stdout": "0 failure(s) over 62 assertions\n"
+        }
+      },
+      "mutated_sha256": "60a8dc0564b758aa82bcf599ab116faea4ca39521d21741136cd855bd9735dd2",
+      "pristine": {
+        "contract_witness": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/mutation_witness.py",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M08/verifiers/check_substrate_pins.py",
+            "M08"
+          ],
+          "exit_code": 0,
+          "stderr": "",
+          "stdout": "{\n  \"actual_gate_exit\": 1,\n  \"argv\": [\n    \"--baseline\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M08/verifiers/contract-witness-1jhc19q_/baseline.json\",\n    \"--omp-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M08/verifiers/contract-witness-1jhc19q_/mini.bin\",\n    \"--opencode-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M08/verifiers/contract-witness-1jhc19q_/mini.bin\",\n    \"--json\"\n  ],\n  \"expected_contract_exit\": 1,\n  \"facts\": {\n    \"binary_size\": 91,\n    \"full_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\"\n  },\n  \"focus_pin\": \"opencode_binary_mtime\",\n  \"focus_verdict\": \"DRIFT\",\n  \"gate_stderr\": \"\",\n  \"gate_stdout\": \"{\\n  \\\"checks\\\": [\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M08/verifiers/contract-witness-1jhc19q_/mini.bin\\\",\\n      \\\"expect\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"pin\\\": \\\"omp_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M08/verifiers/contract-witness-1jhc19q_/mini.bin\\\",\\n      \\\"delta_ns\\\": 0,\\n      \\\"expect\\\": \\\"2023-11-14T22:13:20.123456789+00:00\\\",\\n      \\\"kind\\\": \\\"mtime\\\",\\n      \\\"observed\\\": \\\"1700000000123456789\\\",\\n      \\\"pin\\\": \\\"omp_binary_mtime\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"tolerance_ns\\\": 0,\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M08/verifiers/contract-witness-1jhc19q_/mini.bin\\\",\\n      \\\"expect\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"pin\\\": \\\"opencode_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"opencode\\\",\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M08/verifiers/contract-witness-1jhc19q_/mini.bin\\\",\\n      \\\"delta_ns\\\": 753315200123456789,\\n      \\\"expect\\\": \\\"2000-01-01T00:00:00.000000000+00:00\\\",\\n      \\\"kind\\\": \\\"mtime\\\",\\n      \\\"observed\\\": \\\"1700000000123456789\\\",\\n      \\\"pin\\\": \\\"opencode_binary_mtime\\\",\\n      \\\"substrate\\\": \\\"opencode\\\",\\n      \\\"tolerance_ns\\\": 0,\\n      \\\"verdict\\\": \\\"DRIFT\\\"\\n    }\\n  ],\\n  \\\"exit_code\\\": 1,\\n  \\\"fail\\\": 1,\\n  \\\"pass\\\": 3\\n}\\n\",\n  \"input_pins\": {\n    \"omp_binary_mtime\": \"2023-11-14T22:13:20.123456789+00:00\",\n    \"omp_binary_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\",\n    \"opencode_binary_mtime\": \"2000-01-01T00:00:00.000000000+00:00\",\n    \"opencode_binary_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\"\n  },\n  \"mutant\": \"M08\"\n}\n"
+        },
+        "self_test": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M08/verifiers/check_substrate_pins.py",
+            "--self-test"
+          ],
+          "exit_code": 0,
+          "stderr": "",
+          "stdout": "0 failure(s) over 62 assertions\n"
+        }
+      },
+      "pristine_sha256": "bcfd5230eabb8b16343e11b21ec354d9860c65e4712187fc6650fc3f329495ce",
+      "restored": {
+        "contract_witness": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/mutation_witness.py",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M08/verifiers/check_substrate_pins.py",
+            "M08"
+          ],
+          "exit_code": 0,
+          "stderr": "",
+          "stdout": "{\n  \"actual_gate_exit\": 1,\n  \"argv\": [\n    \"--baseline\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M08/verifiers/contract-witness-1tmhq31r/baseline.json\",\n    \"--omp-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M08/verifiers/contract-witness-1tmhq31r/mini.bin\",\n    \"--opencode-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M08/verifiers/contract-witness-1tmhq31r/mini.bin\",\n    \"--json\"\n  ],\n  \"expected_contract_exit\": 1,\n  \"facts\": {\n    \"binary_size\": 91,\n    \"full_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\"\n  },\n  \"focus_pin\": \"opencode_binary_mtime\",\n  \"focus_verdict\": \"DRIFT\",\n  \"gate_stderr\": \"\",\n  \"gate_stdout\": \"{\\n  \\\"checks\\\": [\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M08/verifiers/contract-witness-1tmhq31r/mini.bin\\\",\\n      \\\"expect\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"pin\\\": \\\"omp_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M08/verifiers/contract-witness-1tmhq31r/mini.bin\\\",\\n      \\\"delta_ns\\\": 0,\\n      \\\"expect\\\": \\\"2023-11-14T22:13:20.123456789+00:00\\\",\\n      \\\"kind\\\": \\\"mtime\\\",\\n      \\\"observed\\\": \\\"1700000000123456789\\\",\\n      \\\"pin\\\": \\\"omp_binary_mtime\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"tolerance_ns\\\": 0,\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M08/verifiers/contract-witness-1tmhq31r/mini.bin\\\",\\n      \\\"expect\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"pin\\\": \\\"opencode_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"opencode\\\",\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M08/verifiers/contract-witness-1tmhq31r/mini.bin\\\",\\n      \\\"delta_ns\\\": 753315200123456789,\\n      \\\"expect\\\": \\\"2000-01-01T00:00:00.000000000+00:00\\\",\\n      \\\"kind\\\": \\\"mtime\\\",\\n      \\\"observed\\\": \\\"1700000000123456789\\\",\\n      \\\"pin\\\": \\\"opencode_binary_mtime\\\",\\n      \\\"substrate\\\": \\\"opencode\\\",\\n      \\\"tolerance_ns\\\": 0,\\n      \\\"verdict\\\": \\\"DRIFT\\\"\\n    }\\n  ],\\n  \\\"exit_code\\\": 1,\\n  \\\"fail\\\": 1,\\n  \\\"pass\\\": 3\\n}\\n\",\n  \"input_pins\": {\n    \"omp_binary_mtime\": \"2023-11-14T22:13:20.123456789+00:00\",\n    \"omp_binary_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\",\n    \"opencode_binary_mtime\": \"2000-01-01T00:00:00.000000000+00:00\",\n    \"opencode_binary_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\"\n  },\n  \"mutant\": \"M08\"\n}\n"
+        },
+        "self_test": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M08/verifiers/check_substrate_pins.py",
+            "--self-test"
+          ],
+          "exit_code": 0,
+          "stderr": "",
+          "stdout": "0 failure(s) over 62 assertions\n"
+        }
+      },
+      "restored_sha256": "bcfd5230eabb8b16343e11b21ec354d9860c65e4712187fc6650fc3f329495ce"
+    },
+    "M09": {
+      "mutated": {
+        "contract_witness": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/mutation_witness.py",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M09/verifiers/check_substrate_pins.py",
+            "M09"
+          ],
+          "exit_code": 1,
+          "stderr": "",
+          "stdout": "{\n  \"actual_gate_exit\": 0,\n  \"argv\": [\n    \"--baseline\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M09/verifiers/contract-witness-pjc5rbyk/baseline.json\",\n    \"--omp-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M09/verifiers/contract-witness-pjc5rbyk/mini.bin\",\n    \"--opencode-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M09/verifiers/contract-witness-pjc5rbyk/mini.bin\",\n    \"--json\"\n  ],\n  \"expected_contract_exit\": 1,\n  \"facts\": {\n    \"binary_size\": 1048594,\n    \"full_sha256\": \"42a5e8e9a757904075b418fc5750312deefc42daf734f54c9e71cd53be625ec9\",\n    \"prefix_sha256\": \"4e29ad18ab9f42d7c233500771a39d7c852b200baf328fd00fbbe3fecea1eb56\"\n  },\n  \"focus_pin\": \"omp_binary_sha256\",\n  \"focus_verdict\": \"PASS\",\n  \"gate_stderr\": \"\",\n  \"gate_stdout\": \"{\\n  \\\"checks\\\": [\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M09/verifiers/contract-witness-pjc5rbyk/mini.bin\\\",\\n      \\\"expect\\\": \\\"4e29ad18ab9f42d7c233500771a39d7c852b200baf328fd00fbbe3fecea1eb56\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": \\\"4e29ad18ab9f42d7c233500771a39d7c852b200baf328fd00fbbe3fecea1eb56\\\",\\n      \\\"pin\\\": \\\"omp_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M09/verifiers/contract-witness-pjc5rbyk/mini.bin\\\",\\n      \\\"delta_ns\\\": 0,\\n      \\\"expect\\\": \\\"2023-11-14T22:13:20.123456789+00:00\\\",\\n      \\\"kind\\\": \\\"mtime\\\",\\n      \\\"observed\\\": \\\"1700000000123456789\\\",\\n      \\\"pin\\\": \\\"omp_binary_mtime\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"tolerance_ns\\\": 0,\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M09/verifiers/contract-witness-pjc5rbyk/mini.bin\\\",\\n      \\\"expect\\\": \\\"4e29ad18ab9f42d7c233500771a39d7c852b200baf328fd00fbbe3fecea1eb56\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": \\\"4e29ad18ab9f42d7c233500771a39d7c852b200baf328fd00fbbe3fecea1eb56\\\",\\n      \\\"pin\\\": \\\"opencode_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"opencode\\\",\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    }\\n  ],\\n  \\\"exit_code\\\": 0,\\n  \\\"fail\\\": 0,\\n  \\\"pass\\\": 3\\n}\\n\",\n  \"input_pins\": {\n    \"omp_binary_mtime\": \"2023-11-14T22:13:20.123456789+00:00\",\n    \"omp_binary_sha256\": \"4e29ad18ab9f42d7c233500771a39d7c852b200baf328fd00fbbe3fecea1eb56\",\n    \"opencode_binary_sha256\": \"4e29ad18ab9f42d7c233500771a39d7c852b200baf328fd00fbbe3fecea1eb56\"\n  },\n  \"mutant\": \"M09\"\n}\n"
+        },
+        "self_test": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M09/verifiers/check_substrate_pins.py",
+            "--self-test"
+          ],
+          "exit_code": 0,
+          "stderr": "",
+          "stdout": "0 failure(s) over 62 assertions\n"
+        }
+      },
+      "mutated_sha256": "7e07b4250230520f4e6134b3e192ea29c4735271bb5930bf3da7df0e2c4b1b76",
+      "pristine": {
+        "contract_witness": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/mutation_witness.py",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M09/verifiers/check_substrate_pins.py",
+            "M09"
+          ],
+          "exit_code": 0,
+          "stderr": "",
+          "stdout": "{\n  \"actual_gate_exit\": 1,\n  \"argv\": [\n    \"--baseline\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M09/verifiers/contract-witness-nv10pfs9/baseline.json\",\n    \"--omp-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M09/verifiers/contract-witness-nv10pfs9/mini.bin\",\n    \"--opencode-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M09/verifiers/contract-witness-nv10pfs9/mini.bin\",\n    \"--json\"\n  ],\n  \"expected_contract_exit\": 1,\n  \"facts\": {\n    \"binary_size\": 1048594,\n    \"full_sha256\": \"42a5e8e9a757904075b418fc5750312deefc42daf734f54c9e71cd53be625ec9\",\n    \"prefix_sha256\": \"4e29ad18ab9f42d7c233500771a39d7c852b200baf328fd00fbbe3fecea1eb56\"\n  },\n  \"focus_pin\": \"omp_binary_sha256\",\n  \"focus_verdict\": \"DRIFT\",\n  \"gate_stderr\": \"\",\n  \"gate_stdout\": \"{\\n  \\\"checks\\\": [\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M09/verifiers/contract-witness-nv10pfs9/mini.bin\\\",\\n      \\\"expect\\\": \\\"4e29ad18ab9f42d7c233500771a39d7c852b200baf328fd00fbbe3fecea1eb56\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": \\\"42a5e8e9a757904075b418fc5750312deefc42daf734f54c9e71cd53be625ec9\\\",\\n      \\\"pin\\\": \\\"omp_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"verdict\\\": \\\"DRIFT\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M09/verifiers/contract-witness-nv10pfs9/mini.bin\\\",\\n      \\\"delta_ns\\\": 0,\\n      \\\"expect\\\": \\\"2023-11-14T22:13:20.123456789+00:00\\\",\\n      \\\"kind\\\": \\\"mtime\\\",\\n      \\\"observed\\\": \\\"1700000000123456789\\\",\\n      \\\"pin\\\": \\\"omp_binary_mtime\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"tolerance_ns\\\": 0,\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M09/verifiers/contract-witness-nv10pfs9/mini.bin\\\",\\n      \\\"expect\\\": \\\"4e29ad18ab9f42d7c233500771a39d7c852b200baf328fd00fbbe3fecea1eb56\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": \\\"42a5e8e9a757904075b418fc5750312deefc42daf734f54c9e71cd53be625ec9\\\",\\n      \\\"pin\\\": \\\"opencode_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"opencode\\\",\\n      \\\"verdict\\\": \\\"DRIFT\\\"\\n    }\\n  ],\\n  \\\"exit_code\\\": 1,\\n  \\\"fail\\\": 2,\\n  \\\"pass\\\": 1\\n}\\n\",\n  \"input_pins\": {\n    \"omp_binary_mtime\": \"2023-11-14T22:13:20.123456789+00:00\",\n    \"omp_binary_sha256\": \"4e29ad18ab9f42d7c233500771a39d7c852b200baf328fd00fbbe3fecea1eb56\",\n    \"opencode_binary_sha256\": \"4e29ad18ab9f42d7c233500771a39d7c852b200baf328fd00fbbe3fecea1eb56\"\n  },\n  \"mutant\": \"M09\"\n}\n"
+        },
+        "self_test": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M09/verifiers/check_substrate_pins.py",
+            "--self-test"
+          ],
+          "exit_code": 0,
+          "stderr": "",
+          "stdout": "0 failure(s) over 62 assertions\n"
+        }
+      },
+      "pristine_sha256": "bcfd5230eabb8b16343e11b21ec354d9860c65e4712187fc6650fc3f329495ce",
+      "restored": {
+        "contract_witness": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/mutation_witness.py",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M09/verifiers/check_substrate_pins.py",
+            "M09"
+          ],
+          "exit_code": 0,
+          "stderr": "",
+          "stdout": "{\n  \"actual_gate_exit\": 1,\n  \"argv\": [\n    \"--baseline\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M09/verifiers/contract-witness-2fd5864y/baseline.json\",\n    \"--omp-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M09/verifiers/contract-witness-2fd5864y/mini.bin\",\n    \"--opencode-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M09/verifiers/contract-witness-2fd5864y/mini.bin\",\n    \"--json\"\n  ],\n  \"expected_contract_exit\": 1,\n  \"facts\": {\n    \"binary_size\": 1048594,\n    \"full_sha256\": \"42a5e8e9a757904075b418fc5750312deefc42daf734f54c9e71cd53be625ec9\",\n    \"prefix_sha256\": \"4e29ad18ab9f42d7c233500771a39d7c852b200baf328fd00fbbe3fecea1eb56\"\n  },\n  \"focus_pin\": \"omp_binary_sha256\",\n  \"focus_verdict\": \"DRIFT\",\n  \"gate_stderr\": \"\",\n  \"gate_stdout\": \"{\\n  \\\"checks\\\": [\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M09/verifiers/contract-witness-2fd5864y/mini.bin\\\",\\n      \\\"expect\\\": \\\"4e29ad18ab9f42d7c233500771a39d7c852b200baf328fd00fbbe3fecea1eb56\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": \\\"42a5e8e9a757904075b418fc5750312deefc42daf734f54c9e71cd53be625ec9\\\",\\n      \\\"pin\\\": \\\"omp_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"verdict\\\": \\\"DRIFT\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M09/verifiers/contract-witness-2fd5864y/mini.bin\\\",\\n      \\\"delta_ns\\\": 0,\\n      \\\"expect\\\": \\\"2023-11-14T22:13:20.123456789+00:00\\\",\\n      \\\"kind\\\": \\\"mtime\\\",\\n      \\\"observed\\\": \\\"1700000000123456789\\\",\\n      \\\"pin\\\": \\\"omp_binary_mtime\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"tolerance_ns\\\": 0,\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M09/verifiers/contract-witness-2fd5864y/mini.bin\\\",\\n      \\\"expect\\\": \\\"4e29ad18ab9f42d7c233500771a39d7c852b200baf328fd00fbbe3fecea1eb56\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": \\\"42a5e8e9a757904075b418fc5750312deefc42daf734f54c9e71cd53be625ec9\\\",\\n      \\\"pin\\\": \\\"opencode_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"opencode\\\",\\n      \\\"verdict\\\": \\\"DRIFT\\\"\\n    }\\n  ],\\n  \\\"exit_code\\\": 1,\\n  \\\"fail\\\": 2,\\n  \\\"pass\\\": 1\\n}\\n\",\n  \"input_pins\": {\n    \"omp_binary_mtime\": \"2023-11-14T22:13:20.123456789+00:00\",\n    \"omp_binary_sha256\": \"4e29ad18ab9f42d7c233500771a39d7c852b200baf328fd00fbbe3fecea1eb56\",\n    \"opencode_binary_sha256\": \"4e29ad18ab9f42d7c233500771a39d7c852b200baf328fd00fbbe3fecea1eb56\"\n  },\n  \"mutant\": \"M09\"\n}\n"
+        },
+        "self_test": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M09/verifiers/check_substrate_pins.py",
+            "--self-test"
+          ],
+          "exit_code": 0,
+          "stderr": "",
+          "stdout": "0 failure(s) over 62 assertions\n"
+        }
+      },
+      "restored_sha256": "bcfd5230eabb8b16343e11b21ec354d9860c65e4712187fc6650fc3f329495ce"
+    },
+    "M10": {
+      "mutated": {
+        "contract_witness": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/mutation_witness.py",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M10/verifiers/check_substrate_pins.py",
+            "M10"
+          ],
+          "exit_code": 1,
+          "stderr": "",
+          "stdout": "{\n  \"actual_gate_exit\": 0,\n  \"argv\": [\n    \"--baseline\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M10/verifiers/contract-witness-8brn95ts/baseline.json\",\n    \"--omp-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M10/verifiers/contract-witness-8brn95ts/mini.bin\",\n    \"--opencode-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M10/verifiers/contract-witness-8brn95ts/mini.bin\",\n    \"--json\"\n  ],\n  \"expected_contract_exit\": 3,\n  \"facts\": {\n    \"binary_size\": 91,\n    \"full_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\"\n  },\n  \"focus_pin\": \"omp_binary_mtime\",\n  \"focus_verdict\": \"PASS\",\n  \"gate_stderr\": \"\",\n  \"gate_stdout\": \"{\\n  \\\"checks\\\": [\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M10/verifiers/contract-witness-8brn95ts/mini.bin\\\",\\n      \\\"expect\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"pin\\\": \\\"omp_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M10/verifiers/contract-witness-8brn95ts/mini.bin\\\",\\n      \\\"delta_ns\\\": 0,\\n      \\\"expect\\\": \\\"2023-11-14T22:13:20.1234567890+00:00\\\",\\n      \\\"kind\\\": \\\"mtime\\\",\\n      \\\"observed\\\": \\\"1700000000123456789\\\",\\n      \\\"pin\\\": \\\"omp_binary_mtime\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"tolerance_ns\\\": 0,\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M10/verifiers/contract-witness-8brn95ts/mini.bin\\\",\\n      \\\"expect\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"pin\\\": \\\"opencode_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"opencode\\\",\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    }\\n  ],\\n  \\\"exit_code\\\": 0,\\n  \\\"fail\\\": 0,\\n  \\\"pass\\\": 3\\n}\\n\",\n  \"input_pins\": {\n    \"omp_binary_mtime\": \"2023-11-14T22:13:20.1234567890+00:00\",\n    \"omp_binary_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\",\n    \"opencode_binary_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\"\n  },\n  \"mutant\": \"M10\"\n}\n"
+        },
+        "self_test": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M10/verifiers/check_substrate_pins.py",
+            "--self-test"
+          ],
+          "exit_code": 0,
+          "stderr": "",
+          "stdout": "0 failure(s) over 62 assertions\n"
+        }
+      },
+      "mutated_sha256": "defb2df17fe07631eae386bef7b364045fc4a2bca56120cd22740e66502a61d0",
+      "pristine": {
+        "contract_witness": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/mutation_witness.py",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M10/verifiers/check_substrate_pins.py",
+            "M10"
+          ],
+          "exit_code": 0,
+          "stderr": "",
+          "stdout": "{\n  \"actual_gate_exit\": 3,\n  \"argv\": [\n    \"--baseline\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M10/verifiers/contract-witness-mcu1hb4k/baseline.json\",\n    \"--omp-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M10/verifiers/contract-witness-mcu1hb4k/mini.bin\",\n    \"--opencode-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M10/verifiers/contract-witness-mcu1hb4k/mini.bin\",\n    \"--json\"\n  ],\n  \"expected_contract_exit\": 3,\n  \"facts\": {\n    \"binary_size\": 91,\n    \"full_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\"\n  },\n  \"focus_pin\": \"omp_binary_mtime\",\n  \"focus_verdict\": \"BAD_PIN\",\n  \"gate_stderr\": \"\",\n  \"gate_stdout\": \"{\\n  \\\"checks\\\": [\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M10/verifiers/contract-witness-mcu1hb4k/mini.bin\\\",\\n      \\\"expect\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"pin\\\": \\\"omp_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M10/verifiers/contract-witness-mcu1hb4k/mini.bin\\\",\\n      \\\"detail\\\": \\\"more than 9 fractional digits\\\",\\n      \\\"expect\\\": \\\"2023-11-14T22:13:20.1234567890+00:00\\\",\\n      \\\"kind\\\": \\\"mtime\\\",\\n      \\\"observed\\\": null,\\n      \\\"pin\\\": \\\"omp_binary_mtime\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"verdict\\\": \\\"BAD_PIN\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M10/verifiers/contract-witness-mcu1hb4k/mini.bin\\\",\\n      \\\"expect\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"pin\\\": \\\"opencode_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"opencode\\\",\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    }\\n  ],\\n  \\\"exit_code\\\": 3,\\n  \\\"fail\\\": 1,\\n  \\\"pass\\\": 2\\n}\\n\",\n  \"input_pins\": {\n    \"omp_binary_mtime\": \"2023-11-14T22:13:20.1234567890+00:00\",\n    \"omp_binary_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\",\n    \"opencode_binary_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\"\n  },\n  \"mutant\": \"M10\"\n}\n"
+        },
+        "self_test": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M10/verifiers/check_substrate_pins.py",
+            "--self-test"
+          ],
+          "exit_code": 0,
+          "stderr": "",
+          "stdout": "0 failure(s) over 62 assertions\n"
+        }
+      },
+      "pristine_sha256": "bcfd5230eabb8b16343e11b21ec354d9860c65e4712187fc6650fc3f329495ce",
+      "restored": {
+        "contract_witness": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/mutation_witness.py",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M10/verifiers/check_substrate_pins.py",
+            "M10"
+          ],
+          "exit_code": 0,
+          "stderr": "",
+          "stdout": "{\n  \"actual_gate_exit\": 3,\n  \"argv\": [\n    \"--baseline\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M10/verifiers/contract-witness-999c6q1x/baseline.json\",\n    \"--omp-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M10/verifiers/contract-witness-999c6q1x/mini.bin\",\n    \"--opencode-binary\",\n    \"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M10/verifiers/contract-witness-999c6q1x/mini.bin\",\n    \"--json\"\n  ],\n  \"expected_contract_exit\": 3,\n  \"facts\": {\n    \"binary_size\": 91,\n    \"full_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\"\n  },\n  \"focus_pin\": \"omp_binary_mtime\",\n  \"focus_verdict\": \"BAD_PIN\",\n  \"gate_stderr\": \"\",\n  \"gate_stdout\": \"{\\n  \\\"checks\\\": [\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M10/verifiers/contract-witness-999c6q1x/mini.bin\\\",\\n      \\\"expect\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"pin\\\": \\\"omp_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M10/verifiers/contract-witness-999c6q1x/mini.bin\\\",\\n      \\\"detail\\\": \\\"more than 9 fractional digits\\\",\\n      \\\"expect\\\": \\\"2023-11-14T22:13:20.1234567890+00:00\\\",\\n      \\\"kind\\\": \\\"mtime\\\",\\n      \\\"observed\\\": null,\\n      \\\"pin\\\": \\\"omp_binary_mtime\\\",\\n      \\\"substrate\\\": \\\"omp\\\",\\n      \\\"verdict\\\": \\\"BAD_PIN\\\"\\n    },\\n    {\\n      \\\"binary\\\": \\\"/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M10/verifiers/contract-witness-999c6q1x/mini.bin\\\",\\n      \\\"expect\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"kind\\\": \\\"sha256\\\",\\n      \\\"observed\\\": \\\"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\\\",\\n      \\\"pin\\\": \\\"opencode_binary_sha256\\\",\\n      \\\"substrate\\\": \\\"opencode\\\",\\n      \\\"verdict\\\": \\\"PASS\\\"\\n    }\\n  ],\\n  \\\"exit_code\\\": 3,\\n  \\\"fail\\\": 1,\\n  \\\"pass\\\": 2\\n}\\n\",\n  \"input_pins\": {\n    \"omp_binary_mtime\": \"2023-11-14T22:13:20.1234567890+00:00\",\n    \"omp_binary_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\",\n    \"opencode_binary_sha256\": \"cf8bc79aef46e2fac5a99293fecfb03bb58add7fa60cee9a205eb2b1cdde458f\"\n  },\n  \"mutant\": \"M10\"\n}\n"
+        },
+        "self_test": {
+          "command": [
+            "python3",
+            "-B",
+            "/fast/scratch/kotoba-r47/C1MutationPins/lane/probes/M10/verifiers/check_substrate_pins.py",
+            "--self-test"
+          ],
+          "exit_code": 0,
+          "stderr": "",
+          "stdout": "0 failure(s) over 62 assertions\n"
+        }
+      },
+      "restored_sha256": "bcfd5230eabb8b16343e11b21ec354d9860c65e4712187fc6650fc3f329495ce"
+    }
+  },
+  "original_target_baseline": {
+    "command": [
+      "python3",
+      "-B",
+      "/fast/scratch/kotoba-r47/C1MutationPins/lane/verifiers/check_substrate_pins.py",
+      "--self-test"
+    ],
+    "exit_code": 0,
+    "stderr": "",
+    "stdout": "0 failure(s) over 62 assertions\n"
+  },
+  "pristine_verifier_sha256": "bcfd5230eabb8b16343e11b21ec354d9860c65e4712187fc6650fc3f329495ce",
+  "restoration_sha256sum": {
+    "command": [
+      "sha256sum",
+      "verifiers/check_substrate_pins.py",
+      "probes/M01/verifiers/check_substrate_pins.py",
+      "probes/M02/verifiers/check_substrate_pins.py",
+      "probes/M03/verifiers/check_substrate_pins.py",
+      "probes/M04/verifiers/check_substrate_pins.py",
+      "probes/M05/verifiers/check_substrate_pins.py",
+      "probes/M06/verifiers/check_substrate_pins.py",
+      "probes/M07/verifiers/check_substrate_pins.py",
+      "probes/M08/verifiers/check_substrate_pins.py",
+      "probes/M09/verifiers/check_substrate_pins.py",
+      "probes/M10/verifiers/check_substrate_pins.py"
+    ],
+    "exit_code": 0,
+    "stderr": "",
+    "stdout": "bcfd5230eabb8b16343e11b21ec354d9860c65e4712187fc6650fc3f329495ce  verifiers/check_substrate_pins.py\nbcfd5230eabb8b16343e11b21ec354d9860c65e4712187fc6650fc3f329495ce  probes/M01/verifiers/check_substrate_pins.py\nbcfd5230eabb8b16343e11b21ec354d9860c65e4712187fc6650fc3f329495ce  probes/M02/verifiers/check_substrate_pins.py\nbcfd5230eabb8b16343e11b21ec354d9860c65e4712187fc6650fc3f329495ce  probes/M03/verifiers/check_substrate_pins.py\nbcfd5230eabb8b16343e11b21ec354d9860c65e4712187fc6650fc3f329495ce  probes/M04/verifiers/check_substrate_pins.py\nbcfd5230eabb8b16343e11b21ec354d9860c65e4712187fc6650fc3f329495ce  probes/M05/verifiers/check_substrate_pins.py\nbcfd5230eabb8b16343e11b21ec354d9860c65e4712187fc6650fc3f329495ce  probes/M06/verifiers/check_substrate_pins.py\nbcfd5230eabb8b16343e11b21ec354d9860c65e4712187fc6650fc3f329495ce  probes/M07/verifiers/check_substrate_pins.py\nbcfd5230eabb8b16343e11b21ec354d9860c65e4712187fc6650fc3f329495ce  probes/M08/verifiers/check_substrate_pins.py\nbcfd5230eabb8b16343e11b21ec354d9860c65e4712187fc6650fc3f329495ce  probes/M09/verifiers/check_substrate_pins.py\nbcfd5230eabb8b16343e11b21ec354d9860c65e4712187fc6650fc3f329495ce  probes/M10/verifiers/check_substrate_pins.py\n"
+  },
+  "runtime": {
+    "euid": 1000,
+    "python": "3.14.8"
+  },
+  "scope": "BASE-only mutation probe; no C1 implementation or integration verdict",
+  "scratch_clone": "/fast/scratch/kotoba-r47/C1MutationPins/lane",
+  "tool_installs_or_updates": [],
+  "witness": {
+    "method": "Independent hashlib pins and fixed timestamps; imports the selected verifier and calls run_capture with explicit fixture binaries. Does not execute substrate binaries.",
+    "sha256": "f2b582c4e42ae11b084ee5a29c2afbd3b7a8cdaf7d162f5cbf056741de843c80",
+    "source": "#!/usr/bin/env python3\n\"\"\"Independent contract witnesses for the assigned BASE mutation probe only.\"\"\"\nimport hashlib\nimport importlib.util\nimport json\nimport os\nimport sys\nimport tempfile\nfrom datetime import datetime, timezone\nfrom pathlib import Path\n\nsys.dont_write_bytecode = True\nscript = Path(sys.argv[1])\nmutant = sys.argv[2]\nspec = importlib.util.spec_from_file_location(\"pins_under_probe\", script)\npins = importlib.util.module_from_spec(spec)\nspec.loader.exec_module(pins)\n\n\ndef iso_ns(value):\n    secs, sub = divmod(value, 1_000_000_000)\n    return datetime.fromtimestamp(secs, tz=timezone.utc).strftime(\n        \"%Y-%m-%dT%H:%M:%S\") + \".%09d+00:00\" % sub\n\n\nwith tempfile.TemporaryDirectory(prefix=\"contract-witness-\", dir=script.parent) as tmp:\n    tmp = Path(tmp)\n    binary = tmp / \"mini.bin\"\n    data = b\"kotoba-mutation-witness-v1\\n\" + bytes(range(64))\n    ns = 1_700_000_000_123_456_789\n    if mutant == \"M09\":\n        data = b\"A\" * (1 << 20) + b\"tail not included\\n\"\n    binary.write_bytes(data)\n    os.utime(binary, ns=(ns, ns))\n    sha = hashlib.sha256(data).hexdigest()\n    ma = {\"omp_binary_sha256\": sha, \"omp_binary_mtime\": iso_ns(ns),\n          \"opencode_binary_sha256\": sha}\n    opencode = binary\n    facts = {\"full_sha256\": sha, \"binary_size\": len(data)}\n    if mutant == \"M01\":\n        ma[\"omp_binary_mtime\"] = \"2000-01-01T00:00:00.000000000+00:00\"\n        expected_exit, focus = 1, \"omp_binary_mtime\"\n    elif mutant == \"M02\":\n        opencode = tmp / \"absent.bin\"\n        expected_exit, focus = 2, \"opencode_binary_sha256\"\n    elif mutant == \"M03\":\n        ma[\"OMP_binary_sha256\"] = ma.pop(\"omp_binary_sha256\")\n        expected_exit, focus = 2, \"OMP_binary_sha256\"\n    elif mutant == \"M04\":\n        ma[\"cursor_binary_sha256\"] = sha\n        expected_exit, focus = 2, \"cursor_binary_sha256\"\n    elif mutant == \"M05\":\n        ma[\"omp_binary_sha256\"] = sha[:8] + (\"0\" if sha[8] != \"0\" else \"1\") + sha[9:]\n        expected_exit, focus = 1, \"omp_binary_sha256\"\n    elif mutant == \"M06\":\n        ma[\"omp_binary_sha256\"] = sha + \":ignored\"\n        expected_exit, focus = 3, \"omp_binary_sha256\"\n    elif mutant == \"M07\":\n        ma[\"omp_binary_mtime\"] = iso_ns(ns + 1)\n        expected_exit, focus = 1, \"omp_binary_mtime\"\n    elif mutant == \"M08\":\n        ma[\"opencode_binary_mtime\"] = \"2000-01-01T00:00:00.000000000+00:00\"\n        expected_exit, focus = 1, \"opencode_binary_mtime\"\n    elif mutant == \"M09\":\n        prefix_sha = hashlib.sha256(data[:1 << 20]).hexdigest()\n        ma[\"omp_binary_sha256\"] = ma[\"opencode_binary_sha256\"] = prefix_sha\n        facts[\"prefix_sha256\"] = prefix_sha\n        expected_exit, focus = 1, \"omp_binary_sha256\"\n    elif mutant == \"M10\":\n        ma[\"omp_binary_mtime\"] = iso_ns(ns).replace(\"+00:00\", \"0+00:00\")\n        expected_exit, focus = 3, \"omp_binary_mtime\"\n    else:\n        raise ValueError(mutant)\n    baseline = tmp / \"baseline.json\"\n    baseline.write_text(json.dumps({\"measured_against\": ma}))\n    argv = [\"--baseline\", str(baseline), \"--omp-binary\", str(binary),\n            \"--opencode-binary\", str(opencode), \"--json\"]\n    code, out, err = pins.run_capture(argv)\n    payload = json.loads(out)\n    focused = next((row for row in payload[\"checks\"] if row[\"pin\"] == focus), None)\n    print(json.dumps({\"mutant\": mutant, \"argv\": argv, \"input_pins\": ma,\n                      \"facts\": facts, \"expected_contract_exit\": expected_exit,\n                      \"actual_gate_exit\": code, \"focus_pin\": focus,\n                      \"focus_verdict\": focused[\"verdict\"] if focused else \"ABSENT_FROM_REPORT\",\n                      \"gate_stdout\": out, \"gate_stderr\": err}, indent=2, sort_keys=True))\n    sys.exit(0 if code == expected_exit and payload[\"exit_code\"] == expected_exit else 1)\n"
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "artifact": "ExecFaultBaseline.base-grid",
+  "base": "c61a973b2e02e1ded169703ddcb06466f4edd8bd",
+  "scratch_clone": "/fast/scratch/kotoba-r47/ExecFaultBaseline/lane",
+  "instrument_sha256": "28224c76510dcafc4d7a52da41ffd2d366337414f65320cbb21e6d9de12aba9d",
+  "tmpdir": "/fast/scratch/kotoba-r47/ExecFaultBaseline/tmp",
+  "main_runs": [
+    {"run": 1, "mode": "plain, persistent-shell time", "exit": 1, "wall_s": 17.27},
+    {"run": 2, "mode": "plain, fresh bash -c time", "exit": 1, "real_s": 17.69, "user_s": 12.57, "sys_s": 5.55},
+    {"run": 3, "mode": "--keep-worlds", "exit": 1, "wall_s": 14.40}
+  ],
+  "grid": [
+    {"fault": "fault-0-control", "script": "integrity", "exit": 1, "fired": "corpus.index.unindexed", "verdict": "FAIL-control-dirty"},
+    {"fault": "fault-0-control", "script": "independent", "exit": 1, "fired": "- (hard-coded at fault_injection_corpus.sh:379)", "verdict": "INFO(gating)"},
+    {"fault": "fault-a", "script": "integrity", "exit": 1, "fired": "corpus.index.unindexed,corpus.pointers.report_dead", "verdict": "PASS"},
+    {"fault": "fault-a", "script": "independent", "exit": 1, "fired": "corpus.index.unindexed,corpus.pointers.report_dead", "verdict": "INFO(gating)"},
+    {"fault": "fault-b", "script": "integrity", "exit": 1, "fired": "corpus.index.unindexed,corpus.pointers.commit_nonhash", "verdict": "PASS"},
+    {"fault": "fault-b", "script": "independent", "exit": 1, "fired": "corpus.index.unindexed,corpus.pointers.commit_nonhash", "verdict": "INFO(gating)"},
+    {"fault": "fault-c", "script": "integrity", "exit": 1, "fired": "corpus.index.unindexed,corpus.pointers.commit_unresolvable", "verdict": "PASS"},
+    {"fault": "fault-c", "script": "independent", "exit": 1, "fired": "corpus.index.unindexed,corpus.pointers.commit_unresolvable", "verdict": "INFO(gating)"},
+    {"fault": "fault-d1", "script": "integrity", "exit": 1, "fired": "corpus.index.unindexed", "verdict": "WRONG-CLASS(expected=corpus.index.missing_paths)"},
+    {"fault": "fault-d1", "script": "independent", "exit": 1, "fired": "corpus.index.unindexed", "verdict": "INFO(gating)"},
+    {"fault": "fault-d2", "script": "integrity", "exit": 1, "fired": "corpus.index.unindexed", "verdict": "WRONG-CLASS(expected=corpus.index.stale_patterns)"},
+    {"fault": "fault-d2", "script": "independent", "exit": 1, "fired": "corpus.index.unindexed", "verdict": "INFO(gating)"},
+    {"fault": "fault-e", "script": "integrity", "exit": 1, "fired": "corpus.index.unindexed", "verdict": "PASS (confounded: unindexed_detail lists the r46 lesson too)"},
+    {"fault": "fault-e", "script": "independent", "exit": 1, "fired": "corpus.index.unindexed", "verdict": "INFO(gating)"},
+    {"fault": "fault-f", "script": "integrity", "exit": 1, "fired": "corpus.index.unindexed", "verdict": "FAIL"},
+    {"fault": "fault-f", "script": "independent", "exit": 1, "fired": "- (hard-coded at fault_injection_corpus.sh:322)", "verdict": "INFO(non-gating)"},
+    {"fault": "fault-g", "script": "integrity", "exit": 1, "fired": "corpus.index.unindexed", "verdict": "FALSE-POSITIVE"},
+    {"fault": "fault-g", "script": "independent", "exit": 1, "fired": "- (hard-coded at fault_injection_corpus.sh:365)", "verdict": "INFO(gating)"},
+    {"fault": "fault-h", "script": "integrity", "exit": 1, "fired": "corpus.index.unindexed", "verdict": "FAIL"}
+  ],
+  "harness_verdict_line": "verdict: FAILURES PRESENT",
+  "harness_exit": 1,
+  "self_test": {"exit": 1, "T1": "PASS", "T2": "FAIL (exit=1)", "T4": "PASS", "T3": "FAIL", "verdict": "BROKEN", "runs": 2},
+  "instrument_self_tests": {
+    "verify_corpus_integrity.py --self-test": {"exit": 0, "result": "0 failure(s) over 150 assertions"},
+    "verify_corpus_independent.py --self-test": {"exit": 0, "result": "91 assertions, 0 failures"}
+  }
+}

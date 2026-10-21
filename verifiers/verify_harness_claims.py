@@ -16,7 +16,8 @@ readable JS — no disassembly needed):
                                      (cache-or-truncate), module comment
                                      `// packages/coding-agent/src/extensibility/
                                      skill-descriptions.ts`
-  opencode `~/.opencode/bin/opencode` string `available_skills`,
+  opencode `~/.npm/_npx/e2094862b59aac7b/node_modules/opencode-ai/bin/opencode.exe`
+                                     (npm opencode-ai, round 47) string `available_skills`,
                                      `EmbeddedSource.make({skill:…})`
 
 Usage:
@@ -52,7 +53,7 @@ HOME = Path.home()
 OMP_BIN = HOME / ".local/bin/omp"
 OMP_DB = HOME / ".omp/agent/skill-descriptions.db"
 OC_LOG = HOME / ".local/share/opencode/log/opencode.log"
-OC_BIN = HOME / ".opencode/bin/opencode"
+OC_BIN = HOME / ".npm/_npx/e2094862b59aac7b/node_modules/opencode-ai/bin/opencode.exe"
 OMP_SESSIONS = HOME / ".omp/agent/sessions"
 BASELINE = Path(__file__).resolve().parent / "baseline.json"
 

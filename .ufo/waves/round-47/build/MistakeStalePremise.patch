@@ -1,0 +1,65 @@
+diff --git i/verifiers/check_planned_premises.py w/verifiers/check_planned_premises.py
+new file mode 100755
+index 0000000..5b7f453
+--- /dev/null
++++ w/verifiers/check_planned_premises.py
+@@ -0,0 +1,59 @@
++#!/usr/bin/env python3
++"""check_planned_premises.py — a planned 'Before' premise must name the live substrate.
++
++Prototype for Q19 (MistakeStalePremise). Reads a plan/scorecard file and fails when
++it names an omp version that differs from `omp --version`, or names an absolute
++binary path that does not exist. Exit: 0 all named premises match live; 1 a stale
++premise is named (each printed as FAIL <file>:<line>); 2 the live omp cannot be run.
++"""
++import argparse
++import os
++import re
++import subprocess
++import sys
++
++OMP_VERSION_RE = re.compile(r"\bomp[ /]18\.12\.(\d+)\b")
++ABS_BIN_RE = re.compile(r"(/[\w.~/-]+/bin/[\w.-]+)")
++
++
++def live_omp(binary: str) -> str:
++    out = subprocess.run([binary, "--version"], capture_output=True, text=True, timeout=30)
++    if out.returncode != 0:
++        raise RuntimeError(f"{binary} --version exit {out.returncode}")
++    m = re.search(r"18\.12\.(\d+)", out.stdout)
++    if not m:
++        raise RuntimeError(f"no 18.12.x in: {out.stdout.strip()!r}")
++    return m.group(1)
++
++
++def main() -> int:
++    ap = argparse.ArgumentParser()
++    ap.add_argument("plan")
++    ap.add_argument("--omp-binary", default=os.path.expanduser("~/.local/bin/omp"))
++    args = ap.parse_args()
++    try:
++        live = live_omp(args.omp_binary)
++    except (OSError, RuntimeError, subprocess.TimeoutExpired) as exc:
++        print(f"ERROR cannot read live omp version: {exc}")
++        return 2
++    fails = 0
++    with open(args.plan, encoding="utf-8") as fh:
++        for n, line in enumerate(fh, 1):
++            for m in OMP_VERSION_RE.finditer(line):
++                if m.group(1) != live:
++                    fails += 1
++                    print(f"FAIL {args.plan}:{n}: planned omp 18.12.{m.group(1)} != live omp 18.12.{live}")
++            for m in ABS_BIN_RE.finditer(line):
++                path = os.path.expanduser(m.group(1))
++                if not os.path.exists(path):
++                    fails += 1
++                    print(f"FAIL {args.plan}:{n}: pinned binary path absent: {m.group(1)}")
++    if fails:
++        print(f"STALE {fails} planned premise(s) name no live substrate (live omp 18.12.{live})")
++        return 1
++    print(f"PASS every named premise matches live omp 18.12.{live}")
++    return 0
++
++
++if __name__ == "__main__":
++    sys.exit(main())

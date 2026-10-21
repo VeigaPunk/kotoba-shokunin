@@ -1,0 +1,52 @@
+diff --git i/verifiers/check_assertion_floors.py w/verifiers/check_assertion_floors.py
+index 432a33f..0b26466 100644
+--- i/verifiers/check_assertion_floors.py
++++ w/verifiers/check_assertion_floors.py
+@@ -5,7 +5,7 @@ The claim under test: a self-test that silently loses assertions must never
+ still read green. Each instrument's --self-test prints an assertion count;
+ this guard reruns every self-test and FAILs when the observed count is below
+ the recorded floor (harness 10, corpus_integrity 150, corpus_independent 91,
+-surfaces 87, checklist 1597, pins 62, harness_independent 104,
++surfaces 87, checklist 1971, pins 62, harness_independent 104,
+ compare_harness_independent 330, floors_guard 150; others @ round 36, the
+ checklist floor re-recorded at round 37 by the C3 fence battery plus the
+ indented-code decoy battery and at round 38 by the three container-relative
+@@ -25,6 +25,7 @@ the 4-space, tab, mixed-indent, opener-arm and tilde shapes, each expected set
+ derived from cmark 0.31.2 alone (129->145, 68->86). Round 41 (claim C2/V16)
+ adds this guard's own 150-assertion self-test as a floored instrument; round 43
+ C3 adds unclosed/mixed/blockquote fence assertions (145->150, 86->91).
++round 47 C2 adds the S003 description XML-tag battery, its planted-tag arm and eight fixture cases (checklist 1597->1971).
+ Exit: 0 all floors hold;
+ 1 an instrument ran below its floor, or its summary could not be parsed or the
+ instrument could not be run (named, observed-vs-floor); 2 the in-file registry
+@@ -118,7 +119,7 @@ EXPECTED_INSTRUMENTS = {
+     "corpus_integrity": 150,
+     "corpus_independent": 91,
+     "surfaces": 87,
+-    "checklist": 1597,
++    "checklist": 1971,
+     "pins": 62,
+     "harness_independent": 104,
+     "compare_harness_independent": 330,
+@@ -139,7 +140,7 @@ INSTRUMENTS = {
+                            r"self-test:\s*(\d+) assertions,\s*(\d+) failures", 1, 2),
+     "surfaces": ("verifiers/verify_surfaces.py", 87,
+                  r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
+-    "checklist": ("verifiers/verify_skill_checklist.py", 1597,
++    "checklist": ("verifiers/verify_skill_checklist.py", 1971,
+                   r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
+     "pins": ("verifiers/check_substrate_pins.py", 62,
+              r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
+diff --git i/verifiers/floors-registry.json w/verifiers/floors-registry.json
+index a28c790..d0794e0 100644
+--- i/verifiers/floors-registry.json
++++ w/verifiers/floors-registry.json
+@@ -3,7 +3,7 @@
+  "instrument_total": 9,
+  "instruments": {
+   "checklist": {
+-   "floor": 1597,
++   "floor": 1971,
+    "path": "verifiers/verify_skill_checklist.py"
+   },
+   "compare_harness_independent": {

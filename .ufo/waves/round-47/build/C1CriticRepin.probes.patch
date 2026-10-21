@@ -1,0 +1,124 @@
+diff --git 1/probes.py 2/probes.py
+new file mode 100755
+index 0000000..3e256fe
+--- /dev/null
++++ 2/probes.py
+@@ -0,0 +1,118 @@
++#!/usr/bin/env python3
++"""C1CriticRepin falsification probes (scratch only). Usage: probes.py <lane-root>
++Exit 1 if any probe is RED. Prints JSON."""
++import json, re, subprocess, sys, tempfile
++from pathlib import Path
++
++LANE = Path(sys.argv[1])
++S = Path("/fast/scratch/kotoba-r47/shared")
++OMP, OC = S / "omp-18.12.5.strings", S / "opencode-1.19.3.strings"
++odump = OMP.read_text(encoding="utf-8", errors="replace")
++cdump = OC.read_text(encoding="utf-8", errors="replace")
++census = (LANE / "corpus/knowledge/instruction-surface-census-round13.md").read_text()
++baseline = json.loads((LANE / "verifiers/surfaces-baseline.json").read_text())
++out = {}
++
++
++def surfaces(omp=OMP, oc=OC, base=None, inv=None, lane=LANE):
++    argv = [sys.executable, "-B", str(lane / "verifiers/verify_surfaces.py"),
++            "--omp-strings", str(omp), "--opencode-strings", str(oc), "--json"]
++    if base: argv += ["--baseline", str(base)]
++    if inv: argv += ["--inventory", str(inv)]
++    p = subprocess.run(argv, capture_output=True, text=True)
++    try:
++        d = json.loads(p.stdout)
++    except ValueError:
++        return p.returncode, p.stdout[-300:] + p.stderr[-300:]
++    return p.returncode, [c for c in d["checks"] if c.get("status", c.get("ok")) not in ("PASS", True)]
++
++
++# P-A: every backticked anchor in a census opencode evidence cell occurs in the frozen dump
++rows = [l for l in census.splitlines() if l.startswith("| `opencode:")]
++missing = {}
++for l in rows:
++    cells = [c.strip() for c in l.strip().strip("|").split("|")]
++    cid = cells[0].strip("`")
++    for a in re.findall(r"`([^`]+)`", cells[-1]):
++        if a.startswith("opencode:"):
++            continue
++        if a not in cdump:
++            missing.setdefault(cid, []).append(a)
++out["P-A census evidence anchors present in 1.19.3 dump"] = {"red": bool(missing), "absent": missing}
++
++# P-B: anchors the census recorded as 0-occurrence (retired generation) re-counted
++retired = ["CONTEXT.md", "disableClaudeCodePrompt", "Instruction.resolve",
++           "InstructionContext.observe", "system-context-builtins"]
++counts = {a: cdump.count(a) for a in retired}
++declared_oc = sorted(c["class_id"] for c in baseline["classes"] if c["harness"] == "opencode")
++resurrected_unverdicted = any(counts.values()) and not any(
++    k in " ".join(declared_oc) for k in ("CONTEXT.md", "CLAUDE.md", "claude-home", "instructions-remote"))
++out["P-B retired anchors resurrected but no class re-verdicted"] = {
++    "red": resurrected_unverdicted, "counts": counts, "declared_opencode": declared_oc}
++
++# P-C: exclusion reason truth — opencode:config/instructions says "no loader consumer"
++ent = next((c for c in baseline["classes"] if c["class_id"] == "opencode:config/instructions"), None)
++consumer = re.search(r"\.instructions\)for\(let [A-Za-z_$]+ of [A-Za-z_$]+\.instructions\)", cdump)
++claims_none = bool(ent and ent["verdict"] == "excluded"
++                   and re.search(r"no loader consumer", ent.get("reason", "") + census, re.I))
++out["P-C excluded reason contradicted by dump"] = {
++    "red": bool(consumer) and claims_none,
++    "consumer": consumer.group(0) if consumer else None,
++    "entry": ent and {k: ent[k] for k in ("verdict", "reason") if k in ent}}
++
++# P-D: generation discrimination — the v2.0.26 fixture must NOT pass the re-derived rules
++fx = LANE / "verifiers/fixtures/surfaces"
++code, fails = surfaces(omp=fx / "strings-omp-clean.txt", oc=fx / "strings-opencode-clean.txt",
++                       base=fx / "baseline-clean.json", inv=fx / "inventory-clean.md")
++code_live, fails_live = surfaces()
++out["P-D rules accept BOTH v2.0.26 fixture and 1.19.3 dump"] = {
++    "red": code == 0 and code_live == 0, "v2.0.26_fixture_exit": code, "live_exit": code_live}
++
++# P-E: derive-not-witness — plant an undeclared name in the 1.19.3 priority array
++with tempfile.TemporaryDirectory() as t:
++    t = Path(t)
++    arr = 'y=["AGENTS.md",...!t.disableClaudeCodePrompt?["CLAUDE.md"]:[],"CONTEXT.md"]'
++    assert arr in cdump, "priority array anchor moved"
++    planted = t / "oc-planted.txt"
++    planted.write_text(cdump.replace(arr, arr[:-1] + ',"GUIDE.md"]'))
++    c1, _ = surfaces(oc=planted)
++    out["P-E planted undeclared priority name GUIDE.md stays green"] = {"red": c1 == 0, "exit": c1}
++
++    dropped = t / "oc-drop-context.txt"
++    dropped.write_text(cdump.replace(',"CONTEXT.md"]', "]"))
++    c2, f2 = surfaces(oc=dropped)
++    named = json.dumps(f2)
++    out["P-F dropping CONTEXT.md from priority array must name a CONTEXT.md class"] = {
++        "red": c2 == 0 or "CONTEXT.md" not in named.replace('\\"CONTEXT.md\\"', ""), "exit": c2,
++        "fail_text_mentions_class": "opencode:" in named and "CONTEXT" in named}
++
++    # must-stay-red mutations
++    g = t / "omp-no-gemini.txt"
++    g.write_text("\n".join(l for l in odump.splitlines()
++                           if '"gemini", "GEMINI.md"' not in l))
++    c3, f3 = surfaces(omp=g)
++    out["M1 planted missing omp:gemini/GEMINI.md call shape -> red"] = {
++        "red": not (c3 == 1 and "omp:gemini/GEMINI.md" in json.dumps(f3)), "exit": c3}
++    st = t / "omp-stripped.txt"
++    st.write_text(odump[: len(odump) // 100])
++    c4, _ = surfaces(omp=st)
++    out["M2 stripped omp dump (first 1%) -> red"] = {"red": c4 == 0, "exit": c4}
++    rn = t / "omp-renamed.txt"
++    rn.write_text(re.sub(r"(?<![A-Za-z0-9_$])(Xl|Fo|lq)\(u,", r"Zq(u,", odump))
++    c5, _ = surfaces(omp=rn)
++    out["M3 callee rename Xl/Fo/lq->Zq -> red (Q09: rename is drift)"] = {"red": c5 == 0, "exit": c5}
++    b = json.loads(json.dumps(baseline))
++    for c in b["classes"]:
++        if c["class_id"] == "omp:gemini/GEMINI.md":
++            c["context_kind"] = "doc"
++    rb = t / "rekind.json"; rb.write_text(json.dumps(b))
++    ri = t / "rekind.md"
++    ri.write_text(census.replace("| `omp:gemini/GEMINI.md` | GEMINI.md | loader-group |",
++                                 "| `omp:gemini/GEMINI.md` | GEMINI.md | doc |"))
++    c6, f6 = surfaces(base=rb, inv=ri)
++    out["M4 re-kinded omp:gemini/GEMINI.md -> doc (census+baseline) -> red"] = {
++        "red": not (c6 == 1 and "->doc" in json.dumps(f6)), "exit": c6}
++
++red = [k for k, v in out.items() if v["red"]]
++print(json.dumps({"lane": str(LANE), "red": red, "probes": out}, indent=1, sort_keys=True))
++sys.exit(1 if red else 0)

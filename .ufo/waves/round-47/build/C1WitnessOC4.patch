@@ -1,0 +1,50 @@
+diff --git i/verifiers/verify_surfaces.py w/verifiers/verify_surfaces.py
+index 56e65ea..a12387b 100755
+--- i/verifiers/verify_surfaces.py
++++ w/verifiers/verify_surfaces.py
+@@ -371,14 +371,19 @@ OC_GLOBAL_JOIN_RE = re.compile(
+ # consumer is NOT proven on this binary (round-18 excluded class).
+ OC_AMBIENT_SCHEMA = 'ambient instructions'
+ 
+-# OC-4: the READ-TOOL channel — `ReadTool.Plugin` walks up from every read
+-# file to the project root for AGENTS.md (`targets:[a$]` where `a$` is the
+-# "AGENTS.md" constant) and calls `SessionInstructions.load`, which renders
+-# `Instructions from: <path>` synthetic entries.
+-OC_READ_FN = "ReadTool.Plugin"
+-OC_READ_TARGETS = 'targets:[a$]'
+-OC_READ_CONST = 'a$="AGENTS.md"'
+-OC_SESSION_LOAD = 'SessionInstructions.load'
++# OC-4: the READ-TOOL channel, 1.19.x relocation — the `ReadTool.Plugin`
++# indirection and `SessionInstructions.load` are gone.  `ReadTool.execute`
++# calls the instruction service inline (`e.resolve(g.messages, filepath,
++# messageID)`), `Instruction.find` walks parent directories for the
++# `["AGENTS.md", "CLAUDE.md", "CONTEXT.md"]` name list, and the read tool
++# publishes the resolved paths as `metadata.loaded` (consumed back by
++# `Instruction.resolve`'s claim extractor as `metadata?.loaded`).  Entries
++# render as `Instructions from: <path>` and are appended to the read output
++# inside a `<system-reminder>`.
++OC_READ_RESOLVE = "Instruction.resolve"
++OC_READ_CALL = ".resolve(g.messages,"
++OC_READ_LOADED = "loaded:d.map("
++OC_READ_RENDER = "Instructions from: ${"
+ 
+ # OC-5: resolution switch witness — the project source is disabled only via
+ # config `project:false` (env `OPENCODE_CONFIG_PROJECT_DISABLE` or
+@@ -425,12 +430,12 @@ def extract_opencode_classes(dump: str) -> tuple[set[str], list[dict]]:
+     rule("OC-3", ["opencode:config/instructions"], ambient,
+          ['"ambient instructions" schema annotation'])
+ 
+-    # OC-4 — read-tool channel: every read walks up for AGENTS.md files
+-    # outside the project and publishes them through SessionInstructions.load.
+-    read_hook = (OC_READ_FN in dump and OC_READ_TARGETS in dump
+-                 and OC_READ_CONST in dump and OC_SESSION_LOAD in dump)
++    # OC-4 — read-tool channel: each read resolves instruction files from the
++    # file's parent directories and appends the rendered entries to the output.
++    read_hook = (OC_READ_RESOLVE in dump and OC_READ_CALL in dump
++                 and OC_READ_LOADED in dump and OC_READ_RENDER in dump)
+     rule("OC-4", ["opencode:read-hook/AGENTS.md"], read_hook,
+-         [OC_READ_FN, OC_READ_TARGETS, OC_READ_CONST, OC_SESSION_LOAD])
++         [OC_READ_RESOLVE, OC_READ_CALL, OC_READ_LOADED, OC_READ_RENDER])
+ 
+     # OC-5 — resolution switch (owns no class id; witnesses the env gate)
+     switch = (OC_ENV_PROJECT_CONFIG in dump or OC_ENV_PROJECT_CONFIG_2 in dump)

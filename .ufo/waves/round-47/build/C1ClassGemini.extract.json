@@ -1,0 +1,143 @@
+{
+  "seat": "MoriR22R.C1ClassGemini-9",
+  "base": "c61a973b2e02e1ded169703ddcb06466f4edd8bd",
+  "question": "omp:gemini loader-family witness in omp 18.12.5",
+  "substrate": {
+    "binary": "/fast/scratch/kotoba-r47/shared/bin/omp-18.12.5",
+    "binary_sha256": "fdbc8136084c9a10439569157b2af62312e2b0d801cab54c73e89476da798e7e",
+    "strings": "/fast/scratch/kotoba-r47/shared/omp-18.12.5.strings",
+    "strings_sha256": "33df0aeffc4565967bc1a3b42621f8eade0e6e4c2ae8733319fcd484902fb301",
+    "sha256sum_c_exit": 0,
+    "sha256sum_c_files_ok": 4
+  },
+  "baseline": {
+    "path": "verifiers/surfaces-baseline.json",
+    "loader_group_rows_total": 8,
+    "gemini_ids": [
+      "omp:gemini/GEMINI.md",
+      "omp:gemini/system.md",
+      "omp:gemini/SYSTEM_TEMPLATE.md"
+    ],
+    "gemini_rows": [
+      {
+        "class_id": "omp:gemini/GEMINI.md",
+        "entry_lines": "26-32",
+        "context_kind": "loader-group",
+        "verdict": "governed",
+        "exists_in_18_12_5": true
+      },
+      {
+        "class_id": "omp:gemini/system.md",
+        "entry_lines": "33-39",
+        "context_kind": "loader-group",
+        "verdict": "governed",
+        "exists_in_18_12_5": true
+      },
+      {
+        "class_id": "omp:gemini/SYSTEM_TEMPLATE.md",
+        "entry_lines": "40-46",
+        "context_kind": "loader-group",
+        "verdict": "governed",
+        "exists_in_18_12_5": true
+      }
+    ],
+    "adjacent_excluded_rows": [
+      {
+        "class_id": "omp:discovery/settings",
+        "entry_lines": "188-195",
+        "verdict": "excluded",
+        "evidence_lines": [898937, 898953, 898808, 898814]
+      },
+      {
+        "class_id": "omp:discovery/extensions",
+        "entry_lines": "196-203",
+        "verdict": "excluded",
+        "evidence_lines": [898885, 898891, 898926, 898927, 898903]
+      }
+    ]
+  },
+  "loader_model": {
+    "provider_dir_table": {
+      "var_line": 862443,
+      "gemini_entry_lines": [862463, 862466],
+      "gemini": {"userBase": ".gemini", "userAgent": ".gemini", "projectDir": ".gemini"}
+    },
+    "callees": [
+      {"name": "Xl", "def_line": 862506, "role": "user-level provider path (home + fO[t].userAgent + file), gated by Ii(t,e)"},
+      {"name": "nLe", "def_line": 862497, "role": "path builder used by Xl: join(home, fO[t].userAgent, n)"},
+      {"name": "Fo", "def_line": 862510, "role": "project-level provider path: join(cwd, fO[t].projectDir, n)"},
+      {"name": "lq", "def_line": 862812, "role": "walk-up standalone .md loader (agents-md, claude-md); not used by gemini"},
+      {"name": "Ii", "def_line": 862059, "role": "provider-enabled gate called by Xl"}
+    ]
+  },
+  "per_class": {
+    "omp:gemini/GEMINI.md": {
+      "loader_fn": {"name": "Bte", "line": 898853},
+      "registration": {"lines": [898976, 898981], "description_line": 898979, "capability": "context-files (Al, 892076-892079)"},
+      "calls": [
+        {"line": 898856, "text": "const T = Xl(u, \"gemini\", \"GEMINI.md\");", "level": "user"},
+        {"line": 898867, "text": "const M = Fo(u, \"gemini\", \"GEMINI.md\");", "level": "project"}
+      ],
+      "extra": [{"line": 898871, "text": "const B = Fo(u, \"gemini\", \"\");", "note": "depth anchor, not a .md class"}]
+    },
+    "omp:gemini/system.md": {
+      "loader_fn": {"name": "zte", "line": 898982},
+      "registration": {"lines": [898997, 899002], "description_line": 899000, "capability": "system-prompt (xy, 892242-892245)"},
+      "calls": [
+        {"line": 898993, "text": "await R(Fo(u, \"gemini\", \"system.md\"), \"project\", \"text\");", "level": "project"},
+        {"line": 898995, "text": "await R(Xl(u, \"gemini\", \"system.md\"), \"user\", \"text\");", "level": "user"}
+      ]
+    },
+    "omp:gemini/SYSTEM_TEMPLATE.md": {
+      "loader_fn": {"name": "zte", "line": 898982},
+      "registration": {"lines": [898997, 899002], "description_line": 899000, "capability": "system-prompt (xy, 892242-892245)"},
+      "calls": [
+        {"line": 898992, "text": "await R(Fo(u, \"gemini\", \"SYSTEM_TEMPLATE.md\"), \"project\", \"template\");", "level": "project"},
+        {"line": 898994, "text": "await R(Xl(u, \"gemini\", \"SYSTEM_TEMPLATE.md\"), \"user\", \"template\");", "level": "user"}
+      ]
+    }
+  },
+  "verify_surfaces": {
+    "run": {
+      "cmd": "python3 -B verifiers/verify_surfaces.py --omp-strings /fast/scratch/kotoba-r47/shared/omp-18.12.5.strings --opencode-strings /fast/scratch/kotoba-r47/shared/opencode-1.19.3.strings --json",
+      "exit": 1,
+      "pass": 4,
+      "fail": 3,
+      "failing_checks": ["surfaces.literal_present", "surfaces.no_uncovered_class", "surfaces.opencode_extract"],
+      "gemini_rows_failing_literal_present": [
+        "omp:gemini/GEMINI.md",
+        "omp:gemini/system.md",
+        "omp:gemini/SYSTEM_TEMPLATE.md"
+      ]
+    },
+    "current_allowlist_shapes_in_dump": 0,
+    "repin": {
+      "callees": ["lq", "Xl", "Fo"],
+      "call_sites": 11,
+      "pairs": [
+        ["agents-md", "AGENTS.md"],
+        ["claude-md", "CLAUDE.md"],
+        ["gemini", "GEMINI.md"],
+        ["gemini", "SYSTEM_TEMPLATE.md"],
+        ["gemini", "system.md"],
+        ["github", "copilot-instructions.md"],
+        ["opencode", "AGENTS.md"],
+        ["windsurf", "memories/global_rules.md"]
+      ],
+      "declared_loader_group": 8,
+      "parity": "8 extracted == 8 declared, both directions, no undeclared pair",
+      "identifier_group_resolution": {"f$": "agents-md", "m$": "claude-md"}
+    },
+    "self_test_fixture_gap": {
+      "file": "verifiers/fixtures/surfaces/strings-omp-newcallees.txt",
+      "covers_generations": [["Co", "Dl", "Hj"], ["I5", "Gl", "Mo"]],
+      "missing_generation": ["Xl", "Fo", "lq"],
+      "self_test_arm": "verifiers/verify_surfaces.py:815-822"
+    }
+  },
+  "counterexamples": [
+    "Minified names are not identities: Xl( appears 29 times with 3 function definitions, Fo( 54 times with 7; only the 3-arg (v, <group>, \"<file>.md\") shape plus the fO provider-dir anchor makes them the loader family.",
+    "All 11 matching call sites in this dump are direct-callee calls; no aliased callee (const y = Xl; y(...)) exists to over-match, so allowlist widening adds no false pair here.",
+    "Other providers load SYSTEM_TEMPLATE.md through their own shapes (896216/896218, 897967/897969, 898666/898668); none is a second gemini call site. Gemini's are only 898992/898994."
+  ]
+}

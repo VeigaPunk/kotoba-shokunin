@@ -114,7 +114,9 @@ import sys
 run, row = sys.argv[1], sys.argv[2]
 p = f"{run}/corpus/README.md"
 lines = open(p, encoding="utf-8").read().splitlines(keepends=True)
-idx = max(i for i, l in enumerate(lines) if l.startswith("|"))
+start = next(i for i, l in enumerate(lines) if l.startswith("## Coverage map"))
+end = next((i for i in range(start + 1, len(lines)) if lines[i].startswith("## ")), len(lines))
+idx = max(i for i in range(start, end) if lines[i].startswith("|"))
 lines.insert(idx + 1, row + "\n")
 open(p, "w", encoding="utf-8").write("".join(lines))
 PY

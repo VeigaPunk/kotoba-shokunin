@@ -1,0 +1,49 @@
+diff --git i/LOG.md w/LOG.md
+index 86428d0..762ca54 100644
+--- i/LOG.md
++++ w/LOG.md
+@@ -2313,3 +2313,11 @@ Full round detail: `corpus/lessons/round-19-recensus.md`. Advisory inventories:
+ 
+ - Landing commit `f2f9ee1` (tree `d26a91bef9fff8877d5552e2dc4d2986da63eb10`, comparator SHA-256 `778b367e5e5f94fc90132f4070aec3e2395b26914a1d0a50a188558c55cff332`). After-battery on that commit in the canonical-layout clone (`.ufo/round-46/evidence/w2/gates/after-f2f9ee1/summary.txt`): checklist exit 1, 9/10 (only `LOG.md:2111`, unchanged class); corpus integrity 0, 9/9; corpus independent 0; surfaces exit 1, 5/7, stdout `8432070a…` byte-identical to base; pins exit 1, 1/3, stdout `16e71a19…` byte-identical to base; floors 0, 9/9 exact `10/150/91/87/1597/62/104/330/150`. No gate moved red; the only floor move is the in-step comparator bump.
+ - SOURCES census on `f2f9ee1` (contract v1 § Census, all seven commands): rows 11, malformed 0, tiers A=10 C=1, status mined=4 queued=6 rejected=1, duplicate ids none, enum/tier-inflation none, mined used-by missing none. The census also showed S002 was mined by `SKILL.md` only through the range "S001–S003", which a literal-id check cannot see; this commit spells the ids out (`S001, S002, S003, S008`).
++
++## 2026-10-21 — Round 47 BUILD — C2 moves to Core; C1 re-pinned, area stays Frontier narrowed
++
++- Base `c61a973b2e02e1ded169703ddcb06466f4edd8bd`. This entry records a frontier move only; it asserts no axis score.
++- C2 (operability) — **moved to Core.** The `SKILL.md` frontmatter `description` no longer carries an XML tag (the former token survives in body prose only): `sed -n '/^---$/,/^---$/p' SKILL.md | grep -c '<skills>'` 1 → 0; description 814 → 820 chars. S003's rule is executed by `verifiers/verify_skill_checklist.py` check `trigger.description_no_xml_tag`: opening, closing, attribute-bearing and self-closing fixtures FAIL; a tag-free description and a body-only-tag control PASS. `python3 -B verifiers/verify_skill_checklist.py --json` exit <CHECKLIST_EXIT>, <CHECKLIST_PASS>/<CHECKLIST_TOTAL> (before 9 PASS / 1 FAIL at `LOG.md:2111`; the remaining red is C3's erratum-registry target in the same wave). The `--self-test` floor is re-recorded in step (registry, both in-file tables, docstring). The stale sentence at `SKILL.md:151` now states the rule is executed.
++- C1 (freshness) — **not moved; the debt closes.** Re-derived and re-pinned: omp 18.12.5 sha256 `fdbc8136…`, ns-exact mtime `2026-10-21T03:30:38.135013187-03:00`; opencode 1.19.3 sha256 `179ca421…` at the npx-cache ELF (the pinned `~/.opencode/bin/opencode` path is gone; no gate executes the `~/.local/bin/opencode` wrapper). `python3 -B verifiers/check_substrate_pins.py --json` exit <PINS_EXIT>, <PINS_PASS>/3 PASS (before exit 2, 3/3 failed). `python3 -B verifiers/verify_surfaces.py --json` exit <SURFACES_EXIT>, <SURFACES_PASS>/7 (before exit 2 at default; 4 PASS / 3 FAIL with the 1.19.3 binary passed explicitly); the extraction rules were re-derived, not copied, and every class that no longer exists is re-verdicted with its sweep — no silent drop (Q09, Q14).
++- Why C1 stays (`LEARNING.md` § Province is a frontier): a pinned version is a maintenance state, not a surface — Core lists surfaces and instruments, not measurements that decay. The area is not held because the extractor is a fixed call-shape alternation in `verifiers/verify_surfaces.py`, and omp 18.12.5 yielded 0 extracted omp classes before the re-derivation; a rebuild is a red gate followed by a hand re-derivation. `PROVINCE.md` Core takes only the C2 bullet; `corpus/README.md` § Frontier keeps the row with the stale figures corrected and the residual named.
++- No Git add, commit or ref operation.
+diff --git i/PROVINCE.md w/PROVINCE.md
+index a45a27a..afc8424 100644
+--- i/PROVINCE.md
++++ w/PROVINCE.md
+@@ -12,13 +12,14 @@ Appended round 46 (LEARNING.md § Province is a frontier); surfaces the lane gov
+ - `SKILL.md` — trigger/frontmatter craft, anatomy and compression, decision tables, the four fidelity checklists (backed by `corpus/knowledge/frontmatter-trigger-surface.md`, `corpus/knowledge/anatomy-and-compression.md`, `corpus/knowledge/fail-closed-and-anti-patterns.md`).
+ - Agent-definition, always-on (AGENTS.md-class) and dispatch-prompt craft — `corpus/knowledge/agent-defs-commands-and-round-prompts.md`, `corpus/knowledge/agents-md-and-dispatch-surfaces.md`, `corpus/knowledge/dispatch-prompt-audit-round7.md`.
+ - Executable instruments over those surfaces — `verifiers/verify_skill_checklist.py`, `verifiers/verify_surfaces.py`, `verifiers/verify_harness_claims.py`, `verifiers/compare_harness_independent.py`, `verifiers/verify_corpus_integrity.py`, `verifiers/verify_corpus_independent.py`, `verifiers/check_substrate_pins.py`, `verifiers/check_assertion_floors.py`.
++- Frontmatter `description` XML-tag rule (round 47, moved from Frontier): S003's Anthropic rule (`corpus/SOURCES.md`) is executed by `verifiers/verify_skill_checklist.py` check `trigger.description_no_xml_tag` — opening, closing, attribute-bearing and self-closing tags FAIL; a tag-free description and a body-only-tag control PASS; this file's description is tag-free (the former token survives in body prose only). Re-run: `python3 -B verifiers/verify_skill_checklist.py --json`.
+ 
+ ## Frontier
+ 
+ Explored, not held — the live list is `corpus/README.md` § Frontier:
+ 
+ - Executed checklist coverage (33 of 41 boxes still lane-attested prose), command extraction outside the declared vocabulary, implicit-intent trigger fidelity, MCP/plugin instruction surfaces, sibling arbitration clauses, per-render skill consumption.
+-- Loader-rule freshness: the omp 18.12.3 substrate drift (surfaces 5/7, pins 1/3) and the frontmatter `description` XML-token rule — `corpus/lessons/round-46.md` § Mistakes, `corpus/SOURCES.md`.
++- Loader-rule freshness: the omp 18.12.3 substrate drift (surfaces 5/7, pins 1/3) and the frontmatter `description` XML-token rule — `corpus/lessons/round-46.md` § Mistakes, `corpus/SOURCES.md`. **Round 47:** the C2 half moved to Core (executed rule, discriminating fixture). The C1 half's round-46 figures — omp 18.12.3, `surfaces 5/7`, `pins 1/3` — are historical: the live pins are the `measured_against` block in `verifiers/baseline.json` (omp 18.12.5, opencode 1.19.3) and both guards are green at default resolution. The area stays here narrowed: re-derivation after a substrate rebuild is manual — at the round-47 before-run omp 18.12.5 yielded 0 extracted omp classes (the extractor is a fixed call-shape alternation in `verifiers/verify_surfaces.py`), so a rebuild is a red gate, never silent drift.
+ 
+ ## Adjacent
+ 
+diff --git i/corpus/README.md w/corpus/README.md
+index 34af237..9020c4b 100644
+--- i/corpus/README.md
++++ w/corpus/README.md
+@@ -71,7 +71,7 @@ Areas being explored and not yet held (LEARNING.md § Files the path writes); ap
+ | Command extraction | commands outside the declared vocabulary are invisible; info-less table fences read as commands (§ Known gaps) | fixtures for an outside-vocabulary command and the info-less table fence |
+ | Implicit-intent fidelity | the literal-trigger proxy covers only prompts that name a skill (§ Known gaps) | the intent-labeling pass on the proven join recipe (`knowledge/trigger-miss-proxy-round6.md`) |
+ | MCP/plugin instruction surfaces | the two target harness configs carry no MCP/plugin keys; the classes are live elsewhere (§ Known gaps) | per-harness census separating loader-class presence from configured instances (`knowledge/instruction-surface-census-round13.md`) |
+-| Loader-rule freshness | omp 18.12.3 drift leaves surfaces 5/7 and pins 1/3; the frontmatter `description` XML-token rule is unchecked by the lane's own gate | re-derive then re-pin; add the tag rule with a discriminating fixture (`lessons/round-46.md` § Mistakes) |
++| Loader-rule freshness | omp 18.12.3 drift leaves surfaces 5/7 and pins 1/3; the frontmatter `description` XML-token rule is unchecked by the lane's own gate. **Round 47:** C2 moved to Core (the rule is executed with a discriminating fixture); the C1 round-46 figures (omp 18.12.3, surfaces 5/7, pins 1/3) are historical — live pins are `../verifiers/baseline.json` `measured_against` and both guards are green at default resolution. Still not held: re-derivation after a rebuild is manual — 18.12.5 yielded 0 extracted omp classes at the round-47 before-run (fixed call-shape alternation). | re-derive then re-pin; add the tag rule with a discriminating fixture (`lessons/round-46.md` § Mistakes). **Round 47 next:** make re-derivation executable (a shape-discovery probe that names an unseen call form) or pin a per-release red-gate drill; the tag rule is checked, not probed. |
+ | Per-render consumption | no per-session offer-to-activation join exists (§ Known gaps) | per-render attribution (`knowledge/skill-activation-telemetry.md`) |
+ 
+ ## Known gaps

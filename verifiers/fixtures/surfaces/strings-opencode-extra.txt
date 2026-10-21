@@ -1,18 +1,35 @@
-# synthetic opencode strings-dump fixture (round 18) — clean anchors plus one
-# extra OC-2-style join: `X(r.config,"RULES.md")` matches the global-candidate
-# regex shape? NO — the rule anchors on the literal "AGENTS.md", so this extra
-# join must NOT be extracted; instead the fixture plants an extra *API-ish*
-# anchor? Also no. The real extra: a second project targets array that is NOT
-# a rule anchor — proves the rules are anchored, not literal-greedy.
-ConfigInstructionPlugin.projectSource
-i.up({targets:["AGENTS.md"],start:_,stop:P,type:"file"})
-U=yield*i.resolve(j5(r.config,"AGENTS.md"))
-instructions:t.pipe(E,b).annotate({description:"Additional paths or URLs supplying ambient instructions"})
-ReadTool.Plugin
-l.up({targets:[a$],start:B,stop:z,type:"file"})
-a$="AGENTS.md"
-SessionInstructions.load
-process.env.OPENCODE_DISABLE_PROJECT_CONFIG
-/api/experimental/session/:sessionID/instructions/entries
-session.instructions.entry.put
-i.up({targets:["RULES.md"],start:_,stop:P,type:"file"})
+# synthetic opencode strings-dump fixture (round 47 — opencode 1.19.3 rule set,
+# the round-14 lineage re-derived against the frozen 1.19.3 dump). Every
+# non-comment line is an exact byte substring of
+# /fast/scratch/kotoba-r47/shared/opencode-1.19.3.strings at the dump line named
+# in its comment; no other binary text is committed.
+# variant: anchor-adjacent shapes that are NOT rule anchors (must extract nothing extra)
+# OC-1  name-priority list (y), dump line 443993
+y=["AGENTS.md",...!t.disableClaudeCodePrompt?["CLAUDE.md"]:[],"CONTEXT.md"]
+# OC-2  user-level candidate joins (n), dump line 443993
+n=[X.join(r.config,"AGENTS.md"),...!t.disableClaudeCodePrompt?[X.join(r.home,".claude","CLAUDE.md")]:[]]
+# OC-3a declared-list loop inside Instruction.systemPaths, dump line 443993
+if(T.instructions)for(let O of T.instructions){if(O.startsWith("https://")||O.startsWith("http://"))continue;
+# OC-3b remote filter + render inside Instruction.system, dump line 443993
+w=(T.instructions??[]).filter((q)=>q.startsWith("https://")||q.startsWith("http://"))
+[`Instructions from: ${q}
+# OC-4  read-tool channel: resolve entry point (443995), its ReadTool.execute caller (444228), injected token (443193)
+b=s.fn("Instruction.resolve")(function*(T,d,w){
+$=s.fn("ReadTool.execute")(function*(a,g){
+<system-reminder>
+# OC-5  resolution switch: project walk-up versus config-only (owns no class id), dump line 443993
+if(!Jr.OPENCODE_DISABLE_PROJECT_CONFIG)return yield*e.globUp(T,d.directory,d.worktree)
+return yield*e.globUp(T,r.config,r.config)
+# OC-6  second instruction subsystem (instruction-context), dump lines 445481-445487
+A=M.fn("InstructionContext.observe")(function*(){
+yield*H.up({targets:["AGENTS.md"],start:S,stop:$})
+BP=XH.Key.make("core/instructions")
+kX=i({name:"system-context-builtins",layer:tX,
+# not anchors: a targets array for another file, a config read of a non-.md
+# key, the SDK client stub for instruction entries, a projectSource token
+H.up({targets:["RULES.md"],start:S,stop:$})
+X.join(r.config,"opencode.json")
+instructions:{entry:{list:(a,l)=>s({method:"GET",path:`/api/session/${encodeURIComponent(a.sessionID)}/instructions/entries`
+projectSource
+# markers: shapes that must never be counted as classes
+no-rule-anchor marker line

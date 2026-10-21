@@ -1,0 +1,101 @@
+{
+ "target": "opencode rule OC-6 in verifiers/verify_surfaces.py vs opencode-1.19.3.strings",
+ "base": "c61a973b2e02e1ded169703ddcb06466f4edd8bd",
+ "snapshot": {
+  "binary_sha256": "179ca421d61eefeadfa0c50e084a6e79c1623734732f0f4593f81ccfd3ab7ee9",
+  "strings_sha256": "f4d8f34ae02a2411eb5e30203421b6fcdfa81b83e96b768bbcf404504a297bc3",
+  "self_version": "1.19.3 (dump line 447186: var n=\"1.19.3\")"
+ },
+ "anchors_at_base": {
+  "file": "verifiers/verify_surfaces.py",
+  "comment_lines": "389-395",
+  "rule_lines": "440-443",
+  "OC_API_ROUTE": "/instructions/entries",
+  "OC_API_ID": "session.instructions.entry.put"
+ },
+ "presence": {
+  "OC_API_ROUTE": {
+   "dump_lines": 1,
+   "dump_line": 606940,
+   "binary_hits": 1,
+   "where": "generated client SDK only"
+  },
+  "OC_API_ID": {
+   "dump_lines": 0,
+   "binary_hits": 0,
+   "variants_zero": [
+    "session.instructions.entry",
+    "instructions.entry",
+    "instructionsEntry",
+    "instructions.entries",
+    "entry.put",
+    "entry.remove",
+    "entry.list",
+    "instructions.entry.",
+    "session.instructions"
+   ]
+  },
+  "client_namespace": {
+   "anchor": "instructions:{entry:{list:",
+   "hits": 1,
+   "line": 606940
+  },
+  "client_keyed_tail": {
+   "anchor": "instructions/entries/${encodeURIComponent(",
+   "hits": 1,
+   "line": 606940
+  },
+  "route_identifiers": {
+   "unique_total": 534,
+   "containing_instruct": 0,
+   "v2_total": 61,
+   "legacy_session_total": 26,
+   "legacy_session_with_instructions": 0
+  },
+  "route_groups": 19,
+  "callers": {
+   "instructions.entry.": 0,
+   "entry.put(": 0,
+   "entry.remove(": 0
+  },
+  "server_path_fragments": {
+   "\"/instructions": 0,
+   "\"/entries": 0,
+   "entries:\"": 0,
+   "instructions:\"": 0
+  }
+ },
+ "old_subsystem_still_live": {
+  "instruction-context": 445482,
+  "InstructionContext.observe": 445482,
+  "Instruction.systemPaths": 443993,
+  "core/instructions": 445481,
+  "targets:[\"AGENTS.md\"]": 445482,
+  "Previously loaded instructions no longer apply.": 445482
+ },
+ "verifier_run_at_base": {
+  "command": "python3 -B verifiers/verify_surfaces.py --omp-strings <18.12.5> --opencode-strings <1.19.3> --check surfaces.opencode_extract --json",
+  "exit": 1,
+  "detail": "OC-6 (owns opencode:api-entries/instructions; missing /instructions/entries + session.instructions.entry.put) - both listed though the route IS present (rule() masks per-anchor presence, lines 405-407)"
+ },
+ "candidate_anchor_set_client_only": {
+  "anchors": [
+   "instructions:{entry:{list:",
+   "instructions/entries/${encodeURIComponent("
+  ],
+  "real_dump": true,
+  "drop_oc6_fixture": false,
+  "dump_minus_client_line": false,
+  "omp_dump": false
+ },
+ "draft_patch": "C1WitnessOC6.patch",
+ "draft_validation": {
+  "self_test": "87/87 pass, exit 0",
+  "full_run_snapshot": "4 PASS / 3 FAIL, exit 1 (OC-6 no longer among failures; OC-1/OC-4/omp vacuity are sibling lanes)",
+  "table_parity": "38 ids PASS",
+  "literal_parity": "38 rows PASS",
+  "kind_parity": "38 rows PASS",
+  "excluded_reason": "10 excluded, all reasoned, PASS"
+ },
+ "decision": "OC-6 re-anchored structurally; class re-verdicted governed -> excluded with sweep reason (server route absent)."
+}

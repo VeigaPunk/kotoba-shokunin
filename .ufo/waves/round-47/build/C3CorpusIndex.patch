@@ -1,0 +1,34 @@
+diff --git a/corpus/README.md b/corpus/README.md
+index 34af237..bfd9fa9 100644
+--- a/corpus/README.md
++++ b/corpus/README.md
+@@ -60,6 +60,7 @@ Domain: prompt & skill craft — SKILL.md/AGENTS.md quality, trigger fidelity.
+ | Admission bar (round 46) | `QUALITY.md` | the lane's own quality bar, created round 46: every criterion cites its row in `lessons/round-46.md` § Mistakes (mined from the lane's rejected, harmed and honest-stop rounds 37–46); tier definitions defer to `SOURCES.md` |
+ | Source registry (round 46) | `SOURCES.md` | where the lane learns, per the kaika SOURCES contract v1: rows written only for sources opened in round 46, scoped tiers, one rejected row with its flip, study paths and a search log; fetch records in `../.ufo/round-46/evidence/w2/sources/fetch-log.json` |
+ | Round-46 lessons | `lessons/round-46.md` | LOG.md round-46 entries, WIP commit `36ab0d3`; `## Mistakes` (the lane's mined failure classes, each with pointer, captured-by criterion and fix) and `## Gate` (no knowledge admitted this round; source rows; spot-check pending non-author) |
++| Round-46 verifier spot-check | `lessons/round-46-verifier-spotcheck.md` | integrator-written non-author spot-check of round 46 (orchestrator, kaika), not the lane's `round-46.md`: one admit and one reject sample, both `agree`, plus the adjudication that closed the r46 WIP on re-measurement |
+ 
+ ## Frontier
+ 
+diff --git a/verifiers/corpus-baseline.json b/verifiers/corpus-baseline.json
+index a9ad97c..6337e1e 100644
+--- a/verifiers/corpus-baseline.json
++++ b/verifiers/corpus-baseline.json
+@@ -12,7 +12,7 @@
+   "checks": {
+     "corpus.index.tracked_files": {
+       "mode": "equal",
+-      "expect": 58
++      "expect": 59
+     },
+     "corpus.index.unindexed": {
+       "mode": "zero",
+@@ -54,6 +54,7 @@
+     "round23_capability": "Measured with python3 verifiers/verify_corpus_integrity.py --no-baseline --json against the staged round-23 tree. tracked_files 52 -> 53 (corpus/knowledge/substrate-pin-guard-round23.md, indexed in corpus/README.md); report_total 34 -> 36 (the new README row and the new corpus doc each cite the round-23 report, host-absolute form). commit_total 27 unchanged; all zero-defect expectations observed zero. The first landing had one repo-relative report pointer (dead, corpus-instrument file-relative base); corrected to host-absolute before this record.",
+     "round37_harness_independent": "Measured with python3 verifiers/verify_corpus_integrity.py --no-baseline --json against a staged copy of the round-38 tree (the corpus doc landed this round; the round-37 record it owes was written at r38). tracked_files 53 -> 54 (corpus/knowledge/harness-independent-round37.md, indexed in corpus/README.md); report_total 36 -> 38 (the new README row and the new corpus doc each cite the round-37 report, host-absolute form). index_tokens 69 -> 72 (the new README row's three backticked column-2 tokens). commit_total 27 unchanged; every zero-defect expectation observed zero; both corpus instruments exit 0 at the staged tree.",
+     "round41_v10_census": "Measured with python3 verifiers/verify_corpus_integrity.py --no-baseline --json against a temporary Git index seeded from HEAD plus corpus/README.md and corpus/knowledge/harness-independent-round41-census.md. tracked_files 54 -> 55 (the new census note, indexed in corpus/README.md); index_tokens 72 -> 73 (the new README row); corpus Markdown files 53 -> 54. report_total 38 and commit_total 27 unchanged; all zero-defect expectations observed zero, and both corpus instruments exit 0 on the temporary-index tree. The real Git index was not changed.",
+-    "round46_landing": "Measured with python3 -B verifiers/verify_corpus_integrity.py --repo <overlay> on a /tmp shared clone of 78ee57e overlaid with the round-46 landing tree and committed there (the lane's real index untouched). tracked_files 55 -> 58: corpus/QUALITY.md, corpus/SOURCES.md and corpus/lessons/round-46.md, each indexed in corpus/README.md (index rows 73 -> 76). report_total 38 -> 40: the round-46 lesson's two pointers to the lane's round-45 report, written host-absolute because that report exists only in the lane repo (bare .ufo/reports/round-45/kotoba.md read report_dead=2 against the fleet root before the rewrite). commit_total 27 -> 29: the lesson's 36ab0d3 and 78ee57e tokens, both resolvable. All zero-defect expectations observed zero. The headline measured_against block above is the round-17 record and is retained as history, not as this baseline's provenance."
++    "round46_landing": "Measured with python3 -B verifiers/verify_corpus_integrity.py --repo <overlay> on a /tmp shared clone of 78ee57e overlaid with the round-46 landing tree and committed there (the lane's real index untouched). tracked_files 55 -> 58: corpus/QUALITY.md, corpus/SOURCES.md and corpus/lessons/round-46.md, each indexed in corpus/README.md (index rows 73 -> 76). report_total 38 -> 40: the round-46 lesson's two pointers to the lane's round-45 report, written host-absolute because that report exists only in the lane repo (bare .ufo/reports/round-45/kotoba.md read report_dead=2 against the fleet root before the rewrite). commit_total 27 -> 29: the lesson's 36ab0d3 and 78ee57e tokens, both resolvable. All zero-defect expectations observed zero. The headline measured_against block above is the round-17 record and is retained as history, not as this baseline's provenance.",
++    "round47_c3_index": "Measured with python3 -B verifiers/verify_corpus_integrity.py --json and python3 -B verifiers/verify_corpus_independent.py --json on a scratch clone of c61a973 (the commit that landed corpus/lessons/round-46-verifier-spotcheck.md) with one coverage-map row added for that lesson; the production tree was not written. tracked_files 58 -> 59: that lesson is the only delta from the round-46 landing 04192c2 (git diff --name-status 04192c2 c61a973 lists one A line), and it was committed without an index row, so red-before both instruments read unindexed 1 (the integrity instrument also reads tracked_files 59 against 58). The new row takes the FILE-column patterns 76 -> 77 and unindexed 1 -> 0. report_total 40 and commit_total 29 unchanged: the new row cites no report pointer and no commit token. All zero-defect expectations observed zero; both corpus instruments exit 0 on the clone. The independent instrument carries no baseline, so nothing is re-recorded for it."
+   }
+ }

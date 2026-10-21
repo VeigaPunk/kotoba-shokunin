@@ -1,0 +1,22 @@
+diff --git c/verifiers/fault_injection_corpus.sh w/verifiers/fault_injection_corpus.sh
+index 1d0d77a..d401a2a 100755
+--- c/verifiers/fault_injection_corpus.sh
++++ w/verifiers/fault_injection_corpus.sh
+@@ -108,13 +108,15 @@ with open(p, "a", encoding="utf-8") as fh:
+ PY
+ }
+ 
+-insert_index_row() { # <world> <row> — after the last existing table row
++insert_index_row() { # <world> <row> — after the last row of the § Coverage map table
+   python3 - "$1" "$2" <<'PY'
+ import sys
+ run, row = sys.argv[1], sys.argv[2]
+ p = f"{run}/corpus/README.md"
+ lines = open(p, encoding="utf-8").read().splitlines(keepends=True)
+-idx = max(i for i, l in enumerate(lines) if l.startswith("|"))
++start = lines.index("## Coverage map\n")
++end = next((i for i in range(start + 1, len(lines)) if lines[i].startswith("## ")), len(lines))
++idx = max(i for i in range(start, end) if lines[i].startswith("|"))
+ lines.insert(idx + 1, row + "\n")
+ open(p, "w", encoding="utf-8").write("".join(lines))
+ PY

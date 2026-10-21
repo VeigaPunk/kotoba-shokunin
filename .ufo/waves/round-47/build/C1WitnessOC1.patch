@@ -1,0 +1,118 @@
+diff --git i/verifiers/fixtures/surfaces/strings-opencode-clean.txt w/verifiers/fixtures/surfaces/strings-opencode-clean.txt
+index fae902c..d5f5c7f 100644
+--- i/verifiers/fixtures/surfaces/strings-opencode-clean.txt
++++ w/verifiers/fixtures/surfaces/strings-opencode-clean.txt
+@@ -3,7 +3,7 @@
+ # extraction rules key on, plus markers that prove a shape is NOT mistaken for
+ # a rule match.
+ # OC-1  project walk-up, all-match AGENTS.md
+-ConfigInstructionPlugin.projectSource
++InstructionContext.observe
+ i.up({targets:["AGENTS.md"],start:_,stop:P,type:"file"})
+ # OC-2  global <config>/AGENTS.md candidate
+ U=yield*i.resolve(j5(r.config,"AGENTS.md"))
+diff --git i/verifiers/fixtures/surfaces/strings-opencode-drop-oc2.txt w/verifiers/fixtures/surfaces/strings-opencode-drop-oc2.txt
+index 7dc83ba..ebeb94f 100644
+--- i/verifiers/fixtures/surfaces/strings-opencode-drop-oc2.txt
++++ w/verifiers/fixtures/surfaces/strings-opencode-drop-oc2.txt
+@@ -2,7 +2,7 @@
+ # The (r.config, AGENTS.md) join is gone; the others stay.
+ # surfaces.opencode_extract must report OC-2 unmatched and name
+ # opencode:config/AGENTS.md.
+-ConfigInstructionPlugin.projectSource
++InstructionContext.observe
+ i.up({targets:["AGENTS.md"],start:_,stop:P,type:"file"})
+ instructions:t.pipe(E,b).annotate({description:"Additional paths or URLs supplying ambient instructions"})
+ ReadTool.Plugin
+diff --git i/verifiers/fixtures/surfaces/strings-opencode-drop-oc3.txt w/verifiers/fixtures/surfaces/strings-opencode-drop-oc3.txt
+index b8a3984..9a66067 100644
+--- i/verifiers/fixtures/surfaces/strings-opencode-drop-oc3.txt
++++ w/verifiers/fixtures/surfaces/strings-opencode-drop-oc3.txt
+@@ -2,7 +2,7 @@
+ # The ambient-instructions schema annotation is gone; the rest stays.
+ # surfaces.opencode_extract must report OC-3 unmatched and name
+ # opencode:config/instructions.
+-ConfigInstructionPlugin.projectSource
++InstructionContext.observe
+ i.up({targets:["AGENTS.md"],start:_,stop:P,type:"file"})
+ U=yield*i.resolve(j5(r.config,"AGENTS.md"))
+ ReadTool.Plugin
+diff --git i/verifiers/fixtures/surfaces/strings-opencode-drop-oc4.txt w/verifiers/fixtures/surfaces/strings-opencode-drop-oc4.txt
+index 667d12f..99a4e0a 100644
+--- i/verifiers/fixtures/surfaces/strings-opencode-drop-oc4.txt
++++ w/verifiers/fixtures/surfaces/strings-opencode-drop-oc4.txt
+@@ -2,7 +2,7 @@
+ # ReadTool.Plugin / targets:[a$] / the a$ const / SessionInstructions.load are
+ # gone; the rest stays.  surfaces.opencode_extract must report OC-4 unmatched
+ # and name opencode:read-hook/AGENTS.md.
+-ConfigInstructionPlugin.projectSource
++InstructionContext.observe
+ i.up({targets:["AGENTS.md"],start:_,stop:P,type:"file"})
+ U=yield*i.resolve(j5(r.config,"AGENTS.md"))
+ instructions:t.pipe(E,b).annotate({description:"Additional paths or URLs supplying ambient instructions"})
+diff --git i/verifiers/fixtures/surfaces/strings-opencode-drop-oc5.txt w/verifiers/fixtures/surfaces/strings-opencode-drop-oc5.txt
+index ec376ab..b07f18f 100644
+--- i/verifiers/fixtures/surfaces/strings-opencode-drop-oc5.txt
++++ w/verifiers/fixtures/surfaces/strings-opencode-drop-oc5.txt
+@@ -1,7 +1,7 @@
+ # synthetic opencode strings-dump fixture (round 18) — OC-5 anchor removed.
+ # Both env-gate literals are gone; the rest stays.
+ # surfaces.opencode_extract must report OC-5 unmatched (names OC-5 itself).
+-ConfigInstructionPlugin.projectSource
++InstructionContext.observe
+ i.up({targets:["AGENTS.md"],start:_,stop:P,type:"file"})
+ U=yield*i.resolve(j5(r.config,"AGENTS.md"))
+ instructions:t.pipe(E,b).annotate({description:"Additional paths or URLs supplying ambient instructions"})
+diff --git i/verifiers/fixtures/surfaces/strings-opencode-drop-oc6.txt w/verifiers/fixtures/surfaces/strings-opencode-drop-oc6.txt
+index 9c5d771..86ae44b 100644
+--- i/verifiers/fixtures/surfaces/strings-opencode-drop-oc6.txt
++++ w/verifiers/fixtures/surfaces/strings-opencode-drop-oc6.txt
+@@ -2,7 +2,7 @@
+ # The API route + entry id are gone; the rest stays.
+ # surfaces.opencode_extract must report OC-6 unmatched and name
+ # opencode:api-entries/instructions.
+-ConfigInstructionPlugin.projectSource
++InstructionContext.observe
+ i.up({targets:["AGENTS.md"],start:_,stop:P,type:"file"})
+ U=yield*i.resolve(j5(r.config,"AGENTS.md"))
+ instructions:t.pipe(E,b).annotate({description:"Additional paths or URLs supplying ambient instructions"})
+diff --git i/verifiers/fixtures/surfaces/strings-opencode-extra.txt w/verifiers/fixtures/surfaces/strings-opencode-extra.txt
+index f829671..03d4c15 100644
+--- i/verifiers/fixtures/surfaces/strings-opencode-extra.txt
++++ w/verifiers/fixtures/surfaces/strings-opencode-extra.txt
+@@ -4,7 +4,7 @@
+ # join must NOT be extracted; instead the fixture plants an extra *API-ish*
+ # anchor? Also no. The real extra: a second project targets array that is NOT
+ # a rule anchor — proves the rules are anchored, not literal-greedy.
+-ConfigInstructionPlugin.projectSource
++InstructionContext.observe
+ i.up({targets:["AGENTS.md"],start:_,stop:P,type:"file"})
+ U=yield*i.resolve(j5(r.config,"AGENTS.md"))
+ instructions:t.pipe(E,b).annotate({description:"Additional paths or URLs supplying ambient instructions"})
+diff --git i/verifiers/verify_surfaces.py w/verifiers/verify_surfaces.py
+index 56e65ea..9f02cf4 100755
+--- i/verifiers/verify_surfaces.py
++++ w/verifiers/verify_surfaces.py
+@@ -350,13 +350,15 @@ def extract_classes(dump: str, harness: str) -> set[tuple[str, str]]:
+ # (a) each declared opencode class id is produced by a rule, (b) no rule produces
+ # an undeclared id, (c) a rule whose anchor is gone reports itself unmatched.
+ 
+-# OC-1: the PROJECT source of the `opencode.config.instruction` plugin
+-# (opencode 2.x, post-2026-09-28 rewrite: the AGENTS.md/CLAUDE.md/CONTEXT.md
+-# name-priority array is gone; the loader is Effect-gen, all-match walk-up).
+-# Live shapes: `ConfigInstructionPlugin.projectSource` +
+-# `targets:["AGENTS.md"]` in the same code path (`i.up({targets:["AGENTS.md"],
+-# start:<cwd>,stop:<project>,type:"file"})`).
+-OC_PROJECT_FN = "ConfigInstructionPlugin.projectSource"
++# OC-1: the PROJECT source of the instruction-context service (layer
++# `instruction-context`, registration key `core/instructions`; opencode
++# 1.19.3).  The loader is the Effect-gen, all-match walk-up; the legacy
++# `@opencode/Instruction` name-priority array is a DIFFERENT service and not
++# this class (see OC-2).
++# Live shape, one chunk: `InstructionContext.observe` +
++# `H.up({targets:["AGENTS.md"],start:<cwd>,stop:<project>})`, gated by
++# `OPENCODE_DISABLE_PROJECT_CONFIG` (no `type:` field in the call).
++OC_PROJECT_FN = "InstructionContext.observe"
+ OC_PROJECT_TARGETS = 'targets:["AGENTS.md"]'
+ OC_MD_NAME_RE = re.compile(r'"([A-Za-z0-9_.-]+\.md)"')
+ 

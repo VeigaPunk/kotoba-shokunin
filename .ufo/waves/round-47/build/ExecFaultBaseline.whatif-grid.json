@@ -1,0 +1,74 @@
+{
+  "artifact": "ExecFaultBaseline.whatif-grid",
+  "base": "c61a973b2e02e1ded169703ddcb06466f4edd8bd",
+  "scratch_only": true,
+  "note": "What-if states in scratch clone /fast/scratch/kotoba-r47/ExecFaultBaseline/whatif. Nothing landed in production. C3 owns the production row and re-pin.",
+  "states": {
+    "A_c3_row_only": {
+      "commit": "e626a94",
+      "change": "corpus/README.md:63 coverage-map row for lessons/round-46-verifier-spotcheck.md",
+      "patch": "ExecFaultBaseline.whatif-c3-row.patch",
+      "predicted_before_run": true,
+      "harness_exit": 1,
+      "harness_verdict": "FAILURES PRESENT",
+      "grid": {
+        "0-control": "PASS",
+        "a": "PASS",
+        "b": "PASS",
+        "c": "PASS",
+        "d1": "MISS (integrity exit 0)",
+        "d2": "MISS (integrity exit 0)",
+        "e": "PASS",
+        "f": "PASS (blind-spot; baseline-mode exit from tracked_files pin)",
+        "g": "PASS",
+        "h": "PASS (quoted=1, checked=40)"
+      },
+      "self_test": {"exit": 0, "verdict": "OK"},
+      "integrity_default_mode": {"exit": 1, "drift": ["corpus.index.tracked_files observed=59 expected=58"]},
+      "wall_s_main_plus_selftest": 17.97
+    },
+    "B_A_plus_tracked_repin": {
+      "commit": "12211a0 (on e626a94)",
+      "change": "verifiers/corpus-baseline.json:15 expect 58 -> 59",
+      "patch": "ExecFaultBaseline.whatif-c3-rebaseline.patch",
+      "harness_exit": 1,
+      "harness_verdict": "FAILURES PRESENT",
+      "grid": "identical to A",
+      "f_baseline_mode_drift": ["corpus.pointers.report_total observed=39 expected=40"],
+      "self_test": {"exit": 0, "verdict": "OK"},
+      "integrity_default_mode": {"exit": 0, "result": "9/9 checks pass"},
+      "wall_s_main_plus_selftest": 13.90
+    },
+    "C_B_plus_scoped_planter": {
+      "change": "verifiers/fault_injection_corpus.sh insert_index_row restricted to the '## Coverage map' section (lines 117-119); uncommitted working-tree diff in scratch",
+      "patch": "ExecFaultBaseline.whatif-planter-fix.patch",
+      "harness_exit": 0,
+      "harness_verdict": "ALL PASS",
+      "grid": {
+        "0-control": "PASS",
+        "a": "PASS",
+        "b": "PASS",
+        "c": "PASS",
+        "d1": "PASS (stale_patterns,missing_paths)",
+        "d2": "PASS (stale_patterns)",
+        "e": "PASS",
+        "f": "PASS",
+        "g": "PASS",
+        "h": "PASS"
+      },
+      "self_test": {"exit": 0, "verdict": "OK"},
+      "wall_s_main_plus_selftest": 15.31
+    },
+    "D_C_without_repin": {
+      "change": "state C with verifiers/corpus-baseline.json expect 58 (scratch working tree; restored afterwards)",
+      "harness_exit": 0,
+      "harness_verdict": "ALL PASS",
+      "f_verdict": "PASS, but its baseline-mode exit comes from the stale tracked_files pin, not from report_total",
+      "integrity_default_mode": {"exit": 1, "drift": ["corpus.index.tracked_files observed=59 expected=58"]}
+    }
+  },
+  "mechanism_check_coverage_map_placement": {
+    "d1cov": {"row": "README:64 inside coverage map", "integrity_exit": 1, "integrity_drift": ["corpus.index.stale_patterns", "corpus.index.missing_paths"], "independent_exit": 1},
+    "d2cov": {"row": "README:64 inside coverage map, plus untracked on-disk file", "integrity_exit": 1, "integrity_drift": ["corpus.index.stale_patterns"], "independent_exit": 1}
+  }
+}

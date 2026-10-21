@@ -1,0 +1,52 @@
+{
+  "seat": "MoriR22R.C2FloorsBoxes-9",
+  "base": "c61a973b2e02e1ded169703ddcb06466f4edd8bd",
+  "date": "2026-10-21",
+  "scratch": "/fast/scratch/kotoba-r47/C2FloorsBoxes/{lane,probeA,probeA0,probeB,laneB,laneC}",
+  "file_sha256_at_base": {
+    "verifiers/verify_skill_checklist.py": "214ae44dcba45ba19656a0b2aa6c49900c618f6716a64fef0776f06437cfc8d0",
+    "verifiers/check_assertion_floors.py": "9bb07f46a5ae7f52768b8d4d3c55b867a3dbcfb083ddf746b451195a452f54bb",
+    "verifiers/checklist-baseline.json": "82bf86d60b72f7e165df7f347379d2ffb65268dea811878b09dbd1b52c74df86",
+    "verifiers/floors-registry.json": "171536f88431f6139c67a9dd64a84da9b9efd67b614b835bc2c9867dfa5ada6f",
+    "SKILL.md": "c8b245b7dd2cfeb99855e968fb2cf778d820dcbcecd21195e320d5fa41eaa0fb"
+  },
+  "self_test_totals": [
+    {"shape": "base", "check_ids": 10, "totals": 1597, "failures": 0, "exit": 0},
+    {"shape": "A new_check_id_no_cases_edits", "check_ids": 11, "totals": 1741, "failures": 12, "exit": 1},
+    {"shape": "A new_check_id_plus_6_fails_list_edits", "check_ids": 11, "totals": 1735, "failures": 0, "exit": 0},
+    {"shape": "A plus_1_new_fixture_case", "check_ids": 11, "totals": 1758, "failures": 0, "exit": 0},
+    {"shape": "A plus_2_new_fixture_cases", "check_ids": 11, "totals": 1781, "failures": 0, "exit": 0},
+    {"shape": "B folded_into_trigger.frontmatter_parses_1_case", "check_ids": 10, "totals": 1618, "failures": 0, "exit": 0},
+    {"shape": "B folded_into_trigger.frontmatter_parses_2_cases", "check_ids": 10, "totals": 1639, "failures": 0, "exit": 0}
+  ],
+  "live_json_census": {
+    "base": {"checks": 10, "pass": 9, "fail": 1, "na": 0, "exit": 1,
+             "failing": ["governance.citation_resolves"]},
+    "with_11th_check_against_unchanged_SKILL": {"checks": 11, "pass": 9, "fail": 2, "exit": 1,
+             "failing": ["trigger.description_no_xml_tag", "governance.citation_resolves"]}
+  },
+  "box_map_experiments": [
+    {"edit": "42 entries, box_total left 41",
+     "result": "ERROR box map ...: box_total 41 is below the declared entry count 42", "exit": 3},
+    {"edit": "42 entries, box_total 42",
+     "result": "PASS checklist.box_map_complete: evaluated 42 - 42 boxes mapped (9 executed, 0 delegated, 33 unexecuted)", "exit": 0},
+    {"edit": "map entry names an id absent from CHECK_IDS",
+     "result": "FAIL ... names unknown check 'trigger.description_no_xml_tag'; map entry trigger.16 has no live box", "exit": 1},
+    {"edit": "trigger.01 box text reworded without re-sha",
+     "result": "FAIL ... map entry trigger.01 has no live box; unmapped box at line 192; line 192 annotation claims 'trigger.frontmatter_parses' but the map records '<no entry>'", "exit": 1}
+  ],
+  "floor_drift_probe": {
+    "edit": "registry checklist floor 1597 -> 1699, both in-file tables untouched",
+    "result": ["floor drift: checklist registry=1699 expected=1597 row=1597"]
+  },
+  "sha_recipe_check": {
+    "box": "SKILL.md:192-195 (trigger.01)",
+    "recomputed": "e3d6053d766d75a9de7776281fbbf6ceb7234b1b8f48f0ed48c5af049b7d1d4c",
+    "baseline": "e3d6053d766d75a9de7776281fbbf6ceb7234b1b8f48f0ed48c5af049b7d1d4c",
+    "match": true
+  },
+  "regex_false_positive_surface": {
+    "strict <[A-Za-z/][^>]*>": {"<https://example.com>": true, "<skills>": true, "</skills>": true, "<available_skills>": true, "<name>": true, "<N>": true, "<skil ls>": true, "a < b and c > d": false},
+    "tag_grammar </?[A-Za-z][A-Za-z0-9._:-]*(\\s[^<>]*)?/?>": {"<https://example.com>": false, "<skills>": true, "</skills>": true, "<available_skills>": true, "<name>": true, "<N>": true, "<skil ls>": true, "a < b and c > d": false}
+  }
+}

@@ -18,7 +18,7 @@ Two instruments:
        I5(d, d$, "AGENTS.md")  with  var d$ = "agents-md"
        Gl(d, "gemini", "GEMINI.md")              Mo(d, "gemini", "GEMINI.md")
 
-   i.e. ``(Id|Cl|jD[ef]|Tl|dr|GW|Co|Dl|Hj|I5|Gl|Mo)(<v>, <group>, "<file>.md")`` — the file argument must
+   i.e. ``(Id|Cl|jD[ef]|Tl|dr|GW|Co|Dl|Hj|I5|Gl|Mo|lq|Xl|Fo)(<v>, <group>, "<file>.md")`` — the file argument must
    end in ``.md`` — where ``<group>`` is either a quoted literal or a bundle
    identifier resolvable to a string constant in the same dump
    (``var|let|const X = "..."``; the minified bundles register the
@@ -127,7 +127,7 @@ FIXTURES = Path(__file__).resolve().parent / "fixtures" / "surfaces"
 
 DEFAULT_BINARIES = {
     "omp": "/home/vgpnk/.local/bin/omp",
-    "opencode": "/home/vgpnk/.opencode/bin/opencode",
+    "opencode": "/home/vgpnk/.npm/_npx/e2094862b59aac7b/node_modules/opencode-ai/bin/opencode.exe",
 }
 DEFAULT_INVENTORY = "corpus/knowledge/instruction-surface-census-round13.md"
 HARNESS_IDS = ("omp", "opencode")
@@ -140,7 +140,8 @@ VERDICTS = ("governed", "excluded")
 # over-matches the other, and the callee name is minification-volatile — the
 # FIRST thing to re-pin on a binary bump):
 #   omp: Id/Cl/jDe/jDf (2026-09-28); Tl/dr/GW (2026-10-14); Co/Dl/Hj
-#        (2026-10-16, 18.11.1); I5/Gl/Mo (2026-10-18, 18.12.2)
+#        (2026-10-16, 18.11.1); I5/Gl/Mo (2026-10-18, 18.12.2);
+#        lq/Xl/Fo (2026-10-21, 18.12.5: discovery helpers; f$/m$ var-bound groups)
 #   opencode: historical names only — its live bundle is full of single-letter
 #             callees that must not feed this extractor; opencode's loaders
 #             are list/join shapes governed by the OC-1..OC-6 rules instead
@@ -153,12 +154,12 @@ CALL_RE = re.compile(
     r'"([A-Za-z0-9_./-]+\.md)"(?=\s*[,)])'
 )
 OMP_CALL_RE = re.compile(
-    r"(?<![A-Za-z0-9_$])(?:Id|Cl|jD[ef]|Tl|dr|GW|Co|Dl|Hj|I5|Gl|Mo)\(\s*[^\s,()]+\s*,\s*"
+    r"(?<![A-Za-z0-9_$])(?:Id|Cl|jD[ef]|Tl|dr|GW|Co|Dl|Hj|I5|Gl|Mo|lq|Xl|Fo)\(\s*[^\s,()]+\s*,\s*"
     r'(?:"([a-z0-9_-]+)"|([A-Za-z_$][A-Za-z0-9_$]*))\s*,\s*'
     r'"([A-Za-z0-9_./-]+\.md)"(?=\s*[,)])'
 )
 CALLEE_SHAPES = {
-    "omp": '(Id|Cl|jD[ef]|Tl|dr|GW|Co|Dl|Hj|I5|Gl|Mo)(<v>, <group>, "<file>.md")',
+    "omp": '(Id|Cl|jD[ef]|Tl|dr|GW|Co|Dl|Hj|I5|Gl|Mo|lq|Xl|Fo)(<v>, <group>, "<file>.md")',
     "opencode": '(Id|Cl|jD[ef]|Tl|dr|GW)(<v>, <group>, "<file>.md")',
 }
 # Identifier -> string bindings anywhere in the dump (`var Pqr = "agents-md"`,
@@ -333,7 +334,7 @@ def extract_classes(dump: str, harness: str) -> set[tuple[str, str]]:
 
 
 # ---------------------------------------------------------------------------
-# opencode: instruction-service extraction (rules OC-1..OC-4)
+# opencode: instruction-service extraction (rules OC-1..OC-6)
 #
 # opencode's loaders are not ``(group, file)`` registration calls; they are
 # minified JS list / ``path.join`` / array-``filter`` shapes inside the Bun
@@ -350,48 +351,82 @@ def extract_classes(dump: str, harness: str) -> set[tuple[str, str]]:
 # (a) each declared opencode class id is produced by a rule, (b) no rule produces
 # an undeclared id, (c) a rule whose anchor is gone reports itself unmatched.
 
-# OC-1: the PROJECT source of the `opencode.config.instruction` plugin
-# (opencode 2.x, post-2026-09-28 rewrite: the AGENTS.md/CLAUDE.md/CONTEXT.md
-# name-priority array is gone; the loader is Effect-gen, all-match walk-up).
-# Live shapes: `ConfigInstructionPlugin.projectSource` +
-# `targets:["AGENTS.md"]` in the same code path (`i.up({targets:["AGENTS.md"],
-# start:<cwd>,stop:<project>,type:"file"})`).
-OC_PROJECT_FN = "ConfigInstructionPlugin.projectSource"
-OC_PROJECT_TARGETS = 'targets:["AGENTS.md"]'
+# GENERATION NOTE (round 47, append-only history): opencode moved channel.  The
+# round-18 v2.0.26 binary (`~/.opencode/bin`, sha `d9123b9b…`) is gone; the host
+# now runs npm `opencode-ai` 1.19.3 (npx cache, sha `179ca421…`), a different
+# lineage whose loader shapes are the round-14 ones, not v2.0.26's: on the frozen
+# 1.19.3 dump the v2.0.26 anchors `ConfigInstructionPlugin`, `ReadTool.Plugin`,
+# `SessionInstructions`, `session.instructions.entry.put`, `j5(r.config,…)` and
+# `InstructionDiscovery` occur 0 times, while every rule below matches.  The rules
+# were re-measured anchor by anchor on that dump (counts and dump lines in
+# `corpus/knowledge/instruction-surface-census-round13.md` § B, round 47); the
+# retired v2.0.26 rule set survives only as the must-fail generation fixture
+# `fixtures/surfaces/strings-opencode-v2.0.26.txt`.
+
+# OC-1: the per-directory name-priority list (first-match walk-up; dump 443993):
+#   y=["AGENTS.md",...!t.disableClaudeCodePrompt?["CLAUDE.md"]:[],"CONTEXT.md"]
+# Every *.md literal inside the array DERIVES a class id, so a name planted into
+# or dropped from the array changes the extracted set (never a witness-only pass).
+OC_PRIORITY_RE = re.compile(r'\["AGENTS\.md".{0,400}?"CONTEXT\.md"[^\]]{0,200}\]')
 OC_MD_NAME_RE = re.compile(r'"([A-Za-z0-9_.-]+\.md)"')
+OC_GATE = "disableClaudeCodePrompt"
 
-# OC-2: the GLOBAL source — `<opencode config dir>/AGENTS.md`, resolved via
-# `j5(r.config,"AGENTS.md")` inside `opencode.config.instruction` (the
-# `.claude/CLAUDE.md` candidate no longer exists).
-OC_GLOBAL_JOIN_RE = re.compile(
-    r'[A-Za-z_$][A-Za-z0-9_$]*\(r\.config\s*,\s*"AGENTS\.md"\)')
+# OC-2: the config/home candidate list (`Instruction.systemPaths`; dump 443993):
+#   X.join(r.config,"AGENTS.md")   X.join(r.home,".claude","CLAUDE.md")
+OC_CONFIG_JOIN_RE = re.compile(
+    r'\.join\(\s*[A-Za-z_$][A-Za-z0-9_$]*\.config\s*,\s*"([A-Za-z0-9_.-]+\.md)"'
+)
+OC_HOME_DIR_JOIN_RE = re.compile(
+    r'\.join\(\s*[A-Za-z_$][A-Za-z0-9_$]*\.home\s*,\s*"\.([A-Za-z0-9_-]+)"\s*,'
+    r'\s*"([A-Za-z0-9_.-]+\.md)"'
+)
 
-# OC-3: the config `instructions` field — schema-declared ("Additional paths
-# or URLs supplying ambient instructions"). The field is declared; a loader
-# consumer is NOT proven on this binary (round-18 excluded class).
-OC_AMBIENT_SCHEMA = 'ambient instructions'
+# OC-3: the declared ``instructions`` list and its remote half (dump 443993).
+#   a: `Instruction.systemPaths` consumes it —
+#      for(let O of T.instructions){if(O.startsWith("https://")||…)continue;…glob…}
+#   b: `Instruction.system` fetches the remote entries and renders them —
+#      (T.instructions??[]).filter((q)=>q.startsWith("https://")||q.startsWith("http://"))
+#      `Instructions from: ${q}`
+# Round 47 tightened b to require the ``.filter(`` call: the round-14 pattern also
+# matched a's loop (2 hits on 1.19.3), so a dropped filter still passed.
+OC_DECLARED_RE = re.compile(
+    r"for\s*\(\s*let\s+[A-Za-z_$][A-Za-z0-9_$]*\s+of\s+"
+    r"[A-Za-z_$][A-Za-z0-9_$]*\.instructions\s*\)"
+)
+OC_REMOTE_FILTER_RE = re.compile(
+    r'\.instructions[^;]{0,20}?\.filter\(\s*\(?\s*([A-Za-z_$][A-Za-z0-9_$]*)\s*\)?\s*=>\s*'
+    r'\1\.startsWith\("https://"\)\s*\|\|\s*\1\.startsWith\("http://"\)'
+)
+OC_REMOTE_RENDER = "Instructions from: "
 
-# OC-4: the READ-TOOL channel — `ReadTool.Plugin` walks up from every read
-# file to the project root for AGENTS.md (`targets:[a$]` where `a$` is the
-# "AGENTS.md" constant) and calls `SessionInstructions.load`, which renders
-# `Instructions from: <path>` synthetic entries.
-OC_READ_FN = "ReadTool.Plugin"
-OC_READ_TARGETS = 'targets:[a$]'
-OC_READ_CONST = 'a$="AGENTS.md"'
-OC_SESSION_LOAD = 'SessionInstructions.load'
-
-# OC-5: resolution switch witness — the project source is disabled only via
-# config `project:false` (env `OPENCODE_CONFIG_PROJECT_DISABLE` or
-# `OPENCODE_DISABLE_PROJECT_CONFIG`), wired as `V7({project:i.config?.project})`.
+# OC-5: the resolution switch that decides *where* OC-1's names are read from —
+# project walk-up versus config-only (dump 443993):
+#   if(!Jr.OPENCODE_DISABLE_PROJECT_CONFIG)return yield*e.globUp(T,d.directory,d.worktree)
+#   return yield*e.globUp(T,r.config,r.config)
 OC_ENV_PROJECT_CONFIG = "OPENCODE_DISABLE_PROJECT_CONFIG"
-OC_ENV_PROJECT_CONFIG_2 = "OPENCODE_CONFIG_PROJECT_DISABLE"
+OC_GLOBUP_PROJECT_RE = re.compile(r"globUp\([^)]*\.directory[^)]*\.worktree\)")
+OC_GLOBUP_CONFIG_RE = re.compile(r"globUp\([^)]*\.config\s*,\s*[^)]*\.config\)")
 
-# OC-6: the experimental API instruction entries —
-# `session.instructions.entry.{list,put,remove}` over
-# `/api/experimental/session/:sessionID/instructions/entries` — API-managed
-# durable entries announced to the model at the next step boundary.
-OC_API_ROUTE = "/instructions/entries"
-OC_API_ID = "session.instructions.entry.put"
+# OC-6: opencode's SECOND instruction subsystem (`instruction-context`, registered
+# as the `system-context-builtins` context, key ``core/instructions``; dump
+# 445481-445487).  It walks AGENTS.md all-match up from cwd to the project root
+# and keeps an ungated config-dir candidate (`jX(L.config,"AGENTS.md")`) — a
+# different load condition for the same file class than OC-1/OC-2's first-match
+# walk, which is why it carries its own class id.
+OC_V2_KEY = 'Key.make("core/instructions")'
+OC_V2_TARGETS = 'targets:["AGENTS.md"]'
+OC_V2_OBSERVE = "InstructionContext.observe"
+OC_V2_REGISTRATION = "system-context-builtins"
+
+# OC-4: the read-tool channel that appends the nearest ancestor instruction file
+# (walking up inside the instance directory) to a read's TOOL RESULT:
+# `s.fn("Instruction.resolve")` (dump 443995), called from
+# `s.fn("ReadTool.execute")` (dump 444228-444233, `e.resolve(g.messages,h,…)`),
+# delivered inside `<system-reminder>`.  Round 47 added the ReadTool.execute
+# anchor: `<system-reminder>` alone is a generic token (18 hits on 1.19.3).
+OC_READ_HOOK_FN = 'fn("Instruction.resolve")'
+OC_READ_TOOL_FN = 'fn("ReadTool.execute")'
+OC_READ_HOOK_TOKEN = "<system-reminder>"
 
 
 def extract_opencode_classes(dump: str) -> tuple[set[str], list[dict]]:
@@ -409,38 +444,58 @@ def extract_opencode_classes(dump: str) -> tuple[set[str], list[dict]]:
         if matched:
             ids.update(owns)
 
-    # OC-1 — project walk-up, all-match AGENTS.md
-    project = OC_PROJECT_FN in dump and OC_PROJECT_TARGETS in dump
-    rule("OC-1", ["opencode:project/AGENTS.md"], project,
-         [OC_PROJECT_FN, OC_PROJECT_TARGETS])
+    # OC-1 — name-priority list (derives every *.md literal in the array)
+    m = OC_PRIORITY_RE.search(dump)
+    names = sorted(set(OC_MD_NAME_RE.findall(m.group(0)))) if m else []
+    gated = m is not None and (OC_GATE not in m.group(0) or OC_GATE in dump)
+    owns = (["opencode:instructions/%s" % n for n in names] if names else
+            ["opencode:instructions/AGENTS.md", "opencode:instructions/CLAUDE.md",
+             "opencode:instructions/CONTEXT.md"])
+    rule("OC-1", owns, m is not None and bool(names) and gated,
+         ['["AGENTS.md" … "CONTEXT.md"]', OC_GATE])
 
-    # OC-2 — global `<config>/AGENTS.md`
-    glob = OC_GLOBAL_JOIN_RE.search(dump) is not None
-    rule("OC-2", ["opencode:config/AGENTS.md"], glob,
-         ['X(r.config,"AGENTS.md")'])
+    # OC-2 — config/home candidates (derives group + file from the join path)
+    cfg = sorted(set(OC_CONFIG_JOIN_RE.findall(dump)))
+    home = sorted(set(OC_HOME_DIR_JOIN_RE.findall(dump)))
+    # home candidates are named `<dir>-home` after the dot-directory the join
+    # walks (`.claude` -> `opencode:claude-home/CLAUDE.md`), the census's id shape.
+    owns2 = (["opencode:config/%s" % f for f in cfg] +
+             ["opencode:%s-home/%s" % (d, f) for d, f in home])
+    rule("OC-2", owns2 or ["opencode:config/AGENTS.md", "opencode:claude-home/CLAUDE.md"],
+         bool(cfg) and bool(home),
+         ['X.join(<v>.config,"AGENTS.md")',
+          'X.join(<v>.home,".claude","CLAUDE.md")'])
 
-    # OC-3 — declared ambient-instructions field (schema anchor only; the
-    # loader consumer is unproven — recorded as its own class on that basis).
-    ambient = OC_AMBIENT_SCHEMA in dump
-    rule("OC-3", ["opencode:config/instructions"], ambient,
-         ['"ambient instructions" schema annotation'])
+    # OC-3 — declared list + remote filter/render (two ids, two anchor pairs)
+    declared = OC_DECLARED_RE.search(dump) is not None
+    rule("OC-3a", ["opencode:config/instructions"], declared,
+         ["for(let <v> of <v>.instructions)"])
+    remote = (OC_REMOTE_FILTER_RE.search(dump) is not None
+              and OC_REMOTE_RENDER in dump)
+    rule("OC-3b", ["opencode:config/instructions-remote"], remote,
+         ['.instructions….filter((q)=>q.startsWith("https://")||q.startsWith("http://"))',
+          OC_REMOTE_RENDER])
 
-    # OC-4 — read-tool channel: every read walks up for AGENTS.md files
-    # outside the project and publishes them through SessionInstructions.load.
-    read_hook = (OC_READ_FN in dump and OC_READ_TARGETS in dump
-                 and OC_READ_CONST in dump and OC_SESSION_LOAD in dump)
-    rule("OC-4", ["opencode:read-hook/AGENTS.md"], read_hook,
-         [OC_READ_FN, OC_READ_TARGETS, OC_READ_CONST, OC_SESSION_LOAD])
+    # OC-4 — read-tool channel
+    read_hook = (OC_READ_HOOK_FN in dump and OC_READ_TOOL_FN in dump
+                 and OC_READ_HOOK_TOKEN in dump)
+    rule("OC-4", ["opencode:read-hook/instructions"], read_hook,
+         [OC_READ_HOOK_FN, OC_READ_TOOL_FN, OC_READ_HOOK_TOKEN])
 
-    # OC-5 — resolution switch (owns no class id; witnesses the env gate)
-    switch = (OC_ENV_PROJECT_CONFIG in dump or OC_ENV_PROJECT_CONFIG_2 in dump)
-    rule("OC-5", [], switch,
-         ["%s | %s" % (OC_ENV_PROJECT_CONFIG, OC_ENV_PROJECT_CONFIG_2)])
+    # OC-5 — resolution switch (owns no class id; witnesses the path the ids are
+    # read through, so losing it is a drift FAIL rather than a silent re-scope)
+    resolve_switch = (OC_ENV_PROJECT_CONFIG in dump
+                      and OC_GLOBUP_PROJECT_RE.search(dump) is not None
+                      and OC_GLOBUP_CONFIG_RE.search(dump) is not None)
+    rule("OC-5", [], resolve_switch,
+         [OC_ENV_PROJECT_CONFIG, "globUp(<v>.directory,<v>.worktree)",
+          "globUp(<v>.config,<v>.config)"])
 
-    # OC-6 — API-managed instruction entries
-    api = OC_API_ROUTE in dump and OC_API_ID in dump
-    rule("OC-6", ["opencode:api-entries/instructions"], api,
-         [OC_API_ROUTE, OC_API_ID])
+    # OC-6 — second instruction subsystem (own load condition for AGENTS.md)
+    v2 = all(a in dump for a in (OC_V2_KEY, OC_V2_TARGETS, OC_V2_OBSERVE,
+                                 OC_V2_REGISTRATION))
+    rule("OC-6", ["opencode:instruction-context/AGENTS.md"], v2,
+         [OC_V2_OBSERVE, OC_V2_KEY, OC_V2_TARGETS, OC_V2_REGISTRATION])
 
     return ids, report
 
@@ -821,6 +876,23 @@ def self_test() -> int:
     rec("new-callees: PASS no_uncovered_class",
         "PASS surfaces.no_uncovered_class:" in out, out)
 
+    # (b2c) the 2026-10-21 rebuild (18.12.5) renamed the callees again: lq/Xl/Fo,
+    # with the agents-md/claude-md groups var-bound (f$, m$). The eight omp
+    # loader-group pairs must extract, and the 2-char alias decoy `q = Xl`
+    # must not (it would surface as an undeclared class).
+    code, out = run_capture(
+        ["--repo", fx, "--omp-strings", fx + "/strings-omp-18.12.5.txt",
+         "--opencode-strings", oc_clean,
+         "--baseline", fx + "/baseline-18.12.5.json", "--inventory", inv_clean,
+         "--check", "surfaces.literal_present",
+         "--check", "surfaces.no_uncovered_class"])
+    rec("18.12.5-callees: exit 0", code == 0, code)
+    rec("18.12.5-callees: PASS literal_present",
+        "PASS surfaces.literal_present:" in out, out)
+    rec("18.12.5-callees: PASS no_uncovered_class, all 8 pairs",
+        "PASS surfaces.no_uncovered_class: all 8 extracted loader class(es) declared" in out,
+        out)
+
     # (b3) a substrate whose call shapes all vanish is a vacuity FAIL, never
     # an empty-set pass (the 2026-10-16 omp-move defect class round 21 fixed)
     code, out = run(omp_dump=fx + "/strings-empty.txt")
@@ -962,12 +1034,13 @@ def self_test() -> int:
 
     # (oc) each rule's anchor removed -> exit 1, opencode_extract names its class
     for fixture, named in (
-            ("strings-opencode-drop-oc1.txt", "opencode:project/AGENTS.md"),
-            ("strings-opencode-drop-oc2.txt", "opencode:config/AGENTS.md"),
-            ("strings-opencode-drop-oc3.txt", "opencode:config/instructions"),
-            ("strings-opencode-drop-oc4.txt", "opencode:read-hook/AGENTS.md"),
+            ("strings-opencode-drop-oc1.txt", "opencode:instructions/CONTEXT.md"),
+            ("strings-opencode-drop-oc2.txt", "opencode:claude-home/CLAUDE.md"),
+            ("strings-opencode-drop-oc3a.txt", "opencode:config/instructions"),
+            ("strings-opencode-drop-oc3b.txt", "opencode:config/instructions-remote"),
+            ("strings-opencode-drop-oc4.txt", "opencode:read-hook/instructions"),
             ("strings-opencode-drop-oc5.txt", "OC-5"),
-            ("strings-opencode-drop-oc6.txt", "opencode:api-entries/instructions")):
+            ("strings-opencode-drop-oc6.txt", "opencode:instruction-context/AGENTS.md")):
         code, out = run(oc_dump=fx + "/" + fixture)
         rec("%s: exit 1" % fixture, code == 1, code)
         rec("%s: FAIL opencode_extract" % fixture,
@@ -980,14 +1053,31 @@ def self_test() -> int:
     code, out = run(oc_dump=fx + "/strings-opencode-extra.txt")
     rec("oc-extra: exit 0", code == 0, code)
 
+    # (oc-gen) round 47: the retired v2.0.26 rule-set fixture is a different
+    # opencode generation — the 1.19.3 rules must NOT accept it (a rule set that
+    # OR-ed both generations' anchors would pass here and launder the re-derive).
+    code, out = run(oc_dump=fx + "/strings-opencode-v2.0.26.txt")
+    rec("oc-v2.0.26-generation: exit 1", code == 1, code)
+    rec("oc-v2.0.26-generation: FAIL opencode_extract",
+        "FAIL surfaces.opencode_extract:" in out, out)
+    rec("oc-v2.0.26-generation: names OC-1 unmatched", "OC-1 (owns" in out, out)
+
+    # (oc-derive) round 47: OC-1 DERIVES names from the priority array — a name
+    # planted into it surfaces as an undeclared class, named.
+    code, out = run(oc_dump=fx + "/strings-opencode-planted-name.txt")
+    rec("oc-planted-name: exit 1", code == 1, code)
+    rec("oc-planted-name: names opencode:instructions/GUIDE.md undeclared",
+        "undeclared in baseline: opencode:instructions/GUIDE.md" in out, out)
+
     # (oc0) empty baseline + a real anchor dump -> exit 1 naming every extracted
     # opencode class (never a pass on 0==0)
     code, out = run(baseline=fx + "/baseline-oc-empty.json")
     rec("oc-empty-baseline: exit 1", code == 1, code)
     rec("oc-empty-baseline: FAIL opencode_extract",
         "FAIL surfaces.opencode_extract:" in out, out)
-    for cid in ("opencode:project/AGENTS.md", "opencode:config/instructions",
-                "opencode:api-entries/instructions"):
+    for cid in ("opencode:instructions/CONTEXT.md", "opencode:config/instructions",
+                "opencode:read-hook/instructions",
+                "opencode:instruction-context/AGENTS.md"):
         rec("oc-empty-baseline: names %s" % cid, cid in out, out)
 
     # (oc0b) anchor-less dump while the baseline declares opencode classes -> the

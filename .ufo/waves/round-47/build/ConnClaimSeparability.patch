@@ -1,0 +1,271 @@
+diff --git i/SKILL.md w/SKILL.md
+index 5d9486f..c9569bc 100644
+--- i/SKILL.md
++++ w/SKILL.md
+@@ -11,7 +11,7 @@ description: >
+   (kagi, kake, kasegi, kengaku, kumitate) own their own SKILL.md content —
+   this skill audits and reports; fixes route to the owning lane. Note: the
+   shokunin files are not in an omp skill discovery root, so their descriptions
+-  never reach the `<skills>` router — craft here is audit-side, not
++  never reach the skills router — craft here is audit-side, not
+   router-visible.
+ ---
+ 
+diff --git i/corpus/README.md w/corpus/README.md
+index 34af237..12c9f2e 100644
+--- i/corpus/README.md
++++ w/corpus/README.md
+@@ -60,6 +60,7 @@ Domain: prompt & skill craft — SKILL.md/AGENTS.md quality, trigger fidelity.
+ | Admission bar (round 46) | `QUALITY.md` | the lane's own quality bar, created round 46: every criterion cites its row in `lessons/round-46.md` § Mistakes (mined from the lane's rejected, harmed and honest-stop rounds 37–46); tier definitions defer to `SOURCES.md` |
+ | Source registry (round 46) | `SOURCES.md` | where the lane learns, per the kaika SOURCES contract v1: rows written only for sources opened in round 46, scoped tiers, one rejected row with its flip, study paths and a search log; fetch records in `../.ufo/round-46/evidence/w2/sources/fetch-log.json` |
+ | Round-46 lessons | `lessons/round-46.md` | LOG.md round-46 entries, WIP commit `36ab0d3`; `## Mistakes` (the lane's mined failure classes, each with pointer, captured-by criterion and fix) and `## Gate` (no knowledge admitted this round; source rows; spot-check pending non-author) |
++| Round-46 verifier spot-check | `lessons/round-46-verifier-spotcheck.md` | integrator-written non-author spot-check of the round-46 verifier changes: per-row re-measurement, the residuals it could not close, and the C1 counting-command exit-2 finding; indexed at round 47 (the row it owed at landing) |
+ 
+ ## Frontier
+ 
+diff --git i/verifiers/corpus-baseline.json w/verifiers/corpus-baseline.json
+index a9ad97c..bddb9e6 100644
+--- i/verifiers/corpus-baseline.json
++++ w/verifiers/corpus-baseline.json
+@@ -12,7 +12,7 @@
+   "checks": {
+     "corpus.index.tracked_files": {
+       "mode": "equal",
+-      "expect": 58
++      "expect": 59
+     },
+     "corpus.index.unindexed": {
+       "mode": "zero",
+diff --git i/verifiers/errata-registry.json w/verifiers/errata-registry.json
+new file mode 100644
+index 0000000..c038522
+--- /dev/null
++++ w/verifiers/errata-registry.json
+@@ -0,0 +1,15 @@
++{
++  "schema": "kotoba-errata-v1",
++  "$comment": "Pinned, fail-closed registry of RECORDED ABSENCES in the governance citation gate (verifiers/verify_skill_checklist.py check_governance_citations). Round-47 claim C3. An entry excuses exactly one (source, line, token) subject from the 'must resolve' rule, and only while the line still hashes to line_sha256 and the token still does not resolve. Three failure directions are enforced: a dead token with no entry FAILs (unregistered absence); an entry whose source:line no longer carries the token, or whose line hash differs, FAILs (drift); an entry whose token now resolves FAILs (stale erratum). Every entry needs a reason naming the evidence that the absence is intended. Absence of this file means zero errata; it is never 'skip the gate'.",
++  "errata": [
++    {
++      "id": "log-2111-post-r44-hunt-runner",
++      "source": "LOG.md",
++      "line": 2111,
++      "token": ".ufo/round-45/drafts/v10/post-r44-hunt.py",
++      "line_sha256": "7dcbf123313d46c469cab9f5dac2daa7567e54ac1ddf7cffdd1fd38c74200135",
++      "reason": "the line itself records that the runner is absent (exit 2) while the prefixed V10 evidence scripts and the R45 result JSON exist; the citation is an erratum record, not a promise that the path is navigable.",
++      "evidence": ".ufo/round-46/scouts/U1.md"
++    }
++  ]
++}
+diff --git i/verifiers/verify_skill_checklist.py w/verifiers/verify_skill_checklist.py
+index c6476e7..2392d28 100755
+--- i/verifiers/verify_skill_checklist.py
++++ w/verifiers/verify_skill_checklist.py
+@@ -285,6 +285,7 @@ CHECK_IDS = (
+     "trigger.name_directory",
+     "trigger.literal_trigger_string",
+     "trigger.anti_trigger_clause",
++    "trigger.description_no_xml_tag",
+     "trigger.line_budget",
+     "trigger.no_placeholder",
+     "trigger.command_binary_resolves",
+@@ -293,6 +294,7 @@ CHECK_IDS = (
+ )
+ 
+ BOX_RE = re.compile(r"^(\s*)-\s+\[([ xX])\]\s?(.*)$")
++DESCRIPTION_XML_TAG_RE = re.compile(r"</?[A-Za-z][^>\n]*>")
+ NEAR_MISS_RE = re.compile(r"^\s*-\s*\[[^\]]*\]?")
+ HEADING_RE = re.compile(r"^#{1,6}\s+(.+?)\s*$")
+ # round-37 C3: a fence line is only a *candidate* delimiter here -- whether it
+@@ -1248,6 +1250,22 @@ def check_anti_trigger(fm: tuple[dict | None, str]) -> tuple[str, int, str]:
+                        % limit)
+ 
+ 
++def check_description_no_xml_tag(fm: tuple[dict | None, str]
++                                 ) -> tuple[str, int, str]:
++    fields, problem = fm
++    if fields is None:
++        return "FAIL", 0, "cannot evaluate: %s" % problem
++    desc = fields.get("description", "").strip()
++    if not desc:
++        return "FAIL", 0, "cannot evaluate: empty description:"
++    tags = DESCRIPTION_XML_TAG_RE.findall(desc)
++    if tags:
++        return "FAIL", 1, ("description carries XML tag(s): %s — the "
++                           "portability floor forbids XML tags in a "
++                           "description" % ", ".join(sorted(set(tags))[:4]))
++    return "PASS", 1, "description carries no XML tag (%d chars)" % len(desc)
++
++
+ def box_line_budget(boxes: list[dict], default: int) -> tuple[int, str]:
+     """The threshold lives in the box text: first integer in the box whose
+     text matches ``file … <int> … line(s)``.  Falls back to --max-lines."""
+@@ -1451,12 +1469,47 @@ def check_citation_resolves(lines: list[str],
+         % evaluated)
+ 
+ 
++def load_errata(repo: Path) -> tuple[list[dict], str | None]:
++    """Round-47 C3: pinned errata for recorded governance absences.
++
++    Absence of the file means zero errata (the gate keeps its old fail-closed
++    behaviour). A present-but-unreadable/malformed registry is an ERROR, never
++    a silent skip: the only way to excuse a dead token is a valid entry.
++    """
++    path = repo / "verifiers" / "errata-registry.json"
++    if not path.exists():
++        return [], None
++    try:
++        data = json.loads(path.read_text(encoding="utf-8"))
++    except (OSError, json.JSONDecodeError) as exc:
++        return [], "errata registry unreadable: %s (%s)" % (path, exc)
++    if not isinstance(data, dict) or data.get("schema") != "kotoba-errata-v1":
++        return [], "errata registry schema is not 'kotoba-errata-v1': %s" % path
++    rows = data.get("errata")
++    if not isinstance(rows, list):
++        return [], "errata registry has no errata list: %s" % path
++    for i, e in enumerate(rows):
++        ok = isinstance(e, dict) and isinstance(e.get("line"), int) \
++            and not isinstance(e.get("line"), bool)
++        for key in ("id", "source", "token", "line_sha256", "reason"):
++            ok = ok and isinstance(e.get(key), str) and bool(e.get(key))
++        if not ok:
++            return [], "errata registry entry %d is malformed: %s" % (i, path)
++    return rows, None
++
++
+ def check_governance_citations(repo: Path) -> tuple[str, int, str]:
+-    """Round-17: root governance path claims remain navigable at HEAD."""
++    """Round-17: root governance path claims remain navigable at HEAD.
++    Round-47 C3: a pinned erratum registry may excuse a RECORDED absence; it
++    is validated in all three directions (unregistered, drifted, stale)."""
+     repo = repo.resolve()
++    errata, errata_problem = load_errata(repo)
++    if errata_problem is not None:
++        return "FAIL", 0, errata_problem
+     subjects: list[dict] = []
+     excluded: dict[str, list[dict]] = {"quoted": [], "schematic": []}
+     unreadable = []
++    file_lines: dict[str, list[str]] = {}
+     for name in GOVERNANCE_FILES:
+         path = repo / name
+         try:
+@@ -1464,6 +1517,7 @@ def check_governance_citations(repo: Path) -> tuple[str, int, str]:
+         except OSError as exc:
+             unreadable.append("%s (%s)" % (name, exc))
+             continue
++        file_lines[name] = lines
+         found, skipped = citation_subjects(
+             lines, source=name, exclude_quoted=True,
+             exclude_schematic=True)
+@@ -1479,12 +1533,41 @@ def check_governance_citations(repo: Path) -> tuple[str, int, str]:
+             ", ".join(unreadable), context)
+     if evaluated == 0:
+         return "FAIL", 0, "no checked governance citation subjects; %s" % context
++    by_key = {(e["source"], e["line"], e["token"]): e for e in errata}
++    used: set[str] = set()
+     bad = []
++    registered = 0
+     for subject in subjects:
+-        if not citation_resolve(subject["token"], repo):
++        key = (subject["source"], subject["line"], subject["token"])
++        erratum = by_key.get(key)
++        if citation_resolve(subject["token"], repo):
++            if erratum is not None:
++                bad.append("%s:%d: %r now resolves — erratum %r is stale"
++                           % (subject["source"], subject["line"],
++                              subject["token"], erratum["id"]))
++            continue
++        if erratum is None:
+             bad.append("%s:%d: %r does not resolve from %s"
+                        % (subject["source"], subject["line"],
+                           subject["token"], repo))
++            continue
++        lines = file_lines.get(subject["source"], [])
++        got = hashlib.sha256(
++            lines[subject["line"] - 1].encode("utf-8")).hexdigest() \
++            if 0 < subject["line"] <= len(lines) else None
++        if got != erratum["line_sha256"]:
++            bad.append("%s:%d: erratum %r line drifted (sha256 %s != %s)"
++                       % (subject["source"], subject["line"], erratum["id"],
++                          got, erratum["line_sha256"]))
++            continue
++        used.add(erratum["id"])
++        registered += 1
++    for erratum in errata:
++        if erratum["id"] not in used:
++            bad.append("erratum %r has no live subject at %s:%d (%r) — stale "
++                       "entry" % (erratum["id"], erratum["source"],
++                                  erratum["line"], erratum["token"]))
++    context += "; %d registered erratum(s)" % registered
+     if bad:
+         return "FAIL", evaluated, "%s; %s" % (
+             "; ".join(bad[:4]) + (
+@@ -1492,7 +1575,7 @@ def check_governance_citations(repo: Path) -> tuple[str, int, str]:
+             context)
+     return "PASS", evaluated, (
+         "%d governance citation token(s) resolve across %d files; %s"
+-        % (evaluated, len(GOVERNANCE_FILES), context))
++        % (evaluated - registered, len(GOVERNANCE_FILES), context))
+ 
+ 
+ def check_commands(lines: list[str], repo: Path,
+@@ -1678,28 +1761,33 @@ def self_test() -> int:
+         ("clean", 0, [], [], []),
+         ("no-frontmatter", 1,
+          ["trigger.frontmatter_parses", "trigger.name_directory",
+-          "trigger.literal_trigger_string", "trigger.anti_trigger_clause"],
++          "trigger.literal_trigger_string", "trigger.anti_trigger_clause",
++          "trigger.description_no_xml_tag"],
+          [], ["no leading ---"]),
+         ("fm-null", 1,
+          ["trigger.frontmatter_parses", "trigger.literal_trigger_string",
+-          "trigger.anti_trigger_clause"],
++          "trigger.anti_trigger_clause", "trigger.description_no_xml_tag"],
+          [], ["empty description"]),
+         ("fm-malformed", 1,
+          ["trigger.frontmatter_parses", "trigger.name_directory",
+-          "trigger.literal_trigger_string", "trigger.anti_trigger_clause"],
++          "trigger.literal_trigger_string", "trigger.anti_trigger_clause",
++          "trigger.description_no_xml_tag"],
+          [], ["unbalanced quote"]),
+         ("fm-dup-key", 1,
+          ["trigger.frontmatter_parses", "trigger.name_directory",
+-          "trigger.literal_trigger_string", "trigger.anti_trigger_clause"],
++          "trigger.literal_trigger_string", "trigger.anti_trigger_clause",
++          "trigger.description_no_xml_tag"],
+          [], ["duplicate key"]),
+         ("fm-body-yaml", 1,
+          ["trigger.frontmatter_parses", "trigger.name_directory",
+-          "trigger.literal_trigger_string", "trigger.anti_trigger_clause"],
++          "trigger.literal_trigger_string", "trigger.anti_trigger_clause",
++          "trigger.description_no_xml_tag"],
+          [], ["no leading ---"]),
+         ("fm-nested-metadata", 0, [], [], []),
+         ("fm-stray-indent", 1,
+          ["trigger.frontmatter_parses", "trigger.name_directory",
+-          "trigger.literal_trigger_string", "trigger.anti_trigger_clause"],
++          "trigger.literal_trigger_string", "trigger.anti_trigger_clause",
++          "trigger.description_no_xml_tag"],
+          [], ["stray indented line"]),
+         # round-15 closures of the critic's three escape surfaces
+         ("map-annotation-mismatch", 1, ["checklist.box_map_complete"],
+@@ -1758,8 +1846,8 @@ def self_test() -> int:
+         ("empty-file", 1,
+          ["checklist.box_map_complete", "trigger.frontmatter_parses",
+           "trigger.name_directory", "trigger.literal_trigger_string",
+-          "trigger.anti_trigger_clause", "trigger.line_budget",
+-          "trigger.no_placeholder"],
++          "trigger.anti_trigger_clause", "trigger.description_no_xml_tag",
++          "trigger.line_budget", "trigger.no_placeholder"],
+          ["trigger.command_binary_resolves"], []),
+         ("no-checklist-section", 1, ["checklist.box_map_complete"], [],
+          ["no checklist boxes"]),
+@@ -2214,6 +2302,8 @@ def main(argv: list[str] | None = None) -> int:
+             st, ev, detail = check_literal_trigger(fm)
+         elif cid == "trigger.anti_trigger_clause":
+             st, ev, detail = check_anti_trigger(fm)
++        elif cid == "trigger.description_no_xml_tag":
++            st, ev, detail = check_description_no_xml_tag(fm)
+         elif cid == "trigger.line_budget":
+             st, ev, detail = check_line_budget(lines, boxes, args.max_lines)
+         elif cid == "trigger.no_placeholder":

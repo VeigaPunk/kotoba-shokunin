@@ -161,6 +161,11 @@ class the probe did not exercise.
 
 ### B. opencode — instruction model (re-derived 2026-10-14 for v2.0.26)
 
+**Round-47 errata (append-only):** this subsection describes the v2.0.26 binary,
+which is no longer on the host. Its four table rows and its `config/instructions`
+§ C row moved, byte-identical, to `## Superseded class rows and the round-47
+opencode ledger (not inventory)` below; the live opencode classes are in § B′.
+
 **Historical note (append-only errata):** the round-13/14 § B described the
 2026-09-28 binary — a name-priority walk-up `["AGENTS.md","CLAUDE.md","CONTEXT.md"]`,
 a `~/.claude/CLAUDE.md` home candidate, a declared `instructions` list with
@@ -203,10 +208,53 @@ binary; recorded as an excluded class, not a governed one.
 
 | class_id | literal | kind | governed by | evidence |
 |---|---|---|---|---|
-| `opencode:project/AGENTS.md` | AGENTS.md | loader-literal | AGENTS.md row | `ConfigInstructionPlugin.projectSource` + `targets:["AGENTS.md"]` all-match walk (OC-1) |
-| `opencode:config/AGENTS.md` | AGENTS.md | loader-config | AGENTS.md row | `j5(r.config,"AGENTS.md")` global candidate (OC-2) |
-| `opencode:read-hook/AGENTS.md` | AGENTS.md | loader-literal | Cross-tool rule files | `ReadTool.Plugin` + `targets:[a$]` + `SessionInstructions.load` → `Instructions from:` (OC-4) |
-| `opencode:api-entries/instructions` | instructions | loader-config | § Instruction surfaces → Declared instruction list | `/instructions/entries` + `session.instructions.entry.put` (OC-6) |
+
+### B′. opencode — instruction model (re-derived 2026-10-21 for 1.19.3, round 47)
+
+**Substrate:** npm `opencode-ai` 1.19.3 — `/home/vgpnk/.npm/_npx/e2094862b59aac7b/node_modules/opencode-ai/bin/opencode.exe`,
+sha256 `179ca421d61eefeadfa0c50e084a6e79c1623734732f0f4593f81ccfd3ab7ee9`, the bytes the
+`~/.local/bin/opencode` npx wrapper executes. Frozen copy and `strings -n 4` dump:
+`/fast/scratch/kotoba-r47/shared/` (`SHA256SUMS`). This is a different distribution
+channel from v2.0.26 (`~/.opencode/bin`, removed 2026-10-20), not its successor: the
+dump self-reports `var n="1.19.3"` and contains no `2.0.26`.
+
+**Lineage finding.** Every v2.0.26 anchor is absent from the 1.19.3 dump
+(`ConfigInstructionPlugin` 0, `ReadTool.Plugin` 0, `SessionInstructions` 0,
+`session.instructions.entry.put` 0, `j5(r.config,"AGENTS.md")` 0, `InstructionDiscovery` 0),
+and every round-14 anchor is present (counts: the round-47 ledger after § D). The loader model is the round-13/14
+one recorded as historical in § B's first note: the `@opencode/Instruction` service
+(name-priority first-match walk-up, config + `.claude` home candidates, declared
+`instructions` list with a remote `https://` half, the `Instruction.resolve` read hook)
+plus the `instruction-context` subsystem. Rules OC-1..OC-6 in
+`verifiers/verify_surfaces.py` were re-measured anchor by anchor on the dump; two were
+tightened (OC-3b now requires the `.filter(` call — the round-14 pattern also matched
+OC-3a's loop; OC-4 adds the `ReadTool.execute` caller — `<system-reminder>` alone has
+18 hits). Whether either subsystem fires at runtime is not decided by strings (§ Honest
+ceiling).
+
+**Identity changes the re-derivation surfaced (not carried silently):**
+- the read hook walks *inside* the instance directory
+  (`while(G.startsWith(N)&&G!==N)`), so v2.0.26's "keeps only hits outside the
+  project" reading does not transfer — the round-14 id `read-hook/instructions` is the
+  live one, `read-hook/AGENTS.md` is retired;
+- `config/instructions` has a proven consumer on this binary, so round 18's exclusion
+  reason ("no loader consumer proven") is false here — re-verdicted `governed`;
+- `/instructions/entries` survives only in the generated client SDK
+  (`instructions:{entry:{list:` …`/api/session/${…}/instructions/entries`); no server
+  route or `session.instructions.entry.put` id exists — `api-entries/instructions` is
+  retired, not re-anchored onto a client stub.
+
+| class_id | literal | kind | governed by | evidence |
+|---|---|---|---|---|
+| `opencode:instructions/AGENTS.md` | AGENTS.md | loader-literal | AGENTS.md row | `y=["AGENTS.md",` first priority-list element; first-match per directory via `globUp(T,d.directory,d.worktree)` (OC-1, OC-5; dump 443993) |
+| `opencode:instructions/CLAUDE.md` | CLAUDE.md | loader-literal | CLAUDE.md row | second element, gated: `...!t.disableClaudeCodePrompt?["CLAUDE.md"]:[]` (OC-1; dump 443993) |
+| `opencode:instructions/CONTEXT.md` | CONTEXT.md | loader-literal | Cross-tool rule files | last element `"CONTEXT.md"]` (OC-1; 1 occurrence of `CONTEXT.md` in the 1.19.3 dump) |
+| `opencode:config/AGENTS.md` | AGENTS.md | loader-config | AGENTS.md row | `n=[X.join(r.config,"AGENTS.md")` in `Instruction.systemPaths` (OC-2; dump 443993) |
+| `opencode:claude-home/CLAUDE.md` | CLAUDE.md | loader-config | CLAUDE.md row | `X.join(r.home,".claude","CLAUDE.md")`, gated by `disableClaudeCodePrompt` (OC-2; dump 443993) |
+| `opencode:config/instructions` | instructions | loader-config | § Instruction surfaces → Declared instruction list | consumer proven: `for(let O of T.instructions)` inside `Instruction.systemPaths` globs each local entry (OC-3a; dump 443993) — re-verdicted from round 18's `excluded` |
+| `opencode:config/instructions-remote` | https:// | loader-config | Declared instruction list | `(T.instructions??[]).filter((q)=>q.startsWith("https://")||q.startsWith("http://"))` fetched with `{concurrency:4}` and rendered `Instructions from: ` (OC-3b; dump 443993) |
+| `opencode:read-hook/instructions` | <system-reminder> | loader-literal | Cross-tool rule files | `fn("Instruction.resolve")` (dump 443995) called from `fn("ReadTool.execute")` (dump 444228) walks up *inside* the instance directory and attaches the nearest instruction file to the read's tool result in a `<system-reminder>` (OC-4) |
+| `opencode:instruction-context/AGENTS.md` | AGENTS.md | loader-literal | AGENTS.md row | second subsystem: `InstructionContext.observe` + `targets:["AGENTS.md"]` all-match walk + ungated `jX(L.config,"AGENTS.md")`, key `Key.make("core/instructions")`, registered as `system-context-builtins` (OC-6; dump 445481-445487) |
 
 ### C. Excluded loader-derived classes (each with its reason)
 
@@ -220,7 +268,6 @@ binary; recorded as an excluded class, not a governed one.
 | `omp:discovery/skills-roots` | skills | loader-literal | Skill roots beyond `.agent(s)/skills` (`.github/skills`, `~/.codex/skills`, `~/.claude/skills`, `~/.omp/agent/managed-skills`): covered by the SKILL.md row's craft, which is name/render-scoped, not root-scoped |
 | `omp:unknown/managed-skills` | managed-skills | loader-literal | `~/.omp/agent/managed-skills` — omp-managed skill store; [INFERENCE] merge precedence with the user root is untraced, so it is excluded with this reason rather than claimed |
 | `omp:unknown/subagent-roster` | agents | loader-config | `omp agents unpack` → `~/.omp/agent/agents` (37 files live) — the **omp-side analogue of the opencode agent-definition row**, but the load path is inferred from the unpack target, not read from a session; excluded pending that trace |
-| `opencode:config/instructions` | instructions | loader-config | Schema-declared "ambient instructions" list in v2.0.26; **no loader consumer proven** in the binary — only the read-hook publishes file contents (round-18 re-derivation, OC-3 witness only) |
 
 ### D. Non-loader mentions (no class id — these are not classes at all)
 
@@ -236,6 +283,42 @@ binary; recorded as an excluded class, not a governed one.
 | opencode non-file prompt surfaces: MCP server instructions (`<mcp_instructions>`), references (`<available_references>`), the plugin `experimental.chat.system.transform` hook, config `{file:…}`/`{env:…}` substitution, the API `system` field | doc | they reach the prompt but are **not file classes**, so they cannot be governed by a filename-convention craft row; recorded so the inventory's boundary is explicit (three lanes agree on this list: census, second witness §5, opencode scout) |
 | omp memory store (the `Vcl`-family reader) | doc | reads the harness's own memory files into prompt context — a state store, not a rule-file convention; boundary flagged by both the second witness (§5, "flagged as uncertain") and the critic lane (memory reader uncovered) |
 | omp extra non-registry prompt surfaces (omp scout lane, round 13): `PERSONALITY.md`, `TITLE_SYSTEM.md`, `APPEND_SYSTEM.md` (via `.omp`/`.claude`/`.codex`/`.gemini` dirs), `WATCHDOG.md` + `WATCHDOG.yml` `instructions:` keys, bundled rules/agents embedded in the binary, sharpshooter/hindsight memory files | doc | prompt-reaching but either single-harness extras outside the file-convention classes this craft skill governs, or embedded content with no file to write; listed so the boundary is explicit and attributable to one lane |
+
+## Superseded class rows and the round-47 opencode ledger (not inventory)
+
+Moved here in round 47, bytes unchanged, from § B (four rows) and § C (one row):
+the v2.0.26 opencode classes. They sit outside `## Class inventory`, so
+`verify_surfaces.py` does not count them; the ledger after them records every
+opencode id's round-47 verdict.
+
+| class_id | literal | kind | governed by | evidence |
+|---|---|---|---|---|
+| `opencode:project/AGENTS.md` | AGENTS.md | loader-literal | AGENTS.md row | `ConfigInstructionPlugin.projectSource` + `targets:["AGENTS.md"]` all-match walk (OC-1) |
+| `opencode:config/AGENTS.md` | AGENTS.md | loader-config | AGENTS.md row | `j5(r.config,"AGENTS.md")` global candidate (OC-2) |
+| `opencode:read-hook/AGENTS.md` | AGENTS.md | loader-literal | Cross-tool rule files | `ReadTool.Plugin` + `targets:[a$]` + `SessionInstructions.load` → `Instructions from:` (OC-4) |
+| `opencode:api-entries/instructions` | instructions | loader-config | § Instruction surfaces → Declared instruction list | `/instructions/entries` + `session.instructions.entry.put` (OC-6) |
+
+| class_id | literal | kind | reason it is not a craft-governed rule-text class |
+|---|---|---|---|
+| `opencode:config/instructions` | instructions | loader-config | Schema-declared "ambient instructions" list in v2.0.26; **no loader consumer proven** in the binary — only the read-hook publishes file contents (round-18 re-derivation, OC-3 witness only) |
+
+**Class ledger (round 47; every id the census ever declared for opencode).** Count
+command: `python3 -c 'import sys;d=open(sys.argv[1],errors="replace").read();print(d.count(sys.argv[2]))' /fast/scratch/kotoba-r47/shared/opencode-1.19.3.strings '<anchor>'`.
+
+| id | round-46 state | round-47 verdict | anchor (count on the 1.19.3 dump) |
+|---|---|---|---|
+| `opencode:project/AGENTS.md` | governed (OC-1, v2.0.26) | retired | `ConfigInstructionPlugin.projectSource` 0 |
+| `opencode:config/AGENTS.md` | governed (OC-2) | retained, re-anchored | `X.join(r.config,"AGENTS.md")` 1 (round-18 anchor `j5(r.config,…)` 0) |
+| `opencode:read-hook/AGENTS.md` | governed (OC-4, v2.0.26) | retired | `ReadTool.Plugin` 0, `SessionInstructions.load` 0 |
+| `opencode:api-entries/instructions` | governed (OC-6, v2.0.26) | retired | `session.instructions.entry.put` 0; client stub `instructions:{entry:{list:` 1 |
+| `opencode:config/instructions` | excluded | re-verdicted governed | `for(let O of T.instructions)` 1 |
+| `opencode:instructions/AGENTS.md` | historical (round 18) | resurrected | priority array 1 |
+| `opencode:instructions/CLAUDE.md` | historical | resurrected | `disableClaudeCodePrompt` 3 |
+| `opencode:instructions/CONTEXT.md` | historical | resurrected | `CONTEXT.md` 1 |
+| `opencode:claude-home/CLAUDE.md` | historical | resurrected | `X.join(r.home,".claude","CLAUDE.md")` 1 |
+| `opencode:config/instructions-remote` | historical | resurrected | `Instructions from: ` 4 |
+| `opencode:read-hook/instructions` | historical | resurrected | `fn("Instruction.resolve")` 1, `fn("ReadTool.execute")` 1 |
+| `opencode:instruction-context/AGENTS.md` | historical | resurrected | `InstructionContext.observe` 1, `system-context-builtins` 1 |
 
 ## The disagreement this census had to adjudicate
 

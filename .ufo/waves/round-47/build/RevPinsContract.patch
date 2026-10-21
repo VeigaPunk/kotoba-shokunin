@@ -1,0 +1,260 @@
+diff --git i/verifiers/check_substrate_pins.py w/verifiers/check_substrate_pins.py
+index 23e98bf..f694e92 100644
+--- i/verifiers/check_substrate_pins.py
++++ w/verifiers/check_substrate_pins.py
+@@ -41,6 +41,37 @@ Host-anchored: the default binary paths are this host's installs (same constants
+ as verify_harness_claims.py:52,55), so a clone's green is a statement about that
+ installation, not about the clone; --omp-binary/--opencode-binary override both
+ for fixture runs.
++
++Substrates are resolution chains, not files (round 47, the npx-wrapper install
++shape). `omp` is a plain file. `opencode` is NOT: since the host's opencode
++became an npx wrapper, `~/.local/bin/opencode` is a bash script that resolves
++the package bin inside the npm npx cache and execs it, so the artifact that
++actually runs is
++
++  <npm cache>/_npx/<sha512(spec)[:16]>/node_modules/.bin/<bin>   (a symlink)
++    -> .../node_modules/<pkg>/bin/<bin>                          (the ELF)
++
++with `spec` the `--package` string the wrapper names (npm derives the _npx
++directory name from it: libnpmexec/lib/index.js hashes the requested spec
++strings with sha512 and keeps the first 16 hex characters). The directory
++therefore stays stable across releases of the same spec: a new upstream
++version replaces the bytes IN PLACE, which the sha256 pin sees. A change of
++spec, of install method, or of the npm cache root moves the resolution -- and
++those are the events that used to leave this guard GREEN while the live
++substrate was a different binary. The contract therefore pins the launcher as
++a substrate of its own (`opencode_launcher_binary_sha256`): the launcher
++carries the premise of the artifact path, so a re-pointed launcher, a
++replaced wrapper, or a removed wrapper is DRIFT/UNREADABLE (exit 1/2), never a
++silent pass. Re-pinning the opencode artifact means re-deriving its path from
++the launcher and re-recording BOTH the artifact sha and the launcher sha,
++plus a mechanism note (what moved and why) -- never weakening a pin.
++
++The discovery rule is fail-closed over the whole pin-shaped key space: any
++`measured_against` key shaped `<substrate>_binary_<kind>` is DISCOVERED
++(including a compound kind with underscores, which the round-32 regex
++excluded and therefore silently ignored -- the round-21 "unenforced pin" class
++reopened inside the discovery rule itself), and a discovered key the guard
++cannot resolve is UNSUPPORTED (exit 2), never a silent skip.
+ """
+ 
+ from __future__ import annotations
+@@ -60,7 +91,18 @@ from pathlib import Path
+ DEFAULT_REPO = Path(__file__).resolve().parent.parent
+ BINARIES = {
+     "omp": "/home/vgpnk/.local/bin/omp",
++    # NOT the round-23 value: `/home/vgpnk/.opencode/bin/opencode` no longer
++    # exists (round 47). The default must be the artifact the npx launcher
++    # resolves -- `.../_npx/<sha512(spec)[:16]>/node_modules/<pkg>/bin/<bin>` --
++    # re-derived on the host state the pins are recorded from, and the same
++    # value must land in verify_surfaces.py and verify_harness_claims.py.
+     "opencode": "/home/vgpnk/.opencode/bin/opencode",
++    # The launcher that decides WHICH opencode artifact runs. Since the
++    # npx-wrapper install shape (round 47), the opencode substrate is not a
++    # fixed file: `~/.local/bin/opencode` is a bash wrapper that resolves the
++    # package bin inside the npm npx cache and execs it. Pinning the launcher
++    # pins the *premise* of the artifact path (which package, which spec).
++    "opencode_launcher": "/home/vgpnk/.local/bin/opencode",
+ }
+ # The pin set the guard's contract requires. Discovery additionally checks any
+ # other measured_against key shaped like `<substrate>_binary_<kind>`: a pin the
+@@ -73,8 +115,16 @@ EXPECTED_PINS = (
+     ("omp_binary_sha256", "omp", "sha256"),
+     ("omp_binary_mtime", "omp", "mtime"),
+     ("opencode_binary_sha256", "opencode", "sha256"),
++    ("opencode_launcher_binary_sha256", "opencode_launcher", "sha256"),
+ )
+-DISCOVER_RE = re.compile(r"^(?P<prefix>[a-z0-9_]+)_binary_(?P<kind>[A-Za-z0-9]+)$",
++# The kind class admits underscores: a compound kind
++# (`opencode_binary_resolved_sha256`) used to fall OUTSIDE this regex and was
++# therefore never discovered -- a pin-shaped key the guard silently ignored
++# (exit 0, "OK 3/3 pins hold" with the key present in the block). That is the
++# round-21 "unenforced pin" class reopened inside the discovery rule itself.
++# Widening the class makes such a key DISCOVERED and then UNSUPPORTED (exit 2),
++# which is the contract's fail-closed answer for a pin the guard cannot read.
++DISCOVER_RE = re.compile(r"^(?P<prefix>[a-z0-9_]+)_binary_(?P<kind>[A-Za-z0-9_]+)$",
+                          re.IGNORECASE)
+ 
+ # Pin keys are exact bytes (round-32 claim W). A key that is not byte-identical
+@@ -304,6 +354,10 @@ def main(argv: list[str] | None = None) -> int:
+                     help="baseline JSON (default: <repo>/verifiers/baseline.json)")
+     ap.add_argument("--omp-binary", metavar="PATH", default=BINARIES["omp"])
+     ap.add_argument("--opencode-binary", metavar="PATH", default=BINARIES["opencode"])
++    ap.add_argument("--opencode-launcher", metavar="PATH",
++                    default=BINARIES["opencode_launcher"],
++                    help="opencode launcher whose resolution the artifact path "
++                         "assumes (default: the host's npx wrapper)")
+     ap.add_argument("--json", action="store_true", help="machine-readable output")
+     ap.add_argument("--self-test", action="store_true",
+                     help="assert checks and exit codes on temporary fixtures only")
+@@ -314,7 +368,8 @@ def main(argv: list[str] | None = None) -> int:
+ 
+     baseline_path = Path(args.baseline) if args.baseline else (
+         Path(args.repo) / "verifiers" / "baseline.json")
+-    binaries = {"omp": Path(args.omp_binary), "opencode": Path(args.opencode_binary)}
++    binaries = {"omp": Path(args.omp_binary), "opencode": Path(args.opencode_binary),
++                "opencode_launcher": Path(args.opencode_launcher)}
+ 
+     try:
+         baseline = json.loads(baseline_path.read_text())
+@@ -361,6 +416,13 @@ def self_test() -> int:
+         mini.write_bytes(b"#!kotoba-pin-fixture-mini-v1\n" + bytes(range(64)))
+         sha = sha256_of(mini)
+         ns = mini.stat().st_mtime_ns
++        # The launcher substrate (round 47): a stand-in for the host's npx
++        # wrapper. It is a pinned substrate like any other, so it needs its
++        # own fixture bytes and its own sha in every world.
++        launcher = tmp / "launcher.sh"
++        launcher.write_text("#!/bin/bash\npackage=\"opencode-ai\"\n"
++                            "exec_package_bin \"$package_bin_path\" \"$@\"\n")
++        launcher_sha = sha256_of(launcher)
+         seq = 0
+ 
+         def iso_of(value_ns: int, digits: int) -> str:
+@@ -371,6 +433,7 @@ def self_test() -> int:
+ 
+         iso9 = iso_of(ns, 9)
+         iso6 = iso_of(ns, 6)
++        launcher_iso9 = iso_of(launcher.stat().st_mtime_ns, 9)
+ 
+         def write(name: str, payload: object) -> str:
+             path = tmp / name
+@@ -383,20 +446,24 @@ def self_test() -> int:
+             seq += 1
+             base = {"measured_against": {
+                 "omp_binary_sha256": sha, "omp_binary_mtime": iso9,
+-                "opencode_binary_sha256": sha, **pins}}
++                "opencode_binary_sha256": sha,
++                "opencode_launcher_binary_sha256": launcher_sha, **pins}}
+             return write("baseline-%02d.json" % seq, base)
+ 
+         def run(base: str, *extra: str) -> tuple[int, str, str]:
+             return run_capture(["--baseline", base, "--omp-binary", str(mini),
+-                                "--opencode-binary", str(mini), *extra])
++                                "--opencode-binary", str(mini),
++                                "--opencode-launcher", str(launcher), *extra])
+ 
+         # -- ladder slot 0: every expected pin present and holding ------------
+         code, out, err = run(world())
+         rec("match: exit 0", code == 0, code)
+-        rec("match: stdout names all three pins as PASS",
++        rec("match: stdout names all four pins as PASS",
+             all(p in out for p in ("omp_binary_sha256", "omp_binary_mtime",
+-                                   "opencode_binary_sha256")) and "FAIL" not in out, out)
+-        rec("match: OK summary", "OK 3/3 pins hold" in out, out)
++                                   "opencode_binary_sha256",
++                                   "opencode_launcher_binary_sha256"))
++            and "FAIL" not in out, out)
++        rec("match: OK summary", "OK 4/4 pins hold" in out, out)
+         rec("match: clean stderr", err == "", err)
+         rec("match: no Traceback", "Traceback" not in out + err, out + err)
+ 
+@@ -427,9 +494,9 @@ def self_test() -> int:
+             code == 1 and "Traceback" not in out, (code, out))
+         code, out, _ = run(write("vacuous-empty.json", {"measured_against": {}}))
+         rec("measured_against empty: exit 1", code == 1, code)
+-        rec("measured_against empty: all three pins PIN_ABSENT",
++        rec("measured_against empty: all four pins PIN_ABSENT",
+             sum(1 for line in out.splitlines()
+-                if line.startswith("FAIL ") and ": PIN_ABSENT:" in line) == 3, out)
++                if line.startswith("FAIL ") and ": PIN_ABSENT:" in line) == 4, out)
+         code, out, _ = run(write("one-pin-missing.json", {"measured_against": {
+             "omp_binary_sha256": sha, "opencode_binary_sha256": sha}}))
+         rec("deleted single pin: exit 1 (P7 C9 silent-shrink closed)", code == 1, code)
+@@ -446,9 +513,9 @@ def self_test() -> int:
+         rec("mis-cased key: UNSUPPORTED names key and canonical pin",
+             "FAIL OMP_binary_sha256: UNSUPPORTED: mis-cased pin key: matches "
+             "omp_binary_sha256 except for case" in out, out)
+-        rec("mis-cased key: summary 1/4 names it, the three real pins still PASS",
+-            "UNSUPPORTED 1/4 pins failed: OMP_binary_sha256" in out
+-            and sum(1 for ln in out.splitlines() if ln.startswith("PASS ")) == 3,
++        rec("mis-cased key: summary 1/5 names it, the four real pins still PASS",
++            "UNSUPPORTED 1/5 pins failed: OMP_binary_sha256" in out
++            and sum(1 for ln in out.splitlines() if ln.startswith("PASS ")) == 4,
+             out)
+         code, _, _ = run(world(omp_Binary_sha256="0" * 64))
+         rec("mis-cased separator omp_Binary_sha256: exit 2", code == 2, code)
+@@ -460,9 +527,9 @@ def self_test() -> int:
+         rec("whitespace-padded key: UNSUPPORTED names the key and the char",
+             "FAIL  omp_binary_sha256: UNSUPPORTED: pin key is not exact bytes: "
+             "U+0020 Zs" in out, out)
+-        rec("whitespace-padded key: summary 1/4, the three real pins still PASS",
+-            "UNSUPPORTED 1/4 pins failed:  omp_binary_sha256" in out
+-            and sum(1 for ln in out.splitlines() if ln.startswith("PASS ")) == 3,
++        rec("whitespace-padded key: summary 1/5, the four real pins still PASS",
++            "UNSUPPORTED 1/5 pins failed:  omp_binary_sha256" in out
++            and sum(1 for ln in out.splitlines() if ln.startswith("PASS ")) == 4,
+             out)
+         for label, key in (("trailing space", "omp_binary_sha256 "),
+                            ("leading tab", "\tomp_binary_sha256"),
+@@ -490,6 +557,69 @@ def self_test() -> int:
+         rec("coarse pin: its acceptance window is reported, not silent",
+             code == 0 and "tolerance 999 ns" in out, (code, out))
+ 
++        # -- the launcher substrate (round 47: the npx-wrapper install shape) --
++        # The opencode substrate is no longer a fixed file: the host's
++        # `~/.local/bin/opencode` is a bash wrapper that resolves the package
++        # bin inside the npm npx cache and execs it. The launcher is therefore
++        # a pinned substrate of its own: it carries the premise of the
++        # artifact path (which package, which spec, which install shape).
++        code, out, _ = run(world())
++        rec("launcher pin: holds and is named PASS",
++            "PASS opencode_launcher_binary_sha256:" in out, out)
++        swapped = tmp / "launcher-swapped.sh"
++        swapped.write_text("#!/bin/bash\npackage=\"opencode-ai@2\"\n"
++                           "exec_package_bin \"$package_bin_path\" \"$@\"\n")
++        code, out, _ = run(world(), "--opencode-launcher", str(swapped))
++        rec("npx-cache swap (launcher re-pointed at another spec): exit 1 — "
++            "the guard is never green while the live substrate moved",
++            code == 1, (code, out))
++        rec("npx-cache swap: the launcher pin names the drift",
++            "FAIL opencode_launcher_binary_sha256: sha256 drift" in out, out)
++        code, out, _ = run(world(), "--opencode-launcher", str(tmp / "nope"))
++        rec("launcher missing (install method changed): exit 2, never green",
++            code == 2, code)
++        rec("launcher missing: UNREADABLE names the pin",
++            "FAIL opencode_launcher_binary_sha256: UNREADABLE" in out, out)
++        code, out, _ = run(write("launcher-pin-missing.json", {"measured_against": {
++            "omp_binary_sha256": sha, "omp_binary_mtime": iso9,
++            "opencode_binary_sha256": sha}}))
++        rec("launcher pin deleted from the block: exit 1 (PIN_ABSENT)",
++            code == 1, code)
++        rec("launcher pin deleted: PIN_ABSENT names it",
++            "FAIL opencode_launcher_binary_sha256: PIN_ABSENT" in out, out)
++        code, out, _ = run(world(opencode_Launcher_binary_sha256=launcher_sha))
++        rec("launcher pin mis-cased: exit 2 (exact-case, never skipped)",
++            code == 2, code)
++        rec("launcher pin mis-cased: names key and canonical pin",
++            "FAIL opencode_Launcher_binary_sha256: UNSUPPORTED: mis-cased pin "
++            "key: matches opencode_launcher_binary_sha256 except for case"
++            in out, out)
++        code, out, _ = run(world(**{"opencode_launcher_binary_sha256 ": launcher_sha}))
++        rec("launcher pin whitespace-padded: exit 2 (exact bytes, never skipped)",
++            code == 2, code)
++        rec("launcher pin whitespace-padded: names the key and the char",
++            "FAIL opencode_launcher_binary_sha256 : UNSUPPORTED: pin key is "
++            "not exact bytes: U+0020 Zs" in out, out)
++        code, out, _ = run(world(opencode_launcher_binary_mtime=launcher_iso9))
++        rec("extra kind on the launcher substrate is compared: exit 0 when it "
++            "holds (the substrate is first-class in the discovery space)",
++            code == 0, (code, out))
++
++        # -- discovery must not silently ignore a pin-shaped key -------------
++        # A compound kind (`<substrate>_binary_<kind_with_underscore>`) fell
++        # outside the discovery regex and was therefore never reported: the
++        # guard printed "OK 3/3 pins hold" with the key sitting unenforced in
++        # the same block. It must now be DISCOVERED and then UNSUPPORTED.
++        code, out, _ = run(world(opencode_binary_resolved_sha256="0" * 64))
++        rec("compound-kind pin: exit 2 (discovered, then UNSUPPORTED — never a "
++            "silent skip)", code == 2, code)
++        rec("compound-kind pin: UNSUPPORTED names the key",
++            "FAIL opencode_binary_resolved_sha256: UNSUPPORTED" in out, out)
++        rec("compound-kind pin: the summary counts it (no '3/3 on 4 keys')",
++            "OK 3/3 pins hold" not in out, out)
++        code, out, _ = run(world(omp_binary_sha256_of_omp="0" * 64))
++        rec("compound-kind pin on omp: exit 2", code == 2, code)
++
+         # -- ladder slot 2: environment unreadable ----------------------------
+         code, out, err = run(world(), "--omp-binary", str(tmp / "nope"))
+         rec("missing binary: exit 2", code == 2, code)

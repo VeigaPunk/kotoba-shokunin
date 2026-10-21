@@ -5,8 +5,10 @@ The claim under test: a self-test that silently loses assertions must never
 still read green. Each instrument's --self-test prints an assertion count;
 this guard reruns every self-test and FAILs when the observed count is below
 the recorded floor (harness 10, corpus_integrity 150, corpus_independent 91,
-surfaces 87, checklist 1597, pins 62, harness_independent 104,
-compare_harness_independent 330, floors_guard 150; others @ round 36, the
+surfaces 99, checklist 1845, pins 62, harness_independent 104,
+compare_harness_independent 330, floors_guard 150; others @ round 36 --
+round 47 ratcheted surfaces 87->99 (1.19.3 opencode fixtures, 18.12.5 omp
+callees) and checklist 1597->1845 (trigger.no_xml_tag + governance errata arms); the
 checklist floor re-recorded at round 37 by the C3 fence battery plus the
 indented-code decoy battery and at round 38 by the three container-relative
 fence shapes (V6's named residual); the two round-38 C1 instruments registered
@@ -117,8 +119,8 @@ EXPECTED_INSTRUMENTS = {
     "harness": 10,
     "corpus_integrity": 150,
     "corpus_independent": 91,
-    "surfaces": 87,
-    "checklist": 1597,
+    "surfaces": 99,
+    "checklist": 1845,
     "pins": 62,
     "harness_independent": 104,
     "compare_harness_independent": 330,
@@ -137,9 +139,9 @@ INSTRUMENTS = {
                          r"self-test:\s*(\d+) failure\(s\) over (\d+) assertions", 2, 1),
     "corpus_independent": ("verifiers/verify_corpus_independent.py", 91,
                            r"self-test:\s*(\d+) assertions,\s*(\d+) failures", 1, 2),
-    "surfaces": ("verifiers/verify_surfaces.py", 87,
+    "surfaces": ("verifiers/verify_surfaces.py", 99,
                  r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
-    "checklist": ("verifiers/verify_skill_checklist.py", 1597,
+    "checklist": ("verifiers/verify_skill_checklist.py", 1845,
                   r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
     "pins": ("verifiers/check_substrate_pins.py", 62,
              r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
@@ -594,8 +596,8 @@ def self_test() -> int:
                       '_pins.py", 62,\n',
                       '             r"(?m)^(\\d+) failure\\(s\\) over',
                       ' (\\d+) assertions$", 2, 1),\n')
-    expected_surfaces = anchor('    "surfa', 'ces": 87,\n')
-    row_surfaces = anchor('    "surfaces": ("verifiers/verify_surfa', 'ces.py", 87,\n')
+    expected_surfaces = anchor('    "surfa', 'ces": 99,\n')
+    row_surfaces = anchor('    "surfaces": ("verifiers/verify_surfa', 'ces.py", 99,\n')
     expected_ind = anchor('    "harness_indep',
                           'endent": %d,\n' % EXPECTED_INSTRUMENTS["harness_independent"])
     row_ind = anchor('    "harness_independent": ("verifiers/verify_harness_indep',
@@ -848,8 +850,8 @@ def self_test() -> int:
         # the cheapest place to hide a repoint, because its path has no history
         # to diff against; the anchor must compare the path, not just the floor.
         # The target is chosen to make the repoint GENUINELY silent without the
-        # anchor: verify_surfaces.py prints the same summary pattern and 87
-        # assertions, so the no-anchor world reads 'PASS harness_independent
+        # anchor: verify_surfaces.py prints the same summary pattern (87
+        # assertions then; 99 since round 47), so the no-anchor world reads 'PASS harness_independent
         # observed=87 floor=71', exit 0 (proved by drafts/p3/true_discriminator.py).
         text = swap(source, row_ind,
                     row_ind.replace("verify_harness_independent.py",

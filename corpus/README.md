@@ -60,6 +60,8 @@ Domain: prompt & skill craft — SKILL.md/AGENTS.md quality, trigger fidelity.
 | Admission bar (round 46) | `QUALITY.md` | the lane's own quality bar, created round 46: every criterion cites its row in `lessons/round-46.md` § Mistakes (mined from the lane's rejected, harmed and honest-stop rounds 37–46); tier definitions defer to `SOURCES.md` |
 | Source registry (round 46) | `SOURCES.md` | where the lane learns, per the kaika SOURCES contract v1: rows written only for sources opened in round 46, scoped tiers, one rejected row with its flip, study paths and a search log; fetch records in `../.ufo/round-46/evidence/w2/sources/fetch-log.json` |
 | Round-46 lessons | `lessons/round-46.md` | LOG.md round-46 entries, WIP commit `36ab0d3`; `## Mistakes` (the lane's mined failure classes, each with pointer, captured-by criterion and fix) and `## Gate` (no knowledge admitted this round; source rows; spot-check pending non-author) |
+| Round-46 non-author spot-check (integrator) | `lessons/round-46-verifier-spotcheck.md` | written by the kaika integrator, not the lane (outside review; never edited here): the round-46 spot-check sample (S003/S006 admit, S011 reject — both agree) and the adjudication ADMITTED with per-axis verdicts and the carried open residuals; landed at `c61a973` without an index row, indexed round 47 |
+| Round-47 lessons | `lessons/round-47.md` | LOG.md round-47 entry; `## Mistakes` (stale planned premise M20, unindexed closure landing M21, stale lesson pointers M22) and `## Gate` (source rows S012–S015 with access records, S001–S008 re-opened, the C1 class ledger pointer) |
 
 ## Frontier
 
@@ -71,7 +73,7 @@ Areas being explored and not yet held (LEARNING.md § Files the path writes); ap
 | Command extraction | commands outside the declared vocabulary are invisible; info-less table fences read as commands (§ Known gaps) | fixtures for an outside-vocabulary command and the info-less table fence |
 | Implicit-intent fidelity | the literal-trigger proxy covers only prompts that name a skill (§ Known gaps) | the intent-labeling pass on the proven join recipe (`knowledge/trigger-miss-proxy-round6.md`) |
 | MCP/plugin instruction surfaces | the two target harness configs carry no MCP/plugin keys; the classes are live elsewhere (§ Known gaps) | per-harness census separating loader-class presence from configured instances (`knowledge/instruction-surface-census-round13.md`) |
-| Loader-rule freshness | omp 18.12.3 drift leaves surfaces 5/7 and pins 1/3; the frontmatter `description` XML-token rule is unchecked by the lane's own gate | re-derive then re-pin; add the tag rule with a discriminating fixture (`lessons/round-46.md` § Mistakes) |
+| Loader-rule freshness | round 47: omp 18.12.5 and opencode 1.19.3 (npm channel, round-14 loader lineage) re-derived and re-pinned — surfaces 7/7, pins 3/3 at default resolution; the XML-token rule moved to Core (`trigger.no_xml_tag`). Not held: the omp extractor is a callee-name allowlist, so the next minifier rename is a red gate plus a hand re-derivation (the round-46 "omp 18.12.3 … 5/7 … 1/3" figures were a stale copy, `lessons/round-47.md` M20) | a rename-robust omp call-shape rule with a must-fail rename fixture; an opencode lineage probe that names which generation a dump carries (`knowledge/instruction-surface-census-round13.md` § B′) |
 | Per-render consumption | no per-session offer-to-activation join exists (§ Known gaps) | per-render attribution (`knowledge/skill-activation-telemetry.md`) |
 
 ## Known gaps

@@ -1,0 +1,82 @@
+diff --git i/verifiers/verify_surfaces.py w/verifiers/verify_surfaces.py
+index 56e65ea..d9c3348 100755
+--- i/verifiers/verify_surfaces.py
++++ w/verifiers/verify_surfaces.py
+@@ -153,12 +153,12 @@ CALL_RE = re.compile(
+     r'"([A-Za-z0-9_./-]+\.md)"(?=\s*[,)])'
+ )
+ OMP_CALL_RE = re.compile(
+-    r"(?<![A-Za-z0-9_$])(?:Id|Cl|jD[ef]|Tl|dr|GW|Co|Dl|Hj|I5|Gl|Mo)\(\s*[^\s,()]+\s*,\s*"
++    r"(?<![A-Za-z0-9_$])(?:Id|Cl|jD[ef]|Tl|dr|GW|Co|Dl|Hj|I5|Gl|Mo|Xl|Fo|lq)\(\s*[^\s,()]+\s*,\s*"
+     r'(?:"([a-z0-9_-]+)"|([A-Za-z_$][A-Za-z0-9_$]*))\s*,\s*'
+     r'"([A-Za-z0-9_./-]+\.md)"(?=\s*[,)])'
+ )
+ CALLEE_SHAPES = {
+-    "omp": '(Id|Cl|jD[ef]|Tl|dr|GW|Co|Dl|Hj|I5|Gl|Mo)(<v>, <group>, "<file>.md")',
++    "omp": '(Id|Cl|jD[ef]|Tl|dr|GW|Co|Dl|Hj|I5|Gl|Mo|Xl|Fo|lq)(<v>, <group>, "<file>.md")',
+     "opencode": '(Id|Cl|jD[ef]|Tl|dr|GW)(<v>, <group>, "<file>.md")',
+ }
+ # Identifier -> string bindings anywhere in the dump (`var Pqr = "agents-md"`,
+@@ -356,7 +356,7 @@ def extract_classes(dump: str, harness: str) -> set[tuple[str, str]]:
+ # Live shapes: `ConfigInstructionPlugin.projectSource` +
+ # `targets:["AGENTS.md"]` in the same code path (`i.up({targets:["AGENTS.md"],
+ # start:<cwd>,stop:<project>,type:"file"})`).
+-OC_PROJECT_FN = "ConfigInstructionPlugin.projectSource"
++OC_PROJECT_FN = "InstructionContext.observe"
+ OC_PROJECT_TARGETS = 'targets:["AGENTS.md"]'
+ OC_MD_NAME_RE = re.compile(r'"([A-Za-z0-9_.-]+\.md)"')
+ 
+@@ -375,10 +375,10 @@ OC_AMBIENT_SCHEMA = 'ambient instructions'
+ # file to the project root for AGENTS.md (`targets:[a$]` where `a$` is the
+ # "AGENTS.md" constant) and calls `SessionInstructions.load`, which renders
+ # `Instructions from: <path>` synthetic entries.
+-OC_READ_FN = "ReadTool.Plugin"
+-OC_READ_TARGETS = 'targets:[a$]'
+-OC_READ_CONST = 'a$="AGENTS.md"'
+-OC_SESSION_LOAD = 'SessionInstructions.load'
++OC_READ_FN = "Instruction.resolve"
++OC_READ_TARGETS = 'y=["AGENTS.md"'
++OC_READ_CONST = '"CONTEXT.md"'
++OC_SESSION_LOAD = 'Instructions from:'
+ 
+ # OC-5: resolution switch witness — the project source is disabled only via
+ # config `project:false` (env `OPENCODE_CONFIG_PROJECT_DISABLE` or
+@@ -391,7 +391,7 @@ OC_ENV_PROJECT_CONFIG_2 = "OPENCODE_CONFIG_PROJECT_DISABLE"
+ # `/api/experimental/session/:sessionID/instructions/entries` — API-managed
+ # durable entries announced to the model at the next step boundary.
+ OC_API_ROUTE = "/instructions/entries"
+-OC_API_ID = "session.instructions.entry.put"
++OC_API_ID = "instructions:{entry:{list:"
+ 
+ 
+ def extract_opencode_classes(dump: str) -> tuple[set[str], list[dict]]:
+@@ -410,7 +410,8 @@ def extract_opencode_classes(dump: str) -> tuple[set[str], list[dict]]:
+             ids.update(owns)
+ 
+     # OC-1 — project walk-up, all-match AGENTS.md
+-    project = OC_PROJECT_FN in dump and OC_PROJECT_TARGETS in dump
++    project = ((OC_PROJECT_FN in dump or "ConfigInstructionPlugin.projectSource" in dump)
++               and OC_PROJECT_TARGETS in dump)
+     rule("OC-1", ["opencode:project/AGENTS.md"], project,
+          [OC_PROJECT_FN, OC_PROJECT_TARGETS])
+ 
+@@ -427,8 +428,9 @@ def extract_opencode_classes(dump: str) -> tuple[set[str], list[dict]]:
+ 
+     # OC-4 — read-tool channel: every read walks up for AGENTS.md files
+     # outside the project and publishes them through SessionInstructions.load.
+-    read_hook = (OC_READ_FN in dump and OC_READ_TARGETS in dump
++    read_hook = ((OC_READ_FN in dump and OC_READ_TARGETS in dump
+                  and OC_READ_CONST in dump and OC_SESSION_LOAD in dump)
++                 or all(a in dump for a in ("ReadTool.Plugin", "targets:[a$]", 'a$="AGENTS.md"', "SessionInstructions.load")))
+     rule("OC-4", ["opencode:read-hook/AGENTS.md"], read_hook,
+          [OC_READ_FN, OC_READ_TARGETS, OC_READ_CONST, OC_SESSION_LOAD])
+ 
+@@ -438,7 +440,7 @@ def extract_opencode_classes(dump: str) -> tuple[set[str], list[dict]]:
+          ["%s | %s" % (OC_ENV_PROJECT_CONFIG, OC_ENV_PROJECT_CONFIG_2)])
+ 
+     # OC-6 — API-managed instruction entries
+-    api = OC_API_ROUTE in dump and OC_API_ID in dump
++    api = OC_API_ROUTE in dump and (OC_API_ID in dump or "session.instructions.entry.put" in dump)
+     rule("OC-6", ["opencode:api-entries/instructions"], api,
+          [OC_API_ROUTE, OC_API_ID])
+ 

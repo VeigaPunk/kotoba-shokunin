@@ -1,0 +1,62 @@
+verdict: FAIL-CLOSED resolution is mandatory: BASE still names a missing legacy opencode path, and any npx-cache migration must bind the selected bytes, extractor, and pin to one trusted snapshot without invoking the opencode wrapper.
+
+Axes: binary identity/freshness; no package-manager or target execution; path-resolution integrity; hash-to-extraction consistency.
+
+## Findings
+
+### HIGH — A wrapper/npx resolution path crosses an execution and network boundary
+
+**Exploit path.** If either verifier probes `opencode`, `~/.local/bin/opencode`, `npx --which`, or runs a package entrypoint to discover its binary, a changed wrapper/package selection can trigger the npx install path before extraction. A package install can execute its lifecycle code as the verifier's user; that is not a read-only resolution step.
+
+**Evidence.** At BASE, `verifiers/check_substrate_pins.py:34-36` expressly says the pin guard never executes the pinned binary. The wave-47 host wrapper is not in the BASE repository: read-only inspection of `/home/vgpnk/.local/bin/opencode:1-3,38-50` found a bash script whose `package="opencode-ai"` and `command="opencode"` are mutable inputs, which calls `npx --yes --prefer-online --package "$package" -- true` and then `npx ... -- which ...`. Its `:5-10` path first calls `mise` and selects a Node installation. The local cache package `/home/vgpnk/.npm/_npx/e2094862b59aac7b/node_modules/opencode-ai/package.json:2-9` declares `opencode-ai` 1.19.3 and a `postinstall`; `postinstall.mjs:126-144` can invoke `npm install` for a platform package, and `:158-164` spawns the selected binary with `--version`. The package-lock metadata also marks `hasInstallScript` (`package-lock.json:11-20`). These are inspected source facts, not an observed execution: the wrapper, npx, npm, and binary were not run.
+
+**Impact.** An accidental version/discovery probe can consult the network, install a different package version, execute package lifecycle code, and execute a target binary. Changing the wrapper's package or command names can redirect that process. It can also mutate the cache the verifiers are trying to measure.
+
+**Smallest remediation.** Do not execute or parse the wrapper to discover the artifact. Resolve the native binary from a fixed trusted cache root and an explicit expected package identity/version/platform; use no `opencode`, `npx`, `npm`, `mise`, Node, or `--version` invocation. Keep `check_substrate_pins.py`'s never-execute contract. Treat an unavailable/mismatched file as an environment error, not a reason to install or fall back.
+
+### HIGH — The hash gate and surface extraction do not attest the same bytes
+
+**Exploit path.** Run the pin gate against the expected file, then replace the file or a path component before the separate surfaces gate opens it. Alternatively, let a hostile `strings` executable print a crafted dump. The surface check can then pass using strings from bytes other than those whose hash passed.
+
+**Evidence at BASE.** `check_substrate_pins.py:130-135` hashes by opening a pathname; `:222-237` records that result, and `:299-328` separately constructs the path and calls the pin check. The implementation does not bind the opened file descriptor to a later read. `verify_surfaces.py:209-226` checks `is_file()` and runs `subprocess.run(["strings", "-n", "4", str(binary)])`; there is no digest check around that read. `:229-233` accepts caller-provided paths, while `:1082-1090` loads dumps separately. Its executable is the bare name `strings`, with inherited environment, so a caller-controlled `PATH` can select a counterfeit extractor and return a plausible dump. Running the pin checker first does not authenticate a later surfaces invocation.
+
+**Impact.** The two gates can report a valid pin and a passing census for different artifacts; a forged strings output can also manufacture extraction evidence without changing the binary. This is a verification-integrity failure, not merely a stale-cache warning.
+
+**Smallest remediation.** In each verifier invocation, open and validate the approved file once, compute SHA-256 over an immutable snapshot, and derive `strings -n 4` from that exact snapshot (e.g. a private sealed snapshot/descriptor passed to the extractor). Require the digest to equal the active pin in the surfaces path too; do not rely on a prior process. Invoke a known absolute, trusted `strings` binary with a minimal deterministic environment, or otherwise pin/validate the extractor. Reject path replacement, read errors, and digest mismatch closed. Do not accept an injected `--opencode-strings` dump as proof of the default live-binary check.
+
+### MEDIUM — Candidate selection is vulnerable to HOME/cache ambiguity and symlink substitution
+
+**Exploit path.** A future resolver that expands `$HOME`, searches `_npx/*`, globs for `opencode*`, picks the first matching directory, or trusts the wrapper's package name can be redirected by a fake HOME or a planted second cache. A symlink in the cache/package/bin chain can redirect a seemingly in-cache candidate outside the intended root. Selecting only by version or digest is not enough to establish the package/path identity.
+
+**Evidence at BASE.** `verify_surfaces.py:128-131` and `check_substrate_pins.py:61-64` still default to `/home/vgpnk/.opencode/bin/opencode`, not the current npx-cache target; `check_substrate_pins.py:40-43` describes host-anchored paths and explicit CLI overrides. At BASE, there is no npx cache resolver to review yet. The round-47 before-summary records that the old opencode path is absent and identifies `/home/vgpnk/.npm/_npx/e2094862b59aac7b/node_modules/opencode-linux-x64/bin/opencode` as the 1.19.3 cache binary (`.ufo/waves/round-47/before/SUMMARY.md:3-5,9`). Read-only host inspection found eight `_npx` cache roots; a bounded search for `*/node_modules/*opencode*/bin/opencode[.exe]` found the `e209...` cache's normal and baseline Linux variants plus the `opencode-ai` entrypoint. Both `opencode-linux-x64` and `opencode-linux-x64-baseline` manifests say version 1.19.3, and both current files hash to `179ca421d61eefeadfa0c50e084a6e79c1623734732f0f4593f81ccfd3ab7ee9`. Thus a broad version/hash search already has multiple ordinary candidates; “fail if two matching hashes” would reject this observed cache, while “pick first” is order-dependent. The `.bin/opencode` path is a symlink to `../opencode-ai/bin/opencode.exe`; the latter is a hard link to the non-baseline `opencode-linux-x64/bin/opencode`. The cache directory tree and binary are owned by the current user, so same-user cache changes are in scope for reproducibility/integrity.
+
+**Impact.** A resolver can measure a different cache entry, platform variant, or outside file than intended. Reordering cache entries or adding a second candidate can silently change which substrate gets pinned. A symlink-based path swap can also undermine an apparently absolute pathname.
+
+**Smallest remediation.** Use an explicit canonical binary path beneath a fixed trusted cache root that does not depend on environment `HOME`, `PATH`, npm configuration, or wrapper strings; bind it to exact package name/version/platform and expected digest. Prefer the exact observed native-package path, not `.bin` or a `which` result. Traverse/open without following unapproved symlinks, verify the resolved target remains beneath the approved root, and use the already-open snapshot for hashing and extraction. If discovery is unavoidable, enumerate deterministically under only that fixed root, match full package identity and platform, and reject ambiguity rather than taking first/last. Test the ordinary baseline/non-baseline variant pair as a control so the resolver does not mistake a normal optional package for a planted cache.
+
+## Wave-2 falsification probes
+
+Run only in an isolated temporary cache/repo fixture; do not run the production wrapper or contact npm.
+
+1. **HOME/PATH decoy:** point `HOME` and a temporary cache setting at a decoy tree containing a plausible `opencode-ai` 1.19.3 manifest and different bytes. The default verifier must still use the explicitly trusted target or fail closed; it must not select the decoy. Put a `strings` stub first on `PATH` that prints a known-good fixture dump: neither verifier may use it.
+2. **Planted second cache:** add a second matching cache root with a different binary and then with a byte-identical binary. Resolution must remain tied to the canonical root or report ambiguity; it must never switch based on directory/glob ordering. Assert separately that the normal `opencode-linux-x64`/`-baseline` pair does not cause an accidental false ambiguity under the chosen identity rule.
+3. **Symlink chain:** in the fixture, replace the final binary and separately a package/bin ancestor with a symlink to an outside sentinel. The resolver must reject the path and must not read the sentinel. Exercise a symlink swap between resolution and open as well as a static symlink.
+4. **Wrapper-name mutation / no execution:** change only an isolated copy of wrapper `package`/`command` values and install marker-only `mise`, `npx`, and `npm` shims. Invoke the gates with that environment; no marker may appear and no network/package-manager process may run. The selected target must remain the exact configured artifact or fail.
+5. **Pin-to-dump race:** after the pin checker has passed in the harness, replace the fixture path before the surface read; repeat with a barrier that swaps it during extraction. Surface results must independently authenticate the same immutable bytes given to `strings`, or fail; “pin pass then changed dump pass” is a required negative control.
+6. **Metadata/version/platform:** alter package name, version, architecture, or selected optional-package identity while keeping a copied binary hash where feasible. Identity mismatch must fail; digest-only or wrapper-derived identity must not pass.
+
+## Evidence / commands / scope
+
+**BASE source citations:** `verifiers/verify_surfaces.py:128-131,209-233,1033-1037,1082-1090`; `verifiers/check_substrate_pins.py:34-43,61-78,130-135,164-255,299-328`; `verifiers/baseline.json:9`; before observations at `.ufo/waves/round-47/before/SUMMARY.md:3-5,9`.
+
+**Commands run (read-only):**
+
+- `git rev-parse HEAD` — exit 0; `c61a973b2e02e1ded169703ddcb06466f4edd8bd`.
+- `realpath /home/vgpnk/.local/bin/opencode /home/vgpnk/.npm/_npx/e2094862b59aac7b/node_modules/opencode-linux-x64/bin/opencode` — exit 0; returned the same absolute paths (no symlink resolution change).
+- `namei -l /home/vgpnk/.npm/_npx/e2094862b59aac7b/node_modules/opencode-linux-x64/bin/opencode` — exit 0; each displayed component is a directory/file, owned by `vgpnk` below `/home`; the direct target path has no symlink component in this observation.
+- `sha256sum /home/vgpnk/.npm/_npx/e2094862b59aac7b/node_modules/opencode-linux-x64/bin/opencode /fast/scratch/kotoba-r47/shared/bin/opencode-1.19.3` — exit 0; both `179ca421d61eefeadfa0c50e084a6e79c1623734732f0f4593f81ccfd3ab7ee9`, matching the frozen `SHA256SUMS`.
+- `stat -c '%F %a %u:%g %s %d:%i %n' ...` and `sha256sum ...` for the `opencode-ai` entrypoint and both Linux variants — exit 0; `.bin/opencode` is a symlink; the `opencode-ai` entrypoint and non-baseline variant share device/inode; baseline variant is a distinct inode with the same digest.
+- `readlink /home/vgpnk/.local/bin/opencode` and `readlink <direct native binary>` — exit 1 for each (neither final path is a symlink). `readlink -f .../.bin/opencode .../opencode-ai/bin/opencode.exe` — exit 0; `.bin` resolves to the `opencode-ai` ELF entrypoint.
+- `file .../.bin/opencode .../opencode-ai/bin/opencode.exe .../opencode-linux-x64/bin/opencode` — exit 0; the entrypoint/native files are x86-64 ELF executables. No executable was launched.
+
+The cache/manifests/wrapper were inspected as local data. No tool was installed or updated. No verifier gate, `strings`, `omp`, opencode, wrapper, Node, npx, npm, or network operation was run. I did not inspect environment values, modify the cache, exercise the proposed attack probes, or verify that no second cache can be planted; the search only established the currently observed matching package paths. These are requirements and wave-2 tests, not claimed passes.

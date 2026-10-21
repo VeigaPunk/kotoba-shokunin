@@ -8,11 +8,15 @@ Preamble prose.
 |----------|---------|------|---------|----------|
 | `omp:gemini/GEMINI.md` | GEMINI.md | loader-group | governed | loads on session start |
 | `omp:cursor/rules` | rules | loader-literal | governed | directory-of-files registration |
-| `opencode:project/AGENTS.md` | AGENTS.md | loader-literal | governed | all-match walk-up source |
-| `opencode:config/AGENTS.md` | AGENTS.md | loader-config | governed | global config candidate |
-| `opencode:read-hook/AGENTS.md` | AGENTS.md | loader-literal | governed | read-tool channel |
-| `opencode:api-entries/instructions` | instructions | loader-config | governed | API-managed entries |
-| `opencode:config/instructions` | instructions | loader-config | excluded | schema-declared, consumer unproven |
+| `opencode:instructions/AGENTS.md` | AGENTS.md | loader-literal | governed | priority list element |
+| `opencode:instructions/CLAUDE.md` | CLAUDE.md | loader-literal | governed | gated priority list element |
+| `opencode:instructions/CONTEXT.md` | CONTEXT.md | loader-literal | governed | last priority list element |
+| `opencode:config/AGENTS.md` | AGENTS.md | loader-config | governed | config join candidate |
+| `opencode:claude-home/CLAUDE.md` | CLAUDE.md | loader-config | governed | home join candidate |
+| `opencode:config/instructions` | instructions | loader-config | governed | declared list loop |
+| `opencode:config/instructions-remote` | https:// | loader-config | governed | remote filter + render |
+| `opencode:read-hook/instructions` | <system-reminder> | loader-literal | governed | read-tool channel |
+| `opencode:instruction-context/AGENTS.md` | AGENTS.md | loader-literal | governed | second subsystem: ambient all-match walk + ungated config candidate |
 
 ## Method notes
 

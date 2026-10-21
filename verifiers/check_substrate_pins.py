@@ -37,8 +37,11 @@ the observation surface of verify_harness_claims.py) and never re-pins.
 Deterministic: no wall clock, host, pid or duration appears in either mode.
 Stdlib only (Python >= 3.11).
 
-Host-anchored: the default binary paths are this host's installs (same constants
-as verify_harness_claims.py:52,55), so a clone's green is a statement about that
+Host-anchored: the default binary paths are this host's installs (same values
+as verify_harness_claims.py OMP_BIN/OC_BIN and verify_surfaces.py
+DEFAULT_BINARIES; round 47 moved opencode to the npm `opencode-ai` bytes the
+`~/.local/bin/opencode` npx wrapper executes — the wrapper itself is never the
+pinned file, its sha says nothing about the ELF that runs), so a clone's green is a statement about that
 installation, not about the clone; --omp-binary/--opencode-binary override both
 for fixture runs.
 """
@@ -60,7 +63,7 @@ from pathlib import Path
 DEFAULT_REPO = Path(__file__).resolve().parent.parent
 BINARIES = {
     "omp": "/home/vgpnk/.local/bin/omp",
-    "opencode": "/home/vgpnk/.opencode/bin/opencode",
+    "opencode": "/home/vgpnk/.npm/_npx/e2094862b59aac7b/node_modules/opencode-ai/bin/opencode.exe",
 }
 # The pin set the guard's contract requires. Discovery additionally checks any
 # other measured_against key shaped like `<substrate>_binary_<kind>`: a pin the
