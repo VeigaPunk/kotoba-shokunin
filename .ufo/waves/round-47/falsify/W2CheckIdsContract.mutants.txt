@@ -1,0 +1,74 @@
+W2CheckIdsContract — mutation log (all mutations in scratch clone
+/fast/scratch/kotoba-r47/w2/W2CheckIdsContract/kotoba-shokunin, detached 7ad7fad,
+production tree read-only)
+
+M1  plant "<skills>" in the live SKILL.md frontmatter description
+    cmd: python3 verifiers/verify_skill_checklist.py --check trigger.no_xml_tag
+    FAIL trigger.no_xml_tag: evaluated 2 — XML tag in description: '<skills>' (S003 Anthropic rule, absent from the open spec (S001); Anthropic's packager bans any '<'/'>' and is stricter)
+    exit 1                                            [gate bites]
+
+M2  delete '    "trigger.no_xml_tag",' from CHECK_IDS
+    cmd: python3 verifiers/verify_skill_checklist.py --self-test
+    17 failure(s) over 1712 assertions
+    exit 1                                            [CHECK_IDS registration enforced]
+
+M3  delete the dispatch branch
+        elif cid == "trigger.no_xml_tag":
+            st, ev, detail = check_no_xml_tag(fm)
+    cmd: python3 verifiers/verify_skill_checklist.py --self-test
+    52 failure(s) over 1853 assertions
+    exit 1
+    failing fixture cases: 32 of 75
+    SILENT (no assertion fired) incl.: clean, fm-nested-metadata, name-mismatch,
+      name-quoted, no-literal-trigger, trigger-key, no-anti-trigger,
+      anti-quoted-negation, over-line-budget, line-budget-box-binding,
+      placeholder-todo, placeholder-embedded, todo-stub-order, negation-respected,
+      command-skip-list, command-fence-filter, command-heredoc-cd,
+      command-heredoc-tilde, command-heredoc-tilde-misterm, map-box-reworded,
+      map-extra-entry, map-missing-entry, map-dup-box, map-dup-id,
+      map-unknown-executed, map-no-executed-entry, map-file-mismatch,
+      no-checklist-section, missing-map, map-malformed, commands-fenced-only,
+      commands-inline-only, commands-both, citation-dead, citation-base-named,
+      command-path-arg-ok, command-redirect-target, ... (43 total)
+    reason: the terminal `else:` at verify_skill_checklist.py:2406-2407 maps any
+    unregistered cid to check_commands(); in the "clean" fixture that check
+    PASSes with evaluated=2, so every implicit-PASS assertion still holds.
+
+M4  delete the 8-line docstring bullet for trigger.no_xml_tag
+    (verify_skill_checklist.py:97-104)
+    cmd: python3 verifiers/verify_skill_checklist.py --self-test
+    0 failure(s) over 1845 assertions
+    exit 0
+    cmd: python3 verifiers/verify_skill_checklist.py  -> exit 0
+    [docstring surface is NOT gated]
+
+M5  plant "<skills>" in verifiers/fixtures/checklist/xml-tag-control/SKILL.md
+    cmd: python3 verifiers/verify_skill_checklist.py --self-test
+    3 failure(s) over 1845 assertions
+    exit 1                                            [fixture battery discriminates]
+
+M6  add '    "trigger.bogus_probe",' to CHECK_IDS with no dispatch branch
+    cmd: python3 verifiers/verify_skill_checklist.py --check trigger.bogus_probe
+    N/A trigger.bogus_probe: evaluated 0 — 0 segments: no shell-fenced block lines and no inline spans headed by a declared vocabulary word
+    exit 1
+    cmd: python3 verifiers/verify_skill_checklist.py   (full run)
+    PASS trigger.bogus_probe: evaluated 13 — 9 segments; 13 command subject(s) resolve
+    exit 0                                            [unregistered id silently reports the command check]
+
+M7  YAML-escape over-strictness probe (no file mutation; direct call of
+    check_no_xml_tag through the module)
+    plain-scalar-literal-uescape  ('description: Triggers: "a" and \u003c literal text')
+      -> FAIL, 2, "XML tag in description: '\\u003c'"
+    double-quoted-uescape        -> FAIL, 2, "XML tag in description: '\\u003c'"
+    plain-scalar-literal-x3c     -> FAIL, 2, "XML tag in description: '\\x3c'"
+    backtick-escape              -> FAIL, 2, "XML tag in description: '\\u003c'"
+    A plain (unquoted) YAML scalar does NOT decode \u003c to "<"; the docstring
+    claims a "YAML double-quoted ... escape that decodes to one".
+
+Baseline runs on the production tree (read-only, 7ad7fad):
+    python3 verifiers/verify_skill_checklist.py            -> 11 PASS lines, exit 0
+    python3 verifiers/verify_skill_checklist.py --self-test -> 0 failures / 1845, exit 0
+    python3 verifiers/check_assertion_floors.py            -> "PASS checklist observed=1845 floor=1845";
+       one row FAILed: "harness_independent self-test timed out after 120s (hung?)" (exit 2);
+       standalone re-run of that self-test: 0 failures over 104 assertions, exit 0, 133s wall
+       -> host-load timeout artifact [INFERENCE], not a checklist defect.

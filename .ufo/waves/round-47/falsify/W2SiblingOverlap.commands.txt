@@ -1,0 +1,76 @@
+# W2SiblingOverlap — commands and exit codes (2026-10-21)
+
+All kotoba runs in canonical-layout scratch clones; all sibling runs read-only in their live trees.
+
+# --- kotoba after (7ad7fad) ---
+cd /fast/scratch/kotoba-r47/w2/W2SiblingOverlap/kotoba-shokunin
+python3 verifiers/verify_surfaces.py                                  # exit 0, 7 PASS
+python3 verifiers/check_substrate_pins.py                             # exit 0, OK 3/3 pins hold
+python3 -B verifiers/verify_skill_checklist.py --json                 # exit 0, checks=11 pass=11 fail=0 na=0
+python3 -B verifiers/verify_skill_checklist.py --self-test --repo .   # exit 0, 0 failure(s) over 1845 assertions
+python3 -B verifiers/verify_corpus_integrity.py --json                # exit 0, tracked_files=60
+python3 -B verifiers/verify_corpus_independent.py --json              # exit 0, tracked_files=60
+bash verifiers/fault_injection_corpus.sh                              # exit 0, verdict: ALL PASS
+sed -n '/^---$/,/^---$/p' SKILL.md | grep -c '<skills>'               # 0 (grep exit 1)
+python3 -B verifiers/check_substrate_pins.py --self-test              # exit 0, 0 failure(s) over 62 assertions
+python3 -B verifiers/verify_surfaces.py --self-test                   # exit 0, 0 failure(s) over 99 assertions
+
+# C1 discriminating cell (after code x BASE baseline+census)
+git show c61a973b2e02e1ded169703ddcb06466f4edd8bd:verifiers/surfaces-baseline.json > /tmp/base-surfaces.json
+git show c61a973b2e02e1ded169703ddcb06466f4edd8bd:corpus/knowledge/instruction-surface-census-round13.md > /tmp/base-census.md
+python3 -B verifiers/verify_surfaces.py --baseline /tmp/base-surfaces.json --inventory /tmp/base-census.md
+                                                                      # exit 1, 1 FAIL surfaces.opencode_extract
+
+# C2 mutation (scratch clone only; file restored)
+# append ' <skills>' to the description in SKILL.md
+python3 -B verifiers/verify_skill_checklist.py                        # exit 1, FAIL trigger.no_xml_tag ... '<skills>'
+# restore SKILL.md
+python3 -B verifiers/verify_skill_checklist.py --json                 # exit 0, 11/11
+
+# C1 census anchors on frozen dump (exact substring counts)
+cd /fast/scratch/kotoba-r47/shared
+python3 -c 'import sys;d=open(sys.argv[1],errors="replace").read();print(d.count(sys.argv[2]))' opencode-1.19.3.strings '<anchor>'
+# var n="1.19.3" 1; 2.0.26 0; ConfigInstructionPlugin 0; ReadTool.Plugin 0; SessionInstructions 0;
+# InstructionDiscovery 0; disableClaudeCodePrompt 3; Instructions from:  4; CONTEXT.md 1;
+# ReadTool.execute 1; Instruction.resolve 1
+
+# C3 errata line hash
+sed -n '2111p' LOG.md | tr -d '\n' | sha256sum                        # 7dcbf123..., matches GOVERNANCE_ERRATA
+sed -n '2111p' LOG.md | sha256sum                                     # d7b4c628... (with newline; not the pin)
+
+# host substrate
+/home/vgpnk/.local/bin/omp --version                                  # exit 0, omp/18.12.5
+sha256sum /home/vgpnk/.local/bin/omp                                  # fdbc8136..., matches baseline
+ls -l /home/vgpnk/.opencode/bin/opencode                              # exit 2, No such file or directory
+sha256sum /home/vgpnk/.npm/_npx/e2094862b59aac7b/node_modules/opencode-ai/bin/opencode.exe
+                                                                      # 179ca421..., matches baseline
+file /home/vgpnk/.npm/_npx/e2094862b59aac7b/node_modules/opencode-ai/bin/opencode.exe \
+     /home/vgpnk/.npm/_npx/e2094862b59aac7b/node_modules/opencode-linux-x64/bin/opencode
+                                                                      # same BuildID c30f169b..., link count 2 (hardlink)
+readlink -f /home/vgpnk/.local/bin/opencode                           # /home/vgpnk/.local/bin/opencode (wrapper; never executed)
+
+# --- kotoba before (c61a973) ---
+cd /fast/scratch/kotoba-r47/w2/W2SiblingOverlap/base/kotoba-shokunin
+python3 -B verifiers/verify_surfaces.py                               # exit 2, ERROR opencode binary not found
+python3 -B verifiers/check_substrate_pins.py                          # exit 2, DRIFT 3/3 (3 FAIL/UNREADABLE)
+sed -n '/^---$/,/^---$/p' SKILL.md | grep -c '<skills>'               # 1
+python3 -B verifiers/verify_skill_checklist.py --json                 # exit 1, pass=9 fail=1
+python3 -B verifiers/verify_corpus_integrity.py --json                # exit 1, tracked_files=59
+python3 -B verifiers/verify_corpus_independent.py --json              # exit 1
+
+# --- siblings (read-only) ---
+cd /home/vgpnk/Projects/shokunin/kagi-shokunin
+bash corpus/drift-pins.sh                                             # exit 1, DRIFT (files_ok=0 files_bad=15 symbols_ok=0 symbols_bad=20)
+ls -l /home/vgpnk/.local/bin/the-janitor /home/vgpnk/.config/the-janitor/opencode.json
+                                                                      # both No such file or directory
+ls -l /home/vgpnk/.config/opencode/opencode.json                      # 95 B, 5 lines, mode 600
+
+cd /home/vgpnk/Projects/shokunin/kumitate-shokunin
+node scripts/sources-check.mjs                                        # exit 0, SOURCES_CHECK: CLEAN (rows=33 ...)
+
+pacman -Q opencode                                                    # exit 1, package 'opencode' was not found
+
+# discovery sweeps (live trees, .git/.ufo/node_modules excluded)
+grep -rn --binary-files=without-match --exclude-dir=.git --exclude-dir=.ufo --exclude-dir=node_modules \
+  -e 'opencode/bin/opencode' -e 'opencode-ai' -e '18\.12\.[0-9]' -e '2\.0\.2[0-9]' -e '1\.18\.[0-9][0-9]' \
+  -e 'd9123b9b' -e '9513ef9f' -e 'fdbc8136' -e '179ca421' */ 

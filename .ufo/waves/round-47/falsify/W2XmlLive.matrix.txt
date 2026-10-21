@@ -1,0 +1,58 @@
+# W2XmlLive detector matrix — trigger.no_xml_tag at 7ad7fad
+# verifier: verifiers/verify_skill_checklist.py (clone /fast/scratch/kotoba-r47/w2/W2XmlLive/kotoba-shokunin)
+# oracle: PyYAML 6.0.3 yaml.safe_load on the same frontmatter
+# run: 2026-10-21
+
+# LEGEND
+#   M15/M16 "BYPASS" label is the SCRIPT's generic marker for "yaml_has_angle=True while
+#   verifier=PASS"; for M15 (a < b) and M16 (a > b) that is the DOCUMENTED S003-vs-S012
+#   direction, not a defect: the check reads S003's words (XML markup), Anthropic's
+#   packager refuses ANY '<' or '>' — disclosed at verify_skill_checklist.py:209-215
+#   and SKILL.md:151.
+#   M2_alias is the disclosed YAML-alias limit (verify_skill_checklist.py:214 and
+#   .ufo/waves/round-47/build/C2CriticRule.md section 3): the structural parse reads
+#   '*d' while a real YAML loader resolves the anchor; the upstream packager refuses
+#   such a file (see the oracle block below) while the repo gate passes it. Finding F1.
+
+M1_folded_plain    verifier=PASS ev=2 | yaml_has_angle=False | yaml_err=None
+      detail: no XML tag in name, description (S003 Anthropic rule, absent from the open spec (S001); Anthropic's 
+M2_alias           verifier=PASS ev=2 | yaml_has_angle=True  | yaml_err=None  <<< BYPASS
+      detail: no XML tag in name, description (S003 Anthropic rule, absent from the open spec (S001); Anthropic's 
+M3_dq_escape       verifier=FAIL ev=2 | yaml_has_angle=True  | yaml_err=None
+      detail: XML tag in description: '\\u003c' (S003 Anthropic rule, absent from the open spec (S001); Anthropic'
+M4_sq              verifier=FAIL ev=2 | yaml_has_angle=True  | yaml_err=None
+      detail: XML tag in description: '<skills>' (S003 Anthropic rule, absent from the open spec (S001); Anthropic
+M5_plain_bsu       verifier=FAIL ev=2 | yaml_has_angle=False | yaml_err=None
+      detail: XML tag in description: '\\u003c' (S003 Anthropic rule, absent from the open spec (S001); Anthropic'
+M6_dq_tag          verifier=FAIL ev=2 | yaml_has_angle=True  | yaml_err=None
+      detail: XML tag in description: '<skills>' (S003 Anthropic rule, absent from the open spec (S001); Anthropic
+M7_comment         verifier=FAIL ev=2 | yaml_has_angle=True  | yaml_err=None
+      detail: XML tag in description: '<!--' (S003 Anthropic rule, absent from the open spec (S001); Anthropic's p
+M8_folded_tag      verifier=FAIL ev=2 | yaml_has_angle=True  | yaml_err=None
+      detail: XML tag in description: '<skills>' (S003 Anthropic rule, absent from the open spec (S001); Anthropic
+M9_anchor_value    verifier=FAIL ev=2 | yaml_has_angle=True  | yaml_err=None
+      detail: XML tag in description: '<skills>' (S003 Anthropic rule, absent from the open spec (S001); Anthropic
+M10_plain_tag      verifier=FAIL ev=2 | yaml_has_angle=True  | yaml_err=None
+      detail: XML tag in description: '<skills>' (S003 Anthropic rule, absent from the open spec (S001); Anthropic
+M11_cdata          verifier=FAIL ev=2 | yaml_has_angle=True  | yaml_err=None
+      detail: XML tag in description: '<![CDATA[' (S003 Anthropic rule, absent from the open spec (S001); Anthropi
+M12_pi             verifier=FAIL ev=2 | yaml_has_angle=True  | yaml_err=None
+      detail: XML tag in description: '<?x' (S003 Anthropic rule, absent from the open spec (S001); Anthropic's pa
+M13_decl           verifier=FAIL ev=2 | yaml_has_angle=True  | yaml_err=None
+      detail: XML tag in description: '<!D' (S003 Anthropic rule, absent from the open spec (S001); Anthropic's pa
+M14_name_tag       verifier=FAIL ev=2 | yaml_has_angle=False | yaml_err=None
+      detail: XML tag in name: '<skills>' (S003 Anthropic rule, absent from the open spec (S001); Anthropic's pack
+M15_lt_only        verifier=PASS ev=2 | yaml_has_angle=True  | yaml_err=None  <<< BYPASS
+      detail: no XML tag in name, description (S003 Anthropic rule, absent from the open spec (S001); Anthropic's 
+M16_gt_only        verifier=PASS ev=2 | yaml_has_angle=True  | yaml_err=None  <<< BYPASS
+      detail: no XML tag in name, description (S003 Anthropic rule, absent from the open spec (S001); Anthropic's 
+
+# upstream oracle: anthropics/skills@dbd4588 skills/skill-creator/scripts/quick_validate.py (fetched live, HTTP 200)
+/fast/scratch/kotoba-r47/w2/W2XmlLive/kotoba-shokunin -> Skill is valid!
+  exit=0
+/fast/scratch/kotoba-r47/w2/W2XmlLive/base-wt -> Description cannot contain angle brackets (< or >)
+  exit=1
+/tmp/w2xml_planted -> Description cannot contain angle brackets (< or >)
+  exit=1
+/tmp/w2xml_alias2 -> Description cannot contain angle brackets (< or >)
+  exit=1

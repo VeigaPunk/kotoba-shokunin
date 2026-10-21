@@ -320,6 +320,41 @@ command: `python3 -c 'import sys;d=open(sys.argv[1],errors="replace").read();pri
 | `opencode:read-hook/instructions` | historical | resurrected | `fn("Instruction.resolve")` 1, `fn("ReadTool.execute")` 1 |
 | `opencode:instruction-context/AGENTS.md` | historical | resurrected | `InstructionContext.observe` 1, `system-context-builtins` 1 |
 
+**Round-47 falsify errata (append-only; evidence `.ufo/waves/round-47/falsify/`).**
+Lane-dispatched wave-2 seats re-measured this census at the landing tree and found
+these statements wrong or stale; the text above stays as landed, corrected here:
+- Substrate identity of § B′: `corpus/SOURCES.md` S015 (frozen-snapshot sha256s).
+- § B′ OC-6 row: `instruction-context` is its own layer; it is composed as a
+  dependency of the `system-context-builtins` layer, not registered as it
+  (`W2InstrContext.md`).
+- § B′ read-hook row: `Instruction.resolve` attaches the instruction file found at
+  every ancestor level, nearest first, not one "nearest" file; its stop test is an
+  unseparated string prefix, so a sibling path sharing the prefix is walked too
+  (`W2ReadHook.md`).
+- § B′ OC-1 row: the name-priority walk in `Instruction.systemPaths` uses
+  `findUp` (all ancestors, first name with hits wins); `globUp` serves the
+  declared `instructions` entries and the OC-5 switch (`W2ClaudeGate.md`).
+- § B′ lineage sentence: the six named v2.0.26 anchors count 0, but
+  `/instructions/entries` survives as a client-SDK stub (ledger row above); "every
+  v2.0.26 anchor" overstated it. Upstream, npm `@opencode/cli` 2.x still ships the
+  v2.0.26 model (`W2OcLineage.md`): "retired" in the ledger is host-scoped.
+- Ledger row `instructions/AGENTS.md`: its count anchor is `y=["AGENTS.md",`
+  (count 1); "priority array" is prose (`W2CensusAnchors.md`).
+- § B's first historical note calls the round-13/14 ids "not live classes"; on
+  1.19.3 the ledger re-instates them. The moved `config/instructions` row's "no
+  loader consumer proven" is v2.0.26-scoped.
+- § A's evidence cells still quote 18.12.2-era-and-earlier omp call shapes
+  (`Id`/`Cl`/`jDe`), absent from 18.12.5, whose shapes are `lq(u,f$,"AGENTS.md")`,
+  `Xl(u,"gemini","GEMINI.md")`, `Fo(u,"github","copilot-instructions.md")`. The class
+  set is re-proven by the gate on 18.12.5; the human-readable evidence column was
+  not re-derived (carried to round 48, `W2SurfacesRerun.md`, `W2KnowledgeStale.md`).
+- § Honest ceiling's "six code-shape rules … 5 declared opencode class ids" and
+  "self-test 75 assertions" are now 7 rules, 9 ids and 99 assertions.
+- Gate strength: every OC rule is a whole-dump presence test (decoys and severed
+  call/delivery/gate edges survive; OC-1's gate term is a tautology); the ledger
+  and these counts have no machine gate (`W2DropOC1.md`…`W2DropOC6.md`,
+  `W2LedgerComplete.md`).
+
 ## The disagreement this census had to adjudicate
 
 Two L2 lanes reached opposite verdicts on opencode's `CLAUDE.md`:

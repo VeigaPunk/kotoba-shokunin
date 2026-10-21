@@ -1,0 +1,22 @@
+import collections, importlib.util, json, pathlib, re, tempfile
+ROOT = pathlib.Path('/fast/scratch/kotoba-r47/w2/W2BlindArm/kotoba-shokunin')
+SHARED = pathlib.Path('/fast/scratch/kotoba-r47/shared')
+spec = importlib.util.spec_from_file_location('surfaces', ROOT/'verifiers/verify_surfaces.py')
+v = importlib.util.module_from_spec(spec); spec.loader.exec_module(v)
+entries = v.load_baseline(ROOT/'verifiers/surfaces-baseline.json')
+dumps = {h:(SHARED/n).read_text(errors='replace') for h,n in [('omp','omp-18.12.5.strings'),('opencode','opencode-1.19.3.strings')]}
+ocids, rules = v.extract_opencode_classes(dumps['opencode'])
+rows = [{'id':e['class_id'], 'kind':e['context_kind'], 'literal':e['literal'], 'occurrences':dumps[e['harness']].count(e['literal']), 'shape_checked':e['context_kind']=='loader-group' or e['class_id'] in ocids} for e in entries]
+result = {'revision':'7ad7fadfc09354b74fb66605dfb0c1182c115a2f', 'rows':rows, 'shape_checked':sum(r['shape_checked'] for r in rows), 'literal_only':sum(not r['shape_checked'] for r in rows), 'mutations':{}}
+base=dumps['omp']
+changed, count = re.subn(r'((?:Xl|Fo)\(u, "cursor", )"rules"', r'\1"disabled-rules"', base)
+partial, partial_count = re.subn(r'(?<![A-Za-z0-9_$])lq\(', 'BlindArmRenamed(', base)
+zero, zero_count = re.subn(r'(?<![A-Za-z0-9_$])(?:lq|Xl|Fo)\(', 'BlindArmRenamed(', base)
+variants = {'baseline':base, 'unknown_callee_new_class':base+'\nBlindArmNew(u,"blind-arm","UNDECLARED.md");\n', 'known_callee_new_class':base+'\nFo(u,"blind-arm","UNDECLARED.md");\n', 'cursor_registration_literal_changed':changed, 'partial_callee_rename':partial, 'all_current_callees_renamed':zero}
+result['replacement_counts']={'cursor':count,'partial':partial_count,'all':zero_count}
+with tempfile.TemporaryDirectory(prefix='blindarm-', dir=ROOT.parent) as temp:
+    for name, text in variants.items():
+        path=pathlib.Path(temp)/'omp.txt'; path.write_text(text)
+        code,out=v.run_capture(['--repo',str(ROOT),'--omp-strings',str(path),'--opencode-strings',str(SHARED/'opencode-1.19.3.strings'),'--json'])
+        result['mutations'][name]={'exit_code':code,'omp_pairs':len(v.extract_classes(text,'omp')),'result':json.loads(out)}
+print(json.dumps(result,indent=2))

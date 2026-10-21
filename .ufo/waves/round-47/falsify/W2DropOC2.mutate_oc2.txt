@@ -1,0 +1,264 @@
+#!/usr/bin/env python3
+"""W2DropOC2 mutation probe (round-47 falsify wave 2).
+
+One-at-a-time mutants of the REAL frozen opencode-1.19.3 strings dump, each run
+through the tip verify_surfaces.py in the pinned clone (7ad7fad) with the frozen
+omp dump. Frozen inputs are read-only; mutants live under MUTDIR and are deleted
+after their run. Artifacts are written only under FALSIFY (W2DropOC2.*).
+"""
+import concurrent.futures as cf
+import hashlib
+import os
+import json
+import pathlib
+import shutil
+import subprocess
+
+SCRATCH = pathlib.Path("/fast/scratch/kotoba-r47/w2/W2DropOC2-2")
+CLONE = SCRATCH / "kotoba-shokunin"
+DUMP = pathlib.Path("/fast/scratch/kotoba-r47/shared/opencode-1.19.3.strings")
+DUMP_COPY = SCRATCH / "opencode-1.19.3.strings"
+OMP = pathlib.Path("/fast/scratch/kotoba-r47/shared/omp-18.12.5.strings")
+MUTDIR = SCRATCH / "mutants"
+FALSIFY = pathlib.Path("/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-47/falsify")
+PREFIX = os.environ.get("W2_PREFIX", "W2DropOC2")
+PY = shutil.which("python3")
+DUMP_SHA = "f4d8f34ae02a2411eb5e30203421b6fcdfa81b83e96b768bbcf404504a297bc3"
+
+CFG = b'X.join(r.config,"AGENTS.md")'
+HOME = b'X.join(r.home,".claude","CLAUDE.md")'
+CFG_HOME = ["opencode:config/AGENTS.md", "opencode:claude-home/CLAUDE.md"]
+HOME_GATE = b'!t.disableClaudeCodePrompt?[X.join(r.home,".claude","CLAUDE.md")]:[]'
+
+# (id, group, predicted, names, edits[(old,new,count)], eof_appends[bytes])
+# predicted: kill = exit 1 + opencode_extract FAIL naming `names`;
+#            false_red = expected FAIL on an equivalent form (rule too narrow);
+#            pass = expected exit 0 (equivalent form accepted, or survivor).
+M = []
+
+
+def add(mid, group, predicted, names, edits=(), appends=()):
+    M.append(dict(id=mid, group=group, predicted=predicted, names=list(names),
+                  edits=[(o, n, c) for (o, n, c) in edits], appends=list(appends)))
+
+
+add("CTRL-unmodified", "control", "pass", [])
+# A. removal of each anchor (and both)
+add("A1-drop-config-anchor", "removal", "kill", CFG_HOME, [(CFG, b"", 1)])
+add("A2-drop-home-anchor", "removal", "kill", CFG_HOME, [(HOME, b"", 1)])
+add("A3-drop-both-anchors", "removal", "kill", CFG_HOME, [(CFG, b"", 1), (HOME, b"", 1)])
+# B. corruption of the config anchor
+add("B1-cfg-join-to-concat", "corrupt-config", "kill", CFG_HOME,
+    [(CFG, b'X.concat(r.config,"AGENTS.md")', 1)])
+add("B2-cfg-member-not-config", "corrupt-config", "kill", CFG_HOME,
+    [(CFG, b'X.join(r.cfgdir,"AGENTS.md")', 1)])
+add("B3-cfg-literal-mdx", "corrupt-config", "kill", CFG_HOME,
+    [(CFG, b'X.join(r.config,"AGENTS.mdx")', 1)])
+add("B4-cfg-literal-upper-ext", "corrupt-config", "kill", CFG_HOME,
+    [(CFG, b'X.join(r.config,"AGENTS.MD")', 1)])
+add("B5-cfg-literal-renamed-underscore", "corrupt-config", "kill",
+    ["opencode:config/AGENTS.md", "opencode:config/AGENTS_.md"],
+    [(CFG, b'X.join(r.config,"AGENTS_.md")', 1)])
+add("B6-cfg-literal-embedded-space", "corrupt-config", "kill", CFG_HOME,
+    [(CFG, b'X.join(r.config,"AGENTS .md")', 1)])
+add("B7-cfg-literal-cyrillic-homoglyph", "corrupt-config", "kill", CFG_HOME,
+    [(CFG, 'X.join(r.config,"\u0410GENTS.md")'.encode("utf-8"), 1)])
+# C. corruption of the home anchor
+add("C1-home-join-to-concat", "corrupt-home", "kill", CFG_HOME,
+    [(HOME, b'X.concat(r.home,".claude","CLAUDE.md")', 1)])
+add("C2-home-member-homedir", "corrupt-home", "kill", CFG_HOME,
+    [(HOME, b'X.join(r.homedir,".claude","CLAUDE.md")', 1)])
+add("C3-home-dir-renamed-claud", "corrupt-home", "kill",
+    ["opencode:claude-home/CLAUDE.md", "opencode:claud-home/CLAUDE.md"],
+    [(HOME, b'X.join(r.home,".claud","CLAUDE.md")', 1)])
+add("C4-home-dir-missing-dot", "corrupt-home", "kill", CFG_HOME,
+    [(HOME, b'X.join(r.home,"claude","CLAUDE.md")', 1)])
+add("C5-home-literal-mdx", "corrupt-home", "kill", CFG_HOME,
+    [(HOME, b'X.join(r.home,".claude","CLAUDE.mdx")', 1)])
+add("C6-home-literal-upper-ext", "corrupt-home", "kill", CFG_HOME,
+    [(HOME, b'X.join(r.home,".claude","CLAUDE.MD")', 1)])
+add("C7-home-literal-renamed", "corrupt-home", "kill",
+    ["opencode:claude-home/CLAUDE.md", "opencode:claude-home/CLAUDE_CODE.md"],
+    [(HOME, b'X.join(r.home,".claude","CLAUDE_CODE.md")', 1)])
+# E. equivalent forms: E1-E3 must be accepted (not too narrow); E4-E8 are
+# semantically equivalent or near-equivalent and are expected to false-red.
+add("E1-rename-receiver-Zq-both", "equiv", "pass", [],
+    [(CFG, b'X.join(Zq.config,"AGENTS.md")', 1), (HOME, b'X.join(Zq.home,".claude","CLAUDE.md")', 1)])
+add("E2-dollar-receiver-both", "equiv", "pass", [],
+    [(CFG, b'X.join($r.config,"AGENTS.md")', 1), (HOME, b'X.join($r.home,".claude","CLAUDE.md")', 1)])
+add("E3-whitespace-both", "equiv", "pass", [],
+    [(CFG, b'X.join( r.config , "AGENTS.md" )', 1),
+     (HOME, b'X.join( r.home , ".claude" , "CLAUDE.md" )', 1)])
+add("E4-single-quote-literals-both", "equiv", "false_red", CFG_HOME,
+    [(CFG, b"X.join(r.config,'AGENTS.md')", 1), (HOME, b"X.join(r.home,'.claude','CLAUDE.md')", 1)])
+add("E5-template-literals-both", "equiv", "false_red", CFG_HOME,
+    [(CFG, b"X.join(r.config,`AGENTS.md`)", 1), (HOME, b"X.join(r.home,`.claude`,`CLAUDE.md`)", 1)])
+add("E6-literal-via-variable-config", "equiv", "false_red", CFG_HOME,
+    [(b'n=[X.join(r.config,"AGENTS.md")', b'Pq="AGENTS.md",n=[X.join(r.config,Pq)', 1)])
+add("E7-path-join-to-resolve-config", "equiv", "false_red", CFG_HOME,
+    [(CFG, b'X.resolve(r.config,"AGENTS.md")', 1)])
+add("E8-optional-chain-receiver-config", "equiv", "false_red", CFG_HOME,
+    [(CFG, b'X.join(r?.config,"AGENTS.md")', 1)])
+# L. liveness / textual-presence survivors (anchor text kept, loader dead or moved)
+add("L1-cfg-dead-branch", "liveness", "pass", [],
+    [(b'n=[X.join(r.config,"AGENTS.md"),', b'n=[!1&&X.join(r.config,"AGENTS.md"),', 1)])
+add("L2-home-dead-branch", "liveness", "pass", [],
+    [(HOME, b'!1&&X.join(r.home,".claude","CLAUDE.md")', 1)])
+add("L3-cfg-commented-out", "liveness", "pass", [],
+    [(CFG, b'/*X.join(r.config,"AGENTS.md")*/void 0', 1)])
+add("L4-both-dead-branches", "liveness", "pass", [],
+    [(b'n=[X.join(r.config,"AGENTS.md"),', b'n=[!1&&X.join(r.config,"AGENTS.md"),', 1),
+     (HOME, b'!1&&X.join(r.home,".claude","CLAUDE.md")', 1)])
+add("L5-cfg-moved-to-eof", "liveness", "pass", [],
+    [(CFG, b"", 1)], [b'\nX.join(r.config,"AGENTS.md")\n'])
+add("L6-home-moved-to-eof", "liveness", "pass", [],
+    [(HOME, b"", 1)], [b'\nX.join(r.home,".claude","CLAUDE.md")\n'])
+# D. additions with NEW names must be caught (no undeclared id may be produced)
+add("D1-undeclared-cfg-name-at-eof", "addition", "kill", ["opencode:config/CLAUDE.md"],
+    [], [b'\nX.join(r.config,"CLAUDE.md")\n'])
+add("D2-undeclared-home-dir-at-eof", "addition", "kill", ["opencode:codex-home/AGENTS.md"],
+    [], [b'\nX.join(r.home,".codex","AGENTS.md")\n'])
+# G. gate semantics (census row says the home candidate is gated)
+add("G1-oc1-gate-removed-from-array", "adjacent-OC1", "pass", [],
+    [(b'!t.disableClaudeCodePrompt?["CLAUDE.md"]:[]', b'["CLAUDE.md"]', 1)])
+add("G2-home-gate-removed", "gate", "pass", [],
+    [(HOME_GATE, b'[X.join(r.home,".claude","CLAUDE.md")]', 1)])
+add("G3-home-gate-inverted", "gate", "pass", [],
+    [(HOME_GATE, b't.disableClaudeCodePrompt?[X.join(r.home,".claude","CLAUDE.md")]:[]', 1)])
+
+
+def window(buf, off, old_len, new_len, new_bytes=None):
+    lo = max(0, off - 70)
+    head = buf[lo:off].decode("utf-8", "replace")
+    span = buf[off:off + old_len].decode("utf-8", "replace")
+    tail = buf[off + old_len:off + old_len + 70].decode("utf-8", "replace")
+    return head, span, tail
+
+
+def apply_all(orig: bytes, mut: dict):
+    buf = orig
+    recs = []
+    for old, new, count in mut["edits"]:
+        n = buf.count(old)
+        if n != count:
+            raise SystemExit("%s: anchor count %d != %d for %r" % (mut["id"], n, count, old[:50]))
+        off = buf.find(old)
+        line = buf.count(b"\n", 0, off) + 1
+        before = window(buf, off, len(old), len(new))
+        buf = buf.replace(old, new, count)
+        after_head = buf[max(0, off - 70):off].decode("utf-8", "replace")
+        after_span = new.decode("utf-8", "replace")
+        after_tail = buf[off + len(new):off + len(new) + 70].decode("utf-8", "replace")
+        recs.append(dict(kind="edit", line=line, offset=off,
+                         before=before, after=(after_head, after_span, after_tail),
+                         old=old.decode("utf-8", "replace"), new=new.decode("utf-8", "replace")))
+    for app in mut["appends"]:
+        recs.append(dict(kind="eof-append", text=app.decode("utf-8", "replace")))
+        buf = buf + app
+    return buf, recs
+
+
+def run_verifier(path: pathlib.Path):
+    cmd = [PY, "verifiers/verify_surfaces.py", "--opencode-strings", str(path),
+           "--omp-strings", str(OMP)]
+    p = subprocess.run(cmd, cwd=str(CLONE), capture_output=True, text=True, timeout=900)
+    return p.returncode, p.stdout, p.stderr
+
+
+def classify(mut, code, stdout):
+    oc = [ln for ln in stdout.splitlines() if "surfaces.opencode_extract" in ln]
+    oc_line = oc[0] if oc else ""
+    oc_fail = oc_line.startswith("FAIL surfaces.opencode_extract")
+    names_ok = all(n in oc_line for n in mut["names"]) if mut["names"] else True
+    named_rule = ("OC-" in oc_line) if oc_fail else None
+    pred = mut["predicted"]
+    if code == 1 and oc_fail and names_ok:
+        obs = "FAIL-opencode_extract-named"
+    elif code == 1 and oc_fail:
+        obs = "FAIL-opencode_extract-names-incomplete"
+    elif code == 1:
+        obs = "FAIL-other-check-only"
+    elif code == 0:
+        obs = "PASS-exit0"
+    else:
+        obs = "EXIT-%d" % code
+    if pred == "kill":
+        verdict = "KILLED" if obs == "FAIL-opencode_extract-named" else "SURVIVED" if code == 0 else "NOT-KILLED-AS-PREDICTED"
+    elif pred == "false_red":
+        verdict = "FALSE-RED-CONFIRMED" if code == 1 and oc_fail else "ACCEPTED (too-wide)"
+    elif mut["group"] in ("control", "equiv"):
+        verdict = "ACCEPTED" if code == 0 else "FALSE-RED"
+    else:
+        verdict = "SURVIVED" if code == 0 else "NOT-SURVIVING"
+    return dict(observed=obs, verdict=verdict, oc_line=oc_line[:1500],
+                names_ok=names_ok, named_rule=named_rule)
+
+
+def job(orig: bytes, mut: dict):
+    buf, recs = apply_all(orig, mut)
+    MUTDIR.mkdir(parents=True, exist_ok=True)
+    path = MUTDIR / ("%s.strings" % mut["id"])
+    path.write_bytes(buf)
+    sha = hashlib.sha256(buf).hexdigest()
+    try:
+        code, out, err = run_verifier(path)
+    finally:
+        path.unlink(missing_ok=True)
+    cls = classify(mut, code, out)
+    return dict(id=mut["id"], group=mut["group"], predicted=mut["predicted"],
+                expect_names=mut["names"], exit=code, mutant_sha256=sha,
+                bytes=len(buf), edits=recs, stdout=out, stderr=err[-800:], **cls)
+
+
+def main():
+    orig = DUMP.read_bytes()
+    orig_sha = hashlib.sha256(orig).hexdigest()
+    if orig_sha != DUMP_SHA:
+        raise SystemExit("frozen dump sha mismatch: %s" % orig_sha)
+    if orig.count(CFG) != 1 or orig.count(HOME) != 1:
+        raise SystemExit("anchor not single-occurrence in frozen dump")
+    verifier = CLONE / "verifiers" / "verify_surfaces.py"
+    ver_sha = hashlib.sha256(verifier.read_bytes()).hexdigest()
+    with cf.ThreadPoolExecutor(max_workers=4) as ex:
+        futs = {ex.submit(job, orig, m): m["id"] for m in M}
+        results = {}
+        for f in cf.as_completed(futs):
+            results[futs[f]] = f.result()
+    ordered = [results[m["id"]] for m in M]
+
+    FALSIFY.mkdir(parents=True, exist_ok=True)
+    header = dict(dump=str(DUMP), dump_sha256=orig_sha, omp_dump=str(OMP),
+                  clone_head="7ad7fadfc09354b74fb66605dfb0c1182c115a2f",
+                  verifier_sha256=ver_sha, n_mutants=len(ordered))
+    (FALSIFY / (PREFIX + ".mutants.json")).write_text(
+        json.dumps(dict(header=header, results=[{k: v for k, v in r.items() if k != "stdout"}
+                                                 for r in ordered]), indent=1))
+    log = []
+    for r in ordered:
+        log.append("==== %s  group=%s predicted=%s exit=%d verdict=%s\n%s%s\n" % (
+            r["id"], r["group"], r["predicted"], r["exit"], r["verdict"], r["stdout"],
+            ("STDERR: " + r["stderr"]) if r["stderr"].strip() else ""))
+    (FALSIFY / (PREFIX + ".run.log")).write_text("".join(log))
+    patch = []
+    for r in ordered:
+        patch.append("## %s  (group=%s; predicted=%s; exit=%d; %s)\n" % (
+            r["id"], r["group"], r["predicted"], r["exit"], r["verdict"]))
+        for e in r["edits"]:
+            if e["kind"] == "edit":
+                b = e["before"]
+                a = e["after"]
+                patch.append("@@ dump line %d, offset %d @@\n- %s[[%s]]%s\n+ %s[[%s]]%s\n" % (
+                    e["line"], e["offset"], b[0], b[1], b[2], a[0], a[1], a[2]))
+            else:
+                patch.append("@@ EOF append @@\n+ %r\n" % e["text"])
+        patch.append("\n")
+    (FALSIFY / (PREFIX + ".patch")).write_text("".join(patch))
+
+    print("%-36s %-14s %-4s %-30s %s" % ("id", "group", "exit", "observed", "verdict"))
+    for r in ordered:
+        print("%-36s %-14s %-4d %-30s %s" % (r["id"], r["group"], r["exit"], r["observed"], r["verdict"]))
+    print("dump sha ok:", orig_sha == DUMP_SHA, " verifier sha:", ver_sha[:16])
+
+
+if __name__ == "__main__":
+    main()

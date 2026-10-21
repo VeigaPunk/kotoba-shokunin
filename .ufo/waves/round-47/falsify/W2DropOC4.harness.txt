@@ -1,0 +1,162 @@
+#!/usr/bin/env python3
+"""W2DropOC4 - byte-level mutation probe of verify_surfaces.py rule OC-4 (read-hook).
+
+Lane KotobaR47-2.W2DropOC4-2, falsify round 47 wave 2.  Scratch clone at 7ad7fadfc09354b74fb66605dfb0c1182c115a2f.
+Reads the frozen opencode-1.19.3 dump (sha256 f4d8f34ae02a2411eb5e30203421b6fcdfa81b83e96b768bbcf404504a297bc3),
+applies ONE mutant at a time to a copy, runs the tip verifier with
+  --opencode-strings <mutant> --omp-strings /fast/scratch/kotoba-r47/shared/omp-18.12.5.strings
+(all checks, default baseline and inventory from the clone), and records exit code, the
+surfaces.opencode_extract line, and every other FAIL check.  Writes W2DropOC4.mutants.json next to this file.
+
+correct_exit: 1 when the mutant breaks the read-hook channel that OC-4 claims to witness,
+              0 when the mutant is behaviour-preserving (label or identifier spelling only).
+Verdicts: OK | SURVIVOR (too wide: exit 0 on a broken channel) | FALSE-RED (too narrow: exit 1 on an equivalent spelling).
+
+Run: python3 W2DropOC4.harness.txt      (absolute paths throughout; ~80 s; writes ~1.3 GB of mutant dumps under scratch)
+"""
+import hashlib
+import json
+import pathlib
+import re
+import subprocess
+import sys
+
+SCR = pathlib.Path("/fast/scratch/kotoba-r47/w2/W2DropOC4")
+REPO = SCR / "kotoba-shokunin"
+SRC = pathlib.Path("/fast/scratch/kotoba-r47/shared/opencode-1.19.3.strings")
+OMP = "/fast/scratch/kotoba-r47/shared/omp-18.12.5.strings"
+MUT = SCR / "mut"
+OUT = pathlib.Path("/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-47/falsify/W2DropOC4.mutants.json")
+
+data = SRC.read_bytes()
+
+
+def lineno(off):
+    return data.count(b"\n", 0, off) + 1
+
+
+def offs(a):
+    return [m.start() for m in re.finditer(re.escape(a), data)]
+
+
+INSTR = b'fn("Instruction.resolve")'
+READ = b'fn("ReadTool.execute")'
+S_INSTR = b's.fn("Instruction.resolve")'
+S_READ = b's.fn("ReadTool.execute")'
+CALL = b"e.resolve(g.messages"
+TOK = b"<system-reminder>"
+NEWTOK = b"<system-note>"
+WALK = b"while(G.startsWith(N)&&G!==N){"
+
+o_instr, o_read, o_call, o_tok = offs(INSTR), offs(READ), offs(CALL), offs(TOK)
+o_sinstr, o_sread, o_walk = offs(S_INSTR), offs(S_READ), offs(WALK)
+assert (len(o_instr), len(o_read), len(o_call), len(o_tok)) == (1, 1, 1, 18), "anchor counts drifted"
+assert (len(o_sinstr), len(o_sread), len(o_walk)) == (1, 1, 1)
+PROMPT = [o for o in o_tok if lineno(o) == 443193]   # tool-description prose (2 hits)
+INHOOK = [o for o in o_tok if lineno(o) == 444241]   # ReadTool.execute wrapper around resolved content (1 hit)
+assert len(PROMPT) == 2 and len(INHOOK) == 1
+EOF = len(data)
+
+# (name, edits[(offset, old, new)], correct_exit, why)
+M = [
+    ("M00-control", [], 0, "no edits (harness fidelity)"),
+    ("M01-instr-delete", [(o_instr[0], INSTR, b"")], 1, 'delete fn("Instruction.resolve")'),
+    ("M02-instr-corrupt", [(o_instr[0], INSTR, b'fn("Instruction.resolv")')], 1, "corrupt Instruction.resolve label"),
+    ("M03-instr-label-rename", [(o_instr[0], INSTR, b'fn("Instruction.resolveNearest")')], 0,
+     "debug label renamed, behaviour-preserving"),
+    ("M04-instr-quote-respell", [(o_instr[0], INSTR, b"fn('Instruction.resolve')")], 0,
+     "JS-equivalent single-quote spelling"),
+    ("M05-instr-live-gone-stale-copy", [(o_instr[0], INSTR, b'fn("Instruction.resolveX")'),
+                                        (EOF, b"", b'\nfn("Instruction.resolve")\n')], 1,
+     "live label gone; stale copy appended at EOF"),
+    ("M06-read-delete", [(o_read[0], READ, b"")], 1, 'delete fn("ReadTool.execute")'),
+    ("M07-read-corrupt", [(o_read[0], READ, b'fn("ReadTool.execut")')], 1, "corrupt ReadTool.execute label"),
+    ("M08-read-label-rename", [(o_read[0], READ, b'fn("ReadTool.run")')], 0,
+     "debug label renamed, behaviour-preserving"),
+    ("M09-read-quote-respell", [(o_read[0], READ, b"fn('ReadTool.execute')")], 0,
+     "JS-equivalent single-quote spelling"),
+    ("M10-read-live-gone-stale-copy", [(o_read[0], READ, b'fn("ReadTool.executeX")'),
+                                       (EOF, b"", b'\nfn("ReadTool.execute")\n')], 1,
+     "live label gone; stale copy appended at EOF"),
+    ("M11-call-edge-severed", [(o_call[0], CALL, b"e.zzz(g.messages")], 1,
+     "ReadTool.execute no longer calls the resolver; labels intact"),
+    ("M12-inhook-token-removed", [(INHOOK[0], TOK, NEWTOK)], 1,
+     "read-hook delivery wrapper removed; 17 other tokens remain"),
+    ("M13-token-prompt-only", [(o, TOK, NEWTOK) for o in o_tok if o not in PROMPT], 1,
+     "only tool-description prose keeps the token"),
+    ("M14-token-all", [(o, TOK, NEWTOK) for o in o_tok], 1, "all 18 <system-reminder> removed"),
+    ("M15-both-labels-deleted", [(o_instr[0], INSTR, b""), (o_read[0], READ, b"")], 1,
+     "both fn anchors deleted (message precision)"),
+    ("M16-receiver-rename", [(o_sinstr[0], S_INSTR, b'r.fn("Instruction.resolve")'),
+                             (o_sread[0], S_READ, b'r.fn("ReadTool.execute")')], 0,
+     "minifier receiver s->r on both labels, behaviour-preserving"),
+    ("M17-callee-receiver-rename", [(o_call[0], CALL, b"q.resolve(g.messages")], 0,
+     "minifier receiver e->q at the call site, behaviour-preserving"),
+    ("M18-walk-loop-disabled", [(o_walk[0], WALK, b"while(false){")], 1,
+     "walk-up loop disabled; resolver finds nothing, labels and token intact"),
+]
+
+
+def build(edits):
+    buf = bytearray(data)
+    for off, old, new in sorted(edits, key=lambda e: e[0], reverse=True):
+        assert bytes(buf[off:off + len(old)]) == old, off
+        buf[off:off + len(old)] = new
+    return bytes(buf)
+
+
+def ctx(off, old, new):
+    before = data[max(0, off - 70):off].decode("utf-8", "replace")
+    after = data[off + len(old):off + len(old) + 70].decode("utf-8", "replace")
+    return "L%d ...%s[-%s-]{+%s+}%s..." % (lineno(off), before, old.decode("utf-8", "replace"),
+                                          new.decode("utf-8", "replace"), after)
+
+
+def run(path):
+    p = subprocess.run([sys.executable, "verifiers/verify_surfaces.py", "--opencode-strings", str(path),
+                        "--omp-strings", OMP], cwd=str(REPO), capture_output=True, text=True, timeout=600)
+    return p.returncode, p.stdout, p.stderr
+
+
+def main():
+    MUT.mkdir(parents=True, exist_ok=True)
+    rows = []
+    for name, edits, correct, why in M:
+        path = MUT / (name + ".strings")
+        path.write_bytes(build(edits) if edits else data)
+        code, out, err = run(path)
+        lines = out.splitlines()
+        oc = [l for l in lines if l.startswith(("PASS surfaces.opencode_extract", "FAIL surfaces.opencode_extract"))]
+        oc_named = any(l.startswith("FAIL surfaces.opencode_extract")
+                       and ("opencode:read-hook/instructions" in l or "OC-4" in l) for l in lines)
+        fails = [l.split()[1].rstrip(":") for l in lines if l.startswith("FAIL ")]
+        if code == correct and (code == 0 or oc_named):
+            verdict = "OK"
+        elif correct == 1 and code == 0:
+            verdict = "SURVIVOR (too wide)"
+        elif correct == 0 and code == 1:
+            verdict = "FALSE-RED (too narrow)"
+        else:
+            verdict = "RED-WITHOUT-OC4-NAME"
+        rows.append({
+            "name": name, "why": why, "correct_exit": correct, "exit": code, "verdict": verdict,
+            "fails": fails, "opencode_extract": oc,
+            "edits": [{"offset": o, "line": lineno(o), "old": b.decode("utf-8", "replace"),
+                       "new": n.decode("utf-8", "replace")} for o, b, n in edits],
+            "diff_samples": [ctx(o, b, n) for o, b, n in edits][:2],
+            "stderr_tail": err[-300:],
+        })
+        print("%-34s exit=%d correct=%d %-24s fails=%s" % (name, code, correct, verdict, fails))
+    OUT.write_text(json.dumps({
+        "lane": "KotobaR47-2.W2DropOC4-2", "tip": "7ad7fadfc09354b74fb66605dfb0c1182c115a2f",
+        "base_dump_sha256": hashlib.sha256(data).hexdigest(), "omp_dump": OMP,
+        "mutants": rows}, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    tally = {}
+    for r in rows:
+        tally[r["verdict"]] = tally.get(r["verdict"], 0) + 1
+    print("tally", tally, "-> wrote", OUT)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

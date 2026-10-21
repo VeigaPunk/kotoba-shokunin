@@ -1,0 +1,54 @@
+# W2CorpusRerun — command log (lane: KotobaR47-2.W2CorpusRerun-2)
+# scratch clone: /fast/scratch/kotoba-r47/w2/W2CorpusRerun/kotoba-shokunin @ 7ad7fadfc09354b74fb66605dfb0c1182c115a2f
+# production repo: /home/vgpnk/Projects/shokunin/kotoba-shokunin @ 7ad7fad (read-only)
+
+## clone
+git clone -q --no-hardlinks /home/vgpnk/Projects/shokunin/kotoba-shokunin kotoba-shokunin
+git -C kotoba-shokunin checkout -q --detach 7ad7fadfc09354b74fb66605dfb0c1182c115a2f   # EXIT=0
+
+## TIP (scratch clone @7ad7fad)
+python3 verifiers/verify_corpus_integrity.py --json          # EXIT=0  (9/9 PASS, tracked_files 60 == expect 60)
+python3 verifiers/verify_corpus_integrity.py --self-test      # EXIT=0  ("self-test: 0 failure(s) over 150 assertions")
+python3 verifiers/verify_corpus_independent.py                # EXIT=0  ("exit 0"; tracked_files=60 unindexed=0 stale=0 missing=0; report_total 40; commit_total 29)
+python3 verifiers/verify_corpus_independent.py --json         # EXIT=0  (same numbers)
+python3 verifiers/verify_corpus_independent.py --self-test    # EXIT=0  ("self-test: 91 assertions, 0 failures")
+python3 verifiers/verify_corpus_integrity.py --no-baseline --json   # EXIT=0 (tracked_files 60, index_tokens_total 78, report_total 40, commit_total 29)
+
+## TIP (production repo @7ad7fad, read-only)
+python3 verifiers/verify_corpus_integrity.py                  # EXIT=0  "9/9 checks pass"
+python3 verifiers/verify_corpus_independent.py                # EXIT=0  "exit 0"
+python3 verifiers/verify_corpus_integrity.py --self-test      # EXIT=0
+python3 verifiers/verify_corpus_independent.py --self-test    # EXIT=0
+
+## BASE (c61a973b2e02e1ded169703ddcb06466f4edd8bd) — before values
+python3 verifiers/verify_corpus_integrity.py                  # EXIT=1  "DRIFT corpus.index.tracked_files: observed=59 expected=58"
+                                                             #         "DRIFT corpus.index.unindexed: observed=1 expected=0 / empty"
+                                                             #         unindexed: corpus/lessons/round-46-verifier-spotcheck.md
+                                                             #         "7/9 checks pass"
+python3 verifiers/verify_corpus_independent.py                # EXIT=1  unindexed=1 DRIFT; tracked_files=59; report_total 40; commit_total 29
+# parent of BASE
+git checkout --detach 04192c2 ; python3 verifiers/verify_corpus_integrity.py   # EXIT=0 "9/9 checks pass"
+
+## MUTATIONS (scratch clone only; working tree restored, `git diff --stat` empty afterwards)
+MUT-1 delete the "| Round-47 lessons |" row from corpus/README.md
+     -> integrity EXIT=1 "DRIFT corpus.index.unindexed: observed=1"; unindexed: corpus/lessons/round-47.md
+MUT-2 change the row's token to `lessons/round-47x.md`
+     -> integrity EXIT=1 (unindexed=1, stale_patterns=1, missing_paths=1); independent EXIT=1 (same three DRIFT)
+MUT-3 verifiers/corpus-baseline.json expect 60 -> 61
+     -> integrity EXIT=1 "DRIFT corpus.index.tracked_files: observed=60 expected=61"
+MUT-4 delete the "| Round-46 non-author spot-check |" row
+     -> integrity EXIT=1 "DRIFT corpus.index.unindexed: observed=1"; unindexed: corpus/lessons/round-46-verifier-spotcheck.md
+
+## OUTSIDE-COVERAGE-MAP CENSUS (read-only analysis of corpus/README.md)
+python3 (imports verify_corpus_independent.coverage_cells over corpus/README.md)
+  TIP  @7ad7fad : outside cells = lines 70,72,73,74,75,76,77 ; tokens only on line 76 -> ['trigger.no_xml_tag', 'lessons/round-47.md']
+  BASE @c61a973 : outside cell  line 74 -> ['description']
+
+## SUBSTRATE / LESSON RECEIPT SPOT-CHECKS (read-only)
+cd /fast/scratch/kotoba-r47/shared && sha256sum -c SHA256SUMS          # EXIT=0, 4/4 OK (fdbc8136… omp, 179ca421… opencode)
+git cat-file -t c61a973                                                # "commit"
+git show --stat --oneline c61a973 | head -3                           # 1 file changed: corpus/lessons/round-46-verifier-spotcheck.md
+ls /home/vgpnk/Projects/shokunin/.ufo/waves/kaika-w3/kotoba-{review,critic}.md   # both exist (cited by corpus/lessons/round-46-verifier-spotcheck.md)
+
+## TOOLING
+No tool installed, upgraded or removed by this lane (nothing needed; python3 + git from the base image).

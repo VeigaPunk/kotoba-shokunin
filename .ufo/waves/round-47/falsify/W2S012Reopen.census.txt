@@ -1,0 +1,46 @@
+S012 row — contract census and mutation record (run 2026-10-21 from lane root at 7ad7fad)
+
+[1] Frozen census (CORPUS.md § SOURCES.md, run from lane root)
+rows:            15
+malformed:       0
+tiers:           A=14 C=1
+status:          mined=6 queued=8 rejected=1
+duplicate ids:   (none)
+enum/tier:       (nothing)
+mined used-by paths that do not exist: (nothing)
+S012 NF=13 (11 cells)
+S012 row lives at corpus/SOURCES.md:25, inside ## Registry (:10-:29), before ## Paths (:30).
+
+[2] Maintained validator (fleet root script, read-only)
+cd /home/vgpnk/Projects/shokunin
+bash scripts/sources-census.sh validate --file kotoba-shokunin/corpus/SOURCES.md --today 2026-10-21
+  file	ok	/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md
+  exit 0
+
+[3] Mutation tests (copies in /tmp; production untouched; commands run from lane root so relative used-by paths resolve)
+M1 tier mutant: S012 tier A -> D
+   awk enum check -> "tier S012 D"          (check is live)
+M2 used-by mutant: S012 used-by SKILL.md -> DOES-NOT-EXIST.md
+   awk mined-path check -> "missing: DOES-NOT-EXIST.md"   (check is live)
+M0 production control, same two commands -> no output, PROD_DONE/clean
+
+[4] Citation sweep (production tree)
+grep -rn "S012" verifiers/                -> no output, exit 1
+grep -rln "S012" corpus/knowledge/        -> no output, exit 1
+grep -rn "S012" corpus/lessons/round-47.md SKILL.md SCORECARD.md
+  corpus/lessons/round-47.md:35  (Gate row: URL, access, 8-word quote, :81, sha256 67cf5703…)
+  corpus/lessons/round-47.md:42  (prose citation)
+  SKILL.md:151                   ("Anthropic's reference packager (S012) is stricter and refuses any `<`/`>`")
+  SCORECARD.md:31, :106
+used-by cell value = SKILL.md; SKILL.md:151 contains "S012" => mined has a real citer.
+
+[5] Landing diff BASE c61a973b -> 7ad7fad (corpus/SOURCES.md)
+19 insertions, 4 deletions. Deletions: the evidence-source sentence in the header (:4-:7 old)
+and the two promoted Leads bullets at ## Leads. No existing row cell (status/recheck/used-by)
+changed; S012-S015 are new rows.
+
+[6] Lane corpus verifier (read-only, scratch clone)
+python3 -B verifiers/verify_corpus_independent.py --repo .
+  HEAD 7ad7fad; tracked_files=60; unindexed=0 stale=0 missing=0; dead=0; unresolvable=0
+  exit 0
+(informational; C3-owned)

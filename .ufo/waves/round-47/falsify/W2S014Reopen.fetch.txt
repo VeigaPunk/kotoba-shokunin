@@ -1,0 +1,59 @@
+W2S014Reopen — fetch/diff evidence (scratch, not production)
+Target: https://www.anthropic.com/research/equipping-agents-for-the-real-world-with-agent-skills
+Base commit under test: 7ad7fadfc09354b74fb66605dfb0c1182c115a2f
+Access window (UTC): 2026-10-21T16:54:54Z .. 16:56Z
+
+FETCH
+  status 200, content-type text/html; charset=utf-8, 216618 bytes
+  response date: Wed, 21 Oct 2026 16:54:54 GMT
+  live sha256 (7 fetches, identical): 7dfd6f15b8f6e7e30352d569203a8d0c285d4073c3a5793434396551f164e892
+  wave-1 saved sha256 (3 files, identical): c2a4f973df7224e481dfc19fc14a9457818f6b166fffc07a3abd66d7f16e0c6d
+  tag-stripped article text (scripts/styles removed): 10046 chars
+  stripped-text sha256, BOTH bodies: a71e804197ed6fde47839aaee241dbb649c810c039296867f302307a73603f5c
+
+BYTE DIFF wave-1 vs live
+  differing bytes: 879; runs: 67; every run equal length
+  66 runs x 13 bytes: Next.js chunk filename swaps
+    38z_-z-jmbkf2.js -> 0cnlhm4w0r7-k.js
+    3npkduc0fgs_j.js -> 1dc3i2n5ay6gx.js
+  1 run x 21 bytes: experiment token FP6NAU4RJSHJIq_w8pFJt -> p5eekIdddzFvTRjLZQz0O
+  all four chunk URLs (old and new) return HTTP 200
+  article prose: no differing run falls in visible prose
+
+ANCHOR / QUOTE BYTE OFFSETS (single-line HTML, both bodies)
+  h2 id="the-anatomy-of-a-skill" byte: 41507
+  h2 close / first <p> byte: 41585   text: "To see Skills in action, ..."
+  quote paragraph <p> byte: 42267    text: "At its simplest, a skill is ..."
+  quote "At startup, the agent pre-loads ..." byte: 42743
+  byte 42765 is "pre-loads the ..." (receipt's recorded offset; 22 bytes into the quote)
+  next <h2> after quote byte: 54411  text: "Developing and evaluating skills"
+
+QUOTE
+  "At startup, the agent pre-loads the name and description of every installed skill into its system prompt."
+  occurrences in tag-stripped text: 1 (a second "At startup" exists only in the RSC JSON payload)
+  words: 17
+  in raw HTML the words name/description carry <code> wrappers; raw substring is False, stripped substring is True
+
+REVISION
+  article:published_time 2025-10-16T00:00:00.000Z
+  article:modified_time  2026-10-18T21:26:58.000Z
+  JSON-LD datePublished/dateModified agree; visible "Published Oct 16, 2025"
+  h1 / JSON-LD headline: "Equipping agents for the real world with Agent Skills"
+  <title>/og:title: "Equipping agents with Agent Skills" (shortened; not an identity change)
+  canonical link + mainEntityOfPage: the /research/ URL above
+  /engineering/ URL: HTTP 308, location /research/equipping-agents-for-the-real-world-with-agent-skills
+
+ROW CHECKS (corpus/SOURCES.md:27)
+  cells: 11; duplicate ids: none; URL cited by exactly one row (S014)
+  kind docs (valid enum); tier A; status queued; used-by em dash; recheck 90d; opened 2026-10-21
+  teaches words: 24
+  Gate row corpus/lessons/round-47.md:37: quote is an exact substring of live stripped text;
+  cell word count including "(§ The anatomy of a skill)" is 23 (quote alone 17)
+
+GATES
+  sources-census.sh validate --root /home/vgpnk/Projects/shokunin kotoba: exit 0, "kotoba ok"
+  sources-census.sh census: exit 0, rows 15, tier.A 14, tier.C 1, queued 8, mined 6, rejected 1, missing 0
+  sources-census.sh selftest: exit 0, "selftest ok"
+  python3 -B verifiers/verify_corpus_integrity.py --json: exit 0
+  python3 -B verifiers/verify_corpus_independent.py --json: exit 0
+  git diff -U0 c61a973..7ad7fad -- corpus/SOURCES.md: no existing S-row line changed

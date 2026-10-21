@@ -1,0 +1,172 @@
+diff --git a/verifiers/verify_skill_checklist.py b/verifiers/verify_skill_checklist.py
+index c6476e7..ef7d952 100755
+--- a/verifiers/verify_skill_checklist.py
++++ b/verifiers/verify_skill_checklist.py
+@@ -94,6 +94,14 @@ trigger.anti_trigger_clause     the ``description``, after quoted and
+     ``不要用于``, ``排除``, ``勿用于``.  Limit (named in the detail line):
+     a vacuous "Never use this skill." passes and a real exclusion with no
+     marker fails — it is a vocabulary test, not semantics.
++trigger.no_xml_tag              the parsed ``name`` and ``description``
++    values carry no XML markup: a start/end/empty-element tag (``<`` then
++    a name character — ``a < b`` is a comparison), comment, CDATA,
++    processing instruction or declaration, or a YAML double-quoted
++    ``\\x3c``/``\\u003c`` escape that decodes to one.  Backticked spans are
++    NOT exempt (frontmatter is plain text to every client).  Source: S003,
++    an Anthropic rule the open spec (S001/S002) lacks.  ``evaluated`` =
++    non-empty fields scanned (1-2).
+ trigger.line_budget             the box binds the threshold: the first
+     integer in the checklist box whose text matches ``file … <int> …
+     line(s)`` is the limit (the live box reads ``File ≤ 600 lines``); when
+@@ -195,6 +207,13 @@ DOCUMENTED LIMITS (what this instrument proves and what it never proves):
+   - anti-trigger is a vocabulary test over the OBSERVED bilingual marker
+     set — an unlisted exclusion phrasing FAILs unearned, a marker-bearing
+     non-exclusion (or a vacuous "Never use this skill.") passes unearned;
++  - the XML-tag check reads S003's words, not Anthropic's packager:
++    ``quick_validate.py`` (used by ``package_skill.py``) rejects any ``<``
++    or ``>``, so ``a -> b`` passes here and fails packaging; Claude Code's
++    ``when_to_use`` (appended to the listed description), fullwidth
++    ``＜x＞`` (NFKC ``<x>``), YAML aliases and plain-scalar ``#`` comments
++    are outside the structural parse — a tag after `` #`` FAILs here though
++    YAML drops it;
+   - the command vocabulary is a ceiling, named not hidden: a command
+     outside the declared set used *inline* is invisible; inside a
+     shell-fenced block every segment head is checked, so wrappers,
+@@ -285,6 +307,7 @@ CHECK_IDS = (
+     "trigger.name_directory",
+     "trigger.literal_trigger_string",
+     "trigger.anti_trigger_clause",
++    "trigger.no_xml_tag",
+     "trigger.line_budget",
+     "trigger.no_placeholder",
+     "trigger.command_binary_resolves",
+@@ -364,6 +398,15 @@ QUOTED_SPAN_RE = re.compile(
+ ALL_QUOTED_SPANS_RE = re.compile(
+     r'"[^"\n]*"|\'[^\'\n]*\'|`[^`\n]*`'
+     r"|[\u201c][^\u201d\n]*[\u201d]|[\u2018][^\u2019\n]*[\u2019]")
++# XML 1.0 markup shapes: start/end/empty-element tag (no space after "<"),
++# comment, CDATA, processing instruction, declaration.  Backticks are not
++# stripped: frontmatter values are plain text to every client, not Markdown.
++XML_TAG_RE = re.compile(
++    r"</?[A-Za-z_][\w.:-]*(?:\s[^<>]*)?/?>"
++    r"|<!--|<!\[CDATA\[|<\?[A-Za-z_]|<![A-Za-z]")
++# YAML double-quoted escapes decode to "<"/">" in every YAML client while the
++# structural parse keeps the backslash text.
++YAML_ANGLE_ESCAPE_RE = re.compile(r"\\(?:x3[cCeE]|u003[cCeE]|U0000003[cCeE])")
+ LINE_BOUND_BOX_RE = re.compile(
+     r"file\b[^.\n]{0,40}?\d+[^.\n]{0,20}?lines?\b", re.IGNORECASE)
+ INT_RE = re.compile(r"\d+")
+@@ -1248,6 +1291,28 @@ def check_anti_trigger(fm: tuple[dict | None, str]) -> tuple[str, int, str]:
+                        % limit)
+ 
+ 
++def check_no_xml_tag(fm: tuple[dict | None, str]) -> tuple[str, int, str]:
++    fields, problem = fm
++    if fields is None:
++        return "FAIL", 0, "cannot evaluate: %s" % problem
++    present = [k for k in ("name", "description") if fields.get(k, "").strip()]
++    if "description" not in present:
++        return "FAIL", 0, "cannot evaluate: empty description:"
++    hits = []
++    for key in present:
++        val = fields[key]
++        m = XML_TAG_RE.search(val) or YAML_ANGLE_ESCAPE_RE.search(val)
++        if m:
++            hits.append("%s: %r" % (key, m.group(0)))
++    limit = ("S003 Anthropic rule, absent from the open spec (S001); "
++             "Anthropic's packager bans any '<'/'>' and is stricter")
++    if hits:
++        return "FAIL", len(present), "XML tag in %s (%s)" % (
++            "; ".join(hits), limit)
++    return "PASS", len(present), "no XML tag in %s (%s)" % (
++        ", ".join(present), limit)
++
++
+ def box_line_budget(boxes: list[dict], default: int) -> tuple[int, str]:
+     """The threshold lives in the box text: first integer in the box whose
+     text matches ``file … <int> … line(s)``.  Falls back to --max-lines."""
+@@ -1678,28 +1780,37 @@ def self_test() -> int:
+         ("clean", 0, [], [], []),
+         ("no-frontmatter", 1,
+          ["trigger.frontmatter_parses", "trigger.name_directory",
+-          "trigger.literal_trigger_string", "trigger.anti_trigger_clause"],
++          "trigger.literal_trigger_string", "trigger.anti_trigger_clause",
++          "trigger.no_xml_tag"],
+          [], ["no leading ---"]),
+         ("fm-null", 1,
+          ["trigger.frontmatter_parses", "trigger.literal_trigger_string",
+-          "trigger.anti_trigger_clause"],
++          "trigger.anti_trigger_clause", "trigger.no_xml_tag"],
+          [], ["empty description"]),
+         ("fm-malformed", 1,
+          ["trigger.frontmatter_parses", "trigger.name_directory",
+-          "trigger.literal_trigger_string", "trigger.anti_trigger_clause"],
++          "trigger.literal_trigger_string", "trigger.anti_trigger_clause",
++          "trigger.no_xml_tag"],
+          [], ["unbalanced quote"]),
+         ("fm-dup-key", 1,
+          ["trigger.frontmatter_parses", "trigger.name_directory",
+-          "trigger.literal_trigger_string", "trigger.anti_trigger_clause"],
++          "trigger.literal_trigger_string", "trigger.anti_trigger_clause",
++          "trigger.no_xml_tag"],
+          [], ["duplicate key"]),
+         ("fm-body-yaml", 1,
+          ["trigger.frontmatter_parses", "trigger.name_directory",
+-          "trigger.literal_trigger_string", "trigger.anti_trigger_clause"],
++          "trigger.literal_trigger_string", "trigger.anti_trigger_clause",
++          "trigger.no_xml_tag"],
+          [], ["no leading ---"]),
+         ("fm-nested-metadata", 0, [], [], []),
++        ("xml-tag-codespan", 1, ["trigger.no_xml_tag"], [], ["'<skills>'"]),
++        ("xml-tag-split", 1, ["trigger.no_xml_tag"], [], ["'</Skills >'"]),
++        ("xml-tag-dq-escape", 1, ["trigger.no_xml_tag"], [], ["\\\\u003c"]),
++        ("xml-tag-control", 0, [], [], ["no XML tag in name, description"]),
+         ("fm-stray-indent", 1,
+          ["trigger.frontmatter_parses", "trigger.name_directory",
+-          "trigger.literal_trigger_string", "trigger.anti_trigger_clause"],
++          "trigger.literal_trigger_string", "trigger.anti_trigger_clause",
++          "trigger.no_xml_tag"],
+          [], ["stray indented line"]),
+         # round-15 closures of the critic's three escape surfaces
+         ("map-annotation-mismatch", 1, ["checklist.box_map_complete"],
+@@ -1758,8 +1869,8 @@ def self_test() -> int:
+         ("empty-file", 1,
+          ["checklist.box_map_complete", "trigger.frontmatter_parses",
+           "trigger.name_directory", "trigger.literal_trigger_string",
+-          "trigger.anti_trigger_clause", "trigger.line_budget",
+-          "trigger.no_placeholder"],
++          "trigger.anti_trigger_clause", "trigger.no_xml_tag",
++          "trigger.line_budget", "trigger.no_placeholder"],
+          ["trigger.command_binary_resolves"], []),
+         ("no-checklist-section", 1, ["checklist.box_map_complete"], [],
+          ["no checklist boxes"]),
+@@ -1856,6 +1967,21 @@ def self_test() -> int:
+                 rec("%s: 'evaluated 0' line is not a PASS" % case,
+                     not line.startswith("PASS"), line)
+ 
++    # trigger.no_xml_tag string battery: (name, description, want_status)
++    for name, desc, want in [
++        ("x", "Use </skills> here.", "FAIL"),
++        ("x", 'Use <skill name="a"> here.', "FAIL"),
++        ("x", "Use a<br/>b here.", "FAIL"),
++        ("x", "Use <!-- c --> here.", "FAIL"),
++        ("x", 'Triggers: "train <id>".', "FAIL"),
++        ("<x>", "Use for x.", "FAIL"),
++        ("x", "Map a -> b, x => y, a < b and c > d.", "PASS"),
++        ("x", "Keep <= 600 or <500 lines; cat <<EOF; 1<2>0; <> op.", "PASS"),
++        ("x", "Use \u2264 9, \u2039skills\u203a, &lt;skills&gt;.", "PASS"),
++    ]:
++        got = check_no_xml_tag(({"name": name, "description": desc}, ""))[0]
++        rec("no_xml_tag[%r/%r]: %s" % (name, desc, want), got == want, got)
++
+     # --- planted CommonMark fence battery (round 37 C3) ------------------------
+     # One rec per load-bearing observable per shape: the content set the fence
+     # skipper reports, the live boxes, the unclosed-fence record (which must be
+@@ -2214,6 +2388,8 @@ def main(argv: list[str] | None = None) -> int:
+             st, ev, detail = check_literal_trigger(fm)
+         elif cid == "trigger.anti_trigger_clause":
+             st, ev, detail = check_anti_trigger(fm)
++        elif cid == "trigger.no_xml_tag":
++            st, ev, detail = check_no_xml_tag(fm)
+         elif cid == "trigger.line_budget":
+             st, ev, detail = check_line_budget(lines, boxes, args.max_lines)
+         elif cid == "trigger.no_placeholder":

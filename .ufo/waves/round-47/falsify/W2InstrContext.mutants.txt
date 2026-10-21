@@ -1,0 +1,50 @@
+OC-6 mutant reproduction sheet (opencode 1.19.3 dump, revision 7ad7fad)
+=======================================================================
+Substrate: /fast/scratch/kotoba-r47/shared/opencode-1.19.3.strings
+sha256 f4d8f34ae02a2411eb5e30203421b6fcdfa81b83e96b768bbcf404504a297bc3
+Verifier:  <scratch clone>/verifiers/verify_surfaces.py
+Command per mutant:
+  python3 verifiers/verify_surfaces.py \
+    --opencode-strings <mutant>.strings \
+    --check surfaces.opencode_extract
+
+Each mutant = the frozen dump with one exact substring replaced once
+(python str.replace(old, new, 1)); all other bytes unchanged.
+
+M1  exit 1  system-context-builtins -> system-context-X
+    old: system-context-builtins
+    new: system-context-X
+    (FAIL: "declared opencode class(es) produced by no rule: ...
+     opencode:instruction-context/AGENTS.md; rule(s) matched nothing: OC-6")
+
+M2  exit 1  Key.make("core/instructions") -> Key.make("core/X")
+
+M3  exit 1  InstructionContext.observe -> InstructionContext.X
+
+M4  exit 1  targets:["AGENTS.md"] -> targets:["X.md"]
+
+M5  exit 0  remove the subsystem from the builtins layer graph:
+    old: deps:[cH.node,TL.node,a_.node,SH.node,DE.node]
+    new: deps:[cH.node,TL.node,SH.node,DE.node]
+    (a_.node is the instruction-context module node; it occurs exactly
+     once in the dump, at dump line 445487. The boot group only reaches
+     the layer through s_.node -> kX -> a_.node, dump line 445585.)
+
+M6  exit 0  make the project walk ungated:
+    old: qE.OPENCODE_DISABLE_PROJECT_CONFIG||!h?[]:yield*H.up({targets:["AGENTS.md"],start:S,stop:$})
+    new: yield*H.up({targets:["AGENTS.md"],start:S,stop:$})
+
+M7  exit 0  rename the subsystem's own layer (keep every OC-6 anchor):
+    old: name:"instruction-context",layer:uX
+    new: name:"X-context",layer:uX
+
+M8  exit 0  drop the "ungated config candidate" entirely:
+    old: yP.dedupe([yield*H.resolve(jX(L.config,"AGENTS.md")),...U])
+    new: yP.dedupe([...U])
+
+Reading: M1-M4 show the rule is fail-closed on its four string anchors.
+M5-M8 show the rule does not encode the row's behavioural claims
+(config candidate, OPENCODE_DISABLE_PROJECT_CONFIG gate, layer identity)
+nor the registration/wiring relation implied by the "system-context-builtins"
+anchor. M7 in particular passes although the layer that actually registers
+core/instructions has been renamed away.

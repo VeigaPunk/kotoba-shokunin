@@ -56,3 +56,21 @@ carries the normative spec.
 **C1 class ledger:** `corpus/knowledge/instruction-surface-census-round13.md`
 § Superseded class rows and the round-47 opencode ledger — every opencode id the census
 ever declared, with its verdict and the dump count that decides it.
+
+## Falsify wave (wave 2, post-crash, lane-dispatched — not a non-author spot-check)
+
+77 seats attacked landing `7ad7fad` (reports `.ufo/waves/round-47/falsify/`). Every
+counting command reproduced; the defects below were found in the landing's own records.
+
+| class | evidence pointer | captured-by | fix |
+|---|---|---|---|
+| M23 Landing record quotes a count measured on a different tree | LOG.md round-47 landing entry says "governance evaluated 804"; at `7ad7fad` `python3 -B verifiers/verify_skill_checklist.py --json --check governance.citation_resolves` → PASS evaluated 848 (804 = the BASE-prefix count from `.ufo/waves/round-47/build/C3CriticDesign.md`; the landing's own 44 new citations moved it) — `W2ErrataRerun.md`; same class: `SKILL.md` "10 checks" after an 11th check landed (`W2CheckIdsContract.md`), a SCORECARD pointer to a landing-pin entry not yet written (`W2MistakeSweep.md`) | none (gates resolve paths, not counts) | Counts in a landing record are copied from the after-battery receipts of the landed tree (`.ufo/waves/round-47/after/`), never from a build-wave report; corrected in the round-47 landing-pin LOG entry, `SKILL.md`, `SCORECARD.md`. |
+
+Gate corrections from the wave: the C2 check's detail line names S003 only — S012 is
+cited by `SKILL.md` § Portability floor, not by the verifier (`W2LessonGate.md`); S015's
+`used-by` file now cites S015 (census round-47 falsify errata); S003's teaches cell
+calls the 500-line body rule "Anthropic-only" although the open spec also states it
+(`SrcS003.md` D2) and S010's teaches cell is stale since `trigger.no_xml_tag` landed —
+both need superseding rows (contract rule 2), carried to round 48. `SKILL.md` is 528
+lines against S001/S003's 500-line guidance; its own 600-line box is the disclosed
+deviation.

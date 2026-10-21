@@ -1,0 +1,38 @@
+{
+  "comment": "OC-1 mutation probe on the REAL frozen dump opencode-1.19.3.strings (sha256 f4d8f34ae02a2411eb5e30203421b6fcdfa81b83e96b768bbcf404504a297bc3), commit 7ad7fadfc09354b74fb66605dfb0c1182c115a2f. Array under test (dump line 443993, byte span 10893162-10893235): [\"AGENTS.md\",...!t.disableClaudeCodePrompt?[\"CLAUDE.md\"]:[],\"CONTEXT.md\"]. Command per mutant: python3 verifiers/verify_surfaces.py --omp-strings <scratch>/omp-clean.strings --opencode-strings <scratch>/mut-<name>.strings (cwd = scratch clone at 7ad7fad).",
+  "clean_baseline": {"exit": 0, "detail": "PASS surfaces.opencode_extract: opencode extraction 9/9 declared class(es) from 7/7 rules (OC-1, OC-2, OC-3a, OC-3b, OC-4, OC-5, OC-6); all 7 checks PASS"},
+  "gate_sites": [
+    {"offset": 10893093, "dump_line": 443993, "context": "n=[X.join(r.config,\"AGENTS.md\"),...!t.disableClaudeCodePrompt?[X.join(r.home,\".claude\",\"CLAUDE.md\")]:[]]"},
+    {"offset": 10893181, "dump_line": 443993, "context": "y=[\"AGENTS.md\",...!t.disableClaudeCodePrompt?[\"CLAUDE.md\"]:[],\"CONTEXT.md\"]"},
+    {"offset": 19137256, "dump_line": 447067, "context": "disableClaudeCodePrompt:h.all({broad:k(\"OPENCODE_DISABLE_CLA...\" (config schema)"}
+  ],
+  "mutants": [
+    {"name": "m1-prefix", "mutation": "array's \"AGENTS.md\" -> \"XGENTS.md\"", "expect": "exit 1", "exit": 1, "survivor": false,
+     "output": "FAIL surfaces.opencode_extract: declared opencode class(es) produced by no rule: opencode:instructions/AGENTS.md, opencode:instructions/CLAUDE.md, opencode:instructions/CONTEXT.md; rule(s) matched nothing: OC-1 (owns ...; missing [\"AGENTS.md\" … \"CONTEXT.md\"] + disableClaudeCodePrompt)"},
+    {"name": "m2-context", "mutation": "array's \"CONTEXT.md\" -> \"XONTEXT.md\"", "expect": "exit 1", "exit": 1, "survivor": false,
+     "output": "FAIL surfaces.literal_present: 1 loader literal(s) not verifiable: opencode:instructions/CONTEXT.md; FAIL surfaces.opencode_extract: declared ... produced by no rule: (3 ids); rule(s) matched nothing: OC-1"},
+    {"name": "m3-claude", "mutation": "array's \"CLAUDE.md\" -> \"CLAUDE_xmd\" (gate kept)", "expect": "exit 1", "exit": 1, "survivor": false,
+     "output": "FAIL surfaces.opencode_extract: declared opencode class(es) produced by no rule: opencode:instructions/CLAUDE.md"},
+    {"name": "m4-gate-out", "mutation": "gate removed from array: !t.disableClaudeCodePrompt -> !t.z", "expect": "exit 1 per rule's declared anchors", "exit": 0, "survivor": true,
+     "output": "exit 0, all checks PASS; mutant array: [\"AGENTS.md\",...!t.z?[\"CLAUDE.md\"]:[],\"CONTEXT.md\"]"},
+    {"name": "m5-gate-elsewhere", "mutation": "gate corrupted at BOTH non-array sites (offsets 10893093 and 19137256 -> ZZZ), y-array intact", "expect": "exit 1 (only direction the gate witness can fire)", "exit": 0, "survivor": true,
+     "output": "exit 0, all checks PASS (gate kept inside m.group(0) satisfies 'OC_GATE in dump')"},
+    {"name": "m6-plant", "mutation": "planted \"GUIDE.md\" into the real array", "expect": "exit 1", "exit": 1, "survivor": false,
+     "output": "FAIL surfaces.opencode_extract: extracted opencode class(es) undeclared in baseline: opencode:instructions/GUIDE.md"},
+    {"name": "m7-reorder", "mutation": "in-window reorder: [\"AGENTS.md\",\"CONTEXT.md\",...!t.disableClaudeCodePrompt?[\"CLAUDE.md\"]:[]] (priority AGENTS>CONTEXT>CLAUDE instead of AGENTS>CLAUDE>CONTEXT)", "expect": "exit 1 (real priority drift)", "exit": 0, "survivor": true,
+     "output": "exit 0, all checks PASS; same name SET derived, interior order invisible"},
+    {"name": "m8-window", "mutation": "401 filler bytes inserted between \"AGENTS.md\" and \"CONTEXT.md\" (over the .{0,400}? window)", "expect": "exit 1 (fail-closed)", "exit": 1, "survivor": false,
+     "output": "FAIL surfaces.opencode_extract: OC-1 matched nothing (all 3 owned ids missing); false-red class for a legitimate longer array"},
+    {"name": "m9-decoy", "mutation": "decoy q=[\"AGENTS.md\",\"CLAUDE.md\",\"CONTEXT.md\"]; inserted 2KB before the real array, real array intact", "expect": "exit 0?", "exit": 0, "survivor": true,
+     "output": "exit 0, all checks PASS (OC_PRIORITY_RE.search binds to the decoy; real array unexamined)"},
+    {"name": "m9b-decoy-plus-drift", "mutation": "m9 decoy AND real array's \"CONTEXT.md\" corrupted", "expect": "exit 1", "exit": 0, "survivor": true,
+     "output": "PASS surfaces.opencode_extract: opencode extraction 9/9 declared class(es) from 7/7 rules — real loader drift fully unwitnessed"},
+    {"name": "m10-gate-rename", "mutation": "gate renamed dump-wide at all 3 sites: disableClaudeCodePrompt -> disableClaudePrompts (version-bump style)", "expect": "exit 1 per rule's declared anchors", "exit": 0, "survivor": true,
+     "output": "exit 0, all checks PASS; mutant array: [\"AGENTS.md\",...!t.disableClaudePrompts?[\"CLAUDE.md\"]:[],\"CONTEXT.md\"]"},
+    {"name": "m11-equiv-rewrite", "mutation": "renamed-but-equivalent conditional: ...[\"CLAUDE.md\"].filter(()=>!t.disableClaudeCodePrompt) instead of the ternary spread", "expect": "exit 0 (semantically equivalent, same names)", "exit": 0, "survivor": false,
+     "survivor_note": "correct accept, not a drift miss; rule derives names from the whole matched region so the rewrite passes for the right reason",
+     "output": "exit 0, all checks PASS"}
+  ],
+  "score": {"survivors": 6, "killed": 5, "total": 11,
+            "survivor_names": ["m4-gate-out", "m5-gate-elsewhere", "m7-reorder", "m9-decoy", "m9b-decoy-plus-drift", "m10-gate-rename"]}
+}

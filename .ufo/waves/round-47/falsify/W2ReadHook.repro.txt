@@ -1,0 +1,40 @@
+// Faithful transliteration of the resolve walk at dump 443995 + find at 443993.
+import fs from "node:fs"; import path from "node:path";
+const y = ["AGENTS.md", "CLAUDE.md", "CONTEXT.md"];           // dump 443993, CLAUDE gate = false
+const find = (dir) => { for (const d of y) { const w = path.resolve(path.join(dir, d)); if (fs.existsSync(w)) return w; } };
+function resolve(N, K) {                                      // N = InstanceRef.directory
+  const q = []; const claims = new Map(); const O = new Set(); const U = new Set();
+  let G = path.dirname(K); const hops = [];
+  while (G.startsWith(N) && G !== N) {                        // dump 443995, verbatim condition
+    hops.push(G);
+    const W = find(G);
+    if (!W || W === K || O.has(W) || U.has(W)) { G = path.dirname(G); continue; }
+    let I = claims.get("msg_1"); if (!I) { I = new Set(); claims.set("msg_1", I); }
+    if (I.has(W)) { G = path.dirname(G); continue; }
+    I.add(W); q.push(W); G = path.dirname(G);                 // NO break
+  }
+  return { q, hops };
+}
+const base = "/tmp/rh-probe"; const N = base + "/instance";
+for (const p of ["a/AGENTS.md", "a/b/AGENTS.md", "AGENTS.md", "a/b/c.txt"]) {
+  fs.mkdirSync(path.dirname(path.join(N, p)), { recursive: true }); fs.writeFileSync(path.join(N, p), "# " + p + "\n");
+}
+fs.mkdirSync(base + "/instance-other", { recursive: true }); fs.writeFileSync(base + "/instance-other/AGENTS.md", "# sibling\n");
+fs.writeFileSync(base + "/instance-other/x.txt", "x\n");
+const A = resolve(N, N + "/a/b/c.txt");
+console.log("CASE A (nested read): attached=%d", A.q.length);
+A.q.forEach((f) => console.log("  " + f));
+console.log("CASE A root AGENTS.md attached:", A.q.includes(N + "/AGENTS.md"));
+const B = resolve(N, base + "/instance-other/x.txt");
+console.log("CASE B (prefix-sibling read): attached=%d", B.q.length);
+B.q.forEach((f) => console.log("  " + f));
+console.log("CASE B attached file inside N:", B.q.every((f) => f.startsWith(N + "/")));
+CASE A (nested read): attached=2
+  /tmp/rh-probe/instance/a/b/AGENTS.md
+  /tmp/rh-probe/instance/a/AGENTS.md
+CASE A root AGENTS.md attached: false
+CASE B (prefix-sibling read): attached=1
+  /tmp/rh-probe/instance-other/AGENTS.md
+CASE B attached file inside N: false
+
+# node exit=0

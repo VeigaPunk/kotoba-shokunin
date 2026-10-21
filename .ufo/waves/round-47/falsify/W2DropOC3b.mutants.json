@@ -1,0 +1,135 @@
+{
+ "probe": "W2DropOC3b \u2014 mutation probe of verify_surfaces.py rule OC-3b at 7ad7fadfc09354b74fb66605dfb0c1182c115a2f",
+ "source_dump": {
+  "path": "/fast/scratch/kotoba-r47/shared/opencode-1.19.3.strings",
+  "sha256": "f4d8f34ae02a2411eb5e30203421b6fcdfa81b83e96b768bbcf404504a297bc3"
+ },
+ "omp_dump": "/fast/scratch/kotoba-r47/shared/omp-18.12.5.strings",
+ "command_template": "python3 verifiers/verify_surfaces.py --omp-strings <omp> --opencode-strings <mutant> [--check surfaces.opencode_extract | full battery]",
+ "baseline": {
+  "full_battery_exit": 0,
+  "line": "PASS surfaces.opencode_extract: opencode extraction 9/9 declared class(es) from 7/7 rules (OC-1, OC-2, OC-3a, OC-3b, OC-4, OC-5, OC-6)"
+ },
+ "dump_anatomy": {
+  "filter_regex_matches_on_real_dump": 1,
+  "filter_site": "offset 10894741, var q, gap '??[])' (4 chars), inside fn Instruction.system registered @10894668",
+  "render_literal_occurrences": 4,
+  "render_sites": {
+   "10894959": "Instruction.system local render O[R] (+138 after filter match end)",
+   "10895024": "Instruction.system remote render U[R] (+203)",
+   "10895604": "v2 instruction-context claims-walk render (+783)",
+   "12867004": "v2 instruction-context XP() joiner render (+1972183)"
+  }
+ },
+ "mutants": [
+  {
+   "id": "F1_filter_name_corrupt",
+   "change": "`.filter(`->`.f1lter(` at unique site",
+   "expect": "exit 1",
+   "exit": 1,
+   "verdict": "KILLED",
+   "names": "opencode:config/instructions-remote + OC-3b"
+  },
+  {
+   "id": "F2_first_protocol_corrupt",
+   "change": "q.startsWith(\"https://\")->q.startsWith(\"https:\")",
+   "expect": "exit 1",
+   "exit": 1,
+   "verdict": "KILLED",
+   "names": "owned class + rule"
+  },
+  {
+   "id": "F3_break_backref",
+   "change": "rename first body var q->z (breaks \\1)",
+   "expect": "exit 1",
+   "exit": 1,
+   "verdict": "KILLED",
+   "names": "owned class + rule"
+  },
+  {
+   "id": "F4_gap_stretch_equiv",
+   "change": "insert .map(x=>x.trim()) before .filter( (gap 4->21 chars; near-equivalent pipeline)",
+   "expect": "exit 1",
+   "exit": 1,
+   "verdict": "KILLED",
+   "names": "owned class + rule",
+   "note": "false red on plausible upstream shape -> filter anchor narrow-by-design"
+  },
+  {
+   "id": "F5_arrow_to_loop_equiv",
+   "change": "arrow .filter rewritten as strictly equivalent for-of+if push loop",
+   "expect": "exit 1",
+   "exit": 1,
+   "verdict": "KILLED",
+   "names": "owned class + rule",
+   "note": "false red on equivalent syntax -> narrow-by-design tripwire"
+  },
+  {
+   "id": "R1_del_remote_render_only",
+   "change": "delete anchor @10895024 (Instruction.system remote render U[R]) ONLY",
+   "expect": "SURVIVOR?",
+   "exit": 0,
+   "verdict": "SURVIVING MUTANT",
+   "names": "PASS 9/9 from 7/7"
+  },
+  {
+   "id": "R2_del_both_system_renders",
+   "change": "delete anchors @10894959+10895024 (entire Instruction.system render block)",
+   "expect": "SURVIVOR?",
+   "exit": 0,
+   "verdict": "SURVIVING MUTANT",
+   "names": "PASS; FULL battery 7/7 PASS exit 0 (W2DropOC3b.R2_full_battery.txt)"
+  },
+  {
+   "id": "R3_del_v2_claims_render",
+   "change": "delete anchor @10895604 (v2 claims-walk) only",
+   "expect": "exit 0",
+   "exit": 0,
+   "verdict": "PASS (expected; site owned by OC-6 subsystem, shows anchor not site-scoped)"
+  },
+  {
+   "id": "R4_del_all_renders",
+   "change": "delete all 4 render anchors",
+   "expect": "exit 1",
+   "exit": 1,
+   "verdict": "KILLED",
+   "names": "owned class + rule"
+  },
+  {
+   "id": "R5_corrupt_all_colon",
+   "change": "'Instructions from: '->'Instructions from :' x4",
+   "expect": "exit 1",
+   "exit": 1,
+   "verdict": "KILLED",
+   "names": "owned class + rule"
+  },
+  {
+   "id": "R6_rename_equiv_no_colon",
+   "change": "'Instructions from: '->'Instructions from ' x4 (copy tweak)",
+   "expect": "exit 1",
+   "exit": 1,
+   "verdict": "KILLED",
+   "names": "owned class + rule",
+   "note": "narrow-by-design"
+  },
+  {
+   "id": "E1_var_rename_both",
+   "change": "rename arrow var q->zz in BOTH positions",
+   "expect": "exit 0 (backreference robustness)",
+   "exit": 0,
+   "verdict": "PASS as expected \u2014 rule robust to minifier renames"
+  }
+ ],
+ "deleted_spans": {
+  "system_local": "[`Instructions from: ${q}<LF>${O[R]}`]:[]  (@10894959; <LF>=0x0A byte)",
+  "system_remote": "[`Instructions from: ${q}<LF>${U[R]}`]:[]  (@10895024)"
+ },
+ "artifacts": [
+  "W2DropOC3b.baseline-full.txt",
+  "W2DropOC3b.R2_full_battery.txt",
+  "W2DropOC3b.<MUTANT_ID>.txt for each of the 12 mutants",
+  "W2DropOC3b.mutants.json",
+  "W2DropOC3b.md"
+ ],
+ "mutant_dumps_kept_at": "/fast/scratch/kotoba-r47/w2/W2DropOC3b/mutants/ (NOT copied into the lane; each ~68 MB)"
+}

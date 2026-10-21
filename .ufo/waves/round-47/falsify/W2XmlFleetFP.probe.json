@@ -1,0 +1,114 @@
+[
+ {
+  "case": "comparison",
+  "yaml_line": "description: a < b and c > d",
+  "parsed": "a < b and c > d",
+  "status": "PASS",
+  "detail": "no XML tag in name, description (S003 Anthropic rule, absent from the open spec (S001); Anthropic's packager bans any '<'/'>' and is stricter)"
+ },
+ {
+  "case": "bare-tag",
+  "yaml_line": "description: use <skills> here",
+  "parsed": "use <skills> here",
+  "status": "FAIL",
+  "detail": "XML tag in description: '<skills>' (S003 Anthropic rule, absent from the open spec (S001); Anthropic's packager bans any '<'/'>' and is stricter)"
+ },
+ {
+  "case": "backticked-tag",
+  "yaml_line": "description: use `<skills>` here",
+  "parsed": "use `<skills>` here",
+  "status": "FAIL",
+  "detail": "XML tag in description: '<skills>' (S003 Anthropic rule, absent from the open spec (S001); Anthropic's packager bans any '<'/'>' and is stricter)"
+ },
+ {
+  "case": "entity",
+  "yaml_line": "description: use &lt;skills&gt; here",
+  "parsed": "use &lt;skills&gt; here",
+  "status": "PASS",
+  "detail": "no XML tag in name, description (S003 Anthropic rule, absent from the open spec (S001); Anthropic's packager bans any '<'/'>' and is stricter)"
+ },
+ {
+  "case": "single-quoted-escape",
+  "yaml_line": "description: 'use \\u003c here'",
+  "parsed": "use \\u003c here",
+  "status": "FAIL",
+  "detail": "XML tag in description: '\\\\u003c' (S003 Anthropic rule, absent from the open spec (S001); Anthropic's packager bans any '<'/'>' and is stricter)"
+ },
+ {
+  "case": "plain-escape",
+  "yaml_line": "description: use \\u003c here",
+  "parsed": "use \\u003c here",
+  "status": "FAIL",
+  "detail": "XML tag in description: '\\\\u003c' (S003 Anthropic rule, absent from the open spec (S001); Anthropic's packager bans any '<'/'>' and is stricter)"
+ },
+ {
+  "case": "double-quoted-escape",
+  "yaml_line": "description: \"use \\u003c here\"",
+  "parsed": "use \\u003c here",
+  "status": "FAIL",
+  "detail": "XML tag in description: '\\\\u003c' (S003 Anthropic rule, absent from the open spec (S001); Anthropic's packager bans any '<'/'>' and is stricter)"
+ },
+ {
+  "case": "dq-escaped-backslash",
+  "yaml_line": "description: \"use \\\\u003c here\"",
+  "parsed": "use \\\\u003c here",
+  "status": "FAIL",
+  "detail": "XML tag in description: '\\\\u003c' (S003 Anthropic rule, absent from the open spec (S001); Anthropic's packager bans any '<'/'>' and is stricter)"
+ },
+ {
+  "case": "generics-codespan",
+  "yaml_line": "description: map `List<String>` items",
+  "parsed": "map `List<String>` items",
+  "status": "FAIL",
+  "detail": "XML tag in description: '<String>' (S003 Anthropic rule, absent from the open spec (S001); Anthropic's packager bans any '<'/'>' and is stricter)"
+ },
+ {
+  "case": "unclosed",
+  "yaml_line": "description: use <skills here",
+  "parsed": "use <skills here",
+  "status": "PASS",
+  "detail": "no XML tag in name, description (S003 Anthropic rule, absent from the open spec (S001); Anthropic's packager bans any '<'/'>' and is stricter)"
+ },
+ {
+  "case": "space-after-lt",
+  "yaml_line": "description: use < skills > here",
+  "parsed": "use < skills > here",
+  "status": "PASS",
+  "detail": "no XML tag in name, description (S003 Anthropic rule, absent from the open spec (S001); Anthropic's packager bans any '<'/'>' and is stricter)"
+ },
+ {
+  "case": "fullwidth",
+  "yaml_line": "description: use ＜skills＞ here",
+  "parsed": "use ＜skills＞ here",
+  "status": "PASS",
+  "detail": "no XML tag in name, description (S003 Anthropic rule, absent from the open spec (S001); Anthropic's packager bans any '<'/'>' and is stricter)"
+ },
+ {
+  "case": "comment",
+  "yaml_line": "description: <!-- bad -->",
+  "parsed": "<!-- bad -->",
+  "status": "FAIL",
+  "detail": "XML tag in description: '<!--' (S003 Anthropic rule, absent from the open spec (S001); Anthropic's packager bans any '<'/'>' and is stricter)"
+ },
+ {
+  "case": "heart",
+  "yaml_line": "description: i <3 this",
+  "parsed": "i <3 this",
+  "status": "PASS",
+  "detail": "no XML tag in name, description (S003 Anthropic rule, absent from the open spec (S001); Anthropic's packager bans any '<'/'>' and is stricter)"
+ },
+ {
+  "case": "tag-split-folded",
+  "yaml_line": "description: >",
+  "parsed": "use <skills > here",
+  "status": "FAIL",
+  "detail": "XML tag in description: '<skills >' (S003 Anthropic rule, absent from the open spec (S001); Anthropic's packager bans any '<'/'>' and is stricter)"
+ },
+ {
+  "case": "when_to_use-field",
+  "yaml_line": "description: fine + when_to_use: use <skills>",
+  "parsed": "use <skills> here",
+  "status": "PASS",
+  "detail": "no XML tag in name, description (S003 Anthropic rule, absent from the open spec (S001); Anthropic's packager bans any '<'/'>' and is stricter)"
+ }
+]

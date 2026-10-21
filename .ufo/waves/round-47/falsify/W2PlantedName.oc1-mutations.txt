@@ -1,0 +1,29 @@
+W2PlantedName OC-1 mutation splices (P-E / P-F / second-array decoys)
+Base dump: /fast/scratch/kotoba-r47/shared/opencode-1.19.3.strings
+  sha256 f4d8f34ae02a2411eb5e30203421b6fcdfa81b83e96b768bbcf404504a297bc3
+  bytes 67839091, lines 750050
+Anchor (unique, byte span 10893162-10893235, dump line 443993):
+  ["AGENTS.md",...!t.disableClaudeCodePrompt?["CLAUDE.md"]:[],"CONTEXT.md"]
+
+strings-oc-pe-planted-GUIDE.txt  (a) P-E  sha256 ff95d3eeb06febfe49b314004f1c33cd48d44dc14bb305fcd1cfa70e9ea388ff
+  splice: ["AGENTS.md",  ->  ["AGENTS.md","GUIDE.md",   (anchor start unchanged)
+  expect: exit 1, "undeclared in baseline: opencode:instructions/GUIDE.md"   [observed]
+
+strings-oc-pf-dropped-CONTEXT.txt  (b) P-F  sha256 1a8e8cd6551254096e119b9d0e0016c043fed0eb67c7c90c37d83c44a7a9674b
+  splice: ,"CONTEXT.md"  ->  (removed, 13 bytes)
+  expect: exit 1, CONTEXT.md named by literal_present + OC-1 unmatched; 0 regex matches (no misattribution)   [observed]
+
+strings-oc-pc-bridge-sameline.txt  (c1) decoy same line  sha256 5d5527f007cf82b2412dbc44c67091cc8aa4bda5a2e0cae46e10fd51a8f0829c
+  splice: insert ["AGENTS.md","X.md"] at byte 10893100 (62 bytes before anchor, same line)
+  expect: exit 1, "undeclared in baseline: opencode:instructions/X.md"; regex anchors on the DECOY (span 10893100)   [observed]
+
+strings-oc-pc-far-ownline.txt  (c2) decoy own line  sha256 cd29b7e10e7274ddba19cac0e3887b9183be16aee7e51a37af7190a8dfb22c8a
+  splice: insert ["AGENTS.md","X.md"]\n after dump line 100
+  expect: exit 0, decoy rejected (`.` cannot cross \n), real array still matched (span +21)   [observed]
+
+Runner (from clone at 7ad7fad):
+  python3 verifiers/verify_surfaces.py \
+    --omp-strings /fast/scratch/kotoba-r47/shared/omp-18.12.5.strings \
+    --opencode-strings <scenario dump>
+
+Pristine-baseline reference: exit 0; "opencode extraction 9/9 declared class(es) from 7/7 rules".

@@ -10,6 +10,15 @@
 > the API-managed instruction entries and an env-gate — is the round-18
 > re-derivation recorded in `instruction-surface-census-round13.md` § B
 > (errata block) and `verifiers/verify_surfaces.py`.
+>
+> **2026-10-21 errata (round 47, append-only).** The substrate moved again: the
+> host now runs npm `opencode-ai` 1.19.3 (sha256 `179ca421…`, `corpus/SOURCES.md`
+> S015), whose loader is THIS file's round-14 lineage — the v2.0.26 anchors named
+> in the errata above count 0 on its dump and the round-14 anchors are back. The
+> live rule set is the round-14 one re-measured anchor by anchor (OC-3b and OC-4
+> tightened): `instruction-surface-census-round13.md` § B′ and its round-47
+> ledger, and `verifiers/verify_surfaces.py`. The "current rule set" sentence
+> above is historical for this host.
 
 **Claim (the round's axis move, coverage 8.0 → 8.5).** The instruction-surface
 inventory's machine check is no longer vacuous for the **opencode** harness:

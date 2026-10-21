@@ -1,0 +1,60 @@
+S012 source re-open — fetch record (2026-10-21)
+Row under test: corpus/SOURCES.md:25 at 7ad7fadfc09354b74fb66605dfb0c1182c115a2f
+Scratch clone: /fast/scratch/kotoba-r47/w2/W2S012Reopen-2/kotoba-shokunin (HEAD 7ad7fad, detached)
+
+[1] quick_validate.py at pinned commit
+url:    https://raw.githubusercontent.com/anthropics/skills/dbd4588f9e1033efb41dad4bef2f7947c8993d44/skills/skill-creator/scripts/quick_validate.py
+http:   200
+bytes:  3972
+lines:  102
+sha256: 67cf5703402013936c8fb75ad6a1afecd8841d45cc5e606b634eb05825fde365
+quote:  grep -cF 'Description cannot contain angle brackets (< or >)' -> 1 (line 81)
+
+[2] Same path on main
+url:    https://raw.githubusercontent.com/anthropics/skills/main/skills/skill-creator/scripts/quick_validate.py
+http:   200
+sha256: 67cf5703402013936c8fb75ad6a1afecd8841d45cc5e606b634eb05825fde365
+cmp pinned main -> identical (exit 0)
+
+[3] Repository identity
+api commit dbd4588f9e1033efb41dad4bef2f7947c8993d44:
+  commit_date 2026-10-09T18:45:49Z
+  author_date 2026-10-09T18:45:49Z
+api commits/main: sha dbd4588f9e1033efb41dad4bef2f7947c8993d44, date 2026-10-09T18:45:49Z
+api compare dbd4588...main: status identical, ahead_by 0, behind_by 0
+=> pinned commit IS main HEAD at access time.
+
+[4] Anchor lines 79-81 (1-indexed)
+79:        # Check for angle brackets
+80:        if '<' in description or '>' in description:
+81:            return False, "Description cannot contain angle brackets (< or >)"
+
+[5] Packager enforcement
+skills/skill-creator/scripts/package_skill.py:17  from scripts.quick_validate import validate_skill
+skills/skill-creator/scripts/package_skill.py:72  valid, message = validate_skill(skill_path)
+skills/skill-creator/scripts/package_skill.py:73-76  on failure: print + return None (no archive)
+fixture skill dir with description "a < b comparison":
+  python3 package_skill.py fix-tagged /tmp/s012/out
+  stdout: "Validation failed: Description cannot contain angle brackets (< or >)"
+  exit 1; /tmp/s012/out does not exist
+
+[6] Validator fixtures (python3, PyYAML 6.0.3)
+description "a < b comparison"  -> exit 1, same message
+description "uses <skills> tag" -> exit 1, same message
+description "a > b comparison"  -> exit 1, same message
+description "plain description" -> exit 0, "Skill is valid!"
+
+[7] Open spec (S001) absence sweep
+url:    https://agentskills.io/specification
+http:   200, bytes 459866
+rendered text (scripts/styles stripped): "xml" 0, "bracket" 0, "markup" 0
+only "<" occurrence: "Instructions (< 5000 tokens recommended)" (body-size budget)
+description frontmatter cell: "Max 1024 characters. Non-empty. Describes what the skill does and when to use it."
+=> no angle-bracket and no XML-tag rule in the open spec.
+
+[8] File history via API at pinned commit (path skills/skill-creator/scripts/quick_validate.py)
+1ed29a03dc 2026-02-06T21:19:32Z  Update skill-creator and make scripts executable (#350)
+ef740771ac 2025-12-01T18:05:36Z  Move example skills into dedicated folder and create minimal top-level
+(the landed row carries neither history claim; recorded for completeness)
+
+Tooling: no installs or upgrades; curl, python3, coreutils, git only.

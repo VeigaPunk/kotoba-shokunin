@@ -1,0 +1,57 @@
+{
+  "lane": "KotobaR47-2.W2ReadHook-2",
+  "landed_commit": "7ad7fadfc09354b74fb66605dfb0c1182c115a2f",
+  "substrate": {
+    "dump": "/fast/scratch/kotoba-r47/shared/opencode-1.19.3.strings",
+    "dump_sha256": "f4d8f34ae02a2411eb5e30203421b6fcdfa81b83e96b768bbcf404504a297bc3",
+    "sha256sum_c_sha256sums_exit": 0
+  },
+  "anchor_counts": {
+    "fn(\"Instruction.resolve\")": {"occurrences": 1, "line": 443995},
+    "fn(\"ReadTool.execute\")": {"occurrences": 1, "line": 444228},
+    "e.resolve(g.messages,h,g.messageID)": {"occurrences": 1, "line": 444233},
+    "read_tool_injection_site": {"line": "444241-444242"},
+    "<system-reminder>": {"occurrences": 18, "lines": 15}
+  },
+  "baseline_runs": [
+    {"cmd": "python3 verifiers/verify_surfaces.py --repo . --opencode-strings <frozen> --omp-strings <frozen>", "exit": 0, "checks": "7/7 PASS, opencode 9/9 from 7/7 rules"},
+    {"cmd": "python3 verifiers/verify_surfaces.py --self-test", "exit": 0, "assertions": 99, "failures": 0}
+  ],
+  "mutants": [
+    {
+      "id": "M1",
+      "change": "fn(\"ReadTool.execute\") -> fn(\"ReadT00l.execute\")",
+      "sha256": "4b71073bd665d5ff40b33e1e592524be891114d821cb9529ce93e514597c56ef",
+      "exit": 1,
+      "detail": "FAIL surfaces.opencode_extract: declared opencode class(es) produced by no rule: opencode:read-hook/instructions; rule(s) matched nothing: OC-4",
+      "verdict": "killed"
+    },
+    {
+      "id": "M2",
+      "change": "e.resolve(g.messages,h,g.messageID) -> e.notresolve(g.messages,h,g.messageID); both fn markers kept",
+      "sha256": "e605e6391ec88057aba87a4f6681660a15871c81d1dc2b44e54f29206f045dd6",
+      "exit": 0,
+      "detail": "7/7 PASS, opencode 9/9 from 7/7 rules (OC-1..OC-6)",
+      "verdict": "survived — gate does not test the caller relation"
+    },
+    {
+      "id": "M3",
+      "change": "removed read-tool injection tags at dump:444241-444242; 17 other <system-reminder> occurrences remain (incl. prompt text dump:443193)",
+      "sha256": "f657b782535a8b7bd7c4603f1f95026a567099fbdfca3980211d132978b732af",
+      "exit": 0,
+      "detail": "7/7 PASS, opencode 9/9 from 7/7 rules (OC-1..OC-6)",
+      "verdict": "survived — gate does not test the injection site"
+    }
+  ],
+  "repro": {
+    "script": "W2ReadHook.repro.txt",
+    "runtime": "node v24.21.0",
+    "case_A_nested_read_attached": 2,
+    "case_B_prefix_sibling_attached_outside_instance_dir": 1
+  },
+  "gate_code_refs": {
+    "rule": "verifiers/verify_surfaces.py:479-484",
+    "comment_claiming_caller_and_injection": "verifiers/verify_surfaces.py:421-429",
+    "coarse_missing_list": "verifiers/verify_surfaces.py:441"
+  }
+}

@@ -1,0 +1,19 @@
+SURVIVING MUTANT decoy-elsewhere (exit 0 on verify_surfaces.py) — diff vs frozen dump
+pristine sha256: f4d8f34ae02a2411eb5e30203421b6fcdfa81b83e96b768bbcf404504a297bc3 (67839091 bytes)
+mutant   sha256: dbd866e7e2c5374bc9e890d0098e75a3a47e3bac46f311739ca7c05f1d9f5823 (67839093 bytes)
+
+CHANGE 1 — deleted at line 443993, bytes 10894343..10894371 (-28 bytes):
+-for(let O of T.instructions)
+  left in place: ...if(T.instructions){if(O.startsWith("https://")||O.startsWith("http://"))continue;...
+  (the declared-list consumer loop is GONE; only the `if(T.instructions)` guard remains)
+
+CHANGE 2 — appended at EOF, mutant bytes 67839063..67839093 (+30 bytes):
++for(let X of Y.instructions)
+  (a same-shape decoy `for(let X of Y.instructions)` in an unrelated chunk)
+
+RESULT: python3 kotoba-shokunin/verifiers/verify_surfaces.py --repo kotoba-shokunin
+  --omp-strings /fast/scratch/kotoba-r47/shared/omp-18.12.5.strings
+  --opencode-strings mut/mut-decoy-elsewhere.strings --json  => exit 0, 7/7 PASS,
+  surfaces.opencode_extract PASS "9/9 declared class(es) from 7/7 rules".
+OC-3a is a text-shape witness: any `for(let <v> of <v>.instructions)` anywhere in the
+dump satisfies it, so the real consumer can be deleted if a decoy of the same shape exists.

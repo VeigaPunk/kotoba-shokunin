@@ -1,0 +1,80 @@
+# W2LessonM20 — M20 pointer + prototype re-run battery
+# lane: KotobaR47-2.W2LessonM20-2 | tip 7ad7fadfc09354b74fb66605dfb0c1182c115a2f | BASE c61a973b2e02e1ded169703ddcb06466f4edd8bd
+# scratch clone: /fast/scratch/kotoba-r47/w2/W2LessonM20/kotoba-shokunin
+# prototype applied from committed patch .ufo/waves/round-47/build/MistakeStalePremise.patch (sha256 a83419d785ffe141945790b9bdd4b627ef1342d135f84c20e6ef14b4c74f460f)
+# generated 2026-10-21T13:58:58-03:00
+
+## M20 pointer 1: git show c61a973:SCORECARD.md | grep -c 'installed omp 18.12.3'
+1
+exit=0
+
+## M20 pointer 2: omp --version
+omp/18.12.5
+exit=0
+
+## M20 pointer 3: BASE python3 -B verifiers/verify_surfaces.py --json  (run detached: the verifier kills the caller's process group)
+exit=2
+  "error": "opencode binary not found: /home/vgpnk/.opencode/bin/opencode"
+
+## M20 pointer 4: BASE python3 -B verifiers/check_substrate_pins.py
+exit=2
+ERROR UNREADABLE opencode_binary_sha256: [Errno 2] No such file or directory: '/home/vgpnk/.opencode/bin/opencode'
+FAIL omp_binary_sha256: sha256 drift: expect=9513ef9f19d7991aac6ae0cb6077bcf16662092ddde861c002a91cedc6f47f9a got=fdbc8136084c9a10439569157b2af62312e2b0d801cab54c73e89476da798e7e
+FAIL omp_binary_mtime: mtime drift (sha256 not compared): pinned_ns=2026-10-19T12:35:55.628149917-03:00 observed_ns=1792564238135013187 delta_ns=140082506863270 tolerance_ns=0
+FAIL opencode_binary_sha256: UNREADABLE: [Errno 2] No such file or directory: '/home/vgpnk/.opencode/bin/opencode'
+DRIFT 3/3 pins failed: omp_binary_sha256, omp_binary_mtime, opencode_binary_sha256
+
+## prototype on the three stale copies (BASE c61a973)
+FAIL SCORECARD.md:101: planned omp 18.12.3 != live omp 18.12.5
+STALE 1 planned premise(s) name no live substrate (live omp 18.12.5)
+SCORECARD.md exit=1
+FAIL corpus/README.md:74: planned omp 18.12.3 != live omp 18.12.5
+STALE 1 planned premise(s) name no live substrate (live omp 18.12.5)
+corpus/README.md exit=1
+FAIL PROVINCE.md:21: planned omp 18.12.3 != live omp 18.12.5
+STALE 1 planned premise(s) name no live substrate (live omp 18.12.5)
+PROVINCE.md exit=1
+
+## fixture control pair (fake omp 18.12.5) -- lane fixtures, not committed
+FAIL /fast/scratch/kotoba-r47/MistakeStalePremise/fixtures/stale.md:1: planned omp 18.12.3 != live omp 18.12.5
+STALE 1 planned premise(s) name no live substrate (live omp 18.12.5)
+fixture-stale exit=1
+PASS every named premise matches live omp 18.12.5
+fixture-fresh exit=0
+FAIL /fast/scratch/kotoba-r47/MistakeStalePremise/fixtures/absent-path.md:1: pinned binary path absent: /home/vgpnk/.opencode/bin/opencode
+STALE 1 planned premise(s) name no live substrate (live omp 18.12.5)
+fixture-absent-path exit=1
+PASS every named premise matches live omp 18.12.5
+fixture-present-path exit=0
+
+## no-omp arm
+ERROR cannot read live omp version: [Errno 2] No such file or directory: '/nonexistent/omp'
+exit=2
+
+## counterexamples
+PASS every named premise matches live omp 18.12.5
+CE-copied-counts exit=0
+PASS every named premise matches live omp 18.12.5
+CE-major-bump exit=0
+FAIL /fast/scratch/kotoba-r47/w2/W2LessonM20/ce/erratum-mention.md:2: planned omp 18.12.3 != live omp 18.12.5
+STALE 1 planned premise(s) name no live substrate (live omp 18.12.5)
+CE-erratum-mention exit=1
+FAIL /fast/scratch/kotoba-r47/w2/W2LessonM20/ce/historical-table.md:5: planned omp 18.12.3 != live omp 18.12.5
+FAIL /fast/scratch/kotoba-r47/w2/W2LessonM20/ce/historical-table.md:6: planned omp 18.12.4 != live omp 18.12.5
+STALE 2 planned premise(s) name no live substrate (live omp 18.12.5)
+CE-historical-table exit=1
+ERROR cannot read live omp version: no 18.12.x in: 'omp/19.0.1'
+CE-major-bump-with-omp-19 exit=2
+
+## prototype at TIP 7ad7fad on the three front-door files
+FAIL SCORECARD.md:101: planned omp 18.12.3 != live omp 18.12.5
+FAIL SCORECARD.md:106: planned omp 18.12.3 != live omp 18.12.5
+STALE 2 planned premise(s) name no live substrate (live omp 18.12.5)
+TIP SCORECARD.md exit=1
+FAIL corpus/README.md:76: planned omp 18.12.3 != live omp 18.12.5
+STALE 1 planned premise(s) name no live substrate (live omp 18.12.5)
+TIP corpus/README.md exit=1
+FAIL PROVINCE.md:22: planned omp 18.12.3 != live omp 18.12.5
+STALE 1 planned premise(s) name no live substrate (live omp 18.12.5)
+TIP PROVINCE.md exit=1
+DONE

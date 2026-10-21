@@ -1,0 +1,79 @@
+# W2DropOC6 survivor diffs (lane-authored; generated from the mutation harness)
+# dump-level: windows of opencode-1.19.3.strings around the mutated site (newlines shown as \n)
+
+--- a/opencode-1.19.3.strings  (dump line 445482, byte 12866409)  [W-config: ungated config-dir candidate reads CLAUDE.md]
++++ b/opencode-1.19.3.strings  (mutant W-config.strings)
+-||!h?[]:yield*H.up({targets:["AGENTS.md"],start:S,stop:$}),H.resolve)),F=yP.dedupe([yield*H.resolve(jX(L.config,"AGENTS.md")),...U]),y=yield*M.forEach(F,(x)=>H.readFileStringSafe(x).pipe(M.map((T)=>T===void 0?void 0:new LD({
++||!h?[]:yield*H.up({targets:["AGENTS.md"],start:S,stop:$}),H.resolve)),F=yP.dedupe([yield*H.resolve(jX(L.config,"CLAUDE.md")),...U]),y=yield*M.forEach(F,(x)=>H.readFileStringSafe(x).pipe(M.map((T)=>T===void 0?void 0:new LD({
+
+--- a/opencode-1.19.3.strings  (dump line 445482, byte 12866329)  [W-walk-stop: all-match walk bounded at cwd, not project root]
++++ b/opencode-1.19.3.strings  (mutant W-walk-stop.strings)
+-(`..${pX}`)&&!qX(P),U=new Set(yield*M.forEach(qE.OPENCODE_DISABLE_PROJECT_CONFIG||!h?[]:yield*H.up({targets:["AGENTS.md"],start:S,stop:$}),H.resolve)),F=yP.dedupe([yield*H.resolve(jX(L.config,"AGENTS.md")),...U]),y=yield*M.forEach(F,(x)=
++(`..${pX}`)&&!qX(P),U=new Set(yield*M.forEach(qE.OPENCODE_DISABLE_PROJECT_CONFIG||!h?[]:yield*H.up({targets:["AGENTS.md"],start:S,stop:S}),H.resolve)),F=yP.dedupe([yield*H.resolve(jX(L.config,"AGENTS.md")),...U]),y=yield*M.forEach(F,(x)=
+
+--- a/opencode-1.19.3.strings  (dump line 445482, byte 12866275)  [W-gate: project-walk gate removed]
++++ b/opencode-1.19.3.strings  (mutant W-gate.strings)
+-directory),P=OX($,S),h=P===""||P!==".."&&!P.startsWith(`..${pX}`)&&!qX(P),U=new Set(yield*M.forEach(qE.OPENCODE_DISABLE_PROJECT_CONFIG||!h?[]:yield*H.up({targets:["AGENTS.md"],start:S,stop:$}),H.resolve)),F=yP.dedupe([yield*H.resolve(jX(L.config,"AGENTS
++directory),P=OX($,S),h=P===""||P!==".."&&!P.startsWith(`..${pX}`)&&!qX(P),U=new Set(yield*M.forEach(yield*H.up({targets:["AGENTS.md"],start:S,stop:$}),H.resolve)),F=yP.dedupe([yield*H.resolve(jX(L.config,"AGENTS
+
+# dump-level decoy (D1): the four real anchors deleted, the same literals re-planted in a dead line
+--- a/opencode-1.19.3.strings
++++ b/opencode-1.19.3.strings (D1-decoy.strings)
+-InstructionContext.observe ... Key.make("core/instructions") ... targets:["AGENTS.md"] ... system-context-builtins (real loader at dump lines 445481-445487)
++DEAD: InstructionContext.observe Key.make("core/instructions") targets:["AGENTS.md"] system-context-builtins
+
+# code-level mutant K1-all-to-any (working copy only; not committed)
+--- a/verifiers/verify_surfaces.py
++++ b/verifiers/verify_surfaces.py (K1-all-to-any)
+@@ -493,5 +493,5 @@
+ 
+     # OC-6 — second instruction subsystem (own load condition for AGENTS.md)
+-    v2 = all(a in dump for a in (OC_V2_KEY, OC_V2_TARGETS, OC_V2_OBSERVE,
++    v2 = any(a in dump for a in (OC_V2_KEY, OC_V2_TARGETS, OC_V2_OBSERVE,
+                                  OC_V2_REGISTRATION))
+     rule("OC-6", ["opencode:instruction-context/AGENTS.md"], v2,
+
+# code-level mutant K2-drop-OBS-tuple (working copy only; not committed)
+--- a/verifiers/verify_surfaces.py
++++ b/verifiers/verify_surfaces.py (K2-drop-OBS-tuple)
+@@ -493,5 +493,5 @@
+ 
+     # OC-6 — second instruction subsystem (own load condition for AGENTS.md)
+-    v2 = all(a in dump for a in (OC_V2_KEY, OC_V2_TARGETS, OC_V2_OBSERVE,
++    v2 = all(a in dump for a in (OC_V2_KEY, OC_V2_TARGETS, 
+                                  OC_V2_REGISTRATION))
+     rule("OC-6", ["opencode:instruction-context/AGENTS.md"], v2,
+
+# code-level mutant K3-drop-TGT-tuple (working copy only; not committed)
+--- a/verifiers/verify_surfaces.py
++++ b/verifiers/verify_surfaces.py (K3-drop-TGT-tuple)
+@@ -493,5 +493,5 @@
+ 
+     # OC-6 — second instruction subsystem (own load condition for AGENTS.md)
+-    v2 = all(a in dump for a in (OC_V2_KEY, OC_V2_TARGETS, OC_V2_OBSERVE,
++    v2 = all(a in dump for a in (OC_V2_KEY, OC_V2_OBSERVE,
+                                  OC_V2_REGISTRATION))
+     rule("OC-6", ["opencode:instruction-context/AGENTS.md"], v2,
+
+# code-level mutant K4-drop-KEY-tuple (working copy only; not committed)
+--- a/verifiers/verify_surfaces.py
++++ b/verifiers/verify_surfaces.py (K4-drop-KEY-tuple)
+@@ -493,5 +493,5 @@
+ 
+     # OC-6 — second instruction subsystem (own load condition for AGENTS.md)
+-    v2 = all(a in dump for a in (OC_V2_KEY, OC_V2_TARGETS, OC_V2_OBSERVE,
++    v2 = all(a in dump for a in (OC_V2_TARGETS, OC_V2_OBSERVE,
+                                  OC_V2_REGISTRATION))
+     rule("OC-6", ["opencode:instruction-context/AGENTS.md"], v2,
+
+# code-level mutant K5-drop-REG-tuple (working copy only; not committed)
+--- a/verifiers/verify_surfaces.py
++++ b/verifiers/verify_surfaces.py (K5-drop-REG-tuple)
+@@ -494,5 +494,5 @@
+     # OC-6 — second instruction subsystem (own load condition for AGENTS.md)
+     v2 = all(a in dump for a in (OC_V2_KEY, OC_V2_TARGETS, OC_V2_OBSERVE,
+-                                 OC_V2_REGISTRATION))
++                                 ))
+     rule("OC-6", ["opencode:instruction-context/AGENTS.md"], v2,
+          [OC_V2_OBSERVE, OC_V2_KEY, OC_V2_TARGETS, OC_V2_REGISTRATION])
+

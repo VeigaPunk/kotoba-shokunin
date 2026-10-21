@@ -1,0 +1,679 @@
+{
+  "lane": "KotobaR47-2.W2DropOC4-2",
+  "tip": "7ad7fadfc09354b74fb66605dfb0c1182c115a2f",
+  "base_dump_sha256": "f4d8f34ae02a2411eb5e30203421b6fcdfa81b83e96b768bbcf404504a297bc3",
+  "omp_dump": "/fast/scratch/kotoba-r47/shared/omp-18.12.5.strings",
+  "mutants": [
+    {
+      "name": "M00-control",
+      "why": "no edits (harness fidelity)",
+      "correct_exit": 0,
+      "exit": 0,
+      "verdict": "OK",
+      "fails": [],
+      "opencode_extract": [
+        "PASS surfaces.opencode_extract: opencode extraction 9/9 declared class(es) from 7/7 rules (OC-1, OC-2, OC-3a, OC-3b, OC-4, OC-5, OC-6)"
+      ],
+      "edits": [],
+      "diff_samples": [],
+      "stderr_tail": ""
+    },
+    {
+      "name": "M01-instr-delete",
+      "why": "delete fn(\"Instruction.resolve\")",
+      "correct_exit": 1,
+      "exit": 1,
+      "verdict": "OK",
+      "fails": [
+        "surfaces.opencode_extract"
+      ],
+      "opencode_extract": [
+        "FAIL surfaces.opencode_extract: declared opencode class(es) produced by no rule: opencode:read-hook/instructions; rule(s) matched nothing: OC-4 (owns opencode:read-hook/instructions; missing fn(\"Instruction.resolve\") + fn(\"ReadTool.execute\") + <system-reminder>)"
+      ],
+      "edits": [
+        {
+          "offset": 10895197,
+          "line": 443995,
+          "old": "fn(\"Instruction.resolve\")",
+          "new": ""
+        }
+      ],
+      "diff_samples": [
+        "L443995 ...X.resolve(X.join(T,d));if(yield*e.existsSafe(w))return w}return}),b=s.[-fn(\"Instruction.resolve\")-]{++}(function*(T,d,w){let O=yield*g(),U=qe(T),q=[],R=yield*J.get(u),N=X.re..."
+      ],
+      "stderr_tail": ""
+    },
+    {
+      "name": "M02-instr-corrupt",
+      "why": "corrupt Instruction.resolve label",
+      "correct_exit": 1,
+      "exit": 1,
+      "verdict": "OK",
+      "fails": [
+        "surfaces.opencode_extract"
+      ],
+      "opencode_extract": [
+        "FAIL surfaces.opencode_extract: declared opencode class(es) produced by no rule: opencode:read-hook/instructions; rule(s) matched nothing: OC-4 (owns opencode:read-hook/instructions; missing fn(\"Instruction.resolve\") + fn(\"ReadTool.execute\") + <system-reminder>)"
+      ],
+      "edits": [
+        {
+          "offset": 10895197,
+          "line": 443995,
+          "old": "fn(\"Instruction.resolve\")",
+          "new": "fn(\"Instruction.resolv\")"
+        }
+      ],
+      "diff_samples": [
+        "L443995 ...X.resolve(X.join(T,d));if(yield*e.existsSafe(w))return w}return}),b=s.[-fn(\"Instruction.resolve\")-]{+fn(\"Instruction.resolv\")+}(function*(T,d,w){let O=yield*g(),U=qe(T),q=[],R=yield*J.get(u),N=X.re..."
+      ],
+      "stderr_tail": ""
+    },
+    {
+      "name": "M03-instr-label-rename",
+      "why": "debug label renamed, behaviour-preserving",
+      "correct_exit": 0,
+      "exit": 1,
+      "verdict": "FALSE-RED (too narrow)",
+      "fails": [
+        "surfaces.opencode_extract"
+      ],
+      "opencode_extract": [
+        "FAIL surfaces.opencode_extract: declared opencode class(es) produced by no rule: opencode:read-hook/instructions; rule(s) matched nothing: OC-4 (owns opencode:read-hook/instructions; missing fn(\"Instruction.resolve\") + fn(\"ReadTool.execute\") + <system-reminder>)"
+      ],
+      "edits": [
+        {
+          "offset": 10895197,
+          "line": 443995,
+          "old": "fn(\"Instruction.resolve\")",
+          "new": "fn(\"Instruction.resolveNearest\")"
+        }
+      ],
+      "diff_samples": [
+        "L443995 ...X.resolve(X.join(T,d));if(yield*e.existsSafe(w))return w}return}),b=s.[-fn(\"Instruction.resolve\")-]{+fn(\"Instruction.resolveNearest\")+}(function*(T,d,w){let O=yield*g(),U=qe(T),q=[],R=yield*J.get(u),N=X.re..."
+      ],
+      "stderr_tail": ""
+    },
+    {
+      "name": "M04-instr-quote-respell",
+      "why": "JS-equivalent single-quote spelling",
+      "correct_exit": 0,
+      "exit": 1,
+      "verdict": "FALSE-RED (too narrow)",
+      "fails": [
+        "surfaces.opencode_extract"
+      ],
+      "opencode_extract": [
+        "FAIL surfaces.opencode_extract: declared opencode class(es) produced by no rule: opencode:read-hook/instructions; rule(s) matched nothing: OC-4 (owns opencode:read-hook/instructions; missing fn(\"Instruction.resolve\") + fn(\"ReadTool.execute\") + <system-reminder>)"
+      ],
+      "edits": [
+        {
+          "offset": 10895197,
+          "line": 443995,
+          "old": "fn(\"Instruction.resolve\")",
+          "new": "fn('Instruction.resolve')"
+        }
+      ],
+      "diff_samples": [
+        "L443995 ...X.resolve(X.join(T,d));if(yield*e.existsSafe(w))return w}return}),b=s.[-fn(\"Instruction.resolve\")-]{+fn('Instruction.resolve')+}(function*(T,d,w){let O=yield*g(),U=qe(T),q=[],R=yield*J.get(u),N=X.re..."
+      ],
+      "stderr_tail": ""
+    },
+    {
+      "name": "M05-instr-live-gone-stale-copy",
+      "why": "live label gone; stale copy appended at EOF",
+      "correct_exit": 1,
+      "exit": 0,
+      "verdict": "SURVIVOR (too wide)",
+      "fails": [],
+      "opencode_extract": [
+        "PASS surfaces.opencode_extract: opencode extraction 9/9 declared class(es) from 7/7 rules (OC-1, OC-2, OC-3a, OC-3b, OC-4, OC-5, OC-6)"
+      ],
+      "edits": [
+        {
+          "offset": 10895197,
+          "line": 443995,
+          "old": "fn(\"Instruction.resolve\")",
+          "new": "fn(\"Instruction.resolveX\")"
+        },
+        {
+          "offset": 67839091,
+          "line": 750050,
+          "old": "",
+          "new": "\nfn(\"Instruction.resolve\")\n"
+        }
+      ],
+      "diff_samples": [
+        "L443995 ...X.resolve(X.join(T,d));if(yield*e.existsSafe(w))return w}return}),b=s.[-fn(\"Instruction.resolve\")-]{+fn(\"Instruction.resolveX\")+}(function*(T,d,w){let O=yield*g(),U=qe(T),q=[],R=yield*J.get(u),N=X.re...",
+        "L750050 ..._DATA,__wtf_config\n.dynamic\n.got\n.got.plt\n.bss\n.comment\n.note.stapsdt\n[--]{+\nfn(\"Instruction.resolve\")\n+}..."
+      ],
+      "stderr_tail": ""
+    },
+    {
+      "name": "M06-read-delete",
+      "why": "delete fn(\"ReadTool.execute\")",
+      "correct_exit": 1,
+      "exit": 1,
+      "verdict": "OK",
+      "fails": [
+        "surfaces.opencode_extract"
+      ],
+      "opencode_extract": [
+        "FAIL surfaces.opencode_extract: declared opencode class(es) produced by no rule: opencode:read-hook/instructions; rule(s) matched nothing: OC-4 (owns opencode:read-hook/instructions; missing fn(\"Instruction.resolve\") + fn(\"ReadTool.execute\") + <system-reminder>)"
+      ],
+      "edits": [
+        {
+          "offset": 10946276,
+          "line": 444228,
+          "old": "fn(\"ReadTool.execute\")",
+          "new": ""
+        }
+      ],
+      "diff_samples": [
+        "L444228 ...0)return!0;if(g[b]<9||g[b]>13&&g[b]<32)h++}return h/g.length>0.3},$=s.[-fn(\"ReadTool.execute\")-]{++}(function*(a,g){let c=yield*J.context,h=a.filePath;if(!z.isAbsolute(h)..."
+      ],
+      "stderr_tail": ""
+    },
+    {
+      "name": "M07-read-corrupt",
+      "why": "corrupt ReadTool.execute label",
+      "correct_exit": 1,
+      "exit": 1,
+      "verdict": "OK",
+      "fails": [
+        "surfaces.opencode_extract"
+      ],
+      "opencode_extract": [
+        "FAIL surfaces.opencode_extract: declared opencode class(es) produced by no rule: opencode:read-hook/instructions; rule(s) matched nothing: OC-4 (owns opencode:read-hook/instructions; missing fn(\"Instruction.resolve\") + fn(\"ReadTool.execute\") + <system-reminder>)"
+      ],
+      "edits": [
+        {
+          "offset": 10946276,
+          "line": 444228,
+          "old": "fn(\"ReadTool.execute\")",
+          "new": "fn(\"ReadTool.execut\")"
+        }
+      ],
+      "diff_samples": [
+        "L444228 ...0)return!0;if(g[b]<9||g[b]>13&&g[b]<32)h++}return h/g.length>0.3},$=s.[-fn(\"ReadTool.execute\")-]{+fn(\"ReadTool.execut\")+}(function*(a,g){let c=yield*J.context,h=a.filePath;if(!z.isAbsolute(h)..."
+      ],
+      "stderr_tail": ""
+    },
+    {
+      "name": "M08-read-label-rename",
+      "why": "debug label renamed, behaviour-preserving",
+      "correct_exit": 0,
+      "exit": 1,
+      "verdict": "FALSE-RED (too narrow)",
+      "fails": [
+        "surfaces.opencode_extract"
+      ],
+      "opencode_extract": [
+        "FAIL surfaces.opencode_extract: declared opencode class(es) produced by no rule: opencode:read-hook/instructions; rule(s) matched nothing: OC-4 (owns opencode:read-hook/instructions; missing fn(\"Instruction.resolve\") + fn(\"ReadTool.execute\") + <system-reminder>)"
+      ],
+      "edits": [
+        {
+          "offset": 10946276,
+          "line": 444228,
+          "old": "fn(\"ReadTool.execute\")",
+          "new": "fn(\"ReadTool.run\")"
+        }
+      ],
+      "diff_samples": [
+        "L444228 ...0)return!0;if(g[b]<9||g[b]>13&&g[b]<32)h++}return h/g.length>0.3},$=s.[-fn(\"ReadTool.execute\")-]{+fn(\"ReadTool.run\")+}(function*(a,g){let c=yield*J.context,h=a.filePath;if(!z.isAbsolute(h)..."
+      ],
+      "stderr_tail": ""
+    },
+    {
+      "name": "M09-read-quote-respell",
+      "why": "JS-equivalent single-quote spelling",
+      "correct_exit": 0,
+      "exit": 1,
+      "verdict": "FALSE-RED (too narrow)",
+      "fails": [
+        "surfaces.opencode_extract"
+      ],
+      "opencode_extract": [
+        "FAIL surfaces.opencode_extract: declared opencode class(es) produced by no rule: opencode:read-hook/instructions; rule(s) matched nothing: OC-4 (owns opencode:read-hook/instructions; missing fn(\"Instruction.resolve\") + fn(\"ReadTool.execute\") + <system-reminder>)"
+      ],
+      "edits": [
+        {
+          "offset": 10946276,
+          "line": 444228,
+          "old": "fn(\"ReadTool.execute\")",
+          "new": "fn('ReadTool.execute')"
+        }
+      ],
+      "diff_samples": [
+        "L444228 ...0)return!0;if(g[b]<9||g[b]>13&&g[b]<32)h++}return h/g.length>0.3},$=s.[-fn(\"ReadTool.execute\")-]{+fn('ReadTool.execute')+}(function*(a,g){let c=yield*J.context,h=a.filePath;if(!z.isAbsolute(h)..."
+      ],
+      "stderr_tail": ""
+    },
+    {
+      "name": "M10-read-live-gone-stale-copy",
+      "why": "live label gone; stale copy appended at EOF",
+      "correct_exit": 1,
+      "exit": 0,
+      "verdict": "SURVIVOR (too wide)",
+      "fails": [],
+      "opencode_extract": [
+        "PASS surfaces.opencode_extract: opencode extraction 9/9 declared class(es) from 7/7 rules (OC-1, OC-2, OC-3a, OC-3b, OC-4, OC-5, OC-6)"
+      ],
+      "edits": [
+        {
+          "offset": 10946276,
+          "line": 444228,
+          "old": "fn(\"ReadTool.execute\")",
+          "new": "fn(\"ReadTool.executeX\")"
+        },
+        {
+          "offset": 67839091,
+          "line": 750050,
+          "old": "",
+          "new": "\nfn(\"ReadTool.execute\")\n"
+        }
+      ],
+      "diff_samples": [
+        "L444228 ...0)return!0;if(g[b]<9||g[b]>13&&g[b]<32)h++}return h/g.length>0.3},$=s.[-fn(\"ReadTool.execute\")-]{+fn(\"ReadTool.executeX\")+}(function*(a,g){let c=yield*J.context,h=a.filePath;if(!z.isAbsolute(h)...",
+        "L750050 ..._DATA,__wtf_config\n.dynamic\n.got\n.got.plt\n.bss\n.comment\n.note.stapsdt\n[--]{+\nfn(\"ReadTool.execute\")\n+}..."
+      ],
+      "stderr_tail": ""
+    },
+    {
+      "name": "M11-call-edge-severed",
+      "why": "ReadTool.execute no longer calls the resolver; labels intact",
+      "correct_exit": 1,
+      "exit": 0,
+      "verdict": "SURVIVOR (too wide)",
+      "fails": [],
+      "opencode_extract": [
+        "PASS surfaces.opencode_extract: opencode extraction 9/9 declared class(es) from 7/7 rules (OC-1, OC-2, OC-3a, OC-3b, OC-4, OC-5, OC-6)"
+      ],
+      "edits": [
+        {
+          "offset": 10947285,
+          "line": 444233,
+          "old": "e.resolve(g.messages",
+          "new": "e.zzz(g.messages"
+        }
+      ],
+      "diff_samples": [
+        "L444233 ...h,entries:f,offset:k,totalEntries:W.length,truncated:B}}}}let d=yield*[-e.resolve(g.messages-]{+e.zzz(g.messages+},h,g.messageID),w=yield*u(h,Number(T.size),Qs),O=st(w,V.mimeType(h));i..."
+      ],
+      "stderr_tail": ""
+    },
+    {
+      "name": "M12-inhook-token-removed",
+      "why": "read-hook delivery wrapper removed; 17 other tokens remain",
+      "correct_exit": 1,
+      "exit": 0,
+      "verdict": "SURVIVOR (too wide)",
+      "fails": [],
+      "opencode_extract": [
+        "PASS surfaces.opencode_extract: opencode extraction 9/9 declared class(es) from 7/7 rules (OC-1, OC-2, OC-3a, OC-3b, OC-4, OC-5, OC-6)"
+      ],
+      "edits": [
+        {
+          "offset": 10948410,
+          "line": 444241,
+          "old": "<system-reminder>",
+          "new": "<system-note>"
+        }
+      ],
+      "diff_samples": [
+        "L444241 ...tal ${q.count} lines)`;if(R+=`\n</content>`,yield*y(h),d.length>0)R+=`\n[-<system-reminder>-]{+<system-note>+}\n${d.map((W)=>W.content).join(`\n</system-reminder>`;return{title:b,out..."
+      ],
+      "stderr_tail": ""
+    },
+    {
+      "name": "M13-token-prompt-only",
+      "why": "only tool-description prose keeps the token",
+      "correct_exit": 1,
+      "exit": 0,
+      "verdict": "SURVIVOR (too wide)",
+      "fails": [],
+      "opencode_extract": [
+        "PASS surfaces.opencode_extract: opencode extraction 9/9 declared class(es) from 7/7 rules (OC-1, OC-2, OC-3a, OC-3b, OC-4, OC-5, OC-6)"
+      ],
+      "edits": [
+        {
+          "offset": 10721238,
+          "line": 443280,
+          "old": "<system-reminder>",
+          "new": "<system-note>"
+        },
+        {
+          "offset": 10721262,
+          "line": 443280,
+          "old": "<system-reminder>",
+          "new": "<system-note>"
+        },
+        {
+          "offset": 10758557,
+          "line": 443597,
+          "old": "<system-reminder>",
+          "new": "<system-note>"
+        },
+        {
+          "offset": 10764718,
+          "line": 443630,
+          "old": "<system-reminder>",
+          "new": "<system-note>"
+        },
+        {
+          "offset": 10779429,
+          "line": 443728,
+          "old": "<system-reminder>",
+          "new": "<system-note>"
+        },
+        {
+          "offset": 10794472,
+          "line": 443868,
+          "old": "<system-reminder>",
+          "new": "<system-note>"
+        },
+        {
+          "offset": 10794496,
+          "line": 443868,
+          "old": "<system-reminder>",
+          "new": "<system-note>"
+        },
+        {
+          "offset": 10838588,
+          "line": 443901,
+          "old": "<system-reminder>",
+          "new": "<system-note>"
+        },
+        {
+          "offset": 10840065,
+          "line": 443916,
+          "old": "<system-reminder>",
+          "new": "<system-note>"
+        },
+        {
+          "offset": 10840308,
+          "line": 443921,
+          "old": "<system-reminder>",
+          "new": "<system-note>"
+        },
+        {
+          "offset": 10948410,
+          "line": 444241,
+          "old": "<system-reminder>",
+          "new": "<system-note>"
+        },
+        {
+          "offset": 11554282,
+          "line": 444800,
+          "old": "<system-reminder>",
+          "new": "<system-note>"
+        },
+        {
+          "offset": 21627983,
+          "line": 447443,
+          "old": "<system-reminder>",
+          "new": "<system-note>"
+        },
+        {
+          "offset": 21669882,
+          "line": 447466,
+          "old": "<system-reminder>",
+          "new": "<system-note>"
+        },
+        {
+          "offset": 21674185,
+          "line": 447467,
+          "old": "<system-reminder>",
+          "new": "<system-note>"
+        },
+        {
+          "offset": 21674330,
+          "line": 447468,
+          "old": "<system-reminder>",
+          "new": "<system-note>"
+        }
+      ],
+      "diff_samples": [
+        "L443280 ...are being too proactive.\n- Tool results and user messages may include [-<system-reminder>-]{+<system-note>+} tags. <system-reminder> tags contain useful information and reminders...",
+        "L443280 ...\n- Tool results and user messages may include <system-reminder> tags. [-<system-reminder>-]{+<system-note>+} tags contain useful information and reminders. They are NOT part of t..."
+      ],
+      "stderr_tail": ""
+    },
+    {
+      "name": "M14-token-all",
+      "why": "all 18 <system-reminder> removed",
+      "correct_exit": 1,
+      "exit": 1,
+      "verdict": "OK",
+      "fails": [
+        "surfaces.literal_present",
+        "surfaces.opencode_extract"
+      ],
+      "opencode_extract": [
+        "FAIL surfaces.opencode_extract: declared opencode class(es) produced by no rule: opencode:read-hook/instructions; rule(s) matched nothing: OC-4 (owns opencode:read-hook/instructions; missing fn(\"Instruction.resolve\") + fn(\"ReadTool.execute\") + <system-reminder>)"
+      ],
+      "edits": [
+        {
+          "offset": 10711013,
+          "line": 443193,
+          "old": "<system-reminder>",
+          "new": "<system-note>"
+        },
+        {
+          "offset": 10711037,
+          "line": 443193,
+          "old": "<system-reminder>",
+          "new": "<system-note>"
+        },
+        {
+          "offset": 10721238,
+          "line": 443280,
+          "old": "<system-reminder>",
+          "new": "<system-note>"
+        },
+        {
+          "offset": 10721262,
+          "line": 443280,
+          "old": "<system-reminder>",
+          "new": "<system-note>"
+        },
+        {
+          "offset": 10758557,
+          "line": 443597,
+          "old": "<system-reminder>",
+          "new": "<system-note>"
+        },
+        {
+          "offset": 10764718,
+          "line": 443630,
+          "old": "<system-reminder>",
+          "new": "<system-note>"
+        },
+        {
+          "offset": 10779429,
+          "line": 443728,
+          "old": "<system-reminder>",
+          "new": "<system-note>"
+        },
+        {
+          "offset": 10794472,
+          "line": 443868,
+          "old": "<system-reminder>",
+          "new": "<system-note>"
+        },
+        {
+          "offset": 10794496,
+          "line": 443868,
+          "old": "<system-reminder>",
+          "new": "<system-note>"
+        },
+        {
+          "offset": 10838588,
+          "line": 443901,
+          "old": "<system-reminder>",
+          "new": "<system-note>"
+        },
+        {
+          "offset": 10840065,
+          "line": 443916,
+          "old": "<system-reminder>",
+          "new": "<system-note>"
+        },
+        {
+          "offset": 10840308,
+          "line": 443921,
+          "old": "<system-reminder>",
+          "new": "<system-note>"
+        },
+        {
+          "offset": 10948410,
+          "line": 444241,
+          "old": "<system-reminder>",
+          "new": "<system-note>"
+        },
+        {
+          "offset": 11554282,
+          "line": 444800,
+          "old": "<system-reminder>",
+          "new": "<system-note>"
+        },
+        {
+          "offset": 21627983,
+          "line": 447443,
+          "old": "<system-reminder>",
+          "new": "<system-note>"
+        },
+        {
+          "offset": 21669882,
+          "line": 447466,
+          "old": "<system-reminder>",
+          "new": "<system-note>"
+        },
+        {
+          "offset": 21674185,
+          "line": 447467,
+          "old": "<system-reminder>",
+          "new": "<system-note>"
+        },
+        {
+          "offset": 21674330,
+          "line": 447468,
+          "old": "<system-reminder>",
+          "new": "<system-note>"
+        }
+      ],
+      "diff_samples": [
+        "L443193 ...lan the task if required\n- Tool results and user messages may include [-<system-reminder>-]{+<system-note>+} tags. <system-reminder> tags contain useful information and reminders...",
+        "L443193 ...\n- Tool results and user messages may include <system-reminder> tags. [-<system-reminder>-]{+<system-note>+} tags contain useful information and reminders. They are automatically..."
+      ],
+      "stderr_tail": ""
+    },
+    {
+      "name": "M15-both-labels-deleted",
+      "why": "both fn anchors deleted (message precision)",
+      "correct_exit": 1,
+      "exit": 1,
+      "verdict": "OK",
+      "fails": [
+        "surfaces.opencode_extract"
+      ],
+      "opencode_extract": [
+        "FAIL surfaces.opencode_extract: declared opencode class(es) produced by no rule: opencode:read-hook/instructions; rule(s) matched nothing: OC-4 (owns opencode:read-hook/instructions; missing fn(\"Instruction.resolve\") + fn(\"ReadTool.execute\") + <system-reminder>)"
+      ],
+      "edits": [
+        {
+          "offset": 10895197,
+          "line": 443995,
+          "old": "fn(\"Instruction.resolve\")",
+          "new": ""
+        },
+        {
+          "offset": 10946276,
+          "line": 444228,
+          "old": "fn(\"ReadTool.execute\")",
+          "new": ""
+        }
+      ],
+      "diff_samples": [
+        "L443995 ...X.resolve(X.join(T,d));if(yield*e.existsSafe(w))return w}return}),b=s.[-fn(\"Instruction.resolve\")-]{++}(function*(T,d,w){let O=yield*g(),U=qe(T),q=[],R=yield*J.get(u),N=X.re...",
+        "L444228 ...0)return!0;if(g[b]<9||g[b]>13&&g[b]<32)h++}return h/g.length>0.3},$=s.[-fn(\"ReadTool.execute\")-]{++}(function*(a,g){let c=yield*J.context,h=a.filePath;if(!z.isAbsolute(h)..."
+      ],
+      "stderr_tail": ""
+    },
+    {
+      "name": "M16-receiver-rename",
+      "why": "minifier receiver s->r on both labels, behaviour-preserving",
+      "correct_exit": 0,
+      "exit": 0,
+      "verdict": "OK",
+      "fails": [],
+      "opencode_extract": [
+        "PASS surfaces.opencode_extract: opencode extraction 9/9 declared class(es) from 7/7 rules (OC-1, OC-2, OC-3a, OC-3b, OC-4, OC-5, OC-6)"
+      ],
+      "edits": [
+        {
+          "offset": 10895195,
+          "line": 443995,
+          "old": "s.fn(\"Instruction.resolve\")",
+          "new": "r.fn(\"Instruction.resolve\")"
+        },
+        {
+          "offset": 10946274,
+          "line": 444228,
+          "old": "s.fn(\"ReadTool.execute\")",
+          "new": "r.fn(\"ReadTool.execute\")"
+        }
+      ],
+      "diff_samples": [
+        "L443995 ...w=X.resolve(X.join(T,d));if(yield*e.existsSafe(w))return w}return}),b=[-s.fn(\"Instruction.resolve\")-]{+r.fn(\"Instruction.resolve\")+}(function*(T,d,w){let O=yield*g(),U=qe(T),q=[],R=yield*J.get(u),N=X.re...",
+        "L444228 ...==0)return!0;if(g[b]<9||g[b]>13&&g[b]<32)h++}return h/g.length>0.3},$=[-s.fn(\"ReadTool.execute\")-]{+r.fn(\"ReadTool.execute\")+}(function*(a,g){let c=yield*J.context,h=a.filePath;if(!z.isAbsolute(h)..."
+      ],
+      "stderr_tail": ""
+    },
+    {
+      "name": "M17-callee-receiver-rename",
+      "why": "minifier receiver e->q at the call site, behaviour-preserving",
+      "correct_exit": 0,
+      "exit": 0,
+      "verdict": "OK",
+      "fails": [],
+      "opencode_extract": [
+        "PASS surfaces.opencode_extract: opencode extraction 9/9 declared class(es) from 7/7 rules (OC-1, OC-2, OC-3a, OC-3b, OC-4, OC-5, OC-6)"
+      ],
+      "edits": [
+        {
+          "offset": 10947285,
+          "line": 444233,
+          "old": "e.resolve(g.messages",
+          "new": "q.resolve(g.messages"
+        }
+      ],
+      "diff_samples": [
+        "L444233 ...h,entries:f,offset:k,totalEntries:W.length,truncated:B}}}}let d=yield*[-e.resolve(g.messages-]{+q.resolve(g.messages+},h,g.messageID),w=yield*u(h,Number(T.size),Qs),O=st(w,V.mimeType(h));i..."
+      ],
+      "stderr_tail": ""
+    },
+    {
+      "name": "M18-walk-loop-disabled",
+      "why": "walk-up loop disabled; resolver finds nothing, labels and token intact",
+      "correct_exit": 1,
+      "exit": 0,
+      "verdict": "SURVIVOR (too wide)",
+      "fails": [],
+      "opencode_extract": [
+        "PASS surfaces.opencode_extract: opencode extraction 9/9 declared class(es) from 7/7 rules (OC-1, OC-2, OC-3a, OC-3b, OC-4, OC-5, OC-6)"
+      ],
+      "edits": [
+        {
+          "offset": 10895347,
+          "line": 443995,
+          "old": "while(G.startsWith(N)&&G!==N){",
+          "new": "while(false){"
+        }
+      ],
+      "diff_samples": [
+        "L443995 ...J.get(u),N=X.resolve(yield*J.directory),K=X.resolve(d),G=X.dirname(K);[-while(G.startsWith(N)&&G!==N){-]{+while(false){+}let W=yield*h(G);if(!W||W===K||O.has(W)||U.has(W)){G=X.dirname(G);cont..."
+      ],
+      "stderr_tail": ""
+    }
+  ]
+}

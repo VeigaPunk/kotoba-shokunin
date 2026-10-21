@@ -1,0 +1,31 @@
+import json, runpy, sys
+m = runpy.run_path("verifiers/verify_surfaces.py")
+case = sys.argv[1]
+fx = m["FIXTURES"]
+if case in ("remote-filter-only", "read-tool-only"):
+    dump = m["read_text"](fx / "strings-opencode-clean.txt", "clean fixture")
+    needle = ('w=(T.instructions??[]).filter((q)=>q.startsWith("https://")||q.startsWith("http://"))\n'
+              if case == "remote-filter-only" else '$=s.fn("ReadTool.execute")(function*(a,g){\n')
+    assert dump.count(needle) == 1
+    changed = dump.replace(needle, "", 1)
+    entries = m["load_baseline"](fx / "baseline-clean.json")
+    ok, detail = m["check_opencode_extract"](entries, changed)
+    expected = not ok
+    result = {"case": case, "gate_ok": ok, "detail": detail}
+elif case in ("fallback-oc1", "fallback-oc2"):
+    _, reports = m["extract_opencode_classes"]("")
+    rid = "OC-1" if case == "fallback-oc1" else "OC-2"
+    report = next(r for r in reports if r["rule_id"] == rid)
+    owns = (["opencode:instructions/AGENTS.md", "opencode:instructions/CLAUDE.md", "opencode:instructions/CONTEXT.md"]
+            if rid == "OC-1" else ["opencode:config/AGENTS.md", "opencode:claude-home/CLAUDE.md"])
+    expected = not report["matched"] and report["owns"] == owns
+    result = {"case": case, "rule": report, "expected_owns": owns}
+elif case == "default-opencode":
+    path = m["build_parser"]().parse_args([]).opencode_binary
+    expected = path == "/home/vgpnk/.npm/_npx/e2094862b59aac7b/node_modules/opencode-ai/bin/opencode.exe"
+    result = {"case": case, "observed_opencode_binary": path}
+else:
+    raise AssertionError(case)
+result["expected_behavior"] = expected
+print(json.dumps(result, sort_keys=True))
+sys.exit(0 if expected else 1)

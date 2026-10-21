@@ -1,0 +1,38 @@
+# W2HarnessNoHarm — producer/independent join attempt (compare_harness_independent.py)
+# host: plazir27  date: 2026-10-21  python: 3.14 (stock, no installs)
+# tip live capture : /tmp/W2HarnessNoHarm.live-tip.json   (verify_harness_claims.py --json at 7ad7fad)
+# base live capture: /tmp/W2HarnessNoHarm.live-base.json  (verify_harness_claims.py --json at c61a973)
+# independent      : /tmp/W2HarnessNoHarm.ind.json        (verify_harness_independent.py --json at 7ad7fad)
+
+cmd: python3 -B verifiers/compare_harness_independent.py --live-json <live> \
+      --independent-json /tmp/W2HarnessNoHarm.ind.json --expect-n 28 --no-stamp --json
+
+JOIN tip  exit=2
+  ERROR: false blocker: scoped row omp.catalogue.found declares observable
+    {"candidate_blocks": 23882, "distinct_totals": [7, 10], ...}
+    but recomputation gives {"candidate_blocks": 23892, ...}
+  ERROR: (same class) scoped row omp.catalogue.matched
+  ERROR: (same class) scoped row omp.catalogue.missing_names
+
+JOIN base exit=2
+  ERROR: false blocker: scoped row omp.catalogue.found declares observable
+    {"candidate_blocks": 23882, "distinct_totals": [7, 10], ...}
+    but recomputation gives {"candidate_blocks": 24030, ...}
+  ERROR: (same class) scoped row omp.catalogue.matched
+  ERROR: (same class) scoped row omp.catalogue.missing_names
+
+=> Both arms fail with the IDENTICAL error class. The blocker is the r39 committed scope
+   probe (verifiers/harness-independent-scope.json, kind=rule-spread-census) recomputing
+   over $HOME/.omp/agent/sessions, whose candidate-block count grows with every session
+   file written during the run. The join is therefore NOT usable as a tip-vs-base
+   no-harm signal on this host; the arm-independent failure is not attributable to the
+   OC_BIN constant move.
+
+Row-level divergence measured directly from the captures (no scope machinery):
+  mode (from the live payload)                       : equal
+  live tip   oc.roots.names_plus_builtin             : 11
+  live base  oc.roots.names_plus_builtin             : 10
+  independent oc.roots.names_plus_builtin            : 10
+  compare_harness_independent.predicate_agree('equal', 11, 10) = False   (tip)
+  compare_harness_independent.predicate_agree('equal', 10, 10) = True    (base)
+  documented exit for a protocol disagreement: 1 (compare_harness_independent.py:117-118)

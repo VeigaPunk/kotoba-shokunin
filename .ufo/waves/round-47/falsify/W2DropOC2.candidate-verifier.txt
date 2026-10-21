@@ -1,0 +1,39 @@
+diff --git i/verifiers/verify_surfaces.py w/verifiers/verify_surfaces.py
+index c0c7596..a618c0e 100755
+--- i/verifiers/verify_surfaces.py
++++ w/verifiers/verify_surfaces.py
+@@ -381,6 +381,16 @@ OC_HOME_DIR_JOIN_RE = re.compile(
+     r'\s*"([A-Za-z0-9_.-]+\.md)"'
+ )
+ 
++# Round-47 falsify candidate (W2DropOC2, not landed): OC-2's two anchors must
++# sit in the one array expression that carries the disableClaudeCodePrompt gate
++# (census row opencode:claude-home/CLAUDE.md: "gated by disableClaudeCodePrompt").
++OC_CANDIDATE_ARRAY_RE = re.compile(
++    r'n=\[\s*[A-Za-z_$][A-Za-z0-9_$]*\.join\(\s*[A-Za-z_$][A-Za-z0-9_$]*\.config\s*,\s*"AGENTS\.md"\s*\)\s*,'
++    r'\s*\.\.\.\s*!\s*[A-Za-z_$][A-Za-z0-9_$]*\.disableClaudeCodePrompt\s*\?\s*\[\s*'
++    r'[A-Za-z_$][A-Za-z0-9_$]*\.join\(\s*[A-Za-z_$][A-Za-z0-9_$]*\.home\s*,\s*"\.claude"\s*,'
++    r'\s*"CLAUDE\.md"\s*\)\s*\]\s*:\s*\[\s*\]\s*\]'
++)
++
+ # OC-3: the declared ``instructions`` list and its remote half (dump 443993).
+ #   a: `Instruction.systemPaths` consumes it —
+ #      for(let O of T.instructions){if(O.startsWith("https://")||…)continue;…glob…}
+@@ -447,7 +457,7 @@ def extract_opencode_classes(dump: str) -> tuple[set[str], list[dict]]:
+     # OC-1 — name-priority list (derives every *.md literal in the array)
+     m = OC_PRIORITY_RE.search(dump)
+     names = sorted(set(OC_MD_NAME_RE.findall(m.group(0)))) if m else []
+-    gated = m is not None and (OC_GATE not in m.group(0) or OC_GATE in dump)
++    gated = m is not None and OC_GATE in m.group(0)
+     owns = (["opencode:instructions/%s" % n for n in names] if names else
+             ["opencode:instructions/AGENTS.md", "opencode:instructions/CLAUDE.md",
+              "opencode:instructions/CONTEXT.md"])
+@@ -462,7 +472,7 @@ def extract_opencode_classes(dump: str) -> tuple[set[str], list[dict]]:
+     owns2 = (["opencode:config/%s" % f for f in cfg] +
+              ["opencode:%s-home/%s" % (d, f) for d, f in home])
+     rule("OC-2", owns2 or ["opencode:config/AGENTS.md", "opencode:claude-home/CLAUDE.md"],
+-         bool(cfg) and bool(home),
++         bool(cfg) and bool(home) and OC_CANDIDATE_ARRAY_RE.search(dump) is not None,
+          ['X.join(<v>.config,"AGENTS.md")',
+           'X.join(<v>.home,".claude","CLAUDE.md")'])
+ 

@@ -1,0 +1,131 @@
+{
+  "lane": "KotobaR47-2.W2FaultHarness-2",
+  "target": "verifiers/fault_injection_corpus.sh",
+  "landed_commit": "7ad7fadfc09354b74fb66605dfb0c1182c115a2f",
+  "base_commit": "c61a973b2e02e1ded169703ddcb06466f4edd8bd",
+  "scratch_root": "/fast/scratch/kotoba-r47/w2/W2FaultHarness",
+  "installs": "none (no tool installed or upgraded; no pacman transaction)",
+  "grids": {
+    "A_tip_7ad7fad": {
+      "clone": "/fast/scratch/kotoba-r47/w2/W2FaultHarness/kotoba-shokunin",
+      "command": "bash verifiers/fault_injection_corpus.sh --repo \"$PWD\"",
+      "exit": 0,
+      "verdict_line": "verdict: ALL PASS",
+      "header": "repo=/fast/scratch/kotoba-r47/w2/W2FaultHarness/kotoba-shokunin head=7ad7fad instrument_sha256=28224c76510dcafc4d7a52da41ffd2d366337414f65320cbb21e6d9de12aba9d independent=present",
+      "rows": [
+        ["fault-0-control", "integrity", 0, "-", "PASS"],
+        ["fault-0-control", "independent", 0, "-", "INFO(gating)"],
+        ["fault-a", "integrity", 1, "corpus.pointers.report_dead", "PASS"],
+        ["fault-a", "independent", 1, "corpus.pointers.report_dead", "INFO(gating)"],
+        ["fault-b", "integrity", 1, "corpus.pointers.commit_nonhash", "PASS"],
+        ["fault-b", "independent", 1, "corpus.pointers.commit_nonhash", "INFO(gating)"],
+        ["fault-c", "integrity", 1, "corpus.pointers.commit_unresolvable", "PASS"],
+        ["fault-c", "independent", 1, "corpus.pointers.commit_unresolvable", "INFO(gating)"],
+        ["fault-d1", "integrity", 1, "corpus.index.stale_patterns,corpus.index.missing_paths", "PASS"],
+        ["fault-d1", "independent", 1, "corpus.index.stale_patterns,corpus.index.missing_paths", "INFO(gating)"],
+        ["fault-d2", "integrity", 1, "corpus.index.stale_patterns", "PASS"],
+        ["fault-d2", "independent", 1, "corpus.index.stale_patterns", "INFO(gating)"],
+        ["fault-e", "integrity", 1, "corpus.index.unindexed", "PASS"],
+        ["fault-e", "independent", 1, "corpus.index.unindexed", "INFO(gating)"],
+        ["fault-f", "integrity", 0, "-", "PASS(blind-spot documented: control_total=40 plant_total=39 delta=1; --no-baseline exit 0; baseline-mode exit 1)"],
+        ["fault-f", "independent", 0, "-", "INFO(non-gating)"],
+        ["fault-g", "integrity", 0, "-", "PASS"],
+        ["fault-g", "independent", 0, "-", "INFO(gating)"],
+        ["fault-h", "integrity", 0, "-", "PASS(context: quoted=1, checked=40 unchanged)"]
+      ],
+      "self_test": {"command": "bash verifiers/fault_injection_corpus.sh --repo \"$PWD\" --self-test", "exit": 0, "out": "T1 PASS / T2 PASS / T4 PASS / T3 PASS / self-test: OK"},
+      "kept_world_evidence": {
+        "world_dir": "/fast/scratch/kotoba-r47/w2/W2FaultHarness/tmp/round12-faults.2288185",
+        "fault_f_out_baseline_txt": "DRIFT   corpus.pointers.report_total: observed=39 expected=40 / 8/9 checks pass; DRIFT: corpus.pointers.report_total",
+        "fault_d1_planted_row_line": 65,
+        "fault_d1_section_map": "## Coverage map at corpus/README.md:5, ## Frontier at :67, ## Known gaps at :80 (row 65 is inside the coverage map)",
+        "fault_d1_drift_rows": ["corpus.index.stale_patterns DRIFT", "corpus.index.missing_paths DRIFT"]
+      }
+    },
+    "B_planter_fix_reverted": {
+      "clone": "/fast/scratch/kotoba-r47/w2/W2FaultHarness/kotoba-shokunin",
+      "commit": "51385ae 'W2FaultHarness: revert planter fix (insert_index_row scope) for counterexample'",
+      "revert_diff": "verifiers/fault_injection_corpus.sh:117-119 -> single line 'idx = max(i for i, l in enumerate(lines) if l.startswith(\"|\"))' (patch: W2FaultHarness.planter-revert.patch)",
+      "command": "bash verifiers/fault_injection_corpus.sh --repo \"$PWD\"",
+      "exit": 1,
+      "verdict_line": "verdict: FAILURES PRESENT",
+      "rows_delta_vs_A": [
+        ["fault-d1", "integrity", 0, "-", "MISS"],
+        ["fault-d1", "independent", 0, "-", "INFO(gating)"],
+        ["fault-d2", "integrity", 0, "-", "MISS"],
+        ["fault-d2", "independent", 0, "-", "INFO(gating)"]
+      ],
+      "rows_unchanged": "0-control PASS, a/b/c/e PASS, f PASS(blind-spot), g PASS, h PASS(context: quoted=1, checked=40 unchanged)"
+    },
+    "C_base_c61a973_unchanged": {
+      "clone": "/fast/scratch/kotoba-r47/w2/W2FaultHarness/base-clone",
+      "command": "bash verifiers/fault_injection_corpus.sh --repo \"$PWD\"",
+      "exit": 1,
+      "verdict_line": "verdict: FAILURES PRESENT",
+      "rows": [
+        ["fault-0-control", "integrity", 1, "corpus.index.unindexed", "FAIL-control-dirty"],
+        ["fault-a", "integrity", 1, "corpus.index.unindexed,corpus.pointers.report_dead", "PASS"],
+        ["fault-b", "integrity", 1, "corpus.index.unindexed,corpus.pointers.commit_nonhash", "PASS"],
+        ["fault-c", "integrity", 1, "corpus.index.unindexed,corpus.pointers.commit_unresolvable", "PASS"],
+        ["fault-d1", "integrity", 1, "corpus.index.unindexed", "WRONG-CLASS(expected=corpus.index.missing_paths)"],
+        ["fault-d2", "integrity", 1, "corpus.index.unindexed", "WRONG-CLASS(expected=corpus.index.stale_patterns)"],
+        ["fault-e", "integrity", 1, "corpus.index.unindexed", "PASS (confounded)"],
+        ["fault-f", "integrity", 0, "-", "FAIL"],
+        ["fault-g", "integrity", 0, "-", "FALSE-POSITIVE"],
+        ["fault-h", "integrity", 0, "-", "FAIL"]
+      ],
+      "self_test": {"exit": 1, "out": "T1 PASS / T2 FAIL (exit=1) / T4 PASS / T3 FAIL / self-test: BROKEN"},
+      "corpus_integrity_default": {"exit": 1, "out": "7/9 checks pass; DRIFT: corpus.index.tracked_files, corpus.index.unindexed"},
+      "corpus_independent": {"exit": 1}
+    },
+    "D_mutation_baseline_pin_report_total_39_plus_unrelated_drift": {
+      "clone": "/fast/scratch/kotoba-r47/w2/W2FaultHarness/mut-baseline",
+      "mutation": "verifiers/corpus-baseline.json checks.corpus.pointers.report_total.expect 40 -> 39; checks.corpus.index.tracked_files.expect 60 -> 58 (committed)",
+      "command": "bash verifiers/fault_injection_corpus.sh --repo \"$PWD\" --keep-worlds",
+      "exit": 0,
+      "verdict_line": "verdict: ALL PASS",
+      "fault_f_row": "PASS(blind-spot documented: control_total=40 plant_total=39 delta=1; --no-baseline exit 0; baseline-mode exit 1)",
+      "fault_f_world_out_baseline_txt": "DRIFT   corpus.index.tracked_files: observed=60 expected=58 / 8/9 checks pass; DRIFT: corpus.index.tracked_files",
+      "note": "report_total observed 39 == expected 39, i.e. the documented count-detector mechanism did NOT fire, yet fault-f still PASSes."
+    },
+    "E_mutation_coverage_map_heading_two_spaces": {
+      "clone": "/fast/scratch/kotoba-r47/w2/W2FaultHarness/mut-heading",
+      "mutation": "corpus/README.md '## Coverage map' -> '##  Coverage map' (committed)",
+      "command": "bash verifiers/fault_injection_corpus.sh --repo \"$PWD\"",
+      "exit": 1,
+      "verdict_line": "verdict: FAILURES PRESENT",
+      "rows": [
+        ["fault-0-control", "integrity", 0, "-", "FAIL-control-dirty (independent exit 1)"],
+        ["fault-d1", "d1", "-", "-", "INVALID-PLANT (StopIteration traceback on stderr)"],
+        ["fault-d2", "d2", "-", "-", "INVALID-PLANT (StopIteration traceback on stderr)"],
+        ["fault-g", "integrity", 0, "-", "FALSE-POSITIVE"],
+        ["fault-f", "integrity", 0, "-", "PASS(blind-spot)"],
+        ["fault-h", "integrity", 0, "-", "PASS(context: quoted=1, checked=40 unchanged)"]
+      ]
+    },
+    "F_self_test_with_planter_fix_reverted": {
+      "clone": "/fast/scratch/kotoba-r47/w2/W2FaultHarness/revert-self",
+      "mutation": "same revert as grid B, uncommitted working tree",
+      "command": "bash verifiers/fault_injection_corpus.sh --repo \"$PWD\" --self-test",
+      "exit": 0,
+      "out": "T1 PASS / T2 PASS / T4 PASS / T3 PASS / self-test: OK",
+      "note": "the self-test cannot see the defect class the round repaired."
+    }
+  },
+  "independent_confirmation_outside_the_harness": {
+    "method": "manual clone, d1-style row inserted at the TOP of the coverage map table (corpus/README.md:9), not via the harness",
+    "verify_corpus_integrity": {"exit": 1, "drift": ["corpus.index.stale_patterns", "corpus.index.missing_paths"], "missing_paths_detail": ["corpus/README.md:9: knowledge/gone-file-fault.md -> knowledge/gone-file-fault.md"], "stale_patterns_detail": ["corpus/README.md:9: knowledge/gone-file-fault.md"]},
+    "verify_corpus_independent": {"exit": 1, "cited": ["! corpus/README.md:9: knowledge/gone-file-fault.md", "! corpus/README.md:9: knowledge/gone-file-fault.md -> corpus/knowledge/gone-file-fault.md"]}
+  },
+  "counter_drift_outside_coverage_map": {
+    "counter": "index_tokens_outside_coverage_map (verifiers/verify_corpus_independent.py)",
+    "base": 1,
+    "tip": 2,
+    "cause": "round-47 rewrite of the Frontier row corpus/README.md:76 puts two backticked tokens in that table's column 2: `trigger.no_xml_tag`, `lessons/round-47.md` (the Frontier table is outside the coverage map, so these tokens are counted but never existence-checked)"
+  },
+  "environment_notes": [
+    "/tmp was 97-100% full (1.3 GiB free) during the runs; one abandoned harness scratch dir from a dead pid (/tmp/round12-faults.2249658, 1.5 GB, owner pid dead) was removed to reclaim space (no live process held it)",
+    "harness peak footprint ~1.5 GB under ${TMPDIR:-/tmp} per run (12 worlds, removed on exit); kept-world runs used TMPDIR=/fast/scratch/kotoba-r47/w2/W2FaultHarness/tmp",
+    "no tool was installed or upgraded; no pacman transaction was run"
+  ]
+}

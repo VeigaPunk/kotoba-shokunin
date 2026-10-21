@@ -119,9 +119,9 @@ than a hand-run recipe, and update the baseline only with a LOG entry naming the
 mechanism that moved. Model + gaps: `corpus/knowledge/harness-verifier-round10.md`.
 
 `python3 verifiers/verify_skill_checklist.py` executes this file's own checklist:
-**10 checks** (`checklist.box_map_complete` + the eight boxes marked
-`(executed: …)` below + `governance.citation_resolves` over the two root
-governance files), each fail-closed on fixtures, `evaluated N` per check,
+**11 checks** (`checklist.box_map_complete` + the eight boxes marked
+`(executed: …)` below + `trigger.no_xml_tag`, bound to no box since round 47 +
+`governance.citation_resolves` over the two root governance files), each fail-closed on fixtures, `evaluated N` per check,
 exit 0/1/2/3 (`3` = box map missing, unparseable, or bound elsewhere).
 `verifiers/checklist-baseline.json` maps **all 41 boxes** (8 executed, 0
 delegated, 33 unexecuted with reason) by text hash, so drift FAILs. Limits and ceilings: `corpus/knowledge/checklist-execution-round17.md`.

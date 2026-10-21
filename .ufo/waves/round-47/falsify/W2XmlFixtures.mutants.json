@@ -1,0 +1,60 @@
+{
+  "lane": "KotobaR47-2.W2XmlFixtures-2",
+  "commit": "7ad7fadfc09354b74fb66605dfb0c1182c115a2f",
+  "target": "verifiers/fixtures/checklist/xml-tag-{codespan,split,dq-escape,control}",
+  "scratch": "/fast/scratch/kotoba-r47/w2/W2XmlFixtures/kotoba-shokunin",
+  "baseline": {
+    "self_test": {"exit": 0, "assertions": 1845, "failures": 0},
+    "fixtures": {
+      "xml-tag-codespan": 1,
+      "xml-tag-split": 1,
+      "xml-tag-dq-escape": 1,
+      "xml-tag-control": 0
+    },
+    "frontmatter_broken": {
+      "no-frontmatter": 1, "fm-null": 1, "fm-malformed": 1, "fm-dup-key": 1,
+      "fm-body-yaml": 1, "fm-stray-indent": 1, "empty-file": 1
+    },
+    "frontmatter_broken_no_xml_tag_line": "FAIL trigger.no_xml_tag: evaluated 0"
+  },
+  "mutants": [
+    {"id": "M1-strip-quoted-spans", "selftest": 1, "flips": ["xml-tag-codespan"], "killed_by": "codespan needle '<skills>'"},
+    {"id": "M2-strict-tag", "selftest": 1, "flips": ["xml-tag-split"], "killed_by": "split needle '</Skills >'"},
+    {"id": "M3-no-yaml-escape", "selftest": 1, "flips": ["xml-tag-dq-escape"], "killed_by": "dq needle '\\\\u003c'"},
+    {"id": "M4-any-angle", "selftest": 1, "flips": ["xml-tag-control"], "killed_by": "control exit 0->1"},
+    {"id": "M5-name-only", "selftest": 1, "flips": ["xml-tag-control"], "killed_by": "control exit 0->1 + needles"},
+    {"id": "M6-start-tag-only", "selftest": 1, "flips": ["xml-tag-split"], "killed_by": "split needle"},
+    {"id": "M7-naive-lower", "selftest": 1, "flips": ["xml-tag-split"], "killed_by": "split needle"},
+    {"id": "M8-lower-only", "selftest": 1, "flips": ["xml-tag-split"], "killed_by": "split needle"},
+    {"id": "M9-no-comment-branch", "selftest": 1, "flips": [], "killed_by": "in-source string battery '<!-- c -->' only"},
+    {"id": "M10-entity-decode", "selftest": 1, "flips": ["xml-tag-control"], "killed_by": "control exit 0->1"},
+    {"id": "M11-nfkc", "selftest": 0, "flips": [], "killed_by": null, "survives": true},
+    {"id": "M12-desc-only", "selftest": 1, "flips": [], "killed_by": "control needle 'no XML tag in name, description'"},
+    {"id": "M13-strict-no-comment", "selftest": 1, "flips": ["xml-tag-split"], "killed_by": "split needle"},
+    {"id": "M17-fail-open-guard", "selftest": 1, "flips": [], "killed_by": "7 broken-frontmatter cases"},
+    {"id": "M19-loose-angle", "selftest": 1, "flips": [], "killed_by": "in-source string battery 'a < b and c > d.' only"},
+    {"id": "M20-first-80-chars", "selftest": 1, "flips": ["xml-tag-codespan", "xml-tag-split", "xml-tag-dq-escape"], "killed_by": "the three needles"},
+    {"id": "M21-no-CDATA-branch", "selftest": 0, "flips": [], "killed_by": null, "survives": true},
+    {"id": "M22-no-PI-branch", "selftest": 0, "flips": [], "killed_by": null, "survives": true},
+    {"id": "M23-no-declaration-branch", "selftest": 0, "flips": [], "killed_by": null, "survives": true},
+    {"id": "M24-no-comment-only", "selftest": 1, "flips": [], "killed_by": "in-source string battery '<!-- c -->' only"},
+    {"id": "M26-all-fields-scan", "selftest": 1, "flips": ["xml-tag-control"], "killed_by": "control exit 0->1 (metadata.note '<internal>')"},
+    {"id": "M27-space-after-lt", "selftest": 1, "flips": [], "killed_by": "in-source string battery 'a < b and c > d.' only"}
+  ],
+  "constructive_fix_check": {
+    "edit": "xml-tag-control/SKILL.md:6 'a < b, for files' -> 'a < b and c > d, for files' (scratch copy)",
+    "M19-loose-angle": {"control_exit": 1, "detail": "FAIL trigger.no_xml_tag: evaluated 2 - XML tag in description: '< b an'"},
+    "M27-space-after-lt": {"control_exit": 1, "detail": "FAIL trigger.no_xml_tag: evaluated 2 - XML tag in description: '< b an'"}
+  },
+  "raw_scan_probe": {
+    "xml-tag-codespan": {"per_line_raw_hit": true, "whole_file_raw_hit": true},
+    "xml-tag-split": {"per_line_raw_hit": false, "whole_file_raw_hit": true},
+    "xml-tag-dq-escape": {"per_line_raw_hit": false, "whole_file_raw_hit": false},
+    "xml-tag-control": {"per_line_raw_hit": true, "whole_file_raw_hit": true}
+  },
+  "map_hashes_recomputed": {
+    "fixture.01": "d87e45246965533d71b96c11525a4f6b1f0ce5b94e08c0f5aeb1977b1a82c052",
+    "fixture.02": "7b66c0712ce44dddb17bed02e46423a68c86d1656774204dd096a40353748fb6",
+    "map_md5_all_four": "ca96663c23f6dadc7b5bc8f69cdbbfee"
+  }
+}

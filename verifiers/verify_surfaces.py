@@ -99,7 +99,7 @@ surfaces.opencode_extract  the harness whose machine check was vacuous (round 13
     ceiling): opencode's loaders are JS list/``join``/``filter`` shapes, so
     ``no_uncovered_class``'s ``(Id|Cl|jD[ef])(<v>, <group>, "<file>.md")``
     extractor finds nothing there by construction.  This check runs rules
-    OC-1..OC-4 over the opencode dump instead and requires TWO-WAY parity: every
+    OC-1, OC-2, OC-3a, OC-3b, OC-4, OC-5, OC-6 over the opencode dump instead and requires TWO-WAY parity: every
     declared opencode class id is produced by a rule, no rule produces an
     undeclared id, every rule matches, and an extraction producing 0 classes
     while the baseline declares opencode classes is a FAIL (the vacuity the check
@@ -359,9 +359,15 @@ def extract_classes(dump: str, harness: str) -> set[tuple[str, str]]:
 # `SessionInstructions`, `session.instructions.entry.put`, `j5(r.config,…)` and
 # `InstructionDiscovery` occur 0 times, while every rule below matches.  The rules
 # were re-measured anchor by anchor on that dump (counts and dump lines in
-# `corpus/knowledge/instruction-surface-census-round13.md` § B, round 47); the
-# retired v2.0.26 rule set survives only as the must-fail generation fixture
-# `fixtures/surfaces/strings-opencode-v2.0.26.txt`.
+# `corpus/knowledge/instruction-surface-census-round13.md` § B′ and its round-47
+# ledger); on this host the retired v2.0.26 rule set survives only as the
+# must-fail generation fixture `fixtures/surfaces/strings-opencode-v2.0.26.txt`
+# (upstream, npm `@opencode/cli` 2.x still ships it — host-scoped retirement).
+# LIMITS found by the round-47 falsify wave (carried, not fixed): every rule is a
+# whole-dump presence test, not bound to a code body — decoys elsewhere satisfy
+# it, and caller/delivery/gate edges are unwitnessed (OC-1's `gated` term reduces
+# to `m is not None`; OC-4's call edge and in-hook token; OC-6's config
+# candidate and env gate); a failing rule lists all its anchors as missing.
 
 # OC-1: the per-directory name-priority list (first-match walk-up; dump 443993):
 #   y=["AGENTS.md",...!t.disableClaudeCodePrompt?["CLAUDE.md"]:[],"CONTEXT.md"]
@@ -407,9 +413,9 @@ OC_ENV_PROJECT_CONFIG = "OPENCODE_DISABLE_PROJECT_CONFIG"
 OC_GLOBUP_PROJECT_RE = re.compile(r"globUp\([^)]*\.directory[^)]*\.worktree\)")
 OC_GLOBUP_CONFIG_RE = re.compile(r"globUp\([^)]*\.config\s*,\s*[^)]*\.config\)")
 
-# OC-6: opencode's SECOND instruction subsystem (`instruction-context`, registered
-# as the `system-context-builtins` context, key ``core/instructions``; dump
-# 445481-445487).  It walks AGENTS.md all-match up from cwd to the project root
+# OC-6: opencode's SECOND instruction subsystem (layer `instruction-context`,
+# key ``core/instructions``, composed as a dependency of the
+# `system-context-builtins` layer — not registered as it; dump 445481-445487).  It walks AGENTS.md all-match up from cwd to the project root
 # and keeps an ungated config-dir candidate (`jX(L.config,"AGENTS.md")`) — a
 # different load condition for the same file class than OC-1/OC-2's first-match
 # walk, which is why it carries its own class id.
@@ -418,8 +424,9 @@ OC_V2_TARGETS = 'targets:["AGENTS.md"]'
 OC_V2_OBSERVE = "InstructionContext.observe"
 OC_V2_REGISTRATION = "system-context-builtins"
 
-# OC-4: the read-tool channel that appends the nearest ancestor instruction file
-# (walking up inside the instance directory) to a read's TOOL RESULT:
+# OC-4: the read-tool channel that appends the instruction file found at EVERY
+# ancestor level (one per directory, nearest first; the walk stops at the
+# instance directory by an unseparated string-prefix test) to a read's TOOL RESULT:
 # `s.fn("Instruction.resolve")` (dump 443995), called from
 # `s.fn("ReadTool.execute")` (dump 444228-444233, `e.resolve(g.messages,h,…)`),
 # delivered inside `<system-reminder>`.  Round 47 added the ReadTool.execute

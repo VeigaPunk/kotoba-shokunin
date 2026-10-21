@@ -1,0 +1,64 @@
+import importlib.util
+import json
+from pathlib import Path
+import re
+import subprocess
+import sys
+import tempfile
+
+repo = Path(sys.argv[1]).resolve()
+source = (repo / 'verifiers/fault_injection_corpus.sh').read_text()
+names = ['insert_index_row', 'plant_d1', 'plant_d2']
+functions = '\n'.join(re.search(r'^' + n + r'\(\).*?^\}', source, re.M | re.S).group(0) for n in names)
+
+def module(name, rel):
+    spec = importlib.util.spec_from_file_location(name, repo / rel)
+    obj = importlib.util.module_from_spec(spec)
+    sys.modules[name] = obj
+    spec.loader.exec_module(obj)
+    return obj
+
+author = module('edge_author', 'verifiers/verify_corpus_integrity.py')
+independent = module('edge_independent', 'verifiers/verify_corpus_independent.py')
+header = '| Area | File | Basis |\n|---|---|---|\n'
+row = '| Existing | `knowledge/real.md` | fixture |\n'
+coverage = '## Coverage map\n\n' + header + row
+cases = {
+    'normal': coverage + '\n## Frontier\n' + header,
+    'absent': '# Fixture\n\n## Frontier\n' + header + row,
+    'empty_no_rows': '## Coverage map\n\n## Frontier\n' + header + row,
+    'empty_header_only': '## Coverage map\n\n' + header + '\n## Frontier\n',
+    'duplicate_valid': coverage + '\n' + coverage,
+    'duplicate_first_empty': '## Coverage map\n\n' + coverage,
+    'prefix_decoy': '## Coverage map example\n\n' + header + row + '\n' + coverage,
+    'fenced_duplicate': '# Fixture\n\n```markdown\n' + coverage + '```\n\n' + coverage,
+}
+results = []
+root = Path(tempfile.mkdtemp(prefix='planter-edge-', dir=repo.parent))
+for label, text in cases.items():
+    for planter in ['plant_d1', 'plant_d2']:
+        world = root / (label + '-' + planter)
+        (world / 'corpus/knowledge').mkdir(parents=True)
+        readme = world / 'corpus/README.md'
+        readme.write_text(text)
+        (world / 'corpus/knowledge/real.md').write_text('fixture\n')
+        init = subprocess.run(['git', 'init', '-q', str(world)], capture_output=True, text=True)
+        assert init.returncode == 0, init.stderr
+        call = subprocess.run(['bash', '-c', functions + '\n' + planter + ' "$1"', 'edge-probe', str(world)], capture_output=True, text=True)
+        after = readme.read_text()
+        token = 'knowledge/gone-file-fault.md' if planter == 'plant_d1' else 'knowledge/untracked-fault.md'
+        findings = author.index_findings(after, ['README.md', 'knowledge/real.md'], lambda p: (world / 'corpus' / p).exists())
+        cells, outside = independent.coverage_cells(str(world))
+        opaque = independent.fenced_line_numbers(after.splitlines())
+        results.append({
+            'case': label, 'planter': planter, 'exit': call.returncode,
+            'stderr': call.stderr.strip(), 'readme_changed': after != text,
+            'marker_lines': [i for i, line in enumerate(after.splitlines(), 1) if token in line],
+            'author_harvested_marker': any(t == token for _, t in author.file_column_tokens(after)),
+            'author_findings': findings,
+            'independent_coverage_marker': any(token in cell for _, cell in cells),
+            'independent_outside_marker': any(token in cell for _, cell in outside),
+            'independent_fenced_marker': any(token in line and i in opaque for i, line in enumerate(after.splitlines(), 1)),
+            'world': str(world),
+        })
+print(json.dumps({'repo': str(repo), 'fixture_root': str(root), 'results': results}, indent=2))

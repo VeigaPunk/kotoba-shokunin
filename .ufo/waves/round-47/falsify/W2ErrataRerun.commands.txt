@@ -1,0 +1,75 @@
+W2ErrataRerun — commands run, exit codes, key output
+All paths at 7ad7fadfc09354b74fb66605dfb0c1182c115a2f unless stated.
+Lane repo is READ-ONLY; every mutation ran in the canonical-layout scratch clone
+/fast/scratch/kotoba-r47/w2/W2ErrataRerun/kotoba-shokunin (clone of the lane at 7ad7fad,
+fleet siblings symlinked one level up).
+
+[1] cd /home/vgpnk/Projects/shokunin/kotoba-shokunin
+    python3 -B verifiers/verify_skill_checklist.py --json --check governance.citation_resolves
+    exit 0
+    {"checks":[{"detail":"848 governance citation token(s) resolve across 2 files; 9 quoted meta-finding(s), 3 schematic token(s) excluded, 1 recorded absence(s) excused","evaluated":848,"id":"governance.citation_resolves","status":"PASS"}],"exit_code":0,"fail":0,"na":0,"pass":1}
+    (assignment text predicted "evaluated 804" — observed 848)
+
+[2] same command in the canonical-layout scratch clone at 7ad7fad
+    exit 0 — 848 (location-independent)
+
+[3] cd /home/vgpnk/Projects/shokunin/kotoba-shokunin
+    git show c61a973:LOG.md | cmp - <(head -n 2315 LOG.md)
+    exit 0
+    git diff c61a973 -- LOG.md | grep -c '^-[^-]'
+    -> 0   (append-only prefix confirmed; LOG.md is 2326 lines at tip)
+
+[4] python3 -B verifiers/verify_skill_checklist.py --json      # whole checklist
+    exit 0 — pass 11 / fail 0 / na 0; per-check-id identical to
+    .ufo/waves/round-47/after/verify_skill_checklist.json (no DIFF rows)
+
+[5] python3 -B verifiers/verify_skill_checklist.py --self-test
+    exit 0 — "0 failure(s) over 1845 assertions"
+
+[6] python3 -B verifiers/verify_corpus_integrity.py --json     exit 0
+    python3 -B verifiers/verify_corpus_independent.py --json    exit 0
+
+[7] attribution of the count (scratch clone; each step restored):
+    a) LOG.md -> tip, SCORECARD.md -> tip            -> 848 evaluated (9 quoted, 3 schematic, 1 excused)
+    b) LOG.md -> head -n 2315 of tip, SCORECARD tip  -> 815 evaluated
+    c) LOG.md -> c61a973 version, SCORECARD tip     -> 815 evaluated
+    d) LOG.md -> c61a973 version, SCORECARD c61a973  -> 804 evaluated  <-- the number LOG.md:2323 records
+    d+d) is BASE population 817 = 9 quoted + 3 schematic + 805 checked (-1 excused = 804 evaluated)
+    tip population 861 = 9 quoted + 3 schematic + 849 checked (-1 excused = 848 evaluated)
+    delta = 44 new live subjects (33 in LOG.md tail, 11 in SCORECARD.md)
+
+[8] mutation harness (W2ErrataRerun.mut.txt -> W2ErrataRerun.mut.json), all in the scratch clone:
+    BASELINE (unmutated)                          exit=0 PASS 848
+    M1 horizon 2315 -> 2110                       exit=1 FAIL "is past horizon 2110 or absent"
+    M2 digest falsified                           exit=1 FAIL "line text drifted"
+    M3 absence wording falsified                  exit=1 FAIL "absence wording not on the line"
+    M4 pinned line 2111 -> 2112                   exit=1 FAIL "line text drifted"
+    M5 pinned token -> corpus/nope.md              exit=1 FAIL "names no subject on the line"
+    M6 row removed (errata=())                    exit=1 FAIL "LOG.md:2111: '.ufo/round-45/drafts/v10/post-r44-hunt.py' does not resolve"
+    M7 excused path created (stale erratum)       exit=1 FAIL "stale, the path now resolves"
+    M8 LOG.md line inserted above 2111            exit=1 FAIL "line text drifted"
+    M9 LOG.md:2111 text edited                    exit=1 FAIL "line text drifted"
+
+[9] independent audit (W2ErrataRerun.audit.txt; re-implements the documented subject
+    rule without importing the verifier) over the base->tip diff:
+    LOG.md      new subjects 16 distinct / 33 multiplicity  -> dead 0, quoted 0, schematic 0
+    SCORECARD.md new subjects 3 distinct / 11 multiplicity -> dead 0, quoted 0, schematic 0
+    independent population 861 == verifier population 861 (848 + 9 + 3 + 1)
+
+[10] exclusion-identity diff base vs tip (instrumented dump of citation_subjects):
+     the same 9 quoted rows and the same 3 schematic rows, only SCORECARD line numbers
+     shift by +4 (SCORECARD.md:118->122, 129->133). No new exclusion.
+
+[11] trackedness of the new citations (design disclosure risk):
+     every new `.ufo/` `corpus/` `verifiers/` token in LOG.md:2316-2326 is in `git ls-files`
+     at 7ad7fad -> the new LOG text does not depend on untracked worktree files.
+     (only glob `verifiers/fixtures/checklist/xml-tag-*` is not a literal path; the
+      verifier excludes globs as placeholders)
+
+[12] file digests at the tip
+     4ea2100dee220077eead8ed8cfc2c5acb311ffff8746451bb5fd12b202c5e38a  verifiers/verify_skill_checklist.py
+     ef1a753c39cbfb06f1d421c9dafb29ac2481ae5f9d1367a2ef7a83c0a4e1f04e  LOG.md
+     15f38becd873546f3e5e3ad07d1f4bdc488037c7e9cfb734f9049803c6593a36  SCORECARD.md
+
+No tools installed or updated (none needed). No pacman transaction. The `~/.local/bin/opencode`
+wrapper was never executed; no omp session was launched.

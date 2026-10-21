@@ -1,0 +1,206 @@
+diff --git a/verifiers/verify_skill_checklist.py b/verifiers/verify_skill_checklist.py
+index c6476e7..ef7d952 100755
+--- a/verifiers/verify_skill_checklist.py
++++ b/verifiers/verify_skill_checklist.py
+@@ -181,8 +189,12 @@ governance.citation_resolves    the same existence predicate over repo-root
+     ``SKILL.md``.  A token fully enclosed by double quotes on its own line is
+     a historical/meta finding, not a live promise.  Tokens carrying an
+     ellipsis or a literal ``round-N`` path segment are counted schematics and
+-    excluded.  Every other subject must resolve at HEAD.  ``evaluated`` =
+-    checked subjects after those two explicit exclusions; zero is a FAIL.
++    excluded.  A pinned ``GOVERNANCE_ERRATA`` row excuses one ``LOG.md``
++    subject whose own line records its absence: the line sits at or below
++    the horizon, matches the row's SHA-256 and absence wording, and the path
++    still does not resolve; any other row shape FAILs.  Every other subject
++    must resolve at HEAD.  ``evaluated`` = checked subjects after those three
++    counted exclusions; zero is a FAIL.
+ 
+ 
+ DOCUMENTED LIMITS (what this instrument proves and what it never proves):
+@@ -216,7 +235,10 @@ DOCUMENTED LIMITS (what this instrument proves and what it never proves):
+     historical truth, ownership, content support, commit pins or line anchors.
+     It runs only for repo-root ``LOG.md``/``SCORECARD.md`` with the repo's own
+     ``SKILL.md`` as target.  Same-line double-quoted meta-findings and the two
+-    schematic forms (ellipsis, literal ``round-N``) are excluded and counted;
++    schematic forms (ellipsis, literal ``round-N``) are excluded and counted,
++    as are pinned recorded-absence errata (a row authenticates nothing: it
++    is a reviewed in-source exception, bounded by the horizon, the line hash
++    and the still-dead test, never by a reason string);
+     cross-line quote parity never suppresses a subject; symlinks are
+     existence-tested, not required to remain inside the repo;
+   - delegation (round-16 R2) is instrument-ness by suffix or shebang: a
+@@ -347,6 +370,17 @@ OUTPUT_FLAGS = frozenset(["-o", "-O", "--out", "--output", "--write",
+ CITATION_ROOTS = ("corpus/", "verifiers/", "opencode/", ".ufo/", "../")
+ GOVERNANCE_FILES = ("LOG.md", "SCORECARD.md")
+ SCHEMATIC_CITATION_RE = re.compile(r"(?:^|/)round-N(?:/|\.|$)")
++# Append-only LOG.md lines that record a cited path's absence but predate the
++# same-line quote convention.  Only lines at or below the horizon qualify; each
++# row must match its line byte-for-byte, carry its absence wording, name a
++# subject on that line, and stay dead.  Rows: (line, line sha256, token, quote).
++GOVERNANCE_ERRATA_HORIZON = 2315
++GOVERNANCE_ERRATA = (
++    (2111,
++     "7dcbf123313d46c469cab9f5dac2daa7567e54ac1ddf7cffdd1fd38c74200135",
++     ".ufo/round-45/drafts/v10/post-r44-hunt.py",
++     "each exited 2 because the referenced runners are absent"),
++)
+ EMPTY_SCALARS = frozenset(["", "~", "null", "Null", "NULL"])
+ 
+ PLACEHOLDER_RE = re.compile(r"\b(?:TODO|FIXME|TBD)\b|coming soon",
+@@ -1451,12 +1516,41 @@ def check_citation_resolves(lines: list[str],
+         % evaluated)
+ 
+ 
+-def check_governance_citations(repo: Path) -> tuple[str, int, str]:
++def errata_problems(errata, horizon: int, log_lines: list[str],
++                    subjects: list[dict], repo: Path) -> tuple[list, set]:
++    """Validate recorded-absence rows; return (problems, excused keys)."""
++    problems: list[str] = []
++    excused: set[tuple[int, str]] = set()
++    on_log = {(s["line"], s["token"]) for s in subjects
++              if s["source"] == "LOG.md"}
++    for line, digest, token, quote in errata:
++        where = "erratum LOG.md:%d %r" % (line, token)
++        if not 1 <= line <= min(horizon, len(log_lines)):
++            problems.append("%s is past horizon %d or absent" % (where, horizon))
++            continue
++        text = log_lines[line - 1]
++        if hashlib.sha256(text.encode("utf-8")).hexdigest() != digest:
++            problems.append("%s: line text drifted" % where)
++        elif quote not in text:
++            problems.append("%s: absence wording not on the line" % where)
++        elif (line, token) not in on_log:
++            problems.append("%s: names no subject on the line" % where)
++        elif citation_resolve(token, repo):
++            problems.append("%s: stale, the path now resolves" % where)
++        else:
++            excused.add((line, token))
++    return problems, excused
++
++
++def check_governance_citations(repo: Path, errata=GOVERNANCE_ERRATA,
++                               horizon: int = GOVERNANCE_ERRATA_HORIZON
++                               ) -> tuple[str, int, str]:
+     """Round-17: root governance path claims remain navigable at HEAD."""
+     repo = repo.resolve()
+     subjects: list[dict] = []
+     excluded: dict[str, list[dict]] = {"quoted": [], "schematic": []}
+     unreadable = []
++    log_lines: list[str] = []
+     for name in GOVERNANCE_FILES:
+         path = repo / name
+         try:
+@@ -1464,6 +1558,8 @@ def check_governance_citations(repo: Path) -> tuple[str, int, str]:
+         except OSError as exc:
+             unreadable.append("%s (%s)" % (name, exc))
+             continue
++        if name == "LOG.md":
++            log_lines = lines
+         found, skipped = citation_subjects(
+             lines, source=name, exclude_quoted=True,
+             exclude_schematic=True)
+@@ -1471,15 +1567,21 @@ def check_governance_citations(repo: Path) -> tuple[str, int, str]:
+         for kind in excluded:
+             excluded[kind].extend(skipped[kind])
+ 
++    problems, excused = errata_problems(errata, horizon, log_lines,
++                                        subjects, repo)
++    subjects = [s for s in subjects if s["source"] != "LOG.md"
++                or (s["line"], s["token"]) not in excused]
+     evaluated = len(subjects)
+-    context = ("%d quoted meta-finding(s), %d schematic token(s) excluded"
+-               % (len(excluded["quoted"]), len(excluded["schematic"])))
++    context = ("%d quoted meta-finding(s), %d schematic token(s) excluded, "
++               "%d recorded absence(s) excused"
++               % (len(excluded["quoted"]), len(excluded["schematic"]),
++                  len(excused)))
+     if unreadable:
+         return "FAIL", evaluated, "unreadable governance file(s): %s; %s" % (
+             ", ".join(unreadable), context)
+     if evaluated == 0:
+         return "FAIL", 0, "no checked governance citation subjects; %s" % context
+-    bad = []
++    bad = list(problems)
+     for subject in subjects:
+         if not citation_resolve(subject["token"], repo):
+             bad.append("%s:%d: %r does not resolve from %s"
+@@ -2035,7 +2161,8 @@ def self_test() -> int:
+         scorecard = gov_repo / "SCORECARD.md"
+         scorecard.write_text(
+             "`.ufo/reports/round-N/kotoba.md`\n", encoding="utf-8")
+-        status, evaluated, detail = check_governance_citations(gov_repo)
++        status, evaluated, detail = check_governance_citations(
++            gov_repo, errata=())
+         rec("governance: quoted/schematic exclusions pass non-vacuously",
+             status == "PASS" and evaluated == 1
+             and "1 quoted meta-finding(s)" in detail
+@@ -2044,7 +2171,8 @@ def self_test() -> int:
+         scorecard.write_text(
+             "`.ufo/reports/round-N/kotoba.md`\n"
+             "`corpus/dead-unquoted.md`\n", encoding="utf-8")
+-        status, evaluated, detail = check_governance_citations(gov_repo)
++        status, evaluated, detail = check_governance_citations(
++            gov_repo, errata=())
+         rec("governance: unquoted dead path fails and is named",
+             status == "FAIL" and evaluated == 2
+             and "corpus/dead-unquoted.md" in detail,
+@@ -2054,12 +2182,58 @@ def self_test() -> int:
+         log_path.write_text(
+             "\"historical finding:\n`corpus/dead-cross-line.md`\n\"\n"
+             "`corpus/live.md`\n", encoding="utf-8")
+-        status, evaluated, detail = check_governance_citations(gov_repo)
++        status, evaluated, detail = check_governance_citations(
++            gov_repo, errata=())
+         rec("governance: cross-line quotes do not suppress a subject",
+             status == "FAIL" and evaluated == 2
+             and "corpus/dead-cross-line.md" in detail,
+             (status, evaluated, detail))
+ 
++        # Recorded-absence errata excuse one pinned, still-dead subject and
++        # fail closed on every other shape.
++        absent_line = "`corpus/gone.md` exited 2: runner absent"
++        log_path.write_text("`corpus/live.md`\n%s\n" % absent_line,
++                            encoding="utf-8")
++        digest = hashlib.sha256(absent_line.encode("utf-8")).hexdigest()
++        row = (2, digest, "corpus/gone.md", "runner absent")
++        status, evaluated, detail = check_governance_citations(
++            gov_repo, errata=(row,), horizon=2)
++        rec("governance: pinned recorded absence is excused and counted",
++            status == "PASS" and evaluated == 1
++            and "1 recorded absence(s) excused" in detail,
++            (status, evaluated, detail))
++        status, evaluated, detail = check_governance_citations(
++            gov_repo, errata=())
++        rec("governance: unregistered recorded absence still fails",
++            status == "FAIL" and "corpus/gone.md" in detail,
++            (status, evaluated, detail))
++        for label, errata, horizon, needle in (
++                ("past horizon", (row,), 1, "past horizon"),
++                ("line drift", ((2, "0" * 64) + row[2:],), 2, "drifted"),
++                ("wording", (row[:3] + ("runner present",),), 2, "wording"),
++                ("no subject", (row[:2] + ("corpus/x.md",) + row[3:],), 2,
++                 "names no subject")):
++            status, evaluated, detail = check_governance_citations(
++                gov_repo, errata=errata, horizon=horizon)
++            rec("governance: erratum %s fails closed" % label,
++                status == "FAIL" and needle in detail
++                and "corpus/gone.md" in detail, (status, evaluated, detail))
++        (gov_repo / "corpus" / "gone.md").write_text("", encoding="utf-8")
++        status, evaluated, detail = check_governance_citations(
++            gov_repo, errata=(row,), horizon=2)
++        rec("governance: erratum for a restored path is stale",
++            status == "FAIL" and "stale" in detail,
++            (status, evaluated, detail))
++        (gov_repo / "corpus" / "gone.md").unlink()
++        log_path.write_text("`corpus/live.md`\n%s\n`corpus/new-dead.md`\n"
++                            % absent_line, encoding="utf-8")
++        status, evaluated, detail = check_governance_citations(
++            gov_repo, errata=(row,), horizon=2)
++        rec("governance: erratum never masks another dead subject",
++            status == "FAIL" and "corpus/new-dead.md" in detail
++            and "1 recorded absence(s) excused" in detail,
++            (status, evaluated, detail))
++
+     # An explicit relative --repo must be normalized before bounded `..`
+     # hops; Path('.').parent otherwise stays '.', changing the verdict.
+     with tempfile.TemporaryDirectory(prefix="kotoba-relative-repo-") as td:

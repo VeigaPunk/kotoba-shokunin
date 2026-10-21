@@ -1,0 +1,62 @@
+{
+  "commit": "7ad7fadfc09354b74fb66605dfb0c1182c115a2f",
+  "verifier": "verifiers/verify_surfaces.py",
+  "baseline_pristine_exit": 0,
+  "rule": "OC-5",
+  "anchors": [
+    "OPENCODE_DISABLE_PROJECT_CONFIG (9 occurrences, dump lines 442392/443993/445482/446350)",
+    "globUp(<v>.directory,<v>.worktree) call shape (1 occurrence, dump line 443993)",
+    "globUp(<v>.config,<v>.config) call shape (1 occurrence, dump line 443993)"
+  ],
+  "mutants": [
+    {
+      "id": "M1",
+      "desc": "remove all 9 OPENCODE_DISABLE_PROJECT_CONFIG",
+      "exit": 1,
+      "survives": false,
+      "detail": "FAIL surfaces.opencode_extract: rule(s) matched nothing: OC-5 (owns no class id (shape witness); missing OPENCODE_DISABLE_PROJECT_CONFIG + globUp(<v>.directory,<v>.worktree) + globUp(<v>.config,<v>.config))"
+    },
+    {
+      "id": "M2",
+      "desc": "corrupt project call: globUp(T,d.directory,d.worktreX)",
+      "exit": 1,
+      "survives": false,
+      "detail": "same FAIL naming OC-5"
+    },
+    {
+      "id": "M3",
+      "desc": "corrupt config call: globUp(T,r.config,r.cfg)",
+      "exit": 1,
+      "survives": false,
+      "detail": "same FAIL naming OC-5"
+    },
+    {
+      "id": "M4",
+      "desc": "renamed-but-equivalent: globUp -> walkUp everywhere (pure identifier rename)",
+      "exit": 1,
+      "survives": false,
+      "detail": "same FAIL naming OC-5; fails closed on equivalent rename (by-design drift tripwire per rule comment at verify_surfaces.py:485-486)"
+    },
+    {
+      "id": "M5",
+      "desc": "SURVIVING: polarity flip if(!Jr.ENV) -> if(Jr.ENV) at dump line 443993",
+      "exit": 0,
+      "survives": true,
+      "detail": "PASS surfaces.opencode_extract: 9/9 classes, 7/7 rules; rule witnesses env-var presence, not its polarity"
+    },
+    {
+      "id": "M6",
+      "desc": "SURVIVING: swap the two globUp argument lists across the branch arms",
+      "exit": 0,
+      "survives": true,
+      "detail": "PASS 9/9; the two regexes are independent dump-global searches, not bound to their branch arms"
+    },
+    {
+      "id": "M7",
+      "desc": "SURVIVING: remove env check at switch site only (if(!Jr.ENV) -> if(!1)); 8 other occurrences incl. docs text keep anchor alive",
+      "exit": 0,
+      "survives": true,
+      "detail": "PASS 9/9; env anchor is a dump-global substring satisfied by any of 9 occurrences (docs escape-hatch text included)"
+    }
+  ]
+}

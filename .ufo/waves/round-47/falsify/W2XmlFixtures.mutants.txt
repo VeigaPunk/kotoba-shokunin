@@ -1,0 +1,73 @@
+W2XmlFixtures — mutation matrix for verifiers/fixtures/checklist/xml-tag-* at 7ad7fad
+Lane: KotobaR47-2.W2XmlFixtures-2 (leaf reviewer). Scratch clone:
+/fast/scratch/kotoba-r47/w2/W2XmlFixtures/kotoba-shokunin (detached at 7ad7fadfc09354b74fb66605dfb0c1182c115a2f).
+
+BASELINE (exit codes)
+  xml-tag-codespan=1  xml-tag-split=1  xml-tag-dq-escape=1  xml-tag-control=0
+  no-frontmatter=1 fm-null=1 fm-malformed=1 fm-dup-key=1 fm-body-yaml=1 fm-stray-indent=1 empty-file=1
+  verify_skill_checklist.py --self-test -> exit 0, "0 failure(s) over 1845 assertions"
+
+MUTANT MATRIX  (mutant = a plausible wrong implementation of the detector;
+"flips" = the xml-tag-* fixture whose verdict changed; "killed by" = the
+self-test assertion that caught it.  A mutant with flips=[] and selftest=0
+SURVIVES the whole gate.)
+
+ id                        selftest  flips                              killed by
+ M1 strip-quoted-spans     1         xml-tag-codespan                  codespan needle '<skills>'
+ M2 strict tag (no space   1         xml-tag-split                     split needle '</Skills >'
+    before '>')
+ M3 drop YAML-escape       1         xml-tag-dq-escape                 dq needle '\\u003c'
+    branch
+ M4 any-angle '[<>'        1         xml-tag-control                  control exit 0->1
+ M5 name-only              1         xml-tag-control                  control exit 0->1 + needles
+ M6 start-tag-only         1         xml-tag-split                     split needle
+ M7 lowercase-naive         1         xml-tag-split                     split needle
+    '</?[a-z]+>'
+ M8 (lowercase-only with   1         xml-tag-split                     split needle
+    [\w.:-]*)
+ M9 drop comment branch    1         (none)                            string battery '<!-- c -->'
+ M10 entity-decode         1         xml-tag-control                  control exit 0->1
+    (&lt; -> <)
+ M11 NFKC-normalise        0  SURV   (none)                            NOTHING
+ M12 description-only      1         (none)                            control needle
+                                                                      'no XML tag in name, description'
+ M13 strict + no comment   1         xml-tag-split                     split needle
+ M17 fail-open guard       1         (none)                            7 broken-frontmatter cases
+    (fm None -> PASS)                                                    ('FAIL trigger.no_xml_tag')
+ M19 loose angle '<[^<>]*>'1         (none)                            string battery 'a < b and c > d.'
+ M20 scan first 80 chars   1         codespan, split, dq-escape       the three needles
+ M21 drop CDATA branch     0  SURV   (none)                            NOTHING
+ M22 drop PI branch        0  SURV   (none)                            NOTHING
+ M23 drop declaration      0  SURV   (none)                            NOTHING
+ M24 drop comment branch   1         (none)                            string battery '<!-- c -->'
+    (only)                                                             (M9 same effect)
+ M26 scan EVERY field      1         xml-tag-control                  control exit 0->1
+    (metadata too)
+ M27 allow space after '<' 1         (none)                            string battery 'a < b and c > d.'
+    ('</?\\s*[A-Za-z_]...')
+
+CONSTRUCTIVE FIX CHECK for M19 / M27 (control fixture + the design battery's
+missing 'c > d' half):
+  description line 6 changed from "a < b, for files <= 600 lines"
+  to "a < b and c > d, for files <= 600 lines"  (scratch copy only)
+  -> M19-loose-angle   control exit=1  FAIL trigger.no_xml_tag: ... '< b an'
+  -> M27-space-after-lt control exit=1  FAIL trigger.no_xml_tag: ... '< b an'
+  i.e. the two surviving over-eager detectors are both killed by that one edit.
+
+REPRO HARNESS (self-contained; run inside a clone of the repo at 7ad7fad)
+  for each mutant:
+    d=mutants/<id>; mkdir -p $d
+    for e in <repo>/*; do ln -sfn "$e" "$d/$(basename $e)"; done   # repo root symlinks
+    cp -r <repo>/verifiers $d/verifiers
+    patch $d/verifiers/verify_skill_checklist.py
+    python3 -B $d/verifiers/verify_skill_checklist.py --self-test
+    python3 -B $d/verifiers/verify_skill_checklist.py --repo <repo> \
+        --skill $d/verifiers/fixtures/checklist/<case>/SKILL.md \
+        --map  $d/verifiers/fixtures/checklist/<case>/map.json
+  (the harness source used is reproduced in W2XmlFixtures.md, appendix)
+
+MUTATION ANCHORS (all in verifiers/verify_skill_checklist.py @7ad7fad)
+  :404-406  XML_TAG_RE       = r"</?[A-Za-z_][\w.:-]*(?:\s[^<>]*)?/?>" | "<!--|<![CDATA[|<[A-Za-z_]|<![A-Za-z]"
+  :409      YAML_ANGLE_ESCAPE_RE = r"\\(?:x3[cCeE]|u003[cCeE]|U0000003[cCeE])"
+  :1298     present = [k for k in ("name","description") if ...]
+  :1303-1304 val = fields[key]; XML_TAG_RE.search(val) or YAML_ANGLE_ESCAPE_RE.search(val)

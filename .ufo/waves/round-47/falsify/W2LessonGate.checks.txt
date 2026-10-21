@@ -1,0 +1,187 @@
+W2LessonGate checks — kotoba-shokunin @ 7ad7fad — generated 2026-10-21T17:03:04Z
+
+### git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin log --oneline -1
+exit=0
+7ad7fad round-47: C1 re-derive+re-pin omp 18.12.5/opencode 1.19.3; C2 trigger.no_xml_tag; C3 governance erratum + corpus index; frontier S012-S015, M20-M22, Q19; wave-1 evidence
+
+### grep -c S012 verifiers/verify_skill_checklist.py
+exit=1
+0
+
+### sed -n '97,104p' verifiers/verify_skill_checklist.py
+exit=0
+trigger.no_xml_tag              the parsed ``name`` and ``description``
+    values carry no XML markup: a start/end/empty-element tag (``<`` then
+    a name character — ``a < b`` is a comparison), comment, CDATA,
+    processing instruction or declaration, or a YAML double-quoted
+    ``\\x3c``/``\\u003c`` escape that decodes to one.  Backticked spans are
+    NOT exempt (frontmatter is plain text to every client).  Source: S003,
+    an Anthropic rule the open spec (S001/S002) lacks.  ``evaluated`` =
+    non-empty fields scanned (1-2).
+
+### sed -n '208,212p' verifiers/verify_skill_checklist.py
+exit=0
+    set — an unlisted exclusion phrasing FAILs unearned, a marker-bearing
+    non-exclusion (or a vacuous "Never use this skill.") passes unearned;
+  - the XML-tag check reads S003's words, not Anthropic's packager:
+    ``quick_validate.py`` (used by ``package_skill.py``) rejects any ``<``
+    or ``>``, so ``a -> b`` passes here and fails packaging; Claude Code's
+
+### sed -n '1305,1309p' verifiers/verify_skill_checklist.py
+exit=0
+        if m:
+            hits.append("%s: %r" % (key, m.group(0)))
+    limit = ("S003 Anthropic rule, absent from the open spec (S001); "
+             "Anthropic's packager bans any '<'/'>' and is stricter")
+    if hits:
+
+### grep -c S015 corpus/knowledge/instruction-surface-census-round13.md
+exit=1
+0
+
+### sed -n '16p' corpus/SOURCES.md
+exit=0
+| S003 | Claude Docs — Agent Skills best practices — https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices | docs | A | Anthropic authoring rules for name and description | § Skill structure field list; live page opened 2026-10-19 | The description cannot contain XML tags, must be third person, and states what the skill does and when; body under 500 lines; an Anthropic-only rule the open spec lacks | mined | 2026-10-19 | 90d | SKILL.md |
+
+### awk -F'|' 'NR==28{print $9, $12}' corpus/SOURCES.md
+exit=0
+ mined   corpus/knowledge/instruction-surface-census-round13.md 
+
+### sed -n '25,28p' corpus/SOURCES.md | cut -c1-120
+exit=0
+| S012 | anthropics/skills — skill-creator reference skill (quick_validate.py) — https://github.com/anthropics/skill
+| S013 | OpenAI — Build skills (ChatGPT and Codex) — https://learn.chatgpt.com/docs/build-skills | docs | A | Codex 
+| S014 | Anthropic Engineering — Equipping agents for the real world with Agent Skills — https://www.anthropic.com/r
+| S015 | kotoba own work — `sha256sum -c SHA256SUMS` in /fast/scratch/kotoba-r47/shared (frozen omp 18.12.5 and openco
+
+### sed -n '29,58p' corpus/lessons/round-47.md
+exit=0
+**Rows written this round (each opened this round by a wave-1 seat; the seat report holds
+the full fetch record).** All four rows are new; no existing row's `status`, `recheck` or
+`used-by` changed (old→new: none).
+
+| row | URL | accessed | ≤25-word quote (location) | record |
+|---|---|---|---|---|
+| S012 | https://github.com/anthropics/skills/tree/dbd4588f9e1033efb41dad4bef2f7947c8993d44/skills/skill-creator | 2026-10-21T15:55:51Z | "Description cannot contain angle brackets (< or >)" (`skills/skill-creator/scripts/quick_validate.py:81`, sha256 `67cf5703…`) | `.ufo/waves/round-47/build/SrcNewSkillCreator.md` |
+| S013 | https://learn.chatgpt.com/docs/build-skills (308 from https://developers.openai.com/codex/skills) | 2026-10-21T15:54:43Z | "this list uses at most 2% of the model's context window, or 8,000 characters when the context window is unknown" (§ How ChatGPT and Codex use skills) | `.ufo/waves/round-47/build/SrcNewCodexSkills.md` |
+| S014 | https://www.anthropic.com/research/equipping-agents-for-the-real-world-with-agent-skills | 2026-10-21T15:57:06Z | "At startup, the agent pre-loads the name and description of every installed skill into its system prompt." (§ The
+### grep -n 'S015' corpus/README.md
+exit=0
+64:| Round-47 lessons | `lessons/round-47.md` | LOG.md round-47 entry; `## Mistakes` (stale planned premise M20, unindexed closure landing M21, stale lesson pointers M22) and `## Gate` (source rows S012–S015 with access records, S001–S008 re-opened, the C1 class ledger pointer) |
+
+### head -1 .ufo/waves/round-47/build/SrcNewCodexSkills.md
+exit=0
+verdict: ADMIT S012 — OpenAI "Build skills" (canonical https://learn.chatgpt.com/docs/build-skills, 308 from the assigned developers.openai.com/codex/skills URL) is an opened, tier-A, docs-kind primary source that states the 2%-of-context / 8,000-character initial-list budget, description-first shortening, and description-gated implicit invocation; status queued, zero census findings.
+
+### head -1 .ufo/waves/round-47/build/SrcNewAnthropicEng.md
+exit=0
+verdict: ADMIT S012 — the source exists and says it: HTTP 200, 216,618 bytes, sha256 `c2a4f973…`, grounding quote "At startup, the agent pre-loads the name and description of every installed skill into its system prompt." (§ The anatomy of a skill, published 2025-10-16, modified 2026-10-18T21:26:58Z); the draft row validates clean in a BASE clone (exit 0), but the `S012` id is contested by two sibling drafts and must be assigned at integration.
+
+### head -1 .ufo/waves/round-47/build/SrcOwnWorkSubstrate.md
+exit=0
+verdict: two tier-A own-work SOURCES rows drafted and shape-checked (S012 substrate snapshot, S013 C2 frontmatter gate), both queued; BASE c61a973b still has no XML-tag rule and the omp/opencode pins fail 3/3 against the frozen snapshot, so the rows record the gap rather than a pass.
+
+### ls .ufo/waves/round-47/build/SrcS00*.md
+exit=0
+.ufo/waves/round-47/build/SrcS001.md
+.ufo/waves/round-47/build/SrcS002.md
+.ufo/waves/round-47/build/SrcS003.md
+.ufo/waves/round-47/build/SrcS004.md
+.ufo/waves/round-47/build/SrcS005.md
+.ufo/waves/round-47/build/SrcS008.md
+
+### sha256sum -c SHA256SUMS
+exit=1
+sha256sum: SHA256SUMS: No such file or directory
+
+### (in /fast/scratch/kotoba-r47/shared) sha256sum -c SHA256SUMS
+bin/omp-18.12.5: OK
+bin/opencode-1.19.3: OK
+omp-18.12.5.strings: OK
+opencode-1.19.3.strings: OK
+exit=0
+
+### live re-derivations (network re-fetch, 2026-10-21)
+### curl -sS -L -o /tmp/qv.py https://raw.githubusercontent.com/anthropics/skills/dbd4588f9e1033efb41dad4bef2f7947c8993d44/skills/skill-creator/scripts/quick_validate.py
+exit=0
+
+### sha256sum /tmp/qv.py; sed -n '81p' /tmp/qv.py
+exit=0
+67cf5703402013936c8fb75ad6a1afecd8841d45cc5e606b634eb05825fde365  /tmp/qv.py
+            return False, "Description cannot contain angle brackets (< or >)"
+
+### curl -sS -L -o /tmp/codex-skills.md https://learn.chatgpt.com/docs/build-skills.md
+exit=0
+
+### sha256sum /tmp/codex-skills.md; sed -n '38,39p;40p' /tmp/codex-skills.md; grep -n '## How ChatGPT and Codex use skills' /tmp/codex-skills.md
+exit=0
+ed6e324f747d47adf6f60ee1fca13ba469b3671f55f58c3a78f35947af6919d5  /tmp/codex-skills.md
+this list uses at most 2% of the model's
+context window, or 8,000 characters when the context window is unknown. If many
+skills are installed, Codex shortens skill descriptions first. For large skill
+91:## How ChatGPT and Codex use skills
+
+### curl -sS -L --compressed -o /tmp/anthropic-eng.html https://www.anthropic.com/research/equipping-agents-for-the-real-world-with-agent-skills
+exit=0
+
+### sha256sum /tmp/anthropic-eng.html; grep -c 'id="the-anatomy-of-a-skill"' /tmp/anthropic-eng.html
+exit=0
+7dfd6f15b8f6e7e30352d569203a8d0c285d4073c3a5793434396551f164e892  /tmp/anthropic-eng.html
+1
+
+### curl -sS -L --compressed -o /tmp/bp.md https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices.md
+exit=0
+
+### sha256sum /tmp/bp.md; grep -n 'Cannot contain XML tags' /tmp/bp.md
+exit=0
+727f3fa1168eb1c33ce6a3cbfc94a02ef1dfd647388f6ca9daf7cb6294762f42  /tmp/bp.md
+155:  * Cannot contain XML tags
+162:  * Cannot contain XML tags
+
+### curl -sS -L -o /tmp/spec.md https://agentskills.io/specification.md
+exit=0
+
+### grep -n '500 lines' /tmp/spec.md; grep -c -i xml /tmp/spec.md; grep -n '^#' /tmp/spec.md | head -20
+exit=0
+237:Keep your main `SKILL.md` under 500 lines. Move detailed reference material to separate files.
+0
+5:# Specification
+9:## Directory structure
+22:## `SKILL.md` format
+26:### Frontmatter
+59:#### `name` field
+97:#### `description` field
+117:#### `license` field
+130:#### `compatibility` field
+156:#### `metadata` field
+172:#### `allowed-tools` field
+185:### Body content
+197:## Optional directories
+201:### `scripts/`
+211:### `references/`
+221:### `assets/`
+229:## Progressive disclosure
+239:## File references
+252:## Validation
+
+### curl -sS -L -o /tmp/spec3.md https://raw.githubusercontent.com/anthropics/skills/dbd4588f9e1033efb41dad4bef2f7947c8993d44/spec/agent-skills-spec.md
+exit=0
+
+### wc -lc /tmp/spec3.md; sha256sum /tmp/spec3.md; cat /tmp/spec3.md
+exit=0
+ 3 87 /tmp/spec3.md
+ff22f2be775f4b757c9a7a2df0421de4c94021d34d9382cea5dd567ff0cdad2c  /tmp/spec3.md
+# Agent Skills Spec
+
+The spec is now located at <https://agentskills.io/specification>
+
+### python3 -c "
+import re,html
+h=open('/tmp/anthropic-eng.html',errors='replace').read()
+t=re.sub(r'<[^>]+>','',h); t=re.sub(r'\s+',' ',t)
+q=\"At startup, the agent pre-loads the name and description of every installed skill into its system prompt.\"
+print('quote occurrences:',t.count(q))
+"
+exit=0
+quote occurrences: 1
+

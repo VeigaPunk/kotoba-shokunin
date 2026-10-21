@@ -1,0 +1,36 @@
+from pathlib import Path
+import hashlib
+import json
+
+root = Path('/home/vgpnk/Projects/shokunin/kotoba-shokunin')
+patch_path = root / '.ufo/waves/round-47/build/C1HarnessDriftRoot.patch'
+source_path = Path('/fast/scratch/kotoba-r47/shared/omp-18.12.5.strings')
+patch = patch_path.read_text()
+source = source_path.read_text()
+start = patch.index('+def cache_lookup(')
+end = patch.index('\n+    return None', start) + len('\n+    return None')
+helper = '\n'.join(line[1:] for line in patch[start:end].splitlines() if line.startswith('+'))
+namespace = {}
+exec(helper, namespace)
+lookup = namespace['cache_lookup']
+bare = 'b' * 64
+rows = {bare + ':other/model': 'not the computed preview'}
+result = lookup(rows, bare)
+assert result == ('preview-fallback', 'not the computed preview')
+renderer_start = source.index('class fM {', 26178035)
+renderer_end = source.index('  async waitForPending()', renderer_start)
+writer_start = source.index('          const p = n.modelKey();', renderer_end)
+writer_end = source.index('        } finally {', writer_start)
+print(json.dumps({
+    'patch_sha256': hashlib.sha256(patch_path.read_bytes()).hexdigest(),
+    'strings_sha256': hashlib.sha256(source_path.read_bytes()).hexdigest(),
+    'renderer_character_offset': renderer_start,
+    'renderer_excerpt': source[renderer_start:renderer_end],
+    'writer_character_offset': writer_start,
+    'writer_excerpt': source[writer_start:writer_end],
+    'probe_rows': rows,
+    'proposed_lookup': result,
+    'shipped_render_static_prediction': 'xze(r.description), because t.get(D(r)) is undefined; suffixed value is never read by render',
+    'empty_model_suffix': lookup({bare + ':': 'invalid namespace'}, bare),
+    'multiple_models': lookup({bare + ':a/model': 'old', bare + ':z/model': 'current'}, bare),
+}, indent=2))

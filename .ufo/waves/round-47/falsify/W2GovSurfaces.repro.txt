@@ -1,0 +1,24 @@
+# Run from a HEAD canonical clone; Python exits 0 on a completed census.
+# Gate command (each layout): python3 -B verifiers/verify_skill_checklist.py --json
+# Census command: python3 -B /path/to/W2GovSurfaces.repro.txt /path/to/clone
+import collections, importlib.util, json, subprocess, sys
+from pathlib import Path
+repo=Path(sys.argv[1]).resolve()
+spec=importlib.util.spec_from_file_location('gov',repo/'verifiers/verify_skill_checklist.py')
+v=importlib.util.module_from_spec(spec);spec.loader.exec_module(v)
+B='c61a973b2e02e1ded169703ddcb06466f4edd8bd';H='7ad7fadfc09354b74fb66605dfb0c1182c115a2f'
+allb=[];allh=[];out={}
+for name in v.GOVERNANCE_FILES:
+    revrows=[]
+    for rev in (B,H):
+        r=subprocess.run(['git','-C',str(repo),'show',rev+':'+name],capture_output=True,text=True,check=True)
+        rows,excluded=v.citation_subjects(r.stdout.splitlines(),source=name,exclude_quoted=True,exclude_schematic=True)
+        revrows.append(rows)
+    b,h=revrows;allb+=b;allh+=h
+    bc=collections.Counter(x['token'] for x in b);hc=collections.Counter(x['token'] for x in h)
+    out[name]={'base':len(b),'head':len(h),'added_occurrences':dict(hc-bc),'removed_occurrences':dict(bc-hc),'new_distinct_tokens':sorted(set(hc)-set(bc))}
+out['same_dotdot_multiset']=collections.Counter((s['source'],s['token']) for s in allb if s['token'].startswith('../'))==collections.Counter((s['source'],s['token']) for s in allh if s['token'].startswith('../'))
+out['dotdot_subject_count']=sum(s['token'].startswith('../') for s in allh)
+out['unresolved_raw_subjects']=[s for s in allh if not v.citation_resolve(s['token'],repo)]
+out['gate']=v.check_governance_citations(repo)
+print(json.dumps(out,indent=2))

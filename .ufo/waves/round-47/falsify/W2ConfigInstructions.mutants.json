@@ -1,0 +1,87 @@
+{
+  "lane": "KotobaR47-2.W2ConfigInstructions-2",
+  "target": "opencode:config/instructions consumer (re-verdict excluded->governed)",
+  "head": "7ad7fadfc09354b74fb66605dfb0c1182c115a2f",
+  "substrate": {
+    "opencode_binary": "179ca421d61eefeadfa0c50e084a6e79c1623734732f0f4593f81ccfd3ab7ee9",
+    "opencode_strings": "f4d8f34ae02a2411eb5e30203421b6fcdfa81b83e96b768bbcf404504a297bc3",
+    "sha256sum_check": "exit 0 against /fast/scratch/kotoba-r47/shared/SHA256SUMS"
+  },
+  "consumer_chain": {
+    "instruction_namespace": "dump 443993@6206 so(Wo,{node:()=>bi,loaded:()=>ai,Service:()=>Co,Instruction:()=>Wo}); class tag @opencode/Instruction; service table dump 443996 {clear,systemPaths,system,find,resolve}",
+    "chunk_export": "dump 444403 export{S as mo,Qr as no,eo as oo,Wo as po,Te as qo,lo as ro,tr as so,Pr as to,$o as uo,ie as vo} (chunk-2h6vy674.js; filename 443991, // @bun 443992)",
+    "import": "dump 443143 import{oo as ua,po as ln,ro as eh,so as za,to as ls,vo as Co}from /$bunfs/root/chunk-2h6vy674.js",
+    "service_binding": "dump 443983@1124 K=yield*ln.Service (SessionPrompt layer, tag @opencode/SessionPrompt at 443983@704)",
+    "call_site": "dump 443988@13773 K.system() inside s.all; 443988@13714 tuple [he,qe,Ue,bo,ns]; 443988@13852 uo=[...qe,...Ue,...]; 443988@13976 ee.process({...,system:uo,...})",
+    "caller_chain": "SessionPrompt.command 443989@1469 yield*we({...}); ops prompt:(t)=>we(t) 443983@1413; prompt def 443988@9836 calls yield*Ao( 443988@10216; loop def 443988@15236 calls Ke(t.sessionID) 443988@15336; run def 443988@10495",
+    "enclosing_function": "SessionPrompt.run (nearest preceding s.fn before K.system in the chunk source)"
+  },
+  "instruction_system": {
+    "systemPaths_def": "dump 443993@7717",
+    "adds": [
+      "443993@7852 w.add(X.resolve(O))",
+      "443993@8028 U.forEach((q)=>w.add(X.resolve(q)))",
+      "443993@8378 w.add(X.resolve(R))"
+    ],
+    "instructions_loop": "dump 443993@8071 if(T.instructions)for(let O of T.instructions){...isAbsolute?e.glob(basename,{cwd:dirname,absolute:true,include:\"file\"}):m(U)...}.forEach((R)=>w.add(X.resolve(R)))",
+    "system_def": "dump 443993@8410 c=s.fn(\"Instruction.system\")",
+    "consume": "dump 443993@8471 d=yield*g()",
+    "render": "dump 443993@8705 Instructions from: <path>; remote filter at 443993@8483 and remote render at 443993/443994"
+  },
+  "landed_state": {
+    "baseline": "verifiers/surfaces-baseline.json:280-285 governed, no reason",
+    "census_rows": "corpus/knowledge/instruction-surface-census-round13.md:240,254,314 (historical excluded row at :303)",
+    "fixture": "verifiers/fixtures/surfaces/inventory-clean.md:17 governed | declared list loop",
+    "verify_surfaces": "python3 verifiers/verify_surfaces.py -> 7 PASS, exit 0",
+    "pins": "python3 verifiers/check_substrate_pins.py -> 3/3 PASS, exit 0",
+    "self_test": "python3 verifiers/verify_surfaces.py --self-test -> 0 failure(s) over 99 assertions, exit 0"
+  },
+  "mutants": [
+    {
+      "id": "M1",
+      "change": "keep if(T.instructions)for(...) loop; delete ).forEach((R)=>w.add(X.resolve(R))) so glob matches are discarded",
+      "file": "work/mut1-no-add.strings",
+      "sha256": "df24fdcda460e11e255b82c6075045b52b9404bf378e188afb26e7983b492ec0",
+      "bytes": 67839058,
+      "full_verifier_exit": 0,
+      "opencode_extract": "PASS surfaces.opencode_extract: opencode extraction 9/9 declared class(es) from 7/7 rules",
+      "finding": "OC-3a matches the for-header only; removal of the actual local-entry consumption is not detected"
+    },
+    {
+      "id": "M2",
+      "change": "delete the whole if(T.instructions)for(...) branch",
+      "file": "work/mut2-no-loop.strings",
+      "sha256": "ccb36dba1ba9f16db6c80eb0cd73ef0933af37cebb8b6dbcef82f2fe71bb1e09",
+      "bytes": 67838763,
+      "full_verifier_exit": 1,
+      "opencode_extract": "FAIL surfaces.opencode_extract: declared opencode class(es) produced by no rule: opencode:config/instructions; rule(s) matched nothing: OC-3a (owns opencode:config/instructions; missing for(let <v> of <v>.instructions))",
+      "finding": "loop presence is genuinely discriminating"
+    },
+    {
+      "id": "M3",
+      "change": "Instruction.system: replace d=yield*g() with d=new Set (sever systemPaths->system)",
+      "file": "work/mut3-no-consume.strings",
+      "sha256": "c2b3d7c789cb2118ff9d2bc0248f43326d7afc9ae22d91e4db98093dddb670b5",
+      "bytes": 67839089,
+      "full_verifier_exit": 0,
+      "opencode_extract": "PASS surfaces.opencode_extract: opencode extraction 9/9 declared class(es) from 7/7 rules",
+      "finding": "the systemPaths->Instruction.system consumption edge is not machine-checked"
+    }
+  ],
+  "recounts": {
+    "for(let O of T.instructions)": 1,
+    "Instruction.systemPaths": 1,
+    "Instructions from: ": 4,
+    "X.join(r.config,\"AGENTS.md\")": 1,
+    "X.join(r.home,\".claude\",\"CLAUDE.md\")": 1,
+    "disableClaudeCodePrompt": 3,
+    "CONTEXT.md": 1,
+    "fn(\"Instruction.resolve\")": 1,
+    "fn(\"ReadTool.execute\")": 1,
+    "InstructionContext.observe": 1,
+    "system-context-builtins": 1,
+    "ConfigInstructionPlugin": 0,
+    "SessionInstructions": 0,
+    "InstructionDiscovery": 0
+  }
+}

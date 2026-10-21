@@ -1,0 +1,408 @@
+diff --git a/SKILL.md b/SKILL.md
+index 5d9486f..afea9b1 100644
+--- a/SKILL.md
++++ b/SKILL.md
+@@ -11,7 +11,7 @@ description: >
+   (kagi, kake, kasegi, kengaku, kumitate) own their own SKILL.md content —
+   this skill audits and reports; fixes route to the owning lane. Note: the
+   shokunin files are not in an omp skill discovery root, so their descriptions
+-  never reach the `<skills>` router — craft here is audit-side, not
++  never reach the omp skills router — craft here is audit-side, not
+   router-visible.
+ ---
+ 
+@@ -148,7 +148,7 @@ regex, `metadata.requires` over prose, render-by-reproduction, invocation-shaped
+ triggers for domain-term names, and the discovery roots:
+ `corpus/knowledge/frontmatter-trigger-surface.md` § Craft rules.
+ 
+-Portability floor (spec + vendor + YAML, `corpus/SOURCES.md` S001, S002, S003, S008): `name` ≤64 lowercase-hyphen chars equal to the directory; `description` ≤1024 chars, no XML tags (Anthropic rule), quoted when it holds `: ` or ` #` (illegal in a YAML plain scalar — lenient loaders hide it, strict ones reject). This file's own description still carries `<skills>`; the repair is planned (`SCORECARD.md` § planned, round 47).
++Portability floor (spec + vendor + YAML, `corpus/SOURCES.md` S001, S002, S003, S008): `name` ≤64 lowercase-hyphen chars equal to the directory; `description` ≤1024 chars, no XML tags (Anthropic rule), quoted when it holds `: ` or ` #` (illegal in a YAML plain scalar — lenient loaders hide it, strict ones reject). `verifiers/verify_skill_checklist.py` `trigger.no_xml_tag` gates the XML-tag rule on `name` and `description`; Anthropic's reference packager (S012) is stricter and refuses any `<`/`>`.
+ 
+ ## Decision tables — when to use one
+ 
+@@ -428,7 +428,10 @@ location; durable policy copy-pasted into a dispatch prompt.
+ - `~/.local/share/opencode/log/opencode.log` — opencode offer trace
+   (`message=init count=N` per instance, latest 18; `duplicate skill name`
+   warns) and the `<available_skills>`-vs-`<skills>` tag split (round-8/9).
+-- `~/.opencode/bin/opencode` + upstream `github.com/sst/opencode` (dev):
++- opencode — npm `opencode-ai` 1.19.3 since round 47 (the `~/.local/bin/opencode`
++  npx wrapper; pinned ELF and lineage in `verifiers/baseline.json` and
++  `corpus/knowledge/instruction-surface-census-round13.md` § B′; the round-8/18
++  `~/.opencode/bin` install is gone) + upstream `github.com/sst/opencode` (dev):
+   `packages/opencode/src/skill/index.ts:321-343` (`fmt` verbose render,
+   `description` filter), `:105-139` (add/duplicate: warn then **unguarded**
+   assignment, last parsed wins), `:235-246` (`concurrency:"unbounded"` parse
+diff --git a/verifiers/verify_skill_checklist.py b/verifiers/verify_skill_checklist.py
+index c6476e7..ef7d952 100755
+--- a/verifiers/verify_skill_checklist.py
++++ b/verifiers/verify_skill_checklist.py
+@@ -94,6 +94,14 @@ trigger.anti_trigger_clause     the ``description``, after quoted and
+     ``不要用于``, ``排除``, ``勿用于``.  Limit (named in the detail line):
+     a vacuous "Never use this skill." passes and a real exclusion with no
+     marker fails — it is a vocabulary test, not semantics.
++trigger.no_xml_tag              the parsed ``name`` and ``description``
++    values carry no XML markup: a start/end/empty-element tag (``<`` then
++    a name character — ``a < b`` is a comparison), comment, CDATA,
++    processing instruction or declaration, or a YAML double-quoted
++    ``\\x3c``/``\\u003c`` escape that decodes to one.  Backticked spans are
++    NOT exempt (frontmatter is plain text to every client).  Source: S003,
++    an Anthropic rule the open spec (S001/S002) lacks.  ``evaluated`` =
++    non-empty fields scanned (1-2).
+ trigger.line_budget             the box binds the threshold: the first
+     integer in the checklist box whose text matches ``file … <int> …
+     line(s)`` is the limit (the live box reads ``File ≤ 600 lines``); when
+@@ -181,8 +189,12 @@ governance.citation_resolves    the same existence predicate over repo-root
+     ``SKILL.md``.  A token fully enclosed by double quotes on its own line is
+     a historical/meta finding, not a live promise.  Tokens carrying an
+     ellipsis or a literal ``round-N`` path segment are counted schematics and
+-    excluded.  Every other subject must resolve at HEAD.  ``evaluated`` =
+-    checked subjects after those two explicit exclusions; zero is a FAIL.
++    excluded.  A pinned ``GOVERNANCE_ERRATA`` row excuses one ``LOG.md``
++    subject whose own line records its absence: the line sits at or below
++    the horizon, matches the row's SHA-256 and absence wording, and the path
++    still does not resolve; any other row shape FAILs.  Every other subject
++    must resolve at HEAD.  ``evaluated`` = checked subjects after those three
++    counted exclusions; zero is a FAIL.
+ 
+ 
+ DOCUMENTED LIMITS (what this instrument proves and what it never proves):
+@@ -195,6 +207,13 @@ DOCUMENTED LIMITS (what this instrument proves and what it never proves):
+   - anti-trigger is a vocabulary test over the OBSERVED bilingual marker
+     set — an unlisted exclusion phrasing FAILs unearned, a marker-bearing
+     non-exclusion (or a vacuous "Never use this skill.") passes unearned;
++  - the XML-tag check reads S003's words, not Anthropic's packager:
++    ``quick_validate.py`` (used by ``package_skill.py``) rejects any ``<``
++    or ``>``, so ``a -> b`` passes here and fails packaging; Claude Code's
++    ``when_to_use`` (appended to the listed description), fullwidth
++    ``＜x＞`` (NFKC ``<x>``), YAML aliases and plain-scalar ``#`` comments
++    are outside the structural parse — a tag after `` #`` FAILs here though
++    YAML drops it;
+   - the command vocabulary is a ceiling, named not hidden: a command
+     outside the declared set used *inline* is invisible; inside a
+     shell-fenced block every segment head is checked, so wrappers,
+@@ -216,7 +235,10 @@ DOCUMENTED LIMITS (what this instrument proves and what it never proves):
+     historical truth, ownership, content support, commit pins or line anchors.
+     It runs only for repo-root ``LOG.md``/``SCORECARD.md`` with the repo's own
+     ``SKILL.md`` as target.  Same-line double-quoted meta-findings and the two
+-    schematic forms (ellipsis, literal ``round-N``) are excluded and counted;
++    schematic forms (ellipsis, literal ``round-N``) are excluded and counted,
++    as are pinned recorded-absence errata (a row authenticates nothing: it
++    is a reviewed in-source exception, bounded by the horizon, the line hash
++    and the still-dead test, never by a reason string);
+     cross-line quote parity never suppresses a subject; symlinks are
+     existence-tested, not required to remain inside the repo;
+   - delegation (round-16 R2) is instrument-ness by suffix or shebang: a
+@@ -285,6 +307,7 @@ CHECK_IDS = (
+     "trigger.name_directory",
+     "trigger.literal_trigger_string",
+     "trigger.anti_trigger_clause",
++    "trigger.no_xml_tag",
+     "trigger.line_budget",
+     "trigger.no_placeholder",
+     "trigger.command_binary_resolves",
+@@ -347,6 +370,17 @@ OUTPUT_FLAGS = frozenset(["-o", "-O", "--out", "--output", "--write",
+ CITATION_ROOTS = ("corpus/", "verifiers/", "opencode/", ".ufo/", "../")
+ GOVERNANCE_FILES = ("LOG.md", "SCORECARD.md")
+ SCHEMATIC_CITATION_RE = re.compile(r"(?:^|/)round-N(?:/|\.|$)")
++# Append-only LOG.md lines that record a cited path's absence but predate the
++# same-line quote convention.  Only lines at or below the horizon qualify; each
++# row must match its line byte-for-byte, carry its absence wording, name a
++# subject on that line, and stay dead.  Rows: (line, line sha256, token, quote).
++GOVERNANCE_ERRATA_HORIZON = 2315
++GOVERNANCE_ERRATA = (
++    (2111,
++     "7dcbf123313d46c469cab9f5dac2daa7567e54ac1ddf7cffdd1fd38c74200135",
++     ".ufo/round-45/drafts/v10/post-r44-hunt.py",
++     "each exited 2 because the referenced runners are absent"),
++)
+ EMPTY_SCALARS = frozenset(["", "~", "null", "Null", "NULL"])
+ 
+ PLACEHOLDER_RE = re.compile(r"\b(?:TODO|FIXME|TBD)\b|coming soon",
+@@ -364,6 +398,15 @@ QUOTED_SPAN_RE = re.compile(
+ ALL_QUOTED_SPANS_RE = re.compile(
+     r'"[^"\n]*"|\'[^\'\n]*\'|`[^`\n]*`'
+     r"|[\u201c][^\u201d\n]*[\u201d]|[\u2018][^\u2019\n]*[\u2019]")
++# XML 1.0 markup shapes: start/end/empty-element tag (no space after "<"),
++# comment, CDATA, processing instruction, declaration.  Backticks are not
++# stripped: frontmatter values are plain text to every client, not Markdown.
++XML_TAG_RE = re.compile(
++    r"</?[A-Za-z_][\w.:-]*(?:\s[^<>]*)?/?>"
++    r"|<!--|<!\[CDATA\[|<\?[A-Za-z_]|<![A-Za-z]")
++# YAML double-quoted escapes decode to "<"/">" in every YAML client while the
++# structural parse keeps the backslash text.
++YAML_ANGLE_ESCAPE_RE = re.compile(r"\\(?:x3[cCeE]|u003[cCeE]|U0000003[cCeE])")
+ LINE_BOUND_BOX_RE = re.compile(
+     r"file\b[^.\n]{0,40}?\d+[^.\n]{0,20}?lines?\b", re.IGNORECASE)
+ INT_RE = re.compile(r"\d+")
+@@ -1248,6 +1291,28 @@ def check_anti_trigger(fm: tuple[dict | None, str]) -> tuple[str, int, str]:
+                        % limit)
+ 
+ 
++def check_no_xml_tag(fm: tuple[dict | None, str]) -> tuple[str, int, str]:
++    fields, problem = fm
++    if fields is None:
++        return "FAIL", 0, "cannot evaluate: %s" % problem
++    present = [k for k in ("name", "description") if fields.get(k, "").strip()]
++    if "description" not in present:
++        return "FAIL", 0, "cannot evaluate: empty description:"
++    hits = []
++    for key in present:
++        val = fields[key]
++        m = XML_TAG_RE.search(val) or YAML_ANGLE_ESCAPE_RE.search(val)
++        if m:
++            hits.append("%s: %r" % (key, m.group(0)))
++    limit = ("S003 Anthropic rule, absent from the open spec (S001); "
++             "Anthropic's packager bans any '<'/'>' and is stricter")
++    if hits:
++        return "FAIL", len(present), "XML tag in %s (%s)" % (
++            "; ".join(hits), limit)
++    return "PASS", len(present), "no XML tag in %s (%s)" % (
++        ", ".join(present), limit)
++
++
+ def box_line_budget(boxes: list[dict], default: int) -> tuple[int, str]:
+     """The threshold lives in the box text: first integer in the box whose
+     text matches ``file … <int> … line(s)``.  Falls back to --max-lines."""
+@@ -1451,12 +1516,41 @@ def check_citation_resolves(lines: list[str],
+         % evaluated)
+ 
+ 
+-def check_governance_citations(repo: Path) -> tuple[str, int, str]:
++def errata_problems(errata, horizon: int, log_lines: list[str],
++                    subjects: list[dict], repo: Path) -> tuple[list, set]:
++    """Validate recorded-absence rows; return (problems, excused keys)."""
++    problems: list[str] = []
++    excused: set[tuple[int, str]] = set()
++    on_log = {(s["line"], s["token"]) for s in subjects
++              if s["source"] == "LOG.md"}
++    for line, digest, token, quote in errata:
++        where = "erratum LOG.md:%d %r" % (line, token)
++        if not 1 <= line <= min(horizon, len(log_lines)):
++            problems.append("%s is past horizon %d or absent" % (where, horizon))
++            continue
++        text = log_lines[line - 1]
++        if hashlib.sha256(text.encode("utf-8")).hexdigest() != digest:
++            problems.append("%s: line text drifted" % where)
++        elif quote not in text:
++            problems.append("%s: absence wording not on the line" % where)
++        elif (line, token) not in on_log:
++            problems.append("%s: names no subject on the line" % where)
++        elif citation_resolve(token, repo):
++            problems.append("%s: stale, the path now resolves" % where)
++        else:
++            excused.add((line, token))
++    return problems, excused
++
++
++def check_governance_citations(repo: Path, errata=GOVERNANCE_ERRATA,
++                               horizon: int = GOVERNANCE_ERRATA_HORIZON
++                               ) -> tuple[str, int, str]:
+     """Round-17: root governance path claims remain navigable at HEAD."""
+     repo = repo.resolve()
+     subjects: list[dict] = []
+     excluded: dict[str, list[dict]] = {"quoted": [], "schematic": []}
+     unreadable = []
++    log_lines: list[str] = []
+     for name in GOVERNANCE_FILES:
+         path = repo / name
+         try:
+@@ -1464,6 +1558,8 @@ def check_governance_citations(repo: Path) -> tuple[str, int, str]:
+         except OSError as exc:
+             unreadable.append("%s (%s)" % (name, exc))
+             continue
++        if name == "LOG.md":
++            log_lines = lines
+         found, skipped = citation_subjects(
+             lines, source=name, exclude_quoted=True,
+             exclude_schematic=True)
+@@ -1471,15 +1567,21 @@ def check_governance_citations(repo: Path) -> tuple[str, int, str]:
+         for kind in excluded:
+             excluded[kind].extend(skipped[kind])
+ 
++    problems, excused = errata_problems(errata, horizon, log_lines,
++                                        subjects, repo)
++    subjects = [s for s in subjects if s["source"] != "LOG.md"
++                or (s["line"], s["token"]) not in excused]
+     evaluated = len(subjects)
+-    context = ("%d quoted meta-finding(s), %d schematic token(s) excluded"
+-               % (len(excluded["quoted"]), len(excluded["schematic"])))
++    context = ("%d quoted meta-finding(s), %d schematic token(s) excluded, "
++               "%d recorded absence(s) excused"
++               % (len(excluded["quoted"]), len(excluded["schematic"]),
++                  len(excused)))
+     if unreadable:
+         return "FAIL", evaluated, "unreadable governance file(s): %s; %s" % (
+             ", ".join(unreadable), context)
+     if evaluated == 0:
+         return "FAIL", 0, "no checked governance citation subjects; %s" % context
+-    bad = []
++    bad = list(problems)
+     for subject in subjects:
+         if not citation_resolve(subject["token"], repo):
+             bad.append("%s:%d: %r does not resolve from %s"
+@@ -1678,28 +1780,37 @@ def self_test() -> int:
+         ("clean", 0, [], [], []),
+         ("no-frontmatter", 1,
+          ["trigger.frontmatter_parses", "trigger.name_directory",
+-          "trigger.literal_trigger_string", "trigger.anti_trigger_clause"],
++          "trigger.literal_trigger_string", "trigger.anti_trigger_clause",
++          "trigger.no_xml_tag"],
+          [], ["no leading ---"]),
+         ("fm-null", 1,
+          ["trigger.frontmatter_parses", "trigger.literal_trigger_string",
+-          "trigger.anti_trigger_clause"],
++          "trigger.anti_trigger_clause", "trigger.no_xml_tag"],
+          [], ["empty description"]),
+         ("fm-malformed", 1,
+          ["trigger.frontmatter_parses", "trigger.name_directory",
+-          "trigger.literal_trigger_string", "trigger.anti_trigger_clause"],
++          "trigger.literal_trigger_string", "trigger.anti_trigger_clause",
++          "trigger.no_xml_tag"],
+          [], ["unbalanced quote"]),
+         ("fm-dup-key", 1,
+          ["trigger.frontmatter_parses", "trigger.name_directory",
+-          "trigger.literal_trigger_string", "trigger.anti_trigger_clause"],
++          "trigger.literal_trigger_string", "trigger.anti_trigger_clause",
++          "trigger.no_xml_tag"],
+          [], ["duplicate key"]),
+         ("fm-body-yaml", 1,
+          ["trigger.frontmatter_parses", "trigger.name_directory",
+-          "trigger.literal_trigger_string", "trigger.anti_trigger_clause"],
++          "trigger.literal_trigger_string", "trigger.anti_trigger_clause",
++          "trigger.no_xml_tag"],
+          [], ["no leading ---"]),
+         ("fm-nested-metadata", 0, [], [], []),
++        ("xml-tag-codespan", 1, ["trigger.no_xml_tag"], [], ["'<skills>'"]),
++        ("xml-tag-split", 1, ["trigger.no_xml_tag"], [], ["'</Skills >'"]),
++        ("xml-tag-dq-escape", 1, ["trigger.no_xml_tag"], [], ["\\\\u003c"]),
++        ("xml-tag-control", 0, [], [], ["no XML tag in name, description"]),
+         ("fm-stray-indent", 1,
+          ["trigger.frontmatter_parses", "trigger.name_directory",
+-          "trigger.literal_trigger_string", "trigger.anti_trigger_clause"],
++          "trigger.literal_trigger_string", "trigger.anti_trigger_clause",
++          "trigger.no_xml_tag"],
+          [], ["stray indented line"]),
+         # round-15 closures of the critic's three escape surfaces
+         ("map-annotation-mismatch", 1, ["checklist.box_map_complete"],
+@@ -1758,8 +1869,8 @@ def self_test() -> int:
+         ("empty-file", 1,
+          ["checklist.box_map_complete", "trigger.frontmatter_parses",
+           "trigger.name_directory", "trigger.literal_trigger_string",
+-          "trigger.anti_trigger_clause", "trigger.line_budget",
+-          "trigger.no_placeholder"],
++          "trigger.anti_trigger_clause", "trigger.no_xml_tag",
++          "trigger.line_budget", "trigger.no_placeholder"],
+          ["trigger.command_binary_resolves"], []),
+         ("no-checklist-section", 1, ["checklist.box_map_complete"], [],
+          ["no checklist boxes"]),
+@@ -1856,6 +1967,21 @@ def self_test() -> int:
+                 rec("%s: 'evaluated 0' line is not a PASS" % case,
+                     not line.startswith("PASS"), line)
+ 
++    # trigger.no_xml_tag string battery: (name, description, want_status)
++    for name, desc, want in [
++        ("x", "Use </skills> here.", "FAIL"),
++        ("x", 'Use <skill name="a"> here.', "FAIL"),
++        ("x", "Use a<br/>b here.", "FAIL"),
++        ("x", "Use <!-- c --> here.", "FAIL"),
++        ("x", 'Triggers: "train <id>".', "FAIL"),
++        ("<x>", "Use for x.", "FAIL"),
++        ("x", "Map a -> b, x => y, a < b and c > d.", "PASS"),
++        ("x", "Keep <= 600 or <500 lines; cat <<EOF; 1<2>0; <> op.", "PASS"),
++        ("x", "Use \u2264 9, \u2039skills\u203a, &lt;skills&gt;.", "PASS"),
++    ]:
++        got = check_no_xml_tag(({"name": name, "description": desc}, ""))[0]
++        rec("no_xml_tag[%r/%r]: %s" % (name, desc, want), got == want, got)
++
+     # --- planted CommonMark fence battery (round 37 C3) ------------------------
+     # One rec per load-bearing observable per shape: the content set the fence
+     # skipper reports, the live boxes, the unclosed-fence record (which must be
+@@ -2035,7 +2161,8 @@ def self_test() -> int:
+         scorecard = gov_repo / "SCORECARD.md"
+         scorecard.write_text(
+             "`.ufo/reports/round-N/kotoba.md`\n", encoding="utf-8")
+-        status, evaluated, detail = check_governance_citations(gov_repo)
++        status, evaluated, detail = check_governance_citations(
++            gov_repo, errata=())
+         rec("governance: quoted/schematic exclusions pass non-vacuously",
+             status == "PASS" and evaluated == 1
+             and "1 quoted meta-finding(s)" in detail
+@@ -2044,7 +2171,8 @@ def self_test() -> int:
+         scorecard.write_text(
+             "`.ufo/reports/round-N/kotoba.md`\n"
+             "`corpus/dead-unquoted.md`\n", encoding="utf-8")
+-        status, evaluated, detail = check_governance_citations(gov_repo)
++        status, evaluated, detail = check_governance_citations(
++            gov_repo, errata=())
+         rec("governance: unquoted dead path fails and is named",
+             status == "FAIL" and evaluated == 2
+             and "corpus/dead-unquoted.md" in detail,
+@@ -2054,12 +2182,58 @@ def self_test() -> int:
+         log_path.write_text(
+             "\"historical finding:\n`corpus/dead-cross-line.md`\n\"\n"
+             "`corpus/live.md`\n", encoding="utf-8")
+-        status, evaluated, detail = check_governance_citations(gov_repo)
++        status, evaluated, detail = check_governance_citations(
++            gov_repo, errata=())
+         rec("governance: cross-line quotes do not suppress a subject",
+             status == "FAIL" and evaluated == 2
+             and "corpus/dead-cross-line.md" in detail,
+             (status, evaluated, detail))
+ 
++        # Recorded-absence errata excuse one pinned, still-dead subject and
++        # fail closed on every other shape.
++        absent_line = "`corpus/gone.md` exited 2: runner absent"
++        log_path.write_text("`corpus/live.md`\n%s\n" % absent_line,
++                            encoding="utf-8")
++        digest = hashlib.sha256(absent_line.encode("utf-8")).hexdigest()
++        row = (2, digest, "corpus/gone.md", "runner absent")
++        status, evaluated, detail = check_governance_citations(
++            gov_repo, errata=(row,), horizon=2)
++        rec("governance: pinned recorded absence is excused and counted",
++            status == "PASS" and evaluated == 1
++            and "1 recorded absence(s) excused" in detail,
++            (status, evaluated, detail))
++        status, evaluated, detail = check_governance_citations(
++            gov_repo, errata=())
++        rec("governance: unregistered recorded absence still fails",
++            status == "FAIL" and "corpus/gone.md" in detail,
++            (status, evaluated, detail))
++        for label, errata, horizon, needle in (
++                ("past horizon", (row,), 1, "past horizon"),
++                ("line drift", ((2, "0" * 64) + row[2:],), 2, "drifted"),
++                ("wording", (row[:3] + ("runner present",),), 2, "wording"),
++                ("no subject", (row[:2] + ("corpus/x.md",) + row[3:],), 2,
++                 "names no subject")):
++            status, evaluated, detail = check_governance_citations(
++                gov_repo, errata=errata, horizon=horizon)
++            rec("governance: erratum %s fails closed" % label,
++                status == "FAIL" and needle in detail
++                and "corpus/gone.md" in detail, (status, evaluated, detail))
++        (gov_repo / "corpus" / "gone.md").write_text("", encoding="utf-8")
++        status, evaluated, detail = check_governance_citations(
++            gov_repo, errata=(row,), horizon=2)
++        rec("governance: erratum for a restored path is stale",
++            status == "FAIL" and "stale" in detail,
++            (status, evaluated, detail))
++        (gov_repo / "corpus" / "gone.md").unlink()
++        log_path.write_text("`corpus/live.md`\n%s\n`corpus/new-dead.md`\n"
++                            % absent_line, encoding="utf-8")
++        status, evaluated, detail = check_governance_citations(
++            gov_repo, errata=(row,), horizon=2)
++        rec("governance: erratum never masks another dead subject",
++            status == "FAIL" and "corpus/new-dead.md" in detail
++            and "1 recorded absence(s) excused" in detail,
++            (status, evaluated, detail))
++
+     # An explicit relative --repo must be normalized before bounded `..`
+     # hops; Path('.').parent otherwise stays '.', changing the verdict.
+     with tempfile.TemporaryDirectory(prefix="kotoba-relative-repo-") as td:
+@@ -2214,6 +2388,8 @@ def main(argv: list[str] | None = None) -> int:
+             st, ev, detail = check_literal_trigger(fm)
+         elif cid == "trigger.anti_trigger_clause":
+             st, ev, detail = check_anti_trigger(fm)
++        elif cid == "trigger.no_xml_tag":
++            st, ev, detail = check_no_xml_tag(fm)
+         elif cid == "trigger.line_budget":
+             st, ev, detail = check_line_budget(lines, boxes, args.max_lines)
+         elif cid == "trigger.no_placeholder":

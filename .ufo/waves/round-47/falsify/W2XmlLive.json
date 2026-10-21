@@ -1,0 +1,152 @@
+{
+  "lane": "KotobaR47-2.W2XmlLive-2",
+  "target": "verifiers/verify_skill_checklist.py trigger.no_xml_tag (live)",
+  "commit": "7ad7fadfc09354b74fb66605dfb0c1182c115a2f",
+  "base": "c61a973b2e02e1ded169703ddcb06466f4edd8bd",
+  "scratch_clone": "/fast/scratch/kotoba-r47/w2/W2XmlLive/kotoba-shokunin",
+  "clone_state_after": "clean (git status --porcelain empty); planted mutant reverted",
+  "verdict": "HOLDS",
+  "runs": [
+    {
+      "cmd": "sed -n '/^---$/,/^---$/p' SKILL.md | grep -c '<skills>'",
+      "at": "tip",
+      "exit": 1,
+      "out": "0"
+    },
+    {
+      "cmd": "sed -n '/^---$/,/^---$/p' SKILL.md | grep -c '<skills>'",
+      "at": "base",
+      "exit": 0,
+      "out": "1"
+    },
+    {
+      "cmd": "python3 -B verifiers/verify_skill_checklist.py --json --check trigger.no_xml_tag",
+      "at": "tip",
+      "exit": 0,
+      "out": "PASS evaluated=2"
+    },
+    {
+      "cmd": "python3 -B verifiers/verify_skill_checklist.py --json",
+      "at": "tip",
+      "exit": 0,
+      "out": "pass 11 fail 0 na 0 (11 checks)"
+    },
+    {
+      "cmd": "python3 -B verifiers/verify_skill_checklist.py --json",
+      "at": "base",
+      "exit": 1,
+      "out": "10 checks, 8 pass 2 fail (name_directory fails only in the base-wt worktree dir; governance fails on LOG.md:2111)"
+    },
+    {
+      "cmd": "python3 -B verifiers/verify_skill_checklist.py --self-test",
+      "at": "tip",
+      "exit": 0,
+      "out": "0 failure(s) over 1845 assertions"
+    },
+    {
+      "cmd": "python3 -B verifiers/verify_skill_checklist.py --self-test",
+      "at": "base",
+      "exit": 0,
+      "out": "0 failure(s) over 1597 assertions"
+    },
+    {
+      "cmd": "python3 -B verifiers/verify_skill_checklist.py --json --check trigger.no_xml_tag",
+      "at": "planted <skills> mutant",
+      "exit": 1,
+      "out": "FAIL evaluated=2 detail=\"XML tag in description: '<skills>'\""
+    },
+    {
+      "cmd": "python3 -B verifiers/verify_skill_checklist.py --json",
+      "at": "planted <skills> mutant",
+      "exit": 1,
+      "out": "pass 10 fail 1 (only trigger.no_xml_tag)"
+    },
+    {
+      "cmd": "python3 -B verifiers/check_assertion_floors.py",
+      "at": "tip",
+      "exit": 0,
+      "out": "floors EXACT; registry checklist 1597->1845, surfaces 87->99"
+    },
+    {
+      "cmd": "python3 verifiers/verify_skill_checklist.py --check trigger.no_xml_typo",
+      "at": "tip",
+      "exit": 2,
+      "out": "argparse invalid choice (no silent no-op gate)"
+    },
+    {
+      "cmd": "python3 /tmp/w2xml_qv.py <dir>  (anthropics/skills@dbd4588 quick_validate.py, fetched live HTTP 200)",
+      "at": "tip",
+      "exit": 0,
+      "out": "Skill is valid!"
+    },
+    {
+      "cmd": "python3 /tmp/w2xml_qv.py <dir>",
+      "at": "base",
+      "exit": 1,
+      "out": "Description cannot contain angle brackets (< or >)"
+    },
+    {
+      "cmd": "python3 /tmp/w2xml_qv.py <dir>",
+      "at": "planted <skills> mutant",
+      "exit": 1,
+      "out": "Description cannot contain angle brackets (< or >)"
+    },
+    {
+      "cmd": "python3 /tmp/w2xml_qv.py /tmp/w2xml_alias2",
+      "at": "YAML-alias mutant",
+      "exit": 1,
+      "out": "Description cannot contain angle brackets (< or >)  <-- upstream refuses"
+    },
+    {
+      "cmd": "python3 -B verifiers/verify_skill_checklist.py --skill /tmp/w2xml_alias2/SKILL.md --check trigger.no_xml_tag",
+      "at": "YAML-alias mutant",
+      "exit": 0,
+      "out": "PASS evaluated=2  <-- repo gate false PASS (F1)"
+    }
+  ],
+  "findings": [
+    {
+      "id": "F1",
+      "severity": "MEDIUM",
+      "class": "calibration",
+      "what": "YAML-alias description: repo gate PASSes (exit 0) while Anthropic's upstream packager refuses it (exit 1); limit is disclosed at verify_skill_checklist.py:214 and in .ufo/waves/round-47/build/C2CriticRule.md section 3, but the disclosure names the mechanism without the false-PASS consequence, and neither the detail line nor SKILL.md:151 carries it",
+      "live_impact": "none (shipped SKILL.md uses no aliases)"
+    },
+    {
+      "id": "F2",
+      "severity": "LOW",
+      "class": "calibration/freshness",
+      "what": "corpus/SOURCES.md:23 (S010) still claims 'no XML-tag rule', '1597 assertions' and '--json exit 1 (9 PASS/1 FAIL)'; all three are false at 7ad7fad (XML rule exists, 1845 assertions, --json exit 0 11/11); S010 refresh column is 'on-commit' and the instrument's commit changed in this landing",
+      "live_impact": "stale source row; adjacent to the SOURCES frontier seat"
+    },
+    {
+      "id": "F3",
+      "severity": "LOW",
+      "class": "coverage",
+      "what": "the gate mirrors only the XML half of the cited rule: upstream also enforces description<=1024, name<=64 + ^[a-z0-9-]+$, and rejects unexpected top-level frontmatter keys; none is gated (SKILL.md:151's floor sentence is honest about scope, but the <=1024 half is prose-only)",
+      "live_impact": "live file complies in fact (814 chars, keys name+description)"
+    },
+    {
+      "id": "F4",
+      "severity": "INFO",
+      "class": "operability",
+      "what": "no checklist box carries 'executed:trigger.no_xml_tag' in verifiers/checklist-baseline.json (41 boxes at BASE and tip); the check runs unconditionally in the live run",
+      "live_impact": "coverage record does not credit the new gate"
+    },
+    {
+      "id": "F5",
+      "severity": "INFO",
+      "class": "calibration",
+      "what": "the description rewrite 'never reach the <skills> router' -> 'never reach the omp skills router' is faithful (omp renders <skills>, opencode <available_skills>; SKILL.md:23,42); the body keeps both tokens correctly out of scope; the stale 'repair is planned' sentence at SKILL.md:151 was replaced",
+      "live_impact": "none"
+    }
+  ],
+  "not_checked": [
+    "C1 (omp/opencode surface re-derivation, substrate re-pinning) and C3 (governance erratum, corpus index re-record) claims",
+    "whether omp/opencode resolve YAML aliases in their own frontmatter readers (no omp session, no opencode wrapper execution) - F1 impact on those routers is [INFERENCE]",
+    "the design doc's 101-file fleet scan and its 'no fleet instance' claim for the alias limit",
+    "the other ten checks' semantics, the four fixtures' map.json hashes, the fault-harness planter, corpus integrity/independent gates, verify_surfaces.py, check_substrate_pins.py",
+    "whether the XML rule should become a checklist box (F4) - product decision"
+  ],
+  "tools_installed": "none (no pacman / uv / npm transaction in this lane)"
+}

@@ -1,0 +1,65 @@
+{
+  "note": "Counterexample fixtures for the Q19 premise prototype (patch .ufo/waves/round-47/build/MistakeStalePremise.patch). Fixture text + observed exit code. Live omp at run time: omp/18.12.5.",
+  "fixtures": [
+    {
+      "name": "copied-counts",
+      "text": "Before: omp 18.12.5 live\nBefore: surfaces 5/7, pins 1/3\n",
+      "exit": 0,
+      "output": "PASS every named premise matches live omp 18.12.5",
+      "point": "carries the exact M20 stale before-values (surfaces 5/7, pins 1/3) yet PASSES: the prototype checks version literals only, never counts/commands/commits"
+    },
+    {
+      "name": "major-bump",
+      "text": "Before: omp 19.0.1 live\n",
+      "exit": 0,
+      "output": "PASS every named premise matches live omp 18.12.5",
+      "point": "OMP_VERSION_RE hardcodes the 18.12 series, so a plan naming omp 19.0.1 is never compared"
+    },
+    {
+      "name": "major-bump-with-omp-19",
+      "text": "Before: omp 19.0.1 live\n",
+      "omp_binary": "omp-fake-19 (prints omp/19.0.1)",
+      "exit": 2,
+      "output": "ERROR cannot read live omp version: no 18.12.x in: 'omp/19.0.1'",
+      "point": "when live omp leaves the 18.12 series the gate hard-errors instead of reporting a mismatch"
+    },
+    {
+      "name": "erratum-mention",
+      "text": "Before: omp 18.12.5 live\nQ19 correction: the before-value \"omp 18.12.3\" was a stale copy; measured was omp 18.12.5.\n",
+      "exit": 1,
+      "output": "FAIL ...erratum-mention.md:2: planned omp 18.12.3 != live omp 18.12.5",
+      "point": "the correction that quotes the stale value to correct it is itself flagged: false red on the required erratum form (Q18 class)"
+    },
+    {
+      "name": "historical-table",
+      "text": "Before: omp 18.12.5 live\n\n| version | note |\n|---|---|\n| omp 18.12.3 | previous pin |\n| omp 18.12.4 | previous pin |\n",
+      "exit": 1,
+      "output": "FAIL ...historical-table.md:5 and :6",
+      "point": "a historical version table inside a plan file false-reds"
+    }
+  ],
+  "tip_runs_7ad7fad": [
+    {
+      "file": "SCORECARD.md",
+      "exit": 1,
+      "fails": [
+        "SCORECARD.md:101",
+        "SCORECARD.md:106"
+      ]
+    },
+    {
+      "file": "corpus/README.md",
+      "exit": 1,
+      "fails": [
+        "corpus/README.md:76"
+      ]
+    },
+    {
+      "file": "PROVINCE.md",
+      "exit": 1,
+      "fails": [
+        "PROVINCE.md:22"
+      ]
+    }
+  ]
+}

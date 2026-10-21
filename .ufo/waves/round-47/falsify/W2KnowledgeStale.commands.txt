@@ -1,0 +1,81 @@
+# W2KnowledgeStale — command log (cwd = /fast/scratch/kotoba-r47/w2/KotobaR47-W2KnowledgeStale-2/kotoba-shokunin unless noted)
+# All substrate reads from /fast/scratch/kotoba-r47/shared (frozen). No opencode execution.
+
+# 1. clone at landing
+git clone -q --no-hardlinks /home/vgpnk/Projects/shokunin/kotoba-shokunin kotoba-shokunin        exit 0
+git checkout -q --detach 7ad7fadfc09354b74fb66605dfb0c1182c115a2f                                exit 0
+git rev-parse HEAD -> 7ad7fadfc09354b74fb66605dfb0c1182c115a2f                                    exit 0
+
+# 2. fleet-root files == 7ad7fad (citation validity)
+sha256sum of the 7 cited knowledge files, clone vs fleet root                                      exit 0, all SAME
+
+# 3. live substrate identity
+sha256sum /fast/scratch/kotoba-r47/shared/bin/omp-18.12.5 /home/vgpnk/.local/bin/omp              exit 0
+  both fdbc8136084c9a10439569157b2af62312e2b0d801cab54c73e89476da798e7e
+sha256sum shared/bin/opencode-1.19.3  .../node_modules/opencode-ai/bin/opencode.exe               exit 0
+  both 179ca421d61eefeadfa0c50e084a6e79c1623734732f0f4593f81ccfd3ab7ee9
+/home/vgpnk/.local/bin/omp --version -> omp/18.12.5                                               exit 0
+ls -la /home/vgpnk/.opencode/bin                                                                  exit 2 (No such file or directory)
+cat -n /home/vgpnk/.local/bin/opencode -> 1460 B npx wrapper, package=opencode-ai, --prefer-online  exit 0
+
+# 4. registration-callee matrix on bin/omp-18.12.5 (python re, quoted-group and ident-group shapes)
+Id 0/0  Cl 0/0  jDe 0/0  jDf 0/0  Tl 0/0  dr 0/0  GW 0/0  Co 0/0  Dl 0/0  Hj 0/0  I5 0/0  Gl 0/0  Mo 0/0
+lq 0/2  Xl 5/0  Fo 4/0                                                                             exit 0
+  live: lq(u, f$, "AGENTS.md"), lq(u, m$, "CLAUDE.md"),
+        Xl(u,"gemini",...)/Fo(u,"gemini",...), Xl(u,"opencode","AGENTS.md"),
+        Fo(u,"github","copilot-instructions.md"), Xl(u,"windsurf","memories/global_rules.md")
+exact-substring check of the eight census evidence cells:
+  jDe(e,Pqr 0   jDe(e,BWr 0   Id(e,"opencode","AGENTS.md") 0   Cl(e,"gemini","GEMINI.md") 0
+  Id(e,"gemini","system.md") 0   Cl(e,"gemini","SYSTEM_TEMPLATE.md") 0
+  Cl(e,"github","copilot-instructions.md") 0   Id(e,"windsurf","memories/global_rules.md") 0   exit 0
+census Method-1 regex (Id|Cl|jDe|jDf|n4|o4|CTt) over bin/omp-18.12.5 -> 0 pairs                   exit 0
+jDe( contexts in 18.12.5: `function jDe(e, t, g, B = $9)` (string formatter), qDe wrapper, terminal.write
+  -> 0 of the three is a .md registration
+
+# 5. literal counts (raw bytes, same method as the claims: grep -o)
+CLAUDE.md   omp 15   oc 9        (claude-md-surface claims omp 17, oc 9 at ~/.opencode/bin)
+AGENTS.md   omp 37   oc 30       (claims 30/35)
+CONTEXT.md  omp 0    oc 1        (claims 1)
+RULES.md    omp 4                (census:92 / remeasure:15 claim 6)
+enabledProviders omp 3           (remeasure:15 claims 4)
+disabledProviders omp 23         (remeasure:15 claims 21)
+grep -abo '<skills>' bin/omp-18.12.5 -> 253192800   (telemetry:18 claims 283082932)
+  template bytes at 253192750: "<skills>\n{{#each skills}}\n- {{name}}: {{description}}\n{{/each}}\n</skills>"
+grep -oa '<skills>' bin/opencode-1.19.3 -> 0
+grep -oa '<available_skills>' bin/opencode-1.19.3 dump -> 2
+
+# 6. opencode 1.19.3 anchor matrix (frozen strings dump, plain str.count)
+y=["AGENTS.md", 1 | globUp(T,d.directory,d.worktree) 1 | !t.disableClaudeCodePrompt?["CLAUDE.md"]:[] 1
+"CONTEXT.md"] 1 | n=[X.join(r.config,"AGENTS.md") 1 | X.join(r.home,".claude","CLAUDE.md") 1
+for(let O of T.instructions) 1 | https filter 1 | {concurrency:4} 1 | fn("Instruction.resolve") 1
+fn("ReadTool.execute") 1 | while(G.startsWith(N)&&G!==N) 1 | InstructionContext.observe 1
+system-context-builtins 1 | instructions:{entry:{list: 1 | var n="1.19.3" 1
+ConfigInstructionPlugin 0 | ReadTool.Plugin 0 | SessionInstructions 0
+session.instructions.entry.put 0 | j5(r.config,"AGENTS.md") 0 | InstructionDiscovery 0 | 2.0.26 0
+
+# 7. host stores read by the telemetry file
+ls -la ~/.local/share/opencode/opencode.db* -> db 17,219,584 B mtime 2026-10-17, shm, 0-byte wal
+sqlite3 -readonly ~/.local/share/opencode/opencode.db ".tables"                                   exit 0
+  account account_state control_account credential event event_sequence instruction_blob
+  instruction_entry instruction_state kv migration permission project project_directory
+  session_inbox session_message session_pending session_v2 workspace worktree     (no `part`, no `message`)
+sqlite3 -readonly ... "select count(*) from part"                                                 exit 1
+  Parse error ... no such table: part
+ls -la ~/.local/share/opencode/log/ -> opencode.log 922,614 B mtime 2026-10-20 07:52
+grep -c 'init count=' / 'evaluated permission=skill' / 'duplicate skill name' / '<available_skills>'  -> 0 each
+
+# 8. gates re-run at 7ad7fad in the scratch clone
+python3 verifiers/verify_surfaces.py -> 7/7 PASS, exit 0
+  literal_present 42 entries; no_uncovered_class 8/8; opencode_extract 9/9 from 7/7 rules; table/literal/kind parity 42 ids
+python3 verifiers/check_substrate_pins.py -> PASS x3, "OK 3/3 pins hold", mtime delta 0 ns, exit 0
+python3 verifiers/check_substrate_pins.py --self-test -> "0 failure(s) over 62 assertions", exit 0
+sha256sum verifiers/check_substrate_pins.py -> 9615d5476ca1d8031880aca92c137526e989ce13d69298379b9dc95a2067e4ee
+  (substrate-pin-guard-round23.md:11 cites fafe88d881eb…)
+sha256sum verifiers/verify_surfaces.py -> e44bf34b1a52c0e5e4cd320b8f90a20c10c0a997bc225e9b36bf90ccf173be4e
+sha256sum verifiers/compare_harness_independent.py -> 778b367e5e5f94fc90132f4070aec3e2395b26914a1d0a50a188558c55cff332
+
+# 9. round-47 diff scope
+git diff --stat c61a973b..7ad7fad -- corpus/knowledge
+  only instruction-surface-census-round13.md (+88/-5); the other six files with findings were untouched
+git diff c61a973b..7ad7fad -- verifiers/baseline.json
+  omp sha+mtime, opencode sha, new "round47_note" with mechanism (pin move + callees lq/Xl/Fo + channel move)

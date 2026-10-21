@@ -1,0 +1,110 @@
+#!/usr/bin/env bash
+# W2CorpusBaselineFit committed plants against 7ad7fad, one worktree per plant.
+set -u
+ROOT=/fast/scratch/kotoba-r47/w2/W2CorpusBaselineFit
+SRC=$ROOT/kotoba-shokunin
+TIP=7ad7fadfc09354b74fb66605dfb0c1182c115a2f
+OUT=$ROOT/plants-out
+mkdir -p "$OUT"
+
+row() { # <world> <row>: insert after the last row of the Coverage map table
+  python3 - "$1" "$2" <<'PY'
+import sys
+p = f"{sys.argv[1]}/corpus/README.md"
+lines = open(p, encoding="utf-8").read().splitlines(keepends=True)
+start = next(i for i, l in enumerate(lines) if l.startswith("## Coverage map"))
+end = next((i for i in range(start + 1, len(lines)) if lines[i].startswith("## ")), len(lines))
+idx = max(i for i in range(start, end) if lines[i].startswith("|"))
+lines.insert(idx + 1, sys.argv[2] + "\n")
+open(p, "w", encoding="utf-8").write("".join(lines))
+PY
+}
+
+world() { # <id>: fresh worktree at TIP inside a canonical layout dir
+  local w=$ROOT/worlds/$1/kotoba-shokunin
+  rm -rf "$ROOT/worlds/$1"; mkdir -p "$ROOT/worlds/$1"
+  for p in /home/vgpnk/Projects/shokunin/* /home/vgpnk/Projects/shokunin/.ufo; do
+    n=$(basename "$p"); [ "$n" = kotoba-shokunin ] || ln -sfn "$p" "$ROOT/worlds/$1/$n"
+  done
+  git -C "$SRC" worktree add -q --detach "$w" "$TIP"
+  echo "$w"
+}
+
+commit() { git -C "$1" -c user.name=w2cbf -c user.email=w2cbf@scratch add -A corpus && git -C "$1" -c user.name=w2cbf -c user.email=w2cbf@scratch commit -qm "plant $2"; }
+
+measure() { # <id> <world>
+  local id=$1 w=$2 ie de
+  (cd "$w" && python3 -B verifiers/verify_corpus_integrity.py --json >"$OUT/$id.int.json" 2>"$OUT/$id.int.err"); ie=$?
+  (cd "$w" && python3 -B verifiers/verify_corpus_independent.py --json >"$OUT/$id.ind.json" 2>"$OUT/$id.ind.err"); de=$?
+  python3 - "$id" "$ie" "$de" "$OUT/$id.int.json" "$OUT/$id.ind.json" "$(git -C "$w" rev-parse --short HEAD)" "$(git -C "$w" status --porcelain corpus | wc -l)" <<'PY'
+import json, sys
+pid, ie, de, fi, fd, head, dirty = sys.argv[1:]
+o = json.load(open(fi))
+red = [f"{r['check']}={r['observed']}({r['verdict']})" for r in o["results"] if r["verdict"] not in ("PASS",)]
+c = o["observed"]["corpus"]
+d = json.load(open(fd))
+dred = [f"{r['check']}={r['observed']}({r['verdict']})" for r in d["results"] if r["verdict"] not in ("PASS", "INFO")]
+print(f"{pid}: head={head} dirty_corpus={dirty} integrity_exit={ie} independent_exit={de} tracked={c['tracked_files']} "
+      f"unindexed={c['unindexed_detail']} stale={c['stale_patterns_detail']} missing={c['missing_paths_detail']}")
+print(f"   integrity non-PASS: {red}")
+print(f"   independent non-PASS: {dred}")
+PY
+}
+
+# P0 control: unmutated tip
+w=$(world P0); measure P0 "$w"
+
+# P1: committed tracked corpus file with no index row
+w=$(world P1)
+printf 'W2CorpusBaselineFit plant P1: tracked, committed, no index row.\n' >"$w/corpus/knowledge/w2cbf-unindexed.md"
+commit "$w" P1; measure P1 "$w"
+
+# P2: committed index row for a file that does not exist
+w=$(world P2)
+row "$w" '| W2CBF plant P2 | `knowledge/w2cbf-gone.md` | planted: no such corpus file |'
+commit "$w" P2; measure P2 "$w"
+
+# P3: count-neutral swap: delete an indexed file (row kept) and add an unindexed one; tracked stays 60
+w=$(world P3)
+git -C "$w" rm -q corpus/lessons/round-47.md
+printf 'W2CorpusBaselineFit plant P3: replacement file, no index row.\n' >"$w/corpus/knowledge/w2cbf-swap.md"
+commit "$w" P3; measure P3 "$w"
+
+# P4: count-neutral move: rename an indexed file and repoint its row (legitimate, must stay green)
+w=$(world P4)
+git -C "$w" mv corpus/lessons/round-47.md corpus/lessons/round-47-moved.md
+sed -i 's#`lessons/round-47.md`#`lessons/round-47-moved.md`#' "$w/corpus/README.md"
+commit "$w" P4; measure P4 "$w"
+
+# P5: new file WITH a row (honest growth): equality must drift until the baseline is refreshed
+w=$(world P5)
+printf 'W2CorpusBaselineFit plant P5: indexed new file.\n' >"$w/corpus/knowledge/w2cbf-indexed.md"
+row "$w" '| W2CBF plant P5 | `knowledge/w2cbf-indexed.md` | planted: indexed |'
+commit "$w" P5; measure P5 "$w"
+
+# P6: index row for a missing file whose column-2 path is NOT backticked
+w=$(world P6)
+row "$w" '| W2CBF plant P6 | knowledge/w2cbf-gone-plain.md | planted: unbackticked missing path |'
+commit "$w" P6; measure P6 "$w"
+
+# P7: index row for a missing file whose token carries a placeholder mark
+w=$(world P7)
+row "$w" '| W2CBF plant P7 | `knowledge/w2cbf-gone-<lane>.md` | planted: placeholder-marked missing path |'
+commit "$w" P7; measure P7 "$w"
+
+# P8: unindexed file present on disk but never git-added (untracked)
+w=$(world P8)
+printf 'W2CorpusBaselineFit plant P8: untracked on disk.\n' >"$w/corpus/knowledge/w2cbf-untracked.md"
+measure P8 "$w"
+
+# P9: the only index row for an existing file moved into a fenced block
+w=$(world P9)
+python3 - "$w" <<'PY'
+import sys
+p = f"{sys.argv[1]}/corpus/README.md"
+s = open(p, encoding="utf-8").read().splitlines(keepends=True)
+i = next(k for k, l in enumerate(s) if "`lessons/round-47.md`" in l and l.startswith("|"))
+s[i] = "```\n" + s[i] + "```\n"
+open(p, "w", encoding="utf-8").write("".join(s))
+PY
+commit "$w" P9; measure P9 "$w"

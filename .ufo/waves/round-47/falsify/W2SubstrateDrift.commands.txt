@@ -1,0 +1,78 @@
+W2SubstrateDrift — commands and exit codes (2026-10-21, local -03:00)
+repo clone: /fast/scratch/kotoba-r47/w2/W2SubstrateDrift-2/kotoba-shokunin @ 7ad7fadfc09354b74fb66605dfb0c1182c115a2f
+base clone: /fast/scratch/kotoba-r47/w2/W2SubstrateDrift-2/base/kotoba-shokunin @ c61a973b2e02e1ded169703ddcb06466f4edd8bd
+
+# snapshot integrity
+cd /fast/scratch/kotoba-r47/shared && sha256sum -c SHA256SUMS                      # exit 0 (4 OK)
+stat -c '%n %y' SHA256SUMS bin/omp-18.12.5 bin/opencode-1.19.3 *.strings         # see evidence
+
+# live substrate
+omp --version                                                                    # exit 0, "omp/18.12.5"
+sha256sum /home/vgpnk/.local/bin/omp                                             # fdbc8136084c9a10439569157b2af62312e2b0d801cab54c73e89476da798e7e
+stat -c '%y' /home/vgpnk/.local/bin/omp                                          # 2026-10-21 03:30:38.135013187 -0300
+sha256sum ~/.npm/_npx/e2094862b59aac7b/node_modules/opencode-ai/bin/opencode.exe # 179ca421d61eefeadfa0c50e084a6e79c1623734732f0f4593f81ccfd3ab7ee9
+stat -c '%n links=%h inode=%i' <pinned ELF> <platform ELF>                       # both links=2 inode=43795736
+readlink -f ~/.npm/_npx/e2094862b59aac7b/node_modules/.bin/opencode              # .../opencode-ai/bin/opencode.exe
+ls -d ~/.npm/_npx/*/node_modules/opencode-ai                                      # single cache, 1.19.3
+cat ~/.npm/_npx/e2094862b59aac7b/node_modules/opencode-ai/package.json           # "version": "1.19.3"
+sha256sum /home/vgpnk/.local/bin/opencode                                         # b240efa9d6020bdc513bbf48e46b6d312493d2c408f7d070555e993feea0a89b, mtime 2026-10-03
+
+# registry metadata only (no install, wrapper never executed)
+npm config get registry                                                          # https://registry.npmjs.org/
+npm view opencode-ai dist-tags.latest version time.modified                       # 1.19.3 / 1.19.3 / 2026-10-16T12:53:47.725Z, exit 0
+npm view opencode-ai dist-tags --json                                            # latest=1.19.3; dev=0.0.0-dev-202610161232
+npm view opencode-ai time --json                                                 # 1.19.3 @ 2026-10-16T12:32:00.280Z; newest dev @ 12:53:47.267Z
+npm view opencode-ai versions --json                                             # 948 stable, max 1.19.3
+curl -sS https://registry.npmjs.org/opencode-ai/latest                           # name opencode-ai version 1.19.3, exit 0
+
+# gates at 7ad7fad (default resolution = live host paths)
+python3 verifiers/check_substrate_pins.py --json                                 # exit 0, pass 3 fail 0
+python3 verifiers/verify_surfaces.py --json                                      # exit 0, pass 7 fail 0 (5.79 s)
+python3 verifiers/check_substrate_pins.py --self-test                            # exit 0, "0 failure(s) over 62 assertions"
+python3 verifiers/verify_surfaces.py --self-test                                 # exit 0, "0 failure(s) over 99 assertions"
+
+# gates at BASE c61a973 (before values)
+python3 verifiers/check_substrate_pins.py --json                                 # exit 2, fail 3: DRIFT, DRIFT, UNREADABLE
+python3 verifiers/verify_surfaces.py --json                                      # exit 2, "opencode binary not found: /home/vgpnk/.opencode/bin/opencode"
+
+# discriminating cells (AFTER code x BASE artifacts)
+python3 verifiers/verify_surfaces.py --baseline <BASE>/verifiers/surfaces-baseline.json --inventory <BASE>/corpus/knowledge/instruction-surface-census-round13.md --json   # exit 1, surfaces.opencode_extract
+python3 verifiers/verify_surfaces.py --baseline <BASE>/verifiers/surfaces-baseline.json --json                                                                            # exit 1, opencode_extract + table_parity
+
+# pin-gate mutation ladder (temp baselines / substituted binaries; no host mutation)
+--omp-binary /bin/true                                                           # exit 1 DRIFT 2/3
+--opencode-binary /bin/true                                                      # exit 1 DRIFT 1/3
+--opencode-binary /nope                                                          # exit 2 UNREADABLE
+baseline opencode pin deleted                                                    # exit 1 PIN_ABSENT
+measured_against: null                                                           # exit 1 VACUOUS
+duplicate case-variant OMP_binary_sha256                                         # exit 2 UNSUPPORTED
+
+# surfaces mutation tests (dump copies in /tmp)
+OC-1 priority array "CONTEXT.md" -> "CONTEXTX.md"                                # exit 1 literal_present + opencode_extract
+OC-4 fn("ReadTool.execute") renamed                                              # exit 1 opencode_extract
+OC-3b remote .filter( -> .some(                                                  # exit 1 opencode_extract
+
+# dump faithfulness / live-read proof
+strings -a -n 4 bin/omp-18.12.5 | sha256sum                                      # 33df0ae… == omp-18.12.5.strings
+strings -a -n 4 bin/opencode-1.19.3 | sha256sum                                  # f4d8f34a… == opencode-1.19.3.strings
+strace -f -s 300 -e trace=execve python3 verifiers/verify_surfaces.py --json     # exit 0; strings targets: /home/vgpnk/.local/bin/omp and .../opencode-ai/bin/opencode.exe
+
+# anchor recount on frozen dump (python str.count)
+ConfigInstructionPlugin 0; ReadTool.Plugin 0; SessionInstructions 0; session.instructions.entry.put 0; j5(r.config,"AGENTS.md") 0; InstructionDiscovery 0; 2.0.26 0
+X.join(r.config,"AGENTS.md") 1; for(let O of T.instructions) 1; disableClaudeCodePrompt 3; CONTEXT.md 1; X.join(r.home,".claude","CLAUDE.md") 1; Instructions from:  4; fn("Instruction.resolve") 1; fn("ReadTool.execute") 1; InstructionContext.observe 1; system-context-builtins 1; instructions:{entry:{list: 1
+dump lines: 443993 (priority array, config join, filter, globUp), 443995 (Instruction.resolve, while G.startsWith), 444228 (ReadTool.execute), 445481-445487 (InstructionContext key/observe/system-context-builtins)
+
+# extractor re-derivation on the frozen dumps
+extract_classes(omp dump, "omp") -> 8 pairs; extract_opencode_classes(oc dump) -> 9 ids; rules OC-1..OC-6 all matched
+
+# npx cache / registry mechanism (node 26.12.0 npm 11.20.0 sources, read only)
+libnpmexec/lib/index.js:29-37 preferOnline manifest lookup
+libnpmexec/lib/index.js:63-77 npxByNameOnly resolved-URL comparison
+libnpmexec/lib/index.js:250-261 installDir = sha512(["opencode-ai"])[:16] = e2094862b59aac7b
+libnpmexec/lib/with-lock.js:72 lock via fs.mkdir(<installDir>/concurrency.lock)
+
+# post-snapshot revalidation trace
+stat cache dir: mtime 2026-10-21 12:30:20.635 -03:00; children package.json/node_modules still 2026-10-20 18:33
+npm config get logs-max                                                          # 10 (npm debug log of the 12:30 run no longer retained)
+
+No pacman/uv/npm install or upgrade was performed.

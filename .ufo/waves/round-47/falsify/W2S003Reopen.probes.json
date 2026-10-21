@@ -1,0 +1,131 @@
+{
+ "lane": "W2S003Reopen-2",
+ "target": "S003 (Claude Docs best practices) + C2 trigger.no_xml_tag",
+ "head": "7ad7fadfc09354b74fb66605dfb0c1182c115a2f",
+ "base": "c61a973b2e02e1ded169703ddcb06466f4edd8bd",
+ "fetches": {
+  "s003_md": {
+   "url": "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices.md",
+   "http": 200,
+   "bytes": 42028,
+   "sha256": "727f3fa1168eb1c33ce6a3cbfc94a02ef1dfd647388f6ca9daf7cb6294762f42",
+   "note": "byte-identical to round-46 fetch-log /rows/2 (2026-10-19T18:40:54Z)"
+  },
+  "s003_html": {
+   "url": "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices",
+   "http": 200,
+   "bytes": 1178610,
+   "sha256": "29ef57c99c63ac679152d1aa6fc9ebcde9fde9a3929fc67fb9a9977af5317786",
+   "note": "HTML sha differs from wave record f7637bb4...; Next.js page is not byte-stable"
+  },
+  "s001_spec_md": {
+   "url": "https://agentskills.io/specification.md",
+   "http": 200,
+   "bytes": 7608,
+   "sha256": "9a67de89132948b2300b8dc87b93817971d47f9be89b644444965881a8dfde16",
+   "xml_mentions": 0
+  },
+  "s002_md": {
+   "url": "https://agentskills.io/client-implementation/adding-skills-support.md",
+   "http": 200,
+   "bytes": 20349,
+   "sha256": "79489bd252377681a31958e75ee3e6e96f7f791719eaac3b3e870a0d193be172",
+   "xml_mentions": "only code-fence language for output format (lines 167,169,280)"
+  },
+  "s012_quick_validate": {
+   "url": "https://raw.githubusercontent.com/anthropics/skills/dbd4588f9e1033efb41dad4bef2f7947c8993d44/skills/skill-creator/scripts/quick_validate.py",
+   "http": 200,
+   "bytes": 3972,
+   "sha256": "67cf5703402013936c8fb75ad6a1afecd8841d45cc5e606b634eb05825fde365",
+   "rule": "description rejects any '<' or '>'; name must be kebab-case"
+  }
+ },
+ "gate_runs": {
+  "live_checklist_json": {
+   "rc": 0,
+   "pass": 11,
+   "fail": 0,
+   "na": 0
+  },
+  "self_test_head": {
+   "rc": 0,
+   "assertions": 1845,
+   "failures": 0
+  },
+  "self_test_base": {
+   "rc": 0,
+   "assertions": 1597,
+   "failures": 0
+  },
+  "frontmatter_skills_count": {
+   "base": 1,
+   "head": 0
+  },
+  "no_xml_tag_live": {
+   "status": "PASS",
+   "evaluated": 2
+  }
+ },
+ "counterexamples": [
+  {
+   "input": "description: Use \\u003c when documenting escapes.",
+   "yaml_decoded": "Use \\u003c when documenting escapes. (no '<')",
+   "s012": "valid rc 0",
+   "kotoba": "FAIL rc 1, XML tag in description: '\\\\u003c'"
+  },
+  {
+   "input": "description: 'Use \\u003c when documenting escapes.'",
+   "yaml_decoded": "literal backslash-u003c",
+   "s012": "valid",
+   "kotoba": "FAIL rc 1"
+  },
+  {
+   "input": "description: \"a \\u003c b\"",
+   "yaml_decoded": "a < b",
+   "s012": "invalid (any '<')",
+   "kotoba": "FAIL rc 1, while literal 'a < b' PASSes"
+  },
+  {
+   "input": "description: \"a \\u003e b\"",
+   "yaml_decoded": "a > b",
+   "s012": "invalid (any '>')",
+   "kotoba": "FAIL rc 1, while literal 'a > b' PASSes and message says 'XML tag'"
+  },
+  {
+   "input": "description: \"a \\x3e b\"",
+   "yaml_decoded": "a > b",
+   "kotoba": "FAIL rc 1 (regex [cCeE] matches hex digit e/E)"
+  }
+ ],
+ "mutants": [
+  {
+   "id": "M5-repo",
+   "change": "scan description only (drop name)",
+   "caught": true,
+   "failures": 20
+  },
+  {
+   "id": "M-esc-gt",
+   "change": "add x3e/u003e to escape class (already matched)",
+   "caught": false,
+   "failures": 0
+  },
+  {
+   "id": "M-label",
+   "change": "falsify provenance label to 'open spec S001 rule (S003 agrees)'",
+   "caught": false,
+   "failures": 0
+  },
+  {
+   "id": "M-evaluated",
+   "change": "PASS returns evaluated=1 while scanning 2 fields",
+   "caught": false,
+   "failures": 0
+  }
+ ],
+ "registry": {
+  "s003_row": "corpus/SOURCES.md:16, used-by still SKILL.md only",
+  "conditional_recommendation": ".ufo/waves/round-47/build/SrcS003.md:52",
+  "lesson_statement": "corpus/lessons/round-47.md:33 (no existing row changed)"
+ }
+}

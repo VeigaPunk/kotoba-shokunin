@@ -1,0 +1,47 @@
+# W2CensusSources — mutation matrix for the SOURCES.md census gates
+# target: kotoba-shokunin @ 7ad7fadfc09354b74fb66605dfb0c1182c115a2f
+# fixture: /tmp/w2c_mut  (copy of corpus/SOURCES.md + SKILL.md + corpus/knowledge/instruction-surface-census-round13.md)
+# maintained gate: /home/vgpnk/Projects/shokunin/scripts/sources-census.sh validate --today 2026-10-21 /tmp/w2c_mut
+# frozen gate: the seven commands of /home/vgpnk/Projects/shokunin/CORPUS.md:131-148
+# date: 2026-10-21
+
+M0 baseline (unmutated copy)
+  frozen : rows=15 malformed=0 dupids=[] enums=[] usedby-missing=[]
+  maint. : exit=0  "w2c_mut ok /tmp/w2c_mut/corpus/SOURCES.md"
+
+M1b malformed row (12 cells => NF=14)
+  frozen : rows=16 malformed=1  dupids=[] enums=[] usedby-missing=[]      <-- C2 catches
+  maint. : exit=1  "w2c_mut E01 S016 fields=12"
+
+M2 duplicate id (second S012 row)
+  frozen : rows=16 malformed=0 dupids=[S012] enums=[] usedby-missing=[]   <-- C5 catches
+  maint. : exit=1  "w2c_mut E03 S012 duplicate id"
+
+M3 tier inflation (community row raised to tier A)
+  frozen : rows=15 malformed=0 dupids=[] enums=[tier-inflation S011]      <-- C6 catches
+  maint. : exit=1  "w2c_mut E10 S011 community-at-A"
+
+M4 mined row with a non-existent used-by path
+  frozen : rows=15 malformed=0 dupids=[] enums=[] usedby-missing=[missing: corpus/knowledge/nope.md]  <-- C7 catches
+  maint. : exit=1  "w2c_mut E11 S012 missing used-by corpus/knowledge/nope.md"
+
+M5 mined row whose used-by path EXISTS but does not cite the row
+     (this is the shape of the landed S015 row: used-by -> corpus/knowledge/instruction-surface-census-round13.md,
+      which contains 0 occurrences of "S015")
+  frozen : rows=15 malformed=0 dupids=[] enums=[] usedby-missing=[]       <-- NOTHING catches it
+  maint. : exit=0  "w2c_mut ok /tmp/w2c_mut/corpus/SOURCES.md"           <-- NOTHING catches it
+  citation proof: grep -c 'S012' corpus/knowledge/instruction-surface-census-round13.md => 0
+  => E11 / C7 test path EXISTENCE only; neither gate can see a false used-by pointer.
+
+M6 row-shaped line outside the "## Registry" section (appended under "## Leads (unopened)")
+  frozen : rows=16 malformed=0 dupids=[] enums=[] usedby-missing=[]       <-- frozen battery has NO section check
+  maint. : exit=1  "w2c_mut E12 S017 row outside Registry section"
+
+M7 status enum violation ("watch")
+  frozen : n/a (the frozen battery has no status-enum check of its own beyond C6's; C6 does flag it)
+  maint. : exit=1  "w2c_mut E07 S012 status=watch"
+
+M8 future opened date (2027-10-21)
+  maint. : exit=1  "w2c_mut E08 S012 opened=2027-10-21"
+
+restored fixture afterwards: exit=0, rows=15, malformed=0 (the fixture lives in /tmp only; no repo file was touched)

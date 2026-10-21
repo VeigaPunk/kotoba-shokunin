@@ -1,0 +1,538 @@
+{
+  "target_commit": "7ad7fadfc09354b74fb66605dfb0c1182c115a2f",
+  "scratch_repo": "/fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin",
+  "axes": [
+    "freshness",
+    "operability",
+    "calibration"
+  ],
+  "setup": {
+    "cwd": "/fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2",
+    "command": "for p in /home/vgpnk/Projects/shokunin/* /home/vgpnk/Projects/shokunin/.ufo; do n=$(basename \"$p\"); [ \"$n\" = kotoba-shokunin ] || ln -sfn \"$p\" \"$n\"; done && git clone -q --no-hardlinks /home/vgpnk/Projects/shokunin/kotoba-shokunin kotoba-shokunin && git -C kotoba-shokunin checkout -q --detach 7ad7fadfc09354b74fb66605dfb0c1182c115a2f",
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "historical_pattern_source": {
+    "command": "git show 29c17be:verifiers/verify_surfaces.py",
+    "exit": 0,
+    "extraction": "ast.parse and ast.get_source_segment for OC_REMOTE_FILTER_RE, OC_PRIORITY_RE, DEFAULT_BINARIES"
+  },
+  "mutations": [
+    {
+      "id": "M1",
+      "path": "verifiers/verify_surfaces.py",
+      "tip_lines": "396-399",
+      "change": "Restore authentic round-14 OC_REMOTE_FILTER_RE: r'\\.instructions.{0,40}?startsWith\\(\"https://\"\\).{0,40}?startsWith\\(\"http://\"\\)'",
+      "self_record": "M1-round14-remote-mutated",
+      "arm_case": "remote-filter-only",
+      "verdict": "survived"
+    },
+    {
+      "id": "M2",
+      "path": "verifiers/verify_surfaces.py",
+      "tip_lines": "480",
+      "change": "Remove only and OC_READ_TOOL_FN in dump from the OC-4 matched predicate; keep diagnostic anchors unchanged",
+      "self_record": "M2-read-tool-anchor-mutated",
+      "arm_case": "read-tool-only",
+      "verdict": "survived"
+    },
+    {
+      "id": "M3",
+      "path": "verifiers/verify_surfaces.py",
+      "tip_lines": "370",
+      "change": "Remove trailing [^\\]]{0,200} from OC_PRIORITY_RE",
+      "self_record": "M3-priority-trailing-span-mutated",
+      "arm_case": null,
+      "verdict": "killed"
+    },
+    {
+      "id": "M4a",
+      "path": "verifiers/verify_surfaces.py",
+      "tip_lines": "451-453",
+      "change": "Replace owns conditional fallback with [\"opencode:instructions/%s\" % n for n in names]",
+      "self_record": "M4a-oc1-fallback-mutated",
+      "arm_case": "fallback-oc1",
+      "verdict": "survived; diagnostic metadata only"
+    },
+    {
+      "id": "M4b",
+      "path": "verifiers/verify_surfaces.py",
+      "tip_lines": "464",
+      "change": "Replace owns2 or [\"opencode:config/AGENTS.md\", \"opencode:claude-home/CLAUDE.md\"] with owns2",
+      "self_record": "M4b-oc2-fallback-mutated",
+      "arm_case": "fallback-oc2",
+      "verdict": "survived; diagnostic metadata only"
+    },
+    {
+      "id": "M5",
+      "path": "verifiers/verify_surfaces.py",
+      "tip_lines": "130",
+      "change": "Restore DEFAULT_BINARIES[\"opencode\"] to /home/vgpnk/.opencode/bin/opencode",
+      "self_record": "M5-default-opencode-mutated",
+      "arm_case": "default-opencode",
+      "verdict": "survived"
+    }
+  ],
+  "self_test_timeout_seconds": 60,
+  "self_test_runs": [
+    {
+      "label": "pristine",
+      "command": "python3 verifiers/verify_surfaces.py --self-test",
+      "cwd": "/fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin",
+      "exit": 0,
+      "stdout": "0 failure(s) over 99 assertions\n",
+      "stderr": "ERROR omp strings dump not found: /fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin/verifiers/fixtures/surfaces/NO-SUCH.txt\nERROR inventory file not found: /fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin/verifiers/fixtures/surfaces/NO-SUCH.md\nERROR baseline not found: /fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin/verifiers/fixtures/surfaces/NO-SUCH.json\n",
+      "before_sha256": "e44bf34b1a52c0e5e4cd320b8f90a20c10c0a997bc225e9b36bf90ccf173be4e",
+      "after_sha256": "e44bf34b1a52c0e5e4cd320b8f90a20c10c0a997bc225e9b36bf90ccf173be4e",
+      "hash_command_exit": [
+        0,
+        0
+      ],
+      "seconds": 0.056
+    },
+    {
+      "label": "M1-round14-remote-mutated",
+      "command": "python3 verifiers/verify_surfaces.py --self-test",
+      "cwd": "/fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin",
+      "exit": 0,
+      "stdout": "0 failure(s) over 99 assertions\n",
+      "stderr": "ERROR omp strings dump not found: /fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin/verifiers/fixtures/surfaces/NO-SUCH.txt\nERROR inventory file not found: /fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin/verifiers/fixtures/surfaces/NO-SUCH.md\nERROR baseline not found: /fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin/verifiers/fixtures/surfaces/NO-SUCH.json\n",
+      "before_sha256": "2ffb2b9f0af2cbe81c9d8533c63eea76b10a9363694615e324f6b01f6d7675fa",
+      "after_sha256": "2ffb2b9f0af2cbe81c9d8533c63eea76b10a9363694615e324f6b01f6d7675fa",
+      "hash_command_exit": [
+        0,
+        0
+      ],
+      "seconds": 0.055
+    },
+    {
+      "label": "M1-restored",
+      "command": "python3 verifiers/verify_surfaces.py --self-test",
+      "cwd": "/fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin",
+      "exit": 0,
+      "stdout": "0 failure(s) over 99 assertions\n",
+      "stderr": "ERROR omp strings dump not found: /fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin/verifiers/fixtures/surfaces/NO-SUCH.txt\nERROR inventory file not found: /fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin/verifiers/fixtures/surfaces/NO-SUCH.md\nERROR baseline not found: /fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin/verifiers/fixtures/surfaces/NO-SUCH.json\n",
+      "before_sha256": "e44bf34b1a52c0e5e4cd320b8f90a20c10c0a997bc225e9b36bf90ccf173be4e",
+      "after_sha256": "e44bf34b1a52c0e5e4cd320b8f90a20c10c0a997bc225e9b36bf90ccf173be4e",
+      "hash_command_exit": [
+        0,
+        0
+      ],
+      "seconds": 0.061
+    },
+    {
+      "label": "M2-read-tool-anchor-mutated",
+      "command": "python3 verifiers/verify_surfaces.py --self-test",
+      "cwd": "/fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin",
+      "exit": 0,
+      "stdout": "0 failure(s) over 99 assertions\n",
+      "stderr": "ERROR omp strings dump not found: /fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin/verifiers/fixtures/surfaces/NO-SUCH.txt\nERROR inventory file not found: /fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin/verifiers/fixtures/surfaces/NO-SUCH.md\nERROR baseline not found: /fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin/verifiers/fixtures/surfaces/NO-SUCH.json\n",
+      "before_sha256": "e95dacbeafa649524979f2a88ef593e4996f4f7c0c4adf5e3eb0643cfc481724",
+      "after_sha256": "e95dacbeafa649524979f2a88ef593e4996f4f7c0c4adf5e3eb0643cfc481724",
+      "hash_command_exit": [
+        0,
+        0
+      ],
+      "seconds": 0.053
+    },
+    {
+      "label": "M2-restored",
+      "command": "python3 verifiers/verify_surfaces.py --self-test",
+      "cwd": "/fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin",
+      "exit": 0,
+      "stdout": "0 failure(s) over 99 assertions\n",
+      "stderr": "ERROR omp strings dump not found: /fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin/verifiers/fixtures/surfaces/NO-SUCH.txt\nERROR inventory file not found: /fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin/verifiers/fixtures/surfaces/NO-SUCH.md\nERROR baseline not found: /fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin/verifiers/fixtures/surfaces/NO-SUCH.json\n",
+      "before_sha256": "e44bf34b1a52c0e5e4cd320b8f90a20c10c0a997bc225e9b36bf90ccf173be4e",
+      "after_sha256": "e44bf34b1a52c0e5e4cd320b8f90a20c10c0a997bc225e9b36bf90ccf173be4e",
+      "hash_command_exit": [
+        0,
+        0
+      ],
+      "seconds": 0.12
+    },
+    {
+      "label": "M3-priority-trailing-span-mutated",
+      "command": "python3 verifiers/verify_surfaces.py --self-test",
+      "cwd": "/fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin",
+      "exit": 1,
+      "stdout": "self-test FAIL: oc-planted-name: names opencode:instructions/GUIDE.md undeclared: got 'PASS surfaces.literal_present: 12 loader-kind entries verified against the dumps\\nPASS surfaces.no_uncovered_class: all 2 extracted loader class(es) declared\\nFAIL surfaces.opencode_extract: declared opencode class(es) produced by no rule: opencode:instructions/AGENTS.md, opencode:instructions/CLAUDE.md, opencode:instructions/CONTEXT.md; rule(s) matched nothing: OC-1 (owns opencode:instructions/AGENTS.md, opencode:instructions/CLAUDE.md, opencode:instructions/CONTEXT.md; missing [\"AGENTS.md\" … \"CONTEXT.md\"] + disableClaudeCodePrompt)\\nPASS surfaces.table_parity: inventory id set == baseline id set (12 ids)\\nPASS surfaces.literal_parity: 12 inventory row literal(s) match the baseline per id\\nPASS surfaces.kind_parity: 12 inventory row kind(s) match the baseline per id\\nPASS surfaces.excluded_reason: 1 excluded entry, all reasoned and listed in the inventory\\n'\n1 failure(s) over 99 assertions\n",
+      "stderr": "ERROR omp strings dump not found: /fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin/verifiers/fixtures/surfaces/NO-SUCH.txt\nERROR inventory file not found: /fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin/verifiers/fixtures/surfaces/NO-SUCH.md\nERROR baseline not found: /fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin/verifiers/fixtures/surfaces/NO-SUCH.json\n",
+      "before_sha256": "7547a31bdbd2cd2b8212c3a57107213ed33c67b80993d07092f82a4a8701a036",
+      "after_sha256": "7547a31bdbd2cd2b8212c3a57107213ed33c67b80993d07092f82a4a8701a036",
+      "hash_command_exit": [
+        0,
+        0
+      ],
+      "seconds": 0.052
+    },
+    {
+      "label": "M3-restored",
+      "command": "python3 verifiers/verify_surfaces.py --self-test",
+      "cwd": "/fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin",
+      "exit": 0,
+      "stdout": "0 failure(s) over 99 assertions\n",
+      "stderr": "ERROR omp strings dump not found: /fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin/verifiers/fixtures/surfaces/NO-SUCH.txt\nERROR inventory file not found: /fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin/verifiers/fixtures/surfaces/NO-SUCH.md\nERROR baseline not found: /fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin/verifiers/fixtures/surfaces/NO-SUCH.json\n",
+      "before_sha256": "e44bf34b1a52c0e5e4cd320b8f90a20c10c0a997bc225e9b36bf90ccf173be4e",
+      "after_sha256": "e44bf34b1a52c0e5e4cd320b8f90a20c10c0a997bc225e9b36bf90ccf173be4e",
+      "hash_command_exit": [
+        0,
+        0
+      ],
+      "seconds": 0.049
+    },
+    {
+      "label": "M4a-oc1-fallback-mutated",
+      "command": "python3 verifiers/verify_surfaces.py --self-test",
+      "cwd": "/fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin",
+      "exit": 0,
+      "stdout": "0 failure(s) over 99 assertions\n",
+      "stderr": "ERROR omp strings dump not found: /fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin/verifiers/fixtures/surfaces/NO-SUCH.txt\nERROR inventory file not found: /fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin/verifiers/fixtures/surfaces/NO-SUCH.md\nERROR baseline not found: /fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin/verifiers/fixtures/surfaces/NO-SUCH.json\n",
+      "before_sha256": "067e17abc5e1be87830dd6db80ea06c790b8f7ea05fc4fa4e4e848e687ee71e2",
+      "after_sha256": "067e17abc5e1be87830dd6db80ea06c790b8f7ea05fc4fa4e4e848e687ee71e2",
+      "hash_command_exit": [
+        0,
+        0
+      ],
+      "seconds": 0.056
+    },
+    {
+      "label": "M4a-restored",
+      "command": "python3 verifiers/verify_surfaces.py --self-test",
+      "cwd": "/fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin",
+      "exit": 0,
+      "stdout": "0 failure(s) over 99 assertions\n",
+      "stderr": "ERROR omp strings dump not found: /fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin/verifiers/fixtures/surfaces/NO-SUCH.txt\nERROR inventory file not found: /fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin/verifiers/fixtures/surfaces/NO-SUCH.md\nERROR baseline not found: /fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin/verifiers/fixtures/surfaces/NO-SUCH.json\n",
+      "before_sha256": "e44bf34b1a52c0e5e4cd320b8f90a20c10c0a997bc225e9b36bf90ccf173be4e",
+      "after_sha256": "e44bf34b1a52c0e5e4cd320b8f90a20c10c0a997bc225e9b36bf90ccf173be4e",
+      "hash_command_exit": [
+        0,
+        0
+      ],
+      "seconds": 0.056
+    },
+    {
+      "label": "M4b-oc2-fallback-mutated",
+      "command": "python3 verifiers/verify_surfaces.py --self-test",
+      "cwd": "/fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin",
+      "exit": 0,
+      "stdout": "0 failure(s) over 99 assertions\n",
+      "stderr": "ERROR omp strings dump not found: /fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin/verifiers/fixtures/surfaces/NO-SUCH.txt\nERROR inventory file not found: /fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin/verifiers/fixtures/surfaces/NO-SUCH.md\nERROR baseline not found: /fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin/verifiers/fixtures/surfaces/NO-SUCH.json\n",
+      "before_sha256": "ccf661d0ba60b4fbdb7e1a85970a913c67bc77dd7fcd0192fe10f412c9c4d2cd",
+      "after_sha256": "ccf661d0ba60b4fbdb7e1a85970a913c67bc77dd7fcd0192fe10f412c9c4d2cd",
+      "hash_command_exit": [
+        0,
+        0
+      ],
+      "seconds": 0.058
+    },
+    {
+      "label": "M4b-restored",
+      "command": "python3 verifiers/verify_surfaces.py --self-test",
+      "cwd": "/fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin",
+      "exit": 0,
+      "stdout": "0 failure(s) over 99 assertions\n",
+      "stderr": "ERROR omp strings dump not found: /fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin/verifiers/fixtures/surfaces/NO-SUCH.txt\nERROR inventory file not found: /fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin/verifiers/fixtures/surfaces/NO-SUCH.md\nERROR baseline not found: /fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin/verifiers/fixtures/surfaces/NO-SUCH.json\n",
+      "before_sha256": "e44bf34b1a52c0e5e4cd320b8f90a20c10c0a997bc225e9b36bf90ccf173be4e",
+      "after_sha256": "e44bf34b1a52c0e5e4cd320b8f90a20c10c0a997bc225e9b36bf90ccf173be4e",
+      "hash_command_exit": [
+        0,
+        0
+      ],
+      "seconds": 0.056
+    },
+    {
+      "label": "M5-default-opencode-mutated",
+      "command": "python3 verifiers/verify_surfaces.py --self-test",
+      "cwd": "/fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin",
+      "exit": 0,
+      "stdout": "0 failure(s) over 99 assertions\n",
+      "stderr": "ERROR omp strings dump not found: /fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin/verifiers/fixtures/surfaces/NO-SUCH.txt\nERROR inventory file not found: /fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin/verifiers/fixtures/surfaces/NO-SUCH.md\nERROR baseline not found: /fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin/verifiers/fixtures/surfaces/NO-SUCH.json\n",
+      "before_sha256": "0a618549bad585176382a41ed22e8215051a87be55110bc1af606848cf944570",
+      "after_sha256": "0a618549bad585176382a41ed22e8215051a87be55110bc1af606848cf944570",
+      "hash_command_exit": [
+        0,
+        0
+      ],
+      "seconds": 0.062
+    },
+    {
+      "label": "M5-restored",
+      "command": "python3 verifiers/verify_surfaces.py --self-test",
+      "cwd": "/fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin",
+      "exit": 0,
+      "stdout": "0 failure(s) over 99 assertions\n",
+      "stderr": "ERROR omp strings dump not found: /fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin/verifiers/fixtures/surfaces/NO-SUCH.txt\nERROR inventory file not found: /fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin/verifiers/fixtures/surfaces/NO-SUCH.md\nERROR baseline not found: /fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin/verifiers/fixtures/surfaces/NO-SUCH.json\n",
+      "before_sha256": "e44bf34b1a52c0e5e4cd320b8f90a20c10c0a997bc225e9b36bf90ccf173be4e",
+      "after_sha256": "e44bf34b1a52c0e5e4cd320b8f90a20c10c0a997bc225e9b36bf90ccf173be4e",
+      "hash_command_exit": [
+        0,
+        0
+      ],
+      "seconds": 0.052
+    }
+  ],
+  "supplemental_timeout_seconds": 30,
+  "supplemental_script": "import json, runpy, sys\nm = runpy.run_path(\"verifiers/verify_surfaces.py\")\ncase = sys.argv[1]\nfx = m[\"FIXTURES\"]\nif case in (\"remote-filter-only\", \"read-tool-only\"):\n    dump = m[\"read_text\"](fx / \"strings-opencode-clean.txt\", \"clean fixture\")\n    needle = ('w=(T.instructions??[]).filter((q)=>q.startsWith(\"https://\")||q.startsWith(\"http://\"))\\n'\n              if case == \"remote-filter-only\" else '$=s.fn(\"ReadTool.execute\")(function*(a,g){\\n')\n    assert dump.count(needle) == 1\n    changed = dump.replace(needle, \"\", 1)\n    entries = m[\"load_baseline\"](fx / \"baseline-clean.json\")\n    ok, detail = m[\"check_opencode_extract\"](entries, changed)\n    expected = not ok\n    result = {\"case\": case, \"gate_ok\": ok, \"detail\": detail}\nelif case in (\"fallback-oc1\", \"fallback-oc2\"):\n    _, reports = m[\"extract_opencode_classes\"](\"\")\n    rid = \"OC-1\" if case == \"fallback-oc1\" else \"OC-2\"\n    report = next(r for r in reports if r[\"rule_id\"] == rid)\n    owns = ([\"opencode:instructions/AGENTS.md\", \"opencode:instructions/CLAUDE.md\", \"opencode:instructions/CONTEXT.md\"]\n            if rid == \"OC-1\" else [\"opencode:config/AGENTS.md\", \"opencode:claude-home/CLAUDE.md\"])\n    expected = not report[\"matched\"] and report[\"owns\"] == owns\n    result = {\"case\": case, \"rule\": report, \"expected_owns\": owns}\nelif case == \"default-opencode\":\n    path = m[\"build_parser\"]().parse_args([]).opencode_binary\n    expected = path == \"/home/vgpnk/.npm/_npx/e2094862b59aac7b/node_modules/opencode-ai/bin/opencode.exe\"\n    result = {\"case\": case, \"observed_opencode_binary\": path}\nelse:\n    raise AssertionError(case)\nresult[\"expected_behavior\"] = expected\nprint(json.dumps(result, sort_keys=True))\nsys.exit(0 if expected else 1)\n",
+  "supplemental_runs": [
+    {
+      "label": "pristine-arm",
+      "case": "remote-filter-only",
+      "command": "python3 -c 'import json, runpy, sys\nm = runpy.run_path(\"verifiers/verify_surfaces.py\")\ncase = sys.argv[1]\nfx = m[\"FIXTURES\"]\nif case in (\"remote-filter-only\", \"read-tool-only\"):\n    dump = m[\"read_text\"](fx / \"strings-opencode-clean.txt\", \"clean fixture\")\n    needle = ('\"'\"'w=(T.instructions??[]).filter((q)=>q.startsWith(\"https://\")||q.startsWith(\"http://\"))\\n'\"'\"'\n              if case == \"remote-filter-only\" else '\"'\"'$=s.fn(\"ReadTool.execute\")(function*(a,g){\\n'\"'\"')\n    assert dump.count(needle) == 1\n    changed = dump.replace(needle, \"\", 1)\n    entries = m[\"load_baseline\"](fx / \"baseline-clean.json\")\n    ok, detail = m[\"check_opencode_extract\"](entries, changed)\n    expected = not ok\n    result = {\"case\": case, \"gate_ok\": ok, \"detail\": detail}\nelif case in (\"fallback-oc1\", \"fallback-oc2\"):\n    _, reports = m[\"extract_opencode_classes\"](\"\")\n    rid = \"OC-1\" if case == \"fallback-oc1\" else \"OC-2\"\n    report = next(r for r in reports if r[\"rule_id\"] == rid)\n    owns = ([\"opencode:instructions/AGENTS.md\", \"opencode:instructions/CLAUDE.md\", \"opencode:instructions/CONTEXT.md\"]\n            if rid == \"OC-1\" else [\"opencode:config/AGENTS.md\", \"opencode:claude-home/CLAUDE.md\"])\n    expected = not report[\"matched\"] and report[\"owns\"] == owns\n    result = {\"case\": case, \"rule\": report, \"expected_owns\": owns}\nelif case == \"default-opencode\":\n    path = m[\"build_parser\"]().parse_args([]).opencode_binary\n    expected = path == \"/home/vgpnk/.npm/_npx/e2094862b59aac7b/node_modules/opencode-ai/bin/opencode.exe\"\n    result = {\"case\": case, \"observed_opencode_binary\": path}\nelse:\n    raise AssertionError(case)\nresult[\"expected_behavior\"] = expected\nprint(json.dumps(result, sort_keys=True))\nsys.exit(0 if expected else 1)\n' remote-filter-only",
+      "cwd": "/fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin",
+      "exit": 0,
+      "stdout": "{\"case\": \"remote-filter-only\", \"detail\": \"declared opencode class(es) produced by no rule: opencode:config/instructions-remote; rule(s) matched nothing: OC-3b (owns opencode:config/instructions-remote; missing .instructions\\u2026.filter((q)=>q.startsWith(\\\"https://\\\")||q.startsWith(\\\"http://\\\")) + Instructions from: )\", \"expected_behavior\": true, \"gate_ok\": false}\n",
+      "stderr": "",
+      "before_sha256": "e44bf34b1a52c0e5e4cd320b8f90a20c10c0a997bc225e9b36bf90ccf173be4e",
+      "after_sha256": "e44bf34b1a52c0e5e4cd320b8f90a20c10c0a997bc225e9b36bf90ccf173be4e",
+      "hash_command_exit": [
+        0,
+        0
+      ]
+    },
+    {
+      "label": "pristine-arm",
+      "case": "read-tool-only",
+      "command": "python3 -c 'import json, runpy, sys\nm = runpy.run_path(\"verifiers/verify_surfaces.py\")\ncase = sys.argv[1]\nfx = m[\"FIXTURES\"]\nif case in (\"remote-filter-only\", \"read-tool-only\"):\n    dump = m[\"read_text\"](fx / \"strings-opencode-clean.txt\", \"clean fixture\")\n    needle = ('\"'\"'w=(T.instructions??[]).filter((q)=>q.startsWith(\"https://\")||q.startsWith(\"http://\"))\\n'\"'\"'\n              if case == \"remote-filter-only\" else '\"'\"'$=s.fn(\"ReadTool.execute\")(function*(a,g){\\n'\"'\"')\n    assert dump.count(needle) == 1\n    changed = dump.replace(needle, \"\", 1)\n    entries = m[\"load_baseline\"](fx / \"baseline-clean.json\")\n    ok, detail = m[\"check_opencode_extract\"](entries, changed)\n    expected = not ok\n    result = {\"case\": case, \"gate_ok\": ok, \"detail\": detail}\nelif case in (\"fallback-oc1\", \"fallback-oc2\"):\n    _, reports = m[\"extract_opencode_classes\"](\"\")\n    rid = \"OC-1\" if case == \"fallback-oc1\" else \"OC-2\"\n    report = next(r for r in reports if r[\"rule_id\"] == rid)\n    owns = ([\"opencode:instructions/AGENTS.md\", \"opencode:instructions/CLAUDE.md\", \"opencode:instructions/CONTEXT.md\"]\n            if rid == \"OC-1\" else [\"opencode:config/AGENTS.md\", \"opencode:claude-home/CLAUDE.md\"])\n    expected = not report[\"matched\"] and report[\"owns\"] == owns\n    result = {\"case\": case, \"rule\": report, \"expected_owns\": owns}\nelif case == \"default-opencode\":\n    path = m[\"build_parser\"]().parse_args([]).opencode_binary\n    expected = path == \"/home/vgpnk/.npm/_npx/e2094862b59aac7b/node_modules/opencode-ai/bin/opencode.exe\"\n    result = {\"case\": case, \"observed_opencode_binary\": path}\nelse:\n    raise AssertionError(case)\nresult[\"expected_behavior\"] = expected\nprint(json.dumps(result, sort_keys=True))\nsys.exit(0 if expected else 1)\n' read-tool-only",
+      "cwd": "/fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin",
+      "exit": 0,
+      "stdout": "{\"case\": \"read-tool-only\", \"detail\": \"declared opencode class(es) produced by no rule: opencode:read-hook/instructions; rule(s) matched nothing: OC-4 (owns opencode:read-hook/instructions; missing fn(\\\"Instruction.resolve\\\") + fn(\\\"ReadTool.execute\\\") + <system-reminder>)\", \"expected_behavior\": true, \"gate_ok\": false}\n",
+      "stderr": "",
+      "before_sha256": "e44bf34b1a52c0e5e4cd320b8f90a20c10c0a997bc225e9b36bf90ccf173be4e",
+      "after_sha256": "e44bf34b1a52c0e5e4cd320b8f90a20c10c0a997bc225e9b36bf90ccf173be4e",
+      "hash_command_exit": [
+        0,
+        0
+      ]
+    },
+    {
+      "label": "pristine-arm",
+      "case": "fallback-oc1",
+      "command": "python3 -c 'import json, runpy, sys\nm = runpy.run_path(\"verifiers/verify_surfaces.py\")\ncase = sys.argv[1]\nfx = m[\"FIXTURES\"]\nif case in (\"remote-filter-only\", \"read-tool-only\"):\n    dump = m[\"read_text\"](fx / \"strings-opencode-clean.txt\", \"clean fixture\")\n    needle = ('\"'\"'w=(T.instructions??[]).filter((q)=>q.startsWith(\"https://\")||q.startsWith(\"http://\"))\\n'\"'\"'\n              if case == \"remote-filter-only\" else '\"'\"'$=s.fn(\"ReadTool.execute\")(function*(a,g){\\n'\"'\"')\n    assert dump.count(needle) == 1\n    changed = dump.replace(needle, \"\", 1)\n    entries = m[\"load_baseline\"](fx / \"baseline-clean.json\")\n    ok, detail = m[\"check_opencode_extract\"](entries, changed)\n    expected = not ok\n    result = {\"case\": case, \"gate_ok\": ok, \"detail\": detail}\nelif case in (\"fallback-oc1\", \"fallback-oc2\"):\n    _, reports = m[\"extract_opencode_classes\"](\"\")\n    rid = \"OC-1\" if case == \"fallback-oc1\" else \"OC-2\"\n    report = next(r for r in reports if r[\"rule_id\"] == rid)\n    owns = ([\"opencode:instructions/AGENTS.md\", \"opencode:instructions/CLAUDE.md\", \"opencode:instructions/CONTEXT.md\"]\n            if rid == \"OC-1\" else [\"opencode:config/AGENTS.md\", \"opencode:claude-home/CLAUDE.md\"])\n    expected = not report[\"matched\"] and report[\"owns\"] == owns\n    result = {\"case\": case, \"rule\": report, \"expected_owns\": owns}\nelif case == \"default-opencode\":\n    path = m[\"build_parser\"]().parse_args([]).opencode_binary\n    expected = path == \"/home/vgpnk/.npm/_npx/e2094862b59aac7b/node_modules/opencode-ai/bin/opencode.exe\"\n    result = {\"case\": case, \"observed_opencode_binary\": path}\nelse:\n    raise AssertionError(case)\nresult[\"expected_behavior\"] = expected\nprint(json.dumps(result, sort_keys=True))\nsys.exit(0 if expected else 1)\n' fallback-oc1",
+      "cwd": "/fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin",
+      "exit": 0,
+      "stdout": "{\"case\": \"fallback-oc1\", \"expected_behavior\": true, \"expected_owns\": [\"opencode:instructions/AGENTS.md\", \"opencode:instructions/CLAUDE.md\", \"opencode:instructions/CONTEXT.md\"], \"rule\": {\"anchors\": [\"[\\\"AGENTS.md\\\" \\u2026 \\\"CONTEXT.md\\\"]\", \"disableClaudeCodePrompt\"], \"matched\": false, \"missing\": [\"[\\\"AGENTS.md\\\" \\u2026 \\\"CONTEXT.md\\\"]\", \"disableClaudeCodePrompt\"], \"owns\": [\"opencode:instructions/AGENTS.md\", \"opencode:instructions/CLAUDE.md\", \"opencode:instructions/CONTEXT.md\"], \"rule_id\": \"OC-1\"}}\n",
+      "stderr": "",
+      "before_sha256": "e44bf34b1a52c0e5e4cd320b8f90a20c10c0a997bc225e9b36bf90ccf173be4e",
+      "after_sha256": "e44bf34b1a52c0e5e4cd320b8f90a20c10c0a997bc225e9b36bf90ccf173be4e",
+      "hash_command_exit": [
+        0,
+        0
+      ]
+    },
+    {
+      "label": "pristine-arm",
+      "case": "fallback-oc2",
+      "command": "python3 -c 'import json, runpy, sys\nm = runpy.run_path(\"verifiers/verify_surfaces.py\")\ncase = sys.argv[1]\nfx = m[\"FIXTURES\"]\nif case in (\"remote-filter-only\", \"read-tool-only\"):\n    dump = m[\"read_text\"](fx / \"strings-opencode-clean.txt\", \"clean fixture\")\n    needle = ('\"'\"'w=(T.instructions??[]).filter((q)=>q.startsWith(\"https://\")||q.startsWith(\"http://\"))\\n'\"'\"'\n              if case == \"remote-filter-only\" else '\"'\"'$=s.fn(\"ReadTool.execute\")(function*(a,g){\\n'\"'\"')\n    assert dump.count(needle) == 1\n    changed = dump.replace(needle, \"\", 1)\n    entries = m[\"load_baseline\"](fx / \"baseline-clean.json\")\n    ok, detail = m[\"check_opencode_extract\"](entries, changed)\n    expected = not ok\n    result = {\"case\": case, \"gate_ok\": ok, \"detail\": detail}\nelif case in (\"fallback-oc1\", \"fallback-oc2\"):\n    _, reports = m[\"extract_opencode_classes\"](\"\")\n    rid = \"OC-1\" if case == \"fallback-oc1\" else \"OC-2\"\n    report = next(r for r in reports if r[\"rule_id\"] == rid)\n    owns = ([\"opencode:instructions/AGENTS.md\", \"opencode:instructions/CLAUDE.md\", \"opencode:instructions/CONTEXT.md\"]\n            if rid == \"OC-1\" else [\"opencode:config/AGENTS.md\", \"opencode:claude-home/CLAUDE.md\"])\n    expected = not report[\"matched\"] and report[\"owns\"] == owns\n    result = {\"case\": case, \"rule\": report, \"expected_owns\": owns}\nelif case == \"default-opencode\":\n    path = m[\"build_parser\"]().parse_args([]).opencode_binary\n    expected = path == \"/home/vgpnk/.npm/_npx/e2094862b59aac7b/node_modules/opencode-ai/bin/opencode.exe\"\n    result = {\"case\": case, \"observed_opencode_binary\": path}\nelse:\n    raise AssertionError(case)\nresult[\"expected_behavior\"] = expected\nprint(json.dumps(result, sort_keys=True))\nsys.exit(0 if expected else 1)\n' fallback-oc2",
+      "cwd": "/fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin",
+      "exit": 0,
+      "stdout": "{\"case\": \"fallback-oc2\", \"expected_behavior\": true, \"expected_owns\": [\"opencode:config/AGENTS.md\", \"opencode:claude-home/CLAUDE.md\"], \"rule\": {\"anchors\": [\"X.join(<v>.config,\\\"AGENTS.md\\\")\", \"X.join(<v>.home,\\\".claude\\\",\\\"CLAUDE.md\\\")\"], \"matched\": false, \"missing\": [\"X.join(<v>.config,\\\"AGENTS.md\\\")\", \"X.join(<v>.home,\\\".claude\\\",\\\"CLAUDE.md\\\")\"], \"owns\": [\"opencode:config/AGENTS.md\", \"opencode:claude-home/CLAUDE.md\"], \"rule_id\": \"OC-2\"}}\n",
+      "stderr": "",
+      "before_sha256": "e44bf34b1a52c0e5e4cd320b8f90a20c10c0a997bc225e9b36bf90ccf173be4e",
+      "after_sha256": "e44bf34b1a52c0e5e4cd320b8f90a20c10c0a997bc225e9b36bf90ccf173be4e",
+      "hash_command_exit": [
+        0,
+        0
+      ]
+    },
+    {
+      "label": "pristine-arm",
+      "case": "default-opencode",
+      "command": "python3 -c 'import json, runpy, sys\nm = runpy.run_path(\"verifiers/verify_surfaces.py\")\ncase = sys.argv[1]\nfx = m[\"FIXTURES\"]\nif case in (\"remote-filter-only\", \"read-tool-only\"):\n    dump = m[\"read_text\"](fx / \"strings-opencode-clean.txt\", \"clean fixture\")\n    needle = ('\"'\"'w=(T.instructions??[]).filter((q)=>q.startsWith(\"https://\")||q.startsWith(\"http://\"))\\n'\"'\"'\n              if case == \"remote-filter-only\" else '\"'\"'$=s.fn(\"ReadTool.execute\")(function*(a,g){\\n'\"'\"')\n    assert dump.count(needle) == 1\n    changed = dump.replace(needle, \"\", 1)\n    entries = m[\"load_baseline\"](fx / \"baseline-clean.json\")\n    ok, detail = m[\"check_opencode_extract\"](entries, changed)\n    expected = not ok\n    result = {\"case\": case, \"gate_ok\": ok, \"detail\": detail}\nelif case in (\"fallback-oc1\", \"fallback-oc2\"):\n    _, reports = m[\"extract_opencode_classes\"](\"\")\n    rid = \"OC-1\" if case == \"fallback-oc1\" else \"OC-2\"\n    report = next(r for r in reports if r[\"rule_id\"] == rid)\n    owns = ([\"opencode:instructions/AGENTS.md\", \"opencode:instructions/CLAUDE.md\", \"opencode:instructions/CONTEXT.md\"]\n            if rid == \"OC-1\" else [\"opencode:config/AGENTS.md\", \"opencode:claude-home/CLAUDE.md\"])\n    expected = not report[\"matched\"] and report[\"owns\"] == owns\n    result = {\"case\": case, \"rule\": report, \"expected_owns\": owns}\nelif case == \"default-opencode\":\n    path = m[\"build_parser\"]().parse_args([]).opencode_binary\n    expected = path == \"/home/vgpnk/.npm/_npx/e2094862b59aac7b/node_modules/opencode-ai/bin/opencode.exe\"\n    result = {\"case\": case, \"observed_opencode_binary\": path}\nelse:\n    raise AssertionError(case)\nresult[\"expected_behavior\"] = expected\nprint(json.dumps(result, sort_keys=True))\nsys.exit(0 if expected else 1)\n' default-opencode",
+      "cwd": "/fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin",
+      "exit": 0,
+      "stdout": "{\"case\": \"default-opencode\", \"expected_behavior\": true, \"observed_opencode_binary\": \"/home/vgpnk/.npm/_npx/e2094862b59aac7b/node_modules/opencode-ai/bin/opencode.exe\"}\n",
+      "stderr": "",
+      "before_sha256": "e44bf34b1a52c0e5e4cd320b8f90a20c10c0a997bc225e9b36bf90ccf173be4e",
+      "after_sha256": "e44bf34b1a52c0e5e4cd320b8f90a20c10c0a997bc225e9b36bf90ccf173be4e",
+      "hash_command_exit": [
+        0,
+        0
+      ]
+    },
+    {
+      "label": "M1-mutated-arm",
+      "case": "remote-filter-only",
+      "command": "python3 -c 'import json, runpy, sys\nm = runpy.run_path(\"verifiers/verify_surfaces.py\")\ncase = sys.argv[1]\nfx = m[\"FIXTURES\"]\nif case in (\"remote-filter-only\", \"read-tool-only\"):\n    dump = m[\"read_text\"](fx / \"strings-opencode-clean.txt\", \"clean fixture\")\n    needle = ('\"'\"'w=(T.instructions??[]).filter((q)=>q.startsWith(\"https://\")||q.startsWith(\"http://\"))\\n'\"'\"'\n              if case == \"remote-filter-only\" else '\"'\"'$=s.fn(\"ReadTool.execute\")(function*(a,g){\\n'\"'\"')\n    assert dump.count(needle) == 1\n    changed = dump.replace(needle, \"\", 1)\n    entries = m[\"load_baseline\"](fx / \"baseline-clean.json\")\n    ok, detail = m[\"check_opencode_extract\"](entries, changed)\n    expected = not ok\n    result = {\"case\": case, \"gate_ok\": ok, \"detail\": detail}\nelif case in (\"fallback-oc1\", \"fallback-oc2\"):\n    _, reports = m[\"extract_opencode_classes\"](\"\")\n    rid = \"OC-1\" if case == \"fallback-oc1\" else \"OC-2\"\n    report = next(r for r in reports if r[\"rule_id\"] == rid)\n    owns = ([\"opencode:instructions/AGENTS.md\", \"opencode:instructions/CLAUDE.md\", \"opencode:instructions/CONTEXT.md\"]\n            if rid == \"OC-1\" else [\"opencode:config/AGENTS.md\", \"opencode:claude-home/CLAUDE.md\"])\n    expected = not report[\"matched\"] and report[\"owns\"] == owns\n    result = {\"case\": case, \"rule\": report, \"expected_owns\": owns}\nelif case == \"default-opencode\":\n    path = m[\"build_parser\"]().parse_args([]).opencode_binary\n    expected = path == \"/home/vgpnk/.npm/_npx/e2094862b59aac7b/node_modules/opencode-ai/bin/opencode.exe\"\n    result = {\"case\": case, \"observed_opencode_binary\": path}\nelse:\n    raise AssertionError(case)\nresult[\"expected_behavior\"] = expected\nprint(json.dumps(result, sort_keys=True))\nsys.exit(0 if expected else 1)\n' remote-filter-only",
+      "cwd": "/fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin",
+      "exit": 1,
+      "stdout": "{\"case\": \"remote-filter-only\", \"detail\": \"opencode extraction 9/9 declared class(es) from 7/7 rules (OC-1, OC-2, OC-3a, OC-3b, OC-4, OC-5, OC-6)\", \"expected_behavior\": false, \"gate_ok\": true}\n",
+      "stderr": "",
+      "before_sha256": "2ffb2b9f0af2cbe81c9d8533c63eea76b10a9363694615e324f6b01f6d7675fa",
+      "after_sha256": "2ffb2b9f0af2cbe81c9d8533c63eea76b10a9363694615e324f6b01f6d7675fa",
+      "hash_command_exit": [
+        0,
+        0
+      ]
+    },
+    {
+      "label": "M1-restored-arm",
+      "case": "remote-filter-only",
+      "command": "python3 -c 'import json, runpy, sys\nm = runpy.run_path(\"verifiers/verify_surfaces.py\")\ncase = sys.argv[1]\nfx = m[\"FIXTURES\"]\nif case in (\"remote-filter-only\", \"read-tool-only\"):\n    dump = m[\"read_text\"](fx / \"strings-opencode-clean.txt\", \"clean fixture\")\n    needle = ('\"'\"'w=(T.instructions??[]).filter((q)=>q.startsWith(\"https://\")||q.startsWith(\"http://\"))\\n'\"'\"'\n              if case == \"remote-filter-only\" else '\"'\"'$=s.fn(\"ReadTool.execute\")(function*(a,g){\\n'\"'\"')\n    assert dump.count(needle) == 1\n    changed = dump.replace(needle, \"\", 1)\n    entries = m[\"load_baseline\"](fx / \"baseline-clean.json\")\n    ok, detail = m[\"check_opencode_extract\"](entries, changed)\n    expected = not ok\n    result = {\"case\": case, \"gate_ok\": ok, \"detail\": detail}\nelif case in (\"fallback-oc1\", \"fallback-oc2\"):\n    _, reports = m[\"extract_opencode_classes\"](\"\")\n    rid = \"OC-1\" if case == \"fallback-oc1\" else \"OC-2\"\n    report = next(r for r in reports if r[\"rule_id\"] == rid)\n    owns = ([\"opencode:instructions/AGENTS.md\", \"opencode:instructions/CLAUDE.md\", \"opencode:instructions/CONTEXT.md\"]\n            if rid == \"OC-1\" else [\"opencode:config/AGENTS.md\", \"opencode:claude-home/CLAUDE.md\"])\n    expected = not report[\"matched\"] and report[\"owns\"] == owns\n    result = {\"case\": case, \"rule\": report, \"expected_owns\": owns}\nelif case == \"default-opencode\":\n    path = m[\"build_parser\"]().parse_args([]).opencode_binary\n    expected = path == \"/home/vgpnk/.npm/_npx/e2094862b59aac7b/node_modules/opencode-ai/bin/opencode.exe\"\n    result = {\"case\": case, \"observed_opencode_binary\": path}\nelse:\n    raise AssertionError(case)\nresult[\"expected_behavior\"] = expected\nprint(json.dumps(result, sort_keys=True))\nsys.exit(0 if expected else 1)\n' remote-filter-only",
+      "cwd": "/fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin",
+      "exit": 0,
+      "stdout": "{\"case\": \"remote-filter-only\", \"detail\": \"declared opencode class(es) produced by no rule: opencode:config/instructions-remote; rule(s) matched nothing: OC-3b (owns opencode:config/instructions-remote; missing .instructions\\u2026.filter((q)=>q.startsWith(\\\"https://\\\")||q.startsWith(\\\"http://\\\")) + Instructions from: )\", \"expected_behavior\": true, \"gate_ok\": false}\n",
+      "stderr": "",
+      "before_sha256": "e44bf34b1a52c0e5e4cd320b8f90a20c10c0a997bc225e9b36bf90ccf173be4e",
+      "after_sha256": "e44bf34b1a52c0e5e4cd320b8f90a20c10c0a997bc225e9b36bf90ccf173be4e",
+      "hash_command_exit": [
+        0,
+        0
+      ]
+    },
+    {
+      "label": "M2-mutated-arm",
+      "case": "read-tool-only",
+      "command": "python3 -c 'import json, runpy, sys\nm = runpy.run_path(\"verifiers/verify_surfaces.py\")\ncase = sys.argv[1]\nfx = m[\"FIXTURES\"]\nif case in (\"remote-filter-only\", \"read-tool-only\"):\n    dump = m[\"read_text\"](fx / \"strings-opencode-clean.txt\", \"clean fixture\")\n    needle = ('\"'\"'w=(T.instructions??[]).filter((q)=>q.startsWith(\"https://\")||q.startsWith(\"http://\"))\\n'\"'\"'\n              if case == \"remote-filter-only\" else '\"'\"'$=s.fn(\"ReadTool.execute\")(function*(a,g){\\n'\"'\"')\n    assert dump.count(needle) == 1\n    changed = dump.replace(needle, \"\", 1)\n    entries = m[\"load_baseline\"](fx / \"baseline-clean.json\")\n    ok, detail = m[\"check_opencode_extract\"](entries, changed)\n    expected = not ok\n    result = {\"case\": case, \"gate_ok\": ok, \"detail\": detail}\nelif case in (\"fallback-oc1\", \"fallback-oc2\"):\n    _, reports = m[\"extract_opencode_classes\"](\"\")\n    rid = \"OC-1\" if case == \"fallback-oc1\" else \"OC-2\"\n    report = next(r for r in reports if r[\"rule_id\"] == rid)\n    owns = ([\"opencode:instructions/AGENTS.md\", \"opencode:instructions/CLAUDE.md\", \"opencode:instructions/CONTEXT.md\"]\n            if rid == \"OC-1\" else [\"opencode:config/AGENTS.md\", \"opencode:claude-home/CLAUDE.md\"])\n    expected = not report[\"matched\"] and report[\"owns\"] == owns\n    result = {\"case\": case, \"rule\": report, \"expected_owns\": owns}\nelif case == \"default-opencode\":\n    path = m[\"build_parser\"]().parse_args([]).opencode_binary\n    expected = path == \"/home/vgpnk/.npm/_npx/e2094862b59aac7b/node_modules/opencode-ai/bin/opencode.exe\"\n    result = {\"case\": case, \"observed_opencode_binary\": path}\nelse:\n    raise AssertionError(case)\nresult[\"expected_behavior\"] = expected\nprint(json.dumps(result, sort_keys=True))\nsys.exit(0 if expected else 1)\n' read-tool-only",
+      "cwd": "/fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin",
+      "exit": 1,
+      "stdout": "{\"case\": \"read-tool-only\", \"detail\": \"opencode extraction 9/9 declared class(es) from 7/7 rules (OC-1, OC-2, OC-3a, OC-3b, OC-4, OC-5, OC-6)\", \"expected_behavior\": false, \"gate_ok\": true}\n",
+      "stderr": "",
+      "before_sha256": "e95dacbeafa649524979f2a88ef593e4996f4f7c0c4adf5e3eb0643cfc481724",
+      "after_sha256": "e95dacbeafa649524979f2a88ef593e4996f4f7c0c4adf5e3eb0643cfc481724",
+      "hash_command_exit": [
+        0,
+        0
+      ]
+    },
+    {
+      "label": "M2-restored-arm",
+      "case": "read-tool-only",
+      "command": "python3 -c 'import json, runpy, sys\nm = runpy.run_path(\"verifiers/verify_surfaces.py\")\ncase = sys.argv[1]\nfx = m[\"FIXTURES\"]\nif case in (\"remote-filter-only\", \"read-tool-only\"):\n    dump = m[\"read_text\"](fx / \"strings-opencode-clean.txt\", \"clean fixture\")\n    needle = ('\"'\"'w=(T.instructions??[]).filter((q)=>q.startsWith(\"https://\")||q.startsWith(\"http://\"))\\n'\"'\"'\n              if case == \"remote-filter-only\" else '\"'\"'$=s.fn(\"ReadTool.execute\")(function*(a,g){\\n'\"'\"')\n    assert dump.count(needle) == 1\n    changed = dump.replace(needle, \"\", 1)\n    entries = m[\"load_baseline\"](fx / \"baseline-clean.json\")\n    ok, detail = m[\"check_opencode_extract\"](entries, changed)\n    expected = not ok\n    result = {\"case\": case, \"gate_ok\": ok, \"detail\": detail}\nelif case in (\"fallback-oc1\", \"fallback-oc2\"):\n    _, reports = m[\"extract_opencode_classes\"](\"\")\n    rid = \"OC-1\" if case == \"fallback-oc1\" else \"OC-2\"\n    report = next(r for r in reports if r[\"rule_id\"] == rid)\n    owns = ([\"opencode:instructions/AGENTS.md\", \"opencode:instructions/CLAUDE.md\", \"opencode:instructions/CONTEXT.md\"]\n            if rid == \"OC-1\" else [\"opencode:config/AGENTS.md\", \"opencode:claude-home/CLAUDE.md\"])\n    expected = not report[\"matched\"] and report[\"owns\"] == owns\n    result = {\"case\": case, \"rule\": report, \"expected_owns\": owns}\nelif case == \"default-opencode\":\n    path = m[\"build_parser\"]().parse_args([]).opencode_binary\n    expected = path == \"/home/vgpnk/.npm/_npx/e2094862b59aac7b/node_modules/opencode-ai/bin/opencode.exe\"\n    result = {\"case\": case, \"observed_opencode_binary\": path}\nelse:\n    raise AssertionError(case)\nresult[\"expected_behavior\"] = expected\nprint(json.dumps(result, sort_keys=True))\nsys.exit(0 if expected else 1)\n' read-tool-only",
+      "cwd": "/fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin",
+      "exit": 0,
+      "stdout": "{\"case\": \"read-tool-only\", \"detail\": \"declared opencode class(es) produced by no rule: opencode:read-hook/instructions; rule(s) matched nothing: OC-4 (owns opencode:read-hook/instructions; missing fn(\\\"Instruction.resolve\\\") + fn(\\\"ReadTool.execute\\\") + <system-reminder>)\", \"expected_behavior\": true, \"gate_ok\": false}\n",
+      "stderr": "",
+      "before_sha256": "e44bf34b1a52c0e5e4cd320b8f90a20c10c0a997bc225e9b36bf90ccf173be4e",
+      "after_sha256": "e44bf34b1a52c0e5e4cd320b8f90a20c10c0a997bc225e9b36bf90ccf173be4e",
+      "hash_command_exit": [
+        0,
+        0
+      ]
+    },
+    {
+      "label": "M4a-mutated-arm",
+      "case": "fallback-oc1",
+      "command": "python3 -c 'import json, runpy, sys\nm = runpy.run_path(\"verifiers/verify_surfaces.py\")\ncase = sys.argv[1]\nfx = m[\"FIXTURES\"]\nif case in (\"remote-filter-only\", \"read-tool-only\"):\n    dump = m[\"read_text\"](fx / \"strings-opencode-clean.txt\", \"clean fixture\")\n    needle = ('\"'\"'w=(T.instructions??[]).filter((q)=>q.startsWith(\"https://\")||q.startsWith(\"http://\"))\\n'\"'\"'\n              if case == \"remote-filter-only\" else '\"'\"'$=s.fn(\"ReadTool.execute\")(function*(a,g){\\n'\"'\"')\n    assert dump.count(needle) == 1\n    changed = dump.replace(needle, \"\", 1)\n    entries = m[\"load_baseline\"](fx / \"baseline-clean.json\")\n    ok, detail = m[\"check_opencode_extract\"](entries, changed)\n    expected = not ok\n    result = {\"case\": case, \"gate_ok\": ok, \"detail\": detail}\nelif case in (\"fallback-oc1\", \"fallback-oc2\"):\n    _, reports = m[\"extract_opencode_classes\"](\"\")\n    rid = \"OC-1\" if case == \"fallback-oc1\" else \"OC-2\"\n    report = next(r for r in reports if r[\"rule_id\"] == rid)\n    owns = ([\"opencode:instructions/AGENTS.md\", \"opencode:instructions/CLAUDE.md\", \"opencode:instructions/CONTEXT.md\"]\n            if rid == \"OC-1\" else [\"opencode:config/AGENTS.md\", \"opencode:claude-home/CLAUDE.md\"])\n    expected = not report[\"matched\"] and report[\"owns\"] == owns\n    result = {\"case\": case, \"rule\": report, \"expected_owns\": owns}\nelif case == \"default-opencode\":\n    path = m[\"build_parser\"]().parse_args([]).opencode_binary\n    expected = path == \"/home/vgpnk/.npm/_npx/e2094862b59aac7b/node_modules/opencode-ai/bin/opencode.exe\"\n    result = {\"case\": case, \"observed_opencode_binary\": path}\nelse:\n    raise AssertionError(case)\nresult[\"expected_behavior\"] = expected\nprint(json.dumps(result, sort_keys=True))\nsys.exit(0 if expected else 1)\n' fallback-oc1",
+      "cwd": "/fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin",
+      "exit": 1,
+      "stdout": "{\"case\": \"fallback-oc1\", \"expected_behavior\": false, \"expected_owns\": [\"opencode:instructions/AGENTS.md\", \"opencode:instructions/CLAUDE.md\", \"opencode:instructions/CONTEXT.md\"], \"rule\": {\"anchors\": [\"[\\\"AGENTS.md\\\" \\u2026 \\\"CONTEXT.md\\\"]\", \"disableClaudeCodePrompt\"], \"matched\": false, \"missing\": [\"[\\\"AGENTS.md\\\" \\u2026 \\\"CONTEXT.md\\\"]\", \"disableClaudeCodePrompt\"], \"owns\": [], \"rule_id\": \"OC-1\"}}\n",
+      "stderr": "",
+      "before_sha256": "067e17abc5e1be87830dd6db80ea06c790b8f7ea05fc4fa4e4e848e687ee71e2",
+      "after_sha256": "067e17abc5e1be87830dd6db80ea06c790b8f7ea05fc4fa4e4e848e687ee71e2",
+      "hash_command_exit": [
+        0,
+        0
+      ]
+    },
+    {
+      "label": "M4a-restored-arm",
+      "case": "fallback-oc1",
+      "command": "python3 -c 'import json, runpy, sys\nm = runpy.run_path(\"verifiers/verify_surfaces.py\")\ncase = sys.argv[1]\nfx = m[\"FIXTURES\"]\nif case in (\"remote-filter-only\", \"read-tool-only\"):\n    dump = m[\"read_text\"](fx / \"strings-opencode-clean.txt\", \"clean fixture\")\n    needle = ('\"'\"'w=(T.instructions??[]).filter((q)=>q.startsWith(\"https://\")||q.startsWith(\"http://\"))\\n'\"'\"'\n              if case == \"remote-filter-only\" else '\"'\"'$=s.fn(\"ReadTool.execute\")(function*(a,g){\\n'\"'\"')\n    assert dump.count(needle) == 1\n    changed = dump.replace(needle, \"\", 1)\n    entries = m[\"load_baseline\"](fx / \"baseline-clean.json\")\n    ok, detail = m[\"check_opencode_extract\"](entries, changed)\n    expected = not ok\n    result = {\"case\": case, \"gate_ok\": ok, \"detail\": detail}\nelif case in (\"fallback-oc1\", \"fallback-oc2\"):\n    _, reports = m[\"extract_opencode_classes\"](\"\")\n    rid = \"OC-1\" if case == \"fallback-oc1\" else \"OC-2\"\n    report = next(r for r in reports if r[\"rule_id\"] == rid)\n    owns = ([\"opencode:instructions/AGENTS.md\", \"opencode:instructions/CLAUDE.md\", \"opencode:instructions/CONTEXT.md\"]\n            if rid == \"OC-1\" else [\"opencode:config/AGENTS.md\", \"opencode:claude-home/CLAUDE.md\"])\n    expected = not report[\"matched\"] and report[\"owns\"] == owns\n    result = {\"case\": case, \"rule\": report, \"expected_owns\": owns}\nelif case == \"default-opencode\":\n    path = m[\"build_parser\"]().parse_args([]).opencode_binary\n    expected = path == \"/home/vgpnk/.npm/_npx/e2094862b59aac7b/node_modules/opencode-ai/bin/opencode.exe\"\n    result = {\"case\": case, \"observed_opencode_binary\": path}\nelse:\n    raise AssertionError(case)\nresult[\"expected_behavior\"] = expected\nprint(json.dumps(result, sort_keys=True))\nsys.exit(0 if expected else 1)\n' fallback-oc1",
+      "cwd": "/fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin",
+      "exit": 0,
+      "stdout": "{\"case\": \"fallback-oc1\", \"expected_behavior\": true, \"expected_owns\": [\"opencode:instructions/AGENTS.md\", \"opencode:instructions/CLAUDE.md\", \"opencode:instructions/CONTEXT.md\"], \"rule\": {\"anchors\": [\"[\\\"AGENTS.md\\\" \\u2026 \\\"CONTEXT.md\\\"]\", \"disableClaudeCodePrompt\"], \"matched\": false, \"missing\": [\"[\\\"AGENTS.md\\\" \\u2026 \\\"CONTEXT.md\\\"]\", \"disableClaudeCodePrompt\"], \"owns\": [\"opencode:instructions/AGENTS.md\", \"opencode:instructions/CLAUDE.md\", \"opencode:instructions/CONTEXT.md\"], \"rule_id\": \"OC-1\"}}\n",
+      "stderr": "",
+      "before_sha256": "e44bf34b1a52c0e5e4cd320b8f90a20c10c0a997bc225e9b36bf90ccf173be4e",
+      "after_sha256": "e44bf34b1a52c0e5e4cd320b8f90a20c10c0a997bc225e9b36bf90ccf173be4e",
+      "hash_command_exit": [
+        0,
+        0
+      ]
+    },
+    {
+      "label": "M4b-mutated-arm",
+      "case": "fallback-oc2",
+      "command": "python3 -c 'import json, runpy, sys\nm = runpy.run_path(\"verifiers/verify_surfaces.py\")\ncase = sys.argv[1]\nfx = m[\"FIXTURES\"]\nif case in (\"remote-filter-only\", \"read-tool-only\"):\n    dump = m[\"read_text\"](fx / \"strings-opencode-clean.txt\", \"clean fixture\")\n    needle = ('\"'\"'w=(T.instructions??[]).filter((q)=>q.startsWith(\"https://\")||q.startsWith(\"http://\"))\\n'\"'\"'\n              if case == \"remote-filter-only\" else '\"'\"'$=s.fn(\"ReadTool.execute\")(function*(a,g){\\n'\"'\"')\n    assert dump.count(needle) == 1\n    changed = dump.replace(needle, \"\", 1)\n    entries = m[\"load_baseline\"](fx / \"baseline-clean.json\")\n    ok, detail = m[\"check_opencode_extract\"](entries, changed)\n    expected = not ok\n    result = {\"case\": case, \"gate_ok\": ok, \"detail\": detail}\nelif case in (\"fallback-oc1\", \"fallback-oc2\"):\n    _, reports = m[\"extract_opencode_classes\"](\"\")\n    rid = \"OC-1\" if case == \"fallback-oc1\" else \"OC-2\"\n    report = next(r for r in reports if r[\"rule_id\"] == rid)\n    owns = ([\"opencode:instructions/AGENTS.md\", \"opencode:instructions/CLAUDE.md\", \"opencode:instructions/CONTEXT.md\"]\n            if rid == \"OC-1\" else [\"opencode:config/AGENTS.md\", \"opencode:claude-home/CLAUDE.md\"])\n    expected = not report[\"matched\"] and report[\"owns\"] == owns\n    result = {\"case\": case, \"rule\": report, \"expected_owns\": owns}\nelif case == \"default-opencode\":\n    path = m[\"build_parser\"]().parse_args([]).opencode_binary\n    expected = path == \"/home/vgpnk/.npm/_npx/e2094862b59aac7b/node_modules/opencode-ai/bin/opencode.exe\"\n    result = {\"case\": case, \"observed_opencode_binary\": path}\nelse:\n    raise AssertionError(case)\nresult[\"expected_behavior\"] = expected\nprint(json.dumps(result, sort_keys=True))\nsys.exit(0 if expected else 1)\n' fallback-oc2",
+      "cwd": "/fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin",
+      "exit": 1,
+      "stdout": "{\"case\": \"fallback-oc2\", \"expected_behavior\": false, \"expected_owns\": [\"opencode:config/AGENTS.md\", \"opencode:claude-home/CLAUDE.md\"], \"rule\": {\"anchors\": [\"X.join(<v>.config,\\\"AGENTS.md\\\")\", \"X.join(<v>.home,\\\".claude\\\",\\\"CLAUDE.md\\\")\"], \"matched\": false, \"missing\": [\"X.join(<v>.config,\\\"AGENTS.md\\\")\", \"X.join(<v>.home,\\\".claude\\\",\\\"CLAUDE.md\\\")\"], \"owns\": [], \"rule_id\": \"OC-2\"}}\n",
+      "stderr": "",
+      "before_sha256": "ccf661d0ba60b4fbdb7e1a85970a913c67bc77dd7fcd0192fe10f412c9c4d2cd",
+      "after_sha256": "ccf661d0ba60b4fbdb7e1a85970a913c67bc77dd7fcd0192fe10f412c9c4d2cd",
+      "hash_command_exit": [
+        0,
+        0
+      ]
+    },
+    {
+      "label": "M4b-restored-arm",
+      "case": "fallback-oc2",
+      "command": "python3 -c 'import json, runpy, sys\nm = runpy.run_path(\"verifiers/verify_surfaces.py\")\ncase = sys.argv[1]\nfx = m[\"FIXTURES\"]\nif case in (\"remote-filter-only\", \"read-tool-only\"):\n    dump = m[\"read_text\"](fx / \"strings-opencode-clean.txt\", \"clean fixture\")\n    needle = ('\"'\"'w=(T.instructions??[]).filter((q)=>q.startsWith(\"https://\")||q.startsWith(\"http://\"))\\n'\"'\"'\n              if case == \"remote-filter-only\" else '\"'\"'$=s.fn(\"ReadTool.execute\")(function*(a,g){\\n'\"'\"')\n    assert dump.count(needle) == 1\n    changed = dump.replace(needle, \"\", 1)\n    entries = m[\"load_baseline\"](fx / \"baseline-clean.json\")\n    ok, detail = m[\"check_opencode_extract\"](entries, changed)\n    expected = not ok\n    result = {\"case\": case, \"gate_ok\": ok, \"detail\": detail}\nelif case in (\"fallback-oc1\", \"fallback-oc2\"):\n    _, reports = m[\"extract_opencode_classes\"](\"\")\n    rid = \"OC-1\" if case == \"fallback-oc1\" else \"OC-2\"\n    report = next(r for r in reports if r[\"rule_id\"] == rid)\n    owns = ([\"opencode:instructions/AGENTS.md\", \"opencode:instructions/CLAUDE.md\", \"opencode:instructions/CONTEXT.md\"]\n            if rid == \"OC-1\" else [\"opencode:config/AGENTS.md\", \"opencode:claude-home/CLAUDE.md\"])\n    expected = not report[\"matched\"] and report[\"owns\"] == owns\n    result = {\"case\": case, \"rule\": report, \"expected_owns\": owns}\nelif case == \"default-opencode\":\n    path = m[\"build_parser\"]().parse_args([]).opencode_binary\n    expected = path == \"/home/vgpnk/.npm/_npx/e2094862b59aac7b/node_modules/opencode-ai/bin/opencode.exe\"\n    result = {\"case\": case, \"observed_opencode_binary\": path}\nelse:\n    raise AssertionError(case)\nresult[\"expected_behavior\"] = expected\nprint(json.dumps(result, sort_keys=True))\nsys.exit(0 if expected else 1)\n' fallback-oc2",
+      "cwd": "/fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin",
+      "exit": 0,
+      "stdout": "{\"case\": \"fallback-oc2\", \"expected_behavior\": true, \"expected_owns\": [\"opencode:config/AGENTS.md\", \"opencode:claude-home/CLAUDE.md\"], \"rule\": {\"anchors\": [\"X.join(<v>.config,\\\"AGENTS.md\\\")\", \"X.join(<v>.home,\\\".claude\\\",\\\"CLAUDE.md\\\")\"], \"matched\": false, \"missing\": [\"X.join(<v>.config,\\\"AGENTS.md\\\")\", \"X.join(<v>.home,\\\".claude\\\",\\\"CLAUDE.md\\\")\"], \"owns\": [\"opencode:config/AGENTS.md\", \"opencode:claude-home/CLAUDE.md\"], \"rule_id\": \"OC-2\"}}\n",
+      "stderr": "",
+      "before_sha256": "e44bf34b1a52c0e5e4cd320b8f90a20c10c0a997bc225e9b36bf90ccf173be4e",
+      "after_sha256": "e44bf34b1a52c0e5e4cd320b8f90a20c10c0a997bc225e9b36bf90ccf173be4e",
+      "hash_command_exit": [
+        0,
+        0
+      ]
+    },
+    {
+      "label": "M5-mutated-arm",
+      "case": "default-opencode",
+      "command": "python3 -c 'import json, runpy, sys\nm = runpy.run_path(\"verifiers/verify_surfaces.py\")\ncase = sys.argv[1]\nfx = m[\"FIXTURES\"]\nif case in (\"remote-filter-only\", \"read-tool-only\"):\n    dump = m[\"read_text\"](fx / \"strings-opencode-clean.txt\", \"clean fixture\")\n    needle = ('\"'\"'w=(T.instructions??[]).filter((q)=>q.startsWith(\"https://\")||q.startsWith(\"http://\"))\\n'\"'\"'\n              if case == \"remote-filter-only\" else '\"'\"'$=s.fn(\"ReadTool.execute\")(function*(a,g){\\n'\"'\"')\n    assert dump.count(needle) == 1\n    changed = dump.replace(needle, \"\", 1)\n    entries = m[\"load_baseline\"](fx / \"baseline-clean.json\")\n    ok, detail = m[\"check_opencode_extract\"](entries, changed)\n    expected = not ok\n    result = {\"case\": case, \"gate_ok\": ok, \"detail\": detail}\nelif case in (\"fallback-oc1\", \"fallback-oc2\"):\n    _, reports = m[\"extract_opencode_classes\"](\"\")\n    rid = \"OC-1\" if case == \"fallback-oc1\" else \"OC-2\"\n    report = next(r for r in reports if r[\"rule_id\"] == rid)\n    owns = ([\"opencode:instructions/AGENTS.md\", \"opencode:instructions/CLAUDE.md\", \"opencode:instructions/CONTEXT.md\"]\n            if rid == \"OC-1\" else [\"opencode:config/AGENTS.md\", \"opencode:claude-home/CLAUDE.md\"])\n    expected = not report[\"matched\"] and report[\"owns\"] == owns\n    result = {\"case\": case, \"rule\": report, \"expected_owns\": owns}\nelif case == \"default-opencode\":\n    path = m[\"build_parser\"]().parse_args([]).opencode_binary\n    expected = path == \"/home/vgpnk/.npm/_npx/e2094862b59aac7b/node_modules/opencode-ai/bin/opencode.exe\"\n    result = {\"case\": case, \"observed_opencode_binary\": path}\nelse:\n    raise AssertionError(case)\nresult[\"expected_behavior\"] = expected\nprint(json.dumps(result, sort_keys=True))\nsys.exit(0 if expected else 1)\n' default-opencode",
+      "cwd": "/fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin",
+      "exit": 1,
+      "stdout": "{\"case\": \"default-opencode\", \"expected_behavior\": false, \"observed_opencode_binary\": \"/home/vgpnk/.opencode/bin/opencode\"}\n",
+      "stderr": "",
+      "before_sha256": "0a618549bad585176382a41ed22e8215051a87be55110bc1af606848cf944570",
+      "after_sha256": "0a618549bad585176382a41ed22e8215051a87be55110bc1af606848cf944570",
+      "hash_command_exit": [
+        0,
+        0
+      ]
+    },
+    {
+      "label": "M5-restored-arm",
+      "case": "default-opencode",
+      "command": "python3 -c 'import json, runpy, sys\nm = runpy.run_path(\"verifiers/verify_surfaces.py\")\ncase = sys.argv[1]\nfx = m[\"FIXTURES\"]\nif case in (\"remote-filter-only\", \"read-tool-only\"):\n    dump = m[\"read_text\"](fx / \"strings-opencode-clean.txt\", \"clean fixture\")\n    needle = ('\"'\"'w=(T.instructions??[]).filter((q)=>q.startsWith(\"https://\")||q.startsWith(\"http://\"))\\n'\"'\"'\n              if case == \"remote-filter-only\" else '\"'\"'$=s.fn(\"ReadTool.execute\")(function*(a,g){\\n'\"'\"')\n    assert dump.count(needle) == 1\n    changed = dump.replace(needle, \"\", 1)\n    entries = m[\"load_baseline\"](fx / \"baseline-clean.json\")\n    ok, detail = m[\"check_opencode_extract\"](entries, changed)\n    expected = not ok\n    result = {\"case\": case, \"gate_ok\": ok, \"detail\": detail}\nelif case in (\"fallback-oc1\", \"fallback-oc2\"):\n    _, reports = m[\"extract_opencode_classes\"](\"\")\n    rid = \"OC-1\" if case == \"fallback-oc1\" else \"OC-2\"\n    report = next(r for r in reports if r[\"rule_id\"] == rid)\n    owns = ([\"opencode:instructions/AGENTS.md\", \"opencode:instructions/CLAUDE.md\", \"opencode:instructions/CONTEXT.md\"]\n            if rid == \"OC-1\" else [\"opencode:config/AGENTS.md\", \"opencode:claude-home/CLAUDE.md\"])\n    expected = not report[\"matched\"] and report[\"owns\"] == owns\n    result = {\"case\": case, \"rule\": report, \"expected_owns\": owns}\nelif case == \"default-opencode\":\n    path = m[\"build_parser\"]().parse_args([]).opencode_binary\n    expected = path == \"/home/vgpnk/.npm/_npx/e2094862b59aac7b/node_modules/opencode-ai/bin/opencode.exe\"\n    result = {\"case\": case, \"observed_opencode_binary\": path}\nelse:\n    raise AssertionError(case)\nresult[\"expected_behavior\"] = expected\nprint(json.dumps(result, sort_keys=True))\nsys.exit(0 if expected else 1)\n' default-opencode",
+      "cwd": "/fast/scratch/kotoba-r47/w2/W2SurfSelfTestMut-2/kotoba-shokunin",
+      "exit": 0,
+      "stdout": "{\"case\": \"default-opencode\", \"expected_behavior\": true, \"observed_opencode_binary\": \"/home/vgpnk/.npm/_npx/e2094862b59aac7b/node_modules/opencode-ai/bin/opencode.exe\"}\n",
+      "stderr": "",
+      "before_sha256": "e44bf34b1a52c0e5e4cd320b8f90a20c10c0a997bc225e9b36bf90ccf173be4e",
+      "after_sha256": "e44bf34b1a52c0e5e4cd320b8f90a20c10c0a997bc225e9b36bf90ccf173be4e",
+      "hash_command_exit": [
+        0,
+        0
+      ]
+    }
+  ],
+  "pristine_and_final_sha256": "e44bf34b1a52c0e5e4cd320b8f90a20c10c0a997bc225e9b36bf90ccf173be4e",
+  "all_restored_hashes": [
+    {
+      "label": "M1-restored",
+      "before_sha256": "e44bf34b1a52c0e5e4cd320b8f90a20c10c0a997bc225e9b36bf90ccf173be4e",
+      "after_sha256": "e44bf34b1a52c0e5e4cd320b8f90a20c10c0a997bc225e9b36bf90ccf173be4e"
+    },
+    {
+      "label": "M2-restored",
+      "before_sha256": "e44bf34b1a52c0e5e4cd320b8f90a20c10c0a997bc225e9b36bf90ccf173be4e",
+      "after_sha256": "e44bf34b1a52c0e5e4cd320b8f90a20c10c0a997bc225e9b36bf90ccf173be4e"
+    },
+    {
+      "label": "M3-restored",
+      "before_sha256": "e44bf34b1a52c0e5e4cd320b8f90a20c10c0a997bc225e9b36bf90ccf173be4e",
+      "after_sha256": "e44bf34b1a52c0e5e4cd320b8f90a20c10c0a997bc225e9b36bf90ccf173be4e"
+    },
+    {
+      "label": "M4a-restored",
+      "before_sha256": "e44bf34b1a52c0e5e4cd320b8f90a20c10c0a997bc225e9b36bf90ccf173be4e",
+      "after_sha256": "e44bf34b1a52c0e5e4cd320b8f90a20c10c0a997bc225e9b36bf90ccf173be4e"
+    },
+    {
+      "label": "M4b-restored",
+      "before_sha256": "e44bf34b1a52c0e5e4cd320b8f90a20c10c0a997bc225e9b36bf90ccf173be4e",
+      "after_sha256": "e44bf34b1a52c0e5e4cd320b8f90a20c10c0a997bc225e9b36bf90ccf173be4e"
+    },
+    {
+      "label": "M5-restored",
+      "before_sha256": "e44bf34b1a52c0e5e4cd320b8f90a20c10c0a997bc225e9b36bf90ccf173be4e",
+      "after_sha256": "e44bf34b1a52c0e5e4cd320b8f90a20c10c0a997bc225e9b36bf90ccf173be4e"
+    }
+  ],
+  "tool_installs": []
+}

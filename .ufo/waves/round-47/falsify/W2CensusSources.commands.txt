@@ -1,0 +1,72 @@
+# W2CensusSources — command transcript (lane: kotoba-shokunin @ 7ad7fadfc09354b74fb66605dfb0c1182c115a2f)
+# scratch root: /fast/scratch/kotoba-r47/w2/W2CensusSources  (clone at kotoba-shokunin/)
+# date: 2026-10-21
+
+$ cd /fast/scratch/kotoba-r47/w2/W2CensusSources/kotoba-shokunin && git rev-parse HEAD
+7ad7fadfc09354b74fb66605dfb0c1182c115a2f
+exit=0
+
+$ /home/vgpnk/Projects/shokunin/scripts/sources-census.sh validate --root /fast/scratch/kotoba-r47/w2/W2CensusSources kotoba
+kotoba	ok	/fast/scratch/kotoba-r47/w2/W2CensusSources/kotoba-shokunin/corpus/SOURCES.md
+exit=0
+
+$ /home/vgpnk/Projects/shokunin/scripts/sources-census.sh census --root /fast/scratch/kotoba-r47/w2/W2CensusSources kotoba
+kotoba	rows	15
+kotoba	tier.A	14
+kotoba	tier.C	1
+kotoba	status.mined	6
+kotoba	status.queued	8
+kotoba	status.rejected	1
+FLEET	rows	15
+FLEET	tier.A	14
+FLEET	tier.B	0
+FLEET	tier.C	1
+FLEET	tier.invalid	0
+FLEET	status.queued	8
+FLEET	status.mined	6
+FLEET	status.rejected	1
+FLEET	status.invalid	0
+FLEET	missing	0
+exit=0
+
+$ /home/vgpnk/Projects/shokunin/scripts/sources-census.sh validate --root /fast/scratch/kotoba-r47/w2/W2CensusSources --today 2026-10-21   # fleet-wide, default resolution
+kotoba	ok	/fast/scratch/kotoba-r47/w2/W2CensusSources/kotoba-shokunin/corpus/SOURCES.md
+(kotoba lines only; full fleet exit=0)
+
+--- seven frozen census commands (CORPUS.md:131-148), verbatim ---
+$ grep -cE '^\|[[:space:]]*S[0-9]{3,}[[:space:]]*\|' corpus/SOURCES.md
+15
+exit=0
+$ awk -F'|' '/^\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\|/ && NF!=13 {n++} END{print n+0}' corpus/SOURCES.md
+0
+exit=0
+$ awk -F'|' ... tier histogram
+A=14 C=1 
+exit=0
+$ awk -F'|' ... status histogram
+mined=6 queued=8 rejected=1 
+exit=0
+$ awk -F'|' ... duplicate ids | sort | uniq -d
+exit=0 (empty output = no duplicates)
+$ awk -F'|' ... enum violations + tier inflation
+exit=0 (empty output = no violations)
+$ awk -F'|' ... mined used-by paths that do not exist
+exit=0 (empty output = all used-by paths exist)
+
+--- used-by citation check (not part of the frozen seven) ---
+S001 used-by=SKILL.md exists=yes cites-row(count)=1
+S002 used-by=SKILL.md exists=yes cites-row(count)=1
+S003 used-by=SKILL.md exists=yes cites-row(count)=1
+S008 used-by=SKILL.md exists=yes cites-row(count)=1
+S012 used-by=SKILL.md exists=yes cites-row(count)=1
+S015 used-by=corpus/knowledge/instruction-surface-census-round13.md exists=yes cites-row(count)=0
+NA
+
+--- S015 substrate re-verification ---
+bin/omp-18.12.5: OK
+bin/opencode-1.19.3: OK
+omp-18.12.5.strings: OK
+opencode-1.19.3.strings: OK
+exit=0
+fdbc8136084c9a10439569157b2af62312e2b0d801cab54c73e89476da798e7e  /home/vgpnk/.local/bin/omp
+179ca421d61eefeadfa0c50e084a6e79c1623734732f0f4593f81ccfd3ab7ee9  /home/vgpnk/.npm/_npx/e2094862b59aac7b/node_modules/opencode-linux-x64/bin/opencode
