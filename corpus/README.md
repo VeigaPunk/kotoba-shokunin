@@ -62,6 +62,7 @@ Domain: prompt & skill craft — SKILL.md/AGENTS.md quality, trigger fidelity.
 | Round-46 lessons | `lessons/round-46.md` | LOG.md round-46 entries, WIP commit `36ab0d3`; `## Mistakes` (the lane's mined failure classes, each with pointer, captured-by criterion and fix) and `## Gate` (no knowledge admitted this round; source rows; spot-check pending non-author at the time — it landed as the next row) |
 | Round-46 non-author spot-check (integrator) | `lessons/round-46-verifier-spotcheck.md` | written by the kaika integrator, not the lane (outside review; never edited here): the round-46 spot-check sample (S003/S006 admit, S011 reject — both agree) and the adjudication ADMITTED with per-axis verdicts and the carried open residuals; landed at `c61a973` without an index row, indexed round 47 |
 | Round-47 lessons | `lessons/round-47.md` | LOG.md round-47 entry; `## Mistakes` (stale planned premise M20, unindexed closure landing M21, stale lesson pointers M22) and `## Gate` (source rows S012–S015 with access records, S001–S005 and S008 re-opened (S006, S007 not), the C1 class ledger pointer) |
+| Round-47 non-author spot-check (integrator) | `lessons/round-47-verifier-spotcheck.md` | Main's non-author claim judgment: not admitted; bounded C1/C2 gains, C3 unprovable; independent counts, source decisions, custody limits and routed defects. Native accounting is separate. The producer's original 60-file inventory remains bound to `92aa937`. |
 
 ## Frontier
 
