@@ -57,15 +57,15 @@ the lesson cites them in its Gate table). Without that flip the rows stay `queue
 trend does not count them.
 
 **F7 — Landing state observed in the working tree (read-only check, no edit by me).** S016–S019 are landed
-in `corpus/SOURCES.md` with the promotion applied (S017–S019 `mined`, used-by the now-existing
-`corpus/knowledge/frontmatter-rule-authorities-round48.md`). One E-code is open: S016's landed used-by is
-`corpus/lessons/round-48.md`, and that lesson file does not exist yet — `scripts/sources-census.sh validate
---file kotoba-shokunin/corpus/SOURCES.md --today 2026-10-22` → `E11 S016 missing used-by
-corpus/lessons/round-48.md` (exit 1; the only E-code). It clears when the lesson lands in the same commit.
-The landed cell is more honest than the one I drafted — the verifier reads no upstream discovery fact, so
-naming it as a consumer asserts a dependency the code lacks (row author's position). If the lesson slips,
-the only alternative is status `queued` + used-by `—` (the S004–S007 / S010 shape); `mined` + `—` would
-trip the CLI's W03 "mined but unused". Any such move is logged old→new in the round lesson (rule 2).
+in `corpus/SOURCES.md` with the promotion applied (S017–S019 `mined`, used-by `corpus/knowledge/frontmatter-rule-authorities-round48.md`;
+S016 `mined`, used-by `corpus/lessons/round-48.md`). The lesson file landed at `887b6af` (HEAD `84b9c9ba`),
+so the earlier E11 is closed: `scripts/sources-census.sh validate --file kotoba-shokunin/corpus/SOURCES.md
+--today 2026-10-22` → exit 0, no E-codes; W04 same-URL warnings remain for S018/S019/S021 (expected cost of
+rule 2 superseding + S021, fleet-significant). The landed S016 cell is more honest than the one I drafted —
+the verifier reads no upstream discovery fact, so naming it as a consumer asserts a dependency the code lacks
+(row author's position). If the lesson had slipped, the only alternative would be status `queued` + used-by
+`—` (the S004–S007 / S010 shape); `mined` + `—` would trip the CLI's W03 "mined but unused". Any such move
+is logged old→new in the round lesson (rule 2).
 
 ## Draft rows (paste-ready; 11 columns, census-clean)
 
