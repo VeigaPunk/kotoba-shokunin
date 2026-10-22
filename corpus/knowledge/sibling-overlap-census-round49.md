@@ -293,3 +293,43 @@ above), so the precedence below is kotoba's own rule.
   sibling-side splits cited above.
 - **Guard.** `../verifiers/check_sibling_census.py` now fails a lane that appears in more than one row of
   either table (round 50), and it does not machine-check the basis column above.
+
+## Round 50: falsify-wave corrections (before the report)
+
+Appended round 50 (append-only). Seat reports under `../.ufo/waves/round-50/falsify/`.
+
+- **"Every documented rule is keyed on the name" is too wide** (`CriticFrontierSweep.md`): Claude Code
+  uses its built-in `claude` agent "When a task doesn't fit a more specialized agent." (S026
+  `sub-agents.md:77`), a fit-based preference of any specialized agent over a built-in catch-all. The
+  sentences above ("the only arbitration is between same-name subagents"; "Every documented 'which one
+  wins' rule found so far is keyed on the skill *name*") hold for rules between two author-written
+  skills or subagents, not for that built-in default. The ten-pattern sweep had no choice words
+  (`choose`, `select`, `more speciali`); the wider sweep found only that line. The full account is
+  `skill-selection-rules-round50.md`.
+- **"The only arbitration an author controls ... is the text of each description" is false for Claude
+  Code** (`CriticC1Landed.md`): S022 also documents `when_to_use`, `disable-model-invocation` and
+  `paths` (`skills.md:390, 393, 403`). The description is the one lever every client here reads.
+- **Wrong lane list:** "For the four lanes added this round" names chousa, kama, kengaku and tameshi;
+  the four added were chousa, kama, kotodama and tameshi (guard at `f3046466`: missing chousa, kama,
+  kotodama, tameshi). The kengaku clause was also widened in the landed text ("measured effects of
+  prompt format"); kengaku keeps "only measured capability effects" (kengaku `SKILL.md:3`), so the
+  description now reads "measured capability effects of prompt format" (1,019 of 1,024 characters).
+- **"Ownership or routing word" is wider in the guard:** its marker list also accepts `see above`,
+  `as above` and `see also` (`CriticC1Landed.md`), so a clause such as "chousa: see above" passes.
+- **Precedence section, two definitions** (`CriticPrecedenceLanded.md`): the round-50 definition of
+  `contested` supersedes the round-49 bullet in § Classification rule, and it is limited to text owned by
+  another fleet lane (another lane's `SKILL.md`, prompts or AGENTS.md-class files, or kotoba's own
+  instruments). Read that way, mado's survey of the omarchy skill and game-dev-3d's judgments on
+  vendored upstream skills (`adaptation-kimi.md:330-331`) concern files no fleet lane owns, so both
+  stay `none`. A split counts only when it assigns the element to someone other than the claimant.
+- **kake and kasegi basis is `kotoba`, not `both`:** the sibling-corpus lessons cited above say "Filed by:
+  kotoba round-5 report" and "Aggregator-owned file"; they relay kotoba's own finding and are not a
+  sibling-stated split. No row moves.
+- **Kotoba ruled on its own boundary.** The three round-49 open items (kama, kengaku, tameshi) are
+  closed here by kotoba's own rule; that rule and those closures are sent to the integrator as an
+  operator question (fleet `.ufo/l0-questions.md`, kotoba round-50 line) and stand as kotoba's reading
+  until answered.
+- **S025 bullet** (`ReopenS025.md`): `multiple skills` 1 is not about duplicate names; it is "Combine
+  multiple skills to build complex workflows" (`agent-skills.md:15`). The page also has `1024` 1 (the
+  description cap, `:148`), and its one `precedence` line (`:64`) sits inside an experimental
+  Codex-integration note. The no-tie-break reading of S025 is unchanged.

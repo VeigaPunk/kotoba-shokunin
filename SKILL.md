@@ -10,9 +10,10 @@ description: >
   reference/ tree. Sibling boundary: kagi, kake, kasegi, kengaku and kumitate
   own their own SKILL.md content — this skill audits and reports; fixes route
   to the owning lane. chousa owns the research method; kama owns endpoint
-  verification; kengaku owns measured effects of prompt format; tameshi owns
-  the fixture and mutation method. NOT kotodama-shokunin: kotodama owns
-  naming and language for fictional worlds despite the similar name. Note:
+  verification; kengaku owns measured capability effects of prompt format;
+  tameshi owns the fixture and mutation method. NOT kotodama-shokunin:
+  kotodama owns naming and language for fictional worlds despite the similar
+  name. Note:
   shokunin files sit outside the omp skill discovery roots, so this text
   never reaches the omp router — craft here is audit-side.
 ---
@@ -128,11 +129,12 @@ exit 0/1/2/3 (`3` = box map missing, unparseable, or bound elsewhere).
 `verifiers/checklist-baseline.json` maps **all 41 boxes** (8 executed, 2
 delegated, 31 unexecuted with reason) by text hash, so drift FAILs. The two
 delegated boxes are the dispatch-prompt fidelity boxes `dispatch.04` and
-`dispatch.08`, executed by `verifiers/verify_dispatch_prompts.py` (its
+`dispatch.08`, run by `verifiers/verify_dispatch_prompts.py` (its
 `--box-proof` prints `boxes proven 2` only when both boxes are delegated there
-and its committed fixtures discriminate its six named conjuncts; the
-unsubstituted-variable clause, the `≤` equality boundary and the legacy-state
-arm have no fixture yet). Limits and ceilings: `corpus/knowledge/checklist-execution-round17.md`.
+and each of its six named conjuncts has an isolated must-fail case, judged on
+observed statuses; the checklist gate runs `--box-proof`; the
+unsubstituted-variable clause, the `≤` equality boundary, the legacy-state
+arm and a non-digit round folder have no fixture yet). Limits and ceilings: `corpus/knowledge/checklist-execution-round17.md`.
 
 ## Frontmatter craft — the trigger surface
 
@@ -367,6 +369,14 @@ moved from `SKILL.md`, round 15 — read it before shipping any skill file). The
 five highest-frequency rows: description without trigger strings; anti-trigger in
 the body only; warning without a signature; a bin invoked with no declared
 location; durable policy copy-pasted into a dispatch prompt.
+
+Error pattern (round 50, `corpus/knowledge/skill-selection-rules-round50.md`): two
+sibling descriptions that both match, with nothing in either text saying who owns what.
+No client documents a rule between two differently named skills; every documented
+"which one wins" rule is keyed on the name, and the documented remedy is a more
+specific description. Fix: name the neighbour and the split in the description
+(`trigger.05`), stay under 1,024 characters, and check kotoba's own file with
+`python3 -B verifiers/check_sibling_census.py corpus/knowledge/sibling-overlap-census-round49.md --province PROVINCE.md --skill SKILL.md`.
 
 ## Refusals
 

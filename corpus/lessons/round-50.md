@@ -15,6 +15,7 @@ Wave evidence: `.ufo/waves/round-50/build/`.
 |class|evidence pointer (command → output)|captured-by|fix|
 |---|---|---|---|
 | M31 A claim's headline asserted properties its counter never measured (twice in round 49: the adjacency row's "from their own bytes … 0 contested" and the operability headline's "executed") | `git show 374ecf98:PROVINCE.md \| awk '/^## Adjacent/{f=1;next} /^## /{f=0} f' \| grep -cE '^\| (audio\|chousa\|…\|tsukuroi) \| (contested\|adjacent\|none) \| [0-9a-f]{40} \|'` → 20, exit 0 — one integer, no classification; the census's own `names kotoba` column reads `no` for 7 of the 9 `adjacent` rows, so "from their own bytes" is false on the census's own table; on a clone at `374ecf98` with kake reclassified `contested` in both the census and `PROVINCE.md` the same counter still prints 20 and the cited guard `python3 -B verifiers/check_sibling_census.py corpus/knowledge/sibling-overlap-census-round49.md --province PROVINCE.md` still exits 0 (`rows 20 verified 20`, `province rows 20 matched 20`) while the split reads 8 adjacent / 1 contested / 11 none (seat `.ufo/waves/round-50/build/MineMistake.md`, 2026-10-22). C2: `python3 -B verifiers/verify_dispatch_prompts.py --box-proof --map verifiers/checklist-baseline.json` → `boxes proven 2`, exit 0, while the headline says "dispatch-prompt boxes executed" and `plans/round-49.md` says "The full `dispatch.08` box is executed, state clause included"; the proof covers six named conjuncts with one fixture each and `LOG.md:2382` names four box clauses with no fixture (unsubstituted variable before the report path, non-digit round folder, `≤` equality boundary, legacy-state arm; `SKILL.md:131-133` names three, `SCORECARD.md:255` two), and deleting a must-fail case leaves `boxes proven 2`, exit 0 (`.ufo/waves/round-49/falsify/ReplayC2BoxProof.md` M1/M2/M3/M5/M6; reproduced 2026-10-22: six of six removals → exit 0, `boxes proven 2`, `killed 0 of 6`) | none → Q26 (Q25 was met in form: each counter was shown able to fail and a content guard was cited; Q13, Q14 and Q19 were met too — they bind form, not the statement) | Q26. The round-49 headlines are re-stated with their bounds (SCORECARD append; the `box_proof` docstring stops saying "every conjunct" — routed D2/D4), and both round-50 statements are written as exactly what their counters print (`plans/round-50.md` C1/C2: the frontmatter name count, and `killed K of 6` over the manifest's must-fail cases). |
+| M32 Misroot sweep run before the last seat returned | `git -C /home/vgpnk/Projects/shokunin status --porcelain` at round-50 start → `?? .ufo/waves/round-49/`; the file `.ufo/waves/round-49/falsify/RowGameDev2d.md` (13,630 B, sha256 `37aaa836…`, mtime 2026-10-22T11:38:25Z) is a round-49 kotoba falsify seat report written into the fleet root, after the round-49 report's sweep line ("shows no file from this round's seats") was filed at fleet `8bf9073`; the lane had no copy (`cmp` → no such file) | the addendum's misroot sweep (§6 item 3), run once at filing while 12 seats were still running | the sweep runs again after the last seat returns and before the last addendum; this round copied the file byte-exact into `.ufo/waves/round-49/falsify/RowGameDev2d.md` (`cmp` equal), deleted the fleet copy, and the round-50 report's sweep line is written after every seat has returned |
 
 Q26 is shown able to fail: applied to the two round-49 claim statements it fails both, and applied to
 the two round-50 statements as re-sized before landing it passes both (seat
@@ -120,7 +121,7 @@ Round 49 wrote no rejected source row: S022 and S023 were admitted and S018 stay
   the six-conjunct bound. Decision: `--box-proof` now enforces its own case coverage (C2) and runs from
   the checklist gate: `verifiers/verify_skill_checklist.py` check `checklist.box_map_complete` runs each
   delegated instrument's `--box-proof` and fails on a non-zero exit (seat `BoxProofGate.md`).
-- **D3 (classification rule):** see `## D3 precedence ruling` below; the guard now rejects a repeated
+- **D3 (classification rule):** see the census entry's round-50 precedence section; the guard now rejects a repeated
   lane in either table (seat `CensusGuard.md`; the round-49 mutants M1, M2, M7, M8 from
   `MutCensusGuardBase.md` are the before-column), and `check_sibling_census.py` is registered in
   `verifiers/floors-registry.json` at 68 assertions.
@@ -132,3 +133,46 @@ Round 49 wrote no rejected source row: S022 and S023 were admitted and S018 stay
   counter reads; R5 because a v2 oracle must be frozen and pre-registered before measurement; R1's
   no-name fallback because it needs an identity-contract decision and a floor bump. All three are
   still open at `f3046466` (seat `CarryD6.md`, with commands).
+
+## Falsify-wave corrections and additions (before the report)
+
+Seat reports under `.ufo/waves/round-50/falsify/`. Recorded here, not rewritten above.
+
+- **New admitted knowledge entry** `corpus/knowledge/skill-selection-rules-round50.md` (after
+  `CriticLearningBar.md` found the census appendix could not meet Q12: the entry's `source:` line is
+  round-49 and its recheck cannot fail on the round-50 text). The new entry's `source:` names S024-S029,
+  S022 and S019, and its recheck re-fetches eight pages and prints `DRIFT <url>` for any page whose
+  sha256 prefix moved (prints nothing at 13:36Z). Gate: candidates 1, admitted 1. A `SKILL.md`
+  § Anti-patterns error-pattern paragraph now cites it. Knowledge files 36 → 37.
+- **Gate line for the census precedence section:** admitted as a correction to an admitted entry
+  (routed defect D3), then corrected again by `CriticPrecedenceLanded.md` (one definition of
+  `contested`; kake and kasegi basis `kotoba`); the rule and the three closures are sent to the
+  integrator (fleet `.ufo/l0-questions.md`, kotoba round-50 line, fleet commit `8d56eb1`).
+- **Rejected:** the census sentence "every documented rule is keyed on the name" as written (S026
+  `sub-agents.md:77` is a fit-based default, `CriticFrontierSweep.md`); "the only arbitration an author
+  controls is the description" (S022 documents `when_to_use`, `disable-model-invocation`, `paths`,
+  `CriticC1Landed.md`); the census list of the four added lanes (kengaku for kotodama); the kengaku
+  clause "measured effects of prompt format" (now "measured capability effects of prompt format",
+  1,019 of 1,024 characters; the guard still prints 9 of 9).
+- **M31 fix cell:** it calls the C1 counter "the frontmatter name count"; the counter that landed is the
+  guard line `skill description names K of N non-none lanes` (`plans/round-50.md` re-sizing notes).
+- **Plan promise not kept as written:** the plan said the description edit would cite a new source row;
+  source ids were kept out of the description (they cost characters and do nothing for triggering).
+  The new `SKILL.md` § Anti-patterns paragraph cites the round-50 entry, which cites S024-S029.
+- **C2 wording** (`CriticC2Landed.md`): "enforces its own case coverage" (D2 bullet above) is wider than the
+  counter; the counter shows deletion of any one of the six labelled must-fail cases is caught. The
+  driver can be laundered by a duplicate-id twin or an unlabelled twin (it then reports 6 of 6 while a
+  single deletion passes), and its kill test accepts any stderr that contains the conjunct name
+  (`ReviewDriver.md` F1); an unknown revision or a malformed manifest ends in a traceback, not exit 2
+  (F2, F3). The landed manifest has unique ids and one labelled case per conjunct, so the measured
+  6 of 6 holds for the committed bytes. Carried to round 51: reject duplicate ids, match the
+  instrument's own coverage line, catch the two crash paths. `SKILL.md` § Run the verifier now lists
+  the four clauses without a fixture (it listed three).
+- **Gate gate-code survivors** (`MutBoxProofGate.md`): 4 of 12 mutants of the new checklist gate code
+  survive its self-test (the `--map` argument dropped, help read from stdout only, the summary from
+  stderr, the working directory); the live gate behaves correctly. Carried.
+- **Calibration count** (`CalibrationRecords.md`): 5 mismatches of 51 round-50 statements at `956ee16`;
+  fixed after: the two SCORECARD qualifiers sat inside older shell commands (moved to the end of each
+  evidence cell), the `Round 50 completed` line said "D4 qualifiers" for both, the LOG named two of
+  the four build seats that left no usable report, and the lesson's D4 bullet disagreed with the
+  census basis column (the census basis is now `kotoba`, matching the lesson).
