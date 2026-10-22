@@ -214,9 +214,29 @@ OMP_CALL_RE = re.compile(
     r'"([A-Za-z0-9_./-]+\.md)"(?=\s*[,)])'
 )
 CALLEE_SHAPES = {
-    "omp": '(Id|Cl|jD[ef]|Tl|dr|GW|Co|Dl|Hj|I5|Gl|Mo|lq|Xl|Fo|Kl|Ho|bq)(<v>, <group>, "<file>.md")',
+    "omp": '<any callee admitted by a declared pair>(<v>, <group>, "<file>.md")',
     "opencode": '(Id|Cl|jD[ef]|Tl|dr|GW)(<v>, <group>, "<file>.md")',
 }
+# Round 52 (callee-rename robust): omp extraction no longer depends on the
+# allowlist above.  OMP_GENERIC_CALL_RE matches the registration shape with ANY
+# identifier as the callee; a callee is ADMITTED when at least one of its call
+# sites registers a (group, file) pair the baseline declares for omp as
+# `loader-group`, and every pair an admitted callee registers is extracted.  So
+# a minifier rename of the callee (six since round 18) changes nothing; an alias
+# decoy (`q(u, "evil", "EVIL.md")`, a callee with no declared pair) is never
+# extracted; and a NEW pair registered by a real (admitted) callee still
+# surfaces as an undeclared class.  What this does not survive: a rebuild that
+# changes the call SHAPE (argument order or count, an unquoted file literal),
+# or a rename of every declared group and file at once (then nothing is
+# admitted and the vacuity guard FAILs — loud, never silent).  OMP_CALL_RE stays
+# as the allowlist mode for `extract_classes(..., declared=None)` callers and
+# for the self-test's historical must-fail arm; OMP_CALLEE_MODE selects it.
+OMP_GENERIC_CALL_RE = re.compile(
+    r"(?<![A-Za-z0-9_$.])([A-Za-z_$][A-Za-z0-9_$]*)\(\s*[^\s,()]+\s*,\s*"
+    r'(?:"([a-z0-9_-]+)"|([A-Za-z_$][A-Za-z0-9_$]*))\s*,\s*'
+    r'"([A-Za-z0-9_./-]+\.md)"(?=\s*[,)])'
+)
+OMP_CALLEE_MODE = "declared"  # or "allowlist" (self-test historical arms only)
 # Module scopes (round 51): the bundle concatenates ES modules and the dump
 # marks each one with a source-path comment line; a minified name bound in two
 # modules is two different variables, so a binding's scope is its module.
@@ -444,9 +464,15 @@ def param_shadowed(dump: str, spans: list[tuple[int, int]], pos: int,
     return ident in params
 
 
-def extract_classes(dump: str, harness: str) -> set[tuple[str, str]]:
+def extract_classes(dump: str, harness: str,
+                    declared: set[tuple[str, str]] | None = None) -> set[tuple[str, str]]:
     """All (group, file) pairs from `.md`-suffixed registration-call shapes.
-    The callee allowlist is per-harness (CALL_RE/OMP_CALL_RE above).  Identifier
+    opencode, and omp when ``declared`` is None or OMP_CALLEE_MODE is
+    "allowlist", use the per-harness callee allowlist (CALL_RE/OMP_CALL_RE
+    above).  omp with ``declared`` (the baseline's omp loader-group pairs) uses
+    the callee-rename-robust rule (round 52, OMP_GENERIC_CALL_RE): any callee
+    of the shape, admitted only if one of its call sites registers a declared
+    pair; all pairs of admitted callees are extracted.  Identifier
     group args are resolved through the dump's constant table — for a name the
     dump-wide table cannot settle, the binding table of the call's OWN module
     scope decides (round 51); a group identifier that is a function parameter of
@@ -454,11 +480,20 @@ def extract_classes(dump: str, harness: str) -> set[tuple[str, str]]:
     ReviewScopeRule probe 09); unresolvable ones surface as a
     ``<unresolved-var:NAME>`` group so they cannot pass silently."""
     global_table = constant_table(dump)
-    pattern = OMP_CALL_RE if harness == "omp" else CALL_RE
+    generic = (harness == "omp" and declared is not None
+               and OMP_CALLEE_MODE == "declared")
+    if generic:
+        pattern = OMP_GENERIC_CALL_RE
+    else:
+        pattern = OMP_CALL_RE if harness == "omp" else CALL_RE
     spans = module_scopes(dump)
-    pairs: set[tuple[str, str]] = set()
+    calls: list[tuple[str, str, str]] = []
     for m in pattern.finditer(dump):
-        quoted, ident, filename = m.group(1), m.group(2), m.group(3)
+        if generic:
+            callee, quoted, ident, filename = m.groups()
+        else:
+            callee = ""
+            quoted, ident, filename = m.group(1), m.group(2), m.group(3)
         # (round 51) the dump-wide table settles a name bound to ONE value in
         # the whole dump; a name bound to two different values — two modules'
         # variables sharing one minified name — is dropped by that table and
@@ -471,8 +506,28 @@ def extract_classes(dump: str, harness: str) -> set[tuple[str, str]]:
             group = consts[ident]
         else:
             group = "<unresolved-var:%s>" % ident
-        pairs.add((group, filename))
-    return pairs
+        calls.append((callee, group, filename))
+    if not generic:
+        return {(g, f) for _, g, f in calls}
+    admitted = {c for c, g, f in calls if (g, f) in declared}
+    return {(g, f) for c, g, f in calls if c in admitted}
+
+
+def declared_loader_pairs(entries: list[dict], harness: str) -> set[tuple[str, str]]:
+    """The (group, file) pairs of every baseline class id for one harness,
+    whatever its declared kind.  Admission must not depend on the kind: a row
+    re-kinded from `loader-group` to `doc` would otherwise un-admit its callee,
+    the call would vanish from the extraction, and the kind-laundering arm of
+    `check_no_uncovered_class` could never see it (self-test rekind-doc and
+    rekind-partial, round 52)."""
+    out: set[tuple[str, str]] = set()
+    for e in entries:
+        if e.get("harness") != harness:
+            continue
+        m = CLASS_ID_RE.match(e.get("class_id", ""))
+        if m:
+            out.add((m.group(2), m.group(3)))
+    return out
 
 
 # ---------------------------------------------------------------------------
@@ -1063,12 +1118,16 @@ def self_test() -> int:
         "PASS surfaces.no_uncovered_class: all 8 extracted loader class(es) declared" in out,
         out)
 
-    # (b2e) the same fixture must FAIL against the round-50 callee allowlist —
-    # the 18.12.6 rename is what the re-pin fixes, so a fixture that passed
-    # both lists would not discriminate (Q25).
-    saved_re = OMP_CALL_RE
+    # (b2e) the same fixture must FAIL against the round-50 callee allowlist in
+    # allowlist mode — the 18.12.6 rename is what the round-51 re-pin fixed, so
+    # a fixture that passed both lists would not discriminate (Q25).  Round 52:
+    # the CLI now runs the declared-admission rule, so this historical arm
+    # pins OMP_CALLEE_MODE to "allowlist" as well.
+    global OMP_CALLEE_MODE
+    saved_re, saved_mode = OMP_CALL_RE, OMP_CALLEE_MODE
     try:
         OMP_CALL_RE = call_re(OMP_CALLEE_NAMES_ROUND50)
+        OMP_CALLEE_MODE = "allowlist"
         code, out = run_capture(
             ["--repo", fx, "--omp-strings", fx + "/strings-omp-18.12.6.txt",
              "--opencode-strings", oc_clean,
@@ -1076,12 +1135,78 @@ def self_test() -> int:
              "--check", "surfaces.literal_present",
              "--check", "surfaces.no_uncovered_class"])
     finally:
-        OMP_CALL_RE = saved_re
+        OMP_CALL_RE, OMP_CALLEE_MODE = saved_re, saved_mode
     rec("18.12.6-round50-allowlist: exit 1", code == 1, code)
     rec("18.12.6-round50-allowlist: FAIL literal_present",
         "FAIL surfaces.literal_present:" in out, out)
     rec("18.12.6-round50-allowlist: vacuity named",
         "FAIL surfaces.no_uncovered_class:" in out and "vacuity" in out, out)
+
+    # (b2r) round 52, callee-rename robust: rename the 18.12.6 callees bq/Kl/Ho
+    # to names no allowlist ever held; the declared-admission rule must still
+    # extract all 8 pairs (and keep the alias decoy of the 18.12.5 fixture
+    # out); allowlist mode on the same bytes must fail (the rule, not a list,
+    # is what passes); and a NEW pair registered by a renamed real callee must
+    # surface as undeclared (a declared-pairs-only filter cannot pass).
+    def rename_callees(text: str, mapping: dict[str, str]) -> str:
+        return OMP_GENERIC_CALL_RE.sub(
+            lambda m: (mapping.get(m.group(1), m.group(1)) + m.group(0)[len(m.group(1)):]),
+            text)
+
+    def omp_run(path: str) -> tuple[int, str]:
+        return run_capture(
+            ["--repo", fx, "--omp-strings", path, "--opencode-strings", oc_clean,
+             "--baseline", fx + "/baseline-18.12.5.json", "--inventory", inv_clean,
+             "--check", "surfaces.literal_present",
+             "--check", "surfaces.no_uncovered_class"])
+
+    fx18126_text = (Path(fx) / "strings-omp-18.12.6.txt").read_text(encoding="utf-8")
+    fx18125_text = (Path(fx) / "strings-omp-18.12.5.txt").read_text(encoding="utf-8")
+    ren6 = rename_callees(fx18126_text, {"bq": "Zr", "Kl": "Yq", "Ho": "Xw"})
+    ren5 = rename_callees(fx18125_text, {"lq": "Zr", "Xl": "Yq", "Fo": "Xw"})
+    rec("rename: no historical callee left at a .md registration site",
+        not any(m.group(1) in ("bq", "Kl", "Ho") for m in OMP_GENERIC_CALL_RE.finditer(ren6)),
+        ren6)
+    with tempfile.TemporaryDirectory() as tmp:
+        p6 = str(Path(tmp) / "ren6.txt")
+        p5 = str(Path(tmp) / "ren5.txt")
+        pp = str(Path(tmp) / "ren6-planted.txt")
+        Path(p6).write_text(ren6, encoding="utf-8")
+        Path(p5).write_text(ren5, encoding="utf-8")
+        Path(pp).write_text(ren6 + '\nvar np = Yq(u, "newgroup", "NEWFILE.md");\n',
+                            encoding="utf-8")
+        code, out = omp_run(p6)
+        rec("rename-18.12.6: exit 0", code == 0, out)
+        rec("rename-18.12.6: all 8 pairs",
+            "PASS surfaces.no_uncovered_class: all 8 extracted loader class(es) declared" in out,
+            out)
+        code, out = omp_run(p5)
+        rec("rename-18.12.5 (alias decoy kept out): exit 0", code == 0, out)
+        rec("rename-18.12.5: evil not extracted", "omp:evil/EVIL.md" not in out, out)
+        code, out = omp_run(pp)
+        rec("rename-planted: exit 1", code == 1, code)
+        rec("rename-planted: names omp:newgroup/NEWFILE.md",
+            "FAIL surfaces.no_uncovered_class:" in out and "omp:newgroup/NEWFILE.md" in out,
+            out)
+        saved_mode = OMP_CALLEE_MODE
+        try:
+            OMP_CALLEE_MODE = "allowlist"
+            code, out = omp_run(p6)
+        finally:
+            OMP_CALLEE_MODE = saved_mode
+        rec("rename-18.12.6 in allowlist mode: exit 1 (the rule is what passes)",
+            code == 1, code)
+    # decoy that is an alias of nothing declared, at extraction level
+    decl = {("agents-md", "AGENTS.md"), ("claude-md", "CLAUDE.md")}
+    dec_pairs = extract_classes(
+        'x(u, "agents-md", "AGENTS.md");\nq(u, "evil", "EVIL.md");\n'
+        'x(u, "brandnew", "BRANDNEW.md");\n', "omp", decl)
+    rec("admission: decoy callee out, admitted callee's new pair in",
+        dec_pairs == {("agents-md", "AGENTS.md"), ("brandnew", "BRANDNEW.md")},
+        sorted(dec_pairs))
+    # Q18 control: a method call `obj.x(...)` is not a registration call
+    dot_pairs = extract_classes('o.x(u, "agents-md", "AGENTS.md");\n', "omp", decl)
+    rec("admission: member call not matched", dot_pairs == set(), sorted(dot_pairs))
 
     # (b2f) fx-renamed-var: the SAME conflict on a renamed variable (T$ in
     # place of S$) must resolve the same way — a rule hardcoded to per
@@ -1496,7 +1621,9 @@ def main(argv: list[str] | None = None) -> int:
                               "surfaces.kind_parity", "surfaces.excluded_reason"))
     try:
         dumps = {h: load_dump(args, h) for h in HARNESS_IDS} if needs_dumps else {}
-        extracted = {h: extract_classes(dumps[h], h) for h in HARNESS_IDS} if dumps else {}
+        extracted = {h: extract_classes(dumps[h], h, declared_loader_pairs(entries, h)
+                                        if h == "omp" else None)
+                     for h in HARNESS_IDS} if dumps else {}
         if needs_inv:
             inv_path = Path(args.inventory) if args.inventory else (
                 repo / DEFAULT_INVENTORY)

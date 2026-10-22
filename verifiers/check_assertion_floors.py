@@ -5,9 +5,10 @@ The claim under test: a self-test that silently loses assertions must never
 still read green. Each instrument's --self-test prints an assertion count;
 this guard reruns every self-test and FAILs when the observed count is below
 the recorded floor (harness 10, corpus_integrity 150, corpus_independent 91,
-surfaces 119, overlap_levers 51, checklist 1851, pins 62,
+surfaces 129, overlap_levers 51, checklist 1851, pins 62,
 harness_independent 123, compare_harness_independent 330, floors_guard 150,
-dispatch_prompts 56, sibling_census 68; round 51 bumped surfaces 99->115->119
+dispatch_prompts 56, sibling_census 68; round 52 bumped surfaces 119->129 (callee-rename
+arms); round 51 bumped surfaces 99->115->119
 (18.12.6 re-derivation arms, then the parameter-shadow arm) and overlap_levers
 22 -> 51 (round-51 C2 depth claim, falsify-wave arms); round 50 bumped checklist 1845->1851 (delegated --box-proof
 gate arms), dispatch_prompts 32->56 (box-proof coverage arms) and registered
@@ -129,7 +130,7 @@ EXPECTED_INSTRUMENTS = {
     "harness": 10,
     "corpus_integrity": 150,
     "corpus_independent": 91,
-    "surfaces": 119,
+    "surfaces": 129,
     "checklist": 1851,
     "pins": 62,
     "harness_independent": 123,
@@ -152,7 +153,7 @@ INSTRUMENTS = {
                          r"self-test:\s*(\d+) failure\(s\) over (\d+) assertions", 2, 1),
     "corpus_independent": ("verifiers/verify_corpus_independent.py", 91,
                            r"self-test:\s*(\d+) assertions,\s*(\d+) failures", 1, 2),
-    "surfaces": ("verifiers/verify_surfaces.py", 119,
+    "surfaces": ("verifiers/verify_surfaces.py", 129,
                  r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
     "checklist": ("verifiers/verify_skill_checklist.py", 1851,
                   r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
@@ -615,8 +616,8 @@ def self_test() -> int:
                       '_pins.py", 62,\n',
                       '             r"(?m)^(\\d+) failure\\(s\\) over',
                       ' (\\d+) assertions$", 2, 1),\n')
-    expected_surfaces = anchor('    "surfa', 'ces": 119,\n')
-    row_surfaces = anchor('    "surfaces": ("verifiers/verify_surfa', 'ces.py", 119,\n')
+    expected_surfaces = anchor('    "surfa', 'ces": 129,\n')
+    row_surfaces = anchor('    "surfaces": ("verifiers/verify_surfa', 'ces.py", 129,\n')
     expected_ind = anchor('    "harness_indep',
                           'endent": %d,\n' % EXPECTED_INSTRUMENTS["harness_independent"])
     row_ind = anchor('    "harness_independent": ("verifiers/verify_harness_indep',
