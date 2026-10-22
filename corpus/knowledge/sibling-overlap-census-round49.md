@@ -364,3 +364,7 @@ Appended round 50 (append-only). Seat reports under `../.ufo/waves/round-50/fals
   `corpus/evidence/round9-fleet/sibling-overlap.md:12` labels the relation "Contested" before resolving
   it to the split in its own ruling; neither is an audit claim, and both are recorded for the integrator
   with the round-50 L0 line.
+- **S023 re-swept with the wider pattern** (`ReviewCensusSection.md` F1): `curl -fsSL https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview.md`
+  at 2026-10-22T13:44:09Z → 21,840 B, sha256 `7913d455…` (byte-identical to the row), and
+  `grep -ciE 'tie[- ]?break'` → 0. S018's round-49 sweep already used `tie[- ]?break`; only the S022 and
+  S023 round-49 arms used the narrow spelling, and both are now 0 under the wide one.

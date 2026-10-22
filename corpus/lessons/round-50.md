@@ -190,3 +190,26 @@ Seat reports under `.ufo/waves/round-50/falsify/`. Recorded here, not rewritten 
   now written without backticks); and the D1 check command above (its literal report path and commit
   letter read as a dead report pointer and a non-hash commit; now placeholders). All three changed only
   this round's own text.
+- **The checklist gate's `--box-proof` run is fail-open on delegates it cannot probe**
+  (`.ufo/waves/round-50/falsify/ReviewBoxProofGate.md` F1-F5): a `--help` probe that times out or cannot
+  exec, and a delegate that hides the flag from `--help`, are reported PASS with "not run"; a relative
+  `--map` run from another directory gives a false red; the red detail drops the instrument's stderr
+  reason; non-UTF-8 help output crashes the gate. The build seat's note "a timeout or an unrunnable
+  instrument is also a FAIL" does not match the code. The live tree is green and a failing proof is red.
+  Not fixed this round (scope frozen); carried to round 51 with the four `MutBoxProofGate.md` survivors.
+- **Census guard residuals** (`MutDuplicateRows.md`, `MutGuardCode.md`): a duplicated row in a second
+  same-header table is not refused (M10, M11); downgrading a non-`none` row to `none` with a matching
+  `PROVINCE.md` edit passes (M5; the `--skill` arm checks census → description, not the converse);
+  11 of 28 code mutants survive the self-test (case-insensitive matching, the `;` separator, the
+  upper-case `NOT` rule, the `route` marker, a mis-cased classification giving a vacuous `0 of 0`).
+  Carried.
+- **Q26 citation** (`ReviewLesson.md` Q26a): `MineMistake.md` applied Q26 to the round-50 statements before
+  the re-sizing (a conditional pass); the re-sized statements' pass was verified on the landed bytes by
+  `ReviewLesson.md` and `ReplayC1Counter.md` (a bare-name description prints `names 0 of 9`, exit 1).
+- **Description guard, more bounds** (`MutDescGuard.md`): 17 of 19 description mutants are killed; the two
+  false-split mutants survive (the known lexical limit). A sentence starting with a lower-case lane name
+  does not close the previous clause, so it can inherit that clause's marker (m20a), and
+  `kotodama-shokunin` counts as naming kotodama (m21). The LOG and this lesson say the first 99
+  characters are unchanged; that is true (`ReviewDescTriggerChecklist.md`) but no verifier checks it.
+- **Offered, not applied (scope frozen):** `FloorsRegister.md` delivered guard fixture arms F30-F33 for
+  the new `sibling_census` row (floors guard self-test 150 → 169); carried to round 51.
