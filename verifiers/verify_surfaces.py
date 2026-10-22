@@ -45,10 +45,15 @@ Two instruments:
    call UNRESOLVED, never guessed, while the 18.12.6 ``S$`` case resolves to
    ``claude-md`` because its own module binds it once.  An unresolved call
    still surfaces as ``<unresolved-var:NAME>`` and FAILs.
-   LIMIT: the module scope is read off the source-path comments; a bundle
-   that stops shipping them makes the whole dump one scope, which restores
-   the conservative behaviour (the conflicting name stays unresolved and the
-   gate FAILs loudly) rather than resolving anything by guesswork.
+  LIMIT: the module scope is read off the source-path comments; a bundle
+  that stops shipping them makes the whole dump one scope, which restores
+  the conservative behaviour (the conflicting name stays unresolved and the
+  gate FAILs loudly) rather than resolving anything by guesswork.
+  The source-path comment is a PROXY for a variable scope, not a proof of
+  one (round-51 falsify ``CriticC1Landed``): on the live 18.12.6 dump the two
+  ``S$`` bindings also sit in different ``// @bun @bytecode`` chunks, and
+  inside one chunk 95 conflicting names span more than one source module;
+  a chunk-based rule gives the same 8 pairs on the live dump.
 
    DOCUMENTED LIMITS (the check proves set parity over this documented
    extraction, never existential completeness):

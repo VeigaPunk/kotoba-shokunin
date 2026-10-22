@@ -85,7 +85,7 @@ Areas being explored and not yet held (LEARNING.md § Files the path writes); ap
 | Command extraction | commands outside the declared vocabulary are invisible; info-less table fences read as commands (§ Known gaps) | fixtures for an outside-vocabulary command and the info-less table fence |
 | Implicit-intent fidelity | the literal-trigger proxy covers only prompts that name a skill (§ Known gaps) | the intent-labeling pass on the proven join recipe (`knowledge/trigger-miss-proxy-round6.md`) |
 | MCP/plugin instruction surfaces | the two target harness configs carry no MCP/plugin keys; the classes are live elsewhere (§ Known gaps) | per-harness census separating loader-class presence from configured instances (`knowledge/instruction-surface-census-round13.md`) |
-| Loader-rule freshness | round 47: omp 18.12.5 and opencode 1.19.3 (npm channel, round-14 loader lineage) re-derived and re-pinned — surfaces 7/7, pins 3/3 at default resolution; the XML-token rule moved to Core (`trigger.no_xml_tag`). Not held: the omp extractor is a callee-name allowlist, so the next minifier rename is a red gate plus a hand re-derivation (the round-46 "omp 18.12.3 … 5/7 … 1/3" figures were a stale copy, `lessons/round-47.md` M20) | a rename-robust omp call-shape rule with a must-fail rename fixture; an opencode lineage probe that names which generation a dump carries (`knowledge/instruction-surface-census-round13.md` § B′) |
+| Loader-rule freshness | round 51: omp 18.12.6 re-derived and re-pinned — surfaces 7/7 and pins 3/3 at default resolution (`python3 -B verifiers/verify_surfaces.py --json` → `pass 7`, `fail 0`, exit 0; `python3 -B verifiers/check_substrate_pins.py` → `OK 3/3 pins hold`, exit 0; the round-47 "omp 18.12.5 … 7/7 … 3/3" figures are the previous state, `lessons/round-47.md`). The loader-registration callees rotated again to `bq`/`Kl`/`Ho`, and the group-variable leg needed a module-scoped binding rule (the dump-wide first-seen table drops `S$` as a conflicting rebind), so the extraction rule changed with the pin. Not held: the omp extractor is still a callee-name allowlist — the lane's own record names 4 renamed-callee generations (3 at base `43ca0bfb`), counted from the self-test arm comments of `verifiers/verify_surfaces.py` and the `omp_round*_note` keys of `verifiers/baseline.json` — so the next minifier rename is again a red gate plus a hand re-derivation (wider history: 5 omp rebuilds since round 18 renamed the callees, per `.ufo/waves/round-51/build/OmpRenameHistory.md`; the omp 18.12.3 rebuild's callee names were never recorded) | a callee-name-independent omp call-shape rule with a must-fail rename fixture — round 51 made the group leg scope-aware, the callee leg is still a name list; an opencode lineage probe that names which generation a dump carries (`knowledge/instruction-surface-census-round13.md` § B′) |
 | Per-render consumption | no per-session offer-to-activation join exists (§ Known gaps) | per-render attribution (`knowledge/skill-activation-telemetry.md`) |
 
 ## Known gaps
@@ -130,6 +130,17 @@ Areas being explored and not yet held (LEARNING.md § Files the path writes); ap
   kotodama included, each in a clause with an ownership or routing word
   (`../verifiers/check_sibling_census.py --skill`); six more client pages document no tie-break between
   overlapping descriptions (census entry, round-50 section).
+  **Round 51 (append-only):** the overlap-lever knowledge now lives in Core: each of the 7 pinned
+  clients documents a lever, other than description wording, that removes one named skill from the
+  model's candidates — Copilot SDK `disabledSkills`; Copilot CLI `ignoredSkillsLocations`; VS Code
+  `disable-model-invocation`; Claude Code `disable-model-invocation: true`; opencode permission
+  `deny`; Gemini CLI `/skills disable <name>`; Codex `allow_implicit_invocation` (entry
+  `knowledge/skill-overlap-levers-round51.md`; `python3 -B ../verifiers/check_overlap_levers.py
+  --rev <rev>` → `overlap levers backed 7 of 7 clients`). None of these levers decides between two
+  skills that both remain candidates — each removes one of them, so the round-50 negative (no client
+  documents a rule between two differently named author-written skills whose descriptions both match)
+  stands, and whether removing one of an overlapping pair, or naming the neighbour, improves routing is
+  still unmeasured on any harness.
 - opencode-side offer is now measured (round 8): godspeed offered 387/387
   attested sessions (100%) against activation 205/399 = 51.4%, so the round-6
   "51.5% coverage" gap is model choice on the consume side, not an offer hole.
