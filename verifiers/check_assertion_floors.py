@@ -4,10 +4,13 @@
 The claim under test: a self-test that silently loses assertions must never
 still read green. Each instrument's --self-test prints an assertion count;
 this guard reruns every self-test and FAILs when the observed count is below
-the recorded floor (harness 10, corpus_integrity 150, corpus_independent 91,
-surfaces 129, overlap_levers 51, checklist 1851, pins 62,
+the recorded floor (harness 10, corpus_integrity 152, corpus_independent 93,
+surfaces 155, overlap_levers 51, checklist 1852, pins 62,
 harness_independent 123, compare_harness_independent 330, floors_guard 150,
-dispatch_prompts 56, sibling_census 68; round 52 bumped surfaces 119->129 (callee-rename
+dispatch_prompts 56, sibling_census 68, alwayson 89; round 53 bumped surfaces 129->155
+(two round-52 fix arms, opencode 1.19.4 rule and decoy arms), corpus_integrity 150->152 and
+corpus_independent 91->93 (fleet-report pointer arms), checklist 1851->1852 (absolute-delegate arm)
+and registered alwayson at 89 (verifiers/verify_alwayson.py); round 52 bumped surfaces 119->129 (callee-rename
 arms); round 51 bumped surfaces 99->115->119
 (18.12.6 re-derivation arms, then the parameter-shadow arm) and overlap_levers
 22 -> 51 (round-51 C2 depth claim, falsify-wave arms); round 50 bumped checklist 1845->1851 (delegated --box-proof
@@ -128,10 +131,10 @@ DEFAULT_REPO = Path(__file__).resolve().parent.parent
 # or a floor silently lowered -- fails loudly before any self-test runs.
 EXPECTED_INSTRUMENTS = {
     "harness": 10,
-    "corpus_integrity": 150,
-    "corpus_independent": 91,
-    "surfaces": 129,
-    "checklist": 1851,
+    "corpus_integrity": 152,
+    "corpus_independent": 93,
+    "surfaces": 155,
+    "checklist": 1852,
     "pins": 62,
     "harness_independent": 123,
     "compare_harness_independent": 330,
@@ -139,6 +142,7 @@ EXPECTED_INSTRUMENTS = {
     "dispatch_prompts": 56,
     "sibling_census": 68,
     "overlap_levers": 51,
+    "alwayson": 89,
 }
 SELF_TEST_TIMEOUT_S = 120
 
@@ -149,13 +153,13 @@ REGISTRY_REL = Path("verifiers/floors-registry.json")
 INSTRUMENTS = {
     "harness": ("verifiers/verify_harness_claims.py", 10,
                 r"self-test:\s*(\d+) failure\(s\) over (\d+) assertions", 2, 1),
-    "corpus_integrity": ("verifiers/verify_corpus_integrity.py", 150,
+    "corpus_integrity": ("verifiers/verify_corpus_integrity.py", 152,
                          r"self-test:\s*(\d+) failure\(s\) over (\d+) assertions", 2, 1),
-    "corpus_independent": ("verifiers/verify_corpus_independent.py", 91,
+    "corpus_independent": ("verifiers/verify_corpus_independent.py", 93,
                            r"self-test:\s*(\d+) assertions,\s*(\d+) failures", 1, 2),
-    "surfaces": ("verifiers/verify_surfaces.py", 129,
+    "surfaces": ("verifiers/verify_surfaces.py", 155,
                  r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
-    "checklist": ("verifiers/verify_skill_checklist.py", 1851,
+    "checklist": ("verifiers/verify_skill_checklist.py", 1852,
                   r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
     "pins": ("verifiers/check_substrate_pins.py", 62,
              r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
@@ -171,6 +175,8 @@ INSTRUMENTS = {
                        r"self-test:\s*(\d+) failure\(s\) over (\d+) assertions", 2, 1),
     "overlap_levers": ("verifiers/check_overlap_levers.py", 51,
                        r"(?m)^(\d+) failures\n(\d+) assertions$", 2, 1),
+    "alwayson": ("verifiers/verify_alwayson.py", 89,
+                 r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
 }
 
 
@@ -616,8 +622,8 @@ def self_test() -> int:
                       '_pins.py", 62,\n',
                       '             r"(?m)^(\\d+) failure\\(s\\) over',
                       ' (\\d+) assertions$", 2, 1),\n')
-    expected_surfaces = anchor('    "surfa', 'ces": 129,\n')
-    row_surfaces = anchor('    "surfaces": ("verifiers/verify_surfa', 'ces.py", 129,\n')
+    expected_surfaces = anchor('    "surfa', 'ces": %d,\n' % EXPECTED_INSTRUMENTS["surfaces"])
+    row_surfaces = anchor('    "surfaces": ("verifiers/verify_surfa', 'ces.py", %d,\n' % INSTRUMENTS["surfaces"][1])
     expected_ind = anchor('    "harness_indep',
                           'endent": %d,\n' % EXPECTED_INSTRUMENTS["harness_independent"])
     row_ind = anchor('    "harness_independent": ("verifiers/verify_harness_indep',
@@ -707,10 +713,10 @@ def self_test() -> int:
 
         # F6 -- the registry's own declared size is load-bearing. The anchor is
         # the live registry's own declared total (round 49: 10; round 50: 11 with
-        # sibling_census; round 51: 12 with overlap_levers), including this guard's
-        # self-test); a stale literal here would stop landing and the count-check
-        # would name it.
-        text = swap(registry_text, '"instrument_total": 12', '"instrument_total": 10',
+        # sibling_census; round 51: 12 with overlap_levers; round 53: 13 with alwayson),
+        # including this guard's self-test); a stale literal here would stop landing
+        # and the count-check would name it.
+        text = swap(registry_text, '"instrument_total": 13', '"instrument_total": 10',
                     "F6/total")
         proc = run(write_tree(tmp / "f6", source, text), tmp / "f6")
         rec("F6 size drift: exit 2", proc.returncode == 2, proc.returncode)
