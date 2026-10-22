@@ -1,4 +1,4 @@
-source: S018 (https://agentskills.io/specification, § Frontmatter, § `name` field, § `description` field, § Progressive disclosure), S017 (skills-ref `validator.py` at upstream commit 69ef37e9), S019 (Anthropic best practices, § Skill structure), S012 (`quick_validate.py:42-92` at `dbd4588`), S021 (Codex build-skills page), S020 (lane `verify_skill_checklist.py`)
+source: S018 (https://agentskills.io/specification, § Frontmatter, § `name` field, § `description` field, § Progressive disclosure), S017 (https://github.com/agentskills/agentskills/tree/69ef37e9424c0a7ea9dd2293b559e43ec8176379/skills-ref, `validator.py`, and `prompt.py:46` in the same tree), S019 (https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices, § Skill structure, § Writing effective descriptions, § Progressive disclosure patterns), S012 (`quick_validate.py:42-92` at `dbd4588`), S021 (https://learn.chatgpt.com/docs/build-skills, page intro and § How ChatGPT and Codex use skills; cited only for what the Codex page does not state), S020 (lane `verify_skill_checklist.py`)
 verified-at: 2026-10-22
 recheck: curl -fsSL https://agentskills.io/specification.md | grep -c 'Must match the parent directory name'  # 1 on 2026-10-22; 0 means the spec's rule text moved
 
@@ -17,7 +17,9 @@ Authorities and the bytes read (2026-10-22, UTC):
   to the round-47 fetch.
 - **skills-ref** — S017, the spec's reference validator, `agentskills/agentskills` commit
   `69ef37e9424c0a7ea9dd2293b559e43ec8176379`, `skills-ref/src/skills_ref/validator.py` sha256
-  `b5ee3d85…`; PyPI `skills-ref` 0.1.1 run as `agentskills validate`.
+  `b5ee3d85…`; PyPI `skills-ref` 0.1.1 run as `agentskills validate`. The PyPI file is not byte-identical
+  to the pinned tree (its `validator.py` hashes `7b5cb3dc…`: CRLF line endings and `read_text(encoding='utf-8')`);
+  a pinned-commit install gave the same exit codes and messages on 21 fixtures (`C2SkillsRefRun.md`).
 - **Anthropic docs** — S019, best-practices page `.md`, 42,169 B, sha256 `f0a5d61b…` (round 47 read
   42,028 B `727f3fa1…`; copy edits only, every rule line unchanged).
 - **Anthropic packager** — S012, `quick_validate.py` at `dbd4588f…`, sha256 `67cf5703…`; this pin is
@@ -55,7 +57,7 @@ table's source), `C2LaneCheckerRun.md` (10 fixtures, three-way comparison), `C2S
    bracket. Only skills-ref and the packager reject unknown top-level fields. "Spec rule" and
    "Anthropic rule" are not interchangeable labels.
 2. **The spec contradicts itself on the name charset.** spec.md:64 says "unicode lowercase
-   alphanumeric" and lists `a-z`, `0-9`; the frontmatter table (spec.md:27) says "Lowercase letters,
+   alphanumeric" and lists `a-z`, `0-9`; the frontmatter table (spec.md:30) says "Lowercase letters,
    numbers, and hyphens only". Its own validator takes the Unicode reading (NFKC plus `isalnum`), the
    packager takes the ASCII reading. A Unicode name is valid to one and invalid to the other.
 3. **Three different angle-bracket rules exist.** Anthropic's docs ban XML tags; the packager bans
@@ -81,7 +83,7 @@ table's source), `C2LaneCheckerRun.md` (10 fixtures, three-way comparison), `C2S
    Anthropic's docs say 500. It must not be cited as an S018 or S019 rule.
 7. **The spec carries no RFC 2119 keywords** (`grep -c -e 'MUST' -e 'SHOULD' specification.md` → 0,
    exit 1); its strength lives in prose verbs ("Must", "Should", "We recommend"). Its frontmatter
-   table is a lossy summary: it gives maxima only and omits the consecutive-hyphen and
+   table is a lossy summary: it omits the consecutive-hyphen and
    directory-match rules that the `#### name field` section states (`C2SpecScribe.md`).
 
 ## Round-47 counterexamples, run (routed item 3)

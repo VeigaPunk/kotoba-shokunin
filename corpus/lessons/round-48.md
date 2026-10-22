@@ -82,3 +82,11 @@ Stop rationale: every claim of this round rests on an opened row.
 - `A24UnreadableRoot`: with `--oc-config/skills` unreadable, the round-48 instrument exits 2 (caught
   `SUBSTRATE` permission error) where base exited 0 because it never read that root. Recorded as an
   open behavior question in `SCORECARD.md` (next round), not fixed this round.
+- `A10FillerHunt`: about 12 of the entry's 60 cells repeat facts already held at base; six
+  inter-authority disagreements are new (0 hits in `SKILL.md` at base). Corrected in the entry: the
+  spec table citation (spec.md:27 → :30), the false "gives maxima only", the `source:` line now
+  carries URLs and the sections the cells cite, and the PyPI-versus-pinned skills-ref byte difference
+  is disclosed. S012 `used-by` changed in place, logged old→new: `SKILL.md` →
+  `SKILL.md, corpus/knowledge/frontmatter-rule-authorities-round48.md`. Not corrected this round:
+  several counts in the entry carry no command and date (Q13) and four negative cells carry no
+  sweep (Q14) — listed in `.ufo/waves/round-48/falsify/A10FillerHunt.md`; open for the next round.
