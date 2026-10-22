@@ -92,3 +92,18 @@ a distinct-name control; a no-name fallback; a log-named-root arm. Self-test 116
 bumped in step. The arm fails against the directory-keyed operator ("got 4 want 3", 2 failures, exit 1) and
 passes on the fix (seat `R1FrontmatterKey.md`). No live effect on this host: `oc.roots.names_plus_builtin`
 is 10 before and after (both configured roots are absent here).
+
+## Falsify-wave corrections to this lesson (seat `.ufo/waves/round-49/falsify/ReviewLessonQ25.md`)
+
+- **M30 evidence corrected:** the sentence "The round-46 source it cites (`.ufo/round-46/scouts/w2-connector.md:22`)
+  does not carry the clause either" is false. That line does carry "prompt injection exploits" and cites
+  `../kasegi-shokunin/PROVINCE.md:3-4`, which never held it. So the round-46 scout wrote the clause and
+  mis-cited it, and round 46 copied it without opening kasegi's bytes. The class and the fix stand.
+- **C2 box proof bound:** "every per-conjunct mutant fails on its named conjunct" holds only for the cases the
+  manifest lists. Removing the d04-stem case still prints `boxes proven 2`, so the proof does not enforce its
+  own coverage (also `MutDispatchInstrument.md`).
+- **Guard gap:** duplicated rows in the census or the PROVINCE table still pass (`rows 21 verified 21`); the
+  guard checks only a lower bound on row count. Carried with the other surviving mutants.
+- Late row seats: `RowMori` HOLDS-BOUNDED (mori's settlement scan reads every lane's dispatch files, an
+  artifact-level overlap with no stated split; `none` under the rule). `CrossCheckC2Live` HOLDS-BOUNDED (the
+  literal box gives 7 dispatch.04 failures, not 6, because the instrument exempts `aggregator-L1.md`).
