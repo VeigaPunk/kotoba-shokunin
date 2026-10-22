@@ -123,8 +123,12 @@ mechanism that moved. Model + gaps: `corpus/knowledge/harness-verifier-round10.m
 `(executed: …)` below + `trigger.no_xml_tag`, bound to no box since round 47 +
 `governance.citation_resolves` over the two root governance files), each fail-closed on fixtures, `evaluated N` per check,
 exit 0/1/2/3 (`3` = box map missing, unparseable, or bound elsewhere).
-`verifiers/checklist-baseline.json` maps **all 41 boxes** (8 executed, 0
-delegated, 33 unexecuted with reason) by text hash, so drift FAILs. Limits and ceilings: `corpus/knowledge/checklist-execution-round17.md`.
+`verifiers/checklist-baseline.json` maps **all 41 boxes** (8 executed, 2
+delegated, 31 unexecuted with reason) by text hash, so drift FAILs. The two
+delegated boxes are the dispatch-prompt fidelity boxes `dispatch.04` and
+`dispatch.08`, executed by `verifiers/verify_dispatch_prompts.py` (its
+`--box-proof` prints `boxes proven 2` only when both boxes are delegated there
+and its committed fixtures discriminate every conjunct). Limits and ceilings: `corpus/knowledge/checklist-execution-round17.md`.
 
 ## Frontmatter craft — the trigger surface
 
@@ -323,8 +327,11 @@ template).
 - [ ] No literal `\n` escapes or duplicated stanza blocks — the file is
       parsed once, not templated twice.
 - [ ] Round token `<N>` is identical across filename, role line, and report
-      dir, and ≤ the lane's `.ufo/state/<id>.round` (which holds the lane's
-      *latest* round — equality against a sibling's state is wrong).
+      dir, and ≤ the lane's latest dispatched round — the first field of
+      `.ufo/state/<id>.report-baseline` (hyaku driver); a lane with only the
+      legacy `<id>.round` file (frozen since 2026-10-15) is reported
+      `state-stale`, not compared; a lane with neither is N/A (equality against
+      a sibling's state is wrong).
 - [ ] Scope fence explicit: names what the lane MUST NOT write plus the dir
       it may write.
 

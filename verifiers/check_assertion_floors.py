@@ -6,7 +6,7 @@ still read green. Each instrument's --self-test prints an assertion count;
 this guard reruns every self-test and FAILs when the observed count is below
 the recorded floor (harness 10, corpus_integrity 150, corpus_independent 91,
 surfaces 99, checklist 1845, pins 62, harness_independent 123,
-compare_harness_independent 330, floors_guard 150; others @ round 36 --
+compare_harness_independent 330, floors_guard 150, dispatch_prompts 32; others @ round 36 --
 round 47 ratcheted surfaces 87->99 (1.19.3 opencode fixtures, 18.12.5 omp
 callees) and checklist 1597->1845 (trigger.no_xml_tag + governance errata arms); the
 checklist floor re-recorded at round 37 by the C3 fence battery plus the
@@ -130,6 +130,7 @@ EXPECTED_INSTRUMENTS = {
     "harness_independent": 123,
     "compare_harness_independent": 330,
     "floors_guard": 150,
+    "dispatch_prompts": 32,
 }
 SELF_TEST_TIMEOUT_S = 120
 
@@ -155,6 +156,8 @@ INSTRUMENTS = {
     "compare_harness_independent": ("verifiers/compare_harness_independent.py", 330,
                                     r"self-test:\s*(\d+) failure\(s\) over (\d+) assertions", 2, 1),
     "floors_guard": ("verifiers/check_assertion_floors.py", 150,
+                     r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
+    "dispatch_prompts": ("verifiers/verify_dispatch_prompts.py", 32,
                      r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
 }
 
@@ -691,10 +694,10 @@ def self_test() -> int:
             "FAIL registry absent: verifiers/floors-registry.json" in proc.stdout, proc.stdout)
 
         # F6 -- the registry's own declared size is load-bearing. The anchor is
-        # the live registry's own declared total (round 41: 9, including this
+        # the live registry's own declared total (round 49: 10, including this
         # guard's self-test); a stale literal here would stop landing and the
         # count-check would name it.
-        text = swap(registry_text, '"instrument_total": 9', '"instrument_total": 8',
+        text = swap(registry_text, '"instrument_total": 10', '"instrument_total": 9',
                     "F6/total")
         proc = run(write_tree(tmp / "f6", source, text), tmp / "f6")
         rec("F6 size drift: exit 2", proc.returncode == 2, proc.returncode)

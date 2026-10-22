@@ -66,3 +66,29 @@ moved. Rows 21 → 23 (`grep -c '^| S0' corpus/SOURCES.md`).
   child, so 13 of 13 stay green under the R1 re-key and under a recursive operator (measured). A v2 oracle is
   specified, not frozen: seven new case ids with expected values and sources (seat
   `.ufo/waves/round-49/build/R5Disposition.md`). Carried to a later round.
+
+## C2 box proof
+
+`python3 -B verifiers/verify_dispatch_prompts.py --box-proof --map verifiers/checklist-baseline.json`
+prints `boxes proven 2`, exit 0, on the integrated tree (2026-10-22T11:15Z). A box counts only when the
+map delegates it to this instrument, its `text_sha256` equals the constant pinned in the instrument and the
+live `SKILL.md` box hashes to it, every control fixture under `verifiers/fixtures/dispatch-prompts/` passes
+and every per-conjunct mutant fails on its named conjunct. Shown able to fail (seat
+`.ufo/waves/round-49/build/DispatchInstrument.md`): remapping `dispatch.04` to
+`verifiers/verify_harness_independent.py` prints `boxes proven 1`, exit 1; editing the placeholder mutant
+fixture into a passing file prints `boxes proven 1`, exit 1. The `dispatch.08` box was re-worded before
+landing: its authority `.ufo/state/<id>.round` has been frozen since 2026-10-15 (21 of 21 files; seat
+`PlanDataWalk.md`), and a blind second instrument that kept the old authority failed 166 of 289 prompts on
+that clause alone (seat `DispatchIndependent.md`). The new authority is the first field of
+`.ufo/state/<id>.report-baseline`, which the hyaku driver writes at dispatch.
+
+## R1 repair
+
+`verifiers/verify_harness_independent.py` now keys every root by the SKILL.md frontmatter `name`, with the
+directory name only as the fallback when the frontmatter has no name (S016: opencode keys
+`state.skills[md.data.name]`, `index.ts:134`, re-opened by seat `R1Premise.md`). New self-test arms: the
+agents root offers `x` and `--oc-config/skills/dir-y/SKILL.md` declares `name: x` → counted once (3, not 4);
+a distinct-name control; a no-name fallback; a log-named-root arm. Self-test 116 → 123 assertions, floor
+bumped in step. The arm fails against the directory-keyed operator ("got 4 want 3", 2 failures, exit 1) and
+passes on the fix (seat `R1FrontmatterKey.md`). No live effect on this host: `oc.roots.names_plus_builtin`
+is 10 before and after (both configured roots are absent here).

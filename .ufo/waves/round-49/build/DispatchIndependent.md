@@ -68,7 +68,7 @@ Each is a place where a second implementation could reasonably differ.
 | J8 | **Absent anchor** | absent `.round` → dispatch.08 **fails** with "cannot be established", state component marked `unverifiable` | the box asserts a bound that cannot be shown to hold; scoring it pass would assert something unverified |
 | J9 | **The `AGGREGATE.md` stem** | dispatch.04 **fails** `aggregator-L1.md`; the convention is recorded in `convention_exception` only | the box's literal text says filename = lane id; the reader gets both facts |
 | J10 | **Role-line round extraction** | first non-blank line, plus the next 4 lines as fallback | the closure-role form states `**chousa round 27**` on its *second* line; the lane-dispatch form has it on line 1 |
-| J11 | **Unsubstituted variable** | a stem containing `<…>`, `${…}`, `{{…}}` or `$VAR` is a dispatch.04 failure | the box names "no `<…>` placeholder or unsubstituted variable" |
+| J11 | **Unsubstituted variable** | a stem containing `<…>`, `${…}`, `{{…}}` or `$VAR` fails dispatch.04 | the box names "no `<…>` placeholder or unsubstituted variable" |
 | J12 | **In-scope surface** | the prompt directory's own `*.md` files (289 at the pinned stamp) | the checklist says "observed form: `/home/vgpnk/projects/shokunin/.ufo/prompts/`" |
 
 ## Totals (pinned to `indep.json` `generated_at_utc = 2026-10-22T10:22:59+00:00`)

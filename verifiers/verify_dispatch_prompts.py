@@ -1,0 +1,882 @@
+#!/usr/bin/env python3
+"""verify_dispatch_prompts.py -- machine check for the two executable
+dispatch-prompt checklist boxes of SKILL.md.
+
+The claim under test: the prose boxes ``dispatch.04`` (report path is literal
+and its file name is the lane's id) and ``dispatch.08`` (round token is
+identical across file name, role line and report dir, and is at most the
+lane's latest dispatched round) are *executed* over a directory of dispatch
+prompts -- not merely attested in prose.
+
+Scope and model
+---------------
+* The scan is non-recursive over the prompts directory root.  Subdirectories
+  (the fleet's ``closure/`` tree) are out of scope and are reported.
+* A prompt file's *lane id* is the stem prefix of its name:
+  ``<lane>-round-<N>.md`` and ``<lane>-L1.md``.  Any other name is out of
+  scope for both boxes and is listed with a reason.
+* dispatch.04 conjuncts, per in-scope file:
+  - ``report_path_literal`` -- the report path carries no ``<...>``
+    placeholder and no unsubstituted ``${...}`` / ``$VAR``.
+  - ``report_stem_is_lane_id`` -- the report path's file stem is the lane id.
+  - ``lane_identity_known`` -- the lane id names a lane this fleet knows:
+    a ``<fleet>/<id>-shokunin`` repository, or a ``<state-dir>/<id>.round``
+    / ``<state-dir>/<id>.report-baseline`` state file.
+  Only the *report path* is scanned for placeholders: an L0 ``<lane> |
+  round-<N>`` template or a command template elsewhere in the body does not
+  trip the box.
+* dispatch.08 conjuncts, per ``<lane>-round-<N>.md`` file:
+  - ``filename_role_round_equal`` -- the role line's round is N.
+  - ``filename_report_dir_round_equal`` -- the report path's round dir is N.
+  - ``round_le_latest_dispatched`` -- N is at most the lane's latest
+    dispatched round, read as the first whitespace field of
+    ``<state-dir>/<lane>.report-baseline`` (the hyaku driver's record).  A
+    lane that still has only the legacy ``<state-dir>/<lane>.round`` file
+    (frozen since 2026-10-15) is reported ``state-stale`` and *not
+    compared*; a lane with neither file is N/A.  A missing state source is
+    never a pass.
+
+Verdicts
+--------
+Every conjunct carries its own status (PASS / FAIL / N/A).  A file's verdict
+is FAIL if any conjunct FAILs, else N/A if any conjunct is N/A, else PASS.
+A check's verdict is FAIL if any file FAILs, else N/A if no file is PASS,
+else PASS.  Every check prints ``evaluated N``; ``N == 0`` is never a PASS.
+
+Exit codes: 0 all selected checks PASS; 1 a check FAILed; 2 usage or
+substrate error (missing/unreadable directory or map).  Read-only; stdlib
+only; deterministic.
+"""
+
+import argparse
+import hashlib
+import json
+import os
+import re
+import sys
+import tempfile
+from pathlib import Path
+
+DEFAULT_REPO = Path(__file__).resolve().parent.parent
+VERIFIERS_DIR = Path(__file__).resolve().parent
+FIXTURES_DIR = VERIFIERS_DIR / "fixtures" / "dispatch-prompts"
+BASELINE_NAME = "checklist-baseline.json"
+SKILL_NAME = "SKILL.md"
+
+DEFAULT_PROMPTS = Path("/home/vgpnk/Projects/shokunin/.ufo/prompts")
+DEFAULT_STATE_DIR = Path("/home/vgpnk/Projects/shokunin/.ufo/state")
+DEFAULT_FLEET = Path("/home/vgpnk/Projects/shokunin")
+
+CHECK_IDS = ("dispatch.04", "dispatch.08")
+DELEGATION_TARGET = "verifiers/verify_dispatch_prompts.py"
+
+# The box texts this instrument executes, pinned by the sha256 of their
+# normalised checklist text (the kotoba-checklist-v1 normalisation rule:
+# first line minus the '- [ ]' marker plus the stripped continuation lines,
+# joined with one space, whitespace runs collapsed to one space, stripped,
+# UTF-8 sha256).  A reworded box no longer matches its pin, so the proof
+# below fails loudly instead of silently executing a different box.
+PINNED_BOX_SHA = {
+    "dispatch.04": "62c20a8110515010d560d29526d22765b095594da1407340bed76f5e21040515",
+    "dispatch.08": "f5c37baa2ca839ea8dd091f3f42f091db0715e1f6a755e5ae894e48c79cd46d2",
+}
+
+CONJUNCTS = {
+    "dispatch.04": ("report_path_literal", "report_stem_is_lane_id",
+                    "lane_identity_known"),
+    "dispatch.08": ("filename_role_round_equal",
+                    "filename_report_dir_round_equal",
+                    "round_le_latest_dispatched"),
+}
+
+ROUND_FILE_RE = re.compile(r"^(?P<lane>.+)-round-(?P<round>\d+)\.md$")
+L1_FILE_RE = re.compile(r"^(?P<lane>.+)-L1\.md$")
+# A report path: '.ufo/reports/round-<N>/<stem>', absolute or relative.
+REPORT_PATH_RE = re.compile(r"\.ufo/reports/round-(\d+)/([^\s`'\"()\[\]]+)")
+# The role line's round token: the first 'round <digits>' on line 1.
+ROLE_ROUND_RE = re.compile(r"\bround\s+(\d+)\b")
+PLACEHOLDER_RE = re.compile(r"<[^<>]*>")
+VARIABLE_RE = re.compile(r"\$\{[^}]*\}|\$[A-Za-z_][A-Za-z0-9_]*")
+
+DISPOSITION_RE = re.compile(r"^(executed|delegated|unexecuted):(.+)$")
+
+
+class EnvError(Exception):
+    """A substrate the run needs is missing or unreadable."""
+
+
+# ---------------------------------------------------------------------------
+# extraction helpers
+# ---------------------------------------------------------------------------
+
+def read_text(path: Path, what: str) -> str:
+    try:
+        return path.read_text(encoding="utf-8")
+    except OSError as exc:
+        raise EnvError("%s: %s (%s)" % (path, exc.strerror or exc, what))
+
+
+def lane_of(name: str) -> tuple[str | None, int | None, str | None]:
+    """(lane id, round, kind) for a prompt file name; kind is None if the name
+    is not a dispatch-prompt name at all."""
+    m = ROUND_FILE_RE.match(name)
+    if m:
+        return m.group("lane"), int(m.group("round")), "round"
+    m = L1_FILE_RE.match(name)
+    if m:
+        return m.group("lane"), None, "l1"
+    return None, None, None
+
+
+def report_paths(text: str) -> list[tuple[int, str]]:
+    """(round dir, file stem) for every report path in the text.
+
+    A mention of the reports *directory* ('.ufo/reports/round-4/') carries no
+    file stem and is not a report path; a stem is kept only when it names a
+    file (trailing sentence punctuation is stripped)."""
+    out = []
+    for m in REPORT_PATH_RE.finditer(text):
+        stem = m.group(2).rstrip(".,;:")
+        if not stem or stem in (".", ".."):
+            continue
+        if stem.endswith(".md"):
+            stem = stem[:-3]
+        out.append((int(m.group(1)), stem))
+    return out
+
+
+def role_round(text: str) -> int | None:
+    """The round token of the role line (line 1), or None when absent."""
+    lines = text.splitlines()
+    if not lines:
+        return None
+    m = ROLE_ROUND_RE.search(lines[0])
+    return int(m.group(1)) if m else None
+
+
+def has_placeholder(token: str) -> bool:
+    return bool(PLACEHOLDER_RE.search(token)) or bool(VARIABLE_RE.search(token))
+
+
+def lane_kind(lane: str, fleet: Path, state_dir: Path) -> str:
+    """'sibling-lane' | 'fleet-root-role' | 'unknown'.
+
+    A sibling lane owns a ``<fleet>/<lane>-shokunin`` repository; its report
+    file stem is the lane id.  A fleet-root role (the aggregator and the
+    protocol lane) owns no per-lane repository and reports to a fleet-level
+    artefact, so the stem conjunct does not apply to it -- it is listed out
+    of scope with that reason, not silently excepted.  An id that is neither
+    names no lane this fleet knows."""
+    if (fleet / ("%s-shokunin" % lane)).is_dir():
+        return "sibling-lane"
+    if (state_dir / ("%s.round" % lane)).is_file() or \
+            (state_dir / ("%s.report-baseline" % lane)).is_file():
+        return "fleet-root-role"
+    return "unknown"
+
+
+def state_source(state_dir: Path, lane: str) -> tuple[str, int | None, str]:
+    """('baseline', round, detail) | ('stale', None, detail) | ('none', None, detail).
+
+    ``baseline`` is the hyaku driver's record: the first whitespace field of
+    ``<state-dir>/<lane>.report-baseline`` -- the lane's latest dispatched
+    round.  A lane that still has only the legacy ``<lane>.round`` file
+    (frozen since 2026-10-15) is 'stale': reported, never compared.  A lane
+    with neither file has no state source."""
+    base = state_dir / ("%s.report-baseline" % lane)
+    if base.is_file():
+        try:
+            raw = base.read_text(encoding="utf-8")
+        except OSError as exc:
+            return "none", None, "unreadable %s (%s)" % (base, exc.strerror or exc)
+        first = raw.split()[:1]
+        if not first:
+            return "none", None, "empty %s" % base
+        try:
+            return "baseline", int(first[0]), "%s = %s" % (base.name, first[0])
+        except ValueError:
+            return "none", None, "non-integer round in %s: %r" % (base, first[0])
+    legacy = state_dir / ("%s.round" % lane)
+    if legacy.is_file():
+        return "stale", None, ("state-stale: only %s present (legacy, frozen "
+                               "since 2026-10-15); not compared" % legacy.name)
+    return "none", None, "no state file for lane %r" % lane
+
+
+# ---------------------------------------------------------------------------
+# checklist box extraction (the kotoba-checklist-v1 normalisation rule)
+# ---------------------------------------------------------------------------
+
+HEADING_RE = re.compile(r"^#{1,6}\s+(.+?)\s*$")
+BOX_RE = re.compile(r"^(\s*)-\s+\[([ xX])\]\s?(.*)$")
+FENCE_RE = re.compile(r"^\s{0,3}(`{3,}|~{3,})")
+DISPATCH_SECTION = "Dispatch-prompt fidelity checklist"
+BOX_ORDER = ("dispatch.01", "dispatch.02", "dispatch.03", "dispatch.04",
+             "dispatch.05", "dispatch.06", "dispatch.07", "dispatch.08",
+             "dispatch.09")
+
+
+def _fenced(lines: list[str]) -> set[int]:
+    """1-based line numbers inside a fenced code block (opaque)."""
+    opaque: set[int] = set()
+    fence: str | None = None
+    for i, line in enumerate(lines, 1):
+        m = FENCE_RE.match(line)
+        if fence is None:
+            if m:
+                fence = m.group(1)[0] * 3
+                opaque.add(i)
+            continue
+        opaque.add(i)
+        if m and m.group(1)[0] * 3 == fence:
+            fence = None
+    return opaque
+
+
+def dispatch_box_sha256(skill_text: str) -> dict[str, str]:
+    """{box_id: sha256} for the nine dispatch-prompt checklist boxes.
+
+    The normalisation mirrors verifiers/verify_skill_checklist.py: the box's
+    first line minus the '- [ ] ' marker plus every stripped continuation
+    line, joined with one space, whitespace runs collapsed to one space,
+    stripped, UTF-8 sha256."""
+    lines = skill_text.splitlines()
+    opaque = _fenced(lines)
+    out: dict[str, str] = {}
+    section = ""
+    i = 0
+    while i < len(lines):
+        if i + 1 in opaque:
+            i += 1
+            continue
+        hm = HEADING_RE.match(lines[i])
+        if hm:
+            section = hm.group(1).strip()
+            i += 1
+            continue
+        bm = BOX_RE.match(lines[i])
+        if not bm or section != DISPATCH_SECTION:
+            i += 1
+            continue
+        indent = len(bm.group(1))
+        parts = [bm.group(3)]
+        j = i + 1
+        while j < len(lines):
+            line = lines[j]
+            if HEADING_RE.match(line) or BOX_RE.match(line):
+                break
+            if not line.strip() or j + 1 in opaque:
+                break
+            if len(line) - len(line.lstrip()) <= indent:
+                break
+            parts.append(line.strip())
+            j += 1
+        text = re.sub(r"\s+", " ", " ".join(p for p in parts if p)).strip()
+        if len(out) < len(BOX_ORDER):
+            out[BOX_ORDER[len(out)]] = hashlib.sha256(
+                text.encode("utf-8")).hexdigest()
+        i = j
+    return out
+
+
+# ---------------------------------------------------------------------------
+# checks
+# ---------------------------------------------------------------------------
+
+def _file_result(name: str, lane: str | None, verdicts: dict[str, dict],
+                 note: str = "") -> dict:
+    statuses = [v["status"] for v in verdicts.values()]
+    if "FAIL" in statuses:
+        verdict = "FAIL"
+    elif "N/A" in statuses:
+        verdict = "N/A"
+    else:
+        verdict = "PASS"
+    out = {"file": name, "lane": lane, "verdict": verdict,
+           "conjuncts": verdicts}
+    if note:
+        out["note"] = note
+    return out
+
+
+def evaluate_dispatch_04(prompts_dir: Path, state_dir: Path, fleet: Path) -> dict:
+    """The dispatch.04 box over the prompts directory."""
+    names = sorted(p.name for p in prompts_dir.iterdir() if p.is_file())
+    out_of_scope = []
+    files = []
+    for name in names:
+        lane, _round, kind = lane_of(name)
+        if lane is None:
+            out_of_scope.append({
+                "file": name, "check": "dispatch.04",
+                "reason": "name is not <lane>-round-<N>.md or <lane>-L1.md"})
+            continue
+        text = read_text(prompts_dir / name, "prompt file")
+        paths = report_paths(text)
+        verdicts: dict[str, dict] = {}
+        if not paths:
+            for cid in CONJUNCTS["dispatch.04"]:
+                verdicts[cid] = {"status": "N/A",
+                                 "detail": "no report path found in the file"}
+            files.append(_file_result(name, lane, verdicts,
+                                      note="no report path found"))
+            continue
+        bad = [(r, s) for r, s in paths if has_placeholder(s) or has_placeholder(
+            ".ufo/reports/round-%d/%s" % (r, s))]
+        if bad:
+            verdicts["report_path_literal"] = {
+                "status": "FAIL",
+                "detail": "report path carries a placeholder or an "
+                          "unsubstituted variable: %s"
+                          % ", ".join(".ufo/reports/round-%d/%s" % b for b in bad)}
+        else:
+            verdicts["report_path_literal"] = {
+                "status": "PASS",
+                "detail": "%d report path(s), all literal" % len(paths)}
+        kind_of_lane = lane_kind(lane, fleet, state_dir)
+        if kind_of_lane == "unknown":
+            verdicts["lane_identity_known"] = {
+                "status": "FAIL",
+                "detail": "lane id %r names no known lane: no %s repository "
+                          "and no state file" % (lane, "%s-shokunin" % lane)}
+            verdicts["report_stem_is_lane_id"] = {
+                "status": "N/A",
+                "detail": "lane identity unknown"}
+        elif kind_of_lane == "fleet-root-role":
+            stems = sorted({s for _r, s in paths})
+            verdicts["report_stem_is_lane_id"] = {
+                "status": "N/A",
+                "detail": "out of scope: fleet-root role (no %s repository); "
+                          "its report artefact is fleet-level, observed stem(s) %s"
+                          % ("%s-shokunin" % lane, ", ".join(stems) or "<none>")}
+            verdicts["lane_identity_known"] = {
+                "status": "PASS",
+                "detail": "known fleet-root role (state file present)"}
+            out_of_scope.append({
+                "file": name, "check": "dispatch.04",
+                "reason": "conjunct report_stem_is_lane_id does not apply: "
+                          "fleet-root role with no %s repository"
+                          % ("%s-shokunin" % lane)})
+        else:
+            stems = sorted({s for _r, s in paths})
+            wrong = [s for s in stems if s != lane]
+            if wrong:
+                verdicts["report_stem_is_lane_id"] = {
+                    "status": "FAIL",
+                    "detail": "report stem(s) %s != lane id %r"
+                              % (", ".join(wrong), lane)}
+            else:
+                verdicts["report_stem_is_lane_id"] = {
+                    "status": "PASS",
+                    "detail": "report stem %r == lane id" % lane}
+            verdicts["lane_identity_known"] = {
+                "status": "PASS",
+                "detail": "sibling lane repository %s-shokunin" % lane}
+        files.append(_file_result(name, lane, verdicts))
+    return _finish("dispatch.04", files, out_of_scope)
+
+
+def evaluate_dispatch_08(prompts_dir: Path, state_dir: Path, fleet: Path) -> dict:
+    """The dispatch.08 box over the prompts directory."""
+    names = sorted(p.name for p in prompts_dir.iterdir() if p.is_file())
+    out_of_scope = []
+    files = []
+    for name in names:
+        lane, round_n, kind = lane_of(name)
+        if lane is None:
+            out_of_scope.append({
+                "file": name, "check": "dispatch.08",
+                "reason": "name is not <lane>-round-<N>.md or <lane>-L1.md"})
+            continue
+        if kind != "round":
+            out_of_scope.append({
+                "file": name, "check": "dispatch.08",
+                "reason": "spawn file: the box's round token is read from the "
+                          "file name, and a <lane>-L1.md name carries none"})
+            continue
+        text = read_text(prompts_dir / name, "prompt file")
+        verdicts: dict[str, dict] = {}
+        rr = role_round(text)
+        if rr is None:
+            verdicts["filename_role_round_equal"] = {
+                "status": "FAIL",
+                "detail": "no role-line round token on line 1"}
+        elif rr != round_n:
+            verdicts["filename_role_round_equal"] = {
+                "status": "FAIL",
+                "detail": "role line says round %d, file name says %d"
+                          % (rr, round_n)}
+        else:
+            verdicts["filename_role_round_equal"] = {
+                "status": "PASS", "detail": "role line round %d" % rr}
+        paths = report_paths(text)
+        dirs = sorted({r for r, _s in paths})
+        if not paths:
+            verdicts["filename_report_dir_round_equal"] = {
+                "status": "N/A", "detail": "no report path found in the file"}
+        elif dirs != [round_n]:
+            verdicts["filename_report_dir_round_equal"] = {
+                "status": "FAIL",
+                "detail": "report dir round(s) %s != file name round %d"
+                          % (", ".join(str(d) for d in dirs), round_n)}
+        else:
+            verdicts["filename_report_dir_round_equal"] = {
+                "status": "PASS",
+                "detail": "report dir round %d" % round_n}
+        state, value, detail = state_source(state_dir, lane)
+        if state == "baseline":
+            if round_n <= value:
+                verdicts["round_le_latest_dispatched"] = {
+                    "status": "PASS",
+                    "detail": "round %d <= latest dispatched %d (%s)"
+                              % (round_n, value, detail)}
+            else:
+                verdicts["round_le_latest_dispatched"] = {
+                    "status": "FAIL",
+                    "detail": "round %d > latest dispatched %d (%s)"
+                              % (round_n, value, detail)}
+        else:
+            verdicts["round_le_latest_dispatched"] = {
+                "status": "N/A", "detail": detail}
+        files.append(_file_result(name, lane, verdicts))
+    return _finish("dispatch.08", files, out_of_scope)
+
+
+def _finish(check_id: str, files: list[dict], out_of_scope: list[dict]) -> dict:
+    evaluated = len(files)
+    fails = [f for f in files if f["verdict"] == "FAIL"]
+    nas = [f for f in files if f["verdict"] == "N/A"]
+    if fails:
+        status = "FAIL"
+    elif not files or not any(f["verdict"] == "PASS" for f in files):
+        status = "N/A"
+    else:
+        status = "PASS"
+    detail = "%d file(s) evaluated: %d PASS, %d FAIL, %d N/A; %d out of scope" % (
+        evaluated, evaluated - len(fails) - len(nas), len(fails), len(nas),
+        len(out_of_scope))
+    if fails:
+        detail += "; failing files: " + ", ".join(
+            "%s (%s)" % (f["file"], ",".join(
+                c for c, v in f["conjuncts"].items() if v["status"] == "FAIL"))
+            for f in fails[:12])
+    return {"id": check_id, "status": status, "evaluated": evaluated,
+            "detail": detail, "files": files, "out_of_scope": out_of_scope}
+
+
+# ---------------------------------------------------------------------------
+# cli
+# ---------------------------------------------------------------------------
+
+def build_parser() -> argparse.ArgumentParser:
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap.add_argument("--prompts", default=str(DEFAULT_PROMPTS), metavar="DIR",
+                    help="dispatch-prompts directory (default: %(default)s)")
+    ap.add_argument("--state-dir", default=str(DEFAULT_STATE_DIR), metavar="DIR",
+                    help="fleet state directory (default: %(default)s)")
+    ap.add_argument("--fleet", default=str(DEFAULT_FLEET), metavar="DIR",
+                    help="fleet root holding the <lane>-shokunin repositories "
+                         "(default: %(default)s)")
+    ap.add_argument("--check", action="append", choices=CHECK_IDS, default=None,
+                    help="run only this check (repeatable); default: all")
+    ap.add_argument("--self-test", action="store_true",
+                    help="assert the checks on temporary fixtures only (its "
+                         "exit code is not comparable to a live run)")
+    ap.add_argument("--box-proof", action="store_true",
+                    help="prove that both boxes are delegated to this "
+                         "instrument and that the committed fixtures "
+                         "discriminate every conjunct")
+    ap.add_argument("--map", default=None, metavar="PATH",
+                    help="box-map JSON for --box-proof (default: "
+                         "<repo>/verifiers/%s)" % BASELINE_NAME)
+    ap.add_argument("--fixtures", default=None, metavar="DIR",
+                    help="fixture corpus for --box-proof (default: "
+                         "<repo>/verifiers/fixtures/dispatch-prompts)")
+    ap.add_argument("--json", action="store_true", help="machine-readable output")
+    return ap
+
+
+def emit_json(payload: dict) -> None:
+    print(json.dumps(payload, indent=2, sort_keys=True))
+
+
+def run_checks(prompts: Path, state_dir: Path, fleet: Path,
+                wanted: list[str]) -> list[dict]:
+    results = []
+    for cid in wanted:
+        if cid == "dispatch.04":
+            results.append(evaluate_dispatch_04(prompts, state_dir, fleet))
+        else:
+            results.append(evaluate_dispatch_08(prompts, state_dir, fleet))
+    return results
+
+
+# ---------------------------------------------------------------------------
+# self-test (temporary fixtures only)
+# ---------------------------------------------------------------------------
+
+SELF_TEST_PROMPT = """You are the kote L1, round {round}. Working dir: /fleet/kote-shokunin.
+
+L0 template (must not trip dispatch.04): `<lane> | round-<N> | <question>`
+
+Write the round report at `/fleet/.ufo/reports/round-{round}/kote.md` on the
+main repo. | godspeed
+"""
+
+
+def _write_case(root: Path, name: str, text: str, baseline: str | None,
+                legacy: str | None) -> Path:
+    case = root / name
+    (case / "prompts").mkdir(parents=True, exist_ok=True)
+    (case / "state").mkdir(parents=True, exist_ok=True)
+    (case / "fleet" / "kote-shokunin").mkdir(parents=True, exist_ok=True)
+    (case / "fleet" / "kote-shokunin" / "keep").write_text(
+        "fixture marker\n", encoding="utf-8")
+    fname = "kote-round-7.md"
+    (case / "prompts" / fname).write_text(text, encoding="utf-8")
+    if baseline is not None:
+        (case / "state" / "kote.report-baseline").write_text(
+            baseline + " " + "0" * 64 + "\n", encoding="utf-8")
+    if legacy is not None:
+        (case / "state" / "kote.round").write_text(legacy + "\n", encoding="utf-8")
+    return case
+
+
+def _verdict_of(result: dict, fname: str) -> dict | None:
+    for f in result["files"]:
+        if f["file"] == fname:
+            return f
+    return None
+
+
+def self_test() -> int:
+    failures: list[str] = []
+    total = 0
+
+    def rec(what: str, ok: bool, got: object) -> None:
+        nonlocal total
+        total += 1
+        if not ok:
+            failures.append("%s: got %r" % (what, got))
+
+    with tempfile.TemporaryDirectory(prefix="dispatch-selftest-") as tmp:
+        root = Path(tmp)
+        good = SELF_TEST_PROMPT.format(round=7)
+
+        # --- control: a correct prompt passes both boxes -------------------
+        case = _write_case(root, "control", good, "9", None)
+        r04 = evaluate_dispatch_04(case / "prompts", case / "state",
+                                   case / "fleet")
+        r08 = evaluate_dispatch_08(case / "prompts", case / "state",
+                                   case / "fleet")
+        f04 = _verdict_of(r04, "kote-round-7.md")
+        f08 = _verdict_of(r08, "kote-round-7.md")
+        rec("control: dispatch.04 verdict PASS", f04 and f04["verdict"] == "PASS",
+            f04)
+        rec("control: dispatch.08 verdict PASS", f08 and f08["verdict"] == "PASS",
+            f08)
+        rec("control: dispatch.04 evaluated 1", r04["evaluated"] == 1,
+            r04["evaluated"])
+        rec("control: dispatch.08 evaluated 1", r08["evaluated"] == 1,
+            r08["evaluated"])
+        rec("control: the L0 '<lane> | round-<N>' template in the body does "
+            "not trip dispatch.04",
+            f04 and f04["conjuncts"]["report_path_literal"]["status"] == "PASS",
+            f04 and f04["conjuncts"]["report_path_literal"])
+
+        # --- dispatch.04: placeholder in the report path -------------------
+        case = _write_case(root, "ph", good.replace(
+            "/round-7/kote.md", "/round-7/<lane>.md"), "9", None)
+        r = evaluate_dispatch_04(case / "prompts", case / "state", case / "fleet")
+        f = _verdict_of(r, "kote-round-7.md")
+        rec("placeholder report path: dispatch.04 FAIL",
+            f and f["verdict"] == "FAIL", f)
+        rec("placeholder report path: conjunct report_path_literal FAIL",
+            f and f["conjuncts"]["report_path_literal"]["status"] == "FAIL", f)
+
+        # --- dispatch.04: wrong lane stem ----------------------------------
+        case = _write_case(root, "stem", good.replace(
+            "/round-7/kote.md", "/round-7/other.md"), "9", None)
+        r = evaluate_dispatch_04(case / "prompts", case / "state", case / "fleet")
+        f = _verdict_of(r, "kote-round-7.md")
+        rec("wrong lane stem: dispatch.04 FAIL", f and f["verdict"] == "FAIL", f)
+        rec("wrong lane stem: conjunct report_stem_is_lane_id FAIL",
+            f and f["conjuncts"]["report_stem_is_lane_id"]["status"] == "FAIL", f)
+
+        # --- dispatch.04: unknown lane -------------------------------------
+        case = root / "unknown"
+        (case / "prompts").mkdir(parents=True, exist_ok=True)
+        (case / "state").mkdir(parents=True, exist_ok=True)
+        (case / "fleet").mkdir(parents=True, exist_ok=True)
+        (case / "prompts" / "ghost-round-7.md").write_text(
+            SELF_TEST_PROMPT.format(round=7).replace("kote", "ghost"),
+            encoding="utf-8")
+        r = evaluate_dispatch_04(case / "prompts", case / "state", case / "fleet")
+        f = _verdict_of(r, "ghost-round-7.md")
+        rec("unknown lane: dispatch.04 FAIL", f and f["verdict"] == "FAIL", f)
+        rec("unknown lane: conjunct lane_identity_known FAIL",
+            f and f["conjuncts"]["lane_identity_known"]["status"] == "FAIL", f)
+
+        # --- dispatch.08: role-line round mismatch -------------------------
+        case = _write_case(root, "role", good.replace("round 7.", "round 6."),
+                           "9", None)
+        r = evaluate_dispatch_08(case / "prompts", case / "state", case / "fleet")
+        f = _verdict_of(r, "kote-round-7.md")
+        rec("role-line round mismatch: dispatch.08 FAIL",
+            f and f["verdict"] == "FAIL", f)
+        rec("role-line round mismatch: conjunct filename_role_round_equal FAIL",
+            f and f["conjuncts"]["filename_role_round_equal"]["status"] == "FAIL",
+            f)
+
+        # --- dispatch.08: report-dir round mismatch ------------------------
+        case = _write_case(root, "dir", good.replace("/round-7/", "/round-6/"),
+                           "9", None)
+        r = evaluate_dispatch_08(case / "prompts", case / "state", case / "fleet")
+        f = _verdict_of(r, "kote-round-7.md")
+        rec("report-dir round mismatch: dispatch.08 FAIL",
+            f and f["verdict"] == "FAIL", f)
+        rec("report-dir round mismatch: conjunct "
+            "filename_report_dir_round_equal FAIL",
+            f and f["conjuncts"]["filename_report_dir_round_equal"]["status"]
+            == "FAIL", f)
+
+        # --- dispatch.08: round above the latest dispatched round -----------
+        case = _write_case(root, "above", good, "6", None)
+        r = evaluate_dispatch_08(case / "prompts", case / "state", case / "fleet")
+        f = _verdict_of(r, "kote-round-7.md")
+        rec("round above state: dispatch.08 FAIL", f and f["verdict"] == "FAIL", f)
+        rec("round above state: conjunct round_le_latest_dispatched FAIL",
+            f and f["conjuncts"]["round_le_latest_dispatched"]["status"] == "FAIL",
+            f)
+
+        # --- dispatch.08: missing state source is N/A, never a pass --------
+        case = _write_case(root, "nostate", good, None, None)
+        r = evaluate_dispatch_08(case / "prompts", case / "state", case / "fleet")
+        f = _verdict_of(r, "kote-round-7.md")
+        rec("missing state: dispatch.08 file verdict is not PASS",
+            f and f["verdict"] != "PASS", f)
+        rec("missing state: conjunct round_le_latest_dispatched is N/A",
+            f and f["conjuncts"]["round_le_latest_dispatched"]["status"] == "N/A",
+            f and f["conjuncts"]["round_le_latest_dispatched"])
+
+        # --- dispatch.08: legacy-only state is state-stale, not compared ---
+        case = _write_case(root, "stale", good, None, "6")
+        r = evaluate_dispatch_08(case / "prompts", case / "state", case / "fleet")
+        f = _verdict_of(r, "kote-round-7.md")
+        rec("state-stale lane: conjunct round_le_latest_dispatched is N/A",
+            f and f["conjuncts"]["round_le_latest_dispatched"]["status"] == "N/A",
+            f and f["conjuncts"]["round_le_latest_dispatched"])
+        rec("state-stale lane: the detail names state-stale",
+            f and "state-stale" in f["conjuncts"]["round_le_latest_dispatched"]
+            ["detail"], f)
+
+        # --- out-of-scope names and the never-pass-on-zero rule ------------
+        case = root / "scope"
+        (case / "prompts").mkdir(parents=True, exist_ok=True)
+        (case / "state").mkdir(parents=True, exist_ok=True)
+        (case / "fleet").mkdir(parents=True, exist_ok=True)
+        (case / "prompts" / "kote-L1.md").write_text(good, encoding="utf-8")
+        (case / "prompts" / "kote-round-7-continuation-x.md").write_text(
+            good, encoding="utf-8")
+        r04 = evaluate_dispatch_04(case / "prompts", case / "state",
+                                   case / "fleet")
+        r08 = evaluate_dispatch_08(case / "prompts", case / "state",
+                                   case / "fleet")
+        rec("an L1 file is in scope for dispatch.04",
+            r04["evaluated"] == 1, r04["evaluated"])
+        rec("an L1 file is out of scope for dispatch.08",
+            r08["evaluated"] == 0 and len(r08["out_of_scope"]) == 2,
+            (r08["evaluated"], r08["out_of_scope"]))
+        rec("dispatch.08 with no in-scope file is never a PASS",
+            r08["status"] != "PASS", r08["status"])
+        empty = root / "empty"
+        (empty / "prompts").mkdir(parents=True, exist_ok=True)
+        (empty / "state").mkdir(parents=True, exist_ok=True)
+        (empty / "fleet").mkdir(parents=True, exist_ok=True)
+        z04 = evaluate_dispatch_04(empty / "prompts", empty / "state",
+                                   empty / "fleet")
+        z08 = evaluate_dispatch_08(empty / "prompts", empty / "state",
+                                   empty / "fleet")
+        rec("an empty prompts directory is never a PASS",
+            z04["status"] != "PASS" and z08["status"] != "PASS",
+            (z04["status"], z08["status"]))
+        rec("an empty prompts directory evaluates 0",
+            z04["evaluated"] == 0 and z08["evaluated"] == 0,
+            (z04["evaluated"], z08["evaluated"]))
+
+        # --- the extraction helpers on the live-shaped text -----------------
+        rec("report_paths skips a directory mention",
+            report_paths("land under .ufo/reports/round-4/. Re-read.") == [],
+            report_paths("land under .ufo/reports/round-4/. Re-read."))
+        rec("report_paths keeps an absolute report path",
+            report_paths("at `/x/.ufo/reports/round-9/kote.md` now")
+            == [(9, "kote")],
+            report_paths("at `/x/.ufo/reports/round-9/kote.md` now"))
+        rec("role_round reads the first round token only",
+            role_round("You are the x L1, round 7 of up to 1024.") == 7,
+            role_round("You are the x L1, round 7 of up to 1024."))
+        rec("lane_of reads a round file",
+            lane_of("kote-round-7.md") == ("kote", 7, "round"),
+            lane_of("kote-round-7.md"))
+        rec("lane_of reads an L1 file",
+            lane_of("kote-L1.md") == ("kote", None, "l1"), lane_of("kote-L1.md"))
+        rec("lane_of rejects a foreign name",
+            lane_of("kote-round-7-continuation-x.md") == (None, None, None),
+            lane_of("kote-round-7-continuation-x.md"))
+
+    for f in failures:
+        print("self-test FAIL: %s" % f)
+    print("%d failure(s) over %d assertions" % (len(failures), total))
+    return 1 if failures else 0
+
+
+# ---------------------------------------------------------------------------
+# box proof
+# ---------------------------------------------------------------------------
+
+def box_proof(map_path: Path, fixtures: Path) -> int:
+    """Prove that both boxes are delegated here and that the committed
+    fixtures discriminate every conjunct.
+
+    Prints exactly ``boxes proven N`` on stdout; N is the number of boxes
+    satisfying BOTH the map/pin half and the fixture half.  Exit 0 only when
+    N == 2."""
+    problems: list[str] = []
+    proven = 0
+    try:
+        raw = map_path.read_text(encoding="utf-8")
+        box_map = json.loads(raw)
+    except (OSError, ValueError) as exc:
+        print("boxes proven 0")
+        print("box-proof: cannot read the box map %s (%s)"
+              % (map_path, exc), file=sys.stderr)
+        return 2
+    entries = {}
+    for e in box_map.get("boxes", []):
+        entries[e.get("box_id")] = e
+    try:
+        skill_text = (map_path.parent.parent / SKILL_NAME).read_text(
+            encoding="utf-8")
+        live = dispatch_box_sha256(skill_text)
+    except OSError as exc:
+        live = {}
+        problems.append("cannot read SKILL.md (%s)" % (exc.strerror or exc))
+    try:
+        manifest = json.loads((fixtures / "manifest.json").read_text(
+            encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        print("boxes proven 0")
+        print("box-proof: cannot read the fixture manifest (%s)" % exc,
+              file=sys.stderr)
+        return 2
+    for cid in CHECK_IDS:
+        entry = entries.get(cid)
+        if entry is None:
+            problems.append("%s: no map entry" % cid)
+            continue
+        want = "delegated:" + DELEGATION_TARGET
+        if entry.get("disposition") != want:
+            problems.append("%s: map disposition is %r, not %r"
+                            % (cid, entry.get("disposition"), want))
+            continue
+        pinned = PINNED_BOX_SHA.get(cid)
+        if entry.get("text_sha256") != pinned:
+            problems.append("%s: map text_sha256 %r != pinned %r"
+                            % (cid, entry.get("text_sha256"), pinned))
+            continue
+        if live.get(cid) != pinned:
+            problems.append("%s: live SKILL.md box hash %r != pinned %r"
+                            % (cid, live.get(cid), pinned))
+            continue
+        cases = [c for c in manifest.get("cases", []) if c.get("check") == cid]
+        if not cases:
+            problems.append("%s: no fixture cases" % cid)
+            continue
+        ok = True
+        for c in cases:
+            case_dir = fixtures / c["dir"]
+            want_check = c["check"]
+            result = (evaluate_dispatch_04 if want_check == "dispatch.04"
+                      else evaluate_dispatch_08)(case_dir / "prompts",
+                                                case_dir / "state",
+                                                case_dir / "fleet")
+            f = _verdict_of(result, c["file"])
+            if f is None:
+                problems.append("%s/%s: file %r not evaluated"
+                                % (cid, c["id"], c["file"]))
+                ok = False
+                continue
+            if f["verdict"] != c["expect_verdict"]:
+                problems.append("%s/%s: %s verdict %r, expected %r"
+                                % (cid, c["id"], c["file"], f["verdict"],
+                                   c["expect_verdict"]))
+                ok = False
+                continue
+            named = c.get("expect_conjunct")
+            if named is not None:
+                status = f["conjuncts"].get(named, {}).get("status")
+                if status != c.get("expect_conjunct_status", "FAIL"):
+                    problems.append("%s/%s: conjunct %s is %r, expected %r"
+                                    % (cid, c["id"], named, status,
+                                       c.get("expect_conjunct_status", "FAIL")))
+                    ok = False
+        if ok:
+            proven += 1
+    print("boxes proven %d" % proven)
+    for p in problems:
+        print("box-proof: %s" % p, file=sys.stderr)
+    return 0 if proven == 2 else 1
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = build_parser().parse_args(argv)
+    if args.self_test:
+        return self_test()
+    if args.box_proof:
+        map_path = Path(args.map) if args.map else \
+            VERIFIERS_DIR / BASELINE_NAME
+        fixtures = Path(args.fixtures) if args.fixtures else FIXTURES_DIR
+        return box_proof(map_path, fixtures)
+    prompts = Path(args.prompts)
+    state_dir = Path(args.state_dir)
+    fleet = Path(args.fleet)
+    for path, what in ((prompts, "prompts directory"),
+                       (state_dir, "state directory"),
+                       (fleet, "fleet root")):
+        if not path.is_dir():
+            if args.json:
+                emit_json({"checks": [], "pass": 0, "fail": 0, "na": 0,
+                           "exit_code": 2,
+                           "error": "%s: not a directory (%s)" % (path, what)})
+            else:
+                print("ERROR %s: not a directory (%s)" % (path, what),
+                      file=sys.stderr)
+            return 2
+    wanted = list(args.check) if args.check else list(CHECK_IDS)
+    try:
+        results = run_checks(prompts, state_dir, fleet, wanted)
+    except EnvError as exc:
+        if args.json:
+            emit_json({"checks": [], "pass": 0, "fail": 0, "na": 0,
+                       "exit_code": 2, "error": str(exc)})
+        else:
+            print("ERROR %s" % exc, file=sys.stderr)
+        return 2
+    code = 1 if any(r["status"] == "FAIL" for r in results) else 0
+    if args.json:
+        emit_json({
+            "checks": results,
+            "pass": sum(1 for r in results if r["status"] == "PASS"),
+            "fail": sum(1 for r in results if r["status"] == "FAIL"),
+            "na": sum(1 for r in results if r["status"] == "N/A"),
+            "exit_code": code,
+        })
+    else:
+        for r in results:
+            print("%s %s: evaluated %d — %s"
+                  % (r["status"], r["id"], r["evaluated"], r["detail"]))
+    return code
+
+
+if __name__ == "__main__":
+    sys.exit(main())

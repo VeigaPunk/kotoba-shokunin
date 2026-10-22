@@ -84,11 +84,15 @@ Areas being explored and not yet held (LEARNING.md § Files the path writes); ap
 
 ## Known gaps
 
-- **33 of the 41 `SKILL.md` checklist boxes are still lane-attested prose.** Round
-  15 executed 7 of them (`verifiers/verify_skill_checklist.py`), delegated 1 (fixture-only from round 16 on; the live map reads 8 executed / 0 delegated / 33 unexecuted), and
+- **31 of the 41 `SKILL.md` checklist boxes are still lane-attested prose.** Round
+  15 executed 7 of them (`verifiers/verify_skill_checklist.py`), delegated 1 (fixture-only from round 16 on; the live map reads 8 executed / 2 delegated / 31 unexecuted), and
   mapped the rest with reasons in `verifiers/checklist-baseline.json`; the three
   non-SKILL checklists (agent-definition, dispatch-prompt, always-on) have no
-  executed box at all. The map makes that countable, not smaller.
+  executed box at all. The dispatch-prompt checklist's two boxes
+  (`dispatch.04`, `dispatch.08`) are now delegated to
+  `verifiers/verify_dispatch_prompts.py`, which executes them over
+  `.ufo/prompts/` (its `--box-proof` prints `boxes proven 2`). The map makes
+  that countable, not smaller.
 - The command check's extraction set is declared
   (`verifiers/checklist-command-vocabulary.json`, 29 heads) plus
   shell-tagged/info-less fenced blocks — a command outside it is invisible, and an
