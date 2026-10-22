@@ -179,3 +179,10 @@ Fields under `awk -F' \\| '`: `$4` skill file, `$5` classification, `$6` names k
   tameshi's Core names kagi's `corpus/checklist-run.sh`, which reads kagi's SKILL.md checklist section; read
   literally, "instruments over them" could make that `contested`. Recorded, not ruled; the row stays
   `adjacent`.
+- **kama** (seat `RowKama.md`): the boundary note misquoted kama's split (dropped "agent" and "fallback");
+  corrected verbatim. The split names agent files kama deleted on 2026-10-14. kama's
+  `consumer-registry.md:91-92, 111-112, 325-326` audits agent prompt text and records a verdict on a sibling
+  SKILL.md: read literally, a possible `contested` element. The rule gives no precedence between the
+  `contested` and `adjacent` arms; recorded for the integrator, row stays `adjacent`. Seats `RowSouji`,
+  `RowLore`, `RowGameDev2d` returned HOLDS or HOLDS-BOUNDED; RowLore notes the arbitration cell leaves out
+  the row's own lane name, which the rule does not yet state.
