@@ -17,8 +17,9 @@ What each check pins (id — mode — claim):
                                                round-N/*.md`, any shape: `../…`,
                                                `../../…`, host-absolute, `~/…`,
                                                bare) — the checked population.
-  corpus.pointers.report_dead         (zero)   those that do not resolve from the
-                                               citing file's directory.
+  corpus.pointers.report_dead         (zero)   those that do not resolve from the citing
+                                               file's directory, or from the fleet root
+                                               for a bare `.ufo/reports/...` path.
   corpus.pointers.commit_total        (equal)  `commit `<hex>`` citations across
                                                tracked corpus *.md.
   corpus.pointers.commit_unresolvable (zero)   those where
@@ -110,6 +111,7 @@ import json
 import re
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 # ---------------------------------------------------------------------------
@@ -120,6 +122,7 @@ INDEX_REL = "corpus/README.md"      # repo-relative, for findings and reads
 INDEX_NAME = "README.md"            # corpus-relative, for tracked-set comparison
 BASELINE_NAME = "corpus-baseline.json"
 DEFAULT_REPO = Path(__file__).resolve().parent.parent
+FLEET_ROOT = Path("/home/vgpnk/Projects/shokunin")
 
 # a FILE-column token carrying any of these is a placeholder/prose shape, not a
 # path this repo promises (see the EXCLUDED block)
@@ -262,6 +265,13 @@ def resolve_pointer(base: Path, token: str) -> Path:
     if token.startswith("/"):
         return Path(token).resolve()
     return (base / token).resolve()
+
+
+def report_pointer_exists(base: Path, token: str, fleet_root: Path = FLEET_ROOT) -> bool:
+    """Check the citing directory first, then the fleet root for bare report paths."""
+    if resolve_pointer(base, token).is_file():
+        return True
+    return token.startswith(".ufo/reports/") and (fleet_root / token).is_file()
 
 
 def is_excluded_pointer(token: str) -> bool:
@@ -602,7 +612,7 @@ def corpus_observations(repo: Path) -> dict:
             rel_repo,
             text,
             # base = the citing file's own directory, as written in its path
-            lambda base, token, _repo=repo: resolve_pointer(_repo / base, token).is_file(),
+            lambda base, token, _repo=repo: report_pointer_exists(_repo / base, token),
             lambda hex_id, _repo=repo: git_ok(
                 _repo, "cat-file", "-e", commit_peel_arg(hex_id)
             ),
@@ -937,6 +947,22 @@ def self_test() -> int:
         str(resolve_pointer(Path("/r/x/corpus"), "../../.ufo/reports/round-7/kotoba.md")),
         "/r/.ufo/reports/round-7/kotoba.md",
     )
+    with tempfile.TemporaryDirectory() as tmpdir:
+        root = Path(tmpdir)
+        lane_root = root / "lane"
+        fleet_root = root / "fleet"
+        fleet_report = fleet_root / ".ufo/reports/round-53/kotoba.md"
+        (lane_root / "corpus/lessons").mkdir(parents=True)
+        fleet_report.parent.mkdir(parents=True)
+        fleet_report.write_text("report\n", encoding="utf-8")
+        fleet_found = citation_findings(
+            "corpus/lessons/closure.md",
+            "Report `.ufo/reports/round-53/kotoba.md`",
+            lambda base, token: report_pointer_exists(lane_root / base, token, fleet_root),
+            lambda hex_id: True,
+        )
+        eq("pointer/fleet-root/checked", fleet_found["report_total"], 1)
+        eq("pointer/fleet-root/resolves-existing-report", fleet_found["report_dead"], 0)
 
     # --- citation fixture: pointers, commits, quoted meta-findings -------
     found = citation_findings(

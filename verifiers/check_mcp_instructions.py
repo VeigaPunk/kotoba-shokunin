@@ -25,13 +25,13 @@ A client is BACKED iff all of:
     `spec`, `docs` or `code`, status `mined`, opened `2026-10-22`, and a
     `used-by` cell that names ENTRY;
   * the first http(s) URL in that SOURCES row's `source` cell is on one of the
-    client's pinned hosts (HOSTS below; a `host/path` pin also requires the
-    URL path to start with that path);
+    client's pinned hosts (HOSTS below); a `host/path` pin requires the exact
+    host and a whole path-segment prefix;
   * the quote cell, stripped, starts and ends with `"`; the text between those
     two characters has 3 to 25 whitespace-separated words and contains the
     word `instructions` (case-insensitive);
-  * `corpus/lessons/round-52.md` at the same revision contains both the `S###`
-    id and the quote text verbatim (the round's Gate record).
+  * the quote exactly matches a quote recorded for the same `S###` row in
+    `corpus/lessons/round-52.md` § Gate;
 
 With `--fetch`, a BACKED client also needs its quote found on the live page:
 the URL is fetched (ordinary HTTP GET, no browser), HTML tags are dropped,
@@ -45,6 +45,7 @@ least TARGET (3), 1 otherwise, 2 = could not evaluate.
 Usage:
   python3 -B verifiers/check_mcp_instructions.py --rev <rev> [--fetch] [--json]
   python3 -B verifiers/check_mcp_instructions.py --root <dir> [--fetch] [--json]
+  python3 -B verifiers/check_mcp_instructions.py --self-test
 """
 from __future__ import annotations
 
@@ -91,6 +92,9 @@ HEADER = ("client", "row", "quote", "location", "reading")
 SID_RE = re.compile(r"^`?(S\d{3,})`?$")
 URL_RE = re.compile(r"https?://[^\s)>\]`]+")
 SOURCES_ROW_RE = re.compile(r"^\|[ \t]*S[0-9]{3,}[ \t]*\|")
+GATE_ROW_RE = re.compile(r"^-\s+\*\*(S\d{3,})\*\*")
+GATE_QUOTE_LABEL_RE = re.compile(r"\bQuote(?:\s*\([^)]*\))?:", re.S)
+QUOTED_TEXT_RE = re.compile(r'"([^"]*)"')
 
 
 def read_file(args: argparse.Namespace, path: str) -> str | None:
@@ -152,10 +156,50 @@ def host_ok(url: str, pins: tuple[str, ...]) -> bool:
     host, path = (u.hostname or "").lower(), u.path
     for pin in pins:
         h, _, p = pin.partition("/")
-        if host == h or host.endswith("." + h):
-            if not p or path.startswith("/" + p):
+        if p:
+            prefix = "/" + p
+            if host == h and (path == prefix or path.startswith(prefix + "/")):
                 return True
+        elif host == h or host.endswith("." + h):
+            return True
     return False
+
+
+def gate_quotes_by_id(lesson: str) -> dict[str, set[str]]:
+    quotes: dict[str, set[str]] = {}
+    in_gate = False
+    sid = None
+    block = []
+
+    def record_block() -> None:
+        if sid is None:
+            return
+        text = "\n".join(block)
+        label = GATE_QUOTE_LABEL_RE.search(text)
+        if label:
+            for match in QUOTED_TEXT_RE.finditer(text, label.end()):
+                quotes.setdefault(sid, set()).add(match.group(1))
+
+    for line in lesson.splitlines():
+        if line.startswith("## "):
+            record_block()
+            sid, block = None, []
+            in_gate = line.rstrip() == "## Gate"
+            continue
+        if not in_gate:
+            continue
+        match = GATE_ROW_RE.match(line)
+        if match:
+            record_block()
+            sid, block = match.group(1), [line]
+        elif sid is not None:
+            block.append(line)
+    record_block()
+    return quotes
+
+
+def gate_quote_matches(quotes: dict[str, set[str]], sid: str, quote: str) -> bool:
+    return quote in quotes.get(sid, ())
 
 
 def norm(s: str) -> str:
@@ -172,14 +216,60 @@ def fetch(url: str) -> str:
         return r.read().decode("utf-8", errors="replace")
 
 
+def self_test() -> int:
+    assertions = 0
+    failures = 0
+
+    def check(name: str, actual: bool, expected: bool) -> None:
+        nonlocal assertions, failures
+        assertions += 1
+        if actual != expected:
+            failures += 1
+            print("FAIL %s: got %s, expected %s" % (name, actual, expected))
+
+    path_pin = ("github.com/modelcontextprotocol",)
+    check("M12 exact pinned path", host_ok(
+        "https://github.com/modelcontextprotocol", path_pin), True)
+    check("M12 descendant segment", host_ok(
+        "https://github.com/modelcontextprotocol/specification/schema.md", path_pin), True)
+    check("M12 rejects sibling path", host_ok(
+        "https://github.com/modelcontextprotocol-evil/specification/schema.md", path_pin), False)
+    check("M12 rejects same-segment continuation", host_ok(
+        "https://github.com/modelcontextprotocolfoo/specification/schema.md", path_pin), False)
+    check("M12 path pin requires exact host", host_ok(
+        "https://api.github.com/modelcontextprotocol/specification/schema.md", path_pin), False)
+
+    lesson = ('## Gate\n\n- **S036** — source. Quote (`mcp-server.md:1315`):\n'
+              '  "which will be appended to the system instructions."\n')
+    gate_quotes = gate_quotes_by_id(lesson)
+    full_quote = "which will be appended to the system instructions."
+    fragment = "appended to the system instructions."
+    check("M16 accepts exact Gate quote", gate_quote_matches(
+        gate_quotes, "S036", full_quote), True)
+    check("M16 rejects quote fragment", gate_quote_matches(
+        gate_quotes, "S036", fragment), False)
+    check("M16 rejects quote recorded for another row", gate_quote_matches(
+        gate_quotes, "S037", full_quote), False)
+
+    print("self-test: %d failure(s) over %d assertions" % (failures, assertions))
+    return 1 if failures else 0
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    src = ap.add_mutually_exclusive_group(required=True)
+    src = ap.add_mutually_exclusive_group()
     src.add_argument("--rev")
     src.add_argument("--root")
     ap.add_argument("--fetch", action="store_true")
     ap.add_argument("--json", action="store_true")
+    ap.add_argument("--self-test", action="store_true")
     args = ap.parse_args(argv)
+    if args.self_test:
+        if args.rev or args.root or args.fetch or args.json:
+            ap.error("--self-test cannot be combined with --rev, --root, --fetch or --json")
+        return self_test()
+    if not args.rev and not args.root:
+        ap.error("one of --rev or --root is required")
     try:
         entry = read_file(args, ENTRY)
         sources = read_file(args, SOURCES) or ""
@@ -189,6 +279,7 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     rows = entry_rows(entry) if entry is not None else []
     table = sources_table(sources)
+    gate_quotes = gate_quotes_by_id(lesson)
     report = []
     for client in CLIENTS:
         why = []
@@ -231,8 +322,8 @@ def main(argv: list[str] | None = None) -> int:
                 why.append("quote has %d words" % n)
             if not re.search(r"\b%s\b" % WORD, quote, re.I):
                 why.append("quote lacks %r" % WORD)
-            if sid and (sid not in lesson or quote not in lesson):
-                why.append("round-52 lesson lacks the id or the verbatim quote")
+            if sid and not gate_quote_matches(gate_quotes, sid, quote):
+                why.append("round-52 Gate does not record this quote for %s" % sid)
         else:
             why.append("quote cell not wrapped in double quotes")
         rec = {"client": client, "row": sid, "url": url, "quote": quote,

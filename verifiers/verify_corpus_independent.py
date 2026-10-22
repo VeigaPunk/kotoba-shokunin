@@ -17,10 +17,11 @@ INDEX      every tracked corpus markdown file except ``corpus/README.md`` must b
            not exist on disk is MISSING; a tracked file no token denotes is UNINDEXED.
 POINTERS   a token whose text matches ``…/.ufo/reports/round-<digits>/….md`` inside a
            tracked corpus markdown file promises the file exists.  Resolution is
-           relative to the citing file's directory (rooted as-is, ``~`` against
-           ``$HOME``, otherwise joined).  Excluded: tokens with ``<``/``>``, with
-           ``*``, with whitespace, with a ``..`` segment after the leading ``../``
-           hops; a token fully inside double quotes on its line is CONTEXT.
+           relative to the citing file's directory (rooted as-is, `~` against
+           `$HOME`, otherwise joined); a bare `.ufo/reports/...` path also
+           resolves against the fleet root /home/vgpnk/Projects/shokunin when
+           present there. Excluded: tokens with `<`/`>`, `*`, whitespace, or a
+           `..` segment after the leading `../` hops; a quoted token is CONTEXT.
 COMMITS    ``commit `<token>``` (word ``commit`` not preceded by a letter, digit,
            underscore or hyphen, token backticked) must be 7-40 hex characters and
            ``git -C <repo> cat-file -e <token>^{commit}`` must succeed.  A citation
@@ -38,6 +39,8 @@ import shutil
 import subprocess
 import sys
 import tempfile
+
+FLEET_ROOT = "/home/vgpnk/Projects/shokunin"
 
 CHECK_IDS = (
     "corpus.index.tracked_files",
@@ -207,6 +210,14 @@ def resolve_pointer(token, citing_file):
     )
 
 
+def report_pointer_exists(token, citing_file, fleet_root=FLEET_ROOT):
+    """Check the citing directory, then the fleet root for bare report paths."""
+    if os.path.exists(resolve_pointer(token, citing_file)):
+        return True
+    return (token.startswith(".ufo/reports/") and
+            os.path.isfile(os.path.join(fleet_root, token)))
+
+
 def pointer_shape(token):
     if token.startswith("/"):
         return "absolute"
@@ -372,7 +383,7 @@ def _fnmatch(name, pattern):
 # ------------------------------------------------------------------ pointers ---
 
 
-def analyse_pointers(repo, tracked_corpus):
+def analyse_pointers(repo, tracked_corpus, fleet_root=FLEET_ROOT):
     excluded, quoted, dead, checked = [], [], [], []
     shapes = {"absolute": 0, "tilde": 0, "relative": 0, "bare": 0}
     candidates = 0
@@ -392,7 +403,7 @@ def analyse_pointers(repo, tracked_corpus):
                         continue
                     checked.append("%s:%d: %s" % (rel, lineno, token))
                     shapes[pointer_shape(token)] += 1
-                    if not os.path.exists(resolve_pointer(token, path)):
+                    if not report_pointer_exists(token, path, fleet_root):
                         dead.append("%s:%d: %s" % (rel, lineno, token))
     return {
         "report_candidates": candidates,
@@ -895,6 +906,20 @@ def self_test():
               "pointers: dotdot after leading hops detected")
         st.eq(has_dotdot_after_hops("../../../a/b.md"), False,
               "pointers: pure leading hops are not dotdot-after-hops")
+
+        fallback_repo = os.path.join(tmp, "fleet-fallback-lane")
+        fallback_fleet = os.path.join(tmp, "fleet-fallback-root")
+        _write(os.path.join(fallback_repo, "corpus/lessons/closure.md"),
+               "Report `.ufo/reports/round-53/kotoba.md`\n")
+        _write(os.path.join(fallback_fleet,
+                            ".ufo/reports/round-53/kotoba.md"), "report\n")
+        fallback = analyse_pointers(
+            fallback_repo, ["corpus/lessons/closure.md"], fallback_fleet
+        )
+        st.eq(fallback["report_total"], 1,
+              "pointers: fleet-root report remains checked")
+        st.eq(fallback["report_dead"], 0,
+              "pointers: existing fleet-root report resolves")
 
         # -- commits: nonhash vs unresolvable vs resolvable ----------------------
         croot = os.path.join(tmp, "commits")

@@ -1310,6 +1310,22 @@ def self_test() -> int:
     rec("param-shadow CLI: exit 1", code == 1, code)
     rec("param-shadow CLI: names the unresolved class",
         "<unresolved-var:S$>" in out, out)
+
+    # (b2j) round-52 P4e: a callee whose only group is unresolved must still
+    # surface when its file is declared; the two Kl pairs keep a known callee
+    # admitted, so reverting unresolved-file admission loses only the bq call.
+    code, out = run_capture(
+        ["--repo", fx,
+         "--omp-strings", fx + "/strings-omp-unresolved-group.txt",
+         "--opencode-strings", fx + "/strings-empty.txt",
+         "--baseline", fx + "/baseline-18.12.5.json",
+         "--inventory", inv_clean,
+         "--check", "surfaces.no_uncovered_class"])
+    rec("unresolved-group-admission: exit 1", code == 1, code)
+    rec("unresolved-group-admission: names unresolved class",
+        "FAIL surfaces.no_uncovered_class:" in out
+        and "omp:<unresolved-var:S$>/CLAUDE.md" in out, out)
+
     # (b3) a substrate whose call shapes all vanish is a vacuity FAIL, never
     # an empty-set pass (the 2026-10-16 omp-move defect class round 21 fixed)
     code, out = run(omp_dump=fx + "/strings-empty.txt")
@@ -1441,6 +1457,20 @@ def self_test() -> int:
         "FAIL surfaces.table_parity:" in out, out)
     rec("vacuous-parity: FAIL literal_parity",
         "FAIL surfaces.literal_parity:" in out, out)
+
+    # (h2) With no declared omp pairs, retain the allowlist extraction so
+    # classes remain visible to no_uncovered_class instead of passing on 0 == 0.
+    code, out = run_capture(
+        ["--repo", fx, "--omp-strings", omp_clean,
+         "--opencode-strings", fx + "/strings-empty.txt",
+         "--baseline", fx + "/baseline-empty.json",
+         "--inventory", fx + "/inventory-empty.md",
+         "--check", "surfaces.no_uncovered_class"])
+    rec("empty-baseline fallback: exit 1", code == 1, code)
+    rec("empty-baseline fallback: names extracted omp classes",
+        "FAIL surfaces.no_uncovered_class:" in out
+        and "omp:claude-md/CLAUDE.md" in out
+        and "omp:gemini/GEMINI.md" in out, out)
 
     # (f) missing dump path -> exit 2, never a pass
     code, out = run_capture(
