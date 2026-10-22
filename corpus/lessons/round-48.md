@@ -102,3 +102,18 @@ Stop rationale: every claim of this round rests on an opened row.
   stripping; six untabled rule classes are listed under "Rules not tabled". The M28 row's fleet report
   pointer was repo-relative and read dead in `verify_corpus_integrity.py`; it is now host-absolute
   (`verifiers/corpus-baseline.json` report_total 40 → 41).
+- `A27MistakeRows`: M26's "the producer reads 11" was carried from round 47 without re-measurement
+  (the Q19 class). Re-measured by the seat at `75f671b`, `84b9c9b` and the C2 commit: the producer
+  reads **12** (11 names — 10 under `~/.agents/skills` plus `kimi-webbridge` under `~/.claude/skills`,
+  dated 2026-10-22T02:36:39Z — plus the built-in 1) and the instrument reads 10. The live gap
+  therefore has a second cause the M26 row does not name: the instrument never enumerates
+  `~/.claude/skills`, and the round-48 change does not cover it. M26's conclusion (the change does not
+  resolve routed defect 1) stands. M27's `captured-by` read `none` without a criterion; Q24 now
+  covers it (`none → Q24`).
+- `A02AnthropicColumn`, `A33RecordsMatch`: the Gate's opening sentence ("No existing row's `status`,
+  `recheck` or `used-by` changed") was true at `887b6af` and is superseded by the used-by changes logged
+  above. S019's anchor says the round-47→48 drift left "the rule lines unchanged"; byte-true only for
+  the rule bullets and line 206 (lines 257-259 and 1131-1150 were reworded, same content). The row
+  stays as written (rule 2); the entry now states the precise difference. The checker docstrings at
+  `verify_skill_checklist.py` (`trigger.no_xml_tag` description and the limits list) still named S003
+  and said the escape backstop is double-quoted only; both corrected.

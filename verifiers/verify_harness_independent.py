@@ -593,9 +593,12 @@ def derive(s: Substrate) -> list[dict]:
     # The roots are the directories opencode's own log names as skill sources,
     # plus the two configured roots --oc-config/skill and --oc-config/skills
     # (enumerated even when the log does not name them; round 48), plus the
-    # shared agents root it reads; names come from enumerating direct children
-    # with the same operator for every root. Names are a set, so a root named
-    # twice, or named by the log and also configured, never adds twice.
+    # shared agents root it reads. Log-named and configured roots share one
+    # operator (direct children holding a SKILL.md file, named by directory);
+    # the agents root keys by frontmatter name. This is the frozen oracle's
+    # bounded contract, narrower than opencode's recursive loader (S016).
+    # Names are a set, so a root named twice, or named by the log and also
+    # configured, never adds twice.
     root_dirs = [d for d in ("skill", "skills")
                  if (s.oc_config / d).is_dir()]
     sources: set[str] = set()
@@ -1390,12 +1393,14 @@ def self_test() -> int:
         expect("round 48: the value equals an independent enumeration",
                (cfg_value, sorted(expected_names)),
                (5, ["alpha", "beta", "solo-p", "solo-s", "twin"]))
-        # the row's own detail text must name the configured roots (the base
-        # mislabelled the two families); checked on the root names rather
-        # than on one wording, so it survives a re-worded detail string.
+        # the row's own detail text must list both configured roots as present
+        # (the base mislabelled the two families); the "(present: ...)" list is
+        # parsed, so a plural-only label fails (falsify seat A25ArmReview).
         evidence = cfg_rows["oc.roots.names_plus_builtin"]["evidence"]
-        expect("round 48: the row's evidence names the configured roots",
-               ("skill" in evidence, "skills" in evidence), (True, True))
+        present = re.search(r"\(present: ([^)]*)\)", evidence)
+        expect("round 48: the row's evidence lists both configured roots",
+               sorted(present.group(1).split(", ")) if present else None,
+               ["skill", "skills"])
 
         # the direct-child scope: a skill nested deeper than a root's direct
         # child is not a name, so adding it must move the count by nothing.
@@ -1409,7 +1414,7 @@ def self_test() -> int:
                cfg_value - flat_rows["oc.roots.names_plus_builtin"]["value"], 0)
         expect("round 48: the nested skill is on disk but not counted",
                ((cfg.oc_config / "skill" / "group" / "zeta" / "SKILL.md").is_file(),
-                flat_rows["oc.roots.names_plus_builtin"]["value"]),
+                cfg_value),
                (True, 5))
 
         # the same-name pair: two directories in two roots, one name.  The

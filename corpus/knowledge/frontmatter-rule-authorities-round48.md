@@ -1,6 +1,6 @@
 source: S018 (https://agentskills.io/specification, § Frontmatter, § `name` field, § `description` field, § Progressive disclosure), S017 (https://github.com/agentskills/agentskills/tree/69ef37e9424c0a7ea9dd2293b559e43ec8176379/skills-ref, `validator.py`, and `prompt.py:46` in the same tree), S019 (https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices, § Skill structure, § Writing effective descriptions, § Progressive disclosure patterns), S012 (`quick_validate.py:42-92` at `dbd4588`), S021 (https://learn.chatgpt.com/docs/build-skills, page intro and § How ChatGPT and Codex use skills; cited only for what the Codex page does not state), S020 (lane `verify_skill_checklist.py`)
 verified-at: 2026-10-22
-recheck: curl -fsSL https://agentskills.io/specification.md | grep -c 'Must match the parent directory name'  # 1 on 2026-10-22; 0 means the spec's rule text moved
+recheck: curl -fsSL https://agentskills.io/specification.md | grep -c 'Must match the parent directory name'  # 1 on 2026-10-22; 0 means the rule text moved or the fetch failed
 
 # Which authority imposes which SKILL.md frontmatter rule (round 48)
 
@@ -21,7 +21,7 @@ Authorities and the bytes read (2026-10-22, UTC):
   to the pinned tree (its `validator.py` hashes `7b5cb3dc…`: CRLF line endings and `read_text(encoding='utf-8')`);
   a pinned-commit install gave the same exit codes and messages on 21 fixtures (`C2SkillsRefRun.md`).
 - **Anthropic docs** — S019, best-practices page `.md`, 42,169 B, sha256 `f0a5d61b…` (round 47 read
-  42,028 B `727f3fa1…`; copy edits only, every rule line unchanged).
+  42,028 B `727f3fa1…`; 62 in-place copy edits; the rule bullets (bp.md:153-156, 160-162) and line 206 are byte-identical, while lines 257-259 and 1131-1150 were reworded with the same rule content — `.ufo/waves/round-48/falsify/A02AnthropicColumn.md`).
 - **Anthropic packager** — S012, `quick_validate.py` at `dbd4588f…`, sha256 `67cf5703…`; this pin is
   still `main` HEAD on 2026-10-22 (`git ls-remote`).
 - **Codex docs** — S021, `learn.chatgpt.com/docs/build-skills.md`, sha256 `ed6e324f…`.
@@ -70,7 +70,9 @@ table's source), `C2LaneCheckerRun.md` (10 fixtures, three-way comparison), `C2S
    any `<` or `>` in the parsed value; skills-ref allows both and escapes at render time.
 4. **The lane checker is lexical, and it diverges from the packager in both directions**
    (`C2LaneCheckerRun.md`, 10 fixtures run 2026-10-22 with its `runner.py`; 6 of 10 verdicts differ from
-   the packager, 3 of 10 from the docs' tag rule):
+   the packager's description angle-bracket rule (7 of 10 on its whole-file verdict, which also applies
+   its name rule), 3 of 10 from the docs' tag rule read as a well-formed tag shape;
+   `.ufo/waves/round-48/falsify/A07LaneDivergence.md`):
    - an alias `description: *d` whose anchor holds `<b>`: lane PASS, packager FAIL (the lane reads
      the two characters `*d`; it does not resolve aliases);
    - non-tag brackets (`a < b`, `->`, a folded block splitting `<` and `b>`): lane PASS, packager FAIL;
@@ -117,9 +119,15 @@ These stay as counterexamples. No universal frontmatter-validator claim is made 
 
 ## Limits
 
-- Five of the six sources are read live; the recheck line and the commands in
-  `C2RecheckCommand.md` fail closed (count 0, exit 1) when the rule text moves or the URL dies.
-  The packager and skills-ref rows are pinned to commits; the docs pages carry only a content hash.
+- Five of the six sources are read live. Per-source rechecks, each printing 1 or 2 on 2026-10-22 and
+  failing closed (count 0, exit 1) when the rule text moves or the fetch fails; nothing runs them
+  automatically, so they are manual checks, not a gate:
+  - skills-ref: `curl -fsSL https://raw.githubusercontent.com/agentskills/agentskills/69ef37e9424c0a7ea9dd2293b559e43ec8176379/skills-ref/src/skills_ref/validator.py | grep -c 'MAX_DESCRIPTION_LENGTH = 1024'` → 1
+  - packager: `curl -fsSL https://raw.githubusercontent.com/anthropics/skills/dbd4588f9e1033efb41dad4bef2f7947c8993d44/skills/skill-creator/scripts/quick_validate.py | grep -c 'Description cannot contain angle brackets (< or >)'` → 1
+  - Anthropic docs: `curl -fsSL https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices.md | grep -c 'Cannot contain XML tags'` → 2
+  - Codex docs: `curl -fsSL https://learn.chatgpt.com/docs/build-skills.md | grep -c 'must include `name` and `description`'` → 1
+  (`C2RecheckCommand.md`, `.ufo/waves/round-48/falsify/A11RecheckRuns.md`). The packager and
+  skills-ref rows are pinned to commits; the docs pages carry only a content hash.
 - Client runtime behaviour (what Claude, Codex, opencode or omp do on load) is not measured here;
   this entry maps stated and executed validation rules only. Claude Code's skills page and the
   Anthropic Skills API guide state further rules (a 256-character name refusal; upload-time

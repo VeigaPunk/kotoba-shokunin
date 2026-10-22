@@ -97,10 +97,13 @@ trigger.anti_trigger_clause     the ``description``, after quoted and
 trigger.no_xml_tag              the parsed ``name`` and ``description``
     values carry no XML markup: a start/end/empty-element tag (``<`` then
     a name character — ``a < b`` is a comparison), comment, CDATA,
-    processing instruction or declaration, or a YAML double-quoted
-    ``\\x3c``/``\\u003c`` escape that decodes to one.  Backticked spans are
-    NOT exempt (frontmatter is plain text to every client).  Source: S003,
-    an Anthropic rule the open spec (S001/S002) lacks.  ``evaluated`` =
+    processing instruction or declaration, or a YAML ``\\x3c``/``\\u003c``
+    escape token in the raw scalar text (it decodes to ``<`` only in a
+    double-quoted scalar; in single-quoted, plain and block scalars it is a
+    known false FAIL).  Backticked spans are NOT exempt (frontmatter is plain
+    text to every client).  Source: S019 (supersedes S003), an Anthropic rule
+    the open spec (S018/S002) does not state; a lexical approximation, see
+    corpus/knowledge/frontmatter-rule-authorities-round48.md.  ``evaluated`` =
     non-empty fields scanned (1-2).
 trigger.line_budget             the box binds the threshold: the first
     integer in the checklist box whose text matches ``file … <int> …
@@ -207,7 +210,7 @@ DOCUMENTED LIMITS (what this instrument proves and what it never proves):
   - anti-trigger is a vocabulary test over the OBSERVED bilingual marker
     set — an unlisted exclusion phrasing FAILs unearned, a marker-bearing
     non-exclusion (or a vacuous "Never use this skill.") passes unearned;
-  - the XML-tag check reads S003's words, not Anthropic's packager:
+  - the XML-tag check reads S019's words (S003 before round 48), not Anthropic's packager:
     ``quick_validate.py`` (used by ``package_skill.py``) rejects any ``<``
     or ``>``, so ``a -> b`` passes here and fails packaging; Claude Code's
     ``when_to_use`` (appended to the listed description), fullwidth
