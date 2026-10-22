@@ -46,7 +46,19 @@ prose (rewritten each round) — the SCORECARD axes rows, capability rows, move-
 |---|---|---|
 | `SCORECARD.md:261` (capability row "dispatch-prompt box check") | "… and **no gate runs `--box-proof`**" | The round-50 gate does run it. `python3 -B verifiers/verify_skill_checklist.py --json` → exit 0, detail `delegated verifiers/verify_dispatch_prompts.py: --box-proof exit 0: boxes proven 2`. This row was rewritable and was left stale. |
 
-### Two inconsistencies inside the landed text
+### Two inconsistencies inside the landed text (and the falsify wave's own verdicts on them)
+
+The round-50 falsify seat `.ufo/waves/round-50/falsify/ReviewKakeKasegiBasis.md` rates the D4
+qualifier **FAILS** on the same row (`SCORECARD.md:34`): its F2 holds that the aggregator-mirrored
+lessons are aggregator routing records and not a sibling-stated split (so the correct basis label is
+`kotoba`), that the qualifier as first landed at `956ee167` said "found only in round 50" and spliced
+into the round-49 counter command, and that the qualifier is **incomplete because it omits tameshi**
+— whose round-49 basis the census itself records as kotoba's base `PROVINCE.md` line
+(`corpus/knowledge/sibling-overlap-census-round49.md:147-149`). `a78fec1` already fixed the two
+points that seat raised about the wording (the "found only in round 50" phrase is gone; the
+qualifier moved to the end of the cell, out of the command span) and corrected the census basis to
+`kotoba`, but **the tameshi omission stands**: the landed D4 qualifier names kake and kasegi only.
+
 
 - `SCORECARD.md:34` at `956ee167` spliced the D4 qualifier **into the middle of the published `awk … | grep -cE …` command span**, splitting it into two spans; the second is not runnable (`bash -c` on it → syntax error). `a78fec1` moved the qualifier to the end of the evidence cell and the awk span is intact again. Caught and fixed inside the wave.
 - `corpus/knowledge/sibling-overlap-census-round49.md` now carries both "Basis both." (line 289) and "**kake and kasegi basis is `kotoba`, not `both`**" (line 326). The later line wins and `SCORECARD.md:34` and `corpus/lessons/round-50.md:128` both follow it, but the entry is append-only, so both statements stand in the file.
@@ -128,6 +140,19 @@ each delegated instrument's `--box-proof` and fails on a non-zero exit.
    should take the four-clause list from `LOG.md:2382` and the landed `SKILL.md`.
 5. **One stale row the landing created rather than fixed.** `SCORECARD.md:261` asserts no gate runs
    `--box-proof`; the round-50 gate does run it.
+6. **The D4 qualifier is still incomplete on tameshi.** The census's own round-49 falsify note
+   (`corpus/knowledge/sibling-overlap-census-round49.md:147-149`) records tameshi's basis as kotoba's
+   base `PROVINCE.md` line "tameshi — verification-fixture craft and mutation testing", which names
+   only tameshi's ground, with tameshi's own wave report as corroboration only — so at round 49
+   tameshi, like kake and kasegi, did not rest on the sibling's own bytes. The landed qualifier names
+   kake and kasegi only. The falsify seat `ReviewKakeKasegiBasis.md` F2(d) says the same. The
+   qualifier should name tameshi's basis too, and the "5 of 20"-style figures it quotes should be
+   read against the round-49 basis column, not the round-50 one.
+7. **`corpus/lessons/round-50.md:128-130` (the D4 bullet) repeats the same incomplete pair.** It says
+   the row "now says that kake and kasegi are `adjacent` because of kotoba's own description, not
+   their own bytes" — same omission of tameshi, and it does not name the "0 contested" precedence
+   point that the SCORECARD qualifier does. The lesson is append-only; a corrected D4 bullet must be
+   appended, not edited.
 
 ## Evidence (commands, exit codes)
 
