@@ -610,7 +610,16 @@ def derive(s: Substrate) -> list[dict]:
         path = Path(directory)
         if not path.is_dir():
             continue
-        for entry in sorted(path.iterdir()):
+        try:
+            entries = sorted(path.iterdir())
+        except PermissionError:
+            # A configured root the log does not name was never read before
+            # round 48; an unreadable one contributes nothing rather than
+            # aborting. Log-named roots keep their fail-closed read.
+            if directory in configured and directory not in sources:
+                continue
+            raise
+        for entry in entries:
             if (entry / "SKILL.md").is_file():
                 names.add(entry.name)
     rows.append(row("oc.roots.names_plus_builtin", len(names),
@@ -1443,6 +1452,27 @@ def self_test() -> int:
         expect("round 48: a root named by the log and by the configuration is "
                "one root",
                logsame_rows["oc.roots.names_plus_builtin"]["value"], 5)
+        # ... and an unreadable configured root contributes nothing instead of
+        # aborting the derivation: before round 48 the instrument never read
+        # the configured roots, so a read failure there must not turn a clean
+        # run into exit 2 (falsify seat A24UnreadableRoot). Log-named roots keep
+        # their old fail-closed read.
+        locked_root = Path(tmp) / "cfg-locked"
+        locked_root.mkdir()
+        locked = build_configured_root_fixture(locked_root)
+        locked_dir = locked.oc_config / "skills"
+        locked_dir.chmod(0)
+        try:
+            if os.access(locked_dir, os.R_OK):
+                expect("round 48: unreadable-root probe skipped (running as a "
+                       "user that can read mode-000 directories)", True, True)
+            else:
+                locked_rows = {r["check"]: r for r in derive(locked)}
+                expect("round 48: an unreadable configured root contributes "
+                       "nothing and does not abort",
+                       locked_rows["oc.roots.names_plus_builtin"]["value"], 4)
+        finally:
+            locked_dir.chmod(0o755)
 
     fixture_battery(expect)
 
