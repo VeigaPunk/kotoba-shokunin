@@ -141,11 +141,13 @@ CLIENT_URL_PREFIXES = {
 # measurement.
 REVIEWED_LEVERS = {
     "GitHub Copilot SDK": {"disabledSkills"},
-    "GitHub Copilot CLI": {"disable-model-invocation", "copilot skill disable"},
+    "GitHub Copilot CLI": {"disable-model-invocation", "copilot skill disable",
+                           "ignoredSkillsLocations"},
     "VS Code": {"disable-model-invocation"},
-    "Claude Code": {"disable-model-invocation", "skillOverrides"},
+    "Claude Code": {"disable-model-invocation", "disable-model-invocation: true",
+                    "skillOverrides"},
     "opencode": {"opencode/autoinvoke", "deny"},
-    "Gemini CLI": {"/skills disable", "skills disable"},
+    "Gemini CLI": {"/skills disable", "/skills disable <name>", "skills disable"},
     "Codex": {"allow_implicit_invocation", "enabled = false"},
 }
 

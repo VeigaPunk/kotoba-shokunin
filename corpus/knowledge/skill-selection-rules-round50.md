@@ -88,3 +88,11 @@ Seat reports under `../../.ufo/waves/round-50/falsify/`. Appended; the text abov
   sha256 `612c3b83…`, fetched 2026-10-22T13:31Z and 13:33Z by falsify seats `CriticFrontierSweep.md`
   and `ReopenS029.md`) carries "Avoid overlap: Ensure your skill descriptions are distinct from one
   another" (`:16`), an authoring rule, not a runtime rule.
+
+## Round 51 note (append-only)
+
+Finding 4 is superseded by `skill-overlap-levers-round51.md`: each of seven clients also documents a
+lever other than the description that removes one named skill from the candidates. Finding 4 also
+cut its own source short: `skills.md:1194` is item 1 of a two-item list whose item 2 is "Add
+`disable-model-invocation: true` if you only want manual invocation" (`:1195`). Finding 1 stands:
+none of those levers decides between two skills that both remain candidates.

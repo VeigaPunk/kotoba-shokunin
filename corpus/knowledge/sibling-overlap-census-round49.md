@@ -368,3 +368,90 @@ Appended round 50 (append-only). Seat reports under `../.ufo/waves/round-50/fals
   at 2026-10-22T13:44:09Z → 21,840 B, sha256 `7913d455…` (byte-identical to the row), and
   `grep -ciE 'tie[- ]?break'` → 0. S018's round-49 sweep already used `tie[- ]?break`; only the S022 and
   S023 round-49 arms used the narrow spelling, and both are now 0 under the wide one.
+
+## Round 51: corrections to the round-50 rulings (append-only)
+
+Appended round 51 (append-only; the sections above are unchanged). Seat report
+`../.ufo/waves/round-51/build/D5Rows.md`.
+
+- **kengaku ruling, the `corpus/README.md:192` premise (routed D5):** the ruling above says kengaku's
+  `corpus/README.md:192` "says only 'frontmatter triggers'". It does not. At `1f3b0f1e` that line is one
+  row of the `plans/` table in kengaku's `corpus/README.md` and reads: `plans/round25_census.sh` |
+  Round-25 counting script (SOURCES census, new rows, mistakes rows, SHONEN form, frontmatter
+  triggers, both instruments' summaries). It lists six outputs, and "frontmatter triggers" is the
+  fifth, not the whole. The script's own header (`plans/round25_census.sh:11-27`) documents the
+  matching 14 keys (`head`, `sources_rows`, `sources_malformed`, `sources_tier_histogram`,
+  `sources_status_histogram`, `sources_new_rows_r25`, `knowledge_files`,
+  `lesson_mistake_rows_r25`, `shonen_evidence_lines_per_box`, `skill_frontmatter_triggers`,
+  `calib_summary`, `calib_exit`, `state_check_summary`, `state_check_exit`), and a run of it at the
+  pin in a checkout of that commit prints all 14 (exit 0): `sources_rows=76`,
+  `sources_new_rows_r25=16`, `knowledge_files=37`, `lesson_mistake_rows_r25=8`,
+  `shonen_evidence_lines_per_box=1,1,1,1`, `skill_frontmatter_triggers=6`, `calib_exit=0`,
+  `state_check_exit=0`. The script therefore counts a lane root's SOURCES registry, its round-25
+  lesson rows, its SHONEN evidence boxes and two instrument summaries, not a lane's
+  `SKILL.md` frontmatter alone. The sibling's "reads only the `SKILL.md` of the lane it runs in"
+  premise was already withdrawn by the round-50 falsify-wave correction above; this entry withdraws
+  the misreading of the sibling's own description of the script. **No row moves**: the kengaku row
+  stays `adjacent`, basis both, because the ruling's "no claim" rests on the scope-surface rule (the
+  script's cross-lane runs are recorded only in kengaku's wave reports, which § Classification rule
+  excludes), and the counts stay 9 adjacent, 11 none, 0 contested. A bare `README.md:192` does not
+  resolve in kengaku's tree at that pin (its top-level `README.md` is 14 lines); the citation that
+  resolves is `corpus/README.md:192`, as the ruling already wrote it.
+- **kama row, the cut split quote (routed D5):** `PROVINCE.md:44` quoted kama's split as "Kotoba owns
+  the instruction/agent surface and its model/fallback wording; kama owns independent verification"
+  and closed the quote there, dropping "of the target endpoint" with no ellipsis, and cited kama
+  `corpus/README.md:51-55` for a deletion of both agent files that passage does not name in full. At
+  `c808ba07` kama `corpus/knowledge/cross-lane-scope.md:29` reads "**Kotoba** owns the instruction/
+  agent surface and its model/fallback wording; **kama** owns independent verification of the target
+  endpoint.", the full sentence this census already quotes at the line above; `PROVINCE.md:44` now
+  carries that full sentence. For the deletion, kama `corpus/README.md:51-55` names only
+  `~/.config/opencode/agents/janitor.md:21` of the two agent files and says they were "deleted or
+  emptied" as of the 2026-10-14 re-census, a re-census date rather than a deletion day; the passage
+  naming the deletion of the whole `~/.config/opencode/agents/` directory is kama
+  `corpus/knowledge/consumer-registry.md:56-57` ("Most consumer files are gone. Deleted since round
+  2"), and kama `corpus/knowledge/cross-lane-scope.md:57,59` records each of `janitor.md` and
+  `distiller.md` absent by shape check only. `PROVINCE.md:44` now cites those two passages and says
+  so; the classification, the commit and the basis of the kama row are unchanged.
+
+## Round 51 status of the precedence rule (routed D6)
+
+Appended round 51 (append-only). No row moves: the counts stay 9 adjacent, 11 none, 0 contested.
+
+- **The rule is provisional until the operator answers.** The precedence rule and its three rulings
+  ("Round 50: precedence between `contested` and a stated split", above) are kotoba's own rule, not an
+  integrator ruling. The question is the `kotoba | round-50` line of the fleet file
+  `/home/vgpnk/Projects/shokunin/.ufo/l0-questions.md`, line 105 (read read-only on 2026-10-22). That
+  line carries the request "Accept, or rule otherwise?" and carries no answer; the file's two
+  `L0 ANSWER` markers are on lines 52 and 53 and answer other lanes' questions. Until the operator
+  answers, the rule stands as kotoba's reading, and the rows it decided stay as recorded, subject to
+  that answer.
+- **The rule was written after the rows it decides were known.** The round-49 section of this entry
+  already listed kama, kengaku and tameshi as open "possible `contested`" items (this entry's lines
+  165, 180 and 185-186), and the rule and its three rulings landed together in the round-50 landing
+  at `956ee16`. The non-author spot-check records the same observation and states that the exit clause
+  "clears exactly those three" (`corpus/lessons/round-50-verifier-spotcheck.md:207-213`). Those three
+  are the only rows whose class the rule settled; every other row's class rests on the
+  § Classification rule alone, and mado stays `none` on that rule without needing the exit clause.
+  For kama and tameshi the sibling-split exit is the operative clause, and the falsify-wave
+  corrections above already record that the claim arm fires and the sibling's own split clears each
+  of them. For kengaku the entry records that the claim arm does not fire at all, because its
+  cross-lane runs appear only in wave reports, which § Classification rule excludes; its `adjacent`
+  class rests on kengaku's own split.
+- **Bound on the generic-refusal exit.** The exit as written fires on any sibling sentence that
+  assigns the claimed element away from the claimant, and it does not require that sentence to name
+  the element. A generic refusal therefore clears any gate claim, whatever gate is at issue: tameshi's
+  "every lane's gate remains its own" (tameshi `PROVINCE.md:14` at `3b20f073`) is such a sentence
+  (`../.ufo/waves/round-50/falsify/RowTameshiR50.md:37`, finding F4). A row cleared only by a generic
+  refusal is marked as such. The tameshi row is that row: under the literal round-49 wording the arm
+  fires and only the generic refusal clears it; under the round-50 definition no claim exists at all,
+  so the row is `adjacent` either way (the same finding, section 3). Its class is unchanged here.
+  kama is not so marked: its exit is a specific assignment (kama
+  `corpus/knowledge/cross-lane-scope.md:29` at `c808ba07`), and the falsify seat records the same
+  (`../.ufo/waves/round-50/falsify/RowKamaR50.md:33-43`, findings F4 and F5: the excuse, not the
+  premise, keeps the row `adjacent`, and a claim-always-wins reading would flip it). kengaku is not so
+  marked either: its claim never arises.
+- **Round 51 neither extends nor relies on the rule.** No round-51 claim uses it, no row outside the
+  three it already decided is measured under it, and no clause of it is amended here. Round 51's claims
+  are the omp 18.12.6 surface re-derivation and the overlap-lever learning table; neither reads this
+  entry's precedence. The rule's status is recorded here so the operator's answer has one place to
+  land.

@@ -132,7 +132,11 @@ delegated boxes are the dispatch-prompt fidelity boxes `dispatch.04` and
 `dispatch.08`, run by `verifiers/verify_dispatch_prompts.py` (its
 `--box-proof` prints `boxes proven 2` only when both boxes are delegated there
 and each of its six named conjuncts has an isolated must-fail case, judged on
-observed statuses; the checklist gate runs `--box-proof`; the
+observed statuses; the checklist gate runs `--box-proof` only when the
+delegate's `--help` probe advertises the flag — a probe that times out, cannot
+execute or does not show the flag is reported PASS with "not run", so the gate
+fails open there, and a relative `--map` run from another directory gives a
+false red (`.ufo/waves/round-50/falsify/ReviewBoxProofGate.md` F1–F3, carried); the
 unsubstituted-variable clause, the `≤` equality boundary, the legacy-state
 arm and a non-digit round folder have no fixture yet). Limits and ceilings: `corpus/knowledge/checklist-execution-round17.md`.
 
@@ -370,13 +374,32 @@ five highest-frequency rows: description without trigger strings; anti-trigger i
 the body only; warning without a signature; a bin invoked with no declared
 location; durable policy copy-pasted into a dispatch prompt.
 
-Error pattern (round 50, `corpus/knowledge/skill-selection-rules-round50.md`): two
-sibling descriptions that both match, with nothing in either text saying who owns what.
-No client documents a rule between two differently named skills whose descriptions
-both match; the documented rules decide between copies of one name, component types or
-configuration sources, and the documented remedy is a more specific description. Fix: name the neighbour and the split in the description
-(`trigger.05`), stay under 1,024 characters, and check kotoba's own file with
+Error pattern (round 50, `corpus/knowledge/skill-selection-rules-round50.md`; corrected round 51):
+two sibling descriptions that both match, with nothing in either text saying who owns what. On
+the eight client pages that entry read, no client documents a rule between two differently named,
+author-written skills whose descriptions both match; the documented rules decide between copies of
+one name, component types or configuration sources. Fix, when both skills should stay automatic:
+name the neighbour and the split in the description (`trigger.05`), stay under 1,024 characters,
+and check kotoba's own file with
 `python3 -B verifiers/check_sibling_census.py corpus/knowledge/sibling-overlap-census-round49.md --province PROVINCE.md --skill SKILL.md`.
+
+Overlap levers by client (round 51, `corpus/knowledge/skill-overlap-levers-round51.md`): besides
+the description, each client documents a lever that removes one named skill from the candidates.
+Each lever removes one skill (everywhere, from automatic choice, or outside a scope); none decides
+between two skills that both remain candidates, where the description is still the only lever.
+Use one when the skill should never fire unasked, when the split is by location rather than
+intent, or when you do not own the other skill; the cost is that the removed skill also stops
+firing on prompts only it matches. Checked by `python3 -B verifiers/check_overlap_levers.py`.
+
+| client | lever | held by | effect | row | key term |
+|---|---|---|---|---|---|
+| GitHub Copilot SDK | list the skill in the session's disabled skills | app developer | removed everywhere | S030 | `disabledSkills` |
+| GitHub Copilot CLI | exclude the skill's directory from discovery | user or operator | removed everywhere | S031 | `ignoredSkillsLocations` |
+| VS Code | frontmatter flag; manual `/` invocation only | skill author | automatic choice off | S025 | `disable-model-invocation` |
+| Claude Code | frontmatter flag; out of Claude's context, `/name` still works | skill author | automatic choice off | S022 | `disable-model-invocation: true` |
+| opencode | permission `deny` pattern on the skill name | user or operator | removed everywhere | S024 | `deny` |
+| Gemini CLI | session command disabling one named skill | user or operator | removed everywhere | S029 | `/skills disable <name>` |
+| Codex | per-skill policy turning off implicit invocation | skill author | automatic choice off | S021 | `allow_implicit_invocation` |
 
 ## Refusals
 
