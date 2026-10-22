@@ -128,7 +128,9 @@ delegated, 31 unexecuted with reason) by text hash, so drift FAILs. The two
 delegated boxes are the dispatch-prompt fidelity boxes `dispatch.04` and
 `dispatch.08`, executed by `verifiers/verify_dispatch_prompts.py` (its
 `--box-proof` prints `boxes proven 2` only when both boxes are delegated there
-and its committed fixtures discriminate every conjunct). Limits and ceilings: `corpus/knowledge/checklist-execution-round17.md`.
+and its committed fixtures discriminate its six named conjuncts; the
+unsubstituted-variable clause, the `≤` equality boundary and the legacy-state
+arm have no fixture yet). Limits and ceilings: `corpus/knowledge/checklist-execution-round17.md`.
 
 ## Frontmatter craft — the trigger surface
 

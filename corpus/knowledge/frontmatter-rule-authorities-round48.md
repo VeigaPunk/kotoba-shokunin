@@ -175,3 +175,12 @@ persisted set, and `s_div.py` re-runs both tools rather than reading `results.js
 and 56 ran in that same scratch directory, where the fetched sources (`spec.md`, `bp.md`, `qv.py`,
 `validator.py`, `parser.py`, `models.py`, `build-skills.md`) sit; each is re-fetchable from the URL in
 the `source:` line or the Limits rechecks.
+
+**Falsify-wave corrections to the provenance table (round 49, seat `../.ufo/waves/round-49/falsify/ReviewR4Provenance.md`):**
+the table does not cover every count above (the four Limits rechecks, the (c) and (e) sweeps and three
+hashes are omitted; re-run by that seat, they match). Row 122's command counts S016–S021, but the body's six
+sources are S012 and S017–S021; the 5 matches by coincidence. Row 32's "24 probe fixtures" is not
+reproducible. Row 133: the 256-character refusal is on Claude Code's errors page (`errors.md:5388`, `:5397`),
+not its skills page as the body says. Commands that read `/fast/scratch/…` point at uncommitted bytes and are
+dated provenance only, not re-derivable by a non-author. Routed defect R4 is therefore partly addressed, not
+closed.

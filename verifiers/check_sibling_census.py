@@ -38,7 +38,11 @@ Per row:
   * the commit cell is a 40-hex object id;
   * the classification cell is one of contested / adjacent / none;
   * the `path:line` cell splits into a path and a 1-based line number;
-  * the path part of `path:line` is one of the skill file(s) the row names;
+  * the quote has at least six words (round-49 falsify correction);
+  * the skill-file, names-kotoba and arbitration cells equal what the pinned
+    `SKILL.md` frontmatter description gives (re-derived, not trusted), and a
+    `none` row's sibling description and PROVINCE.md at the pin do not name
+    kotoba (round-49 falsify correction, seat CriticC1Landed);
   * `git -C <fleet>/<lane>-shokunin show <commit>:<path>` is run, and the
     quote occurs verbatim -- after collapsing whitespace runs on both sides --
     on the cited line or within +/-2 lines of it;
@@ -322,6 +326,69 @@ def locate_quote(lines, line_no, quote_collapsed):
 # the census check
 # --------------------------------------------------------------------------
 
+
+# ---------------------------------------------------------------------------
+# Round-49 falsify correction (seat CriticC1Landed): the guard re-derives the
+# two mechanical columns and the sibling-side half of the `none` rule from the
+# pinned bytes, so a census and PROVINCE pair flipped consistently no longer
+# passes on agreement alone.
+# ---------------------------------------------------------------------------
+MIN_QUOTE_WORDS = 6
+NO_SKILL = "no skill.md"
+
+
+def description_of(skill_text):
+    """The frontmatter `description` value, whitespace-collapsed; '' if none."""
+    if skill_text is None or not skill_text.startswith("---"):
+        return ""
+    front = skill_text.split("\n---", 1)[0]
+    match = re.search(r"^description:(.*?)(?=^\S[^\n]*:|\Z)", front, re.S | re.M)
+    return collapse(match.group(1)) if match else ""
+
+
+def token_in(name, text):
+    return re.search(r"(?<![a-z0-9-])" + re.escape(name) + r"(?![a-z0-9])",
+                     text, re.I) is not None
+
+
+def mechanical_findings(repo, commit, values, lane, all_lanes, classification):
+    """Problems with the skill-file, names-kotoba and arbitration cells, and the
+    sibling-side `none` condition.  Returns a list of strings."""
+    problems = []
+    skill_text, _ = git_show(repo, commit, "SKILL.md")
+    path_cell = values["path"].strip().lower()
+    names_cell = values["names kotoba"].strip().lower()
+    arb_cell = values["arbitration"].strip().lower()
+    if skill_text is None:
+        if path_cell != "none" or names_cell != NO_SKILL or arb_cell != NO_SKILL:
+            problems.append("no SKILL.md at the pin, but the row's skill/names/"
+                            "arbitration cells read %r/%r/%r (expected NONE/no "
+                            "SKILL.md/no SKILL.md)" % (values["path"],
+                                                        values["names kotoba"],
+                                                        values["arbitration"]))
+        description = ""
+    else:
+        if path_cell == "none":
+            problems.append("SKILL.md exists at the pin but the skill cell says NONE")
+        description = description_of(skill_text)
+        want_names = "yes" if token_in(SELF_LANE, description) else "no"
+        if names_cell != want_names:
+            problems.append("names-kotoba cell %r but the pinned description gives %r"
+                            % (values["names kotoba"], want_names))
+        named = sorted(n for n in all_lanes if n != lane and token_in(n, description))
+        want_arb = ("yes: " + ", ".join(named)) if named else "no"
+        if arb_cell != want_arb:
+            problems.append("arbitration cell %r but the pinned description gives %r"
+                            % (values["arbitration"], want_arb))
+    if classification == "none":
+        province_text, _ = git_show(repo, commit, "PROVINCE.md")
+        if token_in(SELF_LANE, description) or (
+                province_text is not None and token_in(SELF_LANE, province_text)):
+            problems.append("classified none, but the sibling's description or "
+                            "PROVINCE.md at the pin names kotoba (the rule makes a "
+                            "published split adjacent)")
+    return problems
+
 CENSUS_CELL_NAMES = ("lane", "branch", "commit", "path", "classification",
                       "names kotoba", "arbitration", "path:line", "quote")
 
@@ -437,6 +504,18 @@ def check_census(census_path, fleet_root, province_path=None):
             failures.append("%s: quote sits on a markdown heading (%s:%d): a "
                             "title-only quote is not a scope statement"
                             % (label, path, matched + 1))
+            continue
+
+        if len(quote_collapsed.split()) < MIN_QUOTE_WORDS:
+            failures.append("%s: quote has fewer than %d words: too short to "
+                            "state a scope" % (label, MIN_QUOTE_WORDS))
+            continue
+
+        problems = mechanical_findings(repo, commit, values, lane,
+                                       expected | {SELF_LANE}, classification)
+        if problems:
+            for problem in problems:
+                failures.append("%s: %s" % (label, problem))
             continue
 
         result["verified"] += 1
@@ -792,6 +871,39 @@ def self_test():
         rec("empty table: says empty", any("empty" in f for f in res["failures"]),
             res["failures"])
         rec("empty table: rows 0", res["rows"] == 0, res["rows"])
+
+        # -- round-49 falsify arms: mechanical columns are re-derived --------
+        fm_skill = ("---\nname: gamma\ndescription: Gamma craft. NOT prompt craft "
+                    "(kotoba-shokunin), NOT alpha work.\n---\n\n"
+                    "Gamma owns the gamma surface only; nothing else here.\n")
+        fleet_g, commits_g = make_fleet("fleet-g", ["alpha", "gamma"],
+                                        {"gamma": {"SKILL.md": fm_skill}})
+        g_quote = "Gamma owns the gamma surface only; nothing else here."
+        g_ok = row_for("gamma", commits_g["gamma"], quote=g_quote, line=6,
+                       names="yes", arbitration="yes: alpha, kotoba")
+        a_ok = row_for("alpha", commits_g["alpha"])
+        res = run([a_ok, g_ok], fleet_g)
+        rec("mechanical: correct cells pass", res["failures"] == [], res["failures"])
+        flipped = list(g_ok)
+        flipped[4] = "none"
+        res = run([a_ok, flipped], fleet_g)
+        rec("mechanical: none while the description names kotoba fails",
+            any("classified none" in f for f in res["failures"]), res["failures"])
+        wrong_names = list(g_ok)
+        wrong_names[5] = "no"
+        res = run([a_ok, wrong_names], fleet_g)
+        rec("mechanical: wrong names-kotoba cell fails",
+            any("names-kotoba cell" in f for f in res["failures"]), res["failures"])
+        wrong_arb = list(g_ok)
+        wrong_arb[6] = "no"
+        res = run([a_ok, wrong_arb], fleet_g)
+        rec("mechanical: wrong arbitration cell fails",
+            any("arbitration cell" in f for f in res["failures"]), res["failures"])
+        short = list(a_ok)
+        short[8] = "Alpha owns"
+        res = run([short], fleet_a)
+        rec("mechanical: a two-word quote fails",
+            any("fewer than" in f for f in res["failures"]), res["failures"])
 
         # -- arm 8: an empty quote cell fails (empty needle, false content)
         empty_quote = list(alpha_row)
