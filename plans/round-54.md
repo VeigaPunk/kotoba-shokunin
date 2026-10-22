@@ -92,3 +92,24 @@ first moves the verifier-description bullets of SKILL.md § Sources (42 lines, v
   borrowed flag on any of the four fails the claim even if the counter prints `M of M`. The honest registry
   at `7ad05d34` would print 19 of 23.
 - The counter is not changed (Q28). Exact flag matching is a later-round item.
+
+## Erratum 3 (append-only; on wave-1 critic `CriticC1Sizing`, before any C1 content)
+
+- What the C1 counter does not check, named here (Q31): that a row was opened in round 54 — it checks only the
+  date `2026-10-22`, which rows S016–S052 from rounds 48–53 also carry; that the number is about the
+  `description` (Claude Code's 64-character name cap or a "500 lines" rule would count); that the page is
+  vendor documentation (any subdomain of a pinned host passes, e.g. a forum; any `docs.github.com` page counts
+  for Copilot CLI); that the quote is on the live page (only `--fetch` checks, and it follows redirects without
+  re-checking the host). Its `--json` output is followed by the summary line, so it is not one JSON document.
+- Prior holds, measured at the plan commit: Claude Code's 1,536-character listing cut and 1% listing budget are
+  already in `corpus/knowledge/sibling-overlap-census-round49.md:155,221` and
+  `corpus/knowledge/skill-selection-rules-round50.md:48`; the 1,024 maximum (VS Code, opencode) is already in
+  `SKILL.md` (portability floor). Codex's 2% / 8,000 numbers are only in SOURCES rows S013/S021, not in an entry.
+  So C1's learning form is the third one the round allows: a `SKILL.md` decision table grounded in admitted
+  entries, plus the Codex and any Copilot CLI, Gemini CLI or Cursor numbers as new entry content.
+- Guards outside the counter, declared now and judged with the claim: (a) each backed client's `S###` is absent
+  from `corpus/SOURCES.md` at `e33715486a45a4a857b64c30e6b695f7995858b8` (opened this round, not only dated
+  today); (b) new ground in `SKILL.md`: at least 2 backed clients carry a threshold number that
+  `git show e33715486a45a4a857b64c30e6b695f7995858b8:SKILL.md | grep -c -F -- '<number>'` counts 0 times
+  (at the plan commit `1,536`, `2%`, `8,000` and `1%` count 0; `1024`/`1,024` count 1); (c) each backed quote is
+  found by `--fetch`. C1 is not claimed if any guard fails, whatever the counter prints.
