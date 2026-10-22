@@ -1,0 +1,289 @@
+{
+ "wave": "kotoba-r52-a2-falsify",
+ "milestone": "Round-52 attempt 2: falsify the inherited C1/C2/repairs/mistake-fix work, and land the carried build items (fixture labels, S024 superseding row) plus an all-gate no-harm matrix and pushed-bytes replay",
+ "axes": [
+  "freshness",
+  "coverage",
+  "calibration",
+  "operability",
+  "adjacency"
+ ],
+ "reportDir": ".ufo/waves/round-52/falsify-a2",
+ "context": "# Goal\nkotoba round 52 (attempt 2) FALSIFY wave, hyaku session 2026-10-22. Lane repo /home/vgpnk/Projects/shokunin/kotoba-shokunin (prompt and skill craft shokunin; jj-colocated). Judged revision: branch master at c8407a453788df964df5a7b835dd0ce1360de882. Base c8579a4c5b48789e56fb9060ddd48f33569e1215 (round 51 closed rejected-honest-stop); plan commit 4c003a4b9c7dae8ebb8ad34bbc14cd1706febeeb (counters frozen there); C1 commit c2107ecff4d257f91757dcc6a57bf23031bd85a9; C2 and repairs commit c8407a453788df964df5a7b835dd0ce1360de882. Read /home/vgpnk/Projects/shokunin/kotoba-shokunin/plans/round-52.md first. Attempt 1 of this round died in an omp process restart at 17:26Z; its build wave never ran (seat gate starvation, then a route outage) and the attempt-1 L1 did the build work inline and pushed it; its falsify wave was cut off by the restart and left no seat report. This attempt-2 wave re-attacks the inherited work from scratch. The attempt-1 L1 also left one uncommitted file: the working-tree diff of /home/vgpnk/Projects/shokunin/kotoba-shokunin/SCORECARD.md against branch master (read it with `git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin diff -- SCORECARD.md`); it is an attack target too. Session rule (frozen counters): a counting command and its judgment tables are frozen at the plan commit 4c003a4b9c7dae8ebb8ad34bbc14cd1706febeeb, before any data; any widening after it is a BREAK. Your job is to ATTACK what landed. Every item names its target.\n- C1 freshness: `python3 -B /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/check_callee_rename.py --rev <rev>` → `callee-rename robust 0 of 4 fixtures` at c8579a4c5b48789e56fb9060ddd48f33569e1215 and 4c003a4b9c7dae8ebb8ad34bbc14cd1706febeeb; `4 of 4` at c2107ecff4d257f91757dcc6a57bf23031bd85a9 (also --seed 7, 1234). Code: verifiers/verify_surfaces.py (OMP_GENERIC_CALL_RE, declared-pair admission, declared_loader_pairs), self-test 119 → 129, floor 129.\n- C2 coverage (learning claim, sourced): entry corpus/knowledge/mcp-server-instructions-round52.md; `python3 -B /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/check_mcp_instructions.py --rev <rev>` → `backed 0 of 7` at base, `5 of 7` at c8407a453788df964df5a7b835dd0ce1360de882; `--fetch` 5 of 5. Rows S032–S037 (S038 supersedes S031). SKILL.md § Instruction surfaces MCP table.\n- Repairs: corpus/README.md index row :75 and Core note :144-153, SCORECARD.md:28 depth lead, PROVINCE.md:18; mistake M36 fix verifiers/check_correction_sweep.py (red at c8579a4c5b48789e56fb9060ddd48f33569e1215, green at c8407a453788df964df5a7b835dd0ce1360de882); QUALITY Q29; lesson corpus/lessons/round-52.md.\nReport each attack as HOLDS or BREAKS with evidence; severity for each defect.\n\n# Bounds (binding on every seat)\n- Message target: only agent://KotobaR52a2 (your L1). Never agent://all. Seats are leaves: no task spawns, no swarms.\n- Write ONLY your own report file. Every `Report:` trailer path is relative to /home/vgpnk/Projects/shokunin/kotoba-shokunin — write it at /home/vgpnk/Projects/shokunin/kotoba-shokunin/<that path>. Never write anything else in the lane, never in the fleet root /home/vgpnk/Projects/shokunin, never in a sibling lane. Never edit lane files: report defects; the L1 fixes.\n- If you need to run something that writes (probes, mutated copies), use your OWN sandbox clone: `git clone -q /home/vgpnk/Projects/shokunin/kotoba-shokunin /fast/scratch/hyaku/kotoba-r52a2/<YourSeatName> && git -C /fast/scratch/hyaku/kotoba-r52a2/<YourSeatName> checkout -q c8407a453788df964df5a7b835dd0ce1360de882`; scratch files under /fast/scratch/hyaku/kotoba-r52a2/<YourSeatName>/ only. Never push.\n- Never run git writes (add, commit, stash, checkout, switch, reset, pull, push, worktree) in the lane, and never mutate lane jj state or the lane Git index. Read-only git in the lane is fine. jj only read-only with --ignore-working-copy, in the lane only; never any jj command at /home/vgpnk/Projects/shokunin. Never mutate the fleet repo, sibling lanes, MANIFEST.json, .ufo/state or .ufo/watchdog.log.\n- Sources are opened by ordinary means only (curl, the read tool, web search). Never use a headless browser or any other tool to pass a bot challenge, captcha or access control. Record URL, UTC access time, byte count and sha256 of what you fetched; quote verbatim with line numbers.\n- Never pass a `model` parameter; never call `ask`.\n- Tooling: the operator authorizes installs and upgrades that help the task; read /home/vgpnk/.omp/agent/RULES.md before installing; official channels only; record tool, version, channel and reason in your report. Pacman guard: all pacman transactions are PAUSED host-wide (install via uv tool, npx or an official binary in ~/.local/bin, or report the need); never -Sy, -Syu, -U, -R, downgrade, or restart a host service.\n- Honesty: an unrun check has not passed; paste commands with exit codes and observed output; mark inference as [INFERENCE]. Plain English, no run-together words or private jargon.\n- Report shape: first line `Result: HOLDS|BREAKS|MIXED — <one sentence>`; then findings with evidence pointers (path:line, command + exit code + output).\n",
+ "items": [
+  {
+   "name": "ReviewC1Diff",
+   "role": "reviewer",
+   "axes": [
+    "freshness"
+   ],
+   "prompt": "Target: the C1 code change `git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin diff 4c003a4b9c7dae8ebb8ad34bbc14cd1706febeeb c2107ecff4d257f91757dcc6a57bf23031bd85a9 -- verifiers/verify_surfaces.py`. Review correctness: the generic call regex (lookbehind excludes `.`; is that right for the minified bundle?), declared-pair admission, `declared_loader_pairs` taking every baseline omp class id whatever its kind (why: rekind laundering arms), allowlist mode retained for `declared=None` callers, docstring and comment truthfulness (what it says it does not survive). Report defects by severity with line numbers."
+  },
+  {
+   "name": "ScoutLiveShape",
+   "role": "scout",
+   "axes": [
+    "freshness"
+   ],
+   "prompt": "Target: C1 on live bytes. Dump the installed omp (/home/vgpnk/.local/bin/omp, `omp --version`, sha256) with `strings -n 4` into /fast/scratch/hyaku/kotoba-r52a2/ScoutLiveShape/. Using `extract_classes` from /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/verify_surfaces.py at c8407a453788df964df5a7b835dd0ce1360de882 (import it from a sandbox clone), list every callee the generic regex finds, which are admitted by the declared pairs in /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/surfaces-baseline.json, and every pair they extract; repeat on /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/round-44/evidence/omp-live-18.12.2-strings.txt. Does the rule extract exactly the declared pairs on both, with no extra pair? Run `python3 -B verifiers/verify_surfaces.py --json` at c8407a453788df964df5a7b835dd0ce1360de882 (in your clone) and paste pass/fail."
+  },
+  {
+   "name": "CriticC1Escape",
+   "role": "critic",
+   "axes": [
+    "freshness"
+   ],
+   "prompt": "Target: C1 rule escapes. In a sandbox clone at c8407a453788df964df5a7b835dd0ce1360de882, hunt for inputs where the declared-pair admission rule wrongly passes or wrongly fails: a decoy callee that also registers one declared pair; a real loader called as a member (`x.bq(...)`); a declared group renamed everywhere; a callee registering only `<unresolved-var>` groups; an alias `const q = Xl` then `q(u, \"agents-md\", \"AGENTS.md\")`. Run each through the CLI with the 18.12.5 baseline and inventory-clean fixtures (see self_test in verify_surfaces.py for argv). Report each probe with exit code and whether the behaviour is right."
+  },
+  {
+   "name": "ReopenS032",
+   "role": "scout",
+   "axes": [
+    "coverage"
+   ],
+   "prompt": "Target: SOURCES row S032 (/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md) and its use in /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/knowledge/mcp-server-instructions-round52.md and corpus/lessons/round-52.md § Gate. Re-open https://modelcontextprotocol.io/specification/2025-11-25/schema.md by ordinary means; record UTC time, bytes, sha256 (compare with the row's anchor). Is the Gate quote \"Instructions describing how to use the server and its features.\" verbatim on the page, at the cited location? Is every other statement the entry and SKILL.md make from S032 (reading cell, limits, budgets) on the page, and does the quote say what the reading cell says, in context? Is the tier right? Verdict HOLDS/BREAKS per statement."
+  },
+  {
+   "name": "ReopenS033",
+   "role": "scout",
+   "axes": [
+    "coverage"
+   ],
+   "prompt": "Target: SOURCES row S033 (/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md) and its use in /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/knowledge/mcp-server-instructions-round52.md and corpus/lessons/round-52.md § Gate. Re-open https://code.claude.com/docs/en/mcp.md by ordinary means; record UTC time, bytes, sha256 (compare with the row's anchor). Is the Gate quote \"Only tool names and server instructions load at session start, so adding more MCP servers has minimal impact on your context window.\" verbatim on the page, at the cited location? Is every other statement the entry and SKILL.md make from S033 (reading cell, limits, budgets) on the page, and does the quote say what the reading cell says, in context? Is the tier right? Verdict HOLDS/BREAKS per statement."
+  },
+  {
+   "name": "ReopenS034",
+   "role": "scout",
+   "axes": [
+    "coverage"
+   ],
+   "prompt": "Target: SOURCES row S034 (/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md) and its use in /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/knowledge/mcp-server-instructions-round52.md and corpus/lessons/round-52.md § Gate. Re-open https://code.visualstudio.com/updates/v1_104 by ordinary means; record UTC time, bytes, sha256 (compare with the row's anchor). Is the Gate quote \"VS Code now reads MCP server instructions and will include them in its base prompt.\" verbatim on the page, at the cited location? Is every other statement the entry and SKILL.md make from S034 (reading cell, limits, budgets) on the page, and does the quote say what the reading cell says, in context? Is the tier right? Verdict HOLDS/BREAKS per statement."
+  },
+  {
+   "name": "ReopenS035",
+   "role": "scout",
+   "axes": [
+    "coverage"
+   ],
+   "prompt": "Target: SOURCES row S035 (/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md) and its use in /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/knowledge/mcp-server-instructions-round52.md and corpus/lessons/round-52.md § Gate. Re-open https://developers.openai.com/codex/mcp.md by ordinary means; record UTC time, bytes, sha256 (compare with the row's anchor). Is the Gate quote \"Codex reads the MCP `instructions` field returned during initialization and uses it as server-wide guidance alongside the server's tools.\" verbatim on the page, at the cited location? Is every other statement the entry and SKILL.md make from S035 (reading cell, limits, budgets) on the page, and does the quote say what the reading cell says, in context? Is the tier right? Verdict HOLDS/BREAKS per statement."
+  },
+  {
+   "name": "ReopenS036",
+   "role": "scout",
+   "axes": [
+    "coverage"
+   ],
+   "prompt": "Target: SOURCES row S036 (/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md) and its use in /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/knowledge/mcp-server-instructions-round52.md and corpus/lessons/round-52.md § Gate. Re-open https://geminicli.com/docs/tools/mcp-server.md by ordinary means; record UTC time, bytes, sha256 (compare with the row's anchor). Is the Gate quote \"which will be appended to the system instructions.\" verbatim on the page, at the cited location? Is every other statement the entry and SKILL.md make from S036 (reading cell, limits, budgets) on the page, and does the quote say what the reading cell says, in context? Is the tier right? Verdict HOLDS/BREAKS per statement."
+  },
+  {
+   "name": "ReopenS037",
+   "role": "scout",
+   "axes": [
+    "coverage"
+   ],
+   "prompt": "Target: SOURCES row S037 (/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md) and its use in /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/knowledge/mcp-server-instructions-round52.md and corpus/lessons/round-52.md § Gate. Re-open https://blog.modelcontextprotocol.io/posts/2025-11-03-using-server-instructions/ by ordinary means; record UTC time, bytes, sha256 (compare with the row's anchor). Is the Gate quote \"we recommend that you expose instructions to users and provide transparency about what servers are injecting into context\" verbatim on the page, at the cited location? Is every other statement the entry and SKILL.md make from S037 (reading cell, limits, budgets) on the page, and does the quote say what the reading cell says, in context? Is the tier right? Verdict HOLDS/BREAKS per statement."
+  },
+  {
+   "name": "ReopenS038",
+   "role": "scout",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Target: SOURCES row S038 (supersedes S031). Re-open https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-command-reference.md; record time, bytes, sha256; grep counts for `disabledSkills`, `ignoredSkillsLocations`, `disable-model-invocation`, `copilot skill disable`; check the Gate quote at :1300 and the row's teaches cell. Does S038 follow SOURCES contract rule 2 (/home/vgpnk/Projects/shokunin/CORPUS.md § SOURCES.md: `teaches` opens `supersedes S031 —`)?"
+  },
+  {
+   "name": "SweepOpencode",
+   "role": "scout",
+   "axes": [
+    "coverage"
+   ],
+   "prompt": "Target: the entry's negative for opencode (corpus/knowledge/mcp-server-instructions-round52.md § sweep). Independently search opencode's official docs (opencode.ai/docs) and its official repository source (github.com/sst/opencode or github.com/anomalyco/opencode; whichever is current) for MCP server `instructions` handling (e.g. `instructions` read from the MCP client initialize result). If opencode documents or implements it, quote the line: the entry's bounded negative would then be incomplete. Report the sweep (queries, pages, counts)."
+  },
+  {
+   "name": "SweepCopilotCli",
+   "role": "scout",
+   "axes": [
+    "coverage"
+   ],
+   "prompt": "Target: the entry's negative for Copilot CLI. Independently search docs.github.com Copilot CLI pages (MCP, configuration, command reference, changelog) and github.com/github/copilot-cli for MCP server instructions handling. Quote any statement found; else report the sweep (queries, pages, counts)."
+  },
+  {
+   "name": "CriticC2Sizing",
+   "role": "critic",
+   "axes": [
+    "coverage"
+   ],
+   "prompt": "Target: C2 statement and learning value. Does the statement in plans/round-52.md claim anything the counter does not print? Is 'at least 3 of 7' one concrete value re-derivable by one command? Is coverage the right axis (AXES.md, LEARNING.md)? Does the round meet the session Quality bar learning-claim test (/home/vgpnk/Projects/shokunin/.scratch/goal-20261022-hyaku-12h.md § Quality bar)? Verdict per attack."
+  },
+  {
+   "name": "ReviewEntry",
+   "role": "reviewer",
+   "axes": [
+    "coverage"
+   ],
+   "prompt": "Target: /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/knowledge/mcp-server-instructions-round52.md. Q12 provenance trio (source names S### rows with URL and anchor, verified-at, recheck that runs); every sentence in '## What follows for the craft' grounded in a cited row and not wider than it (e.g. 'four clients document that they put the text in front of the model' — check each); negatives bounded with their sweep (Q14); Limits honest. Report each overreach with line number."
+  },
+  {
+   "name": "ReviewSkillTable",
+   "role": "reviewer",
+   "axes": [
+    "coverage"
+   ],
+   "prompt": "Target: the MCP `instructions` table added to /home/vgpnk/Projects/shokunin/kotoba-shokunin/SKILL.md § Instruction surfaces (lines ~86-94). Is each cell supported by the entry and its rows? Any universal clause the sources do not support? Run `python3 -B verifiers/verify_skill_checklist.py --json` at c8407a453788df964df5a7b835dd0ce1360de882 (sandbox clone) and paste; any line or section budget broken?"
+  },
+  {
+   "name": "ConnSiblingOverlap",
+   "role": "connector",
+   "axes": [
+    "adjacency"
+   ],
+   "prompt": "Target: C2 scope. Read-only scan of sibling lanes /home/vgpnk/Projects/shokunin/*-shokunin (PROVINCE.md, SKILL.md description, corpus/README.md, corpus/knowledge) for MCP server instructions, InitializeResult, MCP tool descriptions or MCP client configuration ownership. For each hit: lane, file:line, quote, classification under kotoba's census rule (/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/knowledge/sibling-overlap-census-round49.md: none/adjacent/contested). Does C2's entry absorb a sibling's ground?"
+  },
+  {
+   "name": "ReviewCorrections",
+   "role": "reviewer",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Target: routed defects 1-2 of /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/lessons/round-51-verifier-spotcheck.md:158-172 and their repairs: corpus/README.md:75 and :144-153, SCORECARD.md:28 lead, PROVINCE.md:18. Is each correction accurate against the spot-check, the SKILL.md § Anti-patterns overlap table and the plan-commit counter result (4 of 7)? Does the SCORECARD lead now lead with the declared result? Was SCORECARD edited in place where it should have been appended (PROTOCOL append-only rules cover LOG.md; check whether SCORECARD has such a rule)?"
+  },
+  {
+   "name": "ReviewMoreStale",
+   "role": "reviewer",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Target: remaining stale mentions. At c8407a453788df964df5a7b835dd0ce1360de882, grep every lane file except LOG.md and .ufo/ for the superseded round-51 C2 statements (`7 of 7` near overlap levers, `ignoredSkillsLocations` as a lever, `disable-model-invocation: true`, opencode permission `deny`, `removed everywhere` without `removed in a scope`, `six rows are new`) and for S031's false `disabledSkills` claim. List each hit: corrected, historical record, or still needs a correction."
+  },
+  {
+   "name": "ReviewSourcesRows",
+   "role": "reviewer",
+   "axes": [
+    "coverage"
+   ],
+   "prompt": "Target: SOURCES rows S032–S038 at c8407a453788df964df5a7b835dd0ce1360de882. Run the frozen census commands from /home/vgpnk/Projects/shokunin/CORPUS.md § SOURCES.md and `/home/vgpnk/Projects/shokunin/scripts/sources-census.sh validate --root /home/vgpnk/Projects/shokunin kotoba`; paste outputs and exits. Check 11 cells, enums, used-by paths exist, anchors at line level with revision/date, tier choices (S037 tier B), S038 supersede form, no in-place change to S001–S031 (`git diff c8579a4c5b48789e56fb9060ddd48f33569e1215 c8407a453788df964df5a7b835dd0ce1360de882 -- corpus/SOURCES.md`)."
+  },
+  {
+   "name": "ReviewLesson",
+   "role": "reviewer",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Target: /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/lessons/round-52.md. Gate: every new row has URL, access date and a ≤25-word located quote; rejections have reason and flip; rows touched old→new. Mistakes: rows have class · evidence · captured-by · fix; M36's fix is shown able to fail; M37 classed right. Routed-defect dispositions honest (item 4 carried items named). Report each gap with line number."
+  },
+  {
+   "name": "CriticQ29",
+   "role": "critic",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Target: new criterion Q29 in /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/QUALITY.md. Is it grounded in M36? Does it duplicate or conflict with Q19, Q26, Q27, Q28? Is 'the sweep must exit 0 before the round's report' enforceable or a wish? Should it supersede an earlier row? Verdict."
+  },
+  {
+   "name": "CriticLearning",
+   "role": "critic",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Target: round shape against /home/vgpnk/Projects/shokunin/.scratch/goal-20261022-hyaku-12h.md § Quality bar and § Drift sentinels and /home/vgpnk/Projects/shokunin/.ufo/prompts/kotoba-round-52.md § 6.9. At least one learning claim? Same axis+surface as rounds 50-51 (plans/round-50.md, round-51.md)? C1 on the lowest non-retired axis (SCORECARD.md § axes)? After-states concrete and re-derivable by one command? Universal clauses? Verdict per test."
+  },
+  {
+   "name": "CriticSeparability",
+   "role": "critic",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Target: causal separability and no harm. Does check_callee_rename.py read any file C2 changed, or check_mcp_instructions.py any file C1 changed? Does C1 verify at c2107ecff4d257f91757dcc6a57bf23031bd85a9 before C2 landed? Which axis could this round have harmed (operability via gates, calibration via the SCORECARD depth-lead rewrite, consistency, adjacency)? Give one command per harm check and run it."
+  },
+  {
+   "name": "CriticCalibration",
+   "role": "critic",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Target: calibration count. List every current-state statement in /home/vgpnk/Projects/shokunin/kotoba-shokunin/SCORECARD.md and /home/vgpnk/Projects/shokunin/kotoba-shokunin/SHONEN.md that this round touched or that names a round-51/52 value (axes rows, Next blocks, capabilities, the round-51 calibration note) and compare each with observed repo state at c8407a453788df964df5a7b835dd0ce1360de882 by running its command where one exists. Report the count of mismatches over statements checked, with each mismatch."
+  },
+  {
+   "name": "ReviewScorecardLeftover",
+   "role": "reviewer",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Target: the attempt-1 leftover, the uncommitted working-tree diff of /home/vgpnk/Projects/shokunin/kotoba-shokunin/SCORECARD.md (`git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin diff -- SCORECARD.md`; read-only). For every added or changed sentence (coverage row, freshness row, 'Round 52 completed' block, 'Next: round 53' block, move-log rows 52), compare each stated value, commit hash and command with observed repo state: run each command it names at the revision it names and paste output and exit code. Does it lead with the declared result? Does it claim any score move the round cannot show? Is anything edited in place that should be appended? Report each mismatch: commit as is, or fix (say the exact fix)."
+  },
+  {
+   "name": "ReviewSpotcheckRouting",
+   "role": "reviewer",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Target: the round-51 spot-check routing. For each of routed defects 1, 2, 3 and 4 (every sub-item of 4: S031 superseding row, S024 superseding row, fixture labels lines 9/15/33 of verifiers/fixtures/surfaces/strings-omp-18.12.6.txt, D2 F1-F5, D7, R1, R5) in /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/lessons/round-51-verifier-spotcheck.md:158-172, find its disposition at c8407a453788df964df5a7b835dd0ce1360de882: a fix (path:line), a lesson-backed QUALITY.md criterion (Q-row grounded in a lesson mistake), or a stated reason it is carried (lesson path:line). List any routed item with none of the three: that is a BREAK. Also: is the session rule 'a target missed on frozen tables is an honest stop, never a widened table' captured as a QUALITY criterion (check Q28, Q29)?"
+  },
+  {
+   "name": "CriticFrozenTables",
+   "role": "critic",
+   "axes": [
+    "coverage",
+    "freshness"
+   ],
+   "prompt": "Target: the frozen-counter rule. Both round-52 counters (verifiers/check_callee_rename.py, verifiers/check_mcp_instructions.py) were committed in the plan commit 4c003a4b9c7dae8ebb8ad34bbc14cd1706febeeb. Attack: (1) is either counter's file, or any input it reads that acts as a judgment table (fixtures, baselines, inventories, pinned client/host lists, word limits) changed in 4c003a4b9c7dae8ebb8ad34bbc14cd1706febeeb..c8407a453788df964df5a7b835dd0ce1360de882? Read each counter to list its inputs, then `git diff --stat` each. (2) Does the counter at 4c003a4b9c7dae8ebb8ad34bbc14cd1706febeeb read anything from the measured revision that the C1/C2 work could tune to pass (e.g. a table inside the measured tree)? (3) Did any content scored by C2 land in the plan commit or before it? Verdict per attack with commands and exit codes."
+  },
+  {
+   "name": "MutCalleeCounter",
+   "role": "mutation-tester",
+   "axes": [
+    "freshness"
+   ],
+   "prompt": "Target: /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/check_callee_rename.py (the C1 counter). In your sandbox clone at c8407a453788df964df5a7b835dd0ce1360de882, apply one mutation at a time to verifiers/verify_surfaces.py that a plausible wrong C1 implementation would carry (revert to the round-51 callee allowlist; admit every generic callee without declared pairs; keep only declared pairs and drop new pairs; widen the lookbehind to allow `.`), run `python3 -B verifiers/check_callee_rename.py --rev <your sandbox commit>` (commit the mutation in the sandbox only) and paste the last line and exit code. Each mutation the counter does NOT catch is a BREAK of the counter. Revert after each."
+  },
+  {
+   "name": "MutMcpCounter",
+   "role": "mutation-tester",
+   "axes": [
+    "coverage"
+   ],
+   "prompt": "Target: /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/check_mcp_instructions.py (the C2 counter). In your sandbox clone at c8407a453788df964df5a7b835dd0ce1360de882, mutate the scored DATA one fault at a time (not the counter): drop the word `instructions` from one Gate quote; stretch a quote to 26 words; point a row's URL at an unpinned host; set a row's status to `candidate`; remove the entry path from a row's used-by; change the opened date; delete the quote from the lesson Gate; make a quote not verbatim. Commit each in the sandbox, run `python3 -B verifiers/check_mcp_instructions.py --rev <sandbox commit>` and paste the count and exit code; the count must drop by one for each. Every mutation that does not lower the count is a BREAK."
+  },
+  {
+   "name": "MutSweepCheck",
+   "role": "mutation-tester",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Target: /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/check_correction_sweep.py (the M36 fix). In your sandbox clone at c8407a453788df964df5a7b835dd0ce1360de882, revert each of the three repaired places one at a time (corpus/README.md Core note, corpus/README.md index row, SCORECARD.md depth lead, PROVINCE.md stale line) to their c8579a4c5b48789e56fb9060ddd48f33569e1215 text, commit in the sandbox, run `python3 -B verifiers/check_correction_sweep.py --rev <sandbox commit>`, paste output and exit. Then plant a NEW stale statement of the same kind in another lane file (for example SKILL.md or corpus/knowledge/skill-overlap-levers-round51.md) and say whether the check sees it: is its scope wider than the three known places, and does the lesson say so?"
+  },
+  {
+   "name": "ExecFixtureLabels",
+   "role": "executor",
+   "axes": [
+    "freshness"
+   ],
+   "prompt": "Target: carried item (round-51 spot-check routed defect 4): label lines 9 and 15 (`}`) and line 33 (the `session-summary.ts` path comment) of verifiers/fixtures/surfaces/strings-omp-18.12.6.txt as not-dump bytes, in the style of the existing synthetic label at lines 34-35. Work ONLY in your sandbox clone /fast/scratch/hyaku/kotoba-r52a2/ExecFixtureLabels (clone /home/vgpnk/Projects/shokunin/kotoba-shokunin, checkout c8407a453788df964df5a7b835dd0ce1360de882). First confirm against a fresh `strings -n 4 /home/vgpnk/.local/bin/omp` dump (omp --version must say 18.12.6; record sha256) which fixture lines are verbatim dump lines. Then edit the fixture so each non-dump line is labelled (a `//` comment the extractor ignores), and run in the sandbox: `python3 -B verifiers/verify_surfaces.py --self-test` (tally must stay 129, 0 failures), every self-test or gate that reads this fixture (grep verifiers/ for its name), and `python3 -B verifiers/check_callee_rename.py --rev <sandbox commit>` (must stay 4 of 4; note the counter reads fixtures from c8579a4c5b48789e56fb9060ddd48f33569e1215). Put the full unified diff (`git diff`) in your report with every command's output and exit code; the L1 applies it. Never edit the lane."
+  },
+  {
+   "name": "ExecGateMatrix",
+   "role": "executor",
+   "axes": [
+    "operability"
+   ],
+   "prompt": "Target: no-harm across EVERY lane gate. In two sandbox clones under /fast/scratch/hyaku/kotoba-r52a2/ExecGateMatrix/ (one at c8579a4c5b48789e56fb9060ddd48f33569e1215, one at c8407a453788df964df5a7b835dd0ce1360de882), enumerate every script in verifiers/ (and scripts/ or tools/ if present), find each one's default or documented run mode (read its argparse/usage; include --self-test where it exists), run each at both revisions, and write a table: script, argv, exit at base, exit at head, last summary line at each. Any exit that was 0 at base and nonzero at head, or any self-test tally that dropped, is a harm: name it with the output. Scripts that need network: run once with a 120 s timeout and mark them. Report the table and the exact commands."
+  },
+  {
+   "name": "ExecPushedBytes",
+   "role": "executor",
+   "axes": [
+    "coverage",
+    "freshness"
+   ],
+   "prompt": "Target: pushed bytes equal claimed bytes. `git clone -q https://github.com/VeigaPunk/kotoba-shokunin.git /fast/scratch/hyaku/kotoba-r52a2/ExecPushedBytes/remote` (read-only remote clone; never push). Confirm the remote branch master resolves to c8407a453788df964df5a7b835dd0ce1360de882 (paste `git rev-parse origin/master`), and that 4c003a4b9c7dae8ebb8ad34bbc14cd1706febeeb is its ancestor and c8579a4c5b48789e56fb9060ddd48f33569e1215 its base. From that clone, run `python3 -B verifiers/check_callee_rename.py --rev c8407a453788df964df5a7b835dd0ce1360de882` (also --seed 99), `python3 -B verifiers/check_mcp_instructions.py --rev c8407a453788df964df5a7b835dd0ce1360de882` and with `--fetch`, and `python3 -B verifiers/check_correction_sweep.py --rev c8579a4c5b48789e56fb9060ddd48f33569e1215` and `--rev c8407a453788df964df5a7b835dd0ce1360de882`. Paste each last line and exit code. Any difference from the local results stated in the context is a BREAK."
+  },
+  {
+   "name": "ScribeS024",
+   "role": "scribe",
+   "axes": [
+    "coverage"
+   ],
+   "prompt": "Target: carried item (round-51 spot-check routed defect 4): a superseding SOURCES row for S024 (opencode Agent skills, https://opencode.ai/docs/skills). Read the contract in /home/vgpnk/Projects/shokunin/CORPUS.md § SOURCES.md (rule 2: `teaches` is never edited in place; a superseding row opens `supersedes S0NN —`) and the precedent row S038 (supersedes S031) in /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md. Re-open https://opencode.ai/docs/skills.md by ordinary means (curl); record UTC time, byte count, sha256. Read /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/lessons/round-51.md:60-75 for why S024's teaches cell is narrow (it omits the permission `deny`, skills.md:133-156, 230). Draft, in your report only: (1) the complete 11-cell row S039 in the exact column order of S038, with anchors at line level and the fetch record; (2) a Gate entry for corpus/lessons/round-52.md: URL, access date, a ≤25-word verbatim located quote with line number; (3) the old→new log line for S024's status if it changes. Say whether the census (`/home/vgpnk/Projects/shokunin/scripts/sources-census.sh validate --root /home/vgpnk/Projects/shokunin kotoba`) would warn on the duplicate URL (S038 duplicates S031's URL: check today's census output). Never edit the lane; the L1 integrates."
+  }
+ ]
+}

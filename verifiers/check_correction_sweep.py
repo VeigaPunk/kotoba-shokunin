@@ -34,6 +34,14 @@ REGISTRY = (
      "stale": r"`7 of 7`, exit 0 @ `34cfffbb`", "declared": r"4 of 7", "lead": True},
     {"id": "r51-c2-province", "file": "PROVINCE.md",
      "stale": r"overlap levers backed 7 of 7 clients", "declared": r"4 of 7", "lead": False},
+    # round 52 attempt 2 (M38, Q29/Q30): opencode and Copilot CLI were recorded
+    # as silent on MCP server instructions; S041 and S042 document both.
+    {"id": "r52-c2-skill-silent", "file": "SKILL.md",
+     "stale": r"say nothing about server instructions", "declared": r"S041", "lead": False},
+    {"id": "r52-c2-province-five", "file": "PROVINCE.md",
+     "stale": r"specification and five pinned clients", "declared": r"S041", "lead": False},
+    {"id": "r52-c2-readme-five", "file": "corpus/README.md",
+     "stale": r"five client pages \(S032 spec", "declared": r"S041", "lead": False},
 )
 
 
@@ -91,7 +99,8 @@ def reader(rev: str | None, root: str | None):
 def self_test() -> int:
     fails, n = [], 0
 
-    def case(name, readme, score, want, province="- nothing stale\n"):
+    def case(name, readme, score, want, province="- nothing stale\n",
+             skill="- nothing stale\n"):
         nonlocal n
         n += 1
         with tempfile.TemporaryDirectory() as t:
@@ -99,6 +108,7 @@ def self_test() -> int:
             (Path(t) / "corpus/README.md").write_text(readme)
             (Path(t) / "SCORECARD.md").write_text(score)
             (Path(t) / "PROVINCE.md").write_text(province)
+            (Path(t) / "SKILL.md").write_text(skill)
             got = sweep(reader(None, t))
         ids = sorted(x.split()[0] for x in got)
         if ids != sorted(want):
@@ -114,6 +124,11 @@ def self_test() -> int:
     case("correction in another block is not a correction", later_r, fixed_s, ["r51-c2-readme"])
     case("declared after the stale lead fails", fixed_r, stale_s, ["r51-c2-scorecard-lead"])
     case("no stale claim: clean", "- nothing here\n", "| depth | 9 | x |\n", [])
+    silent = "| every client | a skill too | the opencode pages say nothing about server instructions |\n"
+    case("r52 silent negative without S041 fails", "- x\n", "| d | 9 | x |\n",
+         ["r52-c2-skill-silent"], skill=silent)
+    case("r52 silent negative with S041 passes", "- x\n", "| d | 9 | x |\n", [],
+         skill=silent.replace("|\n", "; corrected by S041 |\n"))
     print("%d failure(s) over %d assertions" % (len(fails), n))
     for f in fails:
         print("FAIL", f)

@@ -480,7 +480,10 @@ def extract_classes(dump: str, harness: str,
     ReviewScopeRule probe 09); unresolvable ones surface as a
     ``<unresolved-var:NAME>`` group so they cannot pass silently."""
     global_table = constant_table(dump)
-    generic = (harness == "omp" and declared is not None
+    # (round 52 falsify, ReviewC1Diff) an empty declared set would admit no
+    # callee and pass `no_uncovered_class` on 0 == 0; fall back to the callee
+    # allowlist then, so an emptied baseline fails naming the classes.
+    generic = (harness == "omp" and declared is not None and bool(declared)
                and OMP_CALLEE_MODE == "declared")
     if generic:
         pattern = OMP_GENERIC_CALL_RE
@@ -509,7 +512,13 @@ def extract_classes(dump: str, harness: str,
         calls.append((callee, group, filename))
     if not generic:
         return {(g, f) for _, g, f in calls}
-    admitted = {c for c, g, f in calls if (g, f) in declared}
+    # (round 52 falsify, CriticC1Escape P4) a call whose group stays unresolved
+    # can never match a declared pair; admit its callee when the call's file is
+    # a declared file, so the unresolved group surfaces instead of vanishing.
+    declared_files = {f for _, f in declared}
+    admitted = {c for c, g, f in calls
+                if (g, f) in declared
+                or (g.startswith("<unresolved-var:") and f in declared_files)}
     return {(g, f) for c, g, f in calls if c in admitted}
 
 
