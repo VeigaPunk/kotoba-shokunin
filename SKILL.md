@@ -176,6 +176,20 @@ triggers for domain-term names, and the discovery roots:
 
 Portability floor (spec + vendor + YAML, `corpus/SOURCES.md` S018, S002, S019, S008): `name` ≤64 lowercase letters, digits and single hyphens, equal to the directory (the spec's charset wording is ambiguous on Unicode); `description` ≤1024 chars, no XML tags (Anthropic rule), quoted when it holds `: ` or ` #` (illegal in a YAML plain scalar — lenient loaders hide it, strict ones reject). `verifiers/verify_skill_checklist.py` `trigger.no_xml_tag` approximates the XML-tag rule lexically on the unparsed `name`/`description` text; Anthropic's packager (S012) refuses any `<`/`>` in the parsed value, so the two disagree in both directions. Which authority imposes which rule, with run counterexamples: `corpus/knowledge/frontmatter-rule-authorities-round48.md`.
 
+### Description thresholds by client
+
+A documented maximum is not a render cut: four clients state 1,024 and none documents a cut there, Claude Code and Codex cut or budget the listing, omp cuts at 99 (§ Router model). Basis: `corpus/knowledge/skill-listing-thresholds-round54.md` (S053–S059, S062–S064), checked by `verifiers/check_description_thresholds.py`.
+
+| Client | Documented threshold | Past the threshold | Action |
+|---|---|---|---|
+| Claude Code | 1,536 characters per entry (`description` + `when_to_use`), whatever the budget; listing budget 1% of the context window (`0.01` default, `skillListingBudgetFraction`) | Truncated at the cap, with a startup warning (v2.1.105 raised the cap from 250); past the listing budget, descriptions of the least-invoked skills are dropped and every skill name stays | Put the key use case first and keep the entry under 1,536 characters; raise `skillListingMaxDescChars` or `skillListingBudgetFraction`, or set low-priority skills `"name-only"` to leave budget for yours |
+| Codex | Initial skills list: 2% of the model's context window, or 8,000 characters when the context window is unknown; `skills.max_context_tokens` raises the default, capped at 10,000 tokens | Codex shortens skill descriptions first, then for large skill sets may omit skills from the initial list and show a warning; selecting the skill still reads the full `SKILL.md` | Front-load the use case and trigger words in `description` so matching survives shortening; do not rely on a long tail |
+| VS Code | `description` maximum 1024 characters (authoring maximum; `name` 64) | Not documented: the page states no truncation, drop, warning or refusal past 1024, and no listing budget | Keep the description under 1024 characters, leading with what the skill does and when to use it |
+| Copilot CLI | `description` max 1024 characters | Not documented; the page states the cap and no truncation, shortening or refusal | keep the description at 1024 characters or fewer, front-loaded on what the skill does and when to use it |
+| Gemini CLI | ~100 words of metadata (name + description) always in context per skill | Nothing is cut: the full description is injected, so a longer one spends context tokens with no documented warning or truncation | Keep name + description near 100 words and move detail into the `SKILL.md` body, which loads only after activation (`skills-best-practices.md:24-25`) |
+| Cursor | 1,024 characters for `description` | Warned, not cut: the skill still loads and `/skills` shows a yellow warning count listing what to fix (a body over about 5,000 tokens is warned the same way) | Keep `description` at or under 1,024 characters; move detail into `references/` rather than the body |
+| opencode | 1-1024 characters (v1 docs page; the v2 page says it enforces no maximum) | nothing: no cut, truncation, warning or refusal — both shipped trees print the whole string into `<available_skills>` (v1.19.4 `skill/index.ts:332`, v2.1.3 `skill/instructions.ts:21`) | keep the description inside 1-1024 characters, the rule the spec states too (S001), and front-load it, because opencode shows all of it |
+
 ## Decision tables — when to use one
 
 | Situation | Table? | Evidence |

@@ -80,6 +80,9 @@ Domain: prompt & skill craft — SKILL.md/AGENTS.md quality, trigger fidelity.
 | Round-52 non-author spot-check (closure) | `lessons/round-52-verifier-spotcheck.md` | closure-authored outside review; records the round-52 claim remeasurements, verdicts and routed defects without changing the lane-authored report |
 | Always-on rule files per client (round 53) | `knowledge/alwayson-rule-files-round53.md` | which always-on file names nine clients read, what each does with `AGENTS.md` and `CLAUDE.md` in one directory, and which redirect forms each documents (S043–S050, S004, S019; omp from its binary); boxes `alwayson.04`/`alwayson.07` delegated to `../verifiers/verify_alwayson.py` (`../verifiers/check_alwayson_boxes.py --rev <rev>` → `always-on boxes executed and discriminating 2 of 8`) |
 | Round-53 lessons | `lessons/round-53.md` | LOG.md round-53 entries; `## Mistakes` M41 (stale corpus baseline, fix `../verifiers/check_gate_finding_delta.py`), M42 (loose matching in a counter, Q32), M43 (plan overclaim caught before content, Q33), M44 (lane index written by `git apply --3way`); `## Gate` S043–S051, S004 and S019 touched |
+| Round-53 non-author spot-check (closure) | `lessons/round-53-verifier-spotcheck.md` | written by the hyaku closure, not the lane (outside review; never edited here): round 53 admitted; drift sentinel tripped again; eight routed defects (round 54 works them in `lessons/round-54.md`); landed without an index row, indexed round 54 |
+| Description thresholds by client (round 54) | `knowledge/skill-listing-thresholds-round54.md` | seven clients' own docs on how much of a skill's `description` reaches the model or is accepted (S053–S059, S062–S064): four state a 1,024 authoring maximum and none documents a cut there (opencode enforces none; Cursor warns and loads), Claude Code cuts each listing entry at 1,536 and budgets the listing at 1% of context, Codex budgets the list at 2% or 8,000 characters and shortens descriptions first, Gemini CLI states about 100 words; `SKILL.md` § Description thresholds by client; `../verifiers/check_description_thresholds.py --rev <rev>` |
+| Round-54 lessons | `lessons/round-54.md` | LOG.md round-54 entries; `## Mistakes` M45 (SOURCES append-only breach, fix `../verifiers/check_sources_append_only.py`), M46 (plan times ahead of the clock), M47 (four gates without self-tests); `## Gate` S053–S064, three rejections, S046 touched; the round-53 routed defects |
 
 ## Frontier
 
@@ -113,6 +116,12 @@ transient text outside the instrument's cue-word list, rule-file names beyond th
 checklist (no box executed). *Loader-rule freshness* — opencode 1.19.4 re-derived and re-pinned
 (`../verifiers/check_opencode_repin.py --rev <rev>` → `surfaces pass 7 of 7 … pins OK 3/3 … kept 9 of 9`); the
 1.19.3→1.19.4 change was a bundler rename of unchanged source (S051); still not held: re-derivation stays manual.
+
+**Round 54 (append-only note on the per-render row above):** *Per-render consumption* — the offer-render half moves in
+part: what seven clients document about how much of a `description` reaches the model is held in
+`knowledge/skill-listing-thresholds-round54.md` and acted on in `../SKILL.md` § Description thresholds by client
+(`../verifiers/check_description_thresholds.py --rev <rev>` → `description thresholds backed N of 7 clients`). Still not held:
+any measured client behaviour past a threshold, and the per-session offer→activation join.
 
 ## Known gaps
 
