@@ -42,7 +42,7 @@ claim). Seat reports: `.ufo/waves/round-53/build/` (34 seats), `.ufo/waves/round
   (`best-practices.md:574`).
 - S050 (Zed, written this round at `55973a20`): `anchor` cell reworded in place before the report,
   "at commit `cfb894a5`" → "at zed-industries/zed@`cfb894a5`", because the corpus gate reads the words
-  "commit `<hex>`" as a lane commit pointer and flagged the upstream Zed commit `commit_unresolvable`. Same source,
+  "commit `<hex>`" as a lane commit pointer and flagged the upstream Zed hash as `commit_unresolvable`. Same source,
   same commit, no change of meaning. This edits a cell the contract keeps append-only (rule 2 allows only
   `status`, `recheck`, `used-by`); it is disclosed here rather than carried as a red gate or a duplicate row.
 
