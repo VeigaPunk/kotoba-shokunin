@@ -75,7 +75,7 @@ Areas being explored and not yet held (LEARNING.md § Files the path writes); ap
 
 | Area | Why not held | Next probe |
 |---|---|---|
-| Executed checklist coverage | 33 of 41 SKILL.md boxes remain lane-attested prose; the agent-definition, dispatch-prompt and always-on checklists have no executed box (§ Known gaps) | execute another named box with a fail-closed fixture and re-measure the map (`../verifiers/verify_skill_checklist.py`) |
+| Executed checklist coverage | 33 of 41 SKILL.md boxes remained lane-attested prose at round 46 (31 of 41 at round 49: `dispatch.04` and `dispatch.08` are delegated to `../verifiers/verify_dispatch_prompts.py`); the agent-definition and always-on checklists have no executed or delegated box (§ Known gaps) | execute another named box with a fail-closed fixture and re-measure the map (`../verifiers/verify_skill_checklist.py`) |
 | Command extraction | commands outside the declared vocabulary are invisible; info-less table fences read as commands (§ Known gaps) | fixtures for an outside-vocabulary command and the info-less table fence |
 | Implicit-intent fidelity | the literal-trigger proxy covers only prompts that name a skill (§ Known gaps) | the intent-labeling pass on the proven join recipe (`knowledge/trigger-miss-proxy-round6.md`) |
 | MCP/plugin instruction surfaces | the two target harness configs carry no MCP/plugin keys; the classes are live elsewhere (§ Known gaps) | per-harness census separating loader-class presence from configured instances (`knowledge/instruction-surface-census-round13.md`) |
