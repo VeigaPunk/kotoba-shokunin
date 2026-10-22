@@ -18,6 +18,7 @@ Plan: `plans/round-48.md`. Wave evidence: `.ufo/waves/round-48/build/`.
 | M25 Coverage sweep searched source names, not rule content | The plan's novelty sweep `grep -rn 'agentskills\|skills-ref' corpus/knowledge SKILL.md` → 0 hits in `SKILL.md`, yet `grep -n '1024' SKILL.md` → line 151 already stated the per-authority rules (`.ufo/waves/round-48/build/C2UncoveredSweep.md`) | Q14 (a negative claim carries its sweep) — satisfied in form, too narrow in content | The entry's novelty claim now rests on both sweeps (source names and rule terms), and `SKILL.md:151` points to the entry so the fact keeps one home. Shown able to fail: the source-name sweep returns 0 on `SKILL.md`, the content sweep returns 1 — the narrow sweep would have certified a duplicate. |
 | M26 A repair claim named after the routed row, not the routed cause | The first plan framed configured-root enumeration as "repair routed defect 1, configured-root half"; `C1ClaimCritic.md` and `C1JoinDefinitionHistory.md` show the round-47 join drop is the producer's `customize-opencode` byte probe (`verify_harness_claims.py:477-479`), which the change does not touch; on this host both roots are absent and the row reads 10 before and after | none → Q21 | Claims re-ordered before any landing (`plans/round-48.md` re-ordering note); the configured-root claim is scored improved-bounded and says it does not resolve defect 1. Shown able to fail: Q21 asks for the cause's measurement; the producer reads 11 and the instrument 10 on the live row at both base and landing, so a "defect 1 repaired" claim fails it. |
 | M27 Instrument self-hash read through process substitution | First landed ruler run used `python3 -B <(git show …ruler.py)`; its receipt recorded `ruler_sha256` `e3b0c442…` (the hash of empty input) instead of `01af33a6…` | none (the ruler hashes `__file__`, which a pipe empties) | Re-run from the committed path after `git show <rev>:.ufo/round-48/tools/config-root-ruler.py \| sha256sum` matched the working file (`01af33a6…`); the retained receipt `.ufo/round-48/verification/after-configured-root.json` carries `ruler_sha256` `01af33a6…`. Shown able to fail: the discarded receipt's `ruler_sha256` differs from the committed ruler's hash. |
+| M28 Hash match read as custody (round 47, routed item 4) | Round 47 deleted and then rebuilt its shared scratch snapshot; four sha256 matches against committed receipts were offered as recovery (fleet `.ufo/reports/round-47/kotoba.md`, "reconstructed, not uninterrupted custody"). Demonstration this round (`.ufo/waves/round-48/build/FrQualityCriteria.md` F3): a copy of `.ufo/round-48/verification/before-configured-root.json` has the same sha256 `8bec447a…` but a different inode; the named round-47 scratch commits (`git cat-file -e b1b48d1` and five more) exit 128 | none → Q22 | Q22 states what a hash match proves (byte identity) and what it does not (custody, inode/mtime, historical-object recovery). Shown able to fail: the copy passes a hash check yet fails an inode check, so a custody claim resting on the hash alone fails Q22. No cleanup or reconstruction ran this round. |
 
 ## Gate
 
@@ -60,5 +61,24 @@ Stop rationale: every claim of this round rests on an opened row.
 | 1 join definition and carrier | Not resolved. C2 closes the configured-root input gap in the same row; the built-in marker disagreement stays routed (M26). Original 21/24 and 20/24 evidence untouched. |
 | 2 source anchors, README 24/24, erratum horizon | S018–S021 supersede S001/S003/S010/S013 (old cells kept). README 24/24 lines qualified in `corpus/README.md`; erratum horizon 2315 versus 2343+ LOG lines recorded there. |
 | 3 parsed vendor rule versus lexical mirror | Repaired by C1: the entry tables both rules and runs the YAML-alias, Unicode and escaped-value counterexamples. |
-| 4 absence and reconstruction facts | No cleanup or reconstruction this round. Attempt 1's private-tree pointers are named as not re-verifiable from the lane (`FrAttempt1Audit.md`). |
-| 5 prospective closure metadata | No frozen input, receipt or producer target was edited; attempt 1's committed instrument, oracle and before receipt are reused byte-identical (sha256 checked). |
+| 4 absence and reconstruction facts | Lesson-backed criterion Q22 (M28). No cleanup or reconstruction this round. Attempt 1's private-tree pointers are named as not re-verifiable from the lane (`FrAttempt1Audit.md`). |
+| 5 prospective closure metadata | No new criterion: the observed class (an unindexed closure file, round-47 M21) is already caught by both corpus instruments, and this round's two new corpus files were indexed with the owning baseline re-recorded (61 → 63). No frozen input, receipt or producer target was edited; attempt 1's committed instrument, oracle and before receipt are reused byte-identical (sha256 checked). |
+
+## Falsify-wave corrections (wave 2, lane-dispatched — not a non-author spot-check)
+
+- `A28QualityRows`: Q20 bound only the approximation half of M24 and missed `PROVINCE.md`,
+  `corpus/README.md` and check detail strings → **Q23 supersedes Q20** (Q20 stays as the audit
+  trail). The check's FAIL detail string (`verifiers/verify_skill_checklist.py`, `check_no_xml_tag`)
+  and `PROVINCE.md` Core still called the packager "stricter" or said the check executes S003's rule
+  → both corrected. Q21's `grounded in` cell names M26 by a shorter label than the M26 row's class
+  text; the row is not rewritten (append-only), this line records the mismatch.
+- `A09ClaimSizingC1`: the S001 and S003 `used-by` cells still named `SKILL.md`, which cites S018 and
+  S019 since `887b6af`. Changed in place (contract rule 2), logged old→new: S001 `SKILL.md` →
+  `corpus/lessons/round-46.md`; S003 `SKILL.md` → `corpus/lessons/round-46.md, corpus/lessons/round-47.md`.
+  The same seat rated C1's axis label a medium defect (34 → 35 is the expansion observable); the
+  declared target is not changed after landing — the report carries the disagreement.
+- `FrQualityCriteria`: routed item 4 gets Q22 (M28). Its draft Q23-for-item-5 was not taken (see the
+  routed-items table).
+- `A24UnreadableRoot`: with `--oc-config/skills` unreadable, the round-48 instrument exits 2 (caught
+  `SUBSTRATE` permission error) where base exited 0 because it never read that root. Recorded as an
+  open behavior question in `SCORECARD.md` (next round), not fixed this round.

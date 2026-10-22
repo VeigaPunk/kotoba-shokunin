@@ -1304,8 +1304,11 @@ def check_no_xml_tag(fm: tuple[dict | None, str]) -> tuple[str, int, str]:
         m = XML_TAG_RE.search(val) or YAML_ANGLE_ESCAPE_RE.search(val)
         if m:
             hits.append("%s: %r" % (key, m.group(0)))
-    limit = ("S003 Anthropic rule, absent from the open spec (S001); "
-             "Anthropic's packager bans any '<'/'>' and is stricter")
+    limit = ("S019 Anthropic rule, absent from the open spec (S018), "
+             "approximated lexically on the unparsed text; Anthropic's "
+             "packager (S012) bans any '<'/'>' in the parsed value, and the "
+             "two disagree in both directions "
+             "(corpus/knowledge/frontmatter-rule-authorities-round48.md)")
     if hits:
         return "FAIL", len(present), "XML tag in %s (%s)" % (
             "; ".join(hits), limit)

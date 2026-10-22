@@ -70,8 +70,9 @@ table's source), `C2LaneCheckerRun.md` (10 fixtures, three-way comparison), `C2S
    - a double-quoted `"\u003cb\u003e"` (decodes to `<b>`): both FAIL, by different mechanisms.
    So the lane check is neither the packager's rule nor a superset of it. `SKILL.md`'s portability
    floor called the packager simply "stricter"; round 48 corrects that sentence and points it here.
-   The same wording in the check's FAIL detail string (`verify_skill_checklist.py:1307-1308`) is left
-   unchanged this round and stays a known text defect.
+   The check's FAIL detail string (`verify_skill_checklist.py:1307-1311`) and `PROVINCE.md` carried the
+   same wording; both were corrected later in round 48 after the falsify wave flagged them
+   (`.ufo/waves/round-48/falsify/A28QualityRows.md`).
 5. **The lane's parse is not YAML.** On the alias fixture the lane reports "description 2 chars",
    the packager (PyYAML) resolves the alias and fails it, and skills-ref (strictyaml) refuses the
    anchor at parse time. Three tools, three answers to "what is the description".
