@@ -9,8 +9,8 @@ duplicate (M9). The refusal is scoped to the two *named* tables, so a duplicate 
 not a contract miss. C1's own counter **HOLDS**: `skill description names 5 of 9 non-none lanes`
 (exit 1) on the base files, `9 of 9` (exit 0) on the landed ones. The classification downgrade **M5
 still survives**, and it does **not** fail via `--skill`. Every verdict is unchanged at the integrator's
-later landing `a78fec1ff1434fbbc58f025d2662dd2cab7957ad` (the guard file is byte-identical there;
-`verifiers/check_sibling_census.py` sha256 `2f9d8a88…` at both).
+two later landings (`a78fec1`, `bf109cac`); the guard file is byte-identical at all three revs
+(`verifiers/check_sibling_census.py` sha256 `2f9d8a88…`).
 
 ## Findings
 
@@ -21,7 +21,7 @@ exited **0**. After: all exit **1**, the refusal printed before any row is verif
 depend on the duplicate row's other cells. M3 (`Kasegi`) is no longer killed *only* incidentally: the
 duplicate refusal now fires as well as the filesystem lookup, so the case-variant duplicate is dead on a
 case-insensitive filesystem too. M9 (lane cell `kasegi-shokunin`) is killed by the same refusal, and its
-`repo_dir_for` lookup still resolves, so that kill is principled, not accidental.
+`repo_dir_for` lookup still resolves — a principled kill, not an accident.
 
 **F2 — M5 does not fail via `--skill`. Answer: no.** M5 (kasegi's census row `adjacent`→`none`, with
 the PROVINCE row edited to match) exits **0** on both detectors. The `--skill` arm reads the census's
@@ -44,13 +44,12 @@ table at the end of the `## Adjacent` section (M11) — is therefore **not** ref
 for 20 lanes. Conditions for the escape: the stray table must come *after* the real one (an earlier
 table would be selected instead and the lane-set check would then fail), and must not out-score the real
 header on the token count. The census file is append-only and carries round-50 sections, so a "restated"
-table is a plausible edit. Bounded finding: the guard should refuse a repeated lane in *every*
+table is a plausible edit; bounded finding: the guard should refuse a repeated lane in *every*
 right-shaped table of the file, or state that its refusal covers one table per file.
 
 ## Results table
 
-Detector: `python3 -B verifiers/check_sibling_census.py <census> --province <PROVINCE.md>`, and the same
-plus `--skill <SKILL.md>`; exit 1 = killed, exit 0 = survived.
+Detector: `python3 -B verifiers/check_sibling_census.py <census> --province <PROVINCE.md>`, and the same plus `--skill <SKILL.md>`; exit 1 = killed, 0 = survived.
 
 | id | mutation | exit (province only) | exit (with `--skill`) | verdict |
 |---|---|---|---|---|
@@ -67,15 +66,15 @@ plus `--skill <SKILL.md>`; exit 1 = killed, exit 0 = survived.
 ## Evidence
 
 Scratch: `/fast/scratch/hyaku/kotoba-r50/falsify/MutDuplicateRows/` — private clone `lane/` at
-`956ee1676e4c18480bce8ac3993541462be76e11` (and `lane_tip/` at `a78fec1`), harness `mutants.py`, logs
-`run-log.txt` and `tip-run.txt`, one directory per mutant under `mutants/`. The guard script was never
-edited; each mutant gets its own copy of the three input files.
+`956ee1676e4c18480bce8ac3993541462be76e11` (and `lane_tip/` at the two later tips), harness
+`mutants.py`, logs `run-log.txt` and `tip-run*.txt`, one directory per mutant under `mutants/`. The
+guard script was never edited; each mutant gets its own copy of the three input files.
 
     $ python3 -B mutants.py
     BASELINE --province only: exit 0   -> rows 20 verified 20 / province rows 20 matched 20
     BASELINE --skill: exit 0           -> skill description names 9 of 9 non-none lanes; length 1008 of 1024
-    $ LANE_DIR=$PWD/lane_tip python3 -B mutants.py     # tip a78fec1: identical verdicts, baseline exit 0,
-                                                      # skill description length 1019 of 1024
+    $ LANE_DIR=$PWD/lane_tip python3 -B mutants.py     # tips a78fec1 and bf109cac: identical verdicts,
+                                                      # baseline exit 0, description length 1019 of 1024
 
 Claim counter before and after (the guard's own `--skill` arm, on `git show <rev>:SKILL.md` saved to a
 file; the base run names chousa, kama, kotodama and tameshi as not named):
@@ -85,11 +84,10 @@ file; the base run names chousa, kama, kotodama and tameshi as not named):
 
 The plan's shell counter agrees: `5` at `f304646`, `9` at `956ee167`. The landed guard is green on its
 own fixtures: `python3 -B verifiers/check_sibling_census.py --self-test` → `self-test: 0 failure(s) over
-68 assertions`, exit 0. Representative mutant outputs (verbatim; the full log is `run-log.txt`):
+68 assertions`, exit 0. Representative mutant outputs (verbatim; full log in `run-log.txt`):
 
     M1  exit 1  FAIL census table: lane kasegi appears in more than one row (rows 9 (line 77), 10 (line 78)): a duplicated row inflates the table without surveying a new lane
               rows 21 verified 21 / province rows 20 matched 20
-    M2  exit 1  FAIL province `## Adjacent` table: lane kasegi appears in more than one row (rows 9 (line 19), 10 (line 20)): ...
     M3  exit 1  FAIL census table: lane kasegi appears in more than one row (rows 9 (line 77), 10 (line 78)): ...
               FAIL row 10 (census line 78) (lane kasegi): no sibling repo at /home/vgpnk/Projects/shokunin/Kasegi-shokunin
     M5  exit 0  rows 20 verified 20 / province rows 20 matched 20
@@ -109,16 +107,13 @@ are the bytes of the judged rev `956ee167`):
     skill    9fe2ca74b00ce51e087237c34d031a576ad8c191b642612b447fd53c26340702  UNCHANGED
     guard    2f9d8a88b1d3dd8562455006d5ea89ec02546a1ecb9d023f327d88e5502eedc7  UNCHANGED
 
-The lane checkout has since moved to `a78fec1` — the integrator's later landing, whose census/PROVINCE/
-SKILL bytes differ (`0278b84f…`, `13c2682e…`, `834dd842…`) and whose guard hash is the same
-`2f9d8a88…`; that move was not mine. Only this report file was written in the lane. No git write
-command (commit, add, stash, checkout, switch, reset, pull, push, apply) and no jj command was run in
-the lane, the fleet repo or any sibling lane repo; sibling repos were read with `git show` /
-`git cat-file` only. Observed during the probe, not mine: the lane's `git status` shows
-` M corpus/lessons/round-50.md` (a concurrent writer); it was left untouched.
-
-## Tooling
-
-No tool was installed or upgraded by this seat; the probe needs only `git` and `python3`.
+The lane checkout has since moved on (integrator landings `a78fec1`, `bf109cac`); the guard file's
+bytes are the same at all three revs (`2f9d8a88…`), and the census/PROVINCE/SKILL bytes differ there
+(`f53a923b…`, `44fae238…`, `05457302…` at `bf109cac`) — that move was not mine. Only this report file
+was written in the lane. No git write command (commit, add, stash, checkout, switch, reset, pull,
+push, apply) and no jj command was run in the lane, the fleet repo or any sibling lane repo; sibling
+repos were read with `git show` / `git cat-file` only. Observed during the probe, not mine: the lane's
+`git status` shows concurrent modifications to `corpus/lessons/round-50.md`, `PROVINCE.md` and the census
+(other writers); they were left untouched. No tool was installed or upgraded by this seat; the probe needs only `git` and `python3`.
 
 Report: .ufo/waves/round-50/falsify/MutDuplicateRows.md

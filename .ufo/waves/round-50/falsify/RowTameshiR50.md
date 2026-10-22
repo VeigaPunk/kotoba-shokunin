@@ -11,7 +11,7 @@ Scope: the adjacency row for tameshi only. C1, C2, D1 to D6, S024 to S029 and Q2
 - Core names "kagi `corpus/surface-census.sh` and `corpus/checklist-run.sh`": `PROVINCE.md:31-32`. Verbatim (T5).
 - Ledger "kotoba `verifiers/*` — file existence is O, their gate-ness is U until a survey admits them": `corpus/knowledge/fleet-kill-rate-ledger.md:127-128`. Verbatim (T7). The ledger has no ownership word for kotoba (see F1).
 - Ruling's "reads kagi's SKILL.md checklist": accurate but incomplete. `checklist-run.sh:4` calls it the "Credential-hygiene checklist", and the default read is `SKILL="$ROOT/SKILL.md"` at line 68. kagi `SKILL.md:425` holds the heading (G1, G2, D).
-- Row's "kotoba owns the SKILL-checklist instrument": NOT in any tameshi file, and NOT in kotoba base `a5adc146` (check A). It first appears at `f3046466:55`, which is this row (K5).
+- Row's "kotoba owns the SKILL-checklist instrument": NOT in any tameshi file outside `.ufo/` (grep B), and NOT in kotoba base `a5adc146` (check A). It first appears at `f3046466:55`, which is this row (K5).
 - Row's path "tameshi corpus `fleet-kill-rate-ledger.md:125-128`": no such file at the pin. The file is `corpus/knowledge/fleet-kill-rate-ledger.md` (path check).
 
 ## 2. Does the ruling's reasoning hold on the bytes?
@@ -69,3 +69,5 @@ f. **"Basis sibling."** Contested. The fact seat (`RuleTameshi.md` §2) says the
 ## Tooling
 
 No installs or upgrades. Used git, python3 and bash only. Writes: this report, its directory, and the scratch clone and mutants. The lane checkout is otherwise untouched.
+
+Check labels: T1 to T10, K1 to K5, G1 to G3, C1 to C3 and NC1 are the scratch quote checks (python cell: `git show` plus exact substring test; NC1 is the negative control). A (SKILL-checklist at a5adc146), B (kotoba mentions at the tameshi pin), grep C (ledger "kotoba owns" or "SKILL-checklist"), D (kagi heading), E and F (lesson heading and pointer) are the bash greps in §7. M1 to M5 are the mutants.

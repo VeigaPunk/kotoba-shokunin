@@ -347,3 +347,20 @@ Appended round 50 (append-only). Seat reports under `../.ufo/waves/round-50/fals
   boundary text "kotoba owns the SKILL-checklist instrument" had no split behind it. The claim arm fires
   literally; the row is `adjacent` through tameshi's own split ("every lane's gate remains its own",
   `PROVINCE.md:14-17`), the precedence rule's sibling-split exit.
+- **tameshi, second reading** (`RowTameshiR50.md`): tameshi's only measurement of kagi's
+  `checklist-run.sh` is its self-test kill rate (`corpus/knowledge/mutation-case-kagi-checklist.md:47-52`
+  at `3b20f073`), which the round-50 definition excludes ("the kill rate of the owner's gate"), so under
+  that definition no claim exists; under the literal round-49 wording the arm fires and tameshi's own
+  split clears it (`PROVINCE.md:14-18`). `adjacent` either way. The basis labels in the precedence
+  section are the basis at `f3046466`; kotoba's round-50 description adds kotoba's side for chousa,
+  kama, kotodama and tameshi, so those rows read `both` from round 50 (chousa stays `kotoba` plus its
+  own domain line). The guard checks neither definition nor basis.
+- **kengaku ruling, corrected premise** (`RowKengakuR50.md`): the round-25 script does not read "only the
+  `SKILL.md` of the lane it runs in"; it reads the lane root it is run from (87 paths in a traced run),
+  and pointed at a directory holding kotoba's `SKILL.md` it prints `skill_frontmatter_triggers=8`. The
+  row's "no claim" rests on the scope-surface rule: the script's cross-lane runs are recorded only in
+  kengaku's wave reports, which § Classification rule excludes. kengaku's corpus also carries connector
+  reports that read kotoba instruments (`r10-connector.md`, `r11-connector.md`) as design evidence, and
+  `corpus/evidence/round9-fleet/sibling-overlap.md:12` labels the relation "Contested" before resolving
+  it to the split in its own ruling; neither is an audit claim, and both are recorded for the integrator
+  with the round-50 L0 line.

@@ -180,10 +180,13 @@ Seat reports under `.ufo/waves/round-50/falsify/`. Recorded here, not rewritten 
   rewrite it cites is the defect, not a pattern to follow. The rule the round-50 report follows: the
   filing commit's lines are frozen (line 4 included); each addendum is one block appended at the end,
   naming the lane head it describes by the helper's `landed <hash>`; a correction is a new sentence in
-  the block. Check per addendum commit `c` (with `n` = the line count of the report at `c^`):
-  `git -C /home/vgpnk/Projects/shokunin diff -U0 c^ c -- .ufo/reports/round-50/kotoba.md | awk -v n=<n> 'f && /^-/{r++} /^@@/{f=1; h++; if ($0 ~ "^@@ -" n ",0 [+]") e++} END{print "removed", r+0, "non_EOF", h-e+0}'`
+  the block. Check per addendum commit <c> (with <n> = the line count of the report at <c>^, and
+  <report> = the round-50 kotoba report path in the fleet repository's reports directory):
+  `git -C <fleet> diff -U0 <c>^ <c> -- <report> | awk -v n=<n> 'f && /^-/{r++} /^@@/{f=1; h++; if ($0 ~ "^@@ -" n ",0 [+]") e++} END{print "removed", r+0, "non_EOF", h-e+0}'`
   must print `removed 0 non_EOF 0`; on the four round-49 addenda it prints `removed 1 non_EOF 1` each.
-- **Two in-place edits of this lesson's own lines before filing, disclosed:** the D3 bullet's pointer
-  (it named a heading that does not exist; now the census precedence section), and a backticked
-  fleet commit token in the Gate addition (the corpus integrity gate read it as an unresolvable lane
-  commit; now written without backticks). Both changed only this round's own text.
+- **Three in-place edits of this lesson's own lines before filing, disclosed:** the D3 bullet's pointer
+  (it named a heading that does not exist; now the census precedence section); a backticked fleet
+  commit token in the Gate addition (the corpus integrity gate read it as an unresolvable lane commit;
+  now written without backticks); and the D1 check command above (its literal report path and commit
+  letter read as a dead report pointer and a non-hash commit; now placeholders). All three changed only
+  this round's own text.
