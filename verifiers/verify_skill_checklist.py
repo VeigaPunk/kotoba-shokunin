@@ -63,6 +63,12 @@ checklist.box_map_complete      MULTISET parity between the live file's
     ``~/.local/bin/sekhmet``): delegating a box to a README, a JSON map, a
     directory or a SKILL.md is a FAIL naming the target, not a pass
     (round-16 R2).
+    A delegated instrument that can prove its own boxes is run by this gate:
+    its ``--box-proof --map <map>`` (the map under check) must exit 0, and a
+    non-zero exit is a FAIL naming the instrument and its exit code
+    (round-50 D2, gate half).  An instrument that does not support
+    ``--box-proof`` keeps today's behaviour — it is not run — and the detail
+    string says so.
     ``evaluated`` = live box count.
 trigger.frontmatter_parses      the file's frontmatter parses as a BLOCK:
     after optional blank lines/BOM, a ``---`` delimiter line, a closing
@@ -286,6 +292,7 @@ import os
 import re
 import shlex
 import shutil
+import subprocess
 import sys
 import tempfile
 from collections import Counter
@@ -298,6 +305,11 @@ BASELINE_NAME = "checklist-baseline.json"
 VOCAB_NAME = "checklist-command-vocabulary.json"
 MAP_SCHEMA = "kotoba-checklist-v1"
 VOCAB_SCHEMA = "kotoba-command-vocab-v1"
+# round-50 D2 (gate half): a delegated instrument that can prove its own
+# boxes is run by this gate, with the map under check, and a non-zero exit
+# is a gate failure.
+BOX_PROOF_FLAG = "--box-proof"
+BOX_PROOF_TIMEOUT = 120
 DEFAULT_MAX_LINES = 600
 NORMALIZATION_RULE = (
     "first line minus '- [ ]' marker + continuations stripped, joined with "
@@ -930,6 +942,91 @@ def is_instrument(path: Path) -> bool:
     return head[:2] == b"#!" or head == b"\x7fELF"
 
 
+def instrument_command(candidate: Path) -> list[str] | None:
+    """The argv that runs a delegated instrument, or None when the file
+    cannot be run at all (no interpreter for its suffix and no execute
+    bit).  A ``.py`` instrument runs under this interpreter with ``-B`` (the
+    repo's own convention: no ``__pycache__`` is written into the tree)."""
+    suffix = candidate.suffix.lower()
+    if suffix == ".py":
+        return [sys.executable, "-B", str(candidate)]
+    if suffix in (".sh", ".bash"):
+        return ["bash", str(candidate)]
+    if os.access(candidate, os.X_OK):
+        return [str(candidate)]
+    return None
+
+
+def supports_box_proof(cmd: list[str]) -> tuple[bool, str]:
+    """Does the instrument accept ``--box-proof``?  The help output is the
+    probe.  An instrument that does not advertise the flag keeps today's
+    behaviour: this gate does not run it."""
+    try:
+        proc = subprocess.run(cmd + ["--help"], capture_output=True,
+                              text=True, timeout=BOX_PROOF_TIMEOUT)
+    except subprocess.TimeoutExpired:
+        return False, "the --help probe timed out"
+    except OSError as exc:
+        return False, "the --help probe failed (%s)" % exc
+    if BOX_PROOF_FLAG in (proc.stdout + proc.stderr):
+        return True, ""
+    return False, ("the --help probe does not advertise %s" % BOX_PROOF_FLAG)
+
+
+def first_line(text: str) -> str:
+    """The first non-blank line of ``text``, trimmed to one line."""
+    for line in text.splitlines():
+        line = line.strip()
+        if line:
+            return line[:120]
+    return ""
+
+
+def delegated_box_proof(target: str, candidate: Path, map_path: Path | None,
+                        base: Path) -> tuple[str, str | None]:
+    """Run a delegated instrument's own box proof against the map under
+    check.
+
+    Returns ``(note, problem)``.  ``problem`` is set when the instrument ran
+    the proof and exited non-zero — the delegation is then unproven and the
+    checklist gate is red.  An instrument that does not support
+    ``--box-proof`` keeps today's behaviour: it is not run, and the note
+    says so."""
+    cmd = instrument_command(candidate)
+    if cmd is None:
+        return ("delegated %s: not runnable (no interpreter, not "
+                "executable), not run" % target), None
+    supported, why = supports_box_proof(cmd)
+    if not supported:
+        return ("delegated %s: no %s support (%s), not run"
+                % (target, BOX_PROOF_FLAG, why)), None
+    argv = cmd + [BOX_PROOF_FLAG]
+    if map_path is not None:
+        argv += ["--map", str(map_path)]
+    try:
+        proc = subprocess.run(argv, capture_output=True, text=True,
+                              timeout=BOX_PROOF_TIMEOUT, cwd=str(base))
+    except subprocess.TimeoutExpired:
+        return ("delegated %s: %s timed out" % (target, BOX_PROOF_FLAG),
+                "delegated instrument %r timed out after %ds running %s"
+                % (target, BOX_PROOF_TIMEOUT, BOX_PROOF_FLAG))
+    except OSError as exc:
+        return ("delegated %s: %s could not run (%s)"
+                % (target, BOX_PROOF_FLAG, exc),
+                "delegated instrument %r could not run %s (%s)"
+                % (target, BOX_PROOF_FLAG, exc))
+    summary = first_line(proc.stdout)
+    if proc.returncode != 0:
+        return ("delegated %s: %s exit %d" % (target, BOX_PROOF_FLAG,
+                                               proc.returncode),
+                "delegated instrument %r failed its %s (exit %d)%s"
+                % (target, BOX_PROOF_FLAG, proc.returncode,
+                   (": " + summary) if summary else ""))
+    return ("delegated %s: %s exit 0%s"
+            % (target, BOX_PROOF_FLAG,
+               (": " + summary) if summary else "")), None
+
+
 TRAILING_PUNCT = ",;:)]}\"'"
 
 
@@ -1102,7 +1199,8 @@ def command_subjects(lines: list[str], vocab: frozenset[str],
 def check_box_map(boxes: list[dict], m: dict, target_name: str,
                   near_misses: list[dict] | None = None,
                   repo: Path | None = None,
-                  map_repo: Path | None = None) -> tuple[str, int, str]:
+                  map_repo: Path | None = None,
+                  map_path: Path | None = None) -> tuple[str, int, str]:
     entries = m["boxes"]
     problems: list[str] = []
     near_misses = near_misses or []
@@ -1134,6 +1232,7 @@ def check_box_map(boxes: list[dict], m: dict, target_name: str,
                 executed.append(e)
     if not executed:
         problems.append("no map entry with a valid executed: disposition")
+    delegated_instruments: list[tuple[str, Path, Path]] = []
     for e in entries:
         dm = DISPOSITION_RE.match(e["disposition"])
         if dm and dm.group(1) == "delegated":
@@ -1157,6 +1256,20 @@ def check_box_map(boxes: list[dict], m: dict, target_name: str,
                     "suffix %s or a shebang)"
                     % (e["box_id"], target,
                        "/".join(sorted(INSTRUMENT_SUFFIXES))))
+            elif not any(t == target for t, _c, _b in delegated_instruments):
+                delegated_instruments.append((target, candidate, base))
+    # round-50 D2 (gate half): a delegation is a claim that the named
+    # instrument proves its own boxes.  This gate runs that proof -- the
+    # instrument's ``--box-proof`` against the map under check -- and a
+    # non-zero exit leaves the delegation unproven and the gate red.
+    proof_notes: list[str] = []
+    proof_problems: list[str] = []
+    for target, candidate, base in delegated_instruments:
+        note, problem = delegated_box_proof(target, candidate, map_path, base)
+        if note:
+            proof_notes.append(note)
+        if problem:
+            proof_problems.append(problem)
     live = Counter((b["section"], b["sha256"]) for b in boxes)
     mapped = Counter((e["section"], e["text_sha256"]) for e in entries)
     label_by_key: dict[tuple[str, str], str] = {}
@@ -1207,16 +1320,20 @@ def check_box_map(boxes: list[dict], m: dict, target_name: str,
             problems.append("line %d near-miss checkbox marker: %r"
                             % (nm["line"], nm["text"]))
     evaluated = len(boxes)
-    if problems:
-        return "FAIL", evaluated, "; ".join(problems[:6]) + (
-            " … (+%d more)" % (len(problems) - 6) if len(problems) > 6 else "")
-    return "PASS", evaluated, (
-        "%d boxes mapped (%d executed, %d delegated, %d unexecuted)"
-        % (len(boxes), len(executed),
-           sum(1 for e in entries
-               if e["disposition"].startswith("delegated:")),
-           sum(1 for e in entries
-               if e["disposition"].startswith("unexecuted:"))))
+    all_problems = proof_problems + problems
+    if all_problems:
+        return "FAIL", evaluated, "; ".join(all_problems[:6]) + (
+            " … (+%d more)" % (len(all_problems) - 6)
+            if len(all_problems) > 6 else "")
+    detail = ("%d boxes mapped (%d executed, %d delegated, %d unexecuted)"
+              % (len(boxes), len(executed),
+                 sum(1 for e in entries
+                     if e["disposition"].startswith("delegated:")),
+                 sum(1 for e in entries
+                     if e["disposition"].startswith("unexecuted:"))))
+    if proof_notes:
+        detail += "; " + "; ".join(proof_notes)
+    return "PASS", evaluated, detail
 
 
 def check_frontmatter(fm: tuple[dict | None, str]) -> tuple[str, int, str]:
@@ -2262,6 +2379,88 @@ def self_test() -> int:
             code == 0
             and "PASS trigger.citation_resolves: evaluated 1" in out, out)
 
+    # --- round-50 D2 (gate half): the delegated box proof is a gate ---------
+    # A ``delegated:`` disposition claims that the named instrument proves
+    # its own boxes.  This gate runs that proof -- the instrument's
+    # ``--box-proof`` against the map under check -- and a non-zero exit
+    # leaves the delegation unproven, so the check is red.  Three arms: a
+    # stub that exits 1 under --box-proof turns the check red, the same stub
+    # exiting 0 keeps it green, and an instrument without --box-proof
+    # support keeps today's behaviour and says so in the detail string.
+    def delegated_tree(root: Path, stub: str) -> None:
+        (root / "verifiers").mkdir(parents=True, exist_ok=True)
+        skill = root / "SKILL.md"
+        skill.write_text(
+            "---\nname: t\ndescription: \"Use for t.\"\n---\n\n"
+            "# Fixture checklist\n\n"
+            "- [ ] first box (executed: trigger.line_budget)\n"
+            "- [ ] second box\n",
+            encoding="utf-8")
+        boxes, _ = extract_boxes(
+            skill.read_text(encoding="utf-8").splitlines())
+        by_text = {b["text"]: b["sha256"] for b in boxes}
+        entries = [
+            {"box_id": "fixture.01", "section": "Fixture checklist",
+             "text_sha256": by_text["first box (executed: trigger.line_budget)"],
+             "disposition": "executed:trigger.line_budget"},
+            {"box_id": "fixture.02", "section": "Fixture checklist",
+             "text_sha256": by_text["second box"],
+             "disposition": "delegated:verifiers/probe.py"},
+        ]
+        (root / "verifiers" / "checklist-baseline.json").write_text(
+            json.dumps({"schema": MAP_SCHEMA, "file": "SKILL.md",
+                        "boxes": entries}, indent=2), encoding="utf-8")
+        (root / "verifiers" / "probe.py").write_text(stub, encoding="utf-8")
+
+    def delegated_run(root: Path) -> tuple[int, str]:
+        return run_capture([
+            "--repo", str(root), "--skill", str(root / "SKILL.md"),
+            "--map", str(root / "verifiers" / "checklist-baseline.json"),
+            "--check", "checklist.box_map_complete"])
+
+    RED_STUB = (
+        "#!/usr/bin/env python3\n"
+        "import argparse, sys\n"
+        "ap = argparse.ArgumentParser()\n"
+        "ap.add_argument(\"--box-proof\", action=\"store_true\")\n"
+        "ap.add_argument(\"--map\")\n"
+        "ap.parse_args()\n"
+        "print(\"boxes proven 0\")\n"
+        "sys.exit(1)\n")
+    GREEN_STUB = RED_STUB.replace("boxes proven 0", "boxes proven 2").replace(
+        "sys.exit(1)", "sys.exit(0)")
+    NO_PROOF_STUB = (
+        "#!/usr/bin/env python3\n"
+        "import sys\n"
+        "print(\"this instrument proves nothing\")\n"
+        "sys.exit(0)\n")
+
+    with tempfile.TemporaryDirectory(prefix="kotoba-delegated-proof-") as td:
+        root = Path(td)
+
+        delegated_tree(root, RED_STUB)
+        code, out = delegated_run(root)
+        rec("delegated box proof: a stub exiting 1 turns the check red",
+            code == 1 and "FAIL checklist.box_map_complete:" in out, out)
+        rec("delegated box proof: the failing instrument and its exit are "
+            "named", "verifiers/probe.py" in out and "--box-proof" in out
+            and "exit 1" in out, out)
+
+        delegated_tree(root, GREEN_STUB)
+        code, out = delegated_run(root)
+        rec("delegated box proof: a stub exiting 0 keeps the check green",
+            code == 0 and "PASS checklist.box_map_complete:" in out, out)
+        rec("delegated box proof: the proof run is stated in the detail",
+            "delegated verifiers/probe.py" in out and "exit 0" in out, out)
+
+        delegated_tree(root, NO_PROOF_STUB)
+        code, out = delegated_run(root)
+        rec("delegated box proof: an instrument without --box-proof support "
+            "keeps today's behaviour",
+            code == 0 and "PASS checklist.box_map_complete:" in out, out)
+        rec("delegated box proof: the skipped instrument is stated in the "
+            "detail", "no --box-proof support" in out, out)
+
     for f in failures:
         print("self-test FAIL: %s" % f)
     print("%d failure(s) over %d assertions" % (len(failures), total))
@@ -2329,6 +2528,7 @@ def main(argv: list[str] | None = None) -> int:
     box_map = None
     map_repo: Path | None = None
     map_na: str | None = None
+    map_path: Path | None = None
     if "checklist.box_map_complete" in wanted:
         if args.map:
             map_path = Path(args.map)
@@ -2385,7 +2585,7 @@ def main(argv: list[str] | None = None) -> int:
             else:
                 st, ev, detail = check_box_map(
                     boxes, box_map, skill_path.name, near_misses, repo,
-                    map_repo)
+                    map_repo, map_path)
         elif cid == "trigger.frontmatter_parses":
             st, ev, detail = check_frontmatter(fm)
         elif cid == "trigger.name_directory":

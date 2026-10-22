@@ -46,13 +46,45 @@ else PASS.  Every check prints ``evaluated N``; ``N == 0`` is never a PASS.
 Exit codes: 0 all selected checks PASS; 1 a check FAILed; 2 usage or
 substrate error (missing/unreadable directory or map).  Read-only; stdlib
 only; deterministic.
+
+The box proof (``--box-proof``)
+-------------------------------
+``--box-proof`` proves, for each of the two boxes, that the checklist map
+delegates the box to this instrument, that the live ``SKILL.md`` box text
+still hashes to the constant pinned in this file, and that the committed
+fixtures discriminate every one of the six *named* conjuncts --
+``report_path_literal``, ``report_stem_is_lane_id``, ``lane_identity_known``,
+``filename_role_round_equal``, ``filename_report_dir_round_equal`` and
+``round_le_latest_dispatched`` -- one must-fail fixture case each.  The
+coverage is read from the *observed* conjunct statuses, not from the case's
+``expect_conjunct`` label: a conjunct is covered when some must-fail case
+fails on it and on no conjunct outside the one co-failure pinned in
+``ALLOWED_CO_FAIL``.  The conjunct list is the constant ``CONJUNCTS``,
+next to the pinned box hashes, never read from the manifest, so deleting a
+must-fail case from the manifest leaves its conjunct uncovered: the box is
+not counted, the uncovered conjunct is named, and the run exits 1.
+
+Each box also needs a must-pass control case whose observed conjuncts are
+all PASS, and dispatch.08 needs a case whose observed
+``round_le_latest_dispatched`` is N/A (a missing state source is never a
+pass).  A missing fixture directory or an unreadable fixture file is a
+substrate error: a problem line and exit 2, never a traceback.
+
+The bound of that claim: the fixtures discriminate the six named conjuncts,
+one must-fail case each.  The box clauses *without* a fixture -- the
+unsubstituted variable (``${...}`` / ``$VAR``), ``<=`` at equality with the
+lane's latest dispatched round, the legacy-state arm (``state-stale``) and a
+non-digit round folder -- are **not** proven by this instrument.
 """
 
 import argparse
+import contextlib
 import hashlib
+import io
 import json
 import os
 import re
+import shutil
 import sys
 import tempfile
 from pathlib import Path
@@ -81,6 +113,12 @@ PINNED_BOX_SHA = {
     "dispatch.08": "f5c37baa2ca839ea8dd091f3f42f091db0715e1f6a755e5ae894e48c79cd46d2",
 }
 
+# The named conjuncts of each box, pinned here next to the box text hashes
+# and never derived from the fixture manifest.  The box proof requires one
+# isolated must-fail fixture case per named conjunct, so deleting a case
+# from the manifest leaves its conjunct uncovered and the box unproven -- a
+# deleted case cannot delete its own expectation, because the expectation
+# lives in this constant and not in the manifest.
 CONJUNCTS = {
     "dispatch.04": ("report_path_literal", "report_stem_is_lane_id",
                     "lane_identity_known"),
@@ -88,6 +126,15 @@ CONJUNCTS = {
                     "filename_report_dir_round_equal",
                     "round_le_latest_dispatched"),
 }
+
+# The one co-failure the fixture corpus is allowed: a report path's
+# placeholder sits inside the file stem, so a case that proves
+# report_path_literal also fails report_stem_is_lane_id.  No other pairing
+# is allowed, in either direction.
+ALLOWED_CO_FAIL = {"report_path_literal": frozenset({"report_stem_is_lane_id"})}
+
+# The clause a missing state source must show: N/A, never a pass.
+NA_ARM_CONJUNCT = "round_le_latest_dispatched"
 
 ROUND_FILE_RE = re.compile(r"^(?P<lane>.+)-round-(?P<round>\d+)\.md$")
 L1_FILE_RE = re.compile(r"^(?P<lane>.+)-L1\.md$")
@@ -485,7 +532,21 @@ def build_parser() -> argparse.ArgumentParser:
     ap.add_argument("--box-proof", action="store_true",
                     help="prove that both boxes are delegated to this "
                          "instrument and that the committed fixtures "
-                         "discriminate every conjunct")
+                         "discriminate each of the six named conjuncts "
+                         "(report_path_literal, report_stem_is_lane_id, "
+                         "lane_identity_known, filename_role_round_equal, "
+                         "filename_report_dir_round_equal, "
+                         "round_le_latest_dispatched), one must-fail fixture "
+                         "case each, read from the observed conjunct "
+                         "statuses and not from the case labels. A named "
+                         "conjunct with no isolated must-fail case is "
+                         "reported as uncovered, its box is not counted and "
+                         "the run exits 1; each box also needs an all-PASS "
+                         "control case, and dispatch.08 a case whose "
+                         "round_le_latest_dispatched is N/A. The box clauses "
+                         "without a fixture -- the unsubstituted variable, <= "
+                         "at equality, the legacy-state arm and a non-digit "
+                         "round folder -- are not proven.")
     ap.add_argument("--map", default=None, metavar="PATH",
                     help="box-map JSON for --box-proof (default: "
                          "<repo>/verifiers/%s)" % BASELINE_NAME)
@@ -547,6 +608,72 @@ def _verdict_of(result: dict, fname: str) -> dict | None:
         if f["file"] == fname:
             return f
     return None
+
+
+# The six named conjuncts, restated here so that a change to the pinned
+# constant in the instrument is caught by the self-test and not only by the
+# fixture corpus.
+SELF_TEST_CONJUNCTS = {
+    "dispatch.04": ("report_path_literal", "report_stem_is_lane_id",
+                    "lane_identity_known"),
+    "dispatch.08": ("filename_role_round_equal",
+                    "filename_report_dir_round_equal",
+                    "round_le_latest_dispatched"),
+}
+
+
+def _proof_fixture_corpus(root: Path) -> list[dict]:
+    """Build a synthetic dispatch fixture corpus in the shape of the
+    committed one: one must-pass control and one must-fail case per named
+    conjunct, one case directory each.  Returns the manifest case list."""
+    good = SELF_TEST_PROMPT.format(round=7)
+    specs = [
+        # id, check, file, verdict, conjunct, text, state round
+        ("d04-control", "dispatch.04", "kote-round-7.md", "PASS", None,
+         good, "9"),
+        ("d04-placeholder", "dispatch.04", "kote-round-7.md", "FAIL",
+         "report_path_literal",
+         good.replace("/round-7/kote.md", "/round-7/<lane>.md"), "9"),
+        ("d04-stem", "dispatch.04", "kote-round-7.md", "FAIL",
+         "report_stem_is_lane_id",
+         good.replace("/round-7/kote.md", "/round-7/other.md"), "9"),
+        ("d04-unknown-lane", "dispatch.04", "ghost-round-7.md", "FAIL",
+         "lane_identity_known", good.replace("kote", "ghost"), None),
+        ("d08-control", "dispatch.08", "kote-round-7.md", "PASS", None,
+         good, "9"),
+        ("d08-role-round", "dispatch.08", "kote-round-7.md", "FAIL",
+         "filename_role_round_equal", good.replace("round 7.", "round 6."),
+         "9"),
+        ("d08-report-dir-round", "dispatch.08", "kote-round-7.md", "FAIL",
+         "filename_report_dir_round_equal",
+         good.replace("/round-7/", "/round-6/"), "9"),
+        ("d08-above-state", "dispatch.08", "kote-round-7.md", "FAIL",
+         "round_le_latest_dispatched", good, "6"),
+        ("d08-missing-state", "dispatch.08", "kote-round-7.md", "N/A",
+         "round_le_latest_dispatched", good, None),
+    ]
+    cases: list[dict] = []
+    for cid, check, fname, verdict, conj, text, state in specs:
+        case_dir = root / cid
+        (case_dir / "prompts").mkdir(parents=True, exist_ok=True)
+        (case_dir / "state").mkdir(parents=True, exist_ok=True)
+        (case_dir / "fleet").mkdir(parents=True, exist_ok=True)
+        if fname.startswith("kote"):
+            # a lane the fleet knows, so only the named conjunct fails
+            (case_dir / "fleet" / "kote-shokunin").mkdir(parents=True,
+                                                        exist_ok=True)
+        (case_dir / "prompts" / fname).write_text(text, encoding="utf-8")
+        if state is not None:
+            (case_dir / "state" / "kote.report-baseline").write_text(
+                state + " " + "0" * 64 + "\n", encoding="utf-8")
+        entry = {"id": cid, "check": check, "dir": cid, "file": fname,
+                 "expect_verdict": verdict}
+        if conj is not None:
+            entry["expect_conjunct"] = conj
+            entry["expect_conjunct_status"] = (
+                "FAIL" if verdict == "FAIL" else verdict)
+        cases.append(entry)
+    return cases
 
 
 def self_test() -> int:
@@ -724,6 +851,127 @@ def self_test() -> int:
             lane_of("kote-round-7-continuation-x.md") == (None, None, None),
             lane_of("kote-round-7-continuation-x.md"))
 
+        # --- the box proof enforces its own fixture coverage ---------------
+        rec("the pinned conjunct list names the six conjuncts",
+            CONJUNCTS == SELF_TEST_CONJUNCTS, CONJUNCTS)
+        proof = root / "proof"
+        fx = proof / "fixtures" / "dispatch-prompts"
+        fx.mkdir(parents=True, exist_ok=True)
+        (proof / "verifiers").mkdir(parents=True, exist_ok=True)
+        skill_src = Path(__file__).resolve().parent.parent / SKILL_NAME
+        skill_err = None
+        try:
+            (proof / SKILL_NAME).write_text(
+                skill_src.read_text(encoding="utf-8"), encoding="utf-8")
+        except OSError as exc:
+            skill_err = exc
+        rec("the proof tree carries a copy of SKILL.md", skill_err is None,
+            skill_err)
+        box_map = {"schema": "kotoba-checklist-map-v1",
+                   "boxes": [{"box_id": cid,
+                              "section": "Dispatch-prompt fidelity checklist",
+                              "text_sha256": PINNED_BOX_SHA[cid],
+                              "disposition": "delegated:" + DELEGATION_TARGET}
+                             for cid in CHECK_IDS]}
+        map_path = proof / "verifiers" / BASELINE_NAME
+        map_path.write_text(json.dumps(box_map, indent=2, sort_keys=True),
+                            encoding="utf-8")
+        cases = _proof_fixture_corpus(fx)
+        manifest_path = fx / "manifest.json"
+
+        def write_manifest(cs: list[dict], note: str = "self-test corpus") \
+                -> None:
+            manifest_path.write_text(
+                json.dumps({"schema": "kotoba-dispatch-fixtures-v1",
+                            "cases": cs, "note": note},
+                           indent=2, sort_keys=True),
+                encoding="utf-8")
+
+        def run_proof(tree: Path | None = None) -> tuple[int, str, str]:
+            out, err = io.StringIO(), io.StringIO()
+            with contextlib.redirect_stdout(out), \
+                    contextlib.redirect_stderr(err):
+                code = box_proof(map_path, tree or fx)
+            return code, out.getvalue(), err.getvalue()
+
+        def by_id(cid: str) -> dict:
+            return next(c for c in cases if c["id"] == cid)
+
+        write_manifest(cases)
+        code, out, err = run_proof()
+        rec("box proof: a complete corpus proves both boxes",
+            code == 0 and "boxes proven 2" in out, (code, out, err))
+        # every must-fail case deleted in turn leaves its conjunct uncovered
+        for entry in cases:
+            if entry.get("expect_verdict") != "FAIL":
+                continue
+            write_manifest([c for c in cases if c["id"] != entry["id"]])
+            code, out, err = run_proof()
+            rec("box proof: deleting %s leaves the box unproven"
+                % entry["id"], code == 1, (code, out, err))
+            rec("box proof: deleting %s names the box and the conjunct"
+                % entry["id"],
+                entry["check"] in err and entry["expect_conjunct"] in err,
+                (entry["check"], entry["expect_conjunct"], err))
+        # the control case and the N/A arm carry weight too
+        for entry in cases:
+            if entry.get("expect_verdict") not in ("PASS", "N/A"):
+                continue
+            write_manifest([c for c in cases if c["id"] != entry["id"]])
+            code, out, err = run_proof()
+            rec("box proof: deleting %s leaves the box unproven"
+                % entry["id"], code == 1, (code, out, err))
+        # a note-only edit changes nothing
+        write_manifest(cases, note="self-test corpus, edited note")
+        code, out, err = run_proof()
+        rec("box proof: a note-only manifest edit is still a proof",
+            code == 0 and "boxes proven 2" in out, (code, out, err))
+        # a twin of a must-fail case replaces it without weakening the proof
+        twin = dict(by_id("d04-stem"))
+        twin["id"] = "d04-stem-twin"
+        write_manifest([c for c in cases if c["id"] != "d04-stem"] + [twin])
+        code, out, err = run_proof()
+        rec("box proof: a twin of a must-fail case replaces it",
+            code == 0 and "boxes proven 2" in out, (code, out, err))
+        # a relabelled copy of the placeholder case cannot cover the stem
+        copy = dict(by_id("d04-placeholder"))
+        copy["id"] = "d04-stem-copy"
+        copy["expect_conjunct"] = "report_stem_is_lane_id"
+        write_manifest([c for c in cases if c["id"] != "d04-stem"] + [copy])
+        code, out, err = run_proof()
+        rec("box proof: a relabelled placeholder copy cannot cover the stem",
+            code == 1 and "report_stem_is_lane_id" in err, (code, out, err))
+        # no must-fail case at all: the expectation list is not the manifest
+        write_manifest([c for c in cases if c.get("expect_verdict") != "FAIL"])
+        code, out, err = run_proof()
+        rec("box proof: a corpus with no must-fail case proves no box",
+            code == 1 and "boxes proven 0" in out, (code, out, err))
+        # a case that names a conjunct the box does not have is rejected
+        bogus = json.loads(json.dumps(cases))
+        bogus[1]["expect_conjunct"] = "not_a_named_conjunct"
+        write_manifest(bogus)
+        code, out, err = run_proof()
+        rec("box proof: a must-fail case naming an unnamed conjunct is "
+            "rejected", code == 1 and "not_a_named_conjunct" in err,
+            (code, out, err))
+        # a missing fixture directory is a substrate error, never a traceback
+        broken = root / "proof-broken"
+        shutil.copytree(fx, broken)
+        shutil.rmtree(broken / "d04-stem")
+        out2, err2 = io.StringIO(), io.StringIO()
+        code = None
+        try:
+            with contextlib.redirect_stdout(out2), \
+                    contextlib.redirect_stderr(err2):
+                code = box_proof(map_path, broken)
+        except Exception as exc:
+            # the uninstrumented proof raises here; the fix must not
+            err2.write("raised %r" % (exc,))
+        rec("box proof: a missing fixture directory is a substrate error",
+            code == 2 and "Traceback" not in err2.getvalue(),
+            (code, err2.getvalue()))
+        write_manifest(cases)
+
     for f in failures:
         print("self-test FAIL: %s" % f)
     print("%d failure(s) over %d assertions" % (len(failures), total))
@@ -736,13 +984,45 @@ def self_test() -> int:
 
 def box_proof(map_path: Path, fixtures: Path) -> int:
     """Prove that both boxes are delegated here and that the committed
-    fixtures discriminate every conjunct.
+    fixtures discriminate every one of the six named conjuncts.
 
-    Prints exactly ``boxes proven N`` on stdout; N is the number of boxes
-    satisfying BOTH the map/pin half and the fixture half.  Exit 0 only when
-    N == 2."""
+    A box counts only when all of the following hold:
+
+    * the checklist map delegates the box to this instrument, the map's
+      ``text_sha256`` equals the constant pinned in this file and the live
+      ``SKILL.md`` box text hashes to it;
+    * every manifest case for the box matches its expected verdict, and a
+      case that names a conjunct matches that conjunct's expected status;
+    * every conjunct named for the box in ``CONJUNCTS`` has a must-fail
+      case whose *observed* failing conjunct is it.  The observation, not
+      the case's ``expect_conjunct`` label, is the authority; a case may
+      fail one further conjunct, but only in the pairing pinned in
+      ``ALLOWED_CO_FAIL``;
+    * the box has a must-pass control case whose observed conjuncts are all
+      PASS, and, for the box that owns the N/A arm, a case whose observed
+      ``round_le_latest_dispatched`` is N/A.
+
+    The third rule is what makes the proof enforce its own coverage: the
+    conjunct list is the constant ``CONJUNCTS``, never read from the
+    manifest, so deleting a must-fail case leaves its conjunct without an
+    isolated case, the box uncounted and the exit code 1.  Each uncovered
+    conjunct is reported as
+    ``box-proof: <box>: no isolated must-fail case for conjunct <name>``.
+
+    A missing fixture directory or an unreadable fixture file is a substrate
+    error, not a failed proof: it is reported as a problem line and the run
+    exits 2, never a traceback.
+
+    The bound of the claim: the fixtures discriminate the six named
+    conjuncts, one must-fail case each.  The box clauses without a fixture
+    -- the unsubstituted variable, ``<=`` at equality, the legacy-state arm
+    and a non-digit round folder -- are not proven by this instrument.
+
+    Prints ``boxes proven N`` on stdout; N is the number of boxes satisfying
+    all the rules above.  Exit 0 only when N == 2."""
     problems: list[str] = []
     proven = 0
+    substrate_error = False
     try:
         raw = map_path.read_text(encoding="utf-8")
         box_map = json.loads(raw)
@@ -793,23 +1073,34 @@ def box_proof(map_path: Path, fixtures: Path) -> int:
             problems.append("%s: no fixture cases" % cid)
             continue
         ok = True
+        # the observed failing conjuncts of every case that matched its
+        # expected verdict; the coverage rule reads these, not the labels
+        observed_fail: list[set[str]] = []
+        control_ok = False
+        na_ok = False
         for c in cases:
             case_dir = fixtures / c["dir"]
             want_check = c["check"]
-            result = (evaluate_dispatch_04 if want_check == "dispatch.04"
-                      else evaluate_dispatch_08)(case_dir / "prompts",
-                                                case_dir / "state",
-                                                case_dir / "fleet")
+            try:
+                result = (evaluate_dispatch_04 if want_check == "dispatch.04"
+                          else evaluate_dispatch_08)(case_dir / "prompts",
+                                                    case_dir / "state",
+                                                    case_dir / "fleet")
+            except (EnvError, OSError) as exc:
+                problems.append("%s/%s: %s" % (cid, c["id"], exc))
+                substrate_error = True
+                ok = False
+                continue
             f = _verdict_of(result, c["file"])
             if f is None:
                 problems.append("%s/%s: file %r not evaluated"
                                 % (cid, c["id"], c["file"]))
                 ok = False
                 continue
-            if f["verdict"] != c["expect_verdict"]:
+            if f["verdict"] != c.get("expect_verdict"):
                 problems.append("%s/%s: %s verdict %r, expected %r"
                                 % (cid, c["id"], c["file"], f["verdict"],
-                                   c["expect_verdict"]))
+                                   c.get("expect_verdict")))
                 ok = False
                 continue
             named = c.get("expect_conjunct")
@@ -818,13 +1109,41 @@ def box_proof(map_path: Path, fixtures: Path) -> int:
                 if status != c.get("expect_conjunct_status", "FAIL"):
                     problems.append("%s/%s: conjunct %s is %r, expected %r"
                                     % (cid, c["id"], named, status,
-                                       c.get("expect_conjunct_status", "FAIL")))
+                                   c.get("expect_conjunct_status", "FAIL")))
                     ok = False
+            fails = {n for n, info in f["conjuncts"].items()
+                     if info.get("status") == "FAIL"}
+            if c.get("expect_verdict") == "FAIL":
+                observed_fail.append(fails)
+            elif c.get("expect_verdict") == "PASS":
+                if not fails and all(info.get("status") == "PASS"
+                                     for info in f["conjuncts"].values()):
+                    control_ok = True
+            elif c.get("expect_verdict") == "N/A":
+                if f["conjuncts"].get(NA_ARM_CONJUNCT, {}).get("status") \
+                        == "N/A":
+                    na_ok = True
+        for n in CONJUNCTS.get(cid, ()):
+            allowed = ALLOWED_CO_FAIL.get(n, frozenset())
+            if not any(n in fails and (fails - {n}) <= allowed
+                       for fails in observed_fail):
+                problems.append("%s: no isolated must-fail case for conjunct "
+                                "%s" % (cid, n))
+                ok = False
+        if not control_ok:
+            problems.append("%s: no all-PASS control case" % cid)
+            ok = False
+        if NA_ARM_CONJUNCT in CONJUNCTS.get(cid, ()) and not na_ok:
+            problems.append("%s: no N/A case for conjunct %s"
+                            % (cid, NA_ARM_CONJUNCT))
+            ok = False
         if ok:
             proven += 1
     print("boxes proven %d" % proven)
     for p in problems:
         print("box-proof: %s" % p, file=sys.stderr)
+    if substrate_error:
+        return 2
     return 0 if proven == 2 else 1
 
 

@@ -52,7 +52,12 @@ Per row:
 Census-wide:
   * the set of lanes named in the table equals the set of `*-shokunin`
     directories under --fleet (default /home/vgpnk/Projects/shokunin) minus
-    kotoba itself.
+    kotoba itself;
+  * no lane is named by more than one row: a duplicated row inflates the
+    row count without surveying a new lane, and the lane-set check cannot
+    see it (a set collapses the duplicate).  Round-50 routed defect D3, from
+    the round-49 falsify finding that a duplicated census row passed with
+    `rows 21 verified 21`.  The duplicated lane is named on stdout.
 
 With --province PATH (PROVINCE.md), additionally:
   * only the `## Adjacent` section is read (it ends at the next `## ` heading);
@@ -61,7 +66,32 @@ With --province PATH (PROVINCE.md), additionally:
     list under `## Adjacent` is a FAIL, not a pass;
   * the province table's lane set must equal the census lane set exactly, and
     each row's classification and commit must equal the census row's;
-  * the province table must not have fewer rows than the sibling-lane set.
+  * the province table must not have fewer rows than the sibling-lane set;
+  * no lane is named by more than one row of the `## Adjacent` table either
+    (the same round-50 D3 refusal as for the census table).
+
+With --skill PATH (a SKILL.md), additionally:
+  * the YAML frontmatter `description` of PATH is read (the same
+    `description_of` helper the sibling rows are checked with); the value ends
+    at ANY column-0 line, so a column-0 YAML comment is not swallowed into
+    the description (round-50 mutant m8);
+  * every census lane whose classification is not `none` must appear in that
+    description as a whole token, case-insensitively (the same `token_in`
+    helper), and each census lane counts once however often it is written;
+  * G1 -- clause binding: a name is not arbitration.  The description is
+    split into clauses and a lane counts as NAMED only when some clause that
+    contains it also carries an ownership or routing marker.  The marker
+    list is pinned in this file and the rule is a lexical approximation,
+    named as such in every failure message that uses it; it has
+    counterexamples in both directions (a clause with a marker and no lane is
+    harmless; a lane named in a clause without a marker is refused even when
+    the surrounding sentences do state a split);
+  * G4 -- the parsed description must be 1 to 1024 characters (S018);
+  * a lane that is missing from the description, or named without a marker,
+    is a FAIL and is named on stdout;
+  * the summary lines `skill description names K of N non-none lanes` and
+    `skill description length L of 1024` are always printed, so the counts
+    are readable even when the check fails.
 
 Exit ladder (family contract; identical in every mode):
   0  every row verified and every cross-check held
@@ -70,18 +100,26 @@ Exit ladder (family contract; identical in every mode):
 
 Usage:
     check_sibling_census.py CENSUS.md [--fleet DIR] [--province PROVINCE.md]
+                                   [--skill SKILL.md]
     check_sibling_census.py --self-test
 
 The self-test builds throwaway git repos in a temp directory and asserts the
 red arms of the content guard (mutated quote, wrong commit, missing lane,
 empty table, empty quote cell, heading-line quote) plus the province arms
 (bare-name list, classification mismatch, commit mismatch, extra lane, missing
-lane, too few rows) and the matching-table green arm.  Its summary line
-follows the lane convention so the floors guard can register it:
+lane, too few rows) and the matching-table green arm.  The round-50 arms add
+the duplicate-row refusals (census table and province table, including a
+case-variant duplicate and a consistent duplicate pair) and the --skill
+description arms (a missing lane fails, a complete description passes, the
+count lines are printed, the m1 bare list and the m5 negated mention are
+refused, the m7 case-duplicates count once, the m8 column-0 comment is not
+swallowed, and the length cap holds).  Its summary line follows the lane
+convention so the floors guard can register it:
 `self-test: N failure(s) over M assertions`.
 
-Read-only: it reads the census file, the province file and the sibling repos
-through `git show`; it writes nothing outside its own temp directory.
+Read-only: it reads the census file, the province file, the skill file and
+the sibling repos through `git show`; it writes nothing outside its own temp
+directory.
 
 Stdlib only (Python >= 3.9).
 """
@@ -117,6 +155,8 @@ SEPARATOR_CELL = re.compile(r"\A:?-{2,}:?\Z")
 WS_RUN = re.compile(r"\s+")
 # A cell split on unescaped pipes; `\|` is a literal pipe inside a cell.
 CELL_SPLIT = re.compile(r"(?<!\\)\|")
+# A YAML block-scalar indicator at the head of a `description:` value.
+BLOCK_SCALAR = re.compile(r"\A[>|][+-]?\s*")
 
 
 # --------------------------------------------------------------------------
@@ -338,17 +378,189 @@ NO_SKILL = "no skill.md"
 
 
 def description_of(skill_text):
-    """The frontmatter `description` value, whitespace-collapsed; '' if none."""
+    """The frontmatter `description` value, whitespace-collapsed; '' if none.
+
+    Round-50 fix (critic seat CriticC1Sizing, mutant m8): the value ends at
+    ANY column-0 line, not only at a column-0 line that carries a colon.  A
+    YAML comment is a column-0 line without a colon, so the old lookahead
+    swallowed `# chousa kama kotodama tameshi` into the description value and
+    the guard counted lanes that a real YAML parse leaves out of the value.
+    Block-scalar content is indented, so it never starts at column 0, and the
+    value still ends where the frontmatter ends.
+
+    The block-scalar indicator (`>`, `|`, with optional chomping) is dropped:
+    it is YAML syntax, not description text.
+    """
     if skill_text is None or not skill_text.startswith("---"):
         return ""
     front = skill_text.split("\n---", 1)[0]
-    match = re.search(r"^description:(.*?)(?=^\S[^\n]*:|\Z)", front, re.S | re.M)
-    return collapse(match.group(1)) if match else ""
+    match = re.search(r"^description:(.*?)(?=^\S|\Z)", front, re.S | re.M)
+    if not match:
+        return ""
+    return BLOCK_SCALAR.sub("", collapse(match.group(1))).strip()
 
 
 def token_in(name, text):
     return re.search(r"(?<![a-z0-9-])" + re.escape(name) + r"(?![a-z0-9])",
                      text, re.I) is not None
+
+
+# ---------------------------------------------------------------------------
+# Round-50, G1 (clause binding) and G4 (length cap), from the round-50 critic
+# seat (`.ufo/waves/round-50/build/CriticC1Sizing.md`).  A bare list of lane
+# names is not arbitration, so a lane counts as named only when the clause it
+# sits in also states who owns what.  The marker list is pinned here,
+# deliberately small, and the rule is a lexical approximation -- it is named
+# as such in every failure message that uses it.
+# ---------------------------------------------------------------------------
+
+SKILL_DESCRIPTION_MIN = 1
+SKILL_DESCRIPTION_MAX = 1024
+
+# Ownership / routing markers.
+#
+# `NOT` is upper-case only: it is how the fleet writes a refusal ("NOT
+# prompt/skill craft (kotoba-shokunin)"), while lower-case `not` occurs in
+# ordinary prose ("not skill files", "not router-visible") and would bind
+# every clause it appeared in -- including a negated mention such as "chousa
+# is not the owner", which is the opposite of arbitration.
+#
+# The cross-reference markers ("see above") count as routing markers: they
+# point at a split stated in an earlier clause, which is arbitration by
+# reference.  They are the difference between a description that names a lane
+# and one that routes to the lane that owns the ground.
+OWNERSHIP_MARKERS = ("owns", "own", "owned", "route", "routes", "routing",
+                      "NOT", "see above", "as above", "see also")
+MARKER_DESCRIPTION = ("owns/own/owned/route/routes/routing/NOT/"
+                      "see above/as above/see also")
+
+# A clause ends at `;` or at a sentence end: a `.`, `!` or `?` followed by
+# whitespace and a capital letter (or the end of the text).  A period inside
+# a token (`SKILL.md`, `e.g.`) does not end a clause, and a period followed by
+# a lower-case word is read as an abbreviation or a continuation, not a
+# sentence end.
+CLAUSE_SPLIT = re.compile(r";|(?<=[.!?])\s+(?=[A-Z])|(?<=[.!?])\s*$")
+
+
+def split_clauses(description):
+    """Split a description into clauses on `;` and sentence ends."""
+    return [c.strip() for c in CLAUSE_SPLIT.split(description) if c.strip()]
+
+
+def marker_in(clause):
+    """Does this clause carry an ownership or routing marker?
+
+    The markers are matched as whole words, so `route` does not match
+    `router` and `own` does not match `owner`.  The upper-case `NOT` is
+    matched case-sensitively; the rest case-insensitively.
+    """
+    for marker in OWNERSHIP_MARKERS:
+        pattern = r"(?<![A-Za-z0-9-])" + re.escape(marker) + r"(?![A-Za-z0-9-])"
+        flags = 0 if marker == "NOT" else re.I
+        if re.search(pattern, clause, flags):
+            return True
+    return False
+
+
+# ---------------------------------------------------------------------------
+# Round-50 (routed defect D3): a duplicated row is a false census.  The
+# lane-set check cannot see it -- a set collapses the duplicate -- and the
+# row counter grows without a new lane, so the round-49 falsify finding saw a
+# duplicated census row pass with `rows 21 verified 21`.  Both the census
+# table and the PROVINCE.md `## Adjacent` table are checked.
+# ---------------------------------------------------------------------------
+
+def duplicate_lane_failures(rows, columns, subject):
+    """Lanes named by more than one row of a lane table.
+
+    `rows` is a list of (line_number, cells) pairs, `columns` the expected
+    cell count and `subject` the table's name in the failure message.  Lane
+    names are compared normalized (case-insensitive, `-shokunin` suffix
+    dropped), so `Alpha` and `alpha` are the same lane.  Returns one failure
+    string per duplicated lane.
+    """
+    seen = {}
+    for index, (line_no, cells) in enumerate(rows, 1):
+        if len(cells) != columns:
+            continue
+        lane = normalize_lane(cells[0])
+        if not lane:
+            continue
+        seen.setdefault(lane, []).append((index, line_no))
+    failures = []
+    for lane in sorted(seen):
+        entries = seen[lane]
+        if len(entries) > 1:
+            failures.append(
+                "%s: lane %s appears in more than one row (rows %s): a "
+                "duplicated row inflates the table without surveying a new "
+                "lane" % (subject, lane,
+                          ", ".join("%d (line %d)" % (i, n) for i, n in entries)))
+    return failures
+
+
+def skill_description_failures(skill_path, lane_classes):
+    """Check the skill description against the census's non-`none` lanes.
+
+    `lane_classes` maps a lane name to its census classification.  The
+    description is the YAML frontmatter `description` of `skill_path`, read
+    with the same `description_of` helper the sibling rows use.
+
+    Two rules, both from the round-50 critic seat (`.ufo/waves/round-50/build/
+    CriticC1Sizing.md`):
+
+    G1 -- clause binding.  A bare list of lane names is not arbitration: the
+    description is split into clauses and a lane counts as NAMED only when
+    some clause that contains it also carries an ownership or routing marker
+    from the pinned list below.  The marker rule is a lexical approximation,
+    not a parse of intent; its counterexamples run in both directions (a
+    clause with a marker but no lane is harmless, a lane named in a clause
+    without a marker is refused even when the surrounding sentences do state
+    a split).
+
+    G4 -- length cap.  The parsed description must be 1 to 1024 characters
+    (S018, `specification.md:101`).
+
+    Lane names are compared whole-token and case-insensitively, and each
+    census lane counts once, so a capitalised repeat is not a second lane.
+
+    Returns a dict: named, total, length, failures.
+    """
+    try:
+        text = skill_path.read_text(encoding="utf-8")
+    except OSError as exc:
+        raise UsageError("cannot read skill file %s: %s" % (skill_path, exc))
+    except UnicodeDecodeError as exc:
+        raise UsageError("skill file %s is not UTF-8: %s" % (skill_path, exc))
+    description = description_of(text)
+    length = len(description)
+    clauses = split_clauses(description)
+    non_none = sorted(lane for lane, cls in lane_classes.items()
+                       if cls != "none")
+    failures = []
+    if length < SKILL_DESCRIPTION_MIN or length > SKILL_DESCRIPTION_MAX:
+        failures.append(
+            "skill description length %d is outside %d-%d characters (S018: "
+            "the description field must be 1-1024 characters)"
+            % (length, SKILL_DESCRIPTION_MIN, SKILL_DESCRIPTION_MAX))
+    named = 0
+    for lane in non_none:
+        in_clause = [c for c in clauses if token_in(lane, c)]
+        if not in_clause:
+            failures.append("skill description does not name the non-none "
+                            "census lane %s" % lane)
+            continue
+        if not any(marker_in(c) for c in in_clause):
+            failures.append(
+                "skill description mentions the non-none census lane %s, but "
+                "no clause that names it carries an ownership or routing "
+                "marker (%s): naming a lane is not a split.  This marker "
+                "rule is a lexical approximation, not a parse of intent"
+                % (lane, MARKER_DESCRIPTION))
+            continue
+        named += 1
+    return {"named": named, "total": len(non_none), "length": length,
+            "failures": failures}
 
 
 def mechanical_findings(repo, commit, values, lane, all_lanes, classification):
@@ -396,7 +608,8 @@ CENSUS_CELL_NAMES = ("lane", "branch", "commit", "path", "classification",
 def check_census(census_path, fleet_root, province_path=None):
     """Run every check.  Returns a result dict."""
     result = {"failures": [], "rows": 0, "verified": 0,
-              "province_rows": 0, "province_matched": 0, "province_checked": False}
+              "province_rows": 0, "province_matched": 0, "province_checked": False,
+              "lane_classes": {}}
     failures = result["failures"]
 
     try:
@@ -419,6 +632,25 @@ def check_census(census_path, fleet_root, province_path=None):
         failures.append("census table is empty: 0 rows in %s (refusing an empty "
                         "census)" % census_path)
         return result
+
+    # Round-50 (D3): a lane in more than one row is refused before any row is
+    # verified, so the refusal does not depend on the row's other cells.
+    for message in duplicate_lane_failures(rows, CENSUS_COLUMNS, "census table"):
+        failures.append(message)
+
+    # lane -> classification for every row whose lane and classification cells
+    # parse.  The --skill check reads this map: a lane the census classes
+    # non-`none` must be named in the skill description.  It is a separate
+    # pass so a row that fails another check still contributes its class.
+    lane_classes = {}
+    for _index, (_line_no, cells) in enumerate(rows, 1):
+        if len(cells) != CENSUS_COLUMNS:
+            continue
+        lane = normalize_lane(cells[0])
+        classification = cells[4].strip().lower()
+        if lane and classification in CLASSIFICATIONS:
+            lane_classes[lane] = classification
+    result["lane_classes"] = lane_classes
 
     expected = fleet_lanes(fleet_root)
     seen_lanes = set()
@@ -585,6 +817,13 @@ def _check_province(province_path, census_meta, census_lanes, expected, result):
         failures.append("province: the `## Adjacent` table is empty")
         return
 
+    # Round-50 (D3): the same duplicate-lane refusal as for the census table.
+    # The province table's lane set is a set too, so a duplicated row passes
+    # every other check (the row count only has a floor, not a ceiling).
+    for message in duplicate_lane_failures(rows, PROVINCE_COLUMNS,
+                                           "province `## Adjacent` table"):
+        failures.append(message)
+
     province_lanes = set()
     for index, (line_no, cells) in enumerate(rows, 1):
         label = "province row %d (line %d)" % (index, line_no)
@@ -649,6 +888,9 @@ def build_parser():
     parser.add_argument("--province", metavar="PATH",
                         help="PROVINCE.md whose `## Adjacent` table is cross-checked "
                              "against the census")
+    parser.add_argument("--skill", metavar="PATH",
+                        help="SKILL.md whose frontmatter description must name "
+                             "every census lane classified non-`none`")
     parser.add_argument("--self-test", action="store_true",
                         help="assert the red arms of the content guard on temporary "
                              "fixtures and exit")
@@ -663,8 +905,8 @@ def main(argv=None):
         return self_test()
 
     if not args.census:
-        print("usage: %s CENSUS.md [--fleet DIR] [--province PROVINCE.md]"
-              % Path(sys.argv[0]).name, file=sys.stderr)
+        print("usage: %s CENSUS.md [--fleet DIR] [--province PROVINCE.md] "
+              "[--skill SKILL.md]" % Path(sys.argv[0]).name, file=sys.stderr)
         return 2
 
     fleet_root = Path(args.fleet).expanduser()
@@ -682,6 +924,13 @@ def main(argv=None):
             print("ERROR province file %s does not exist" % province_path,
                   file=sys.stderr)
             return 2
+    skill_path = None
+    if args.skill:
+        skill_path = Path(args.skill).expanduser()
+        if not skill_path.is_file():
+            print("ERROR skill file %s does not exist" % skill_path,
+                  file=sys.stderr)
+            return 2
 
     try:
         result = check_census(census_path, fleet_root, province_path)
@@ -689,12 +938,26 @@ def main(argv=None):
         print("ERROR %s" % exc, file=sys.stderr)
         return 2
 
+    if skill_path is not None:
+        try:
+            skill = skill_description_failures(skill_path, result["lane_classes"])
+        except UsageError as exc:
+            print("ERROR %s" % exc, file=sys.stderr)
+            return 2
+        result["failures"].extend(skill["failures"])
+        result["skill"] = skill
+
     for failure in result["failures"]:
         print("FAIL %s" % failure)
     print("rows %d verified %d" % (result["rows"], result["verified"]))
     if result["province_checked"]:
         print("province rows %d matched %d"
               % (result["province_rows"], result["province_matched"]))
+    if skill_path is not None:
+        print("skill description names %d of %d non-none lanes"
+              % (result["skill"]["named"], result["skill"]["total"]))
+        print("skill description length %d of %d"
+              % (result["skill"]["length"], SKILL_DESCRIPTION_MAX))
     return 1 if result["failures"] else 0
 
 
@@ -770,6 +1033,61 @@ ALPHA_SKILL_HEADING = ("# alpha lane\n"
                        "# Alpha owns the alpha surface only\n"
                        "unrelated line\n")
 ALPHA_QUOTE = "Alpha owns the alpha surface only; nothing else."
+
+# Round-50 fixtures.  A SKILL.md whose frontmatter description names the
+# lanes of the throwaway census below, so the `--skill` arm can be exercised
+# without the real fleet.
+SKILL_HEAD = ("---\n"
+              "name: kotoba-shokunin\n"
+              "description: >\n"
+              "  ")
+SKILL_TAIL = ("---\n"
+              "\n"
+              "# kotoba\n")
+
+
+def _skill_md(description_body):
+    """A SKILL.md fixture whose frontmatter description is `description_body`."""
+    return SKILL_HEAD + description_body + "\n" + SKILL_TAIL
+
+
+# The nine lanes the round-49 census classes non-`none`, in the order the
+# census lists them.  The `--skill` arms use them so the reported counts read
+# the same way the live run does.
+SKILL_LANES = ("chousa", "kagi", "kake", "kama", "kasegi", "kengaku",
+               "kotodama", "kumitate", "tameshi")
+
+# A description that routes five of the nine: the same shape as the
+# base SKILL.md, whose sibling clause names kagi, kake, kasegi, kengaku and
+# kumitate and says who owns what.
+SKILL_DESC_FIVE = (
+    "Prompt and skill craft. Sibling boundary: the five sibling lanes kagi, "
+    "kake, kasegi, kengaku and kumitate own their own SKILL.md content; this "
+    "skill audits and reports; fixes route to the owning lane.")
+
+# The same description with the four missing lanes routed too.
+SKILL_DESC_ALL = (
+    "Prompt and skill craft. Sibling boundary: chousa owns the deep-research "
+    "method, kagi owns secrets and vault ops, kake owns web properties, kama "
+    "owns local model serving, kasegi owns bounty and security research, "
+    "kengaku owns model evaluation, kotodama owns worldbuilding and naming, "
+    "kumitate owns orchestration and dispatch runtime, and tameshi owns "
+    "verification fixtures and mutation testing; this skill audits and "
+    "reports; fixes route to the owning lane.")
+
+# The five routed lanes plus the four that are missing, written the way the
+# round-50 critic's m7 writes them: two capitalised repeats of lanes already
+# named and two new names in a clause that cross-references the split above.
+SKILL_DESC_SEVEN = (
+    SKILL_DESC_FIVE + " Kagi, Kake: see above. kotodama, tameshi.")
+
+# A bare list of the four missing lanes (critic m1): names, no arbitration.
+SKILL_DESC_BARE = (
+    SKILL_DESC_FIVE + " Sibling lanes: chousa kama kotodama tameshi.")
+
+# The same four lanes negated (critic m5).
+SKILL_DESC_NEGATED = (
+    SKILL_DESC_FIVE + " Never mention chousa, kama, kotodama or tameshi.")
 
 
 def self_test():
@@ -899,7 +1217,12 @@ def self_test():
         res = run([a_ok, wrong_arb], fleet_g)
         rec("mechanical: wrong arbitration cell fails",
             any("arbitration cell" in f for f in res["failures"]), res["failures"])
-        short = list(a_ok)
+        # The two-word quote is checked against fleet-a's own alpha commit.
+        # (It used to reuse fleet-g's alpha commit, so the arm only passed when
+        # two identical-content commits landed in the same wall-clock second
+        # -- the fixture repos differ only by their commit timestamp.  The arm
+        # flaked about once in thirty runs.)
+        short = list(alpha_row)
         short[8] = "Alpha owns"
         res = run([short], fleet_a)
         rec("mechanical: a two-word quote fails",
@@ -996,6 +1319,166 @@ def self_test():
         rec("province too few rows: names the shortfall",
             any("fewer than the 3 sibling lane(s)" in f for f in res["failures"]),
             res["failures"])
+
+        # -- arm 12: a duplicated row is refused (round-50, D3) ------------
+        # The census table: the same lane in two rows.  The lane-set check
+        # cannot see it -- a set collapses the duplicate -- so the row count
+        # grows without a new lane.
+        fleet_d, commits_d = make_fleet("fleet-d", ["alpha", "beta"])
+        dup_rows = [row_for("alpha", commits_d["alpha"]),
+                    row_for("alpha", commits_d["alpha"]),
+                    row_for("beta", commits_d["beta"])]
+        res = run(dup_rows, fleet_d)
+        rec("census duplicate row: fails", bool(res["failures"]), res["failures"])
+        rec("census duplicate row: names the lane and the rows",
+            any("lane alpha" in f and "more than one row" in f
+                for f in res["failures"]), res["failures"])
+
+        # A case-variant duplicate is the same lane.
+        dup_case = [row_for("alpha", commits_d["alpha"]),
+                    row_for("Alpha", commits_d["alpha"]),
+                    row_for("beta", commits_d["beta"])]
+        res = run(dup_case, fleet_d)
+        rec("census case-variant duplicate row: fails",
+            any("lane alpha" in f and "more than one row" in f
+                for f in res["failures"]), res["failures"])
+
+        # The PROVINCE.md `## Adjacent` table: the same refusal.
+        res = run([row_for("alpha", commits_d["alpha"]),
+                   row_for("beta", commits_d["beta"], classification="none")],
+                  fleet_d,
+                  province_rows=[["alpha", "adjacent", commits_d["alpha"], "ok"],
+                                 ["alpha", "adjacent", commits_d["alpha"], "ok"],
+                                 ["beta", "none", commits_d["beta"], "ok"]])
+        rec("province duplicate row: fails", bool(res["failures"]),
+            res["failures"])
+        rec("province duplicate row: names the lane and the rows",
+            any("lane alpha" in f and "more than one row" in f
+                for f in res["failures"]), res["failures"])
+
+        # A consistent duplicate pair in both tables still fails.
+        res = run(dup_rows, fleet_d,
+                  province_rows=[["alpha", "adjacent", commits_d["alpha"], "ok"],
+                                 ["alpha", "adjacent", commits_d["alpha"], "ok"],
+                                 ["beta", "adjacent", commits_d["beta"], "ok"]])
+        rec("consistent duplicate rows: fail in both tables",
+            sum(1 for f in res["failures"] if "more than one row" in f) == 2,
+            res["failures"])
+
+        # -- arm 13: the --skill description guard (round-50, C1) ---------
+        # The census lanes the check reads are the non-`none` ones.
+        nine = {lane: "adjacent" for lane in SKILL_LANES}
+        nine["kotoba"] = "none"
+
+        def skill_check(body, lanes=None):
+            path = tmp / "SKILL-fixture.md"
+            path.write_text(_skill_md(body), encoding="utf-8")
+            return skill_description_failures(path, nine if lanes is None else lanes)
+
+        # A description that routes every non-none lane passes.
+        res = skill_check(SKILL_DESC_ALL)
+        rec("skill: a routed description names every non-none lane",
+            res["failures"] == [] and res["named"] == 9 and res["total"] == 9,
+            (res["named"], res["total"], res["failures"]))
+
+        # The base description routes five of the nine; the four it misses
+        # are named in the failures.
+        res = skill_check(SKILL_DESC_FIVE)
+        rec("skill: the base-shaped description names five of nine",
+            res["named"] == 5 and res["total"] == 9,
+            (res["named"], res["total"]))
+        rec("skill: the missing lanes are named in the failures",
+            all(lane in " ".join(res["failures"])
+                for lane in ("chousa", "kama", "kotodama", "tameshi"))
+            and len(res["failures"]) == 4, res["failures"])
+
+        # m7: capitalised repeats of lanes already named are not new lanes,
+        # and the two new names are bound by the cross-reference.
+        res = skill_check(SKILL_DESC_SEVEN)
+        rec("skill m7: seven of nine (case-folded, no double count)",
+            res["named"] == 7 and res["total"] == 9,
+            (res["named"], res["total"]))
+        rec("skill m7: the two unbound lanes are named",
+            all(lane in " ".join(res["failures"]) for lane in ("chousa", "kama"))
+            and len(res["failures"]) == 2, res["failures"])
+
+        # m1: a bare list of names is not arbitration.
+        res = skill_check(SKILL_DESC_BARE)
+        rec("skill m1: a bare list does not bind the lanes",
+            res["named"] == 5 and len(res["failures"]) == 4,
+            (res["named"], res["failures"]))
+        rec("skill m1: the bare-list lanes are named in the failures",
+            all(lane in " ".join(res["failures"])
+                for lane in ("chousa", "kama", "kotodama", "tameshi")),
+            res["failures"])
+
+        # m5: a negated mention is not arbitration either.
+        res = skill_check(SKILL_DESC_NEGATED)
+        rec("skill m5: a negated mention does not bind the lanes",
+            res["named"] == 5 and len(res["failures"]) == 4,
+            (res["named"], res["failures"]))
+
+        # G4: the length cap.
+        res = skill_check(SKILL_DESC_ALL + " " + ("padding " * 200))
+        rec("skill: an over-length description fails",
+            any("1024" in f for f in res["failures"]), res["failures"])
+        rec("skill: an over-length description is over the cap",
+            res["length"] > 1024, res["length"])
+
+        # G4: an empty description is under the floor.
+        res = skill_check("")
+        rec("skill: an empty description fails",
+            any("1-1024" in f for f in res["failures"]), res["failures"])
+
+        # m8: a colon-free column-0 comment is not part of the description.
+        comment_skill = ("---\n"
+                          "name: kotoba-shokunin\n"
+                          "description: >\n"
+                          "  " + SKILL_DESC_FIVE + "\n"
+                          "# chousa kama kotodama tameshi\n"
+                          "---\n")
+        parsed = description_of(comment_skill)
+        rec("skill m8: a column-0 comment is not swallowed into the description",
+            "chousa" not in parsed and parsed.startswith("Prompt"),
+            parsed[:80])
+
+        # The `--skill` arm at the CLI level: the census fixture's lanes drive
+        # the check, and the exit code turns on a missing lane.
+        fleet_s, commits_s = make_fleet("fleet-s", ["alpha", "beta"])
+        skill_ok = tmp / "SKILL-ok.md"
+        skill_ok.write_text(_skill_md(
+            "Alpha owns the alpha surface; beta owns the beta surface."),
+            encoding="utf-8")
+        skill_missing = tmp / "SKILL-missing.md"
+        skill_missing.write_text(_skill_md(
+            "Alpha owns the alpha surface."), encoding="utf-8")
+
+        def cli_skill(skill_path, fleet_root, rows):
+            """Run main() with --skill and capture the output."""
+            out, err = io.StringIO(), io.StringIO()
+            with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+                try:
+                    code = main([str(census), "--fleet", str(fleet_root),
+                                 "--skill", str(skill_path)])
+                except SystemExit as exc:
+                    code = exc.code
+            return code, out.getvalue(), err.getvalue()
+
+        census_rows_s = [row_for("alpha", commits_s["alpha"]),
+                         row_for("beta", commits_s["beta"])]
+        census.write_text(_census_md(census_rows_s), encoding="utf-8")
+        code, out, err = cli_skill(skill_ok, fleet_s, census_rows_s)
+        rec("cli --skill: a complete description exits 0", code == 0, (code, out))
+        rec("cli --skill: the count line is printed",
+            "skill description names 2 of 2 non-none lanes" in out, out)
+        rec("cli --skill: the length line is printed",
+            "skill description length" in out and "of 1024" in out, out)
+        code, out, err = cli_skill(skill_missing, fleet_s, census_rows_s)
+        rec("cli --skill: a missing lane exits 1", code == 1, (code, out))
+        rec("cli --skill: the missing lane is named",
+            "beta" in out, out)
+        rec("cli --skill: the count line is printed on failure too",
+            "skill description names 1 of 2 non-none lanes" in out, out)
 
         # -- arm 11: the CLI exit ladder ----------------------------------
         run([alpha_row], fleet_a)

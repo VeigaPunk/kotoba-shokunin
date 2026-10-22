@@ -68,6 +68,8 @@ Domain: prompt & skill craft — SKILL.md/AGENTS.md quality, trigger fidelity.
 | Round-48 non-author spot-check (closure) | `lessons/round-48-verifier-spotcheck.md` | written by the hyaku closure `HyakuCloseKotoba48`, not the lane (outside review; never edited here): round 48 admitted, five routed defects R1–R5; landed at `a5adc146` without an index row, indexed round 49. Its two report pointers are written repo-relative ("`.ufo/reports/round-48/kotoba.md`"), so from this repository they read as `report_dead=2` in `../verifiers/verify_corpus_integrity.py` at base and after this round; the report itself is in the fleet repository's round-48 reports directory |
 | Fleet sibling-overlap census (round 49) | `knowledge/sibling-overlap-census-round49.md` | all 20 sibling lanes classified against kotoba's province at pinned sibling commits (9 adjacent, 11 none, 0 contested — 7/13 at the first landing, corrected by the falsify wave), with each sibling description's sibling naming (8 of 17 name a sibling, 2 name kotoba); sourced on S022, S023 and S018 (no documented tie-break between overlapping descriptions); `PROVINCE.md` § Adjacent is joined to it by `../verifiers/check_sibling_census.py` |
 | Round-49 lessons | `lessons/round-49.md` | LOG.md round-49 entry; `## Mistakes` (M29 content-blind counter, M30 unsourced adjacency line), `## Gate` (rows S022–S023, S018 re-opened, the round-48 entry admit erratum) and the disposition of the five routed round-48 items |
+| Round-49 non-author spot-check (closure) | `lessons/round-49-verifier-spotcheck.md` | written by the hyaku closure `HyakuCloseKotoba49`, not the lane (outside review; never edited here): round 49 admitted, six routed defects D1–D6; landed at `f3046466` without an index row (which turned `verify_corpus_integrity.py` red at that base: `unindexed 1`), indexed round 50 |
+| Round-50 lessons | `lessons/round-50.md` | LOG.md round-50 entry; `## Mistakes` (M31 claim headline wider than its counter, criterion Q26), `## Gate` (separate admit and reject lists; rows S024–S029, S019 and S022 re-opened; the round-49 reject erratum for routed defect D5) and the disposition of the six routed round-49 defects |
 
 ## Frontier
 
@@ -120,6 +122,10 @@ Areas being explored and not yet held (LEARNING.md § Files the path writes); ap
   `knowledge/sibling-overlap-census-round49.md`: 8 of 17 sibling descriptions now name at least one
   sibling, and the same five lanes read 1/5 (kengaku). kotoba's own description names 5 of 20 siblings and
   not kotodama, whose description routes prompt and skill craft to kotoba; that description edit is carried.
+  **Round 50 (append-only):** kotoba's description now names the 9 census lanes classed `adjacent`,
+  kotodama included, each in a clause with an ownership or routing word
+  (`../verifiers/check_sibling_census.py --skill`); six more client pages document no tie-break between
+  overlapping descriptions (census entry, round-50 section).
 - opencode-side offer is now measured (round 8): godspeed offered 387/387
   attested sessions (100%) against activation 205/399 = 51.4%, so the round-6
   "51.5% coverage" gap is model choice on the consume side, not an offer hole.

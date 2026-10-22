@@ -186,3 +186,59 @@ Fields under `awk -F' \\| '`: `$4` skill file, `$5` classification, `$6` names k
   `contested` and `adjacent` arms; recorded for the integrator, row stays `adjacent`. Seats `RowSouji`,
   `RowLore`, `RowGameDev2d` returned HOLDS or HOLDS-BOUNDED; RowLore notes the arbitration cell leaves out
   the row's own lane name, which the rule does not yet state.
+
+## Round 50: six more client pages, and kotoba's own description
+
+Appended round 50 (append-only; the sections above are unchanged). Seat reports are under
+`../.ufo/waves/round-50/build/`.
+
+- **No tie-break between overlapping descriptions, now on nine pages.** Round 49 swept S022, S023 and
+  S018. Round 50 opened six more client pages (rows S024-S029, all opened 2026-10-22; fetch records in
+  the seat reports and in `corpus/lessons/round-50.md` § Gate) and swept each with
+  `grep -ciE` for `overlap`, `ambigu`, `precedence`, `tie[- ]?break`, `conflict`, `multiple skills`,
+  `same name`, `prioriti`, `1024`, `truncat`. No page states a rule for two skills with different
+  names whose descriptions both match. Every non-zero hit is located in the seat report and is about
+  something else (a same-name collision, a length cap, site chrome or an unrelated sense):
+  - S024 opencode docs (`skills.md`, 5,365 B): every arbitration term 0; `1024` 1 (the description cap,
+    `skills.md:72`). The model sees all skills in the `skill` tool description (`skills.md:110`).
+    Seat `SrcOpencodeDocs.md`.
+  - S025 VS Code agent skills (`agent-skills.md`, 22,871 B): `precedence` 1, `same name` 1 and
+    `multiple skills` 1, all about duplicate names; `overlap`, `ambigu`, `tie[- ]?break`, `conflict` 0.
+    "Copilot reads the skill's `name` and `description` from the YAML frontmatter." (`agent-skills.md:302`).
+    Seat `SrcVSCodeSkills.md`.
+  - S026 Claude Code subagents (`sub-agents.md`, 110,784 B): delegation follows the `description`
+    (`sub-agents.md:839`); the only arbitration is between same-name subagents, and even there the page
+    says one is "chosen by filesystem read order rather than a documented precedence" (`sub-agents.md:176`).
+    Its remedy for overlap is craft: "Make each description specific enough to route to the right
+    subagent" (`sub-agents.md:1293`). Seat `SrcClaudeSubagents.md`.
+  - S027 GitHub Copilot, adding agent skills (`add-skills.md`): "Copilot will decide when to use your
+    skills based on your prompt and the skill's description" (`add-skills.md:233`); no overlap rule.
+    S028 GitHub Copilot CLI plugin reference: "**Agents and skills** use first-found-wins precedence."
+    (`cli-plugin-reference.md:415`), a name-keyed rule. Seat `SrcCopilotSkills.md`.
+  - S029 Gemini CLI skills (`skills.md`, 5,763 B): "If multiple skills share the same name, the version
+    from the higher-precedence location is used." (`skills.md:51-52`) — again name-keyed; `overlap`,
+    `ambigu`, `tie[- ]?break`, `conflict` 0. Seat `SrcGeminiCliSkills.md`.
+  - Re-opened, byte-identical to their recorded bytes: S022 (adds the 1,536-character listing cap on
+    `description` plus `when_to_use`, `skills.md:389`) and S019 ("Maximum 1,024 characters",
+    `best-practices.md:161`; "Always write in third person", `:206`). Seats `SrcReopenS022.md`,
+    `SrcReopenS019.md`.
+- **What this changes for craft.** Every documented "which one wins" rule found so far is keyed on the
+  skill *name* (origin, location tier, first found). None compares descriptions. So the round-49
+  consequence stands with more support: the only arbitration an author controls between two skills
+  with different names is the text of each description. The round-49 sweep pattern `tie[- ]break`
+  (above) missed the unhyphenated spelling; the round-50 pattern is `tie[- ]?break`.
+- **kotoba's description now names the 9 lanes classed `adjacent`.** Finding 2 (kotodama is not named)
+  and finding 3 (the description named 5 of 20) are acted on: the description at the round-50 landing
+  names chousa, kagi, kake, kama, kasegi, kengaku, kotodama, kumitate and tameshi, each in a clause with
+  an ownership or routing word, and keeps to the 1,024-character cap (1,008 characters). Checked by
+  `python3 -B verifiers/check_sibling_census.py corpus/knowledge/sibling-overlap-census-round49.md --province PROVINCE.md --skill SKILL.md`
+  → `skill description names 9 of 9 non-none lanes`, exit 0 (5 of 9, exit 1, on the description at
+  `f3046466`). The clause test is lexical: a clause that names a lane next to a false ownership word
+  still passes (seat `CensusGuard.md`, mutant m9). For the four lanes added this round the description
+  states only the side the census already admits (chousa's research method, kama's endpoint
+  verification, kengaku's measured effects of prompt format, tameshi's fixture and mutation method).
+  kake and kasegi are named because kotoba's own description already named them at the base; their own
+  descriptions carry none of kotoba's trigger words (seat `CriticC1Sizing.md` F4), so naming them adds
+  no measured trigger precision.
+- **Line pins.** The citation `../SKILL.md:12-15` in § What decides refers to the description at
+  `f3046466` (and at `a5adc146`); the round-50 description moved that note to lines 15-17.

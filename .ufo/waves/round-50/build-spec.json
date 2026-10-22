@@ -1,0 +1,287 @@
+{
+ "wave": "kotoba-r50-build",
+ "milestone": "Round-50 build: C1 adjacency (description names the 9 non-none census lanes), C2 operability (box proof enforces its case coverage), routed defects D1-D6, frontier step",
+ "axes": [
+  "adjacency",
+  "operability",
+  "calibration",
+  "frontier"
+ ],
+ "reportDir": ".ufo/waves/round-50/build",
+ "context": "# Goal\nkotoba round 50 (attempt 1) BUILD wave, hyaku session 2026-10-22. Lane repo /home/vgpnk/Projects/shokunin/kotoba-shokunin (prompt and skill craft shokunin; jj-colocated; branch master at f30464660c675d1c1e2851a3bf0366a3aaffe5a8). Read /home/vgpnk/Projects/shokunin/kotoba-shokunin/plans/round-50.md FIRST: it names the two claims and their counters \u2014 C1 adjacency: kotoba's SKILL.md frontmatter description names the 9 lanes the census /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/knowledge/sibling-overlap-census-round49.md classes adjacent or contested (5 of 9 -> 9 of 9), with a content guard in /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/check_sibling_census.py; C2 operability: deleting any one of the 6 must-fail cases from /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/fixtures/dispatch-prompts/manifest.json makes `python3 -B verifiers/verify_dispatch_prompts.py --box-proof --map verifiers/checklist-baseline.json` exit 1 (0 of 6 -> 6 of 6) \u2014 plus the routed defects D1-D6 from /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/lessons/round-49-verifier-spotcheck.md (section \"Routed defects\") and the frontier step (new corpus/SOURCES.md rows opened this round, one mined mistake). Useful background: /home/vgpnk/Projects/shokunin/kotoba-shokunin/PROVINCE.md (section Adjacent), /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/QUALITY.md (Q12-Q25), /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/lessons/round-49.md, /home/vgpnk/Projects/shokunin/kotoba-shokunin/SKILL.md lines 1-16 (frontmatter), /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-49/ (last round's seat reports).\n\n# Bounds (binding)\n- Read-only on the lane checkout /home/vgpnk/Projects/shokunin/kotoba-shokunin: never edit, create or delete files there EXCEPT your own Report file. Never run git write commands (commit, add, stash, checkout, switch, reset, pull, push, apply --index) or any jj command in the lane, the fleet repo /home/vgpnk/Projects/shokunin, or any sibling lane repo. Never run any jj command at the fleet root /home/vgpnk/Projects/shokunin (its auto-track snapshots untracked files); in the lane, read-only jj only with --ignore-working-copy. Seats never mutate the fleet repo, sibling lanes, lane jj state or lane Git index. Sibling lane repos (/home/vgpnk/Projects/shokunin/<lane>-shokunin) are read-only (`git -C <repo> show <commit>:<path>`, `ls-tree`, `rev-parse`, `log`, `grep` only).\n- Any code change, mutation or command that writes happens only in your own scratch directory /fast/scratch/hyaku/kotoba-r50/build/<your item name>/ (create it; `git clone -q /home/vgpnk/Projects/shokunin/kotoba-shokunin <dir>/lane` then `git -C <dir>/lane checkout -q f30464660c675d1c1e2851a3bf0366a3aaffe5a8` gives a private clone). Executors deliver their change as a unified diff against f30464660c675d1c1e2851a3bf0366a3aaffe5a8 at /fast/scratch/hyaku/kotoba-r50/build/<your item name>/patch.diff (`git -C <dir>/lane diff f30464660c675d1c1e2851a3bf0366a3aaffe5a8 > patch.diff`, including new files via `git -C <dir>/lane add -N` inside the CLONE only) and name it in the report; the L1 integrates. One writer per lane file: touch only the files your item names.\n- Every `Report:` trailer path is relative to /home/vgpnk/Projects/shokunin/kotoba-shokunin \u2014 write it at /home/vgpnk/Projects/shokunin/kotoba-shokunin/<that path>. Never write relative paths from the fleet root.\n- Tooling: you may install or upgrade tools that help the task \u2014 read /home/vgpnk/.omp/agent/RULES.md first (official channels; record tool, version, channel, reason in your report). pacman guard: ALL pacman transactions are PAUSED host-wide \u2014 install via `uv tool`, `npx`, or an official binary in ~/.local/bin; never -Sy/-Syu/-U/-R; never restart a host service.\n- Web sources: open sources by ordinary means only (curl or a plain fetch). Never use a headless browser or any other tool to pass a bot challenge, captcha or access control; record a source you cannot open that way as unopened. Record URL, access time (UTC), HTTP status, bytes, sha256 and each quote with its location; quotes are at most 25 words and verbatim. Never execute fetched code.\n- Plain English, no run-together words, no private jargon. Unrun checks are not passes; report exit codes verbatim. Every count you report carries its command. Leaf seat: no delegation (an executor may spawn at most one read-only labrat probe).\n- Time: finish and write your report within 35 minutes of starting.\n- Your report: a one-line result first (for attack seats: `HOLDS`, `HOLDS-BOUNDED` or `FAILS`, with what it applies to), then findings, then evidence (commands with exit codes). Keep it under 150 lines.\n",
+ "items": [
+  {
+   "name": "CensusGuard",
+   "role": "executor",
+   "axes": [
+    "adjacency"
+   ],
+   "prompt": "Claim C1 and routed defect D3. File: /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/check_sibling_census.py only (edit in your clone). Changes:\n1. Duplicate rows: the census table and the PROVINCE.md \u00a7 Adjacent table each fail (exit 1, a message naming the lane) when a lane appears in more than one row (compare normalized lane names, case-insensitive). Today duplicated rows pass (`rows 21 verified 21`, round-49 seat /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-49/falsify/ReviewLessonQ25.md).\n2. New option `--skill PATH`: read the YAML frontmatter `description` of PATH (kotoba's own SKILL.md; reuse `description_of` and `token_in`), take the census lanes whose classification is not `none`, and fail (exit 1) naming each such lane that is not a whole-token, case-insensitive match in the description. Always print one line `skill description names K of N non-none lanes`. On the base SKILL.md it must exit 1 and print `names 5 of 9` (missing chousa, kama, kotodama, tameshi).\n3. Self-test arms for both changes in the existing `--self-test`, each first shown to fail against the unpatched code (paste the failing output), then pass.\nReport the self-test assertion count before and after (the floors registry floor is bumped by the L1), the full self-test and live-run outputs with exit codes (`python3 -B verifiers/check_sibling_census.py corpus/knowledge/sibling-overlap-census-round49.md --province PROVINCE.md` and the same with `--skill SKILL.md`), and the patch path."
+  },
+  {
+   "name": "FloorsRegister",
+   "role": "executor",
+   "axes": [
+    "adjacency"
+   ],
+   "prompt": "Routed defect D3 (last clause): `verifiers/check_sibling_census.py` is not in /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/floors-registry.json. Register it as instrument `sibling_census` in floors-registry.json AND in the in-file tables of /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/check_assertion_floors.py, following the registry's BUMP-IN-STEP rule (read its `$comment` and the guard's docstring; `instrument_total` 10 -> 11). Floor = the assertion count the base `python3 -B verifiers/check_sibling_census.py --self-test` prints at f30464660c675d1c1e2851a3bf0366a3aaffe5a8 (measure it). Another seat is adding self-test arms to check_sibling_census.py; do not touch that file \u2014 the L1 raises the floor at integration. Run `python3 -B verifiers/check_assertion_floors.py` (and its `--self-test` if it has one) in your clone before and after; paste outputs and exit codes; check that a registry/table mismatch you plant (e.g. floor lowered in one place only) fails. Deliver patch.diff."
+  },
+  {
+   "name": "BoxProofCoverage",
+   "role": "executor",
+   "axes": [
+    "operability"
+   ],
+   "prompt": "Claim C2 and routed defect D2. File: /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/verify_dispatch_prompts.py only (and new fixture files only if needed). Today `--box-proof` prints `boxes proven 2` even after a must-fail case is deleted from verifiers/fixtures/dispatch-prompts/manifest.json (round-49 seats /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-49/falsify/ReplayC2BoxProof.md, MutDispatchInstrument.md, ReviewLessonQ25.md). Change box_proof so a box counts only when every one of its named conjuncts has at least one must-fail manifest case whose observed failing conjunct is that conjunct. The list of named conjuncts per box must be pinned in the instrument (a constant next to the box text hashes), never derived from the manifest, so deleting a case cannot delete its own expectation. Missing coverage prints a line naming the box and the uncovered conjunct and the box does not count (exit 1). Fix the docstring and `--box-proof` help text (they say the fixtures \"discriminate every conjunct\"): state the six named conjuncts, one must-fail fixture each, and that the box clauses without fixtures (unsubstituted variable, `<=` at equality, legacy-state arm, non-digit round folder; see the spot-check D2 and round-49 lesson) are not proven. Add self-test arms (shown failing on the unpatched code first). Report: before/after outputs of `--box-proof --map verifiers/checklist-baseline.json` on the intact fixtures (must stay `boxes proven 2`, exit 0), the result of deleting each of the 6 must-fail cases in turn (expect exit 1 each), self-test assertion count before/after, patch path."
+  },
+  {
+   "name": "CaseDeletionDriver",
+   "role": "executor",
+   "axes": [
+    "operability"
+   ],
+   "prompt": "Claim C2 counter. Write a new file /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/box_proof_case_deletion.py (in your clone). Usage: `python3 -B verifiers/box_proof_case_deletion.py --rev <commit>` run from the lane root. It exports the tree at <commit> read-only (`git archive <commit> | tar -x -C <tmpdir>`; never writes in the lane), reads verifiers/fixtures/dispatch-prompts/manifest.json there, and for each case whose `expect_verdict` is FAIL deletes exactly that case from a temp copy of the manifest, runs that revision's own `verifiers/verify_dispatch_prompts.py --box-proof --map verifiers/checklist-baseline.json` (pointing it at the temp fixtures with `--fixtures` if the revision's instrument has that option, else editing the temp tree's manifest in place), and records the exit code. Print one line per case (`case <id>: exit <n> killed|survived`) and a final line `killed K of N`. It also runs the intact control first and aborts (exit 2) if the intact box proof does not exit 0. Exit 0 only when K == N, else 1. Run it at f30464660c675d1c1e2851a3bf0366a3aaffe5a8 and paste the output (expected `killed 0 of 6`). Show the driver can report a kill: plant a manifest-coverage check into a scratch copy of the instrument (or use a mutant that makes box_proof exit 1 on any deletion) and show `killed 6 of 6` there. Add no dependency outside the Python standard library. Deliver patch.diff."
+  },
+  {
+   "name": "BoxProofGate",
+   "role": "executor",
+   "axes": [
+    "operability"
+   ],
+   "prompt": "Routed defect D2 (gate half): nothing runs `verify_dispatch_prompts.py --box-proof` as a gate. Inspect how /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/verify_skill_checklist.py handles `delegated:<instrument>` dispositions from verifiers/checklist-baseline.json (grep `delegated`, around lines 341, 912, 1139). Implement the smallest change that makes the checklist gate (`python3 -B verifiers/verify_skill_checklist.py --json`) run each delegated instrument's `--box-proof --map <map>` and fail when it exits non-zero (an instrument without `--box-proof` support keeps today's behaviour, stated in the detail string). Edit only verify_skill_checklist.py. Add self-test arms (a delegated stub that exits 1 under --box-proof must turn the check red; exit 0 green), shown failing on the unpatched code first. Keep every existing check green: run `--json` and `--self-test` before and after in your clone and paste both, with the PASS/FAIL counts and the self-test assertion count before/after (the L1 bumps the floor 1845 in step). If you judge the gate should live elsewhere (e.g. check_assertion_floors.py), say why in the report and still deliver the smallest working patch. Deliver patch.diff."
+  },
+  {
+   "name": "DescDraft",
+   "role": "scribe",
+   "axes": [
+    "adjacency"
+   ],
+   "prompt": "Claim C1. Draft the replacement YAML frontmatter `description` for /home/vgpnk/Projects/shokunin/kotoba-shokunin/SKILL.md (lines 1-16 at f30464660c675d1c1e2851a3bf0366a3aaffe5a8). Requirements: it names each of the 9 non-none census lanes (chousa, kagi, kake, kama, kasegi, kengaku, kotodama, kumitate, tameshi) as a whole token, each with the split the census and PROVINCE.md \u00a7 Adjacent record (who owns what; kotoba audits and reports, fixes route to the owning lane); it carries a clause for kotodama (its description routes prompt and skill craft to kotoba; the names collide \u2014 kotodama owns words for fictional worlds); it keeps the existing triggers and anti-triggers unless you justify a change, keeps the note that shokunin files are not in an omp discovery root, stays third person, and stays at most 1024 characters of description value (agentskills.io spec cap; measure with python yaml or a stated method). Read kotoba's own trigger-fidelity checklist in /home/vgpnk/Projects/shokunin/kotoba-shokunin/SKILL.md (section Trigger-fidelity checklist) and satisfy its boxes. In a scratch clone apply the draft and run `python3 -B verifiers/verify_skill_checklist.py --json`, `--self-test`, `python3 -B verifiers/verify_corpus_integrity.py --json`, `python3 -B verifiers/verify_corpus_independent.py`, `python3 -B verifiers/verify_harness_claims.py` before and after; paste outputs and exit codes and name every check that changes. Output: the exact YAML block (between the `---` lines), its character count, and the counter from plans/round-50.md run on the clone (expected 9)."
+  },
+  {
+   "name": "PrecedenceDraft",
+   "role": "scribe",
+   "axes": [
+    "adjacency"
+   ],
+   "prompt": "Routed defect D3. The census classification rule (/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/knowledge/sibling-overlap-census-round49.md \u00a7 Classification rule) gives no precedence between the `contested` arm (\"or the instruments over them\") and a stated split; kengaku (census script, kengaku corpus/README.md:192), tameshi (Core names kagi's corpus/checklist-run.sh) and kama (consumer-registry.md:91-92, 111-112, 325-326) stay unruled. Draft an appended section `## Round 50: precedence between contested and a stated split` for that entry: a precedence rule that decides every case (state it as a short ordered test), the reason for that order, and its application to all 20 census rows \u2014 show that it moves no row except as you state, and rule kengaku, tameshi and kama with a located quote at their pinned commit (pins are in the census table; read with `git -C /home/vgpnk/Projects/shokunin/<lane>-shokunin show <commit>:<path>`). Also draft the replacement boundary-text cells for the three PROVINCE.md \u00a7 Adjacent rows (no more \"recorded for the integrator, not ruled here\"). Do not edit the lane; the draft goes in your report."
+  },
+  {
+   "name": "MineMistake",
+   "role": "scribe",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Frontier step: mine one mistake into the round-50 lesson. Class candidate: a claim headline wider than its counter \u2014 the round-49 closure (/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/lessons/round-49-verifier-spotcheck.md, C1 and C2 \"Is the statement wider than the counter? Yes\") found both round-49 claims stated wider than what their counting command proves (SCORECARD adjacency row \"from their own bytes ... 0 contested\"; operability row and commit subject \"executed\"). Draft the `## Mistakes` row (class \u00b7 evidence pointer as command -> output \u00b7 captured-by: which QUALITY.md criterion should have caught it, see /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/QUALITY.md Q13, Q25 \u00b7 fix). Draft a new QUALITY.md criterion row Q26 in the table's exact column shape (id, criterion, applies to, grounded in, supersedes) that would have caught it, and show it is able to fail: apply it to the two round-49 claim statements (fails both, quote them) and to the two round-50 statements in /home/vgpnk/Projects/shokunin/kotoba-shokunin/plans/round-50.md (pass or fail, with reasons). If you find the class already covered by an existing criterion, say so and draft a superseding row instead."
+  },
+  {
+   "name": "GateErratumD5",
+   "role": "scribe",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Routed defect D5. The round-49 lesson /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/lessons/round-49.md \u00a7 Gate records \"rejected 0\", but the round rejected items: the withdrawn kasegi \"prompt-injection exploits\" clause, the overridden seat call (kotodama none -> adjacent), the first-landing kake and kasegi `none` calls, the re-sized counters (plans/round-49.md), and anything else the round-49 seat reports under /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-49/ show as rejected. Draft (a) an erratum block for the round-50 lesson that lists each round-49 reject decision with its reason and an evidence pointer (path:line), and (b) a short `## Gate` template for round 50 with separate admit and reject lines (QUALITY.md: \"a rejection is evidence of taste\"). Do not edit the round-49 lesson (it is append-only and owned by its round)."
+  },
+  {
+   "name": "SrcOpencodeDocs",
+   "role": "scribe",
+   "axes": [
+    "adjacency",
+    "freshness"
+   ],
+   "prompt": "Claim C1 source (frontier step). Open https://opencode.ai/docs/skills by ordinary means (curl; try the `.md` variant if the site serves one). Record URL, UTC access time, HTTP status, bytes, sha256. Focus: opencode's documented skill loading: how descriptions are shown to the model to pick a skill, any length cap, any rule for two skills that both match. Give located verbatim quotes (at most 25 words each, with line number or section) for each point found, and run a sweep over the fetched text with `grep -ciE` for each of: `overlap`, `ambigu`, `precedence`, `tie[- ]?break`, `conflict`, `multiple skills`, `same name`, `prioriti`, `1024`, `truncat` \u2014 paste the counts and command. Then draft, for /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md, one registry row in the table's exact 11-column shape (read the header and rows S018-S023 there) \u2014 or, for a re-open, the old -> new values of every cell that changes \u2014 plus the lesson Gate line (row, URL, accessed UTC, quote and location). Say plainly whether the page documents a tie-break between two overlapping skills (with the sweep as the negative evidence, Q14). If the page cannot be opened by ordinary means, record it unopened and draft no row."
+  },
+  {
+   "name": "SrcVSCodeSkills",
+   "role": "scribe",
+   "axes": [
+    "adjacency",
+    "freshness"
+   ],
+   "prompt": "Claim C1 source (frontier step). Open https://code.visualstudio.com/docs/copilot/customization/agent-skills by ordinary means (curl; try the `.md` variant if the site serves one). Record URL, UTC access time, HTTP status, bytes, sha256. Focus: VS Code / GitHub Copilot agent skills in the editor: how the description is used to load a skill, length cap, overlap or precedence rules. Give located verbatim quotes (at most 25 words each, with line number or section) for each point found, and run a sweep over the fetched text with `grep -ciE` for each of: `overlap`, `ambigu`, `precedence`, `tie[- ]?break`, `conflict`, `multiple skills`, `same name`, `prioriti`, `1024`, `truncat` \u2014 paste the counts and command. Then draft, for /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md, one registry row in the table's exact 11-column shape (read the header and rows S018-S023 there) \u2014 or, for a re-open, the old -> new values of every cell that changes \u2014 plus the lesson Gate line (row, URL, accessed UTC, quote and location). Say plainly whether the page documents a tie-break between two overlapping skills (with the sweep as the negative evidence, Q14). If the page cannot be opened by ordinary means, record it unopened and draft no row."
+  },
+  {
+   "name": "SrcCopilotSkills",
+   "role": "scribe",
+   "axes": [
+    "adjacency",
+    "freshness"
+   ],
+   "prompt": "Claim C1 source (frontier step). Open https://docs.github.com/en/copilot/concepts/agents/about-agent-skills by ordinary means (curl; try the `.md` variant if the site serves one). Record URL, UTC access time, HTTP status, bytes, sha256. Focus: GitHub Copilot agent skills: description role, cap, overlap or precedence rules (if this URL moved, find the current GitHub Docs page on agent skills by ordinary navigation). Give located verbatim quotes (at most 25 words each, with line number or section) for each point found, and run a sweep over the fetched text with `grep -ciE` for each of: `overlap`, `ambigu`, `precedence`, `tie[- ]?break`, `conflict`, `multiple skills`, `same name`, `prioriti`, `1024`, `truncat` \u2014 paste the counts and command. Then draft, for /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md, one registry row in the table's exact 11-column shape (read the header and rows S018-S023 there) \u2014 or, for a re-open, the old -> new values of every cell that changes \u2014 plus the lesson Gate line (row, URL, accessed UTC, quote and location). Say plainly whether the page documents a tie-break between two overlapping skills (with the sweep as the negative evidence, Q14). If the page cannot be opened by ordinary means, record it unopened and draft no row."
+  },
+  {
+   "name": "SrcGeminiCliSkills",
+   "role": "scribe",
+   "axes": [
+    "adjacency",
+    "freshness"
+   ],
+   "prompt": "Claim C1 source (frontier step). Open https://geminicli.com/docs/cli/skills/ by ordinary means (curl; try the `.md` variant if the site serves one). Record URL, UTC access time, HTTP status, bytes, sha256. Focus: Gemini CLI agent skills: description role in discovery and activation, cap, precedence between skills with the same name or overlapping scope (if moved, find the official Gemini CLI docs page on skills). Give located verbatim quotes (at most 25 words each, with line number or section) for each point found, and run a sweep over the fetched text with `grep -ciE` for each of: `overlap`, `ambigu`, `precedence`, `tie[- ]?break`, `conflict`, `multiple skills`, `same name`, `prioriti`, `1024`, `truncat` \u2014 paste the counts and command. Then draft, for /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md, one registry row in the table's exact 11-column shape (read the header and rows S018-S023 there) \u2014 or, for a re-open, the old -> new values of every cell that changes \u2014 plus the lesson Gate line (row, URL, accessed UTC, quote and location). Say plainly whether the page documents a tie-break between two overlapping skills (with the sweep as the negative evidence, Q14). If the page cannot be opened by ordinary means, record it unopened and draft no row."
+  },
+  {
+   "name": "SrcClaudeSubagents",
+   "role": "scribe",
+   "axes": [
+    "adjacency",
+    "freshness"
+   ],
+   "prompt": "Claim C1 source (frontier step). Open https://code.claude.com/docs/en/sub-agents by ordinary means (curl; try the `.md` variant if the site serves one). Record URL, UTC access time, HTTP status, bytes, sha256. Focus: Claude Code subagents: how the `description` field decides delegation, and whether any tie-break between two subagents that both match is documented. Give located verbatim quotes (at most 25 words each, with line number or section) for each point found, and run a sweep over the fetched text with `grep -ciE` for each of: `overlap`, `ambigu`, `precedence`, `tie[- ]?break`, `conflict`, `multiple skills`, `same name`, `prioriti`, `1024`, `truncat` \u2014 paste the counts and command. Then draft, for /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md, one registry row in the table's exact 11-column shape (read the header and rows S018-S023 there) \u2014 or, for a re-open, the old -> new values of every cell that changes \u2014 plus the lesson Gate line (row, URL, accessed UTC, quote and location). Say plainly whether the page documents a tie-break between two overlapping skills (with the sweep as the negative evidence, Q14). If the page cannot be opened by ordinary means, record it unopened and draft no row."
+  },
+  {
+   "name": "SrcReopenS022",
+   "role": "scribe",
+   "axes": [
+    "adjacency",
+    "freshness"
+   ],
+   "prompt": "Claim C1 source (frontier step). Open https://code.claude.com/docs/en/skills by ordinary means (curl; try the `.md` variant if the site serves one). Record URL, UTC access time, HTTP status, bytes, sha256. Focus: re-open existing row S022: the description and when_to_use length cap or truncation, how listing works under the context budget, and any tie-break between two matching skills (fetch the .md variant if the page offers one). Give located verbatim quotes (at most 25 words each, with line number or section) for each point found, and run a sweep over the fetched text with `grep -ciE` for each of: `overlap`, `ambigu`, `precedence`, `tie[- ]?break`, `conflict`, `multiple skills`, `same name`, `prioriti`, `1024`, `truncat` \u2014 paste the counts and command. Then draft, for /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md, one registry row in the table's exact 11-column shape (read the header and rows S018-S023 there) \u2014 or, for a re-open, the old -> new values of every cell that changes \u2014 plus the lesson Gate line (row, URL, accessed UTC, quote and location). Say plainly whether the page documents a tie-break between two overlapping skills (with the sweep as the negative evidence, Q14). If the page cannot be opened by ordinary means, record it unopened and draft no row."
+  },
+  {
+   "name": "SrcReopenS019",
+   "role": "scribe",
+   "axes": [
+    "adjacency",
+    "freshness"
+   ],
+   "prompt": "Claim C1 source (frontier step). Open https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices by ordinary means (curl; try the `.md` variant if the site serves one). Record URL, UTC access time, HTTP status, bytes, sha256. Focus: re-open existing row S019: description rules (max length, third person, what plus when), and any guidance on writing descriptions that separate a skill from similar skills. Give located verbatim quotes (at most 25 words each, with line number or section) for each point found, and run a sweep over the fetched text with `grep -ciE` for each of: `overlap`, `ambigu`, `precedence`, `tie[- ]?break`, `conflict`, `multiple skills`, `same name`, `prioriti`, `1024`, `truncat` \u2014 paste the counts and command. Then draft, for /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md, one registry row in the table's exact 11-column shape (read the header and rows S018-S023 there) \u2014 or, for a re-open, the old -> new values of every cell that changes \u2014 plus the lesson Gate line (row, URL, accessed UTC, quote and location). Say plainly whether the page documents a tie-break between two overlapping skills (with the sweep as the negative evidence, Q14). If the page cannot be opened by ordinary means, record it unopened and draft no row."
+  },
+  {
+   "name": "D2D4Wording",
+   "role": "scribe",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Routed defects D2 and D4 (wording). In /home/vgpnk/Projects/shokunin/kotoba-shokunin at f30464660c675d1c1e2851a3bf0366a3aaffe5a8: grep every lane surface (SCORECARD.md, SKILL.md, PROVINCE.md, corpus/README.md, corpus/knowledge/*.md, verifiers/*.py docstrings, LOG.md round-49 section) for the overstatements the round-49 closure named: \"executed\" said of dispatch.04/dispatch.08 without the six-conjunct bound, \"every conjunct\", \"from their own bytes\", \"0 contested\", \"all 20 sibling lanes classified\". List each hit with path:line and whether it is an append-only file (LOG.md, lessons, knowledge entries: append a correction, never rewrite) or a rewritable row (SCORECARD axes rows are rewritten each round). Draft the exact qualifier text to append for the SCORECARD operability row (D2: proof covers six named conjuncts with one fixture each; name the clauses without fixtures) and adjacency row (D4: kake and kasegi are adjacent because of kotoba's own description, not their own bytes; the contested arm had no precedence rule at round 49). Plain sentences."
+  },
+  {
+   "name": "DescBudget",
+   "role": "scout",
+   "axes": [
+    "adjacency"
+   ],
+   "prompt": "Claim C1 no-harm map. In /home/vgpnk/Projects/shokunin/kotoba-shokunin at f30464660c675d1c1e2851a3bf0366a3aaffe5a8, find every file that reads or pins bytes of SKILL.md's frontmatter or description: verifiers (grep `description`, `frontmatter`, `SKILL.md`, `text_sha256`, `sha256`), baselines (verifiers/baseline.json, checklist-baseline.json, surfaces-baseline.json, corpus-baseline.json), the line-budget check, and anything in corpus/knowledge that quotes the description verbatim with a line number (e.g. census entry citing `SKILL.md:10-12`, `../SKILL.md:12-15`). For each: what breaks or goes stale if the description text changes and grows by about 150 characters and maybe 2-3 lines, and the exact re-record command if one exists. Also measure SKILL.md's line count against the line budget the checklist enforces. Report a table: file:line, what it reads, effect of the edit, action."
+  },
+  {
+   "name": "RuleKengaku",
+   "role": "scout",
+   "axes": [
+    "adjacency"
+   ],
+   "prompt": "Routed defect D3 fact base. In /home/vgpnk/Projects/shokunin/kengaku-shokunin (read-only) at the census pin 1f3b0f1ec41ec297130e8944ff97968d32324632 AND at the current branch tip (`git rev-parse` it), read its round-25 census script that counts trigger strings in other lanes' SKILL.md (kengaku corpus/README.md:192) and its description split (SKILL.md:3: kengaku keeps measured effects of prompt format, kotoba owns craft rules). Answer with located verbatim quotes: (1) does kengaku's committed scope surface (SKILL.md, PROVINCE.md, corpus/) claim to write or audit other lanes' SKILL.md, prompts or AGENTS.md-class files, or instruments over them \u2014 what exactly, and for what purpose (measurement, fixture method, endpoint verification, craft)? (2) does any committed scope surface on either side (kengaku's files or kotoba's /home/vgpnk/Projects/shokunin/kotoba-shokunin/SKILL.md, PROVINCE.md, corpus/) state a split covering that same artifact or function? (3) did anything relevant change between the pin and the tip? (4) your ruling under each of two candidate precedences: (a) a stated split covering the same function decides `adjacent`; (b) any claim over kotoba-core instruments decides `contested`. No edits."
+  },
+  {
+   "name": "RuleTameshi",
+   "role": "scout",
+   "axes": [
+    "adjacency"
+   ],
+   "prompt": "Routed defect D3 fact base. In /home/vgpnk/Projects/shokunin/tameshi-shokunin (read-only) at the census pin 3b20f073c7305a582562cd323982991464c324f3 AND at the current branch tip (`git rev-parse` it), read its Core naming kagi's corpus/checklist-run.sh (which reads kagi's SKILL.md checklist) and its fixture-method split with kotoba (corpus fleet-kill-rate-ledger.md:125-128). Answer with located verbatim quotes: (1) does tameshi's committed scope surface (SKILL.md, PROVINCE.md, corpus/) claim to write or audit other lanes' SKILL.md, prompts or AGENTS.md-class files, or instruments over them \u2014 what exactly, and for what purpose (measurement, fixture method, endpoint verification, craft)? (2) does any committed scope surface on either side (tameshi's files or kotoba's /home/vgpnk/Projects/shokunin/kotoba-shokunin/SKILL.md, PROVINCE.md, corpus/) state a split covering that same artifact or function? (3) did anything relevant change between the pin and the tip? (4) your ruling under each of two candidate precedences: (a) a stated split covering the same function decides `adjacent`; (b) any claim over kotoba-core instruments decides `contested`. No edits."
+  },
+  {
+   "name": "RuleKama",
+   "role": "scout",
+   "axes": [
+    "adjacency"
+   ],
+   "prompt": "Routed defect D3 fact base. In /home/vgpnk/Projects/shokunin/kama-shokunin (read-only) at the census pin c808ba07f09c4be55413d3d6516c542ab69b64f8 AND at the current branch tip (`git rev-parse` it), read consumer-registry.md:91-92, 111-112, 325-326 (audits agent prompt text, verdict on a sibling SKILL.md) and its split cross-lane-scope.md:29. Answer with located verbatim quotes: (1) does kama's committed scope surface (SKILL.md, PROVINCE.md, corpus/) claim to write or audit other lanes' SKILL.md, prompts or AGENTS.md-class files, or instruments over them \u2014 what exactly, and for what purpose (measurement, fixture method, endpoint verification, craft)? (2) does any committed scope surface on either side (kama's files or kotoba's /home/vgpnk/Projects/shokunin/kotoba-shokunin/SKILL.md, PROVINCE.md, corpus/) state a split covering that same artifact or function? (3) did anything relevant change between the pin and the tip? (4) your ruling under each of two candidate precedences: (a) a stated split covering the same function decides `adjacent`; (b) any claim over kotoba-core instruments decides `contested`. No edits."
+  },
+  {
+   "name": "BaselineGatesA",
+   "role": "scout",
+   "axes": [
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "No-harm baseline at f30464660c675d1c1e2851a3bf0366a3aaffe5a8, part A. In a private clone at f30464660c675d1c1e2851a3bf0366a3aaffe5a8 (scratch dir), run and paste output tails with exit codes: `python3 -B verifiers/verify_skill_checklist.py --json` (PASS/FAIL counts), `--self-test` (assertion count), `python3 -B verifiers/verify_corpus_integrity.py --json`, `python3 -B verifiers/verify_corpus_independent.py`, `python3 -B verifiers/check_assertion_floors.py`, `python3 -B verifiers/check_sibling_census.py corpus/knowledge/sibling-overlap-census-round49.md --province PROVINCE.md` and `--self-test`, `python3 -B verifiers/verify_dispatch_prompts.py --self-test` and `--box-proof --map verifiers/checklist-baseline.json`. Note any check that needs the fleet path or sibling repos and how you supplied them. Give one table: command, exit, summary line."
+  },
+  {
+   "name": "BaselineGatesB",
+   "role": "scout",
+   "axes": [
+    "depth",
+    "freshness"
+   ],
+   "prompt": "No-harm baseline at f30464660c675d1c1e2851a3bf0366a3aaffe5a8, part B. In a private clone at f30464660c675d1c1e2851a3bf0366a3aaffe5a8 (scratch dir), run and paste output tails with exit codes: `python3 -B verifiers/verify_harness_independent.py --self-test`, `python3 -B verifiers/compare_harness_independent.py --self-test`, `python3 -B verifiers/verify_surfaces.py --json`, `python3 -B verifiers/verify_harness_claims.py`, `python3 -B verifiers/check_substrate_pins.py`, and `bash verifiers/fault_injection_corpus.sh` if it runs without writing outside your clone (read it first). For each red check say whether the cause is host state (omp 18.12.6 substrate) or lane bytes. Give one table: command, exit, summary line."
+  },
+  {
+   "name": "CarryD6",
+   "role": "scout",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Routed defect D6 (carried items). At f30464660c675d1c1e2851a3bf0366a3aaffe5a8 in /home/vgpnk/Projects/shokunin/kotoba-shokunin: (R4) the two round-48 counts without a reproducing command \u2014 corpus/knowledge/frontmatter-rule-authorities-round48.md \u00a7 Count provenance; (R5) the v2 configured-root oracle specified in .ufo/waves/round-49/build/R5Disposition.md, not frozen; (R1) the no-name fallback in verifiers/verify_harness_independent.py that counts a skill opencode v1.19.3 skips (round-49 falsify ReviewR1Patch F1, MutR1Keying). For each: confirm it is still open with a command and output, estimate what closing it needs, and draft one plain sentence for the report saying why it is carried this round (round 50's claims are C1 adjacency and C2 operability)."
+  },
+  {
+   "name": "SiblingOverlapScan",
+   "role": "connector",
+   "axes": [
+    "adjacency"
+   ],
+   "prompt": "Claim C1 sibling-overlap scan. For each of the 20 sibling lanes in the census table (/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/knowledge/sibling-overlap-census-round49.md), compare the pinned commit with the current tip (`git -C /home/vgpnk/Projects/shokunin/<lane>-shokunin rev-parse <branch>`; read-only). Report: which lanes moved; for movers, whether SKILL.md frontmatter description, PROVINCE.md, or corpus files changed in a way that touches the classification (names kotoba, states a split, claims kotoba-core ground). Specifically check kotodama's description at the tip still routes prompt and skill craft to kotoba. Also list which of the 9 non-none lanes (chousa, kagi, kake, kama, kasegi, kengaku, kotodama, kumitate, tameshi) each name kotoba in their own description (reciprocity table: kotoba names X? X names kotoba?). No edits."
+  },
+  {
+   "name": "CriticC1Sizing",
+   "role": "critic",
+   "axes": [
+    "adjacency"
+   ],
+   "prompt": "Attack claim C1 before landing (/home/vgpnk/Projects/shokunin/kotoba-shokunin/plans/round-50.md). (1) Can the counter print 9 while the description arbitrates nothing (bare list of names)? Specify the content guard conditions that would catch that and check whether the planned guard (`check_sibling_census.py --skill`) has them. (2) Is naming 9 sibling lanes good trigger craft \u2014 read S022/S018/S021 rows in /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md and kotoba's own trigger checklist in SKILL.md: does a longer description harm trigger precision or hit caps (1024 spec cap; Claude Code listing budget; Codex shortening)? (3) Is the statement exactly what the counter proves? (4) Is the 'learning claim' bar met (goal file quality bar: a SKILL.md change grounded in admitted entries)? Return concrete required changes."
+  },
+  {
+   "name": "CriticC2Sizing",
+   "role": "critic",
+   "axes": [
+    "operability"
+   ],
+   "prompt": "Attack claim C2 before landing (/home/vgpnk/Projects/shokunin/kotoba-shokunin/plans/round-50.md). (1) Can `killed 6 of 6` be produced by a box_proof that fails on any manifest change (e.g. a manifest hash pin) rather than one that checks per-conjunct coverage \u2014 and is that a problem for the stated claim? (2) Is 6 the right denominator (2 PASS controls, 1 N/A case \u2014 what should deleting those do)? (3) Can the coverage list be laundered by relabelling a case's expect_conjunct? (4) Is the statement exactly what the counter proves, and is it falsifiable at the base (run the r49 instrument after deleting one case in a scratch clone: expect `boxes proven 2`, exit 0)? Return concrete required changes."
+  },
+  {
+   "name": "CriticPrecedence",
+   "role": "critic",
+   "axes": [
+    "adjacency"
+   ],
+   "prompt": "Attack routed defect D3 independently of the drafting seat. The census rule (/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/knowledge/sibling-overlap-census-round49.md \u00a7 Classification rule) has two arms that can both match (contested: sibling claims part of kotoba's core including \"instruments over them\"; adjacent: a stated split). Propose the precedence you think is right, and the strongest argument for the opposite; test both on kama, kengaku, tameshi and on one `none` row (mado: surveys the omarchy skill frontmatter as its own documentation surface) using the pinned bytes. Say which rows each precedence would move. Also attack: should a split stated only on kotoba's side (kake, kasegi) count the same as a split the sibling states?"
+  },
+  {
+   "name": "MutCensusGuardBase",
+   "role": "mutation-tester",
+   "axes": [
+    "adjacency"
+   ],
+   "prompt": "Before-state of the census guard at f30464660c675d1c1e2851a3bf0366a3aaffe5a8. In a private clone, plant mutants of the census entry and PROVINCE.md \u00a7 Adjacent and run `python3 -B verifiers/check_sibling_census.py corpus/knowledge/sibling-overlap-census-round49.md --province PROVINCE.md`: duplicate a census row; duplicate a PROVINCE row; case-variant lane name duplicate; swap two rows' commits; change a non-none row to none with a matching PROVINCE edit; delete a lane from both tables. Record exit code and output per mutant (killed/survived). This is the before-column for the D3 duplicate-row fix; name which survivors a duplicate-row check would kill."
+  },
+  {
+   "name": "MutBoxProofBase",
+   "role": "mutation-tester",
+   "axes": [
+    "operability"
+   ],
+   "prompt": "Independent before-measure of C2 at f30464660c675d1c1e2851a3bf0366a3aaffe5a8. In a private clone, delete each of the 6 must-fail cases from verifiers/fixtures/dispatch-prompts/manifest.json in turn (one at a time, restoring between) and run `python3 -B verifiers/verify_dispatch_prompts.py --box-proof --map verifiers/checklist-baseline.json`; record exit and output per case. Then also: relabel one case's expect_conjunct to another conjunct; delete a PASS control; delete the N/A case. Expected before: the 6 deletions survive (exit 0, `boxes proven 2`). Report the table \u2014 it is the independent before-value for C2."
+  },
+  {
+   "name": "ReviewKotodamaSplit",
+   "role": "reviewer",
+   "axes": [
+    "adjacency"
+   ],
+   "prompt": "Attack the kotodama facts C1 will rest on. In /home/vgpnk/Projects/shokunin/kotodama-shokunin (read-only) at pin 35f0d49f96f1d51f8b006136a8e1d0e8d0919a7a and at the tip: quote kotodama's SKILL.md description (the \"NOT prompt/skill craft (kotoba-shokunin)\" clause) and MINT.md:20 name-collision note verbatim. Then state what a reciprocal clause in kotoba's description must say to be accurate (what kotodama owns, what kotoba owns, the name collision), in at most 25 words, and attack the census's override of the seat call (none -> adjacent) under the rule's text."
+  },
+  {
+   "name": "ReviewD1D5Facts",
+   "role": "reviewer",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Routed defects D1 and D5 facts. (D1) In the fleet repo /home/vgpnk/Projects/shokunin (read-only git), run `git log --format='%h %s' -- .ufo/reports/round-49/kotoba.md` and `git diff -U0 <c>^ <c> -- .ufo/reports/round-49/kotoba.md` for each addendum commit; confirm line 4 was rewritten each time and nothing else removed. State the append-only pattern the round-50 report must follow (where the current lane head goes). (D5) Confirm /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/lessons/round-49.md \u00a7 Gate says rejected 0, and list the reject decisions visible in /home/vgpnk/Projects/shokunin/kotoba-shokunin/plans/round-49.md and /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-49/ (path:line). Verdict line first."
+  },
+  {
+   "name": "ReviewSkillTriggerCraft",
+   "role": "reviewer",
+   "axes": [
+    "adjacency"
+   ],
+   "prompt": "Before C1 lands: review kotoba's current frontmatter description (/home/vgpnk/Projects/shokunin/kotoba-shokunin/SKILL.md lines 1-16 at f30464660c675d1c1e2851a3bf0366a3aaffe5a8) against kotoba's own trigger-fidelity checklist (section Trigger-fidelity checklist in the same file) box by box: which boxes it passes today, which it fails, and what a rewrite that adds 4 more sibling names (chousa, kama, kotodama, tameshi) with their splits must keep or must not break (e.g. trigger.05 sibling arbitration rule, anti-triggers, length). Also run `python3 -B verifiers/verify_skill_checklist.py --json` (read-only run) and list which trigger.* checks are executed by the instrument versus lane-attested prose. Verdict line first."
+  }
+ ]
+}
