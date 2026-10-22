@@ -1,0 +1,20 @@
+diff --git a/verifiers/check_description_thresholds.py b/verifiers/check_description_thresholds.py
+--- a/verifiers/check_description_thresholds.py
++++ b/verifiers/check_description_thresholds.py
+@@ -379,4 +379,18 @@ def self_test() -> int:
+     check("26-word quote fails", len(judge(skill, entry.replace(
+         "in the skill listing", "in the skill listing " + "w " * 20), sources, lesson)[0]["why"]) > 0,
+         True)
++    overlong_quote = '"text is truncated at 1,536 characters in the skill listing ' + "w " * 16 + '"'
++    check("26-word quote fails when Gate records the full quote",
++          backed(
++              en=entry.replace('"text is truncated at 1,536 characters in the skill listing"', overlong_quote),
++              le=lesson.replace('"text is truncated at 1,536 characters in the skill listing"', overlong_quote)),
++          ["Codex"])
++    check("unsupported source kind fails",
++          backed(so=sources.replace("| docs | A |", "| note | A |", 1)), ["Codex"])
++    check("heading case must be exact",
++          backed(sk=skill.replace("### Description thresholds by client",
++                                  "### description thresholds by client")), [])
++    check("target remains pinned at four", TARGET, 4)
+     check("tier B fails", backed(so=sources.replace("| docs | A |", "| docs | B |", 1)), ["Codex"])

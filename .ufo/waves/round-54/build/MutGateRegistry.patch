@@ -1,0 +1,61 @@
+diff --git a/verifiers/check_gate_registry.py b/verifiers/check_gate_registry.py
+--- a/verifiers/check_gate_registry.py
++++ b/verifiers/check_gate_registry.py
+@@ -264,6 +264,57 @@ def self_test() -> int:
+     check("wrong header not read", ok(sk=skill.replace("| Owner |", "| Who |")), ([], []))
+     check("probe without any pair", ok(sk=skill.replace("| 0=clean | none |", "| exits | none |")),
+           (["verifiers/a.py"], []))
++    tree_output = (
++        b"100644 blob abc\tverifiers/a.py\0"
++        b"100644 blob def\tverifiers/b.sh\0"
++        b"100644 blob ghi\tverifiers/notes.txt\0"
++        b"040000 tree jkl\tverifiers/not-a-file.py\0"
++    )
++    previous_git = globals()["git"]
++    globals()["git"] = lambda args: subprocess.CompletedProcess(args, 0, tree_output, b"")
++    try:
++        check("universe includes only .py and .sh blobs",
++              Tree("fixture").universe(), ["verifiers/a.py", "verifiers/b.sh"])
++    finally:
++        globals()["git"] = previous_git
++
++    check("pinned path climbing out when it exists",
++          ok(sk=skill.replace("`verifiers/base.json`", "`../x/base.json`"),
++             fs={**files, "../x/base.json": b"{}"}), (["verifiers/b.sh"], []))
++    check("absolute pinned path rejected when it exists",
++          ok(sk=skill.replace("`verifiers/base.json`", "`/verifiers/base.json`"),
++             fs={**files, "/verifiers/base.json": b"{}"}), (["verifiers/b.sh"], []))
++    check("empty write scope",
++          ok(sk=skill.replace("tmp clones", "")), (["verifiers/a.py"], []))
++    check("gate lacking 0=clean",
++          ok(sk=skill.replace("0=clean, ", "")), (["verifiers/b.sh"], []))
++
++    selected = {"skill": skill, "universe": uni}
++    previous_tree = globals()["Tree"]
++
++    class FixtureTree:
++        def __init__(self, rev):
++            pass
++
++        def universe(self):
++            return selected["universe"]
++
++        def read(self, path):
++            return selected["skill"].encode() if path == "SKILL.md" else files.get(path)
++
++        def exists(self, path):
++            return path in files
++
++    globals()["Tree"] = FixtureTree
++    try:
++        check("CLI exits zero when all rows conform", main(["--rev", "fixture"]), 0)
++        selected["skill"] = head + row_a
++        check("CLI exits one when a row is missing", main(["--rev", "fixture"]), 1)
++        selected["skill"] = head + row_a + row_b + row_b.replace("b.sh", "c.sh")
++        check("CLI exits one when a phantom row exists", main(["--rev", "fixture"]), 1)
++    finally:
++        globals()["Tree"] = previous_tree
++
+ 
+     print("self-test: %d failure(s) over %d assertions" % (failures, assertions))
+     return 1 if failures else 0
