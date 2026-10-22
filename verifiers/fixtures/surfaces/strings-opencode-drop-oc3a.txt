@@ -1,10 +1,10 @@
 # synthetic opencode strings-dump fixture (round 47 — opencode 1.19.3 rule set,
-# the round-14 lineage re-derived against the frozen 1.19.3 dump). Every
-# non-comment line is an exact byte substring of
+# the round-14 lineage re-derived against the frozen 1.19.3 dump).
+# Non-comment anchors are exact byte substrings of
 # /fast/scratch/kotoba-r47/shared/opencode-1.19.3.strings at the dump line named
-# in its comment; no other binary text is committed. Exceptions (synthetic,
-# not dump bytes): the `no-rule-anchor marker line`, any line under a
-# `# not anchors` comment, and a variant's planted line.
+# in each comment. Synthetic lines (not dump bytes): the `no-rule-anchor marker
+# line`, any line under a `# not anchors` comment, a variant's planted line,
+# and the round-53 synthetic OC-4 export/call/result bridge lines.
 # variant: OC-3a anchors removed; the rule must report itself unmatched
 # OC-1  name-priority list (y), dump line 443993
 y=["AGENTS.md",...!t.disableClaudeCodePrompt?["CLAUDE.md"]:[],"CONTEXT.md"]
@@ -16,8 +16,16 @@ w=(T.instructions??[]).filter((q)=>q.startsWith("https://")||q.startsWith("http:
 [`Instructions from: ${q}
 # OC-4  read-tool channel: resolve entry point (443995), its ReadTool.execute caller (444228), injected token (443193)
 b=s.fn("Instruction.resolve")(function*(T,d,w){
+# synthetic OC-4 resolver service export bridge (not a raw dump excerpt)
+});return O1.of({resolve:b})
 $=s.fn("ReadTool.execute")(function*(a,g){
 <system-reminder>
+# synthetic OC-4 call/result bridge (not a raw dump excerpt)
+let y=yield*e.resolve(g.messages,h,w)
+y.length>0)_+=`
+<system-reminder>
+${y.map((B)=>B.content).join(`
+</system-reminder>
 # OC-5  resolution switch: project walk-up versus config-only (owns no class id), dump line 443993
 if(!Jr.OPENCODE_DISABLE_PROJECT_CONFIG)return yield*e.globUp(T,d.directory,d.worktree)
 return yield*e.globUp(T,r.config,r.config)

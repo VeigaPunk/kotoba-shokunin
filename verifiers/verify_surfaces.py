@@ -569,11 +569,11 @@ def declared_loader_pairs(entries: list[dict], harness: str) -> set[tuple[str, s
 # ledger); on this host the retired v2.0.26 rule set survives only as the
 # must-fail generation fixture `fixtures/surfaces/strings-opencode-v2.0.26.txt`
 # (upstream, npm `@opencode/cli` 2.x still ships it — host-scoped retirement).
-# LIMITS found by the round-47 falsify wave (carried, not fixed): every rule is a
-# whole-dump presence test, not bound to a code body — decoys elsewhere satisfy
-# it, and caller/delivery/gate edges are unwitnessed (OC-1's `gated` term reduces
-# to `m is not None`; OC-4's call edge and in-hook token; OC-6's config
-# candidate and env gate); a failing rule lists all its anchors as missing.
+# LIMITS found by the round-47 falsify wave and still carried: whole-dump anchors
+# remain for OC-1..OC-3 and OC-5, including OC-1's `gated` term reducing to
+# `m is not None`. OC-6's config candidate/env gate remain unwitnessed. OC-4 now
+# binds the resolver export to the ReadTool call and wrapped result; OC-6 binds
+# its observed layer to the `system-context-builtins` dependency (round 53).
 
 # OC-1: the per-directory name-priority list (first-match walk-up; dump 443993):
 #   y=["AGENTS.md",...!t.disableClaudeCodePrompt?["CLAUDE.md"]:[],"CONTEXT.md"]
@@ -619,27 +619,140 @@ OC_ENV_PROJECT_CONFIG = "OPENCODE_DISABLE_PROJECT_CONFIG"
 OC_GLOBUP_PROJECT_RE = re.compile(r"globUp\([^)]*\.directory[^)]*\.worktree\)")
 OC_GLOBUP_CONFIG_RE = re.compile(r"globUp\([^)]*\.config\s*,\s*[^)]*\.config\)")
 
-# OC-6: opencode's SECOND instruction subsystem (layer `instruction-context`,
-# key ``core/instructions``, composed as a dependency of the
-# `system-context-builtins` layer — not registered as it; dump 445481-445487).  It walks AGENTS.md all-match up from cwd to the project root
-# and keeps an ungated config-dir candidate (`jX(L.config,"AGENTS.md")`) — a
-# different load condition for the same file class than OC-1/OC-2's first-match
-# walk, which is why it carries its own class id.
-OC_V2_KEY = 'Key.make("core/instructions")'
+# OC-6: opencode's second instruction subsystem uses the `core/instructions`
+# key, an all-match AGENTS.md walk, and its own registered layer, composed into
+# `system-context-builtins`. 1.19.4 renamed the key factory from `Key.make` to
+# `Wr.make` and made the layer/dependency relation visible in the bundle.
+OC_V2_KEY = 'Key.make("core/instructions")'  # 1.19.3 fixture generation
 OC_V2_TARGETS = 'targets:["AGENTS.md"]'
 OC_V2_OBSERVE = "InstructionContext.observe"
 OC_V2_REGISTRATION = "system-context-builtins"
+OC_V2_KEY_RE = re.compile(
+    r'(?P<key>[A-Za-z_$][A-Za-z0-9_$]*)='
+    r'(?:[A-Za-z_$][A-Za-z0-9_$]*\.){0,2}make\("core/instructions"\)'
+)
+OC_V2_LAYER_DEF_RE = re.compile(
+    r'(?P<layer>[A-Za-z_$][A-Za-z0-9_$]*)=ia\(m\(function\*'
+)
+OC_V2_OBSERVE_RE = re.compile(
+    r'(?:[A-Za-z_$][A-Za-z0-9_$]*\.)?(?:fn|l)\("'
+    + re.escape(OC_V2_OBSERVE) + r'"\)\(function\*'
+)
+OC_V2_TARGETS_RE = re.compile(
+    r'\.up\(\{' + re.escape(OC_V2_TARGETS) + r','
+)
+OC_V2_OLD_REGISTRATION_RE = re.compile(
+    r'[A-Za-z_$][A-Za-z0-9_$]*=i\(\{name:"'
+    + re.escape(OC_V2_REGISTRATION)
+    + r'",layer:[A-Za-z_$][A-Za-z0-9_$]*,'
+)
 
-# OC-4: the read-tool channel that appends the instruction file found at EVERY
-# ancestor level (one per directory, nearest first; the walk stops at the
-# instance directory by an unseparated string-prefix test) to a read's TOOL RESULT:
-# `s.fn("Instruction.resolve")` (dump 443995), called from
-# `s.fn("ReadTool.execute")` (dump 444228-444233, `e.resolve(g.messages,h,…)`),
-# delivered inside `<system-reminder>`.  Round 47 added the ReadTool.execute
-# anchor: `<system-reminder>` alone is a generic token (18 hits on 1.19.3).
-OC_READ_HOOK_FN = 'fn("Instruction.resolve")'
-OC_READ_TOOL_FN = 'fn("ReadTool.execute")'
+# OC-4: the read-tool channel resolves instructions and places the resolved
+# contents in the tool result's <system-reminder>. The minified registration
+# The minifier renamed the wrapper callee from `fn` (1.19.3) to `l` (1.19.4);
+# matching the quoted label keeps the registration edge alias-agnostic.
 OC_READ_HOOK_TOKEN = "<system-reminder>"
+OC_READ_HOOK_ENTRY_RE = re.compile(
+    r'(?P<method>[A-Za-z_$][A-Za-z0-9_$]*)='
+    r'(?:[A-Za-z_$][A-Za-z0-9_$]*\.)?[A-Za-z_$][A-Za-z0-9_$]*\("Instruction\.resolve"\)'
+    r'\(function\*'
+)
+OC_READ_TOOL_ENTRY_RE = re.compile(
+    r'(?:[A-Za-z_$][A-Za-z0-9_$]*=)?'
+    r'(?:[A-Za-z_$][A-Za-z0-9_$]*\.)?[A-Za-z_$][A-Za-z0-9_$]*\("ReadTool\.execute"\)'
+    r'\(function\*'
+)
+OC_READ_CALL_RE = re.compile(
+    r'(?P<result>[A-Za-z_$][A-Za-z0-9_$]*)=yield\*'
+    r'[A-Za-z_$][A-Za-z0-9_$]*\.resolve\('
+    r'[A-Za-z_$][A-Za-z0-9_$]*\.messages,'
+    r'[A-Za-z_$][A-Za-z0-9_$]*,[A-Za-z_$][A-Za-z0-9_$]*(?:\.[A-Za-z_$][A-Za-z0-9_$]*)*\)'
+)
+
+
+def opencode_read_hook_matches(dump: str) -> bool:
+    """Require the resolver service export, its read-tool call, and its output."""
+    for tool in OC_READ_TOOL_ENTRY_RE.finditer(dump):
+        module_start = dump.rfind("\n// @bun\n", 0, tool.start())
+        module_start = module_start + 1 if module_start >= 0 else 0
+        module_end = dump.find("\n// @bun\n", tool.end())
+        if module_end < 0:
+            module_end = len(dump)
+        module = dump[module_start:module_end]
+        tool_pos = tool.start() - module_start
+
+        for entry in OC_READ_HOOK_ENTRY_RE.finditer(module, 0, tool_pos):
+            export_re = re.compile(
+                r'\}\);\s*return\s+[A-Za-z_$][A-Za-z0-9_$]*\.of\(\{'
+                r'[^}]{0,1000}\bresolve:'
+                + re.escape(entry.group("method")) + r'\b'
+            )
+            if export_re.search(module, entry.end(), tool_pos) is None:
+                continue
+
+            tool_window = module[tool_pos:tool_pos + 50000]
+            call = OC_READ_CALL_RE.search(tool_window)
+            if call is None:
+                continue
+            result = re.escape(call.group("result"))
+            delivery_re = re.compile(
+                r'[\s\S]{0,10000}\b' + result + r'\.length>0\)[A-Za-z_$][A-Za-z0-9_$]*\+='
+                r'[\s\S]{0,100}' + re.escape(OC_READ_HOOK_TOKEN)
+                + r'[\s\S]{0,100}\$\{\s*' + result
+                + r'\.map\(\(\s*(?P<item>[A-Za-z_$][A-Za-z0-9_$]*)\s*\)'
+                + r'=>\s*(?P=item)\.content\)\.join\('
+                + r'[\s\S]{0,100}</system-reminder>'
+            )
+            if delivery_re.search(tool_window[call.end():call.end() + 10000]):
+                return True
+    return False
+
+
+def opencode_context_layer_matches(dump: str) -> bool:
+    """Tie the current instruction key and walk to the registered layer graph."""
+    for key_match in OC_V2_KEY_RE.finditer(dump):
+        window = dump[key_match.start():key_match.start() + 50000]
+        layer_match = OC_V2_LAYER_DEF_RE.search(window)
+        if layer_match is None:
+            continue
+        observe = OC_V2_OBSERVE_RE.search(window, layer_match.end())
+        if observe is None:
+            continue
+        target = OC_V2_TARGETS_RE.search(window, observe.end())
+        if target is None:
+            continue
+        key_use = re.search(
+            r'ki\(\{key:' + re.escape(key_match.group("key")) + r'\b', window
+        )
+        if key_use is None or key_use.start() > observe.start():
+            continue
+
+        layer = re.escape(layer_match.group("layer"))
+        instance_re = re.compile(
+            r'(?P<instance>[A-Za-z_$][A-Za-z0-9_$]*)=(?:Re|i)\('
+            r'\{name:"instruction-context",layer:' + layer
+            + r',deps:\[[^\]]*\]\}\)'
+        )
+        instance = instance_re.search(window, target.end())
+        if instance is None:
+            continue
+        builtins_re = re.compile(
+            r'[A-Za-z_$][A-Za-z0-9_$]*=(?:Re|i)\(\{name:"'
+            + re.escape(OC_V2_REGISTRATION)
+            + r'",layer:[A-Za-z_$][A-Za-z0-9_$]*,deps:\[[^\]]*\b'
+            + re.escape(instance.group("instance")) + r'\b[^\]]*\]\}\)'
+        )
+        if builtins_re.search(window, instance.end()):
+            return True
+
+    # Retain the committed 1.19.3 fixture shape: its registration is the
+    # system-context-builtins layer, while 1.19.4 exposes the composed edge.
+    return (
+        OC_V2_KEY in dump
+        and OC_V2_OBSERVE_RE.search(dump) is not None
+        and OC_V2_TARGETS_RE.search(dump) is not None
+        and OC_V2_OLD_REGISTRATION_RE.search(dump) is not None
+    )
 
 
 def extract_opencode_classes(dump: str) -> tuple[set[str], list[dict]]:
@@ -689,11 +802,12 @@ def extract_opencode_classes(dump: str) -> tuple[set[str], list[dict]]:
          ['.instructions….filter((q)=>q.startsWith("https://")||q.startsWith("http://"))',
           OC_REMOTE_RENDER])
 
-    # OC-4 — read-tool channel
-    read_hook = (OC_READ_HOOK_FN in dump and OC_READ_TOOL_FN in dump
-                 and OC_READ_HOOK_TOKEN in dump)
+    # OC-4 — resolver service export, ReadTool call edge, and same-result reminder.
+    read_hook = opencode_read_hook_matches(dump)
     rule("OC-4", ["opencode:read-hook/instructions"], read_hook,
-         [OC_READ_HOOK_FN, OC_READ_TOOL_FN, OC_READ_HOOK_TOKEN])
+         ["Instruction.resolve exported as .resolve",
+          "ReadTool.execute calls .resolve(messages, path, id)",
+          "<system-reminder> wraps the resolved content"])
 
     # OC-5 — resolution switch (owns no class id; witnesses the path the ids are
     # read through, so losing it is a drift FAIL rather than a silent re-scope)
@@ -704,11 +818,11 @@ def extract_opencode_classes(dump: str) -> tuple[set[str], list[dict]]:
          [OC_ENV_PROJECT_CONFIG, "globUp(<v>.directory,<v>.worktree)",
           "globUp(<v>.config,<v>.config)"])
 
-    # OC-6 — second instruction subsystem (own load condition for AGENTS.md)
-    v2 = all(a in dump for a in (OC_V2_KEY, OC_V2_TARGETS, OC_V2_OBSERVE,
-                                 OC_V2_REGISTRATION))
+    # OC-6 — observe+walk belongs to the registered instruction-context layer.
+    v2 = opencode_context_layer_matches(dump)
     rule("OC-6", ["opencode:instruction-context/AGENTS.md"], v2,
-         [OC_V2_OBSERVE, OC_V2_KEY, OC_V2_TARGETS, OC_V2_REGISTRATION])
+         ["core/instructions key + InstructionContext.observe AGENTS.md walk",
+          "instruction-context layer registered under system-context-builtins"])
 
     return ids, report
 
@@ -1493,6 +1607,31 @@ def self_test() -> int:
         rec("%s: FAIL opencode_extract" % fixture,
             "FAIL surfaces.opencode_extract:" in out, out)
         rec("%s: names %s" % (fixture, named), named in out, out)
+
+    # (oc-1194) re-derived shapes pass, while literal-preserving edge decoys fail.
+    code, out = run(oc_dump=fx + "/strings-opencode-1.19.4-anchors.txt")
+    rec("oc-1.19.4 anchors: exit 0", code == 0, code)
+    rec("oc-1.19.4 anchors: PASS opencode_extract",
+        "PASS surfaces.opencode_extract:" in out, out)
+
+    oc_literals = ("Instruction.resolve", "ReadTool.execute", "<system-reminder>",
+                   "core/instructions", 'targets:["AGENTS.md"]',
+                   "InstructionContext.observe", "system-context-builtins")
+    for fixture, target_rule, target_id, other_rule in (
+            ("strings-opencode-1.19.4-decoy-oc4.txt", "OC-4",
+             "opencode:read-hook/instructions", "OC-6"),
+            ("strings-opencode-1.19.4-decoy-oc6.txt", "OC-6",
+             "opencode:instruction-context/AGENTS.md", "OC-4")):
+        text = read_text(FIXTURES / fixture, "opencode decoy fixture")
+        for literal in oc_literals:
+            rec("%s retains %r" % (fixture, literal), literal in text, literal)
+        code, out = run(oc_dump=fx + "/" + fixture)
+        rec("%s: exit 1" % fixture, code == 1, code)
+        rec("%s: FAIL opencode_extract" % fixture,
+            "FAIL surfaces.opencode_extract:" in out, out)
+        rec("%s: only %s unmatched" % (fixture, target_rule),
+            ("%s (owns %s" % (target_rule, target_id)) in out
+            and ("%s (owns " % other_rule) not in out, out)
 
     # (oc+) anchor-adjacent shapes that are NOT rule anchors must extract
     # nothing extra — the drop-one matrix stays green, so exit 0 here proves

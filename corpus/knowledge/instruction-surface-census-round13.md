@@ -543,3 +543,34 @@ agent definitions optimize *delegation precision* (capability + exclusions an
 orchestrator matches); spawn prompts optimize *one-shot completeness*
 (everything the reader needs, nothing it can look up); round prompts optimize
 *delta-only weight* (everything durable is already in the repo).
+
+**Round-53 re-derivation (2026-10-22, opencode 1.19.4, append-only).** The installed
+npm `opencode-ai` binary at
+`/home/vgpnk/.npm/_npx/e2094862b59aac7b/node_modules/opencode-ai/bin/opencode.exe`
+has sha256 `538fcb1b6408c8d460882acee19f7ff5b3a3eb3383c0633c4f06170857312a7`;
+the `strings -n 4` dump is
+`/fast/scratch/hyaku/kotoba-r53/ExecOcRederive/oc-1.19.4.strings`
+(sha256 `2d72d83f8c90b15c4ba12037c305a838fefe03401e0762c90efdfe04f5a4bd98`).
+The nine opencode class ids, kinds and verdicts remain unchanged.
+
+- **OC-4, dump lines 598311-598312, 598484, 598489, 598496-598499:** the
+  `Instruction.resolve` and `ReadTool.execute` registration wrappers now use
+  `l(...)` rather than the 1.19.3 fixture's `fn(...)`; the resolver is exported
+  as `resolve:k`, the read tool calls `r.resolve(F.messages,I,F.messageID)`,
+  and that result's content is placed inside `<system-reminder>` in the tool
+  output. The 1.19.4 rule now binds the export, caller edge and same-result
+  delivery rather than counting these literals independently.
+- **OC-6, dump lines 597823 and 597828:** `Wr.make("core/instructions")`
+  replaces the 1.19.3 `Key.make` spelling; `InstructionContext.observe` keeps
+  the `targets:["AGENTS.md"]` walk and the key-backed instruction state. The
+  `instruction-context` layer is registered separately and its instance is a
+  dependency of the registered `system-context-builtins` layer. The 1.19.4
+  rule now requires that registration/dependency shape. The B′ rows above remain
+  the dated 1.19.3 record; this note appends the new measurement without
+  rewriting those anchors.
+
+Provenance of the change (S051, `corpus/SOURCES.md`): the v1.19.3→v1.19.4 tag delta touches no path under
+`packages/opencode/src/`; the release note records only a bundled Bun runtime upgrade (1.3.14→1.4.4), so the
+renamed wrappers (`fn`→`l`, `Key`→`Wr`) are a rebuild of unchanged source, not a behaviour change
+(`.ufo/waves/round-53/build/ScoutOcRelease.md` §§ 1–2; `RevOcLoader.md` § 2 reaches the same reading from the
+1.19.3 and 1.19.4 binaries).
