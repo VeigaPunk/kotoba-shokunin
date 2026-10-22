@@ -1,0 +1,277 @@
+{
+ "wave": "kotoba-r48-build",
+ "reportDir": ".ufo/waves/round-48/build",
+ "axes": [
+  "depth",
+  "freshness",
+  "frontier"
+ ],
+ "milestone": "Round-48 build: C1 configured-root repair, C2 frontmatter rule authorities entry, frontier step",
+ "context": "# Goal\nkotoba round 48 (attempt 2) BUILD wave, hyaku session 2026-10-22. Lane repo /home/vgpnk/Projects/shokunin/kotoba-shokunin (prompt and skill craft shokunin; jj-colocated; branch master at 75f671b109d8eddd0d64c1429bd6379fe577175a). Read /home/vgpnk/Projects/shokunin/kotoba-shokunin/plans/round-48.md FIRST: it names the two claims (C1 depth: configured-root enumeration in verifiers/verify_harness_independent.py, measured by the committed ruler .ufo/round-48/tools/config-root-ruler.py; C2 freshness: new knowledge entry corpus/knowledge/frontmatter-rule-authorities-round48.md on which authority imposes which SKILL.md frontmatter rule) and the frontier step. Round-47 outside spot-check (routed defects): /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/lessons/round-47-verifier-spotcheck.md.\n\n# Bounds (binding)\n- Read-only on the lane checkout /home/vgpnk/Projects/shokunin/kotoba-shokunin: never edit, create or delete files there EXCEPT your own Report file. Never run git/jj write commands (commit, add, stash, checkout, reset, push, jj anything mutating) in the lane, the fleet repo /home/vgpnk/Projects/shokunin, or any sibling lane. Seats never mutate the fleet repo, sibling lanes, lane jj state or lane Git index.\n- Code work happens only in your own scratch directory /fast/scratch/hyaku/kotoba-r48-a2/seats/<your item name>/ (create it; `git clone -q /home/vgpnk/Projects/shokunin/kotoba-shokunin <dir>` there for a private clone; commits inside your private clone are fine). The L1 integrates; you deliver patches and receipts.\n- Every `Report:` trailer path is relative to /home/vgpnk/Projects/shokunin/kotoba-shokunin \u2014 write it at /home/vgpnk/Projects/shokunin/kotoba-shokunin/<that path>. Never write relative paths from the fleet root.\n- Tooling: you may install or upgrade tools that help the task \u2014 read /home/vgpnk/.omp/agent/RULES.md first (official channels; record tool, version, channel, reason in your report). pacman guard: ALL pacman transactions are PAUSED host-wide \u2014 install via `uv tool`, `npx`, or an official binary in ~/.local/bin; never -Sy/-Syu/-U/-R; never restart a host service.\n- Web sources: open the primary source yourself this session; record URL, access time (UTC) and a located quote of at most 25 words with its section/line. Never execute fetched code except an officially packaged validator named in your item.\n- Plain English, no run-together words. Unrun checks are not passes; report exit codes verbatim. Leaf seat: no delegation (executors may spawn one read-only labrat at most).\n- Your report: findings first, then evidence (commands with exit codes, paths, hashes). Keep it under 150 lines.\n",
+ "items": [
+  {
+   "name": "C1RegressionArm",
+   "role": "executor",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Claim C1 (Q05: a fix ships its own regression arm). In a private clone of scratch candidate clone /fast/scratch/hyaku/kotoba-r48-a2/cand (branch r48-cand, commit 26035dcec54d8e42f3a8b47ae8ca551c18aec295; patch /fast/scratch/hyaku/kotoba-r48-a2/c1-candidate.patch), add a self-test arm to verifiers/verify_harness_independent.py `self_test()` that builds a fixture whose --oc-config holds skill/<a>/SKILL.md and skills/<b>/SKILL.md plus a same-name pair in both roots, with neither root named in the log, and asserts the oc.roots.names_plus_builtin value; show the arm FAILS on the base consumer (git show 75f671b:verifiers/verify_harness_independent.py) and passes on the candidate. Run `python3 -B verifiers/verify_harness_independent.py --self-test` (base and candidate, exit codes and assertion counts) and `python3 -B verifiers/check_assertion_floors.py` (does a floor need bumping? read verifiers/floors-registry.json). Deliver the unified diff against the candidate in your report and at /fast/scratch/hyaku/kotoba-r48-a2/seats/C1RegressionArm/arm.patch."
+  },
+  {
+   "name": "C1RulerRerun",
+   "role": "executor",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Claim C1 counting command. Re-run the committed ruler independently on the scratch candidate: python3 -B .ufo/round-48/tools/config-root-ruler.py --repo <clone> --revision <full commit> --consumer-sha256 <sha256 of consumer at that commit> --oracle .ufo/round-48/oracle/config-root-cases.json --oracle-sha256 1d09a38ce04d6c0ab9a1c4edd7f4255978a0c2b8d44ce037d10fcd37d756b883 --scratch /fast/scratch/hyaku/kotoba-r48-a2/seats/<you>/ruler-<n> --baseline-receipt .ufo/round-48/verification/before-configured-root.json --baseline-sha256 8bec447aa538446e84b7cb87b902c5f1021c42bd7a01f81ea14313262f7e2312 with <clone>=/fast/scratch/hyaku/kotoba-r48-a2/cand and the candidate commit; then run the same ruler on BASE 197b5a4087bad49a465df7d13d7e821fe4cf227b without baseline args (consumer sha 872993f875338f4f89d5b76178c124313e9fc3368966f8a32583acd0430bdbd1) and compare its target_failures and per-case values to the committed before receipt /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/round-48/verification/before-configured-root.json (are they byte- or value-identical apart from paths/timestamps?). Report exit codes, verdicts, target_failures, behavioral_mismatches."
+  },
+  {
+   "name": "C1AltImplementation",
+   "role": "executor",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Claim C1 competing implementation. Without reading /fast/scratch/hyaku/kotoba-r48-a2/c1-candidate.patch first, write your own minimal implementation of the oracle contract in /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/round-48/oracle/config-root-cases.json (`contract.new_behavior`) in a private clone at base 75f671b, commit it there, run the ruler (python3 -B .ufo/round-48/tools/config-root-ruler.py --repo <clone> --revision <full commit> --consumer-sha256 <sha256 of consumer at that commit> --oracle .ufo/round-48/oracle/config-root-cases.json --oracle-sha256 1d09a38ce04d6c0ab9a1c4edd7f4255978a0c2b8d44ce037d10fcd37d756b883 --scratch /fast/scratch/hyaku/kotoba-r48-a2/seats/<you>/ruler-<n> --baseline-receipt .ufo/round-48/verification/before-configured-root.json --baseline-sha256 8bec447aa538446e84b7cb87b902c5f1021c42bd7a01f81ea14313262f7e2312), then diff your version against /fast/scratch/hyaku/kotoba-r48-a2/c1-candidate.patch and name any behavioral difference (readability, symlinks, path normalisation, ordering, detail text). Recommend which to land and why."
+  },
+  {
+   "name": "C1NoHarmBattery",
+   "role": "executor",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Claim C1 no-harm. In a private clone, run the lane's gate battery at base 75f671b and at the candidate commit 26035dcec54d8e42f3a8b47ae8ca551c18aec295 (fetch it from /fast/scratch/hyaku/kotoba-r48-a2/cand): verifiers/verify_harness_independent.py --self-test; verifiers/check_assertion_floors.py; verifiers/verify_skill_checklist.py --json and --self-test; verifiers/verify_corpus_integrity.py --json; verifiers/verify_corpus_independent.py; verifiers/check_substrate_pins.py; verifiers/verify_surfaces.py --json; verifiers/compare_harness_independent.py (read its --help / docstring for the default live join). Table: gate, base exit + headline, candidate exit + headline, changed? Use `timeout 900` per gate; report timeouts as such."
+  },
+  {
+   "name": "C1LiveJoinEffect",
+   "role": "executor",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Claim C1 live effect. On this host, run verifiers/verify_harness_independent.py --json (default arguments) at base 75f671b and at candidate 26035dce (private clones) and report the oc.roots.names_plus_builtin value and detail at each, plus whether ~/.config/opencode/skill or ~/.config/opencode/skills exist and what they contain (names only). Then run verifiers/compare_harness_independent.py's default join at both and report exit codes and the protocol/strict counts (round 47 recorded 21/24 to 20/24 and a default live join exit 2). State whether C1 changes the live join, and how."
+  },
+  {
+   "name": "C1RulerTargetMutants",
+   "role": "mutation-tester",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Claim C1 instrument discrimination (target side). In a private clone at base 75f671b, build at least four wrong candidates of verify_harness_independent.py and commit each: (a) singular root only, (b) plural root only, (c) recursive glob of SKILL.md under the config roots, (d) counts any child directory regardless of SKILL.md, (e) list instead of set so duplicates add twice. Run the ruler on each (python3 -B .ufo/round-48/tools/config-root-ruler.py --repo <clone> --revision <full commit> --consumer-sha256 <sha256 of consumer at that commit> --oracle .ufo/round-48/oracle/config-root-cases.json --oracle-sha256 1d09a38ce04d6c0ab9a1c4edd7f4255978a0c2b8d44ce037d10fcd37d756b883 --scratch /fast/scratch/hyaku/kotoba-r48-a2/seats/<you>/ruler-<n> --baseline-receipt .ufo/round-48/verification/before-configured-root.json --baseline-sha256 8bec447aa538446e84b7cb87b902c5f1021c42bd7a01f81ea14313262f7e2312) and report which cases go red. A mutant the ruler passes is a finding against the instrument."
+  },
+  {
+   "name": "C1RulerNoHarmMutants",
+   "role": "mutation-tester",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Claim C1 instrument discrimination (no-harm side). In a private clone at base 75f671b, build candidates that make the target cases pass but ALSO (a) change one non-target check's value, (b) change one check's status, (c) drop one check id, (d) add one new check id. Commit each and run the ruler (python3 -B .ufo/round-48/tools/config-root-ruler.py --repo <clone> --revision <full commit> --consumer-sha256 <sha256 of consumer at that commit> --oracle .ufo/round-48/oracle/config-root-cases.json --oracle-sha256 1d09a38ce04d6c0ab9a1c4edd7f4255978a0c2b8d44ce037d10fcd37d756b883 --scratch /fast/scratch/hyaku/kotoba-r48-a2/seats/<you>/ruler-<n> --baseline-receipt .ufo/round-48/verification/before-configured-root.json --baseline-sha256 8bec447aa538446e84b7cb87b902c5f1021c42bd7a01f81ea14313262f7e2312). Report whether behavioral_mismatches catch each and the exit code. A silent pass is a finding."
+  },
+  {
+   "name": "C1InstrumentReview",
+   "role": "reviewer",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Claim C1 instrument validity review, read-only. Review /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/round-48/tools/config-root-ruler.py and /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/round-48/oracle/config-root-cases.json and /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/round-48/instrument.json: hand-derive expected_base_count and expected_target_count for each of the 13 cases from the contract text and the base consumer code (verifiers/verify_harness_independent.py lines 592-620 at 75f671b); check the ruler reads the consumer from the committed revision (not the working tree), checks hashes, and cannot pass on a missing case. List every defect with file:line."
+  },
+  {
+   "name": "C1ClaimCritic",
+   "role": "critic",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Claim C1 framing attack, read-only. Does landing configured-root enumeration honestly repair routed defect 1 of /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/lessons/round-47-verifier-spotcheck.md ('Resolve the independent join definition and freeze a new carrier/toolchain prospectively; preserve original 21/24 and 20/24 evidence')? Name what it repairs, what it leaves open (built-in marker vs 0 by declaration, recursive loader parity), and whether the plan's after-value is sized per claim-sizing rules (one value, one command over committed bytes, no universal clause). Propose the exact honest wording for SCORECARD."
+  },
+  {
+   "name": "C1UpstreamLoaderSource",
+   "role": "scout",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Claim C1 source. Open the opencode source (github.com/sst/opencode or its current canonical repo) at the tag matching opencode 1.19.3 (the lane's pinned substrate; check `opencode --version` if installed) and locate the skill-discovery code: which directories under the config dir are scanned (skill, skills), and is discovery direct-child or recursive? Give the pinned URL with commit/tag, file:line, and a located quote of at most 25 words. This becomes a SOURCES row for C1."
+  },
+  {
+   "name": "C1InstalledBinaryScan",
+   "role": "scout",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Claim C1 source, second channel. Locate the installed opencode 1.19.3 (npm channel; `command -v opencode`, npm global root) and search its shipped JS/binary strings for the skill-root literals (`skill`, `skills`, `SKILL.md`, glob patterns). Report path, sha256 of the file read, and the literal context lines. Read-only; do not execute opencode beyond `--version`."
+  },
+  {
+   "name": "C1JoinDefinitionHistory",
+   "role": "revenger",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Claim C1 history. Reconstruct why the round-47 independent join moved 21/24 to 20/24 and what 'customize-opencode built-in marker' means: read /home/vgpnk/Projects/shokunin/kotoba-shokunin/LOG.md (search 'Round 47'), /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/knowledge/harness-independent-round37.md, verifiers/compare_harness_independent.py and /home/vgpnk/Projects/shokunin/.ufo/waves/hyaku/parent-closures/kotoba47/ (read-only). Which check id(s) disagree, and does the configured-root change touch them? One table: check id, producer value, independent value, cause, touched by C1 yes/no."
+  },
+  {
+   "name": "C2SpecScribe",
+   "role": "scribe",
+   "axes": [
+    "freshness"
+   ],
+   "prompt": "Claim C2. Open https://agentskills.io/specification (markdown alternate https://agentskills.io/specification.md) and https://agentskills.io/client-implementation/adding-skills-support this session. Draft the spec half of the knowledge entry corpus/knowledge/frontmatter-rule-authorities-round48.md: for name, description, compatibility, metadata, allowed-tools, body length \u2014 the exact rule text with located quotes (at most 25 words each), MUST vs SHOULD strength, and the client leniency rules. Note internal tension (e.g. 'unicode lowercase alphanumeric' next to 'a-z, 0-9'). Draft only, in your report; follow the Q12 header shape (source: S### + URL/anchor, verified-at:, recheck: a command that runs today) described in /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/QUALITY.md and existing entries such as /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/knowledge/substrate-pin-guard-round23.md."
+  },
+  {
+   "name": "C2SkillsRefSource",
+   "role": "scout",
+   "axes": [
+    "freshness"
+   ],
+   "prompt": "Claim C2 source. Open the agentskills reference validator skills-ref (https://github.com/agentskills/agentskills/tree/main/skills-ref): pin the current commit hash, and locate the exact validation code for name (regex, length, unicode handling, directory match), description (length, any angle-bracket rule), compatibility, metadata and unknown fields. Give file:line at the pinned commit and quotes of at most 25 words. Say whether it bans angle brackets in description (S011 claimed the spec has no such ban)."
+  },
+  {
+   "name": "C2SkillsRefRun",
+   "role": "executor",
+   "axes": [
+    "freshness"
+   ],
+   "prompt": "Claim C2 capability evidence. Install the official skills-ref validator from its official source (PyPI if published there, else `uv tool install git+https://github.com/agentskills/agentskills#subdirectory=skills-ref` pinned to a commit) into ~/.local or a uv tool env, record version/commit. Build fixture skill dirs in /fast/scratch/hyaku/kotoba-r48-a2/seats/C2SkillsRefRun/: valid baseline; uppercase name; name with Unicode lowercase letter (e.g. 'caf\u00e9-skill'); consecutive hyphens; name not matching directory; description with '<skills>'; description with '->' arrow; description 1025 chars; description given as a YAML alias (*ref) to an anchored scalar containing '<b>'; description with an escaped '\\u003c' in a double-quoted scalar; unknown top-level field. Run skills-ref validate on each and report exit + message verbatim. Also run it on /home/vgpnk/Projects/shokunin/kotoba-shokunin/SKILL.md's directory (copy to scratch with a matching directory name)."
+  },
+  {
+   "name": "C2LaneCheckerRun",
+   "role": "executor",
+   "axes": [
+    "freshness"
+   ],
+   "prompt": "Claim C2 and routed defect 3. Run the lane's own checker against the same fixture classes: in a private clone, read verifiers/verify_skill_checklist.py check `trigger.no_xml_tag` and its frontmatter parser, then feed it SKILL.md files whose description is: '<skills>' raw; a YAML alias to an anchored scalar holding '<b>'; a double-quoted scalar with '\\u003cb\\u003e'; a Unicode name; an arrow '->'; a comparison 'a < b'; a folded block splitting '<' and 'b>'. Find how the script can be pointed at an arbitrary file (CLI flags or importing the module) and report per case: PASS/FAIL, and whether that matches S012's parsed-description rule (any '<' or '>' fails) and S003's 'cannot contain XML tags'. This is the lexical-vs-parsed distinction the round-47 spot-check routed."
+  },
+  {
+   "name": "C2QuickValidateFresh",
+   "role": "scout",
+   "axes": [
+    "freshness"
+   ],
+   "prompt": "Claim C2 freshness. Open anthropics/skills skills/skill-creator/scripts/quick_validate.py at the current main HEAD (pin the commit) and compare with the pinned dbd4588f9e1033efb41dad4bef2f7947c8993d44 version (S012): has the description/name validation changed (angle brackets, length, name regex, allowed keys)? Quote changed and unchanged lines with file:line at both commits."
+  },
+  {
+   "name": "C2ClaudeDocs",
+   "role": "scout",
+   "axes": [
+    "freshness"
+   ],
+   "prompt": "Claim C2 source. Open the current Anthropic Agent Skills docs: https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices (S003) and the overview/quickstart page that lists frontmatter requirements, plus Claude Code's skills doc (https://code.claude.com/docs/en/skills or its current URL). For name and description: exact rule text (length, character set, reserved words like 'anthropic'/'claude', XML tags), located quote of at most 25 words, section. Note any difference from the agentskills.io spec and from S003's recorded teach in /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md."
+  },
+  {
+   "name": "C2CodexOpencodeDocs",
+   "role": "scout",
+   "axes": [
+    "freshness"
+   ],
+   "prompt": "Claim C2 source. Open OpenAI's Codex skills documentation (S013 recorded https://learn.chatgpt.com/docs/build-skills; also check developers.openai.com/codex/skills) and opencode's skills documentation (https://opencode.ai/docs/skills or current URL). For each client: which frontmatter fields it reads, name rules (regex, length), description rules (length cap, truncation), and what happens on invalid frontmatter. Located quotes of at most 25 words, URLs, access time, version/date stamps."
+  },
+  {
+   "name": "C2OmpLoaderRules",
+   "role": "scout",
+   "axes": [
+    "freshness"
+   ],
+   "prompt": "Claim C2 source, local substrate. Find how omp (installed version; `omp --version`) validates SKILL.md frontmatter: search its installed package/binary for name/description validation (length caps, regex, XML/angle-bracket handling, duplicate names). The lane's census /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/knowledge/instruction-surface-census-round13.md and render-mechanism-round7.md describe earlier findings. Report file path, sha256, literal context. Read-only."
+  },
+  {
+   "name": "C2EntryScaffoldScribe",
+   "role": "scribe",
+   "axes": [
+    "freshness"
+   ],
+   "prompt": "Claim C2. Draft the decision-table half of corpus/knowledge/frontmatter-rule-authorities-round48.md: rows = rules (name length, name charset, name/dir match, consecutive hyphens, description length, description angle brackets/XML tags, third person, reserved words, unknown fields, body length), columns = agentskills.io spec (S001), skills-ref validator, Anthropic docs (S003), Anthropic packager quick_validate.py (S012), Codex (S013), lane checker `trigger.no_xml_tag`. Open the sources yourself (S001, S003, S012 pinned URL in /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md, skills-ref on GitHub) and fill only cells you can quote; mark others 'not stated (searched: <how>)' per Q14. Draft in your report."
+  },
+  {
+   "name": "C2UncoveredSweep",
+   "role": "critic",
+   "axes": [
+    "freshness"
+   ],
+   "prompt": "Claim C2 attack, read-only. Is the planned entry really uncovered ground, and is 34 -> 35 the right counter? Sweep /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/knowledge/*.md, /home/vgpnk/Projects/shokunin/kotoba-shokunin/SKILL.md and /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/README.md for existing coverage of per-authority frontmatter rules (paste the grep commands and hit counts). Re-derive the before count: `git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin ls-tree -r --name-only 75f671b corpus/knowledge | grep -c '\\.md$'`. Say what the entry must contain to count as admitted knowledge under /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/QUALITY.md (Q12, Q13, Q14) and the goal's learning-claim bar, and what would make it filler."
+  },
+  {
+   "name": "C2RecheckCommand",
+   "role": "executor",
+   "axes": [
+    "freshness"
+   ],
+   "prompt": "Claim C2, Q04/Q12 (`recheck:` must run today). Write and run recheck commands for the planned entry: for each source (agentskills.io spec markdown, skills-ref validator file at a pinned commit, quick_validate.py at pinned dbd4588 and current main, Anthropic best-practices page markdown) a one-line `curl -fsSL <url> | grep -c '<fixed string>'` that returns a positive count today and would return 0 if the rule text changed. Run each, report command + output + exit. Also show one fails (wrong string -> 0, exit 1)."
+  },
+  {
+   "name": "FrSourceDefects",
+   "role": "scout",
+   "axes": [
+    "frontier"
+   ],
+   "prompt": "Frontier and routed defect 2. Find what exactly is defective in SOURCES rows S001, S003, S010 and S013 per the round-47 outside review: read /home/vgpnk/Projects/shokunin/.ufo/waves/hyaku/parent-closures/kotoba47/ (evidence.json and any kotoba47-full-review.md; search the fleet repo .ufo/ tree read-only if needed) and /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/lessons/round-47-verifier-spotcheck.md. For each row: the defective cell, why, and the corrected teach/anchor with a source quote you re-opened this session. Never edit; report only."
+  },
+  {
+   "name": "FrSourcesRowsScribe",
+   "role": "scribe",
+   "axes": [
+    "frontier"
+   ],
+   "prompt": "Frontier step. Read the SOURCES contract (/home/vgpnk/Projects/shokunin/CORPUS.md section 'SOURCES.md \u2014 where a shokunin learns') and /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md. Draft new rows S016+ in the exact column shape for: the skills-ref validator (pinned commit), the opencode skill-discovery source for C1, and superseding rows for S001/S003 if their teach cells are wrong (old rows stay; new row names what it supersedes). Open each source yourself; give the lesson Gate line (URL, access date, quote of at most 25 words) for each. Draft in your report."
+  },
+  {
+   "name": "FrMistakeScribe",
+   "role": "scribe",
+   "axes": [
+    "frontier"
+   ],
+   "prompt": "Frontier step: mine one mistake for /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/lessons/round-48.md `## Mistakes` (class, evidence pointer, captured-by, fix shown able to fail). Candidates: round 47's C3 no-harm declared on green local targets while the frozen-carrier join moved 21/24 to 20/24 (spot-check); round-48 attempt 1 failing at T0 as a stale-author process; round 47's S011-style source mis-crediting. Read /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/lessons/round-47.md and round-46.md Mistakes for the format and existing classes (avoid duplicates). Propose the one with the best fix that can be shown to fail, with the exact demonstration command."
+  },
+  {
+   "name": "FrReadmeQualify",
+   "role": "reviewer",
+   "axes": [
+    "frontier"
+   ],
+   "prompt": "Routed defect 2 (README live 24/24 recipe, erratum horizon). Read-only: find in /home/vgpnk/Projects/shokunin/kotoba-shokunin/README.md and /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/README.md the live 24/24 promise/recipe and the GOVERNANCE_ERRATA horizon (verifiers/verify_skill_checklist.py, LOG.md line count today: `wc -l /home/vgpnk/Projects/shokunin/kotoba-shokunin/LOG.md`). Run the recipe as written (read-only commands only) and report its actual output. Draft the minimal qualifying sentences (append-only style; never rewrite history) with file:line targets."
+  },
+  {
+   "name": "FrQualityCriteria",
+   "role": "scribe",
+   "axes": [
+    "frontier"
+   ],
+   "prompt": "Routed defects 3, 4, 5 of /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/lessons/round-47-verifier-spotcheck.md: draft at most three new /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/QUALITY.md rows (Q20+) in the exact table shape, each grounded in a named mistake class (to be written in corpus/lessons/round-48.md \u00a7 Mistakes) \u2014 e.g. a lexical approximation must name the parsed rule it approximates and keep its counterexamples; hash equality establishes byte identity, not custody; closure metadata stays indexed without rewriting frozen inputs. For each, state how a reviewer could show the criterion fails a bad candidate. Draft in your report."
+  },
+  {
+   "name": "FrSiblingOverlap",
+   "role": "connector",
+   "axes": [
+    "frontier"
+   ],
+   "prompt": "Sibling-overlap scan for both claims. Read-only: search sibling lanes under /home/vgpnk/Projects/shokunin/*-shokunin (corpus/knowledge, SKILL.md, SOURCES.md) for agentskills.io spec / SKILL.md frontmatter validation knowledge (chousa, tameshi, kumitate, kengaku especially) and for opencode skill-root discovery. Report overlaps (path:line), whether kotoba should cite rather than re-derive, and any sibling row that contradicts the plan."
+  },
+  {
+   "name": "FrRoutedDefectPattern",
+   "role": "connector",
+   "axes": [
+    "frontier"
+   ],
+   "prompt": "Cross-round pattern: compare routed defects in /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/lessons/round-46-verifier-spotcheck.md and round-47-verifier-spotcheck.md (and round-47.md / round-46.md Mistakes). Which defect classes recur (drift sentinel: same routed defect class 3 rounds running forces a different frontier area)? Does round 48's plan (/home/vgpnk/Projects/shokunin/kotoba-shokunin/plans/round-48.md) repeat a class or work a new area? Table: class, r46, r47, r48 plan."
+  },
+  {
+   "name": "FrCorpusIndexNeeds",
+   "role": "executor",
+   "axes": [
+    "frontier"
+   ],
+   "prompt": "Integration prerequisite. In a private clone at 75f671b, add placeholder files corpus/knowledge/frontmatter-rule-authorities-round48.md and corpus/lessons/round-48.md, then run verifiers/verify_corpus_integrity.py --json and verifiers/verify_corpus_independent.py and verifiers/verify_skill_checklist.py --json. Report exactly what index rows (corpus/README.md Coverage map?), baselines (verifiers/corpus-baseline.json) or registrations each new file requires to keep the gates green, and the commands to re-record baselines. Also check the .ufo/round-48/ files committed by attempt 1 need no index entry."
+  },
+  {
+   "name": "FrCensusAndScorecard",
+   "role": "reviewer",
+   "axes": [
+    "frontier"
+   ],
+   "prompt": "Calibration read, read-only. Run `/home/vgpnk/Projects/shokunin/scripts/sources-census.sh validate --root /home/vgpnk/Projects/shokunin kotoba` and the census subcommand, and list mismatches between /home/vgpnk/Projects/shokunin/kotoba-shokunin/SCORECARD.md / /home/vgpnk/Projects/shokunin/kotoba-shokunin/SHONEN.md self-assessment and observed repo state at 75f671b (e.g. capability rows whose command fails today, the `planned` section's 'Next: round 48' before-values versus measured values \u2014 Q19). Paste commands and outputs."
+  },
+  {
+   "name": "FrAttempt1Audit",
+   "role": "reviewer",
+   "axes": [
+    "frontier"
+   ],
+   "prompt": "Inherited state audit, read-only. Attempt 1 of this round pushed c0185da and 75f671b to /home/vgpnk/Projects/shokunin/kotoba-shokunin. Verify inside the lane repo: instrument.json hashes match the committed ruler and oracle bytes (sha256sum), the before receipt's ruler_sha256/oracle_sha256/consumer_sha256 match, the receipt's case values follow from the base consumer, and list any reference in those files to private paths (/fast/scratch/hyaku/kotoba-r48-author*) that a closure cannot re-derive. Say what is reusable and what must be named as not re-verifiable."
+  }
+ ]
+}
