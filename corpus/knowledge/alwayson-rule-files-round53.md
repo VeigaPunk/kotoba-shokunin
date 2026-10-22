@@ -15,7 +15,7 @@ on sources rather than on the box's own wording.
 Every page was opened on 2026-10-22 by a round-53 seat (fetch time, status, bytes, sha256 and the full
 quote set in each seat report under `.ufo/waves/round-53/build/`, summarised in
 `corpus/lessons/round-53.md` § Gate). These are documentation statements, not measured client
-behaviour; the one measured fact is the installed Claude Code's Project instructions setting
+behaviour; two facts were measured (§ Limits), the first the installed Claude Code's Project instructions setting
 (`ScoutClaudeBehaviour.md`: 2.1.304, default `claude-md-or-agents-md`, read without a model call).
 
 ## Per-client record
@@ -25,7 +25,7 @@ behaviour; the one measured fact is the installed Claude Code's Project instruct
 | Claude Code | S043 | `CLAUDE.md`, `.claude/CLAUDE.md`, `CLAUDE.local.md`; `AGENTS.md` and `.claude/AGENTS.md` only when none of those exists (`memory.md:356, 368-375`) | reads "Your `CLAUDE.md` files only" (`:357`) | a `CLAUDE.md` with an `@AGENTS.md` import (`:442-445`) or a `CLAUDE.md` symlink to `AGENTS.md` (`:452-455`); a prose mention is not one (`:436`); imports inside code are ignored (`:112`) |
 | OpenAI Codex | S044 | `AGENTS.override.md`, then `AGENTS.md`, then `project_doc_fallback_filenames` (`agents-md.md:12, 145-159`); the list's default `[]` is on the config sample page (`config-sample.md:286`, opened by ScribeCodex and re-opened by W2ReopenS044, no SOURCES row) | reads `AGENTS.md`; `CLAUDE.md` is not on the default list, and "Filenames not on this list are ignored for instruction discovery" (`:159`); "Codex includes at most one file per directory" (`:12`) | the fallback-name list in config; no `@` import (0 hits over 191 pages, `ScribeCodex.md` § 4) |
 | opencode 1.19.x | S045 | `AGENTS.md`, with `CLAUDE.md` as a Claude Code compatibility fallback (`rules.mdx:77-91`); the loader also keeps a deprecated third name, `CONTEXT.md` (`instruction.ts:64-68` at v1.19.4, not on the page) | reads `AGENTS.md` only; precedence is per name, first name with any hit wins (`rules.mdx:95-103`; loader `instruction.ts:122-130` at v1.19.4) | the `instructions` config array (additive, `:107-131`); symlinks are named only as a way to share rules (`:182`), and the symlink redirect effect is this round's measurement (§ Limits); `@` references in a rule file are not parsed (`:135-137`). The vendor's V2 docs tree says V2 reads `AGENTS.md` only (`ScribeOpencode.md`); the installed 1.19.4 is V1 |
-| Gemini CLI | S046 | `GEMINI.md` by default; `context.fileName` takes a name or a list, e.g. `["AGENTS.md", "CONTEXT.md", "GEMINI.md"]` (`gemini-md.md:94-106`) | only configured names are read; when both are configured, both load (`memoryDiscovery.ts:430`, `ScribeGemini.md` § 2.2) | `context.fileName`; `@file.md` imports (`gemini-md.md:71-92`); a symlink redirect is not documented |
+| Gemini CLI | S046 | `GEMINI.md` by default; `context.fileName` takes a name or a list, e.g. `["AGENTS.md", "CONTEXT.md", "GEMINI.md"]` (`gemini-md.md:94-106`) | a `context.fileName` value adds names, and the pinned loader keeps `GEMINI.md` in the list (`memoryTool.ts:22-49`, W2ReopenS046; the S046 row's "replaces" wording is wrong); every listed name present loads (`memoryDiscovery.ts:470, 485-500`) | `context.fileName`; `@file.md` imports (`gemini-md.md:71-92`); a symlink redirect is not documented |
 | VS Code (Copilot Chat, Local harness) | S047 | `.github/copilot-instructions.md`, root `AGENTS.md`, `CLAUDE.md` in four locations, each behind a setting (`custom-instructions.md:45, 79, 229-257`); the page states the default only for `chat.useAgentsMdFile` (on, `:232`) and nested `AGENTS.md` (needs both settings, `:239`) | reads both [INFERENCE from the general sentence, no line names the pair]: "Applicable instruction sources are additive. Do not depend on a file order or precedence rule" (`:315`) | Markdown links behind a setting; no `@` import, no symlink rule documented |
 | GitHub Copilot CLI | S048 | `AGENTS.md`, `CLAUDE.md` (also `.claude/CLAUDE.md`), `GEMINI.md`, `.github/copilot-instructions.md` and others (`:11-22`) | "Copilot CLI combines their instructions" with no precedence order (`:30`) | `@` plus a relative path in `AGENTS.md`, `CLAUDE.md` or `copilot-instructions.md` (`:48`); not in `GEMINI.md` (`:50`) |
 | Cursor | S049 | `AGENTS.md` at the root and in subdirectories (`rules.md:317-357`); `CLAUDE.md` "the same way", always applied (S052, `help/customization/rules.md:97-99`) | reads both; no page orders them | none: an `@file` mention is a lazy tool read whose contents "are not inlined" (`rules.md:127`) |
@@ -43,7 +43,7 @@ behaviour; the one measured fact is the installed Claude Code's Project instruct
 2. **The two redirect forms the instrument accepts are portable in effect.** A `CLAUDE.md` symlink to
    `AGENTS.md` gives every client that reads either name the same bytes (S043 `:455`; opencode measured, § Limits; S004 documents the
    same mechanism for an old `AGENT.md` name, not for `CLAUDE.md`). A `CLAUDE.md` whose redirect line is `@AGENTS.md` is expanded by Claude Code
-   (S043) and Copilot CLI (S048); the clients that do not expand it read `AGENTS.md` first or as well
+   (S043) and, by [INFERENCE] from its generic `@` relative-path form (`:48`), Copilot CLI (S048); the clients that do not expand it read `AGENTS.md` first or as well
    (Codex, opencode, Zed: `AGENTS.md` wins; VS Code, Cursor: both load, and the `CLAUDE.md` then contributes
    only its own lines plus the inert `@AGENTS.md` text — [INFERENCE] from the per-client rows, not a documented
    statement of any client). So the import form is a Claude Code redirect whose failure mode elsewhere reads,
@@ -57,7 +57,8 @@ behaviour; the one measured fact is the installed Claude Code's Project instruct
    the rule states it for skills: Anthropic's Agent Skills best practices, § "Avoid time-sensitive
    information" (S019, `best-practices.md:574-582`, re-opened this round, `ScribeDatedAuthority.md` § 2.1),
    whose bad example is "If you're doing this before August 2025, use the old API." No authority opened
-   this round says it for `AGENTS.md`/`CLAUDE.md`; the nearest is advice to remove outdated instructions
+   this round was found to say it for `AGENTS.md`/`CLAUDE.md` (the Gemini CLI and Cursor dating sweeps are
+   partial, W2ReviewEntry M2, so those two are `not checked` on this point); the nearest is advice to remove outdated instructions
    (S043 `:90`; Gemini CLI `memory-management.md:117-118`). The box is a lane extension of the skills rule,
    grounded in the round-7 evidence (`alwayson-checklist-round7.md`), and the instrument's docstring must say
    so (Q23). Its detector flags dates and a fixed list of date-free cue words (`currently`, `temporarily`, `for now`,
@@ -66,8 +67,8 @@ behaviour; the one measured fact is the installed Claude Code's Project instruct
    passes it (held-out run, `.ufo/waves/round-53/falsify/W2CriticHeldOut.md`).
 6. **Size limits differ by client and are not the box's rule.** Claude Code: a 200-line target and a
    4 MiB skip (S043 `:88, :619`); Codex: 32 KiB combined by default (S044 `:15`); Cursor: "Keep rules under
-   500 lines" (S049 `:155`); opencode, Gemini CLI, VS Code, Copilot CLI, Zed: no rule-file size limit
-   documented (seat sweeps). Recorded for box `alwayson.08`, which stays unexecuted.
+   500 lines" (S049 `:155`); opencode, VS Code, Copilot CLI: no rule-file size limit documented (full Q30
+   sweeps); Gemini CLI and Zed: not checked (partial size sweeps, W2ReviewEntry M1, L3). Recorded for box `alwayson.08`, which stays unexecuted.
 
 ## Limits
 
