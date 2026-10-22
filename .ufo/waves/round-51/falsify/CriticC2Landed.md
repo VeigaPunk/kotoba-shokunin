@@ -1,0 +1,53 @@
+Verdict: FAILS — the landed C2 statement (plans/round-51.md § Re-sizing, C2) still asserts two clauses the hardened counter does not turn on (the "Gate record" and "§ Anti-patterns" scope), and one more (the quote backs the lever) that it neither turns on nor admits; seven false worlds score 7 of 7, one of them also passes `--fetch` 7 of 7. The 0 → 7 numbers reproduce. Q26 is not met as written; each gap has a small fix.
+
+Seat: KotobaR51.CriticC2Landed, critic, 2026-10-22 15:14–15:19Z. Counter judged: `verifiers/check_overlap_levers.py` at HEAD 59903b26 (sha256 `e871fa03…c9a1`), run from a private clone in /fast/scratch/hyaku/kotoba-r51/falsify/CriticC2Landed/lane. Each world is a `--root` directory holding copies of the four files the counter reads, with one change each. No tools installed. Lane untouched except this file.
+
+## Findings
+
+F1 — "with a round-51 Gate record": not turned on (high; fixable). `gate_ids` accepts any `S\d{3}` token anywhere under `## Gate` until the next `## ` heading, and that range includes `### Rejected`. World w1 leaves the Gate holding only "### Rejected — S021, S022, S024, S025, S029, S030, S031: rejected. None of the seven quotes states a lever …" and the counter still prints 7 of 7, exit 0. The self-test's own control world (`_control_world`) writes the Gate as a bare "Re-opened S021, …", so the guard was never meant to check more than that the id is mentioned. HEAD shows the same leak: S030 is also matched by the D4 erratum about the round-50 *reject* reason (lesson line 96, under `### Erratum`, inside `## Gate`). The statement does not admit this: "Gate record" reads as an admission record. Smallest fix: read ids only from `### Admitted` (end at the next `###` or `## ` heading), add w1 as a mutant, or reword the statement to "the row id is named in the lesson's § Gate".
+
+F2 — "SKILL.md § Anti-patterns names": the scope leaks (high; fixable). `anti_patterns_span` ends the section only at a line starting `## `, and it recognises fences only when they are three backticks at column 0. All three worlds below score 7 of 7, exit 0:
+- w2a: a top-level `# Appendix: rejected drafts (not part of this skill)` heading placed before the table. When rendered, the table sits outside § Anti-patterns, but `# ` does not end the span.
+- w2b: the table wrapped in a `~~~text … ~~~` fence. It renders as a code block, not a table.
+- w2c: the table indented four spaces, so it is an indented code block. `_table_block_after` uses `lstrip()`.
+Not a defect: w2d moves the table under a `### Overlap levers` subsection (7 of 7). The statement admits this, because a subsection is part of § Anti-patterns. Smallest fix: end the span at any heading of level 1 or 2 (`^#{1,2} `); treat ``` and ~~~ fences at up to three leading spaces as fences; refuse table rows indented four or more spaces. Add w2a, w2b and w2c as mutants.
+
+F3 — the entry table is read raw (medium; fixable). The comment and fence stripping applies only to SKILL.md. World w5 wraps the entry's whole `## Levers by client` table in `<!-- … -->`: 7 of 7, exit 0. The quotes then exist only as hidden bytes. The self-test covers the comment-hidden case for SKILL.md and not for the entry. Fix: pass the entry through the same stripping before `parse_entry_table`.
+
+F4 — the quote is never read for meaning; only its code span is (high; a tradeoff, partly admitted). What the counter actually tests is that the key term is in the reviewed list and appears as a backtick span. It never tests that the quote says the lever removes a skill.
+- w3 (static): every entry quote is negated, for example "`allow_implicit_invocation` is ignored; only the description decides". Every SKILL.md `lever` cell reads "make the description more specific", and the `held by` and `effect` values are permuted across clients (for example VS Code becomes app developer / removed everywhere). Result: 7 of 7, exit 0. `--fetch` catches this world: "quotes found on live pages 0 of 7", exit 1.
+- w4 (live): two rows are moved to off-topic pages under the pinned vendor prefixes, and both pass `--fetch`. opencode S024 now points to https://opencode.ai/docs/permissions with the quote "layer extra allow or `deny` rules as needed for other tools (for example `shell`)." (permissions.md:143), which is about tool permissions, not skills. Codex S021 now points to https://learn.chatgpt.com/docs/config-file/config-reference with the quote "In Codex CLI, analytics.`enabled = false` disables this exporter, including custom OTLP exporters.", which is about telemetry. Both key terms are in `REVIEWED_LEVERS` (`deny` and `enabled = false`). Result: 7 of 7, and "quotes found on live pages 7 of 7", exit 0 (15:16:59Z).
+- What the statement admits: "The reviewed list is a reviewer's judgment frozen in code, not a measurement." That admits the list. It does not admit that a quote can use a listed term in another sense, and the statement presents the terms as "skill-removal levers". The bound "every listed lever removes one named skill" is likewise turned on by nothing. The re-sized wording also drops the original "a documented lever other than description wording", so the `lever` cell (free text) and the `held by`/`effect` cells (checked for membership in the allowed sets, not for agreement with the quote) carry the content of SKILL.md:386-389 with no guard.
+- Real example at HEAD: the counted VS Code quote (agent-skills.md:289), "Use the `user-invocable` and `disable-model-invocation` frontmatter properties to control how each skill is accessed:", does not state the claimed effect, "automatic choice off". It also names `user-invocable`, which the entry itself (line 32) says has the opposite effect. The effect is backed by :150-151 in the source row, not by the counted quote.
+- Self-test naming: the mutant "world C fabricated quote" dies only because `skills.disabled` is not on the Gemini list. A fabricated quote that uses a listed term passes (w3).
+- Smallest safe correction: either (a) bound the statement with "the key term appears as a span in the quote; the quote's sense and the `lever`/`held by`/`effect` cells are reviewer judgment, not measured", or (b) narrow the generic terms by pinning a per-client required context. Examples: `deny` only with "skill" within the quote; `enabled = false` only with `[[skills.config]]`; a pinned page path per client (for instance `opencode.ai/docs/skills`) instead of a host-wide docs prefix. Option (b) closes w4; only reading the quote's meaning, which stays judgment, closes w3's static half.
+
+F5 — "reviewed list" provenance (low-medium; admitted only in part). The C2 content commit 34cfffb added three terms to `REVIEWED_LEVERS` (diff 7c81a78..34cfffb: `ignoredSkillsLocations`, `disable-model-invocation: true`, `/skills disable <name>`). The entry's Limits says "The L1 added three terms before landing so that a quote could carry the exact backtick span". So the claimant widened the instrument in the same commit as the content it scores. Two of the terms appear in CriticLearning.md (lines 18, 71, 75). `ignoredSkillsLocations` appears in no critic or review seat report; a grep of build/*.md finds it only in SrcCopilotCli.md, FrontierRows.md and LeverOtherPages.md. Calling the list "a reviewer's judgment" is therefore, for that term, the L1's own judgment. Fix: say so in the statement, or get a reviewer seat to confirm the term.
+
+F6 — Copilot CLI row against the bound (low; wording). The bound says "every listed lever removes one named skill". The entry's Limits says "The Copilot CLI row's lever works per directory, not per skill name", yet the SKILL.md effect cell reads "removed everywhere". It holds only because each skill has its own directory. `copilot skill disable` is on the reviewed list and is per name. Consider that term, or the effect "outside a scope".
+
+## Clauses of the re-sized statement and their status
+| clause | turned on? | admitted? |
+|---|---|---|
+| K of 7 pinned clients, 0 → 7 | yes (base 0, head 7) | — |
+| § Anti-patterns | partly (F2: `# `, `~~~`, indented code) | no |
+| key term from the reviewed per-client list | yes (membership) | list admitted as judgment; F5 provenance not |
+| exact backtick span, quote ≤25 words, in the entry | yes, but the entry may hide it in a comment (F3) | no |
+| tier-A, vendor prefix, `mined`, `used-by` names the entry | yes (prefix covers the whole host, F4 w4) | literally yes |
+| round-51 Gate record | id mention only, Rejected counts (F1) | no |
+| bound: each lever removes one named skill; none is a tie-break | not turned on (F4) | partly (list only) |
+| quote supports the lever / effect / held-by cells | not turned on (F4 w3, w4; real case VS Code) | no |
+| `--fetch` reported beside it | yes; catches w3, misses w4 | — |
+
+## Evidence (commands run from the scratch directory; exit codes verbatim)
+- `python3 -B lane/verifiers/check_overlap_levers.py --root lane` → "overlap levers backed 7 of 7 clients", exit=0; `--self-test` → "0 failures", "22 assertions", exit=0.
+- In lane: `--rev 43ca0bfb74372f2a67a48e0aeb2e35d0d98b1d10` → "0 of 7", exit=1; `--rev 59903b2637689739a5b9901956301da72d0effe1` → "7 of 7", exit=0.
+- `--root w1-gate | w2a-toplevel | w2b-tildefence | w2c-indented | w2d-subsection | w3-opposite | w4-offtopic | w5-hiddenentry` → each "overlap levers backed 7 of 7 clients", exit=0 (8 runs).
+- `--root w4-offtopic --fetch` (15:16:59–15:17:01Z) → 7 BACKED, 7 "quote found", "quotes found on live pages 7 of 7", exit=0.
+- `--root w3-opposite --fetch` → "quotes found on live pages 0 of 7", exit=1.
+- `git diff 7c81a78 34cfffb -- verifiers/check_overlap_levers.py` → the three added `REVIEWED_LEVERS` terms only (exit 0).
+- Web (curl -sS, plain User-Agent; no fetched code executed):
+  - https://opencode.ai/docs/permissions.md, 2026-10-22T15:15:33Z: HTTP 200, 7436 B, sha256 de5ba0670ecc566f1c825162c67dbed554a35d249d4d0e38d2253fabe02beb56. Line 143: "Keep the list focused on trusted paths, and layer extra allow or deny rules as needed for other tools (for example `shell`)."
+  - https://opencode.ai/docs/permissions (HTML), 15:15:33Z: HTTP 200, 89861 B, sha256 1afa11d9c3c0a30cfb7b1a078e406bedfea0c9013a3c1ae8a8ea8480ee789249.
+  - https://developers.openai.com/codex/config-reference, 15:15:41Z: 308 redirect to https://learn.chatgpt.com/docs/config-file/config-reference, HTTP 200, 1456078 B, sha256 e7614fc4b98b5239e7bdfd54c8c75015e26e015075f520a50b6c977535a010f8. Text in the OpenTelemetry metrics exporter description: "In Codex CLI, `analytics.enabled = false` disables this exporter, including custom OTLP exporters."
+- The world directories and their inputs are kept for replay at /fast/scratch/hyaku/kotoba-r51/falsify/CriticC2Landed/.

@@ -1,0 +1,295 @@
+{
+ "wave": "kotoba-r51-build",
+ "milestone": "Round-51 build: C1 freshness (omp 18.12.6 re-derivation and re-pin), C2 depth (overlap levers by client, learning claim), routed defects D1-D7, frontier step",
+ "axes": [
+  "freshness",
+  "depth",
+  "calibration",
+  "frontier"
+ ],
+ "reportDir": ".ufo/waves/round-51/build",
+ "context": "# Goal\nkotoba round 51 (attempt 1) BUILD wave, hyaku session 2026-10-22. Lane repo /home/vgpnk/Projects/shokunin/kotoba-shokunin (prompt and skill craft shokunin; jj-colocated; branch master at 43ca0bfb74372f2a67a48e0aeb2e35d0d98b1d10). Read /home/vgpnk/Projects/shokunin/kotoba-shokunin/plans/round-51.md FIRST: it names the two claims and their counters. C1 freshness: run against the installed omp 18.12.6 (/home/vgpnk/.local/bin/omp, sha256 85d9daf3a05fc76e8cd425ae1904eb576af8d21cc85fcf4690742626e07ccfa4), `python3 -B verifiers/verify_surfaces.py --json` passes 5 of 7 checks -> 7 of 7 (companion: `verifiers/check_substrate_pins.py` DRIFT 2/3 -> OK 3/3). C2 depth (learning claim): SKILL.md § Anti-patterns gains an \"Overlap levers by client\" table naming, for 7 pinned clients (GitHub Copilot SDK, GitHub Copilot CLI, VS Code, Claude Code, opencode, Gemini CLI, Codex), a documented lever other than description wording for stopping one of two overlapping skills from being chosen, each backed by a verbatim quote in a new knowledge entry /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/knowledge/skill-overlap-levers-round51.md citing a `mined` row of /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md; counter `verifiers/check_overlap_levers.py --rev <rev>` prints `overlap levers backed K of 7 clients`, 0 -> 7. The round also repairs routed defects D1-D7 from /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/lessons/round-50-verifier-spotcheck.md (read its § Routed defects). The L1 integrates every output; your item is advisory input.\n\n# Bounds (binding)\n- Read-only on the lane checkout /home/vgpnk/Projects/shokunin/kotoba-shokunin: never edit, create or delete files there EXCEPT your own Report file. Never run git write commands (commit, add, stash, checkout, switch, reset, pull, push, apply --index) or any mutating jj command in the lane, the fleet repo /home/vgpnk/Projects/shokunin, or any sibling lane repo. Never run any jj command at the fleet root /home/vgpnk/Projects/shokunin (its auto-track snapshots untracked files); in the lane, read-only jj only with --ignore-working-copy. Seats never push, commit or update refs in the lane, and never mutate the fleet repo, sibling lanes, lane jj state or lane Git index. Sibling lane repos (/home/vgpnk/Projects/shokunin/<lane>-shokunin) are read-only (`git -C <repo> show <commit>:<path>`, `ls-tree`, `rev-parse`, `log`).\n- Any code change, mutation or command that writes happens only in your own scratch directory /fast/scratch/hyaku/kotoba-r51/build/<your item name>/ (create it; `git clone -q /home/vgpnk/Projects/shokunin/kotoba-shokunin <dir>/lane` then `git -C <dir>/lane checkout -q 43ca0bfb74372f2a67a48e0aeb2e35d0d98b1d10` gives a private clone). Executors deliver their change as a unified diff against 43ca0bfb74372f2a67a48e0aeb2e35d0d98b1d10 at /fast/scratch/hyaku/kotoba-r51/build/<your item name>/patch.diff (`git -C <dir>/lane diff 43ca0bfb74372f2a67a48e0aeb2e35d0d98b1d10 > patch.diff`, including new files via `git -C <dir>/lane add -N` inside the CLONE only) and name it in the report; the L1 integrates. One writer per lane file: touch only the files your item names. A gate or self-test that runs git writes runs only in your clone.\n- Every `Report:` trailer path is relative to /home/vgpnk/Projects/shokunin/kotoba-shokunin — write it at /home/vgpnk/Projects/shokunin/kotoba-shokunin/<that path>. Never write relative paths from the fleet root (your tools start at the fleet root).\n- Tooling: you may install or upgrade tools that help the task — read /home/vgpnk/.omp/agent/RULES.md first (official channels; record tool, version, channel, reason in your report). pacman guard: ALL pacman transactions are PAUSED host-wide — install via `uv tool`, `npx`, or an official binary in ~/.local/bin; never -Sy/-Syu/-U/-R; never restart a host service.\n- Web sources: open sources by ordinary means only (curl or a plain fetch). Never use a headless browser or any other tool to pass a bot challenge, captcha or access control; record a source you cannot open that way as unopened. Record URL, access time (UTC), HTTP status, bytes, sha256 and each quote with its location (line number in the fetched bytes); quotes are at most 25 words and verbatim. Never execute fetched code.\n- Never pass a model parameter, never call `ask`, never message `agent://all`.\n- Plain English, no run-together words, no private jargon. Unrun checks are not passes; report exit codes verbatim. Every count you report carries its command. Leaf seat: no delegation (an executor may spawn at most one read-only labrat probe).\n- Time: finish and write your report within 35 minutes of starting.\n- Your report: a one-line result first (for attack seats: `HOLDS`, `HOLDS-BOUNDED` or `FAILS`, with what it applies to), then findings, then evidence (commands with exit codes). Keep it under 150 lines.\n",
+ "items": [
+  {
+   "name": "SurfacesRepin",
+   "role": "executor",
+   "axes": [
+    "freshness"
+   ],
+   "prompt": "Claim C1. Files you own (edit in your clone only): /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/verify_surfaces.py and one new fixture /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/fixtures/surfaces/strings-omp-18.12.6.txt. The installed omp 18.12.6 renamed its loader registration callees again; at base `python3 -B verifiers/verify_surfaces.py --json` exits 1 with pass 5 fail 2 (`surfaces.literal_present`, `surfaces.no_uncovered_class`). Round-50 diagnosis: /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-50/build/BaselineGatesB.md § '#3 re-pin probe' (callees Kl, Ho, bq; `bq(u, S$, \"CLAUDE.md\")` with `S$` rebound elsewhere, which `constant_table` (verify_surfaces.py:300-313) drops as a conflict by design). Do: (1) re-derive from `strings -n 4 /home/vgpnk/.local/bin/omp` (record omp --version, sha256, mtime) which callees register the 8 baseline loader groups; extend `OMP_CALL_RE` and `CALLEE_SHAPES['omp']` with exactly the needed names; (2) decide the `S$` conflict with a stated rule that does not guess (for example: resolve an identifier used as the group argument from the binding nearest before the call in the same chunk, or only when every binding in the call's chunk agrees) and keep the old conservative behaviour for every other conflict; prove with control arms (Q18) that a genuinely ambiguous rebind still stays unresolved; (3) add a trimmed 18.12.6 fixture in the shape of the existing `strings-omp-18.12.5.txt` fixture (keep it small, Q11) and a self-test arm like the `18.12.5-callees` arm (exit 0, both checks PASS) plus an arm proving the 18.12.6 fixture FAILS with the round-50 allowlist; (4) run in your clone: `python3 -B verifiers/verify_surfaces.py --json` (live; must give pass 7 fail 0, exit 0), `python3 -B verifiers/verify_surfaces.py --self-test` (report the new assertion count; the floors registry holds the old floor — do NOT edit floors files, report the number), and `python3 -B verifiers/check_assertion_floors.py`. Deliver /fast/scratch/hyaku/kotoba-r51/build/SurfacesRepin/patch.diff. Report the docstring/extraction-rule lines you changed so the L1 can write the Q09 re-derivation record."
+  },
+  {
+   "name": "PinsRepin",
+   "role": "executor",
+   "axes": [
+    "freshness"
+   ],
+   "prompt": "Claim C1 companion. File you own: /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/baseline.json only (edit in your clone). At base `python3 -B verifiers/check_substrate_pins.py` prints `DRIFT 2/3 pins failed: omp_binary_sha256, omp_binary_mtime` (exit 1); the opencode pin holds. Re-pin `measured_against.omp_binary_sha256` and `omp_binary_mtime` to the installed /home/vgpnk/.local/bin/omp (omp/18.12.6) exactly in the format the guard reads (read verifiers/check_substrate_pins.py: ns-exact mtime with offset), and add an `omp_round51_note` in the style of `omp_round44_note` (version, sha256, mtime, re-pin time UTC, previous pin fdbc8136… 18.12.5). Change nothing else in baseline.json (diff must touch only those keys). Run in your clone: `python3 -B verifiers/check_substrate_pins.py` (must be OK 3/3, exit 0), `python3 -B verifiers/check_substrate_pins.py --self-test` (exit and count), and `python3 -B verifiers/verify_harness_claims.py` (base and after; it reads baseline.json too — prove your edit moves no harness-claims check). Deliver /fast/scratch/hyaku/kotoba-r51/build/PinsRepin/patch.diff."
+  },
+  {
+   "name": "LeverGuard",
+   "role": "executor",
+   "axes": [
+    "depth",
+    "operability"
+   ],
+   "prompt": "Claim C2 counter. New file you own: /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/check_overlap_levers.py (stdlib Python 3, style of the other verifiers; read verifiers/check_sibling_census.py for conventions). Spec: `check_overlap_levers.py [--rev REV | --root DIR] [--fetch] [--self-test]`. With --rev it reads SKILL.md, corpus/SOURCES.md and corpus/knowledge/skill-overlap-levers-round51.md through read-only `git -C <lane> show REV:<path>` (default --root = the repo containing the script); a missing file counts as an absent table, not a crash. Pinned denominator CLIENTS = ['GitHub Copilot SDK','GitHub Copilot CLI','VS Code','Claude Code','opencode','Gemini CLI','Codex'] — never read from the revision. SKILL.md table: the first markdown table after a line containing `Overlap levers by client`, columns `| client | lever | row | key term |`, key term a single backticked token. Entry table: the first table after a line containing `## Levers by client`, columns `| client | row | lever | quote |`, the quote cell starts with a double-quoted string followed by a location in parentheses. A client is BACKED iff: exactly one SKILL.md row names it (case-insensitive exact cell match); its row id `S\\d{3}` exists in the SOURCES registry table with status `mined` and a used-by cell containing `skill-overlap-levers-round51`; the entry has exactly one row for the same client citing the same row id; the key term appears verbatim (case-sensitive) inside that entry quote; and the key term does not contain `description` (case-insensitive). Print one line per client (`BACKED` or `UNBACKED: <reason>`) and finally `overlap levers backed K of 7 clients`; exit 0 iff K == 7, 1 otherwise, 2 on usage or IO error. --fetch: for each backed client fetch the URL in its SOURCES row (first https URL in the source cell; on failure or if the quote is absent, also try the URL with `.md` appended; urllib with a 20 s timeout and a plain User-Agent), normalise whitespace and markdown emphasis, and report whether the quote occurs; print `quotes found on live pages J of K`, exit 1 if J < K. --self-test: in-memory fixtures; a control world that is 7 of 7, and mutants each of which must lower K or exit 1: row removed, row status not mined, used-by missing, key term absent from the quote, key term containing 'description', duplicate client row in SKILL.md, entry row citing a different S###, SKILL.md table absent, unknown client name; print `N assertions` with 0 failures. Run in your clone: `--self-test`, and `--rev 43ca0bfb74372f2a67a48e0aeb2e35d0d98b1d10` (must print `backed 0 of 7`, exit 1). Deliver /fast/scratch/hyaku/kotoba-r51/build/LeverGuard/patch.diff (new file via `git add -N` in the clone)."
+  },
+  {
+   "name": "BaseReplay",
+   "role": "executor",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "No-harm baseline at base 43ca0bfb74372f2a67a48e0aeb2e35d0d98b1d10. In a private clone at /fast/scratch/hyaku/kotoba-r51/build/BaseReplay/ (fleet shape: follow the setup paragraph of /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-50/falsify/NoHarmGates.md — copy `.ufo` and PROTOCOL.md, symlink the rest so verifier writes stay in scratch) run the 15 gates of that file's table (same commands, `python3 -B`, from the clone root) plus `bash verifiers/fault_injection_corpus.sh` and `python3 -B verifiers/box_proof_case_deletion.py --rev 43ca0bfb74372f2a67a48e0aeb2e35d0d98b1d10`, and record exit code and summary line for each in a table, with logs under /fast/scratch/hyaku/kotoba-r51/build/BaseReplay/logs/. Name the cause of every red (host state vs lane bytes), in particular whether `verify_corpus_integrity.py` is red because the closure-committed `corpus/lessons/round-50-verifier-spotcheck.md` has no index row in corpus/README.md. This table is the base column the falsify wave's no-harm check compares against."
+  },
+  {
+   "name": "SrcCopilotSdk",
+   "role": "scribe",
+   "axes": [
+    "depth",
+    "freshness"
+   ],
+   "prompt": "Claim C2 source (frontier step), client: GitHub Copilot SDK. Open https://docs.github.com/en/copilot/how-tos/copilot-sdk/features/skills by ordinary means (curl -sSL; try the `.md` variant of the URL if the site serves markdown; record which you used). Existing registry row: none (the round-50 build seat opened this page but no row was written; routed defect D4) (read its line in /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md). Record URL, UTC access time, HTTP status, bytes, sha256. Question: which levers does this client document, OTHER than writing a better description, that stop one of two overlapping skills from being chosen by the model or loaded at all? Look for: `disabledSkills`, § Skill conflicts (lines near 805-810 in the round-50 fetch, sha256 64856ff4…), the provider-skill replacement rule near line 685, line 11 (file-based SKILL.md skills) and line 289 (`description` field). ALSO draft for D4: one appended correction paragraph replacing the round-50 lesson's reject reason \"provider catalogs, not SKILL.md routing\" (find it in {L}/corpus/lessons/round-50.md § Gate) with an accurate reason, citing page lines, and a full new SOURCES row (next free id after the registry's last row) in the registry's column shape. For each lever give: the exact key term as a code token (for example a setting name, frontmatter field or command), what it does (hides from the model, user-only invocation, permission deny, disables entirely, scopes by path), where it is set (frontmatter, settings file, CLI command), and one located verbatim quote (at most 25 words, with the line number in the fetched bytes) that CONTAINS the key term exactly. Then pick the single best lever for the table and draft: (a) one SKILL.md table row `| GitHub Copilot SDK | <lever, plain words> | <S### row> | `<key term>` |`; (b) one entry table row `| GitHub Copilot SDK | <S### row> | <lever> | \"<quote>\" (<file>:<line>) |`; (c) if the existing row's scope/anchor/teaches cells do not cover the lever, the exact new cell text and the old text (old -> new), or a full new row in the registry's column shape if no row exists. Also say whether the page states anything about choosing BETWEEN two matching skills (quote it, or paste the `grep -niE 'overlap|conflict|precedence|disable|deny|permission|hidden|invocation'` count lines that found nothing more). Bound: a disable or deny lever is a way to remove a skill from choice, not a documented tie-break; say so if the page says otherwise."
+  },
+  {
+   "name": "SrcCopilotCli",
+   "role": "scribe",
+   "axes": [
+    "depth",
+    "freshness"
+   ],
+   "prompt": "Claim C2 source (frontier step), client: GitHub Copilot CLI. Open https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-plugin-reference by ordinary means (curl -sSL; try the `.md` variant of the URL if the site serves markdown; record which you used). Existing registry row: S028 (read its line in /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md). Record URL, UTC access time, HTTP status, bytes, sha256. Question: which levers does this client document, OTHER than writing a better description, that stop one of two overlapping skills from being chosen by the model or loaded at all? Look for: commands or config keys that disable a skill or plugin (lines near 20-33 of the fetched markdown mention disabled/disable), first-found-wins precedence at :415; also check https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/create-skills (or the CLI skills how-to linked from the reference) for `/skills` commands that turn a skill off, and record that page too if used. For each lever give: the exact key term as a code token (for example a setting name, frontmatter field or command), what it does (hides from the model, user-only invocation, permission deny, disables entirely, scopes by path), where it is set (frontmatter, settings file, CLI command), and one located verbatim quote (at most 25 words, with the line number in the fetched bytes) that CONTAINS the key term exactly. Then pick the single best lever for the table and draft: (a) one SKILL.md table row `| GitHub Copilot CLI | <lever, plain words> | <S### row> | `<key term>` |`; (b) one entry table row `| GitHub Copilot CLI | <S### row> | <lever> | \"<quote>\" (<file>:<line>) |`; (c) if the existing row's scope/anchor/teaches cells do not cover the lever, the exact new cell text and the old text (old -> new), or a full new row in the registry's column shape if no row exists. Also say whether the page states anything about choosing BETWEEN two matching skills (quote it, or paste the `grep -niE 'overlap|conflict|precedence|disable|deny|permission|hidden|invocation'` count lines that found nothing more). Bound: a disable or deny lever is a way to remove a skill from choice, not a documented tie-break; say so if the page says otherwise."
+  },
+  {
+   "name": "SrcVSCode",
+   "role": "scribe",
+   "axes": [
+    "depth",
+    "freshness"
+   ],
+   "prompt": "Claim C2 source (frontier step), client: VS Code. Open https://code.visualstudio.com/docs/agent-customization/agent-skills by ordinary means (curl -sSL; try the `.md` variant of the URL if the site serves markdown; record which you used). Existing registry row: S025 (read its line in /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md). Record URL, UTC access time, HTTP status, bytes, sha256. Question: which levers does this client document, OTHER than writing a better description, that stop one of two overlapping skills from being chosen by the model or loaded at all? Look for: `disable-model-invocation`, `user-invocable`, any setting that turns skills or a skill location off (line 66 of the fetched markdown mentions disabled). For each lever give: the exact key term as a code token (for example a setting name, frontmatter field or command), what it does (hides from the model, user-only invocation, permission deny, disables entirely, scopes by path), where it is set (frontmatter, settings file, CLI command), and one located verbatim quote (at most 25 words, with the line number in the fetched bytes) that CONTAINS the key term exactly. Then pick the single best lever for the table and draft: (a) one SKILL.md table row `| VS Code | <lever, plain words> | <S### row> | `<key term>` |`; (b) one entry table row `| VS Code | <S### row> | <lever> | \"<quote>\" (<file>:<line>) |`; (c) if the existing row's scope/anchor/teaches cells do not cover the lever, the exact new cell text and the old text (old -> new), or a full new row in the registry's column shape if no row exists. Also say whether the page states anything about choosing BETWEEN two matching skills (quote it, or paste the `grep -niE 'overlap|conflict|precedence|disable|deny|permission|hidden|invocation'` count lines that found nothing more). Bound: a disable or deny lever is a way to remove a skill from choice, not a documented tie-break; say so if the page says otherwise."
+  },
+  {
+   "name": "SrcClaudeCode",
+   "role": "scribe",
+   "axes": [
+    "depth",
+    "freshness"
+   ],
+   "prompt": "Claim C2 source (frontier step), client: Claude Code. Open https://code.claude.com/docs/en/skills by ordinary means (curl -sSL; try the `.md` variant of the URL if the site serves markdown; record which you used). Existing registry row: S022 (read its line in /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md). Record URL, UTC access time, HTTP status, bytes, sha256. Question: which levers does this client document, OTHER than writing a better description, that stop one of two overlapping skills from being chosen by the model or loaded at all? Look for: `disable-model-invocation`, `user-invocable`, permission rules such as `Skill(name)` deny, `disableBundledSkills`, `paths` globs. For each lever give: the exact key term as a code token (for example a setting name, frontmatter field or command), what it does (hides from the model, user-only invocation, permission deny, disables entirely, scopes by path), where it is set (frontmatter, settings file, CLI command), and one located verbatim quote (at most 25 words, with the line number in the fetched bytes) that CONTAINS the key term exactly. Then pick the single best lever for the table and draft: (a) one SKILL.md table row `| Claude Code | <lever, plain words> | <S### row> | `<key term>` |`; (b) one entry table row `| Claude Code | <S### row> | <lever> | \"<quote>\" (<file>:<line>) |`; (c) if the existing row's scope/anchor/teaches cells do not cover the lever, the exact new cell text and the old text (old -> new), or a full new row in the registry's column shape if no row exists. Also say whether the page states anything about choosing BETWEEN two matching skills (quote it, or paste the `grep -niE 'overlap|conflict|precedence|disable|deny|permission|hidden|invocation'` count lines that found nothing more). Bound: a disable or deny lever is a way to remove a skill from choice, not a documented tie-break; say so if the page says otherwise."
+  },
+  {
+   "name": "SrcOpencode",
+   "role": "scribe",
+   "axes": [
+    "depth",
+    "freshness"
+   ],
+   "prompt": "Claim C2 source (frontier step), client: opencode. Open https://opencode.ai/docs/skills by ordinary means (curl -sSL; try the `.md` variant of the URL if the site serves markdown; record which you used). Existing registry row: S024 (read its line in /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md). Record URL, UTC access time, HTTP status, bytes, sha256. Question: which levers does this client document, OTHER than writing a better description, that stop one of two overlapping skills from being chosen by the model or loaded at all? Look for: the `permission` block for skills (allow / deny / ask with name patterns, lines near 133-153 of the fetched markdown), whether a denied skill is hidden from the model. For each lever give: the exact key term as a code token (for example a setting name, frontmatter field or command), what it does (hides from the model, user-only invocation, permission deny, disables entirely, scopes by path), where it is set (frontmatter, settings file, CLI command), and one located verbatim quote (at most 25 words, with the line number in the fetched bytes) that CONTAINS the key term exactly. Then pick the single best lever for the table and draft: (a) one SKILL.md table row `| opencode | <lever, plain words> | <S### row> | `<key term>` |`; (b) one entry table row `| opencode | <S### row> | <lever> | \"<quote>\" (<file>:<line>) |`; (c) if the existing row's scope/anchor/teaches cells do not cover the lever, the exact new cell text and the old text (old -> new), or a full new row in the registry's column shape if no row exists. Also say whether the page states anything about choosing BETWEEN two matching skills (quote it, or paste the `grep -niE 'overlap|conflict|precedence|disable|deny|permission|hidden|invocation'` count lines that found nothing more). Bound: a disable or deny lever is a way to remove a skill from choice, not a documented tie-break; say so if the page says otherwise."
+  },
+  {
+   "name": "SrcGemini",
+   "role": "scribe",
+   "axes": [
+    "depth",
+    "freshness"
+   ],
+   "prompt": "Claim C2 source (frontier step), client: Gemini CLI. Open https://geminicli.com/docs/cli/skills/ by ordinary means (curl -sSL; try the `.md` variant of the URL if the site serves markdown; record which you used). Existing registry row: S029 (read its line in /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md). Record URL, UTC access time, HTTP status, bytes, sha256. Question: which levers does this client document, OTHER than writing a better description, that stop one of two overlapping skills from being chosen by the model or loaded at all? Look for: `/skills disable`, `gemini skills disable`, settings keys for disabled skills (lines near 75-95 of the fetched markdown). For each lever give: the exact key term as a code token (for example a setting name, frontmatter field or command), what it does (hides from the model, user-only invocation, permission deny, disables entirely, scopes by path), where it is set (frontmatter, settings file, CLI command), and one located verbatim quote (at most 25 words, with the line number in the fetched bytes) that CONTAINS the key term exactly. Then pick the single best lever for the table and draft: (a) one SKILL.md table row `| Gemini CLI | <lever, plain words> | <S### row> | `<key term>` |`; (b) one entry table row `| Gemini CLI | <S### row> | <lever> | \"<quote>\" (<file>:<line>) |`; (c) if the existing row's scope/anchor/teaches cells do not cover the lever, the exact new cell text and the old text (old -> new), or a full new row in the registry's column shape if no row exists. Also say whether the page states anything about choosing BETWEEN two matching skills (quote it, or paste the `grep -niE 'overlap|conflict|precedence|disable|deny|permission|hidden|invocation'` count lines that found nothing more). Bound: a disable or deny lever is a way to remove a skill from choice, not a documented tie-break; say so if the page says otherwise."
+  },
+  {
+   "name": "SrcCodex",
+   "role": "scribe",
+   "axes": [
+    "depth",
+    "freshness"
+   ],
+   "prompt": "Claim C2 source (frontier step), client: Codex. Open https://learn.chatgpt.com/docs/build-skills by ordinary means (curl -sSL; try the `.md` variant of the URL if the site serves markdown; record which you used). Existing registry row: S021 (also S013, same page; developers.openai.com/codex/skills redirects there) (read its line in /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md). Record URL, UTC access time, HTTP status, bytes, sha256. Question: which levers does this client document, OTHER than writing a better description, that stop one of two overlapping skills from being chosen by the model or loaded at all? Look for: `[[skills.config]]` with `enabled = false`, `allow_implicit_invocation`, or any policy that keeps a skill from implicit invocation (lines near 41 and 54 of the fetched page mention disabled). For each lever give: the exact key term as a code token (for example a setting name, frontmatter field or command), what it does (hides from the model, user-only invocation, permission deny, disables entirely, scopes by path), where it is set (frontmatter, settings file, CLI command), and one located verbatim quote (at most 25 words, with the line number in the fetched bytes) that CONTAINS the key term exactly. Then pick the single best lever for the table and draft: (a) one SKILL.md table row `| Codex | <lever, plain words> | <S### row> | `<key term>` |`; (b) one entry table row `| Codex | <S### row> | <lever> | \"<quote>\" (<file>:<line>) |`; (c) if the existing row's scope/anchor/teaches cells do not cover the lever, the exact new cell text and the old text (old -> new), or a full new row in the registry's column shape if no row exists. Also say whether the page states anything about choosing BETWEEN two matching skills (quote it, or paste the `grep -niE 'overlap|conflict|precedence|disable|deny|permission|hidden|invocation'` count lines that found nothing more). Bound: a disable or deny lever is a way to remove a skill from choice, not a documented tie-break; say so if the page says otherwise."
+  },
+  {
+   "name": "LeverOmp",
+   "role": "scribe",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Claim C2 context (not counted): kotoba's own harness is omp 18.12.6. Find what omp documents or implements for keeping one of two overlapping skills from being chosen: read the omp docs that ship with the install (`omp --help`, `omp config --help` if it exists, the read-only doc tree omp exposes — try reading `omp://` style docs only through files on disk, e.g. locate them with `find ~/.local/share ~/.omp -maxdepth 4 -iname '*skill*' 2>/dev/null` and the installed package), and the operator config keys in /home/vgpnk/.omp/agent/config.yml (READ ONLY; never edit; quote only key names, never secrets). Report each lever with its key term, a located quote or file:line, and whether it is documented or only observed in code. Draft one optional entry paragraph `### omp (the lane's harness)` for /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/knowledge/skill-overlap-levers-round51.md, clearly marked as outside the 7-client counter."
+  },
+  {
+   "name": "MineMistake",
+   "role": "scribe",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Frontier step: mine one mistake into the round-51 lesson § Mistakes (draft text only). Read /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/lessons/round-50.md (§ Mistakes, § Gate), /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/lessons/round-50-verifier-spotcheck.md (D1, D4) and /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/QUALITY.md. Candidate classes: (a) D4 — a rejection reason written without a page line behind it (the Copilot SDK page was rejected as 'provider catalogs, not SKILL.md routing' while its lines 11, 289, 805-810 document file-based SKILL.md skills and conflict remedies); (b) D1 — a seat the report called cancelled wrote its report after the last commit, and the leftover sweep ran after the last seat return instead of the last seat write. Pick the one with the stronger evidence (or both as M33, M34, numbering after the last M in round-50.md). For each: class · evidence pointer (path:line) · captured-by (the QUALITY criterion that should have caught it, or `none`) · fix. If you propose a new criterion Q27, write its full row in the QUALITY table shape, and show it ABLE TO FAIL: apply it literally to the round-50 record and quote the line it fails on."
+  },
+  {
+   "name": "D1Disposition",
+   "role": "scribe",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Routed defect D1. Read /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-50/build/DescDraft.md (untracked; do not touch it), its mtime (`stat -c '%y' …`), the round-50 commit times (`git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin log --format='%H %ci %s' f30464660c675d1c1e2851a3bf0366a3aaffe5a8..43ca0bfb74372f2a67a48e0aeb2e35d0d98b1d10`), the mtime of /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-50/build/D2D4Wording.md, the round-50 report /home/vgpnk/Projects/shokunin/.ufo/reports/round-50/kotoba.md (read only; find where it calls DescDraft and D2D4Wording cancelled and its seat counts) and LOG.md round-50 lines near 2391-2410. Draft: (1) one disposition sentence for committing DescDraft.md byte-exact as wave evidence (not claim-bearing; what it recommends; its misdated landing hash); (2) an appended seat-accounting correction for the round-50 record (which seats wrote after being called cancelled, with times, and the corrected count of seats that returned a report, each with its command); (3) the exact sweep command the L1 should run after the last seat WRITE (not the last return) this round, lane and fleet root, read-only."
+  },
+  {
+   "name": "D2Bound",
+   "role": "scribe",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Routed defect D2. The sentences /home/vgpnk/Projects/shokunin/kotoba-shokunin/SCORECARD.md line 31 ('the checklist gate now runs each delegated instrument's `--box-proof`') and /home/vgpnk/Projects/shokunin/kotoba-shokunin/SKILL.md line 135 ('the checklist gate runs `--box-proof`') carry no fail-open bound. Read the gate code in /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/verify_skill_checklist.py (find the `--box-proof` / delegate probe path, give line numbers) and /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-50/falsify/ReviewBoxProofGate.md F1-F5 and MutBoxProofGate.md. Draft: (a) a replacement for the clause on SKILL.md:135 that states what the gate actually does, including that a delegate whose `--help` probe times out, cannot be executed or does not advertise the flag is reported PASS with 'not run' (fails open), and the F3-F5 false red and crash paths; (b) a one-paragraph appended qualifier for the end of the SCORECARD operability evidence cell, append-only, starting 'Round 51 qualifier (routed D2):'. Each statement must cite a code line or a seat-report finding. Do not propose code changes."
+  },
+  {
+   "name": "D3Sweep",
+   "role": "reviewer",
+   "axes": [
+    "calibration",
+    "depth"
+   ],
+   "prompt": "Routed defect D3 sweep (attack seat). The round-50 entry /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/knowledge/skill-selection-rules-round50.md withdrew 'every documented rule is keyed on the name' (its § Falsify-wave corrections) and C2 now supersedes its finding 4 ('the documented remedy for overlap is specificity in the description'). Find EVERY sentence in the lane's tracked text (SKILL.md, PROVINCE.md, corpus/README.md, corpus/knowledge/*.md, SCORECARD.md, AGENTS.md, README.md; exclude LOG.md and lessons, which are records) that still states either claim or an equivalent ('the documented remedy', 'keyed on the name', 'only remedy', 'no client documents' without the eight-page bound). Use `git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin grep -n` with several phrasings and paste the commands and outputs. For each hit give path:line, the sentence, and a minimal corrected replacement that carries the bound (eight pages; type- and source-keyed rules also exist; disable/deny levers exist per C2). Result line: HOLDS if you found only corpus/README.md:72 and SKILL.md:375-377, FAILS (with the extra sites) otherwise."
+  },
+  {
+   "name": "D5Rows",
+   "role": "scribe",
+   "axes": [
+    "adjacency",
+    "calibration"
+   ],
+   "prompt": "Routed defect D5. (1) /home/vgpnk/Projects/shokunin/kotoba-shokunin/PROVINCE.md line 44 quotes kama as 'Kotoba owns the instruction/agent surface and its model/fallback wording; kama owns independent verification' — cut with no ellipsis — and cites kama `corpus/README.md:51-55` for the deletion of agent files. Read kama at the pinned commit c808ba07f09c4be55413d3d6516c542ab69b64f8 (`git -C /home/vgpnk/Projects/shokunin/kama-shokunin show c808ba07f09c4be55413d3d6516c542ab69b64f8:corpus/knowledge/cross-lane-scope.md` line 29 and `...:corpus/README.md` lines 45-60). Draft the corrected quote (verbatim with an ellipsis or the full sentence) and the correct citation for the deletion (or a bounded wording if no line names it in full). (2) The census entry /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/knowledge/sibling-overlap-census-round49.md line 273 says kengaku `README.md:192` 'says only \"frontmatter triggers\"'; read kengaku at 1f3b0f1ec41ec297130e8944ff97968d32324632 (`git show 1f3b0f1e…:README.md` lines 185-200) and draft an appended correction (the entry is append-only; give the exact paragraph) that quotes what line 192 lists. Paste every git command with its output excerpt."
+  },
+  {
+   "name": "D6Provisional",
+   "role": "scribe",
+   "axes": [
+    "adjacency",
+    "calibration"
+   ],
+   "prompt": "Routed defect D6. Read the precedence rule and rulings appended in round 50 to /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/knowledge/sibling-overlap-census-round49.md (search 'precedence'), the spot-check § L0 line in /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/lessons/round-50-verifier-spotcheck.md, and /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-50/falsify/RowTameshiR50.md F4 and RowKamaR50.md. Draft one appended section for the census entry, titled '## Round 51 status of the precedence rule (routed D6)', that: marks the rule provisional until the operator's L0 answer (fleet /home/vgpnk/Projects/shokunin/.ufo/l0-questions.md kotoba round-50 line — quote its line number after reading it read-only); records that the rule was written after the three rows (kama, kengaku, tameshi) were known and that its exit clause clears exactly them; bounds the generic-refusal exit (a generic sentence such as 'every lane's gate remains its own' clears any gate claim, so a row cleared only by a generic refusal is marked as such); and states that round 51 neither extends nor relies on the rule. Do not change any classification. Also draft the matching one-line pointer for PROVINCE.md § Adjacent intro (append-only wording)."
+  },
+  {
+   "name": "FrontierRows",
+   "role": "scribe",
+   "axes": [
+    "freshness",
+    "depth"
+   ],
+   "prompt": "Draft the append-only updates for /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/README.md § Frontier (rows 'Loader-rule freshness' and the sibling-arbitration text in § Known gaps) and /home/vgpnk/Projects/shokunin/kotoba-shokunin/PROVINCE.md § Frontier / § Core, describing what round 51 moves IF both claims land: C1 re-derives the omp 18.12.6 callees (Kl, Ho, bq per /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-50/build/BaselineGatesB.md) and re-pins; the frontier gap 'the omp extractor is a callee-name allowlist' stays open (say so, with the count of renames seen: read the self-test arms in /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/verify_surfaces.py near lines 877-900 and the omp_round*_note keys in /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/baseline.json to count the rebuilds that renamed callees, with the command). C2 adds the overlap-lever knowledge to Core's sibling-arbitration line. Also draft the corpus/README.md index rows (column shape of the existing index table) for: corpus/knowledge/skill-overlap-levers-round51.md, corpus/lessons/round-51.md, and corpus/lessons/round-50-verifier-spotcheck.md (closure-written; check whether it already has an index row with `grep -n round-50-verifier /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/README.md`), plus the corrected text for the existing round-50 entry index row at corpus/README.md:72 (routed D3)."
+  },
+  {
+   "name": "OmpCalleeCensus",
+   "role": "scout",
+   "axes": [
+    "freshness"
+   ],
+   "prompt": "Claim C1, independent falsifier (do not read the SurfacesRepin seat's work). From `strings -n 4 /home/vgpnk/.local/bin/omp` (run in /fast/scratch/hyaku/kotoba-r51/build/OmpCalleeCensus/; record `omp --version`, sha256, mtime) find, for each of the 8 omp loader-group classes the baseline declares (/home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/baseline.json and the surfaces inventory the verifier reads — find the 8 `omp:<group>/<file>` ids with grep), every registration call that registers it: callee name, argument shape, the literal or identifier used for the group, and the line excerpt. List every identifier used as a group argument and every `var/let/const <id> = \"...\"` binding of it in the dump (count with grep; paste commands). Answer: which callees must the allowlist add; is `S$` rebound to different strings, and is the binding nearest before the `bq(u, S$, \"CLAUDE.md\")` call `\"claude-md\"`; are there other three-argument calls with the same shape that would be over-matched (false classes) if the allowlist were widened to any two-letter callee. Result: a table of 8 classes with callee and evidence."
+  },
+  {
+   "name": "OmpRenameHistory",
+   "role": "scout",
+   "axes": [
+    "freshness"
+   ],
+   "prompt": "Claim C1 context for the frontier row. Using `git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin log --format='%h %ci %s' -- verifiers/verify_surfaces.py verifiers/baseline.json verifiers/fixtures/surfaces/` and `git show` of the old regex lines, list each omp rebuild since round 18 that renamed the loader registration callees: date, omp version, old -> new callee names, the round that re-derived it, and how many hours/rounds the gate stayed red before. Then answer from the existing fixtures (verifiers/fixtures/surfaces/strings-omp-*.txt) whether anything other than the callee name changed between versions (argument count, quoting, the `u` first argument). Output a short table plus a two-sentence assessment of whether a callee-name-independent shape rule (any identifier called with (<v>, <known group literal>, \"<FILE>.md\")) would have kept the gate green across those rebuilds, with the over-match risk the module comment at verify_surfaces.py:138-160 names. Read-only."
+  },
+  {
+   "name": "CarryD7",
+   "role": "scout",
+   "axes": [
+    "operability",
+    "calibration"
+   ],
+   "prompt": "Routed defect D7 (carried items). For each item in the spot-check's D7 (/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/lessons/round-50-verifier-spotcheck.md § Routed defects, D7): the C2 driver laundering by duplicate-id or unlabelled twins; the stderr-substring kill test; two crash paths; 7 of 17 instrument mutants surviving the driver (`.ufo/waves/round-50/falsify/MutBoxProofCode.md`); 11 of 28 census-guard mutants surviving the self-test; `box_proof_case_deletion.py` absent from verifiers/floors-registry.json (`NoHarmGates` F2); the four `FloorsRegister` arms F30-F33 unapplied — re-confirm at base 43ca0bfb74372f2a67a48e0aeb2e35d0d98b1d10 that it is still open (one command each, read-only or in your clone /fast/scratch/hyaku/kotoba-r51/build/CarryD7/), and draft one carry line per item with a stated reason and what fixing it would need. Also list the round-48/49 carried items still named in /home/vgpnk/Projects/shokunin/kotoba-shokunin/SCORECARD.md § planned 'Next: round 51' and say which are still open."
+  },
+  {
+   "name": "LeftoverSweep",
+   "role": "scout",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Routed defect D1 (sweep class) and the misroot sweep. Read-only: run `git -C /home/vgpnk/Projects/shokunin status --porcelain` and `git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin status --porcelain --ignored=no`; for every untracked file at the fleet root, read its first lines and say whether it names kotoba or round 50/51 (a kotoba seat misroot) — never touch any file. In the lane, list every untracked or modified path and whether it is round-50 work (DescDraft.md is known). Also check: every file under /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-50/ is tracked (`git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin ls-files .ufo/waves/round-50 | wc -l` vs `find … -type f | wc -l`); every file under corpus/lessons and corpus/knowledge has an index row in corpus/README.md. Report a table of findings with the commands."
+  },
+  {
+   "name": "LeverOtherPages",
+   "role": "scout",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Claim C2 completeness check. For the 7 pinned clients (GitHub Copilot SDK, GitHub Copilot CLI, VS Code, Claude Code, opencode, Gemini CLI, Codex), find OTHER official documentation pages (settings reference, permissions page, config reference) that document a skill disable / deny / hide / user-only lever not on the main skills page — for example Claude Code settings/permissions docs, opencode permissions/config docs, Codex config reference, VS Code settings reference, Gemini CLI settings reference. Open each candidate by curl (record URL, status, bytes, sha256, UTC time) and give located quotes (<=25 words, line numbers). Report which levers the main skills pages miss. Do not write registry rows; this feeds the entry's Limits section."
+  },
+  {
+   "name": "SiblingOverlapScan",
+   "role": "connector",
+   "axes": [
+    "adjacency"
+   ],
+   "prompt": "Sibling-overlap scan for C2 (connector). Read-only, at each sibling's current master: search the sibling lanes' corpora (/home/vgpnk/Projects/shokunin/*-shokunin, excluding kotoba) for knowledge about disabling, denying, hiding or permissioning skills, skill precedence or overlap remedies (`git -C <repo> grep -niE 'disabledSkills|disable-model-invocation|skills disable|permission.*skill|skill.*(deny|disable)|overlapping skill' $(git -C <repo> rev-parse master) -- corpus SKILL.md PROVINCE.md`). For each hit: lane, path:line at the commit, whether it is that lane's own province ground (then kotoba must cite, not absorb) or kotoba's (prompt and skill craft). Also read kaidoku-shokunin/corpus/knowledge at ae8bcd86 for its round-26 evidence-ID identity entry and say whether it bears on how kotoba keys SOURCES rows (one paragraph; only if it applies). Output a table and a one-line verdict: does any sibling own the overlap-lever ground?"
+  },
+  {
+   "name": "CriticC1Sizing",
+   "role": "critic",
+   "axes": [
+    "freshness",
+    "calibration"
+   ],
+   "prompt": "Attack claim C1's sizing BEFORE landing (read /home/vgpnk/Projects/shokunin/kotoba-shokunin/plans/round-51.md). Is 'verify_surfaces.py passes 5 of 7 -> 7 of 7 against omp 18.12.6' wider than what the counter measures? Run `python3 -B verifiers/verify_surfaces.py --json` at base in a clone (/fast/scratch/hyaku/kotoba-r51/build/CriticC1Sizing/) and read what each of the 7 checks actually tests (verify_surfaces.py). Find cheap ways the after-value could be reached without true freshness: widening the allowlist to any callee, guessing the `S$` binding, editing the baseline/inventory to drop a class, or a fixture-only pass while the live dump still fails. For each, say whether the 7 checks would catch it, and give the exact extra condition the claim must state (for example: baseline and inventory ids unchanged, `--omp-strings` not used, live binary hash printed). Q09, Q19, Q25 and Q26 of /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/QUALITY.md apply. Result HOLDS / HOLDS-BOUNDED / FAILS with the re-sized statement if needed."
+  },
+  {
+   "name": "CriticC2Sizing",
+   "role": "critic",
+   "axes": [
+    "depth",
+    "calibration"
+   ],
+   "prompt": "Attack claim C2's counter design BEFORE landing (read /home/vgpnk/Projects/shokunin/kotoba-shokunin/plans/round-51.md and the LeverGuard spec in this wave's context: pinned 7 clients; a client is backed when its SKILL.md row's key term appears verbatim in the entry quote for that client, the quote cites a `mined` SOURCES row whose used-by names the entry, and the key term does not contain 'description'). Under Q25 and Q26 of /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/QUALITY.md: which clauses of the statement are NOT turned on by the counter (for example: that the quote is really on the page — only --fetch checks that; that the lever really stops one of two overlapping skills being chosen, not something else; that 'documented' means the vendor's own docs)? Give concrete false-pass constructions (a quote that contains the key term but describes something else; a key term that is a generic word like `enabled`; a SOURCES row marked mined with no Gate record) and for each say whether the design catches it and the minimal fix (to the statement or the script). Result HOLDS / HOLDS-BOUNDED / FAILS with the re-sized statement."
+  },
+  {
+   "name": "CriticLearning",
+   "role": "critic",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Attack C2 as the round's learning claim. The session quality bar (/home/vgpnk/Projects/shokunin/.scratch/goal-20261022-hyaku-12h.md § Quality bar, read-only) asks for knowledge that changes what kotoba knows or can do in PROVINCE core or frontier (/home/vgpnk/Projects/shokunin/kotoba-shokunin/PROVINCE.md). C2 supersedes finding 4 of /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/knowledge/skill-selection-rules-round50.md with documented non-wording levers (disable lists, permission deny, user-only invocation, path scoping). Questions: is this new ground or a restatement of what the round-50 entry already says ('What this changes for craft' mentions `disable-model-invocation` and `paths` for Claude Code)? Does a disable/deny lever really answer 'two overlapping skills' or only 'remove a skill' — what bound must the SKILL.md table carry so it is not read as a tie-break? What does kotoba's craft gain (when should an author reach for a lever instead of rewriting the description)? Draft the 3-5 line 'What this changes for craft' paragraph you would accept. Result HOLDS / HOLDS-BOUNDED / FAILS."
+  },
+  {
+   "name": "CriticRoutedPlan",
+   "role": "critic",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Attack the plan's routed-defect dispositions (/home/vgpnk/Projects/shokunin/kotoba-shokunin/plans/round-51.md § Routed defects) against the spot-check text (/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/lessons/round-50-verifier-spotcheck.md § Routed defects D1-D7 and § Ruling on DescDraft). For each D: does the planned disposition fix or explain everything the spot-check routed (list any sub-item dropped, e.g. D1's 'run the sweep after the last seat write', D4's 'decide whether to write the row', D6's 'resolve or bound the generic-refusal exit', D7's floors-registry gap)? Also check the orchestrator's constraint that the precedence rule must not be extended or leaned on this round, and that SCORECARD/LOG are append-only records (find the conventions the round-50 commits followed: `git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin diff -U0 f30464660c675d1c1e2851a3bf0366a3aaffe5a8 43ca0bfb74372f2a67a48e0aeb2e35d0d98b1d10 -- SCORECARD.md | head -80`). Result: a table D1-D7 with HOLDS / GAP and the missing piece."
+  },
+  {
+   "name": "ReviewSurfacesDesign",
+   "role": "reviewer",
+   "axes": [
+    "freshness"
+   ],
+   "prompt": "Review (read-only, plus your clone /fast/scratch/hyaku/kotoba-r51/build/ReviewSurfacesDesign/) the extractor in /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/verify_surfaces.py: `ASSIGN_RE`, `constant_table` (lines ~300-313), `extract_classes`, `OMP_CALL_RE` and the module comment at lines 138-160. Round-50 found that in omp 18.12.6 the CLAUDE.md loader is registered as `bq(u, S$, \"CLAUDE.md\")` with `S$` rebound elsewhere, so the conservative conflict rule drops it. Evaluate candidate rules for resolving that one identifier without guessing: (a) nearest preceding binding in the same strings chunk/line; (b) all bindings within N bytes agree; (c) a pinned per-version alias table in the baseline. For each: what it would mis-resolve, which control arm (Q18 in /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/QUALITY.md) would prove it, and its effect on the opencode extraction (which must stay 9/9 from 7/7 rules). Recommend one, with the exact self-test fixtures needed."
+  },
+  {
+   "name": "MutSurfacesBase",
+   "role": "mutation-tester",
+   "axes": [
+    "freshness",
+    "operability"
+   ],
+   "prompt": "Baseline mutation probe for C1 at base 43ca0bfb74372f2a67a48e0aeb2e35d0d98b1d10 in your clone /fast/scratch/hyaku/kotoba-r51/build/MutSurfacesBase/. Mutate `verifiers/verify_surfaces.py` one change at a time (at least 10 mutants: drop one callee from OMP_CALL_RE; widen it to `[A-Za-z$_]{1,3}`; make constant_table keep the first binding on conflict; make it keep the last; remove the vacuity check; invert literal_present; skip the opencode extraction; and others you choose) and run `python3 -B verifiers/verify_surfaces.py --self-test` for each; restore the file byte-exact after each (`git -C <clone> checkout -- verifiers/verify_surfaces.py` inside the CLONE only). Report killed / survived per mutant with the failing assertion names. The falsify wave will repeat this on the round's head, so name each mutant exactly (a reproducible sed or patch)."
+  },
+  {
+   "name": "ReviewOverlapRows",
+   "role": "reviewer",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Pre-landing review of the C2 source set. Re-open independently (curl; record URL, status, bytes, sha256, UTC time) https://docs.github.com/en/copilot/how-tos/copilot-sdk/features/skills.md and https://opencode.ai/docs/skills.md and https://code.claude.com/docs/en/skills.md. For each, find the one sentence that best documents a lever other than description wording for keeping a skill from being chosen, quote it verbatim (<=25 words, line), and state precisely what the lever does per the page (hide from model listing? deny at use? disable loading? user-only?). Compare against the round-50 entry /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/knowledge/skill-selection-rules-round50.md 'What this changes for craft' paragraph: is anything there inaccurate given these pages? This is the independent cross-check the L1 compares the Src* seats against; do not read their reports."
+  },
+  {
+   "name": "SourcesContract",
+   "role": "scout",
+   "axes": [
+    "freshness",
+    "calibration"
+   ],
+   "prompt": "Frontier-step mechanics for C2's rows. Read /home/vgpnk/Projects/shokunin/CORPUS.md § 'SOURCES.md — where a shokunin learns' (contract v1) and the census script /home/vgpnk/Projects/shokunin/scripts/sources-census.sh (read-only; find its W/E rule codes) and /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md. Answer with citations: (1) adding one new row (Copilot SDK skills page, a URL no row has) and updating the anchor/teaches/used-by cells of existing rows S021, S022, S024, S025, S028, S029 — which census rules apply, what must be logged old->new in the lesson § Gate, and which changes would raise a new W04 or any error; (2) the exact column shape and allowed `status` values; (3) whether a row may be `mined` when the entry citing it lands in the same round; (4) run `/home/vgpnk/Projects/shokunin/scripts/sources-census.sh validate --root /home/vgpnk/Projects/shokunin kotoba` read-only and paste output and exit code. Give a checklist the L1 can follow."
+  }
+ ]
+}
