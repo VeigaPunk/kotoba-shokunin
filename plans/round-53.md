@@ -96,3 +96,46 @@ No-harm guards (not part of either statement): `verify_skill_checklist.py --json
   counter attacks; sibling-overlap scan; critics on both claims.
 - Wave 2 falsify (v1, 32–40 seats) only if wave 1 yields at least 32 distinct attack items; otherwise one
   residual call of at most 8 reviewer and critic seats.
+
+## Erratum after the wave-1 critics (append-only; written before any C1 or C2 content landed)
+
+Written 2026-10-22 ~20:25Z on `CriticC1Sizing.md`, `CriticC2Sizing.md` and `CriticDrift.md`
+(`.ufo/waves/round-53/build/`). The counters and their cases stay frozen at `3bb0a7a3`; only the prose
+around them is bounded here.
+
+1. **C1 statement, bounded to the printed line.** The claim is exactly the counter's first line,
+   `opencode re-pin: surfaces pass 7 of 7 (opencode_extract PASS); pins OK 3/3; opencode classes kept 9 of 9;
+   self-test 0 failure(s) over <A> assertions`, exit 0. The words "omp 18.12.6 (sha256 `85d9daf3…`)" and the
+   version "1.19.4" above are context: the counter prints neither, and the sha on its second line comes from the
+   measured revision's own gate. They are struck from the statement.
+2. **What the C1 counter does not measure, widened.** It trusts the measured revision's `verify_surfaces.py` for
+   which dump it reads, which classes it enforces, which rows it emits and what its self-test prints. A
+   revision that weakens a rule to bare literal presence, retires a class inside the gate, reads a fixture
+   instead of the host binary, or injects a PASS row prints the target line (CriticC1Sizing patches A–D, F).
+   The sentence "retiring or re-kinding a class to clear the gate is not kept" is true only of the baseline
+   file. So the C1 verdict also needs three guards outside the counter, run by wave 2 and the closure:
+   (a) scope — `git diff 3bb0a7a3 <tip> -- verifiers/verify_surfaces.py verifiers/check_substrate_pins.py`
+   changes only the OC-4/OC-6 constants and conditions, their comments and self-test arms (loaders, substrate
+   reporting, `check_opencode_extract`, `main` and the JSON output byte-identical; the pin script untouched);
+   (b) an independent dump — the gate re-run with `--opencode-strings` on a `strings -n 4` dump the guard makes
+   itself from the host binary whose sha256 it records; (c) rows — the gate exits 0, each of the 7 check ids
+   appears once, and the `surfaces.opencode_extract` detail names all declared opencode classes from all rules.
+3. **C2 cases, described exactly.** All four `alwayson.04` FAIL cases contain a date; transient text without a
+   date is not pinned, so "dated/transient" above reads "dated". The counter joins the map's delegate path to
+   the extracted tree without rejecting an absolute path (CriticC2Sizing: an out-of-revision delegate printed
+   `2 of 8`); the C2 verdict also needs the guard that both dispositions are relative paths listed by
+   `git ls-tree -r <rev>`. "of 8" is guaranteed only by the printed text, not by the exit code.
+4. **Drift sentinel, stated honestly.** `CriticDrift` finds that round 49's C2 named the same Frontier row,
+   "executed checklist coverage", and round 50's C2 hardened the box proof on the dispatch checklist. C2 works
+   that row's always-on half — a different checklist, surface and source basis (which always-on file each
+   client reads, and what counts as a redirect) — not a different row. The plan's sentence "C2 works a
+   different frontier area" is narrowed to that. The operator rules whether this satisfies the sentinel.
+5. **Lowest-axis duty.** C1 meets it under the all-axes reading (freshness 8, tied with adjacency); under the
+   owned-axes reading (depth 9) no claim works depth. This is the open L0 reading question recorded since
+   round 46; the round does not resolve it.
+6. **No-harm guards, completed.** Add `verify_corpus_independent.py`, `fault_injection_corpus.sh`,
+   `verify_dispatch_prompts.py --box-proof`, `box_proof_case_deletion.py`, `verify_harness_claims.py`,
+   `check_overlap_levers.py`; the before-matrix is `.ufo/waves/round-53/build/ExecGateMatrixBase.md` plus the
+   L1's in-lane base runs.
+7. **Routed defect 4.** The round-52 counter is tightened in place; the round-52 record's frozen bytes are
+   `4c003a4b:verifiers/check_mcp_instructions.py`, which no commit changes.
