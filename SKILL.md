@@ -430,6 +430,39 @@ reviewed list in the checker; whether each label matches its page is reviewer ju
 - Won't produce a description without anti-triggers, or a body without a
   fail-closed path for its prerequisites.
 
+## Gate registry
+
+Registry home under PROTOCOL.md § Gate standard (round 54; what each one checks: `verifiers/README.md`).
+Run commands from the repo root; `<rev>` is a full hash, never a moving ref. An undeclared nonzero code
+reads as could-not-evaluate. `python3 -B verifiers/check_gate_registry.py --rev <rev>` compares rows with files.
+
+| Name | Kind | Entry command | Verdict map | Self-test | Pinned values | Write scope | Owner |
+|---|---|---|---|---|---|---|---|
+| `verifiers/box_proof_case_deletion.py` | gate | `python3 -B verifiers/box_proof_case_deletion.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | `verifiers/checklist-baseline.json`, `verifiers/fixtures/dispatch-prompts/manifest.json` | temp exports under `$TMPDIR` | kotoba |
+| `verifiers/check_alwayson_boxes.py` | gate | `python3 -B verifiers/check_alwayson_boxes.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file | temp archives and self-test repos (removed) | kotoba |
+| `verifiers/check_assertion_floors.py` | gate | `python3 -B verifiers/check_assertion_floors.py` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | `verifiers/floors-registry.json` | temp fixtures under `$TMPDIR` | kotoba |
+| `verifiers/check_callee_rename.py` | gate | `python3 -B verifiers/check_callee_rename.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file | temp dirs under `$TMPDIR` (removed) | kotoba |
+| `verifiers/check_correction_sweep.py` | gate | `python3 -B verifiers/check_correction_sweep.py --root .` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file | none; self-test fixtures under `$TMPDIR` | kotoba |
+| `verifiers/check_description_thresholds.py` | gate | `python3 -B verifiers/check_description_thresholds.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file | none; `--fetch` reads the network | kotoba |
+| `verifiers/check_gate_finding_delta.py` | gate | `python3 -B verifiers/check_gate_finding_delta.py --base <rev> --head <rev>` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | `verifiers/corpus-baseline.json` | temp trees under `$TMPDIR` | kotoba |
+| `verifiers/check_gate_registry.py` | gate | `python3 -B verifiers/check_gate_registry.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file | none | kotoba |
+| `verifiers/check_mcp_instructions.py` | gate | `python3 -B verifiers/check_mcp_instructions.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file | none; `--fetch` reads the network | kotoba |
+| `verifiers/check_opencode_repin.py` | gate | `python3 -B verifiers/check_opencode_repin.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | `verifiers/surfaces-baseline.json`, `verifiers/baseline.json` | temp trees under `$TMPDIR` (removed) | kotoba |
+| `verifiers/check_overlap_levers.py` | gate | `python3 -B verifiers/check_overlap_levers.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file | self-test temp repo (removed); `--fetch` reads the network | kotoba |
+| `verifiers/check_sibling_census.py` | gate | `python3 -B verifiers/check_sibling_census.py <census.md>` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file | none; self-test repos under `$TMPDIR` | kotoba |
+| `verifiers/check_sources_append_only.py` | gate | `python3 -B verifiers/check_sources_append_only.py --base <rev> --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file | none | kotoba |
+| `verifiers/check_substrate_pins.py` | gate | `python3 -B verifiers/check_substrate_pins.py` | 0=clean, 1=failed, 2=could-not-evaluate, 3=could-not-evaluate | `--self-test` | `verifiers/baseline.json` | self-test files under `$TMPDIR` | kotoba |
+| `verifiers/compare_harness_independent.py` | gate | `python3 -B verifiers/compare_harness_independent.py` | 0=clean, 1=failed, 2=could-not-evaluate, 3=failed | `--self-test` | `verifiers/harness-independent-scope.json`, `verifiers/fixtures/compare-harness-independent` | `--report`/`--receipt` targets; temp dirs | kotoba |
+| `verifiers/fault_injection_corpus.sh` | gate | `verifiers/fault_injection_corpus.sh` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | `verifiers/corpus-baseline.json` | temp clones under `${TMPDIR:-/tmp}` (removed) | kotoba |
+| `verifiers/verify_alwayson.py` | gate | `python3 -B verifiers/verify_alwayson.py --check <box> --target <dir>` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file | none | kotoba |
+| `verifiers/verify_corpus_independent.py` | gate | `python3 -B verifiers/verify_corpus_independent.py` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file | self-test fixtures under `$TMPDIR` | kotoba |
+| `verifiers/verify_corpus_integrity.py` | gate | `python3 -B verifiers/verify_corpus_integrity.py` | 0=clean, 1=failed, 2=could-not-evaluate, 3=could-not-evaluate | `--self-test` | `verifiers/corpus-baseline.json` | self-test fixtures under `$TMPDIR` | kotoba |
+| `verifiers/verify_dispatch_prompts.py` | gate | `python3 -B verifiers/verify_dispatch_prompts.py` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | `verifiers/checklist-baseline.json`, `verifiers/fixtures/dispatch-prompts/manifest.json` | self-test tree under `$TMPDIR` | kotoba |
+| `verifiers/verify_harness_claims.py` | gate | `python3 -B verifiers/verify_harness_claims.py` | 0=clean, 1=failed, 2=could-not-evaluate, 3=could-not-evaluate | `--self-test` | `verifiers/baseline.json` | none | kotoba |
+| `verifiers/verify_harness_independent.py` | gate | `python3 -B verifiers/verify_harness_independent.py --freeze <file>` (bare `--json` only derives) | 0=clean, 1=failed, 2=could-not-evaluate, 3=could-not-evaluate | `--self-test` | in-file | `--out`/`--write-freeze` paths; temp dirs | kotoba |
+| `verifiers/verify_skill_checklist.py` | gate | `python3 -B verifiers/verify_skill_checklist.py` | 0=clean, 1=failed, 2=could-not-evaluate, 3=failed | `--self-test` | `verifiers/checklist-baseline.json`, `verifiers/checklist-command-vocabulary.json` | self-test trees under `$TMPDIR` | kotoba |
+| `verifiers/verify_surfaces.py` | gate | `python3 -B verifiers/verify_surfaces.py` | 0=clean, 1=failed, 2=could-not-evaluate, 3=could-not-evaluate | `--self-test` | `verifiers/surfaces-baseline.json` | self-test temp files | kotoba |
+
 ## Sources
 
 - `corpus/SOURCES.md` — where this lane learns: opened, scope-tiered source rows,
