@@ -67,3 +67,13 @@ first moves the verifier-description bullets of SKILL.md § Sources (42 lines, v
   delta against a pinned revision, floors guard), `LOG.md` gains `e5355a62`; (6) `baseline.json`
   `opencode_round53_note` cites the regeneration command, not the deleted scratch path — a pointer fix with
   no change to any pin value; (1) carried into lesson text; (7) carried.
+
+## Erratum (append-only; landed before any C1 or C2 content)
+
+- The before-value times above (`21:30Z`, `21:31Z`, `21:32Z`) are wrong: the L1 wrote them ahead of the clock.
+  The plan commit `e33715486a45a4a857b64c30e6b695f7995858b8` has committer time 2026-10-22T21:12:08Z, and both
+  base runs (`check_description_thresholds.py --rev 422ffd10` → `backed 0 of 7`; `check_gate_registry.py
+  --rev 422ffd10` → `conformant 0 of 21 … phantom 0`, exit 1) ran between 21:08Z and 21:11Z. The values are
+  unchanged; only the times were misstated (lesson round 54, mistake candidate).
+- The enabling move is 43 lines (`SKILL.md` 532–574 at `422ffd10`), not 42; it landed as
+  `7ad05d342d7505ab674a5ebcf5ac1106b2f45c39` (593 → 552 lines; `diff` of the two ranges is empty).
