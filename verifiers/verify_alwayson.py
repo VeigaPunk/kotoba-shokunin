@@ -7,6 +7,13 @@ whose selected entry has ``id``, ``status`` (PASS, FAIL, or ERROR), and
 input. ``--self-test`` exercises committed fixtures; ``--box-proof`` verifies
 the map, live checklist text, and fixture suite for the delegated boxes.
 
+alwayson.04 is a lane rule, not a vendor rule for always-on files: it extends
+Anthropic's skills guidance "Avoid time-sensitive information" (SOURCES S019,
+best-practices.md:574) to AGENTS.md/CLAUDE.md, where no authority opened in
+round 53 states it (corpus/knowledge/alwayson-rule-files-round53.md point 5).
+Known misses: month-year text such as "before August 2025", numeric
+dates such as 11/01/2026, and quarter labels such as "Q4 2026".
+
 The filename set is based on Claude Code's current memory documentation:
 https://code.claude.com/docs/en/memory.md (sections "Choose where to put
 CLAUDE.md files", "When Claude Code reads AGENTS.md", and "Share one file
