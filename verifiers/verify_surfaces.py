@@ -1620,6 +1620,10 @@ def self_test() -> int:
     for fixture, target_rule, target_id, other_rule in (
             ("strings-opencode-1.19.4-decoy-oc4.txt", "OC-4",
              "opencode:read-hook/instructions", "OC-6"),
+            # round-53 falsify W2MutOc4: the call edge stays, the resolve result
+            # is delivered without the opening <system-reminder> token.
+            ("strings-opencode-1.19.4-decoy-oc4-delivery.txt", "OC-4",
+             "opencode:read-hook/instructions", "OC-6"),
             ("strings-opencode-1.19.4-decoy-oc6.txt", "OC-6",
              "opencode:instruction-context/AGENTS.md", "OC-4")):
         text = read_text(FIXTURES / fixture, "opencode decoy fixture")

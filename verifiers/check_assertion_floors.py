@@ -5,10 +5,10 @@ The claim under test: a self-test that silently loses assertions must never
 still read green. Each instrument's --self-test prints an assertion count;
 this guard reruns every self-test and FAILs when the observed count is below
 the recorded floor (harness 10, corpus_integrity 152, corpus_independent 93,
-surfaces 155, overlap_levers 51, checklist 1852, pins 62,
+surfaces 165, overlap_levers 51, checklist 1852, pins 62,
 harness_independent 123, compare_harness_independent 330, floors_guard 150,
-dispatch_prompts 56, sibling_census 68, alwayson 89; round 53 bumped surfaces 129->155
-(two round-52 fix arms, opencode 1.19.4 rule and decoy arms), corpus_integrity 150->152 and
+dispatch_prompts 56, sibling_census 68, alwayson 89; round 53 bumped surfaces 129->165
+(two round-52 fix arms, opencode 1.19.4 rule and decoy arms, the falsify-wave delivery decoy), corpus_integrity 150->152 and
 corpus_independent 91->93 (fleet-report pointer arms), checklist 1851->1852 (absolute-delegate arm)
 and registered alwayson at 89 (verifiers/verify_alwayson.py); round 52 bumped surfaces 119->129 (callee-rename
 arms); round 51 bumped surfaces 99->115->119
@@ -133,7 +133,7 @@ EXPECTED_INSTRUMENTS = {
     "harness": 10,
     "corpus_integrity": 152,
     "corpus_independent": 93,
-    "surfaces": 155,
+    "surfaces": 165,
     "checklist": 1852,
     "pins": 62,
     "harness_independent": 123,
@@ -157,7 +157,7 @@ INSTRUMENTS = {
                          r"self-test:\s*(\d+) failure\(s\) over (\d+) assertions", 2, 1),
     "corpus_independent": ("verifiers/verify_corpus_independent.py", 93,
                            r"self-test:\s*(\d+) assertions,\s*(\d+) failures", 1, 2),
-    "surfaces": ("verifiers/verify_surfaces.py", 155,
+    "surfaces": ("verifiers/verify_surfaces.py", 165,
                  r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
     "checklist": ("verifiers/verify_skill_checklist.py", 1852,
                   r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),

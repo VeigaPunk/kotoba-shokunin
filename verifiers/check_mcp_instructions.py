@@ -154,6 +154,10 @@ def sources_table(text: str) -> dict[str, list[str]]:
 def host_ok(url: str, pins: tuple[str, ...]) -> bool:
     u = urllib.parse.urlparse(url)
     host, path = (u.hostname or "").lower(), u.path
+    # A `.` or `..` segment (raw or percent-encoded) can climb out of a pinned
+    # path prefix after the prefix test (round-53 falsify seat W2MutMcpTighten).
+    if any(seg in (".", "..") for seg in urllib.parse.unquote(path).split("/")):
+        return False
     for pin in pins:
         h, _, p = pin.partition("/")
         if p:
@@ -238,6 +242,10 @@ def self_test() -> int:
         "https://github.com/modelcontextprotocolfoo/specification/schema.md", path_pin), False)
     check("M12 path pin requires exact host", host_ok(
         "https://api.github.com/modelcontextprotocol/specification/schema.md", path_pin), False)
+    check("pin rejects a `..` segment that climbs out of the prefix", host_ok(
+        "https://github.com/modelcontextprotocol/../evil/schema.md", path_pin), False)
+    check("pin rejects a percent-encoded `..` segment", host_ok(
+        "https://github.com/modelcontextprotocol/%2e%2e/evil/schema.md", path_pin), False)
 
     lesson = ('## Gate\n\n- **S036** — source. Quote (`mcp-server.md:1315`):\n'
               '  "which will be appended to the system instructions."\n')
