@@ -148,7 +148,7 @@ regex, `metadata.requires` over prose, render-by-reproduction, invocation-shaped
 triggers for domain-term names, and the discovery roots:
 `corpus/knowledge/frontmatter-trigger-surface.md` § Craft rules.
 
-Portability floor (spec + vendor + YAML, `corpus/SOURCES.md` S001, S002, S003, S008): `name` ≤64 lowercase-hyphen chars equal to the directory; `description` ≤1024 chars, no XML tags (Anthropic rule), quoted when it holds `: ` or ` #` (illegal in a YAML plain scalar — lenient loaders hide it, strict ones reject). `verifiers/verify_skill_checklist.py` `trigger.no_xml_tag` gates the XML-tag rule on `name` and `description`; Anthropic's reference packager (S012) is stricter and refuses any `<`/`>`.
+Portability floor (spec + vendor + YAML, `corpus/SOURCES.md` S018, S002, S019, S008): `name` ≤64 lowercase letters, digits and single hyphens, equal to the directory (the spec's charset wording is ambiguous on Unicode); `description` ≤1024 chars, no XML tags (Anthropic rule), quoted when it holds `: ` or ` #` (illegal in a YAML plain scalar — lenient loaders hide it, strict ones reject). `verifiers/verify_skill_checklist.py` `trigger.no_xml_tag` approximates the XML-tag rule lexically on the unparsed `name`/`description` text; Anthropic's packager (S012) refuses any `<`/`>` in the parsed value, so the two disagree in both directions. Which authority imposes which rule, with run counterexamples: `corpus/knowledge/frontmatter-rule-authorities-round48.md`.
 
 ## Decision tables — when to use one
 
