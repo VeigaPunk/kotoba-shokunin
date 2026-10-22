@@ -100,3 +100,15 @@ No target value moved. Both statements were narrowed to what the counters turn o
   every listed lever removes one named skill from the candidates (everywhere, from automatic choice,
   or outside a scope); none is a documented tie-break between two skills that both remain
   candidates. The reviewed list is a reviewer's judgment frozen in code, not a measurement.
+
+## After landing: the C2 reviewed list moved (append-only, falsify seat `ReviewCommitOrder.md`)
+
+The sentence "No target value moved" above is wrong for C2. The reviewed key-term list that decides the
+C2 count is part of the counter committed with this plan (`7c81a787`). In the C2 content commit
+`34cfffbb` the L1 added three terms to that list (`ignoredSkillsLocations`, `disable-model-invocation:
+true`, `/skills disable <name>`) and landed the rows they score in the same commit. Under the list
+committed with this plan, the content at `34cfffbb` counts 4 of 7, exit 1; with the widened list, 7 of 7.
+The falsify wave then changed the counter again (two of the three terms removed, `deny` and
+`enabled = false` removed, a fourth effect value `removed in a scope`, per-lever label pins, quotes
+with inner double quotes accepted, stricter section, fence and Gate parsing). The round report states
+C2 under both counters and does not count the widened result as the declared one (lesson M35).

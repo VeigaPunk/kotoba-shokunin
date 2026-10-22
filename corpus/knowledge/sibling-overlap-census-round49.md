@@ -455,3 +455,12 @@ Appended round 51 (append-only). No row moves: the counts stay 9 adjacent, 11 no
   are the omp 18.12.6 surface re-derivation and the overlap-lever learning table; neither reads this
   entry's precedence. The rule's status is recorded here so the operator's answer has one place to
   land.
+
+## Round 51 correction to the S026 remedy sentence (append-only, routed D3)
+
+The round-50 sentence on S026 above ("Its remedy for overlap is craft: 'Make each description specific
+enough to route to the right subagent'") is too wide: the same page also documents a removal lever,
+`permissions.deny` with `Agent(name)` (`sub-agents.md:729`, page sha256 `89aa73eb…`, re-opened by falsify
+seat `.ufo/waves/round-51/falsify/ReviewD3Sweep.md`). Read it as: the page's wording advice is
+specificity; its documented lever for removing one subagent is a permission deny. Skills-side levers
+are in `skill-overlap-levers-round51.md`.

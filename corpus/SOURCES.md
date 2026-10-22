@@ -111,6 +111,7 @@ for a source the row's author opened this round; access evidence lives in
   recorded in `.ufo/waves/round-48/build/C2ClaudeDocs.md`, no claim rests on them yet), the omp binary
   (no claim rests on it), `anthropics/skills` `main` (byte-identical to the S012 pin). Stop rationale:
   every round-48 claim rests on an opened row. Full record: `corpus/lessons/round-48.md` § Gate.
+- Round 51 (2026-10-22): overlap levers by client — searched each client's skills page and about one secondary page per client (settings, permissions, configuration, command references) for levers other than the description that remove one skill from the candidates (`disable`, `deny`, `permission`, `invocation`, `hidden`, `autoinvoke`); seat reports `.ufo/waves/round-51/build/Src*.md` and `LeverOtherPages.md`. Opened and written: S030, S031. Re-opened: S021, S022, S024, S025, S029. Rounds 49 and 50 kept their search notes in their lessons' `## Gate` sections and seat reports, not here.
 
 ## Leads (unopened)
 

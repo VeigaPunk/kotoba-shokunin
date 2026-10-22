@@ -45,15 +45,15 @@ Two instruments:
    call UNRESOLVED, never guessed, while the 18.12.6 ``S$`` case resolves to
    ``claude-md`` because its own module binds it once.  An unresolved call
    still surfaces as ``<unresolved-var:NAME>`` and FAILs.
-  LIMIT: the module scope is read off the source-path comments; a bundle
-  that stops shipping them makes the whole dump one scope, which restores
-  the conservative behaviour (the conflicting name stays unresolved and the
-  gate FAILs loudly) rather than resolving anything by guesswork.
-  The source-path comment is a PROXY for a variable scope, not a proof of
-  one (round-51 falsify ``CriticC1Landed``): on the live 18.12.6 dump the two
-  ``S$`` bindings also sit in different ``// @bun @bytecode`` chunks, and
-  inside one chunk 95 conflicting names span more than one source module;
-  a chunk-based rule gives the same 8 pairs on the live dump.
+   LIMIT: the module scope is read off the source-path comments; a bundle
+   that stops shipping them makes the whole dump one scope, which restores
+   the conservative behaviour (the conflicting name stays unresolved and the
+   gate FAILs loudly) rather than resolving anything by guesswork.
+   The source-path comment is a PROXY for a variable scope, not a proof of
+   one (round-51 falsify ``CriticC1Landed``): on the live 18.12.6 dump the two
+   ``S$`` bindings also sit in different ``// @bun @bytecode`` chunks, and
+   inside one chunk 95 conflicting names span more than one source module;
+   a chunk-based rule gives the same 8 pairs on the live dump.
 
    DOCUMENTED LIMITS (the check proves set parity over this documented
    extraction, never existential completeness):
@@ -414,12 +414,44 @@ def scope_table(dump: str, spans: list[tuple[int, int]], pos: int) -> dict[str, 
     return constant_table(dump[start:end])
 
 
+# Function-parameter shadowing (round 51, falsify ReviewScopeRule probe 09): a
+# call whose group identifier is a FUNCTION PARAMETER reads the caller's
+# argument, not a module binding — the dump carries no evidence for it, so the
+# scope (and dump-wide) table must not resolve it.  Textual and conservative:
+# the parameter list of the nearest preceding function header within the call's
+# module span is scanned for the identifier as a whole token; a header whose
+# parameters contain it disqualifies the resolution (fail-closed over
+# false-positive).
+PARAM_HEADER_RE = re.compile(
+    r"(?:async\s+)?function\s*[\w$]*\s*\(([^()]*)\)"
+    r"|(?:\(([^()]*)\)|([A-Za-z_$][\w$]*))\s*=>"
+)
+
+
+def param_shadowed(dump: str, spans: list[tuple[int, int]], pos: int,
+                   ident: str) -> bool:
+    """True when ``ident`` is a parameter of the nearest preceding function
+    header before ``pos`` in the call's own module span."""
+    start, _ = scope_of(spans, pos)
+    params: set[str] = set()
+    for m in PARAM_HEADER_RE.finditer(dump[start:pos]):
+        if m.group(3) is not None:
+            params = {m.group(3)}
+        else:
+            plist = m.group(1) or m.group(2)
+            params = {p.strip() for p in plist.split(",") if p.strip()} \
+                if plist else set()
+    return ident in params
+
+
 def extract_classes(dump: str, harness: str) -> set[tuple[str, str]]:
     """All (group, file) pairs from `.md`-suffixed registration-call shapes.
     The callee allowlist is per-harness (CALL_RE/OMP_CALL_RE above).  Identifier
     group args are resolved through the dump's constant table — for a name the
     dump-wide table cannot settle, the binding table of the call's OWN module
-    scope decides (round 51); unresolvable ones surface as a
+    scope decides (round 51); a group identifier that is a function parameter of
+    the enclosing function never resolves (param-shadow guard, falsify
+    ReviewScopeRule probe 09); unresolvable ones surface as a
     ``<unresolved-var:NAME>`` group so they cannot pass silently."""
     global_table = constant_table(dump)
     pattern = OMP_CALL_RE if harness == "omp" else CALL_RE
@@ -435,7 +467,7 @@ def extract_classes(dump: str, harness: str) -> set[tuple[str, str]]:
         consts = {**scope_table(dump, spans, m.start()), **global_table}
         if quoted:
             group = quoted
-        elif ident in consts:
+        elif ident in consts and not param_shadowed(dump, spans, m.start(), ident):
             group = consts[ident]
         else:
             group = "<unresolved-var:%s>" % ident
@@ -1122,6 +1154,28 @@ def self_test() -> int:
     rec("own-module binding settles the call",
         ("two", "X.md") in pairs, sorted(pairs))
 
+    # (b2i) falsify ReviewScopeRule probe 09: a group identifier that is a
+    # FUNCTION PARAMETER shadows the module binding and must NOT resolve — the
+    # parameter's value is not in the dump, so the class is unwitnessed and
+    # must FAIL loud (never resolve to the module's own binding).
+    shadowed = fx18126.replace("async function XBt(u) {", "async function XBt(u, S$) {")
+    pairs = extract_classes(shadowed, "omp")
+    rec("param-shadow: claude-md NOT resolved",
+        ("claude-md", "CLAUDE.md") not in pairs, sorted(pairs))
+    rec("param-shadow: S$ surfaces unresolved",
+        ("<unresolved-var:S$>", "CLAUDE.md") in pairs, sorted(pairs))
+    with tempfile.TemporaryDirectory() as tmp:
+        sh_path = str(Path(tmp) / "strings-omp-param-shadow.txt")
+        Path(sh_path).write_text(shadowed, encoding="utf-8")
+        code, out = run_capture(
+            ["--repo", fx, "--omp-strings", sh_path,
+             "--opencode-strings", oc_clean,
+             "--baseline", fx + "/baseline-18.12.5.json", "--inventory", inv_clean,
+             "--check", "surfaces.literal_present",
+             "--check", "surfaces.no_uncovered_class"])
+    rec("param-shadow CLI: exit 1", code == 1, code)
+    rec("param-shadow CLI: names the unresolved class",
+        "<unresolved-var:S$>" in out, out)
     # (b3) a substrate whose call shapes all vanish is a vacuity FAIL, never
     # an empty-set pass (the 2026-10-16 omp-move defect class round 21 fixed)
     code, out = run(omp_dump=fx + "/strings-empty.txt")

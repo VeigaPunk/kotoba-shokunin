@@ -29,7 +29,7 @@ A client is BACKED iff all of:
     inside the `## Anti-patterns` section (HTML comments and code fences are
     ignored), with the row's `held by` one of `skill author` / `user or
     operator` / `app developer` and its `effect` one of `removed everywhere`
-    / `automatic choice off` / `outside a scope`;
+    / `automatic choice off` / `outside a scope` / `removed in a scope`;
   * the row's id matches `S\d{3}`, is unique in the SOURCES registry, has
     status `mined`, kind `docs`/`code`/`spec`, tier `A`, and its first https
     URL sits under the client's pinned vendor docs prefix;
@@ -72,10 +72,14 @@ the network reads made by --fetch.
 from __future__ import annotations
 
 import argparse
+import contextlib
 import http.client
+import io
+import os
 import re
 import subprocess
 import sys
+import tempfile
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -106,33 +110,49 @@ WS_RUN = re.compile(r"\s+")
 EMPHASIS = re.compile(r"[*_`]")
 HTML_TAG = re.compile(r"<[^>]+>")
 HTTPS_URL = re.compile(r"https://[^\s|]+")
-QUOTE_CELL = re.compile(r'\A"([^"]*)"\s*\([^)]*\)')
+QUOTE_CELL = re.compile(r'\A"(.*)"\s*\(([^)]*)\)\s*\Z', re.S)
 CODE_SPAN = re.compile(r"`([^`]+)`")
 COMMENT = re.compile(r"<!--.*?-->", re.S)
-FENCE = re.compile(r"\A```")
-HEADING = re.compile(r"\A## ")
+FENCE = re.compile(r"\A {0,3}(```|~~~)")
+HEADING = re.compile(r"\A#{1,2} ")
+TABLE_LINE = re.compile(r"\A {0,3}\|")
 USER_AGENT = "Mozilla/5.0 (compatible; kotoba-check_overlap_levers/1.0)"
 FETCH_TIMEOUT = 20
 MAX_QUOTE_WORDS = 25
 
 ALLOWED_HELD_BY = ("skill author", "user or operator", "app developer")
 ALLOWED_EFFECTS = ("removed everywhere", "automatic choice off",
-                   "outside a scope")
+                   "outside a scope", "removed in a scope")
 ALLOWED_KINDS = ("docs", "code", "spec")
 TIER_A = "A"
 
-# Vendor identity: a client is backed only by its own vendor's documentation,
-# so the SOURCES row's first https URL must start with one of these prefixes.
+# Vendor identity: a client is backed only by its own vendor's reviewed page,
+# so the SOURCES row's first https URL must be that page (a `.md` suffix or a
+# sub-path is tolerated).
 CLIENT_URL_PREFIXES = {
-    "GitHub Copilot SDK": ("https://docs.github.com/en/copilot/",),
-    "GitHub Copilot CLI": ("https://docs.github.com/en/copilot/",),
-    "VS Code": ("https://code.visualstudio.com/docs/",),
-    "Claude Code": ("https://code.claude.com/docs/",),
-    "opencode": ("https://opencode.ai/docs/",),
-    "Gemini CLI": ("https://geminicli.com/docs/",),
-    "Codex": ("https://learn.chatgpt.com/docs/",
-              "https://developers.openai.com/codex/"),
+    "GitHub Copilot SDK": ("https://docs.github.com/en/copilot/how-tos/"
+                           "copilot-sdk/features/skills",),
+    "GitHub Copilot CLI": ("https://docs.github.com/en/copilot/reference/"
+                           "copilot-cli-reference/cli-command-reference",),
+    "VS Code": ("https://code.visualstudio.com/docs/agent-customization/"
+                "agent-skills",),
+    "Claude Code": ("https://code.claude.com/docs/en/skills",),
+    "opencode": ("https://opencode.ai/docs/skills",),
+    "Gemini CLI": ("https://geminicli.com/docs/cli/skills",),
+    "Codex": ("https://learn.chatgpt.com/docs/build-skills",
+              "https://developers.openai.com/codex/skills"),
 }
+
+
+def _url_matches_page(url, prefixes):
+    """True when `url` is one of `prefixes` (or a `.md`/sub-path form)."""
+    u = url.rstrip("/")
+    for prefix in prefixes:
+        p = prefix.rstrip("/")
+        if u == p or u.startswith(p + "/") \
+                or u == p + ".md" or u.startswith(p + ".md/"):
+            return True
+    return False
 
 # Reviewed list, round 51; a removal lever, not a tie-break.  These are the
 # key terms a reviewer confirmed remove one named skill from model choice
@@ -140,15 +160,33 @@ CLIENT_URL_PREFIXES = {
 # semantic judgment is frozen here by the reviewer seats and is not a
 # measurement.
 REVIEWED_LEVERS = {
-    "GitHub Copilot SDK": {"disabledSkills"},
-    "GitHub Copilot CLI": {"disable-model-invocation", "copilot skill disable",
-                           "ignoredSkillsLocations"},
-    "VS Code": {"disable-model-invocation"},
-    "Claude Code": {"disable-model-invocation", "disable-model-invocation: true",
-                    "skillOverrides"},
-    "opencode": {"opencode/autoinvoke", "deny"},
-    "Gemini CLI": {"/skills disable", "/skills disable <name>", "skills disable"},
-    "Codex": {"allow_implicit_invocation", "enabled = false"},
+    "GitHub Copilot SDK": {"disabledSkills": ("app developer",
+                                              "removed in a scope")},
+    "GitHub Copilot CLI": {"disable-model-invocation": ("skill author",
+                                                       "automatic choice off"),
+                           "copilot skill disable": ("user or operator",
+                                                     "removed in a scope")},
+    "VS Code": {"disable-model-invocation": ("skill author",
+                                             "automatic choice off")},
+    "Claude Code": {"disable-model-invocation": ("skill author",
+                                                 "automatic choice off"),
+                    "skillOverrides": ("user or operator",
+                                       "removed in a scope")},
+    # `metadata["opencode/autoinvoke"]` is the same lever spelled as the page's
+    # own `skills.md:128` span; SKILL.md uses it because a bare `opencode/...`
+    # token reads as a citation to the lane's checklist gate (round 51).
+    "opencode": {"opencode/autoinvoke": ("skill author",
+                                          "automatic choice off"),
+                 'metadata["opencode/autoinvoke"]': ("skill author",
+                                                     "automatic choice off")},
+    "Gemini CLI": {"/skills disable": ("user or operator",
+                                       "removed in a scope"),
+                   "/skills disable <name>": ("user or operator",
+                                              "removed in a scope"),
+                   "skills disable": ("user or operator",
+                                       "removed in a scope")},
+    "Codex": {"allow_implicit_invocation": ("skill author",
+                                            "automatic choice off")},
 }
 
 
@@ -173,12 +211,12 @@ def is_separator_row(cells):
 def _table_block_after(lines, start):
     """The first table block (list of cell-lists) at/after `start`."""
     j = start
-    while j < len(lines) and not lines[j].lstrip().startswith("|"):
+    while j < len(lines) and not TABLE_LINE.match(lines[j]):
         j += 1
     if j >= len(lines):
         return None
     rows = []
-    while j < len(lines) and lines[j].lstrip().startswith("|"):
+    while j < len(lines) and TABLE_LINE.match(lines[j]):
         cells = split_row(lines[j])
         if not (rows and is_separator_row(cells)) and cells:
             rows.append(cells)
@@ -202,16 +240,10 @@ def _find_table(text, marker, header):
     return table[1:]
 
 
-def anti_patterns_span(text):
-    """Lines of the `## Anti-patterns` section, comments and fences blanked.
-
-    Only the section between the `## Anti-patterns` heading and the next
-    `## ` heading is kept; HTML comments are removed and fenced code blocks
-    are skipped, so a marker or table hidden in either is never seen.
-    """
+def strip_comments_fences(text):
+    """Remove HTML comments and fenced code blocks (``` and ~~~)."""
     text = COMMENT.sub("", text)
     out = []
-    inside = False
     fence = False
     for line in text.splitlines():
         if FENCE.match(line):
@@ -219,6 +251,22 @@ def anti_patterns_span(text):
             continue
         if fence:
             continue
+        out.append(line)
+    return "\n".join(out)
+
+
+def anti_patterns_span(text):
+    """Lines of the `## Anti-patterns` section, comments and fences blanked.
+
+    Only the section between the `## Anti-patterns` heading and the next
+    level-1/level-2 heading is kept; HTML comments and fenced code blocks
+    (``` or ~~~, up to three leading spaces) are removed, so a marker or
+    table hidden in either is never seen.  Level-3+ subsections stay inside
+    the section.
+    """
+    out = []
+    inside = False
+    for line in strip_comments_fences(text).splitlines():
         if HEADING.match(line):
             inside = line.strip() == "## Anti-patterns"
             continue
@@ -249,7 +297,8 @@ def parse_skill_table(text):
 
 def parse_entry_table(text):
     """Entry file table -> {client_lower: [row_dict, ...]}."""
-    rows = _find_table(text, ENTRY_MARKER, ENTRY_HEADER)
+    rows = _find_table(strip_comments_fences(text), ENTRY_MARKER,
+                       ENTRY_HEADER)
     out = {}
     if rows is None:
         return out
@@ -260,7 +309,7 @@ def parse_entry_table(text):
         quote = None
         m = QUOTE_CELL.match(quote_cell)
         if m:
-            quote = m.group(1)
+            quote = m.group(1).replace("\\|", "|")
         out.setdefault(client.lower(), []).append(
             {"client": client, "id": rid, "lever": lever, "quote": quote})
     return out
@@ -304,12 +353,16 @@ def parse_sources(text):
 
 
 def gate_ids(lesson):
-    """Row ids named in the lesson's `## Gate` section."""
+    """Row ids named under `### Admitted` inside the lesson's `## Gate`."""
     m = re.search(r"^## Gate\n(.*?)(?=^## |\Z)", lesson or "",
                   flags=re.S | re.M)
     if not m:
         return set()
-    return set(re.findall(r"\bS\d{3}\b", m.group(1)))
+    admitted = re.search(r"^### Admitted\n(.*?)(?=^### |^## |\Z)",
+                         m.group(1), flags=re.S | re.M)
+    if not admitted:
+        return set()
+    return set(re.findall(r"\bS\d{3}\b", admitted.group(1)))
 
 
 # --------------------------------------------------------------------------
@@ -363,7 +416,7 @@ def evaluate(skill_text, sources_text, entry_text, lesson_text=""):
             continue
         url = first_https_url(src["source"]) or ""
         prefixes = CLIENT_URL_PREFIXES[client]
-        if not url.startswith(prefixes):
+        if not _url_matches_page(url, prefixes):
             results[client] = (False, "source not the client's vendor docs")
             continue
         if src["kind"] not in ALLOWED_KINDS or src["tier"] != TIER_A:
@@ -401,6 +454,11 @@ def evaluate(skill_text, sources_text, entry_text, lesson_text=""):
             continue
         if key_term not in REVIEWED_LEVERS[client]:
             results[client] = (False, "key term not a reviewed overlap lever")
+            continue
+        label = REVIEWED_LEVERS[client][key_term]
+        if (row["held_by"], row["effect"]) != label:
+            results[client] = (False,
+                               "held by/effect do not match the reviewed label")
             continue
         if "description" in key_term.lower():
             results[client] = (False, "key term mentions description")
@@ -596,18 +654,18 @@ URL = {
     "S029": "Gemini CLI — Agent Skills — https://geminicli.com/docs/cli/skills/",
     "S030": "GitHub Docs — Copilot SDK skills — "
             "https://docs.github.com/en/copilot/how-tos/copilot-sdk/features/skills",
-    "S031": "GitHub Docs — Copilot CLI add skills — "
-            "https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-skills",
+    "S031": "GitHub Docs — Copilot CLI command reference — "
+            "https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-command-reference",
 }
 
 Q25 = ("Use the `user-invocable` and `disable-model-invocation` frontmatter "
        "properties to control how each skill is accessed")
 
 LEVER = {
-    "GitHub Copilot SDK": ("disable list", "user or operator",
-                           "removed everywhere", "S030", "disabledSkills",
+    "GitHub Copilot SDK": ("disable list", "app developer",
+                           "removed in a scope", "S030", "disabledSkills",
                            "Use `disabledSkills` to exclude conflicting skills"),
-    "GitHub Copilot CLI": ("skill disable command", "user or operator",
+    "GitHub Copilot CLI": ("skill disable command", "skill author",
                            "automatic choice off", "S031",
                            "disable-model-invocation",
                            "To stop the model from invoking it on its own, "
@@ -620,11 +678,12 @@ LEVER = {
                     "disable-model-invocation",
                     "To keep a skill but stop Claude from invoking it on its "
                     "own, set `disable-model-invocation`"),
-    "opencode": ("permission deny", "app developer",
-                 "automatic choice off", "S024", "deny",
-                 "Check permissions—skills with `deny` are hidden from agents"),
+    "opencode": ("autoinvoke off", "skill author",
+                 "automatic choice off", "S024", "opencode/autoinvoke",
+                 "`opencode/autoinvoke`: set to `\"false\"` to keep the skill "
+                 "out of model-facing auto-selection guidance"),
     "Gemini CLI": ("disable command", "user or operator",
-                   "removed everywhere", "S029", "/skills disable",
+                   "removed in a scope", "S029", "/skills disable",
                    "Use `/skills disable` to prevent a specific skill from "
                    "being used"),
     "Codex": ("implicit invocation off", "skill author",
@@ -665,8 +724,8 @@ def _control_world():
         "|---|---|---|---|\n"
         + "\n".join(entry_rows) + "\n"
     )
-    lesson = "# Round 51\n\n## Gate\n\nRe-opened " + ", ".join(LEVER_IDS) \
-        + ".\n"
+    lesson = ("# Round 51\n\n## Gate\n\n### Admitted\n\n- Re-opened "
+              + ", ".join(LEVER_IDS) + ".\n")
     return skill, sources, entry, lesson
 
 
@@ -704,10 +763,10 @@ def _mutants():
          for ln in split(base_entry)]
     out.append(("key term absent from quote", base_skill, base_sources,
                 join(e), base_lesson))
-    s = [ln.replace("| %s | disable list | user or operator | removed "
-                    "everywhere | S030 | `disabledSkills` |" % c0,
-                    "| %s | disable list | user or operator | removed "
-                    "everywhere | S030 | `description-term0` |" % c0)
+    s = [ln.replace("| %s | disable list | app developer | removed "
+                    "in a scope | S030 | `disabledSkills` |" % c0,
+                    "| %s | disable list | app developer | removed "
+                    "in a scope | S030 | `description-term0` |" % c0)
          for ln in split(base_skill)]
     out.append(("key term mentions description", join(s), base_sources,
                 base_entry, base_lesson))
@@ -758,11 +817,12 @@ def _mutants():
               for ln in split(base_skill)])
     out.append(("generic key term not reviewed", s, base_sources, base_entry,
                 base_lesson))
-    e = join([ln.replace("\"Check permissions—skills with `deny` are hidden "
-                         "from agents\"",
-                         "\"Check permissions—skills with deny are hidden "
-                         "from agents\"")
-              for ln in split(base_entry)])
+    def _unbacktick_opencode(line):
+        if line.startswith("| opencode |"):
+            return line.replace("`", "")
+        return line
+
+    e = join([_unbacktick_opencode(ln) for ln in split(base_entry)])
     out.append(("key term not code span", base_skill, base_sources, e,
                 base_lesson))
     long_quote = ("The list, add, remove, disable, and enable operations are "
@@ -795,7 +855,7 @@ def _mutants():
     src = split(base_sources)
     idx = next(i for i, ln in enumerate(src)
                if ln.startswith("| S025 |"))
-    src.insert(idx + 1, _src_row("S025", URL["S025"]))
+    src.insert(idx + 1, _src_row("S025", URL["S025"]).rstrip("\n"))
     out.append(("duplicate source row", base_skill, join(src), base_entry,
                 base_lesson))
 
@@ -903,6 +963,58 @@ def self_test():
         if not passed:
             failures.append("%s: %s" % (name, detail))
 
+    # Pinned literals: the instrument's own configuration cannot drift
+    # without the suite noticing (falsify survivors m04/m05/m07/m08/m13/
+    # m15/m17).
+    check("pinned clients literal",
+          tuple(CLIENTS) == ("GitHub Copilot SDK", "GitHub Copilot CLI",
+                             "VS Code", "Claude Code", "opencode",
+                             "Gemini CLI", "Codex"),
+          "CLIENTS = %r" % (CLIENTS,))
+    check("pinned held-by vocab",
+          ALLOWED_HELD_BY == ("skill author", "user or operator",
+                              "app developer"),
+          "ALLOWED_HELD_BY = %r" % (ALLOWED_HELD_BY,))
+    check("pinned effect vocab",
+          ALLOWED_EFFECTS == ("removed everywhere", "automatic choice off",
+                              "outside a scope", "removed in a scope"),
+          "ALLOWED_EFFECTS = %r" % (ALLOWED_EFFECTS,))
+    check("pinned kind vocab",
+          ALLOWED_KINDS == ("docs", "code", "spec"),
+          "ALLOWED_KINDS = %r" % (ALLOWED_KINDS,))
+    check("pinned tier", TIER_A == "A",
+          "TIER_A = %r" % (TIER_A,))
+    check("pinned word cap", MAX_QUOTE_WORDS == 25,
+          "MAX_QUOTE_WORDS = %r" % (MAX_QUOTE_WORDS,))
+    check("pinned reviewed levers",
+          REVIEWED_LEVERS == {
+              "GitHub Copilot SDK": {"disabledSkills": ("app developer",
+                                                       "removed in a scope")},
+              "GitHub Copilot CLI": {"disable-model-invocation": (
+                  "skill author", "automatic choice off"),
+                                     "copilot skill disable": (
+                  "user or operator", "removed in a scope")},
+              "VS Code": {"disable-model-invocation": (
+                  "skill author", "automatic choice off")},
+              "Claude Code": {"disable-model-invocation": (
+                  "skill author", "automatic choice off"),
+                              "skillOverrides": (
+                  "user or operator", "removed in a scope")},
+              "opencode": {"opencode/autoinvoke": (
+                  "skill author", "automatic choice off"),
+                           'metadata["opencode/autoinvoke"]': (
+                  "skill author", "automatic choice off")},
+              "Gemini CLI": {"/skills disable": (
+                  "user or operator", "removed in a scope"),
+                             "/skills disable <name>": (
+                  "user or operator", "removed in a scope"),
+                             "skills disable": (
+                  "user or operator", "removed in a scope")},
+              "Codex": {"allow_implicit_invocation": (
+                  "skill author", "automatic choice off")},
+          },
+          "REVIEWED_LEVERS = %r" % (REVIEWED_LEVERS,))
+
     skill, sources, entry, lesson = _control_world()
     results, _ = evaluate(skill, sources, entry, lesson)
     k = sum(1 for ok, _ in results.values() if ok)
@@ -914,6 +1026,323 @@ def self_test():
         check("mutant: " + name, k < len(CLIENTS),
               "expected fewer than %d backed, got %d"
               % (len(CLIENTS), k))
+
+    # Quote cell with inner double quotes (L1 addendum 2c): the quote runs
+    # from the cell's first `"` to the last `"` before the location.
+    inner_quote_cell = ("\"`opencode/autoinvoke`: set to `\"false\"` to keep "
+                        "the skill out of model-facing auto-selection "
+                        "guidance\" (skills.md:45)")
+    m = QUOTE_CELL.match(inner_quote_cell)
+    check("quote cell with inner double quotes",
+          m is not None and m.group(1) == (
+              "`opencode/autoinvoke`: set to `\"false\"` to keep the skill "
+              "out of model-facing auto-selection guidance"),
+          "parsed: %r" % (m.group(1) if m else None))
+
+    # Falsify survivors (MutLeverGuard m01-m18), one isolated arm each.
+    rows = [_skill_row(c, LEVER[c][0], LEVER[c][1], LEVER[c][2],
+                       LEVER[c][3], LEVER[c][4]) for c in CLIENTS]
+
+    # m01: the table sits outside `## Anti-patterns` (no section at all).
+    outside = ("# kotoba\n\n## Refusals\n\nOverlap levers by client\n\n"
+               "| client | lever | held by | effect | row | key term |\n"
+               "|---|---|---|---|---|---|\n" + "\n".join(rows) + "\n")
+    results, _ = evaluate(outside, sources, entry, lesson)
+    k = sum(1 for ok, _ in results.values() if ok)
+    check("table outside Anti-patterns", k < len(CLIENTS),
+          "expected <7 backed, got %d" % k)
+
+    # m02: the table sits inside an HTML comment within the section.
+    hidden = ("# kotoba\n\n## Anti-patterns\n\n<!--\n"
+              "Overlap levers by client\n\n"
+              "| client | lever | held by | effect | row | key term |\n"
+              "|---|---|---|---|---|---|\n" + "\n".join(rows) + "\n"
+              "-->\n\n## Refusals\n")
+    results, _ = evaluate(hidden, sources, entry, lesson)
+    k = sum(1 for ok, _ in results.values() if ok)
+    check("comment-hidden table inside section", k < len(CLIENTS),
+          "expected <7 backed, got %d" % k)
+
+    # m03: a wrong header must be rejected.
+    wrong_header = ("# kotoba\n\n## Anti-patterns\n\n"
+                    "Overlap levers by client\n\n"
+                    "| client | lever | effect | held by | row | "
+                    "key term |\n"
+                    "|---|---|---|---|---|---|\n" + "\n".join(rows) + "\n")
+    results, _ = evaluate(wrong_header, sources, entry, lesson)
+    k = sum(1 for ok, _ in results.values() if ok)
+    check("wrong header rejected", k < len(CLIENTS),
+          "expected <7 backed, got %d" % k)
+
+    # Addendum 6: swapped held-by/effect labels must lose the client.
+    swap_rows = [_skill_row(c, LEVER[c][0],
+                            ("user or operator"
+                             if c == "GitHub Copilot SDK"
+                             else LEVER[c][1]),
+                            ("removed everywhere"
+                             if c == "GitHub Copilot SDK"
+                             else LEVER[c][2]),
+                            LEVER[c][3], LEVER[c][4])
+                 for c in CLIENTS]
+    swap_skill = ("# kotoba\n\n## Anti-patterns\n\n"
+                  "Overlap levers by client\n\n"
+                  "| client | lever | held by | effect | row | key term |\n"
+                  "|---|---|---|---|---|---|\n"
+                  + "\n".join(swap_rows) + "\n")
+    results, _ = evaluate(swap_skill, sources, entry, lesson)
+    k = sum(1 for ok, _ in results.values() if ok)
+    check("swapped labels lose the client", k < len(CLIENTS),
+          "expected <7 backed, got %d" % k)
+
+    # m08: a tier-B row must be refused.
+    tier_b_sources = SOURCES_HDR + "".join(
+        _src_row(s, URL[s], tier="B") if s == "S030" else _src_row(s, URL[s])
+        for s in LEVER_IDS)
+    results, _ = evaluate(skill, tier_b_sources, entry, lesson)
+    k = sum(1 for ok, _ in results.values() if ok)
+    check("tier B refused", k < len(CLIENTS),
+          "expected <7 backed, got %d" % k)
+
+    # m10: the bare filename in used-by is still accepted.
+    bare = SOURCES_HDR + "".join(
+        _src_row(s, URL[s], used=ENTRY_FILENAME) for s in LEVER_IDS)
+    results, _ = evaluate(skill, bare, entry, lesson)
+    k = sum(1 for ok, _ in results.values() if ok)
+    check("used-by bare filename backed", k == len(CLIENTS),
+          "expected 7 backed, got %d" % k)
+
+    # m16: the description filter must decide on its own.  The term is
+    # injected into the reviewed set so only the description rule can unback
+    # the client.
+    orig_vs = REVIEWED_LEVERS["VS Code"]
+    try:
+        REVIEWED_LEVERS["VS Code"] = dict(orig_vs)
+        REVIEWED_LEVERS["VS Code"]["description-gate"] = (
+            "skill author", "automatic choice off")
+        desc_rows = [_skill_row(c, LEVER[c][0], LEVER[c][1], LEVER[c][2],
+                               LEVER[c][3],
+                               "description-gate" if c == "VS Code"
+                               else LEVER[c][4])
+                     for c in CLIENTS]
+        desc_skill = ("# kotoba\n\n## Anti-patterns\n\n"
+                      "Overlap levers by client\n\n"
+                      "| client | lever | held by | effect | row | "
+                      "key term |\n"
+                      "|---|---|---|---|---|---|\n"
+                      + "\n".join(desc_rows) + "\n")
+        desc_entry_rows = [
+            _entry_row(c, LEVER[c][3], LEVER[c][0],
+                       "Use `description-gate` here" if c == "VS Code"
+                       else LEVER[c][5])
+            for c in CLIENTS]
+        desc_entry = ("## Levers by client\n\n| client | row | lever | "
+                      "quote |\n|---|---|---|---|\n"
+                      + "\n".join(desc_entry_rows) + "\n")
+        results, _ = evaluate(desc_skill, sources, desc_entry, lesson)
+        k = sum(1 for ok, _ in results.values() if ok)
+        check("description filter decides", k < len(CLIENTS),
+              "expected <7 backed, got %d" % k)
+    finally:
+        REVIEWED_LEVERS["VS Code"] = orig_vs
+
+    # m18: the --rev reader must distinguish two revisions.
+    env = dict(os.environ)
+    env.update({"GIT_AUTHOR_NAME": "kotoba self-test",
+                "GIT_AUTHOR_EMAIL": "self-test@example.invalid",
+                "GIT_COMMITTER_NAME": "kotoba self-test",
+                "GIT_COMMITTER_EMAIL": "self-test@example.invalid"})
+    with tempfile.TemporaryDirectory() as td:
+        repo = Path(td)
+        subprocess.run(["git", "init", "-q", "-b", "main"], cwd=repo,
+                       env=env, check=True)
+        subprocess.run(["git", "config", "commit.gpgsign", "false"],
+                       cwd=repo, env=env, check=True)
+        (repo / "corpus/knowledge").mkdir(parents=True, exist_ok=True)
+        (repo / "corpus/lessons").mkdir(parents=True, exist_ok=True)
+        (repo / "SKILL.md").write_text(
+            "# kotoba\n\n## Anti-patterns\n\nnothing here\n",
+            encoding="utf-8")
+        (repo / "corpus/SOURCES.md").write_text("", encoding="utf-8")
+        subprocess.run(["git", "add", "-A"], cwd=repo, env=env, check=True)
+        subprocess.run(["git", "commit", "-q", "-m", "one"], cwd=repo,
+                       env=env, check=True)
+        rev1 = subprocess.run(["git", "rev-parse", "HEAD"], cwd=repo,
+                              env=env, capture_output=True, text=True,
+                              check=True).stdout.strip()
+        (repo / "SKILL.md").write_text(skill, encoding="utf-8")
+        (repo / "corpus/SOURCES.md").write_text(sources, encoding="utf-8")
+        (repo / ENTRY_PATH).write_text(entry, encoding="utf-8")
+        (repo / LESSON_PATH).write_text(lesson, encoding="utf-8")
+        subprocess.run(["git", "add", "-A"], cwd=repo, env=env, check=True)
+        subprocess.run(["git", "commit", "-q", "-m", "two"], cwd=repo,
+                       env=env, check=True)
+        rev2 = subprocess.run(["git", "rev-parse", "HEAD"], cwd=repo,
+                              env=env, capture_output=True, text=True,
+                              check=True).stdout.strip()
+        orig_root = default_root
+        try:
+            globals()["default_root"] = lambda: repo
+            out1, out2 = io.StringIO(), io.StringIO()
+            with contextlib.redirect_stdout(out1):
+                rc1 = main(["--rev", rev1])
+            with contextlib.redirect_stdout(out2):
+                rc2 = main(["--rev", rev2])
+            check("--rev reader distinguishes revisions",
+                  rc1 == 1 and rc2 == 0
+                  and "backed 0 of 7" in out1.getvalue()
+                  and "backed 7 of 7" in out2.getvalue(),
+                  "rc1=%d rc2=%d" % (rc1, rc2))
+        finally:
+            globals()["default_root"] = orig_root
+
+    # Escaped pipes in a quoted table row (L1 addendum 4i).
+    pipe_cell = ("\"`disable-model-invocation` \\| boolean \\| No \\| "
+                 "Prevent the agent from automatically invoking this skill.\" "
+                 "(cli-command-reference.md:1278)")
+    pm = QUOTE_CELL.match(pipe_cell)
+    check("quote cell with escaped pipes",
+          pm is not None and pm.group(1).replace("\\|", "|") == (
+              "`disable-model-invocation` | boolean | No | Prevent the agent "
+              "from automatically invoking this skill."),
+          "parsed: %r" % (pm.group(1) if pm else None))
+    pipe_quote = (pm.group(1).replace("\\|", "|") if pm else "")
+    check("escaped-pipe quote within word cap",
+          len(pipe_quote.split()) <= MAX_QUOTE_WORDS,
+          "%d words" % len(pipe_quote.split()))
+    check("escaped-pipe quote matches live-style whitespace",
+          quote_on_page("`disable-model-invocation`   |  boolean | No |  "
+                        "Prevent the agent from automatically invoking this "
+                        "skill.", pipe_quote),
+          "")
+    pipe_entry_rows = [
+        _entry_row(c, LEVER[c][3], LEVER[c][0],
+                   '"`disable-model-invocation` \\| boolean \\| No \\| '
+                   'Prevent the agent from automatically invoking this '
+                   'skill."'
+                   if c == "GitHub Copilot CLI" else LEVER[c][5])
+        for c in CLIENTS]
+    pipe_entry = ("## Levers by client\n\n| client | row | lever | quote |\n"
+                  "|---|---|---|---|\n" + "\n".join(pipe_entry_rows) + "\n")
+    results, _ = evaluate(skill, sources, pipe_entry, lesson)
+    k = sum(1 for ok, _ in results.values() if ok)
+    check("escaped-pipe quote backs the client", k == len(CLIENTS),
+          "expected 7 backed, got %d" % k)
+
+    # ReviewReviewedList agents.md `deny` world (term dropped from the list).
+    deny_rows = [_skill_row(c, LEVER[c][0], LEVER[c][1], LEVER[c][2],
+                            LEVER[c][3],
+                            "deny" if c == "opencode" else LEVER[c][4])
+                 for c in CLIENTS]
+    deny_entry_rows = [
+        _entry_row(c, LEVER[c][3], LEVER[c][0],
+                   '"Check permissions—skills with `deny` are hidden from agents"'
+                   if c == "opencode" else LEVER[c][5])
+        for c in CLIENTS]
+    deny_entry = ("## Levers by client\n\n| client | row | lever | quote |\n"
+                  "|---|---|---|---|\n" + "\n".join(deny_entry_rows) + "\n")
+    deny_skill = ("# kotoba\n\n## Anti-patterns\n\n"
+                  "Overlap levers by client\n\n"
+                  "| client | lever | held by | effect | row | key term |\n"
+                  "|---|---|---|---|---|---|\n"
+                  + "\n".join(deny_rows) + "\n")
+    results, _ = evaluate(deny_skill, sources, deny_entry, lesson)
+    k = sum(1 for ok, _ in results.values() if ok)
+    check("agents.md deny world", k < len(CLIENTS),
+          "expected <7 backed, got %d" % k)
+
+    # CriticC2Landed worlds (d-i).
+    w1_lesson = ("# Round 51\n\n## Gate\n\n### Admitted\n\n- Nothing "
+                  "admitted this round.\n\n### Rejected\n\n- "
+                  + ", ".join(LEVER_IDS) + ": rejected.\n")
+    results, _ = evaluate(skill, sources, entry, w1_lesson)
+    k = sum(1 for ok, _ in results.values() if ok)
+    check("world w1 Gate Rejected only", k < len(CLIENTS),
+          "expected <7 backed, got %d" % k)
+
+    w2a_skill = ("# kotoba\n\n## Anti-patterns\n\n# Appendix: rejected drafts\n\n"
+                  "Overlap levers by client\n\n"
+                  "| client | lever | held by | effect | row | key term |\n"
+                  "|---|---|---|---|---|---|\n" + "\n".join(rows) + "\n")
+    results, _ = evaluate(w2a_skill, sources, entry, lesson)
+    k = sum(1 for ok, _ in results.values() if ok)
+    check("world w2a top-level heading", k < len(CLIENTS),
+          "expected <7 backed, got %d" % k)
+
+    w2b_skill = ("# kotoba\n\n## Anti-patterns\n\n~~~text\n"
+                  "Overlap levers by client\n\n"
+                  "| client | lever | held by | effect | row | key term |\n"
+                  "|---|---|---|---|---|---|\n" + "\n".join(rows) + "~~~\n")
+    results, _ = evaluate(w2b_skill, sources, entry, lesson)
+    k = sum(1 for ok, _ in results.values() if ok)
+    check("world w2b tilde fence", k < len(CLIENTS),
+          "expected <7 backed, got %d" % k)
+
+    w2c_rows = ["    " + r for r in rows]
+    w2c_skill = ("# kotoba\n\n## Anti-patterns\n\nOverlap levers by client\n\n"
+                  "    | client | lever | held by | effect | row | key term |\n"
+                  "    |---|---|---|---|---|---|\n"
+                  + "\n".join(w2c_rows) + "\n")
+    results, _ = evaluate(w2c_skill, sources, entry, lesson)
+    k = sum(1 for ok, _ in results.values() if ok)
+    check("world w2c indented rows", k < len(CLIENTS),
+          "expected <7 backed, got %d" % k)
+
+    w2d_skill = ("# kotoba\n\n## Anti-patterns\n\n### Overlap levers\n\n"
+                  "Overlap levers by client\n\n"
+                  "| client | lever | held by | effect | row | key term |\n"
+                  "|---|---|---|---|---|---|\n" + "\n".join(rows) + "\n")
+    results, _ = evaluate(w2d_skill, sources, entry, lesson)
+    k = sum(1 for ok, _ in results.values() if ok)
+    check("world w2d subsection stays backed", k == len(CLIENTS),
+          "expected 7 backed, got %d" % k)
+
+    w3_quotes = {
+        "GitHub Copilot SDK":
+            '"Setting `disabledSkills` does not stop a skill from being chosen"',
+        "GitHub Copilot CLI":
+            '"The `copilot skill disable` command has no effect"',
+        "VS Code":
+            '"`disable-model-invocation` is ignored; the agent may still load '
+            'the skill"',
+        "Claude Code":
+            '"`skillOverrides` never hides a skill"',
+        "opencode":
+            '"A `deny` pattern never hides a skill from agents"',
+        "Gemini CLI":
+            '"`/skills disable <name>` is not supported"',
+        "Codex":
+            '"`allow_implicit_invocation` is ignored; only the description '
+            'decides"',
+    }
+    w3_entry_rows = [
+        _entry_row(c, LEVER[c][3], "none", w3_quotes[c]) for c in CLIENTS]
+    w3_entry = ("## Levers by client\n\n| client | row | lever | quote |\n"
+                "|---|---|---|---|\n" + "\n".join(w3_entry_rows) + "\n")
+    results, _ = evaluate(skill, sources, w3_entry, lesson)
+    k = sum(1 for ok, _ in results.values() if ok)
+    check("world w3 opposite quotes", k < len(CLIENTS),
+          "expected <7 backed, got %d" % k)
+
+    w4_urls = dict(URL)
+    w4_urls["S024"] = "https://opencode.ai/docs/permissions"
+    w4_urls["S021"] = ("https://learn.chatgpt.com/docs/config-file/"
+                        "config-reference")
+    w4_sources = SOURCES_HDR + "".join(
+        _src_row(s, w4_urls[s]) for s in LEVER_IDS)
+    results, _ = evaluate(skill, w4_sources, entry, lesson)
+    k = sum(1 for ok, _ in results.values() if ok)
+    check("world w4 off-topic pages", k < len(CLIENTS),
+          "expected <7 backed, got %d" % k)
+
+    w5_entry = ("## Levers by client\n\n<!--\n"
+                "| client | row | lever | quote |\n|---|---|---|---|\n"
+                + "\n".join([_entry_row(c, LEVER[c][3], LEVER[c][0],
+                                        LEVER[c][5]) for c in CLIENTS])
+                + "-->\n")
+    results, _ = evaluate(skill, sources, w5_entry, lesson)
+    k = sum(1 for ok, _ in results.values() if ok)
+    check("world w5 hidden entry", k < len(CLIENTS),
+          "expected <7 backed, got %d" % k)
 
     if failures:
         for failure in failures:

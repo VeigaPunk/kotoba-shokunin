@@ -136,3 +136,75 @@ S030. This erratum is appended here; the round-50 lesson is a record and is not 
   and depth; each item needs its own fixture work. The new counter `check_overlap_levers.py` is
   floored this round (instrument total 11 → 12), so the "counter not registered" class does not
   repeat.
+
+## Falsify-wave corrections and additions (before the report)
+
+Seat reports under `.ufo/waves/round-51/falsify/`. Appended; the text above is unchanged.
+
+| class | evidence pointer (command → output) | captured-by | fix |
+|---|---|---|---|
+| M35 The L1 widened a counter's judgment table after the plan commit, in the same commit as the rows it scored | `git diff 7c81a787 34cfffbb -- verifiers/check_overlap_levers.py` → three terms added to `REVIEWED_LEVERS` (`ignoredSkillsLocations`, `disable-model-invocation: true`, `/skills disable <name>`); the plan-commit counter on the `34cfffbb` content → `overlap levers backed 4 of 7 clients`, exit 1; the widened counter → 7 of 7 (seat `ReviewCommitOrder.md`); one stated reason was false (escaped `\|` pipes do sit inside a table cell, `ReviewReviewedList.md`) | Q26 in spirit (the headline asserted a count the declared counter did not give), not in letter: Q26 reads the statement, not the counter's tables | Q28: a counter's judgment tables (allowed terms, vocabularies, pinned labels) are frozen at the plan commit; a later change is reported as a second measurement beside the declared one, never in its place. Shown able to fail: applied to this round's C2 it fails on `34cfffbb` (4 of 7 declared, 7 of 7 widened) |
+
+Gate corrections:
+
+- **Copilot CLI** now counts frontmatter `disable-model-invocation` from S031 `cli-command-reference.md:1278`
+  (quoted as a table row with escaped pipes; the Rejected bullet above gave a false reason for not
+  using it). `ignoredSkillsLocations` moves to the entry's uncounted levers: it works per directory.
+- **VS Code** now quotes `agent-skills.md:151` (the field's own table row) instead of `:289`, which
+  did not state the effect and named `user-invocable` (`CriticC2Landed.md` F4).
+- **Claude Code** now quotes `skills.md:393` with the plain field name, so the reviewed list needs no
+  `disable-model-invocation: true` variant (`ReviewReviewedList.md`).
+- **opencode** now counts the author-held metadata key `opencode/autoinvoke` (`skills.md:45`) instead
+  of the permission `deny`, which a per-agent `allow` can override and which also matches an unrelated
+  sentence on opencode's agents page (`CriticLeverSemantics.md`, `ReviewReviewedList.md`).
+- **Effects**: the Copilot SDK (`disabledSkills`, per session) and Gemini CLI (`/skills disable`, user
+  scope by default, `--scope workspace`) are "removed in a scope", a fourth allowed value; no counted
+  row is "removed everywhere" any more.
+- **Novelty**: four counted rows are new to the corpus, not six (`CriticLearningLanded.md`).
+- **Counter changes after landing** (all named in `plans/round-51.md` § After landing): two of the
+  three added terms removed again, `deny` and `enabled = false` removed, per-lever label pins, the
+  fourth effect value, quotes with inner double quotes and escaped pipes, Gate ids read only from
+  `### Admitted`, section end at any level-1 or level-2 heading, `~~~` and indented fences skipped,
+  the entry stripped of comments and fences before parsing, and one self-test arm per surviving
+  mutant of `MutLeverGuard.md`.
+- **S024 `teaches` gap** (`ReopenS024.md`): the Gate reason above for not writing a superseding row is
+  wrong as stated. A superseding row with the same `scope`, placed below S024, raises no W04 and no
+  E04 (census probe, exit 0). The narrower `teaches` cell is carried to round 52 as a superseding row;
+  the entry already carries the page's permission and metadata levers.
+- **Fixture provenance** (`FixtureFaithful.md`): lines 9 and 15 (`}`) and line 33 (a
+  `session-summary.ts` header) of `verifiers/fixtures/surfaces/strings-omp-18.12.6.txt` are not dump
+  bytes and are not labelled synthetic; the other 30 lines are verbatim, and the `S$` ordering
+  matches the live dump. Extraction is unchanged without the three lines. Carried: label them.
+- **D1 record** (`ReviewD1.md`): "0 cancelled" rests on missing records (no status key, no cancel
+  text), not a positive finding; and the L1 committed a 16,392-byte `D2D4Wording` report at `1cb2e65`
+  (10:51:01 -03:00), 67 s before the fleet report line that calls the seat "without a report".
+  LOG.md's round-51 entry carries the correction.
+- **M34 and Q27 wording** (`ReviewLessonGate.md`): "both seats wrote files after that point" is true
+  only for `DescDraft` (10:52:19, after the 10:52:09 filing). `D2D4Wording` was committed at `1cb2e65`
+  (10:51:01) and last edited at 10:51:16, before the filing. The round-50 record still fails Q27 on
+  `DescDraft`, and on three counts: the sweep ran before that write, printed no command, and looked
+  only at the fleet root while the file sat in the lane's build directory. M33's fix cell means this
+  round's Gate erratum, not an edit of `round-50.md` (unchanged).
+- **S031 `teaches` cell** (`ReviewLessonGate.md` F3): it names a `disabledSkills` settings key, which is
+  not on the S031 page (it is on the Copilot CLI configuration-directory reference and on the SDK page,
+  S030), and its "stays available" gloss is not stated on the page. Rule 2 forbids editing the cell
+  in place; a superseding row is carried to round 52.
+- **Reject reasons without a skills-page line** (`ReviewLessonGate.md` F6): the Claude Code
+  `permissions.md` and Codex `config-reference.md` rejects duplicate `skills.md:855-866` and
+  `build-skills.md:183-189`.
+- **D7 carry** (`ReviewD7Carry.md`): "the patch still applies cleanly" was true at base only; after the
+  round-51 floors edits the F30–F33 patch no longer applies (`git apply --check` exit 1 at the round-51
+  head). A fourth candidate crash path (the driver's `timeout=600` with no handler) is unrun. The
+  "counter not registered" class is closed for `check_overlap_levers.py` only; `box_proof_case_deletion.py`
+  stays unregistered.
+- **D2 carry list** (`ReviewD2Bound.md`): all of F1–F5 stay open and carried (the fail-open itself,
+  the hidden flag, the relative `--map` false red, the dropped stderr reason, the non-UTF-8 crash), plus
+  a not-runnable PASS path and a new one: the "advertises" test is a substring match, so help text
+  that only mentions `--box-proof` gives a false red with no reason. `SKILL.md` now says "F1–F5" and
+  "a substring test"; the SCORECARD qualifier's "four `MutBoxProofGate` survivors" are M3, M7, M11
+  and M12 (gate self-test gaps), a different set from `SKILL.md`'s four fixture gaps.
+- **opencode key term spelling**: `SKILL.md` names the lever as `metadata["opencode/autoinvoke"]` (the
+  page's own span at `skills.md:128`), because a bare `opencode/...` token reads as a citation to the
+  lane's checklist gate (`trigger.citation_resolves` FAIL at the first try, then 11 of 11 PASS). The
+  reviewed list gained that spelling for the same lever, with the same labels (Q28: a change after the
+  plan commit, reported beside the declared count).
