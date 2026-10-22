@@ -1,0 +1,743 @@
+diff --git c/corpus/knowledge/instruction-surface-census-round13.md i/corpus/knowledge/instruction-surface-census-round13.md
+index c45157a..5a9ccae 100644
+--- c/corpus/knowledge/instruction-surface-census-round13.md
++++ i/corpus/knowledge/instruction-surface-census-round13.md
+@@ -543,3 +543,28 @@ agent definitions optimize *delegation precision* (capability + exclusions an
+ orchestrator matches); spawn prompts optimize *one-shot completeness*
+ (everything the reader needs, nothing it can look up); round prompts optimize
+ *delta-only weight* (everything durable is already in the repo).
++
++**Round-53 re-derivation (2026-10-22, opencode 1.19.4, append-only).** The installed
++npm `opencode-ai` binary at
++`/home/vgpnk/.npm/_npx/e2094862b59aac7b/node_modules/opencode-ai/bin/opencode.exe`
++has sha256 `538fcb1b6408c8d460882acee19f7ff5b3a3eb3383c0633c4f06170857312a7`;
++the `strings -n 4` dump is
++`/fast/scratch/hyaku/kotoba-r53/ExecOcRederive/oc-1.19.4.strings`
++(sha256 `2d72d83f8c90b15c4ba12037c305a838fefe03401e0762c90efdfe04f5a4bd98`).
++The nine opencode class ids, kinds and verdicts remain unchanged.
++
++- **OC-4, dump lines 598311-598312, 598484, 598489, 598496-598499:** the
++  `Instruction.resolve` and `ReadTool.execute` registration wrappers now use
++  `l(...)` rather than the 1.19.3 fixture's `fn(...)`; the resolver is exported
++  as `resolve:k`, the read tool calls `r.resolve(F.messages,I,F.messageID)`,
++  and that result's content is placed inside `<system-reminder>` in the tool
++  output. The 1.19.4 rule now binds the export, caller edge and same-result
++  delivery rather than counting these literals independently.
++- **OC-6, dump lines 597823 and 597828:** `Wr.make("core/instructions")`
++  replaces the 1.19.3 `Key.make` spelling; `InstructionContext.observe` keeps
++  the `targets:["AGENTS.md"]` walk and the key-backed instruction state. The
++  `instruction-context` layer is registered separately and its instance is a
++  dependency of the registered `system-context-builtins` layer. The 1.19.4
++  rule now requires that registration/dependency shape. The B′ rows above remain
++  the dated 1.19.3 record; this note appends the new measurement without
++  rewriting those anchors.
+diff --git c/verifiers/baseline.json i/verifiers/baseline.json
+index 390564b..fd10512 100644
+--- c/verifiers/baseline.json
++++ i/verifiers/baseline.json
+@@ -7,7 +7,8 @@
+   "omp_round21_note": "omp rebuilt 2026-10-16 (ff59fc1b->bf1e86a9, v18.11.1, unminified source chunks; registration callees now Co/Dl/Hj). Re-pinned by round 21; enforced since round 23 by verifiers/check_substrate_pins.py (the round-21 'named debt' note was stale from r23 on — corrected at round 25).",
+   "omp_round44_note": "Re-pinned at 2026-10-19T18:09:38.022309182Z: /home/vgpnk/.local/bin/omp --version reports omp/18.12.2 (embedded changelog: ## [18.12.2] - 2026-10-18), sha256 9513ef9f19d7991aac6ae0cb6077bcf16662092ddde861c002a91cedc6f47f9a, mtime 2026-10-19T12:35:55.628149917-03:00. Git predecessor evidence: 6fbbff5:verifiers/baseline.json pins v18.11.1 at bf1e86a9; the 18.12.2 registry retains the 8 loader classes but renames call shapes to I5/Gl/Mo. Census evidence: .ufo/round-44/evidence/p3/live-loader-census.json.",
+   "omp_round51_note": "Re-pinned at 2026-10-22T14:19:07.958107Z: /home/vgpnk/.local/bin/omp --version reports omp/18.12.6 (embedded changelog: ## [18.12.6] - 2026-10-21), sha256 85d9daf3a05fc76e8cd425ae1904eb576af8d21cc85fcf4690742626e07ccfa4, mtime 2026-10-21T20:37:24.615549837-03:00 (ns-exact 9-digit ISO stamp with the -03:00 host offset, the format verifiers/check_substrate_pins.py parses; the opencode pin is unchanged and still holds). Previous pin (round 47): sha256 fdbc8136084c9a10439569157b2af62312e2b0d801cab54c73e89476da798e7e (omp/18.12.5), mtime 2026-10-21T03:30:38.135013187-03:00 — the 2026-10-21 20:37 local rebuild that the round-50 spot-check measured as DRIFT 2/3.",
+-  "opencode_binary_sha256": "179ca421d61eefeadfa0c50e084a6e79c1623734732f0f4593f81ccfd3ab7ee9",
++  "opencode_binary_sha256": "538fcb1b6408c8d4608822acee19f7ff5b3a3eb3383c0633c4f06170857312a7",
++  "opencode_round53_note": "Re-pinned round 53 (2026-10-22) after OC-4/OC-6 passed on installed npm opencode-ai 1.19.4 at /home/vgpnk/.npm/_npx/e2094862b59aac7b/node_modules/opencode-ai/bin/opencode.exe (sha256 538fcb1b6408c8d460882acee19f7ff5b3a3eb3383c0633c4f06170857312a7); strings dump /fast/scratch/hyaku/kotoba-r53/ExecOcRederive/oc-1.19.4.strings (sha256 2d72d83f8c90b15c4ba12037c305a838fefe03401e0762c90efdfe04f5a4bd98). OC-4 follows the l resolver export, the ReadTool.execute call to resolve and same-result system-reminder delivery; OC-6 follows Wr.make core/instructions through the instruction-context layer dependency in system-context-builtins.",
+   "command": "python3 verifiers/verify_harness_claims.py --no-baseline --json",
+   "round18_move": "omp binary rebuilt 2026-10-14 (sha 55016ef5→ff59fc1b), opencode replaced by v2.0.26 (sha f9dab322→d9123b9b). Live skill set shrank 17→7 (~/.agents/skills now the only non-empty user root; the two dangling roots are gone). db holds 14 rows (7 skills × 2 description generations) — the cache is append-only per (name, description) so stale generations persist but never serve: keys_reproduced=7 with 0 misses. The catalogue guard now floors at min(10, len(offered)) so a 7-skill catalogue verifies (newest catalogue = this lane's session). The opencode log grammar changed: `init count`/`evaluated permission=skill`/`duplicate skill name` no longer appear (all expected 0); the live analogue is `skills rescanned` (skills_rescan_max=3 — only opencode-root skills are rescanned, not omp's). Legacy opencode pins are re-recorded at their new live values.",
+   "round47_note": "Re-pinned round 47 (2026-10-21) from the frozen snapshot /fast/scratch/kotoba-r47/shared/SHA256SUMS, the same bytes the C1 surfaces re-derivation was measured on: omp/18.12.5 /home/vgpnk/.local/bin/omp sha256 fdbc8136…, mtime 2026-10-21T03:30:38.135013187-03:00 (registration callees now lq/Xl/Fo); opencode moved channel — ~/.opencode/bin/opencode (v2.0.26, d9123b9b…) removed 2026-10-20, the host runs npm opencode-ai 1.19.3 via the ~/.local/bin/opencode npx wrapper, resolved ELF /home/vgpnk/.npm/_npx/e2094862b59aac7b/node_modules/opencode-ai/bin/opencode.exe sha256 179ca421… (round-14 loader lineage; census § B′). Default paths moved in check_substrate_pins.py, verify_surfaces.py and verify_harness_claims.py together."
+diff --git c/verifiers/fixtures/surfaces/strings-opencode-1.19.4-anchors.txt i/verifiers/fixtures/surfaces/strings-opencode-1.19.4-anchors.txt
+new file mode 100644
+index 0000000..61725b5
+--- /dev/null
++++ i/verifiers/fixtures/surfaces/strings-opencode-1.19.4-anchors.txt
+@@ -0,0 +1,34 @@
++# synthetic opencode strings-dump fixture (round 53; installed 1.19.4, sha256 538fcb1b6408c8d460882acee19f7ff5b3a3eb3383c0633c4f06170857312a7)
++# Non-comment lines are selected exact substrings from oc-1.19.4.strings;
++# only rule anchors are included, not whole bundle chunks.
++# OC-1 priority array (dump line 598309)
++f=["AGENTS.md",...!i.disableClaudeCodePrompt?["CLAUDE.md"]:[],"CONTEXT.md"]
++# OC-2 config/home candidates (dump line 598309)
++a=[pe.join(n.config,"AGENTS.md"),...!i.disableClaudeCodePrompt?[pe.join(n.home,".claude","CLAUDE.md")]:[]]
++# OC-3a local instruction list (dump line 598309)
++if(C.instructions)for(let E of C.instructions){if(E.startsWith("https://")||E.startsWith("http://"))continue;
++# OC-3b remote filter and render (dump lines 598309-598310)
++b=(C.instructions??[]).filter((L)=>L.startsWith("https://")||L.startsWith("http://"))
++Instructions from: ${L}
++# OC-4 resolver implementation and service export (dump lines 598311-598312)
++k=l("Instruction.resolve")(function*(C,y,b){
++});return O1.of({clear:T,systemPaths:F,system:v,find:I,resolve:k})
++# OC-4 read-tool entry and call edge (dump lines 598484, 598489)
++A=l("ReadTool.execute")(function*(T,F){
++let y=yield*r.resolve(F.messages,I,F.messageID)
++# OC-4 result delivery inside the read-tool output (dump lines 598496-598499)
++y.length>0)_+=`
++<system-reminder>
++${y.map((B)=>B.content).join(`
++</system-reminder>
++# OC-5 project/config switch (dump line 598309)
++if(!he.OPENCODE_DISABLE_PROJECT_CONFIG)return yield*r.globUp(C,y.directory,y.worktree)
++return yield*r.globUp(C,n.config,n.config)
++# OC-6 key, layer, key use, observer and all-match target (dump line 597823)
++UE=Wr.make("core/instructions"),eD=ia(m(function*(){
++i=(u)=>ki({key:UE,
++s=l("InstructionContext.observe")(function*(){
++yield*e.up({targets:["AGENTS.md"],start:u,stop:f})
++# OC-6 registered layer and dependency in system-context-builtins (dump lines 597823, 597828)
++iD=Re({name:"instruction-context",layer:eD,deps:[O.node,hs,Ac,lH]})
++sD=Re({name:"system-context-builtins",layer:HD,deps:[Ac,lH,iD,O.node,hs]})
+diff --git c/verifiers/fixtures/surfaces/strings-opencode-1.19.4-decoy-oc4.txt i/verifiers/fixtures/surfaces/strings-opencode-1.19.4-decoy-oc4.txt
+new file mode 100644
+index 0000000..d3de29e
+--- /dev/null
++++ i/verifiers/fixtures/surfaces/strings-opencode-1.19.4-decoy-oc4.txt
+@@ -0,0 +1,34 @@
++# synthetic opencode strings-dump fixture (round 53; OC-4 call-edge decoy)
++# Derived from the 1.19.4 anchor excerpt; all bare rule literals remain, but
++# this synthetic line breaks ReadTool.execute -> Instruction.resolve.
++# OC-1 priority array (dump line 598309)
++f=["AGENTS.md",...!i.disableClaudeCodePrompt?["CLAUDE.md"]:[],"CONTEXT.md"]
++# OC-2 config/home candidates (dump line 598309)
++a=[pe.join(n.config,"AGENTS.md"),...!i.disableClaudeCodePrompt?[pe.join(n.home,".claude","CLAUDE.md")]:[]]
++# OC-3a local instruction list (dump line 598309)
++if(C.instructions)for(let E of C.instructions){if(E.startsWith("https://")||E.startsWith("http://"))continue;
++# OC-3b remote filter and render (dump lines 598309-598310)
++b=(C.instructions??[]).filter((L)=>L.startsWith("https://")||L.startsWith("http://"))
++Instructions from: ${L}
++# OC-4 resolver implementation and service export (dump lines 598311-598312)
++k=l("Instruction.resolve")(function*(C,y,b){
++});return O1.of({clear:T,systemPaths:F,system:v,find:I,resolve:k})
++# OC-4 read-tool entry and deliberately broken call edge
++A=l("ReadTool.execute")(function*(T,F){
++let y=yield*r.load(F.messages,I,F.messageID)
++# OC-4 token remains, but cannot witness a resolve result
++ y.length>0)_+=`
++<system-reminder>
++${y.map((B)=>B.content).join(`
++</system-reminder>
++# OC-5 project/config switch (dump line 598309)
++if(!he.OPENCODE_DISABLE_PROJECT_CONFIG)return yield*r.globUp(C,y.directory,y.worktree)
++return yield*r.globUp(C,n.config,n.config)
++# OC-6 key, layer, key use, observer and all-match target (dump line 597823)
++UE=Wr.make("core/instructions"),eD=ia(m(function*(){
++i=(u)=>ki({key:UE,
++s=l("InstructionContext.observe")(function*(){
++yield*e.up({targets:["AGENTS.md"],start:u,stop:f})
++# OC-6 registered layer and dependency in system-context-builtins (dump lines 597823, 597828)
++iD=Re({name:"instruction-context",layer:eD,deps:[O.node,hs,Ac,lH]})
++sD=Re({name:"system-context-builtins",layer:HD,deps:[Ac,lH,iD,O.node,hs]})
+diff --git c/verifiers/fixtures/surfaces/strings-opencode-1.19.4-decoy-oc6.txt i/verifiers/fixtures/surfaces/strings-opencode-1.19.4-decoy-oc6.txt
+new file mode 100644
+index 0000000..0316b75
+--- /dev/null
++++ i/verifiers/fixtures/surfaces/strings-opencode-1.19.4-decoy-oc6.txt
+@@ -0,0 +1,34 @@
++# synthetic opencode strings-dump fixture (round 53; OC-6 dependency decoy)
++# Derived from the 1.19.4 anchor excerpt; all bare rule literals remain, but
++# system-context-builtins is no longer registered with the instruction layer.
++# OC-1 priority array (dump line 598309)
++f=["AGENTS.md",...!i.disableClaudeCodePrompt?["CLAUDE.md"]:[],"CONTEXT.md"]
++# OC-2 config/home candidates (dump line 598309)
++a=[pe.join(n.config,"AGENTS.md"),...!i.disableClaudeCodePrompt?[pe.join(n.home,".claude","CLAUDE.md")]:[]]
++# OC-3a local instruction list (dump line 598309)
++if(C.instructions)for(let E of C.instructions){if(E.startsWith("https://")||E.startsWith("http://"))continue;
++# OC-3b remote filter and render (dump lines 598309-598310)
++b=(C.instructions??[]).filter((L)=>L.startsWith("https://")||L.startsWith("http://"))
++Instructions from: ${L}
++# OC-4 resolver implementation and service export (dump lines 598311-598312)
++k=l("Instruction.resolve")(function*(C,y,b){
++});return O1.of({clear:T,systemPaths:F,system:v,find:I,resolve:k})
++# OC-4 read-tool entry and call edge (dump lines 598484, 598489)
++A=l("ReadTool.execute")(function*(T,F){
++let y=yield*r.resolve(F.messages,I,F.messageID)
++# OC-4 result delivery inside the read-tool output (dump lines 598496-598499)
++y.length>0)_+=`
++<system-reminder>
++${y.map((B)=>B.content).join(`
++</system-reminder>
++# OC-5 project/config switch (dump line 598309)
++if(!he.OPENCODE_DISABLE_PROJECT_CONFIG)return yield*r.globUp(C,y.directory,y.worktree)
++return yield*r.globUp(C,n.config,n.config)
++# OC-6 key, layer, key use, observer and all-match target (dump line 597823)
++UE=Wr.make("core/instructions"),eD=ia(m(function*(){
++i=(u)=>ki({key:UE,
++s=l("InstructionContext.observe")(function*(){
++yield*e.up({targets:["AGENTS.md"],start:u,stop:f})
++# OC-6 registered instruction layer remains, but the builtins dependency edge is dropped.
++iD=Re({name:"instruction-context",layer:eD,deps:[O.node,hs,Ac,lH]})
++sD=Re({name:"system-context-builtins",layer:HD,deps:[Ac,lH,O.node,hs]})
+diff --git c/verifiers/fixtures/surfaces/strings-opencode-clean.txt i/verifiers/fixtures/surfaces/strings-opencode-clean.txt
+index ebd0e9f..e5b72f3 100644
+--- c/verifiers/fixtures/surfaces/strings-opencode-clean.txt
++++ i/verifiers/fixtures/surfaces/strings-opencode-clean.txt
+@@ -1,10 +1,10 @@
+ # synthetic opencode strings-dump fixture (round 47 — opencode 1.19.3 rule set,
+-# the round-14 lineage re-derived against the frozen 1.19.3 dump). Every
+-# non-comment line is an exact byte substring of
++# the round-14 lineage re-derived against the frozen 1.19.3 dump).
++# Non-comment anchors are exact byte substrings of
+ # /fast/scratch/kotoba-r47/shared/opencode-1.19.3.strings at the dump line named
+-# in its comment; no other binary text is committed. Exceptions (synthetic,
+-# not dump bytes): the `no-rule-anchor marker line`, any line under a
+-# `# not anchors` comment, and a variant's planted line.
++# in each comment. Synthetic lines (not dump bytes): the `no-rule-anchor marker
++# line`, any line under a `# not anchors` comment, a variant's planted line,
++# and the round-53 synthetic OC-4 export/call/result bridge lines.
+ # OC-1  name-priority list (y), dump line 443993
+ y=["AGENTS.md",...!t.disableClaudeCodePrompt?["CLAUDE.md"]:[],"CONTEXT.md"]
+ # OC-2  user-level candidate joins (n), dump line 443993
+@@ -16,8 +16,16 @@ w=(T.instructions??[]).filter((q)=>q.startsWith("https://")||q.startsWith("http:
+ [`Instructions from: ${q}
+ # OC-4  read-tool channel: resolve entry point (443995), its ReadTool.execute caller (444228), injected token (443193)
+ b=s.fn("Instruction.resolve")(function*(T,d,w){
++# synthetic OC-4 resolver service export bridge (not a raw dump excerpt)
++});return O1.of({resolve:b})
+ $=s.fn("ReadTool.execute")(function*(a,g){
+ <system-reminder>
++# synthetic OC-4 call/result bridge (not a raw dump excerpt)
++let y=yield*e.resolve(g.messages,h,w)
++y.length>0)_+=`
++<system-reminder>
++${y.map((B)=>B.content).join(`
++</system-reminder>
+ # OC-5  resolution switch: project walk-up versus config-only (owns no class id), dump line 443993
+ if(!Jr.OPENCODE_DISABLE_PROJECT_CONFIG)return yield*e.globUp(T,d.directory,d.worktree)
+ return yield*e.globUp(T,r.config,r.config)
+diff --git c/verifiers/fixtures/surfaces/strings-opencode-drop-oc1.txt i/verifiers/fixtures/surfaces/strings-opencode-drop-oc1.txt
+index feb1145..f658b0c 100644
+--- c/verifiers/fixtures/surfaces/strings-opencode-drop-oc1.txt
++++ i/verifiers/fixtures/surfaces/strings-opencode-drop-oc1.txt
+@@ -1,10 +1,10 @@
+ # synthetic opencode strings-dump fixture (round 47 — opencode 1.19.3 rule set,
+-# the round-14 lineage re-derived against the frozen 1.19.3 dump). Every
+-# non-comment line is an exact byte substring of
++# the round-14 lineage re-derived against the frozen 1.19.3 dump).
++# Non-comment anchors are exact byte substrings of
+ # /fast/scratch/kotoba-r47/shared/opencode-1.19.3.strings at the dump line named
+-# in its comment; no other binary text is committed. Exceptions (synthetic,
+-# not dump bytes): the `no-rule-anchor marker line`, any line under a
+-# `# not anchors` comment, and a variant's planted line.
++# in each comment. Synthetic lines (not dump bytes): the `no-rule-anchor marker
++# line`, any line under a `# not anchors` comment, a variant's planted line,
++# and the round-53 synthetic OC-4 export/call/result bridge lines.
+ # variant: OC-1 anchors removed; the rule must report itself unmatched
+ # OC-1  name-priority list (y), dump line 443993 — DROPPED in this variant
+ # OC-2  user-level candidate joins (n), dump line 443993
+@@ -16,8 +16,16 @@ w=(T.instructions??[]).filter((q)=>q.startsWith("https://")||q.startsWith("http:
+ [`Instructions from: ${q}
+ # OC-4  read-tool channel: resolve entry point (443995), its ReadTool.execute caller (444228), injected token (443193)
+ b=s.fn("Instruction.resolve")(function*(T,d,w){
++# synthetic OC-4 resolver service export bridge (not a raw dump excerpt)
++});return O1.of({resolve:b})
+ $=s.fn("ReadTool.execute")(function*(a,g){
+ <system-reminder>
++# synthetic OC-4 call/result bridge (not a raw dump excerpt)
++let y=yield*e.resolve(g.messages,h,w)
++y.length>0)_+=`
++<system-reminder>
++${y.map((B)=>B.content).join(`
++</system-reminder>
+ # OC-5  resolution switch: project walk-up versus config-only (owns no class id), dump line 443993
+ if(!Jr.OPENCODE_DISABLE_PROJECT_CONFIG)return yield*e.globUp(T,d.directory,d.worktree)
+ return yield*e.globUp(T,r.config,r.config)
+diff --git c/verifiers/fixtures/surfaces/strings-opencode-drop-oc2.txt i/verifiers/fixtures/surfaces/strings-opencode-drop-oc2.txt
+index 8ce64f4..ae103e1 100644
+--- c/verifiers/fixtures/surfaces/strings-opencode-drop-oc2.txt
++++ i/verifiers/fixtures/surfaces/strings-opencode-drop-oc2.txt
+@@ -1,10 +1,10 @@
+ # synthetic opencode strings-dump fixture (round 47 — opencode 1.19.3 rule set,
+-# the round-14 lineage re-derived against the frozen 1.19.3 dump). Every
+-# non-comment line is an exact byte substring of
++# the round-14 lineage re-derived against the frozen 1.19.3 dump).
++# Non-comment anchors are exact byte substrings of
+ # /fast/scratch/kotoba-r47/shared/opencode-1.19.3.strings at the dump line named
+-# in its comment; no other binary text is committed. Exceptions (synthetic,
+-# not dump bytes): the `no-rule-anchor marker line`, any line under a
+-# `# not anchors` comment, and a variant's planted line.
++# in each comment. Synthetic lines (not dump bytes): the `no-rule-anchor marker
++# line`, any line under a `# not anchors` comment, a variant's planted line,
++# and the round-53 synthetic OC-4 export/call/result bridge lines.
+ # variant: OC-2 anchors removed; the rule must report itself unmatched
+ # OC-1  name-priority list (y), dump line 443993
+ y=["AGENTS.md",...!t.disableClaudeCodePrompt?["CLAUDE.md"]:[],"CONTEXT.md"]
+@@ -16,8 +16,16 @@ w=(T.instructions??[]).filter((q)=>q.startsWith("https://")||q.startsWith("http:
+ [`Instructions from: ${q}
+ # OC-4  read-tool channel: resolve entry point (443995), its ReadTool.execute caller (444228), injected token (443193)
+ b=s.fn("Instruction.resolve")(function*(T,d,w){
++# synthetic OC-4 resolver service export bridge (not a raw dump excerpt)
++});return O1.of({resolve:b})
+ $=s.fn("ReadTool.execute")(function*(a,g){
+ <system-reminder>
++# synthetic OC-4 call/result bridge (not a raw dump excerpt)
++let y=yield*e.resolve(g.messages,h,w)
++y.length>0)_+=`
++<system-reminder>
++${y.map((B)=>B.content).join(`
++</system-reminder>
+ # OC-5  resolution switch: project walk-up versus config-only (owns no class id), dump line 443993
+ if(!Jr.OPENCODE_DISABLE_PROJECT_CONFIG)return yield*e.globUp(T,d.directory,d.worktree)
+ return yield*e.globUp(T,r.config,r.config)
+diff --git c/verifiers/fixtures/surfaces/strings-opencode-drop-oc3a.txt i/verifiers/fixtures/surfaces/strings-opencode-drop-oc3a.txt
+index 8d4ca3f..6c9bde7 100644
+--- c/verifiers/fixtures/surfaces/strings-opencode-drop-oc3a.txt
++++ i/verifiers/fixtures/surfaces/strings-opencode-drop-oc3a.txt
+@@ -1,10 +1,10 @@
+ # synthetic opencode strings-dump fixture (round 47 — opencode 1.19.3 rule set,
+-# the round-14 lineage re-derived against the frozen 1.19.3 dump). Every
+-# non-comment line is an exact byte substring of
++# the round-14 lineage re-derived against the frozen 1.19.3 dump).
++# Non-comment anchors are exact byte substrings of
+ # /fast/scratch/kotoba-r47/shared/opencode-1.19.3.strings at the dump line named
+-# in its comment; no other binary text is committed. Exceptions (synthetic,
+-# not dump bytes): the `no-rule-anchor marker line`, any line under a
+-# `# not anchors` comment, and a variant's planted line.
++# in each comment. Synthetic lines (not dump bytes): the `no-rule-anchor marker
++# line`, any line under a `# not anchors` comment, a variant's planted line,
++# and the round-53 synthetic OC-4 export/call/result bridge lines.
+ # variant: OC-3a anchors removed; the rule must report itself unmatched
+ # OC-1  name-priority list (y), dump line 443993
+ y=["AGENTS.md",...!t.disableClaudeCodePrompt?["CLAUDE.md"]:[],"CONTEXT.md"]
+@@ -16,8 +16,16 @@ w=(T.instructions??[]).filter((q)=>q.startsWith("https://")||q.startsWith("http:
+ [`Instructions from: ${q}
+ # OC-4  read-tool channel: resolve entry point (443995), its ReadTool.execute caller (444228), injected token (443193)
+ b=s.fn("Instruction.resolve")(function*(T,d,w){
++# synthetic OC-4 resolver service export bridge (not a raw dump excerpt)
++});return O1.of({resolve:b})
+ $=s.fn("ReadTool.execute")(function*(a,g){
+ <system-reminder>
++# synthetic OC-4 call/result bridge (not a raw dump excerpt)
++let y=yield*e.resolve(g.messages,h,w)
++y.length>0)_+=`
++<system-reminder>
++${y.map((B)=>B.content).join(`
++</system-reminder>
+ # OC-5  resolution switch: project walk-up versus config-only (owns no class id), dump line 443993
+ if(!Jr.OPENCODE_DISABLE_PROJECT_CONFIG)return yield*e.globUp(T,d.directory,d.worktree)
+ return yield*e.globUp(T,r.config,r.config)
+diff --git c/verifiers/fixtures/surfaces/strings-opencode-drop-oc3b.txt i/verifiers/fixtures/surfaces/strings-opencode-drop-oc3b.txt
+index bb699a9..9e8c66d 100644
+--- c/verifiers/fixtures/surfaces/strings-opencode-drop-oc3b.txt
++++ i/verifiers/fixtures/surfaces/strings-opencode-drop-oc3b.txt
+@@ -1,10 +1,10 @@
+ # synthetic opencode strings-dump fixture (round 47 — opencode 1.19.3 rule set,
+-# the round-14 lineage re-derived against the frozen 1.19.3 dump). Every
+-# non-comment line is an exact byte substring of
++# the round-14 lineage re-derived against the frozen 1.19.3 dump).
++# Non-comment anchors are exact byte substrings of
+ # /fast/scratch/kotoba-r47/shared/opencode-1.19.3.strings at the dump line named
+-# in its comment; no other binary text is committed. Exceptions (synthetic,
+-# not dump bytes): the `no-rule-anchor marker line`, any line under a
+-# `# not anchors` comment, and a variant's planted line.
++# in each comment. Synthetic lines (not dump bytes): the `no-rule-anchor marker
++# line`, any line under a `# not anchors` comment, a variant's planted line,
++# and the round-53 synthetic OC-4 export/call/result bridge lines.
+ # variant: OC-3b anchors removed; the rule must report itself unmatched
+ # OC-1  name-priority list (y), dump line 443993
+ y=["AGENTS.md",...!t.disableClaudeCodePrompt?["CLAUDE.md"]:[],"CONTEXT.md"]
+@@ -15,8 +15,16 @@ if(T.instructions)for(let O of T.instructions){if(O.startsWith("https://")||O.st
+ # OC-3b remote filter + render inside Instruction.system, dump line 443993 — DROPPED in this variant
+ # OC-4  read-tool channel: resolve entry point (443995), its ReadTool.execute caller (444228), injected token (443193)
+ b=s.fn("Instruction.resolve")(function*(T,d,w){
++# synthetic OC-4 resolver service export bridge (not a raw dump excerpt)
++});return O1.of({resolve:b})
+ $=s.fn("ReadTool.execute")(function*(a,g){
+ <system-reminder>
++# synthetic OC-4 call/result bridge (not a raw dump excerpt)
++let y=yield*e.resolve(g.messages,h,w)
++y.length>0)_+=`
++<system-reminder>
++${y.map((B)=>B.content).join(`
++</system-reminder>
+ # OC-5  resolution switch: project walk-up versus config-only (owns no class id), dump line 443993
+ if(!Jr.OPENCODE_DISABLE_PROJECT_CONFIG)return yield*e.globUp(T,d.directory,d.worktree)
+ return yield*e.globUp(T,r.config,r.config)
+diff --git c/verifiers/fixtures/surfaces/strings-opencode-drop-oc5.txt i/verifiers/fixtures/surfaces/strings-opencode-drop-oc5.txt
+index e60681a..9885426 100644
+--- c/verifiers/fixtures/surfaces/strings-opencode-drop-oc5.txt
++++ i/verifiers/fixtures/surfaces/strings-opencode-drop-oc5.txt
+@@ -1,10 +1,10 @@
+ # synthetic opencode strings-dump fixture (round 47 — opencode 1.19.3 rule set,
+-# the round-14 lineage re-derived against the frozen 1.19.3 dump). Every
+-# non-comment line is an exact byte substring of
++# the round-14 lineage re-derived against the frozen 1.19.3 dump).
++# Non-comment anchors are exact byte substrings of
+ # /fast/scratch/kotoba-r47/shared/opencode-1.19.3.strings at the dump line named
+-# in its comment; no other binary text is committed. Exceptions (synthetic,
+-# not dump bytes): the `no-rule-anchor marker line`, any line under a
+-# `# not anchors` comment, and a variant's planted line.
++# in each comment. Synthetic lines (not dump bytes): the `no-rule-anchor marker
++# line`, any line under a `# not anchors` comment, a variant's planted line,
++# and the round-53 synthetic OC-4 export/call/result bridge lines.
+ # variant: OC-5 anchors removed; the rule must report itself unmatched
+ # OC-1  name-priority list (y), dump line 443993
+ y=["AGENTS.md",...!t.disableClaudeCodePrompt?["CLAUDE.md"]:[],"CONTEXT.md"]
+@@ -17,8 +17,16 @@ w=(T.instructions??[]).filter((q)=>q.startsWith("https://")||q.startsWith("http:
+ [`Instructions from: ${q}
+ # OC-4  read-tool channel: resolve entry point (443995), its ReadTool.execute caller (444228), injected token (443193)
+ b=s.fn("Instruction.resolve")(function*(T,d,w){
++# synthetic OC-4 resolver service export bridge (not a raw dump excerpt)
++});return O1.of({resolve:b})
+ $=s.fn("ReadTool.execute")(function*(a,g){
+ <system-reminder>
++# synthetic OC-4 call/result bridge (not a raw dump excerpt)
++let y=yield*e.resolve(g.messages,h,w)
++y.length>0)_+=`
++<system-reminder>
++${y.map((B)=>B.content).join(`
++</system-reminder>
+ # OC-5  resolution switch: project walk-up versus config-only (owns no class id), dump line 443993 — DROPPED in this variant
+ # OC-6  second instruction subsystem (instruction-context), dump lines 445481-445487
+ A=M.fn("InstructionContext.observe")(function*(){
+diff --git c/verifiers/fixtures/surfaces/strings-opencode-drop-oc6.txt i/verifiers/fixtures/surfaces/strings-opencode-drop-oc6.txt
+index 3c75507..89cd4d3 100644
+--- c/verifiers/fixtures/surfaces/strings-opencode-drop-oc6.txt
++++ i/verifiers/fixtures/surfaces/strings-opencode-drop-oc6.txt
+@@ -1,10 +1,10 @@
+ # synthetic opencode strings-dump fixture (round 47 — opencode 1.19.3 rule set,
+-# the round-14 lineage re-derived against the frozen 1.19.3 dump). Every
+-# non-comment line is an exact byte substring of
++# the round-14 lineage re-derived against the frozen 1.19.3 dump).
++# Non-comment anchors are exact byte substrings of
+ # /fast/scratch/kotoba-r47/shared/opencode-1.19.3.strings at the dump line named
+-# in its comment; no other binary text is committed. Exceptions (synthetic,
+-# not dump bytes): the `no-rule-anchor marker line`, any line under a
+-# `# not anchors` comment, and a variant's planted line.
++# in each comment. Synthetic lines (not dump bytes): the `no-rule-anchor marker
++# line`, any line under a `# not anchors` comment, a variant's planted line,
++# and the round-53 synthetic OC-4 export/call/result bridge lines.
+ # variant: OC-6 anchors removed; the rule must report itself unmatched
+ # OC-1  name-priority list (y), dump line 443993
+ y=["AGENTS.md",...!t.disableClaudeCodePrompt?["CLAUDE.md"]:[],"CONTEXT.md"]
+@@ -17,8 +17,16 @@ w=(T.instructions??[]).filter((q)=>q.startsWith("https://")||q.startsWith("http:
+ [`Instructions from: ${q}
+ # OC-4  read-tool channel: resolve entry point (443995), its ReadTool.execute caller (444228), injected token (443193)
+ b=s.fn("Instruction.resolve")(function*(T,d,w){
++# synthetic OC-4 resolver service export bridge (not a raw dump excerpt)
++});return O1.of({resolve:b})
+ $=s.fn("ReadTool.execute")(function*(a,g){
+ <system-reminder>
++# synthetic OC-4 call/result bridge (not a raw dump excerpt)
++let y=yield*e.resolve(g.messages,h,w)
++y.length>0)_+=`
++<system-reminder>
++${y.map((B)=>B.content).join(`
++</system-reminder>
+ # OC-5  resolution switch: project walk-up versus config-only (owns no class id), dump line 443993
+ if(!Jr.OPENCODE_DISABLE_PROJECT_CONFIG)return yield*e.globUp(T,d.directory,d.worktree)
+ return yield*e.globUp(T,r.config,r.config)
+diff --git c/verifiers/fixtures/surfaces/strings-opencode-extra.txt i/verifiers/fixtures/surfaces/strings-opencode-extra.txt
+index 6b586ac..86c2e7b 100644
+--- c/verifiers/fixtures/surfaces/strings-opencode-extra.txt
++++ i/verifiers/fixtures/surfaces/strings-opencode-extra.txt
+@@ -1,10 +1,10 @@
+ # synthetic opencode strings-dump fixture (round 47 — opencode 1.19.3 rule set,
+-# the round-14 lineage re-derived against the frozen 1.19.3 dump). Every
+-# non-comment line is an exact byte substring of
++# the round-14 lineage re-derived against the frozen 1.19.3 dump).
++# Non-comment anchors are exact byte substrings of
+ # /fast/scratch/kotoba-r47/shared/opencode-1.19.3.strings at the dump line named
+-# in its comment; no other binary text is committed. Exceptions (synthetic,
+-# not dump bytes): the `no-rule-anchor marker line`, any line under a
+-# `# not anchors` comment, and a variant's planted line.
++# in each comment. Synthetic lines (not dump bytes): the `no-rule-anchor marker
++# line`, any line under a `# not anchors` comment, a variant's planted line,
++# and the round-53 synthetic OC-4 export/call/result bridge lines.
+ # variant: anchor-adjacent shapes that are NOT rule anchors (must extract nothing extra)
+ # OC-1  name-priority list (y), dump line 443993
+ y=["AGENTS.md",...!t.disableClaudeCodePrompt?["CLAUDE.md"]:[],"CONTEXT.md"]
+@@ -17,8 +17,16 @@ w=(T.instructions??[]).filter((q)=>q.startsWith("https://")||q.startsWith("http:
+ [`Instructions from: ${q}
+ # OC-4  read-tool channel: resolve entry point (443995), its ReadTool.execute caller (444228), injected token (443193)
+ b=s.fn("Instruction.resolve")(function*(T,d,w){
++# synthetic OC-4 resolver service export bridge (not a raw dump excerpt)
++});return O1.of({resolve:b})
+ $=s.fn("ReadTool.execute")(function*(a,g){
+ <system-reminder>
++# synthetic OC-4 call/result bridge (not a raw dump excerpt)
++let y=yield*e.resolve(g.messages,h,w)
++y.length>0)_+=`
++<system-reminder>
++${y.map((B)=>B.content).join(`
++</system-reminder>
+ # OC-5  resolution switch: project walk-up versus config-only (owns no class id), dump line 443993
+ if(!Jr.OPENCODE_DISABLE_PROJECT_CONFIG)return yield*e.globUp(T,d.directory,d.worktree)
+ return yield*e.globUp(T,r.config,r.config)
+diff --git c/verifiers/fixtures/surfaces/strings-opencode-planted-name.txt i/verifiers/fixtures/surfaces/strings-opencode-planted-name.txt
+index 1ba07a7..013c3c2 100644
+--- c/verifiers/fixtures/surfaces/strings-opencode-planted-name.txt
++++ i/verifiers/fixtures/surfaces/strings-opencode-planted-name.txt
+@@ -1,10 +1,10 @@
+ # synthetic opencode strings-dump fixture (round 47 — opencode 1.19.3 rule set,
+-# the round-14 lineage re-derived against the frozen 1.19.3 dump). Every
+-# non-comment line is an exact byte substring of
++# the round-14 lineage re-derived against the frozen 1.19.3 dump).
++# Non-comment anchors are exact byte substrings of
+ # /fast/scratch/kotoba-r47/shared/opencode-1.19.3.strings at the dump line named
+-# in its comment; no other binary text is committed. Exceptions (synthetic,
+-# not dump bytes): the `no-rule-anchor marker line`, any line under a
+-# `# not anchors` comment, and a variant's planted line.
++# in each comment. Synthetic lines (not dump bytes): the `no-rule-anchor marker
++# line`, any line under a `# not anchors` comment, a variant's planted line,
++# and the round-53 synthetic OC-4 export/call/result bridge lines.
+ # variant: P-E — GUIDE.md planted into the priority array (must FAIL, named)
+ # OC-1  name-priority list (y), dump line 443993
+ y=["AGENTS.md",...!t.disableClaudeCodePrompt?["CLAUDE.md"]:[],"CONTEXT.md","GUIDE.md"]
+@@ -17,8 +17,16 @@ w=(T.instructions??[]).filter((q)=>q.startsWith("https://")||q.startsWith("http:
+ [`Instructions from: ${q}
+ # OC-4  read-tool channel: resolve entry point (443995), its ReadTool.execute caller (444228), injected token (443193)
+ b=s.fn("Instruction.resolve")(function*(T,d,w){
++# synthetic OC-4 resolver service export bridge (not a raw dump excerpt)
++});return O1.of({resolve:b})
+ $=s.fn("ReadTool.execute")(function*(a,g){
+ <system-reminder>
++# synthetic OC-4 call/result bridge (not a raw dump excerpt)
++let y=yield*e.resolve(g.messages,h,w)
++y.length>0)_+=`
++<system-reminder>
++${y.map((B)=>B.content).join(`
++</system-reminder>
+ # OC-5  resolution switch: project walk-up versus config-only (owns no class id), dump line 443993
+ if(!Jr.OPENCODE_DISABLE_PROJECT_CONFIG)return yield*e.globUp(T,d.directory,d.worktree)
+ return yield*e.globUp(T,r.config,r.config)
+diff --git c/verifiers/verify_surfaces.py i/verifiers/verify_surfaces.py
+index 1f6cc58..f7a89fe 100755
+--- c/verifiers/verify_surfaces.py
++++ i/verifiers/verify_surfaces.py
+@@ -569,11 +569,11 @@ def declared_loader_pairs(entries: list[dict], harness: str) -> set[tuple[str, s
+ # ledger); on this host the retired v2.0.26 rule set survives only as the
+ # must-fail generation fixture `fixtures/surfaces/strings-opencode-v2.0.26.txt`
+ # (upstream, npm `@opencode/cli` 2.x still ships it — host-scoped retirement).
+-# LIMITS found by the round-47 falsify wave (carried, not fixed): every rule is a
+-# whole-dump presence test, not bound to a code body — decoys elsewhere satisfy
+-# it, and caller/delivery/gate edges are unwitnessed (OC-1's `gated` term reduces
+-# to `m is not None`; OC-4's call edge and in-hook token; OC-6's config
+-# candidate and env gate); a failing rule lists all its anchors as missing.
++# LIMITS found by the round-47 falsify wave and still carried: whole-dump anchors
++# remain for OC-1..OC-3 and OC-5, including OC-1's `gated` term reducing to
++# `m is not None`. OC-6's config candidate/env gate remain unwitnessed. OC-4 now
++# binds the resolver export to the ReadTool call and wrapped result; OC-6 binds
++# its observed layer to the `system-context-builtins` dependency (round 53).
+ 
+ # OC-1: the per-directory name-priority list (first-match walk-up; dump 443993):
+ #   y=["AGENTS.md",...!t.disableClaudeCodePrompt?["CLAUDE.md"]:[],"CONTEXT.md"]
+@@ -619,27 +619,140 @@ OC_ENV_PROJECT_CONFIG = "OPENCODE_DISABLE_PROJECT_CONFIG"
+ OC_GLOBUP_PROJECT_RE = re.compile(r"globUp\([^)]*\.directory[^)]*\.worktree\)")
+ OC_GLOBUP_CONFIG_RE = re.compile(r"globUp\([^)]*\.config\s*,\s*[^)]*\.config\)")
+ 
+-# OC-6: opencode's SECOND instruction subsystem (layer `instruction-context`,
+-# key ``core/instructions``, composed as a dependency of the
+-# `system-context-builtins` layer — not registered as it; dump 445481-445487).  It walks AGENTS.md all-match up from cwd to the project root
+-# and keeps an ungated config-dir candidate (`jX(L.config,"AGENTS.md")`) — a
+-# different load condition for the same file class than OC-1/OC-2's first-match
+-# walk, which is why it carries its own class id.
+-OC_V2_KEY = 'Key.make("core/instructions")'
++# OC-6: opencode's second instruction subsystem uses the `core/instructions`
++# key, an all-match AGENTS.md walk, and its own registered layer, composed into
++# `system-context-builtins`. 1.19.4 renamed the key factory from `Key.make` to
++# `Wr.make` and made the layer/dependency relation visible in the bundle.
++OC_V2_KEY = 'Key.make("core/instructions")'  # 1.19.3 fixture generation
+ OC_V2_TARGETS = 'targets:["AGENTS.md"]'
+ OC_V2_OBSERVE = "InstructionContext.observe"
+ OC_V2_REGISTRATION = "system-context-builtins"
++OC_V2_KEY_RE = re.compile(
++    r'(?P<key>[A-Za-z_$][A-Za-z0-9_$]*)='
++    r'(?:[A-Za-z_$][A-Za-z0-9_$]*\.){0,2}make\("core/instructions"\)'
++)
++OC_V2_LAYER_DEF_RE = re.compile(
++    r'(?P<layer>[A-Za-z_$][A-Za-z0-9_$]*)=ia\(m\(function\*'
++)
++OC_V2_OBSERVE_RE = re.compile(
++    r'(?:[A-Za-z_$][A-Za-z0-9_$]*\.)?(?:fn|l)\("'
++    + re.escape(OC_V2_OBSERVE) + r'"\)\(function\*'
++)
++OC_V2_TARGETS_RE = re.compile(
++    r'\.up\(\{' + re.escape(OC_V2_TARGETS) + r','
++)
++OC_V2_OLD_REGISTRATION_RE = re.compile(
++    r'[A-Za-z_$][A-Za-z0-9_$]*=i\(\{name:"'
++    + re.escape(OC_V2_REGISTRATION)
++    + r'",layer:[A-Za-z_$][A-Za-z0-9_$]*,'
++)
+ 
+-# OC-4: the read-tool channel that appends the instruction file found at EVERY
+-# ancestor level (one per directory, nearest first; the walk stops at the
+-# instance directory by an unseparated string-prefix test) to a read's TOOL RESULT:
+-# `s.fn("Instruction.resolve")` (dump 443995), called from
+-# `s.fn("ReadTool.execute")` (dump 444228-444233, `e.resolve(g.messages,h,…)`),
+-# delivered inside `<system-reminder>`.  Round 47 added the ReadTool.execute
+-# anchor: `<system-reminder>` alone is a generic token (18 hits on 1.19.3).
+-OC_READ_HOOK_FN = 'fn("Instruction.resolve")'
+-OC_READ_TOOL_FN = 'fn("ReadTool.execute")'
++# OC-4: the read-tool channel resolves instructions and places the resolved
++# contents in the tool result's <system-reminder>. The minified registration
++# The minifier renamed the wrapper callee from `fn` (1.19.3) to `l` (1.19.4);
++# matching the quoted label keeps the registration edge alias-agnostic.
+ OC_READ_HOOK_TOKEN = "<system-reminder>"
++OC_READ_HOOK_ENTRY_RE = re.compile(
++    r'(?P<method>[A-Za-z_$][A-Za-z0-9_$]*)='
++    r'(?:[A-Za-z_$][A-Za-z0-9_$]*\.)?[A-Za-z_$][A-Za-z0-9_$]*\("Instruction\.resolve"\)'
++    r'\(function\*'
++)
++OC_READ_TOOL_ENTRY_RE = re.compile(
++    r'(?:[A-Za-z_$][A-Za-z0-9_$]*=)?'
++    r'(?:[A-Za-z_$][A-Za-z0-9_$]*\.)?[A-Za-z_$][A-Za-z0-9_$]*\("ReadTool\.execute"\)'
++    r'\(function\*'
++)
++OC_READ_CALL_RE = re.compile(
++    r'(?P<result>[A-Za-z_$][A-Za-z0-9_$]*)=yield\*'
++    r'[A-Za-z_$][A-Za-z0-9_$]*\.resolve\('
++    r'[A-Za-z_$][A-Za-z0-9_$]*\.messages,'
++    r'[A-Za-z_$][A-Za-z0-9_$]*,[A-Za-z_$][A-Za-z0-9_$]*(?:\.[A-Za-z_$][A-Za-z0-9_$]*)*\)'
++)
++
++
++def opencode_read_hook_matches(dump: str) -> bool:
++    """Require the resolver service export, its read-tool call, and its output."""
++    for tool in OC_READ_TOOL_ENTRY_RE.finditer(dump):
++        module_start = dump.rfind("\n// @bun\n", 0, tool.start())
++        module_start = module_start + 1 if module_start >= 0 else 0
++        module_end = dump.find("\n// @bun\n", tool.end())
++        if module_end < 0:
++            module_end = len(dump)
++        module = dump[module_start:module_end]
++        tool_pos = tool.start() - module_start
++
++        for entry in OC_READ_HOOK_ENTRY_RE.finditer(module, 0, tool_pos):
++            export_re = re.compile(
++                r'\}\);\s*return\s+[A-Za-z_$][A-Za-z0-9_$]*\.of\(\{'
++                r'[^}]{0,1000}\bresolve:'
++                + re.escape(entry.group("method")) + r'\b'
++            )
++            if export_re.search(module, entry.end(), tool_pos) is None:
++                continue
++
++            tool_window = module[tool_pos:tool_pos + 50000]
++            call = OC_READ_CALL_RE.search(tool_window)
++            if call is None:
++                continue
++            result = re.escape(call.group("result"))
++            delivery_re = re.compile(
++                r'[\s\S]{0,10000}\b' + result + r'\.length>0\)[A-Za-z_$][A-Za-z0-9_$]*\+='
++                r'[\s\S]{0,100}' + re.escape(OC_READ_HOOK_TOKEN)
++                + r'[\s\S]{0,100}\$\{\s*' + result
++                + r'\.map\(\(\s*(?P<item>[A-Za-z_$][A-Za-z0-9_$]*)\s*\)'
++                + r'=>\s*(?P=item)\.content\)\.join\('
++                + r'[\s\S]{0,100}</system-reminder>'
++            )
++            if delivery_re.search(tool_window[call.end():call.end() + 10000]):
++                return True
++    return False
++
++
++def opencode_context_layer_matches(dump: str) -> bool:
++    """Tie the current instruction key and walk to the registered layer graph."""
++    for key_match in OC_V2_KEY_RE.finditer(dump):
++        window = dump[key_match.start():key_match.start() + 50000]
++        layer_match = OC_V2_LAYER_DEF_RE.search(window)
++        if layer_match is None:
++            continue
++        observe = OC_V2_OBSERVE_RE.search(window, layer_match.end())
++        if observe is None:
++            continue
++        target = OC_V2_TARGETS_RE.search(window, observe.end())
++        if target is None:
++            continue
++        key_use = re.search(
++            r'ki\(\{key:' + re.escape(key_match.group("key")) + r'\b', window
++        )
++        if key_use is None or key_use.start() > observe.start():
++            continue
++
++        layer = re.escape(layer_match.group("layer"))
++        instance_re = re.compile(
++            r'(?P<instance>[A-Za-z_$][A-Za-z0-9_$]*)=(?:Re|i)\('
++            r'\{name:"instruction-context",layer:' + layer
++            + r',deps:\[[^\]]*\]\}\)'
++        )
++        instance = instance_re.search(window, target.end())
++        if instance is None:
++            continue
++        builtins_re = re.compile(
++            r'[A-Za-z_$][A-Za-z0-9_$]*=(?:Re|i)\(\{name:"'
++            + re.escape(OC_V2_REGISTRATION)
++            + r'",layer:[A-Za-z_$][A-Za-z0-9_$]*,deps:\[[^\]]*\b'
++            + re.escape(instance.group("instance")) + r'\b[^\]]*\]\}\)'
++        )
++        if builtins_re.search(window, instance.end()):
++            return True
++
++    # Retain the committed 1.19.3 fixture shape: its registration is the
++    # system-context-builtins layer, while 1.19.4 exposes the composed edge.
++    return (
++        OC_V2_KEY in dump
++        and OC_V2_OBSERVE_RE.search(dump) is not None
++        and OC_V2_TARGETS_RE.search(dump) is not None
++        and OC_V2_OLD_REGISTRATION_RE.search(dump) is not None
++    )
+ 
+ 
+ def extract_opencode_classes(dump: str) -> tuple[set[str], list[dict]]:
+@@ -689,11 +802,12 @@ def extract_opencode_classes(dump: str) -> tuple[set[str], list[dict]]:
+          ['.instructions….filter((q)=>q.startsWith("https://")||q.startsWith("http://"))',
+           OC_REMOTE_RENDER])
+ 
+-    # OC-4 — read-tool channel
+-    read_hook = (OC_READ_HOOK_FN in dump and OC_READ_TOOL_FN in dump
+-                 and OC_READ_HOOK_TOKEN in dump)
++    # OC-4 — resolver service export, ReadTool call edge, and same-result reminder.
++    read_hook = opencode_read_hook_matches(dump)
+     rule("OC-4", ["opencode:read-hook/instructions"], read_hook,
+-         [OC_READ_HOOK_FN, OC_READ_TOOL_FN, OC_READ_HOOK_TOKEN])
++         ["Instruction.resolve exported as .resolve",
++          "ReadTool.execute calls .resolve(messages, path, id)",
++          "<system-reminder> wraps the resolved content"])
+ 
+     # OC-5 — resolution switch (owns no class id; witnesses the path the ids are
+     # read through, so losing it is a drift FAIL rather than a silent re-scope)
+@@ -704,11 +818,11 @@ def extract_opencode_classes(dump: str) -> tuple[set[str], list[dict]]:
+          [OC_ENV_PROJECT_CONFIG, "globUp(<v>.directory,<v>.worktree)",
+           "globUp(<v>.config,<v>.config)"])
+ 
+-    # OC-6 — second instruction subsystem (own load condition for AGENTS.md)
+-    v2 = all(a in dump for a in (OC_V2_KEY, OC_V2_TARGETS, OC_V2_OBSERVE,
+-                                 OC_V2_REGISTRATION))
++    # OC-6 — observe+walk belongs to the registered instruction-context layer.
++    v2 = opencode_context_layer_matches(dump)
+     rule("OC-6", ["opencode:instruction-context/AGENTS.md"], v2,
+-         [OC_V2_OBSERVE, OC_V2_KEY, OC_V2_TARGETS, OC_V2_REGISTRATION])
++         ["core/instructions key + InstructionContext.observe AGENTS.md walk",
++          "instruction-context layer registered under system-context-builtins"])
+ 
+     return ids, report
+ 
+@@ -1464,6 +1578,31 @@ def self_test() -> int:
+             "FAIL surfaces.opencode_extract:" in out, out)
+         rec("%s: names %s" % (fixture, named), named in out, out)
+ 
++    # (oc-1194) re-derived shapes pass, while literal-preserving edge decoys fail.
++    code, out = run(oc_dump=fx + "/strings-opencode-1.19.4-anchors.txt")
++    rec("oc-1.19.4 anchors: exit 0", code == 0, code)
++    rec("oc-1.19.4 anchors: PASS opencode_extract",
++        "PASS surfaces.opencode_extract:" in out, out)
++
++    oc_literals = ("Instruction.resolve", "ReadTool.execute", "<system-reminder>",
++                   "core/instructions", 'targets:["AGENTS.md"]',
++                   "InstructionContext.observe", "system-context-builtins")
++    for fixture, target_rule, target_id, other_rule in (
++            ("strings-opencode-1.19.4-decoy-oc4.txt", "OC-4",
++             "opencode:read-hook/instructions", "OC-6"),
++            ("strings-opencode-1.19.4-decoy-oc6.txt", "OC-6",
++             "opencode:instruction-context/AGENTS.md", "OC-4")):
++        text = read_text(FIXTURES / fixture, "opencode decoy fixture")
++        for literal in oc_literals:
++            rec("%s retains %r" % (fixture, literal), literal in text, literal)
++        code, out = run(oc_dump=fx + "/" + fixture)
++        rec("%s: exit 1" % fixture, code == 1, code)
++        rec("%s: FAIL opencode_extract" % fixture,
++            "FAIL surfaces.opencode_extract:" in out, out)
++        rec("%s: only %s unmatched" % (fixture, target_rule),
++            ("%s (owns %s" % (target_rule, target_id)) in out
++            and ("%s (owns " % other_rule) not in out, out)
++
+     # (oc+) anchor-adjacent shapes that are NOT rule anchors must extract
+     # nothing extra — the drop-one matrix stays green, so exit 0 here proves
+     # the rules are anchored, not literal-greedy.

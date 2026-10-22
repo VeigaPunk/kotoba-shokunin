@@ -1,0 +1,173 @@
+diff --git c/corpus/README.md i/corpus/README.md
+index 676bd42..f580aaa 100644
+--- c/corpus/README.md
++++ i/corpus/README.md
+@@ -77,6 +77,7 @@ Domain: prompt & skill craft — SKILL.md/AGENTS.md quality, trigger fidelity.
+ | Round-51 non-author spot-check (closure) | `lessons/round-51-verifier-spotcheck.md` | written by the hyaku closure `HyakuCloseKotoba51`, not the lane (outside review; never edited here): round 51 `rejected-honest-stop` (C1 verified; C2 4 of 7 on the plan-commit counter), four routed defects for round 52; indexed round 52 |
+ | MCP server `instructions` per client (round 52) | `knowledge/mcp-server-instructions-round52.md` | seven located quotes on what the MCP specification and six clients do with the server's `instructions` (S032 spec, S033 Claude Code, S034 VS Code, S035 Codex, S036 Gemini CLI, S041 opencode, S042 Copilot CLI); the attempt-1 record called opencode and Copilot CLI silent, corrected in attempt 2 (M38); S040 the current spec revision 2026-07-28; S037 blog guidance; checked by `../verifiers/check_mcp_instructions.py` (frozen at `4c003a4b`) |
+ | Round-52 lessons | `lessons/round-52.md` | LOG.md round-52 entries; `## Mistakes` (M36 corrections sweep missed two places, criterion Q29 and `../verifiers/check_correction_sweep.py`; M37 seat gate and route outage; M38 false-negative sweep, Q30; M39 counter described wider than its code, Q31; M40 unsupported attempt-1 SCORECARD block), `## Gate` (rows S032–S042, two rejections later corrected) and the round-51 routed defects |
++| Round-52 non-author spot-check (closure) | `lessons/round-52-verifier-spotcheck.md` | closure-authored outside review; records the round-52 claim remeasurements, verdicts and routed defects without changing the lane-authored report |
+ 
+ ## Frontier
+ 
+diff --git c/verifiers/verify_corpus_independent.py i/verifiers/verify_corpus_independent.py
+index dadb425..7caa1f7 100755
+--- c/verifiers/verify_corpus_independent.py
++++ i/verifiers/verify_corpus_independent.py
+@@ -17,10 +17,11 @@ INDEX      every tracked corpus markdown file except ``corpus/README.md`` must b
+            not exist on disk is MISSING; a tracked file no token denotes is UNINDEXED.
+ POINTERS   a token whose text matches ``…/.ufo/reports/round-<digits>/….md`` inside a
+            tracked corpus markdown file promises the file exists.  Resolution is
+-           relative to the citing file's directory (rooted as-is, ``~`` against
+-           ``$HOME``, otherwise joined).  Excluded: tokens with ``<``/``>``, with
+-           ``*``, with whitespace, with a ``..`` segment after the leading ``../``
+-           hops; a token fully inside double quotes on its line is CONTEXT.
++           relative to the citing file's directory (rooted as-is, `~` against
++           `$HOME`, otherwise joined); a bare `.ufo/reports/...` path also
++           resolves against the fleet root /home/vgpnk/Projects/shokunin when
++           present there. Excluded: tokens with `<`/`>`, `*`, whitespace, or a
++           `..` segment after the leading `../` hops; a quoted token is CONTEXT.
+ COMMITS    ``commit `<token>``` (word ``commit`` not preceded by a letter, digit,
+            underscore or hyphen, token backticked) must be 7-40 hex characters and
+            ``git -C <repo> cat-file -e <token>^{commit}`` must succeed.  A citation
+@@ -39,6 +40,8 @@ import subprocess
+ import sys
+ import tempfile
+ 
++FLEET_ROOT = "/home/vgpnk/Projects/shokunin"
++
+ CHECK_IDS = (
+     "corpus.index.tracked_files",
+     "corpus.index.unindexed",
+@@ -207,6 +210,14 @@ def resolve_pointer(token, citing_file):
+     )
+ 
+ 
++def report_pointer_exists(token, citing_file, fleet_root=FLEET_ROOT):
++    """Check the citing directory, then the fleet root for bare report paths."""
++    if os.path.exists(resolve_pointer(token, citing_file)):
++        return True
++    return (token.startswith(".ufo/reports/") and
++            os.path.isfile(os.path.join(fleet_root, token)))
++
++
+ def pointer_shape(token):
+     if token.startswith("/"):
+         return "absolute"
+@@ -372,7 +383,7 @@ def _fnmatch(name, pattern):
+ # ------------------------------------------------------------------ pointers ---
+ 
+ 
+-def analyse_pointers(repo, tracked_corpus):
++def analyse_pointers(repo, tracked_corpus, fleet_root=FLEET_ROOT):
+     excluded, quoted, dead, checked = [], [], [], []
+     shapes = {"absolute": 0, "tilde": 0, "relative": 0, "bare": 0}
+     candidates = 0
+@@ -392,7 +403,7 @@ def analyse_pointers(repo, tracked_corpus):
+                         continue
+                     checked.append("%s:%d: %s" % (rel, lineno, token))
+                     shapes[pointer_shape(token)] += 1
+-                    if not os.path.exists(resolve_pointer(token, path)):
++                    if not report_pointer_exists(token, path, fleet_root):
+                         dead.append("%s:%d: %s" % (rel, lineno, token))
+     return {
+         "report_candidates": candidates,
+@@ -896,6 +907,20 @@ def self_test():
+         st.eq(has_dotdot_after_hops("../../../a/b.md"), False,
+               "pointers: pure leading hops are not dotdot-after-hops")
+ 
++        fallback_repo = os.path.join(tmp, "fleet-fallback-lane")
++        fallback_fleet = os.path.join(tmp, "fleet-fallback-root")
++        _write(os.path.join(fallback_repo, "corpus/lessons/closure.md"),
++               "Report `.ufo/reports/round-53/kotoba.md`\n")
++        _write(os.path.join(fallback_fleet,
++                            ".ufo/reports/round-53/kotoba.md"), "report\n")
++        fallback = analyse_pointers(
++            fallback_repo, ["corpus/lessons/closure.md"], fallback_fleet
++        )
++        st.eq(fallback["report_total"], 1,
++              "pointers: fleet-root report remains checked")
++        st.eq(fallback["report_dead"], 0,
++              "pointers: existing fleet-root report resolves")
++
+         # -- commits: nonhash vs unresolvable vs resolvable ----------------------
+         croot = os.path.join(tmp, "commits")
+         _fixture_commits(croot)
+diff --git c/verifiers/verify_corpus_integrity.py i/verifiers/verify_corpus_integrity.py
+index 470ec1b..88d771d 100755
+--- c/verifiers/verify_corpus_integrity.py
++++ i/verifiers/verify_corpus_integrity.py
+@@ -17,8 +17,9 @@ What each check pins (id — mode — claim):
+                                                round-N/*.md`, any shape: `../…`,
+                                                `../../…`, host-absolute, `~/…`,
+                                                bare) — the checked population.
+-  corpus.pointers.report_dead         (zero)   those that do not resolve from the
+-                                               citing file's directory.
++  corpus.pointers.report_dead         (zero)   those that do not resolve from the citing
++                                               file's directory, or from the fleet root
++                                               for a bare `.ufo/reports/...` path.
+   corpus.pointers.commit_total        (equal)  `commit `<hex>`` citations across
+                                                tracked corpus *.md.
+   corpus.pointers.commit_unresolvable (zero)   those where
+@@ -110,6 +111,7 @@ import json
+ import re
+ import subprocess
+ import sys
++import tempfile
+ from pathlib import Path
+ 
+ # ---------------------------------------------------------------------------
+@@ -120,6 +122,7 @@ INDEX_REL = "corpus/README.md"      # repo-relative, for findings and reads
+ INDEX_NAME = "README.md"            # corpus-relative, for tracked-set comparison
+ BASELINE_NAME = "corpus-baseline.json"
+ DEFAULT_REPO = Path(__file__).resolve().parent.parent
++FLEET_ROOT = Path("/home/vgpnk/Projects/shokunin")
+ 
+ # a FILE-column token carrying any of these is a placeholder/prose shape, not a
+ # path this repo promises (see the EXCLUDED block)
+@@ -264,6 +267,13 @@ def resolve_pointer(base: Path, token: str) -> Path:
+     return (base / token).resolve()
+ 
+ 
++def report_pointer_exists(base: Path, token: str, fleet_root: Path = FLEET_ROOT) -> bool:
++    """Check the citing directory first, then the fleet root for bare report paths."""
++    if resolve_pointer(base, token).is_file():
++        return True
++    return token.startswith(".ufo/reports/") and (fleet_root / token).is_file()
++
++
+ def is_excluded_pointer(token: str) -> bool:
+     """Schematic/placeholder report-pointer token — context, not a promise.
+ 
+@@ -602,7 +612,7 @@ def corpus_observations(repo: Path) -> dict:
+             rel_repo,
+             text,
+             # base = the citing file's own directory, as written in its path
+-            lambda base, token, _repo=repo: resolve_pointer(_repo / base, token).is_file(),
++            lambda base, token, _repo=repo: report_pointer_exists(_repo / base, token),
+             lambda hex_id, _repo=repo: git_ok(
+                 _repo, "cat-file", "-e", commit_peel_arg(hex_id)
+             ),
+@@ -937,6 +947,22 @@ def self_test() -> int:
+         str(resolve_pointer(Path("/r/x/corpus"), "../../.ufo/reports/round-7/kotoba.md")),
+         "/r/.ufo/reports/round-7/kotoba.md",
+     )
++    with tempfile.TemporaryDirectory() as tmpdir:
++        root = Path(tmpdir)
++        lane_root = root / "lane"
++        fleet_root = root / "fleet"
++        fleet_report = fleet_root / ".ufo/reports/round-53/kotoba.md"
++        (lane_root / "corpus/lessons").mkdir(parents=True)
++        fleet_report.parent.mkdir(parents=True)
++        fleet_report.write_text("report\n", encoding="utf-8")
++        fleet_found = citation_findings(
++            "corpus/lessons/closure.md",
++            "Report `.ufo/reports/round-53/kotoba.md`",
++            lambda base, token: report_pointer_exists(lane_root / base, token, fleet_root),
++            lambda hex_id: True,
++        )
++        eq("pointer/fleet-root/checked", fleet_found["report_total"], 1)
++        eq("pointer/fleet-root/resolves-existing-report", fleet_found["report_dead"], 0)
+ 
+     # --- citation fixture: pointers, commits, quoted meta-findings -------
+     found = citation_findings(

@@ -1,0 +1,18 @@
+Result: BREAKS — Two plausible OC-4 weakenings survive both the self-test and live gate, leaving reminder-delivery and matcher-window scope unguarded.
+
+Target: `verifiers/verify_surfaces.py` OC-4 matcher (`:650-708`) and OC-4 self-test decoys (`:1611-1634`), in isolated clone `/fast/scratch/hyaku/kotoba-r53/w2/W2MutOc4` at `c775d6823bfca8f0de8c0874032a954438b38edc`.
+
+Pristine and restored controls:
+- `python3 -B verifiers/verify_surfaces.py --self-test` — exit 0; `0 failure(s) over 155 assertions` (expected missing-input cases also printed their `ERROR` lines).
+- `python3 -B verifiers/verify_surfaces.py --json --repo /fast/scratch/hyaku/kotoba-r53/w2/W2MutOc4` — exit 0; `pass: 7`, `fail: 0`, `exit_code: 0`; OC-4 included in `surfaces.opencode_extract` PASS. The observed opencode binary SHA-256 was `538fcb1b6408c8d4608822acee19f7ff5b3a3eb3383c0633c4f06170857312a7`.
+- Matcher SHA-256 before probes: `f84d423ad3eddd4b2f594306212aec5d72093ef60ebcf3b7d4d541c1b5c4c37b`.
+
+| Mutation (one at a time) | Self-test failures | Live gate | Killed? / verdict |
+|---|---|---|---|
+| Drop the resolver-call edge: when `OC_READ_CALL_RE` has no match, permit any identifier as the result and search delivery from the tool entry. | 3/155; `strings-opencode-1.19.4-decoy-oc4.txt` unexpectedly passes, failing its expected exit-1, `FAIL opencode_extract`, and OC-4-only-unmatched assertions. Exit 1. | Exit 0; 7/7 PASS, OC-4 PASS. | Yes — HOLDS; the self-test catches the call-edge decoy. Mutated SHA-256 `202896c16cf838450654b13ace00bb2ba2b14a8380438e50d54c171d11800b67`. |
+| Remove the required opening `<system-reminder>` token from the delivery regex while retaining result mapping and closing-tag checks. | 0/155; exit 0. | Exit 0; 7/7 PASS, OC-4 PASS. | No — BREAKS; Severity: Medium. No current self-test case holds the call edge/output shape constant while removing this delivery token. Mutated SHA-256 `dcf032be94aad772c6e2753a8d8d883a5e48d1b39c14df17e74ed593aa070aab`. |
+| Accept bare literals as fallback: on no structural match, return true if `Instruction.resolve`, `ReadTool.execute`, and `<system-reminder>` occur anywhere in the dump. | 3/155; the OC-4 decoy unexpectedly passes, failing its expected exit-1, `FAIL opencode_extract`, and OC-4-only-unmatched assertions. Exit 1. | Exit 0; 7/7 PASS, OC-4 PASS. | Yes — HOLDS; the self-test catches bare-literal acceptance. Mutated SHA-256 `d65395dcf0a428bb19c4028066048401b8881aa93a3f1036ef12bfd66cddf981`. |
+| Widen `tool_window` from the next 50,000 module characters to the rest of the module. | 0/155; exit 0. | Exit 0; 7/7 PASS, OC-4 PASS. | No — BREAKS; Severity: Medium. The current battery does not test whether a distant, unrelated same-module shape can satisfy the matcher. Mutated SHA-256 `15dd17d4a5468e313ae6cb95ef1f838cfc2f86b7fe423ae37196557bd3236cac`. |
+| Restrict the `ReadTool.execute` wrapper callee to literal `fn(` only. | 3/155; the 1.19.4 anchors fail to pass, and the OC-6 decoy fails its OC-6-only-unmatched assertion because OC-4 also becomes unmatched. Exit 1. | Exit 1; 6/7 PASS, 1 FAIL; `surfaces.opencode_extract` reports OC-4 unmatched. | Yes — HOLDS; both self-test and live gate catch the regression. Mutated SHA-256 `b69ddbb8ce17da4144335e34d628b925ef2efabac1b82027c81bcde6310f8cae`. |
+
+Restoration evidence: after all probes, `python3 -B verifiers/verify_surfaces.py --self-test` again exited 0 with `0 failure(s) over 155 assertions`; the live gate again exited 0 with 7/7 PASS; `sha256sum verifiers/verify_surfaces.py` returned `f84d423ad3eddd4b2f594306212aec5d72093ef60ebcf3b7d4d541c1b5c4c37b`, identical to the pristine hash.
