@@ -77,3 +77,18 @@ first moves the verifier-description bullets of SKILL.md § Sources (42 lines, v
   unchanged; only the times were misstated (lesson round 54, mistake candidate).
 - The enabling move is 43 lines (`SKILL.md` 532–574 at `422ffd10`), not 42; it landed as
   `7ad05d342d7505ab674a5ebcf5ac1106b2f45c39` (593 → 552 lines; `diff` of the two ranges is empty).
+
+## Erratum 2 (append-only; on wave-1 critic `CriticC2Sizing`, before any C2 content)
+
+- The C2 sentence "Each mismatch it counts is a disagreement between the lane's registry … and the repository"
+  is wider than the counter (Q31). Four of its checks read the repository — a row exists for each verifier blob,
+  phantom rows, the self-test flag text occurs in the file, a pinned path exists. The other four (kind, verdict
+  pairs, write scope, owner) read only the row's own cells. The flag check is a substring test, so a flag in a
+  comment, a borrowed flag or a fragment passes it (`.ufo/waves/round-54/build/CriticC2Sizing.md`).
+- Guard outside the counter, declared now and judged with the claim: four verifiers are gates without a
+  self-test at `7ad05d34` (`box_proof_case_deletion.py`, `check_alwayson_boxes.py`, `check_callee_rename.py`,
+  `check_opencode_repin.py`; each exits 2 on `--self-test`). C2 is not claimed unless each of their rows says
+  `gate` and its declared flag, run in a sandbox clone at the measured revision, exits 0. A `probe` label or a
+  borrowed flag on any of the four fails the claim even if the counter prints `M of M`. The honest registry
+  at `7ad05d34` would print 19 of 23.
+- The counter is not changed (Q28). Exact flag matching is a later-round item.
