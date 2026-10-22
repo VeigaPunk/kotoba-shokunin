@@ -242,3 +242,54 @@ Appended round 50 (append-only; the sections above are unchanged). Seat reports 
   no measured trigger precision.
 - **Line pins.** The citation `../SKILL.md:12-15` in § What decides refers to the description at
   `f3046466` (and at `a5adc146`); the round-50 description moved that note to lines 15-17.
+
+## Round 50: precedence between `contested` and a stated split (routed defect D3)
+
+Appended round 50 (append-only). Basis: critic seat `../.ufo/waves/round-50/build/CriticPrecedence.md`
+and fact seats `RuleKama.md`, `RuleKengaku.md`, `RuleTameshi.md` (all read the pinned sibling bytes).
+No vendor page decides this: the six pages opened this round document only name-keyed rules (section
+above), so the precedence below is kotoba's own rule.
+
+- **What `contested` means.** The sibling's scope surfaces claim an element of kotoba's `PROVINCE.md`
+  § Core over text the sibling does not own. Reading or verifying a non-craft fact held in such text is
+  not a claim: an endpoint value, a credential checklist item, or the kill rate of the owner's gate.
+- **Precedence.** A claim makes the row `contested` unless the sibling's own scope surfaces state a
+  split that assigns the claimed element. A split stated only by kotoba never overrides a sibling's
+  claim, because kotoba could otherwise relabel any claim with one sentence of its own. A split stated
+  only by kotoba may still make a row with no claim `adjacent`; it is a routing commitment kotoba must
+  honour.
+- **Basis of each `adjacent` row at `f3046466`** (sibling, kotoba, both), before this round's description
+  edit adds kotoba's side for chousa, kama, kotodama and tameshi: chousa kotoba (no chousa-side split
+  was cited; recorded, not re-swept this round); kagi both; kake both; kama sibling; kasegi both;
+  kengaku both; kotodama sibling; kumitate both; tameshi sibling.
+- **Rulings.** No row moves; the counts stay 9 adjacent, 11 none, 0 contested.
+  - kama: the arm does not fire. kama's registry rows (`consumer-registry.md:91-92, 111-112, 325-326`
+    at `c808ba07`) verify endpoint values and absences in instruction files; they judge no wording.
+    kama's own split assigns the wording to kotoba ("**Kotoba** owns the instruction/agent surface and
+    its model/fallback wording; **kama** owns independent verification of the target endpoint",
+    `cross-lane-scope.md:29`). `adjacent`, basis sibling.
+  - kengaku: the arm does not fire. Its round-25 census script reads only the `SKILL.md` of the lane it
+    runs in (`plans/round25_census.sh` requires a lane root; seat `RuleKengaku.md`), and kengaku's
+    `corpus/README.md:192` says only "frontmatter triggers". The round-49 boundary note that the script
+    counts trigger strings in other lanes' files rested on kengaku's round-25 wave reports, which this
+    rule excludes. `adjacent`, basis both (kengaku `SKILL.md:3`: "kotoba owns prompt and skill craft
+    (kengaku keeps only measured capability effects)").
+  - tameshi: the arm fires literally (its Core names kagi's `corpus/checklist-run.sh`, which reads
+    kagi's `SKILL.md` checklist), but that instrument is kagi's, not an element of kotoba's § Core, and
+    tameshi measures its kill rate read-only. tameshi's own split: "every lane's gate remains its own"
+    and it "Never edits a sibling's gate code" (`PROVINCE.md:14-17` at `3b20f073`). `adjacent`, basis
+    sibling.
+  - mado stays `none`: the omarchy skill file it surveys belongs to no lane, so no § Core element over
+    another lane's text is claimed.
+- **Correction to the falsify-wave note above on kake and kasegi.** Their `adjacent` class does not rest
+  on kotoba's description alone. Both siblings' corpora carry an aggregator-mirrored lesson that states
+  the same split: "Aggregator-owned file; the owning lane corrects `SKILL.md`." (kake
+  `corpus/lessons/round-5-aggregator-mirror-pathless-cli-invocation.md:4-5` at `e73d48bb`; kasegi
+  `corpus/lessons/round-5-aggregator-mirror-ambiguous-citation-base.md:4-5` at `1fafde8f`; seat
+  `CriticPrecedence.md` F3). Basis both.
+- **Correction to § Classification rule.** Its sentence that kotoba's base `PROVINCE.md` lines "state a
+  split (chousa, kumitate, kengaku, tameshi)" holds only for chousa and kumitate; the kengaku and
+  tameshi lines named only the sibling's ground (`CriticPrecedence.md` F2). Both rows rest on the
+  sibling-side splits cited above.
+- **Guard.** `../verifiers/check_sibling_census.py` now fails a lane that appears in more than one row of
+  either table (round 50), and it does not machine-check the basis column above.
