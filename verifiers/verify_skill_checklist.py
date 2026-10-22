@@ -61,8 +61,9 @@ checklist.box_map_complete      MULTISET parity between the live file's
     a shebang, or the ELF magic (a compiled instrument has neither suffix nor
     shebang — the critic lane falsified a suffix-only test on
     ``~/.local/bin/sekhmet``): delegating a box to a README, a JSON map, a
-    directory or a SKILL.md is a FAIL naming the target, not a pass
-    (round-16 R2).
+    directory or a SKILL.md is a FAIL naming the target, not a pass (round-16 R2).
+    Absolute paths and paths containing ``..`` are rejected as outside the map's
+    repo before a delegate is probed or executed.
     A delegated instrument that can prove its own boxes is run by this gate:
     its ``--box-proof --map <map>`` (the map under check) must exit 0, and a
     non-zero exit is a FAIL naming the instrument and its exit code
@@ -1241,7 +1242,7 @@ def check_box_map(boxes: list[dict], m: dict, target_name: str,
             # target's (a red-before run points the live map at a snapshot)
             base = map_repo or repo or Path(".")
             candidate = base / target
-            if ".." in target.split("/"):
+            if Path(target).is_absolute() or ".." in target.split("/"):
                 problems.append(
                     "map entry %s delegates outside the map's repo: %r"
                     % (e["box_id"], target))
@@ -2382,12 +2383,12 @@ def self_test() -> int:
     # --- round-50 D2 (gate half): the delegated box proof is a gate ---------
     # A ``delegated:`` disposition claims that the named instrument proves
     # its own boxes.  This gate runs that proof -- the instrument's
-    # ``--box-proof`` against the map under check -- and a non-zero exit
-    # leaves the delegation unproven, so the check is red.  Three arms: a
-    # stub that exits 1 under --box-proof turns the check red, the same stub
-    # exiting 0 keeps it green, and an instrument without --box-proof
-    # support keeps today's behaviour and says so in the detail string.
-    def delegated_tree(root: Path, stub: str) -> None:
+    # ``--box-proof`` against the map under check; a non-zero exit leaves the
+    # delegation unproven and makes the check red. Four arms: a failing stub
+    # turns the check red, a passing stub keeps it green, an unsupported proof
+    # flag preserves current behaviour, and an absolute target is rejected.
+    def delegated_tree(root: Path, stub: str,
+                       delegated_target: str = "verifiers/probe.py") -> None:
         (root / "verifiers").mkdir(parents=True, exist_ok=True)
         skill = root / "SKILL.md"
         skill.write_text(
@@ -2405,7 +2406,7 @@ def self_test() -> int:
              "disposition": "executed:trigger.line_budget"},
             {"box_id": "fixture.02", "section": "Fixture checklist",
              "text_sha256": by_text["second box"],
-             "disposition": "delegated:verifiers/probe.py"},
+             "disposition": "delegated:" + delegated_target},
         ]
         (root / "verifiers" / "checklist-baseline.json").write_text(
             json.dumps({"schema": MAP_SCHEMA, "file": "SKILL.md",
@@ -2460,6 +2461,12 @@ def self_test() -> int:
             code == 0 and "PASS checklist.box_map_complete:" in out, out)
         rec("delegated box proof: the skipped instrument is stated in the "
             "detail", "no --box-proof support" in out, out)
+        absolute_target = str(root / "verifiers" / "probe.py")
+        delegated_tree(root, GREEN_STUB, absolute_target)
+        code, out = delegated_run(root)
+        rec("delegated absolute target is rejected",
+            code == 1 and "delegates outside the map's repo" in out
+            and absolute_target in out, out)
 
     for f in failures:
         print("self-test FAIL: %s" % f)
