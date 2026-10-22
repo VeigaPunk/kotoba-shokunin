@@ -275,6 +275,43 @@ def parse_frontmatter(text: str) -> dict:
     return fields
 
 
+def read_frontmatter(path: Path) -> dict:
+    """The frontmatter of a SKILL.md, or `{}` when the file cannot be read.
+
+    A skill whose SKILL.md is unreadable carries no readable name, so the
+    caller falls back to the directory name (see `skill_identity`).
+    """
+    try:
+        text = path.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return {}
+    return parse_frontmatter(text)
+
+
+def skill_identity(frontmatter: dict, dir_name: str) -> str:
+    """The identity of one skill: its frontmatter `name`, else its directory.
+
+    S016 (corpus/SOURCES.md) records opencode's own loader: a skill is
+    identified by the `name` in its SKILL.md frontmatter, NOT by the
+    directory it happens to sit in.  Every root -- the shared agents root,
+    the configured --oc-config roots and the roots the opencode log names --
+    therefore keys a skill by this ONE operator, so the same skill offered
+    by two roots under two different directory names is counted once.
+
+    The directory name is the fallback ONLY when the frontmatter carries no
+    name (an absent `name` field, an empty one, or a SKILL.md that cannot be
+    read at all).  That fallback is what the agents root has always used,
+    so the operator is unchanged there.
+
+    Round 49 (R1): the configured and log-named roots were keyed by
+    directory name while the agents root was keyed by the frontmatter name,
+    so a skill whose directory differed from a name another root already
+    offered was counted twice (round-48 falsify seat A21's probe: 4 -> 5).
+    """
+    name = frontmatter.get("name")
+    return name if isinstance(name, str) and name else dir_name
+
+
 def root_key(path: str) -> str:
     """`<home>/.claude/skills/x/SKILL.md` -> `.claude/skills`.
 
@@ -593,10 +630,16 @@ def derive(s: Substrate) -> list[dict]:
     # The roots are the directories opencode's own log names as skill sources,
     # plus the two configured roots --oc-config/skill and --oc-config/skills
     # (enumerated even when the log does not name them; round 48), plus the
-    # shared agents root it reads. Log-named and configured roots share one
-    # operator (direct children holding a SKILL.md file, named by directory);
-    # the agents root keys by frontmatter name. This is the frozen oracle's
-    # bounded contract, narrower than opencode's recursive loader (S016).
+    # shared agents root it reads. Every root shares ONE operator: a skill is
+    # identified by the `name` in its SKILL.md frontmatter, and the directory
+    # name is the fallback ONLY when the frontmatter carries no name. This is
+    # the frozen oracle's bounded contract, narrower than opencode's
+    # recursive loader (S016), which says the same thing about identity:
+    # "identity is the frontmatter name, not the directory name".
+    # Round 49 (R1): the configured and log-named roots were keyed by
+    # directory name while the agents root was keyed by the frontmatter
+    # name, so a skill offered under two different directory names by two
+    # roots was counted twice (round-48 falsify seat A21's probe: 4 -> 5).
     # Names are a set, so a root named twice, or named by the log and also
     # configured, never adds twice.
     root_dirs = [d for d in ("skill", "skills")
@@ -606,7 +649,7 @@ def derive(s: Substrate) -> list[dict]:
         m = re.search(r'sources="\[(.*?)\]"', line)
         if m:
             sources.update(re.findall(r'directory:([^"\\]+)', m.group(1)))
-    names = {skill["frontmatter"].get("name") or skill["dir"]
+    names = {skill_identity(skill["frontmatter"], skill["dir"])
              for skill in offered}
     configured = {str(s.oc_config / d) for d in ("skill", "skills")}
     for directory in sorted(sources | configured):
@@ -624,12 +667,19 @@ def derive(s: Substrate) -> list[dict]:
             raise
         for entry in entries:
             if (entry / "SKILL.md").is_file():
-                names.add(entry.name)
+                # The identity is the frontmatter name (S016); the directory
+                # name is the fallback ONLY when the frontmatter carries no
+                # name -- including when the SKILL.md cannot be read at all,
+                # which is the case the agents root has always fallen back to.
+                names.add(skill_identity(
+                    read_frontmatter(entry / "SKILL.md"), entry.name))
     rows.append(row("oc.roots.names_plus_builtin", len(names),
                     "distinct skill names enumerated under the roots the "
                     "opencode log names as sources (%d present) and the "
                     "configured --oc-config roots (present: %s) plus the "
-                    "shared agents root (%d names); built-in names: 0 by "
+                    "shared agents root (%d names); each skill keyed by its "
+                    "SKILL.md frontmatter name, the directory name only when "
+                    "the frontmatter has none; built-in names: 0 by "
                     "declaration"
                     % (sum(1 for d in sources if Path(d).is_dir()),
                        ", ".join(root_dirs) or "none", len(offered))))
@@ -952,6 +1002,82 @@ def _name_log_root(fixture: Substrate, directory: Path) -> None:
     with open(fixture.oc_log, "a", encoding="utf-8") as handle:
         handle.write('run=eee message="skills rescanned" '
                      'sources="[\\"directory:%s\\"]"\n' % directory)
+
+
+# ---------------------------------------------------------------------------
+# round 49 (R1): the frontmatter-name fixture
+# ---------------------------------------------------------------------------
+def build_frontmatter_key_fixture(root: Path, alias_name: str = "x") -> Substrate:
+    """A substrate whose configured root offers an identity the shared agents
+    root already offers, under a DIFFERENT directory name.
+
+    Round 49 (R1).  S016 (corpus/SOURCES.md) records opencode's own rule:
+    "identity is the frontmatter name, not the directory name".  The
+    fixture makes the two readings disagree, so the row's operator is
+    measurable:
+
+        agents/x/SKILL.md             frontmatter name: x
+                                      (the shared agents root offers the
+                                      identity x)
+        config/skills/dir-y/SKILL.md  frontmatter name: <alias_name>
+                                      (the configured root offers an
+                                      identity from a differently named
+                                      directory)
+
+    With the default `alias_name="x"` the two roots offer the SAME identity
+    twice: the frontmatter-name operator counts it once, the directory-name
+    operator counts it twice.  The agents root also holds build_fixture's
+    `alpha` and `beta`, so the count is 3 under the frontmatter operator
+    (alpha, beta, x) and 4 under the directory operator (alpha, beta, x,
+    dir-y).
+
+    `alias_name` names a DIFFERENT identity (the control arm): then no
+    identity is offered twice, so both operators count the same number and
+    the fix must not have dropped the configured root's skill.
+    """
+    fixture = build_fixture(root)
+    agents = fixture.agents_root
+    (agents / "x").mkdir(parents=True)
+    (agents / "x" / "SKILL.md").write_text(
+        "---\nname: x\ndescription: Use x briefly.\n---\n\n# x\n",
+        encoding="utf-8")
+    # the cache row for the new skill, computed the same way build_fixture
+    # computes the others, so the fixture stays internally consistent (no
+    # spurious cache miss) and only the ROOT ENUMERATION is under test.
+    template = (TEMPLATE_START + b" now.\n\nSkill: {{name}}\n" + TEMPLATE_END)
+    parsed = parse_frontmatter(
+        (agents / "x" / "SKILL.md").read_text(encoding="utf-8"))
+    preimage = (template + b"\x00" + str(parsed["name"]).encode()
+                + b"\x00" + str(parsed["description"]).encode())
+    conn = sqlite3.connect(fixture.skill_db)
+    conn.execute("INSERT INTO skill_descriptions VALUES (?, ?)",
+                 (sha256_hex(preimage), "Use x in one line."))
+    conn.commit()
+    conn.close()
+    config = fixture.oc_config
+    (config / "skills" / "dir-y").mkdir(parents=True)
+    (config / "skills" / "dir-y" / "SKILL.md").write_text(
+        "---\nname: %s\ndescription: Use it briefly.\n---\n\n# dir-y\n"
+        % alias_name, encoding="utf-8")
+    return fixture
+
+
+def build_frontmatter_fallback_fixture(root: Path) -> Substrate:
+    """A substrate whose configured root holds a SKILL.md with NO frontmatter
+    `name` at all (round 49, R1).
+
+    The identity operator falls back to the directory name only in that
+    case, so this skill still contributes exactly one name -- the directory
+    name -- and the enumeration operator is measurable separately from the
+    keying one.
+    """
+    fixture = build_fixture(root)
+    config = fixture.oc_config
+    (config / "skills" / "dir-noname").mkdir(parents=True)
+    (config / "skills" / "dir-noname" / "SKILL.md").write_text(
+        "---\ndescription: Use it briefly.\n---\n\n# dir-noname\n",
+        encoding="utf-8")
+    return fixture
 
 
 # ---------------------------------------------------------------------------
@@ -1478,6 +1604,84 @@ def self_test() -> int:
                        locked_rows["oc.roots.names_plus_builtin"]["value"], 4)
         finally:
             locked_dir.chmod(0o755)
+
+        # ---- round 49 (R1): identity is the frontmatter name -------------
+        # S016 (corpus/SOURCES.md) records opencode's own rule: "identity is
+        # the frontmatter name, not the directory name".  The base keyed the
+        # configured and log-named roots by DIRECTORY name while the agents
+        # root keyed by the frontmatter name, so one identity offered by two
+        # roots under two directory names was counted twice (the round-48
+        # falsify seat's A21 probe: 4 -> 5).
+        #
+        # The fixture: the shared agents root offers the identity `x` (from
+        # the directory `x`), and --oc-config/skills/dir-y/SKILL.md declares
+        # `name: x` as well, from a DIFFERENT directory.  Under the
+        # frontmatter-name operator the two are one identity (count 3:
+        # alpha, beta, x); under the directory-name operator they are two
+        # (count 4: alpha, beta, x, dir-y).
+        fk_root = Path(tmp) / "fk"
+        fk_root.mkdir()
+        fk = build_frontmatter_key_fixture(fk_root)
+        fk_rows = {r["check"]: r for r in derive(fk)}
+        fk_value = fk_rows["oc.roots.names_plus_builtin"]["value"]
+        # the fixture's premise, asserted rather than assumed: the agents
+        # root offers the identity x, and the configured root's dir-y
+        # declares the SAME name from a different directory.
+        expect("round 49: the fixture's agents root offers the name x",
+               sorted(skill["frontmatter"].get("name")
+                      for skill in fk.offered()),
+               ["alpha", "beta", "x"])
+        expect("round 49: the fixture's configured dir-y declares the name x",
+               parse_frontmatter(
+                   (fk.oc_config / "skills" / "dir-y" / "SKILL.md")
+                   .read_text(encoding="utf-8")).get("name"),
+               "x")
+        expect("round 49: the configured skill's directory name is dir-y",
+               (fk.oc_config / "skills" / "dir-y").name, "dir-y")
+        # THE ARM: the identity is counted once, not twice.
+        expect("round 49: one identity offered by two roots under two "
+               "directory names is counted once",
+               fk_value, 3)
+        # the control arm: with a DIFFERENT identity in dir-y, no identity is
+        # offered twice, so the count is the same under either operator --
+        # the fix must not have dropped the configured root's skill.
+        fkc_root = Path(tmp) / "fk-control"
+        fkc_root.mkdir()
+        fkc = build_frontmatter_key_fixture(fkc_root, alias_name="y")
+        fkc_rows = {r["check"]: r for r in derive(fkc)}
+        expect("round 49: control -- a configured skill with its own identity "
+               "is still counted",
+               fkc_rows["oc.roots.names_plus_builtin"]["value"], 4)
+        # the fallback arm: a SKILL.md with no frontmatter `name` at all is
+        # still one name, and the only name it has is its directory name.
+        fb_root = Path(tmp) / "fb"
+        fb_root.mkdir()
+        fb = build_frontmatter_fallback_fixture(fb_root)
+        fb_rows = {r["check"]: r for r in derive(fb)}
+        expect("round 49: a configured skill with no frontmatter name falls "
+               "back to its directory name",
+               fb_rows["oc.roots.names_plus_builtin"]["value"], 3)
+        # the same rule applies to a LOG-NAMED root, not only to the
+        # configured ones: a root the opencode log names as a source keys its
+        # skills by the frontmatter name too.  The configured root's dir-y is
+        # removed first, so the log-named root is the only contributor of a
+        # name beyond the agents root: under the frontmatter-name operator
+        # it adds nothing (x is already there), under the directory-name
+        # operator it adds dir-y (count 4).
+        fl_root = Path(tmp) / "fl"
+        fl_root.mkdir()
+        fl = build_frontmatter_key_fixture(fl_root)
+        shutil.rmtree(fl.oc_config / "skills" / "dir-y")
+        logged = Path(tmp) / "fk-logged"
+        (logged / "dir-y").mkdir(parents=True)
+        (logged / "dir-y" / "SKILL.md").write_text(
+            "---\nname: x\ndescription: Use x briefly.\n---\n\n# dir-y\n",
+            encoding="utf-8")
+        _name_log_root(fl, logged)
+        fl_rows = {r["check"]: r for r in derive(fl)}
+        expect("round 49: a log-named root keys its skills by the frontmatter "
+               "name too",
+               fl_rows["oc.roots.names_plus_builtin"]["value"], 3)
 
     fixture_battery(expect)
 

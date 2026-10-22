@@ -65,6 +65,9 @@ Domain: prompt & skill craft — SKILL.md/AGENTS.md quality, trigger fidelity.
 | Round-47 non-author spot-check (integrator) | `lessons/round-47-verifier-spotcheck.md` | Main's non-author claim judgment: not admitted; bounded C1/C2 gains, C3 unprovable; independent counts, source decisions, custody limits and routed defects. Native accounting is separate. The producer's original 60-file inventory remains bound to `92aa937`. |
 | Frontmatter rule authorities (round 48) | `knowledge/frontmatter-rule-authorities-round48.md` | which authority imposes which SKILL.md frontmatter rule — spec (S018), skills-ref (S017), Anthropic docs (S019), Anthropic packager (S012), Codex docs (S021) — against what the lane's `trigger.no_xml_tag` executes (S020), with the round-47 YAML-alias, Unicode-name and escaped-value counterexamples run; repairs routed item 3 of the round-47 spot-check |
 | Round-48 lessons | `lessons/round-48.md` | LOG.md round-48 entry; `## Mistakes` (M24 rule credited to the wrong authority, M25 source-name-only sweep, M26 repair named after the row not the cause, M27 self-hash through a pipe, M28 hash match read as custody, plus a falsify-wave corrections section), `## Gate` (rows S016–S021 with access records) and the disposition of the five routed round-47 items. Governance erratum horizon note: `../verifiers/verify_skill_checklist.py` `GOVERNANCE_ERRATA_HORIZON = 2315` while `LOG.md` ran 2343 lines at round start — lines past the horizon are not excusable by the round-47 erratum |
+| Round-48 non-author spot-check (closure) | `lessons/round-48-verifier-spotcheck.md` | written by the hyaku closure `HyakuCloseKotoba48`, not the lane (outside review; never edited here): round 48 admitted, five routed defects R1–R5; landed at `a5adc146` without an index row, indexed round 49. Its two report pointers are written repo-relative ("`.ufo/reports/round-48/kotoba.md`"), so from this repository they read as `report_dead=2` in `../verifiers/verify_corpus_integrity.py` at base and after this round; the report itself is in the fleet repository's round-48 reports directory |
+| Fleet sibling-overlap census (round 49) | `knowledge/sibling-overlap-census-round49.md` | all 20 sibling lanes classified against kotoba's province at pinned sibling commits (7 adjacent, 13 none, 0 contested), with each sibling description's sibling naming (8 of 17 name a sibling, 2 name kotoba); sourced on S022, S023 and S018 (no documented tie-break between overlapping descriptions); `PROVINCE.md` § Adjacent is joined to it by `../verifiers/check_sibling_census.py` |
+| Round-49 lessons | `lessons/round-49.md` | LOG.md round-49 entry; `## Mistakes` (M29 content-blind counter, M30 unsourced adjacency line), `## Gate` (rows S022–S023, S018 re-opened, the round-48 entry admit erratum) and the disposition of the five routed round-48 items |
 
 ## Frontier
 
@@ -109,6 +112,10 @@ Areas being explored and not yet held (LEARNING.md § Files the path writes); ap
   cross-domain — routing map in `knowledge/alwayson-checklist-round7.md` +
   the round-7 report. The mint-template producer itself has no identified
   owner (integrator assignment needed).
+  **Round 49 (append-only):** superseded as a fleet measure by
+  `knowledge/sibling-overlap-census-round49.md`: 8 of 17 sibling descriptions now name at least one
+  sibling, and the same five lanes read 1/5 (kengaku). kotoba's own description names 5 of 20 siblings and
+  not kotodama, whose description routes prompt and skill craft to kotoba; that description edit is carried.
 - opencode-side offer is now measured (round 8): godspeed offered 387/387
   attested sessions (100%) against activation 205/399 = 51.4%, so the round-6
   "51.5% coverage" gap is model choice on the consume side, not an offer hole.

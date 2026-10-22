@@ -132,3 +132,46 @@ These stay as counterexamples. No universal frontmatter-validator claim is made 
   this entry maps stated and executed validation rules only. Claude Code's skills page and the
   Anthropic Skills API guide state further rules (a 256-character name refusal; upload-time
   rejection) recorded in `C2ClaudeDocs.md` and not yet opened into source rows.
+
+## Count provenance (round 49, routed defect R4)
+
+Every count and size above is re-measured here with its command (2026-10-22, UTC). Table cells avoid
+`|` so each command is copy-paste runnable: alternations use repeated `-e`, row-id counts build the
+separator with `chr(124)` (the A15 literal-pipe hazard).
+
+| line | stated value | command | observed today (UTC) | match |
+|---|---|---|---|---|
+| 16 | 7,608 B | `curl -sSL -o spec.md -w '%{size_download}\n' https://agentskills.io/specification.md` (then `sha256sum spec.md`) | 7,608 B, `9a67de89…`, 2026-10-22T09:48:10Z | yes |
+| 22 | 21 fixtures | `python3 -c "import glob;print(len(glob.glob('/fast/scratch/hyaku/kotoba-r48-a2/seats/C2SkillsRefRun/fixtures/*/')))"` | 21, 09:48:11Z (seat F3: 21 skill directories plus the lane copy) | yes |
+| 23 | 42,169 B | `curl -sSL -o bp.md -w '%{size_download}\n' https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices.md` | 42,169 B, `f0a5d61b…`, 09:48:10Z | yes |
+| 24 | 42,028 B (round 47) | `wc -c` and `sha256sum` on `.ufo/waves/round-47/build/KnowDescriptionRule.s003-best-practices.md` | 42,028 B, `727f3fa1…`, 09:48:11Z (retained copy; the live URL has moved) | yes |
+| 24 | 62 in-place copy edits | `grep -cE '^[0-9]+(,[0-9]+)?c' <(diff .ufo/waves/round-47/build/KnowDescriptionRule.s003-best-practices.md bp.md)` | 62 `c`, 0 `d`, 79/79 lines, 09:48:11Z | yes |
+| 32 | 24 probe fixtures | no stored run list; `python3 -B /fast/scratch/hyaku/kotoba-r49/seats/R4CountProvenance/counts.py` (prints the fixture tree's counts) | 36 fixtures, 33 distinct names, 29 distinct contents, 09:48:11Z | **no — 24 not reproducible** |
+| 33, 72 | 10 fixtures | `python3 -c "import glob;print(len(glob.glob('/fast/scratch/hyaku/kotoba-r48-a2/seats2/A07LaneDivergence/fixtures/*/')))"`, then ten lane CLI runs and ten `qv.py` runs | 10 (A07's set equals the build seat's, `diff -r` exit 0) | yes |
+| 72 | 6 of 10 (packager description-angle rule) | `python3 -B /fast/scratch/hyaku/kotoba-r49/seats/R4CountProvenance/s_div.py` (re-runs the ten pairs) | 6, 09:48:41Z (f02b and f04 emulated) | yes |
+| 73 | 7 of 10 (packager whole-file verdict) | same command | 7, 09:48:41Z | yes |
+| 74 | 3 of 10 (docs tag rule) | same command (stdlib `HTMLParser` shape) | 3, 09:48:41Z | yes |
+| 51 | 0 hits, exit 1 (Codex sweep) | `grep -niE -e 'reserved' -e 'third person' -e 'xml' -e 'angle' -e '500 lines' -e '1024' -e '1,024' -e '64 char' -e 'lowercase' -e 'hyphen' -e 'consecutive' build-skills.md` | 0 lines, exit 1, 09:48:11Z | yes (date was missing) |
+| 51 | 5 hits (widened sweep) | `grep -niE -e 'director' -e 'unknown' -e 'unexpected' -e 'additional field' build-skills.md` | 5 hits at md:11, 39, 48, 138, 142, 09:48:11Z | yes |
+| 54 | → 0; → 0 rule lines | `grep -nE -e 'dirname' -e 'basename' -e 'parent' qv.py`; `grep -niE -e 'third person' -e 'reserved' -e 'lines' qv.py` | 0 / exit 1; 0 / exit 1, 09:48:11Z | yes (dates were missing) |
+| 56 | → 0 (skills-ref sweep) | the printed pattern gives `validator.py:12:MAX_COMPATIBILITY_LENGTH = 500`; the seat's recorded pattern `grep -niE -e 'max_lines' -e 'body length' -e '500 line' -e 'line_count' validator.py parser.py models.py` gives 0, exit 1 | 1 hit from the printed command, 0 from the executed one, 09:48:11Z | **no — printed command cannot produce 0** |
+| 40 | 65 chars fails | `python3 -B qv.py fx/n65`; `agentskills validate fx/n65`; lane `--check trigger.frontmatter_parses` | exit 1 ("Name is too long (65 characters). Maximum is 64 characters."); exit 1; lane exit 0, 09:48:12Z | yes |
+| 44 | 1025 fails; padded 1,024 passes | `python3 -B qv.py fx/d1025` and `fx/d1024pad`; `agentskills validate` on both | 1025: 1 / 1, lane 0; padded: 0 / 0, 09:48:12Z | yes |
+| 48 | allowed set of six | `python3 -B qv.py fx/badkey` (message lists the allowed set) | six names: allowed-tools, compatibility, description, license, metadata, name; exit 1, 09:56:57Z | yes |
+| 49 | 600 budget; 605 FAIL, 505 PASS | lane `--check trigger.line_budget` on 505-line and 605-line fixtures | 505 → exit 0; 605 → exit 1 ("605 lines exceed budget 600"), 09:48:12Z | yes |
+| 90 | ten rules | `grep -cP '^\x7c [a-z]' <(sed -n '40,49p' corpus/knowledge/frontmatter-rule-authorities-round48.md)` | 10 (A07's set equals the build seat's, `diff -r` exit 0) | yes |
+| 100 | six rule classes | `grep -c '^\*\*O[0-9]' .ufo/waves/round-48/falsify/A12OmittedRules.md` | 6 (O1–O6), 09:48:11Z | yes |
+| 102 | 501 fails both; empty passes both | `python3 -B qv.py fx/compat501` and `fx/compat-empty`; `agentskills validate` on both | 1 / 1; 0 / 0, 09:48:12Z | yes |
+| 122 | Five of the six sources | `python3 -c "c=chr(124);ids={'S016','S017','S018','S019','S020','S021'};print(sum(1 for l in open('corpus/SOURCES.md') if l[0]==c and l[2:6] in ids and 'https:' in l))"` | 5 of 6 rows (S020 own work), 09:48:11Z | yes |
+| 133 | 256-character name refusal | `curl -sSL -o errors.md -w '%{size_download}\n' https://code.claude.com/docs/en/errors.md` then `grep -n 'over 256 characters' errors.md` | 541,573 B, `37e9799a…`, hits at :5388 and :5397, 09:48:11Z | yes |
+
+Disposition: 21 of 23 reproduce. Line 56 needs its printed pattern replaced by the executed one
+(`max_lines`, `body length`, `500 line`, `line_count`); line 32's 24 needs either the run list or the
+measured fixture count (36 built, 29 distinct). The cells those counts support are unaffected.
+
+Fixture-based rows (40, 44, 48, 49, 102) ran on fixtures built this round in
+`/fast/scratch/hyaku/kotoba-r49/seats/R4CountProvenance/fx/`; the ten divergence fixtures are A07's
+persisted set, and `s_div.py` re-runs both tools rather than reading `results.json`. Rows 24, 51, 54
+and 56 ran in that same scratch directory, where the fetched sources (`spec.md`, `bp.md`, `qv.py`,
+`validator.py`, `parser.py`, `models.py`, `build-skills.md`) sit; each is re-fetchable from the URL in
+the `source:` line or the Limits rechecks.
