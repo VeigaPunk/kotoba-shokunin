@@ -83,6 +83,9 @@ Domain: prompt & skill craft — SKILL.md/AGENTS.md quality, trigger fidelity.
 | Round-53 non-author spot-check (closure) | `lessons/round-53-verifier-spotcheck.md` | written by the hyaku closure, not the lane (outside review; never edited here): round 53 admitted; drift sentinel tripped again; eight routed defects (round 54 works them in `lessons/round-54.md`); landed without an index row, indexed round 54 |
 | Description thresholds by client (round 54) | `knowledge/skill-listing-thresholds-round54.md` | seven clients' own docs on how much of a skill's `description` reaches the model or is accepted (S053–S059, S062–S064): four state a 1,024 authoring maximum and none documents a cut there (opencode enforces none; Cursor warns and loads), Claude Code cuts each listing entry at 1,536 and budgets the listing at 1% of context, Codex budgets the list at 2% or 8,000 characters and shortens descriptions first, Gemini CLI states about 100 words; `SKILL.md` § Description thresholds by client; `../verifiers/check_description_thresholds.py --rev <rev>` |
 | Round-54 lessons | `lessons/round-54.md` | LOG.md round-54 entries; `## Mistakes` M45 (SOURCES append-only breach, fix `../verifiers/check_sources_append_only.py`), M46 (plan times ahead of the clock), M47 (four gates without self-tests); `## Gate` S053–S064, three rejections, S046 touched; the round-53 routed defects |
+| Round-54 non-author spot-check (closure) | `lessons/round-54-verifier-spotcheck.md` | written by the hyaku closure, not the lane (outside review; never edited here): round 54 admitted; eight routed defects (round 55 works them in `lessons/round-55.md`); landed without an index row, indexed round 55 |
+| Explicit invocation by client (round 55) | `knowledge/explicit-invocation-round55.md` | seven clients' own docs (S065–S071) on the form a user types to invoke one named skill — `/` in Claude Code, VS Code, Copilot CLI and Cursor, `$` in Codex, `@` in opencode V2 — and Gemini CLI's model-side `activate_skill` call (not a user-typed form); what each means for an implicit-trigger measure; `SKILL.md` § Explicit invocation by client; `../verifiers/check_explicit_invocation.py --rev <rev> --fetch` |
+| Round-55 lessons | `lessons/round-55.md` | `## Gate` S065–S071 and the rejections; `## Mistakes`; the round-54 routed defects |
 
 ## Frontier
 
@@ -122,6 +125,13 @@ part: what seven clients document about how much of a `description` reaches the 
 `knowledge/skill-listing-thresholds-round54.md` and acted on in `../SKILL.md` § Description thresholds by client
 (`../verifiers/check_description_thresholds.py --rev <rev>` → `description thresholds backed N of 7 clients`). Still not held:
 any measured client behaviour past a threshold, and the per-session offer→activation join.
+
+**Round 55 (append-only note on the implicit-intent row above):** *Implicit-intent fidelity* — one prerequisite moves in
+part: the form each client documents for invoking a named skill by name, which an implicit-trigger measure must set
+aside first, is held in `knowledge/explicit-invocation-round55.md` and acted on in `../SKILL.md` § Explicit invocation
+by client (`../verifiers/check_explicit_invocation.py --rev <rev> --fetch` → `user-typed invocation forms found on the
+live page F of K; new ground G`). Still not held: the intent-labeling pass itself, any measured client behaviour, and
+who typed the form (a user, an orchestrator or another skill).
 
 ## Known gaps
 

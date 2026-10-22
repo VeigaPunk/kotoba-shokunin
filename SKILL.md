@@ -190,6 +190,20 @@ A documented maximum is not a render cut: four clients state 1,024 and none docu
 | Cursor | 1,024 characters for `description` | No cut documented; the release notes document a warning: the skill still loads and `/skills` shows a yellow warning count listing what to fix (a body over about 5,000 tokens is warned the same way) | Keep `description` at or under 1,024 characters; an over-limit skill still loads and gets a yellow warning in `/skills`. |
 | opencode | 1-1024 characters (v1 docs page; the v2 page says it enforces no maximum) | nothing: no cut, truncation, warning or refusal — both shipped trees print the whole string into `<available_skills>` (v1.19.4 `skill/index.ts:332`, v2.1.3 `skill/instructions.ts:21`) | keep the description inside 1-1024 characters, the rule the spec states too (S018), and front-load it for the clients that cut or shorten; opencode itself shows all of it |
 
+### Explicit invocation by client
+
+An implicit-trigger measure (Frontier *Implicit-intent fidelity*) must first set aside turns where a skill was invoked by name. The form is what the user typed, or the model's load call, as each client documents it; it says nothing about who chose the skill unless the user typed it. Basis: `corpus/knowledge/explicit-invocation-round55.md` (S065–S071), checked by `verifiers/check_explicit_invocation.py`.
+
+| Client | Explicit form | What it does | Action |
+|---|---|---|---|
+| Claude Code | `/skill-name` | Invokes the named skill directly; automatic loading stays possible unless `disable-model-invocation: true` (`skills.md:577`) | Set the turn aside as explicit when its user text starts with the skill's `/name`; count only the other activations as implicit |
+| Codex | `$<skill-name>`, e.g. `$setup-demo-app` | Names the skill in the prompt so Codex invokes it when asked; `allow_implicit_invocation: false` keeps this and stops implicit use (S021) | Set the turn aside as explicit when its user text holds `$` plus an installed skill name; only the rest can test description routing |
+| VS Code | `/<skill-name>`, e.g. `/webapp-testing` | Invokes the named skill as a slash command, with optional context after it; `disable-model-invocation: true` makes this the only way (`:151`) | Set the turn aside as explicit when its user text starts with the skill's `/name`, even when task text follows |
+| Copilot CLI | `/<skill-name>`, e.g. `/frontend-design` | Asks Copilot to use the named skill; without it Copilot picks skills from the prompt and each description (`add-skills.md:121`) | Set the turn aside as explicit when its prompt holds `/` plus a skill name; the rest are the description-routed turns |
+| Gemini CLI | `activate_skill` (model tool call) | Loads the named skill after a description match, then asks the user to consent; the pages read document no user-typed form | Treat this call as the activation record, not as explicit intent: count it implicit unless the user's own text named the skill |
+| Cursor | `/skill-name` | Attaches the named skill to one message (`cursor-skills.md:29`); `disable-model-invocation: true` makes this the only way it is included | Set the turn aside as explicit when the message used the skill's `/name`; a flagged skill can only appear in such turns |
+| opencode | `@skill-id` | Loads the named skill on the user's mention; the `autoinvoke: false` metadata key hides it from the model and keeps this path (`skills.mdx:142`) | Set the turn aside as explicit when the prompt holds `@` plus a skill ID; the model's own `skill` tool calls are the implicit ones |
+
 ## Decision tables — when to use one
 
 | Situation | Table? | Evidence |
