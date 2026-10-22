@@ -41,6 +41,7 @@ A fixture is ROBUST iff C, A and B all hold.  Output:
 Usage:
   python3 -B verifiers/check_callee_rename.py --rev <rev> [--seed N] [--json]
   python3 -B verifiers/check_callee_rename.py --root <dir> [--seed N] [--json]
+  python3 -B verifiers/check_callee_rename.py --self-test [--seed N]
 
 `--seed` changes the fresh names (default 52) so a reader can check that no
 implementation hardcodes them.
@@ -48,6 +49,8 @@ implementation hardcodes them.
 from __future__ import annotations
 
 import argparse
+import contextlib
+import io
 import json
 import random
 import re
@@ -59,6 +62,7 @@ from pathlib import Path
 
 LANE = Path(__file__).resolve().parent.parent
 FIXTURE_REV = "c8579a4c5b48789e56fb9060ddd48f33569e1215"
+SELF_TEST_REV = "422ffd1082b3f4ae3ebda6060eb1a8d779f6dfd4"
 FIXTURE_DIR = "verifiers/fixtures/surfaces"
 GATE = "verifiers/verify_surfaces.py"
 # (omp fixture, baseline, inventory) -- the pairings the gate's own self-test
@@ -138,14 +142,96 @@ def both_pass(code: int, out: str) -> bool:
     return code == 0 and all(("PASS %s:" % c) in out for c in CHECKS)
 
 
+def self_test(seed: int) -> int:
+    assertions = 0
+    failures = 0
+
+    def check(name: str, ok: bool, evidence: str) -> None:
+        nonlocal assertions, failures
+        assertions += 1
+        if not ok:
+            failures += 1
+        print("%s self-test %s: %s" % (
+            "PASS" if ok else "FAIL", name, evidence))
+
+    def run_case(root: Path) -> tuple[int, dict, str]:
+        out = io.StringIO()
+        err = io.StringIO()
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+            code = main(["--root", str(root), "--seed", str(seed), "--json"])
+        text = out.getvalue()
+        payload, separator, summary = text.rpartition("\ncallee-rename robust ")
+        if not separator:
+            raise RuntimeError("self-test run omitted the counter summary")
+        return code, json.loads(payload), "callee-rename robust " + summary.strip()
+
+    try:
+        source = git_show(SELF_TEST_REV, GATE).decode("utf-8")
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "robust"
+            gate = root / GATE
+            gate.parent.mkdir(parents=True)
+            gate.write_text(source, encoding="utf-8")
+            code, report, summary = run_case(root)
+            row = next(r for r in report["rows"] if r["fixture"] == CASES[0][0])
+            detail = "\n".join(row["detail"]["planted"])
+            robust_ok = (
+                code == 0 and summary == "callee-rename robust 4 of 4 fixtures"
+                and report["robust"] == len(CASES) and row["robust"] is True
+                and "FAIL surfaces.no_uncovered_class:" in detail
+                and PLANT_ID in detail)
+            check("robust case", robust_ok,
+                  "%s exit=%d finding=%s" % (row["fixture"], code, PLANT_ID))
+
+            anchor = '\nif __name__ == "__main__":\n'
+            if source.count(anchor) != 1:
+                raise RuntimeError("self-test gate mutation anchor changed")
+            mutant = source.replace(
+                anchor,
+                '\ndef check_no_uncovered_class(entries, extracted, dumps=None):\n'
+                '    return True, "self-test injected suppression"\n' + anchor,
+                1)
+            mutant_root = Path(tmp) / "non-robust"
+            mutant_gate = mutant_root / GATE
+            mutant_gate.parent.mkdir(parents=True)
+            mutant_gate.write_text(mutant, encoding="utf-8")
+            code, report, summary = run_case(mutant_root)
+            row = next(r for r in report["rows"] if r["fixture"] == CASES[0][0])
+            detail = "\n".join(row["detail"]["planted"])
+            nonrobust_ok = (
+                code == 1 and summary == "callee-rename robust 0 of 4 fixtures"
+                and report["robust"] == 0 and row["robust"] is False
+                and row["control"] == [0, True]
+                and row["renamed_run"] == [0, True]
+                and row["planted_run"] == [0, False]
+                and "PASS surfaces.no_uncovered_class: self-test injected suppression"
+                in detail and PLANT_ID not in detail)
+            check("non-robust case", nonrobust_ok,
+                  "%s exit=%d finding=self-test injected suppression" % (
+                      row["fixture"], code))
+    except (RuntimeError, subprocess.TimeoutExpired, OSError, ValueError,
+            KeyError, StopIteration) as e:
+        print("self-test could-not-evaluate: %s" % e, file=sys.stderr)
+        return 2
+
+    print("self-test: %d failure(s) over %d assertions" % (
+        failures, assertions))
+    return 1 if failures else 0
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     src = ap.add_mutually_exclusive_group(required=True)
     src.add_argument("--rev", help="lane revision whose gate script is measured")
     src.add_argument("--root", help="directory holding verifiers/verify_surfaces.py")
+    src.add_argument("--self-test", action="store_true")
     ap.add_argument("--seed", type=int, default=52)
     ap.add_argument("--json", action="store_true")
     args = ap.parse_args(argv)
+    if args.self_test:
+        if args.json:
+            ap.error("--self-test cannot be combined with --json")
+        return self_test(args.seed)
     rows = []
     try:
         with tempfile.TemporaryDirectory() as tmp:

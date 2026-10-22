@@ -93,6 +93,83 @@ def git(repo: Path, *args: str) -> bytes:
                           capture_output=True).stdout
 
 
+def self_test() -> int:
+    expectations = {
+        "counted": (
+            0,
+            "always-on boxes executed and discriminating 2 of 2",
+            (
+                "  alwayson.04: counted (6 of 6 cases as pinned)",
+                "  alwayson.07: counted (6 of 6 cases as pinned)",
+            ),
+        ),
+        "missing-delegate": (
+            1,
+            "always-on boxes executed and discriminating 1 of 2",
+            (
+                "  alwayson.04: counted (6 of 6 cases as pinned)",
+                "  alwayson.07: not counted (delegate verifiers/missing.py absent at the revision)",
+            ),
+        ),
+    }
+    try:
+        with tempfile.TemporaryDirectory(prefix="alwayson-self-test-") as td:
+            root = Path(td)
+            for name, (want_rc, count_line, findings) in expectations.items():
+                repo = root / name
+                verifiers = repo / "verifiers"
+                verifiers.mkdir(parents=True)
+                delegate = "verifiers/verify_alwayson.py"
+                boxes = [
+                    {
+                        "box_id": "alwayson.04",
+                        "section": SECTION,
+                        "disposition": f"delegated:{delegate}",
+                    },
+                    {
+                        "box_id": "alwayson.07",
+                        "section": SECTION,
+                        "disposition": (
+                            "delegated:verifiers/missing.py"
+                            if name == "missing-delegate" else f"delegated:{delegate}"
+                        ),
+                    },
+                ]
+                (verifiers / "checklist-baseline.json").write_text(
+                    json.dumps({"boxes": boxes}), encoding="utf-8"
+                )
+                (verifiers / "verify_alwayson.py").write_bytes(
+                    (LANE / "verifiers" / "verify_alwayson.py").read_bytes()
+                )
+                git(repo, "init", "--quiet")
+                git(repo, "add", "verifiers")
+                git(
+                    repo, "-c", "user.name=Kotoba self-test",
+                    "-c", "user.email=kotoba-self-test@invalid",
+                    "-c", "commit.gpgsign=false", "-c", "core.hooksPath=/dev/null",
+                    "commit", "--quiet", "-m", "always-on counter self-test",
+                )
+                rev = git(repo, "rev-parse", "HEAD").decode("ascii").strip()
+                result = subprocess.run(
+                    [sys.executable, "-B", str(Path(__file__).resolve()),
+                     "--rev", rev, "--repo", str(repo)],
+                    capture_output=True, text=True,
+                    timeout=TIMEOUT * sum(len(v) for v in CASES.values()) + 60,
+                )
+                if (result.returncode != want_rc or count_line not in result.stdout
+                        or any(finding not in result.stdout for finding in findings)):
+                    print(f"self-test failed: {name}", file=sys.stderr)
+                    print(result.stdout, file=sys.stderr, end="")
+                    print(result.stderr, file=sys.stderr, end="")
+                    return 1
+    except (OSError, subprocess.CalledProcessError, subprocess.TimeoutExpired,
+            UnicodeError, tarfile.TarError) as e:
+        print(f"self-test could not run: {e}", file=sys.stderr)
+        return 1
+    print("self-test PASS: counted box exit 0; missing delegate exit 1")
+    return 0
+
+
 def plant(root: Path, files: dict) -> None:
     root.mkdir(parents=True)
     for rel, body in files.items():
@@ -119,11 +196,18 @@ def run_case(script: Path, box: str, target: Path, expect: str) -> tuple[bool, s
     return (r.returncode == want_rc and status == expect), f"exit {r.returncode}, {status}"
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    ap.add_argument("--rev", required=True, help="lane revision to measure")
+    ap.add_argument("--rev", help="lane revision to measure")
     ap.add_argument("--repo", default=str(LANE), help="lane repository")
-    args = ap.parse_args()
+    ap.add_argument("--self-test", action="store_true", help="exercise isolated fixtures")
+    args = ap.parse_args(argv)
+    if args.self_test:
+        if args.rev:
+            ap.error("--self-test cannot be combined with --rev")
+        return self_test()
+    if not args.rev:
+        ap.error("--rev is required")
     repo = Path(args.repo)
     try:
         boxes = json.loads(git(repo, "show", f"{args.rev}:verifiers/checklist-baseline.json"))["boxes"]
