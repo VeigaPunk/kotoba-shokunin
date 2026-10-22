@@ -83,6 +83,16 @@ table (round 22; sha256 `e046a0252cc96f17…` pinned there). The machine check i
 `verifiers/verify_surfaces.py` (7 checks) reads that same census file. The table's
 "All craft below" cell refers to this file's craft sections below — kept verbatim.
 
+MCP server `instructions` (round 52, `corpus/knowledge/mcp-server-instructions-round52.md`, S032–S037):
+server-wide text the server returns at `initialize`; the spec makes it optional and leaves placement to the client.
+
+| guidance that is… | put it in | why (documented) |
+|---|---|---|
+| about the whole server: cross-tool order, constraints, rate limits | the server's `instructions`, first 512 characters self-contained | Codex uses it as server-wide guidance and asks for a self-contained first 512 characters (S035); Claude Code cuts it at 4,096 by default (S033) |
+| about when to reach for the server at all | `instructions` | with tool search, Claude Code loads only tool names and server instructions at session start (S033) |
+| about one tool's inputs | that tool's `description` | not repeated per tool; Claude Code, VS Code (S034), Codex and Gemini CLI (S036) put `instructions` in front of the model already |
+| needed on every client | a skill or always-on file too | the opencode and Copilot CLI pages opened on 2026-10-22 say nothing about server instructions (entry § sweep) |
+
 ## Router model — which harness, which gate
 
 Two harnesses consume skills here, and neither shares the other's catalogue

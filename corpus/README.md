@@ -72,8 +72,11 @@ Domain: prompt & skill craft — SKILL.md/AGENTS.md quality, trigger fidelity.
 | How clients choose between skills (round 50) | `knowledge/skill-selection-rules-round50.md` | eight client pages (S024–S029, S022, S019): on these eight pages no client documents a rule between two differently named, author-written skills whose descriptions both match; the documented rules decide between copies of one name, component types or configuration sources (finding 3 as corrected by the round-50 falsify wave), except Claude Code's built-in catch-all agent (fit-based default); finding 4 ("the documented remedy is a more specific description") is superseded round 51 by `knowledge/skill-overlap-levers-round51.md`; recheck compares content hashes |
 | Round-50 lessons | `lessons/round-50.md` | LOG.md round-50 entry; `## Mistakes` (M31 claim headline wider than its counter, criterion Q26), `## Gate` (separate admit and reject lists; rows S024–S029, S019 and S022 re-opened; the round-49 reject erratum for routed defect D5) and the disposition of the six routed round-49 defects |
 | Round-50 non-author spot-check (closure) | `lessons/round-50-verifier-spotcheck.md` | written by the hyaku closure `HyakuCloseKotoba50`, not the lane (outside review; never edited here): round 50 admitted, seven routed defects D1–D7; landed at `43ca0bfb` without an index row (which turned `verify_corpus_integrity.py` red at that base: `unindexed 1`), indexed round 51 |
-| Levers that take one of two overlapping skills out of the choice (round 51) | `knowledge/skill-overlap-levers-round51.md` | seven client pages (S030, S031, S025, S022, S024, S029, S021): each client documents a lever other than the description that removes one named skill from the candidates (removed everywhere, or automatic choice off); none decides between two skills that both remain candidates; supersedes round-50 finding 4; checked by `../verifiers/check_overlap_levers.py` |
+| Levers that take one of two overlapping skills out of the choice (round 51) | `knowledge/skill-overlap-levers-round51.md` | seven client pages (S030, S031, S025, S022, S024, S029, S021): each client documents a lever other than the description that removes one named skill from the candidates (removed everywhere, or automatic choice off); none decides between two skills that both remain candidates; supersedes round-50 finding 4; checked by `../verifiers/check_overlap_levers.py`. **Round 52 correction (routed defect 1):** the effects in the landed table are `removed in a scope` (Copilot SDK, Gemini CLI) or `automatic choice off` (the other five), not "removed everywhere"; the declared round-51 count is 4 of 7 on the plan-commit counter `7c81a787` (7 of 7 only on the widened counter, Q28) |
 | Round-51 lessons | `lessons/round-51.md` | LOG.md round-51 entry; `## Mistakes` (M33 reject reason with no page line, M34 seat called cancelled wrote later, criterion Q27), `## Gate` (rows S030–S031, five rows re-opened, the round-50 Copilot SDK reject erratum for routed defect D4) and the disposition of the seven routed round-50 defects |
+| Round-51 non-author spot-check (closure) | `lessons/round-51-verifier-spotcheck.md` | written by the hyaku closure `HyakuCloseKotoba51`, not the lane (outside review; never edited here): round 51 `rejected-honest-stop` (C1 verified; C2 4 of 7 on the plan-commit counter), four routed defects for round 52; indexed round 52 |
+| MCP server `instructions` per client (round 52) | `knowledge/mcp-server-instructions-round52.md` | five client pages (S032 spec, S033 Claude Code, S034 VS Code, S035 Codex, S036 Gemini CLI) each with a located quote on what the client does with the server's `instructions`; opencode and Copilot CLI pages opened and silent (sweep); S037 blog guidance; checked by `../verifiers/check_mcp_instructions.py` (frozen at `4c003a4b`) |
+| Round-52 lessons | `lessons/round-52.md` | LOG.md round-52 entry; `## Mistakes` (M36 corrections sweep missed two places, criterion Q29 and `../verifiers/check_correction_sweep.py`; M37 seat gate and route outage), `## Gate` (rows S032–S038, two rejections) and the round-51 routed defects |
 
 ## Frontier
 
@@ -87,6 +90,17 @@ Areas being explored and not yet held (LEARNING.md § Files the path writes); ap
 | MCP/plugin instruction surfaces | the two target harness configs carry no MCP/plugin keys; the classes are live elsewhere (§ Known gaps) | per-harness census separating loader-class presence from configured instances (`knowledge/instruction-surface-census-round13.md`) |
 | Loader-rule freshness | round 51: omp 18.12.6 re-derived and re-pinned — surfaces 7/7 and pins 3/3 at default resolution (`python3 -B verifiers/verify_surfaces.py --json` → `pass 7`, `fail 0`, exit 0; `python3 -B verifiers/check_substrate_pins.py` → `OK 3/3 pins hold`, exit 0; the round-47 "omp 18.12.5 … 7/7 … 3/3" figures are the previous state, `lessons/round-47.md`). The loader-registration callees rotated again to `bq`/`Kl`/`Ho`, and the group-variable leg needed a module-scoped binding rule (the dump-wide first-seen table drops `S$` as a conflicting rebind), so the extraction rule changed with the pin. Not held: the omp extractor is still a callee-name allowlist — the lane's own record names 4 renamed-callee generations (3 at base `43ca0bfb`), counted from the self-test arm comments of `verifiers/verify_surfaces.py` and the `omp_round*_note` keys of `verifiers/baseline.json` — so the next minifier rename is again a red gate plus a hand re-derivation (wider history: 5 omp rebuilds since round 18 renamed the callees, per `.ufo/waves/round-51/build/OmpRenameHistory.md`; the omp 18.12.3 rebuild's callee names were never recorded) | a callee-name-independent omp call-shape rule with a must-fail rename fixture — round 51 made the group leg scope-aware, the callee leg is still a name list; an opencode lineage probe that names which generation a dump carries (`knowledge/instruction-surface-census-round13.md` § B′) |
 | Per-render consumption | no per-session offer-to-activation join exists (§ Known gaps) | per-render attribution (`knowledge/skill-activation-telemetry.md`) |
+
+**Round 52 (append-only notes on the MCP and loader-rule rows above):** *MCP/plugin instruction surfaces* — one
+part is now held: what five of seven pinned clients document about the MCP server `instructions`
+string (`knowledge/mcp-server-instructions-round52.md`, S032–S037; `python3 -B
+../verifiers/check_mcp_instructions.py --rev <rev>` → `mcp instructions backed 5 of 7 clients`);
+still not held: plugin surfaces, tool-description budgets beyond the two documented limits, and
+any measured client behaviour. *Loader-rule freshness* — the callee leg is no longer a name list:
+omp callees are admitted by registering a declared pair (`../verifiers/verify_surfaces.py`
+`OMP_GENERIC_CALL_RE`; `python3 -B ../verifiers/check_callee_rename.py --rev <rev>` → `callee-rename
+robust 4 of 4 fixtures`); still not held: a rebuild that changes the call shape, and the opencode
+lineage probe.
 
 ## Known gaps
 
@@ -141,6 +155,16 @@ Areas being explored and not yet held (LEARNING.md § Files the path writes); ap
   documents a rule between two differently named author-written skills whose descriptions both match)
   stands, and whether removing one of an overlapping pair, or naming the neighbour, improves routing is
   still unmeasured on any harness.
+  **Round 52 correction (append-only; routed defect 1 of `lessons/round-51-verifier-spotcheck.md`):**
+  the round-51 note above names the pre-falsify lever set and an unqualified count. The declared
+  result is `overlap levers backed 4 of 7 clients` on the counter committed with the round-51 plan
+  (`7c81a787`), so the round-51 claim did not verify; `7 of 7` holds only on the counter widened after
+  the plan (lesson M35, Q28). The falsify-corrected levers in `SKILL.md` § Anti-patterns are: Copilot
+  SDK `disabledSkills` (removed in a scope); Copilot CLI `disable-model-invocation`; VS Code
+  `disable-model-invocation`; Claude Code `disable-model-invocation`; opencode
+  `metadata["opencode/autoinvoke"]`; Gemini CLI `/skills disable <name>` (removed in a scope); Codex
+  `allow_implicit_invocation` — `ignoredSkillsLocations`, the `: true` spelling and the opencode
+  permission `deny` were replaced in the falsify wave.
 - opencode-side offer is now measured (round 8): godspeed offered 387/387
   attested sessions (100%) against activation 205/399 = 51.4%, so the round-6
   "51.5% coverage" gap is model choice on the consume side, not an offer hole.
