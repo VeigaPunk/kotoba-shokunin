@@ -90,3 +90,26 @@ this commit.
   registry counter's probe route and substring flag test closed, with a control receipt; (6)
   `fault_injection_corpus.sh` repaired or its row annotated; (7) minor quote notes; (8) carried items named.
   The 12 earlier SOURCES protected-cell changes go to one L0 line.
+
+## Erratum 1 (append-only; on wave-1 critic `CriticC1Sizing`, before any C1 content is committed or scored)
+
+- The v1 C1 counter frozen at `a10240c0940f770a5f2a5f32a7e3c363dd5d40c0` is met by a shortcut the plan's control
+  did not try: the critic's world W1 (sandbox commit `04869b82`) quotes real text on pinned hosts that holds no
+  invocation form (`/compact`, `@layer` from CSS, `#file:`, `/skills list`, link paths) and prints `found on the
+  live page 7 of 7; new ground 7`, exit 0; world W3 (`09053321`) re-scores held `$skill` as new ground by a case
+  flip (`.ufo/waves/round-55/build/CriticC1Sizing.md`). Under addendum §9 the counter is wrong and is fixed before
+  data: no C1 content exists in any commit, and no seat has scored C1 content on any counter (the source seats
+  ran only `--self-test`; the L1 had read their draft rows, which is why every v2 rule only adds a failure).
+- v2 (this commit; rules in the counter's docstring § ERRATUM v2) is strictly stricter than v1: user-typed tokens
+  only (one segment after `/`, `$` or `@`; no tool names, `#`, spaces, dots or paths), client built-in and
+  listing commands excluded, the quote must contain the word `skill`, style/script/comment blocks dropped from the
+  live page, and new ground counted per distinct case-folded token whose row URL is not a base row.
+- The C1 predicate is now: `python3 -B verifiers/check_explicit_invocation.py --rev <rev> --fetch` exits 0, which
+  it does iff it prints `user-typed invocation forms found on the live page F of K; new ground G` with F ≥ 4 and
+  G ≥ 2. Receipt label: `C1 predicate (v2): --fetch exit 0 (F>=4, G>=2)`. The v1 line is reported beside it,
+  never in its place.
+- Receipts, committed here: `controls/C1-shortcut-W1W3.txt` (W1 and W3 under v1 → met, under v2 → `0 of 0`,
+  exit 1 and `3 of 3; new ground 1`, exit 1); `controls/C1-v2-controls.txt` (base → `0 of 0`, exit 1; the
+  fabricated-quote control → `0 of 6`, exit 1).
+- Consequence for the C1 rows: Gemini CLI's documented form is the model's `activate_skill` tool call, which v2
+  does not count; it stays in the table as a non-counted row.

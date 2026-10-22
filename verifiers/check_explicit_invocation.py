@@ -71,6 +71,30 @@ Usage:
   python3 -B verifiers/check_explicit_invocation.py --rev <rev> [--fetch] [--json]
   python3 -B verifiers/check_explicit_invocation.py --root <dir> [--fetch] [--json]
   python3 -B verifiers/check_explicit_invocation.py --self-test
+
+ERRATUM v2 (round 55, before any C1 content; plans/round-55.md § Erratum 1).
+Wave-1 critic CriticC1Sizing met the v1 predicate (`--fetch` 7 of 7, new ground 7)
+with real quotes holding no invocation form (`/compact`, `@layer` from CSS,
+`#file:`, `/skills list`, link paths), and re-scored held knowledge as new
+ground by a case flip.  v2 is strictly stricter than v1: every client it backs,
+v1 also backs; every rule below only adds a failure condition.
+  * TOKEN_RE: one user-typed segment -- a sigil `/`, `$` or `@`, then a letter
+    or `<`, then only letters, digits, `<`, `>`, `_`, `-`.  No `#`, no space,
+    no `.`, no second `/`, and no bare tool names (a model-side tool call is
+    not a user-typed form).
+  * The token, case-folded and without its sigil, is not a client built-in
+    or listing command (BUILTINS).
+  * The quote contains the word `skill` (case-insensitive).
+  * `--fetch`: `<style>`, `<script>` and comment blocks are dropped from the
+    page before tags are removed; only HTML tags (`</?letter...>`) are removed
+    from the page, and no angle-bracket text is removed from the quote.
+  * NEW GROUND is counted per distinct case-folded token, and a counted client
+    is new ground only when its token, case-folded, occurs in none of the base
+    texts (case-folded) AND its row's URL (scheme, `www.`, a trailing `/` and a
+    trailing `.md`/`.mdx` dropped) is not the URL of any row at BASE.
+Output label: `user-typed invocation forms found on the live page F of K; new
+ground G` (with --fetch) / `user-typed invocation forms backed K of 7
+clients; new ground G`.  Exit rule unchanged: value >= 4 and G >= 2.
 """
 from __future__ import annotations
 
@@ -118,7 +142,15 @@ SKILL_HEADING = "### Explicit invocation by client"
 SKILL_HEADER = ("client", "explicit form", "what it does", "action")
 ENTRY_HEADING = "## Per-client record"
 ENTRY_HEADER = ("client", "row", "quote", "location", "reading")
-TOKEN_RE = re.compile(r"^(?:[/$@#][A-Za-z<].*|[A-Za-z][\w-]*_[\w-]*)$")
+TOKEN_RE = re.compile(r"^[/$@][A-Za-z<][A-Za-z0-9<>_-]*$")
+BUILTINS = frozenset((
+    "skills", "skill", "help", "compact", "clear", "init", "model", "models", "mcp",
+    "agents", "agent", "commands", "config", "settings", "memory", "review", "status",
+    "exit", "quit", "resume", "login", "logout", "permissions", "cost", "doctor",
+    "hooks", "plugin", "plugins", "add-dir", "bug", "ide", "vim", "terminal-setup",
+    "export", "context", "rewind", "usage", "tools", "chat", "new", "file", "files",
+    "workspace", "terminal", "codebase", "web", "docs", "rules", "mode", "theme",
+))
 BACKTICK_RE = re.compile(r"`([^`]+)`")
 SID_RE = re.compile(r"^`?(S\d{3,})`?$")
 URL_RE = re.compile(r"https?://[^\s)>\]`]+")
@@ -278,15 +310,48 @@ def gate_quotes_by_id(lesson: str) -> dict[str, set[str]]:
 
 
 def form_tokens(cell: str) -> list[str]:
-    return [t for t in BACKTICK_RE.findall(cell) if TOKEN_RE.match(t)]
+    return [t for t in BACKTICK_RE.findall(cell)
+            if TOKEN_RE.match(t) and t[1:].lower() not in BUILTINS]
 
 
-def norm(s: str) -> str:
-    s = re.sub(r"<[^>]+>", " ", s)
+def _plain(s: str) -> str:
     s = html.unescape(s)
     s = re.sub(r"[`*_]", "", s)
     s = s.replace("\u2019", "'").replace("\u201c", '"').replace("\u201d", '"')
     return re.sub(r"\s+", " ", s).strip().lower()
+
+
+def norm(s: str) -> str:
+    """Quote side: no angle-bracket text is removed."""
+    return _plain(s)
+
+
+def norm_page(s: str) -> str:
+    s = re.sub(r"(?is)<(style|script)\b.*?</\1\s*>", " ", s)
+    s = re.sub(r"(?s)<!--.*?-->", " ", s)
+    s = re.sub(r"</?[A-Za-z][^>]*>", " ", s)
+    return _plain(s)
+
+
+def url_key(url: str | None) -> str:
+    if not url:
+        return ""
+    u = urllib.parse.urlparse(url)
+    host = (u.hostname or "").lower()
+    host = host[4:] if host.startswith("www.") else host
+    path = re.sub(r"\.mdx?$", "", u.path.rstrip("/"))
+    return host + path
+
+
+def base_url_keys(base_sources: str) -> set[str]:
+    keys = set()
+    for ln in base_sources.splitlines():
+        if SOURCES_ROW_RE.match(ln):
+            c = ln.split("|")
+            if len(c) > 2:
+                for m in URL_RE.finditer(c[2]):
+                    keys.add(url_key(m.group(0)))
+    return keys
 
 
 def fetch(url: str) -> str:
@@ -359,6 +424,8 @@ def judge(skill: str, entry: str, sources: str, lesson: str, base_sources: str) 
                 matched = hits[0] if hits else None
                 if tokens and not hits:
                     why.append("quote holds none of the form tokens %s" % tokens)
+                if "skill" not in quote.lower():
+                    why.append("quote does not contain the word skill")
                 if sid and quote not in gate_quotes.get(sid, ()):
                     why.append("round-55 Gate does not record this quote for %s" % sid)
             else:
@@ -368,10 +435,15 @@ def judge(skill: str, entry: str, sources: str, lesson: str, base_sources: str) 
     return report
 
 
-def new_ground(token: str | None, base_skill: str, base_know: list[str]) -> bool:
+def new_ground(token: str | None, base_skill: str, base_know: list[str],
+               url: str | None = None, base_urls: set[str] | frozenset = frozenset()) -> bool:
+    """v2: case-folded token absent from every base text AND the row's URL not a base row."""
     if not token:
         return False
-    return token not in base_skill and all(token not in t for t in base_know)
+    t = token.lower()
+    if t in base_skill.lower() or any(t in k.lower() for k in base_know):
+        return False
+    return url_key(url) not in base_urls
 
 
 def self_test() -> int:
@@ -418,8 +490,7 @@ def self_test() -> int:
           backed(en=entry.replace("with /skill-name in", "with a name in")), ["Codex"])
     check("bare word token is not an invocation token",
           backed(sk=skill.replace("`/skill-name`", "`skill`")), ["Codex"])
-    check("tool-name token with underscore passes TOKEN_RE", form_tokens("`activate_skill`"),
-          ["activate_skill"])
+    check("v2: tool name is not a user-typed token", form_tokens("`activate_skill`"), [])
     check("plain identifier fails TOKEN_RE", form_tokens("`skills`"), [])
     check("source opened another day fails",
           backed(so=sources.replace("| mined | %s |" % OPENED[0], "| mined | 2026-10-21 |", 1)),
@@ -464,6 +535,40 @@ def self_test() -> int:
     check("new ground: token in base SKILL.md", new_ground("$x", "use $x", ["b"]), False)
     check("new ground: token in a base entry", new_ground("$x", "a", ["b", "c $x"]), False)
     check("new ground: no token", new_ground(None, "a", []), False)
+    check("v2: built-in /skills is not a form", form_tokens("`/skills`"), [])
+    check("v2: built-in /compact is not a form", form_tokens("`/compact`"), [])
+    check("v2: #file: reference is not a form", form_tokens("`#file:`"), [])
+    check("v2: spaced command is not a form", form_tokens("`/skills list`"), [])
+    check("v2: a path is not a form", form_tokens("`/help/customization/skills.md`"), [])
+    check("v2: placeholder and example forms pass",
+          form_tokens("`$<skill-name>`, e.g. `$setup-demo-app` or `@skill-id`"),
+          ["$<skill-name>", "$setup-demo-app", "@skill-id"])
+    check("v2: quote without the word skill fails",
+          backed(sk=skill.replace("`/skill-name` |", "`/deploy-app` |", 1),
+                 en=entry.replace("invoke it directly with /skill-name in the prompt",
+                                  "invoke it directly with /deploy-app in the prompt"),
+                 le=lesson.replace("invoke it directly with /skill-name in the prompt",
+                                   "invoke it directly with /deploy-app in the prompt")),
+          ["Codex"])
+    check("v2: case flip is not new ground", new_ground("$SKILL", "a", ["explicit $skill use"]),
+          False)
+    check("v2: base URL is not new ground",
+          new_ground("/x-y", "a", ["b"], "https://www.Cursor.com/docs/skills.md",
+                     {"cursor.com/docs/skills"}), False)
+    check("v2: new URL and absent token is new ground",
+          new_ground("/x-y", "a", ["b"], "https://cursor.com/docs/other.md",
+                     {"cursor.com/docs/skills"}), True)
+    check("v2: url_key drops scheme, www, slash and .md",
+          url_key("https://www.code.claude.com/docs/en/skills.md/"), "code.claude.com/docs/en/skills")
+    check("v2: page style/script dropped",
+          "@layer base" in norm_page("<style>@layer base{}</style><p>x</p><script>@layer base</script>"),
+          False)
+    check("v2: page tags dropped, text kept", norm_page("<p>Use <code>/a-b</code> skill</p>"),
+          "use /a-b skill")
+    check("v2: quote angle text kept", norm("$<skill-name> here"), "$<skill-name> here")
+    check("v2: base_url_keys reads source cells",
+          base_url_keys("| S001 | T — https://cursor.com/docs/skills.md | docs |\n"),
+          {"cursor.com/docs/skills"})
     check("section ends at same-level heading",
           len(table_rows(skill + "\n### Explicit invocation by client2\n", SKILL_HEADING,
                          SKILL_HEADER)), 3)
@@ -504,16 +609,18 @@ def main(argv: list[str] | None = None) -> int:
         found = 0
         for r in backed:
             try:
-                page = norm(fetch(r["url"]))
+                page = norm_page(fetch(r["url"]))
                 r["found"] = norm(r["quote"]) in page
             except Exception as e:  # network or decode failure: not found
                 r["found"] = False
                 r["fetch_error"] = str(e)
             found += 1 if r["found"] else 0
     counted = [r for r in backed if r.get("found")] if args.fetch else backed
+    base_urls = base_url_keys(base_sources)
     for r in report:
-        r["new_ground"] = r in counted and new_ground(r["token"], base_skill, base_know)
-    ground = sum(1 for r in counted if r["new_ground"])
+        r["new_ground"] = r in counted and new_ground(r["token"], base_skill, base_know,
+                                                      r["url"], base_urls)
+    ground = len({r["token"].lower() for r in counted if r["new_ground"]})
     if args.json:
         print(json.dumps({"backed": len(backed), "of": len(CLIENTS), "found": found,
                           "new_ground": ground, "target": TARGET, "new_target": NEW_TARGET,
@@ -526,11 +633,11 @@ def main(argv: list[str] | None = None) -> int:
                                        r["token"], r["new_ground"],
                                        " found=%s" % r.get("found") if args.fetch else ""))))
     if args.fetch:
-        print("explicit invocation forms found on the live page %d of %d; new ground %d"
+        print("user-typed invocation forms found on the live page %d of %d; new ground %d"
               % (found, len(backed), ground))
         value = found
     else:
-        print("explicit invocation forms backed %d of %d clients; new ground %d"
+        print("user-typed invocation forms backed %d of %d clients; new ground %d"
               % (len(backed), len(CLIENTS), ground))
         value = len(backed)
     return 0 if value >= TARGET and ground >= NEW_TARGET else 1
