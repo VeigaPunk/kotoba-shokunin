@@ -5,7 +5,7 @@ The claim under test: a self-test that silently loses assertions must never
 still read green. Each instrument's --self-test prints an assertion count;
 this guard reruns every self-test and FAILs when the observed count is below
 the recorded floor (harness 10, corpus_integrity 150, corpus_independent 91,
-surfaces 99, checklist 1845, pins 62, harness_independent 104,
+surfaces 99, checklist 1845, pins 62, harness_independent 115,
 compare_harness_independent 330, floors_guard 150; others @ round 36 --
 round 47 ratcheted surfaces 87->99 (1.19.3 opencode fixtures, 18.12.5 omp
 callees) and checklist 1597->1845 (trigger.no_xml_tag + governance errata arms); the
@@ -15,7 +15,10 @@ fence shapes (V6's named residual); the two round-38 C1 instruments registered
 by claim C1f/seat P3 (floors re-bumped in-step to the settled counts of the C1
 closure seat P1 landed in the same round: 71->86, 59->83); `harness_independent`
 re-bumped at round 39 by seat P2's init_count predicate fix + grammar fixtures
-(86->93) and again by seat P1's scoped-row probe battery (93->104);
+(86->93) and again by seat P1's scoped-row probe battery (93->104); round 48
+re-bumps it (104->115) by the C1 configured-root regression arm (the two
+--oc-config roots, the same-name pair, the direct-child scope against a
+recursive enumeration, and the no-harm log-named roots);
 `compare_harness_independent` re-bumped at round 39 by seat P1's scope-out
 discriminator battery (83->97), and at round 40 by seat F1's committed F-2/F-3
 payload arms -- the expected-launder, rows-shadow and checks-shadow shapes plus
@@ -122,7 +125,7 @@ EXPECTED_INSTRUMENTS = {
     "surfaces": 99,
     "checklist": 1845,
     "pins": 62,
-    "harness_independent": 104,
+    "harness_independent": 115,
     "compare_harness_independent": 330,
     "floors_guard": 150,
 }
@@ -145,7 +148,7 @@ INSTRUMENTS = {
                   r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
     "pins": ("verifiers/check_substrate_pins.py", 62,
              r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
-    "harness_independent": ("verifiers/verify_harness_independent.py", 104,
+    "harness_independent": ("verifiers/verify_harness_independent.py", 115,
                             r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
     "compare_harness_independent": ("verifiers/compare_harness_independent.py", 330,
                                     r"self-test:\s*(\d+) failure\(s\) over (\d+) assertions", 2, 1),

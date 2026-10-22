@@ -590,8 +590,12 @@ def derive(s: Substrate) -> list[dict]:
                     "definitional alternative oc.log.skills_attr_hits"))
 
     # ---- opencode / roots + permission -----------------------------------
-    # The roots are the directories opencode's own log names as skill sources
-    # plus the shared agents root it reads; names come from enumerating them.
+    # The roots are the directories opencode's own log names as skill sources,
+    # plus the two configured roots --oc-config/skill and --oc-config/skills
+    # (enumerated even when the log does not name them; round 48), plus the
+    # shared agents root it reads; names come from enumerating direct children
+    # with the same operator for every root. Names are a set, so a root named
+    # twice, or named by the log and also configured, never adds twice.
     root_dirs = [d for d in ("skill", "skills")
                  if (s.oc_config / d).is_dir()]
     sources: set[str] = set()
@@ -601,7 +605,8 @@ def derive(s: Substrate) -> list[dict]:
             sources.update(re.findall(r'directory:([^"\\]+)', m.group(1)))
     names = {skill["frontmatter"].get("name") or skill["dir"]
              for skill in offered}
-    for directory in sorted(sources):
+    configured = {str(s.oc_config / d) for d in ("skill", "skills")}
+    for directory in sorted(sources | configured):
         path = Path(directory)
         if not path.is_dir():
             continue
@@ -610,11 +615,11 @@ def derive(s: Substrate) -> list[dict]:
                 names.add(entry.name)
     rows.append(row("oc.roots.names_plus_builtin", len(names),
                     "distinct skill names enumerated under the roots the "
-                    "opencode log names as sources (%d configured dirs present: "
-                    "%s) plus the shared agents root (%d names); built-in "
-                    "names: 0 by declaration"
-                    % (len(sources) and sum(1 for d in sources
-                                            if Path(d).is_dir()),
+                    "opencode log names as sources (%d present) and the "
+                    "configured --oc-config roots (present: %s) plus the "
+                    "shared agents root (%d names); built-in names: 0 by "
+                    "declaration"
+                    % (sum(1 for d in sources if Path(d).is_dir()),
                        ", ".join(root_dirs) or "none", len(offered))))
 
     both_sided = 0
@@ -873,6 +878,68 @@ def build_fixture(root: Path) -> Substrate:
             '{"stamp":"%s","text":"<skills>%s\\n</skills>"}\n' % (stamp, block),
             encoding="utf-8")
     return Substrate(binary, agents, db, log, config)
+
+
+# ---------------------------------------------------------------------------
+# round 48 (C1): the configured-root fixture
+# ---------------------------------------------------------------------------
+def build_configured_root_fixture(root: Path, twin: bool = True,
+                                  nested: bool = False) -> Substrate:
+    """A substrate whose --oc-config holds the two configured skill roots.
+
+    Round 48 (C1).  The instrument used to enumerate only the roots the
+    opencode log names as sources, so a skill sitting in --oc-config/skill/
+    or --oc-config/skills/ was invisible to oc.roots.names_plus_builtin
+    unless the log happened to name that root.  The fixture puts, under the
+    config root:
+
+        skill/<solo-s>/SKILL.md     one skill in the singular root
+        skills/<solo-p>/SKILL.md    one skill in the plural root
+        skill/<twin>/SKILL.md       the same-name pair, one half ...
+        skills/<twin>/SKILL.md      ... and the other half
+        skills/<not-a-skill>/       a directory with no SKILL.md
+        skills/README.md            a plain file, not a skill directory
+
+    The opencode log names no root at all, so every name beyond the shared
+    agents root can only have come from the configured roots.  `twin=False`
+    drops the same-name pair, which makes the pair's set semantics
+    measurable: the count must fall by exactly one, not two.  The directory
+    without a SKILL.md and the plain file make the enumeration operator
+    measurable too: neither may contribute a name.
+
+    `nested=True` adds skills one level deeper than a root's direct child
+    (skill/group/zeta/SKILL.md, skills/group/eta/SKILL.md).  The frozen
+    contract enumerates a root's DIRECT children only, so a nested skill is
+    not a name; a recursive enumeration would report both.
+    """
+    fixture = build_fixture(root)
+    config = fixture.oc_config
+
+    def skill(root_name: str, folder: str, name: str) -> None:
+        (config / root_name / folder).mkdir(parents=True)
+        (config / root_name / folder / "SKILL.md").write_text(
+            "---\nname: %s\ndescription: Use %s briefly.\n---\n\n# %s\n"
+            % (name, name, name), encoding="utf-8")
+
+    skill("skill", "solo-s", "solo-s")
+    skill("skills", "solo-p", "solo-p")
+    if twin:
+        skill("skill", "twin", "twin")
+        skill("skills", "twin", "twin")
+    (config / "skills" / "not-a-skill").mkdir(parents=True)
+    (config / "skills" / "README.md").write_text("not a skill\n",
+                                                 encoding="utf-8")
+    if nested:
+        skill("skill", "group/zeta", "zeta")
+        skill("skills", "group/eta", "eta")
+    return fixture
+
+
+def _name_log_root(fixture: Substrate, directory: Path) -> None:
+    """Append a log line that names `directory` as a skill source root."""
+    with open(fixture.oc_log, "a", encoding="utf-8") as handle:
+        handle.write('run=eee message="skills rescanned" '
+                     'sources="[\\"directory:%s\\"]"\n' % directory)
 
 
 # ---------------------------------------------------------------------------
@@ -1276,6 +1343,106 @@ def self_test() -> int:
                ".agents/skills")
         expect("dup split: a path without the home prefix is its own key",
                root_key("/opt/elsewhere/SKILL.md"), "/opt/elsewhere/SKILL.md")
+
+        # ---- round 48 (C1): the configured roots -------------------------
+        # A skill in --oc-config/skill/ or --oc-config/skills/ must be
+        # enumerated even when the opencode log names neither root.  The
+        # fixture names no root at all, so every name beyond the shared
+        # agents root can only have come from the configured roots.  The
+        # fixture also carries a NESTED skill (skill/group/zeta/SKILL.md):
+        # the frozen contract enumerates a root's direct children only, so
+        # a nested skill is not a name.
+        cfg_root = Path(tmp) / "cfg"
+        cfg_root.mkdir()
+        cfg = build_configured_root_fixture(cfg_root, nested=True)
+        cfg_rows = {r["check"]: r for r in derive(cfg)}
+        cfg_value = cfg_rows["oc.roots.names_plus_builtin"]["value"]
+        expect("round 48: fixture premise -- the log names no source root",
+               ("sources=" in cfg.log_text(), "directory:" in cfg.log_text()),
+               (False, False))
+        expect("round 48: fixture premise -- both configured roots exist",
+               ((cfg.oc_config / "skill").is_dir(),
+                (cfg.oc_config / "skills").is_dir()),
+               (True, True))
+        # alpha, beta (the shared agents root) + solo-s, solo-p, twin (the two
+        # configured roots; the same-name pair is one name)
+        expect("round 48: the configured roots are enumerated",
+               cfg_value, 5)
+        # the same expectation, computed from the fixture tree rather than
+        # hard-coded: the agents root's own names plus the DIRECT children of
+        # the two configured roots that hold a SKILL.md.  Mirrored here, not
+        # imported, so the arm states the contract instead of restating a
+        # number.
+        expected_names = {"alpha", "beta"}
+        for root_name in ("skill", "skills"):
+            for entry in sorted((cfg.oc_config / root_name).iterdir()):
+                if (entry / "SKILL.md").is_file():
+                    expected_names.add(entry.name)
+        expect("round 48: the value equals an independent enumeration",
+               (cfg_value, sorted(expected_names)),
+               (5, ["alpha", "beta", "solo-p", "solo-s", "twin"]))
+        # the row's own detail text must name the configured roots (the base
+        # mislabelled the two families); checked on the root names rather
+        # than on one wording, so it survives a re-worded detail string.
+        evidence = cfg_rows["oc.roots.names_plus_builtin"]["evidence"]
+        expect("round 48: the row's evidence names the configured roots",
+               ("skill" in evidence, "skills" in evidence), (True, True))
+
+        # the direct-child scope: a skill nested deeper than a root's direct
+        # child is not a name, so adding it must move the count by nothing.
+        # A recursive enumeration of the same roots would report zeta and
+        # eta and move the count by two.
+        flat_root = Path(tmp) / "cfg-flat"
+        flat_root.mkdir()
+        flat = build_configured_root_fixture(flat_root)
+        flat_rows = {r["check"]: r for r in derive(flat)}
+        expect("round 48: a nested skill is not a name (direct children only)",
+               cfg_value - flat_rows["oc.roots.names_plus_builtin"]["value"], 0)
+        expect("round 48: the nested skill is on disk but not counted",
+               ((cfg.oc_config / "skill" / "group" / "zeta" / "SKILL.md").is_file(),
+                flat_rows["oc.roots.names_plus_builtin"]["value"]),
+               (True, 5))
+
+        # the same-name pair: two directories in two roots, one name.  The
+        # count must fall by exactly one when the pair is removed, and the
+        # directory without a SKILL.md and the plain file must contribute
+        # nothing (otherwise the count would be 6 and 5).
+        notwin_root = Path(tmp) / "cfg-notwin"
+        notwin_root.mkdir()
+        notwin = build_configured_root_fixture(notwin_root, twin=False,
+                                               nested=True)
+        notwin_rows = {r["check"]: r for r in derive(notwin)}
+        expect("round 48: without the same-name pair the count drops by one",
+               cfg_value - notwin_rows["oc.roots.names_plus_builtin"]["value"],
+               1)
+        expect("round 48: a directory without SKILL.md and a plain file are "
+               "not names",
+               notwin_rows["oc.roots.names_plus_builtin"]["value"], 4)
+
+        # no-harm: the union is not a replacement.  A root the log DOES name
+        # is still enumerated alongside the configured roots ...
+        logext_root = Path(tmp) / "cfg-logext"
+        logext_root.mkdir()
+        logext = build_configured_root_fixture(logext_root, nested=True)
+        named = Path(tmp) / "named-root"
+        (named / "logged").mkdir(parents=True)
+        (named / "logged" / "SKILL.md").write_text(
+            "---\nname: logged\ndescription: Use logged briefly.\n---\n\n"
+            "# logged\n", encoding="utf-8")
+        _name_log_root(logext, named)
+        logext_rows = {r["check"]: r for r in derive(logext)}
+        expect("round 48: a root the log names is still enumerated",
+               logext_rows["oc.roots.names_plus_builtin"]["value"], 6)
+        # ... and a root named twice (by the log AND by the configuration) is
+        # still one root, so the count does not move.
+        logsame_root = Path(tmp) / "cfg-logsame"
+        logsame_root.mkdir()
+        logsame = build_configured_root_fixture(logsame_root, nested=True)
+        _name_log_root(logsame, logsame.oc_config / "skills")
+        logsame_rows = {r["check"]: r for r in derive(logsame)}
+        expect("round 48: a root named by the log and by the configuration is "
+               "one root",
+               logsame_rows["oc.roots.names_plus_builtin"]["value"], 5)
 
     fixture_battery(expect)
 
