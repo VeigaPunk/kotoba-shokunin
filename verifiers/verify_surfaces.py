@@ -17,8 +17,10 @@ Two instruments:
        jDe(e, Pqr, "AGENTS.md")  with  var Pqr = "agents-md"
        I5(d, d$, "AGENTS.md")  with  var d$ = "agents-md"
        Gl(d, "gemini", "GEMINI.md")              Mo(d, "gemini", "GEMINI.md")
+       bq(u, v$, "AGENTS.md")   with  var v$ = "agents-md"   (omp 18.12.6)
+       Kl(u, "gemini", "GEMINI.md")              Ho(u, "github", "copilot-instructions.md")
 
-   i.e. ``(Id|Cl|jD[ef]|Tl|dr|GW|Co|Dl|Hj|I5|Gl|Mo|lq|Xl|Fo)(<v>, <group>, "<file>.md")`` — the file argument must
+   i.e. ``(Id|Cl|jDe|jDf|Tl|dr|GW|Co|Dl|Hj|I5|Gl|Mo|lq|Xl|Fo|Kl|Ho|bq)(<v>, <group>, "<file>.md")`` — the file argument must
    end in ``.md`` — where ``<group>`` is either a quoted literal or a bundle
    identifier resolvable to a string constant in the same dump
    (``var|let|const X = "..."``; the minified bundles register the
@@ -26,6 +28,27 @@ Two instruments:
    extractor would miss them).  An identifier that cannot be resolved is still
    reported as ``<harness>:<unresolved-var:NAME>/<file>`` so it FAILs rather
    than passing silently.
+
+   IDENTIFIER RESOLUTION — MODULE SCOPE (round 51, omp 18.12.6).  The bundle
+   is a concatenation of ES modules, and the dump marks each module with a
+   source-path comment (``// packages/coding-agent/src/discovery/
+   claude-md.ts``).  A minified name bound in two modules is two DIFFERENT
+   variables, so a dump-wide "first binding wins" table resolves the wrong
+   one: on 18.12.6 ``S$`` is bound to ``"claude-md"`` in the claude-md module
+   and to ``"title"`` in ``session/session-entries.ts``, so the dump-wide table
+   drops ``S$`` as a conflicting rebind and the class
+   ``omp:claude-md/CLAUDE.md`` cannot be verified.  The rule applied here: the
+   dump-wide table settles the identifier wherever it has an entry; a name it
+   cannot settle is resolved from the binding table of the call's OWN module
+   scope, built by the SAME first-seen/drop-on-conflict policy — so two
+   different bindings inside one module are a genuine ambiguity and leave the
+   call UNRESOLVED, never guessed, while the 18.12.6 ``S$`` case resolves to
+   ``claude-md`` because its own module binds it once.  An unresolved call
+   still surfaces as ``<unresolved-var:NAME>`` and FAILs.
+   LIMIT: the module scope is read off the source-path comments; a bundle
+   that stops shipping them makes the whole dump one scope, which restores
+   the conservative behaviour (the conflicting name stays unresolved and the
+   gate FAILs loudly) rather than resolving anything by guesswork.
 
    DOCUMENTED LIMITS (the check proves set parity over this documented
    extraction, never existential completeness):
@@ -109,17 +132,24 @@ surfaces.opencode_extract  the harness whose machine check was vacuous (round 13
 Exit: 0 all checks pass | 1 any FAIL | 2 environment unreadable (binary, dump
 file, strings tool, inventory file, or an OS-level baseline read error — never
 a pass) | 3 baseline missing or unparseable (bad JSON, missing keys, malformed
-class id).  Read-only; deterministic.
+class id).  With ``--json`` the payload additionally carries ``substrate``:
+for each harness, the dump source — the binary path with its
+sha256/mtime/size when the binary was read, or the
+``--<harness>-strings`` dump path when a dump file was supplied.  Read-only;
+deterministic for a fixed host.
 """
 from __future__ import annotations
 
 import argparse
 import contextlib
+import hashlib
 import io
 import json
+import os
 import re
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 DEFAULT_REPO = Path(__file__).resolve().parent.parent
@@ -141,27 +171,51 @@ VERDICTS = ("governed", "excluded")
 # FIRST thing to re-pin on a binary bump):
 #   omp: Id/Cl/jDe/jDf (2026-09-28); Tl/dr/GW (2026-10-14); Co/Dl/Hj
 #        (2026-10-16, 18.11.1); I5/Gl/Mo (2026-10-18, 18.12.2);
-#        lq/Xl/Fo (2026-10-21, 18.12.5: discovery helpers; f$/m$ var-bound groups)
+#        lq/Xl/Fo (2026-10-21, 18.12.5: discovery helpers; f$/m$ var-bound groups);
+#        Kl/Ho/bq (2026-10-22, 18.12.6: discovery helpers; v$/S$ module-scoped groups)
 #   opencode: historical names only — its live bundle is full of single-letter
 #             callees that must not feed this extractor; opencode's loaders
 #             are list/join shapes governed by the OC-1..OC-6 rules instead
 # Shape: a constant first arg, then either a quoted group or an identifier
 # group, then a quoted *.md file, followed by a comma or close-paren (wrapped
 # calls like `s(Cl(...), "project", "text")` are the norm in the bundle).
+#
+# The round-50 allowlist (omp 18.12.5) is kept as a NAME TUPLE so the
+# self-test's must-fail arm can rebuild it verbatim — a fixture that passed
+# against both the round-50 and the round-51 lists would not discriminate the
+# re-pin.
+OMP_CALLEE_NAMES_ROUND50 = ("Id", "Cl", "jDe", "jDf", "Tl", "dr", "GW", "Co",
+                            "Dl", "Hj", "I5", "Gl", "Mo", "lq", "Xl", "Fo")
+
+
+def call_re(names: tuple[str, ...]) -> "re.Pattern[str]":
+    """The registration-call pattern for one callee allowlist."""
+    alt = "|".join(re.escape(n) for n in names)
+    return re.compile(
+        r"(?<![A-Za-z0-9_$])(?:%s)\(\s*[^\s,()]+\s*,\s*" % alt
+        + r'(?:"([a-z0-9_-]+)"|([A-Za-z_$][A-Za-z0-9_$]*))\s*,\s*'
+        r'"([A-Za-z0-9_./-]+\.md)"(?=\s*[,)])'
+    )
+
+
 CALL_RE = re.compile(
     r"(?<![A-Za-z0-9_$])(?:Id|Cl|jD[ef]|Tl|dr|GW)\(\s*[^\s,()]+\s*,\s*"
     r'(?:"([a-z0-9_-]+)"|([A-Za-z_$][A-Za-z0-9_$]*))\s*,\s*'
     r'"([A-Za-z0-9_./-]+\.md)"(?=\s*[,)])'
 )
 OMP_CALL_RE = re.compile(
-    r"(?<![A-Za-z0-9_$])(?:Id|Cl|jD[ef]|Tl|dr|GW|Co|Dl|Hj|I5|Gl|Mo|lq|Xl|Fo)\(\s*[^\s,()]+\s*,\s*"
+    r"(?<![A-Za-z0-9_$])(?:Id|Cl|jD[ef]|Tl|dr|GW|Co|Dl|Hj|I5|Gl|Mo|lq|Xl|Fo|Kl|Ho|bq)\(\s*[^\s,()]+\s*,\s*"
     r'(?:"([a-z0-9_-]+)"|([A-Za-z_$][A-Za-z0-9_$]*))\s*,\s*'
     r'"([A-Za-z0-9_./-]+\.md)"(?=\s*[,)])'
 )
 CALLEE_SHAPES = {
-    "omp": '(Id|Cl|jD[ef]|Tl|dr|GW|Co|Dl|Hj|I5|Gl|Mo|lq|Xl|Fo)(<v>, <group>, "<file>.md")',
+    "omp": '(Id|Cl|jD[ef]|Tl|dr|GW|Co|Dl|Hj|I5|Gl|Mo|lq|Xl|Fo|Kl|Ho|bq)(<v>, <group>, "<file>.md")',
     "opencode": '(Id|Cl|jD[ef]|Tl|dr|GW)(<v>, <group>, "<file>.md")',
 }
+# Module scopes (round 51): the bundle concatenates ES modules and the dump
+# marks each one with a source-path comment line; a minified name bound in two
+# modules is two different variables, so a binding's scope is its module.
+MODULE_MARKER_RE = re.compile(r"^//[ \t]*\S+\.(?:[cm]?[jt]sx?)[ \t]*$", re.M)
 # Identifier -> string bindings anywhere in the dump (`var Pqr = "agents-md"`,
 # second declarators like `, Zou = "AGENTS.md"`, plain `X = "..."`).
 ASSIGN_RE = re.compile(
@@ -299,7 +353,11 @@ def load_baseline(path: Path) -> list[dict]:
 
 def constant_table(dump: str) -> dict[str, str]:
     """First-seen identifier -> string binding; conflicting rebinds are dropped
-    (marked unresolvable) rather than guessed."""
+    (marked unresolvable) rather than guessed.  This is the DUMP-WIDE table: it
+    is the fallback for identifiers the call's own module scope does not bind
+    (see ``scope_table``), and it is deliberately blind to module scope, so a
+    name bound to two values in two different modules is dropped here exactly
+    as it always was."""
     table: dict[str, str] = {}
     conflicts: set[str] = set()
     for name, value in ASSIGN_RE.findall(dump):
@@ -313,16 +371,63 @@ def constant_table(dump: str) -> dict[str, str]:
     return table
 
 
+def module_scopes(dump: str) -> list[tuple[int, int]]:
+    """Byte spans of the dump's module scopes: each source-path comment opens
+    a new module, so a span runs from the previous comment to this one.  A
+    dump with no source-path comment is a single scope (the whole dump)."""
+    spans: list[tuple[int, int]] = []
+    start = 0
+    for m in MODULE_MARKER_RE.finditer(dump):
+        spans.append((start, m.start()))
+        start = m.end()
+    spans.append((start, len(dump)))
+    return spans
+
+
+def scope_of(spans: list[tuple[int, int]], pos: int) -> tuple[int, int]:
+    """The scope span that contains byte offset ``pos``."""
+    lo, hi = 0, len(spans) - 1
+    while lo < hi:
+        mid = (lo + hi + 1) // 2
+        if spans[mid][0] <= pos:
+            lo = mid
+        else:
+            hi = mid - 1
+    return spans[lo]
+
+
+def scope_table(dump: str, spans: list[tuple[int, int]], pos: int) -> dict[str, str]:
+    """The binding table of the module scope that contains byte offset ``pos``.
+
+    Same conflict policy as the dump-wide table (``constant_table``): a name
+    bound to two different strings INSIDE one module is dropped, so a genuine
+    ambiguity inside the call's own module is never guessed."""
+    start, end = scope_of(spans, pos)
+    if start == 0 and end == len(dump):
+        # the whole dump is one scope: the dump-wide table IS its scope table
+        return {}
+    return constant_table(dump[start:end])
+
+
 def extract_classes(dump: str, harness: str) -> set[tuple[str, str]]:
     """All (group, file) pairs from `.md`-suffixed registration-call shapes.
     The callee allowlist is per-harness (CALL_RE/OMP_CALL_RE above).  Identifier
-    group args are resolved through the dump's constant table; unresolvable
-    ones surface as a ``<unresolved-var:NAME>`` group so they cannot pass
-    silently."""
-    consts = constant_table(dump)
+    group args are resolved through the dump's constant table — for a name the
+    dump-wide table cannot settle, the binding table of the call's OWN module
+    scope decides (round 51); unresolvable ones surface as a
+    ``<unresolved-var:NAME>`` group so they cannot pass silently."""
+    global_table = constant_table(dump)
     pattern = OMP_CALL_RE if harness == "omp" else CALL_RE
+    spans = module_scopes(dump)
     pairs: set[tuple[str, str]] = set()
-    for quoted, ident, filename in pattern.findall(dump):
+    for m in pattern.finditer(dump):
+        quoted, ident, filename = m.group(1), m.group(2), m.group(3)
+        # (round 51) the dump-wide table settles a name bound to ONE value in
+        # the whole dump; a name bound to two different values — two modules'
+        # variables sharing one minified name — is dropped by that table and
+        # settled by the call's OWN module scope.  The dump-wide table wins
+        # wherever it has an entry.
+        consts = {**scope_table(dump, spans, m.start()), **global_table}
         if quoted:
             group = quoted
         elif ident in consts:
@@ -839,6 +944,7 @@ def run_capture(argv: list[str]) -> tuple[int, str]:
 
 
 def self_test() -> int:
+    global OMP_CALL_RE
     failures: list[str] = []
     total = 0
 
@@ -899,6 +1005,117 @@ def self_test() -> int:
     rec("18.12.5-callees: PASS no_uncovered_class, all 8 pairs",
         "PASS surfaces.no_uncovered_class: all 8 extracted loader class(es) declared" in out,
         out)
+    # (b2d) round 51 (18.12.6): the loader registration callees rotated again
+    # (bq/Kl/Ho) and the two var-bound groups (v$, S$) live in DIFFERENT
+    # modules: S$ is "claude-md" in discovery/claude-md.ts and "title" in
+    # session/session-entries.ts (the real prior binding, live dump line
+    # 843423), so the dump-wide first-seen table drops it as a conflict and
+    # the call's own module scope must settle it.  The fixture also carries a
+    # LATER S$ binding ("later") so a "last binding wins" rule cannot pass it.
+    # All eight omp loader-group pairs must extract.
+    code, out = run_capture(
+        ["--repo", fx, "--omp-strings", fx + "/strings-omp-18.12.6.txt",
+         "--opencode-strings", oc_clean,
+         "--baseline", fx + "/baseline-18.12.5.json", "--inventory", inv_clean,
+         "--check", "surfaces.literal_present",
+         "--check", "surfaces.no_uncovered_class"])
+    rec("18.12.6-callees: exit 0", code == 0, code)
+    rec("18.12.6-callees: PASS literal_present",
+        "PASS surfaces.literal_present:" in out, out)
+    rec("18.12.6-callees: PASS no_uncovered_class, all 8 pairs",
+        "PASS surfaces.no_uncovered_class: all 8 extracted loader class(es) declared" in out,
+        out)
+
+    # (b2e) the same fixture must FAIL against the round-50 callee allowlist —
+    # the 18.12.6 rename is what the re-pin fixes, so a fixture that passed
+    # both lists would not discriminate (Q25).
+    saved_re = OMP_CALL_RE
+    try:
+        OMP_CALL_RE = call_re(OMP_CALLEE_NAMES_ROUND50)
+        code, out = run_capture(
+            ["--repo", fx, "--omp-strings", fx + "/strings-omp-18.12.6.txt",
+             "--opencode-strings", oc_clean,
+             "--baseline", fx + "/baseline-18.12.5.json", "--inventory", inv_clean,
+             "--check", "surfaces.literal_present",
+             "--check", "surfaces.no_uncovered_class"])
+    finally:
+        OMP_CALL_RE = saved_re
+    rec("18.12.6-round50-allowlist: exit 1", code == 1, code)
+    rec("18.12.6-round50-allowlist: FAIL literal_present",
+        "FAIL surfaces.literal_present:" in out, out)
+    rec("18.12.6-round50-allowlist: vacuity named",
+        "FAIL surfaces.no_uncovered_class:" in out and "vacuity" in out, out)
+
+    # (b2f) fx-renamed-var: the SAME conflict on a renamed variable (T$ in
+    # place of S$) must resolve the same way — a rule hardcoded to per
+    # identifier (m2b) must fail here.
+    fx18126 = (Path(fx) / "strings-omp-18.12.6.txt").read_text(encoding="utf-8")
+    renamed = fx18126.replace("S$", "T$")
+    with tempfile.TemporaryDirectory() as tmp:
+        renamed_path = str(Path(tmp) / "strings-omp-renamed.txt")
+        Path(renamed_path).write_text(renamed, encoding="utf-8")
+        code, out = run_capture(
+            ["--repo", fx, "--omp-strings", renamed_path,
+             "--opencode-strings", oc_clean,
+             "--baseline", fx + "/baseline-18.12.5.json", "--inventory", inv_clean,
+             "--check", "surfaces.literal_present",
+             "--check", "surfaces.no_uncovered_class"])
+    rec("fx-renamed-var: exit 0", code == 0, code)
+    rec("fx-renamed-var: PASS literal_present",
+        "PASS surfaces.literal_present:" in out, out)
+    rec("fx-renamed-var: PASS no_uncovered_class, all 8 pairs",
+        "PASS surfaces.no_uncovered_class: all 8 extracted loader class(es) declared" in out,
+        out)
+
+    # (b2g) Q18 control: a genuinely ambiguous rebind INSIDE the call's own
+    # module (a second, conflicting binding of S$ in the claude-md module)
+    # must stay UNRESOLVED — never guessed — at both the extraction level and
+    # the CLI level (the gate must FAIL loudly, not pass on a guessed value).
+    ambiguous = fx18126.replace(
+        'var S$ = "claude-md";',
+        'var S$ = "claude-md";\nvar S$ = "claude-md-rebound";')
+    pairs = extract_classes(ambiguous, "omp")
+    rec("ambiguous-rebind: claude-md NOT resolved",
+        ("claude-md", "CLAUDE.md") not in pairs, sorted(pairs))
+    rec("ambiguous-rebind: S$ surfaces unresolved",
+        ("<unresolved-var:S$>", "CLAUDE.md") in pairs, sorted(pairs))
+    with tempfile.TemporaryDirectory() as tmp:
+        amb_path = str(Path(tmp) / "strings-omp-ambiguous.txt")
+        Path(amb_path).write_text(ambiguous, encoding="utf-8")
+        code, out = run_capture(
+            ["--repo", fx, "--omp-strings", amb_path,
+             "--opencode-strings", oc_clean,
+             "--baseline", fx + "/baseline-18.12.5.json", "--inventory", inv_clean,
+             "--check", "surfaces.literal_present",
+             "--check", "surfaces.no_uncovered_class"])
+    rec("ambiguous-rebind CLI: exit 1", code == 1, code)
+    rec("ambiguous-rebind CLI: FAIL literal_present names the missing shape",
+        "FAIL surfaces.literal_present:" in out and "omp:claude-md/CLAUDE.md" in out, out)
+    rec("ambiguous-rebind CLI: the unresolved var is named",
+        "<unresolved-var:S$>" in out, out)
+
+    # (b2h) Q18 control 2: a name bound to two values in two OTHER modules and
+    # not bound in the call's own module stays unresolved — the dump-wide
+    # table's conservative behaviour is preserved.  And a call whose own
+    # module DOES bind the name settles it even when other modules conflict.
+    cross = (
+        '// m1.ts\nvar Q$ = "one";\n'
+        '// m2.ts\nvar Q$ = "two";\n'
+        '// m3.ts\nfunction f(u) { return bq(u, Q$, "X.md"); }\n'
+    )
+    pairs = extract_classes(cross, "omp")
+    rec("cross-module conflict not settled by the call's module: unresolved",
+        ("<unresolved-var:Q$>", "X.md") in pairs
+        and ("one", "X.md") not in pairs and ("two", "X.md") not in pairs,
+        sorted(pairs))
+    settled = (
+        '// m1.ts\nvar Q$ = "one";\n'
+        '// m2.ts\nvar Q$ = "two";\n'
+        '// m3.ts\nvar Q$ = "two";\nfunction f(u) { return bq(u, Q$, "X.md"); }\n'
+    )
+    pairs = extract_classes(settled, "omp")
+    rec("own-module binding settles the call",
+        ("two", "X.md") in pairs, sorted(pairs))
 
     # (b3) a substrate whose call shapes all vanish is a vacuity FAIL, never
     # an empty-set pass (the 2026-10-16 omp-move defect class round 21 fixed)
@@ -1145,7 +1362,41 @@ def build_parser() -> argparse.ArgumentParser:
     return ap
 
 
-def emit_json(results: list[dict], code: int, error: str | None = None) -> None:
+def binary_digest(path: Path) -> tuple[str, float, int] | None:
+    """(sha256, mtime epoch, size) of a binary, or None when unreadable."""
+    try:
+        h = hashlib.sha256()
+        with path.open("rb") as fh:
+            for block in iter(lambda: fh.read(1 << 20), b""):
+                h.update(block)
+        st = path.stat()
+        return h.hexdigest(), st.st_mtime, st.st_size
+    except OSError:
+        return None
+
+
+def substrate_identity(args: argparse.Namespace) -> dict:
+    """For each harness, which (binary | dump) source the dumps came from.
+
+    When the binary was read its sha256/mtime/size are included, so the
+    ``--json`` counter itself prints which binary it read (round 51)."""
+    identity: dict = {}
+    for h in HARNESS_IDS:
+        given = getattr(args, "%s_strings" % h)
+        if given is not None:
+            identity[h] = {"source": "dump", "path": str(given)}
+            continue
+        binary = Path(getattr(args, "%s_binary" % h))
+        entry = {"source": "binary", "path": str(binary)}
+        digest = binary_digest(binary)
+        if digest is not None:
+            entry["sha256"], entry["mtime"], entry["bytes"] = digest
+        identity[h] = entry
+    return identity
+
+
+def emit_json(results: list[dict], code: int, error: str | None = None,
+              substrate: dict | None = None) -> None:
     payload = {
         "checks": results,
         "pass": sum(1 for r in results if r["status"] == "PASS"),
@@ -1154,6 +1405,8 @@ def emit_json(results: list[dict], code: int, error: str | None = None) -> None:
     }
     if error is not None:
         payload["error"] = error
+    if substrate is not None:
+        payload["substrate"] = substrate
     print(json.dumps(payload, indent=2, sort_keys=True))
 
 
@@ -1221,7 +1474,9 @@ def main(argv: list[str] | None = None) -> int:
                         "detail": detail})
 
     if args.json:
-        emit_json(results, 0 if all(r["status"] == "PASS" for r in results) else 1)
+        substrate = substrate_identity(args) if needs_dumps else None
+        emit_json(results, 0 if all(r["status"] == "PASS" for r in results) else 1,
+                  substrate=substrate)
     else:
         for r in results:
             print("%s %s: %s" % (r["status"], r["id"], r["detail"]))

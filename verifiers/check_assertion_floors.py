@@ -5,9 +5,11 @@ The claim under test: a self-test that silently loses assertions must never
 still read green. Each instrument's --self-test prints an assertion count;
 this guard reruns every self-test and FAILs when the observed count is below
 the recorded floor (harness 10, corpus_integrity 150, corpus_independent 91,
-surfaces 99, checklist 1851, pins 62, harness_independent 123,
-compare_harness_independent 330, floors_guard 150, dispatch_prompts 56,
-sibling_census 68; round 50 bumped checklist 1845->1851 (delegated --box-proof
+surfaces 115, overlap_levers 22, checklist 1851, pins 62,
+harness_independent 123, compare_harness_independent 330, floors_guard 150,
+dispatch_prompts 56, sibling_census 68; round 51 bumped surfaces 99->115
+(18.12.6 re-derivation arms) and registered overlap_levers at 22 (round-51
+C2 depth claim); round 50 bumped checklist 1845->1851 (delegated --box-proof
 gate arms), dispatch_prompts 32->56 (box-proof coverage arms) and registered
 sibling_census at 68 (duplicate-row and --skill arms); others @ round 36 --
 round 47 ratcheted surfaces 87->99 (1.19.3 opencode fixtures, 18.12.5 omp
@@ -127,7 +129,7 @@ EXPECTED_INSTRUMENTS = {
     "harness": 10,
     "corpus_integrity": 150,
     "corpus_independent": 91,
-    "surfaces": 99,
+    "surfaces": 115,
     "checklist": 1851,
     "pins": 62,
     "harness_independent": 123,
@@ -135,6 +137,7 @@ EXPECTED_INSTRUMENTS = {
     "floors_guard": 150,
     "dispatch_prompts": 56,
     "sibling_census": 68,
+    "overlap_levers": 22,
 }
 SELF_TEST_TIMEOUT_S = 120
 
@@ -149,7 +152,7 @@ INSTRUMENTS = {
                          r"self-test:\s*(\d+) failure\(s\) over (\d+) assertions", 2, 1),
     "corpus_independent": ("verifiers/verify_corpus_independent.py", 91,
                            r"self-test:\s*(\d+) assertions,\s*(\d+) failures", 1, 2),
-    "surfaces": ("verifiers/verify_surfaces.py", 99,
+    "surfaces": ("verifiers/verify_surfaces.py", 115,
                  r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
     "checklist": ("verifiers/verify_skill_checklist.py", 1851,
                   r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
@@ -165,6 +168,8 @@ INSTRUMENTS = {
                      r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
     "sibling_census": ("verifiers/check_sibling_census.py", 68,
                        r"self-test:\s*(\d+) failure\(s\) over (\d+) assertions", 2, 1),
+    "overlap_levers": ("verifiers/check_overlap_levers.py", 22,
+                       r"(?m)^(\d+) failures\n(\d+) assertions$", 2, 1),
 }
 
 
@@ -610,8 +615,8 @@ def self_test() -> int:
                       '_pins.py", 62,\n',
                       '             r"(?m)^(\\d+) failure\\(s\\) over',
                       ' (\\d+) assertions$", 2, 1),\n')
-    expected_surfaces = anchor('    "surfa', 'ces": 99,\n')
-    row_surfaces = anchor('    "surfaces": ("verifiers/verify_surfa', 'ces.py", 99,\n')
+    expected_surfaces = anchor('    "surfa', 'ces": 115,\n')
+    row_surfaces = anchor('    "surfaces": ("verifiers/verify_surfa', 'ces.py", 115,\n')
     expected_ind = anchor('    "harness_indep',
                           'endent": %d,\n' % EXPECTED_INSTRUMENTS["harness_independent"])
     row_ind = anchor('    "harness_independent": ("verifiers/verify_harness_indep',
@@ -701,9 +706,10 @@ def self_test() -> int:
 
         # F6 -- the registry's own declared size is load-bearing. The anchor is
         # the live registry's own declared total (round 49: 10; round 50: 11 with
-        # sibling_census, including this guard's self-test); a stale literal here
-        # would stop landing and the count-check would name it.
-        text = swap(registry_text, '"instrument_total": 11', '"instrument_total": 10',
+        # sibling_census; round 51: 12 with overlap_levers), including this guard's
+        # self-test); a stale literal here would stop landing and the count-check
+        # would name it.
+        text = swap(registry_text, '"instrument_total": 12', '"instrument_total": 10',
                     "F6/total")
         proc = run(write_tree(tmp / "f6", source, text), tmp / "f6")
         rec("F6 size drift: exit 2", proc.returncode == 2, proc.returncode)
@@ -865,7 +871,7 @@ def self_test() -> int:
         # to diff against; the anchor must compare the path, not just the floor.
         # The target is chosen to make the repoint GENUINELY silent without the
         # anchor: verify_surfaces.py prints the same summary pattern (87
-        # assertions then; 99 since round 47), so the no-anchor world reads 'PASS harness_independent
+        # assertions then; 99 since round 47, 115 since round 51), so the no-anchor world reads 'PASS harness_independent
         # observed=87 floor=71', exit 0 (proved by drafts/p3/true_discriminator.py).
         text = swap(source, row_ind,
                     row_ind.replace("verify_harness_independent.py",
