@@ -183,11 +183,11 @@ A documented maximum is not a render cut: four clients state 1,024 and none docu
 | Client | Documented threshold | Past the threshold | Action |
 |---|---|---|---|
 | Claude Code | 1,536 characters per entry (`description` + `when_to_use`), whatever the budget; listing budget 1% of the context window (`0.01` default, `skillListingBudgetFraction`) | Truncated at the cap, with a startup warning (v2.1.105 raised the cap from 250); past the listing budget, descriptions of the least-invoked skills are dropped and every skill name stays | Put the key use case first and keep `description` within the spec's 1,024 (the listing cut is 1,536); raise `skillListingMaxDescChars` or `skillListingBudgetFraction`, or set low-priority skills `"name-only"` to leave budget for yours |
-| Codex | Initial skills list: 2% of the model's context window, or 8,000 characters when the context window is unknown; `skills.max_context_tokens` sets a different budget, capped at 10,000 tokens | Codex shortens skill descriptions first (its shipped parser also cuts each catalog description at 1,024 characters, `corpus/knowledge/frontmatter-rule-authorities-round48.md:51`), then for large skill sets may omit skills from the initial list and show a warning; selecting the skill still reads the full `SKILL.md` | Front-load the use case and trigger words in `description` so matching survives shortening; do not rely on a long tail |
+| Codex | Initial skills list: 2% of the model's context window, or 8,000 characters when the context window is unknown; `skills.max_context_tokens` sets a different budget, capped at 10,000 tokens | At the initial-list budget, Codex shortens descriptions first; for large skill sets it may omit skills from the initial list with a warning; selecting a skill still reads the full `SKILL.md`. | Front-load the use case and trigger words in `description` so matching survives shortening; do not rely on a long tail |
 | VS Code | `description` maximum 1024 characters (authoring maximum; `name` 64) | Not documented: the page states no truncation, drop, warning or refusal past 1024, and no listing budget | Keep the description under 1024 characters, leading with what the skill does and when to use it |
 | Copilot CLI | `description` max 1024 characters | Not documented; the page states the cap and no truncation, shortening or refusal | keep the description at 1024 characters or fewer, front-loaded on what the skill does and when to use it |
-| Gemini CLI | ~100 words of metadata (name + description) always in context per skill | Nothing is cut: the full description is injected, so a longer one spends context tokens with no documented warning or truncation | Treat ~100 words as the docs' size estimate, not a limit: keep name + description short and move detail into the `SKILL.md` body, which loads only after activation (`skills-best-practices.md:24-25`) |
-| Cursor | 1,024 characters for `description` | No cut documented; the release notes document a warning: the skill still loads and `/skills` shows a yellow warning count listing what to fix (a body over about 5,000 tokens is warned the same way) | Keep `description` at or under 1,024 characters; move detail into `references/` rather than the body |
+| Gemini CLI | No threshold: ~100 words is a size estimate for metadata (name + description), which is always in context. | The loader keeps `frontmatter.description` as-is (`skillLoader.ts:211`) and the prompt template inserts it directly (`snippets.ts:320`) at `google-gemini/gemini-cli@451a02ff`; no description cut appears in these steps, so longer descriptions spend context. | Treat ~100 words as the docs' size estimate, not a limit: keep name + description short and move detail into the `SKILL.md` body, which loads only after activation (`skills-best-practices.md:24-25`) |
+| Cursor | 1,024 characters for `description` | No cut documented; the release notes document a warning: the skill still loads and `/skills` shows a yellow warning count listing what to fix (a body over about 5,000 tokens is warned the same way) | Keep `description` at or under 1,024 characters; an over-limit skill still loads and gets a yellow warning in `/skills`. |
 | opencode | 1-1024 characters (v1 docs page; the v2 page says it enforces no maximum) | nothing: no cut, truncation, warning or refusal — both shipped trees print the whole string into `<available_skills>` (v1.19.4 `skill/index.ts:332`, v2.1.3 `skill/instructions.ts:21`) | keep the description inside 1-1024 characters, the rule the spec states too (S018), and front-load it for the clients that cut or shorten; opencode itself shows all of it |
 
 ## Decision tables — when to use one
@@ -404,26 +404,9 @@ five highest-frequency rows: description without trigger strings; anti-trigger i
 the body only; warning without a signature; a bin invoked with no declared
 location; durable policy copy-pasted into a dispatch prompt.
 
-Error pattern (round 50, `corpus/knowledge/skill-selection-rules-round50.md`; corrected round 51):
-two sibling descriptions that both match, with nothing in either text saying who owns what. On
-the eight pages from five clients that entry read, no client documents a rule between two differently named,
-author-written skills whose descriptions both match; the documented rules decide between copies of
-one name, component types or configuration sources (apart from Claude Code's built-in catch-all
-agent, a fit-based default). Fix, when both skills should stay automatic:
-name the neighbour and the split in the description (`trigger.05`), stay under 1,024 characters,
-and check kotoba's own file with
-`python3 -B verifiers/check_sibling_census.py corpus/knowledge/sibling-overlap-census-round49.md --province PROVINCE.md --skill SKILL.md`.
+Error pattern (round 50, corrected round 51): two sibling descriptions that both match, with nothing in either text saying who owns what; the eight pages from five clients read in `corpus/knowledge/skill-selection-rules-round50.md` document no rule between two such skills. Fix, when both should stay automatic: name the neighbour and the split in the description (`trigger.05`). The full text that stood here, with its check command, moved verbatim in round 55 to `corpus/knowledge/skill-overlap-levers-round51.md` § Moved from `SKILL.md`.
 
-Overlap levers by client (round 51, `corpus/knowledge/skill-overlap-levers-round51.md`): besides
-the description, each client documents a lever that removes one named skill from the candidates.
-Each lever removes one skill (from automatic choice, or in a session or settings scope); none
-decides between two differently named skills that both remain candidates, where the description is still the only
-lever the pages document that keeps both automatic everywhere. Use one when the skill should never fire unasked, when
-the split is by location rather than intent (Claude Code `paths`, Copilot CLI
-`ignoredSkillsLocations`, not counted below), or when you do not own the other skill (then only the levers held by the skill author apply to
-your own skill); the cost is that the removed skill also stops firing automatically on prompts only
-it matches. The key terms come from a
-reviewed list in the checker; whether each label matches its page is reviewer judgment. Checked by `python3 -B verifiers/check_overlap_levers.py`.
+Overlap levers by client (round 51, `corpus/knowledge/skill-overlap-levers-round51.md`): each client documents a lever that removes one named skill from the candidates; none decides between two skills that both remain candidates, and the removed skill also stops firing automatically. When to use one, and what is reviewer judgment: that entry § Moved from `SKILL.md`. Checked by `python3 -B verifiers/check_overlap_levers.py`.
 
 | client | lever | held by | effect | row | key term |
 |---|---|---|---|---|---|
@@ -457,7 +440,9 @@ reads as could-not-evaluate. `python3 -B verifiers/check_gate_registry.py --rev 
 | `verifiers/check_assertion_floors.py` | gate | `python3 -B verifiers/check_assertion_floors.py` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | `verifiers/floors-registry.json` | temp fixtures under `$TMPDIR`; removable temp dirs under `verifiers/fixtures/compare-harness-independent` (nested self-test) | kotoba |
 | `verifiers/check_callee_rename.py` | gate | `python3 -B verifiers/check_callee_rename.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file | temp dirs under `$TMPDIR` (removed) | kotoba |
 | `verifiers/check_correction_sweep.py` | gate | `python3 -B verifiers/check_correction_sweep.py --root .` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file | none; self-test fixtures under `$TMPDIR` | kotoba |
+| `verifiers/check_could_not_evaluate.py` | gate | `python3 -B verifiers/check_could_not_evaluate.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file | temporary clone (removed) | kotoba |
 | `verifiers/check_description_thresholds.py` | gate | `python3 -B verifiers/check_description_thresholds.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file | none; `--fetch` reads the network | kotoba |
+| `verifiers/check_explicit_invocation.py` | gate | `python3 -B verifiers/check_explicit_invocation.py --rev <rev> --fetch` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file | none; `--fetch` reads the network | kotoba |
 | `verifiers/check_gate_finding_delta.py` | gate | `python3 -B verifiers/check_gate_finding_delta.py --base <rev> --head <rev>` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | `verifiers/corpus-baseline.json` | temp trees under `$TMPDIR` | kotoba |
 | `verifiers/check_gate_registry.py` | gate | `python3 -B verifiers/check_gate_registry.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file | none | kotoba |
 | `verifiers/check_mcp_instructions.py` | gate | `python3 -B verifiers/check_mcp_instructions.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file | none; `--fetch` reads the network | kotoba |

@@ -142,3 +142,30 @@ the report; the rows it replaced (landed at lane `34cfffbb`) are recorded here.
   span in a quote on the reviewed page and that the row's labels come from the allowed words; whether
   the quote's sense and the `lever`, `held by` and `effect` cells match the page is reviewer judgment,
   checked by the falsify seats `Reopen*.md` and `CriticLeverSemantics.md`, not by the script.
+
+## Moved from `SKILL.md` § Anti-patterns (round 55, verbatim)
+
+`SKILL.md` lines 407–426 at `f0e5de820a60ec44ff7e5b7c88ac8c8d463dde0c` moved here byte for byte to free the
+600-line budget for round 55's `### Explicit invocation by client` table; `SKILL.md` keeps the marker line, the
+table and a pointer here. Paths below are relative to the lane root, as they were in `SKILL.md`.
+
+Error pattern (round 50, `corpus/knowledge/skill-selection-rules-round50.md`; corrected round 51):
+two sibling descriptions that both match, with nothing in either text saying who owns what. On
+the eight pages from five clients that entry read, no client documents a rule between two differently named,
+author-written skills whose descriptions both match; the documented rules decide between copies of
+one name, component types or configuration sources (apart from Claude Code's built-in catch-all
+agent, a fit-based default). Fix, when both skills should stay automatic:
+name the neighbour and the split in the description (`trigger.05`), stay under 1,024 characters,
+and check kotoba's own file with
+`python3 -B verifiers/check_sibling_census.py corpus/knowledge/sibling-overlap-census-round49.md --province PROVINCE.md --skill SKILL.md`.
+
+Overlap levers by client (round 51, `corpus/knowledge/skill-overlap-levers-round51.md`): besides
+the description, each client documents a lever that removes one named skill from the candidates.
+Each lever removes one skill (from automatic choice, or in a session or settings scope); none
+decides between two differently named skills that both remain candidates, where the description is still the only
+lever the pages document that keeps both automatic everywhere. Use one when the skill should never fire unasked, when
+the split is by location rather than intent (Claude Code `paths`, Copilot CLI
+`ignoredSkillsLocations`, not counted below), or when you do not own the other skill (then only the levers held by the skill author apply to
+your own skill); the cost is that the removed skill also stops firing automatically on prompts only
+it matches. The key terms come from a
+reviewed list in the checker; whether each label matches its page is reviewer judgment. Checked by `python3 -B verifiers/check_overlap_levers.py`.
