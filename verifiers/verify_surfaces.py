@@ -1625,6 +1625,10 @@ def self_test() -> int:
             ("strings-opencode-1.19.4-decoy-oc4-delivery.txt", "OC-4",
              "opencode:read-hook/instructions", "OC-6"),
             ("strings-opencode-1.19.4-decoy-oc6.txt", "OC-6",
+             "opencode:instruction-context/AGENTS.md", "OC-4"),
+            # round-53 falsify W2MutOc6: the observer walks another target;
+            # `targets:["AGENTS.md"]` appears only outside it.
+            ("strings-opencode-1.19.4-decoy-oc6-target.txt", "OC-6",
              "opencode:instruction-context/AGENTS.md", "OC-4")):
         text = read_text(FIXTURES / fixture, "opencode decoy fixture")
         for literal in oc_literals:
