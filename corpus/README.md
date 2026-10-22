@@ -9,7 +9,7 @@ Domain: prompt & skill craft — SKILL.md/AGENTS.md quality, trigger fidelity.
 | Frontmatter trigger surfaces | `knowledge/frontmatter-trigger-surface.md` | 16 production skill files surveyed 2026-09-28; **round 15** absorbed the twelve craft rules from `SKILL.md` § Frontmatter craft (the line-budget move), so this file is now the authoritative copy with `SKILL.md` keeping the pointer |
 | Skill anatomy & compression | `knowledge/anatomy-and-compression.md` | same survey; line counts 18–392; **round 15** absorbed the six compression rules from `SKILL.md` § Compression rules, including the ~600-line module bound this round enforced on its own file |
 | Failure/anti-pattern patterns | `knowledge/fail-closed-and-anti-patterns.md` | bailian family, ufo, sekhmet-l3; **round 15** absorbed the full 18-row anti-pattern table from `SKILL.md` § Anti-patterns (the distilled table above it is its subset and is superseded by it) |
-| AGENTS.md & dispatch prompts | `knowledge/agents-md-and-dispatch-surfaces.md` | 6 child AGENTS.md + `~/.agents/AGENTS.md` + 8 `.ufo/prompts/*-L1.md` |
+| AGENTS.md & dispatch prompts | `knowledge/agents-md-and-dispatch-surfaces.md` | 6 child AGENTS.md + `~/.agents/AGENTS.md` + 8 `.ufo/prompts/*-L1.md` — **round-53 correction (2026-10-22):** 17 child files (`ls /home/vgpnk/Projects/shokunin/*/AGENTS.md \| wc -l` → 17; 9 share the 5-line body), the host file 14 lines / 949 B, and the prompt count still measures 8; the lowercase `/home/vgpnk/projects` root the knowledge file cites does not exist |
 | Agent defs, commands & round-N prompts | `knowledge/agent-defs-commands-and-round-prompts.md` | 18 `opencode/agents/*.md` + 3 `opencode/command/*.md` + 6 `*-round-N.md` |
 | Fleet SKILL.md audit (round-5) | `knowledge/fleet-skill-audit-round5.md` | 13-item checklist applied to 5 sibling `*-shokunin/SKILL.md`, strict + refined readings |
 | Harness system prompt (6th class) | `knowledge/harness-system-prompt.md` | observed-not-owned; notes from this session's injected preamble |
@@ -78,6 +78,8 @@ Domain: prompt & skill craft — SKILL.md/AGENTS.md quality, trigger fidelity.
 | MCP server `instructions` per client (round 52) | `knowledge/mcp-server-instructions-round52.md` | seven located quotes on what the MCP specification and six clients do with the server's `instructions` (S032 spec, S033 Claude Code, S034 VS Code, S035 Codex, S036 Gemini CLI, S041 opencode, S042 Copilot CLI); the attempt-1 record called opencode and Copilot CLI silent, corrected in attempt 2 (M38); S040 the current spec revision 2026-07-28; S037 blog guidance; checked by `../verifiers/check_mcp_instructions.py` (frozen at `4c003a4b`) |
 | Round-52 lessons | `lessons/round-52.md` | LOG.md round-52 entries; `## Mistakes` (M36 corrections sweep missed two places, criterion Q29 and `../verifiers/check_correction_sweep.py`; M37 seat gate and route outage; M38 false-negative sweep, Q30; M39 counter described wider than its code, Q31; M40 unsupported attempt-1 SCORECARD block), `## Gate` (rows S032–S042, two rejections later corrected) and the round-51 routed defects |
 | Round-52 non-author spot-check (closure) | `lessons/round-52-verifier-spotcheck.md` | closure-authored outside review; records the round-52 claim remeasurements, verdicts and routed defects without changing the lane-authored report |
+| Always-on rule files per client (round 53) | `knowledge/alwayson-rule-files-round53.md` | which always-on file names nine clients read, what each does with `AGENTS.md` and `CLAUDE.md` in one directory, and which redirect forms each documents (S043–S050, S004, S019; omp from its binary); boxes `alwayson.04`/`alwayson.07` delegated to `../verifiers/verify_alwayson.py` (`../verifiers/check_alwayson_boxes.py --rev <rev>` → `always-on boxes executed and discriminating 2 of 8`) |
+| Round-53 lessons | `lessons/round-53.md` | LOG.md round-53 entries; `## Mistakes` M41 (stale corpus baseline, fix `../verifiers/check_gate_finding_delta.py`), M42 (loose matching in a counter, Q32), M43 (plan overclaim caught before content, Q33), M44 (lane index written by `git apply --3way`); `## Gate` S043–S051, S004 and S019 touched |
 
 ## Frontier
 
@@ -102,6 +104,15 @@ omp callees are admitted by registering a declared pair (`../verifiers/verify_su
 `OMP_GENERIC_CALL_RE`; `python3 -B ../verifiers/check_callee_rename.py --rev <rev>` → `callee-rename
 robust 4 of 4 fixtures`); still not held: a rebuild that changes the call shape, and the opencode
 lineage probe.
+
+**Round 53 (append-only notes on the checklist and loader-rule rows above):** *Executed checklist coverage* — the
+always-on half moves in part: boxes `alwayson.04` (dated text) and `alwayson.07` (one rule-file name or a redirect)
+are delegated to `../verifiers/verify_alwayson.py` (map: 8 executed, 4 delegated, 29 unexecuted), sourced in
+`knowledge/alwayson-rule-files-round53.md` (S043–S050, S004, S019); still not held: the other six always-on boxes,
+transient text outside the instrument's cue-word list, rule-file names beyond the `AGENTS.md`/`CLAUDE.md` pair, and the agent-definition
+checklist (no box executed). *Loader-rule freshness* — opencode 1.19.4 re-derived and re-pinned
+(`../verifiers/check_opencode_repin.py --rev <rev>` → `surfaces pass 7 of 7 … pins OK 3/3 … kept 9 of 9`); the
+1.19.3→1.19.4 change was a bundler rename of unchanged source (S051); still not held: re-derivation stays manual.
 
 ## Known gaps
 

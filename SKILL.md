@@ -359,9 +359,13 @@ template).
 
 ## Always-on constraint-file checklist (AGENTS.md-class)
 
-Run before editing any always-loaded rules file. Observed evidence +
-application matrix (6/6 repo files pass; the 75-line host `~/.agents/AGENTS.md`
-fails procedures/dates/style) in `corpus/knowledge/alwayson-checklist-round7.md`.
+Run before editing any always-loaded rules file. Round-7 evidence +
+application matrix (6/6 repo files passed; the host `~/.agents/AGENTS.md`, then
+75 lines and 14 at round 53, failed procedures/dates/style) in
+`corpus/knowledge/alwayson-checklist-round7.md`. Boxes 4 and 7 run one at a time as
+`python3 -B verifiers/verify_alwayson.py --check alwayson.04 --target <dir>` (and
+`--check alwayson.07`); which name each client reads and what counts as a redirect:
+`corpus/knowledge/alwayson-rule-files-round53.md`.
 
 - [ ] Constraint-only content: durable rules/prohibitions/boundaries — no
       history, status, or rationale prose.
@@ -458,8 +462,9 @@ reviewed list in the checker; whether each label matches its page is reviewer ju
   safety-rule callouts, config-location tables.
 - `~/.config/opencode/skills/ufo/SKILL.md` — invariant lists (I1–I10), load-order
   with fail-closed resolution, dispatch contract.
-- `/home/vgpnk/projects/shokunin/*/AGENTS.md` (6 files) + `~/.agents/AGENTS.md`
-  — always-on constraint files; no frontmatter, terse imperatives.
+- `/home/vgpnk/Projects/shokunin/*/AGENTS.md` (17 files on 2026-10-22; 9 share
+  the 5-line template body) + `~/.agents/AGENTS.md` (14 lines / 949 B) —
+  always-on constraint files; no frontmatter, terse imperatives.
 - `/home/vgpnk/projects/shokunin/.ufo/prompts/*-L1.md` (8 files, 9–12 lines) —
   spawn dispatch-prompt stanza order and `| godspeed` terminator.
 - `/home/vgpnk/projects/shokunin/.ufo/prompts/*-round-*.md` (50 files, 3–11

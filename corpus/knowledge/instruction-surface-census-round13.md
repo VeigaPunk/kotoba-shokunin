@@ -471,7 +471,7 @@ they are a fleet filesystem convention and say so in the table.
 |---------|----------------|---------------|------------------|------------|
 | SKILL.md | Opt-in: activated when `description` matches intent | frontmatter = router index; body = executor contract | False activation / missed activation | All craft below (frontmatter, tables, gates) |
 | Agent definition (`opencode/agents/*.md`) | Roster: orchestrator picks by `description`, then body becomes the subagent's system prompt | `description` = delegation index; body = persistent identity | Wrong-lane delegation; stale routing metadata | Terse negative routing in description (`NOT general-purpose. NOT explore.`); identity + constraints in body, never a per-task job; dated operational notes belong in status files, not frontmatter |
-| AGENTS.md | Always-on: injected into every session in its repo | No frontmatter, no router — every byte loads on each injection (loader code in both harnesses: omp class `agents-md` `jDe(e,Pqr,"AGENTS.md")`, opencode `y[0]` + config `instructions`; 0 captured injections on this host) | Token drag, stale constraint decay | Terse imperative rules only; no triggers, no prose, no procedures that belong in a skill |
+| AGENTS.md | Always-on: injected into every session in its repo — **round-53 correction (2026-10-22):** true of the two harnesses this row's parse surface names, subject to their own shadowing (omp keeps one file per scope and depth, and its two standalone names tie at priority 10 with `AGENTS.md` taking the slot, `ScoutOmpAlwaysOn.md:77-78`, `:195`, [INFERENCE] on the tie direction, no session was run; opencode takes the first name that exists per directory, `AGENTS.md` before `CLAUDE.md`, S045 `rules.mdx:98`; the CLAUDE.md row below says the two are read alongside, which this narrows), and false as a law across clients: Claude Code reads `CLAUDE.md` files only when one counts (S043 `memory.md:357`) and reads nothing under a `.agents/` directory (`:378`), Codex reads `AGENTS.override.md` ahead of `AGENTS.md`, one file per directory, stopping at 32 KiB combined (S044 `agents-md.md:11-15`); per-client table `corpus/knowledge/alwayson-rule-files-round53.md` | No frontmatter, no router — every byte loads on each injection (loader code in both harnesses: omp class `agents-md` `jDe(e,Pqr,"AGENTS.md")`, opencode `y[0]` + config `instructions`; 0 captured injections on this host) | Token drag, stale constraint decay | Terse imperative rules only; no triggers, no prose, no procedures that belong in a skill |
 | Command file (`opencode/command/*.md`) | Opt-in: user invokes `/<name>` | `description` + `agent:` frontmatter; body = command contract | Skill drift without a guardrail | Pointer-then-rules idiom: line 1 names the owning skill + `$ARGUMENTS`; then only the literal rules that must hold even if the skill drifts — procedures stay in the skill |
 | Dispatch prompt — spawn (L1/L2 lanes) | Ephemeral: consumed once by a subagent (**host-observed** — no harness loads `/home/vgpnk/projects/shokunin/.ufo/prompts/`; the class is a fleet filesystem convention) | Whole file is the contract; no persistence | Missing stanza → unrecoverable agent (no conversation to clarify with) | Fixed 6-stanza order; complete, self-contained; ends with `| godspeed` |
 | Dispatch prompt — round (`*-round-N.md`) | Ephemeral: re-ignites a live L1 lane (**host-observed**, same convention; ~72 round files under the shokunin tree) | Relies on durable repo context (SKILL/LOG/corpus) | Stating stale per-round policy (routing maps drift between rounds) | 3–4 lines: role+round → method directive → land-scope+report → `| godspeed`; carry only what changed since spawn |
@@ -547,7 +547,7 @@ orchestrator matches); spawn prompts optimize *one-shot completeness*
 **Round-53 re-derivation (2026-10-22, opencode 1.19.4, append-only).** The installed
 npm `opencode-ai` binary at
 `/home/vgpnk/.npm/_npx/e2094862b59aac7b/node_modules/opencode-ai/bin/opencode.exe`
-has sha256 `538fcb1b6408c8d460882acee19f7ff5b3a3eb3383c0633c4f06170857312a7`;
+has sha256 `538fcb1b6408c8d4608822acee19f7ff5b3a3eb3383c0633c4f06170857312a7`;
 the `strings -n 4` dump is
 `/fast/scratch/hyaku/kotoba-r53/ExecOcRederive/oc-1.19.4.strings`
 (sha256 `2d72d83f8c90b15c4ba12037c305a838fefe03401e0762c90efdfe04f5a4bd98`).
@@ -571,6 +571,7 @@ The nine opencode class ids, kinds and verdicts remain unchanged.
 
 Provenance of the change (S051, `corpus/SOURCES.md`): the v1.19.3→v1.19.4 tag delta touches no path under
 `packages/opencode/src/`; the release note records only a bundled Bun runtime upgrade (1.3.14→1.4.4), so the
-renamed wrappers (`fn`→`l`, `Key`→`Wr`) are a rebuild of unchanged source, not a behaviour change
+renamed wrappers (`fn`→`l`, `Key`→`Wr`) are a rebuild of unchanged source ([INFERENCE]: the delta also bumps
+`@ff-labs/fff-bun` 0.9.4→0.10.5; no rebuild was run), not a behaviour change
 (`.ufo/waves/round-53/build/ScoutOcRelease.md` §§ 1–2; `RevOcLoader.md` § 2 reaches the same reading from the
 1.19.3 and 1.19.4 binaries).

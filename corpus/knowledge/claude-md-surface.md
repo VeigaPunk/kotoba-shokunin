@@ -33,6 +33,24 @@ round-6 snapshot; recount before citing.
 - Same load semantics as AGENTS.md (always-on when present in the repo) →
   same constraint-survival craft rule applies; a 4339-line CLAUDE.md is an
   unconditional tax on every session in that repo.
+  **round-53 correction (2026-10-22):** the two names do not load the same way,
+  and the premise fails in both directions. Claude Code reads a `CLAUDE.md`
+  (or `.claude/CLAUDE.md`, `CLAUDE.local.md`) in place of `AGENTS.md` when one
+  exists in the working directory or above it, and reads `AGENTS.md` only when
+  none does — with the installed 2.1.304 default `claude-md-or-agents-md`
+  (`claude plugin configure cc-plugin-agents-md@builtin --json`,
+  `ScoutClaudeBehaviour.md` § 3; docs S043 `memory.md:356-357`, `:603`).
+  opencode uses `CLAUDE.md` only when no `AGENTS.md` exists in that directory
+  (S045 `rules.mdx:76`, `:98`). omp registers the two names as separate
+  providers and, at one depth, the two tie and `AGENTS.md` takes the slot, so a
+  standalone `CLAUDE.md` beside an `AGENTS.md` is shadowed rather than read
+  (`ScoutOmpAlwaysOn.md:77-78`, `:195`; [INFERENCE] on the tie direction, no
+  session was run), while `~/.claude/CLAUDE.md` is a higher-priority provider
+  that loads beside a project `AGENTS.md` (one user file and one project file
+  per depth are different keys, `ScoutOmpAlwaysOn.md:435`).
+  The craft conclusion survives for the file each client actually reads — the
+  tax is on the bytes that load — and the per-client table is
+  `corpus/knowledge/alwayson-rule-files-round53.md`.
 - **Dual-name collision risk**: repos carrying both AGENTS.md and CLAUDE.md
   (`llama.cpp` resolves it with a 1-line redirect file; `HVM4` has CLAUDE.md
   headed "AGENTS.md") — two files, one channel; pick one owner, redirect the

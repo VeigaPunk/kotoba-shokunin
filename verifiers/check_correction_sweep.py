@@ -42,6 +42,43 @@ REGISTRY = (
      "stale": r"specification and five pinned clients", "declared": r"S041", "lead": False},
     {"id": "r52-c2-readme-five", "file": "corpus/README.md",
      "stale": r"five client pages \(S032 spec", "declared": r"S041", "lead": False},
+    # round 53 (Q29): the round-53 C2 corpus corrections and re-measurements.
+    # Knowledge entries and README rows keep the stale phrase verbatim and carry
+    # the declared re-measurement in the same block; the two SKILL.md rows are
+    # canaries -- the replacement wording removes the stale phrase, so the row
+    # fires only if it is reintroduced without the declared result.
+    {"id": "r53-c2-claudemd-semantics", "file": "corpus/knowledge/claude-md-surface.md",
+     "stale": r"Same load semantics as AGENTS\.md",
+     "declared": r"round-53 correction \(2026-10-22\)", "lead": False},
+    {"id": "r53-c2-census-agentsmd-alwayson",
+     "file": "corpus/knowledge/instruction-surface-census-round13.md",
+     "stale": r"Always-on: injected into every session in its repo",
+     "declared": r"round-53 correction \(2026-10-22\)", "lead": False},
+    {"id": "r53-c2-agentsmd-six-files",
+     "file": "corpus/knowledge/agents-md-and-dispatch-surfaces.md",
+     "stale": r"6 identical-shape files in",
+     "declared": r"held 17 `AGENTS\.md` files", "lead": False},
+    {"id": "r53-c2-agentsmd-host-60-lines",
+     "file": "corpus/knowledge/agents-md-and-dispatch-surfaces.md",
+     "stale": r"\(~60 lines\)", "declared": r"14 lines / 949 B", "lead": False},
+    {"id": "r53-c2-readme-six-child", "file": "corpus/README.md",
+     "stale": r"6 child AGENTS\.md", "declared": r"17 child files", "lead": False},
+    {"id": "r53-c2-skill-75-line", "file": "SKILL.md",
+     "stale": r"75-line host", "declared": r"14 lines / 949 B", "lead": False},
+    {"id": "r53-c2-skill-six-files", "file": "SKILL.md",
+     "stale": r"AGENTS\.md` \(6 files\)", "declared": r"17 files", "lead": False},
+    {"id": "r53-c2-baseline-pointer", "file": "verifiers/checklist-baseline.json",
+     "stale": r"host file lines 48 and 51",
+     "declared": r"round-53 re-measure \(2026-10-22\)", "lead": False},
+)
+
+# Files a registry row names that the self-test's four fixed fixtures do not
+# write; seeded per case so `sweep` never sees a missing file (round 53).
+SEEDED = (
+    "corpus/knowledge/claude-md-surface.md",
+    "corpus/knowledge/instruction-surface-census-round13.md",
+    "corpus/knowledge/agents-md-and-dispatch-surfaces.md",
+    "verifiers/checklist-baseline.json",
 )
 
 
@@ -100,7 +137,7 @@ def self_test() -> int:
     fails, n = [], 0
 
     def case(name, readme, score, want, province="- nothing stale\n",
-             skill="- nothing stale\n"):
+             skill="- nothing stale\n", seed=None):
         nonlocal n
         n += 1
         with tempfile.TemporaryDirectory() as t:
@@ -109,6 +146,10 @@ def self_test() -> int:
             (Path(t) / "SCORECARD.md").write_text(score)
             (Path(t) / "PROVINCE.md").write_text(province)
             (Path(t) / "SKILL.md").write_text(skill)
+            for rel in SEEDED:
+                p = Path(t) / rel
+                p.parent.mkdir(parents=True, exist_ok=True)
+                p.write_text((seed or {}).get(rel, "- fixture\n"))
             got = sweep(reader(None, t))
         ids = sorted(x.split()[0] for x in got)
         if ids != sorted(want):
@@ -129,6 +170,23 @@ def self_test() -> int:
          ["r52-c2-skill-silent"], skill=silent)
     case("r52 silent negative with S041 passes", "- x\n", "| d | 9 | x |\n", [],
          skill=silent.replace("|\n", "; corrected by S041 |\n"))
+    # round 53 (Q29): each round-53 row is shown red without its correction and
+    # green with it, on the file the row names.
+    stale_c = "- Same load semantics as AGENTS.md (always-on when present in the repo) -> tax\n"
+    red_c = {"corpus/knowledge/claude-md-surface.md": stale_c}
+    grn_c = {"corpus/knowledge/claude-md-surface.md":
+             stale_c + "  round-53 correction (2026-10-22): not the same semantics\n"}
+    case("r53 claude-md semantics red", "- x\n", "| d | 9 | x |\n",
+         ["r53-c2-claudemd-semantics"], seed=red_c)
+    case("r53 claude-md semantics green", "- x\n", "| d | 9 | x |\n", [], seed=grn_c)
+    base_red = {"verifiers/checklist-baseline.json":
+                '      "disposition": "unexecuted:x; host file lines 48 and 51"\n'}
+    base_grn = {"verifiers/checklist-baseline.json":
+                '      "disposition": "unexecuted:x; host file lines 48 and 51;'
+                ' round-53 re-measure (2026-10-22): 14 lines / 949 B"\n'}
+    case("r53 baseline pointer red", "- x\n", "| d | 9 | x |\n",
+         ["r53-c2-baseline-pointer"], seed=base_red)
+    case("r53 baseline pointer green", "- x\n", "| d | 9 | x |\n", [], seed=base_grn)
     print("%d failure(s) over %d assertions" % (len(fails), n))
     for f in fails:
         print("FAIL", f)
