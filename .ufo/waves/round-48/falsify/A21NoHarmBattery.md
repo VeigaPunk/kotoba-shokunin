@@ -80,3 +80,4 @@ Working-tree mirror (eb5a80f plus lane edits): every rc matches the committed eb
 - Gates that fail at every revision (pins, surfaces, harness claims) were compared for equality with base, not for correctness.
 - Not run: fault_injection_corpus.sh --keep-worlds; the adjacency replay (not in the list). LOG.md's "instrument_drift" claim for the adjacency replay is unchecked.
 - The compare driver's "exit 2" claim is not reproduced. Its exit code depends on live state.
+- Six sibling-lane files (tameshi-shokunin PROVINCE.md and SCORECARD.md, tsukuroi-shokunin SCORECARD.md and SKILL.md, mori-shokunin PROVINCE.md and SKILL.md) changed in the fleet during the run. None is a kotoba path, and no gate writes outside its own repo, so these are other seats' edits, not battery effects.
