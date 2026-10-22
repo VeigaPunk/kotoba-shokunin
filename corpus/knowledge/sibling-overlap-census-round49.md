@@ -333,3 +333,17 @@ Appended round 50 (append-only). Seat reports under `../.ufo/waves/round-50/fals
   multiple skills to build complex workflows" (`agent-skills.md:15`). The page also has `1024` 1 (the
   description cap, `:148`), and its one `precedence` line (`:64`) sits inside an experimental
   Codex-integration note. The no-tie-break reading of S025 is unchanged.
+- **kama ruling, corrected reasoning** (`RowKamaR50.md`): "they judge no wording" is false. kama's
+  `consumer-registry.md:91-92` ("only consumer with no fallback", "cascade-protected") judges fallback
+  statements in agent files; the registry's own errata mark those rows historical and the files no
+  longer exist. Rows 111-112 concern kengaku's file, not kotoba's. So the claim arm fires on kama, and the
+  row is `adjacent` because kama's own split assigns that wording to kotoba (`cross-lane-scope.md:29`),
+  which is the precedence rule's sibling-split exit. Under a claim-always-wins precedence it would be
+  `contested`; the class does not change the C1 count (both are non-`none`).
+- **§ intro "from each sibling's own committed bytes"** holds for the quotes and the mechanical columns;
+  for chousa, kake and kasegi the `adjacent` class rests on kotoba's side (basis `kotoba`).
+- **tameshi ruling, corrected reasoning** (`ReviewProvinceRows.md` M2): "tameshi measures it read-only"
+  is not supported (its ledger lists kagi's `checklist-run` as unmeasured by sweep), and the earlier
+  boundary text "kotoba owns the SKILL-checklist instrument" had no split behind it. The claim arm fires
+  literally; the row is `adjacent` through tameshi's own split ("every lane's gate remains its own",
+  `PROVINCE.md:14-17`), the precedence rule's sibling-split exit.

@@ -372,9 +372,9 @@ location; durable policy copy-pasted into a dispatch prompt.
 
 Error pattern (round 50, `corpus/knowledge/skill-selection-rules-round50.md`): two
 sibling descriptions that both match, with nothing in either text saying who owns what.
-No client documents a rule between two differently named skills; every documented
-"which one wins" rule is keyed on the name, and the documented remedy is a more
-specific description. Fix: name the neighbour and the split in the description
+No client documents a rule between two differently named skills whose descriptions
+both match; the documented rules decide between copies of one name, component types or
+configuration sources, and the documented remedy is a more specific description. Fix: name the neighbour and the split in the description
 (`trigger.05`), stay under 1,024 characters, and check kotoba's own file with
 `python3 -B verifiers/check_sibling_census.py corpus/knowledge/sibling-overlap-census-round49.md --province PROVINCE.md --skill SKILL.md`.
 

@@ -21,7 +21,7 @@ bytes re-checked by the L1 at 13:36Z with the recheck above.
 | GitHub Copilot (cloud agent) | S027 | "Copilot will decide when to use your skills based on your prompt and the skill's description" (`add-skills.md:233`) | none on this page | — |
 | GitHub Copilot CLI | S028 | — | "**Agents and skills** use first-found-wins precedence." (`cli-plugin-reference.md:415`) | name, load order |
 | Gemini CLI | S029 | — | "If multiple skills share the same name, the version from the higher-precedence location is used." (`skills.md:51-52`) | name, location |
-| Claude Code skills | S022 | "What the skill does and when to use it. Claude uses this to decide when to apply the skill." (`skills.md:389`, round 49) | name clash settled by origin (`skills.md:198`) | name, origin |
+| Claude Code skills | S022 | "What the skill does and when to use it. Claude uses this to decide when to apply the skill." (`skills.md:389`, round 49) | name clash settled by origin (`skills.md:198`); nested same-name skills by the working directory (`skills.md:183-185`) | name, origin, location |
 | Anthropic best practices | S019 | "Your description must provide enough detail for Claude to determine when to select this Skill" (`best-practices.md:215`) | none | — |
 
 ## Findings
@@ -67,3 +67,24 @@ characters. kotoba's own description does this for the 9 census lanes classed `a
 - Pages move: S026's `last-modified` equals the fetch time, so the recheck compares content hashes,
   not dates.
 - The negative in finding 1 covers these eight pages only.
+
+## Falsify-wave corrections (round 50, before the report)
+
+Seat reports under `../../.ufo/waves/round-50/falsify/`. Appended; the text above is unchanged.
+
+- **Finding 3 is too wide** (`ReopenS028.md` F3): Copilot CLI's page also documents type-keyed and
+  source-keyed precedence (skills override commands; MCP servers last-wins; managed policy), and the
+  Copilot SDK page documents a same-name provider skill replacing a file-based one (SDK `skills.md:685`,
+  a page opened by the build seat but not written as a row). Read finding 3 as: every documented rule
+  found here decides between copies of one name, between component types or between configuration
+  sources; none compares two author-written descriptions.
+- **Finding 1's negative rests on reading, not on the ten-term sweep** (`ReopenS026.md` F1,
+  `ReopenS029.md` F2): a tie-break sentence worded without the swept terms leaves every count
+  unchanged. The negative is supported by the seats' full reads of each page plus the wider sweep in
+  `CriticFrontierSweep.md`; the counts are a census observable, not the proof.
+- **S026 inputs:** delegation uses three inputs, the request, the `description` and the current context
+  (`sub-agents.md:839`); "keyed on the name" there means the subagent name.
+- **S029 companion page:** `https://geminicli.com/docs/cli/skills-best-practices.md` (200, 3,257 B,
+  sha256 `612c3b83…`, fetched 2026-10-22T13:31Z and 13:33Z by falsify seats `CriticFrontierSweep.md`
+  and `ReopenS029.md`) carries "Avoid overlap: Ensure your skill descriptions are distinct from one
+  another" (`:16`), an authoring rule, not a runtime rule.

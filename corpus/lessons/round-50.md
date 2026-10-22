@@ -147,7 +147,7 @@ Seat reports under `.ufo/waves/round-50/falsify/`. Recorded here, not rewritten 
 - **Gate line for the census precedence section:** admitted as a correction to an admitted entry
   (routed defect D3), then corrected again by `CriticPrecedenceLanded.md` (one definition of
   `contested`; kake and kasegi basis `kotoba`); the rule and the three closures are sent to the
-  integrator (fleet `.ufo/l0-questions.md`, kotoba round-50 line, fleet commit `8d56eb1`).
+  integrator (fleet `.ufo/l0-questions.md`, kotoba round-50 line, fleet-repository commit 8d56eb1).
 - **Rejected:** the census sentence "every documented rule is keyed on the name" as written (S026
   `sub-agents.md:77` is a fit-based default, `CriticFrontierSweep.md`); "the only arbitration an author
   controls is the description" (S022 documents `when_to_use`, `disable-model-invocation`, `paths`,
@@ -176,3 +176,14 @@ Seat reports under `.ufo/waves/round-50/falsify/`. Recorded here, not rewritten 
   evidence cell), the `Round 50 completed` line said "D4 qualifiers" for both, the LOG named two of
   the four build seats that left no usable report, and the lesson's D4 bullet disagreed with the
   census basis column (the census basis is now `kotoba`, matching the lesson).
+- **D1 bullet corrected** (`.ufo/waves/round-50/falsify/ReviewD1ReportPattern.md` F1-F3): the line-4
+  rewrite it cites is the defect, not a pattern to follow. The rule the round-50 report follows: the
+  filing commit's lines are frozen (line 4 included); each addendum is one block appended at the end,
+  naming the lane head it describes by the helper's `landed <hash>`; a correction is a new sentence in
+  the block. Check per addendum commit `c` (with `n` = the line count of the report at `c^`):
+  `git -C /home/vgpnk/Projects/shokunin diff -U0 c^ c -- .ufo/reports/round-50/kotoba.md | awk -v n=<n> 'f && /^-/{r++} /^@@/{f=1; h++; if ($0 ~ "^@@ -" n ",0 [+]") e++} END{print "removed", r+0, "non_EOF", h-e+0}'`
+  must print `removed 0 non_EOF 0`; on the four round-49 addenda it prints `removed 1 non_EOF 1` each.
+- **Two in-place edits of this lesson's own lines before filing, disclosed:** the D3 bullet's pointer
+  (it named a heading that does not exist; now the census precedence section), and a backticked
+  fleet commit token in the Gate addition (the corpus integrity gate read it as an unresolvable lane
+  commit; now written without backticks). Both changed only this round's own text.

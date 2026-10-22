@@ -80,7 +80,18 @@ rule ignores while counting other kotoba-side lines. The landed rule carries thi
 draft repeated the round-49 overstatement in its application table (I cited the kengaku and tameshi
 base lines as their basis) and had to be corrected to their sibling-side splits.
 
-### F6 — The D4 qualifier is still owed in the census entry, and the counts line is unqualified
+### F6 — A complete reach census confirms no row's claim arm fires
+
+Sweeping all 20 lanes' committed trees at their pins for any reference to another lane's `SKILL.md`
+shows ten lanes reaching others (kengaku, kama, tameshi, tsukuroi, kagi, kake, lore, game-dev-3d,
+game-dev-2d, souji). Every one is a citation of the other lane's scope — a method pointer, a lease
+claim, a citation-format example, a shape-model reference, an endpoint verdict — and eight of the
+lanes do it from a scope surface rather than from a report, plan or transcript. No lane's scope
+surface reaches another's skill file *as craft*. That is the positive evidence for `0 contested` in
+the landed section, and it is why the count holds independently of which formulation of the rule is
+used.
+
+### F7 — The D4 qualifier is still owed in the census entry, and the counts line is unqualified
 
 D4's substance is "classified … from their own bytes … 0 contested" without a precedence rule
 behind it. The landed census section (line 246 onward) states the rule and its counts, but census
@@ -253,19 +264,24 @@ Sibling bytes at the census pins (`git -C <lane>-shokunin show <pin>:<path>`), a
   kotoba; kagi kake; kaidoku none; kake chousa; kama kengaku; kasegi none; kengaku chousa, kasegi,
   kotoba, kumitate; kotodama none; kumitate none; lore chousa; mado none; mori none; revenger none;
   souji all 19 others; tabi none; tameshi tsukuroi; tsukuroi kama, tameshi. Every reach is a
-  citation of a sibling's scope, not a craft claim, and none is in a scope surface in the contested
-  sense: kengaku's are connector reports and a chousa method pointer (`PROVINCE.md`:137 "method stays
-  chousa's"); tameshi's cite tsukuroi's rules (`corpus/knowledge/service-optin-protocol.md`:47);
-  game-dev-3d's kotoba reach is in `reports/round-101/r101-scout-roster.md` (a report, not a scope
-  surface) and its chousa reach is a method pointer (`corpus/QUALITY.md`:5 "Research follows chousa's
-  method"); tsukuroi's kama reach is a shape-model citation of a sibling's distilled form
-  (`SKILL.md`:207) and its tameshi reach is in `plans/` (not a scope surface); souji's 68 reaches
-  all sit in `census/` transcripts and `results/` (wave and run artifacts, not scope surfaces);
-  kagi's kake reach and lore's, kake's, game-dev-2d's chousa reaches are likewise citations.
-- Scope-surface reach check (the same census restricted to the surfaces the rule admits — SKILL.md,
-  PROVINCE.md, corpus/): the only cross-lane SKILL.md reference inside a scope surface is tsukuroi's
-  `SKILL.md`:207 shape-model citation of kama; every other reach above sits in a report, plan,
-  transcript or results file. No lane's scope surface reaches another's skill file *as craft*.
+  citation of a sibling's scope, not a craft claim.
+- The same census restricted to the surfaces the rule admits (SKILL.md, PROVINCE.md, corpus/): eight
+  lanes reach another lane's SKILL.md from a scope surface, and every one of those reaches is a
+  citation or a shape-model reference rather than a claim on it — game-dev-3d `corpus/QUALITY.md`:5
+  "Research follows chousa's method in `chousa-shokunin/SKILL.md`; consult it rather than duplicating
+  it here"; kagi `corpus/README.md`:98 (kake leases the musketeer chrome profile) and
+  `corpus/knowledge/adjacency-scope.md`:36, :276, :304 (citation-format examples); kake
+  `corpus/SOURCES.md`:3; kama `corpus/knowledge/consumer-registry.md`:111 (the endpoint verdict ruled
+  above); kengaku `PROVINCE.md`:137 "method stays chousa's", `corpus/QUALITY.md`:8,
+  `corpus/SOURCES.md`:17 and the two connector reports; lore `PROVINCE.md`:27 "chousa - research
+  method, not lore canon"; tameshi `corpus/knowledge/service-optin-protocol.md`:47, :158, :199, :247
+  (citing tsukuroi's rules); tsukuroi `SKILL.md`:207 ("Shape model: `kama-shokunin/SKILL.md`"). The
+  remaining reaches sit in reports, plans, `census/` transcripts and `results/` (wave and run
+  artifacts, not scope surfaces): game-dev-3d's kotoba reach is at
+  `reports/round-101/r101-scout-roster.md`, tsukuroi's tameshi reach at `plans/`, game-dev-2d's
+  chousa reach at `reports/round-105/r105-R105Connector.md`, and all 68 of souji's reaches under
+  `census/` and `results/`. No lane's scope surface reaches another's skill file *as craft*, so no
+  row's claim arm fires.
 - Guard checks, `python3 -B` (all exit 0): landed guard on landed files -> "rows 20 verified 20",
   "province rows 20 matched 20"; with `--skill SKILL.md` -> "skill description names 9 of 9 non-none
   lanes", "skill description length 1008 of 1024"; my draft census + my draft PROVINCE rows under the
