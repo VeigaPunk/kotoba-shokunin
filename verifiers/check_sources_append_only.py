@@ -68,7 +68,7 @@ def compare(before, after):
         b = before[rid]
         a = after.get(rid)
         if a is None:
-            breaches.append((rid, "row", "removed", "", ""))
+            breaches.append((rid, "row", "", ""))  # same 4-tuple shape as a cell change
             continue
         for col in b:
             if col == "id" or b[col] == a.get(col, ""):
@@ -146,11 +146,13 @@ def self_test():
     failures, assertions = [], 0
     for name, before, after, want_b, want_n in arms:
         b, n = compare(parse(before), parse(after))
-        assertions += 2
+        assertions += 3
         if len(b) != want_b:
             failures.append("%s: %d breach(es), wanted %d" % (name, len(b), want_b))
         if len(n) != want_n:
             failures.append("%s: %d log note(s), wanted %d" % (name, len(n), want_n))
+        if any(len(r) != 4 for r in b + n):
+            failures.append("%s: a record is not (id, column, old, new); main() cannot print it" % name)
     for f in failures:
         print("FAIL " + f)
     print("self-test: %d failure(s) over %d assertions" % (len(failures), assertions))
@@ -167,7 +169,11 @@ def main():
     a = ap.parse_args()
     if a.self_test:
         return self_test()
-    breaches, notes, scanned, ncommits = scan(a.repo, a.rev, a.base)
+    try:
+        breaches, notes, scanned, ncommits = scan(a.repo, a.rev, a.base)
+    except (UnicodeDecodeError, OSError) as e:
+        sys.stderr.write("could-not-evaluate: %s\n" % e)
+        return 2
     if not a.quiet_log:
         for c, rid, col, old, new in notes:
             o, n = delta(old, new, 24)

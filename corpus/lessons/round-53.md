@@ -81,3 +81,13 @@ Carried with reasons (unchanged this round): the omp MCP `instructions` question
 not this round's area), the C1 limits found by the round-52 falsify wave (member-call loaders, a new callee with
 only an undeclared pair, decoy stand-ins), R5 v2 configured-root oracle, R1 no-name fallback, the D7 items, D2
 F1–F5 (`corpus/lessons/round-52.md:114-115`).
+
+## Round 54 addendum (append-only; routed defect 1 of `round-53-verifier-spotcheck.md`)
+
+- Drift sentinel: round 53's C1 was the third consecutive freshness claim on the loader-rule surface
+  `verifiers/verify_surfaces.py` (rounds 51, 52, 53), and C2 worked the always-on half of the Frontier row
+  "Executed checklist coverage" — neither a different frontier area, as the round-52 closure required.
+- Tie-break reversal: rounds 51 and 52 read the freshness/adjacency tie at 8 as pointing to freshness; round 53
+  kept that reading without a note, although the drift sentinel would have pointed to adjacency. Round 54 records
+  this here and works depth (the lowest owned axis) on the Frontier row "Per-render consumption" instead
+  (`plans/round-54.md`).
