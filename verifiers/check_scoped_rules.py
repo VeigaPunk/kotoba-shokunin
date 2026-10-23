@@ -1,5 +1,64 @@
 #!/usr/bin/env python3
-r"""check_scoped_rules.py -- frozen counter for the round-60 C1 claim.
+r"""check_scoped_rules.py -- frozen counter for the round-61 C1 claim (v3).
+
+ROUND 61 (v3).  Four arms replace or strengthen a round-60 conjunct; every
+other v2 rule below is kept unchanged.  The frozen arm spec is
+`plans/round-61.md` section C1 with errata E2, E2b, E2c and E2d.
+
+  A1 semantic scope-key.  The row's Scope key K must be in its client's
+  canonical key set, and K must bind a PATH-LIKE value on the cited line (the
+  first value token contains both `*` and `/`, so a markdown bold marker `**`
+  is not a path).  The canonical set is READ FROM THE MEASURED REVISION's
+  SOURCES rows S112-S115 -- never from a literal in this file -- each of which
+  declares its client's key in the pinned form `scope-key[<client>]=<key>`.
+  Consequence (erratum E2d, the predicate's base clause): at a revision where
+  those four rows do not exist the set is empty, no row can satisfy A1 and the
+  count is 0.  Per client: Claude Code `paths`, VS Code `applyTo`, Copilot CLI
+  `applyTo`, Cursor `globs`; no cross-client union.
+
+  A2 semantic action.  The Action cell must be supported by the committed
+  snapshot, not by vocabulary overlap alone: (a) every content word of the
+  cell must occur on the snapshot page; (b) at least ceil(2|W|/3) of the
+  cell's content words must be supported at the cited line; (c) the cited line
+  must itself be supported by the cell -- at least ceil(|L|/3) of the line's
+  content words must occur in the cell -- so a dense line that merely shares
+  domain vocabulary is not a citation.  Word support is the word itself or a
+  shared four-character prefix (`scope`~`scoped`, `instruction`~`instructions`).
+
+  A3 canonical URL (erratum E2: byte identity amended to url_key identity
+  before any data).  The five erratum-E1 sub-rules are kept -- prefix
+  anchoring, target-is-a-base-row, target-URL url_key identity, the base row
+  must not already carry K, and the live fetch accepts only the row's own
+  re-opened key -- and a re-open row's URL must be url_key-identical to its
+  base row's URL.  E2b adds (b): a FRESH row whose URL is a locale-segment or
+  @version/enterprise rendering of a URL the measured table already holds for
+  the same host is a rendering alias and is rejected.
+
+  A4 snapshot provenance, four conjuncts (erratum E2c): (i) the row's recorded
+  sha256 equals the committed snapshot bytes; (ii) the located quote occurs in
+  them (whitespace-normalised, entity-unescaped, case preserved -- the S106
+  `&#124;` escape and the S107 whitespace shaping are documented, so "byte
+  exact" is reserved and not claimed here); (iii) the earliest commit that
+  introduced the snapshot's bytes, walked per blob with
+  `git log <rev> --reverse --find-object=<blob>` and read on the EARLIER of
+  its author and committer stamps as a UTC instant, is no older than the row's
+  recorded opened date -- CONSISTENCY ONLY, not acquisition authentication
+  (backdated commit objects pass, and the r60 W1 bytes were never committed);
+  and (iv) the row's full 64-hex snapshot sha256 must not already be recorded
+  in the base-revision SOURCES table, unless the teaches cell declares
+  byte-identity with `supersedes S###` (the S110 precedent).  (iv) rejects the
+  recycled-byte world W1.
+
+THE FROZEN PREDICATE (verbatim, two clauses, pinned in RECEIPT):
+  `python3 -B verifiers/check_scoped_rules.py --self-test` prints
+  `worlds reject 7 of 7; eligible rows pass 4 of 4` and exits 0; and
+  `python3 -B verifiers/check_scoped_rules.py --rev <tip> --fetch` exits 0
+  while the same command at base
+  `f3246d1493b60ea1c0d947a19c39f9e08e92f326` exits 1 (no S112-S115 rows there,
+  so A1's canonical set is empty and found = 0).  The self-test line is
+  COMPUTED from seven constructed worlds and four constructed eligible rows,
+  never printed unconditionally.  The round-60 v2 text below follows; every
+  rule it states still holds unless A1-A4 above replaces it.
 
 Derived from `check_hook_files.py` (round 59, sha256 `f695d59e...`): the HOSTS
 map, MARKERS, the SOURCES row parsing, the URL normalisation, the tracker and
@@ -228,11 +287,14 @@ from __future__ import annotations
 
 import argparse
 import contextlib
+import datetime
 import hashlib
 import html
 import io
 import json
+import os
 import re
+import shutil
 import string
 import subprocess
 import sys
@@ -256,7 +318,36 @@ MAX_BYTES = 5 * 1024 * 1024
 FETCH_TIMEOUT = 30
 FETCH_ATTEMPTS = 3
 LANE_FALLBACK = Path("/home/vgpnk/Projects/shokunin/kotoba-shokunin")
-RECEIPT = "C1 predicate: --fetch exit 0 (F>=TARGET)"
+PREDICATE_LINE = "worlds reject 7 of 7; eligible rows pass 4 of 4"
+BASE61 = "f3246d1493b60ea1c0d947a19c39f9e08e92f326"
+RECEIPT = ("C1 predicate: `" + PREDICATE_LINE + "` from --self-test (exit 0); "
+           "`--rev <tip> --fetch` exits 0 while the same command at base "
+           + BASE61 + " exits 1")
+# A1: the canonical scope-key set is read from the committed SOURCES rows of
+# these four ids AT THE MEASURED REVISION (erratum E2d), never from a key
+# literal in this file.  Each row declares its client's key(s) in the pinned
+# marker form `scope-key[<client>]=<key>`; at the round-61 base those rows do
+# not exist, the set is empty and no row can satisfy A1 -- the base clause.
+KEY_ROWS = ("S112", "S113", "S114", "S115")
+KEY_DECL_RE = re.compile(r"scope-key\[([^\]`|]+)\]=([A-Za-z][A-Za-z0-9_-]*)")
+SUPERSEDES_RE = re.compile(r"^supersedes\s+(S\d{3,})\b")
+# A3(b): a path segment that is a language tag renders another locale of the
+# same article; a segment carrying `@` (or starting `enterprise`) is an
+# @version/enterprise rendering.  Deterministic string surgery, no semantics.
+LOCALE_SEGMENTS = frozenset((
+    "am", "ar", "az", "be", "bg", "bn", "bs", "ca", "cs", "cy", "da", "de",
+    "el", "en", "eo", "es", "et", "eu", "fa", "fi", "fr", "ga", "gl", "he",
+    "hi", "hr", "hu", "hy", "id", "is", "it", "ja", "ka", "kk", "km", "kn",
+    "ko", "ky", "lo", "lt", "lv", "mk", "ml", "mn", "mr", "ms", "my", "ne",
+    "nl", "no", "pa", "pl", "pt", "ro", "ru", "si", "sk", "sl", "sq", "sr",
+    "sv", "sw", "ta", "te", "th", "tr", "uk", "ur", "uz", "vi", "yo", "zh",
+    "zu"))
+# A2: forward support (cell words at the cited line) and reverse support (the
+# cited line's words inside the cell), as exact fractions, and the shared
+# prefix that makes two words the same claim word.
+FWD_NUM, FWD_DEN = 2, 3
+REV_NUM, REV_DEN = 1, 3
+SUPPORT_PREFIX = 4
 CLIENTS = ("Claude Code", "Codex", "VS Code", "Copilot CLI", "Gemini CLI",
            "Cursor", "opencode")
 HOSTS = {
@@ -886,42 +977,247 @@ def content_words(text: str) -> set[str]:
     return {w for w in CONTENT_RE.findall(t.lower()) if w not in STOPWORDS}
 
 
-def action_need(n_content: int) -> int:
-    """The Action conjunct's threshold: max(2, ceil(|W| / 2))."""
-    return max(MIN_SHARED, (n_content + 1) // 2)
+def fwd_need(n_content: int) -> int:
+    """A2(b): the forward-support threshold, ceil(2|W|/3), never below 2."""
+    return max(MIN_SHARED, (FWD_NUM * n_content + FWD_DEN - 1) // FWD_DEN)
 
 
-def action_conjunct(lines: list[str], cell: str, L: int | None) -> list[str]:
-    """Every reason the Action cell and its cited snapshot line disagree.
+def rev_need(n_line: int) -> int:
+    """A2(c): the reverse-support threshold, ceil(|L|/3), never below 1."""
+    return max(1, (REV_NUM * n_line + REV_DEN - 1) // REV_DEN)
 
-    A1: |W| >= 3 distinct content words, and at least max(2, ceil(|W|/2)) of W
-    on the cited line."""
+
+def page_words(text: str) -> set[str]:
+    """A2(a): the page's content words, robust to markdown code fences (which
+    make backtick pairing in `content_words` swallow whole regions) and to
+    citation text: lowercase `[a-z]{4,}` runs minus STOPWORDS over the WHOLE
+    page, backticked spans included."""
+    t = CITE_RE.sub(" ", text)
+    return {w for w in CONTENT_RE.findall(t.lower()) if w not in STOPWORDS}
+
+
+def supported(word: str, words: set[str]) -> bool:
+    """A2: word support -- the same word, or a word sharing its first four
+    characters (`scope`~`scoped`, `instruction`~`instructions`)."""
+    p = word[:SUPPORT_PREFIX]
+    return any(w == word or w.startswith(p) for w in words)
+
+
+def covered(src: set[str], dst: set[str]) -> int:
+    return sum(1 for w in src if supported(w, dst))
+
+
+def action_conjunct(lines: list[str], cell: str, L: int | None,
+                    page_text: str | None = None) -> list[str]:
+    """A2: every reason the Action cell is not supported by the committed
+    snapshot.  The v2 half-overlap threshold is tightened to 2/3 and two
+    support conjuncts are added, so an invented cell built from the page's own
+    domain vocabulary cannot be rescued by citing a dense line."""
     if L is None or not cell:
         return []
     if L < 1 or L > len(lines):
-        return ["snapshot has no line %d for the action citation" % L]
+        return ["A2: snapshot has no line %d for the action citation" % L]
     w = content_words(cell)
     if len(w) < MIN_CONTENT:
-        return ["action cell holds %d distinct content word(s) (need >= %d)"
+        return ["A2: action cell holds %d distinct content word(s) (need >= %d)"
                 % (len(w), MIN_CONTENT)]
-    need = action_need(len(w))
-    shared = w & content_words(lines[L - 1])
-    if len(shared) < need:
-        return ["action cell shares %d of its %d content word(s) with line %d "
-                "(need >= %d)" % (len(shared), len(w), L, need)]
+    line_w = content_words(lines[L - 1])
+    need = fwd_need(len(w))
+    shared = covered(w, line_w)
+    if shared < need:
+        return ["A2: action cell supports %d of its %d content word(s) at line "
+                "%d (need >= %d)" % (shared, len(w), L, need)]
+    page = page_words(page_text if page_text is not None else "\n".join(lines))
+    missing = sorted(x for x in w if not supported(x, page))
+    if missing:
+        return ["A2: action word(s) %s do not occur on the committed snapshot"
+                % ", ".join(missing)]
+    back = covered(line_w, w)
+    if back < rev_need(len(line_w)):
+        return ["A2: the cited line's %d content word(s) are supported %d time(s) "
+                "by the action cell at line %d (need >= %d): the line does not "
+                "state the claim" % (len(line_w), back, L, rev_need(len(line_w)))]
+    return []
+
+
+def path_value(text: str) -> bool:
+    """A1: is the first value token a PATH-LIKE glob (both `*` and `/`)?
+
+    The v2 `pattern_value` accepts the markdown bold marker `**`
+    (`sessions:**`, `order: **Team`), which the r60 ExecKeyForms probe showed
+    passing A1 on prose lines; a path-like value must carry a separator."""
+    tok = first_value_token(text)
+    return "*" in tok and "/" in tok and PATTERN_TOKEN_RE.match(tok) is not None
+
+
+def path_site(lines: list[str], L: int, key: str | None) -> bool:
+    """A1: line L holds `key` in key form whose first value token is path-like."""
+    if not key or L < 1 or L > len(lines):
+        return False
+    line = lines[L - 1]
+    for _i, j in key_occurrences(line, key):
+        m = KEY_SUFFIX_RE.match(line, j)
+        if m is None:
+            continue
+        v = value_after(lines, L, line[m.end():])
+        if v is not None and path_value(v):
+            return True
+    return False
+
+
+def canonical_scope_keys(sources_text: str) -> dict[str, frozenset[str]]:
+    """A1: the per-client canonical scope-key set, read from the committed rows
+    S112-S115 of the measured revision (erratum E2d).
+
+    A row that is absent, or declares nothing in the pinned
+    `scope-key[<client>]=<key>` form, contributes nothing; a client with no
+    declaration has no canonical key and no row of that client can be backed.
+    Absent rows therefore make the whole set empty -- the base clause."""
+    table = sources_table(sources_text)
+    got: dict[str, set[str]] = {}
+    for sid in KEY_ROWS:
+        row = table.get(sid)
+        if not row:
+            continue
+        for m in KEY_DECL_RE.finditer(" | ".join(row)):
+            client = m.group(1).strip()
+            if client in CLIENTS:
+                got.setdefault(client, set()).add(m.group(2))
+    return {c: frozenset(k) for c, k in got.items()}
+
+
+def a1_conjunct(client: str, key: str | None,
+                keys: dict[str, frozenset[str]]) -> list[str]:
+    """A1: the row's Scope key is in the client's canonical key set."""
+    allowed = keys.get(client) or frozenset()
+    if not allowed:
+        return ["A1: no canonical scope key is declared for %s (rows %s absent "
+                "or undecorated at the measured revision)"
+                % (client, "/".join(KEY_ROWS))]
+    if key and key not in allowed:
+        return ["A1: scope key %r is not a canonical key for %s (canonical: %s)"
+                % (key, client, ", ".join(sorted(allowed)))]
     return []
 
 
 def scope_conjunct(lines: list[str], key: str | None, L: int | None) -> list[str]:
-    """Every reason the cited snapshot line is not a key site for the key."""
+    """A1: every reason the cited snapshot line is not a path-like key site."""
     if L is None or not key:
         return []
     if L < 1 or L > len(lines):
-        return ["snapshot has no line %d for scope key %r" % (L, key)]
-    if not key_site(lines, L, key):
-        return ["scope key %r is not in key form with a path pattern at line %d"
-                % (key, L)]
+        return ["A1: snapshot has no line %d for scope key %r" % (L, key)]
+    if not path_site(lines, L, key):
+        return ["A1: scope key %r is not in key form with a path-like glob at "
+                "line %d" % (key, L)]
     return []
+
+
+# ------------------------------------------------- A3(b): rendering aliases
+
+def render_form(url: str) -> tuple[str, str, bool]:
+    """The (host, path, stripped) form of a URL: host lower-cased, every path
+    segment that is a language tag or carries `@`/`enterprise` removed, the
+    rest lower-cased.  `stripped` says whether anything was removed."""
+    u = urllib.parse.urlsplit(url)
+    host = (u.hostname or "").lower()
+    kept, stripped = [], False
+    for seg in (u.path or "").split("/"):
+        if not seg:
+            continue
+        low = seg.lower()
+        if low in LOCALE_SEGMENTS or "@" in seg or low.startswith("enterprise"):
+            stripped = True
+            continue
+        kept.append(low)
+    return host, "/".join(kept), stripped
+
+
+def alias_why(url: str, others: list[tuple[str, str]]) -> list[str]:
+    """A3(b): a fresh row whose URL is a locale/`@version`/enterprise rendering
+    of a URL the measured table already holds for the same host.
+
+    Only a divergence that a rendering explains is an alias: both URLs must
+    reduce to the same (host, path) form, at least one must have had a segment
+    stripped, and the two URLs must not be identical (an identical URL is the
+    ordinary re-open case, handled by A3(a))."""
+    mine = render_form(url)
+    if not mine[2]:
+        return []
+    for sid, other in others:
+        if other == url:
+            continue
+        if render_form(other)[:2] == mine[:2]:
+            return ["A3: URL %r is a rendering alias of the committed row %s "
+                    "URL %r" % (url, sid, other)]
+    return []
+
+
+# ------------------------------------------------------- A4: provenance
+
+def opened_instant(opened: str) -> datetime.datetime:
+    """The row's opened date as the UTC instant of its midnight."""
+    return datetime.datetime.fromisoformat(opened + "T00:00:00+00:00")
+
+
+def commit_instant(stamp: str) -> datetime.datetime:
+    """A git date (`%aI` / `%cI`) as a UTC instant; offsets are honoured."""
+    return datetime.datetime.fromisoformat(stamp.strip()).astimezone(
+        datetime.timezone.utc)
+
+
+def intro_why(sid: str, opened: str, intro: tuple[str, str] | None) -> list[str]:
+    """A4(iii), consistency only: the commit that introduced the snapshot's
+    bytes is no older than the row's opened date.
+
+    The EARLIER of the author and committer stamps decides, so a commit whose
+    two fields straddle the boundary fails.  This authenticates internal
+    provenance consistency only; a backdated commit object passes (declared)."""
+    if not intro:
+        return []
+    author, committer = intro
+    earliest = min(commit_instant(author), commit_instant(committer))
+    if earliest < opened_instant(opened):
+        return ["A4: snapshot %s bytes were introduced at %s, older than the "
+                "row's opened date %s"
+                % (snapshot_path(sid), earliest.isoformat(), opened)]
+    return []
+
+
+def alias_sha_why(sha: str, base_shas: dict[str, str],
+                  teaches: str | None) -> list[str]:
+    """A4(iv): the row's full 64-hex snapshot sha is already recorded in the
+    base-revision SOURCES table, unless the teaches cell declares byte-identity
+    with `supersedes S###` (the S110 precedent)."""
+    sid = base_shas.get(sha)
+    if not sid:
+        return []
+    if SUPERSEDES_RE.match(teaches or ""):
+        return []
+    return ["A4: snapshot sha256 %s... is already recorded by base row %s and "
+            "the teaches cell declares no supersedes" % (sha[:12], sid)]
+
+
+def snapshot_intro(lane: Path, rev: str, sid: str) -> tuple[str, str] | None:
+    """A4(iii): the (author, committer) stamps of the earliest commit in the
+    history of `rev` that introduced the snapshot's bytes anywhere.
+
+    The blob is resolved at `rev` and walked with `--find-object`, so a copy
+    introduced earlier under another path is seen; `--all` is never used, so an
+    unrelated branch cannot reject the measured revision."""
+    path = snapshot_path(sid)
+    r = git(lane, ["rev-parse", "--verify", "--quiet", "%s:%s" % (rev, path)])
+    if r.returncode != 0 or not r.stdout.strip():
+        return None
+    blob = r.stdout.decode().strip()
+    r = git(lane, ["log", rev, "--reverse", "--format=%aI%x09%cI",
+                   "--find-object=%s" % blob])
+    if r.returncode != 0:
+        return None
+    for line in r.stdout.decode().splitlines():
+        author, sep, committer = line.partition("\t")
+        if sep and author.strip() and committer.strip():
+            return author.strip(), committer.strip()
+    return None
 
 
 # ------------------------------------------------------------------- the judge
@@ -999,7 +1295,10 @@ def entry_row_verdict(er: list[str], client: str, token: str | None,
                       base_urls: set[str], base_rows: dict[str, list[str]],
                       base_lines: dict[str, str], gate_raw: str, gate_plain: str,
                       scope_cell: str, action_cell: str,
-                      snapshot_of=None) -> tuple[list[str], dict]:
+                      keys: dict[str, frozenset[str]] | None = None,
+                      all_urls: list[tuple[str, str]] | None = None,
+                      base_shas: dict[str, str] | None = None,
+                      snapshot_of=None, intro_of=None) -> tuple[list[str], dict]:
     """Judge one entry row.  Returns (why, picked) where `picked` carries the
     row's sid, url, quote, scope key and key line.
 
@@ -1008,6 +1307,9 @@ def entry_row_verdict(er: list[str], client: str, token: str | None,
     why: list[str] = []
     sid = url = quote = key = None
     key_line: int | None = None
+    keys = keys or {}
+    all_urls = all_urls or []
+    base_shas = base_shas or {}
     if token and not rule_cell_matches(er[1], token):
         why.append("entry Rule files cell %r is not the SKILL.md token %r"
                    % (er[1], token))
@@ -1031,6 +1333,7 @@ def entry_row_verdict(er: list[str], client: str, token: str | None,
         why.append("round-60 Gate does not record this quote")
     key, key_why = scope_key(scope_cell)
     why.extend(key_why)
+    why.extend(a1_conjunct(client, key, keys))
     if sid:
         if sid in at_base:
             why.append("%s is already a SOURCES row at base" % sid)
@@ -1048,15 +1351,22 @@ def entry_row_verdict(er: list[str], client: str, token: str | None,
                 why.append("%s opened %r" % (sid, s[8]))
             urls = urls_of(s[1])
             url = urls[0] if urls else None
+            teaches = s[6] if len(s) > 6 else ""
+            reopens = REOPEN_RE.match(teaches)
             if not url:
                 why.append("%s source cell holds no URL" % sid)
             else:
-                if url_key(url) in base_urls:
+                # A3(a) / erratum E1: a base-keyed URL needs a valid re-open,
+                # and any `re-opens S###` declaration must be url_key-identical
+                # to the base row it names.
+                if url_key(url) in base_urls or reopens:
                     reopen = reopen_why(s, url, key, base_rows, base_lines)
-                    if reopen:
+                    if url_key(url) in base_urls and reopen:
                         why.append("%s URL %r is already a base SOURCES URL"
                                    % (sid, url))
-                        why.extend(reopen)
+                    why.extend(reopen)
+                if not reopens:
+                    why.extend(alias_why(url, all_urls))
                 if not host_ok(url, HOSTS[client]):
                     why.append("%s URL %r is not on a pinned host" % (sid, url))
                 if url_is_tracker(url):
@@ -1069,6 +1379,7 @@ def entry_row_verdict(er: list[str], client: str, token: str | None,
             if not sha:
                 why.append("%s prints no full 64-hex sha256" % sid)
             else:
+                why.extend(alias_sha_why(sha, base_shas, teaches))
                 data = snapshot_of(sid) if snapshot_of else None
                 if data is None:
                     why.append("snapshot %s is missing at the revision"
@@ -1092,14 +1403,17 @@ def entry_row_verdict(er: list[str], client: str, token: str | None,
                         action_line, cite_why = citation_why(action_cell, sid,
                                                              "SKILL.md action cell")
                         why.extend(cite_why)
-                        for reason in action_conjunct(lines, action_cell, action_line):
+                        for reason in action_conjunct(lines, action_cell,
+                                                      action_line, page):
                             why.append("snapshot %s: %s" % (snapshot_path(sid), reason))
+                        why.extend(intro_why(sid, s[8], intro_of(sid)
+                                             if intro_of else None))
     return why, {"row": sid, "url": url, "quote": quote, "key": key,
                  "key_line": key_line}
 
 
 def judge(skill: str, entry: str, sources: str, lesson: str,
-          base_sources: str, snapshot_of=None) -> list[dict]:
+          base_sources: str, snapshot_of=None, intro_of=None) -> list[dict]:
     srows = skill_rows(skill)
     erows = entry_rows(entry)
     table = sources_table(sources)
@@ -1107,6 +1421,17 @@ def judge(skill: str, entry: str, sources: str, lesson: str,
     base_urls = base_url_keys(base_sources)
     base_rows = sources_table(base_sources)
     base_lines = base_line_map(base_sources)
+    keys = canonical_scope_keys(sources)
+    base_shas: dict[str, str] = {}
+    for bsid, brow in base_rows.items():
+        bsha = row_sha(brow)
+        if bsha:
+            base_shas.setdefault(bsha, bsid)
+    all_urls: list[tuple[str, str]] = []
+    for msid, mrow in table.items():
+        murls = urls_of(mrow[1]) if len(mrow) > 1 else []
+        if murls:
+            all_urls.append((msid, murls[0]))
     gate = gate_section(lesson)
     gate_raw = ws(gate)
     gate_plain = ws(gate.replace("`", ""))
@@ -1143,7 +1468,7 @@ def judge(skill: str, entry: str, sources: str, lesson: str,
             row_why, got = entry_row_verdict(
                 er, client, token, table, at_base, base_urls, base_rows,
                 base_lines, gate_raw, gate_plain, scope_cell, action_cell,
-                snapshot_of)
+                keys, all_urls, base_shas, snapshot_of, intro_of)
             if not row_why:
                 picked = got
                 break
@@ -1257,8 +1582,10 @@ def _outcome(fn) -> tuple[str, object]:
         return type(e).__name__, None
 
 
-def _self_git(*args: str, data: bytes | None = None) -> subprocess.CompletedProcess:
-    r = subprocess.run(["git"] + list(args), input=data, capture_output=True)
+def _self_git(*args: str, data: bytes | None = None,
+              env: dict | None = None) -> subprocess.CompletedProcess:
+    r = subprocess.run(["git"] + list(args), input=data, capture_output=True,
+                       env=env)
     if r.returncode != 0:
         raise EnvError("git %s failed: %s"
                        % (args[0], r.stderr.decode(errors="replace").strip()))
@@ -1268,9 +1595,18 @@ def _self_git(*args: str, data: bytes | None = None) -> subprocess.CompletedProc
 # ----------------------------------------------------------------- self-test
 
 def self_test() -> int:
-    global BASE, TARGET, lane_dir, run_curl, MAX_BYTES
+    """The round-61 C1 self-test.
+
+    v2's unit checks that still hold are kept.  The four arms get must-fail
+    fixtures; the five erratum-E1 sub-rules are ported; and the seven worlds
+    W1-W7, the do-nothing world W0 and the four eligible rows are built as
+    real git repositories here and scored through the SAME judge/fetch path the
+    CLI uses.  The predicate line is computed from those verdicts, never
+    printed unconditionally."""
+    global BASE, TARGET, lane_dir, run_curl
     assertions = 0
     failures = 0
+    temps: list[str] = []
 
     def check(name: str, actual: object, expected: object) -> None:
         nonlocal assertions, failures
@@ -1279,1213 +1615,863 @@ def self_test() -> int:
             failures += 1
             print("FAIL %s: got %r, expected %r" % (name, actual, expected))
 
-    # -- the revision guard ----------------------------------------------
-    check("a full 40-hex revision is accepted", rev_ok(BASE), True)
-    check("an uppercase 40-hex revision is accepted", rev_ok(BASE.upper()), True)
-    check("a branch name is not a revision", rev_ok("master"), False)
-    check("a 39-hex revision is not", rev_ok("4" * 39), False)
-    check("a 41-hex revision is not", rev_ok("4" * 41), False)
-    check("a non-hex character makes it not", rev_ok("g" * 40), False)
-    check("no revision is not", rev_ok(None), False)
-    out, err = io.StringIO(), io.StringIO()
-    with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
-        code = main(["--rev", "not-a-hash"])
-    check("a non-40-hex --rev exits 2", code, 2)
-    check("the usage failure is named, not a traceback",
-          ("Traceback" in err.getvalue(), "40-hex" in err.getvalue()), (False, True))
+    def named(reasons: list[str], needle: str) -> bool:
+        return any(needle in r for r in reasons)
 
-    # -- token well-formedness: every conjunct, red and green ------------
-    check("green: .claude/rules/ is a directory token",
-          token_well_formed(".claude/rules/"), True)
-    check("green: .claude/rules/*.md is a glob token",
-          token_well_formed(".claude/rules/*.md"), True)
-    check("green: .cursor/rules/*.mdc",
-          token_well_formed(".cursor/rules/*.mdc"), True)
-    check("green: .github/instructions/",
-          token_well_formed(".github/instructions/"), True)
-    check("green: .github/instructions/**/*.instructions.md (census token)",
-          token_well_formed(".github/instructions/**/*.instructions.md"), True)
-    check("green: .gemini/rules/",
-          token_well_formed(".gemini/rules/"), True)
-    check("green: a leading ~/ is stripped",
-          token_well_formed("~/.claude/rules/"), True)
-    check("green: a leading ./ is stripped",
-          token_well_formed("./.github/instructions/"), True)
-    check("green: a dot-led non-final segment is fine (E7)",
-          token_well_formed(".github/.instructions/config.md"), True)
-    check("green: an 'instructions' segment is allowed",
-          token_well_formed(".claude/instructions/rules.md"), True)
-    check("green: a capitalised allowed word is not a banned word",
-          token_well_formed(".claude/Rules.json"), True)
-    check("red segment word: .claude/HOOKS.json (the ban is case-insensitive)",
-          token_well_formed(".claude/HOOKS.json"), False)
-    check("'' is not well-formed", token_well_formed(""), False)
-    check("None is not well-formed", token_well_formed(None), False)
-    check("red TOKEN_RE: a space",
-          token_well_formed(".claude/rules files"), False)
-    check("red TOKEN_RE: an empty middle segment",
-          token_well_formed(".claude//rules.md"), False)
-    check("red TOKEN_RE: a leading slash",
-          token_well_formed("/.claude/rules.md"), False)
-    check("red segments: rules is one segment",
-          token_well_formed("rules"), False)
-    check("red segments: .claude is one segment",
-          token_well_formed(".claude"), False)
-    check("red first segment: rules.md does not start with a dot",
-          token_well_formed("rules.md"), False)
-    check("red first segment: claude/rules/ does not start with a dot",
-          token_well_formed("claude/rules/"), False)
-    check("red segment word: .claude/hooks/rules.md (a hook word)",
-          token_well_formed(".claude/hooks/rules.md"), False)
-    check("red segment word: .claude/hooks.json (the FINAL segment counts)",
-          token_well_formed(".claude/hooks.json"), False)
-    check("red segment word: .claude/skills/rules.md",
-          token_well_formed(".claude/skills/rules.md"), False)
-    check("red segment word: .claude/agents/rules.md",
-          token_well_formed(".claude/agents/rules.md"), False)
-    check("red segment word: .claude/commands/rules.md",
-          token_well_formed(".claude/commands/rules.md"), False)
-    check("red segment word: .claude/prompts/rules.md",
-          token_well_formed(".claude/prompts/rules.md"), False)
-    check("red segment word: .claude-plugin/rules.md (a plugin segment)",
-          token_well_formed(".claude-plugin/rules.md"), False)
-    check("red segment word: .vscode/extensions/rules.md",
-          token_well_formed(".vscode/extensions/rules.md"), False)
-    check("red segment word: an agent-tools segment is the word agent",
-          token_well_formed(".claude/agent-tools/rules.md"), False)
-    check("red E7: .claude/1.0/rules.md (a version segment)",
-          token_well_formed(".claude/1.0/rules.md"), False)
-    check("red E7: .claude.local/rules.md (the first segment too)",
-          token_well_formed(".claude.local/rules.md"), False)
-    check("red E7: ~/.claude/1.0.0/rules.md",
-          token_well_formed("~/.claude/1.0.0/rules.md"), False)
-
-    # -- normalise: case preserved ---------------------------------------
-    check("normalise strips one leading ~/",
-          normalise("~/.claude/rules/"), ".claude/rules")
-    check("normalise strips one leading ./",
-          normalise("./.opencode/rules/"), ".opencode/rules")
-    check("normalise strips one trailing /",
-          normalise(".gemini/rules/"), ".gemini/rules")
-    check("normalise strips ONE trailing slash only",
-          normalise(".opencode/rules//"), ".opencode/rules/")
-    check("normalise PRESERVES case",
-          normalise(".Claude/Rules.md"), ".Claude/Rules.md")
-    check("normalise of nothing is empty", normalise(None), "")
-
-    # -- the foreign-name guard ------------------------------------------
-    check("a .claude token is foreign to VS Code",
-          foreign_marker("VS Code", ".claude/rules/"), "Claude Code")
-    check("a .claude token is not foreign to Claude Code",
-          foreign_marker("Claude Code", ".claude/rules/"), None)
-    check("an .opencode token is not foreign to opencode",
-          foreign_marker("opencode", ".opencode/rules/"), None)
-    check("a gemini token is not foreign to Gemini CLI",
-          foreign_marker("Gemini CLI", ".gemini/rules/"), None)
-    check("the marker match is case-insensitive",
-          foreign_marker("VS Code", ".Claude/Rules.md"), "Claude Code")
-    check("a .cursor token is foreign to Gemini CLI",
-          foreign_marker("Gemini CLI", ".cursor/rules/"), "Cursor")
-    check("a marker-neutral token is nobody's foreign token",
-          foreign_marker("Copilot CLI", ".github/instructions/"), None)
-
-    # -- the quote: word bounds, token span, the outside rule word --------
-    check("E6: quote word count: six words pass",
-          MIN_WORDS <= len("one two three four five six".split()) <= MAX_WORDS, True)
-    check("E6: quote word count: five words fail",
-          MIN_WORDS <= len("one two three four five".split()) <= MAX_WORDS, False)
-    check("quote word count: 25 words pass",
-          len(("w " * 24 + "w").split()) <= MAX_WORDS, True)
-    check("quote word count: 26 words fail",
-          len(("w " * 25 + "w").split()) <= MAX_WORDS, False)
-    check("strip straight quotes", strip_quotes('"hello world"'), "hello world")
-    check("strip curly quotes", strip_quotes("\u201chello world\u201d"), "hello world")
-    check("keep an unquoted cell", strip_quotes("hello world"), "hello world")
-    q = "Rule files live in .claude/rules/ and each rule names the files"
-    span = token_span(q, ".claude/rules/")
-    check("the raw token is found in the quote", span is not None, True)
-    check("a rule word sits outside the token span",
-          rule_word_outside(q, span[0], span[1]), True)
-    check("the token span starts where the token starts",
-          q[span[0]:span[1]], ".claude/rules/")
-    q2 = "the file is .claude/rules/"
-    span2 = token_span(q2, ".claude/rules/")
-    check("only the token carries no rule word",
-          rule_word_outside(q2, span2[0], span2[1]), False)
-    check("rulebook is not the whole word rule",
-          rule_word_outside("Rulebook entries differ here", 0, 0), False)
-    check("instructions is the word",
-          rule_word_outside("these instructions differ", 99, 99), True)
-    check("hook is not a rule word",
-          rule_word_outside("this hook differs from it", 0, 0), False)
-    check("the token match is case-sensitive",
-          token_span(".Claude/Rules.md is used", ".claude/rules.md"), None)
-    check("the normalised form is matched too",
-          token_span("see .opencode/rules here", ".opencode/rules/"), (4, 19))
-    check("a token inside a longer path is not spanned (left boundary)",
-          token_span("x.claude/rules.md here", ".claude/rules.md"), None)
-    check("a token followed by a word is not spanned (right boundary)",
-          token_span(".claude/rulesfoo here", ".claude/rules"), None)
-    check("a token followed by a digit is not spanned",
-          token_span(".claude/rules1 here", ".claude/rules"), None)
-    check("a token followed by a slash is spanned",
-          token_span(".claude/rules/x here", ".claude/rules"), (0, 13))
-
-    # -- the Gate check ---------------------------------------------------
-    gate = "## Gate\n\n| row | quote |\n|---|---|---|\n| S1 | \"the rule folder lives here\" |\n"
-    gs = gate_section(gate)
-    check("gate section is read", ws(gs).count("the rule folder lives here"), 1)
-    check("quote recorded in the Gate", quote_in_gate(
-        "the rule folder lives here", ws(gs), ws(gs.replace("`", ""))), True)
-    check("quote absent from the Gate", quote_in_gate(
-        "the rule folder lives elsewhere", ws(gs), ws(gs.replace("`", ""))), False)
-    check("an empty Gate records no quote", quote_in_gate(
-        "the rule folder lives here", ws(""), ws("")), False)
-    check("Gate whitespace is normalised", quote_in_gate(
-        "the  rule folder lives here", ws(gs), ws(gs.replace("`", ""))), True)
-
-    # -- URL normalisation (v1.3, unchanged) ------------------------------
-    check("url_key drops a trailing .md",
-          url_key("https://code.claude.com/docs/en/rules.md"),
-          url_key("https://code.claude.com/docs/en/rules"))
-    check("url_key drops a trailing slash",
-          url_key("https://opencode.ai/docs/rules/"),
-          "//opencode.ai/docs/rules")
-    check("url_key drops a fragment",
-          url_key("https://cursor.com/docs/rules#x"),
-          "//cursor.com/docs/rules")
-    check("url_key drops a query",
-          url_key("https://cursor.com/docs/rules?a=1"),
-          "//cursor.com/docs/rules")
-    check("url_key lower-cases scheme, host and path",
-          url_key("HTTPS://Code.Claude.com/Docs"), "//code.claude.com/docs")
-    check("url_key of nothing is empty", url_key(None), "")
-    check("a path-case alias is the same URL",
-          url_key("https://code.claude.com/docs/en/Rules"),
-          url_key("https://code.claude.com/docs/en/rules"))
-    check("www., scheme and percent-encoding do not make a new URL",
-          url_key("http://www.code.claude.com/docs/en/rules.md/"),
-          url_key("https://code.claude.com/docs/en/rules"))
-    check("repeated slashes do not make a new URL",
-          url_key("https://code.claude.com//docs///rules"),
-          url_key("https://code.claude.com/docs/rules"))
-    check("an issue URL is a tracker page",
-          url_is_tracker("https://github.com/anthropics/claude-code/issues/82902"), True)
-    check("a docs page is not a tracker page",
-          url_is_tracker("https://cursor.com/docs/rules.md"), False)
-
-    # -- host pins (v1.3, unchanged) --------------------------------------
-    check("pinned host accepted",
-          host_ok("https://code.claude.com/docs", HOSTS["Claude Code"]), True)
-    check("pinned host/path prefix accepted",
-          host_ok("https://github.com/anthropics/claude-code/x",
-                  HOSTS["Claude Code"]), True)
-    check("sibling host prefix rejected",
-          host_ok("https://github.com/anthropics/claude-code-evil/x",
-                  HOSTS["Claude Code"]), False)
-    check("dot-dot path escape rejected",
-          host_ok("https://github.com/anthropics/claude-code/../evil",
-                  HOSTS["Claude Code"]), False)
-    check("off-host rejected", host_ok("https://example.com/x", HOSTS["Cursor"]), False)
-    check("a pinned name as a host-name suffix is rejected",
-          host_ok("https://evilcursor.com/x", HOSTS["Cursor"]), False)
-    check("subdomain of a pinned host accepted",
-          host_ok("https://docs.cursor.com/x", HOSTS["Cursor"]), True)
-
-    # -- page normalisation and the quote check ---------------------------
-    check("page style and script text is dropped",
-          "@layer base" in norm_page(
-              "<style>@layer base{}</style><p>x</p><script>@layer base</script>"), False)
-    check("page tags are dropped and text kept",
-          norm_page("<p>Use <code>/a-b</code> rules</p>"), "use /a-b rules")
-    check("quote angle text is kept", norm("$<rule-name> here"), "$<rule-name> here")
-    check("page_plain drops `*`, `_` and backticks but keeps case",
-          page_plain("A*b_c`D"), "AbcD")
-    check("norm lower-cases the quote", norm("Claude Ships"), "claude ships")
-    page_ok = "<p>Rule files live in a <code>.claude/rules/</code> folder</p>"
-    quote_ok = "Rule files live in a .claude/rules/ folder"
-    check("quote found on the page", quote_why(page_ok, quote_ok), [])
-    check("quote absent from the page",
-          quote_why(page_ok, "Rule files live in a folder"),
-          ["the quote is not on the page"])
-
-    # -- the SOURCES sha256 pin and the snapshot path ---------------------
-    sha_full = "971d75bfce7a04c2e0d41e8752d01afe29ed500f2a7159f66d5f7156bea0c3ff"
-    check("row_sha reads a plain sha256 <64 hex>",
-          row_sha(["S900", "x", "docs", "A", "s", "sha256 " + sha_full]),
-          sha_full)
-    check("row_sha reads a backticked, upper-case sha256",
-          row_sha(["S900", "x", "docs", "A", "s", "sha256 `" + sha_full.upper() + "`"]),
-          sha_full)
-    check("row_sha of an ellipsis digest is None",
-          row_sha(["S900", "x", "docs", "A", "s", "sha256 `9a67de89\u2026`"]), None)
-    check("row_sha takes the FIRST digest when two are printed",
-          row_sha(["S900", "x", "docs", "A", "s",
-                   "sha256 " + sha_full + " then sha256 " + "a" * 64]),
-          sha_full)
-    check("row_sha of a 63-hex run is None",
-          row_sha(["S900", "x", "docs", "A", "s", "sha256 " + "a" * 63]), None)
-    check("snapshot_path names the S-id page",
-          snapshot_path("S900"), ".ufo/waves/round-60/snapshots/S900.page")
-
-    # -- the output lines, the receipt label and the predicate -----------
-    check("fetch summary line", summary_line(True, 0, 0, 0),
-          "scoped rule files backed on committed snapshots 0 of 0; "
-          "found on the live page 0 of 0")
-    check("non-fetch summary line", summary_line(False, 2, 7, 0),
-          "scoped rule files backed on committed snapshots 2 of 7; live not run")
-    check("reject line", reject_line("Cursor", ["a", "b"]), "reject Cursor: a; b")
-    check("the receipt label is the frozen one",
-          RECEIPT, "C1 predicate: --fetch exit 0 (F>=TARGET)")
-    check("E3: url_is_change_note on each word",
-          [url_is_change_note("https://x.com/a/%s/b" % w) for w in CHANGE_NOTE_WORDS],
-          [True] * len(CHANGE_NOTE_WORDS))
-    check("E3: url_is_change_note is case-insensitive and percent-decoded",
-          (url_is_change_note("https://x.com/CHANGELOG.md"),
-           url_is_change_note("https://x.com/%62log/x")), (True, True))
-    check("E3: a docs URL is not a change note",
-          url_is_change_note("https://code.claude.com/docs/en/rules"), False)
-    check("E3: a change-note word only in the query is not the path",
-          url_is_change_note("https://cursor.com/docs/rules?from=blog"), False)
-
-    # TARGET is the plan's freeze record (amendment A1 names this counter as
-    # its builder).  A `None` here is also supported: it returns 1, never 0.
-    check("TARGET is the frozen census target", TARGET, 3)
-    frozen = TARGET
     try:
-        TARGET = 3
-        check("predicate: fetch, 3 found, passes", predicate(True, 3), 0)
-        check("predicate: fetch, 4 found, passes", predicate(True, 4), 0)
-        check("predicate: fetch, 2 found, fails", predicate(True, 2), 1)
-        check("predicate: no fetch always fails", predicate(False, 7), 1)
-        TARGET = None
-        check("predicate: no target is a 1, never a 0",
-              _outcome(lambda: predicate(True, 7)), ("ok", 1))
-        check("predicate: a frozen integer target still gates the count",
-              (TARGET, _outcome(lambda: predicate(True, 7))), (None, ("ok", 1)))
-    finally:
-        TARGET = frozen
+        # -- the revision guard (v2) -------------------------------------
+        check("a full 40-hex revision is accepted", rev_ok(BASE), True)
+        check("an uppercase 40-hex revision is accepted", rev_ok(BASE.upper()), True)
+        check("a branch name is not a revision", rev_ok("master"), False)
+        check("a 39-hex revision is not", rev_ok("4" * 39), False)
+        check("a 41-hex revision is not", rev_ok("4" * 41), False)
+        check("a non-hex character makes it not", rev_ok("g" * 40), False)
+        check("no revision is not", rev_ok(None), False)
+        out, err = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+            code = main(["--rev", "not-a-hash"])
+        check("a non-40-hex --rev exits 2", code, 2)
+        check("the usage failure is named, not a traceback",
+              ("Traceback" in err.getvalue(), "40-hex" in err.getvalue()), (False, True))
 
-    # -- the Scope key cell ----------------------------------------------
-    check("key: a bare identifier is the key", scope_key("`paths` (S900 :5)"),
-          ("paths", []))
-    check("key: the FIRST backticked span is the key",
-          scope_key("`alwaysApply` and `paths` (S900 :5)")[0], "alwaysApply")
-    check("key: a cell without backticks has no key",
-          scope_key("paths (S900 :5)"),
-          (None, ["SKILL.md scope key cell holds no backticked key"]))
-    check("key: a glob is not a key identifier",
-          scope_key("`**/*.md` (S900 :5)"),
-          (None, ["SKILL.md scope key '**/*.md' is not a bare identifier "
-                  "matching ^[A-Za-z][A-Za-z0-9_-]*$"]))
-    check("citations: both forms are read",
-          citations("`paths` (S900 :5) and S901:7"), [("S900", 5), ("S901", 7)])
-    check("citation: the row's own id is taken",
-          citation_why("`paths` (S900 :5)", "S900", "SKILL.md scope key cell"),
-          (5, []))
-    check("citation: the spaced and unspaced forms agree",
-          citation_why("`paths` S900:5", "S900", "SKILL.md scope key cell"), (5, []))
-    check("citation: another row's id is a named failure",
-          citation_why("`paths` (S901 :5)", "S900", "SKILL.md scope key cell"),
-          (None, ["SKILL.md scope key cell cites S901 :5, not the row's own "
-                  "source S900"]))
-    check("citation: no citation is a named failure",
-          citation_why("`paths`", "S900", "SKILL.md scope key cell"),
-          (None, ["SKILL.md scope key cell carries no `S### :L` citation"]))
+        # -- token well-formedness (v2, unchanged) ------------------------
+        check("green: .claude/rules/ is a directory token",
+              token_well_formed(".claude/rules/"), True)
+        check("green: .claude/rules/*.md is a glob token",
+              token_well_formed(".claude/rules/*.md"), True)
+        check("green: .cursor/rules/*.mdc",
+              token_well_formed(".cursor/rules/*.mdc"), True)
+        check("green: .github/instructions/",
+              token_well_formed(".github/instructions/"), True)
+        check("green: .github/instructions/**/*.instructions.md (census token)",
+              token_well_formed(".github/instructions/**/*.instructions.md"), True)
+        check("green: a leading ~/ is stripped",
+              token_well_formed("~/.claude/rules/"), True)
+        check("green: a leading ./ is stripped",
+              token_well_formed("./.github/instructions/"), True)
+        check("green: a dot-led non-final segment is fine (E7)",
+              token_well_formed(".github/.instructions/config.md"), True)
+        check("green: an 'instructions' segment is allowed",
+              token_well_formed(".claude/instructions/rules.md"), True)
+        check("red segment word: .claude/HOOKS.json (the ban is case-insensitive)",
+              token_well_formed(".claude/HOOKS.json"), False)
+        check("'' is not well-formed", token_well_formed(""), False)
+        check("None is not well-formed", token_well_formed(None), False)
+        check("red TOKEN_RE: a space",
+              token_well_formed(".claude/rules files"), False)
+        check("red TOKEN_RE: an empty middle segment",
+              token_well_formed(".claude//rules.md"), False)
+        check("red TOKEN_RE: a leading slash",
+              token_well_formed("/.claude/rules.md"), False)
+        check("red segments: rules is one segment", token_well_formed("rules"), False)
+        check("red segments: .claude is one segment",
+              token_well_formed(".claude"), False)
+        check("red first segment: rules.md does not start with a dot",
+              token_well_formed("rules.md"), False)
+        check("red first segment: claude/rules/ does not start with a dot",
+              token_well_formed("claude/rules/"), False)
+        check("red segment word: .claude/hooks/rules.md (a hook word)",
+              token_well_formed(".claude/hooks/rules.md"), False)
+        check("red segment word: .claude/hooks.json (the FINAL segment counts)",
+              token_well_formed(".claude/hooks.json"), False)
+        check("red segment word: .claude/skills/rules.md",
+              token_well_formed(".claude/skills/rules.md"), False)
+        check("red segment word: .claude-plugin/rules.md (a plugin segment)",
+              token_well_formed(".claude-plugin/rules.md"), False)
+        check("red E7: .claude/1.0/rules.md (a version segment)",
+              token_well_formed(".claude/1.0/rules.md"), False)
+        check("red E7: ~/.claude/1.0.0/rules.md",
+              token_well_formed("~/.claude/1.0.0/rules.md"), False)
 
-    # -- the key form and its value (A1) ---------------------------------
-    check("value: a quoted glob is a pattern", pattern_value(" '**/*.py'"), True)
-    check("value: a sentence that mentions a pattern is not",
-          pattern_value(' "Applies to **/*.ts"'), False)
-    check("value: a path glob is a pattern",
-          pattern_value(" src/components/**/*.tsx"), True)
-    check("value: an inline array holds a pattern",
-          pattern_value(' ["src/**/*.ts"]'), True)
-    check("value: an empty value is not a pattern", pattern_value(""), False)
-    check("value: a bare glob is a pattern", pattern_value("**"), True)
-    check("value: a leading dash and quote are stripped",
-          first_value_token('  - "src/api/**/*.ts"'), "src/api/**/*.ts")
-    check("value: the token stops at a comma", first_value_token("a/*.ts, b/*.py"),
-          "a/*.ts")
-    check("value: the token stops at a closing bracket",
-          first_value_token("[src/*.ts]"), "src/*.ts")
-    check("value: only [ | > is a block value", block_only(" ["), True)
-    check("value: only spaces is a block value", block_only("  "), True)
-    check("value: a word after the colon is not a block value",
-          block_only(" paths"), False)
-    check("key form: a block value two lines down passes",
-          key_site(["paths:", '  - "src/api/**/*.ts"'], 1, "paths"), True)
-    check("key form: the cited pattern line itself carries no key",
-          key_site(["paths:", '  - "src/api/**/*.ts"'], 2, "paths"), False)
-    check("key form: a block value four lines down fails",
-          key_site(["paths:", "", "", "", '  - "src/api/**/*.ts"'], 1, "paths"),
-          False)
-    check("key form: an unrelated first nonblank line leaves no value",
-          key_site(["paths:", "See the table below.", "  - 'a/*.ts'"], 1, "paths"),
-          False)
-    check("key form: the Cursor census line passes",
-          key_site(["globs: src/components/**/*.tsx"], 1, "globs"), True)
-    check("key form: the Claude memory block passes",
-          key_site(["paths:", '  - "src/api/**/*.ts"'], 1, "paths"), True)
-    check("key form: the VS Code census line passes",
-          key_site(["applyTo: '**/*.py'"], 1, "applyTo"), True)
-    check("key form: the Copilot census line passes",
-          key_site(['applyTo: "app/models/**/*.rb"'], 1, "applyTo"), True)
-    check("key form: description at a line with no pattern fails",
-          key_site(["description: RPC service conventions and patterns"], 1,
-                   "description"), False)
-    check("key form: an assigned sentence mentioning a pattern fails",
-          key_site(['description: "Applies to **/*.ts"'], 1, "description"), False)
-    check("key form: the Cursor table-cell line fails for description",
-          key_site(["| `alwaysApply` | `description` | `globs` |"], 1,
-                   "description"), False)
-    check("key form: the Cursor table-cell line fails for alwaysApply",
-          key_site(["| `alwaysApply` | `description` | `globs` |"], 1,
-                   "alwaysApply"), False)
-    check("key form: the Cursor table-cell line fails for globs",
-          key_site(["| `alwaysApply` | `description` | `globs` |"], 1, "globs"),
-          False)
-    check("key form: a line with no key fails",
-          key_site(["Use paths to list the files a rule is about."], 1, "paths"),
-          False)
-    check("key form: an off-by-one to a line without the key fails",
-          key_site(["paths:", '  - "src/api/**/*.ts"'], 2, "paths"), False)
-    check("key form: a key inside a longer identifier fails",
-          key_site(['xpaths: "**/*.ts"'], 1, "paths"), False)
-    check("key form: a key followed by an identifier fails",
-          key_site(['pathsExtra: "**/*.ts"'], 1, "paths"), False)
-    check("key form: an equals sign is a key form",
-          key_site(["applyTo='**/*.py'"], 1, "applyTo"), True)
-    check("key form: a closing quote before the colon is a key form",
-          key_site(['"applyTo": "**/*.ts"'], 1, "applyTo"), True)
-    check("key form: a backticked closing before the colon is a key form",
-          key_site(["`applyTo`: '**/*.ts'"], 1, "applyTo"), True)
-    check("key form: a line out of range fails", key_site(["a"], 4, "paths"), False)
-    check("key form: no key is never a site", key_site(["paths:"], 1, None), False)
-    check("any key site: a later line is found",
-          any_key_site("intro\n\nglobs: src/*.tsx\n", "globs"), True)
-    check("any key site: a page without the key is not found",
-          any_key_site("intro\n\nglobs: one per line\n", "globs"), False)
+        # -- normalise: case preserved (v2) ------------------------------
+        check("normalise strips one leading ~/",
+              normalise("~/.claude/rules/"), ".claude/rules")
+        check("normalise strips one trailing /",
+              normalise(".cursor/rules/"), ".cursor/rules")
+        check("normalise preserves case",
+              normalise(".Claude/Rules.md"), ".Claude/Rules.md")
+        check("normalise of nothing is empty", normalise(None), "")
 
-    # -- the synthetic world: SKILL rows, entry, SOURCES, Gate, snapshots ---
-    page900 = ("Rules for Claude Code\n"
-               "Rule files live in .claude/rules/ and each rule names the files it is about.\n"
-               "---\n"
-               "description: how a rule scopes itself\n"
-               "paths:\n"
-               '  - "src/api/**/*.ts"\n'
-               "---\n"
-               "Use paths to list the files a rule is about.\n")
-    page901 = ("Gemini CLI instruction files\n"
-               "Gemini CLI keeps instruction files in .gemini/rules/ and scopes each one.\n"
-               "---\n"
-               'globs: ["**/*.ts"]\n'
-               "---\n"
-               "List the files an instruction covers.\n")
-    page902 = ("VS Code scoped instruction files\n"
-               "VS Code scoped instruction files live in .github/instructions/ for a workspace.\n"
-               "---\n"
-               "applyTo: '**/*.py'\n"
-               "---\n"
-               "Scope a rule to the files it is about instead of loading it every turn.\n")
-    page903 = ("Copilot CLI instruction files\n"
-               "Copilot CLI reads instruction files from .github/instructions/ in the repository.\n"
-               "---\n"
-               'applyTo: "app/models/**/*.rb"\n'
-               "---\n"
-               "Scope a rule to the files it is about so every turn stays small.\n")
-    quote900 = ("Rule files live in .claude/rules/ and each rule names the files "
-                "it is about")
-    quote901 = "Gemini CLI keeps instruction files in .gemini/rules/ and scopes each one"
-    quote902 = ("VS Code scoped instruction files live in .github/instructions/ "
-                "for a workspace")
-    quote903 = ("Copilot CLI reads instruction files from .github/instructions/ "
-                "in the repository")
-    skill = ("# x\n\n" + SKILL_HEADING + "\n\n"
-             "| Client | Rule files | Scope key | Action |\n"
-             "|---|---|---|---|\n"
-             "| Claude Code | `.claude/rules/` | `paths` (S900 :5) "
-             "| Name the paths a rule applies to (S900 :8) |\n"
-             "| Gemini CLI | `.gemini/rules/` | `globs` (S901 :4) "
-             "| List the files an instruction covers (S901 :6) |\n"
-             "| VS Code | `.github/instructions/` | `applyTo` (S902 :4) "
-             "| Scope a rule to the files it is about (S902 :6) |\n"
-             "| Copilot CLI | `.github/instructions/` | `applyTo` (S903 :4) "
-             "| Scope a rule to the files it is about (S903 :6) |\n")
-    entry = ("# e\n\n| Client | Rule files | Source | Quote |\n|---|---|---|---|\n"
-             '| Claude Code | .claude/rules/ | S900 | "' + quote900 + '" |\n'
-             '| Gemini CLI | .gemini/rules/ | S901 | "' + quote901 + '" |\n'
-             '| VS Code | .github/instructions/ | S902 | "' + quote902 + '" |\n'
-             '| Copilot CLI | .github/instructions/ | S903 | "' + quote903 + '" |\n')
-    PAGES = {"S900": page900, "S901": page901, "S902": page902, "S903": page903}
-    QUOTES = {"S900": quote900, "S901": quote901, "S902": quote902, "S903": quote903}
-    OWNERS = {"S900": "Claude Code", "S901": "Gemini CLI",
-              "S902": "VS Code", "S903": "Copilot CLI"}
-    URLS = {"S900": "https://code.claude.com/docs/en/memory.md",
-            "S901": "https://geminicli.com/docs/cli/rules.md",
-            "S902": "https://code.visualstudio.com/docs/agent-customization/"
-                    "custom-instructions.md",
-            "S903": "https://docs.github.com/en/copilot/how-tos/customize/"
-                    "instructions.md"}
-    src_row = ("| %s | %s docs \u2014 %s | docs | A | the rule file "
-               "| \u00a7 rules, fetched, sha256 %s | %s | mined "
-               "| %s | 90d | corpus/knowledge/scoped-rules-round60.md |\n")
+        # -- the foreign-name guard (v2) ---------------------------------
+        check("a .claude token is foreign to VS Code",
+              foreign_marker("VS Code", ".claude/rules/"), "Claude Code")
+        check("a .claude token is not foreign to Claude Code",
+              foreign_marker("Claude Code", ".claude/rules/"), None)
+        check("a .cursor token is not foreign to Cursor",
+              foreign_marker("Cursor", ".cursor/rules/"), None)
+        check("the marker match is case-insensitive",
+              foreign_marker("VS Code", ".Claude/Rules.md"), "Claude Code")
+        check("a marker-neutral token is nobody's foreign token",
+              foreign_marker("Copilot CLI", ".github/instructions/"), None)
 
-    def world(pages=None, teaches=None) -> tuple[str, dict]:
-        """The four SOURCES rows and the committed pages they pin.
+        # -- the quote: bounds, token span, the outside rule word (v2) ----
+        check("quote word count: six words pass",
+              MIN_WORDS <= len("one two three four five six".split()) <= MAX_WORDS, True)
+        check("quote word count: five words fail",
+              MIN_WORDS <= len("one two three four five".split()) <= MAX_WORDS, False)
+        check("strip straight quotes", strip_quotes('"hello world"'), "hello world")
+        check("strip curly quotes", strip_quotes("\u201chello world\u201d"), "hello world")
+        check("keep an unquoted cell", strip_quotes("hello world"), "hello world")
+        q = "Rule files live in .claude/rules/ and each rule names the files"
+        span = token_span(q, ".claude/rules/")
+        check("the raw token is found in the quote", span is not None, True)
+        check("a rule word sits outside the token span",
+              rule_word_outside(q, span[0], span[1]), True)
+        check("the token match is case-sensitive",
+              token_span(".Claude/Rules.md is used", ".claude/rules.md"), None)
+        check("a token inside a longer path is not spanned (left boundary)",
+              token_span("x.claude/rules.md here", ".claude/rules.md"), None)
+        check("a token followed by a word is not spanned (right boundary)",
+              token_span(".claude/rulesfoo here", ".claude/rules"), None)
+        check("rulebook is not the whole word rule",
+              rule_word_outside("Rulebook entries differ here", 0, 0), False)
 
-        Each row prints the sha256 of its own page bytes, so a page rebuilt for
-        another quote is a sha mismatch, never a silent pass.  `teaches` may
-        carry a v2 `re-opens S### \u2014 \u2026` cell for a row."""
-        got = dict(PAGES if pages is None else pages)
-        extra = teaches or {}
-        snaps = {sid: got[sid].encode() for sid in got}
-        rows = "".join(src_row % (sid, OWNERS[sid], URLS[sid],
-                                  hashlib.sha256(snaps[sid]).hexdigest(),
-                                  extra.get(sid, "the rule file"), OPENED[0])
-                       for sid in ("S900", "S901", "S902", "S903"))
-        return rows, snaps
+        # -- the Gate quote rule (inherited from r59, kept) ---------------
+        gate = "## Gate\n\n| row | quote |\n|---|---|---|\n| S1 | \"the rule folder lives here\" |\n"
+        gs = gate_section(gate)
+        check("gate section is read", ws(gs).count("the rule folder lives here"), 1)
+        check("quote recorded in the Gate", quote_in_gate(
+            "the rule folder lives here", ws(gs), ws(gs.replace("`", ""))), True)
+        check("quote absent from the Gate", quote_in_gate(
+            "the rule folder lives elsewhere", ws(gs), ws(gs.replace("`", ""))), False)
+        check("an empty Gate records no quote",
+              quote_in_gate("the rule folder lives here", ws(""), ws("")), False)
 
-    sources, snaps = world()
-    lesson = ("## Gate\n\n| row | URL | quote |\n|---|---|---|\n"
-              + "".join('| %s | %s | "%s" |\n'
-                        % (sid, URLS[sid], QUOTES[sid])
-                        for sid in ("S900", "S901", "S902", "S903")))
-    base = ("| S001 | Old docs \u2014 https://code.claude.com/docs/en/old.md | docs "
-            "| A | s | a | t | mined | 2026-10-01 | 90d | y |\n")
-    # erratum E1 fixtures: base rows whose URLs the new rows re-open.  S020 and
-    # S022 hold the Claude memory.md URL; S021 holds the Gemini rules.md URL;
-    # S022's line already carries the key `paths`, S020's and S021's carry
-    # neither key.
-    base_reopen = (base
-                   + "| S020 | Old Claude docs \u2014 "
-                     "https://code.claude.com/docs/en/memory.md | docs | A | s "
-                     "| a | t | mined | 2026-10-01 | 90d | y |\n"
-                   + "| S021 | Old Gemini docs \u2014 "
-                     "https://geminicli.com/docs/cli/rules.md | docs | A | s | a "
-                     "| t | mined | 2026-10-01 | 90d | y |\n"
-                   + "| S022 | Old Claude docs \u2014 "
-                     "https://code.claude.com/docs/en/memory.md | docs | A | "
-                     "paths and globs | a | t | mined | 2026-10-01 | 90d | y |\n")
-    REOPENS = {"S900": "re-opens S020 \u2014 the rules page moved",
-               "S901": "re-opens S021 \u2014 the rules page moved"}
+        # -- URL normalisation and host pins (v2) -------------------------
+        check("url_key drops a trailing .md",
+              url_key("https://code.claude.com/docs/en/rules.md"),
+              url_key("https://code.claude.com/docs/en/rules"))
+        check("url_key drops a fragment and a query",
+              (url_key("https://cursor.com/docs/rules#x"),
+               url_key("https://cursor.com/docs/rules?a=1")),
+              ("//cursor.com/docs/rules", "//cursor.com/docs/rules"))
+        check("url_key lower-cases scheme, host and path",
+              url_key("HTTPS://Code.Claude.com/Docs"), "//code.claude.com/docs")
+        check("url_key of nothing is empty", url_key(None), "")
+        check("pinned host accepted",
+              host_ok("https://code.claude.com/docs", HOSTS["Claude Code"]), True)
+        check("pinned host/path prefix accepted",
+              host_ok("https://github.com/anthropics/claude-code/x",
+                      HOSTS["Claude Code"]), True)
+        check("sibling host prefix rejected",
+              host_ok("https://github.com/anthropics/claude-code-evil/x",
+                      HOSTS["Claude Code"]), False)
+        check("dot-dot path escape rejected",
+              host_ok("https://github.com/anthropics/claude-code/../evil",
+                      HOSTS["Claude Code"]), False)
+        check("off-host rejected", host_ok("https://example.com/x", HOSTS["Cursor"]), False)
+        check("a pinned name as a host-name suffix is rejected",
+              host_ok("https://evilcursor.com/x", HOSTS["Cursor"]), False)
+        check("subdomain of a pinned host accepted",
+              host_ok("https://docs.cursor.com/x", HOSTS["Cursor"]), True)
 
-    def ro(teaches=None) -> tuple[str, dict]:
-        """The v2 re-open world: S900 and S901 reuse base URLs, S902/903 do not."""
-        got = dict(REOPENS)
-        if teaches:
-            got.update(teaches)
-        return world(teaches=got)
+        # -- page normalisation and the quote check (v2) ------------------
+        check("page style and script text is dropped",
+              "@layer base" in norm_page(
+                  "<style>@layer base{}</style><p>x</p><script>@layer base</script>"), False)
+        check("page tags are dropped and text kept",
+              norm_page("<p>Use <code>/a-b</code> rules</p>"), "use /a-b rules")
+        check("page_plain drops `*`, `_` and backticks but keeps case",
+              page_plain("A*b_c`D"), "AbcD")
+        page_ok = "<p>Rule files live in a <code>.claude/rules/</code> folder</p>"
+        quote_ok = "Rule files live in a .claude/rules/ folder"
+        check("quote found on the page", quote_why(page_ok, quote_ok), [])
+        check("quote absent from the page",
+              quote_why(page_ok, "Rule files live in a folder"),
+              ["the quote is not on the page"])
 
-    def judge_world(sk=skill, en=entry, so=sources, le=lesson, ba=base,
-                    sn=None) -> list[dict]:
-        pages = snaps if sn is None else sn
-        return judge(sk, en, so, le, ba, snapshot_of=pages.get)
+        # -- the SOURCES sha256 pin and the snapshot path (v2) ------------
+        sha_full = "971d75bfce7a04c2e0d41e8752d01afe29ed500f2a7159f66d5f7156bea0c3ff"
+        check("row_sha reads a plain sha256 <64 hex>",
+              row_sha(["S900", "x", "docs", "A", "s", "sha256 " + sha_full]), sha_full)
+        check("row_sha of an ellipsis digest is None",
+              row_sha(["S900", "x", "docs", "A", "s", "sha256 `9a67de89\u2026`"]), None)
+        check("row_sha takes the FIRST digest when two are printed",
+              row_sha(["S900", "x", "docs", "A", "s",
+                       "sha256 " + sha_full + " then sha256 " + "a" * 64]), sha_full)
+        check("snapshot_path names the S-id page",
+              snapshot_path("S900"), ".ufo/waves/round-60/snapshots/S900.page")
 
-    def backed(sk=skill, en=entry, so=sources, le=lesson, ba=base,
-               sn=None) -> list[str]:
-        return [r["client"] for r in judge_world(sk, en, so, le, ba, sn)
-                if r["backed"]]
+        # -- output lines, the receipt label and the predicate (v2) -------
+        check("fetch summary line", summary_line(True, 0, 0, 0),
+              "scoped rule files backed on committed snapshots 0 of 0; "
+              "found on the live page 0 of 0")
+        check("non-fetch summary line", summary_line(False, 2, 7, 0),
+              "scoped rule files backed on committed snapshots 2 of 7; live not run")
+        check("reject line", reject_line("Cursor", ["a", "b"]), "reject Cursor: a; b")
+        check("the receipt label pins the full two-clause sentence",
+              (RECEIPT.startswith("C1 predicate: `worlds reject 7 of 7; eligible rows pass 4 of 4`"),
+               "--rev <tip> --fetch` exits 0" in RECEIPT,
+               "f3246d1493b60ea1c0d947a19c39f9e08e92f326 exits 1" in RECEIPT),
+              (True, True, True))
+        check("E3: url_is_change_note on each word",
+              [url_is_change_note("https://x.com/a/%s/b" % w) for w in CHANGE_NOTE_WORDS],
+              [True] * len(CHANGE_NOTE_WORDS))
+        check("E3: a docs URL is not a change note",
+              url_is_change_note("https://code.claude.com/docs/en/rules"), False)
+        check("TARGET is the frozen census target", TARGET, 3)
+        frozen = TARGET
+        try:
+            TARGET = 3
+            check("predicate: fetch, 3 found, passes", predicate(True, 3), 0)
+            check("predicate: fetch, 2 found, fails", predicate(True, 2), 1)
+            check("predicate: no fetch always fails", predicate(False, 7), 1)
+            TARGET = None
+            check("predicate: no target is a 1, never a 0",
+                  _outcome(lambda: predicate(True, 7)), ("ok", 1))
+        finally:
+            TARGET = frozen
 
-    def why_of(client: str, sk=skill, en=entry, so=sources, le=lesson, ba=base,
-               sn=None) -> list[str]:
-        return {r["client"]: r["why"] for r in judge_world(sk, en, so, le, ba, sn)}[client]
+        # -- the Scope key cell (v2) --------------------------------------
+        check("key: a bare identifier is the key", scope_key("`paths` (S900 :5)"),
+              ("paths", []))
+        check("key: the FIRST backticked span is the key",
+              scope_key("`alwaysApply` and `paths` (S900 :5)")[0], "alwaysApply")
+        check("key: a cell without backticks has no key",
+              scope_key("paths (S900 :5)"),
+              (None, ["SKILL.md scope key cell holds no backticked key"]))
+        check("citations: both forms are read",
+              citations("`paths` (S900 :5) and S901:7"), [("S900", 5), ("S901", 7)])
+        check("citation: another row's id is a named failure",
+              citation_why("`paths` (S901 :5)", "S900", "SKILL.md scope key cell"),
+              (None, ["SKILL.md scope key cell cites S901 :5, not the row's own "
+                      "source S900"]))
 
-    def k_of(sk=skill) -> int:
-        return sum(1 for r in judge_world(sk) if r["in_k"])
+        # -- the key form and its value (v2) ------------------------------
+        check("value: a quoted glob is a pattern", pattern_value(" '**/*.py'"), True)
+        check("value: a sentence that mentions a pattern is not",
+              pattern_value(' "Applies to **/*.ts"'), False)
+        check("value: the token stops at a comma", first_value_token("a/*.ts, b/*.py"),
+              "a/*.ts")
+        check("value: only [ | > is a block value", block_only(" ["), True)
+        check("key form: a block value two lines down passes",
+              key_site(["paths:", '  - "src/api/**/*.ts"'], 1, "paths"), True)
+        check("key form: the cited pattern line itself carries no key",
+              key_site(["paths:", '  - "src/api/**/*.ts"'], 2, "paths"), False)
+        check("key form: a block value four lines down fails",
+              key_site(["paths:", "", "", "", '  - "src/api/**/*.ts"'], 1, "paths"), False)
+        check("key form: the Cursor census line passes",
+              key_site(["globs: src/components/**/*.tsx"], 1, "globs"), True)
+        check("key form: the VS Code census line passes",
+              key_site(["applyTo: '**/*.py'"], 1, "applyTo"), True)
+        check("key form: description at a line with no pattern fails",
+              key_site(["description: RPC service conventions and patterns"], 1,
+                       "description"), False)
+        check("key form: a key inside a longer identifier fails",
+              key_site(['xpaths: "**/*.ts"'], 1, "paths"), False)
+        check("key form: an equals sign is a key form",
+              key_site(["applyTo='**/*.py'"], 1, "applyTo"), True)
+        check("key form: no key is never a site", key_site(["paths:"], 1, None), False)
+        check("any key site: a later line is found",
+              any_key_site("intro\n\nglobs: src/*.tsx\n", "globs"), True)
 
-    def with_quote(sid: str, new: str, extra: dict | None = None) -> tuple:
-        """Entry, lesson, sources and pages with one quote replaced."""
-        old = QUOTES[sid]
-        pages = dict(PAGES)
-        pages[sid] = pages[sid].replace(old, new)
-        if extra:
-            pages.update(extra)
-        so, sn = world(pages)
-        return (entry.replace(old, new), lesson.replace(old, new), so, sn)
+        # -- A1: the path-like value (new in v3) --------------------------
+        check("A1 value: a path glob is path-like", path_value(" '**/*.py'"), True)
+        check("A1 value: a bare ** is not path-like (the bold-marker hole)",
+              path_value("**"), False)
+        check("A1 value: Configure** is not path-like", path_value("Configure**"), False)
+        check("A1 value: **Team is not path-like", path_value("**Team"), False)
+        check("A1 value: a sentence mentioning a pattern is not",
+              path_value(' "Applies to **/*.ts"'), False)
+        check("A1 site: the real Cursor line passes",
+              path_site(["globs: src/components/**/*.tsx"], 1, "globs"), True)
+        check("A1 site: the VS Code sessions bold line fails",
+              path_site(["Local harness sessions: **See the table below.**"], 1,
+                        "sessions"), False)
+        check("A1 site: the Cursor order bold line fails",
+              path_site(["order: **Team Rules then Project Rules**"], 1, "order"), False)
 
-    four = ["Claude Code", "VS Code", "Copilot CLI", "Gemini CLI"]
-    three = ["VS Code", "Copilot CLI", "Gemini CLI"]
-    check("the synthetic world backs all four clients", backed(), four)
-    check("E5 dropped: two rows may share a token and both back",
-          backed(sk=skill), four)
-    check("the synthetic world counts four tokens in K", k_of(), 4)
-    check("the scope key and key line are carried on the report",
-          [(r["key"], r["key_line"]) for r in judge_world() if r["backed"]],
-          [("paths", 5), ("applyTo", 4), ("applyTo", 4), ("globs", 4)])
+        # -- A1: the canonical key set read from the committed rows -------
+        decl = ("| S112 | Claude Code docs \u2014 https://code.claude.com/docs/en/x.md "
+                "| docs | A | s | a | scope-key[Claude Code]=paths | mined "
+                "| 2026-10-23 | 90d | y |\n"
+                "| S113 | VS Code docs \u2014 https://code.visualstudio.com/docs/x.md "
+                "| docs | A | s | a | scope-key[VS Code]=applyTo | mined "
+                "| 2026-10-23 | 90d | y |\n"
+                "| S114 | Copilot docs \u2014 https://docs.github.com/en/copilot/x.md "
+                "| docs | A | s | a | scope-key[Copilot CLI]=applyTo | mined "
+                "| 2026-10-23 | 90d | y |\n"
+                "| S115 | Cursor docs \u2014 https://cursor.com/docs/rules "
+                "| docs | A | s | a | scope-key[Cursor]=globs | mined "
+                "| 2026-10-23 | 90d | y |\n")
+        keys = canonical_scope_keys(decl)
+        check("A1 set: four clients, three distinct keys",
+              {c: sorted(keys.get(c) or ()) for c in
+               ("Claude Code", "VS Code", "Copilot CLI", "Cursor")},
+              {"Claude Code": ["paths"], "VS Code": ["applyTo"],
+               "Copilot CLI": ["applyTo"], "Cursor": ["globs"]})
+        check("A1 set: no cross-client union",
+              ("applyTo" in (keys.get("Cursor") or ())),
+              False)
+        check("A1 set: absent rows give the empty set (the base clause)",
+              canonical_scope_keys("| id | source | kind | tier | scope | anchor "
+                                   "| teaches | status | opened | recheck | used-by |\n"),
+              {})
+        check("A1: a canonical key passes", a1_conjunct("Claude Code", "paths", keys), [])
+        check("A1: patterns is not canonical for Claude Code",
+              a1_conjunct("Claude Code", "patterns", keys),
+              ["A1: scope key 'patterns' is not a canonical key for Claude Code "
+               "(canonical: paths)"])
+        check("A1: sessions is not canonical for VS Code",
+              len(a1_conjunct("VS Code", "sessions", keys)), 1)
+        check("A1: rules is not canonical for Cursor",
+              len(a1_conjunct("Cursor", "rules", keys)), 1)
+        check("A1: an empty set rejects every key",
+              len(a1_conjunct("Codex", "paths", keys)), 1)
 
-    # -- SKILL.md structural failures -------------------------------------
-    check("a duplicate SKILL.md row disqualifies the client",
-          backed(sk=skill.replace(
-              "| Gemini CLI |",
-              "| Claude Code | `~/.x/rules/x` | `a` (S900 :5) | y |\n"
-              "| Gemini CLI |")),
-          three)
-    check("a second entry row does not disqualify a good one",
-          backed(en=entry + '| Gemini CLI | x | S901 | "x y z" |\n'), four)
-    check("a wrong SKILL.md header reads no row",
-          skill_rows(skill.replace("| Scope key |", "| Key |")), [])
-    check("a wrong entry header reads no row",
-          entry_rows(entry.replace("| Source |", "| Row |")), [])
-    check("a table under another heading is not read",
-          skill_rows(skill.replace(SKILL_HEADING, "### Other table")), [])
-    check("no entry row for the client is not backed",
-          backed(en=entry.replace('| Gemini CLI | .gemini/rules/ | S901 | "'
-                                  + quote901 + '" |\n', "")),
-          ["Claude Code", "VS Code", "Copilot CLI"])
+        # -- A2: forward/reverse support and the page support -------------
+        check("A2 need: 3 words need 2 forward", fwd_need(3), 2)
+        check("A2 need: 6 words need 4 forward", fwd_need(6), 4)
+        check("A2 need: 8 words need 6 forward (v2 needed 4)", fwd_need(8), 6)
+        check("A2 need: 11 words need 8 forward", fwd_need(11), 8)
+        check("A2 reverse need: a 3-word line needs 1", rev_need(3), 1)
+        check("A2 reverse need: a 30-word line needs 10", rev_need(30), 10)
+        check("A2 support: scope~scoped", supported("scope", {"scoped"}), True)
+        check("A2 support: instruction~instructions",
+              supported("instruction", {"instructions"}), True)
+        check("A2 support: rule does not support rebook", supported("rule", {"rebook"}), False)
+        check("A2 page words survive markdown code fences",
+              "fence" in page_words("```\nfence words here\n```"), True)
+        check("A2 cell words drop backticks, citations and stopwords",
+              content_words("Scope `the` rule (S900 :3) with every file"),
+              {"scope", "rule", "file"})
+        check("A2: a cell the cited line supports passes",
+              action_conjunct(["Scope rules to specific files using matching patterns."],
+                              "Scope rules to specific files using matching patterns. "
+                              "(S900 :1)", 1,
+                              "Scope rules to specific files using matching patterns."),
+              [])
+        check("A2: a cell whose words the page lacks is rejected",
+              named(action_conjunct(["Scope the quantum lattice by frobnicating it."],
+                                    "Scope the quantum lattice by frobnicating it. "
+                                    "(S900 :1)", 1,
+                                    "Scope rules to specific files using matching patterns."),
+                    "do not occur on the committed snapshot"), True)
+        check("A2: an invented cell against a dense line is rejected",
+              named(action_conjunct(
+                  ["Rules without a `paths` field are loaded unconditionally and "
+                   "apply to all files. A path-scoped rule loads when the agent "
+                   "uses a reading tool on a matching file."],
+                  "Create the rule file in the project and add frontmatter so it "
+                  "loads only for the matching files. (S900 :1)", 1,
+                  "Rules without a `paths` field are loaded unconditionally and "
+                  "apply to all files. A path-scoped rule loads when the agent "
+                  "uses a reading tool on a matching file."),
+                  "A2:"), True)
 
-    # -- SOURCES row failures ---------------------------------------------
-    check("an S### already at base is not backed",
-          backed(ba=base.replace("S001", "S900")),
-          three)
-    check("a base URL is not backed",
-          backed(ba=base.replace("old.md", "memory.md")),
-          three)
-    check("a base URL reached by a path-case alias is not backed",
-          backed(ba=base.replace("old.md", "MEMORY")),
-          three)
-    check("a tier B row is not backed",
-          backed(so=sources.replace("| docs | A |", "| docs | B |", 1)),
-          three)
-    check("a queued row is not backed",
-          backed(so=sources.replace("| mined |", "| queued |", 1)),
-          three)
-    check("another opened date is not backed",
-          backed(so=sources.replace("| mined | 2026-10-23 |",
-                                    "| mined | 2026-10-22 |", 1)),
-          three)
-    check("a non-docs kind is not backed",
-          backed(so=sources.replace("| docs | A |", "| issue | A |", 1)),
-          three)
-    check("an off-host URL is not backed",
-          backed(so=sources.replace("https://code.claude.com",
-                                    "https://code.claude.com.evil.io", 1)),
-          three)
-    check("a tracker URL on a pinned host is not backed",
-          backed(so=sources.replace(
-              URLS["S900"],
-              "https://github.com/anthropics/claude-code/issues/1", 1)),
-          three)
-    check("a changelog URL is not backed",
-          backed(so=sources.replace(URLS["S900"],
-                                    "https://code.claude.com/docs/en/changelog.md",
-                                    1)),
-          three)
-    check("a change-note URL is reported as such",
-          any("changelog/release/news/blog" in w for w in why_of(
-              "Claude Code", so=sources.replace(
-                  URLS["S900"],
-                  "https://raw.githubusercontent.com/anthropics/claude-code/"
-                  "main/CHANGELOG.md", 1))), True)
-    check("a source cell without a URL is not backed",
-          backed(so=sources.replace(URLS["S900"], "no url here", 1)),
-          three)
+        # -- A3: url_key identity and the rendering-alias arm -------------
+        check("A3: /docs/rules and /docs/rules.md are url_key-identical",
+              url_key("https://cursor.com/docs/rules"),
+              url_key("https://cursor.com/docs/rules.md"))
+        base_pair = [("S010", "https://code.claude.com/docs/en/memory.md")]
+        check("A3(b): a /de/ rendering of a committed /en/ URL is an alias",
+              len(alias_why("https://code.claude.com/docs/de/memory.md", base_pair)), 1)
+        check("A3(b): an enterprise rendering is an alias",
+              len(alias_why(
+                  "https://docs.github.com/en/enterprise-cloud@latest/copilot/x.md",
+                  [("S011", "https://docs.github.com/en/copilot/x.md")])), 1)
+        check("A3(b): the identical URL is not an alias",
+              alias_why("https://code.claude.com/docs/en/memory.md", base_pair), [])
+        check("A3(b): a .md spelling is not a rendering alias",
+              alias_why("https://cursor.com/docs/rules",
+                        [("S012", "https://cursor.com/docs/rules.md")]), [])
+        check("A3(b): a different article on the same host is not an alias",
+              alias_why("https://code.claude.com/docs/en/claude-directory.md",
+                        base_pair), [])
 
-    # -- the token and the quote -------------------------------------------
-    check("a malformed rule token is not backed and leaves K",
-          (backed(sk=skill.replace("`.gemini/rules/`", "`rules`")),
-           k_of(skill.replace("`.gemini/rules/`", "`rules`"))),
-          (["Claude Code", "VS Code", "Copilot CLI"], 3))
-    check("a hook token is not well-formed (A1 NOT-words)",
-          backed(sk=skill.replace("`.claude/rules/`", "`.claude/hooks/`")),
-          three)
-    check("a rule cell without a backticked token is not backed",
-          backed(sk=skill.replace("`.gemini/rules/`", ".gemini/rules/")),
-          ["Claude Code", "VS Code", "Copilot CLI"])
-    check("a token carrying another client's marker is not backed",
-          backed(sk=skill.replace("`.gemini/rules/`", "`.claude/rules/`")),
-          ["Claude Code", "VS Code", "Copilot CLI"])
-    check("the foreign marker is reported as such",
-          any("carries Claude Code's marker" in w for w in why_of(
-              "Gemini CLI", sk=skill.replace("`.gemini/rules/`",
-                                             "`.claude/rules/`"))), True)
-    no_token = "Gemini CLI keeps its instructions in a folder of its own"
-    got = with_quote("S901", no_token)
-    check("a quote without the token is not backed",
-          backed(en=got[0], le=got[1], so=got[2], sn=got[3]),
-          ["Claude Code", "VS Code", "Copilot CLI"])
-    in_token = "The folder .gemini/rules/ keeps its definitions near the workflow"
-    got = with_quote("S901", in_token)
-    check("a quote without a rule word outside the token is not backed",
-          backed(en=got[0], le=got[1], so=got[2], sn=got[3]),
-          ["Claude Code", "VS Code", "Copilot CLI"])
-    check("the missing rule word is reported as such",
-          any("no rule/instruction word outside the token" in w for w in why_of(
-              "Gemini CLI", en=got[0], le=got[1], so=got[2], sn=got[3])), True)
-    hooky = "Keep .claude/rules/ files for hooky reasons to reuse them"
-    got = with_quote("S900", hooky)
-    check("a quote whose only rule word is inside the token is not backed",
-          backed(en=got[0], le=got[1], so=got[2], sn=got[3]),
-          three)
-    case_diff = "Gemini CLI keeps instruction files in .Gemini/Rules/ today"
-    got = with_quote("S901", case_diff)
-    check("a quote whose token differs only in case is not backed",
-          backed(en=got[0], le=got[1], so=got[2], sn=got[3]),
-          ["Claude Code", "VS Code", "Copilot CLI"])
-    two = "rules .gemini/rules/"
-    got = with_quote("S901", two)
-    check("a two-word quote is not backed",
-          backed(en=got[0], le=got[1], so=got[2], sn=got[3]),
-          ["Claude Code", "VS Code", "Copilot CLI"])
-    long_quote = " ".join(["rules"] + ["w"] * 24 + [".gemini/rules/"])
-    got = with_quote("S901", long_quote)
-    check("a 26-word quote is not backed",
-          backed(en=got[0], le=got[1], so=got[2], sn=got[3]),
-          ["Claude Code", "VS Code", "Copilot CLI"])
-    check("an entry source cell that is not one S### id is not backed",
-          backed(en=entry.replace("| S901 |", "| docs |")),
-          ["Claude Code", "VS Code", "Copilot CLI"])
-    check("an S### absent from SOURCES.md is not backed",
-          backed(en=entry.replace("S901", "S999")),
-          ["Claude Code", "VS Code", "Copilot CLI"])
-    check("a quote missing from the Gate is not backed",
-          backed(le=lesson.replace(quote900, "Rule files live elsewhere")),
-          three)
-    check("the Gate failure is reported as such",
-          any("round-60 Gate does not record this quote" in w for w in why_of(
-              "Claude Code", le=lesson.replace(quote900,
-                                               "Rule files live elsewhere"))),
-          True)
+        # -- A4: the alias-sha conjunct and the introduction date ---------
+        page_bytes = b"a page\n"
+        sha = hashlib.sha256(page_bytes).hexdigest()
+        check("A4(iv): a full sha already in the base table is rejected",
+              len(alias_sha_why(sha, {sha: "S043"}, "the row")), 1)
+        check("A4(iv): a supersedes declaration exempts it",
+              alias_sha_why(sha, {sha: "S043"}, "supersedes S096 \u2014 byte-identical"),
+              [])
+        check("A4(iv): a sha absent from the base table passes",
+              alias_sha_why(sha, {"a" * 64: "S043"}, "the row"), [])
+        check("A4(iv): an ellipsis pin never aliases",
+              alias_sha_why(sha, {}, "the row"), [])
+        check("A4(iii): an introduction older than opened is rejected",
+              len(intro_why("S900", "2026-10-23",
+                            ("2026-10-22T20:04:43+00:00",
+                             "2026-10-22T20:04:43+00:00"))), 1)
+        check("A4(iii): an introduction on the opened day (UTC) passes",
+              intro_why("S900", "2026-10-23",
+                        ("2026-10-23T12:28:13+00:00",
+                         "2026-10-23T12:28:13+00:00")), [])
+        check("A4(iii): a local date on the opened day but UTC the day before is rejected",
+              len(intro_why("S900", "2026-10-23",
+                            ("2026-10-23T00:30:00+03:00",
+                             "2026-10-23T00:30:00+03:00"))), 1)
+        check("A4(iii): the earlier of author and committer decides",
+              len(intro_why("S900", "2026-10-23",
+                            ("2026-10-22T20:00:00+00:00",
+                             "2026-10-23T19:00:00+00:00"))), 1)
 
-    # -- E4: the entry Rule files cell is the SKILL.md token --------------
-    check("E4: an entry Rule files cell that differs from SKILL.md is not backed",
-          backed(en=entry.replace("| Gemini CLI | .gemini/rules/ |",
-                                  "| Gemini CLI | .gemini/other.json |")),
-          ["Claude Code", "VS Code", "Copilot CLI"])
-    check("E4: a backticked Rule files cell still backs",
-          backed(en=entry.replace("| Gemini CLI | .gemini/rules/ |",
-                                  "| Gemini CLI | `.gemini/rules/` |")), four)
-    check("E4: the raw ./ form in the cell still backs",
-          backed(sk=skill.replace("`.gemini/rules/`", "`./.gemini/rules/`"),
-                 en=entry.replace("| Gemini CLI | .gemini/rules/ |",
-                                  "| Gemini CLI | ./.gemini/rules/ |")), four)
-    check("E4: the normalised form is not the raw cell of a ./ token",
-          backed(sk=skill.replace("`.gemini/rules/`", "`./.gemini/rules/`")),
-          ["Claude Code", "VS Code", "Copilot CLI"])
-    check("E4: rule_cell_matches trims spaces and backticks",
-          rule_cell_matches(" `.claude/rules/` ", ".claude/rules/"), True)
+        # -- erratum E1, sub-rules 1-4 (ported from v2) -------------------
+        e1_base = ("| id | source | kind | tier | scope | anchor | teaches | status "
+                   "| opened | recheck | used-by |\n"
+                   "| S010 | Base \u2014 https://code.claude.com/docs/en/memory.md "
+                   "| docs | A | s | a | t | mined | 2026-10-22 | 90d | y |\n"
+                   "| S020 | Base \u2014 https://cursor.com/docs/rules.md "
+                   "| docs | A | s | a | paths | mined | 2026-10-22 | 90d | y |\n")
+        e1_rows = sources_table(e1_base)
+        e1_lines = base_line_map(e1_base)
+        memo = "https://code.claude.com/docs/en/memory.md"
 
-    # -- the snapshot: existence, sha256 pin and the quote ----------------
-    check("a missing snapshot is not backed",
-          backed(sn={"S901": snaps["S901"], "S902": snaps["S902"],
-                     "S903": snaps["S903"]}),
-          three)
-    check("a missing snapshot is reported as missing",
-          any("is missing at the revision" in w for w in why_of(
-              "Claude Code", sn={"S901": snaps["S901"]})), True)
-    bumped = dict(snaps)
-    bumped["S900"] = snaps["S900"] + b"\n"
-    check("a snapshot whose sha256 differs is not backed",
-          backed(sn=bumped), three)
-    check("a snapshot sha mismatch is reported as such",
-          any("does not equal the SOURCES row sha256" in w for w in why_of(
-              "Claude Code", sn=bumped)), True)
-    no_sha = sources.replace("sha256 " + hashlib.sha256(snaps["S900"]).hexdigest(),
-                             "sha256 `9a67de89\u2026`", 1)
-    check("a SOURCES row without a full 64-hex sha256 is not backed",
-          backed(so=no_sha), three)
-    no_quote_page = ("<p>The folder is <code>.claude/rules/</code>.</p>\n"
+        def e1_row(teaches: str) -> list[str]:
+            return ["S900", "x", "docs", "A", "s", "a", teaches, "mined",
+                    "2026-10-23", "90d", "y"]
+
+        check("E1 sub-rule 1: an anchored re-open prefix is accepted",
+              reopen_why(e1_row("re-opens S010 \u2014 moved"), memo, "paths",
+                         e1_rows, e1_lines), [])
+        check("E1 sub-rule 1: a plain hyphen is the same separator",
+              reopen_why(e1_row("re-opens S010 - moved"), memo, "paths",
+                         e1_rows, e1_lines), [])
+        check("E1 sub-rule 1: a mid-cell mention is not a re-open",
+              len(reopen_why(e1_row("supersedes S089 \u2014 re-opens S010 \u2014 moved"),
+                             memo, "paths", e1_rows, e1_lines)), 1)
+        check("E1 sub-rule 2: a target that is not a base row rejects",
+              len(reopen_why(e1_row("re-opens S777 \u2014 moved"), memo, "paths",
+                             e1_rows, e1_lines)), 1)
+        check("E1 sub-rule 3: a target whose URL differs rejects",
+              len(reopen_why(e1_row("re-opens S020 \u2014 moved"), memo, "paths",
+                             e1_rows, e1_lines)), 1)
+        check("E1 sub-rule 4: a base row already carrying K rejects",
+              len(reopen_why(e1_row("re-opens S020 \u2014 moved"),
+                             "https://cursor.com/docs/rules.md", "paths",
+                             e1_rows, e1_lines)), 1)
+
+        # -- the fetch policy (v2) ----------------------------------------
+        argv = curl_argv("https://example.com/x")
+        check("curl: the silent follow-redirect flags", argv[1], "-sSL")
+        check("curl: the 30 s cap", (argv[2], argv[3]), ("--max-time", "30"))
+        check("curl: the browser User-Agent", argv[5], CURL_UA)
+        check("curl: the frozen Accept value", CURL_ACCEPT,
+              "text/markdown, text/plain;q=0.9, */*;q=0.8")
+        check("curl: the write-out trailer", argv[9], "\n%{http_code} %{url_effective}")
+        check("fetch: three attempts", FETCH_ATTEMPTS, 3)
+        check("fetch: the five-MiB body bound", MAX_BYTES, 5 * 1024 * 1024)
+        saved_curl = run_curl
+        try:
+            run_curl = lambda url: (201, url, b"x")
+            check("fetch: HTTP 201 is not 200",
+                  _outcome(lambda: fetch("https://code.claude.com/x"))[0], "OSError")
+            run_curl = lambda url: (200, "https://evil.example/x", b"x")
+            check("fetch: a redirect off the pinned hosts fails",
+                  _outcome(lambda: fetch("https://code.claude.com/x",
+                                         HOSTS["Claude Code"]))[0], "OSError")
+            run_curl = lambda url: (200, "https://code.claude.com/docs/en/old.md", b"x")
+            check("E1 sub-rule 5: a redirect to a base SOURCES URL fails",
+                  _outcome(lambda: fetch("https://code.claude.com/x", None,
+                                         {"//code.claude.com/docs/en/old"}))[0],
+                  "OSError")
+            memo = "https://code.claude.com/docs/en/memory.md"
+            own = url_key(memo)
+            base_keys = {own, "//cursor.com/docs/rules"}
+            run_curl = lambda url: (200, memo, b"x")
+            check("E1 sub-rule 5: the row's own base key is accepted",
+                  _outcome(lambda: fetch(memo, None, base_keys, own_key=own)),
+                  ("ok", "x"))
+            run_curl = lambda url: (200, "https://cursor.com/docs/rules.md", b"x")
+            check("E1 sub-rule 5: a redirect to a different base key fails",
+                  _outcome(lambda: fetch(memo, None, base_keys, own_key=own))[0],
+                  "OSError")
+        finally:
+            run_curl = saved_curl
+
+        # -- the world builder -------------------------------------------
+        DATE_DATA = "2026-10-23T09:28:13-03:00"   # literal: r60 data commit 7b80ae8
+        DATE_BASE = "2026-10-22T20:04:43+00:00"   # literal: r53 S043 fetch
+        DATE_OLD = "2026-10-22T20:04:43+00:00"
+
+        def commit_env(date: str) -> dict:
+            return dict(os.environ, GIT_AUTHOR_DATE=date, GIT_COMMITTER_DATE=date,
+                        GIT_AUTHOR_NAME="csr", GIT_AUTHOR_EMAIL="csr@example.invalid",
+                        GIT_COMMITTER_NAME="csr", GIT_COMMITTER_EMAIL="csr@example.invalid")
+
+        def build(base_files, files: dict, base_date: str = DATE_BASE,
+                  measured_date: str = DATE_DATA) -> tuple[Path, str, str]:
+            if isinstance(base_files, str):
+                base_files = {SOURCES: base_files}
+            td = tempfile.mkdtemp(prefix="csr-world-")
+            temps.append(td)
+            repo = Path(td)
+
+            def write(tree: dict) -> None:
+                for rel, data in tree.items():
+                    p = repo / rel
+                    p.parent.mkdir(parents=True, exist_ok=True)
+                    p.write_bytes(data if isinstance(data, bytes) else data.encode())
+
+            def commit(msg: str, date: str) -> str:
+                env = commit_env(date)
+                _self_git("-C", str(repo), "add", "-A", "-f", ".", env=env)
+                _self_git("-C", str(repo), "-c", "commit.gpgsign=false", "commit",
+                          "-q", "--allow-empty", "-m", msg, env=env)
+                return _self_git("-C", str(repo), "rev-parse", "HEAD").stdout.decode().strip()
+
+            _self_git("init", "-q", str(repo))
+            write(base_files)
+            base = commit("base", base_date)
+            write(files)
+            measured = commit("measured", measured_date)
+            return repo, base, measured
+
+        QUOTES = {
+            "S900": ("Rules for larger projects live in a `.claude/rules/` directory "
+                     "and each rule names its files"),
+            "S901": ("VS Code targeted instruction files live in "
+                     "`.github/instructions/**/*.instructions.md` for a workspace"),
+            "S902": ("Copilot CLI reads instruction files from the "
+                     "`.github/instructions/` folder in the repository"),
+            "S903": ("Project rules live in `.cursor/rules` as `.mdc` files and are "
+                     "version-controlled"),
+        }
+        PAGES = {
+            "S900": ("Claude Code scoped rule files\n"
+                     + QUOTES["S900"] + ".\n"
                      "paths:\n"
                      '  - "src/api/**/*.ts"\n'
-                     "Use paths to list the files a rule is about.\n")
-    late = dict(PAGES)
-    late["S900"] = no_quote_page
-    so_late, sn_late = world(late)
-    check("a snapshot that does not carry the quote is not backed",
-          backed(so=so_late, sn=sn_late), three)
-    check("a snapshot without the quote is reported as such",
-          any("the quote is not on the page" in w for w in why_of(
-              "Claude Code", so=so_late, sn=sn_late)), True)
-
-    # -- the Scope key conjunct in the judge (A1) -------------------------
-    check("a scope key on a line with no pattern drops the row",
-          backed(sk=skill.replace("`paths` (S900 :5)",
-                                  "`description` (S900 :4)")), three)
-    check("the no-pattern key is reported with its key and line",
-          any("scope key 'description' is not in key form with a path pattern "
-              "at line 4" in w for w in why_of(
-                  "Claude Code", sk=skill.replace("`paths` (S900 :5)",
-                                                  "`description` (S900 :4)"))),
-          True)
-    desc_pattern = dict(PAGES)
-    desc_pattern["S900"] = page900.replace(
-        "description: how a rule scopes itself",
-        'description: "Applies to **/*.ts"')
-    so_dp, sn_dp = world(desc_pattern)
-    check("a description whose value mentions a pattern still fails",
-          backed(sk=skill.replace("`paths` (S900 :5)",
-                                  "`description` (S900 :4)"),
-                 so=so_dp, sn=sn_dp), three)
-    table_key = dict(PAGES)
-    table_key["S900"] = page900.replace(
-        "description: how a rule scopes itself",
-        "| `alwaysApply` | `description` | `globs` |")
-    so_tk, sn_tk = world(table_key)
-    check("the Cursor table-cell line is not a key form for description",
-          backed(sk=skill.replace("`paths` (S900 :5)",
-                                  "`description` (S900 :4)"),
-                 so=so_tk, sn=sn_tk), three)
-    check("the Cursor table-cell line is not a key form for alwaysApply",
-          backed(sk=skill.replace("`paths` (S900 :5)",
-                                  "`alwaysApply` (S900 :4)"),
-                 so=so_tk, sn=sn_tk), three)
-    ident_page = dict(PAGES)
-    ident_page["S900"] = page900.replace("paths:", "xpaths:", 1)
-    so_id, sn_id = world(ident_page)
-    check("a key only inside a longer identifier drops the row",
-          backed(so=so_id, sn=sn_id), three)
-    check("an off-by-one citation to a line without the key drops the row",
-          backed(sk=skill.replace("`paths` (S900 :5)", "`paths` (S900 :6)")), three)
-    check("the off-by-one is reported at the cited line",
-          any("scope key 'paths' is not in key form with a path pattern at "
-              "line 6" in w for w in why_of(
-                  "Claude Code", sk=skill.replace("`paths` (S900 :5)",
-                                                  "`paths` (S900 :6)"))), True)
-    block_ok = ("Rules for Claude Code\n"
-                + page900.splitlines()[1] + "\n"
-                "---\n"
-                "description: how a rule scopes itself\n"
-                "paths:\n"
-                '  - "src/api/**/*.ts"\n'
-                "---\n"
-                "Use paths to list the files a rule is about.\n")
-    block_far = ("Rules for Claude Code\n"
-                 + page900.splitlines()[1] + "\n"
-                 "---\n"
-                 "description: how a rule scopes itself\n"
-                 "paths:\n"
-                 "\n"
-                 "\n"
-                 "Use paths to list the files a rule is about.\n"
-                 "\n"
-                 "---\n"
-                 '  - "src/api/**/*.ts"\n')
-    so_bo, sn_bo = world({**PAGES, "S900": block_ok})
-    so_bf, sn_bf = world({**PAGES, "S900": block_far})
-    check("a block value two lines down backs in the judge",
-          backed(so=so_bo, sn=sn_bo), four)
-    check("a block value four lines down drops the row",
-          backed(so=so_bf, sn=sn_bf), three)
-    check("a scope key citing another row's source is not backed",
-          backed(sk=skill.replace("`paths` (S900 :5)", "`paths` (S901 :5)")),
-          three)
-    check("a scope key with no citation is not backed",
-          backed(sk=skill.replace("`paths` (S900 :5)", "`paths`")), three)
-    check("an action citing another row's source is not backed",
-          backed(sk=skill.replace("(S900 :8)", "(S901 :8)")), three)
-    check("an action with no citation is not backed",
-          backed(sk=skill.replace("Name the paths a rule applies to (S900 :8)",
-                                  "Name the paths a rule applies to")), three)
-    check("an action on a citation line out of range is not backed",
-          backed(sk=skill.replace("(S900 :8)", "(S900 :88)")), three)
-
-    # -- the Action conjunct in the judge (A1) -----------------------------
-    one_word = "Name the entries a rule has (S900 :8)"
-    check("an action sharing one content word is not backed",
-          backed(sk=skill.replace("Name the paths a rule applies to (S900 :8)",
-                                  one_word)), three)
-    check("the action shortfall is reported with its counts",
-          any("action cell shares 1 of its 3 content word(s) with line 8 "
-              "(need >= 2)" in w for w in why_of(
-                  "Claude Code",
-                  sk=skill.replace("Name the paths a rule applies to (S900 :8)",
-                                   one_word))), True)
-    thin = "Use paths entries (S900 :8)"
-    check("an action with two content words is not backed",
-          backed(sk=skill.replace("Name the paths a rule applies to (S900 :8)",
-                                  thin)), three)
-    check("the thin action is reported with its count",
-          any("action cell holds 2 distinct content word(s) (need >= 3)" in w
-              for w in why_of(
-                  "Claude Code",
-                  sk=skill.replace("Name the paths a rule applies to (S900 :8)",
-                                   thin))), True)
-    longer = "Name the paths a rule applies to the listed entries (S900 :8)"
-    check("a longer action needs half of its words, not two",
-          backed(sk=skill.replace("Name the paths a rule applies to (S900 :8)",
-                                  longer)), three)
-    check("the half threshold is reported with its counts",
-          any("action cell shares 2 of its 6 content word(s) with line 8 "
-              "(need >= 3)" in w for w in why_of(
-                  "Claude Code",
-                  sk=skill.replace("Name the paths a rule applies to (S900 :8)",
-                                   longer))), True)
-    check("action need: 3 content words need 2", action_need(3), 2)
-    check("action need: 4 content words need 2", action_need(4), 2)
-    check("action need: 5 content words need 3", action_need(5), 3)
-    check("action need: 6 content words need 3", action_need(6), 3)
-    check("action need: 7 content words need 4", action_need(7), 4)
-    check("action: one shared word fails",
-          action_conjunct(["Scope a rule to the files it covers."],
-                          "Name the paths a rule uses (S900 :1)", 1),
-          ["action cell shares 1 of its 4 content word(s) with line 1 "
-           "(need >= 2)"])
-    check("action: two shared words pass",
-          action_conjunct(["Scope a rule to the files it covers."],
-                          "Scope a rule with pattern support (S900 :1)", 1), [])
-    check("action: content words drop backticks, citations and stopwords",
-          content_words("Scope `the` rule (S900 :3) with every file"),
-          {"scope", "rule", "file"})
-    check("action: an uppercase word is compared lowercased",
-          content_words("SCOPE RULE"), {"scope", "rule"})
-    check("action: a word under four letters is not a content word",
-          content_words("use the api"), set())
-
-    # -- erratum E1: a base-keyed URL may be re-opened (v2) ----------------
-    ro_sources, ro_snaps = ro()
-
-    def ro_arm(teaches=None) -> list[str]:
-        so, sn = ro(teaches)
-        return backed(so=so, sn=sn, ba=base_reopen)
-
-    check("v2: a base URL re-opened by its base id backs", ro_arm(), four)
-    two = ["VS Code", "Copilot CLI"]
-    check("v2: base URLs without the re-open prefix are not backed",
-          backed(ba=base_reopen), two)
-    check("v2: the missing re-open is named",
-          any("re-open names no base row with this URL" in w for w in why_of(
-              "Claude Code", ba=base_reopen)), True)
-    check("v2: the re-open prefix is a prefix, not a mention mid-cell",
-          ro_arm({"S900": "supersedes S089 \u2014 re-opens S020 \u2014 moved"}),
-          three)
-    check("v2: a re-open naming a base row whose URL differs is not backed",
-          ro_arm({"S900": "re-opens S001 \u2014 moved"}), three)
-    so_c, sn_c = ro({"S900": "re-opens S022 \u2014 moved"})
-    check("v2: a re-open whose base row line already holds K is not backed",
-          backed(so=so_c, sn=sn_c, ba=base_reopen), three)
-    check("v2: the key collision is named",
-          any("base row S022 already records key paths" in w for w in why_of(
-              "Claude Code", so=so_c, sn=sn_c, ba=base_reopen)), True)
-    check("v2: a re-open naming a non-base id is not backed",
-          ro_arm({"S900": "re-opens S777 \u2014 moved"}), three)
-    check("v2: a plain hyphen is the same re-open separator",
-          ro_arm({"S900": "re-opens S020 - moved"}), four)
-
-    # -- fetch: the frozen invocation and its policy -----------------------
-    argv = curl_argv("https://example.com/x")
-    check("curl: the silent follow-redirect flags", argv[1], "-sSL")
-    check("curl: the 30 s cap", (argv[2], argv[3]), ("--max-time", "30"))
-    check("curl: the browser User-Agent", argv[5], CURL_UA)
-    check("curl: the User-Agent is a browser, not a bot",
-          CURL_UA.startswith("Mozilla/5.0"), True)
-    check("curl: the Accept header", argv[7], "Accept: " + CURL_ACCEPT)
-    check("curl: the frozen Accept value", CURL_ACCEPT,
-          "text/markdown, text/plain;q=0.9, */*;q=0.8")
-    check("curl: the write-out trailer", argv[9], "\n%{http_code} %{url_effective}")
-    check("curl: the URL is the last argument", argv[-1], "https://example.com/x")
-    check("fetch: three attempts", FETCH_ATTEMPTS, 3)
-    check("fetch: 30 s per attempt", FETCH_TIMEOUT, 30)
-    check("fetch: the five-MiB body bound", MAX_BYTES, 5 * 1024 * 1024)
-    saved_curl = run_curl
-    try:
-        run_curl = lambda url: (201, url, b"x")
-        check("fetch: HTTP 201 is not 200",
-              _outcome(lambda: fetch("https://code.claude.com/x"))[0], "OSError")
-        run_curl = lambda url: (200, "https://evil.example/x", b"x")
-        check("fetch: a redirect off the pinned hosts fails",
-              _outcome(lambda: fetch("https://code.claude.com/x",
-                                     HOSTS["Claude Code"]))[0], "OSError")
-        run_curl = lambda url: (200, "https://code.claude.com/docs/en/old.md", b"x")
-        check("fetch: a redirect to a base SOURCES URL fails",
-              _outcome(lambda: fetch("https://code.claude.com/x", None,
-                                     {"//code.claude.com/docs/en/old"}))[0],
-              "OSError")
-        run_curl = lambda url: (200, "https://code.claude.com/docs/CHANGELOG.md", b"x")
-        check("fetch: a change-note redirect fails",
-              _outcome(lambda: fetch("https://code.claude.com/x"))[0], "OSError")
-        calls = []
-
-        def flaky(url):
-            calls.append(url)
-            if len(calls) == 1:
-                raise OSError("curl exited 6")
-            return 200, url, b"page"
-
-        run_curl = flaky
-        check("fetch: a transient failure is retried",
-              _outcome(lambda: fetch("https://code.claude.com/x")), ("ok", "page"))
-        check("fetch: the retry took two calls", len(calls), 2)
-        saved_max = MAX_BYTES
-        MAX_BYTES = 3
-        run_curl = lambda url: (200, url, b"four")
-        check("fetch: a body over the byte bound fails",
-              _outcome(lambda: fetch("https://code.claude.com/x"))[0], "OSError")
-        MAX_BYTES = saved_max
-    finally:
-        run_curl = saved_curl
-
-    # -- erratum E1: the live fetch accepts only the row's own base key ----
-    saved_curl = run_curl
-    try:
-        memo = "https://code.claude.com/docs/en/memory.md"
-        own = url_key(memo)
-        base_keys = {own, "//cursor.com/docs/rules"}
-        run_curl = lambda url: (200, memo, b"x")
-        check("fetch v2: the row's own re-opened base key is accepted",
-              _outcome(lambda: fetch(memo, None, base_keys, own_key=own)),
-              ("ok", "x"))
-        run_curl = lambda url: (200, "https://cursor.com/docs/rules.md", b"x")
-        check("fetch v2: a redirect to a different base key fails",
-              _outcome(lambda: fetch(memo, None, base_keys, own_key=own))[0],
-              "OSError")
-        run_curl = lambda url: (200, "https://example.com/x", b"x")
-        check("fetch v2: a non-base final URL is still accepted",
-              _outcome(lambda: fetch(memo, None, base_keys, own_key=own)),
-              ("ok", "x"))
-    finally:
-        run_curl = saved_curl
-
-    # -- the counter's own sha256 -----------------------------------------
-    own = Path(__file__).read_bytes()
-    check("the own sha256 is 64 hex", len(self_sha()), 64)
-    check("the own sha256 is the sha256 of this file",
-          self_sha(), hashlib.sha256(own).hexdigest())
-
-    # -- a SUCCESSFUL end-to-end main() path (round-57 R4 / lesson M71) ----
-    with tempfile.TemporaryDirectory(prefix="csr-main-") as td:
-        repo = Path(td)
-        (repo / "corpus" / "knowledge").mkdir(parents=True)
-        (repo / "corpus" / "lessons").mkdir(parents=True)
-        (repo / SNAPSHOT_DIR).mkdir(parents=True)
-        (repo / "corpus" / "SOURCES.md").write_text(
-            "| id | source | kind | tier | scope | anchor | teaches | status "
-            "| opened | recheck | used-by |\n", encoding="utf-8")
-        _self_git("init", "-q", str(repo))
-        _self_git("-C", str(repo), "add", "-A", "-f", ".")
-        _self_git("-C", str(repo), "-c", "user.name=c", "-c", "user.email=c@e",
-                  "commit", "-q", "-m", "base")
-        base_sha = _self_git("-C", str(repo), "rev-parse",
-                             "HEAD").stdout.decode().strip()
-        (repo / "SKILL.md").write_text(skill, encoding="utf-8")
-        (repo / "corpus" / "knowledge" / "scoped-rules-round60.md").write_text(
-            entry, encoding="utf-8")
-        (repo / "corpus" / "SOURCES.md").write_text(sources, encoding="utf-8")
-        (repo / "corpus" / "lessons" / "round-60.md").write_text(
-            lesson, encoding="utf-8")
-        for sid, data in snaps.items():
-            (repo / SNAPSHOT_DIR / (sid + ".page")).write_bytes(data)
-        _self_git("-C", str(repo), "add", "-A", "-f", ".")
-        _self_git("-C", str(repo), "-c", "user.name=c", "-c", "user.email=c@e",
-                  "commit", "-q", "-m", "measured")
-        measured = _self_git("-C", str(repo), "rev-parse",
-                             "HEAD").stdout.decode().strip()
-        good_line = ("scoped rule files backed on committed snapshots 4 of 4; "
-                     "found on the live page 4 of 4")
-        nofetch_line = ("scoped rule files backed on committed snapshots 4 of 4; "
-                        "live not run")
-        live_pages = {URLS[sid]: PAGES[sid] for sid in PAGES}
-
-        def live_ok(url: str) -> tuple[int, str, bytes]:
-            return 200, url, live_pages[url].encode()
-
-        def live_404(url: str) -> tuple[int, str, bytes]:
-            return 404, url, b"not found"
-
-        def live_down(url: str) -> tuple[int, str, bytes]:
-            raise OSError("curl exited 6")
-
-        def live_nokey(url: str) -> tuple[int, str, bytes]:
-            if url == URLS["S900"]:
-                return 200, url, page900.replace(
-                    '  - "src/api/**/*.ts"', "  - the api folder").encode()
-            return 200, url, live_pages[url].encode()
-
-        saved = (BASE, TARGET, lane_dir, run_curl)
-        try:
-            BASE, TARGET = base_sha, 4
-            lane_dir = lambda: repo
-            check("verify_rev accepts a real commit",
-                  _outcome(lambda: verify_rev(repo, measured))[0], "ok")
-            check("verify_rev rejects an unknown revision",
-                  _outcome(lambda: verify_rev(repo, "0" * 40))[0], "EnvError")
-            check("git_show reads a tracked file",
-                  git_show(repo, measured, "SKILL.md"), skill)
-            check("git_show returns None for a missing path",
-                  git_show(repo, measured, "nope.md"), None)
-            check("git_show_bytes reads the committed bytes",
-                  git_show_bytes(repo, measured, snapshot_path("S900")),
-                  snaps["S900"])
-            run_curl = live_ok
-            out = io.StringIO()
-            with contextlib.redirect_stdout(out):
-                code = main(["--rev", measured, "--fetch"])
-            lines = out.getvalue().splitlines()
-            check("main: the satisfying world exits 0", code, 0)
-            check("main: the exact summary line is the first line",
-                  lines[0], good_line)
-            check("main: the second line names the counter and the rev",
-                  lines[1], "counter sha256 %s; rev %s" % (self_sha(), measured))
-            check("main: no reject line for a found row",
-                  [l for l in lines
-                   if any(l.startswith("reject " + c + ":") for c in four)], [])
-            (repo / SNAPSHOT_DIR / "S900.page").write_bytes(b"working tree junk\n")
-            out = io.StringIO()
-            with contextlib.redirect_stdout(out):
-                code = main(["--rev", measured, "--fetch"])
-            check("main: a divergent working tree does not substitute (M09)",
-                  (code, out.getvalue().splitlines()[0]), (0, good_line))
-            run_curl = live_nokey
-            out = io.StringIO()
-            with contextlib.redirect_stdout(out):
-                code = main(["--rev", measured, "--fetch"])
-            lines = out.getvalue().splitlines()
-            check("main: a live page without the key site drops F, not S",
-                  (code, lines[0]),
-                  (1, "scoped rule files backed on committed snapshots 4 of 4; "
-                      "found on the live page 3 of 4"))
-            check("main: the live key failure is named",
-                  "reject Claude Code: live page: no key-form site for 'paths' "
-                  "on the page" in lines, True)
-            TARGET = 3
-            out = io.StringIO()
-            with contextlib.redirect_stdout(out):
-                code = main(["--rev", measured, "--fetch"])
-            check("main: the same 3 of 4 meets a target of 3", code, 0)
-            TARGET = 4
-            run_curl = live_404
-            out = io.StringIO()
-            with contextlib.redirect_stdout(out):
-                code = main(["--rev", measured, "--fetch"])
-            lines = out.getvalue().splitlines()
-            check("main: an HTTP 404 drops F to 0 and exits 1", code, 1)
-            check("main: an HTTP 404 keeps S at 4 and F at 0", lines[0],
-                  "scoped rule files backed on committed snapshots 4 of 4; "
-                  "found on the live page 0 of 4")
-            check("main: the 404 is reported on the reject line",
-                  "reject Claude Code: live fetch failed: HTTP 404 at "
-                  + URLS["S900"] in lines, True)
-            run_curl = live_down
-            out = io.StringIO()
-            with contextlib.redirect_stdout(out):
-                code = main(["--rev", measured, "--fetch"])
-            lines = out.getvalue().splitlines()
-            check("a curl failure drops F while S holds", code, 1)
-            check("a curl failure keeps S at 4 and F at 0", lines[0],
-                  "scoped rule files backed on committed snapshots 4 of 4; "
-                  "found on the live page 0 of 4")
-            check("a curl failure names the backed rows",
-                  ("reject Claude Code: live fetch failed: curl exited 6" in lines,
-                   "reject Copilot CLI: live fetch failed: curl exited 6" in lines),
-                  (True, True))
-            run_curl = live_ok
-            TARGET = None
-            out = io.StringIO()
-            with contextlib.redirect_stdout(out):
-                got = _outcome(lambda: main(["--rev", measured, "--fetch"]))
-            lines = out.getvalue().splitlines()
-            check("the unfrozen sentinel is a 1, never a 0", got, ("ok", 1))
-            check("the unfrozen sentinel still prints the summary",
-                  lines[0], good_line)
-            check("the unfrozen sentinel is named",
-                  "target not frozen" in lines, True)
-            TARGET = 4
-            out = io.StringIO()
-            with contextlib.redirect_stdout(out):
-                code = main(["--rev", measured])
-            lines = out.getvalue().splitlines()
-            check("without --fetch the summary reads 'live not run'",
-                  lines[0], nofetch_line)
-            check("without --fetch the predicate is 1", code, 1)
-            check("without --fetch a backed row is not rejected",
-                  [l for l in lines
-                   if any(l.startswith("reject " + c + ":") for c in four)], [])
-            out, err = io.StringIO(), io.StringIO()
-            with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
-                code = main(["--rev", base_sha, "--fetch"])
-            check("a revision without SKILL.md exits 2", code, 2)
-            check("a revision without SKILL.md is named",
-                  "SKILL.md is missing" in err.getvalue(), True)
-            # the working-tree junk must not ride into the broken commit: the
-            # only difference there is the Gate line
-            (repo / SNAPSHOT_DIR / "S900.page").write_bytes(snaps["S900"])
-            (repo / "corpus" / "lessons" / "round-60.md").write_text(
-                lesson.replace(quote900, "Rule files live elsewhere"),
-                encoding="utf-8")
-            _self_git("-C", str(repo), "add", "-A", "-f", ".")
-            _self_git("-C", str(repo), "-c", "user.name=c", "-c", "user.email=c@e",
-                      "commit", "-q", "-m", "broken")
-            broken = _self_git("-C", str(repo), "rev-parse",
-                               "HEAD").stdout.decode().strip()
-            out = io.StringIO()
-            with contextlib.redirect_stdout(out):
-                code = main(["--rev", broken, "--fetch"])
-            lines = out.getvalue().splitlines()
-            check("the broken world exits 1", code, 1)
-            check("the broken world prints the three-of-four line", lines[0],
-                  "scoped rule files backed on committed snapshots 3 of 4; "
-                  "found on the live page 3 of 4")
-            check("the broken world names the Gate on the reject line",
-                  "reject Claude Code: entry row S900: round-60 Gate does not "
-                  "record this quote" in lines, True)
-        finally:
-            BASE, TARGET, lane_dir, run_curl = saved
-
-    # -- erratum E1: a successful end-to-end main() with two re-opens ------
-    main_skill = "".join(l + "\n" for l in skill.splitlines()
-                         if "Copilot CLI" not in l)
-    main_entry = "".join(l + "\n" for l in entry.splitlines()
-                         if "Copilot CLI" not in l)
-    main_lesson = "".join(l + "\n" for l in lesson.splitlines()
-                          if quote903 not in l)
-    three_of = ["Claude Code", "Gemini CLI", "VS Code"]
-    check("v2 fixture: two of the three measured rows are re-opens",
-          sum(1 for sid in ("S900", "S901", "S902")
-              if "re-opens" in REOPENS.get(sid, "")), 2)
-    with tempfile.TemporaryDirectory(prefix="csr-v2-main-") as td:
-        repo = Path(td)
-        (repo / "corpus" / "knowledge").mkdir(parents=True)
-        (repo / "corpus" / "lessons").mkdir(parents=True)
-        (repo / SNAPSHOT_DIR).mkdir(parents=True)
-        header = ("| id | source | kind | tier | scope | anchor | teaches | status "
+                     "Scope rules to specific files using YAML frontmatter; apply "
+                     "only when matching specified patterns.\n"),
+            "S901": ("VS Code targeted instruction files\n"
+                     + QUOTES["S901"] + ".\n"
+                     "applyTo: '**/*.py'\n"
+                     "Use multiple instruction files per topic and apply them "
+                     "selectively.\n"),
+            "S902": ("Copilot CLI modular instruction files\n"
+                     + QUOTES["S902"] + ".\n"
+                     'applyTo: "app/models/**/*.rb"\n'
+                     "Create a path-specific instruction file with an `applyTo` "
+                     "glob; use glob syntax to specify the files or directories "
+                     "the instructions apply to.\n"),
+            "S903": ("Cursor project rules\n"
+                     + QUOTES["S903"] + ".\n"
+                     "globs: src/components/**/*.tsx\n"
+                     "Use `globs` to scope a rule to specific files or directories. "
+                     "Separate multiple patterns with commas.\n"),
+        }
+        ACTIONS = {
+            "S900": ("Scope rules to specific files using YAML frontmatter; apply "
+                     "only when matching specified patterns."),
+            "S901": "Use multiple instruction files per topic and apply them selectively.",
+            "S902": ("Create a path-specific instruction file with an `applyTo` glob; "
+                     "use glob syntax to specify the files or directories the "
+                     "instructions apply to."),
+            "S903": ("Use `globs` to scope a rule to specific files or directories. "
+                     "Separate multiple patterns with commas."),
+        }
+        TOKENS = {"S900": ".claude/rules/",
+                  "S901": ".github/instructions/**/*.instructions.md",
+                  "S902": ".github/instructions/",
+                  "S903": ".cursor/rules"}
+        CLIENTS_OF = {"S900": "Claude Code", "S901": "VS Code",
+                      "S902": "Copilot CLI", "S903": "Cursor"}
+        URLS = {"S900": "https://code.claude.com/docs/en/memory.md",
+                "S901": ("https://code.visualstudio.com/docs/agent-customization/"
+                         "custom-instructions.md"),
+                "S902": ("https://docs.github.com/en/copilot/how-tos/copilot-cli/"
+                         "customize-copilot/add-custom-instructions.md"),
+                "S903": "https://cursor.com/docs/rules"}
+        BASE_URLS = {"S900": URLS["S900"], "S902": URLS["S902"],
+                     "S903": "https://cursor.com/docs/rules.md"}
+        KEYS = {"S900": "paths", "S901": "applyTo", "S902": "applyTo", "S903": "globs"}
+        REOPENS = {"S900": "S010", "S902": "S011", "S903": "S012"}
+        DECLS = {
+            "S112": ("Claude Code", "paths", URLS["S900"]),
+            "S113": ("VS Code", "applyTo", URLS["S901"]),
+            "S114": ("Copilot CLI", "applyTo", URLS["S902"]),
+            "S115": ("Cursor", "globs", URLS["S903"]),
+        }
+        HEADER = ("| id | source | kind | tier | scope | anchor | teaches | status "
                   "| opened | recheck | used-by |\n")
-        (repo / "corpus" / "SOURCES.md").write_text(header + base_reopen,
-                                                    encoding="utf-8")
-        _self_git("init", "-q", str(repo))
-        _self_git("-C", str(repo), "add", "-A", "-f", ".")
-        _self_git("-C", str(repo), "-c", "user.name=c", "-c", "user.email=c@e",
-                  "commit", "-q", "-m", "base")
-        base_sha = _self_git("-C", str(repo), "rev-parse",
-                             "HEAD").stdout.decode().strip()
-        (repo / "SKILL.md").write_text(main_skill, encoding="utf-8")
-        (repo / "corpus" / "knowledge" / "scoped-rules-round60.md").write_text(
-            main_entry, encoding="utf-8")
-        (repo / "corpus" / "SOURCES.md").write_text(
-            header + base_reopen + ro_sources, encoding="utf-8")
-        (repo / "corpus" / "lessons" / "round-60.md").write_text(
-            main_lesson, encoding="utf-8")
-        for sid, data in ro_snaps.items():
-            (repo / SNAPSHOT_DIR / (sid + ".page")).write_bytes(data)
-        _self_git("-C", str(repo), "add", "-A", "-f", ".")
-        _self_git("-C", str(repo), "-c", "user.name=c", "-c", "user.email=c@e",
-                  "commit", "-q", "-m", "measured")
-        measured = _self_git("-C", str(repo), "rev-parse",
-                             "HEAD").stdout.decode().strip()
-        live_pages = {URLS[sid]: PAGES[sid] for sid in PAGES}
 
-        def live_ok2(url: str) -> tuple[int, str, bytes]:
-            return 200, url, live_pages[url].encode()
+        def base_rows(extra: str = "") -> str:
+            rows = HEADER
+            for sid, url in BASE_URLS.items():
+                rows += ("| %s | Base doc \u2014 %s | docs | A | s | sha256 "
+                         "`abcdef12\u2026` | t | mined | 2026-10-22 | 90d | y |\n"
+                         % (sid.replace("900", "010").replace("902", "011")
+                            .replace("903", "012"), url))
+            return rows + extra
 
-        saved = (BASE, TARGET, lane_dir, run_curl)
-        try:
-            BASE, TARGET = base_sha, 3
-            lane_dir = lambda: repo
-            run_curl = live_ok2
+        def sources_text(key: dict | None = None, teaches: dict | None = None,
+                         decls: bool = True, urls: dict | None = None,
+                         pages: dict | None = None) -> str:
+            t = dict(REOPENS if teaches is None else teaches)
+            u = dict(URLS if urls is None else urls)
+            pg = dict(PAGES if pages is None else pages)
+            out = HEADER
+            for sid in ("S900", "S901", "S902", "S903"):
+                cell = t.get(sid)
+                teach = ("re-opens %s \u2014 the article this row re-reads" % cell
+                         if cell else "the client documents its scoped rule files")
+                sha = hashlib.sha256(pg[sid].encode()).hexdigest()
+                out += ("| %s | %s docs \u2014 %s | docs | A | %s | \u00a7 (%s.page:2); "
+                        "sha256 %s | %s | mined | 2026-10-23 | 90d | %s |\n"
+                        % (sid, CLIENTS_OF[sid], u[sid], CLIENTS_OF[sid], sid, sha,
+                           teach, ENTRY))
+            if decls:
+                for sid, (client, key_name, url) in DECLS.items():
+                    out += ("| %s | %s docs \u2014 %s | docs | A | %s rule key | "
+                            "\u00a7 (%s:1) | scope-key[%s]=%s | mined | 2026-10-23 "
+                            "| 90d | %s |\n"
+                            % (sid, client, url, client, sid, client, key_name, ENTRY))
+            return out
+
+        def skill_text(scope: dict | None = None, action: dict | None = None,
+                       lines: dict | None = None) -> str:
+            k = dict(KEYS if scope is None else scope)
+            a = dict(ACTIONS if action is None else action)
+            ln = dict(lines or {})
+            out = ("# x\n\n" + SKILL_HEADING + "\n\n"
+                   "| Client | Rule files | Scope key | Action |\n"
+                   "|---|---|---|---|\n")
+            for sid in ("S900", "S901", "S902", "S903"):
+                scope_line, action_line = ln.get(
+                    sid, (3, 5 if sid == "S900" else 4))
+                out += ("| %s | `%s` (S%s :2) | `%s` (S%s :%d) | %s (S%s :%d) |\n"
+                        % (CLIENTS_OF[sid], TOKENS[sid], sid, k[sid], sid,
+                           scope_line, a[sid], sid, action_line))
+            return out
+
+        def entry_text() -> str:
+            out = ("# e\n\n| Client | Rule files | Source | Quote |\n"
+                   "|---|---|---|---|\n")
+            for sid in ("S900", "S901", "S902", "S903"):
+                out += '| %s | %s | %s | "%s" |\n' % (CLIENTS_OF[sid],
+                                                      TOKENS[sid], sid, QUOTES[sid])
+            return out
+
+        def lesson_text() -> str:
+            out = ("## Gate\n\n| row | URL | quote |\n|---|---|---|\n")
+            for sid in ("S900", "S901", "S902", "S903"):
+                out += '| %s | %s | "%s" |\n' % (sid, URLS[sid], QUOTES[sid])
+            return out
+
+        def files(**kw) -> dict:
+            pages = kw.get("pages") or PAGES
+            d = {"SKILL.md": skill_text(**{k: v for k, v in kw.items()
+                                           if k in ("scope", "action", "lines")}),
+                 SOURCES: sources_text(**{k: v for k, v in kw.items()
+                                          if k in ("key", "teaches", "decls",
+                                                   "urls")}, pages=pages),
+                 ENTRY: entry_text(),
+                 LESSON: lesson_text()}
+            for sid, body in pages.items():
+                d[snapshot_path(sid)] = body
+            return d
+
+        def live_of(override: dict | None = None) -> dict:
+            got = {u: (200, u, PAGES[sid].encode()) for sid, u in URLS.items()}
+            for url, value in (override or {}).items():
+                got[url] = value
+            return got
+
+        def score(repo: Path, base: str, rev: str,
+                  live: dict) -> tuple[list[dict], dict[str, bool]]:
+            saved = {k: globals()[k]
+                     for k in ("BASE", "TARGET", "lane_dir", "run_curl")}
+            found: dict[str, bool] = {}
+            try:
+                globals()["BASE"] = base
+                globals()["lane_dir"] = lambda: repo
+                globals()["run_curl"] = (
+                    lambda url: live.get(url, (404, url, b"not found")))
+                skill = git_show(repo, rev, SKILL) or ""
+                entry = git_show(repo, rev, ENTRY) or ""
+                sources = git_show(repo, rev, SOURCES) or ""
+                lesson = git_show(repo, rev, LESSON) or ""
+                base_sources = git_show(repo, base, SOURCES) or ""
+                report = judge(skill, entry, sources, lesson, base_sources,
+                               snapshot_of=lambda sid: git_show_bytes(
+                                   repo, rev, snapshot_path(sid)),
+                               intro_of=lambda sid: snapshot_intro(repo, rev, sid))
+                keys_live = base_url_keys(base_sources)
+                for r in report:
+                    if not r["backed"]:
+                        found[r["client"]] = False
+                        continue
+                    try:
+                        page = fetch(r["url"], HOSTS[r["client"]], keys_live,
+                                     own_key=url_key(r["url"]))
+                        found[r["client"]] = not live_why(page, r["quote"], r["key"])
+                    except Exception:
+                        found[r["client"]] = False
+            finally:
+                for key, value in saved.items():
+                    globals()[key] = value
+            return report, found
+
+        def cli(repo: Path, base: str, rev: str, live: dict,
+                target: int) -> tuple[int, list[str]]:
+            saved = {k: globals()[k]
+                     for k in ("BASE", "TARGET", "lane_dir", "run_curl")}
             out = io.StringIO()
-            with contextlib.redirect_stdout(out):
-                code = main(["--rev", measured, "--fetch"])
-            lines = out.getvalue().splitlines()
-            check("v2 main: 3 of 3 found with 2 re-opens exits 0", code, 0)
-            check("v2 main: the exact summary line names 3 of 3", lines[0],
-                  "scoped rule files backed on committed snapshots 3 of 3; "
-                  "found on the live page 3 of 3")
-            check("v2 main: no reject line for the three measured clients",
-                  [l for l in lines
-                   if any(l.startswith("reject " + c + ":") for c in three_of)], [])
-        finally:
-            BASE, TARGET, lane_dir, run_curl = saved
+            try:
+                globals()["BASE"] = base
+                globals()["TARGET"] = target
+                globals()["lane_dir"] = lambda: repo
+                globals()["run_curl"] = (
+                    lambda url: live.get(url, (404, url, b"not found")))
+                with contextlib.redirect_stdout(out):
+                    code = main(["--rev", rev, "--fetch"])
+            finally:
+                for key, value in saved.items():
+                    globals()[key] = value
+            return code, out.getvalue().splitlines()
 
-    print("self-test: %d failure(s) over %d assertions" % (failures, assertions))
-    return 1 if failures else 0
+        FOUR = ("Claude Code", "VS Code", "Copilot CLI", "Cursor")
+
+        def backed_of(report: list[dict]) -> list[str]:
+            return sorted(r["client"] for r in report if r["backed"])
+
+        # -- the eligible world: the four counted rows pass ---------------
+        repo, base, rev = build(base_rows(), files())
+        report, found = score(repo, base, rev, live_of())
+        check("eligible world: the four counted rows are backed", backed_of(report),
+              sorted(FOUR))
+        check("eligible world: the four counted rows are found live",
+              [found[c] for c in FOUR], [True, True, True, True])
+        check("eligible world: the base revision has no canonical key rows",
+              canonical_scope_keys(git_show(repo, base, SOURCES) or ""), {})
+        code, lines = cli(repo, base, rev, live_of(), 4)
+        check("eligible world: the CLI exits 0 at a target of 4", code, 0)
+        check("eligible world: the summary line is the v2 one",
+              lines[0], "scoped rule files backed on committed snapshots 4 of 4; "
+                        "found on the live page 4 of 4")
+        eligible_pass = sum(1 for c in FOUR if found[c])
+
+        # -- the seven worlds, each a must-reject fixture -----------------
+        worlds: list[tuple[str, str, bool]] = []
+
+        def arm_of(reasons: list[str]) -> str:
+            """The arm/rule that fired, from the structured reason prefixes."""
+            for reason in reasons:
+                for tag in ("A1:", "A2:", "A3:", "A4:"):
+                    if tag in reason:
+                        return tag[:2]
+            if any("live fetch" in r or "live page" in r or "reached a base" in r
+                   for r in reasons):
+                return "live"
+            return "other"
+
+        def run_world(tag: str, client: str, base_tree, tree: dict,
+                      live: dict | None = None) -> None:
+            repo, base, rev = build(base_tree, tree)
+            rep, fnd = score(repo, base, rev, live if live is not None else live_of())
+            row = {r["client"]: r for r in rep}[client]
+            rejected = not (row["backed"] and fnd.get(client, False))
+            reasons = row["why"] if row["why"] else ["live page: not found"]
+            check("world %s: the mutated row is rejected" % tag, rejected, True)
+            print("world %s: %s reject=%s arm=%s line=%r"
+                  % (tag, client, rejected, arm_of(reasons), reasons[0][:150]))
+            worlds.append((tag, client, rejected))
+
+        # W1: bytes whose full sha the base table already records (A4(iv)).
+        w1_sha = hashlib.sha256(PAGES["S900"].encode()).hexdigest()
+        w1_base = HEADER + ("| S010 | Base doc \u2014 %s | docs | A | s | sha256 %s "
+                            "| t | mined | 2026-10-22 | 90d | y |\n"
+                            % (URLS["S900"], w1_sha)) + \
+            ("| S011 | Base doc \u2014 %s | docs | A | s | sha256 `abcdef12\u2026` "
+             "| t | mined | 2026-10-22 | 90d | y |\n" % URLS["S902"]) + \
+            ("| S012 | Base doc \u2014 %s | docs | A | s | sha256 `abcdef12\u2026` "
+             "| t | mined | 2026-10-22 | 90d | y |\n"
+             % "https://cursor.com/docs/rules.md")
+        run_world("W1", "Claude Code", w1_base, files())
+
+        # W2: a fresh row whose URL is a locale rendering of a held URL (A3b).
+        w2_url = "https://code.claude.com/docs/de/memory.md"
+        run_world("W2", "Claude Code", base_rows(),
+                  files(teaches={"S900": None}, urls={**URLS, "S900": w2_url}))
+
+        # W3: a non-canonical key that still binds a path value (A1).
+        w3_pages = dict(PAGES)
+        w3_pages["S903"] = PAGES["S903"] + 'rules: "src/*.mdc"\n'
+        run_world("W3", "Cursor", base_rows(),
+                  files(scope={**KEYS, "S903": "rules"}, pages=w3_pages,
+                        lines={"S903": (6, 4)}))
+
+        # W4: the live page redirects to a different base row's key (E1 live).
+        w4_url = "https://cursor.com/docs/context/rules"
+        w4_live = live_of()
+        w4_live[w4_url] = (200, "https://cursor.com/docs/rules", PAGES["S903"].encode())
+        run_world("W4", "Cursor", base_rows(),
+                  files(teaches={"S903": None}, urls={**URLS, "S903": w4_url}), w4_live)
+
+        # W5: the ExecKeyForms wrong-key row (A1).
+        w5_pages = dict(PAGES)
+        w5_pages["S900"] = PAGES["S900"] + 'patterns: "src/*.{ts,tsx}"\n'
+        run_world("W5", "Claude Code", base_rows(),
+                  files(scope={**KEYS, "S900": "patterns"}, pages=w5_pages,
+                        lines={"S900": (6, 5)}))
+
+        # W6: the invented Action cell against the unconditional-load line (A2).
+        w6_line = ("Rules without a `paths` field are loaded unconditionally and "
+                   "apply to all files. A path-scoped rule loads when Claude uses "
+                   "the Read, Write, or Edit tool on a matching file. It also loads "
+                   "when Claude views a matching file with a Bash command that "
+                   "counts as a read, such as cat or head on a single file.")
+        w6_pages = dict(PAGES)
+        w6_pages["S900"] = PAGES["S900"] + w6_line + "\n"
+        run_world("W6", "Claude Code", base_rows(),
+                  files(action={**ACTIONS,
+                                "S900": "Create the rule file in the project and add "
+                                        "frontmatter so it loads only for the "
+                                        "matching files."},
+                        pages=w6_pages, lines={"S900": (3, 6)}))
+
+        # W7: the v1-hollow rescore world, every key outside the canonical set.
+        w7_pages = dict(PAGES)
+        w7_keys = {}
+        for sid in ("S900", "S901", "S902", "S903"):
+            w7_pages[sid] = PAGES[sid] + 'matchFiles: "**/*"\n'
+            w7_keys[sid] = "matchFiles"
+        w7_sha = {sid: hashlib.sha256(w7_pages[sid].encode()).hexdigest()
+                  for sid in w7_pages}
+        repo, base, rev = build(base_rows(), files(
+            scope=w7_keys, pages=w7_pages,
+            lines={sid: (6, (5 if sid == "S900" else 4)) for sid in w7_keys}))
+        rep, fnd = score(repo, base, rev, live_of())
+        w7_reject = not any(r["backed"] for r in rep)
+        check("world W7: every fabricated row is rejected", w7_reject, True)
+        print("world W7: all reject=%s arm=%s" % (w7_reject, arm_of(
+            {r["client"]: r for r in rep}["Claude Code"]["why"])))
+        worlds.append(("W7", "all", w7_reject))
+
+        # -- W0: the do-nothing world (no canonical key rows) exits 1 -----
+        repo0, base0, rev0 = build(base_rows(), files(decls=False))
+        rep0, fnd0 = score(repo0, base0, rev0, live_of())
+        code0, lines0 = cli(repo0, base0, rev0, live_of(), 3)
+        check("world W0: no row is backed", [r["client"] for r in rep0 if r["backed"]], [])
+        check("world W0: the CLI exits 1", code0, 1)
+        check("world W0: the four counted rows name the missing key rows",
+              [named(r["why"], "A1: no canonical scope key is declared")
+               for r in rep0 if r["client"] in FOUR], [True] * len(FOUR))
+        print("world W0: exit=%d" % code0)
+
+        # -- the computed predicate line ----------------------------------
+        rejected = sum(1 for _tag, _client, ok in worlds if ok)
+        print("worlds reject %d of %d; eligible rows pass %d of 4"
+              % (rejected, len(worlds), eligible_pass))
+        check("the predicate line is computed from seven rejecting worlds",
+              (rejected, len(worlds)), (7, 7))
+        check("the predicate line is computed from four passing eligible rows",
+              eligible_pass, 4)
+
+        # -- the counter's own sha256 (v2) --------------------------------
+        own = Path(__file__).read_bytes()
+        check("the own sha256 is 64 hex", len(self_sha()), 64)
+        check("the own sha256 is the sha256 of this file",
+              self_sha(), hashlib.sha256(own).hexdigest())
+
+        print("self-test: %d failure(s) over %d assertions" % (failures, assertions))
+        return 1 if failures else 0
+    finally:
+        for td in temps:
+            shutil.rmtree(td, ignore_errors=True)
 
 
 # ---------------------------------------------------------------------- main
@@ -2525,7 +2511,9 @@ def main(argv: list[str] | None = None) -> int:
         base_sources = git_show(lane, BASE, SOURCES) or ""
         report = judge(skill, entry, sources, lesson, base_sources,
                        snapshot_of=lambda sid: git_show_bytes(
-                           lane, args.rev, snapshot_path(sid)))
+                           lane, args.rev, snapshot_path(sid)),
+                       intro_of=lambda sid: snapshot_intro(lane, args.rev, sid))
+        keys = canonical_scope_keys(sources)
     except (EnvError, UnicodeDecodeError, OSError) as e:
         print("could-not-evaluate: %s" % e, file=sys.stderr)
         return 2
@@ -2547,6 +2535,11 @@ def main(argv: list[str] | None = None) -> int:
             found += 1 if r["found"] else 0
     print(summary_line(args.fetch, len(backed), k, found))
     print("counter sha256 %s; rev %s" % (sha, args.rev))
+    print("canonical scope keys (%s): %s"
+          % ("/".join(KEY_ROWS),
+             "; ".join("%s=%s" % (c, ",".join(sorted(keys.get(c) or ())))
+                       for c in CLIENTS if keys.get(c))
+             or "none at this revision (A1 rejects every row)"))
     for r in report:
         if args.fetch:
             if r["backed"] and r.get("found"):
