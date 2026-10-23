@@ -92,12 +92,11 @@ def check_repairs(blobs: dict[str, str | None]) -> tuple[int, list[str]]:
     why.append(f"R-c base-measure pointer: {'ok' if rc else 'missing'}")
 
     census = blobs.get(".ufo/waves/round-61/census-after.txt")
-    rd = (
-        census is not None
-        and [ln for ln in census.splitlines() if ln.strip()][-1].strip() == "exit=0"
-        if census is not None
-        else False
-    )
+    if census is None:
+        rd = False
+    else:
+        census_lines = [ln for ln in census.splitlines() if ln.strip()]
+        rd = census_lines[-1].strip() == "exit=0" if census_lines else False
     why.append(f"R-d census-after file: {'ok' if rd else 'missing'}")
 
     lesson = blobs.get("corpus/lessons/round-61.md")
