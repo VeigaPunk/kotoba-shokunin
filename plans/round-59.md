@@ -90,6 +90,13 @@ snapshot (invented page whose sha256 is written into its row), events-fabricated
 names), off-topic (round-58 command rows relabelled), and shortcut keyed on labels (rows copied from another section's
 tokens). Every receipt names the counter sha; any control that meets the predicate forces redesign before data.
 
+Limit stated before the controls score (freeze addendum, no rule change): the Events conjunct proves each name is
+printed on the cited page, so it fails invented names; it does not prove a printed identifier is a hook event (a row
+could cite `GitHub` or `JavaScript` from the same page). Event semantics are R3's second route: falsify seats
+`Cells<Client>` (one per client) re-open each page and rule every Events span `event` / `not an event`, and a row
+whose span is ruled `not an event` is corrected before the report and named in the lesson. The counter and its
+predicate are unchanged.
+
 ## Frontier step
 
 SOURCES rows for C1 (≥ T_F new rows), the census before/after (`scripts/sources-census.sh validate`), one mined mistake
