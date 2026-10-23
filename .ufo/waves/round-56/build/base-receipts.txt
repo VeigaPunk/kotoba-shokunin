@@ -1,0 +1,259 @@
+Base receipts — kotoba-shokunin at b0b7140b5a7cf8a50f13989ee6285fc8ee245c41
+Round-56 build wave, seat KotobaR56.ExecBaseReceipts, 2026-10-23. No-harm baseline (Q36: each block names the revision it measured).
+Lane write: this file and the seat report ExecBaseReceipts.md only; no lane git or jj command was run.
+
+Clones (both at the same revision; `git rev-parse HEAD` re-read at 2026-10-23T02:50:38Z, both clean including ignored files, no file newer than checkout):
+  clone:  /fast/scratch/hyaku/kotoba-r56/ExecBaseReceipts/clone
+          b0b7140b5a7cf8a50f13989ee6285fc8ee245c41
+  mirror: /fast/scratch/hyaku/kotoba-r56/ExecBaseReceipts/mirror/kotoba-shokunin
+          b0b7140b5a7cf8a50f13989ee6285fc8ee245c41
+          (fleet-parent mirror: the clone sits in a directory named `kotoba-shokunin` whose parent
+          holds a symlink to every entry of /home/vgpnk/Projects/shokunin except the lane itself —
+          the round-49 NoHarmGates layout; reads only, no lane write.)
+
+Every run below: cwd = the clone root named in the block, TMPDIR=/fast/scratch/hyaku/kotoba-r56/ExecBaseReceipts/tmp
+(empty after all runs), `timeout 900` (floors: 800), stdin from the terminal. Outputs verbatim.
+
+=== 1. verify_skill_checklist.py — plain clone (registry command, no arguments) ===
+git rev-parse HEAD: b0b7140b5a7cf8a50f13989ee6285fc8ee245c41
+Fri 23 Oct 2026 02:48:48 AM UTC
+$ timeout 900 python3 -B verifiers/verify_skill_checklist.py
+PASS checklist.box_map_complete: evaluated 41 — 41 boxes mapped (8 executed, 4 delegated, 29 unexecuted); delegated verifiers/verify_dispatch_prompts.py: --box-proof exit 0: boxes proven 2; delegated verifiers/verify_alwayson.py: --box-proof exit 0: boxes proven 2
+PASS trigger.frontmatter_parses: evaluated 4 — frontmatter parses: name='kotoba-shokunin', description 1019 chars
+FAIL trigger.name_directory: evaluated 1 — name 'kotoba-shokunin' != directory 'clone'
+PASS trigger.literal_trigger_string: evaluated 1 — description carries literal 'Triggers:'
+PASS trigger.anti_trigger_clause: evaluated 1 — exclusion marker 'Anti-triggers' present (vocabulary test, not semantics: a vacuous 'Never use this skill.' passes and an unlisted real exclusion fails)
+PASS trigger.no_xml_tag: evaluated 2 — no XML tag in name, description (S019 Anthropic rule, absent from the open spec (S018), approximated lexically on the unparsed text; Anthropic's packager (S012) bans any '<'/'>' in the parsed value, and the two disagree in both directions (corpus/knowledge/frontmatter-rule-authorities-round48.md))
+PASS trigger.line_budget: evaluated 598 — 598 lines within budget 600 (from box at line 300)
+PASS trigger.no_placeholder: evaluated 540 — no placeholder markers in 540 scanned lines
+PASS trigger.command_binary_resolves: evaluated 34 — 19 segments; 34 command subject(s) resolve
+FAIL trigger.citation_resolves: evaluated 118 — line 588: '../.ufo/reports/round-7/kotoba.md' does not resolve from /fast/scratch/hyaku/kotoba-r56/ExecBaseReceipts/clone
+FAIL governance.citation_resolves: evaluated 1042 — LOG.md:177: '../.ufo/reports/round-9/kotoba.md' does not resolve from /fast/scratch/hyaku/kotoba-r56/ExecBaseReceipts/clone; LOG.md:255: '../.ufo/reports/round-11/kotoba.md' does not resolve from /fast/scratch/hyaku/kotoba-r56/ExecBaseReceipts/clone; LOG.md:311: '../PROTOCOL.md' does not resolve from /fast/scratch/hyaku/kotoba-r56/ExecBaseReceipts/clone; LOG.md:779: '../.ufo/l0-questions.md' does not resolve from /fast/scratch/hyaku/kotoba-r56/ExecBaseReceipts/clone … (+20 more); 9 quoted meta-finding(s), 3 schematic token(s) excluded, 1 recorded absence(s) excused
+exit code: 1
+
+--- the same command, fleet-parent mirror clone (layout-corrected) ---
+git rev-parse HEAD: b0b7140b5a7cf8a50f13989ee6285fc8ee245c41
+Fri 23 Oct 2026 02:49:57 AM UTC
+$ timeout 900 python3 -B verifiers/verify_skill_checklist.py
+PASS checklist.box_map_complete: evaluated 41 — 41 boxes mapped (8 executed, 4 delegated, 29 unexecuted); delegated verifiers/verify_dispatch_prompts.py: --box-proof exit 0: boxes proven 2; delegated verifiers/verify_alwayson.py: --box-proof exit 0: boxes proven 2
+PASS trigger.frontmatter_parses: evaluated 4 — frontmatter parses: name='kotoba-shokunin', description 1019 chars
+PASS trigger.name_directory: evaluated 1 — name 'kotoba-shokunin' == directory 'kotoba-shokunin'
+PASS trigger.literal_trigger_string: evaluated 1 — description carries literal 'Triggers:'
+PASS trigger.anti_trigger_clause: evaluated 1 — exclusion marker 'Anti-triggers' present (vocabulary test, not semantics: a vacuous 'Never use this skill.' passes and an unlisted real exclusion fails)
+PASS trigger.no_xml_tag: evaluated 2 — no XML tag in name, description (S019 Anthropic rule, absent from the open spec (S018), approximated lexically on the unparsed text; Anthropic's packager (S012) bans any '<'/'>' in the parsed value, and the two disagree in both directions (corpus/knowledge/frontmatter-rule-authorities-round48.md))
+PASS trigger.line_budget: evaluated 598 — 598 lines within budget 600 (from box at line 300)
+PASS trigger.no_placeholder: evaluated 540 — no placeholder markers in 540 scanned lines
+PASS trigger.command_binary_resolves: evaluated 34 — 19 segments; 34 command subject(s) resolve
+PASS trigger.citation_resolves: evaluated 118 — 118 repo-rooted citation token(s) resolve from the repo root
+PASS governance.citation_resolves: evaluated 1042 — 1042 governance citation token(s) resolve across 2 files; 9 quoted meta-finding(s), 3 schematic token(s) excluded, 1 recorded absence(s) excused
+exit code: 0
+
+=== 2. check_gate_registry.py --rev b0b7140b ===
+git rev-parse HEAD: b0b7140b5a7cf8a50f13989ee6285fc8ee245c41
+Fri 23 Oct 2026 02:48:38 AM UTC
+$ timeout 900 python3 -B verifiers/check_gate_registry.py --rev b0b7140b
+verifiers/box_proof_case_deletion.py         OK 
+verifiers/check_alwayson_boxes.py            OK 
+verifiers/check_assertion_floors.py          OK 
+verifiers/check_callee_rename.py             OK 
+verifiers/check_correction_sweep.py          OK 
+verifiers/check_could_not_evaluate.py        OK 
+verifiers/check_description_thresholds.py    OK 
+verifiers/check_explicit_invocation.py       OK 
+verifiers/check_gate_finding_delta.py        OK 
+verifiers/check_gate_registry.py             OK 
+verifiers/check_mcp_instructions.py          OK 
+verifiers/check_opencode_repin.py            OK 
+verifiers/check_overlap_levers.py            OK 
+verifiers/check_sibling_census.py            OK 
+verifiers/check_sources_append_only.py       OK 
+verifiers/check_substrate_pins.py            OK 
+verifiers/compare_harness_independent.py     OK 
+verifiers/fault_injection_corpus.sh          OK 
+verifiers/verify_alwayson.py                 OK 
+verifiers/verify_corpus_independent.py       OK 
+verifiers/verify_corpus_integrity.py         OK 
+verifiers/verify_dispatch_prompts.py         OK 
+verifiers/verify_harness_claims.py           OK 
+verifiers/verify_harness_independent.py      OK 
+verifiers/verify_skill_checklist.py          OK 
+verifiers/verify_surfaces.py                 OK 
+gate registry rows conformant 26 of 26 lane verifiers; phantom 0
+exit code: 0
+
+=== 3. check_sources_append_only.py --base b0b7140b --rev b0b7140b (as dispatched) ===
+git rev-parse HEAD: b0b7140b5a7cf8a50f13989ee6285fc8ee245c41
+Fri 23 Oct 2026 02:48:39 AM UTC
+$ timeout 900 python3 -B verifiers/check_sources_append_only.py --base b0b7140b --rev b0b7140b
+sources append-only rows clean: 0 commits scanned, 0 protected-cell changes
+exit code: 0
+(range base..rev is empty, so this clean is vacuous by construction — see the supplemental run below)
+
+--- supplemental (not in the dispatched list): the registry form, no --base ---
+git rev-parse HEAD: b0b7140b5a7cf8a50f13989ee6285fc8ee245c41
+Fri 23 Oct 2026 02:50:23 AM UTC
+$ timeout 900 python3 -B verifiers/check_sources_append_only.py --rev b0b7140b
+log  d28b16b64 S001 used-by: SKILL.md -> corpus/lessons/round-46.…
+log  d28b16b64 S003 used-by: SKILL.md -> corpus/lessons/round-46.…
+log  27887041b S012 used-by: SKILL.md -> SKILL.md, corpus/knowled…
+log  eb5a80fed S018 used-by: corpus/knowledge/frontma… -> SKILL.md, corpus/knowled…
+log  eb5a80fed S019 used-by: corpus/knowledge/frontma… -> SKILL.md, corpus/knowled…
+log  f054b8e88 S018 used-by: …ies-round48.md -> …ies-round48.md, corpus/k…
+log  542f51567 S019 used-by: …ies-round48.md -> …ies-round48.md, corpus/k…
+log  542f51567 S022 used-by: …sus-round49.md -> …sus-round49.md, corpus/l…
+log  a78fec1ff S019 used-by: …ns/round-50.md -> …ns/round-50.md, corpus/k…
+log  a78fec1ff S022 used-by: …ns/round-50.md -> …ns/round-50.md, corpus/k…
+log  a78fec1ff S024 used-by: …ns/round-50.md -> …ns/round-50.md, corpus/k…
+log  a78fec1ff S025 used-by: …ns/round-50.md -> …ns/round-50.md, corpus/k…
+log  a78fec1ff S026 used-by: …ns/round-50.md -> …ns/round-50.md, corpus/k…
+log  a78fec1ff S027 used-by: …ns/round-50.md -> …ns/round-50.md, corpus/k…
+log  a78fec1ff S028 used-by: …ns/round-50.md -> …ns/round-50.md, corpus/k…
+log  a78fec1ff S029 used-by: …ns/round-50.md -> …ns/round-50.md, corpus/k…
+log  34cfffbb2 S021 used-by: …ies-round48.md -> …ies-round48.md, corpus/k…
+log  34cfffbb2 S022 used-by: …les-round50.md -> …les-round50.md, corpus/k…
+log  34cfffbb2 S024 used-by: …les-round50.md -> …les-round50.md, corpus/k…
+log  34cfffbb2 S025 used-by: …les-round50.md -> …les-round50.md, corpus/k…
+log  34cfffbb2 S029 used-by: …les-round50.md -> …les-round50.md, corpus/k…
+log  55973a20a S004 status: queued -> mined
+log  55973a20a S004 used-by: — -> corpus/knowledge/alwayso…
+log  55973a20a S019 used-by: …les-round50.md -> …les-round50.md, corpus/k…
+log  5a097e12b S046 used-by: …les-round53.md -> …les-round53.md, corpus/l…
+breach bfd5a583a S022 teaches: Claude picks a skill by its `description` al… -> The `description` is the field Claude uses t…
+breach 542f51567 S019 scope: …nd description -> …nd description, and what the page says about…
+breach 542f51567 S019 anchor: …ill structure field list, § Writing effectiv… -> …ill structure (`best-practices.md:146-166`),…
+breach 542f51567 S019 teaches: …scription rule -> …scription rule; the page states no tie-break…
+breach 542f51567 S022 scope: …ption`'s role) and what the page says about … -> …ption`'s role), how its skill listing is tru…
+breach 542f51567 S022 anchor: …kills.md:389`); § Create your first skill (`… -> …kills.md:389`) and `when_to_use` row (`:390`…
+breach 542f51567 S022 teaches: …ocation: true` -> …ocation: true`; re-opened 2026-10-22T12:28:4…
+breach bf109cacc S019 teaches: …he description is the only arbitration surfa… -> …he description, read with `name`, is the tri…
+breach bf109cacc S022 teaches: …project), and a skill that fires where it sh… -> …project), and nested same-name skills by the…
+breach bf109cacc S026 scope: …iption` field decides delegation) and what t… -> …iption` field is one of three inputs to dele…
+breach bf109cacc S026 teaches: … it documents is over same-`name` subagents … -> … it documents between subagents is over same…
+breach bf109cacc S028 teaches: Copilot CLI is the one GitHub surface that d… -> Copilot CLI documents name-keyed precedence …
+breach e792607e8 S050 anchor: …ctions.md` at commit `cfb894a5` (frontmatter… -> …ctions.md` at zed-industries/zed@`cfb894a5` …
+sources append-only breach 13 change(s) in 4 of 18 commits
+exit code: 1
+(13 pre-existing historical breaches; same set as round-55's ExecBaseReceipts at f0e5de82, which read "4 of 17 commits")
+
+=== 4. check_sibling_census.py (registry command) ===
+git rev-parse HEAD: b0b7140b5a7cf8a50f13989ee6285fc8ee245c41
+Fri 23 Oct 2026 02:48:39 AM UTC
+$ timeout 900 python3 -B verifiers/check_sibling_census.py corpus/knowledge/sibling-overlap-census-round49.md
+rows 20 verified 20
+exit code: 0
+
+--- same, full documented form with both optional cross-checks ---
+git rev-parse HEAD: b0b7140b5a7cf8a50f13989ee6285fc8ee245c41
+Fri 23 Oct 2026 02:48:39 AM UTC
+$ timeout 900 python3 -B verifiers/check_sibling_census.py corpus/knowledge/sibling-overlap-census-round49.md --province PROVINCE.md --skill SKILL.md
+rows 20 verified 20
+province rows 20 matched 20
+skill description names 9 of 9 non-none lanes
+skill description length 1019 of 1024
+exit code: 0
+Note: the registry row names `<census.md>`; corpus/knowledge/sibling-overlap-census-round49.md is the lane's
+only census file. The run's default --fleet is /home/vgpnk/Projects/shokunin (check_sibling_census.py:142), so
+it read sibling lanes read-only at their row-pinned commits from the fleet root; it wrote nothing (clone
+status clean, TMPDIR empty after).
+
+=== 5. verify_corpus_integrity.py ===
+git rev-parse HEAD: b0b7140b5a7cf8a50f13989ee6285fc8ee245c41
+Fri 23 Oct 2026 02:48:46 AM UTC
+$ timeout 900 python3 -B verifiers/verify_corpus_integrity.py
+corpus.index    tracked=85 unindexed=1 stale=0 missing=0  (102 FILE-column patterns over 84 md files)
+corpus.pointers report_dead=0/56 commit_total=33 unresolvable=1 nonhash=0 (shapes [relative=1, absolute=42, tilde=1, bare=12], quoted-excluded=5, pointer-excluded=8; sites in --json)
+           unindexed: corpus/lessons/round-55-verifier-spotcheck.md
+           report_pointers_excluded: corpus/knowledge/cold-run-round11.md:100: .ufo/reports/round-1/<lane>.md
+           report_pointers_excluded: corpus/knowledge/cold-run-round11.md:142: .ufo/reports/round-1/<lane>.md
+           report_pointers_excluded: corpus/knowledge/cold-run-round11.md:148: <repo>/.ufo/reports/round-11/kotoba.md
+           report_pointers_excluded: corpus/knowledge/cold-run-round11.md:280: .ufo/reports/round-1/<lane>.md
+           report_pointers_excluded: corpus/knowledge/cold-run-round11.md:66: .ufo/reports/round-1/<lane>.md
+           report_pointers_excluded: corpus/knowledge/corpus-integrity-round11.md:116: .ufo/reports/round-1/<lane>.md
+           report_pointers_excluded: corpus/knowledge/corpus-integrity-round11.md:218: .ufo/reports/round-1/<lane>.md
+           report_pointers_excluded: corpus/knowledge/dispatch-prompt-audit-round7.md:42: .ufo/reports/round-1/<lane>.md
+           report_pointers_quoted: corpus/README.md:68: .ufo/reports/round-48/kotoba.md
+           commit_unresolvable: corpus/lessons/round-54-verifier-spotcheck.md:147: 451a02ff
+           commit_quoted: corpus/knowledge/claim-census-round12.md:95: 4dd7753 (quoted meta-finding)
+           commit_quoted: corpus/lessons/round-53.md:44: cfb894a5 (quoted meta-finding)
+           commit_quoted: corpus/lessons/round-53.md:45: <hex> (quoted meta-finding)
+           commit_quoted: corpus/lessons/round-54.md:13: cfb894a5 (quoted meta-finding)
+           commit_quoted: corpus/lessons/round-6-aggregator-audit.md:45: round-N (quoted meta-finding)
+DRIFT   corpus.index.tracked_files: observed=85 expected=81
+DRIFT   corpus.index.unindexed: observed=1 expected=0 / empty
+DRIFT   corpus.pointers.report_total: observed=56 expected=51
+DRIFT   corpus.pointers.commit_total: observed=33 expected=32
+DRIFT   corpus.pointers.commit_unresolvable: observed=1 expected=0 / empty
+4/9 checks pass; DRIFT: corpus.index.tracked_files, corpus.index.unindexed, corpus.pointers.report_total, corpus.pointers.commit_total, corpus.pointers.commit_unresolvable
+exit code: 1
+
+=== 6. check_assertion_floors.py (with uptime) ===
+git rev-parse HEAD: b0b7140b5a7cf8a50f13989ee6285fc8ee245c41
+Fri 23 Oct 2026 02:48:57 AM UTC
+$ uptime   # before the run
+ 23:48:57  up 18:53,  2 users,  load average: 10.87, 12.14, 9.05
+$ timeout 800 python3 -B verifiers/check_assertion_floors.py
+PASS harness observed=10 floor=10
+PASS corpus_integrity observed=152 floor=152
+PASS corpus_independent observed=95 floor=93
+PASS surfaces observed=175 floor=175
+PASS checklist observed=1852 floor=1852
+PASS pins observed=62 floor=62
+PASS harness_independent observed=123 floor=123
+PASS compare_harness_independent observed=330 floor=330
+PASS floors_guard observed=152 floor=150
+PASS dispatch_prompts observed=56 floor=56
+PASS sibling_census observed=68 floor=68
+PASS overlap_levers observed=53 floor=51
+PASS alwayson observed=89 floor=89
+exit code: 0
+elapsed=60s
+$ uptime   # after the run
+ 23:49:57  up 18:54,  2 users,  load average: 13.07, 12.43, 9.33
+
+=== 7. check_gate_finding_delta.py --base b0b7140b --head b0b7140b ===
+git rev-parse HEAD: b0b7140b5a7cf8a50f13989ee6285fc8ee245c41
+Fri 23 Oct 2026 02:48:47 AM UTC
+$ timeout 900 python3 -B verifiers/check_gate_finding_delta.py --base b0b7140b --head b0b7140b
+gate finding delta b0b7140b -> b0b7140b: base drift 5, head drift 5
+  new: none
+  resolved: none
+finding delta: new 0, resolved 0
+exit code: 0
+
+--- supplemental (not in the dispatched list): the same registry gate at the round's own commits ---
+git rev-parse HEAD: b0b7140b5a7cf8a50f13989ee6285fc8ee245c41 (the clone; the --rev below selects the measured tree)
+Fri 23 Oct 2026 02:52:15 AM UTC
+$ timeout 300 python3 -B verifiers/check_gate_registry.py --rev 0f58a469
+verifiers/check_agent_definitions.py         no registry rows naming it: 0 (need 1)
+verifiers/check_agentdef_boxes.py            no registry rows naming it: 0 (need 1)
+gate registry rows conformant 26 of 28 lane verifiers; phantom 0
+exit code: 1
+(same at the erratum commit e02f5f5d, 02:52:15Z, exit code 1: `conformant 26 of 28`.)
+The two round-56 counters are committed at these revisions without rows in SKILL.md § Gate registry
+(grep for `check_agent_definitions|check_agentdef_boxes` in SKILL.md at e02f5f5d and in the lane
+working copy: 0 matches), so this gate is green at b0b7140b (26 of 26) and red from the freeze
+commit on. Registry rule: exactly one row per verifiers/*.py|*.sh file, checked against the tree at
+--rev (check_gate_registry.py judge()/main()).
+
+=== Summary ===
+Green at b0b7140b (exit 0): check_gate_registry (26/26 rows conformant, phantom 0),
+check_sources_append_only --base b0b7140b --rev b0b7140b (vacuous: 0 commits scanned),
+check_sibling_census (registry form and full form), check_assertion_floors (13 PASS, 60 s under
+load average 10.9-13.1), check_gate_finding_delta (base = head: new 0, resolved 0),
+verify_skill_checklist in the fleet-parent mirror (11 PASS, 0 FAIL).
+Red at b0b7140b (pre-existing at the round's base; the delta gate compares b0b7140b with itself,
+so it cannot detect change): verify_corpus_integrity exit 1 (4/9 checks pass; 5 DRIFT ids) and
+the historical check_sources_append_only --rev b0b7140b run (13 breaches in 4 of 18 commits).
+Layout artifacts in a plain clone (not revision facts): verify_skill_checklist exits 1 with
+trigger.name_directory (clone directory name) and the two citation checks (fleet-root-relative
+`../` tokens); all three pass in the fleet-parent mirror at the same revision. The round-49
+NoHarmGates precedent (round-49/falsify/NoHarmGates.md, finding 2) is reproduced.
+No run wrote into either clone (git status --porcelain --ignored=matching empty, no file newer
+than checkout, TMPDIR empty); no lane file was modified except this receipt.
+No-harm comparison to use after the wave: of the dispatched battery at b0b7140b the only red is
+verify_corpus_integrity (exit 1, 5 pre-existing DRIFT ids); the checklist red appears only in a
+plain clone and is green in the layout-corrected mirror. Of the gates re-run at the round's own
+commits, check_gate_registry changes state: 26 of 26 at b0b7140b, 26 of 28 (exit 1) at 0f58a469
+and e02f5f5d, because verifiers/check_agent_definitions.py and verifiers/check_agentdef_boxes.py
+have no SKILL.md § Gate registry rows. Adding those two rows restores the base value. The other
+gates were not re-run at 0f58a469/e02f5f5d.

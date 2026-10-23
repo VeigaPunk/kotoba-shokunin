@@ -1,0 +1,70 @@
+Result: DONE — S078 evidence and the scoped C1 dry-run are complete; opencode is found, but adds no new ground.
+
+## Findings and ready-to-paste blocks
+
+### 1. SOURCES row
+
+```markdown
+| S078 | anomalyco/opencode — V2 agent-definition documentation source, pinned at `4e0bc52216d91c3a8d10035837b1b6f9b82fd1d3` — https://raw.githubusercontent.com/anomalyco/opencode/4e0bc52216d91c3a8d10035837b1b6f9b82fd1d3/services/www/src/docs/content/agents.mdx | docs | A | OpenCode V2's documented Markdown agent-definition paths and configuration fields | § Locations (nested-path example), `agents.mdx:41-44`; § Locations, `:34-38`; fetched 2026-10-23T02:50:41Z, HTTP 200, 8,779 B, sha256 `6cca5b0a5a88387e94177d9c13d2e539fb710d69b2298ca6d44b9bc465c8b57a` (seat Srcopencode) | OpenCode V2 documents global Markdown agent files at `~/.config/opencode/agents/` and per-project files at `.opencode/agents/` | mined | 2026-10-23 | 90d | corpus/knowledge/agent-definition-files-round56.md, corpus/lessons/round-56.md |
+```
+
+Base URL check: `functions.grep` for that exact raw URL in `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md` returned `No matches found`. The exact candidate `https://opencode.ai/docs/agents/` also returned no matches at base.
+
+### 2. Entry row
+
+```markdown
+| opencode | `.opencode/agents` | S078 | "A nested path becomes part of the agent ID: text .opencode/agents/team/reviewer.md → team/reviewer" |
+```
+
+The quote is from the V2 source at `agents.mdx:41-44`. It strips the Markdown code-fence markers, keeps the fenced block's `text` info string, and collapses whitespace. The path is not in a URL; `agent` is outside the path. The same quote is in the Gate row below.
+
+### 3. Detail paragraph
+
+OpenCode V2 documents Markdown agent files with frontmatter: “Frontmatter accepts the same fields as an `agents` configuration entry. The Markdown body becomes the agent's `system` prompt” (served V2 page `agents.md:49-57`; pinned source `agents.mdx:51-60`). Its example uses `---`-delimited key/value frontmatter; the page does not call it YAML, shows JSONC as a separate configuration-file option (`agents.md:45-66`), and shows no TOML form. The V2 page does not mark a frontmatter key as required: it says “`description` explains the agent's purpose. Add it to subagents because OpenCode shows it to the model choosing which agent to launch” (`agents.md:181-185`). By contrast, the still-served V1 page says “This is a **required** config option” for `description` (`https://opencode.ai/docs/agents.md`, `agents.md:245-257`); do not carry that V1 requirement into the V2 row. V2's tool-control key is `permissions`: “`permissions` is an ordered list of matching rules” (`agents.md:238-259`), with `action` described as a “Tool or permission action”; the page says not to use legacy top-level `tools` for new V2 agent configuration (`agents.md:340`). The model key is `model`, which “uses `provider/model` with an optional `#variant`” (`agents.md:197-201`); a subagent without a configured model inherits the parent session's model (`agents.md:219`). The page lists the global/user path `~/.config/opencode/agents/<name>.md` and project path `.opencode/agents/<name>.md` (`agents.md:32-37`). Its precedence text says “Agent definitions merge in configuration order. Later scalar values replace earlier values, request maps merge by key, and permission rules append” (`agents.md:158`) and “Global `permissions` apply before agent-specific rules” (`agents.md:175`). Those statements concern config merging and permissions; the page does not state precedence between same-named definitions in the global and project directories, so no directory-precedence claim is made.
+
+### 4. SKILL.md row
+
+```markdown
+| opencode | `.opencode/agents` (+ user-level `~/.config/opencode/agents/`) | Markdown frontmatter accepts agent-config fields; body is the system prompt; no required key stated; `permissions` rules gate tool actions; V2 excludes legacy `tools` | Add, configure, and inspect the Markdown file |
+```
+
+### 5. Gate row
+
+```markdown
+| S078 | https://raw.githubusercontent.com/anomalyco/opencode/4e0bc52216d91c3a8d10035837b1b6f9b82fd1d3/services/www/src/docs/content/agents.mdx | 2026-10-23T02:50:41Z | 8,779 B, sha256 `6cca5b0a…` | "A nested path becomes part of the agent ID: text .opencode/agents/team/reviewer.md → team/reviewer" | `agents.mdx:41-44` | Srcopencode |
+```
+
+## Version check and source evidence
+
+- The singular path was in an older V1 documentation snapshot: `packages/web/src/content/docs/agents.mdx:160-161` at `anomalyco/opencode@5a199b04cbbc8a582d8130d4d8e37e052094cc50` says `~/.config/opencode/agent/` and `.opencode/agent/`. Its child V1 docs commit `58f7da6e9f8fb08a9f42a0d2cc34a18b2475ddea` (“docs: document the plural forms”, 2026-01-17) says `~/.config/opencode/agents/` and `.opencode/agents/` at `packages/web/src/content/docs/agents.mdx:160-161`, confirming that this V1 source changed to plural; fetched `Fri Oct 23 03:02:26 AM UTC 2026`, HTTP 200, 16,385 B, sha256 `e9d549fc1aecc0912549e08f3cfdca708c6a46ceb712e04e23ff0e099349381f`. The latest V1 source revision seen in the file history, `51599c4934b12b24505e44d0d4e3a98e619db87c`, also says `agents/` at `packages/web/src/content/docs/agents.mdx:205-206`; the served V1 page agrees at `agents.md:209-210`.
+- The current V2 docs route `https://opencode.ai/v2/docs/agents` also uses plural paths (`agents.md:32-37`). The latest V2 docs source revision seen in file history was `4e0bc52216d91c3a8d10035837b1b6f9b82fd1d3`, whose `services/www/src/docs/content/agents.mdx:34-38` agrees. Thus “V1 singular, V2 plural” is a historical comparison, not the current source text: the old V1 snapshot is singular; the current V1 and V2 source trees are plural. `/docs/agents` remains a V1 route; `/v2/docs/agents` is the V2 route used for S078.
+- Source-history commands pinned the latest document revisions observed: `https://api.github.com/repos/anomalyco/opencode/commits?path=packages/web/src/content/docs/agents.mdx&per_page=100` fetched `Fri Oct 23 02:48:54 AM UTC 2026`, HTTP 200, 165,212 B, sha256 `8c75e419a832dfb74ff56a670165ebb8f73d3fd2a568c2557813d71126a2d564` (40 entries; latest `51599c...`, 02:02:11Z); `https://api.github.com/repos/anomalyco/opencode/commits?path=services/www/src/docs/content/agents.mdx&per_page=20` fetched `Fri Oct 23 02:50:07 AM UTC 2026`, HTTP 200, 22,811 B, sha256 `d5e43e3f55b16af10f168ae397b0d3847b3e5429a5b2a9c9b650e4fbc89558a2` (5 entries; latest `4e0bc...`, 02:03:40Z).
+- S078 source fetch command: `timeout 120s bash -lc 'date -u; curl -L -sS -o /tmp/kotoba-r56-Srcopencode-v2-current.mdx -w "V2_HTTP_STATUS=%{http_code} FINAL_URL=%{url_effective} SIZE=%{size_download}\n" https://raw.githubusercontent.com/anomalyco/opencode/4e0bc52216d91c3a8d10035837b1b6f9b82fd1d3/services/www/src/docs/content/agents.mdx; wc -c </tmp/kotoba-r56-Srcopencode-v2-current.mdx; sha256sum /tmp/kotoba-r56-Srcopencode-v2-current.mdx; wc -l </tmp/kotoba-r56-Srcopencode-v2-current.mdx'` → `Fri Oct 23 02:50:41 AM UTC 2026`; HTTP 200; 8,779 B; sha256 `6cca5b0a5a88387e94177d9c13d2e539fb710d69b2298ca6d44b9bc465c8b57a`; 344 lines.
+- Live V2 page fetch command: `timeout 120s bash -lc 'date -u; curl -L -sS -H "Accept: text/markdown" -D /tmp/kotoba-r56-Srcopencode-v2-page.headers -o /tmp/kotoba-r56-Srcopencode-v2-page.md -w "HTTP_STATUS=%{http_code}\nFINAL_URL=%{url_effective}\nSIZE_DOWNLOAD=%{size_download}\nCONTENT_TYPE=%{content_type}\n" https://opencode.ai/v2/docs/agents; wc -c </tmp/kotoba-r56-Srcopencode-v2-page.md; sha256sum /tmp/kotoba-r56-Srcopencode-v2-page.md; wc -l </tmp/kotoba-r56-Srcopencode-v2-page.md'` → `Fri Oct 23 02:53:20 AM UTC 2026`; HTTP 200, content type `text/markdown; charset=utf-8`, 8,637 B, sha256 `1f87da9eeb0e996aa42b0d8e6c7b32e1ff0cb22be1e1817a61040a35cb30fa4b`, 339 LF delimiters (340 text lines). The line citations above refer to this fetched page and the pinned source file.
+- Version comparison raw fetches used ordinary `curl` at `Fri Oct 23 02:50:41 AM UTC 2026`: current V1 file at commit `51599c...`, HTTP 200, 21,066 B, sha256 `1f805f8a7cd1d877272d61ad6d59dae4d014c7b26009110d1c4b26c65a634dcc`, 784 LF delimiters; pre-plural V1 file at `5a199b...`, HTTP 200, 16,379 B, sha256 `b87305f3a689b4498e6ed9be9dea28d416084f942e8ebb9854fc23cdb4564f53`, 680 LF delimiters.
+
+## C1 sandbox dry-run
+
+Sandbox clone: `/fast/scratch/hyaku/kotoba-r56/Srcopencode`, checked out at `e02f5f5d2f37427e8a77b1c3efb45f84b78c67c8`. The first minimal world commit was `469b73d57d1a0c31955f37cbd7d9e5e9ebc62c25`; the corrected world commit was `84b6e10a0794ea82de37baad94358af505357cd4`. Each world touched only `SKILL.md`, `corpus/SOURCES.md`, `corpus/knowledge/agent-definition-files-round56.md`, and `corpus/lessons/round-56.md`, with only the opencode row in the test table. The corrected commit changes only those same four sandbox files.
+
+Initial run, exit 1: `timeout 60s python3 -B /fast/scratch/hyaku/kotoba-r56/Srcopencode/verifiers/check_agent_definitions.py --rev 469b73d57d1a0c31955f37cbd7d9e5e9ebc62c25 --fetch` → `agent-definition locations found on the live page 0 of 1; new ground 0`; `opencode     BACKED token=.opencode/agents/ norm=.opencode/agents found=no`. [INFERENCE] The first quote contained the raw `<name>` placeholder; the counter's live-page normalization strips angle-bracket tags (`check_agent_definitions.py:696-700`), so it no longer matched.
+
+Corrected run, exit 1: `timeout 60s python3 -B /fast/scratch/hyaku/kotoba-r56/Srcopencode/verifiers/check_agent_definitions.py --rev 84b6e10a0794ea82de37baad94358af505357cd4 --fetch` → `agent-definition locations found on the live page 1 of 1; new ground 0`; exact opencode line: `opencode     BACKED token=.opencode/agents norm=.opencode/agents found=yes base_count=10`. The line demonstrates a live match but no new ground: the normalized path is already present 10 times at base. The one-client world is below the frozen aggregate predicate F≥5 and G≥2; this is not a C1 predicate pass.
+
+## Rejections (opened, not admitted as S078)
+
+- `https://opencode.ai/docs/agents/` — HTTP 200, 183,509 B, sha256 `1bddca5ba3df59505ae4ec4bb082887764ad5fe255b78100408158e5d1e70b27` (fetched `Fri Oct 23 02:46:51 AM UTC 2026`); V1 route, inspected for version comparison, not selected because S078 records the current V2 source.
+- `https://opencode.ai/docs/agents.md` — HTTP 200, 20,997 B, sha256 `5d070a8ba9c2db70db759aa019e2e48e5c3cd834d4892f17ffb99ba3fc852b1b` (fetched `Fri Oct 23 02:47:50 AM UTC 2026`); V1 Markdown route, used only for the V1 `description` and path comparison.
+- `https://opencode.ai/v2/docs/agents.md` — HTTP 404, 9 B, sha256 `e3ebaa16dd9d9b9fc107c42183fb6cf9d22927e1af03dbbdfa0ccc38e4e4ac31` (fetched `Fri Oct 23 03:02:26 AM UTC 2026`); the V2 route does not expose a `.md` suffix (the unsuffixed route supports `Accept: text/markdown`).
+- `https://opencode.ai/v1/docs/agents` and `https://opencode.ai/v1/docs/agents.md` — HTTP 404, 5,307 B each, sha256 `7327d53ab6b28552fbd32b0417dbe26388c145176c5de3c62870b8b94fb25d35` (fetched `Fri Oct 23 03:02:26 AM UTC 2026`); no `/v1`-prefixed route, so the served legacy V1 route is `/docs/agents`.
+- V2 source at `3d213123cdf574e55f88711554edfe6fd66a95ad/services/www/src/docs/content/agents.mdx` — HTTP 200, 8,779 B, sha256 `b69a6bdb14ceb0c28ee0e26a60bcc95604f46a719c52e3f6f6f7c696ec58d999`; not selected because current V2 source history points to `4e0bc522...`.
+- V1 source at `3d213123cdf574e55f88711554edfe6fd66a95ad/packages/web/src/content/docs/agents.mdx` — HTTP 200, 21,072 B, sha256 `ca0b8112a4a886ba1b89a169f523d32329327ded4f6c7385199b90c2b2ea8b83`; not selected because a newer V1 docs revision was available.
+- Initial raw-source URL probe used literal `current` and `before` refs (`.../current/services/www/src/docs/content/agents.mdx`, `.../current/packages/web/src/content/docs/agents.mdx`, `.../before/packages/web/src/content/docs/agents.mdx`): all HTTP 404, 14 B, sha256 `d5558cd419c8d46bdc958064cb97f963d1ea793866414c025906ec15033512ed` (fetched `Fri Oct 23 02:50:32 AM UTC 2026`). These were invalid URL-construction probes, not source evidence; corrected fetches used full SHAs.
+
+## Touched surfaces, limits, and artifacts
+
+- Lane write: only `.ufo/waves/round-56/build/Srcopencode.md` (this report). No lane product files, counters, agentdef boxes, maps, or jj/Git lane state were edited.
+- Sandbox-only C1 world: the four files listed above at commits `469b73d...` and `84b6e10...`; no commits were pushed. The synthetic SKILL table brings that sandbox copy to 604 lines from the 598-line base; no line-budget check was run and no compaction was attempted here.
+- No C2 delegate or map disposition was created. No tool was installed or updated. No build, lint, or unrelated test was run; only the requested C1 `--fetch` counter was run.
+- Process-bound deviation: my initial source captures went to named `/tmp/kotoba-r56-*` files rather than the assigned scratch directory. I removed the 17 files I created with `timeout 15s rm -f -- /tmp/kotoba-r56-Srcopencode-agents.headers /tmp/kotoba-r56-Srcopencode-agents.html /tmp/kotoba-r56-opencode-route /tmp/kotoba-r56-Srcopencode-agents.md /tmp/kotoba-r56-Srcopencode-source.headers /tmp/kotoba-r56-Srcopencode-source.mdx /tmp/kotoba-r56-Srcopencode-oldsource.headers /tmp/kotoba-r56-Srcopencode-oldsource.mdx /tmp/kotoba-r56-Srcopencode-history.headers /tmp/kotoba-r56-Srcopencode-history.json /tmp/kotoba-r56-Srcopencode-plural-commit.json /tmp/kotoba-r56-Srcopencode-v2-history.json /tmp/kotoba-r56-Srcopencode-v2-current.mdx /tmp/kotoba-r56-Srcopencode-v1-current.mdx /tmp/kotoba-r56-Srcopencode-v1-before.mdx /tmp/kotoba-r56-Srcopencode-v2-page.headers /tmp/kotoba-r56-Srcopencode-v2-page.md` → exit 0, no output. The later rejected-route captures are under `/fast/scratch/hyaku/kotoba-r56/Srcopencode/`; no other lane file was written.
+- Main artifact: `.ufo/waves/round-56/build/Srcopencode.md`. Sandbox artifact: `/fast/scratch/hyaku/kotoba-r56/Srcopencode` (base `e02f5f5...`, final dry-run commit `84b6e10a0794ea82de37baad94358af505357cd4`).

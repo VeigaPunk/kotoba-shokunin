@@ -1,0 +1,44 @@
+Result: DONE — the two requested calibration gaps and routed-6 wording hazard are substantiated; draft corrections and a fleet-report note are provided below.
+
+## Scope and provenance
+
+Read `plans/round-56.md` first, then the round-55 seat report, round-55 lesson, outside spot-check, `QUALITY.md`, `SKILL.md`, the round-55 wave records, and current `LOG.md`. The frozen plan read was the lane copy at `plans/round-56.md` (header identifies base `b0b7140b`; Erratum 1 is present). Read-only evidence was reviewed in the current lane tree. No shell commands, counters, tests, or external fetches were run in this assignment; no tools were installed. Existing commands, outputs, and upstream fetch details below are attributed to the records that contain them. Only this report file is written; the lesson, LOG, and fleet report are not edited.
+
+## Findings
+
+1. **M51 bound attribution — substantiated.** `corpus/lessons/round-55.md:48` calls the bound the wave context's “never any git in the fleet repo”. `ReviewLessonMistakes.md:34,49` records a `grep -c "any git"` sweep across `build-dispatch.json`, `falsify-dispatch.json`, `build-spec.json`, `falsify-spec.json`, and `build-taskcall-sent.json`, output `0` (its report gives no exit code). A targeted indexed search over those same files returned `No matches found`. The recorded text instead says “Never mutate the fleet repo” (build dispatch task-call context, line 397; also falsify dispatch context, line 437). The incident evidence is separate: `CriticC2Sizing.md:70-71` reports `git status` ran from the fleet root and `.git/index` mtime became 23:29:20Z, with no staged content changed. Keep the incident, but correct the attribution: the record prohibits mutation, not every git command.
+
+2. **M50 timing — no committed timestamp for scoring.** `corpus/lessons/round-55.md:47` says the predicate was met “after seats had scored their patches”; `LOG.md:2465` repeats that chronology. `CriticC2Sizing.md:9-10` timestamps its counter runs at 23:42:54–23:49:04Z, and `:68` timestamps its lane diff at 23:42:43Z. `ReviewSeatAccounting.md:54-71` later records fix-patch and report mtimes (patches at 23:15:23–23:22:04Z; reports through 00:06:05Z), but does not timestamp a scoring event. Those file mtimes establish patch/report writes, not when the patches were scored. `CriticC2Landed.md:13` also states the sequence without a timestamp. Thus “after seats had scored their patches” is not established; remove it or mark it `[INFERENCE]`. The phrase could be chronologically plausible, but the committed records do not anchor the claimed scoring event.
+
+   Two side statements in `ReviewLessonMistakes.md:30` need care: it says no `CriticC2Landed` report exists, but that report is present in the current falsify tree; its write time relative to the scribe's inspection is not established. It also says LOG records `MutC2Counter` cancelled with no report; current `LOG.md:2471` corrects that claim, and `ReviewSeatAccounting.md:70-88` records `MutC2Counter.md` last written at 00:06:05.764Z before the approximately 00:07Z cancellation. Neither side statement supplies a scoring timestamp.
+
+   **Related M50 conflict to preserve verbatim:** `ReviewLessonMistakes.md:25` treats P (`65f5d237`) as “an entry check only” and equates “Nothing else changes” with that description. `CriticC2Landed.md:17,62` says: “Only D and S skip the claimed work. P is the claimed work in its cheapest form.” It then characterizes P as demonstrating the claim's narrow scope, not as a shortcut that skips the work. Do not repeat the three-shortcut formulation as settled; retain this exact disagreement for the integrator's correction decision.
+
+3. **Routed defect 6 wording — hazard substantiated.** `corpus/lessons/round-55.md:57` calls `451a02ff` “the unresolvable” commit. `ReviewLessonMistakes.md:51` reports `git cat-file -t 451a02ff` failed in the lane (not a lane object), while the upstream codeload tarball and pinned raw README both returned HTTP 200, on 2026-10-23, at 23,036,480 B and 12,107 B respectively. Those are the seat report's recorded fetches, not re-fetches here. The fault-injection finding `corpus.pointers.commit_unresolvable` is lane-repository-relative; qualify the lesson as “not resolvable in the lane repository” rather than implying the upstream commit is unresolved.
+
+4. **Fleet report cancellation line — YES, correction note needed.** The fleet-owned round-55 report at `.ufo/reports/round-55/kotoba.md:26` lists `ReviewLessonMistakes` among seven seats cancelled “without reports”. The outside spot-check records `git status --porcelain` → `?? .ufo/waves/round-55/falsify/ReviewLessonMistakes.md` and explicitly calls it an untracked seat report (`corpus/lessons/round-55-verifier-spotcheck.md:32,37`). The report exists, but was untracked and not included in the 33 committed falsify reports. No reviewed record establishes whether it was written before or after the approximately 00:21Z settle/cancellation. The fleet report needs an append-only correction note limited to presence/commit accounting, not a new timing claim.
+
+## Draft: append-only section for `corpus/lessons/round-56.md`
+
+## Corrections to round 55
+
+- **M51 — bound wording.** `corpus/lessons/round-55.md:48` attributes the incident to a “never any git in the fleet repo” bound. That wording is absent from the recorded dispatch/spec/task-call contexts; the recorded rule is “Never mutate the fleet repo” (`.ufo/waves/round-55/build-dispatch.json`, task-call context). Keep the disclosed `git status`/index-mtime incident, but do not attribute it to a categorical ban on running git commands.
+- **M50 — chronology and scope.** The counterexample runs are timestamped 23:42:54–23:49:04Z (`.ufo/waves/round-55/build/CriticC2Sizing.md:9-10`), but no committed record timestamps when the Fix seats scored their patches. Patch-file mtimes in `ReviewSeatAccounting.md:54-71` are not scoring timestamps. Remove “after seats had scored their patches” or label it `[INFERENCE]`. Also preserve the falsify-record conflict verbatim: `CriticC2Landed.md:17,62` says “Only D and S skip the claimed work. P is the claimed work in its cheapest form”; the original M50 lists P as a shortcut. The P-as-shortcut classification is not settled by the `ReviewLessonMistakes` report.
+- **Routed defect 6 — repository-relative wording.** The lane check reports `451a02ff` unresolved because it is not an object in the lane repository; the upstream codeload and raw README fetches recorded by `ReviewLessonMistakes.md:51` returned HTTP 200. Call it “not resolvable in the lane repository”, not generally “unresolvable”.
+- **Wave-2 report accounting.** The closure sweep found `.ufo/waves/round-55/falsify/ReviewLessonMistakes.md` as an untracked report, so the round-55 report's “without reports” description is inaccurate for this seat; the file was not part of the committed-report count. The available evidence does not date its write relative to cancellation.
+
+## Draft LOG bullet
+
+- Round-55 corrections (`corpus/lessons/round-56.md` § Corrections to round 55): M51's recorded bound prohibits fleet-repo mutation, not every git command; M50's “after seats had scored their patches” has no committed scoring timestamp, and the P shortcut classification conflicts with `CriticC2Landed.md`; routed defect 6's `451a02ff` is lane-repository-relative, not upstream-unresolvable. `ReviewLessonMistakes.md` was found as an untracked report, so the wave-2 “without reports” count needs an append-only correction note.
+
+## Draft note for the fleet-owned round-55 report (text only)
+
+> **Correction — falsify-wave report accounting:** `ReviewLessonMistakes` wrote `.ufo/waves/round-55/falsify/ReviewLessonMistakes.md`, which the closure sweep found as an untracked file. It was not included in the 33 committed falsify reports. The earlier “without reports” wording is therefore inaccurate for this seat; the records reviewed here do not establish whether the file was written before or after the settle/cancellation time.
+
+## Gates, changes, and limits
+
+- No claim gate, test, or counter was run; this is a record audit, not execution evidence. No source was re-fetched, no code or existing document was edited, and no commit was made.
+- Affected surfaces for L1 integration: `corpus/lessons/round-56.md`, the round-56 `LOG.md` entry, and the fleet-owned `.ufo/reports/round-55/kotoba.md` correction note. The only file written by this seat is the report below.
+- `corpus/lessons/round-55-verifier-spotcheck.md:83` independently repeats the “after Fix seats had scored their patches” wording; it is fleet-owned and was not edited. The draft above corrects the lane lesson/LOG only.
+
+Report: .ufo/waves/round-56/build/ScribeLessonCorrections.md

@@ -1,0 +1,263 @@
+diff --git a/verifiers/check_explicit_invocation.py b/verifiers/check_explicit_invocation.py
+index 9000d1a..11fb334 100755
+--- a/verifiers/check_explicit_invocation.py
++++ b/verifiers/check_explicit_invocation.py
+@@ -47,9 +47,12 @@ A client is BACKED iff all of:
+   * the quote is exactly a double-quoted string recorded in the same `S###`
+     row of a table in `corpus/lessons/round-55.md` § Gate.
+ 
+-NEW GROUND: a backed client (with `--fetch`: a found client) is new ground
+-when its matched token occurs 0 times in `SKILL.md` and 0 times in every
+-`corpus/knowledge/*.md` file at BASE (`git show BASE:<path>`, fixed-string).
++NEW GROUND (v3 -- the correction below): a backed client (with `--fetch`: a
++found client) is new ground when its form -- its matched token's sigil and
++the placeholder `<name>` -- occurs 0 times, case-insensitively, in the whole
++BASE tree outside `.ufo/` (SOURCES anchor/teaches cells, lessons and seat
++reports included), and its row's URL is not a base row URL.  The example name
++is not part of the form.
+ 
+ The counter does not judge whether the form is really explicit invocation
+ rather than, say, a listing command; that reading is the entry's and the
+@@ -95,6 +98,37 @@ v1 also backs; every rule below only adds a failure condition.
+ Output label: `user-typed invocation forms found on the live page F of K; new
+ ground G` (with --fetch) / `user-typed invocation forms backed K of 7
+ clients; new ground G`.  Exit rule unchanged: value >= 4 and G >= 2.
++
++CORRECTION v3 (round 56; the fix round-55 routed defect 2 asks for -- a
++correction of the new-ground rule, never a re-claim of round 55).  v2 counted
++NEW GROUND per example token against base `SKILL.md` and base
++`corpus/knowledge/*.md` only, so a renamed example of a form the lane already
++held scored as new ground: `$setup-demo-app` for the held `$skill` (base
++`corpus/knowledge/skill-overlap-levers-round51.md:26`) and `/frontend-design`
++for the held `/SKILL-NAME` (base `corpus/SOURCES.md` row S031's teaches cell).
++At the round-55 revisions v2 printed `new ground 4` where the substantive
++count is 2 (`.ufo/waves/round-55/falsify/CriticNewGround.md`; round-55
++spot-check routed defect 2).
++  * A counted client's form is `form_shape(matched token)`: the sigil, then
++    the placeholder `<name>`.  The example name is not part of the form:
++    `/skill-name`, `/frontend-design` and `/<skill-name>` are the one form
++    `/<name>`; `$setup-demo-app` and `$<skill-name>` are `$<name>`.
++  * A form is new ground when its case-insensitive fixed-string count in the
++    WHOLE BASE tree outside `.ufo/` is zero (`git grep -i -F -c` summed over
++    the tree: SOURCES anchor/teaches cells, lessons and seat reports
++    included), and its row's URL is not a base row URL.
++  * G is the number of DISTINCT forms among the counted clients that are new
++    ground.  At `96155796`, `f9244c6c` and `b0b7140b` this is 2: `/<name>` is
++    held by the base tree (count 9; e.g. base
++    `corpus/knowledge/instruction-surface-census-round13.md:475` records a
++    user-invoked `/<name>` command form, and skill-path templates such as
++    `.claude/skills/<name>` match too), while `$<name>` and `@<name>` are not
++    held (count 0); at the round-55 base `f0e5de82` nothing is backed and G is
++    0.  The counted clients at those revisions are a subset of v2's -- v2's
++    example-token unit is gone, and the whole tree is the haystack.
++  * The round-55 records keep the value v2 measured; running v3 at a round-55
++    revision is a correction receipt, not a re-measurement of that round's
++    claim (Q28).
+ """
+ from __future__ import annotations
+ 
+@@ -187,18 +221,6 @@ def git_show(rev: str, path: str) -> str | None:
+     return r.stdout.decode("utf-8")
+ 
+ 
+-def git_ls(rev: str, path: str) -> list[str]:
+-    try:
+-        r = subprocess.run(["git", "-C", str(LANE), "ls-tree", "--name-only", rev, path + "/"],
+-                           capture_output=True)
+-    except OSError as e:
+-        raise EnvError("git not runnable: %s" % e) from e
+-    if r.returncode != 0:
+-        raise EnvError("git ls-tree %s %s failed: %s"
+-                       % (rev, path, r.stderr.decode(errors="replace").strip()))
+-    return [x for x in r.stdout.decode("utf-8").splitlines() if x.endswith(".md")]
+-
+-
+ def read_file(args: argparse.Namespace, path: str) -> str | None:
+     if args.rev:
+         verify_rev(args.rev)
+@@ -207,14 +229,6 @@ def read_file(args: argparse.Namespace, path: str) -> str | None:
+     return p.read_text(encoding="utf-8") if p.is_file() else None
+ 
+ 
+-def base_texts() -> tuple[str, list[str]]:
+-    """BASE SKILL.md and BASE corpus/knowledge/*.md texts (new-ground haystack)."""
+-    verify_rev(BASE)
+-    skill = git_show(BASE, SKILL) or ""
+-    know = [git_show(BASE, p) or "" for p in git_ls(BASE, "corpus/knowledge")]
+-    return skill, know
+-
+-
+ def cells(line: str) -> list[str]:
+     s = line.strip()
+     if not (s.startswith("|") and s.endswith("|")) or len(s) < 2:
+@@ -314,6 +328,45 @@ def form_tokens(cell: str) -> list[str]:
+             if TOKEN_RE.match(t) and t[1:].lower() not in BUILTINS]
+ 
+ 
++def form_shape(token: str | None) -> str:
++    """v3: the form of a token -- its sigil, then the placeholder `<name>`.
++
++    The example name is not part of the form: `/skill-name`,
++    `/frontend-design` and `/<skill-name>` are the one form `/<name>`;
++    `$setup-demo-app` and `$<skill-name>` are `$<name>`; `@skill-id` is
++    `@<name>`."""
++    if not token:
++        return ""
++    m = TOKEN_RE.match(token)
++    return m.group(0)[0] + "<name>" if m else ""
++
++
++def base_form_count(form: str) -> int:
++    """v3: case-insensitive fixed-string count of `form` in the whole BASE tree.
++
++    `.ufo/` is excluded; SOURCES anchor/teaches cells, lessons and seat
++    reports are included.  `git grep` exit 1 means no hits (zero); any other
++    non-zero exit is could-not-evaluate."""
++    if not form:
++        return 0
++    try:
++        r = subprocess.run(["git", "-C", str(LANE), "grep", "-i", "-F", "-c", "-e", form,
++                            BASE, "--", ".", ":!.ufo"], capture_output=True)
++    except OSError as e:
++        raise EnvError("git not runnable: %s" % e) from e
++    if r.returncode == 1:
++        return 0
++    if r.returncode != 0:
++        raise EnvError("git grep %r %s failed: %s"
++                       % (form, BASE, r.stderr.decode(errors="replace").strip()))
++    total = 0
++    for line in r.stdout.decode("utf-8").splitlines():
++        _head, sep, tail = line.rpartition(":")
++        if sep and tail.isdigit():
++            total += int(tail)
++    return total
++
++
+ def _plain(s: str) -> str:
+     s = html.unescape(s)
+     s = re.sub(r"[`*_]", "", s)
+@@ -435,15 +488,17 @@ def judge(skill: str, entry: str, sources: str, lesson: str, base_sources: str)
+     return report
+ 
+ 
+-def new_ground(token: str | None, base_skill: str, base_know: list[str],
+-               url: str | None = None, base_urls: set[str] | frozenset = frozenset()) -> bool:
+-    """v2: case-folded token absent from every base text AND the row's URL not a base row."""
+-    if not token:
++def new_ground(token: str | None, counts: dict[str, int], url: str | None = None,
++               base_urls: set[str] | frozenset = frozenset()) -> bool:
++    """v3: the token's FORM absent from the whole base tree AND the URL not a base row.
++
++    `counts` maps a form to its case-insensitive fixed-string count in the
++    BASE tree (`.ufo/` excluded).  The example name is not consulted: two
++    tokens of one form (`/skill-name`, `/frontend-design`) share a count."""
++    form = form_shape(token)
++    if not form:
+         return False
+-    t = token.lower()
+-    if t in base_skill.lower() or any(t in k.lower() for k in base_know):
+-        return False
+-    return url_key(url) not in base_urls
++    return counts.get(form, 0) == 0 and url_key(url) not in base_urls
+ 
+ 
+ def self_test() -> int:
+@@ -531,10 +586,22 @@ def self_test() -> int:
+         "https://github.com/anthropics/claude-code/../evil", HOSTS["Claude Code"]), False)
+     check("sibling host prefix fails", host_ok(
+         "https://github.com/anthropics/claude-code-evil/x", HOSTS["Claude Code"]), False)
+-    check("new ground: token absent at base", new_ground("/skill-name", "a", ["b"]), True)
+-    check("new ground: token in base SKILL.md", new_ground("$x", "use $x", ["b"]), False)
+-    check("new ground: token in a base entry", new_ground("$x", "a", ["b", "c $x"]), False)
+-    check("new ground: no token", new_ground(None, "a", []), False)
++    check("v3: form of an example token is the shape", form_shape("$setup-demo-app"), "$<name>")
++    check("v3: renamed examples are one form",
++          form_shape("/frontend-design"), form_shape("/skill-name"))
++    check("v3: the sigil picks the form", form_shape("@skill-id"), "@<name>")
++    check("v3: a bracketed placeholder gives the same form",
++          form_shape("$<skill-name>"), "$<name>")
++    check("v3: no token has no form", form_shape(None), "")
++    check("v3: form held in the base tree is not new ground",
++          new_ground("/frontend-design", {"/<name>": 9}), False)
++    check("v3: example rename of a held form is not new ground (v2 counted it)",
++          new_ground("$setup-demo-app", {"$<name>": 2}), False)
++    check("v3: two example names of one form are one form (v2 counted two)",
++          len({form_shape("/skill-name"), form_shape("/frontend-design")}), 1)
++    check("v3: form absent from the base tree is new ground",
++          new_ground("$setup-demo-app", {}), True)
++    check("v3: no token is never new ground", new_ground(None, {}), False)
+     check("v2: built-in /skills is not a form", form_tokens("`/skills`"), [])
+     check("v2: built-in /compact is not a form", form_tokens("`/compact`"), [])
+     check("v2: #file: reference is not a form", form_tokens("`#file:`"), [])
+@@ -550,13 +617,12 @@ def self_test() -> int:
+                  le=lesson.replace("invoke it directly with /skill-name in the prompt",
+                                    "invoke it directly with /deploy-app in the prompt")),
+           ["Codex"])
+-    check("v2: case flip is not new ground", new_ground("$SKILL", "a", ["explicit $skill use"]),
+-          False)
+-    check("v2: base URL is not new ground",
+-          new_ground("/x-y", "a", ["b"], "https://www.Cursor.com/docs/skills.md",
++    check("v3: case-folded form is one form", form_shape("$SKILL"), "$<name>")
++    check("v3: base URL is not new ground",
++          new_ground("/x-y", {}, "https://www.Cursor.com/docs/skills.md",
+                      {"cursor.com/docs/skills"}), False)
+-    check("v2: new URL and absent token is new ground",
+-          new_ground("/x-y", "a", ["b"], "https://cursor.com/docs/other.md",
++    check("v3: new URL and absent form is new ground",
++          new_ground("/x-y", {}, "https://cursor.com/docs/other.md",
+                      {"cursor.com/docs/skills"}), True)
+     check("v2: url_key drops scheme, www, slash and .md",
+           url_key("https://www.code.claude.com/docs/en/skills.md/"), "code.claude.com/docs/en/skills")
+@@ -598,7 +664,6 @@ def main(argv: list[str] | None = None) -> int:
+         sources = read_file(args, SOURCES) or ""
+         lesson = read_file(args, LESSON) or ""
+         base_sources = git_show(BASE, SOURCES) or ""
+-        base_skill, base_know = base_texts()
+     except (EnvError, UnicodeDecodeError, OSError) as e:
+         print("could-not-evaluate: %s" % e, file=sys.stderr)
+         return 2
+@@ -617,21 +682,35 @@ def main(argv: list[str] | None = None) -> int:
+             found += 1 if r["found"] else 0
+     counted = [r for r in backed if r.get("found")] if args.fetch else backed
+     base_urls = base_url_keys(base_sources)
+-    for r in report:
+-        r["new_ground"] = r in counted and new_ground(r["token"], base_skill, base_know,
+-                                                      r["url"], base_urls)
+-    ground = len({r["token"].lower() for r in counted if r["new_ground"]})
++    counts: dict[str, int] = {}
++    try:
++        for r in report:
++            r["form"] = form_shape(r["token"])
++            if r in counted and r["form"] not in counts:
++                counts[r["form"]] = base_form_count(r["form"])
++            if r in counted:
++                r["base_count"] = counts[r["form"]]
++            r["new_ground"] = r in counted and new_ground(r["token"], counts,
++                                                          r["url"], base_urls)
++    except (EnvError, UnicodeDecodeError, OSError) as e:
++        print("could-not-evaluate: %s" % e, file=sys.stderr)
++        return 2
++    ground = len({r["form"] for r in counted if r["new_ground"]})
+     if args.json:
+         print(json.dumps({"backed": len(backed), "of": len(CLIENTS), "found": found,
+                           "new_ground": ground, "target": TARGET, "new_target": NEW_TARGET,
+                           "clients": report}, indent=1))
+     else:
+         for r in report:
+-            print("%-12s %s %s" % (r["client"], "BACKED" if r["backed"] else "no",
+-                                   "; ".join(r["why"]) or
+-                                   ("token=%s new=%s%s" % (
+-                                       r["token"], r["new_ground"],
+-                                       " found=%s" % r.get("found") if args.fetch else ""))))
++            if not r["backed"]:
++                detail = "; ".join(r["why"])
++            else:
++                detail = "token=%s form=%s new=%s" % (r["token"], r["form"], r["new_ground"])
++                if args.fetch:
++                    detail += " found=%s" % ("yes" if r.get("found") else "no")
++                    if r.get("found"):
++                        detail += " base_count=%d" % r["base_count"]
++            print("%-12s %s %s" % (r["client"], "BACKED" if r["backed"] else "no", detail))
+     if args.fetch:
+         print("user-typed invocation forms found on the live page %d of %d; new ground %d"
+               % (found, len(backed), ground))
