@@ -169,4 +169,45 @@ this control.
   browser; one `curl` per page with `--max-time 30`.
 - Tooling: nothing installed or upgraded (no pacman transaction attempted); `curl`, `git`, `python3` were already
   present.
-- No real C1 content and no C2 instrument change was written; all three worlds are hollow by construction.
+- No real C1 content meant for landing and no C2 instrument change were written; world D's single page fragment is control-only, not an admitted source or entry.
+
+## v2 re-score
+
+Erratum 1 names C1 v2 at lane commit `01312a77e36317feb6e961aba77841ddab1225ca`; copied bytes into the same
+sandbox, sha256 `bf11a4efc1c7589a2a057040cc2d5026b54d4f4e2d24c6455b4c50f12f3ea37e`, committed there as
+`sandbox bf6ac028f12e7da2e807f88cf6b0a289c7a4f5fd`
+(`/fast/scratch/hyaku/kotoba-r57/KotobaR57.CtlC1DoNothingJunk`). The v2 counter was unmodified for all runs.
+The complete raw re-score is appended to the same `.txt` receipt; each run prints this sha256 and its measured
+revision.
+
+| world | measured revision | v2 no-fetch | v2 --fetch | result |
+|---|---|---|---|---|
+| do-nothing base | `47c05558` | backed 0 of 0 | found 0 of 0, G=0 | exit 1 both |
+| do-nothing freeze | `ee50d8fa` | backed 0 of 0 | found 0 of 0, G=0 | exit 1 both |
+| junk A, no sources | `sandbox e0467875` | backed 0 of 5 | found 0 of 5, G=0 | exit 1 both |
+| junk B, seven junk sources | `sandbox d6705829` | backed 5 of 5 | found 0 of 5, G=0 | exit 1 both |
+| original world C | `sandbox f004025e` | backed 2 of 3 | found 0 of 3, G=0 | exit 1 both |
+| adapted hollow world D | `sandbox b976598184193f6ad4c3cf01c997a193df2bdbe7` | backed 7 of 7 | found 1 of 7, G=1 | exit 1 both |
+
+World C is rejected under v2 by the new token, shared-token, entry-Manifest and 6-word guards. World D is the
+five-minute hollow adaptation: all seven tokens are distinct v2-shaped `.json` paths, all entry Manifest cells
+match, all quotes are at least six words, Gate/SOURCES rows are present, and all rows are BACKED. Its seven paths
+are invented except the Claude path; the other six quotes are fabricated and not on their cited pages. The Claude
+quote is a short page fragment (`.claude-plugin/plugin.json , gives the plugin its name`), not a landing entry; the
+control remains hollow in purpose and metadata. Only Claude is found; the remaining six token/quote pairs fail the
+live-page test. Thus the v2 hollow adaptation does **not** meet the predicate. Best hollow-control score: **F=1/7,
+G=1, exit 1** (`sandbox b976598184193f6ad4c3cf01c997a193df2bdbe7`).
+
+During the five-minute adaptation attempt I also checked four alternate official pinned-host pages, using ordinary
+curl (no browser): Codex `https://developers.openai.com/codex/plugins/` (HTTP 200, 501,773 B,
+sha256 `9d77bbd1cd179df75f678099b8fb9376b2094cd59c28eb35ab64960cdd8f69ae`, 04:39:36Z), Copilot
+`https://docs.github.com/en/copilot/concepts/extensions` (HTTP 200, 620,875 B, sha256
+`e302304b3523b78b58a244133b37ba09155481d160d0b838455d4a17f612e446`, 04:39:36Z), Cursor
+`https://cursor.com/docs/plugins` (HTTP 200, 483,761 B, sha256
+`5501398d2ada6dc3f54f59cd06b83c1db5ab3a39876033a1274d32b848910a03`, 04:39:37Z), and Gemini
+`https://geminicli.com/docs/extensions/` (HTTP 200, 102,412 B, sha256
+`a0390ab023474895db1eb34dfbd006485117148cf8843f9ad8532377be65456f`, 04:39:37Z). The v2 token miner found no
+eligible tokens on the Codex, Copilot or Gemini pages; it found `.cursor-plugin/plugin.json` on the Cursor page,
+where the surrounding text expressly documents that manifest. I did not use that real claim as a hollow row.
+This attempt found no hollow way to reach F>=5; no extra world was needed to determine the predicate remained
+unmet.

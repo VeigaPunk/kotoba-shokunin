@@ -98,3 +98,44 @@ With (1) alone, this control scores F=0; with (1)+(2) the G inflation route clos
 ## Bounds compliance
 
 Sandbox clone at the freeze commit; sandbox commit labelled; all shell commands wrapped in `timeout`; no `pkill`/`killall`; no lane/fleet git or jj writes; only this report and the named raw-output file were written in the lane; no model CLI calls; no tool installs or upgrades were needed (none performed).
+
+## v2 re-score
+
+Counter v2, copied verbatim from `01312a77e36317feb6e961aba77841ddab1225ca:verifiers/check_plugin_manifests.py`,
+sha256 `bf11a4efc1c7589a2a057040cc2d5026b54d4f4e2d24c6455b4c50f12f3ea37e` (matches the erratum). Run in the same
+sandbox `/fast/scratch/hyaku/kotoba-r57/CtlC1RealNoForm`, same control world commit **sandbox `a656c692be00793edb8c0b7296e32cdca0def688`**, `--fetch`:
+
+```
+counter sha256 bf11a4efc1c7589a2a057040cc2d5026b54d4f4e2d24c6455b4c50f12f3ea37e
+counter rev a656c692be00793edb8c0b7296e32cdca0def688
+plugin manifests found on the live page 0 of 0; new ground 0
+reject Claude Code: SKILL.md manifest token 'plugin.json' is not well-formed; entry row S101: S101 URL '…/claude-code/main/CHANGELOG.md' is a changelog/release/news/blog page, not documentation
+reject Codex: SKILL.md manifest token 'Extensions' is not well-formed; … shared by rows Codex, Copilot CLI; entry row S102: S102 URL 'https://developers.openai.com/codex/changelog' is a changelog/release/news/blog page, not documentation
+reject VS Code: SKILL.md manifest token 'extension.ts' is not well-formed
+reject Copilot CLI: SKILL.md manifest token 'extensions' is not well-formed; … shared by rows Codex, Copilot CLI; no entry row names the client
+reject Gemini CLI: SKILL.md manifest token 'writing-extensions.md' is not well-formed
+reject Cursor: SKILL.md manifest token 'plugin' is not well-formed; entry row S105: quote holds no plugin/extension word outside the token; S105 URL 'https://cursor.com/changelog' is a changelog/release/news/blog page, not documentation
+reject opencode: SKILL.md manifest token 'plugins' is not well-formed; entry row S106: … CHANGELOG.md … changelog/release/news/blog page, not documentation
+exit 1
+```
+
+**v2 world score: F=0 of 0, G=0, exit 1 — not met.** Every v1 route this world used is closed: the `.json`
+final-segment + ≥2-segment/own-marker rule rejects all five found tokens; the changelog-path rule rejects all four
+changelog sources; the shared-token rule fires on the bare words `Extensions`/`extensions`.
+
+### Adaptation attempt (time-boxed, hollow only)
+
+Scanned all 15 pages already fetched for a v2-valid token (final segment `.json`, plugin/extension word, ≥2 segments
+or the row's own marker) that does **not** state the client's own manifest location. The only hit anywhere was
+`.codex-plugin/plugin.json` on `https://developers.openai.com/codex/changelog` — rejected twice over (changelog path;
+and it is Codex's own manifest, not hollow). One further fetch,
+`https://raw.githubusercontent.com/microsoft/vscode-docs/main/docs/configure/extensions/extension-marketplace.md`
+(2026-10-23T04:37:09Z, HTTP 200, 30,018 B, sha256 `fc8cda0b49e569524cd6d2bce34ad28e22e5502de961ca5d90bcc3293514a16a`),
+mentions `extensions.json` only as a bare filename (lines 260, 264) and never the path `.vscode/extensions.json`, so no
+v2-valid non-manifest token exists there either (single-segment `extensions.json` carries no client marker).
+
+No hollow world was found within the 5-minute adaptation box; best v2 score is the re-score above, `0 of 0; new ground 0`,
+exit 1. Non-defect check: v2's `token_well_formed(token, client)` is grammar-only per client and the foreign-marker
+guard is still applied in `judge` (v2 lines 741-744), so the `.codex-plugin` token would also be rejected for any other
+client. The residual surface v2 still does not measure (self-declared `kind docs`/`tier A` naming a page's nature) was
+not exercised: no page found that both lacks changelog/release/news/blog in its path and carries a v2-valid token.

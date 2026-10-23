@@ -131,7 +131,63 @@ the live bytes itself. It does not fix the Q31 gap the plan already names — a 
 seat could still copy a page fragment that merely mentions the file — which stays the
 falsify-wave reviewer's reading.
 
-No tool install or upgrade was made. Longest command was the `--fetch` score (2 s,
-under `timeout 420`); no process was killed. Lane writes: only this report and
-`CtlC1KeyedLabels.txt` under `.ufo/waves/round-57/controls/`; all git writes were in
-the labelled sandbox clone.
+No tool install or upgrade was made. Network and score commands were bounded with
+`timeout`; no process was killed. Lane writes remain limited to this report and the
+named raw receipt; all git writes were in the labelled sandbox clone.
+
+## v2 re-score (Erratum 1)
+
+V2 is the exact counter committed at `01312a77e36317feb6e961aba77841ddab1225ca`,
+sha256 `bf11a4efc1c7589a2a057040cc2d5026b54d4f4e2d24c6455b4c50f12f3ea37e`.
+Copied without edits into the sandbox and committed there as
+`sandbox d11f6a4accb9192bc576881d5c198f10eac898c6`
+(`/fast/scratch/hyaku/kotoba-r57/CtlC1KeyedLabels`). The original keyed world,
+`sandbox b0514f6347a5dbed21f3af405d19371b21cbff17`, scored under v2:
+
+- No `--fetch`: exit 1; `plugin manifests backed 5 of 6`. Claude Code is rejected
+  because its quote has 5 words (v2 minimum 6); opencode is rejected because
+  `.opencode/plugins/` is a directory token, not a `.json` manifest.
+- `--fetch`: exit 1; `plugin manifests found on the live page 0 of 6; new ground 0`.
+  The two outputs are appended verbatim to the raw receipt above; each names the v2
+  counter sha and the measured sandbox revision.
+
+### Five-minute hollow-quote probe
+
+Found a **cross-surface candidate** using the v2 example token
+`.github/plugin/plugin.json` on this pinned host:
+
+URL: `https://docs.github.com/en/copilot/how-tos/copilot-sdk/features/plugin-directories`
+UTC access time: `2026-10-23T04:42:00Z`
+HTTP status: 200
+Body: 688657 bytes (decompressed HTML; `curl --compressed` transfer was 43437 bytes)
+SHA256 of the saved body: `e69be34cb02d1d8236e4fd4973486646c9d6c474a74de6036c2f85a1307a441d`
+Line 55 of those fetched bytes (removed only the four `<code>`/`</code>` tags around
+the two paths):
+
+> The manifest may also live at .github/plugin.json or .github/plugin/plugin.json so plugins can sit inside an existing repository without changing its root layout.
+
+This is 22 words; `.github/plugin/plugin.json` is the Copilot CLI row's token, and
+`plugins` is outside its span. The frozen v2 helpers report the token well-formed,
+no foreign marker, and `found_on_page=True`. The report/raw receipt's hollow variant
+uses this exact quote and page, with source id S082.
+
+**Scope caveat:** the URL is under `/copilot-sdk/`, not Copilot CLI's standalone
+plugin documentation. The sentence is about SDK plugin directories, so it does not
+expressly state Copilot CLI's native manifest location; that is the hollow
+cross-surface reading. However line 58 says the SDK passes `--plugin-dir` to the
+Copilot CLI when it spawns it, so the formats may overlap. [INFERENCE] This is a
+strong scope-mismatch candidate, not an unambiguous proof that the path is invalid
+for Copilot CLI. I did not find a cleaner non-location sentence during this probe.
+
+The hollow variant is
+`sandbox 5408d3878f129345c23b938d24f24d290dabed29`
+(`/fast/scratch/hyaku/kotoba-r57/CtlC1KeyedLabels`): v2 no-fetch exit 1,
+`backed 5 of 6`; v2 `--fetch` exit 1, `found 1 of 6; new ground 1`. The Copilot CLI
+row is the sole FOUND row (`held-at-base=no`); Claude and opencode remain rejected.
+Those raw outputs are appended above, with counter sha and measured sandbox revision.
+
+**v2 predicate not met:** original keyed world F=0/6; best hollow-quote candidate
+world F=1/6, G=1. Neither reaches F≥5 and G≥3. The candidate demonstrates that v2's
+6-word quote floor plus pinned-host check does not enforce source-page/client
+scope, but the SDK/CLI overlap means I do not claim a definitive hollow semantic
+counterexample.

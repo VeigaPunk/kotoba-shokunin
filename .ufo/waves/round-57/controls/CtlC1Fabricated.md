@@ -9,8 +9,9 @@ patched counter was used. `--self-test` was not run by me (not needed for a scor
 Sandbox clone: `/fast/scratch/hyaku/kotoba-r57/CtlC1Fabricated`, checked out at
 `ee50d8fa7b5d260fff8bc332f4a90513bee518ff`. Every sandbox hash below is labelled
 `sandbox <hash> (/fast/scratch/hyaku/kotoba-r57/CtlC1Fabricated)`; none is a lane hash.
-Raw receipt: `.ufo/waves/round-57/controls/CtlC1Fabricated.txt` (124 lines, sha256 `c55bfa82cbe4d775…`);
-line pointers below are to it.
+Raw receipt: `.ufo/waves/round-57/controls/CtlC1Fabricated.txt` (final: 213 lines, sha256
+`60d4d3a2fea9b5d6…`; the v1 part is the first 124 lines, sha256 `c55bfa82cbe4d775…`); line pointers below
+are to the final file.
 
 ## Worlds and scores
 
@@ -155,3 +156,36 @@ With must-fail self-test arms for `Plugins`, `Extensions`, `opencode.ai/docs/plu
 - [INFERENCE] Transient risk: W5's `found=yes` depends on the live pages' navigation text at scoring
   time; it was reproduced twice (human and `--json` runs, raw `:59-70` and `:97-107`). The grammar defect
   is independent of the pages: `token_well_formed("Plugins")` is `True` on any bytes.
+
+## v2 re-score (erratum 1)
+
+Counter v2 sha256 `bf11a4efc1c7589a2a057040cc2d5026b54d4f4e2d24c6455b4c50f12f3ea37e`, copied byte-for-byte
+from `git -C <lane> show 01312a77e36317feb6e961aba77841ddab1225ca:verifiers/check_plugin_manifests.py`
+into the existing sandbox `/fast/scratch/hyaku/kotoba-r57/CtlC1Fabricated`; every run below printed that
+sha in its first line, and no world was rebuilt (same sandbox commits). Raw v2 runs `:126-194`; the
+adaptation probe `:196-208`; v2 in-vitro residuals `:210-213`. UTC 2026-10-23T04:34–04:39Z.
+
+| world | sandbox rev | v1 | v2 | K | v2 stop reason |
+|---|---|---|---|---|---|
+| W1-404 | `cde10678…` | 0 of 7 | `0 of 6; new ground 0`, exit 1 | 6 | opencode token now ill-formed; 6 backed rows `found=no` (404) |
+| W2-offpin | `04fc043e…` | 0 of 7 | `0 of 6; new ground 0`, exit 1 | 6 | Codex row rejected on the URL (`releases` path is a release URL); opencode token ill-formed; 5 backed `found=no` |
+| W3-noquote | `ca2a6f61…` | 0 of 7 | `0 of 6; new ground 0`, exit 1 | 6 | opencode token ill-formed; 6 backed rows `found=no` (quote absent) |
+| W4-boundary | `2575a43e…` | 0 of 7 | `0 of 4; new ground 0`, exit 1 | 4 | `plugin.json` (single segment, no own marker) and the URL-as-token rejected by the v2 grammar; opencode token ill-formed; 4 backed `found=no` |
+| W5-bareword | `d450efef…` | **7 of 7; ground 3, exit 0** | **`0 of 0; new ground 0`, exit 1** | 0 | `Plugins`/`Extensions` not well-formed; `plugin.json` single segment without own marker; shared tokens disqualify |
+
+The v1 counterexample is closed. v2 also closes the URL-as-token route at the grammar (`agent-plugins.org/…`
+has an internal dot in a non-final segment) rather than only at the fetch boundary. The `<client>-plugin.json`
+spelling is v2-valid for its own client, but it occurs on none of the fetched pages, so the 5-minute
+adaptation attempt found no hollow v2-valid token: on these pages the only v2-valid tokens at a boundary are
+the real manifest paths `.claude-plugin/plugin.json` and `.cursor-plugin/plugin.json`. **v2: not met.**
+
+Two observations for the claim side (not control holes):
+
+- opencode is now unrepresentable from its plugins page: `.opencode/plugins` (the documented plugin
+  directory) fails the final-segment-ends-`.json` rule, and the page holds zero occurrences of
+  `plugin.json` (measured on the fetched bytes). C1 needs F>=5 of 7, so the claim can drop the row, but
+  the plan's own v1 example `.opencode/plugins/` is no longer a legal token.
+- v2 residuals, in-vitro on the frozen functions: `found_on_page` still returns **True** when the only
+  occurrence is `.claude-plugin/plugin.json.backup` (right-boundary `.`), and for a quote stitched across
+  two HTML elements by whitespace collapse. Neither was exploitable in W1–W5; both are smaller than the
+  closed holes and worth a later self-test arm, not a redesign.
