@@ -106,7 +106,21 @@ Where each client's own documentation puts its agent (subagent, custom agent) fi
 | Copilot CLI | `.github/agents/` (user `~/.copilot/agents/`) | Markdown profiles (`.agent.md`; `.md` also recognized); frontmatter with optional `name` and `tools` (full schema on a linked reference page, not a SOURCES row); the personal profile wins on the same ID | Keep repository profiles in the project folder and check which copy wins |
 | Gemini CLI | `.gemini/agents/*.md` (user `~/.gemini/agents/*.md`) | Markdown with YAML frontmatter; `name` and `description` required for local agents; optional `tools` and `model`; on by default, off with `experimental.enableAgents: false` in `settings.json` | Commit team agents here and keep personal ones in the home folder |
 | Cursor | `.cursor/agents/` (user `~/.cursor/agents/`; also reads `.claude/agents/` and `.codex/agents/`) | Markdown with YAML frontmatter; `name` (defaults to the file name), `description`, `model`, `readonly`, `is_background`, all optional; `readonly` restricts writes | Review Cursor's own schema; project and `.cursor/` files win name conflicts |
-| opencode | `.opencode/agents` (user `~/.config/opencode/agents/`; singular `agent/` still loads per a 2026-01-17 docs commit) | Markdown frontmatter, body is the system prompt; V1 docs require `description` and use `permission` (`tools` deprecated); V2 uses `permissions` and ignores V1 fields mixed into a V2 file | Apply the checklist below to V1-format files only; convert a file's frontmatter to V2 all at once |
+| opencode | `.opencode/agents` (user `~/.config/opencode/agents/`; V2 still discovers `agent/`, `agents/`, `mode/` and `modes/` per its pinned migration page `migrate-v1.mdx:486`, re-opened in round 56, not a SOURCES row) | Markdown frontmatter, body is the system prompt; V1 docs require `description` and use `permission` (`tools` deprecated); V2 uses `permissions` and ignores V1 fields mixed into a V2 file | Apply the checklist below to V1-format files only; convert a file's frontmatter to V2 all at once |
+
+### Plugin manifests by client
+
+A skill, agent, command or rule file can arrive inside a plugin (Gemini CLI: an extension) rather than from the project tree; find its manifest first. Each row leads with the client's own-format manifest path, else the default its docs name. Basis: `corpus/knowledge/plugin-manifests-round57.md` (S079–S085); locations and quotes checked by `verifiers/check_plugin_manifests.py`, the other cells are reviewer readings.
+
+| Client | Plugin manifest | What a plugin can ship | Action |
+|---|---|---|---|
+| Claude Code | `.claude-plugin/plugin.json` (optional; all other files at the plugin root) | skills, commands, agents, hooks, MCP and LSP server configs, output styles | Look in the plugin root when a skill or agent is not in the project tree |
+| Codex | `.codex-plugin/plugin.json` (compatibility manifest the plugin creator scaffolds; portable packages use root `plugin.json`) | skills, MCP servers via `mcp.json`, lifecycle hooks for manually installed desktop plugins, assets | Check both manifest forms before trusting bundled instructions |
+| VS Code | `plugin.json` at the plugin root (Agent Plugins 1.0 and the default Copilot format; also reads `.claude-plugin/plugin.json` and Legacy OpenPlugin `.plugin/plugin.json`) | portable skills and MCP servers; agents, commands, rules and hooks under `com.github.copilot`; automation templates | Identify the plugin format before moving components |
+| Copilot CLI | `plugin.json` at the plugin root (legacy locations on its CLI plugin reference) | agents, skills, hooks, MCP server configs; Agent Plugins adds commands, rules, LSP servers | Read the manifest before the bundled skills |
+| Gemini CLI | `gemini-extension.json` (required, each extension root) | MCP servers, a context file (`contextFileName`), TOML commands, hooks in `hooks/hooks.json`, skills, sub-agents, policy rules | Audit the extension's context file as always-on text |
+| Cursor | `.cursor-plugin/plugin.json` (Cursor Plugins; Agent Plugins use root `plugin.json`) | Cursor Plugins: rules, skills, agents, commands, MCP servers, hooks; Agent Plugins: skills and MCP servers | Name the plugin format before packaging rules |
+| opencode | `.opencode/plugins/` (no JSON manifest: a plugin is a JavaScript/TypeScript module) | agents, commands, MCP configuration, skills, tools and runtime hooks, registered in code | Review the module code; there is no manifest to read |
 
 ## Router model — which harness, which gate
 
@@ -200,21 +214,7 @@ An implicit-trigger measure (Frontier *Implicit-intent fidelity*) must first set
 | Cursor | `/skill-name` | Attaches the named skill to one message (`cursor-skills.md:29`); with `disable-model-invocation: true` the agent will not apply it from context (`:175`), though a skill backing a Custom Mode stays in context all session (`:218`) | Mark that skill's activation explicit when the raw message holds its `/name`; for a flagged skill, also check whether a Custom Mode carried it |
 | opencode | `@skill-id` | V2 docs: loads the named skill on the user's mention; `metadata["opencode/autoinvoke"]` set to false hides it from the model and keeps this path (`skills.mdx:137,142`); the V1 page states loading by exact name only | Mark that skill's activation explicit when the raw prompt holds `@` plus its ID; other `skill` tool calls the model makes in the turn stay implicit |
 
-## Decision tables — when to use one
-
-| Situation | Table? | Evidence |
-|-----------|--------|----------|
-| Intent → command/route mapping | Yes: `Intent | Command | Notes` | bailian-cli "When to use which command" |
-| Request classification with different actions | Yes: `Class | Pattern | Action` | bailian-protocol 4-class consent table |
-| Flag → effect reference | Yes: `Flag | Effect` | sekhmet-l3 |
-| Ordered pipeline | No — numbered steps or ASCII chain | bailian-finetune 7-step chain |
-| One conditional | No — one sentence | — |
-
-Table rule: every row must contain an **action cell** (command, route, named
-fallback, or verdict) — it need not be the last column; a trailing
-Source/Evidence column is allowed only when an action cell exists earlier in
-the row. A table with no action column at all is documentation, not a
-decision surface, and must not be presented as one.
+Decision-table shape (situation → table or plain steps) and the action-cell rule — every row needs an action cell (command, route, named fallback, or verdict), need not be the last column: `corpus/knowledge/anatomy-and-compression.md` § Moved from SKILL.md § Decision tables (round 57), verbatim.
 
 ## Compression rules
 
@@ -517,7 +517,7 @@ reads as could-not-evaluate. `python3 -B verifiers/check_gate_registry.py --rev 
   lines at round-9 recount; round-7 audit: 30 restate the L2 map with stale
   aliases) — round
   self-iteration mode; template variance is name+path only.
-- `~/.config/opencode/agents/*.md` (18 files, 14–197 lines) — agent-definition
+- `~/.config/opencode/agents/*.md` (historical: 18 files, 14–197 lines; absent on this host as of 2026-10-23) — agent-definition
   surface: roster frontmatter (`subagents`, `cascade`, `permission_mode`),
   negative routing (`NOT …` family in 11/18 — round-6 audit corrected
   round-4's 7), shared godspeed preamble in 14/18 (doubled in

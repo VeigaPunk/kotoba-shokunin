@@ -1,0 +1,58 @@
+diff --git c/SKILL.md w/SKILL.md
+index 5013f45..1344790 100644
+--- c/SKILL.md
++++ w/SKILL.md
+@@ -200,21 +200,7 @@ An implicit-trigger measure (Frontier *Implicit-intent fidelity*) must first set
+ | Cursor | `/skill-name` | Attaches the named skill to one message (`cursor-skills.md:29`); with `disable-model-invocation: true` the agent will not apply it from context (`:175`), though a skill backing a Custom Mode stays in context all session (`:218`) | Mark that skill's activation explicit when the raw message holds its `/name`; for a flagged skill, also check whether a Custom Mode carried it |
+ | opencode | `@skill-id` | V2 docs: loads the named skill on the user's mention; `metadata["opencode/autoinvoke"]` set to false hides it from the model and keeps this path (`skills.mdx:137,142`); the V1 page states loading by exact name only | Mark that skill's activation explicit when the raw prompt holds `@` plus its ID; other `skill` tool calls the model makes in the turn stay implicit |
+ 
+-## Decision tables — when to use one
+-
+-| Situation | Table? | Evidence |
+-|-----------|--------|----------|
+-| Intent → command/route mapping | Yes: `Intent | Command | Notes` | bailian-cli "When to use which command" |
+-| Request classification with different actions | Yes: `Class | Pattern | Action` | bailian-protocol 4-class consent table |
+-| Flag → effect reference | Yes: `Flag | Effect` | sekhmet-l3 |
+-| Ordered pipeline | No — numbered steps or ASCII chain | bailian-finetune 7-step chain |
+-| One conditional | No — one sentence | — |
+-
+-Table rule: every row must contain an **action cell** (command, route, named
+-fallback, or verdict) — it need not be the last column; a trailing
+-Source/Evidence column is allowed only when an action cell exists earlier in
+-the row. A table with no action column at all is documentation, not a
+-decision surface, and must not be presented as one.
++Decision-table shape (situation → table or plain steps) and the action-cell rule — every row needs an action cell (command, route, named fallback, or verdict), need not be the last column: `corpus/knowledge/anatomy-and-compression.md` § Moved from SKILL.md § Decision tables (round 57), verbatim.
+ 
+ ## Compression rules
+ 
+diff --git c/corpus/knowledge/anatomy-and-compression.md w/corpus/knowledge/anatomy-and-compression.md
+index 15b5aae..0bf9594 100644
+--- c/corpus/knowledge/anatomy-and-compression.md
++++ w/corpus/knowledge/anatomy-and-compression.md
+@@ -89,3 +89,26 @@ line-budget move (the file was 675 lines at pre-registration commit `63ceba7`;
+    to `reference/` / `assets/` with a pointer line. Gods-eye rule: if you can't
+    hold the whole file while editing it, the reader can't either (heuristic, not
+    measured).
++
++## Moved from SKILL.md § Decision tables (round 57)
++
++Verbatim from `SKILL.md` § Decision tables — when to use one at `01312a77`
++lines 203–217 (round 57 line-budget move, 15 lines; the moved block's sha256 is
++unchanged by the move, checked before and after — receipt in the round-57
++build report).
++
++## Decision tables — when to use one
++
++| Situation | Table? | Evidence |
++|-----------|--------|----------|
++| Intent → command/route mapping | Yes: `Intent | Command | Notes` | bailian-cli "When to use which command" |
++| Request classification with different actions | Yes: `Class | Pattern | Action` | bailian-protocol 4-class consent table |
++| Flag → effect reference | Yes: `Flag | Effect` | sekhmet-l3 |
++| Ordered pipeline | No — numbered steps or ASCII chain | bailian-finetune 7-step chain |
++| One conditional | No — one sentence | — |
++
++Table rule: every row must contain an **action cell** (command, route, named
++fallback, or verdict) — it need not be the last column; a trailing
++Source/Evidence column is allowed only when an action cell exists earlier in
++the row. A table with no action column at all is documentation, not a
++decision surface, and must not be presented as one.

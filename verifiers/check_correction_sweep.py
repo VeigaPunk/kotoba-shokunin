@@ -71,6 +71,12 @@ REGISTRY = (
     {"id": "r53-c2-baseline-pointer", "file": "verifiers/checklist-baseline.json",
      "stale": r"host file lines 48 and 51",
      "declared": r"round-53 re-measure \(2026-10-22\)", "lead": False},
+    {"id": "r57-r2-s076-note", "file": "corpus/knowledge/agent-definition-files-round56.md",
+     "stale": r"holds no agent word", "declared": r"Round-57 correction", "lead": False},
+    {"id": "r57-r2-s078-note", "file": "corpus/knowledge/agent-definition-files-round56.md",
+     "stale": r"body of a fenced example", "declared": r"Round-57 correction", "lead": False},
+    {"id": "r57-r2-skill-singular-agent", "file": "SKILL.md",
+     "stale": r"singular `agent/` still loads", "declared": r"migrate-v1\.mdx:486", "lead": False},
 )
 
 # Files a registry row names that the self-test's four fixed fixtures do not
@@ -80,6 +86,7 @@ SEEDED = (
     "corpus/knowledge/instruction-surface-census-round13.md",
     "corpus/knowledge/agents-md-and-dispatch-surfaces.md",
     "verifiers/checklist-baseline.json",
+    "corpus/knowledge/agent-definition-files-round56.md",
 )
 
 
@@ -212,6 +219,18 @@ def self_test() -> int:
     case("r53 baseline pointer red", "- x\n", "| d | 9 | x |\n",
          ["r53-c2-baseline-pointer"], seed=base_red)
     case("r53 baseline pointer green", "- x\n", "| d | 9 | x |\n", [], seed=base_grn)
+    # round 57 (Q29, R2): each round-57 row red without its correction, green with it.
+    ent = "corpus/knowledge/agent-definition-files-round56.md"
+    stale_e = "S076's project line holds no agent word. S078's quote is the body of a fenced example.\n"
+    case("r57 quote notes red", "- x\n", "| d | 9 | x |\n",
+         ["r57-r2-s076-note", "r57-r2-s078-note"], seed={ent: stale_e})
+    case("r57 quote notes green", "- x\n", "| d | 9 | x |\n", [],
+         seed={ent: stale_e.rstrip("\n") + " Round-57 correction (R2): see the lesson.\n"})
+    case("r57 singular agent clause red", "- x\n", "| d | 9 | x |\n",
+         ["r57-r2-skill-singular-agent"],
+         skill="| opencode | `.opencode/agents` (singular `agent/` still loads per a docs commit) |\n")
+    case("r57 singular agent clause green", "- x\n", "| d | 9 | x |\n", [],
+         skill="| opencode | singular `agent/` still loads (`migrate-v1.mdx:486`) |\n")
 
     script = str(Path(__file__).resolve())
 

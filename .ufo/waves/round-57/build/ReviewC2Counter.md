@@ -1,0 +1,28 @@
+Result: MIXED — the self-test passes and the scoring path is mostly explicit, but the default measured-run command fails here and several v2 requirements are not actually met.
+
+## Findings
+
+- **P1 — The documented optional `--repo` default cannot archive `verifiers/` from this file's location.** `main()` defaults to `Path(__file__).resolve().parent.parent` (`.ufo/waves/round-57` here), not the repository root (`check_infoless_fences_v2.py:1234-1237`). Git pathspecs are relative to that subdirectory, so `archive_verifiers()` fails before any cases run (`:219-227, :641-645`). Reproduced in sandbox clone `01312a77e36317feb6e961aba77841ddab1225ca`:
+  `timeout 120 python3 -B .ufo/waves/round-57/w0/check_infoless_fences_v2.py --rev 47c05558fa4e6043e45c7abca1fb5fd2fb8cda5a --seed 11` → exit 2, `fatal: pathspec 'verifiers' did not match any files`.
+  With an explicit repository-root `--repo`, the code path does archive the requested revision, extract it, require the extracted instrument, and run that path (`:219-243, :641-646, :525-530`); it does not select the working-tree verifier. But the `--repo` option is presented as optional, and its default breaks the measured run from the actual target location.
+
+- **P2 — “Shuffle case order” is only partially implemented.** The spec says to shuffle case order (`:20`), but `plan_cases()` shuffles primaries and twins separately, then always appends all primaries before twins and keeps each seed's block contiguous (`:461-486`). `measure()` executes in that order (`:655-663`); the self-test explicitly requires twins to follow their seed's primaries (`:752-757`). This leaves a stable phase/seed ordering instead of a shuffled schedule, so position- or phase-sensitive behavior is not randomized as specified.
+
+- **P2 — The hard-negative detail-size guard can accept unbounded repeated subject text.** `case_correct()` removes every copy of `subject` with `detail.replace(subject, "")` before enforcing 300 bytes (`:573-579`). A detail consisting of the expected `line <n>: '<head>'` subject repeated arbitrarily many times still has only that line number in `seen`, no truncation marker, and an empty post-replacement remainder. It therefore passes despite violating the stated 300-byte limit after removing one required subject form (`:33-38`).
+
+- **P2 — The artifact calls itself frozen although Erratum 1 says it is not.** The counter docstring labels this “THE FROZEN SPEC v2” and says the L1 commits it with the plan (`check_infoless_fences_v2.py:2-5`). The binding plan says this v2 was not re-controlled, “is not frozen,” and C2 was withdrawn before data (`plans/round-57.md:124-132`). That is an authority/operability contradiction for a redesign input; the plan's Erratum is controlling.
+
+- **P3 — Pool-probe cases retain a fixed identifying prefix and fixed metadata.** The stated v2 rule disallows fixed prefixes and says case directory/name/heading/description come from the token generator (`check_infoless_fences_v2.py:10-14`). However, `probe_case()` uses `dirname="probe" + token`, `desc="probe"`, and `heading="Probe"`, with an index-seeded RNG and `which=lambda t: None` (`:609-616`); these cases are passed through the measured instrument during preflight (`:619-630`). Thus the probes are distinguishable from scored cases despite the stated rule. The scored cases themselves use generated names and metadata.
+
+## Confirmed behavior / bounds
+
+- Scored cases are isolated: each gets `workdir / case.dirname` as both its own repo root and SKILL path, and `run_case()` creates a fresh cwd for each invocation (`:518-535`); generated primary names are globally unique (`:461-486`).
+- For scored classes, tokens flow through the shared `draw_word()` / `make_token()` path and are rejected when `shutil.which()` resolves them or they match `RESERVED` (`:263-297, :430-458`). Each hard-negative class's bogus head is drawn through the same `tok()` closure. `case_correct()` requires the exact line-and-head subject and rejects a non-FAIL status (`:507-510, :562-580`).
+- The threshold is implemented: `predicate_ok()` requires `correct == total`, `total >= 120`, and no diff-guard hits (`:595-597`); `main()` computes `N` from correctness tallies and `T` from `len(cases)` and passes both to that predicate (`:1249-1257`). The default plan size is 264 (`:115-118`; note the stale `# 192` comment on line 117).
+- **Bound, not defect:** the actual token draw is narrower than arbitrary command names: `draw_word()` emits pronounceable alternating consonant/vowel lowercase chunks, optionally one hyphen-joined chunk or a 1–3 digit suffix, and `TOKEN_RE` enforces the lowercase shape (`:127, :264-280`). It cannot produce path heads, dots, underscores, uppercase, arbitrary Unicode, or shell metacharacters. A real fix must handle such real inputs, but this harness does not measure them. The plan also explicitly bounds C2 away from inline declared-vocabulary commands, arrows other than U+2192, and fence shapes outside its ten classes (`plans/round-57.md:57-61`).
+
+## Verification
+
+- In the required sandbox clone at `01312a77e36317feb6e961aba77841ddab1225ca`: `timeout 600 python3 -B .ufo/waves/round-57/w0/check_infoless_fences_v2.py --self-test` → exit 0; output: `self-test: 0 failure(s) over 156 assertions` (counter SHA-256 `8e38838262dc10c53de1d91e32fdcc659e83ffb964ff4ef7b3264183e723fa34`).
+- The measured-run smoke invocation without `--repo` is recorded above and failed with exit 2. No complete measured scoring run with an explicit `--repo` was performed.
+- No tools were installed or updated.

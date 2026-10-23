@@ -35,7 +35,12 @@ list and bold markers on `* **Project**` (`SrcCopilotCLI`). S073's
 URL redirects to `learn.chatgpt.com/docs/agent-configuration/subagents.md` (a pinned Codex host). S076's quote is
 the user-level line; the project-level line `.gemini/agents/*.md` is the line before it (`subagents.md:323`) and
 holds no agent word. S078's quote is the body of a fenced example whose info string `text` stays in the quote; the
-fence markers were removed (`Srcopencode`).
+fence markers were removed (`Srcopencode`). Round-57 correction (R2, `corpus/lessons/round-57.md` § Corrections to
+round 56): S076's quote at `subagents.md:324` states the user-level path and backs the project token only by substring;
+the project path is stated at `:323`, and the unshaped span `:320-323` holds an agent word outside the path, so "holds
+no agent word" is true of line `:323` alone. S078's quote joins prose at `agents.mdx:41`, the fence info string `text`
+at `:43` (a label, not prose) and the example body at `:44`, with backticks stripped and whitespace folded. The
+counted quote cells are unchanged.
 
 ## Findings
 

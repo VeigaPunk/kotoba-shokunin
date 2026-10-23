@@ -89,3 +89,26 @@ line-budget move (the file was 675 lines at pre-registration commit `63ceba7`;
    to `reference/` / `assets/` with a pointer line. Gods-eye rule: if you can't
    hold the whole file while editing it, the reader can't either (heuristic, not
    measured).
+
+## Moved from SKILL.md § Decision tables (round 57)
+
+Verbatim from `SKILL.md` § Decision tables — when to use one at `01312a77`
+lines 203–217 (round 57 line-budget move, 15 lines; the moved block's sha256 is
+unchanged by the move, checked before and after — receipt in the round-57
+build report).
+
+## Decision tables — when to use one
+
+| Situation | Table? | Evidence |
+|-----------|--------|----------|
+| Intent → command/route mapping | Yes: `Intent | Command | Notes` | bailian-cli "When to use which command" |
+| Request classification with different actions | Yes: `Class | Pattern | Action` | bailian-protocol 4-class consent table |
+| Flag → effect reference | Yes: `Flag | Effect` | sekhmet-l3 |
+| Ordered pipeline | No — numbered steps or ASCII chain | bailian-finetune 7-step chain |
+| One conditional | No — one sentence | — |
+
+Table rule: every row must contain an **action cell** (command, route, named
+fallback, or verdict) — it need not be the last column; a trailing
+Source/Evidence column is allowed only when an action cell exists earlier in
+the row. A table with no action column at all is documentation, not a
+decision surface, and must not be presented as one.
