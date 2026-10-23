@@ -1,0 +1,70 @@
+diff --git a/verifiers/check_assertion_floors.py b/verifiers/check_assertion_floors.py
+index 9339804..885fef1 100644
+--- a/verifiers/check_assertion_floors.py
++++ b/verifiers/check_assertion_floors.py
+@@ -7,7 +7,10 @@ this guard reruns every self-test and FAILs when the observed count is below
+ the recorded floor (harness 10, corpus_integrity 152, corpus_independent 93,
+ surfaces 175, overlap_levers 51, checklist 1852, pins 62,
+ harness_independent 123, compare_harness_independent 330, floors_guard 150,
+-dispatch_prompts 56, sibling_census 68, alwayson 89; round 53 bumped surfaces 129->175
++dispatch_prompts 56, sibling_census 68, alwayson 89, correction_sweep 25;
++round 58 (routed defect R3, second guard) registers correction_sweep at 25
++(verifiers/check_correction_sweep.py: its self-test was unfloored, so a dropped
++case -- the frozen mutants M08-M11 -- still read green); round 53 bumped surfaces 129->175
+ (two round-52 fix arms, opencode 1.19.4 rule and decoy arms, the falsify-wave delivery and walk-target decoys), corpus_integrity 150->152 and
+ corpus_independent 91->93 (fleet-report pointer arms), checklist 1851->1852 (absolute-delegate arm)
+ and registered alwayson at 89 (verifiers/verify_alwayson.py); round 52 bumped surfaces 119->129 (callee-rename
+@@ -159,6 +162,7 @@ EXPECTED_INSTRUMENTS = {
+     "sibling_census": 68,
+     "overlap_levers": 51,
+     "alwayson": 89,
++    "correction_sweep": 25,
+ }
+ SELF_TEST_TIMEOUT_S = 120
+ # Round-56 routed defect 4 (round-55 spot-check, 'routed defects' item 4): the
+@@ -211,6 +215,8 @@ INSTRUMENTS = {
+                        r"(?m)^(\d+) failures\n(\d+) assertions$", 2, 1),
+     "alwayson": ("verifiers/verify_alwayson.py", 89,
+                  r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
++    "correction_sweep": ("verifiers/check_correction_sweep.py", 25,
++                         r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
+ }
+ 
+ 
+@@ -789,10 +795,11 @@ def self_test() -> int:
+ 
+         # F6 -- the registry's own declared size is load-bearing. The anchor is
+         # the live registry's own declared total (round 49: 10; round 50: 11 with
+-        # sibling_census; round 51: 12 with overlap_levers; round 53: 13 with alwayson),
++        # sibling_census; round 51: 12 with overlap_levers; round 53: 13 with alwayson;
++        # round 58: 14 with correction_sweep),
+         # including this guard's self-test); a stale literal here would stop landing
+         # and the count-check would name it.
+-        text = swap(registry_text, '"instrument_total": 13', '"instrument_total": 10',
++        text = swap(registry_text, '"instrument_total": 14', '"instrument_total": 10',
+                     "F6/total")
+         proc = run(write_tree(tmp / "f6", source, text), tmp / "f6")
+         rec("F6 size drift: exit 2", proc.returncode == 2, proc.returncode)
+diff --git a/verifiers/floors-registry.json b/verifiers/floors-registry.json
+index fba2318..3a19523 100644
+--- a/verifiers/floors-registry.json
++++ b/verifiers/floors-registry.json
+@@ -1,6 +1,6 @@
+ {
+  "$comment": "Authoritative instrument registry for verifiers/check_assertion_floors.py (round-37 claim C2a, scout M7's HIGH). The guard's two in-file tables (EXPECTED_INSTRUMENTS, INSTRUMENTS) agree with each other by construction, so a coordinated edit -- the same row deleted from BOTH, a floor lowered in BOTH, a row path repointed -- was self-consistent and silent: the instrument stopped rerunning while the guard still printed all-PASS (scout M7, round 35; re-probed at 041f6ba by seat P5). This file is the anchor OUTSIDE the edited file: any disagreement fails loudly before a self-test runs, naming the class. BUMP-IN-STEP RULE: when a row's floor moves, edit this file, both in-file tables and the guard docstring in the same change; a half-bump now fails loudly on the side that was missed. Every declared path here must stay UNDER --repo: round 40 (claim C2, seat P3) closed V3's confinement residual -- an absolute path or a `../` traversal in this file (or in the guard's own tables) now fails exit 2 as 'escape: ...', because the guard joins it as `repo / path` and an absolute operand silently discards the repo (measured green at r39 bytes: B2's arm B, E2's A25b, drafts/p3/out/ARMS-BEFORE.txt C1/C2). An in-repo `..` such as `verifiers/../verifiers/x.py` stays allowed. TRUST BOUNDARY (documented, not enforced): a coordinated edit of this anchor as well is a three-artifact edit and out of scope for this guard; a symlink INSIDE the tree pointing outside --repo is not a declared-path escape; --script NAME=PATH stays an explicit operator override by design (a unique-bytes stub anywhere, including outside --repo, is the operator's affordance -- but an override that resolves to or matches the bytes of another row's canonical instrument is named 'override repoint').",
+-  "instrument_total": 13,
++  "instrument_total": 14,
+  "instruments": {
+   "checklist": {
+    "floor": 1852,
+@@ -53,6 +53,10 @@
+   "alwayson": {
+    "floor": 89,
+    "path": "verifiers/verify_alwayson.py"
++  },
++  "correction_sweep": {
++   "floor": 25,
++   "path": "verifiers/check_correction_sweep.py"
+   }
+  }
+ }
