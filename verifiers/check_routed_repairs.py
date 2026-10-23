@@ -175,7 +175,8 @@ def self_test() -> int:
 
     full_log = (
         "round-60 build reports claimed 32 committed 29 "
-        "(`ls .ufo/waves/round-60/build | wc -l`)\n"
+        "(`ls .ufo/waves/round-60/build | grep -cE "
+        "'^(Conn|Critic|Exec|Mut|Review|Scout|Scribe|Sentinel|Src)[A-Za-z0-9]+\\.md$'`)\n"
         "landed scope names plans/round-60.md and considerthese/2026-10-23.md\n"
         "erratum: base measurement is receipts/freeze2-selftest.txt not C1-measure.txt\n"
     )
@@ -212,14 +213,14 @@ def self_test() -> int:
 
     log_without_rb = (
         "round-60 build reports claimed 32 committed 29 "
-        "(`ls .ufo/waves/round-60/build | wc -l`)\n"
+        "(`ls .ufo/waves/round-60/build | grep -cE '^(Conn|Critic|Exec|Mut|Review|Scout|Scribe|Sentinel|Src)[A-Za-z0-9]+\\.md$'`)\n"
         "erratum: base measurement is receipts/freeze2-selftest.txt not C1-measure.txt\n"
     )
     expect("rb-missing", {**world, "LOG.md": log_without_rb}, 5)
 
     log_without_ra_count = (
         "round-60 build reports claimed 31 committed 29 "
-        "(`ls .ufo/waves/round-60/build | wc -l`)\n"
+        "(`ls .ufo/waves/round-60/build | grep -cE '^(Conn|Critic|Exec|Mut|Review|Scout|Scribe|Sentinel|Src)[A-Za-z0-9]+\\.md$'`)\n"
         "landed scope names plans/round-60.md and considerthese/2026-10-23.md\n"
         "erratum: base measurement is receipts/freeze2-selftest.txt not C1-measure.txt\n"
     )

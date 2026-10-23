@@ -144,6 +144,55 @@ lane** (no counter v3 measurement exists; the counter is still being drafted):
   (literal A3 would have rejected W3's Cursor rows before the held-key arm ran — receipts
   must name which arm fired).
 
+### E2b addendum — A3 extends to fresh-row alias renderings (same pre-data window)
+
+`MutFixtures` seam S1: the recorded W2 worlds are FRESH rows (not re-opens), so A3 as
+amended in E2 never evaluates them. A3 is extended, still before any C1 data:
+
+- **A3 (extended)** — rejects a row when EITHER (a) it is a re-open whose URL lacks url_key
+  identity with its base row (E2), OR (b) it is a fresh row whose URL diverges from an
+  existing same-host row's URL only by a locale path segment (`/de/`, `/ja/`, …) or an
+  `@version`/`enterprise` suffix — a rendering alias of an article the lane already holds.
+  The (b) check is deterministic string surgery over committed row URLs; no content
+  semantics. W2's fixture receipt pins A3(b); the 11 canonical-equivalence spellings from
+  E2 remain admitted (disclosed limit, unchanged).
+
+### E2c addendum — A4 gains the full-sha alias conjunct (same pre-data window)
+
+`MutA4` measured that the A4 date clause CANNOT reject the actual W1: the recycled round-53
+scratch bytes were never committed, so a full-history `--find-object` walk finds nothing
+older than the fixture's own introduction stamp — a v3 self-test built like v2's (temp repo,
+plain `git commit`) stamps every introduction "now", W1 passes, and the predicate cannot
+print 7 of 7. Backdating the fixture would make it reject a field the fixture set
+(dishonest — CriticA4Limit's forgery class). The arm is therefore extended:
+
+- **A4 (extended)** — four conjuncts: (i) the row's recorded sha256 equals the committed
+  snapshot bytes; (ii) the located quote occurs verbatim in them; (iii) the earliest
+  commit introducing the blob is no older than the row's recorded opened date —
+  CONSISTENCY ONLY, not acquisition authentication (CriticA4Limit's demonstrated bound:
+  backdated commit objects pass); (iv) NEW — the row's full 64-hex snapshot sha256 must
+  not already be recorded in the base-revision SOURCES table, unless the row's teaches
+  cell declares byte-identity via `supersedes S###` (the S110 precedent for honest
+  byte-identical corrections). W1's forged S103 row pins sha `971d75bf…` in full, which
+  base row S043 also records in full → A4(iv) rejects; the four eligible rows alias their
+  bases only by 8-hex prefix → pass (MutA4's measured discriminator).
+
+### E2d addendum — C1 base clause mechanism + canonical key set (same pre-data window)
+
+`RevPredicate` rule-9 attack: the base clause "same command at base `f3246d14` exits 1"
+needs a declared discriminating mechanism or v3 at base plausibly exits 0 (found ≥ TARGET).
+Declared mechanism, frozen pre-data: **A1's canonical key set is read from the committed
+SOURCES rows at the measured revision** (the S112–S115 row texts, matched by id) — not from
+in-counter literals or seat drafts. At base `f3246d14` those rows do not exist, the key set
+is empty, no row can satisfy A1, `found = 0 < TARGET`, exit 1. At the data rev the rows
+exist and the four eligible rows pass. The full two-clause predicate sentence (self-test
+line + base exit-1 + instantiated `--rev <tip> --fetch` exit 0) is pinned verbatim in the
+v3 counter label and the integration receipt `C1-v3-measure.txt`.
+Canonical per-client key set (4 clients, 3 distinct keys): Claude Code = `paths`;
+VS Code = `applyTo`; Copilot CLI = `applyTo`; Cursor = `globs` — per-client mapping, no
+cross-client union (ScribeS115). The plan text is canonical over the dispatch string's
+A3 wording (E2/E2b/E2c supersede the dispatched byte-identity text).
+
 ## Commit order
 
 This plan + checker + C2 base control + census-before (freeze commit) → wave evidence →
