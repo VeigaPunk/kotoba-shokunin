@@ -40,7 +40,7 @@ The pinned A2 `action_conjunct` checks text-support fractions but has no G7 raw-
 - **E2:** A3's canonicalization still admits its disclosed canonical-equivalence URL spellings; this arm-level matrix does not remeasure that limit.
 - **A4(iii):** earliest-commit versus recorded-opened-date consistency only, not acquisition authentication.
 
-S118's snapshot line `.ufo/waves/round-62/snapshots/S118.page:250` says: “Glob patterns that scope the rule to matching files.” The S118 fetch record lives in `corpus/lessons/round-62.md` § Gate. This source supports the `paths` form used in E2e; it is not a runtime measurement.
+S118's snapshot line `.ufo/waves/round-62/snapshots/S118.page:250` says (raw bytes, link markup included): “Glob patterns that [scope the rule to matching files](#path-specific-rules)”. The bracketed link target is part of the cited line; the quote is not link-stripped. The S118 fetch record lives in `corpus/lessons/round-62.md` § Gate. This source supports the `paths` form used in E2e; it is not a runtime measurement.
 
 ## Limits
 

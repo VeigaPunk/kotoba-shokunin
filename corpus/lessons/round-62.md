@@ -11,7 +11,7 @@ lane: kotoba
 
 S118 was opened on 2026-10-23 by `SrcRulesFrontmatter`; its fetched page and lane snapshot are recorded below. The source-seat fetch command and output are in `.ufo/waves/round-62/w1/SrcRulesFrontmatter.md:11-25` (`date -u +%Y-%m-%dT%H:%M:%SZ`; the recorded `curl` command; HTTP status, size, and SHA-256). The quote locator is re-openable with `sed -n '250p' .ufo/waves/round-62/snapshots/S118.page`.
 
-- **S118 Claude Code (re-opens S103)** — https://code.claude.com/docs/en/memory.md — accessed 2026-10-23T20:49:56Z (HTTP 200, 55,354 B, sha256 `02632438e022b5fc70b470b02d59819d9739756c2666b5632734b4564a08a801`; seat `SrcRulesFrontmatter`; snapshot `.ufo/waves/round-62/snapshots/S118.page`) — § Rule frontmatter reference, `memory.md:250`: “Glob patterns that scope the rule to matching files”. S118 is admitted, not rejected; no S118 reject/flip is recorded.
+- **S118 Claude Code (re-opens S103)** — https://code.claude.com/docs/en/memory.md — accessed 2026-10-23T20:49:56Z (HTTP 200, 55,354 B, sha256 `02632438e022b5fc70b470b02d59819d9739756c2666b5632734b4564a08a801`; seat `SrcRulesFrontmatter`; snapshot `.ufo/waves/round-62/snapshots/S118.page`) — § Rule frontmatter reference, `memory.md:250` (raw line, link markup included): “Glob patterns that [scope the rule to matching files](#path-specific-rules)”. S118 is admitted, not rejected; no S118 reject/flip is recorded.
 - Round-start census: `/home/vgpnk/Projects/shokunin/scripts/sources-census.sh validate --root /home/vgpnk/Projects/shokunin kotoba` — exit 0 (`.ufo/waves/round-62/census-before.txt:3-20`).
 
 Rejected (with reason), from `.ufo/waves/round-61/wave/ScoutKeyPagesA.md` § *Census rejections* and its probe records:
@@ -29,4 +29,5 @@ Rejected (with reason), from `.ufo/waves/round-61/wave/ScoutKeyPagesA.md` § *Ce
 - S118 `queued` → `mined` — `corpus/SOURCES.md:129` now names this lesson and `corpus/knowledge/erratum-absorption-round62.md` in `used-by`.
 
 ## Falsify corrections
-- (to be filled by wave 2)
+- **F1 (FalsifyS118, wave 2): the S118 quote was link-stripped.** The first draft quoted “Glob patterns that scope the rule to matching files”, which is not a literal substring of `S118.page:250`; the raw line carries `[scope the rule to matching files](#path-specific-rules)`. Corrected in place to the raw span with the markup shown (Q42/Q56); the page itself shows no drift (`cmp` against a fresh fetch, exit 0, 55,354 B, sha256 `02632438…`). Evidence `.ufo/waves/round-62/w2/FalsifyS118.md`.
+- (further wave-2 corrections appended below as seats land)

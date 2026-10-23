@@ -1,0 +1,332 @@
+{
+ "wave": "kotoba-r62-w2",
+ "milestone": "Round-62 wave 2 (falsify): fresh attack seats re-run every counting command, re-open S118, attack the two new gates and their successors, the claims, the ledger and the registry rows.",
+ "axes": [
+  "depth",
+  "calibration",
+  "operability",
+  "freshness",
+  "adjacency"
+ ],
+ "reportDir": ".ufo/waves/round-62/w2",
+ "context": "# Goal\nkotoba round 62 (hyaku run 5, attempt 2) \u2014 WAVE 2 of 2 (falsify), 2026-10-23. Lane repo /home/vgpnk/Projects/shokunin/kotoba-shokunin is READ-ONLY to you except your own report: write NO lane product, verifier, corpus, fleet, sibling, `.ufo/state`, MANIFEST or jj/git-index file. The L1 (agent id L1kotoba62) is the only integrator.\n\n# What you attack\nRound-62 claims and their landed bytes at lane tip `e6da78bbe420722dd18a13182a7c4b64ce02f005`:\n- C1 depth: `verifiers/check_erratum_absorption.py` (sha256 afb4ff74\u2026), receipt `.ufo/waves/round-62/C1-absorb-measure.txt`; frozen counter `verifiers/check_scoped_rules.py` sha256 5a5adc94\u2026 (NEVER EDIT); successor `verifiers/check_scoped_rules_v31.py` sha256 a07c2269\u2026 with receipt `.ufo/waves/round-62/C1-v31-successor.txt`.\n- C2 calibration: `verifiers/check_routed_repairs_v2.py` (sha256 de5e3471\u2026), receipt `.ufo/waves/round-62/C2-successor-measure.txt`; frozen `verifiers/check_routed_repairs.py` (95ade9be\u2026).\n- Evidence: `.ufo/waves/round-62/w1/` (34 wave-1 reports), `.ufo/waves/round-62/controls/` (absorption-before, absorption-hollow, frozen-repairs-dishonest, seat-counts-r61, seat-counts-r62), `corpus/knowledge/erratum-absorption-round62.md`, `corpus/lessons/round-62.md`, `corpus/QUALITY.md` Q57, `corpus/SOURCES.md` S118, `corpus/README.md`, `SKILL.md` registry rows, `LOG.md` \u00a7 Round 62, `SCORECARD.md` round-62 annotations.\n- Plan and frozen predicates: `plans/round-62.md` \u2014 READ IT FIRST. Every item names what it attacks; re-run each counting command on committed bytes and paste exact output + exit code.\n\n# Bounds\n- Every `Report:` trailer path is relative to /home/vgpnk/Projects/shokunin/kotoba-shokunin \u2014 write it at /home/vgpnk/Projects/shokunin/kotoba-shokunin/<that path> (reportDir `.ufo/waves/round-62/w2`). Use absolute paths for every read/run.\n- Leaf seat: no subagent dispatch, no background jobs, no `ask`. Never call a model parameter.\n- Read-only git/jj allowed (`git -C <lane> show/log/ls-tree/rev-parse`, `jj ... --ignore-working-copy`); NEVER `git add/commit/push/checkout/reset/stash` or a mutating jj command. A gate/selftest that writes git must run on a sandbox clone under /tmp, never in the lane.\n- No pacman transactions (paused host-wide). Tool installs allowed only via uv/npx/official binary in ~/.local/bin; read /home/vgpnk/.omp/agent/RULES.md first and record tool/version/channel/reason.\n- Contention cap: at most 4 processes, 120 s per command. Kill only by the PIDs you started.\n- Evidence discipline: every number carries the command that produced it (Q41/Q50/Q54); no `byte-exact` unless literal bytes (Q56); an unrun check has not passed; a claim that fails is reported as failed, never softened.\n\n# Tooling directive \u2014 operator, 2026-10-19 (always on, every agent)\nAny agent \u2014 main session or subagent, any lane, any wave \u2014 installs or updates any tool that\nhelps its task or is a strict upgrade, with full privilege, without asking first. Passwordless\n`sudo` is available.\n- Channel order: `sudo pacman -S --needed --noconfirm <pkg>` \u2192 `uv tool install <pkg>` \u2192\n  official release binary into `~/.local/bin` \u2192 `cargo install` / `npm -g`. Official sources\n  only; never pipe an unverified remote script into a shell.\n- Full-system upgrades (`pacman -Syu`) go through tsukuroi-shokunin's update-safety gate first:\n  boot-chain packages can break boot (mkinitcpio 42 moves root to `/sysroot`; the host's\n  `btrfs-overlayfs` and `plymouth` hooks still expect `/new_root`). Never run a partial upgrade\n  (`pacman -Sy <pkg>`). If an install fails on a stale sync database, report it.\n- Record every install or update \u2014 tool, version, channel, reason \u2014 in your report or handoff.\nNOTE: pacman transactions remain PAUSED host-wide this session \u2014 the install channels above are for uv/npx/official binaries; file nothing and report if blocked.",
+ "items": [
+  {
+   "name": "FalsifyMatrixRerun",
+   "role": "reviewer",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Re-run the C1 counted predicate at the lane tip and attack the receipt: `python3 -B verifiers/check_erratum_absorption.py --self-test` (paste full stdout + exit). Diff it line-for-line against `.ufo/waves/round-62/C1-absorb-measure.txt`; recompute the `guard flips` counts and the survivor list by reading the instrument's ERRATA, and state whether `absorbed 2 of 5; surviving 6` is forced by the instance verdicts or can drift from them. Attack: the receipt's provenance (receipt_rev 3e7aed9b, instrument sha)."
+  },
+  {
+   "name": "FalsifyMatrixAsserted",
+   "role": "reviewer",
+   "axes": [
+    "depth",
+    "calibration"
+   ],
+   "prompt": "Attack whether the absorption summary is computed or asserted: read the `summarize`/`Summary` path in `verifiers/check_erratum_absorption.py` and construct a minimal fake `MatrixRun`/`GroupObservation` (constant reasons) that still yields `absorbed 2 of 5; surviving 6; controls 2 of 2`. If it passes validation, the instrument has a hollow class \u2014 report the exact construction. If it fails, name the check that kills it and the line. Report-only, scratch under /tmp."
+  },
+  {
+   "name": "FalsifyMatrixMutants",
+   "role": "mutation-tester",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Mutation-test the C1 instrument: apply, one at a time in a /tmp copy placed beside a copy of the frozen counter, (m1) run the matrix with `execute_mutations=False`, (m2) replace the real scorer with a fixture-label scorer, (m3) hard-code the summary line, (m4) remove one erratum from ERRATA. Each mutant must fail the committed `--self-test`; paste the diagnostic and exit. Report which mutant the self-test does NOT kill \u2014 that is the named bound."
+  },
+  {
+   "name": "FalsifyE2cClass",
+   "role": "critic",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Attack the E2c instances: `e2c-wrong-supersedes-target` and `e2c-supersedes-with-fresh-fetch`. Read `alias_sha_why` (verifiers/check_scoped_rules.py:1186-1268) and decide, with the r61 E2c binding conditions in plans/round-62.md, whether each instance is genuinely the erratum's class or a synthetic case the guard was never meant to cover. Then check whether the v3.1 successors actually enforce the semantics you argue. Name any over-claim in the entry/LOG/SCORECARD with path:line."
+  },
+  {
+   "name": "FalsifyE2eClass",
+   "role": "critic",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Attack the E2e instances (`e2e-negated-path-key`, `e2e-commented-equals-key`): are they the A1 erratum class (key form / path-like value), or a different class smuggled in? Check `path_site`/`path_value`/`key_site` (verifiers/check_scoped_rules.py:944-1067) and the vendor fact in S118 (`paths` accepts a YAML list or comma-separated string). Does rejecting a `# paths=` comment or a `Do not use paths:` sentence follow from the pinned claim, or does it overreach? Report with exact lines."
+  },
+  {
+   "name": "FalsifyE2fPair",
+   "role": "critic",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Attack the E2f instance pair. Compare `.ufo/waves/round-62/w1/ExecInstancesA2.md` (its published pair and measured 1-of-2 reject) with the instrument's frozen pair; reconstruct both pairs in /tmp against the pinned counter and report each verdict with the function call. CriticC1Hollow (`w1/CriticC1Hollow.md`) claims a no-op v3.1 arm can print `E2f fresh instances reject 2 of 2`; check whether the landed v3.1 G7 arm is computed from the committed counter's behavior or from its own labels."
+  },
+  {
+   "name": "FalsifyControls",
+   "role": "critic",
+   "axes": [
+    "depth",
+    "calibration"
+   ],
+   "prompt": "Attack the instrument's seeded controls and the `controls 2 of 2` claim: read `control_pairs()` and `run_matrix`'s control loop. Build a hollow auditor that satisfies both controls and the content-variant arm without calling any guard (scratch). If none exists, say why each attempted hollow failed and name the check. Then judge whether `controls 2 of 2` in the receipt is evidence of instrument integrity or only of fixture shape."
+  },
+  {
+   "name": "FalsifyPin",
+   "role": "sentinel",
+   "axes": [
+    "operability",
+    "depth"
+   ],
+   "prompt": "Attack the counter pin in `verifiers/check_erratum_absorption.py`: (a) a /tmp copy of the instrument beside a one-byte-modified counter must exit 2 with the pin diagnostic; (b) a symlink whose target is the real counter vs a modified one; (c) `self_sha()` recheck after import. Paste each command/exit. Report any path where a different counter can be audited without exit 2."
+  },
+  {
+   "name": "FalsifyBeforeState",
+   "role": "reviewer",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Re-measure C1's before-state 0 of 5: re-run the five targeted searches recorded in `.ufo/waves/round-62/controls/absorption-before.txt` over `.ufo/waves/round-61/` at the r61 tip and over the r61 report. Attack the filter's breadth: does it miss an arm-level receipt that does exist (false 0), or count a non-arm receipt (false hit)? Report the exact commands and counts; if the 0 stands, say so in one line."
+  },
+  {
+   "name": "FalsifyV31Worlds",
+   "role": "reviewer",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Re-run the v3.1 successor at the committed bytes: `python3 -B verifiers/check_scoped_rules_v31.py --self-test` and `--rev 43fe01804708d65e53965b4be31e9dc7dce793e4 --fetch`; compare with `.ufo/waves/round-62/C1-v31-successor.txt`. Independently confirm the frozen counter is byte-identical (`sha256sum` both) and that the v31 diff touches only the declared guards (`diff`). Name any undeclared behavior change."
+  },
+  {
+   "name": "FalsifyV31Harm",
+   "role": "reviewer",
+   "axes": [
+    "depth",
+    "calibration"
+   ],
+   "prompt": "Harm analysis on v3.1's new guards: the colon-only `KEY_SUFFIX_RE`, the negation cue list, the `#`-comment rule and G7's raw-substring check. Search the committed worlds/fixtures and the four eligible rows for any legitimate form each guard would reject (e.g. `=` form, a path containing `#`, a quoted value with an apostrophe). Run the v3.1 self-test and each candidate; report false-reject risks as bounded or measured."
+  },
+  {
+   "name": "FalsifyV31G7TooStrong",
+   "role": "critic",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Attack v3.1's G7 arm: it rejects any backticked identifier absent from the raw cited line and raw page. Construct a legitimate action cell whose backticked token is a paraphrase/abbreviation not literally on the page and show whether G7 rejects it (false positive), then judge whether the arm is over-strong for the r61 A2 contract. Report with the exact cell/page bytes and the reason list."
+  },
+  {
+   "name": "FalsifyV31G9",
+   "role": "critic",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Attack the claim that G9 compound-purpose stays a declared bound in v3.1. Try to make the new E2e/E2c/G7 guards reject `e2f-compound-purpose-outside-citation` anyway (that would falsify the bound statement). Run the six survivor inputs yourself against v31 in /tmp and paste each verdict. If the survivor stands, quote the v31 line `survivors closed 5 of 6` and the bound line."
+  },
+  {
+   "name": "FalsifyC2Rerun",
+   "role": "reviewer",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Re-run C2 at committed bytes: `python3 -B verifiers/check_routed_repairs_v2.py --self-test`, `--rev f3246d1493b60ea1c0d947a19c39f9e08e92f326`, `--rev e6da78bbe420722dd18a13182a7c4b64ce02f005`; diff against `.ufo/waves/round-62/C2-successor-measure.txt`. Verify the receipt's `successor sha256` names the same bytes you ran (`sha256sum`). Report every divergence."
+  },
+  {
+   "name": "FalsifyC2Mutants",
+   "role": "mutation-tester",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Mutation-test `verifiers/check_routed_repairs_v2.py`: in /tmp copies, disable each of G-a\u2026G-f in turn and record which D tree(s) stop being rejected; then make the public CLI call the frozen `check_repairs` instead of the hardened one and report whether the self-test's tip arm still prints 6 of 6 (the split-evaluator hollow). Paste each self-test line/exit."
+  },
+  {
+   "name": "FalsifyC2Shortcuts",
+   "role": "critic",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Attack the v2 self-test's ability to distinguish a name-lookup or constant-transcript implementation from blob-computed scores. Read the self-test arms and the D/H fixture builders; then build (scratch) a `check_repairs` that returns constants keyed by tree name and run it through the v2 self-test harness. Report whether it prints the frozen signature and exits 0; if killed, name the arm."
+  },
+  {
+   "name": "FalsifyC2D1Basis",
+   "role": "reviewer",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Attack D1/G-a's count basis: `git ls-tree -r --name-only <rev> -- .ufo/waves/round-60/build` at base f3246d14, r60 close and tip; count names matching the frozen regex. Verify D1's tree adds an actual matching report name to reach 30 and that the line claims 29. Re-run the self-test's paired population control and report whether the four numbers (`29/29, 30/29, 30/30`) are computed from input blobs."
+  },
+  {
+   "name": "FalsifyC2HonestH1",
+   "role": "reviewer",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Verify H1: score the house-style honest tree against the frozen `check_routed_repairs.check_repairs` (must be 4 of 6) and against v2 (must be 6 of 6), reproducing the self-test's H1 claim from the committed fixture blobs. Attack whether H1 is genuinely house style (pointers split across two lines, asserted not negated) or a strawman that only the successor's regex accepts."
+  },
+  {
+   "name": "FalsifyC2FrozenBytes",
+   "role": "scout",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Verify the C2 frozen identity: sha256 of `verifiers/check_routed_repairs.py` at tip and at `7827628a` and `a745411c`; paste all three. Confirm v2 imports exactly the committed module path (no shadow module, no sitecustomize) and that its six checks are the frozen six (function body diff). Report any shadow/import hazard."
+  },
+  {
+   "name": "FalsifyC2RejectAll",
+   "role": "critic",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Attack the v2 predicate's shortcut space: can a reject-every-tree or accept-every-tree implementation print `dishonest rejected 6 of 6; honest passed 2 of 2`? Build each in scratch and run it through the same self-test harness; report whether it is killed and by which arm. Also test a base-arm hardcode (`0 of 6`) with a tip hardcode (`6 of 6`)."
+  },
+  {
+   "name": "FalsifyC2RevArg",
+   "role": "sentinel",
+   "axes": [
+    "operability"
+   ],
+   "prompt": "Attack `check_routed_repairs_v2.py`'s `--rev` handling: injection via shell (it uses subprocess argv, verify), a rev that is a tree/blob, a rev with `--` or path chars, an empty rev, and an unreadable repo. Each must exit 2 with its named diagnostic and no traceback. Paste commands/exits; report any crash or path where a non-commit is scored."
+  },
+  {
+   "name": "FalsifyClaimC1",
+   "role": "reviewer",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Attack C1's claim sentence as written in plans/round-62.md (E1-corrected): does the counted predicate (`errata measured 5 of 5; absorbed K of 5; surviving N; controls 2 of 2`) match the landed instrument's exit rule, and does the after-state in LOG.md/SCORECARD.md use exactly that line? Check for universal clauses, post-data target changes, and a do-nothing control that reaches the target (run the instrument with all instances trivially rejected: does it still print 5 of 5?)."
+  },
+  {
+   "name": "FalsifyClaimC2",
+   "role": "reviewer",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Attack C2's claim: verify the frozen predicate line is the same sentence in plans/round-62.md, `check_routed_repairs_v2.py`'s printed line, and the receipt; check the kill rule (a label-only successor fails) against the committed self-test; and confirm the base control `0 of 6` is real (run the frozen counter at base yourself). Name any sentence that changed after data."
+  },
+  {
+   "name": "FalsifyLogEntry",
+   "role": "reviewer",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Attack `LOG.md` \u00a7 Round 62: re-derive every count and hash it states (34 of 39 seat reports, 65 of 68 r61, 29 build reports, 15 W04 \u2192 16 W04, instrument/successor/counter shas, survivor list). Run `python3 -B verifiers/check_routed_repairs_v2.py --rev e6da78bb` to confirm the entry did not break R-a\u2026R-f at the r61 section. Report every unresolvable pointer with its line."
+  },
+  {
+   "name": "FalsifyScorecard",
+   "role": "reviewer",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Attack the round-62 SCORECARD annotations: every pointer resolves at the tip; the scores held (depth 9, consistency 10) match the axes table; no band move is claimed; no capabilities row is added while the plan declares none. Check the `Next: round 63` block for a claim the round cannot support. Report with line numbers."
+  },
+  {
+   "name": "FalsifyQ57",
+   "role": "reviewer",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Attack Q57 in `corpus/QUALITY.md`: does the row state both directions and the guard, cite M93 and the matrix, and state the arm-level bound? Check overlap with Q34/Q35/Q36/Q56 and say which row owns which clause. Then test the criterion against the E2f survivor: does Q57 force the erratum to be recorded as NOT absorbed? Quote the row text and your verdict."
+  },
+  {
+   "name": "FalsifyLesson",
+   "role": "reviewer",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Attack `corpus/lessons/round-62.md`: M93's evidence pointer resolves (`verifiers/check_scoped_rules.py:972-1040`), the Gate's S118 record has URL/access date/sha256/\u226425-word quote, the rejected-candidate bullets are real (spot-check one fetched rejection against `.ufo/waves/round-61/wave/ScoutKeyPagesA.md`), the status change matches SOURCES.md, and no word count lacks its command (Q54). Report every defect with line numbers."
+  },
+  {
+   "name": "FalsifyS118",
+   "role": "scout",
+   "axes": [
+    "freshness"
+   ],
+   "prompt": "Re-open S118: fetch `https://code.claude.com/docs/en/memory.md` once (browser UA, max-time 30, HTTP 200 required) into /tmp and compare sha256/bytes with `.ufo/waves/round-62/snapshots/S118.page` (02632438\u2026, 55,354 B). Verify line 250 of the snapshot holds the quoted table row and that the quote is \u226425 words. Report drift or `no drift` with the command output."
+  },
+  {
+   "name": "FalsifySourcesRow",
+   "role": "reviewer",
+   "axes": [
+    "freshness",
+    "calibration"
+   ],
+   "prompt": "Attack the S118 row in `corpus/SOURCES.md`: 11 cells in contract order, no embedded `|`, URL/access/sha match the snapshot, `re-opens S103 \u2014` prefix per S114/S115, status `mined` with both used-by paths existing, and the census validator exit 0 with 16 W04. Paste the validator output and the row's cell count."
+  },
+  {
+   "name": "FalsifyNoHarm",
+   "role": "critic",
+   "axes": [
+    "operability"
+   ],
+   "prompt": "Attack the no-harm evidence: read `.ufo/waves/round-62/noharm-battery.sh` and `.ufo/waves/round-62/noharm-tip.txt` (measured 3e7aed9b; the run exited 124 after `reg_gate` and `corpus-idx` failures). Re-run the battery at the final tip yourself with a generous deadline (one process) and report the exact `no-harm OK` line or every failing arm. Check the battery's arm count and that absent-optional arms print `SKIP`."
+  },
+  {
+   "name": "FalsifySeatCounts",
+   "role": "scout",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Attack the seat accounting: run `python3 -B verifiers/check_seat_counts.py --spec .ufo/waves/round-62/w1-spec.json --dir .ufo/waves/round-62/w1 --rev <final tip>`; verify the 39 spec names, the missing set, and that the five dead/wave-1-missing names in LOG.md match the tool. Check the completion-call reports (ScoutRegistry, ExecNoHarmRun, ExecSuccessor31, ScribeLessonQ57) are not counted as wave-1 spec seats and that the wave-1 ScribeEntry62 report at 3e7aed9b is preserved in git."
+  },
+  {
+   "name": "FalsifyRegistryRows",
+   "role": "reviewer",
+   "axes": [
+    "operability"
+   ],
+   "prompt": "Attack the three new SKILL.md registry rows (`check_erratum_absorption.py`, `check_routed_repairs_v2.py`, `check_scoped_rules_v31.py`): run `python3 -B verifiers/check_gate_registry.py --rev <final tip>` and report the conformant count; check kind, backticked self-test flag, pinned-values cell, reads/writes cell, owner, and that each row's claim matches the instrument's exit rule (absorption exit 0 = measured 5 + controls 2, not absorbed 5)."
+  },
+  {
+   "name": "FalsifyReportClaims",
+   "role": "critic",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Before the report exists, attack the claim set the report will carry: read plans/round-62.md \u00a72/\u00a72b, LOG.md \u00a7 Round 62, SCORECARD.md annotations and the receipts; list every sentence that the committed evidence cannot support (a verdict stated without a receipt, a count without a command, a capability row claimed). Give the integrator a numbered defect list with the minimal fix for each."
+  },
+  {
+   "name": "FalsifySOURCESCensus",
+   "role": "scout",
+   "axes": [
+    "freshness"
+   ],
+   "prompt": "Run the round-end census yourself (`sources-census.sh validate --root /home/vgpnk/Projects/shokunin kotoba`), compare with `.ufo/waves/round-62/census-before.txt` and the regenerated after receipt; verify exit 0, the W04 delta (15\u219216) and that S118 is the only new row. Check the corpus append-only gate (`check_sources_append_only.py --rev <tip> --base 422ffd10\u2026`) and report its exit."
+  },
+  {
+   "name": "FalsifyBatterySelfTests",
+   "role": "mutation-tester",
+   "axes": [
+    "operability"
+   ],
+   "prompt": "Attack the new gates' own self-tests as tests: for `check_erratum_absorption.py` and `check_routed_repairs_v2.py`, delete one assertion/arm each in /tmp copies and confirm the floor/self-test catches the deletion (`check_assertion_floors.py` counts if registered; otherwise report that the new gates are outside `verifiers/floors-registry.json` and that is a named bound). Paste outputs."
+  },
+  {
+   "name": "FalsifyStatementSemantics",
+   "role": "revenger",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Reverse-engineer what the r61 `action_conjunct` actually guarantees vs what the round-62 entry claims: read the r61 entry `corpus/knowledge/scoped-rules-counter-round61.md`, the counter code and the matrix; list any claim in the r62 entry/LOG that exceeds the code's behavior (e.g. 'event-claim' semantics, 'compound purpose'). Report the exact over-claims with the code line that disproves them."
+  },
+  {
+   "name": "FalsifySubmissionSweep",
+   "role": "scout",
+   "axes": [
+    "operability"
+   ],
+   "prompt": "Misroot sweep: run `git -C /home/vgpnk/Projects/shokunin status --porcelain`; identify any untracked fleet-root file whose content names kotoba/round-62 and verify none of this round's seats wrote one. Also verify no wave-2 seat writes outside `.ufo/waves/round-62/w2`. Report the fleet-root file list with the kotoba/round-62 grep verdict."
+  },
+  {
+   "name": "FalsifyGateRegress",
+   "role": "reviewer",
+   "axes": [
+    "operability"
+   ],
+   "prompt": "Run the r61 no-harm-critical gates at the final tip yourself, one at a time: `verify_corpus_integrity.py`, `verify_skill_checklist.py`, `check_assertion_floors.py`, `check_gate_registry.py --rev <tip>`, `check_seat_counts.py --self-test`, `verify_dispatch_prompts.py --box-proof --map verifiers/checklist-baseline.json`. Paste each `checks pass`/`failure`/`PASS` summary and exit; report any regression the r62 changes introduced (compare the base set where the battery names one)."
+  },
+  {
+   "name": "FalsifyConnector",
+   "role": "connector",
+   "axes": [
+    "adjacency"
+   ],
+   "prompt": "Sibling-overlap re-scan on the two new surfaces only (erratum-absorption audit; honest-pass counter hardening): read the index lines of the 20 sibling `corpus/README.md` files and the two routed siblings named in this round's prompt (chousa round-35 erratum handling; kumitate round-48 freeze-before-data discipline). Report whether any sibling now holds an instrument of either shape, and whether kotoba's absorption criterion borrows a technique it does not cite. Read-only; no lane writes beyond your report."
+  }
+ ]
+}
