@@ -105,6 +105,21 @@ committed v2 counter (world-instrumentation receipts). After integration a resid
 Tooling authorization (operator 2026-10-19) stands for every seat; pacman is PAUSED
 host-wide — install via `uv tool`/`npx`/official binaries only, record any install.
 
+## Erratum E1 — C3 withdrawn as a counted claim before data (2026-10-23, pre-data)
+
+`CriticC3Axis` exhibited a static counterexample to the frozen C3 counter: a tree that keeps
+the S117 row and its index row while replacing the entry with scope-absorbing unsupported
+claims preserves every named counting observable (`grep -c` 0→1, `test -f`, README row).
+The counter therefore cannot measure the axis property (AXES.md adjacency = reported, not
+absorbed), and rule 9 bars a target a hollow control can reach. Per the r56–r58 pre-data
+withdrawal precedent, **C3 is withdrawn as a counted claim before any C3 data entered the
+lane**; the frozen predicate is retired unmeasured. The curation itself continues as
+frontier-step work (SOURCES row S117, the knowledge entry, the README row, the lesson Gate)
+and is reported under Sources & frontier, not as a claim. The class is mined as M92
+(a presence counter cannot back an adjacency claim) into `corpus/lessons/round-61.md`.
+Round claims are now C1 (depth) and C2 (calibration). The sourced-claim rule is still met
+by C1's S112–S115.
+
 ## Commit order
 
 This plan + checker + C2 base control + census-before (freeze commit) → wave evidence →
