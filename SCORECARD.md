@@ -149,7 +149,7 @@ criteria of the next band met.
 
 **Round 57 attempt 3 (falsify wave, 40 seats):** C1 re-measured at `bc09a830` after the falsify corrections: `found on the live page 4 of 4; new ground 4`, exit 1 (`.ufo/waves/round-57/a3/C1-remeasure-a3.txt`) — unchanged, still a miss. Scores unchanged on every axis. Calibration mismatches found by `A3CriticScorecardCalib`: 5; 4 corrected in SHONEN/SCORECARD text, 1 (band-10 attribution, `SCORECARD.md:29`) routed to the closure.
 
-**Round 58 completed (attempt 1):** C1 depth measured `found on the live page 6 of 6; new ground 4`, exit 0 against frozen F ≥ 4, G ≥ 3 (census 6/4 recorded before the targets); C2 withdrawn before data (`CtlC2SourceGrep`); routed R1–R5 landed, R6 census recorded, R7 redesign carried with the kill-by-PID bound in every context, R8 left to the operator. Report `.ufo/reports/round-58/kotoba.md`.
+**Round 58 completed (attempt 1):** C1 depth measured `found on the live page 6 of 6; new ground 4`, exit 0 against frozen F ≥ 4, G ≥ 3 (census 6/4 recorded before the targets); C2 withdrawn before data (`CtlC2SourceGrep`); routed R1–R5 landed, R6 census recorded, R7 redesign carried with the kill-by-PID bound in every context, R8 left to the operator. Report `../.ufo/reports/round-58/kotoba.md`.
 
 **Next: round 59** — C2 redesign from `.ufo/waves/round-58/build/CriticC2Redesign.md` (measurement-time equivalents) only if re-controlled before data; the C1 counter's 10 surviving self-test mutants (`.ufo/waves/round-58/build/MutC1Counter.md`); the info-less fence redesign (carried R7/R8 of round 57); run the Q45 census before any per-client target.
 
