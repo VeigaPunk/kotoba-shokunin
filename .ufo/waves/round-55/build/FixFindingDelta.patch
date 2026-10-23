@@ -1,0 +1,101 @@
+diff --git c/verifiers/check_gate_finding_delta.py w/verifiers/check_gate_finding_delta.py
+index 412bae8..0917a0f 100755
+--- c/verifiers/check_gate_finding_delta.py
++++ w/verifiers/check_gate_finding_delta.py
+@@ -33,6 +33,9 @@ from pathlib import Path
+ 
+ PY = sys.executable
+ 
++class CouldNotEvaluate(Exception):
++    """The requested revisions or Git environment cannot be evaluated."""
++
+ 
+ def delta(base, head):
+     """Pure model: (new, resolved) from two sets of finding ids."""
+@@ -82,7 +85,20 @@ def revision_env(repo, rev, index, tree):
+     return env
+ 
+ 
++def validate_revision(repo, rev):
++    proc = subprocess.run(
++        ["git", "-C", str(repo), "rev-parse", "--verify", "--quiet",
++         "%s^{commit}" % rev],
++        capture_output=True, text=True,
++    )
++    if proc.returncode != 0:
++        raise CouldNotEvaluate("revision %r is not a commit in %s" % (rev, repo))
++
++
+ def run(repo, base, head, gate, as_json):
++    validate_revision(repo, base)
++    validate_revision(repo, head)
++
+     with tempfile.TemporaryDirectory(prefix="finding-delta.") as tmp:
+         tmp = Path(tmp)
+         btree = extract(repo, base, tmp / "base")
+@@ -108,8 +124,11 @@ def run(repo, base, head, gate, as_json):
+ 
+ def self_test():
+     failures = []
++    assertions = 0
+ 
+     def eq(label, got, want):
++        nonlocal assertions
++        assertions += 1
+         if got != want:
+             failures.append(f"{label}: got {got!r}, want {want!r}")
+ 
+@@ -145,7 +164,38 @@ def self_test():
+         eq("arm/exit-red", red_exit, 1)
+         eq("arm/exit-green", green_exit, 0)
+ 
+-    print(f"self-test: {len(failures)} failure(s) over 9 assertions")
++    repo = Path(__file__).resolve().parent.parent
++    script = Path(__file__).resolve()
++    test_env = dict(os.environ)
++    for key in ("GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE"):
++        test_env.pop(key, None)
++    unknown = "0" * 40
++    for label, base, head in (
++        ("arm/unknown-base-revision", unknown, "HEAD"),
++        ("arm/unknown-head-revision", "HEAD", unknown),
++    ):
++        proc = subprocess.run(
++            [PY, "-B", str(script), "--repo", str(repo),
++             "--base", base, "--head", head],
++            cwd=repo, env=test_env, capture_output=True, text=True, timeout=30,
++        )
++        eq(label, (proc.returncode, proc.stderr.startswith("could-not-evaluate: ")),
++           (2, True))
++
++    with tempfile.TemporaryDirectory(prefix="finding-delta-nogit.") as tmp:
++        nogit = Path(tmp)
++        (nogit / "python3").symlink_to(PY)
++        no_git_env = dict(test_env, PATH=str(nogit))
++        proc = subprocess.run(
++            [PY, "-B", str(script), "--repo", str(repo),
++             "--base", "HEAD", "--head", "HEAD"],
++            cwd=repo, env=no_git_env, capture_output=True, text=True, timeout=30,
++        )
++        eq("arm/git-unavailable",
++           (proc.returncode, proc.stderr.startswith("could-not-evaluate: ")),
++           (2, True))
++
++    print(f"self-test: {len(failures)} failure(s) over {assertions} assertions")
+     for failure in failures:
+         print(f"FAIL {failure}")
+     return 1 if failures else 0
+@@ -164,7 +214,12 @@ def main():
+         return self_test()
+     if not args.base or not args.head:
+         ap.error("--base and --head are required")
+-    return run(Path(args.repo).resolve(), args.base, args.head, Path(args.gate), args.json)
++    try:
++        return run(Path(args.repo).resolve(), args.base, args.head,
++                   Path(args.gate), args.json)
++    except (CouldNotEvaluate, OSError, subprocess.CalledProcessError) as e:
++        print(f"could-not-evaluate: {e}", file=sys.stderr)
++        return 2
+ 
+ 
+ if __name__ == "__main__":

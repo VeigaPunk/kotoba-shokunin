@@ -1,0 +1,135 @@
+diff --git a/verifiers/fault_injection_corpus.sh b/verifiers/fault_injection_corpus.sh
+index 30d3fc1..d0bf706 100755
+--- a/verifiers/fault_injection_corpus.sh
++++ b/verifiers/fault_injection_corpus.sh
+@@ -296,10 +296,13 @@ fault_must_fire() { # <id> <planter> <expected-class>
+ # --no-baseline (faithfully blind) AND the equal-mode count detector notices
+ # report_total moving 1 down against the baseline. Anything else is a FAIL.
+ fault_known_blind_f() { # <id> <planter>
+-  local id=$1 planter=$2 w ex fired indep indep_fired base_ex blind_total ctl_w ctl_total delta verdict
++  local id=$1 planter=$2 w ex fired indep indep_fired base_ex blind_total ctl_w ctl_ex ctl_fired ctl_base_ex ctl_total delta verdict
+   ctl_w=$(new_world "fault-$id-control") || { row "fault-$id" "world" "-" "-" "FAIL"; return 0; }
+-  run_integrity "$ctl_w" >/dev/null
++  ctl_ex=$(run_integrity "$ctl_w")
++  ctl_fired=$(drift_ids "$ctl_w")
+   ctl_total=$(json_field "$ctl_w" "observed.corpus.report_total")
++  ( cd "$ctl_w" && python3 "$INSTRUMENT" --repo "$ctl_w" ) >"$ctl_w/out-baseline.txt" 2>&1
++  ctl_base_ex=$?
+   w=$(new_world "fault-$id") || { row "fault-$id" "world" "-" "-" "FAIL"; return 0; }
+   if ! "$planter" "$w"; then
+     row "fault-$id" "$id" "-" "-" "INVALID-PLANT"
+@@ -317,8 +320,8 @@ fault_known_blind_f() { # <id> <planter>
+     delta=$(( ctl_total - blind_total ))
+   fi
+   verdict=FAIL
+-  if [ "$ex" = 0 ] && [ "$fired" = "-" ] && [ "$base_ex" != 0 ] && [ "$delta" = 1 ]; then
+-    verdict="PASS(blind-spot documented: control_total=$ctl_total plant_total=$blind_total delta=$delta; --no-baseline exit 0; baseline-mode exit $base_ex)"
++  if [ "$ctl_ex" = 0 ] && [ "$ctl_fired" = "-" ] && [ "$ex" = 0 ] && [ "$fired" = "-" ] && [ "$ctl_base_ex" = 0 ] && [ "$base_ex" = 1 ] && [ "$delta" = 1 ]; then
++    verdict="PASS(blind-spot documented: control_total=$ctl_total plant_total=$blind_total delta=$delta; no-baseline exit 0; baseline-mode control exit $ctl_base_ex plant exit $base_ex)"
+   fi
+   row "fault-$id" "integrity" "$ex" "$fired" "$verdict"
+   row "fault-$id" "independent" "$indep" "-" "$([ "$indep" = skip ] && echo SKIP || echo "INFO(non-gating)")"
+@@ -329,9 +332,11 @@ fault_known_blind_f() { # <id> <planter>
+ # population unchanged. The count assertion is the point — "exit 0" alone would
+ # pass even if the token had vanished from every key.
+ fault_h_context() { # <id> <planter>
+-  local id=$1 planter=$2 w ex fired quoted checked ctl_w ctl_checked verdict
++  local id=$1 planter=$2 w ex fired quoted checked ctl_w ctl_ex ctl_fired ctl_quoted ctl_checked verdict
+   ctl_w=$(new_world "fault-$id-control") || { row "fault-$id" "world" "-" "-" "FAIL"; return 0; }
+-  run_integrity "$ctl_w" >/dev/null
++  ctl_ex=$(run_integrity "$ctl_w")
++  ctl_fired=$(drift_ids "$ctl_w")
++  ctl_quoted=$(json_field "$ctl_w" "observed.corpus.report_pointers_quoted")
+   ctl_checked=$(json_field "$ctl_w" "observed.corpus.report_total")
+   w=$(new_world "fault-$id") || { row "fault-$id" "world" "-" "-" "FAIL"; return 0; }
+   if ! "$planter" "$w"; then
+@@ -343,14 +348,19 @@ fault_h_context() { # <id> <planter>
+   quoted=$(json_field "$w" "observed.corpus.report_pointers_quoted")
+   checked=$(json_field "$w" "observed.corpus.report_total")
+   verdict=FAIL
+-  if [ "$ex" = 0 ] && [ "$fired" = "-" ] && [ "$quoted" = 1 ] && [ "$checked" = "$ctl_checked" ]; then
+-    verdict="PASS(context: quoted=$quoted, checked=$checked unchanged)"
++  if [ "$ex" = "$ctl_ex" ] && { [ "$ex" = 0 ] || [ "$ex" = 1 ]; } && [ "$fired" = "$ctl_fired" ] && [ "$fired" != UNPARSEABLE ] && [ -n "$ctl_quoted" ] && [ -n "$quoted" ] && [ "$quoted" = "$((ctl_quoted + 1))" ] && [ "$checked" = "$ctl_checked" ]; then
++    verdict="PASS(context: quoted=$quoted, control=$ctl_quoted, checked=$checked unchanged)"
+   fi
+   row "fault-$id" "integrity" "$ex" "$fired" "$verdict"
+ }
+ 
+ fault_must_not_fire() { # <id> <planter>
+-  local id=$1 planter=$2 w ex fired indep verdict
++  local id=$1 planter=$2 w ex fired indep indep_fired ctl_w ctl_ex ctl_fired ctl_indep ctl_indep_fired verdict
++  ctl_w=$(new_world "fault-$id-control") || { row "fault-$id" "world" "-" "-" "FAIL"; return 0; }
++  ctl_ex=$(run_integrity "$ctl_w")
++  ctl_fired=$(drift_ids "$ctl_w")
++  ctl_indep=$(run_independent "$ctl_w")
++  ctl_indep_fired=$(indep_drift_ids "$ctl_w")
+   w=$(new_world "fault-$id") || { row "fault-$id" "world" "-" "-" "FAIL"; return 0; }
+   if ! "$planter" "$w"; then
+     row "fault-$id" "$id" "-" "-" "INVALID-PLANT"
+@@ -359,9 +369,10 @@ fault_must_not_fire() { # <id> <planter>
+   ex=$(run_integrity "$w")
+   fired=$(drift_ids "$w")
+   indep=$(run_independent "$w")
++  indep_fired=$(indep_drift_ids "$w")
+   verdict=FALSE-POSITIVE
+-  if [ "$ex" = 0 ] && [ "$fired" = "-" ] && { [ "$indep" = skip ] || [ "$indep" = 0 ]; }; then
+-    verdict=PASS
++  if [ "$ex" = "$ctl_ex" ] && { [ "$ex" = 0 ] || [ "$ex" = 1 ]; } && [ "$fired" = "$ctl_fired" ] && [ "$fired" != UNPARSEABLE ] && [ "$indep" = "$ctl_indep" ] && { [ "$indep" = skip ] || { { [ "$indep" = 0 ] || [ "$indep" = 1 ]; } && [ "$indep_fired" != UNPARSEABLE ] && [ "$indep_fired" = "$ctl_indep_fired" ]; }; }; then
++    verdict="PASS(no new drift vs control)"
+   fi
+   row "fault-$id" "integrity" "$ex" "$fired" "$verdict"
+   row "fault-$id" "independent" "$indep" "-" "$([ "$indep" = skip ] && echo SKIP || echo "INFO(gating)")"
+@@ -382,14 +393,21 @@ control_clean() { # pristine world must stay clean, in both instruments
+ }
+ 
+ # --- self-test: prove the assertion machinery can fail ----------------------
+-# Deliberately broken fixture worlds: T2 plants nothing and the machinery MUST
+-# answer MISS (a no-op mutation may not masquerade as detection); T1 plants
+-# (a) and the machinery MUST answer PASS; T3 proves must-not-fire machinery
+-# accepts a clean world; T4 proves the plant guard rejects the no-op world.
++# T2 applies no mutation and must reproduce the control result; T1 plants (a)
++# and must still fire; T3 plants the harmless (g) mutation and must preserve the
++# control result; T4 proves the plant guard rejects the no-op world.
+ self_test() {
+-  local st=0 w ex fired verdict
++  local st=0 w ex fired ctl_w ctl_ex ctl_fired
+   say "self-test: building fixture worlds under $WORLDS"
+ 
++  ctl_w=$(new_world "selftest-control") || return 2
++  ctl_ex=$(run_integrity "$ctl_w")
++  ctl_fired=$(drift_ids "$ctl_w")
++  if { [ "$ctl_ex" != 0 ] && [ "$ctl_ex" != 1 ]; } || [ "$ctl_fired" = UNPARSEABLE ]; then
++    say "self-test control: FAIL (exit=$ctl_ex fired=$ctl_fired)"
++    return 1
++  fi
++
+   w=$(new_world "selftest-t1") || return 2
+   plant_a "$w"; ex=$(run_integrity "$w"); fired=$(drift_ids "$w")
+   if [ "$ex" != 0 ] && printf '%s' "$fired" | grep -qF -- 'corpus.pointers.report_dead'
+@@ -397,16 +415,21 @@ self_test() {
+ 
+   w=$(new_world "selftest-t2")   # deliberately broken: NO mutation applied
+   : ; ex=$(run_integrity "$w"); fired=$(drift_ids "$w")
+-  if [ "$ex" = 0 ]; then say "self-test T2 no-op world correctly reads clean (exit 0): PASS"; else say "self-test T2: FAIL (exit=$ex)"; st=1; fi
++  if [ "$ex" = "$ctl_ex" ] && [ "$fired" = "$ctl_fired" ]; then say "self-test T2 no-op world preserves control result (exit=$ex, fired=$fired): PASS"; else say "self-test T2: FAIL (exit=$ex fired=$fired; control=$ctl_ex/$ctl_fired)"; st=1; fi
+   # T4: the plant guard must DISTINGUISH the unmutated world — the (a) marker
+   # grep has to fail here, so a no-op mutation cannot masquerade as planted.
+   if grep -qF '.ufo/reports/round-77/x.md' "$w/corpus/lessons/round-3.md"
+   then say "self-test T4 plant guard accepted an unmutated world: FAIL"; st=1
+   else say "self-test T4 plant guard rejects unmutated world (marker absent): PASS"; fi
+ 
+-  w=$(new_world "selftest-t3")
+-  ex=$(run_integrity "$w"); fired=$(drift_ids "$w")
+-  if [ "$ex" = 0 ] && [ "$fired" = "-" ]; then say "self-test T3 must-not-fire assertion accepts clean world: PASS"; else say "self-test T3: FAIL"; st=1; fi
++  w=$(new_world "selftest-t3") || return 2
++  if ! plant_g "$w"; then
++    say "self-test T3: FAIL (invalid plant)"
++    st=1
++  else
++    ex=$(run_integrity "$w"); fired=$(drift_ids "$w")
++    if [ "$ex" = "$ctl_ex" ] && [ "$fired" = "$ctl_fired" ]; then say "self-test T3 must-not-fire assertion preserves control result: PASS"; else say "self-test T3: FAIL (exit=$ex fired=$fired; control=$ctl_ex/$ctl_fired)"; st=1; fi
++  fi
+ 
+   say "self-test: $([ "$st" = 0 ] && echo OK || echo BROKEN)"
+   return "$st"
+ }

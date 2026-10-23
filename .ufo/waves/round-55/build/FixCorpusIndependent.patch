@@ -1,0 +1,56 @@
+diff --git c/verifiers/verify_corpus_independent.py w/verifiers/verify_corpus_independent.py
+index 7caa1f7..f424064 100755
+--- c/verifiers/verify_corpus_independent.py
++++ w/verifiers/verify_corpus_independent.py
+@@ -58,14 +58,17 @@ CHECK_IDS = (
+ 
+ 
+ class EnvError(Exception):
+-    """Environment unreadable: not a git repo, corpus/ or corpus/README.md absent,
+-    or a tracked corpus file that cannot be read (deleted, a directory, unreadable)."""
++    """Environment unreadable: git unavailable/not a repo, corpus/ absent, or
++    a tracked corpus file that cannot be read (deleted, a directory, unreadable)."""
+ 
+ 
+ def _git(repo, *args):
+-    return subprocess.run(
+-        ["git", "-C", repo, *args], capture_output=True, text=True
+-    )
++    try:
++        return subprocess.run(
++            ["git", "-C", repo, *args], capture_output=True, text=True
++        )
++    except OSError as exc:
++        raise EnvError("git not runnable: %s" % exc) from exc
+ 
+ 
+ def _open_text(path, label):
+@@ -983,6 +986,19 @@ def self_test():
+         st.eq(proc.returncode, 1, "cli: drifting fixture exits 1")
+         st.eq(json.loads(proc.stdout)["observed"]["index"]["unindexed"], 1,
+               "cli: drifting fixture reports unindexed=1")
++        # -- could-not-evaluate: git is unavailable -----------------------------
++        no_git_path = os.path.join(tmp, "no-git-path")
++        os.makedirs(no_git_path)
++        os.symlink(sys.executable, os.path.join(no_git_path, "python3"))
++        no_git_env = dict(os.environ)
++        no_git_env["PATH"] = no_git_path
++        proc = subprocess.run(
++            [sys.executable, os.path.abspath(__file__), "--repo", froot],
++            capture_output=True, text=True, env=no_git_env,
++        )
++        st.eq(proc.returncode, 2, "cli: unavailable git exits 2")
++        st.eq(proc.stderr.startswith("could-not-evaluate: git not runnable:"), True,
++              "cli: unavailable git reports could-not-evaluate")
+     finally:
+         if old_home is None:
+             os.environ.pop("HOME", None)
+@@ -1011,7 +1027,7 @@ def main(argv=None):
+     try:
+         analysis = analyse(args.repo)
+     except EnvError as exc:
+-        sys.stderr.write("environment unreadable: %s\n" % exc)
++        sys.stderr.write("could-not-evaluate: %s\n" % exc)
+         return 2
+     observed = analysis["observed"]
+     print(render(analysis["repo"], analysis["head"], observed,

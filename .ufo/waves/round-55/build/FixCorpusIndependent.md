@@ -1,0 +1,15 @@
+Result: DONE — repaired the only C2 probe registered for this gate (class G); class R is not registered for it.
+
+- Changed `verifiers/verify_corpus_independent.py`: `_git` now catches `OSError` from launching Git and raises `EnvError` (`verify_corpus_independent.py:65-71`). `main` reports `could-not-evaluate:` on stderr and returns 2 (`:1027-1031`). The self-test launches the CLI with a PATH containing only a `python3` link and asserts both exit 2 and the error prefix (`:989-1001`).
+- Class G cause: `_git` previously let `FileNotFoundError` escape the `EnvError` handler. Base receipt `../controls/C2-base.txt:52` recorded G exit 1. In the sandbox, the no-Git probe changed from exit 1 with `FileNotFoundError: ... 'git'` to exit 2 and `could-not-evaluate: git not runnable: [Errno 2] No such file or directory: 'git'`.
+- Class R: not applicable. The frozen counter registers `verify_corpus_independent.py` as `([], [])` (`verifiers/check_could_not_evaluate.py:80-81`), so it supplies neither a real revision nor an unknown-revision probe. Per L1 direction, no revision API was added; the Q05 self-test covers the applicable missing-Git class only.
+- Self-test: before, `python3 -B verifiers/verify_corpus_independent.py --self-test` exited 0 with `self-test: 93 assertions, 0 failures`; after, it exited 0 with `self-test: 95 assertions, 0 failures`.
+- C2 measurement command: `python3 -B verifiers/check_could_not_evaluate.py --rev HEAD` in sandbox commit `089027645ec0f64cf88e291119ac940f225dd045` exited 1 overall. Its gate line was `verify_corpus_independent.py       G expect 2   got 2 ok`; summary: `could-not-evaluate probes honoured 14 of 25; controls held 13 of 13`. Other gates still miss; no claim is made that the aggregate predicate passed.
+- Real verdict comparison: at plan commit `a10240c0940f770a5f2a5f32a7e3c363dd5d40c0` and sandbox commit `089027645ec0f64cf88e291119ac940f225dd045`, `python3 -B verifiers/verify_corpus_independent.py` exited 1 and printed identical summaries:
+  - `index   tracked_files=82 index_tokens=99 (outside coverage map=18) unindexed=1 stale=0 missing=0`
+  - `points  candidates=62 checked=53 excluded=8 quoted=1 dead=0 shapes={'absolute': 42, 'tilde': 1, 'relative': 1, 'bare': 9}`
+  - `commits candidates=38 citations=33 hex=33 quoted=5 nonhash=0 unresolvable=1`
+  - final line: `exit 1`
+- Diff stat against plan commit: `1 file changed, 22 insertions(+), 6 deletions(-)`. Patch: `.ufo/waves/round-55/build/FixCorpusIndependent.patch`. Sandbox commit: `089027645ec0f64cf88e291119ac940f225dd045`.
+- LSP was unavailable in the provided tool inventory; source inspection and the surgical patch used `read` and `edit`.
+- Risk/blocker: the requested unknown-revision self-test is not applicable to this gate's frozen registration and absent revision interface; L1 confirmed the class-G-only scope. No tools were installed or updated.

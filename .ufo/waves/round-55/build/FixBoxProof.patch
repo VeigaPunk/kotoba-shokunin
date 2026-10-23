@@ -1,0 +1,70 @@
+diff --git c/verifiers/box_proof_case_deletion.py w/verifiers/box_proof_case_deletion.py
+index 9328108..33b726e 100755
+--- c/verifiers/box_proof_case_deletion.py
++++ w/verifiers/box_proof_case_deletion.py
+@@ -51,6 +51,7 @@ import argparse
+ import contextlib
+ import io
+ import json
++import os
+ import shutil
+ import subprocess
+ import sys
+@@ -369,6 +370,26 @@ raise SystemExit(1)
+             check("incomplete fixture summary", out.splitlines()[-1],
+                   "killed 5 of 6")
+             check("incomplete fixture stderr", err, "")
++            code, out, err = run_revision("0" * 40)
++            check("unknown revision returns could-not-evaluate", code, 2)
++            check("unknown revision reports could-not-evaluate",
++                  "could-not-evaluate:" in err, True)
++
++            python_only = repo / "python-only"
++            python_only.mkdir()
++            (python_only / "python3").symlink_to(sys.executable)
++            old_path = os.environ.get("PATH")
++            try:
++                os.environ["PATH"] = str(python_only)
++                code, out, err = run_revision(rev_clean)
++            finally:
++                if old_path is None:
++                    os.environ.pop("PATH", None)
++                else:
++                    os.environ["PATH"] = old_path
++            check("missing git returns could-not-evaluate", code, 2)
++            check("missing git reports could-not-evaluate",
++                  "could-not-evaluate:" in err, True)
+     except (OSError, subprocess.SubprocessError, RuntimeError) as exc:
+         failures += 1
+         print("FAIL isolated fixture run: %s" % exc)
+@@ -393,12 +414,30 @@ def main(argv: list[str] | None = None) -> int:
+         print("ERROR %s is not a git checkout" % root, file=sys.stderr)
+         return 2
+ 
++    try:
++        checked = subprocess.run(
++            ["git", "-C", str(root), "rev-parse", "--verify", "--quiet",
++             "%s^{commit}" % args.rev],
++            stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
++    except OSError as exc:
++        print("could-not-evaluate: git revision check could not run: %s"
++              % exc, file=sys.stderr)
++        return 2
++    if checked.returncode != 0:
++        print("could-not-evaluate: revision %r is not a commit in %s"
++              % (args.rev, root), file=sys.stderr)
++        return 2
++
+     with tempfile.TemporaryDirectory(prefix="box-proof-case-deletion-") as tmp:
+         tmpdir = Path(tmp)
+         export = tmpdir / "export"
+         export.mkdir()
+         try:
+             export_tree(root, args.rev, export)
++        except OSError as exc:
++            print("could-not-evaluate: git archive could not run: %s" % exc,
++                  file=sys.stderr)
++            return 2
+         except DriverError as exc:
+             print("ERROR %s" % exc, file=sys.stderr)
+             return 2

@@ -1,0 +1,154 @@
+diff --git a/verifiers/check_gate_registry.py b/verifiers/check_gate_registry.py
+index d3e82a2..95ffed3 100755
+--- a/verifiers/check_gate_registry.py
++++ b/verifiers/check_gate_registry.py
+@@ -26,19 +26,26 @@ pinned values | write scope | owner`) has name cell `verifiers/F`, and:
+   * the verdict-map cell declares at least one `<code>=<class>` pair
+     (`=`, `->` or `→`; class one of clean, failed, could-not-evaluate), no
+     code twice; a `gate` declares `0=clean` and `1=failed`;
+-  * the self-test cell is `none` or names one or more backticked flags
+-    (`--x`) each of which occurs as a literal in the file's bytes at the
+-    revision; a `gate` may not say `none`;
++  * the self-test cell is `none` or names one or more backticked flags (`--x`).
++    Each named flag must be an exact active handler in the file: a Python
++    `add_argument` call with that exact string argument, or a shell `case` arm
++    whose exact pattern is that flag. Comments and longer lookalike flags do
++    not count. A `gate` may not say `none`.
++  * a `probe` is rejected if its verdict map declares `1=failed` or its source
++    has an exact active `--self-test` handler. This check reads only the row's
++    verdict pairs and the script's Python AST `add_argument` string arguments
++    or shell `case` arms; it does not run the script. This is a narrow
++    failure-capability rule, not a proof of all possible exit behavior (Q31).
+   * the pinned-values cell is `none`, `in-file`, or one or more backticked
+-    repo-relative paths each of which exists at the revision
+-    (`git cat-file -e <rev>:<path>`); a `gate` may not say `none`;
++    repo-relative paths each of which exists at the revision (`git cat-file -e
++    <rev>:<path>`); a `gate` may not say `none`;
+   * the write-scope cell is non-empty and not a dash;
+   * the owner cell is `kotoba`.
+ 
+ A row whose name cell is a `verifiers/...` path outside the universe is a
+-PHANTOM row.  The counter does not judge whether a declared exit code is
+-really produced by the script, or whether `gate` vs `probe` is the right kind:
+-those are reviewer judgment, not checks this file runs (Q31).
++PHANTOM row. The counter does not run verifier scripts or prove their actual
++exit statuses; reviewers remain responsible for the limits of the checks
++above (Q31).
+ 
+ Output: `gate registry rows conformant <K> of <M> lane verifiers; phantom <P>`.
+ Exit 0 iff K == M and P == 0, 1 otherwise, 2 = could not evaluate.
+@@ -49,6 +56,7 @@ Usage:
+ """
+ from __future__ import annotations
+ 
++import ast
+ import argparse
+ import json
+ import re
+@@ -67,6 +75,35 @@ PAIR_RE = re.compile(r"(\d+)\s*(?:=|->|\u2192)\s*(clean|failed|could-not-evaluate)\b")
+ FLAG_RE = re.compile(r"`(--[A-Za-z0-9][A-Za-z0-9-]*)`")
+ PATH_RE = re.compile(r"`([^`\s]+)`")
+ 
++def has_flag_handler(path: str, src: bytes, flag: str) -> bool:
++    if path.endswith(".py"):
++        try:
++            tree = ast.parse(src.decode("utf-8"))
++        except (SyntaxError, UnicodeDecodeError):
++            return False
++        return any(
++            isinstance(node, ast.Call)
++            and isinstance(node.func, ast.Attribute)
++            and node.func.attr == "add_argument"
++            and any(isinstance(arg, ast.Constant) and arg.value == flag
++                    for arg in node.args)
++            for node in ast.walk(tree)
++        )
++    if path.endswith(".sh"):
++        in_case = False
++        for line in src.decode("utf-8", errors="replace").splitlines():
++            if re.match(r"^\s*#", line):
++                continue
++            if re.match(r"^\s*case\b.*\bin\b", line):
++                in_case = True
++                continue
++            if in_case and re.match(r"^\s*esac(?:\s|$)", line):
++                in_case = False
++                continue
++            if in_case and re.match(r"^\s*" + re.escape(flag) + r"\)(?:\s|$)", line):
++                return True
++    return False
++
+ 
+ def git(rev_args: list[str]) -> subprocess.CompletedProcess:
+     return subprocess.run(["git", "-C", str(LANE)] + rev_args, capture_output=True)
+@@ -153,6 +190,11 @@ def judge_row(r: list[str], path: str, src: bytes, exists) -> list[str]:
+         why.append("verdict map declares a code twice")
+     if kind == "gate" and not (("0", "clean") in pairs and ("1", "failed") in pairs):
+         why.append("gate verdict map lacks 0=clean and 1=failed")
++    if kind == "probe":
++        if ("1", "failed") in pairs:
++            why.append("probe verdict map declares 1=failed")
++        if has_flag_handler(path, src, "--self-test"):
++            why.append("probe script has an exact --self-test handler")
+     st = r[4].strip()
+     if clean(st) == "none":
+         if kind == "gate":
+@@ -162,8 +204,8 @@ def judge_row(r: list[str], path: str, src: bytes, exists) -> list[str]:
+         if not flags:
+             why.append("self-test cell names no backticked flag")
+         for f in flags:
+-            if f.encode() not in src:
+-                why.append("self-test flag %s not in the file" % f)
++            if not has_flag_handler(path, src, f):
++                why.append("self-test flag %s lacks an exact handler" % f)
+     pv = r[5].strip()
+     if clean(pv) == "none":
+         if kind == "gate":
+@@ -211,7 +253,8 @@ def self_test() -> int:
+             failures += 1
+             print("FAIL %s: got %r, expected %r" % (name, actual, expected))
+ 
+-    files = {"verifiers/a.py": b"ap.add_argument('--self-test')", "verifiers/b.sh": b"echo",
++    files = {"verifiers/a.py": b"import argparse\nap=argparse.ArgumentParser()\n"
++             b"ap.add_argument('--self-test')", "verifiers/b.sh": b"echo",
+              "verifiers/base.json": b"{}"}
+     uni = ["verifiers/a.py", "verifiers/b.sh"]
+     head = ("# s\n\n## Gate registry\n\n| Name | Kind | Entry command | Verdict map | Self-test |"
+@@ -236,6 +279,22 @@ def self_test() -> int:
+          (["verifiers/a.py", "verifiers/b.sh"], ["verifiers/c.sh"]))
+     check("self-test flag absent from file",
+           ok(sk=skill.replace("`--self-test`", "`--selftest`")), (["verifiers/b.sh"], []))
++    borrowed = (b"import argparse\nap=argparse.ArgumentParser()\n"
++                b"ap.add_argument('--other')\n# --self-test is handled elsewhere\n")
++    check("self-test flag borrowed in a comment",
++          ok(fs={**files, "verifiers/a.py": borrowed}), (["verifiers/b.sh"], []))
++    check("shell exact case arm",
++          has_flag_handler("verifiers/b.sh",
++                           b'case "$1" in\n  --self-test) SELFTEST=1 ;;\nesac\n',
++                           "--self-test"), True)
++    check("shell lookalike case arm",
++          has_flag_handler("verifiers/b.sh",
++                           b'case "$1" in\n  --self-testing) SELFTEST=1 ;;\nesac\n',
++                           "--self-test"), False)
++    check("shell comment is not a case arm",
++          has_flag_handler("verifiers/b.sh",
++                           b'case "$1" in\n  # --self-test) SELFTEST=1 ;;\nesac\n',
++                           "--self-test"), False)
+     check("gate with self-test none", ok(sk=skill.replace("`--self-test`", "none")),
+           (["verifiers/b.sh"], []))
+     check("gate lacking 1=failed", ok(sk=skill.replace("1=failed, ", "")), (["verifiers/b.sh"], []))
+@@ -264,6 +323,14 @@ def self_test() -> int:
+     check("wrong header not read", ok(sk=skill.replace("| Owner |", "| Who |")), ([], []))
+     check("probe without any pair", ok(sk=skill.replace("| 0=clean | none |", "| exits | none |")),
+           (["verifiers/a.py"], []))
++    probe_failed = row_b.replace("| 0=clean |", "| 0=clean, 1=failed |")
++    check("probe with failed verdict is rejected",
++          ok(sk=head + row_a + probe_failed), (["verifiers/a.py"], []))
++    probe_none = (row_a.replace("| gate |", "| probe |")
++                  .replace("0=clean, 1=failed, 2=could-not-evaluate", "0=clean")
++                  .replace("| `--self-test` | `verifiers/base.json` |", "| none | none |"))
++    check("all-probe/none table rejects script with self-test handler",
++          ok(sk=head + probe_none + row_b), (["verifiers/b.sh"], []))
+ 
+     print("self-test: %d failure(s) over %d assertions" % (failures, assertions))
+     return 1 if failures else 0
