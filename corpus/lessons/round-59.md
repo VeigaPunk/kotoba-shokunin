@@ -42,7 +42,7 @@ M79–M83 are the round-58 spot-check routes R1, R2, R3, R5 and R4, drafted by s
 
 - **M80 `final-tip-receipts-asserted-not-committed`** · the final-tip checklist success and `4 DRIFT` count were asserted without receipts naming `ed44e0c4`; available tip-named receipts instead record earlier revisions, including `noharm-tip.txt` at `46b4a706` and `C1-remeasure-tip.txt` at `6de8e2eb` where the checklist fails (`corpus/lessons/round-58-verifier-spotcheck.md:253-257`; `.ufo/waves/round-58/noharm-tip.txt:1-8,38-39`; `.ufo/waves/round-58/C1-remeasure-tip.txt:1-25`) · captured-by: the round-58 non-author spot-check, routed defect R2 · fix: commit receipts naming the exact final tip and recording the checks run there · shown able to fail: `timeout 10 git --no-optional-locks -C /home/vgpnk/Projects/shokunin/kotoba-shokunin ls-tree -r --name-only ed44e0c4807b92d99417eaff04a0fd2122f981b4 -- .ufo/waves/round-58 | grep -E 'verify_skill_checklist|checklist.*tip'` → exit 1, no output (no matching receipt path).
 
-- **M81 `counter-blind-fields-and-ua-sensitive-fetch`** · the frozen C1 counter reads the token and action cells but not `What a file sets`; replacing all seven field cells with `x` left its output unchanged, while Cursor's Python-urllib request returned HTTP 403 where curl returned HTTP 200, moving G to its floor (`.ufo/waves/round-58/falsify/MutC1Content.md:146-161`; `.ufo/waves/round-58/falsify/ReopenS094.md:46-48`; `corpus/lessons/round-58-verifier-spotcheck.md:258-262`; frozen source `.ufo/waves/round-58/w0/check_command_files.py:762-783`) · captured-by: round-58 counter falsification and non-author spot-check, routed defect R3 · fix: for future counters, cover field cells or name the seat that checks them, and preserve a committed `--fetch` snapshot run; do not alter the frozen round-58 rule or targets · shown able to fail: the prior falsify-seat command `timeout 600s python3 -B verifiers/check_command_files.py --rev "$REV" --fetch` on mutant (f), which replaced all seven field cells with `x`, printed `custom command files found on the live page 6 of 6; new ground 4` and `exit 0` (`MutC1Content.md:146-161`; sandbox commit `b8e7d8aa99cb903d1b89d5b82696b2db3a337d9b` at `/fast/scratch/hyaku/kotoba-r58/MutC1Content`). This is the earlier seat's recorded run, not a run by me.
+- **M81 `counter-blind-fields-and-ua-sensitive-fetch`** · the frozen C1 counter reads the token and action cells but not `What a file sets`; replacing all seven field cells with `x` left its output unchanged, while Cursor's Python-urllib request returned HTTP 403 where curl returned HTTP 200, moving G to its floor (`.ufo/waves/round-58/falsify/MutC1Content.md:146-161`; `.ufo/waves/round-58/falsify/ReopenS094.md:46-48`; `corpus/lessons/round-58-verifier-spotcheck.md:258-262`; frozen source `.ufo/waves/round-58/w0/check_command_files.py:762-783`) · captured-by: round-58 counter falsification and non-author spot-check, routed defect R3 · fix: for future counters, cover field cells or name the seat that checks them, and preserve a committed `--fetch` snapshot run; do not alter the frozen round-58 rule or targets · shown able to fail: the prior falsify-seat command `timeout 600s python3 -B verifiers/check_command_files.py --rev "$REV" --fetch` on mutant (f), which replaced all seven field cells with `x`, printed `custom command files found on the live page 6 of 6; new ground 4` and `exit 0` (`MutC1Content.md:146-161`; a scratch-only sandbox commit in `/fast/scratch/hyaku/kotoba-r58/MutC1Content`, hash at `.ufo/waves/round-58/falsify/MutC1Content.md:148`). This is the earlier seat's recorded run, not a run by me.
 
 - **M82 `budget-delta-started-at-freeze-not-base`** · “600 → 596” used the freeze as its start, although the round's base had 598 lines; future budget lines should name the base (`corpus/lessons/round-58-verifier-spotcheck.md:265-266`) · captured-by: the round-58 non-author spot-check, routed defect R5 · fix: state the base revision and its line count when reporting the round delta · shown able to fail: `timeout 20 bash -o pipefail -c 'for r in f56f6e191762c27c1aa2af11a204db9e2ca4edec 3de87aad29e960c95ed35840442f424c48c29729 ed44e0c4807b92d99417eaff04a0fd2122f981b4; do printf "%s SKILL.md lines: " "$r"; git --no-optional-locks -C /home/vgpnk/Projects/shokunin/kotoba-shokunin show "$r:SKILL.md" | wc -l; done'` → exit 0; output `f56f6e191762c27c1aa2af11a204db9e2ca4edec SKILL.md lines: 598`, `3de87aad29e960c95ed35840442f424c48c29729 SKILL.md lines: 600`, `ed44e0c4807b92d99417eaff04a0fd2122f981b4 SKILL.md lines: 596`.
 
@@ -58,3 +58,37 @@ M79–M83 are the round-58 spot-check routes R1, R2, R3, R5 and R4, drafted by s
   not fire; rule for next rounds: a census token the L1 changes is re-scored by a seat before the freeze, never after ·
   shown able to fail: `grep -c 'audit.json' .ufo/waves/round-59/w0/CensusVSCode.md` prints ≥ 1 while the freeze plan's
   VS Code row leads with `.github/hooks/*.json`.
+
+- **M85 `quote-note-overclaimed-third-time`** · the entry's shaping notes said S097 and S098 were "folded to single
+  spaces" and called S098's line 60 "the next heading"; the S097 cell drops "manifest or " from line 38 and the S098 cell
+  is line 59 minus its leading `| ` plus only the first word of line 60, a table row (falsify seat `ReviewEntry` F1–F2,
+  `.ufo/waves/round-59/falsify/ReviewEntry.md`) · captured-by: `ReviewEntry`'s byte comparison; Q42 (round 57) and M78's
+  per-row naming did not stop it: the note was written from the seat's description, not from a byte diff · fix: the
+  notes now state each drop and join, with the correction recorded in the entry; rule for next rounds: a shaping note is
+  written from a byte comparison of the cell against the snapshot, pasted in the seat report · shown able to fail:
+  `python3 -c "l=open('.ufo/waves/round-59/snapshots/S098.page').read().split('\n'); print(' '.join(l[58:60]) == 'Automation shared with a repository | \`.github/hooks/*.json\` at the repository root | | Hooks')"`
+  prints `False` (the full fold of lines 59-60 is not the cell).
+
+## Falsify corrections (after the measurement at `c63ccc68`; the counter, rule and targets unchanged)
+
+- Codex row: "user" replaced by "first of the page's four locations" (`ReopenS097`: the page never labels the path
+  "user"); trust wording "by default", with the per-invocation bypass flag `:76-78` (`CellsCodex`).
+- Cursor row and note: cloud agents defer `sessionStart` (`:88`) but self-hosted workers fire it (`:104`) (`CellsCursor`).
+- Entry: the three hook scopes kept apart (client hook-config files / plugin-bundled hook files / hook scripts)
+  (`ConnSiblingContradict2`); the round-13 citation names its real heading (`ReviewProvince`); shaping notes (M85).
+- SKILL intro: plugin-bundled hook files routed to § Plugin manifests by client (`ConnSiblingContradict2`); "a hook is
+  code" narrowed to command hooks, naming Claude Code's model-evaluated prompt and agent hooks (`CriticIntro`, S096 `:395-396`).
+- VS Code row and note: scoped to Copilot-harness sessions (`:18`; other targets `:22-30`) (`CellsVSCode`).
+- opencode row: events marked as the V2 plugin API names (V1 used `tool.execute.*`) (`Cellsopencode`).
+- Not changed (recorded instead): the S096 anchor cell labels `:31-65` "§ Hook events", but those lines are the event
+  summary table inside § Hook lifecycle (`:17`), and the page's own `## Hook events` starts at `:1219` (`ReopenS096`,
+  LOW). The SOURCES contract allows no in-place anchor edit; it is the R4 class (M83) again, on a row written this round.
+- M81's sandbox hash moved out of a `commit` + backtick span (it read as a lane commit to `verify_corpus_integrity.py`
+  and raised `commit_unresolvable` 1 → 2 at `c63ccc68`; `NoHarmGates`, `ExecChecklistTip`); the hash stays in the cited
+  round-58 report.
+- Rejected recommendation: `SentinelContexts` and `SentinelFalsifyContext` proposed leading the VS Code row with the
+  census seat's `.github/hooks/audit.json`; kept `.github/hooks/*.json`, the location the page names (`hooks.md:59`),
+  because the census seat's wildcard rejection rested on Copilot CLI leading with the same token, which it does not
+  (`CriticCensus`, `CriticCopilotE5` HOLDS; M84).
+- `corpus/README.md` index row: "the events each hook fires on" → "the lifecycle event names each page prints"
+  (`ReviewProvince`).

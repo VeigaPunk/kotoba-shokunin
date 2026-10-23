@@ -1,0 +1,139 @@
+data-r59-c63ccc68 — round-59 gate receipts at the data commit (QUALITY Q50 / round-58 R2)
+seat: KotobaR59.ExecChecklistTip
+written: 2026-10-23 (UTC; first run started 09:52:58Z, base and tip runs followed, receipt
+assembled after the 09:58:45Z clock reading; no time is stated that was not observed)
+rev under test: c63ccc6823e1f6a8577acbb43d19551eadbbee9a   (full 40-hex; == data commit in the round-59 goal)
+before column (base): a975cbbf00534443c49bf02e29c813a3db0bf0f8
+after-tip column:     d64d945b3435e2532203c505ad64ecf5d91b780e  (measure-receipt commit; adds only .ufo/waves/round-59/C1-measure.txt)
+
+Instrument versions: Python 3.14.8; python3 -B (no bytecode written).
+No tool was installed or upgraded for this receipt. No network access was used; none of the five commands fetches.
+
+## Sandbox and setup (reproducible)
+
+Sandbox root: /fast/scratch/hyaku/kotoba-r59/ExecChecklistTip
+  kotoba-shokunin/        clone at c63ccc6823e1f6a8577acbb43d19551eadbbee9a
+  base/kotoba-shokunin/   clone at a975cbbf00534443c49bf02e29c813a3db0bf0f8
+  tip/kotoba-shokunin/    clone at d64d945b3435e2532203c505ad64ecf5d91b780e
+  out/, outbase/, outtip/ captured stdout of every run
+
+Setup as in .ufo/waves/round-59/w0/ExecR2TipReceipts.md (§ Method): each clone is named
+`kotoba-shokunin` and every fleet-root top-level entry except the lane itself, `.git` and `.jj`
+is symlinked read-only into the clone's parent dir, so `../` citations in SKILL.md / governance
+docs resolve as they do from the lane. `git status --porcelain` printed 0 lines in all three
+clones immediately before and after the runs (clean working tree == the named rev).
+
+Clones were made with `git clone -q /home/vgpnk/Projects/shokunin/kotoba-shokunin <dir>` after
+`unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE`; no lane git/jj write was performed at any point.
+
+Setup control (why the mirror is mandatory, observed): a fourth plain clone at the same rev in
+`bare/seatclone` (no mirror, directory not named kotoba-shokunin) gives
+`python3 -B verifiers/verify_skill_checklist.py --json` exit **1**, pass 8 / fail 3 —
+`trigger.name_directory` ("name 'kotoba-shokunin' != directory 'seatclone'"),
+`trigger.citation_resolves` (SKILL.md:577 `../.ufo/reports/round-7/kotoba.md` unresolvable),
+`governance.citation_resolves` (LOG.md:177,255,311,779 … +21 more unresolvable).
+Capture: `bare/checklist-bare.json`, 3090 bytes. The 11/11 PASS above is obtained only in the
+mirrored, correctly named clones.
+
+## Commands, exit codes, byte counts, sha256 (rev c63ccc6823e1f6a8577acbb43d19551eadbbee9a)
+
+Each command ran under `timeout 600`; no run hit the timeout (no 124).
+
+1. `python3 -B verifiers/verify_skill_checklist.py --json`
+   exit 0 | stdout 2559 bytes | sha256 825a89d423c7e5be170f92d564a4817f4ae3ff45212c6e0357c32df8140d193a
+   summary: pass 11 / fail 0 / na 0; box map 41 boxes (8 executed, 4 delegated, 29 unexecuted);
+   line budget 587 <= 600 (from box at line 306); no placeholder in 523 scanned lines;
+   19 command segments / 34 subjects resolve; 141 repo-rooted citations resolve;
+   1074 governance citations resolve across 2 files.
+
+2. `python3 -B verifiers/verify_corpus_integrity.py --json`
+   exit 1 | stdout 4014 bytes | sha256 fcfefe614a3c2e211a07679cfcf223420a5c28384162257ecc49a33a84a2744a
+   summary: 4 DRIFT / 5 PASS of 9 checks (names below).
+
+3. `python3 -B verifiers/check_gate_registry.py --rev c63ccc6823e1f6a8577acbb43d19551eadbbee9a`
+   exit 0 | stdout 1682 bytes | sha256 b7a3efdd19779025d2c6b82dd4db25abce5b1ba32698c6950b5f20f9ca60511d
+   summary: gate registry rows conformant 33 of 33 lane verifiers; phantom 0.
+
+4. `python3 -B verifiers/check_assertion_floors.py`
+   exit 0 | stdout 580 bytes | sha256 031572c9188b393493bc4eab7f32d324cb29c74d084c6e718a79cb0d2b03e5bf
+   summary: 14 PASS, 0 FAIL. observed/floor:
+     harness 10/10, corpus_integrity 152/152, corpus_independent 99/93, surfaces 175/175,
+     checklist 1852/1852, pins 62/62, harness_independent 123/123,
+     compare_harness_independent 330/330, floors_guard 165/150, dispatch_prompts 56/56,
+     sibling_census 68/68, overlap_levers 55/51, alwayson 89/89, correction_sweep 25/25.
+
+5. `python3 -B verifiers/check_correction_sweep.py --rev c63ccc6823e1f6a8577acbb43d19551eadbbee9a`
+   exit 0 | stdout 35 bytes | sha256 cf2ccb3f6f36c24318670f8a3d7d94f7489dfda3f7fd7fd9a3e9db0639162b7c
+   summary: `correction sweep: 0 stale block(s)`.
+
+## DRIFT names at c63ccc6823e1f6a8577acbb43d19551eadbbee9a (verify_corpus_integrity.py, exit 1)
+
+  corpus.index.tracked_files           DRIFT  observed=96   expected=81
+  corpus.pointers.report_total         DRIFT  observed=64   expected=51
+  corpus.pointers.commit_total         DRIFT  observed=34   expected=32
+  corpus.pointers.commit_unresolvable  DRIFT  observed=2    expected=0 / empty
+      detail: corpus/lessons/round-54-verifier-spotcheck.md:147: 451a02ff
+      detail: corpus/lessons/round-59.md:45: b8e7d8aa99cb903d1b89d5b82696b2db3a337d9b
+
+PASS checks (5): corpus.index.unindexed 0, corpus.index.stale_patterns 0,
+corpus.index.missing_paths 0, corpus.pointers.report_dead 0, corpus.pointers.commit_nonhash 0.
+
+## Before column — a975cbbf00534443c49bf02e29c813a3db0bf0f8
+
+1. verify_skill_checklist.py --json      exit 0 | 2559 bytes | sha256 6f71dcbae861e7ffbc51231faa0e2d00df937e240d8d18585ce1c6c8390d793b
+   pass 11 / fail 0 / na 0; 596 lines within budget 600; 137 citation tokens (vs 587 / 141 at the data rev).
+2. verify_corpus_integrity.py --json     exit 1 | 3995 bytes | sha256 fc6468de2048959c9ef3ce8701d19d67d62c55d025d3e298494962decf8484e3
+   5 DRIFT: tracked_files 94, unindexed 1 (corpus/lessons/round-58-verifier-spotcheck.md),
+   report_total 64, commit_total 33, commit_unresolvable 1 (round-54 451a02ff only).
+3. check_gate_registry.py --rev a975cbbf exit 0 | 1633 bytes | sha256 ddb633ac617b8e47cdff527863148a84998ed0ef2d33af2b2bafe5485b708603
+   rows conformant 32 of 32; phantom 0.
+4. check_assertion_floors.py              exit 0 | 580 bytes | sha256 031572c9188b393493bc4eab7f32d324cb29c74d084c6e718a79cb0d2b03e5bf
+   14 PASS (byte-identical to the data-rev output).
+5. check_correction_sweep.py --rev a975cbbf exit 0 | 35 bytes | sha256 cf2ccb3f6f36c24318670f8a3d7d94f7489dfda3f7fd7fd9a3e9db0639162b7c
+   0 stale blocks (byte-identical to the data-rev output).
+
+These base numbers agree exactly with the committed W0 receipt
+.ufo/waves/round-59/receipts/base-r59-a975cbbf.txt (lines 27-33: 5 DRIFT, 94/1/64/33/1).
+
+## After-tip column — d64d945b3435e2532203c505ad64ecf5d91b780e
+
+`git diff --name-status c63ccc68 d64d945b` is one line: `A .ufo/waves/round-59/C1-measure.txt`
+(nothing under corpus/ or verifiers/ changes). Re-ran all five in the tip clone anyway:
+
+1. checklist  exit 0 | 2559 bytes | sha256 825a89d423c7e5be170f92d564a4817f4ae3ff45212c6e0357c32df8140d193a -> `cmp -s` identical to the data-rev capture
+2. integrity  exit 1 | 4014 bytes | sha256 fcfefe614a3c2e211a07679cfcf223420a5c28384162257ecc49a33a84a2744a -> `cmp -s` identical
+3. registry   exit 0 | 1682 bytes | sha256 b7a3efdd19779025d2c6b82dd4db25abce5b1ba32698c6950b5f20f9ca60511d -> `cmp -s` identical (run with --rev d64d945b3435e2532203c505ad64ecf5d91b780e)
+5. sweep      exit 0 |   35 bytes | sha256 cf2ccb3f6f36c24318670f8a3d7d94f7489dfda3f7fd7fd9a3e9db0639162b7c -> `cmp -s` identical (run with --rev d64d945b3435e2532203c505ad64ecf5d91b780e)
+4. floors     exit 0 |  580 bytes | sha256 031572c9188b393493bc4eab7f32d324cb29c74d084c6e718a79cb0d2b03e5bf -> `cmp -s` identical
+
+## Movement explained (observed, not inferred)
+
+- tracked_files 94 -> 96 and corpus_md_files 93 -> 95: the data commit adds
+  `corpus/knowledge/hook-files-round59.md` and `corpus/lessons/round-59.md`
+  (`git diff --name-status a975cbbf c63ccc68 -- corpus/` also shows M of QUALITY.md, README.md,
+  SOURCES.md, knowledge/anatomy-and-compression.md). Both new files are indexed: unindexed 1 -> 0.
+- report_total 64 -> 64: the pointer regex harvests only `.ufo/reports/round-<N>/*.md`
+  (UFO_POINTER_RE, verifiers/verify_corpus_integrity.py:144-146). The two new corpus files cite
+  `.ufo/waves/...` (10 such lines in round-59.md) and zero `.ufo/reports/round-*` pointers
+  (grep -c 'ufo/reports/round-' -> 0 and 0), so the population is unchanged.
+- commit_total 33 -> 34 and commit_unresolvable 1 -> 2: one new backticked citation matches
+  COMMIT_RE `(?<![A-Za-z0-9_-])commit[ \t]+\`([^\`\n]+)\`` (line 149). corpus/lessons/round-59.md:45
+  writes "sandbox commit `b8e7d8aa99cb903d1b89d5b82696b2db3a337d9b` at /fast/scratch/hyaku/kotoba-r58/MutC1Content".
+  `git cat-file -t b8e7d8aa...` exits 128 ("could not get object info") in the lane, in the fleet
+  root repo and in the sandbox clone, i.e. it is a scratch-only sandbox commit, correctly labelled
+  in prose but indistinguishable from a lane commit to the checker.
+- registry 32 -> 33: `verifiers/check_hook_files.py` is registered as a lane gate at the data commit
+  (diff of the registry listings: `> verifiers/check_hook_files.py   OK`).
+
+## Bounds / hygiene
+
+- Lane writes: none. jj/git writes in the lane: none (read-only commands, `--no-optional-locks`).
+  Git writes only inside the three sandbox clones (clone/checkout); no sandbox commit was made, so
+  no sandbox hash is cited here.
+- The lane HEAD moved while this receipt was being produced (3f15f84436c43c2e8e64859fa7612972db6f35ba
+  with a dirty working tree: M SKILL.md, M corpus/README.md, M corpus/knowledge/hook-files-round59.md,
+  M corpus/lessons/round-59.md, ?? .ufo/waves/round-59/falsify-taskcall-sent.json). These numbers are
+  pinned to the two named commits, not to the moving tip.
+- Wall times observed: the five-command data-rev batch 122.14 s (all five), base fast batch 2.13 s,
+  base floors 94.29 s, tip fast batch 2.65 s, tip floors 96.93 s. At most two verifier processes
+  ran concurrently; none was killed by its `timeout`.
