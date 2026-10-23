@@ -1,0 +1,31 @@
+# round-62 pre-data control: hollow/label auditor kill (C1)
+# instrument draft: verifiers/check_erratum_absorption.py sha256 afb4ff74c266803f4d6007407775a5c44387c84bf49b9ac1a9059d375178d56b
+# frozen counter sha256 5a5adc945e58ec18ba48a4929af9a1475eb7c186a757ee1a10008ca3c1b52b91
+# variants are patched copies of the draft placed beside an identical counter copy in /tmp/r62hollow (never in the lane)
+
+## variant H (hollow: never runs the guard-mutation direction)
+$ python3 -B /tmp/r62hollow/hollow.py --self-test
+absorption self-test failed: guard-mutation direction is missing for one or more errata
+exit=1
+
+## variant L (label-only: classifies by fixture id, never calls the counter arms)
+$ python3 -B /tmp/r62hollow/label.py --self-test
+absorption self-test failed: seeded controls did not classify in both directions
+exit=1
+
+## real instrument (same gate green on the real path)
+$ python3 -B verifiers/check_erratum_absorption.py --self-test
+counter sha256 5a5adc945e58ec18ba48a4929af9a1475eb7c186a757ee1a10008ca3c1b52b91
+instances per direction: committed attacks 10; guard-disabled 10 per sweep (50 total); controls 4 committed + 4 disabled; content variant 2
+guard flips: E2 2; E2b 2; E2c 0; E2e 0; E2f 0
+errata measured 5 of 5; absorbed 2 of 5; surviving 6; controls 2 of 2
+survivor E2c e2c-wrong-supersedes-target: []
+survivor E2c e2c-supersedes-with-fresh-fetch: []
+survivor E2e e2e-negated-path-key: []
+survivor E2e e2e-commented-equals-key: []
+survivor E2f e2f-backticked-event-claim: []
+survivor E2f e2f-compound-purpose-outside-citation: []
+exit=0
+
+date_utc=2026-10-23T21:20:35Z
+measured-at-branch-tip=9228be47f7782ac2be07f97b1430f06339d1d0d0

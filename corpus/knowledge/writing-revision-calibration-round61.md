@@ -1,4 +1,3 @@
-n
 source: S117 — `../kama-shokunin/corpus/knowledge/self-assessment-at-writing.md`
 verified-at: 2026-10-23 — local sibling entry opened for practice-level transfer; no counter run
 recheck: 180d
