@@ -77,6 +77,11 @@ REGISTRY = (
      "stale": r"body of a fenced example", "declared": r"Round-57 correction", "lead": False},
     {"id": "r57-r2-skill-singular-agent", "file": "SKILL.md",
      "stale": r"singular `agent/` still loads", "declared": r"migrate-v1\.mdx:486", "lead": False},
+    # round 58 (R2 of the round-57 spot-check): the README plugin note cited
+    # only S079-S085; its correction names the S086-S088 correction rows.
+    {"id": "r58-r2-readme-plugin-sources", "file": "corpus/README.md",
+     "stale": r"the plugin half is recorded, not held as a verified claim",
+     "declared": r"S086–S088", "lead": False},
 )
 
 # Files a registry row names that the self-test's four fixed fixtures do not
@@ -167,11 +172,13 @@ def verify_revision(rev: str) -> None:
 
 def self_test() -> int:
     fails, n = [], 0
+    ran: list[str] = []
 
     def case(name, readme, score, want, province="- nothing stale\n",
              skill="- nothing stale\n", seed=None):
         nonlocal n
         n += 1
+        ran.append(name)
         with tempfile.TemporaryDirectory() as t:
             (Path(t) / "corpus").mkdir()
             (Path(t) / "corpus/README.md").write_text(readme)
@@ -232,6 +239,61 @@ def self_test() -> int:
     case("r57 singular agent clause green", "- x\n", "| d | 9 | x |\n", [],
          skill="| opencode | singular `agent/` still loads (`migrate-v1.mdx:486`) |\n")
 
+    # round 58 (R3, M68): the declared result must name the correction, not
+    # just the round label, and the citation must carry its line number.  Each
+    # probe records the stale claim beside the weaker text that a shortened
+    # declared pattern would accept, so shortening it turns the probe green.
+    bare76 = "- S076's project line holds no agent word; a Round-57 note follows.\n"
+    bare78 = "- S078's quote is the body of a fenced example; a Round-57 note follows.\n"
+    barev1 = ("| opencode | `.opencode/agents` (singular `agent/` still loads;"
+              " see `migrate-v1.mdx`) |\n")
+    case("r58 s076 bare round red", "- x\n", "| d | 9 | x |\n",
+         ["r57-r2-s076-note"], seed={ent: bare76})
+    case("r58 s078 bare round red", "- x\n", "| d | 9 | x |\n",
+         ["r57-r2-s078-note"], seed={ent: bare78})
+    case("r58 singular bare path red", "- x\n", "| d | 9 | x |\n",
+         ["r57-r2-skill-singular-agent"], skill=barev1)
+    case("r58 singular wrong line red", "- x\n", "| d | 9 | x |\n",
+         ["r57-r2-skill-singular-agent"],
+         skill="| opencode | `.opencode/agents` (singular `agent/` still loads;"
+               " see `migrate-v1.mdx:999`) |\n")
+    # round 58 (R2, Q29): the round-57 README plugin note must carry the
+    # correction naming S086-S088 in the same block.
+    r57_note = "**Round 57:** the plugin half is recorded, not held as a verified claim (S079–S085).\n"
+    case("r58 readme plugin sources red", r57_note, "| d | 9 | x |\n",
+         ["r58-r2-readme-plugin-sources"])
+    case("r58 readme plugin sources green",
+         r57_note + "Round 58 correction: the entry also rests on S086–S088 (correction rows).\n",
+         "| d | 9 | x |\n", [])
+
+    # The guard: the self-test knows every case it is meant to run, counted
+    # from the cases that ran.  Dropping a case (or renaming one) fails the run
+    # even while the remaining cases pass; a pure reorder keeps the same name
+    # set and survives.
+    expected_cases = (
+        "red both",
+        "green both",
+        "correction in another block is not a correction",
+        "declared after the stale lead fails",
+        "no stale claim: clean",
+        "r52 silent negative without S041 fails",
+        "r52 silent negative with S041 passes",
+        "r53 claude-md semantics red",
+        "r53 claude-md semantics green",
+        "r53 baseline pointer red",
+        "r53 baseline pointer green",
+        "r57 quote notes red",
+        "r57 quote notes green",
+        "r57 singular agent clause red",
+        "r57 singular agent clause green",
+        "r58 s076 bare round red",
+        "r58 s078 bare round red",
+        "r58 singular bare path red",
+        "r58 singular wrong line red",
+        "r58 readme plugin sources red",
+        "r58 readme plugin sources green",
+    )
+
     script = str(Path(__file__).resolve())
 
     def run_cli(rev: str, env=None):
@@ -274,6 +336,10 @@ def self_test() -> int:
             or "is not a commit" in p.stderr
             or "dubious ownership" not in p.stderr):
         fails.append("refusing git: exit %d, stderr %r" % (p.returncode, p.stderr))
+
+    n += 1
+    if sorted(ran) != sorted(expected_cases):
+        fails.append("cases run %r, expected %r" % (sorted(ran), sorted(expected_cases)))
 
     print("%d failure(s) over %d assertions" % (len(fails), n))
     for f in fails:

@@ -1103,6 +1103,7 @@ def _self_git(*args: str, data: bytes | None = None) -> subprocess.CompletedProc
 # ----------------------------------------------------------------- self-test
 
 def self_test() -> int:
+    global BASE, TARGET, NEW_TARGET, lane_dir, fetch
     assertions = 0
     failures = 0
 
@@ -1766,6 +1767,91 @@ def self_test() -> int:
     check("ground: a held token is not new ground",
           new_ground(["gemini-extension.json"], {"gemini-extension.json": True}), 0)
     check("ground: nothing found is zero", new_ground([], {}), 0)
+
+    # -- round-57 spot-check R4: a SUCCESSFUL end-to-end main() path -------
+    skill = ("# x\n\n### Plugin manifests by client\n\n"
+             "| Client | Plugin manifest | What a plugin can ship | Action |\n"
+             "|---|---|---|---|\n"
+             "| Claude Code | `.claude-plugin/plugin.json` | hooks and agents "
+             "| read the manifest first |\n"
+             "| Gemini CLI | `gemini-extension.json` | commands and prompts "
+             "| read the extension file |\n")
+    entry = ("# e\n\n| Client | Manifest | Source | Quote |\n|---|---|---|---|\n"
+             "| Claude Code | `.claude-plugin/plugin.json` | `S089` | "
+             '"Installing plugins from the `.claude-plugin/plugin.json` manifest" |\n'
+             "| Gemini CLI | `gemini-extension.json` | `S093` | "
+             '"The gemini-extension.json file declares an extension" |\n')
+    src_row = ("| %s | %s docs \u2014 %s | docs | A | the plugin manifest "
+               "| \u00a7 manifest | the manifest file | mined | %s | 90d "
+               "| corpus/knowledge/plugin-manifests-round57.md |\n")
+    sources = (src_row % ("S089", "Claude Code",
+                          "https://code.claude.com/docs/en/plugins-reference",
+                          OPENED[0])
+               + src_row % ("S093", "Gemini CLI",
+                            "https://geminicli.com/docs/extensions/", OPENED[0]))
+    lesson = ("## Gate\n\n| row | URL | quote |\n|---|---|---|\n"
+              "| S089 | https://code.claude.com/docs/en/plugins-reference | "
+              '"Installing plugins from the `.claude-plugin/plugin.json` manifest" |\n'
+              "| S093 | https://geminicli.com/docs/extensions/ | "
+              '"The gemini-extension.json file declares an extension" |\n')
+    with tempfile.TemporaryDirectory(prefix="cmp-main-") as td:
+        repo = Path(td)
+        (repo / "corpus" / "knowledge").mkdir(parents=True)
+        (repo / "corpus" / "lessons").mkdir(parents=True)
+        (repo / "corpus" / "SOURCES.md").write_text(
+            "| id | source | kind | tier | scope | anchor | teaches | status "
+            "| opened | recheck | used-by |\n", encoding="utf-8")
+        _self_git("init", "-q", str(repo))
+        _self_git("-C", str(repo), "add", "-A", "-f", ".")
+        _self_git("-C", str(repo), "-c", "user.name=c", "-c", "user.email=c@e",
+                  "commit", "-q", "-m", "base")
+        base_sha = _self_git("-C", str(repo), "rev-parse",
+                             "HEAD").stdout.decode().strip()
+        (repo / "SKILL.md").write_text(skill, encoding="utf-8")
+        (repo / "corpus" / "knowledge" / "plugin-manifests-round57.md").write_text(
+            entry, encoding="utf-8")
+        (repo / "corpus" / "SOURCES.md").write_text(sources, encoding="utf-8")
+        (repo / "corpus" / "lessons" / "round-57.md").write_text(
+            lesson, encoding="utf-8")
+        _self_git("-C", str(repo), "add", "-A", "-f", ".")
+        _self_git("-C", str(repo), "-c", "user.name=c", "-c", "user.email=c@e",
+                  "commit", "-q", "-m", "measured")
+        measured = _self_git("-C", str(repo), "rev-parse",
+                             "HEAD").stdout.decode().strip()
+        page = ("<p>Installing plugins from the <code>.claude-plugin/plugin.json"
+                "</code> manifest</p><p>The gemini-extension.json file declares "
+                "an extension.</p>")
+        saved = (BASE, TARGET, NEW_TARGET, lane_dir, fetch)
+        try:
+            BASE, TARGET, NEW_TARGET = base_sha, 2, 2
+            lane_dir = lambda: repo
+            fetch = lambda url, pins=None, base_keys=None: page
+            out = io.StringIO()
+            with contextlib.redirect_stdout(out):
+                code = main(["--rev", measured, "--fetch"])
+            lines = out.getvalue().splitlines()
+            check("R4: the satisfying world exits 0", code, 0)
+            check("R4: the exact found line is printed",
+                  "plugin manifests found on the live page 2 of 2; new ground 2"
+                  in lines, True)
+            (repo / "corpus" / "lessons" / "round-57.md").write_text(
+                lesson.replace("Installing plugins from", "Installing plugin from"),
+                encoding="utf-8")
+            _self_git("-C", str(repo), "add", "-A", "-f", ".")
+            _self_git("-C", str(repo), "-c", "user.name=c", "-c", "user.email=c@e",
+                      "commit", "-q", "-m", "broken")
+            broken = _self_git("-C", str(repo), "rev-parse",
+                               "HEAD").stdout.decode().strip()
+            out = io.StringIO()
+            with contextlib.redirect_stdout(out):
+                code = main(["--rev", broken, "--fetch"])
+            lines = out.getvalue().splitlines()
+            check("R4: the broken world exits 1", code, 1)
+            check("R4: the broken world prints the one-of-two line",
+                  "plugin manifests found on the live page 1 of 2; new ground 1"
+                  in lines, True)
+        finally:
+            BASE, TARGET, NEW_TARGET, lane_dir, fetch = saved
 
     # -- the counter's own sha256 ----------------------------------------
     own = Path(__file__).read_bytes()

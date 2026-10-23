@@ -112,3 +112,29 @@ fallback, or verdict) — it need not be the last column; a trailing
 Source/Evidence column is allowed only when an action cell exists earlier in
 the row. A table with no action column at all is documentation, not a
 decision surface, and must not be presented as one.
+
+## Moved from SKILL.md § Skill-file anatomy (round 58)
+
+Verbatim from `SKILL.md` § Skill-file anatomy at `3de87aad` lines 58–76 (round 58
+line-budget move, 19 lines; the moved block's sha256 is unchanged by the move,
+checked before and after — receipt in the round-58 build report).
+
+## Skill-file anatomy
+
+Observed load order, top to bottom. A file that inverts this order (procedures
+before scope, examples before decision tables) reads worse under activation
+pressure.
+
+| # | Section | Function | Exemplar |
+|---|---------|----------|----------|
+| 0 | Frontmatter | Trigger index; the only always-loaded bytes | all |
+| 1 | H1 + role statement | What this skill is, in one line | wwkd L16–24 |
+| 2 | Prerequisite gate | Fail-closed dependency check before any action | bailian-cli "CRITICAL — MUST read bailian-protocol" |
+| 3 | Decision surface | Tables/protocols that route the request | bailian-protocol class table; sekhmet-l3 flag table |
+| 4 | Procedures | Numbered steps, copy-pasteable command blocks | bailian-finetune steps 1–7 |
+| 5 | Boundaries | Refusals, anti-triggers, hand-offs | wwkd "Refusals"; bailian-train-deploy 反触发表 |
+| 6 | References | Cited sources, relative links to depth files | wwkd "Source Excerpts"; bailian `reference/` links |
+
+Not every file needs every section. godspeed is 18 lines: frontmatter + one
+deferral ("Read `directive.md` … apply verbatim") + one invocation note. Anatomy
+is a checklist of *available* organs, not a mandatory skeleton.

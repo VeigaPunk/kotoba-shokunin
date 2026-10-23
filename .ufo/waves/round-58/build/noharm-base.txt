@@ -1,0 +1,118 @@
+Q19 before-values at base f56f6e191762c27c1aa2af11a204db9e2ca4edec
+seat KotobaR58.ExecNoHarmPremeasure, round 58 build wave, 2026-10-23
+
+sandbox clone: /fast/scratch/hyaku/kotoba-r58/ExecNoHarmPremeasure (checkout of the base commit;
+tracked tree clean — `git status --porcelain` shows only the untracked scratch dirs .noharm/, mirror/, head/)
+fetch commands ran 2026-10-23T08:09Z-08:11Z; host clock at receipt time: Fri 23 Oct 2026 08:12:03 AM UTC
+every command capped with `timeout 900`; nothing in the lane was written or mutated by these runs
+
+$ git rev-parse HEAD
+f56f6e191762c27c1aa2af11a204db9e2ca4edec
+
+--- 1 ---------------------------------------------------------------
+$ python3 -B verifiers/check_agent_definitions.py --rev f56f6e191762c27c1aa2af11a204db9e2ca4edec --fetch
+agent-definition locations found on the live page 7 of 7; new ground 3
+EXIT 0
+
+--- 2 ---------------------------------------------------------------
+$ python3 -B verifiers/check_plugin_manifests.py --rev f56f6e191762c27c1aa2af11a204db9e2ca4edec --fetch
+plugin manifests found on the live page 4 of 4; new ground 4
+reject VS Code: SKILL.md manifest token 'plugin.json' is not well-formed; SKILL.md manifest token 'plugin.json' is shared by rows Copilot CLI, VS Code
+reject Copilot CLI: SKILL.md manifest token 'plugin.json' is not well-formed; SKILL.md manifest token 'plugin.json' is shared by rows Copilot CLI, VS Code
+reject opencode: SKILL.md manifest token '.opencode/plugins/' is not well-formed
+EXIT 1
+# pre-existing red at base: 4 rows backed, counter TARGET = 5 (check_plugin_manifests.py:216,
+# return 0 iff found >= 5 and ground >= 3). Not caused by the round-58 wave.
+
+--- 3 ---------------------------------------------------------------
+$ python3 -B verifiers/check_explicit_invocation.py --rev f56f6e191762c27c1aa2af11a204db9e2ca4edec --fetch
+user-typed invocation forms found on the live page 5 of 5; new ground 4
+EXIT 0
+
+--- 4 ---------------------------------------------------------------
+$ python3 -B verifiers/check_description_thresholds.py --rev f56f6e191762c27c1aa2af11a204db9e2ca4edec
+description thresholds backed 7 of 7 clients
+EXIT 0
+
+--- 5 ---------------------------------------------------------------
+$ python3 -B verifiers/check_mcp_instructions.py --rev f56f6e191762c27c1aa2af11a204db9e2ca4edec
+mcp instructions backed 7 of 7 clients
+EXIT 0
+
+--- 6 ---------------------------------------------------------------
+$ python3 -B verifiers/check_gate_registry.py --rev f56f6e191762c27c1aa2af11a204db9e2ca4edec
+gate registry rows conformant 30 of 30 lane verifiers; phantom 0
+EXIT 0
+
+--- 7 ---------------------------------------------------------------
+$ python3 -B verifiers/check_correction_sweep.py --rev f56f6e191762c27c1aa2af11a204db9e2ca4edec
+correction sweep: 0 stale block(s)
+EXIT 0
+
+--- 8 ---------------------------------------------------------------
+$ python3 -B verifiers/check_sources_append_only.py --base 422ffd1082b3f4ae3ebda6060eb1a8d779f6dfd4 --rev f56f6e191762c27c1aa2af11a204db9e2ca4edec
+sources append-only rows clean: 5 commits scanned, 0 protected-cell changes
+EXIT 0
+
+--- 9 ---------------------------------------------------------------
+$ python3 -B verifiers/verify_skill_checklist.py
+FAIL trigger.name_directory: evaluated 1 — name 'kotoba-shokunin' != directory 'ExecNoHarmPremeasure'
+FAIL trigger.citation_resolves: evaluated 131 — line 588: '../.ufo/reports/round-7/kotoba.md' does not resolve from /fast/scratch/hyaku/kotoba-r58/ExecNoHarmPremeasure
+FAIL governance.citation_resolves: evaluated 1062 — LOG.md:177: '../.ufo/reports/round-9/kotoba.md' does not resolve from /fast/scratch/hyaku/kotoba-r58/ExecNoHarmPremeasure; LOG.md:255: '../.ufo/reports/round-11/kotoba.md' does not resolve from /fast/scratch/hyaku/kotoba-r58/ExecNoHarmPremeasure; LOG.md:311: '../PROTOCOL.md' does not resolve from /fast/scratch/hyaku/kotoba-r58/ExecNoHarmPremeasure; LOG.md:779: '../.ufo/l0-questions.md' does not resolve from /fast/scratch/hyaku/kotoba-r58/ExecNoHarmPremeasure … (+20 more); 9 quoted meta-finding(s), 3 schematic token(s) excluded, 1 recorded absence(s) excused
+EXIT 1
+# All three FAILs are sandbox-location artifacts, not lane state:
+#  - the clone directory is the seat name, not `kotoba-shokunin` (trigger.name_directory compares
+#    the frontmatter name to the parent directory basename);
+#  - every citation above is a `../` hop into the FLEET ROOT, which the sandbox clone does not
+#    have: /home/vgpnk/Projects/shokunin/{PROTOCOL.md,.ufo/reports/round-7/kotoba.md,
+#    .ufo/reports/round-9/kotoba.md,.ufo/reports/round-11/kotoba.md,.ufo/l0-questions.md,
+#    AXES.md,MISSION.md,kasegi-shokunin/...} all exist in the lane's real parent.
+# Lane-faithful rerun at the SAME base rev (clean clone at .../ExecNoHarmPremeasure/mirror/
+# kotoba-shokunin, with every fleet-root top-level entry symlinked read-only into its parent so
+# ancestor resolution matches the lane exactly) gives the before-value:
+
+$ python3 -B verifiers/verify_skill_checklist.py
+PASS checklist.box_map_complete: evaluated 41 — 41 boxes mapped (8 executed, 4 delegated, 29 unexecuted); delegated verifiers/verify_dispatch_prompts.py: --box-proof exit 0: boxes proven 2; delegated verifiers/verify_alwayson.py: --box-proof exit 0: boxes proven 2
+PASS trigger.frontmatter_parses: evaluated 4 — frontmatter parses: name='kotoba-shokunin', description 1019 chars
+PASS trigger.name_directory: evaluated 1 — name 'kotoba-shokunin' == directory 'kotoba-shokunin'
+PASS trigger.literal_trigger_string: evaluated 1 — description carries literal 'Triggers:'
+PASS trigger.anti_trigger_clause: evaluated 1 — exclusion marker 'Anti-triggers' present (vocabulary test, not semantics: a vacuous 'Never use this skill.' passes and an unlisted real exclusion fails)
+PASS trigger.no_xml_tag: evaluated 2 — no XML tag in name, description (S019 Anthropic rule, absent from the open spec (S018), approximated lexically on the unparsed text; Anthropic's packager (S012) bans any '<'/'>' in the parsed value, and the two disagree in both directions (corpus/knowledge/frontmatter-rule-authorities-round48.md))
+PASS trigger.line_budget: evaluated 598 — 598 lines within budget 600 (from box at line 296)
+PASS trigger.no_placeholder: evaluated 537 — no placeholder markers in 537 scanned lines
+PASS trigger.command_binary_resolves: evaluated 34 — 19 segments; 34 command subject(s) resolve
+PASS trigger.citation_resolves: evaluated 131 — 131 repo-rooted citation token(s) resolve from the repo root
+PASS governance.citation_resolves: evaluated 1062 — 1062 governance citation token(s) resolve across 2 files; 9 quoted meta-finding(s), 3 schematic token(s) excluded, 1 recorded absence(s) excused
+EXIT 0
+# `--json` on the same run: pass 11, fail 0, na 0, exit_code 0.
+
+--- 10 --------------------------------------------------------------
+$ python3 -B verifiers/check_assertion_floors.py
+PASS harness observed=10 floor=10
+PASS corpus_integrity observed=152 floor=152
+PASS corpus_independent observed=99 floor=93
+PASS surfaces observed=175 floor=175
+PASS checklist observed=1852 floor=1852
+PASS pins observed=62 floor=62
+PASS harness_independent observed=123 floor=123
+PASS compare_harness_independent observed=330 floor=330
+PASS floors_guard observed=165 floor=150
+PASS dispatch_prompts observed=56 floor=56
+PASS sibling_census observed=68 floor=68
+PASS overlap_levers observed=55 floor=51
+PASS alwayson observed=89 floor=89
+EXIT 0
+
+---------------------------------------------------------------------
+Summary of before-values (base f56f6e19), `exit` then `command` then observed:
+  exit  command                             observed
+  0  check_agent_definitions --fetch        7 of 7 live, new ground 3 (TARGET 5 / NEW 2)
+  1  check_plugin_manifests --fetch         4 of 4 live, new ground 4, TARGET 5 -> pre-existing red
+  0  check_explicit_invocation --fetch      5 of 5 live, new ground 4 (TARGET 4 / NEW 2)
+  0  check_description_thresholds           7 of 7 (TARGET 4)
+  0  check_mcp_instructions                 7 of 7 (TARGET 3)
+  0  check_gate_registry                    30 of 30 conformant, phantom 0
+  0  check_correction_sweep                 0 stale blocks
+  0  check_sources_append_only              5 commits, 0 protected-cell changes
+  0  verify_skill_checklist                 11 PASS / 0 FAIL (lane-faithful; raw sandbox 3 FAIL = path artifacts)
+  0  check_assertion_floors                 13 of 13 PASS

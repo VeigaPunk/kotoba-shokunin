@@ -55,25 +55,7 @@ Cited line numbers are points-in-time. Verify before trusting: if a cited
 line has drifted, re-read the file and update the citation — do not
 propagate a claim whose source moved.
 
-## Skill-file anatomy
-
-Observed load order, top to bottom. A file that inverts this order (procedures
-before scope, examples before decision tables) reads worse under activation
-pressure.
-
-| # | Section | Function | Exemplar |
-|---|---------|----------|----------|
-| 0 | Frontmatter | Trigger index; the only always-loaded bytes | all |
-| 1 | H1 + role statement | What this skill is, in one line | wwkd L16–24 |
-| 2 | Prerequisite gate | Fail-closed dependency check before any action | bailian-cli "CRITICAL — MUST read bailian-protocol" |
-| 3 | Decision surface | Tables/protocols that route the request | bailian-protocol class table; sekhmet-l3 flag table |
-| 4 | Procedures | Numbered steps, copy-pasteable command blocks | bailian-finetune steps 1–7 |
-| 5 | Boundaries | Refusals, anti-triggers, hand-offs | wwkd "Refusals"; bailian-train-deploy 反触发表 |
-| 6 | References | Cited sources, relative links to depth files | wwkd "Source Excerpts"; bailian `reference/` links |
-
-Not every file needs every section. godspeed is 18 lines: frontmatter + one
-deferral ("Read `directive.md` … apply verbatim") + one invocation note. Anatomy
-is a checklist of *available* organs, not a mandatory skeleton.
+Skill-file anatomy (observed load order, the seven-section table, and the "not a mandatory skeleton" note) moved verbatim to `corpus/knowledge/anatomy-and-compression.md` § Moved from SKILL.md § Skill-file anatomy (round 58).
 
 ## Instruction surfaces — pick the file before the fix
 
@@ -121,6 +103,20 @@ A skill, agent, command or rule file can arrive inside a plugin (Gemini CLI: an 
 | Gemini CLI | `gemini-extension.json` (required, each extension root) | MCP servers, a context file (`contextFileName`; otherwise root `GEMINI.md` if present), TOML commands, hooks in `hooks/hooks.json`, skills, sub-agents (preview), policy rules and safety checkers; extensions load from `<home>/.gemini/extensions` | Audit the extension's context file as always-on text |
 | Cursor | `.cursor-plugin/plugin.json` (Cursor Plugins; Agent Plugins use root `plugin.json`) | Cursor Plugins: rules, skills, agents, commands, MCP servers, hooks, and a user-configuration `variables` schema; Agent Plugins: skills and MCP servers; local development from `~/.cursor/plugins/local`; for Cursor Plugins, a root `SKILL.md` is a single-skill fallback only if neither a `skills/` folder nor a manifest `skills` field exists | Name the plugin format before packaging rules |
 | opencode | `.opencode/plugins/` (local JavaScript/TypeScript modules, also global `~/.config/opencode/plugins/`; a published package's `package.json` is its minimal manifest) | code that registers commands, MCP server configuration, skills and tools, transforms existing agents, sends session prompts, and installs hooks that edit incoming prompts and outgoing system instructions | Review the module code and, for published packages, `package.json` |
+
+### Custom command files by client
+
+A reusable prompt the user invokes by typing `/name` lives in a command (prompt) file, not a skill: the model never picks it from a description. Before auditing one, find the folder the client reads and what a file may set; full quotes in `corpus/knowledge/command-files-round58.md` (S089–S095, S028).
+
+| Client | Command files | What a file sets | Action |
+|---|---|---|---|
+| Claude Code | `.claude/commands/` (project) | Markdown; `deploy.md` → `/deploy`; skill frontmatter except `name` and `paths`; `argument-hint`, named `arguments` for `$name` (S089 `:172,378,402-403,450`) | Audit it like a skill; the page calls it the older format, so author new work as a skill |
+| Codex | `~/.codex/prompts/` (user only; not shared through the repo) | Markdown; `draftpr.md` → `/prompts:draftpr`; frontmatter `description`, `argument-hint`; `$1`–`$9`, `$ARGUMENTS` (S090 `:10,18,34,40-42`) | Deprecated for skills: never ship one in a repo, migrate it to a skill |
+| VS Code | `.github/prompts` (workspace; user files in the profile) | `.prompt.md` Markdown; optional `description`, `name` (after `/`, defaults to the file name), `argument-hint`, `agent`, `model`, `tools`; `${input:…}` (S091 `:35,39-44,69-70`) | Local harness only: for other harnesses write an agent skill |
+| Copilot CLI | no own folder: it loads Claude Code's .claude/commands/ and skills override commands (S028 `:456`) | as Claude Code | Author in Claude Code's folder; a same-named skill wins |
+| Gemini CLI | `~/.gemini/commands/` (user; project `.gemini/commands/`) | TOML `.toml`; required `prompt`, optional `description`; path → name, subfolders → `:` namespaces; `{{args}}` (S093 `:8-17,25-27,41-42,58-67`) | Write TOML, not Markdown; check the project and user copies |
+| Cursor | `.cursor/commands` (project) | Markdown workflow prompt; no frontmatter or argument schema documented (S094 `:54`, `customize-cursor.md:31`) | Audit the body only; nothing else to check |
+| opencode | `.opencode/commands/` (project; user `~/.config/opencode/commands/`) | `.md` only; nested path → `/`-separated name; optional YAML frontmatter; trimmed body is the template; `$ARGUMENTS` (S095 `:21,28,37,99`) | Keep the body a complete prompt template |
 
 ## Router model — which harness, which gate
 
@@ -350,7 +346,7 @@ rule — terse imperatives only.)
 ## Dispatch-prompt fidelity checklist
 
 Run before shipping any `*-L1.md` / `*-round-N.md` dispatch prompt (observed
-form: `/home/vgpnk/projects/shokunin/.ufo/prompts/`). Checkable by reading the file; round-7 application +
+form: `/home/vgpnk/Projects/shokunin/.ufo/prompts/`). Checkable by reading the file; round-7 application +
 full failure matrix in `corpus/knowledge/dispatch-prompt-audit-round7.md`
 (37/43 files failed ≥1 item — the artifact population is dirtier than the
 template).
@@ -458,7 +454,7 @@ reads as could-not-evaluate. `python3 -B verifiers/check_gate_registry.py --rev 
 | `verifiers/check_explicit_invocation.py` | gate | `python3 -B verifiers/check_explicit_invocation.py --rev <rev> --fetch` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file | none; `--fetch` reads the network | kotoba |
 | `verifiers/check_gate_finding_delta.py` | gate | `python3 -B verifiers/check_gate_finding_delta.py --base <rev> --head <rev>` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | `verifiers/corpus-baseline.json` | temp trees under `$TMPDIR` | kotoba |
 | `verifiers/check_gate_registry.py` | gate | `python3 -B verifiers/check_gate_registry.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file | none | kotoba |
-| `verifiers/check_infoless_fences.py` | gate | `python3 -B verifiers/check_infoless_fences.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file | temp archives and per-case dirs under `$TMPDIR` (removed) | kotoba |
+| `verifiers/check_infoless_fences.py` | gate | `python3 -B verifiers/check_infoless_fences.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate — claim withdrawn r57; not a claim gate until redesigned and re-controlled | `--self-test` | in-file | temp archives and per-case dirs under `$TMPDIR` (removed) | kotoba |
 | `verifiers/check_mcp_instructions.py` | gate | `python3 -B verifiers/check_mcp_instructions.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file | none; `--fetch` reads the network | kotoba |
 | `verifiers/check_opencode_repin.py` | gate | `python3 -B verifiers/check_opencode_repin.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | `verifiers/surfaces-baseline.json`, `verifiers/baseline.json` | temp trees under `$TMPDIR` (removed) | kotoba |
 | `verifiers/check_overlap_levers.py` | gate | `python3 -B verifiers/check_overlap_levers.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file | self-test temp repo (removed); `--fetch` reads the network | kotoba |
@@ -466,7 +462,7 @@ reads as could-not-evaluate. `python3 -B verifiers/check_gate_registry.py --rev 
 | `verifiers/check_sibling_census.py` | gate | `python3 -B verifiers/check_sibling_census.py <census.md>` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file | none; self-test repos under `$TMPDIR` | kotoba |
 | `verifiers/check_sources_append_only.py` | gate | `python3 -B verifiers/check_sources_append_only.py --base 422ffd1082b3f4ae3ebda6060eb1a8d779f6dfd4 --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file | none | kotoba |
 | `verifiers/check_substrate_pins.py` | gate | `python3 -B verifiers/check_substrate_pins.py` | 0=clean, 1=failed, 2=could-not-evaluate, 3=could-not-evaluate | `--self-test` | `verifiers/baseline.json` | self-test files under `$TMPDIR` | kotoba |
-| `verifiers/check_sweep_mutants.py` | gate | `python3 -B verifiers/check_sweep_mutants.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file | per-row temp git repos under `$TMPDIR` (removed) | kotoba |
+| `verifiers/check_sweep_mutants.py` | gate | `python3 -B verifiers/check_sweep_mutants.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate — claim withdrawn r58 before data (plan erratum 1); not a claim gate until redesigned and re-controlled | `--self-test` | in-file | per-row temp git repos under `$TMPDIR` (removed) | kotoba |
 | `verifiers/compare_harness_independent.py` | gate | `python3 -B verifiers/compare_harness_independent.py` | 0=clean, 1=failed, 2=could-not-evaluate, 3=failed | `--self-test` | `verifiers/harness-independent-scope.json`, `verifiers/fixtures/compare-harness-independent` | `--report`/`--receipt` targets; temp dirs | kotoba |
 | `verifiers/fault_injection_corpus.sh` | gate | `verifiers/fault_injection_corpus.sh` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file | temp clones under `${TMPDIR:-/tmp}` (removed) | kotoba |
 | `verifiers/verify_alwayson.py` | gate | `python3 -B verifiers/verify_alwayson.py --check <box> --target <dir>` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file | none | kotoba |
@@ -513,9 +509,9 @@ reads as could-not-evaluate. `python3 -B verifiers/check_gate_registry.py --rev 
 - `/home/vgpnk/Projects/shokunin/*/AGENTS.md` (17 files on 2026-10-22; 9 share
   the 5-line template body) + `~/.agents/AGENTS.md` (14 lines / 949 B) —
   always-on constraint files; no frontmatter, terse imperatives.
-- `/home/vgpnk/projects/shokunin/.ufo/prompts/*-L1.md` (8 files, 9–12 lines) —
+- `/home/vgpnk/Projects/shokunin/.ufo/prompts/*-L1.md` (8 files, 9–12 lines) —
   spawn dispatch-prompt stanza order and `| godspeed` terminator.
-- `/home/vgpnk/projects/shokunin/.ufo/prompts/*-round-*.md` (50 files, 3–11
+- `/home/vgpnk/Projects/shokunin/.ufo/prompts/*-round-*.md` (50 files, 3–11
   lines at round-9 recount; round-7 audit: 30 restate the L2 map with stale
   aliases) — round
   self-iteration mode; template variance is name+path only.

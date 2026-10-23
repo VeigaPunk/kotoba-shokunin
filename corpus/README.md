@@ -157,6 +157,16 @@ plugin loading, plugin-shipped MCP `instructions` per client, and the legacy loc
 extraction* — the info-less fence false FAILs stay open: the round-57 counter was met by four hollow controls before
 data and the claim was withdrawn; 105 of 171 fleet FAIL subjects come from info-less fences, none of them a real
 command (`lessons/round-57.md` § Gate; redesign inputs in the round's build wave).
+Round 58 correction (round-57 spot-check R2): the plugin entry and `../SKILL.md` § Plugin manifests by client also rest
+on the correction rows S086–S088 (S086 Codex scaffold contents, correcting S080; S087 opencode plugin discovery,
+correcting S085; S088 Cursor plugins reference), so the note's source set is S079–S088.
+
+**Round 58 (append-only note; new area *Custom command files*):** where seven clients read user-written command
+(prompt) files and what a file sets is held in `knowledge/command-files-round58.md` (S089–S091, S093–S095; S028
+re-opened) and acted on in `../SKILL.md` § Custom command files by client. Six clients document their own folder;
+Copilot CLI loads Claude Code's `.claude/commands/` and lets skills override commands. Still not held: any client run,
+argument-substitution behaviour as observed, and precedence between a command and a same-named skill beyond what a page
+states.
 
 ## Known gaps
 
