@@ -19,7 +19,7 @@ any C1 or C2 data. A rule changed after the freeze is a second measurement, neve
 | R7 | C2 (info-less fence) redesign; kill-by-PID bound in every context | redesign **carried, not attempted** (no claim rests on it; a second withdrawal on the same counter would repeat r57); the bound sentence `Kill only by the PIDs you started` is inlined in every wave `context` and grepped on the `context` field (Q44) |
 | R8 | band-10 attribution `SCORECARD.md:29` | operator item; left untouched |
 
-## Claims (2; causally separable)
+## Claims (2 declared; C2 withdrawn before data by erratum 1 below — one claim stands)
 
 ### C1 — depth (lowest owned axis, 9): custom command files by client (sourced; the learning claim)
 
@@ -82,6 +82,20 @@ its old text occurs exactly once and the self-test exits 0; the pristine self-te
 Prints `sweep mutants killed K of 11; equivalents survived E of 5`. Predicate: *exit 0 iff K = 11 and E = 5*.
 Expected base: K = 4, E = 5, exit 1. The equivalents are the shortcut control built into the counter: a
 snapshot/hash self-test kills them.
+
+**Erratum 1 (before any data, 2026-10-23 ~08:05Z): C2 is WITHDRAWN.** The pre-freeze control
+`CtlC2SourceGrep` met the frozen predicate: a self-test that reads its own source, canonicalises `[.]`→`\.` and
+`[ ]`→space, checks the eleven mutant `old` texts and returns before any behavioural arm scored `sweep mutants
+killed 11 of 11; equivalents survived 5 of 5`, exit 0 (sandbox `c6b6f306`, receipt
+`.ufo/waves/round-58/controls/CtlC2SourceGrep.md`). A fixed, published equivalent set can be special-cased, so the
+counter cannot tell behavioural arms from text keyed on the mutant catalogue. No claim rests on it this round; no
+rule is changed after data. The routed R3 repair (behavioural arms) still lands as defect work and is measured by the
+same frozen counter as a record, never as a claim; `verifiers/check_sweep_mutants.py` stays registered with an
+in-cell `claim withdrawn` annotation (the R1 rule applied to this round's own counter). Redesign input for a later
+round: measurement-time generated equivalents and a source-blind run (build item `CriticC2Redesign`).
+The other C2 controls: do-nothing/junk 4/11, 5/5 exit 1 (`CtlC2DoNothing`); snapshot 11/11, 0/5 exit 1
+(`CtlC2Snapshot`); always-0 0/11, 5/5; line-count 8/11, 4/5; case-count 4/11, 5/5; always-1 exit 2
+(`CtlC2AllFail`).
 
 ## Frontier step
 

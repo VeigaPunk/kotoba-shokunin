@@ -1,0 +1,288 @@
+{
+ "wave": "kotoba-r58-build",
+ "milestone": "Round-58 build: C1 sources/entry/SKILL section for custom command files, R3 sweep arms (C2 withdrawn), routed defects R1/R2/R4/R5, lesson/QUALITY drafts, first falsifiers of the C1 counter, census and axes.",
+ "axes": [
+  "depth",
+  "consistency",
+  "calibration",
+  "coverage",
+  "operability",
+  "adjacency"
+ ],
+ "reportDir": ".ufo/waves/round-58/build",
+ "context": "# Goal\nkotoba round 58 (attempt 1) BUILD wave, hyaku session 2026-10-23. Lane repo /home/vgpnk/Projects/shokunin/kotoba-shokunin (jj-colocated; read-only to you). Base `f56f6e191762c27c1aa2af11a204db9e2ca4edec`; freeze commit `3de87aad29e960c95ed35840442f424c48c29729` (plan /home/vgpnk/Projects/shokunin/kotoba-shokunin/plans/round-58.md, both counters, targets, Q45 census); control receipts under /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-58/controls/. Your L1 is agent://KotobaR58 \u2014 the only integrator; you deliver text, patches or receipts.\nClaims (frozen; never propose changing a counter, rule or target):\n- C1 depth: `SKILL.md` gains `### Custom command files by client` (table header `| Client | Command files | What a file sets | Action |`), grounded in `corpus/knowledge/command-files-round58.md` (table `| Client | Command files | Source | Quote |`) and new SOURCES rows opened 2026-10-23 with quotes in `corpus/lessons/round-58.md` `## Gate`. Counter `python3 -B verifiers/check_command_files.py --rev <rev> --fetch`; predicate *exit 0 iff F \u2265 4 and G \u2265 3*. Census (W0): eligible Claude Code `.claude/commands/`, Codex `~/.codex/prompts/`, VS Code `.github/prompts`, Gemini CLI `~/.gemini/commands/`, Cursor `.cursor/commands`, opencode `.opencode/commands/`; Copilot CLI not eligible (its command reference reads `.claude/commands/`; its row must carry NO backticked path, else E5 disqualifies Claude Code too). Census seat reports: /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-58/w0/Census*.md.\n- C2 (operability) was WITHDRAWN before data (plan erratum 1): control CtlC2SourceGrep met its frozen predicate with a self-test that greps its own source for the mutant texts. The routed R3 repair (behavioural self-test arms in `verifiers/check_correction_sweep.py`) still lands as defect work; `python3 -B verifiers/check_sweep_mutants.py --rev <rev>` is run as a record only (base: killed 4 of 11; equivalents survived 5 of 5, exit 1), never as a claim.\nRead the counter source before drafting anything it will score: /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/check_command_files.py (docstring = the frozen spec) and /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/check_sweep_mutants.py.\nAssigned new SOURCES ids: S089 Claude Code, S090 Codex, S091 VS Code, S093 Gemini CLI, S094 Cursor, S095 opencode (S092 unused unless the Copilot CLI seat needs a new non-base page). Row shape: copy the column order and cell style of rows S079\u2013S088 in /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md (contract: /home/vgpnk/Projects/shokunin/CORPUS.md \u00a7 SOURCES.md).\nSKILL.md is at 600 lines (budget 600): any SKILL.md addition needs an equal verbatim move out (item ExecBudgetMove).\n\nEvery `Report:` trailer path is relative to /home/vgpnk/Projects/shokunin/kotoba-shokunin \u2014 write it at /home/vgpnk/Projects/shokunin/kotoba-shokunin/<that path>.\n\n# Bounds (binding on every seat)\n- Message target: only agent://KotobaR58 (your L1). Never agent://all. Seats are leaves: no task spawns, no swarms (an executor may spawn at most one read-only labrat probe).\n- Write ONLY your own report file (executors: also the patch/receipt files their item names, inside your scratch dir or the report dir). Every `Report:` trailer path is relative to /home/vgpnk/Projects/shokunin/kotoba-shokunin \u2014 write it at /home/vgpnk/Projects/shokunin/kotoba-shokunin/<that path>. Never write anything else in the lane, never in the fleet root /home/vgpnk/Projects/shokunin, never in a sibling lane. Never edit lane files: you deliver text or a patch; the L1 integrates.\n- Anything that writes or executes lane code (self-tests, probes, mutated copies, counters, sandbox worlds) runs in your OWN sandbox clone: `unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE; git clone -q /home/vgpnk/Projects/shokunin/kotoba-shokunin /fast/scratch/hyaku/kotoba-r58/<YourSeatName> && git -C /fast/scratch/hyaku/kotoba-r58/<YourSeatName> checkout -q <the revision your item names>`; scratch files under /fast/scratch/hyaku/kotoba-r58/<YourSeatName>/ only. Git writes (sandbox commits) are allowed only inside that clone; every sandbox commit hash you cite is labelled `sandbox <hash> (/fast/scratch/hyaku/kotoba-r58/<YourSeatName>)`, never cited bare. Never push.\n- Never run git writes (add, commit, stash, checkout, switch, reset, pull, push, worktree) in the lane, and never mutate lane jj state or the lane Git index. Read-only git in the lane is fine (prefer `git --no-optional-locks`). jj only read-only with --ignore-working-copy, in the lane only; never any git or jj command with the fleet root /home/vgpnk/Projects/shokunin as cwd. Never mutate the fleet repo, sibling lanes, MANIFEST.json, .ufo/state or .ufo/watchdog.log.\n- Process hygiene (round-56 lesson M56): cap every run you start with `timeout` (at most 900 s per command); no unbounded recursive test runs. Kill only by the PIDs you started (record `$!` or use `timeout`), never with `pkill -f`/`killall` or any pattern over a shared path such as /fast/scratch/hyaku/. Contention or load tests: at most 4 concurrent processes and 120 s wall time, and only when your item asks for one; the host is shared by many lanes.\n- Sources are opened by ordinary means only (curl, the read tool, web search). Never use a headless browser or any tool to pass a bot challenge, captcha or access control. Record URL, UTC access time (paste the `date -u` line), HTTP status, byte count and sha256 of what you fetched; quote verbatim (at most 25 words per quote, byte-exact; if you strip markdown say exactly which bytes) with line numbers in the fetched bytes. Prefer a quote that needs no shaping. Before recording that a client documents nothing about a topic (Q30), open its changelog or release notes AND its current docs source tree AND grep the lane corpus; a sweep missing any of the three makes the client `not checked`, never `silent`.\n- Never make paid model calls through any client CLI (no `claude -p`, `codex exec`, `opencode run`, `gemini -p`); version, help, debug and config introspection only.\n- Never pass a `model` parameter; never call `ask`.\n- Tooling: you and every seat may install or upgrade tools that help the task \u2014 read /home/vgpnk/.omp/agent/RULES.md first (official channels, update-safety gate, record tool/version/channel/reason in your report). Pacman guard: all pacman transactions are PAUSED host-wide (install via uv tool, npx or an official binary in ~/.local/bin, or report the need); never -Sy, -Syu, -U, -R, downgrade, or restart a host service.\n- Honesty: an unrun check has not passed; paste commands with exit codes and observed output; mark inference as [INFERENCE]. A record states only what was verified; a statement may say no more than its evidence. Plain English.\n- Report shape: first line `Result: DONE|PARTIAL|BLOCKED|HOLDS|BREAKS|MIXED \u2014 <one sentence>`; then findings with evidence pointers (path:line, command + exit code + output).\n\n# Tooling directive \u2014 operator, 2026-10-19 (always on, every agent)\n\nAny agent \u2014 main session or subagent, any lane, any wave \u2014 installs or updates any tool that\nhelps its task or is a strict upgrade, with full privilege, without asking first. Passwordless\n`sudo` is available.\n\n- Channel order: `sudo pacman -S --needed --noconfirm <pkg>` \u2192 `uv tool install <pkg>` \u2192\n  official release binary into `~/.local/bin` \u2192 `cargo install` / `npm -g`. Official sources\n  only; never pipe an unverified remote script into a shell.\n- Full-system upgrades (`pacman -Syu`) go through tsukuroi-shokunin's update-safety gate first:\n  boot-chain packages can break boot (mkinitcpio 42 moves root to `/sysroot`; the host's\n  `btrfs-overlayfs` and `plymouth` hooks still expect `/new_root`). Never run a partial upgrade\n  (`pacman -Sy <pkg>`). If an install fails on a stale sync database, report it.\n- Record every install or update \u2014 tool, version, channel, reason \u2014 in your report or handoff.\n",
+ "items": [
+  {
+   "name": "SrcClaudeCode",
+   "role": "scribe",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Source row + entry row for Claude Code (S089). Census lead: `.claude/commands/` at https://code.claude.com/docs/en/slash-commands.md :172 (older format, still works). (1) Re-open the page yourself (curl -sSL; paste `date -u`, status, bytes, sha256); confirm or replace the census quote with the best UNSHAPED 6\u201325-word quote containing the token and command(s)/prompt(s) outside it (Q42; name any stripped bytes). (2) Prove the counter will find it: in your sandbox clone at `3de87aad29e960c95ed35840442f424c48c29729`, run python that imports verifiers/check_command_files.py and calls its `fetch(url)` + `found_on_page(page, quote, token)` on the exact URL and quote, and paste True/False. If False, find a URL on the pinned host where it is True. (3) Draft: the SOURCES row `S089` (one Markdown table line, S079\u2013S088 style, tier A, status `mined`, opened 2026-10-23, recheck 90d, used-by `corpus/knowledge/command-files-round58.md`); the entry row `| Claude Code | <token> | S089 | \"<quote>\" |`; the SKILL.md row `| Claude Code | <token> (+ scope, e.g. user vs project folder) | <what a file sets: file format, name\u2192command mapping, frontmatter/arguments, each with a second quote+line from the same or another pinned page> | <action for a skill author, \u2265 3 words> |`; the Gate line (URL, access date, located quote \u2264 25 words, line). Also state whether the page marks the form deprecated/legacy and what it points to instead. Deliver the drafts verbatim in your report."
+  },
+  {
+   "name": "SrcCodex",
+   "role": "scribe",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Source row + entry row for Codex (S090). Census lead: `~/.codex/prompts/` at https://learn.chatgpt.com/docs/custom-prompts.md :62 (page marks custom prompts deprecated, lines 5 and 8). (1) Re-open the page yourself (curl -sSL; paste `date -u`, status, bytes, sha256); confirm or replace the census quote with the best UNSHAPED 6\u201325-word quote containing the token and command(s)/prompt(s) outside it (Q42; name any stripped bytes). (2) Prove the counter will find it: in your sandbox clone at `3de87aad29e960c95ed35840442f424c48c29729`, run python that imports verifiers/check_command_files.py and calls its `fetch(url)` + `found_on_page(page, quote, token)` on the exact URL and quote, and paste True/False. If False, find a URL on the pinned host where it is True. (3) Draft: the SOURCES row `S090` (one Markdown table line, S079\u2013S088 style, tier A, status `mined`, opened 2026-10-23, recheck 90d, used-by `corpus/knowledge/command-files-round58.md`); the entry row `| Codex | <token> | S090 | \"<quote>\" |`; the SKILL.md row `| Codex | <token> (+ scope, e.g. user vs project folder) | <what a file sets: file format, name\u2192command mapping, frontmatter/arguments, each with a second quote+line from the same or another pinned page> | <action for a skill author, \u2265 3 words> |`; the Gate line (URL, access date, located quote \u2264 25 words, line). Also state whether the page marks the form deprecated/legacy and what it points to instead. Deliver the drafts verbatim in your report."
+  },
+  {
+   "name": "SrcVSCode",
+   "role": "scribe",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Source row + entry row for VS Code (S091). Census lead: `.github/prompts` at https://code.visualstudio.com/docs/agent-customization/prompt-files.md :25-28. (1) Re-open the page yourself (curl -sSL; paste `date -u`, status, bytes, sha256); confirm or replace the census quote with the best UNSHAPED 6\u201325-word quote containing the token and command(s)/prompt(s) outside it (Q42; name any stripped bytes). (2) Prove the counter will find it: in your sandbox clone at `3de87aad29e960c95ed35840442f424c48c29729`, run python that imports verifiers/check_command_files.py and calls its `fetch(url)` + `found_on_page(page, quote, token)` on the exact URL and quote, and paste True/False. If False, find a URL on the pinned host where it is True. (3) Draft: the SOURCES row `S091` (one Markdown table line, S079\u2013S088 style, tier A, status `mined`, opened 2026-10-23, recheck 90d, used-by `corpus/knowledge/command-files-round58.md`); the entry row `| VS Code | <token> | S091 | \"<quote>\" |`; the SKILL.md row `| VS Code | <token> (+ scope, e.g. user vs project folder) | <what a file sets: file format, name\u2192command mapping, frontmatter/arguments, each with a second quote+line from the same or another pinned page> | <action for a skill author, \u2265 3 words> |`; the Gate line (URL, access date, located quote \u2264 25 words, line). Also state whether the page marks the form deprecated/legacy and what it points to instead. Deliver the drafts verbatim in your report."
+  },
+  {
+   "name": "SrcGeminiCLI",
+   "role": "scribe",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Source row + entry row for Gemini CLI (S093). Census lead: `~/.gemini/commands/` at https://geminicli.com/docs/cli/custom-commands.md :12. (1) Re-open the page yourself (curl -sSL; paste `date -u`, status, bytes, sha256); confirm or replace the census quote with the best UNSHAPED 6\u201325-word quote containing the token and command(s)/prompt(s) outside it (Q42; name any stripped bytes). (2) Prove the counter will find it: in your sandbox clone at `3de87aad29e960c95ed35840442f424c48c29729`, run python that imports verifiers/check_command_files.py and calls its `fetch(url)` + `found_on_page(page, quote, token)` on the exact URL and quote, and paste True/False. If False, find a URL on the pinned host where it is True. (3) Draft: the SOURCES row `S093` (one Markdown table line, S079\u2013S088 style, tier A, status `mined`, opened 2026-10-23, recheck 90d, used-by `corpus/knowledge/command-files-round58.md`); the entry row `| Gemini CLI | <token> | S093 | \"<quote>\" |`; the SKILL.md row `| Gemini CLI | <token> (+ scope, e.g. user vs project folder) | <what a file sets: file format, name\u2192command mapping, frontmatter/arguments, each with a second quote+line from the same or another pinned page> | <action for a skill author, \u2265 3 words> |`; the Gate line (URL, access date, located quote \u2264 25 words, line). Also state whether the page marks the form deprecated/legacy and what it points to instead. Deliver the drafts verbatim in your report."
+  },
+  {
+   "name": "SrcCursor",
+   "role": "scribe",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Source row + entry row for Cursor (S094). Census lead: `.cursor/commands` at https://cursor.com/docs/reference/deeplinks.md :54 (look for a better primary page on cursor.com, e.g. a commands page, before settling on deeplinks). (1) Re-open the page yourself (curl -sSL; paste `date -u`, status, bytes, sha256); confirm or replace the census quote with the best UNSHAPED 6\u201325-word quote containing the token and command(s)/prompt(s) outside it (Q42; name any stripped bytes). (2) Prove the counter will find it: in your sandbox clone at `3de87aad29e960c95ed35840442f424c48c29729`, run python that imports verifiers/check_command_files.py and calls its `fetch(url)` + `found_on_page(page, quote, token)` on the exact URL and quote, and paste True/False. If False, find a URL on the pinned host where it is True. (3) Draft: the SOURCES row `S094` (one Markdown table line, S079\u2013S088 style, tier A, status `mined`, opened 2026-10-23, recheck 90d, used-by `corpus/knowledge/command-files-round58.md`); the entry row `| Cursor | <token> | S094 | \"<quote>\" |`; the SKILL.md row `| Cursor | <token> (+ scope, e.g. user vs project folder) | <what a file sets: file format, name\u2192command mapping, frontmatter/arguments, each with a second quote+line from the same or another pinned page> | <action for a skill author, \u2265 3 words> |`; the Gate line (URL, access date, located quote \u2264 25 words, line). Also state whether the page marks the form deprecated/legacy and what it points to instead. Deliver the drafts verbatim in your report."
+  },
+  {
+   "name": "Srcopencode",
+   "role": "scribe",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Source row + entry row for opencode (S095). Census lead: `.opencode/commands/` at https://opencode.ai/v2/docs/commands/ :19 (served markdown only with `Accept: text/markdown`; the counter's fetch sends no Accept header, so check what a plain GET returns, or use the pinned raw.githubusercontent.com/anomalyco/opencode docs source at a pinned commit, as S078/S085 did). (1) Re-open the page yourself (curl -sSL; paste `date -u`, status, bytes, sha256); confirm or replace the census quote with the best UNSHAPED 6\u201325-word quote containing the token and command(s)/prompt(s) outside it (Q42; name any stripped bytes). (2) Prove the counter will find it: in your sandbox clone at `3de87aad29e960c95ed35840442f424c48c29729`, run python that imports verifiers/check_command_files.py and calls its `fetch(url)` + `found_on_page(page, quote, token)` on the exact URL and quote, and paste True/False. If False, find a URL on the pinned host where it is True. (3) Draft: the SOURCES row `S095` (one Markdown table line, S079\u2013S088 style, tier A, status `mined`, opened 2026-10-23, recheck 90d, used-by `corpus/knowledge/command-files-round58.md`); the entry row `| opencode | <token> | S095 | \"<quote>\" |`; the SKILL.md row `| opencode | <token> (+ scope, e.g. user vs project folder) | <what a file sets: file format, name\u2192command mapping, frontmatter/arguments, each with a second quote+line from the same or another pinned page> | <action for a skill author, \u2265 3 words> |`; the Gate line (URL, access date, located quote \u2264 25 words, line). Also state whether the page marks the form deprecated/legacy and what it points to instead. Deliver the drafts verbatim in your report."
+  },
+  {
+   "name": "SrcCopilotCLI",
+   "role": "scribe",
+   "axes": [
+    "depth",
+    "adjacency"
+   ],
+   "prompt": "Copilot CLI row (no counted token). Re-open the Copilot CLI command reference the census used (/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-58/w0/CensusCopilotCLI.md; it is base row S028's page \u2014 check `grep -n S028 /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md`) and draft: the SKILL.md row `| Copilot CLI | <no backticked path \u2014 plain words, e.g. 'no own folder; reads Claude Code's .claude/commands/ folder'> | ... | ... |` with the located quote, and a Gate line recording S028 as re-opened (rows touched old\u2192new: recheck only). Run the Q30 sweep for any OWN Copilot CLI command/prompt folder (changelog + docs source tree github.com/github/docs or the docs site + `grep -ril` over /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus) and paste it. Deliver drafts verbatim."
+  },
+  {
+   "name": "ScribeEntry",
+   "role": "scribe",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Draft the frame of /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/knowledge/command-files-round58.md in the shape of /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/knowledge/plugin-manifests-round57.md: front-matter (source list S089\u2013S095 + S028, verified-at 2026-10-23, recheck = the C1 counter command), a lead paragraph (what a custom command / prompt file is, how it differs from a skill: Claude Code merged commands into skills, Codex deprecated custom prompts for skills, VS Code prompt files vs agent skills \u2014 quote each from the census pages), the row rule as applied, the table header `| Client | Command files | Source | Quote |` (rows come from the Src seats; leave the table body for the L1), a `## Limits` section (vendor docs only, no client run; what the counter does and does not read \u2014 Q31). \u2264 60 lines. Deliver verbatim."
+  },
+  {
+   "name": "ScribeSkillSection",
+   "role": "scribe",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Draft the `SKILL.md` section `### Custom command files by client` for insertion after `### Plugin manifests by client` (read /home/vgpnk/Projects/shokunin/kotoba-shokunin/SKILL.md:97-124 for the house style): one 2-line lead (when a reader meets a command/prompt file, which file to open), then the exact table header `| Client | Command files | What a file sets | Action |` and 7 rows (from the W0 census reports; Copilot CLI with no backticked path), then nothing else. \u2264 12 lines total, no line over 600 chars. The Src seats will correct cells; you deliver the section text verbatim and a list of every fact it states with its census-report line."
+  },
+  {
+   "name": "ExecBudgetMove",
+   "role": "executor",
+   "axes": [
+    "depth",
+    "operability"
+   ],
+   "prompt": "SKILL.md is 600 lines at `3de87aad29e960c95ed35840442f424c48c29729` (budget 600, `verifiers/verify_skill_checklist.py` File \u2264 600 lines box). C1 adds \u2264 12 lines. In your sandbox clone find a block of \u2265 12 consecutive SKILL.md lines that can move VERBATIM into an existing knowledge file (precedent: round 57 moved `## Decision tables` to `corpus/knowledge/anatomy-and-compression.md` with a one-line pointer, lesson round-57), leaving a \u2264 1-line pointer. Constraints: never move the gate registry, the checklists or a decision table a counter reads (grep /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers for the heading first). Deliver a patch (`git diff` in the clone) at /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-58/build/ExecBudgetMove.patch, the sha256 of the moved block on both sides, and runs of `timeout 600 python3 -B verifiers/verify_skill_checklist.py` before/after in the clone (paste exit + any line-budget output)."
+  },
+  {
+   "name": "ExecC2Arms",
+   "role": "executor",
+   "axes": [
+    "operability"
+   ],
+   "prompt": "Routed defect R3 repair (no claim rests on it; C2 was withdrawn). In your sandbox clone at `3de87aad29e960c95ed35840442f424c48c29729`, add self-test arms to `verifiers/check_correction_sweep.py` so that the frozen mutants M04\u2013M06 and M08\u2013M11 (table /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-58/sweep-mutants.json) fail the self-test while the five equivalents E1\u2013E5 still pass. Rules: never edit or reorder an existing line (the counter requires every `old` text to occur exactly once); arms must test BEHAVIOUR (sweep() on fixtures: e.g. a block with the stale phrase and a bare `Round-57.` label must be red; `migrate-v1.mdx:999` must be red) plus one guard that fails when a case is dropped (e.g. the expected case count asserted at the end, counted from the cases that ran) \u2014 never a hash, snapshot or grep of the file's own source (control CtlC2Snapshot/CtlC2SourceGrep). Run `timeout 900 python3 -B verifiers/check_sweep_mutants.py --file verifiers/check_correction_sweep.py` (the working-tree file) and `--self-test` of both scripts; paste all. Deliver the patch at /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-58/build/ExecC2Arms.patch. Report also the self-test assertion count before/after."
+  },
+  {
+   "name": "ExecR4PluginMain",
+   "role": "executor",
+   "axes": [
+    "operability"
+   ],
+   "prompt": "Routed defect R4 (round-57 spot-check): `verifiers/check_plugin_manifests.py --self-test` never reaches a successful `main()` path. In your sandbox clone at `3de87aad29e960c95ed35840442f424c48c29729`, add one self-test arm that builds a throwaway git repo satisfying the v2 rule and asserts `main()` exits 0 with the exact printed line, and one broken-conjunct arm exiting 1 (model: the R4 arms in `verifiers/check_command_files.py` self-test, search `successful`), without changing any rule, constant or non-self-test code. Run `--self-test` before/after and `--rev 118d3ac4c6ca9db51d4b05a7dc2ce82d35cc4711 --fetch` after (must still print `found on the live page 4 of 4; new ground 4`, exit 1). Deliver the patch at /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-58/build/ExecR4PluginMain.patch and the old/new sha256."
+  },
+  {
+   "name": "ExecR1Registry",
+   "role": "executor",
+   "axes": [
+    "consistency",
+    "operability"
+   ],
+   "prompt": "Routed defect R1: `SKILL.md` \u00a7 Gate registry lists `verifiers/check_infoless_fences.py` as a `gate` though its round-57 claim was withdrawn (four hollow controls met it). A `probe` row is rejected by `verifiers/check_gate_registry.py` for a script with `1=failed` and a `--self-test` handler (read its rules). In your sandbox clone at `3de87aad29e960c95ed35840442f424c48c29729`, find the smallest change that annotates the row in-cell (no new SKILL.md line) so a reader sees 'claim withdrawn r57; not a claim gate until redesigned and re-controlled', and that keeps `timeout 300 python3 -B verifiers/check_gate_registry.py --rev <sandbox commit>` at exit 0 with 32 of 32. Apply the same annotation to the `verifiers/check_sweep_mutants.py` row (this round's C2 counter, withdrawn before data by plan erratum 1 after control CtlC2SourceGrep met it). Deliver the patch at /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-58/build/ExecR1Registry.patch with the run."
+  },
+  {
+   "name": "ScribeR2Note",
+   "role": "scribe",
+   "axes": [
+    "consistency"
+   ],
+   "prompt": "Routed defect R2: the round-57 note in /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/README.md \u00a7 Frontier cites `S079\u2013S085`, but the entry and `SKILL.md` \u00a7 Plugin manifests by client also rest on S086\u2013S088 (correction rows). Draft an append-only `Round 58 correction` sentence (never edit the old note) naming the full set with each row's role; and the correction-sweep registry row (Q29) for it: id, file, stale regex, declared regex \u2014 check that the stale regex matches only the old note's block and the declared regex is in your sentence. Deliver both verbatim."
+  },
+  {
+   "name": "ScribeR5Paths",
+   "role": "scribe",
+   "axes": [
+    "consistency"
+   ],
+   "prompt": "Routed defect R5: dead lowercase `/home/vgpnk/projects/` paths at SKILL.md (two lines in \u00a7 Sources, around 516-517 at `3de87aad29e960c95ed35840442f424c48c29729`). `grep -n '/home/vgpnk/projects/' /home/vgpnk/Projects/shokunin/kotoba-shokunin/SKILL.md` and also over /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/knowledge /home/vgpnk/Projects/shokunin/kotoba-shokunin/PROVINCE.md /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/README.md; for each hit say whether `/home/vgpnk/Projects/...` exists (`test -e`) and deliver the exact old\u2192new line replacements (current files only; never rewrite lessons or LOG history). Deliver verbatim."
+  },
+  {
+   "name": "ScribeMistakes",
+   "role": "scribe",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Draft `## Mistakes` for /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/lessons/round-58.md, entries M70+ in the shape `class \u00b7 evidence pointer \u00b7 captured-by \u00b7 fix \u00b7 shown able to fail` (read /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/lessons/round-57.md \u00a7 Mistakes for style). Cover: the round-57 routed defects R1 (withdrawn counter kept registered as gate), R4 (self-test with no successful main path), R5 (dead lowercase paths), M68 (correction-sweep arms, now C2) \u2014 each with the round-58 fix pointer named by plan /home/vgpnk/Projects/shokunin/kotoba-shokunin/plans/round-58.md; and ONE mined mistake of your choice from rounds 55\u201357 evidence not yet in any lesson (search /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/lessons and /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-57 seat reports), with its show-able-to-fail command run and pasted. Deliver verbatim."
+  },
+  {
+   "name": "ScribeQuality",
+   "role": "scribe",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Draft new rows for /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/QUALITY.md (next ids after Q45, same column shape): one for a counter whose claim is withdrawn (registry annotation, from R1), one for mutation-kill claims (two-sided: killed mutants AND surviving equivalent rewrites, so a snapshot self-test fails \u2014 from C2's design), one for self-tests that must reach a successful end-to-end main() (R4). Each row's last cell names the lesson entry and a command that shows it able to fail; run each command at `3de87aad29e960c95ed35840442f424c48c29729` in your sandbox and paste the output. Deliver verbatim."
+  },
+  {
+   "name": "ScribeFrontier",
+   "role": "scribe",
+   "axes": [
+    "coverage",
+    "depth"
+   ],
+   "prompt": "Draft the append-only Round 58 note for /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/README.md \u00a7 Frontier (after the round-57 note) and the Core line for /home/vgpnk/Projects/shokunin/kotoba-shokunin/PROVINCE.md \u00a7 Core, for C1 (custom command files by client): what is now held (7 clients' documented command/prompt folders, S089\u2013S095), what stays unheld (no client run; argument substitution behaviour; precedence when a skill and a command share a name). Model on the round-56/57 notes. Never state the counter's result (unmeasured). Deliver verbatim."
+  },
+  {
+   "name": "ConnSiblingCommands",
+   "role": "connector",
+   "axes": [
+    "adjacency"
+   ],
+   "prompt": "Sibling-overlap scan for C1: grep the sibling lanes under /home/vgpnk/Projects/shokunin/*-shokunin (read-only; skip kotoba) for `.claude/commands`, `.gemini/commands`, `.cursor/commands`, `.opencode/command`, `.codex/prompts`, `.github/prompts`, `prompt file`, `custom command`. For each hit name the lane, file:line, the commit (`git -C <lane> rev-parse HEAD`), and whether it agrees with or contradicts the census (W0 reports). Flag any lane whose province owns this ground (read its PROVINCE.md). Report only."
+  },
+  {
+   "name": "ScoutHeldGround",
+   "role": "scout",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Re-derive held ground for C1 at base `f56f6e191762c27c1aa2af11a204db9e2ca4edec`: for each token `.claude/commands`, `.codex/prompts`, `.github/prompts`, `.gemini/commands`, `.cursor/commands`, `.opencode/commands`, `.config/opencode/commands`, plus case variants, run `git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin grep -ilF <t> f56f6e191762c27c1aa2af11a204db9e2ca4edec -- . ':!.ufo'` and paste counts + hit paths; then state the expected G for the census tokens under the counter's held rule (read `held` logic in /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/check_command_files.py). Report only."
+  },
+  {
+   "name": "ScoutCopilotPrompts",
+   "role": "scout",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Attack the census negative for Copilot CLI: search docs.github.com (Copilot CLI pages only) and github.com/github/copilot-cli (README, changelog) for any OWN command or prompt-file folder (`.github/prompts`, `~/.copilot/...`, `prompt files`, `custom commands`, `/command`). Paste URLs, status, sha256, line + quote for each candidate and say whether it is CLI or IDE scope. Report only."
+  },
+  {
+   "name": "CriticCensus",
+   "role": "critic",
+   "axes": [
+    "depth",
+    "calibration"
+   ],
+   "prompt": "Attack the W0 census (/home/vgpnk/Projects/shokunin/kotoba-shokunin/plans/round-58.md \u00a7 Census; seat reports /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-58/w0/Census*.md): for each of the 6 ELIGIBLE rows re-open the page and check the token, the quote and every row-rule conjunct; check whether listing a deprecated or 'older' form (Codex custom prompts, Claude Code `.claude/commands/`) as the client's command folder misleads a reader unless the action cell says so; check the Cursor quote's page (deeplinks) is a fair primary source. Report per row: holds / weak / wrong."
+  },
+  {
+   "name": "ReviewC1Counter",
+   "role": "reviewer",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Review /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/check_command_files.py at `3de87aad29e960c95ed35840442f424c48c29729` against /home/vgpnk/Projects/shokunin/kotoba-shokunin/plans/round-58.md \u00a7 C1 sentence by sentence: list every plan conjunct and the code line implementing it; every code check the plan does not state (Q31); the receipt label and the printed line vs the plan predicate. Run `--self-test` in your sandbox (paste). Report mismatches with path:line."
+  },
+  {
+   "name": "ReviewC2Counter",
+   "role": "reviewer",
+   "axes": [
+    "operability"
+   ],
+   "prompt": "Review /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/check_sweep_mutants.py at `3de87aad29e960c95ed35840442f424c48c29729` against /home/vgpnk/Projects/shokunin/kotoba-shokunin/plans/round-58.md \u00a7 C2 and /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-58/sweep-mutants.json: the embedded table equals the JSON (compute both shas), applies-exactly-once rule, kill/survive mapping, not-applicable counted against, pristine precondition, temp repo env hygiene. Run `--self-test` and `--rev f56f6e191762c27c1aa2af11a204db9e2ca4edec` in your sandbox (paste). Report mismatches with path:line."
+  },
+  {
+   "name": "MutC1Counter",
+   "role": "mutation-tester",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Mutation-probe /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/check_command_files.py at `3de87aad29e960c95ed35840442f424c48c29729` in your sandbox: at most 20 targeted mutants of the NEW grammar/backing code (final-segment word set, \u22652 segments, leading-dot, banned segments, quote boundary, command word outside span, E5, held-ground boundary). For each: killed by `--self-test` or survived (paste the failing assertion or the 0-failure line). Restore exactly after each (sha256 check). Report survivors with what they let through."
+  },
+  {
+   "name": "ExecNoHarmPremeasure",
+   "role": "executor",
+   "axes": [
+    "calibration",
+    "operability"
+   ],
+   "prompt": "Q19 before-values and no-harm baseline at base `f56f6e191762c27c1aa2af11a204db9e2ca4edec` in your sandbox clone (cap each run with `timeout 900`): `check_agent_definitions.py --rev f56f6e191762c27c1aa2af11a204db9e2ca4edec --fetch`, `check_plugin_manifests.py --rev f56f6e191762c27c1aa2af11a204db9e2ca4edec --fetch`, `check_explicit_invocation.py --rev f56f6e191762c27c1aa2af11a204db9e2ca4edec --fetch`, `check_description_thresholds.py --rev f56f6e191762c27c1aa2af11a204db9e2ca4edec`, `check_mcp_instructions.py --rev f56f6e191762c27c1aa2af11a204db9e2ca4edec`, `check_gate_registry.py --rev f56f6e191762c27c1aa2af11a204db9e2ca4edec`, `check_correction_sweep.py --rev f56f6e191762c27c1aa2af11a204db9e2ca4edec`, `check_sources_append_only.py --base 422ffd1082b3f4ae3ebda6060eb1a8d779f6dfd4 --rev f56f6e191762c27c1aa2af11a204db9e2ca4edec`, `verify_skill_checklist.py`, `check_assertion_floors.py`. Paste each command, output summary line and exit into /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-58/build/noharm-base.txt (and your report) with `git rev-parse HEAD` printed first."
+  },
+  {
+   "name": "ReviewPlanChronology",
+   "role": "reviewer",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Check the round-58 chronology from committed bytes: `git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin log --format='%H %cI %s' f56f6e191762c27c1aa2af11a204db9e2ca4edec..master`; the plan draft `8db20702` fixes the C1 row rule before any census fetch time in the W0 reports; the counter rule at `3de87aad29e960c95ed35840442f424c48c29729` equals the draft rule (diff the plan's \u00a7 C1 at both commits); targets appear first at `3de87aad29e960c95ed35840442f424c48c29729`; the control receipts' commit (when present) precedes any C1/C2 content commit. Report each check pass/fail with the evidence."
+  },
+  {
+   "name": "CriticAxisFit",
+   "role": "critic",
+   "axes": [
+    "depth",
+    "operability",
+    "calibration"
+   ],
+   "prompt": "Attack the axis naming of both claims under fleet \u00a79 ('name the axis by the surface it changes'): is C1 (a new SKILL.md decision table with cited sources on a new surface) depth or coverage; is C2 (self-test arms of an existing gate, measured by mutation kills) operability or quality-only work; does either re-score a rule the lane already holds? Read /home/vgpnk/Projects/shokunin/kotoba-shokunin/plans/round-58.md, /home/vgpnk/Projects/shokunin/AXES.md, /home/vgpnk/Projects/shokunin/kotoba-shokunin/SCORECARD.md axes rows. Verdict per claim with reasons."
+  },
+  {
+   "name": "SentinelContexts",
+   "role": "sentinel",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Q44 check on the dispatched records: for /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-58/w0-call.json and controls-call.json run `jq -r .context <file> | grep -c 'Kill only by the PIDs you started'` and the same for the contention cap '4 concurrent processes and 120 s'; paste. Then `git -C /home/vgpnk/Projects/shokunin status --porcelain` (read-only) and list any untracked fleet-root file whose content names kotoba round 58 (a misrooted seat write) \u2014 report paths only, never touch them."
+  },
+  {
+   "name": "ScoutSourcesRules",
+   "role": "scout",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "For each census URL in /home/vgpnk/Projects/shokunin/kotoba-shokunin/plans/round-58.md \u00a7 Census, check against /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md at `f56f6e191762c27c1aa2af11a204db9e2ca4edec`: is the URL (or its normalised form per `url_key` in /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/check_command_files.py) already a base row (re-citation would be rejected)? Is the host in the pinned map for that client? Does the URL path contain changelog/release/news/blog? Would the census W04 duplicate-url warning fire (`/home/vgpnk/Projects/shokunin/scripts/sources-census.sh`)? Table per URL. Report only."
+  },
+  {
+   "name": "ScribeLogDraft",
+   "role": "scribe",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Draft the LOG.md round-58 entry skeleton for /home/vgpnk/Projects/shokunin/kotoba-shokunin/LOG.md in the style of the round-57 entry (`grep -n 'Round 57' /home/vgpnk/Projects/shokunin/kotoba-shokunin/LOG.md`): motivating evidence for C1 (census, held ground, frontier) and C2 (M68, A3MutCorrectionSweep 7 of 11 survivors), routed defects R1\u2013R8 and their dispositions per the plan. Leave measured values as `<measured>` markers for the L1 to fill \u2014 list each marker. Deliver verbatim."
+  },
+  {
+   "name": "CriticC2Redesign",
+   "role": "critic",
+   "axes": [
+    "operability"
+   ],
+   "prompt": "Redesign input (no claim this round): C2's frozen counter /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/check_sweep_mutants.py was met by /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-58/controls/CtlC2SourceGrep.md (self-test greps its own source for the published mutant texts and canonicalises the two regex equivalents). Propose a v2 design that this world and the snapshot/line-count/case-count worlds (/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-58/controls/CtlC2*.md) cannot meet \u2014 e.g. equivalents generated at measurement time from a large family, a source-blind run, an assertion-count floor read from the self-test output \u2014 and for each guard name the cheapest shortcut that still beats it. Design text only, no code in the lane."
+  },
+  {
+   "name": "ExecFloorsSweep",
+   "role": "executor",
+   "axes": [
+    "operability"
+   ],
+   "prompt": "Routed defect R3, second guard: dropped self-test cases (mutants M08\u2013M11) pass because nothing records the correction sweep's assertion count. Read /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/check_assertion_floors.py and /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/floors-registry.json; in your sandbox clone at `3de87aad29e960c95ed35840442f424c48c29729` decide whether `check_correction_sweep.py` is already registered; if not, draft the registry entry (floor = the current observed `0 failure(s) over 18 assertions` count) and run `timeout 900 python3 -B verifiers/check_assertion_floors.py` before/after, plus the same with mutant M08 applied to the sweep (must now fail). Deliver the patch at /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-58/build/ExecFloorsSweep.patch with pasted runs. Note: the R3 arms seat (ExecC2Arms) may raise the count; state the floor as a value the L1 re-reads after integration."
+  }
+ ]
+}
