@@ -291,3 +291,16 @@ every survivor with its instance id and reason. The successor's scope grows to c
 survivors it can (E2c conditions 5/6, E2e colon/negation/commented keys, E2f G7) while the
 r61 sides stay green; anything it cannot close stays a named bound. `ExecAbsorbInstrument`
 and `ExecSuccessor31` are relayed this addendum.
+
+### E1 addendum 2 — commit order corrected (pre-data, F10)
+
+"Controls before data" means every pre-data control receipt lands before the **first**
+matrix/successor data receipt, in this measured order: plan freeze `45a7ecfa` → erratum E1
+`5c924b02` → the before receipts (`absorption-before.txt`, `frozen-repairs-dishonest.txt`,
+`seat-counts-r61.txt`) and the seat-count gate `9f03dcd7` → wave evidence → the instrument
+and its hollow/label/presence controls (same commit) → the matrix and successor data
+receipts. The critic's F10 ambiguity is resolved in favour of the stricter reading; no
+data run precedes its controls. F3/F5's stronger controls are implemented inside the
+instruments' self-tests: a content-variant arm (a renamed/re-valued instance whose verdict
+flips — a label table fails), a constants arm, and the paired tree-population arm
+(`build_paths` 29 vs 30 with identical repair blobs — a frozen-score remap fails).
