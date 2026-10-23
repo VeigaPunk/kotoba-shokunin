@@ -36,6 +36,14 @@ Output: `routed repairs verified K of 6`.  Exit 0 iff K == 6, 1 otherwise,
 judge whether a repair text is substantively honest — reviewers remain
 responsible for that (Q31).
 
+Self-test: 12 fixture arms (round-61 pre-data hardening per wave seat MutC2:
+the ra-without-count, rc-without-c1-pointer and ancestry-without-merge-base
+arms kill single-substring mutants m1/m2/m5; the arm-count guard kills the
+arm-dropping mutant m7).  Declared residual (MutC2 §4): the guard lives inside
+`self_test()`, so a two-point mutant deleting guard and arm together survives
+`--self-test`; the do-nothing control is exercised independently by the
+committed base control receipt.  The guard is a discriminator, not tamper-proof.
+
 Usage:
   python3 -B verifiers/check_routed_repairs.py [--rev <rev>]
   python3 -B verifiers/check_routed_repairs.py --self-test
@@ -154,9 +162,11 @@ def main(argv: list[str] | None = None) -> int:
 def self_test() -> int:
     """Fixture arms: each repair absent -> count drops; base world -> 0 of 6."""
     failures = 0
+    arms = 0
 
     def expect(name: str, blobs: dict[str, str | None], want: int) -> None:
-        nonlocal failures
+        nonlocal failures, arms
+        arms += 1
         got, _ = check_repairs(blobs)
         status = "ok" if got == want else "FAIL"
         if got != want:
@@ -206,6 +216,27 @@ def self_test() -> int:
         "erratum: base measurement is receipts/freeze2-selftest.txt not C1-measure.txt\n"
     )
     expect("rb-missing", {**world, "LOG.md": log_without_rb}, 5)
+
+    log_without_ra_count = (
+        "round-60 build reports claimed 31 committed 29 "
+        "(`ls .ufo/waves/round-60/build | wc -l`)\n"
+        "landed scope names plans/round-60.md and considerthese/2026-10-23.md\n"
+        "erratum: base measurement is receipts/freeze2-selftest.txt not C1-measure.txt\n"
+    )
+    expect("ra-without-count", {**world, "LOG.md": log_without_ra_count}, 5)
+
+    log_without_rc_pointer = full_log.replace(" not C1-measure.txt", "")
+    expect("rc-without-c1-pointer", {**world, "LOG.md": log_without_rc_pointer}, 5)
+
+    expect(
+        "ancestry-without-merge-base",
+        {**world, ".ufo/waves/round-61/receipts/controls-ancestry.txt": "exit 0\n"},
+        5,
+    )
+
+    if arms != 12:
+        failures += 1
+        print(f"self-test arm-count: {arms} (want 12) FAIL")
 
     print(f"self-test: {failures} failure(s)")
     return 0 if failures == 0 else 1
