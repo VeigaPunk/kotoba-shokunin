@@ -104,3 +104,52 @@ commit except by an erratum committed before any seat scores claim content.
   round; (4) `check_assertion_floors.py` nested-timeout exit 2 under load; (5) the two diagnostic defects (refusing-git
   revision message; floors preflight returncode); (6) the S065 census W04 reported and its scope reasoned; (7) the
   report's cross-domain evidence item.
+
+## Erratum 1 (append-only; on the pre-freeze control call, before any claim content exists or is scored)
+
+Control call: eight seats (`.ufo/waves/round-56/controls/Ctl*.md` and `.txt`) scored the counters frozen at
+`0f58a469` before any data seat was dispatched.
+
+- **C2 is withdrawn before data.** Two controls met the frozen C2 predicate without implementing any box:
+  `CtlC2Heuristics` (surface heuristics keyed on digits, repeated lines and words; sandbox `40c2b5eb`,
+  `5 of 9`, exit 0 on three seeds; a smaller combination `3 of 9`) and `CtlC2GeneratorKeyed` (a delegate that
+  never opens a case file and answers from the counter's fixed PASS/FAIL case order, which leaks through the
+  shared per-box work directory; sandbox `41c2f484`, `5 of 9`, exit 0 on 10 of 10 seeds). Under the phase-4
+  rule the counter is wrong. A sound redesign (shuffled case order, isolated per-case directories and HOME,
+  hard negatives for each heuristic class) cannot be built, re-controlled and frozen inside this round's
+  window, and an exploratory claim needs a named non-author reviewer the round does not have. C2 is
+  therefore not a claim of round 56; `verifiers/check_agentdef_boxes.py` stays committed as the broken v1 with
+  these receipts, and no delegate or map change for agentdef boxes is made this round (building one now would
+  pre-score a later round's claim, Q28). This is a gate reject, not a miss.
+- **C1 counter v1.1 (strictly stricter; `verifiers/check_agent_definitions.py`, this commit).** No control met
+  the v1 C1 predicate (60 receipt lines `NOT MET`; `CtlC1DoNothingJunk`, `CtlC1Fabricated`, `CtlC1HeldVariant`,
+  `CtlC1KeyedLabels`; `CtlC1RealNoForm` pending at this commit). Three partial weaknesses are closed, each change
+  only adding a way to fail: (a) the URL key lower-cases and percent-decodes the path, drops `www.` and the
+  scheme, so the base row S026 cannot be re-cited through the path-case alias `/Sub-Agents` that served it as a
+  new row (`CtlC1HeldVariant`, F=1); (b) the live token must also end at a path-segment boundary, so
+  `.opencode/agent` is not found inside `.opencode/agents/` (`CtlC1HeldVariant`); (c) the page reached after
+  redirects must still be on the client's pinned hosts (`CtlC1KeyedLabels`). Self-test 0 failures over 90
+  assertions; base `--fetch` `0 of 0; new ground 0`, exit 1. The C1 predicate sentence and receipt label are
+  unchanged. The round therefore has one claim, C1.
+- **C1 counter v1.2 (erratum 2, same commit, before any C1 content).** `CtlC1RealNoForm` then met v1.1: real
+  issue-tracker text on pinned hosts (github.com issues of each client's own repo) that names other clients' or
+  proposed directories (`.github/agents` for Claude Code, `.cursor/agents` for opencode, `.agents/agents` for VS
+  Code and Copilot CLI) printed `found on the live page 5 of 5; new ground 2`, exit 0 (sandbox `7639deba`). The
+  counter checked host and text presence, not whose directory it is or what kind of page holds it. v1.2 adds
+  three conditions, each only a way to fail: the SOURCES row `kind` must be `docs`; the URL must not be an
+  issue, pull request, discussion or commit page; and the normalised location must sit under the client's own
+  configuration directory (`OWN_ROOTS`: Claude Code `.claude`; Codex `.codex`; VS Code `.github` or `.vscode`;
+  Copilot CLI `.github` or `.copilot`; Gemini CLI `.gemini`; Cursor `.cursor`; opencode `.opencode` or
+  `.config/opencode`) — a compatibility path such as Cursor reading `.claude/agents` is Claude Code's form, not
+  Cursor's. The roots name each vendor's configuration directory, not an answer: which agent path, if any,
+  each client documents under it is what the sources must show. Receipt `controls/C1-v12-rescore.txt`: both
+  `CtlC1RealNoForm` worlds and the freeze commit print `0 of 5` / `0 of 0`, exit 1, under v1.2 (self-test 0
+  failures over 98 assertions). The C1 predicate sentence and receipt label are unchanged; the two control
+  seats that found the v1 and v1.1 weaknesses re-attack v1.2 before the build wave (receipts in `controls/`).
+- **C1 counter v1.3 (erratum 3, same commit, before any C1 content).** `CtlC1HeldVariant` re-attacked v1.2 with
+  35 worlds, all `NOT MET` (G=0; `controls/CtlC1HeldVariant-v12.md`), and found one F-inflation route: a base
+  page re-cited through repeated slashes or a GitHub blob URL that redirects to a base raw URL (S062; sandbox
+  `9af7ea81`, F=1, G=0). v1.3 collapses repeated slashes in the URL key and treats a page whose post-redirect
+  URL is a base SOURCES URL as not found. Receipt `controls/C1-v13-rescore.txt` (`9af7ea81` → `0 of 1`, exit 1).
+  Self-test 0 failures over 99 assertions. This is the C1 counter the claim is judged on; its sha256 is in the
+  erratum commit's receipt.

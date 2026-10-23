@@ -367,18 +367,29 @@ def urls_of(cell: str) -> list[str]:
 
 def url_key(url: str | None) -> str:
     """Frozen URL normalisation: lowercase scheme+host, drop trailing `/`, drop
-    trailing `.md`, drop `#fragment` and `?query`."""
+    trailing `.md`, drop `#fragment` and `?query`.
+
+    ERRATUM 1 (round 56, before any C1 content; control CtlC1HeldVariant): the
+    base row S026 was re-citable through a path-case alias (`/Sub-Agents`) that
+    serves the same bytes.  The key now also percent-decodes and lower-cases the
+    path, drops a leading `www.` from the host and ignores the scheme.  Every
+    change only makes more URLs equal a base URL, so it only adds a way to fail."""
     if not url:
         return ""
     u = urllib.parse.urlsplit(url)
-    scheme = (u.scheme or "").lower()
     host = (u.hostname or "").lower()
-    path = u.path or ""
-    if path.endswith("/"):
+    if host.startswith("www."):
+        host = host[4:]
+    path = urllib.parse.unquote(u.path or "").lower()
+    # ERRATUM 3 (control CtlC1HeldVariant on v1.2): repeated slashes collapse.
+    path = re.sub(r"/{2,}", "/", path)
+    while path.endswith("/"):
         path = path[:-1]
     if path.endswith(".md"):
         path = path[:-3]
-    return "%s://%s%s" % (scheme, host, path)
+    while path.endswith("/"):
+        path = path[:-1]
+    return "//%s%s" % (host, path)
 
 
 def base_url_keys(base_sources: str) -> set[str]:
@@ -390,6 +401,37 @@ def base_url_keys(base_sources: str) -> set[str]:
                 for u in urls_of(c[2]):
                     keys.add(url_key(u))
     return keys
+
+# ERRATUM 2 (round 56, before any C1 content; control CtlC1RealNoForm met v1.1
+# with real issue-tracker text that put other clients' or proposed directories
+# in each client's row).  A counted location must sit under the client's OWN
+# configuration directory (a compatibility path such as Cursor reading
+# `.claude/agents` belongs to Claude Code, not Cursor), and the cited page must
+# be documentation, not an issue, pull request, discussion or commit page.
+# The roots name each vendor's own config directory; they only add failures.
+OWN_ROOTS: dict[str, tuple[str, ...]] = {
+    "Claude Code": (".claude",),
+    "Codex": (".codex",),
+    "VS Code": (".github", ".vscode"),
+    "Copilot CLI": (".github", ".copilot"),
+    "Gemini CLI": (".gemini",),
+    "Cursor": (".cursor",),
+    "opencode": (".opencode", ".config/opencode"),
+}
+TRACKER_SEGMENTS = {"issues", "issue", "pull", "pulls", "discussions", "commit",
+                    "commits", "compare"}
+
+
+def owned_by(client: str, norm_tok: str) -> bool:
+    """Is the normalised location under one of the client's own roots?"""
+    return any(norm_tok.startswith(root + "/") for root in OWN_ROOTS.get(client, ()))
+
+
+def url_is_tracker(url: str) -> bool:
+    """An issue, PR, discussion or commit URL (any host)."""
+    path = urllib.parse.unquote(urllib.parse.urlsplit(url).path or "").lower()
+    return any(seg in TRACKER_SEGMENTS for seg in path.split("/") if seg)
+
 
 
 def host_ok(url: str, pins: tuple[str, ...]) -> bool:
@@ -539,6 +581,10 @@ def entry_row_verdict(er: list[str], client: str, token: str | None, norm_tok: s
         if not s:
             why.append("%s absent or malformed in SOURCES.md" % sid)
         else:
+            if s[2] != "docs":
+                # ERRATUM 2 (control CtlC1RealNoForm): the row must be the
+                # client's documentation, not an issue, PR or discussion.
+                why.append("%s kind %r (need docs)" % (sid, s[2]))
             if s[3] != "A":
                 why.append("%s tier %r" % (sid, s[3]))
             if s[7] != "mined":
@@ -554,6 +600,9 @@ def entry_row_verdict(er: list[str], client: str, token: str | None, norm_tok: s
                     why.append("%s URL %r is already a base SOURCES URL" % (sid, url))
                 if not host_ok(url, HOSTS[client]):
                     why.append("%s URL %r is not on a pinned host" % (sid, url))
+                if url_is_tracker(url):
+                    why.append("%s URL %r is an issue/PR/discussion/commit page, not documentation"
+                               % (sid, url))
     return why, sid, url, quote
 
 
@@ -587,6 +636,9 @@ def judge(skill: str, entry: str, sources: str, lesson: str,
             else:
                 norm_tok = normalise(token)
                 in_k = True
+                if not owned_by(client, norm_tok):
+                    why.append("SKILL.md location %r is not under %s's own config directory %s"
+                               % (token, client, "/".join(OWN_ROOTS[client])))
             words = re.sub(r"[`*]", "", sr[3]).split()
             if len(words) < 3:
                 why.append("SKILL.md action cell holds %d words (need >= 3)" % len(words))
@@ -656,7 +708,12 @@ def boundary_ok(text: str, idx: int) -> bool:
 
 
 def token_at_boundary(text: str, token: str) -> bool:
-    """Does `token` occur in `text` at a boundary?  The text is normalised."""
+    """Does `token` occur in `text` at a boundary?  The text is normalised.
+
+    ERRATUM 1 (round 56, before any C1 content; control CtlC1HeldVariant): the
+    occurrence must also END at a path-segment boundary — the next character is
+    not a letter, digit, `_` or `-` — so `.opencode/agent` is not found inside
+    `.opencode/agents/`.  This only adds a way to fail."""
     if not token:
         return False
     t = token.lower()
@@ -665,7 +722,9 @@ def token_at_boundary(text: str, token: str) -> bool:
         i = text.find(t, start)
         if i < 0:
             return False
-        if boundary_ok(text, i):
+        j = i + len(t)
+        right_ok = j >= len(text) or not (text[j].isalnum() or text[j] in "_-")
+        if boundary_ok(text, i) and right_ok:
             return True
         start = i + 1
 
@@ -688,15 +747,29 @@ def token_forms(token: str | None) -> list[str]:
     return forms
 
 
-def fetch(url: str) -> str:
-    """Plain HTTP GET, 30 s timeout, at most 5 MiB, one retry."""
+def fetch(url: str, pins: tuple[str, ...] | None = None,
+          base_keys: set[str] | None = None) -> str:
+    """Plain HTTP GET, 30 s timeout, at most 5 MiB, one retry.
+
+    ERRATUM 3 (control CtlC1HeldVariant on v1.2): when `base_keys` is given,
+    a page whose URL after redirects is a base SOURCES URL is not found, so a
+    base row cannot be re-cited through a redirecting alias.  Only adds a failure.
+
+    ERRATUM 1 (round 56, before any C1 content; control CtlC1KeyedLabels): when
+    `pins` is given, the URL reached after redirects must still be on the
+    client's pinned hosts, else the page is not found.  Only adds a failure."""
     last: Exception | None = None
     for _ in range(2):
         try:
             req = urllib.request.Request(url, headers={
                 "User-Agent": "kotoba-shokunin-counter/56"})
             with urllib.request.urlopen(req, timeout=FETCH_TIMEOUT) as r:
+                final = r.geturl()
                 data = r.read(MAX_BYTES + 1)
+            if pins is not None and not host_ok(final, pins):
+                raise OSError("redirected off the pinned hosts to %s" % final)
+            if base_keys is not None and url_key(final) in base_keys:
+                raise OSError("reached a base SOURCES URL %s" % final)
             if len(data) > MAX_BYTES:
                 raise OSError("page exceeds 5 MiB")
             return data.decode("utf-8", errors="replace")
@@ -783,6 +856,10 @@ def self_test() -> int:
           token_at_boundary("[.ai/docs/agents]", ".ai/docs/agents"), True)
     check("boundary: after a comma is rejected",
           token_at_boundary(",.ai/docs/agents", ".ai/docs/agents"), False)
+    check("erratum 1: a singular token inside the plural is not found",
+          token_at_boundary("put files in .opencode/agents/ now", ".opencode/agent"), False)
+    check("erratum 1: the token followed by a slash is found",
+          token_at_boundary("put files in .opencode/agent/x.md now", ".opencode/agent"), True)
 
     # -- URL normalisation ------------------------------------------------
     check("url_key drops a trailing .md",
@@ -790,16 +867,41 @@ def self_test() -> int:
           url_key("https://code.claude.com/docs/en/sub-agents"))
     check("url_key drops a trailing slash",
           url_key("https://code.claude.com/docs/en/"),
-          "https://code.claude.com/docs/en")
+          "//code.claude.com/docs/en")
     check("url_key drops a fragment",
           url_key("https://code.claude.com/docs/en#x"),
-          "https://code.claude.com/docs/en")
+          "//code.claude.com/docs/en")
     check("url_key drops a query",
           url_key("https://code.claude.com/docs/en?a=1"),
-          "https://code.claude.com/docs/en")
-    check("url_key lower-cases scheme and host",
-          url_key("HTTPS://Code.Claude.com/Docs"), "https://code.claude.com/Docs")
+          "//code.claude.com/docs/en")
+    check("url_key lower-cases scheme, host and (erratum 1) path",
+          url_key("HTTPS://Code.Claude.com/Docs"), "//code.claude.com/docs")
+    check("erratum 1: a path-case alias of a base URL is the base URL",
+          url_key("https://code.claude.com/docs/en/Sub-Agents"),
+          url_key("https://code.claude.com/docs/en/sub-agents"))
+    check("erratum 1: www., scheme and percent-encoding do not make a new URL",
+          url_key("http://www.code.claude.com/docs/en/sub%2Dagents.md/"),
+          url_key("https://code.claude.com/docs/en/sub-agents"))
     check("url_key of nothing is empty", url_key(None), "")
+    check("erratum 3: repeated slashes do not make a new URL",
+          url_key("https://code.claude.com//docs///en/sub-agents"),
+          url_key("https://code.claude.com/docs/en/sub-agents"))
+    check("erratum 2: Cursor's own .cursor/agents is owned",
+          owned_by("Cursor", normalise("~/.cursor/agents/")), True)
+    check("erratum 2: .claude/agents quoted for Cursor is not Cursor's own",
+          owned_by("Cursor", normalise(".claude/agents/")), False)
+    check("erratum 2: .github/agents is not Claude Code's own",
+          owned_by("Claude Code", normalise(".github/agents/")), False)
+    check("erratum 2: .agents/agents is nobody's own (Copilot CLI)",
+          owned_by("Copilot CLI", normalise(".agents/agents")), False)
+    check("erratum 2: ~/.config/opencode/agents is opencode's own",
+          owned_by("opencode", normalise("~/.config/opencode/agents/")), True)
+    check("erratum 2: a .claudex root is not .claude",
+          owned_by("Claude Code", normalise(".claudex/agents")), False)
+    check("erratum 2: an issue URL is a tracker page",
+          url_is_tracker("https://github.com/anthropics/claude-code/issues/82902"), True)
+    check("erratum 2: a docs page is not a tracker page",
+          url_is_tracker("https://cursor.com/docs/subagents.md"), False)
 
     # -- quote word bounds ------------------------------------------------
     check("quote word count: three words pass",
@@ -1011,7 +1113,9 @@ def main(argv: list[str] | None = None) -> int:
     if args.fetch:
         for r in backed:
             try:
-                r["found"] = found_on_page(fetch(r["url"]), r["quote"], r["token"])
+                r["found"] = found_on_page(fetch(r["url"], HOSTS[r["client"]],
+                                                 base_url_keys(base_sources)),
+                                           r["quote"], r["token"])
             except Exception as e:  # network or decode failure: not found
                 r["found"] = False
                 r["fetch_error"] = str(e)
