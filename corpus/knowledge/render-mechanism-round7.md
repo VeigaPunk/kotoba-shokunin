@@ -92,3 +92,27 @@ Embedded unminified source recovered via `strings -n 6 ~/.local/bin/omp`
 - **Verify by reproduction, not logs**: re-run H7s (recipe above) on a new
   description to see the actual router view; the sqlite cache table lists
   which skills escaped truncation.
+
+## Moved from SKILL.md § Frontmatter craft (round 56)
+
+Verbatim from `SKILL.md` § Frontmatter craft at `b0b7140b` lines 157–175 (round 56 line-budget move; sha256 of the moved block below equals the block at base).
+
+`description` is an index, not a summary. On **omp** the router ingests it
+through a **cache-or-truncate** render (mechanism proven from the omp binary,
+`corpus/knowledge/render-mechanism-round7.md`): a
+`sha256(prompt ‖ 0x00 ‖ name ‖ 0x00 ‖ loader-held description)` hit in
+`~/.omp/agent/skill-descriptions.db` renders that cache line; a miss keeps at
+most 99 chars. The cache key includes the description, so **editing a
+`description` invalidates its row and reverts the skill to the truncator** until
+the compressor rewrites it. On **opencode** the full description reaches the
+model untruncated; trigger strings and anti-triggers are mandatory on both
+because the offer gate and the model's own matching both read the description.
+
+Twelve rules with the measurements behind each — capability clause first, quote
+literal *and* implicit-need triggers, co-locate anti-triggers (body-only
+exclusions cannot prevent activation), name the overlapping sibling and its
+arbitration rule, the 99-char cliff and its 55–96 effective keep, the ≥40-char
+first-sentence branch that discards sentence 2+, the CJK `[.!?]`-only sentence
+regex, `metadata.requires` over prose, render-by-reproduction, invocation-shaped
+triggers for domain-term names, and the discovery roots:
+`corpus/knowledge/frontmatter-trigger-surface.md` § Craft rules.

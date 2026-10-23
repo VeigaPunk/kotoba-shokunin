@@ -94,6 +94,20 @@ revision 2026-07-28, S040); the spec makes it optional and leaves placement to t
 | about one tool's inputs | that tool's `description` | the spec says it "should not duplicate information already in tool descriptions" (S040); Claude Code, VS Code (S034), Codex, Gemini CLI (S036), opencode (S041) and Copilot CLI (S042) put `instructions` in front of the model already |
 | needed on every client | a skill or always-on file too | the field is optional (S032), opencode drops a server's text when permissions deny all its tools (S041), and Copilot CLI needs a flag to include it from all servers (S042) |
 
+### Agent-definition files by client
+
+Where each client's own documentation puts its agent (subagent, custom agent) files, and what a file sets. Formats differ (Codex is TOML; the rest are Markdown with YAML frontmatter), so § Agent-definition fidelity checklist applies to opencode files only. Basis: `corpus/knowledge/agent-definition-files-round56.md` (S072–S078, S026), checked by `verifiers/check_agent_definitions.py`.
+
+| Client | Definition location | What the file sets | Action |
+|---|---|---|---|
+| Claude Code | `.claude/agents/` (user `~/.claude/agents/`) | Markdown with YAML frontmatter, body is the system prompt; `name` and `description` required; `tools` allowlist; optional `model` (schema: S026) | Write project subagents here and check keys against Claude Code's schema, not the opencode checklist |
+| Codex | `.codex/agents/` (user `~/.codex/agents/`) | Standalone TOML, not Markdown; `name`, `description` and `developer_instructions` required; `model` keys; `features.*` switches turn capabilities off | Author TOML files; never port Markdown frontmatter to Codex |
+| VS Code | `.github/agents` (user `~/.copilot/agents`; also reads `.claude/agents` in Claude format) | `.agent.md` Markdown with optional YAML frontmatter: `name`, `description`, `tools` | Put shared agents in the workspace folder and list their tools |
+| Copilot CLI | `.github/agents/` (user `~/.copilot/agents/`) | Markdown profiles (`.agent.md`; `.md` also recognized); YAML frontmatter with required `description`, optional `name`; `tools` limits tools; the personal profile wins on the same ID | Keep repository profiles in the project folder and check which copy wins |
+| Gemini CLI | `.gemini/agents/*.md` (user `~/.gemini/agents/*.md`) | Markdown with YAML frontmatter; `name` and `description` required; optional `tools` and `model`; subagents are on by default (`enableAgents`) | Commit team agents here and keep personal ones in the home folder |
+| Cursor | `.cursor/agents/` (user `~/.cursor/agents/`; also reads `.claude/agents/` and `.codex/agents/`) | Markdown with YAML frontmatter; `name` (defaults to the file name), `description`, `model`, `readonly`, `is_background`, all optional | Review Cursor's own schema; project files win name conflicts |
+| opencode | `.opencode/agents` (user `~/.config/opencode/agents/`; singular `agent/` still loads) | Markdown frontmatter takes agent-config fields, body is the system prompt, no key required; `permissions` gate tools (V2 drops legacy `tools`) | Apply the agent-definition checklist below, which is written for opencode |
+
 ## Router model — which harness, which gate
 
 Two harnesses consume skills here, and neither shares the other's catalogue
@@ -154,25 +168,7 @@ arm and a non-digit round folder have no fixture yet). Limits and ceilings: `cor
 
 ## Frontmatter craft — the trigger surface
 
-`description` is an index, not a summary. On **omp** the router ingests it
-through a **cache-or-truncate** render (mechanism proven from the omp binary,
-`corpus/knowledge/render-mechanism-round7.md`): a
-`sha256(prompt ‖ 0x00 ‖ name ‖ 0x00 ‖ loader-held description)` hit in
-`~/.omp/agent/skill-descriptions.db` renders that cache line; a miss keeps at
-most 99 chars. The cache key includes the description, so **editing a
-`description` invalidates its row and reverts the skill to the truncator** until
-the compressor rewrites it. On **opencode** the full description reaches the
-model untruncated; trigger strings and anti-triggers are mandatory on both
-because the offer gate and the model's own matching both read the description.
-
-Twelve rules with the measurements behind each — capability clause first, quote
-literal *and* implicit-need triggers, co-locate anti-triggers (body-only
-exclusions cannot prevent activation), name the overlapping sibling and its
-arbitration rule, the 99-char cliff and its 55–96 effective keep, the ≥40-char
-first-sentence branch that discards sentence 2+, the CJK `[.!?]`-only sentence
-regex, `metadata.requires` over prose, render-by-reproduction, invocation-shaped
-triggers for domain-term names, and the discovery roots:
-`corpus/knowledge/frontmatter-trigger-surface.md` § Craft rules.
+Render mechanism and the twelve trigger-craft rules: `corpus/knowledge/render-mechanism-round7.md` § Moved from SKILL.md § Frontmatter craft (round 56), verbatim; rules in `corpus/knowledge/frontmatter-trigger-surface.md` § Craft rules.
 
 Portability floor (spec + vendor + YAML, `corpus/SOURCES.md` S018, S002, S019, S008): `name` ≤64 lowercase letters, digits and single hyphens, equal to the directory (the spec's charset wording is ambiguous on Unicode); `description` ≤1024 chars, no XML tags (Anthropic rule), quoted when it holds `: ` or ` #` (illegal in a YAML plain scalar — lenient loaders hide it, strict ones reject). `verifiers/verify_skill_checklist.py` `trigger.no_xml_tag` approximates the XML-tag rule lexically on the unparsed `name`/`description` text; Anthropic's packager (S012) refuses any `<`/`>` in the parsed value, so the two disagree in both directions. Which authority imposes which rule, with run counterexamples: `corpus/knowledge/frontmatter-rule-authorities-round48.md`.
 
@@ -450,6 +446,8 @@ reads as could-not-evaluate. `python3 -B verifiers/check_gate_registry.py --rev 
 | Name | Kind | Entry command | Verdict map | Self-test | Pinned values | Write scope | Owner |
 |---|---|---|---|---|---|---|---|
 | `verifiers/box_proof_case_deletion.py` | gate | `python3 -B verifiers/box_proof_case_deletion.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | `verifiers/checklist-baseline.json`, `verifiers/fixtures/dispatch-prompts/manifest.json` | temp exports under `$TMPDIR` | kotoba |
+| `verifiers/check_agent_definitions.py` | gate | `python3 -B verifiers/check_agent_definitions.py --rev <rev> --fetch` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file | none; `--fetch` reads the network | kotoba |
+| `verifiers/check_agentdef_boxes.py` | gate | `python3 -B verifiers/check_agentdef_boxes.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file | temp archives and per-case dirs under `$TMPDIR` (removed) | kotoba |
 | `verifiers/check_alwayson_boxes.py` | gate | `python3 -B verifiers/check_alwayson_boxes.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file | temp archives and self-test repos (removed) | kotoba |
 | `verifiers/check_assertion_floors.py` | gate | `python3 -B verifiers/check_assertion_floors.py` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | `verifiers/floors-registry.json` | temp fixtures under `$TMPDIR`; removable temp dirs under `verifiers/fixtures/compare-harness-independent` (nested self-test) | kotoba |
 | `verifiers/check_callee_rename.py` | gate | `python3 -B verifiers/check_callee_rename.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file | temp dirs under `$TMPDIR` (removed) | kotoba |
