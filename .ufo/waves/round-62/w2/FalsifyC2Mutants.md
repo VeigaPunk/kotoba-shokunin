@@ -23,13 +23,23 @@ $ git show 3f911504ce76d9ca186f297d6d4a9cd8ed77508a:verifiers/check_routed_repai
 95ade9be1ed1930266bce4b98c8c593fff1feba89e2cf25763f0aa83f206cb88  -
 ```
 
-The lane advanced from `e6da78b` to `3f91150` (wave-2 dispatch commit) while this seat ran;
-the two verifier blobs are identical at both revisions. **After** the mutation runs the
-lane *working tree* copy of `check_routed_repairs_v2.py` changed to an uncommitted draft
-(801 lines, sha256 `604ae4fb41779874eb420e8a904cb2ebdd953fa41dfc5f270ece53562b5c414d`,
-`git diff --stat` = `1 file changed, 157 insertions(+), 6 deletions(-)` vs `HEAD`). All
-verdicts below are for the assigned `de5e3471` bytes; §5 is a clearly-labelled observation
-on the uncommitted draft, not a verdict on landed bytes.
+The lane advanced from `e6da78b` to `f60590a` while this seat ran: `3f91150` (wave-2
+dispatch; verifier blobs still `de5e3471`/`95ade9be`) → `e424f2a` (wave-2 falsification;
+commits the hardened v2 `604ae4fb`, `+157/−6`) → `91fecae`/`f60590a` (late seat writes). At
+HEAD `f60590a`, measured:
+
+```
+$ git show HEAD:verifiers/check_routed_repairs_v2.py | sha256sum
+604ae4fb41779874eb420e8a904cb2ebdd953fa41dfc5f270ece53562b5c414d  -
+$ git show HEAD:verifiers/check_routed_repairs.py | sha256sum
+95ade9be1ed1930266bce4b98c8c593fff1feba89e2cf25763f0aa83f206cb88  -
+```
+
+§3/§4 give the verdicts for the **assigned** `de5e3471` bytes (the sha the plan and the C2
+receipt name). §3.8 and §4b re-run the **identical** mutations on the landed `604ae4fb`
+bytes (its six guard functions are unchanged — the landed diff adds self-test arms only:
+CLI-dependency, invariance/transcript/lookup, `score_with` constants); those are the
+verdicts for the file at tip.
 
 Scratch copies (lane read-only):
 
@@ -310,6 +320,58 @@ denial sub-check is load-bearing for honest trees, not a guard disable.
 **Verdict:** D3 is killed only by a guard outside the plan's six labels; D3 is
 over-determined by two redundant sub-checks, so no single-site sub-mutation isolates it.
 
+### 3.8 Re-run on the landed successor `604ae4fb`
+
+The six guard functions are unchanged between `de5e3471` and `604ae4fb` (the landed diff
+adds self-test arms only). The identical disables were re-applied to copies of the landed
+bytes and run through the same detectors:
+
+```
+$ python3 -B nbase/verifiers/check_routed_repairs_v2.py --self-test
+CLI scorer-dependency: zero-scorer tip exit=1 score=0; six-scorer base exit=0 score=6
+invariance controls: real passes; call-order transcript rejected=True; fingerprint lookup rejected=True (8 memorized inputs)
+successor: dishonest rejected 6 of 6; honest passed 2 of 2; base 0 of 6; tip 6 of 6
+exit=0
+```
+
+| site | mutant sha256 | D flipped | self-test exit |
+|---|---|---|---|
+| G-a derived count | `4a10477fc02c` | D1 → 6 of 6 accepted | 1 |
+| G-b negation | `30015cf1bc53` | D2 → 6 of 6 accepted | 1 |
+| G-c window/scope/cue, 4 sites | `06374e646fed` / `799d7d0bd1d4` / `b356ded1d1e6` / `db99b134b423` | none | 0 |
+| G-d census body | `c6ae622f98eb` | D4 → 6 of 6 accepted | 1 |
+| G-e exact ids | `8346fa7a9709` | D5 → 6 of 6 accepted | 1 |
+| G-f owned exit | `87cfe5f27048` | D6 → 6 of 6 accepted | 1 |
+| R-c direction guard (unnamed) | `5a6ee91e734c` | D3 → 6 of 6 accepted | 1 (D3 + H1) |
+| public CLI → frozen `check_repairs` | `d716b1c15c69` | — | 1 (§4b) |
+
+Failure lines for the killed mutants (same shape as §3):
+
+```
+self-test: D1: successor scored 6, expected <6          (nGa)
+self-test: D2: successor scored 6, expected <6          (nGb)
+self-test: D4: successor scored 6, expected <6          (nGd)
+self-test: D5: successor scored 6, expected <6          (nGe)
+self-test: D6: successor scored 6, expected <6          (nGf)
+self-test: D3: successor scored 6, expected <6          (nGdir4)
+self-test: H1: successor scored 5, expected 6           (nGdir4)
+```
+
+The four window/scope/cue mutants still exit 0 with no `self-test:` failure lines, and the
+constructed flippers still flip (probe2 on the landed bytes):
+
+```
+$ python3 -B probe2.py /tmp/r62c2/nbase
+C7 ancient-section R-a: successor 5 of 6; C8 distant R-b names: 5 of 6;
+C9 three-line R-c pair: 5 of 6; C10 inverted+split R-c: 5 of 6; C11 no landed-scope cue: 5 of 6
+$ probe2.py nGc3 → C7 6 of 6 (only);  nGc2 → C8 6 of 6 (only);
+  nGc → C10 6 of 6 (only);           nGc4 → C11 6 of 6 (only)
+```
+
+**Verdicts on the landed `604ae4fb` bytes:** G-a/G-b/G-d/G-e/G-f killed (same D tree each),
+direction guard killed (D3, with H1 collateral), **G-c window/scope/cue still survived at all
+four sites**. The landed hardening does not close the window coverage gap.
+
 ## 4. Split-evaluator hollow — the public CLI wired to the frozen counter
 
 Edit in `main()` (line 642): `score, why = check_repairs(blobs, tree_names, census_regular)`
@@ -377,7 +439,22 @@ fail controls" line is literal-constant vs measured-value comparisons; it detect
 CLI that no longer uses the hardened evaluator still prints `base 0 of 6; tip 6 of 6`, still
 prints the frozen predicate line, and still exits 0.
 
-## 5. Observation on the uncommitted working-tree draft (not a verdict)
+### 4b. The same mutation on the landed bytes is killed — the hollow is closed in `604ae4fb`
+
+```
+$ python3 -B nSplit/verifiers/check_routed_repairs_v2.py --self-test ; exit 1
+self-test: CLI dependency arm: a zero-score scorer must make the tip CLI exit 1, score 0 (observed exit 0, score 6)
+self-test: CLI dependency arm: a six-score scorer must make the base CLI exit 0, score 6 (observed exit 1, score 0)
+successor: dishonest rejected 6 of 6; honest passed 2 of 2; base 0 of 6; tip 6 of 6
+```
+
+Mutant sha256 `d716b1c15c6997f9dcbf2ccefe3a200ef4d7025270aafb1d040b20974f747582`
+(`604ae4fb` with the same one-line `main` edit). The printed predicate line is still
+identical under the split — detection is the exit code plus the stderr CLI-dependency arm.
+The §4 hollow is therefore a property of the assigned `de5e3471` bytes; it is closed at the
+landed `604ae4fb`.
+
+## 5. Observation on the draft that became `604ae4fb` (snapshot, not the §4 verdict)
 
 While this seat ran, the lane's working-tree v2 changed (uncommitted) to sha256
 `604ae4fb41779874eb420e8a904cb2ebdd953fa41dfc5f270ece53562b5c414d`, `+157/−6` vs `HEAD`
@@ -398,9 +475,8 @@ self-test: CLI dependency arm: a six-score scorer must make the base CLI exit 0,
 The draft adds a CLI-dependency arm (stub the module-level `check_repairs` and require
 `cli_measurement` to follow it) which rejects the split mutant. Its final printed line under
 the mutant is still `successor: dishonest rejected 6 of 6; honest passed 2 of 2; base 0 of 6; tip 6 of 6`
-— the line alone is not the detector; the exit code is. I ran the split probe on the snapshot
-only; I make no verdict on the draft, which was uncommitted and possibly changing while this
-seat ran.
+— the line alone is not the detector; the exit code is. The snapshot was later committed as
+`604ae4fb` at `e424f2a`; §3.8/§4b carry the verdicts for those landed bytes.
 
 ## 6. Restoration
 
@@ -451,15 +527,19 @@ $ cp -f wt-v2-604ae4fb.py Mdraft/verifiers/check_routed_repairs_v2.py && sha256s
    (the §5 snapshot copy restored to its source bytes; this copy is not part of the assigned target)
 ```
 
-Lane untouched by this seat:
+Lane verifiers at seat end (HEAD `f60590a`):
 
 ```
 $ cd /home/vgpnk/Projects/shokunin/kotoba-shokunin && sha256sum verifiers/check_routed_repairs_v2.py verifiers/check_routed_repairs.py
-604ae4fb41779874eb420e8a904cb2ebdd953fa41dfc5f270ece53562b5c414d  verifiers/check_routed_repairs_v2.py   (uncommitted draft, §5; HEAD blob = de5e3471, seat-start tree = de5e3471)
-95ade9be1ed1930266bce4b98c8c593fff1feba89e2cf25763f0aa83f206cb88  verifiers/check_routed_repairs.py     (unchanged; never edited)
+604ae4fb41779874eb420e8a904cb2ebdd953fa41dfc5f270ece53562b5c414d  verifiers/check_routed_repairs_v2.py   (committed at HEAD; was de5e3471 at e6da78b/3f91150)
+95ade9be1ed1930266bce4b98c8c593fff1feba89e2cf25763f0aa83f206cb88  verifiers/check_routed_repairs.py     (unchanged throughout; never edited)
 $ git status --porcelain -- verifiers/
- M verifiers/check_routed_repairs_v2.py                (appeared during the seat; not written by this seat — its only lane write is this report)
+(empty)
 ```
+
+During the mutation runs the v2 working-tree copy held `604ae4fb` uncommitted (§5); the
+integrator committed it at `e424f2a`. This seat never wrote either verifier — its only lane
+write is this report.
 
 ## 7. Verdicts
 
@@ -474,18 +554,24 @@ $ git status --porcelain -- verifiers/
 | unnamed R-c direction guard disabled | D3 rejected | D3 accepted 6/6; exit 1 (single sub-check disables: survived, D3 still rejected — redundant) | killed (guard-level) |
 | public CLI → frozen `check_repairs` | self-test detects the swap | tip arm prints 6 of 6; exit 0; only the R-d label differs | **survived (hollow)** |
 
+Re-run on the landed `604ae4fb` (§3.8/§4b): the same rows with one change — the
+public-CLI→frozen swap is **killed** (exit 1, CLI-dependency arm); G-c's four sites still
+exit 0 (**survived**); every other row is unchanged (killed, same D tree).
+
 Findings for the L1 (not contract changes):
 
 1. The committed D universe covers one hardening mechanism each for R-a count, R-a
    assertion, R-d body, R-e ids, R-f ancestry, and the R-c direction guard — but **no D tree
-   exercises any window/scope/cue bound** (four independent disables survive the self-test).
-   Constructed frozen-6 trees (C7 ancient-section markers, C8 distant R-b names, C10
-   inverted+split R-c, C11 no landing cue) are rejected by pristine v2 and accepted when the
-   matching bound is removed; they are the missing D-classes.
-2. `--self-test` cannot tell a public CLI wired to the frozen counter from the hardened one:
-   the D/H1 arms bypass `main`, and the two CLI arms are the two points where the evaluators
-   agree by construction (0 at base, 6 at tip, with the tip frozen score separately asserted).
-   The frozen predicate line and exit 0 are therefore insufficient evidence for the CLI path.
+   exercises any window/scope/cue bound** (four independent disables survive the self-test on
+   both `de5e3471` and the landed `604ae4fb`). Constructed frozen-6 trees (C7 ancient-section
+   markers, C8 distant R-b names, C10 inverted+split R-c, C11 no landing cue) are rejected by
+   pristine v2 and accepted when the matching bound is removed; they are the missing D-classes.
+2. For the assigned `de5e3471` bytes, `--self-test` cannot tell a public CLI wired to the
+   frozen counter from the hardened one: the D/H1 arms bypass `main`, and the two CLI arms are
+   the two points where the evaluators agree by construction (0 at base, 6 at tip, with the tip
+   frozen score separately asserted). The landed `604ae4fb` closes this with a CLI-dependency
+   arm (§4b), but the printed predicate line alone still does not detect the swap — the exit
+   code is the detector.
 3. D3's rejection is over-determined inside R-c (C1-between *and* negation-between *and* the
    C1-denial requirement); it cannot attribute to one named guard, and the plan's G-a…G-f
    list does not name the direction guard at all.
