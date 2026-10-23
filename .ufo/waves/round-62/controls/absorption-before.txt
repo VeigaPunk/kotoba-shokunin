@@ -1,0 +1,33 @@
+# Round-62 pre-data control: absorption-before (C1)
+date_utc=2026-10-23T20:57:43Z
+
+$ sha256sum verifiers/check_scoped_rules.py
+5a5adc945e58ec18ba48a4929af9a1475eb7c186a757ee1a10008ca3c1b52b91  verifiers/check_scoped_rules.py
+
+$ python3 -B verifiers/check_scoped_rules.py --self-test | tail -2
+worlds reject 7 of 7; eligible rows pass 4 of 4
+self-test: 0 failure(s) over 189 assertions
+self_test_exit=0
+
+$ test -f verifiers/check_erratum_absorption.py
+exit=1 (absent)
+
+# Criterion: a landed-counter arm-level erratum receipt is a file that (a) names the landed
+# counter sha 5a5adc94 AND (b) records a reject/accept verdict for an instance of one of the
+# five erratum classes. The sha-naming files in the r61 evidence are only these:
+.ufo/waves/round-61/C1-v3-measure.txt
+.ufo/waves/round-61/controls/C1-base.txt
+.ufo/waves/round-61/receipts/C1-worlds.txt
+.ufo/waves/round-61/wave/ExecCounterV3.md
+
+# Each of those runs the W0-W7 worlds, the base clause, or the live --fetch predicate; none
+# runs an instance of E2/E2b/E2c/E2e/E2f against an arm function (ScoutPriorReceipts census:
+# .ufo/waves/round-62/w1/ScoutPriorReceipts.md). The five r61 attack seats measured the
+# draft/v2 oracle, and none of their reports names the landed counter sha:
+seat MutA3: landed-sha mentions = 0
+seat MutFixtures: landed-sha mentions = 0
+seat MutA4: landed-sha mentions = 0
+seat MutA1: landed-sha mentions = 0
+seat MutA2: landed-sha mentions = 0
+
+instrument absent; before-state = 0 of 5 errata measured arm-level against the landed counter

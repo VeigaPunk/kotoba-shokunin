@@ -1,0 +1,20 @@
+# seat-count guard — r61 kill demonstration (routed defect 1)
+date_utc=2026-10-23T20:55:14Z
+
+$ python3 -B verifiers/check_seat_counts.py --spec .ufo/waves/round-61/wave-spec.json --dir .ufo/waves/round-61/wave --rev a745411c66d4765e9ac0ce48f1d96c34f425dab4
+seat reports committed 65 of 68; missing 3: SentNovelty, RevCounterHistory, SimplEntry; unmatched 0: none
+exit=1
+
+$ python3 -B verifiers/check_seat_counts.py --self-test
+self-test complete: (3, [], []) (want (3, [], [])) ok
+self-test one-missing: (2, ['Beta']) (want (2, ['Beta'])) ok
+self-test registry-is-not-a-seat: [] (want []) ok
+self-test round61-shape: (1, ['Beta', 'Gamma'], ['Note.md']) (want (1, ['Beta', 'Gamma'], ['Note.md'])) ok
+self-test empty-spec-raises: True (want True) ok
+seat reports committed 1 of 3; missing 2: Beta, Gamma; unmatched 1: Note.md
+self-test arm-count: 5 (want 5) ok
+self-test: 0 failure(s)
+exit=0
+
+instrument sha256:
+15311042ea31d9df63843af8cf865e35dc9065497bd43b59ab21cfc27c32a9b1  verifiers/check_seat_counts.py
