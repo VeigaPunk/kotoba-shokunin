@@ -193,6 +193,37 @@ VS Code = `applyTo`; Copilot CLI = `applyTo`; Cursor = `globs` — per-client ma
 cross-client union (ScribeS115). The plan text is canonical over the dispatch string's
 A3 wording (E2/E2b/E2c supersede the dispatched byte-identity text).
 
+### E2e addendum — A1 is the guarded form (same pre-data window)
+
+`MutA1` measured 15 key-form mutants: 8 satisfy A1 as worded (multi-key cells, bolded
+values, commented keys, negated keys, equals forms, example-cell forms) and the STRICTLINE
+reading ("binds a path-like value on the cited line") rejects the REAL Claude row — S103:198
+is `paths:` and the glob example is :199. A1's letter is amended to the GUARDED form
+(MutA1 §5 validated code): one key per cell; exact-case membership in the per-client set;
+path-like value bound on the cited line OR its immediate block (quote-aware lookahead —
+this is what keeps the real S103:198/:199 row passing); no commented keys; no negation
+within 60 chars; colon form; no equals-form keys; no example/unchecked-cell keys. The
+guarded arm keeps pristine 4 of 4 and rejects all 15 mutants. Binding citations stay on
+the value-bearing lines (Claude S103:198-199 — NOT S112:94, a table cell with no path
+value; Cursor :85 — NOT S115:131 prose); the self-test's positive fixture mirrors the
+real four clients (the v2 fixture's Gemini/globs positive is not in the canonical set);
+`applyTo` is canonical for both VS Code and Copilot CLI, distinguished only by the host
+pin; A1 does not read the Action cell for wrong key names (A2's domain).
+
+### E2c binding conditions (MutA4's measured alias matrix, same pre-data window)
+
+Four conditions, each demonstrated by MutA4's receipts (`alias-matrix.txt`): (1) A4(iv)
+scans the SOURCES table at the counter's `BASE = 31092dc6` (where S103–S111 are absent and
+S043's full sha is present — at `f3246d14` a literal scan rejects every eligible row
+against itself), excluding the counted row's own id unconditionally; (2) the fixture's
+base commit must contain the aliased row (S043's full-sha row) — a header-only base commit
+lets W1 pass A4(iv); (3) the byte-identity declaration is ANCHORED at the teaches cell's
+start (`supersedes S### —`), and a row carrying it is not counted as a fresh eligible row
+(and must not also carry a fresh-fetch claim) — an unanchored appended `supersedes`
+defeats the kill (measured); (4) the scan covers the measured commit's table too (excluding
+self), so a same-changeset alias cannot hide. Clause (iii) stays consistency-only with no
+backdated fixture (its self-test stands on date arithmetic, not on world rejection).
+
 ## Commit order
 
 This plan + checker + C2 base control + census-before (freeze commit) → wave evidence →
