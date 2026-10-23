@@ -1,0 +1,33 @@
+# C1 world receipt - round 61, counter v3 (pre-data controls, M90: committed before any C1 --fetch measurement)
+# lane repo: /home/vgpnk/Projects/shokunin/kotoba-shokunin
+# written by: kotoba L1 round 61 (KotobaR61) via scripts/hyaku/jj-lane.sh commit --as kotoba
+# date -u: 2026-10-23T20:26:33Z
+# counter: verifiers/check_scoped_rules.py
+# counter sha256: 5a5adc945e58ec18ba48a4929af9a1475eb7c186a757ee1a10008ca3c1b52b91 (frozen at commit 6a7f722e14991b9570374fe8ebb75adb7f258671)
+# world definitions: in-counter self-test worlds W0-W7 (plans/round-61.md errata E2-E2e; synthetic per ExecCounterV3 5.8)
+# W1 fixture bytes: verifiers/fixtures/scoped-rules/bytes/W1-claude-r53-memory.page sha256 971d75bfce7a04c2e0d41e8752d01afe29ed500f2a7159f66d5f7156bea0c3ff
+#
+# COUNTED SET: the frozen seven are W1-W7 (polarity: exit 1 = the world REJECTS, which is the expected result;
+# 'exit 0' here would mean the world met the predicate = C1 fails). W0 is an EXTRA do-nothing arm, NOT counted.
+#
+# command: python3 -B verifiers/check_scoped_rules.py --self-test
+counter sha256 5a5adc945e58ec18ba48a4929af9a1475eb7c186a757ee1a10008ca3c1b52b91
+world W1: Claude Code reject=True arm=A4 line='entry row S900: A4: snapshot sha256 06277eb1ae94... is already recorded by base row S010 and the teaches cell declares no supersedes'
+world W2: Claude Code reject=True arm=A3 line="entry row S900: A3: URL 'https://code.claude.com/docs/de/memory.md' is a rendering alias of the committed row S112 URL 'https://code.claude.com/docs/e"
+world W3: Cursor reject=True arm=A1 line="entry row S903: A1: scope key 'rules' is not a canonical key for Cursor (canonical: globs); S903 URL 'https://cursor.com/docs/rules' is already a base"
+world W4: Cursor reject=True arm=live line='live page: not found'
+world W5: Claude Code reject=True arm=A1 line="entry row S900: A1: scope key 'patterns' is not a canonical key for Claude Code (canonical: paths)"
+world W6: Claude Code reject=True arm=A2 line='entry row S900: snapshot .ufo/waves/round-60/snapshots/S900.page: A2: action cell supports 5 of its 8 content word(s) at line 6 (need >= 6)'
+world W7: all reject=True arm=A1
+world W0: exit=1
+worlds reject 7 of 7; eligible rows pass 4 of 4
+self-test: 0 failure(s) over 189 assertions
+exit=0
+#
+# summary (counted set; W0 extra, not counted):
+# W0: exit=1
+# positivity: the counter's own predicate line, verbatim from the stdout above:
+# worlds reject 7 of 7; eligible rows pass 4 of 4
+# digests:
+#   counter sha256: 5a5adc945e58ec18ba48a4929af9a1475eb7c186a757ee1a10008ca3c1b52b91
+#   W1 fixture bytes sha256: 971d75bfce7a04c2e0d41e8752d01afe29ed500f2a7159f66d5f7156bea0c3ff
