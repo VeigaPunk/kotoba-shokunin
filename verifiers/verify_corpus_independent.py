@@ -71,6 +71,21 @@ def _git(repo, *args):
         raise EnvError("git not runnable: %s" % exc) from exc
 
 
+def git_unreadable(repo, proc):
+    """The EnvError text for a failed `git rev-parse --git-dir`.
+
+    A directory git reads and rejects is not a repository; a git that refuses
+    to read at all (dubious ownership, a broken installation) is an
+    environment failure and is reported with git's own words.
+    """
+    detail = (proc.stderr or "").strip()
+    if "not a git repository" in detail:
+        return "not a git repository: %s" % repo
+    first = detail.splitlines()[0] if detail else "(git printed no diagnostic)"
+    return ("git rev-parse --git-dir failed in %s (exit %d): %s"
+            % (repo, proc.returncode, first))
+
+
 def _open_text(path, label):
     """Open a corpus file for reading, or raise EnvError (exit 2) naming it.
 
@@ -460,8 +475,9 @@ def analyse_commits(repo, tracked_corpus):
 
 def analyse(repo):
     repo = os.path.abspath(repo)
-    if _git(repo, "rev-parse", "--git-dir").returncode != 0:
-        raise EnvError("not a git repository: %s" % repo)
+    probe = _git(repo, "rev-parse", "--git-dir")
+    if probe.returncode != 0:
+        raise EnvError(git_unreadable(repo, probe))
     if not os.path.isdir(os.path.join(repo, "corpus")):
         raise EnvError("corpus/ missing in %s" % repo)
     if not os.path.isfile(os.path.join(repo, "corpus", "README.md")):
@@ -999,6 +1015,33 @@ def self_test():
         st.eq(proc.returncode, 2, "cli: unavailable git exits 2")
         st.eq(proc.stderr.startswith("could-not-evaluate: git not runnable:"), True,
               "cli: unavailable git reports could-not-evaluate")
+
+        # -- could-not-evaluate: git is present and refuses (exit 128) ---------
+        # A refusing git is an environment failure: the gate must quote git's
+        # own words, not claim the repository is not a repository.
+        refusing_path = os.path.join(tmp, "refusing-git-path")
+        os.makedirs(refusing_path)
+        os.symlink(sys.executable, os.path.join(refusing_path, "python3"))
+        shim = os.path.join(refusing_path, "git")
+        with open(shim, "w", encoding="utf-8") as fh:
+            fh.write("#!/bin/sh\n"
+                     "echo \"fatal: detected dubious ownership in repository"
+                     " at '/x/y'\" >&2\n"
+                     "exit 128\n")
+        os.chmod(shim, 0o755)
+        refusing_env = dict(os.environ)
+        refusing_env["PATH"] = refusing_path
+        proc = subprocess.run(
+            [sys.executable, os.path.abspath(__file__), "--repo", froot],
+            capture_output=True, text=True, env=refusing_env,
+        )
+        st.eq(proc.returncode, 2, "cli: refusing git exits 2")
+        st.eq(proc.stderr.startswith("could-not-evaluate: "), True,
+              "cli: refusing git reports could-not-evaluate")
+        st.eq("not a git repository" in proc.stderr, False,
+              "cli: refusing git is not reported as a non-repository")
+        st.eq("dubious ownership" in proc.stderr, True,
+              "cli: refusing git quotes git's own refusal")
     finally:
         if old_home is None:
             os.environ.pop("HOME", None)

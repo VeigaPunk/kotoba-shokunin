@@ -527,6 +527,22 @@ class EnvError(Exception):
     pass
 
 
+def revision_error(rev, where, code: int, detail: str) -> str:
+    """The could-not-evaluate reason for a failed `rev-parse --verify --quiet`.
+
+    An unknown revision is git's own exit 1 with no diagnostic.  Any other
+    failure (a refusing git: dubious ownership, no repository, a broken object
+    store) is an environment failure and is reported with git's own words,
+    never as a claim about the revision.
+    """
+    detail = detail.strip()
+    if code == 1 and not detail:
+        return "revision %r is not a commit in %s" % (rev, where)
+    first = detail.splitlines()[0] if detail else "(git printed no diagnostic)"
+    return ("git rev-parse %r failed in %s (exit %d): %s"
+            % (rev, where, code, first))
+
+
 def verify_rev(repo, rev):
     """An unknown revision is could-not-evaluate, not an empty input tree."""
     try:
@@ -537,7 +553,8 @@ def verify_rev(repo, rev):
     except OSError as exc:
         raise EnvError("git not runnable: %s" % exc) from exc
     if proc.returncode != 0:
-        raise EnvError("revision %r is not a commit in %s" % (rev, repo))
+        raise EnvError(revision_error(rev, repo, proc.returncode,
+                                      proc.stderr.decode("utf-8", "replace")))
 
 
 def git_show(repo, rev, path):
@@ -1242,6 +1259,36 @@ def self_test():
                   git_rc == 2
                   and "could-not-evaluate:" in git_err.getvalue(),
                   "rc=%d stderr=%r" % (git_rc, git_err.getvalue()))
+
+            # A git that is present and refuses (exit 128, e.g. dubious
+            # ownership) is an environment failure: the gate must quote git's
+            # own refusal, not claim the revision is unknown.
+            with tempfile.TemporaryDirectory() as refusing_dir:
+                (Path(refusing_dir) / "python3").symlink_to(sys.executable)
+                shim = Path(refusing_dir) / "git"
+                shim.write_text("#!/bin/sh\n"
+                                "echo \"fatal: detected dubious ownership in"
+                                " repository at '/x/y'\" >&2\n"
+                                "exit 128\n", encoding="utf-8")
+                shim.chmod(0o755)
+                refusing_err = io.StringIO()
+                try:
+                    os.environ["PATH"] = refusing_dir
+                    with contextlib.redirect_stderr(refusing_err):
+                        refusing_rc = main(["--rev", rev2])
+                finally:
+                    if old_path is None:
+                        os.environ.pop("PATH", None)
+                    else:
+                        os.environ["PATH"] = old_path
+            check("refusing git is could-not-evaluate",
+                  refusing_rc == 2
+                  and "could-not-evaluate:" in refusing_err.getvalue(),
+                  "rc=%d stderr=%r" % (refusing_rc, refusing_err.getvalue()))
+            check("refusing git names git, not the revision",
+                  "is not a commit" not in refusing_err.getvalue()
+                  and "dubious ownership" in refusing_err.getvalue(),
+                  "stderr=%r" % refusing_err.getvalue())
         finally:
             globals()["default_root"] = orig_root
 

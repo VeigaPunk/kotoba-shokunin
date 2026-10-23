@@ -209,6 +209,22 @@ def classify(exit_code: int, stdout: str, stderr: str,
     return "killed" if (proven and named) else "survived"
 
 
+def revision_error(rev: str, where: Path, code: int, detail: str) -> str:
+    """The could-not-evaluate reason for a failed `rev-parse --verify --quiet`.
+
+    An unknown revision is git's own exit 1 with no diagnostic.  Any other
+    failure (a refusing git: dubious ownership, no repository, a broken object
+    store) is an environment failure and is reported with git's own words,
+    never as a claim about the revision.
+    """
+    detail = detail.strip()
+    if code == 1 and not detail:
+        return "revision %r is not a commit in %s" % (rev, where)
+    first = detail.splitlines()[0] if detail else "(git printed no diagnostic)"
+    return ("git rev-parse %r failed in %s (exit %d): %s"
+            % (rev, where, code, first))
+
+
 # ---------------------------------------------------------------------------
 # main
 # ---------------------------------------------------------------------------
@@ -390,6 +406,32 @@ raise SystemExit(1)
             check("missing git returns could-not-evaluate", code, 2)
             check("missing git reports could-not-evaluate",
                   "could-not-evaluate:" in err, True)
+
+            # A git that is present and refuses (exit 128, e.g. dubious
+            # ownership) is an environment failure: the gate must quote git's
+            # own refusal, not claim the revision is unknown.
+            refusing = repo / "git-refusing"
+            refusing.mkdir()
+            (refusing / "python3").symlink_to(sys.executable)
+            shim = refusing / "git"
+            shim.write_text("#!/bin/sh\n"
+                            "echo \"fatal: detected dubious ownership in"
+                            " repository at '/x/y'\" >&2\n"
+                            "exit 128\n", encoding="utf-8")
+            shim.chmod(0o755)
+            try:
+                os.environ["PATH"] = str(refusing)
+                code, out, err = run_revision(rev_clean)
+            finally:
+                if old_path is None:
+                    os.environ.pop("PATH", None)
+                else:
+                    os.environ["PATH"] = old_path
+            check("refusing git returns could-not-evaluate", code, 2)
+            check("refusing git does not blame the revision",
+                  "is not a commit" in err, False)
+            check("refusing git reports git's own refusal",
+                  "dubious ownership" in err, True)
     except (OSError, subprocess.SubprocessError, RuntimeError) as exc:
         failures += 1
         print("FAIL isolated fixture run: %s" % exc)
@@ -424,8 +466,10 @@ def main(argv: list[str] | None = None) -> int:
               % exc, file=sys.stderr)
         return 2
     if checked.returncode != 0:
-        print("could-not-evaluate: revision %r is not a commit in %s"
-              % (args.rev, root), file=sys.stderr)
+        print("could-not-evaluate: %s"
+              % revision_error(args.rev, root, checked.returncode,
+                               checked.stderr or ""),
+              file=sys.stderr)
         return 2
 
     with tempfile.TemporaryDirectory(prefix="box-proof-case-deletion-") as tmp:

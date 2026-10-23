@@ -85,6 +85,22 @@ def revision_env(repo, rev, index, tree):
     return env
 
 
+def revision_error(rev, where, code: int, detail: str) -> str:
+    """The could-not-evaluate reason for a failed `rev-parse --verify --quiet`.
+
+    An unknown revision is git's own exit 1 with no diagnostic.  Any other
+    failure (a refusing git: dubious ownership, no repository, a broken object
+    store) is an environment failure and is reported with git's own words,
+    never as a claim about the revision.
+    """
+    detail = detail.strip()
+    if code == 1 and not detail:
+        return "revision %r is not a commit in %s" % (rev, where)
+    first = detail.splitlines()[0] if detail else "(git printed no diagnostic)"
+    return ("git rev-parse %r failed in %s (exit %d): %s"
+            % (rev, where, code, first))
+
+
 def validate_revision(repo, rev):
     proc = subprocess.run(
         ["git", "-C", str(repo), "rev-parse", "--verify", "--quiet",
@@ -92,7 +108,8 @@ def validate_revision(repo, rev):
         capture_output=True, text=True,
     )
     if proc.returncode != 0:
-        raise CouldNotEvaluate("revision %r is not a commit in %s" % (rev, repo))
+        raise CouldNotEvaluate(revision_error(rev, repo, proc.returncode,
+                                              proc.stderr or ""))
 
 
 def run(repo, base, head, gate, as_json):
@@ -194,6 +211,29 @@ def self_test():
         eq("arm/git-unavailable",
            (proc.returncode, proc.stderr.startswith("could-not-evaluate: ")),
            (2, True))
+
+    # A git that is present and refuses (exit 128, e.g. dubious ownership) is
+    # an environment failure: the gate must quote git's own refusal, not claim
+    # the revision is unknown.
+    with tempfile.TemporaryDirectory(prefix="finding-delta-git128.") as tmp:
+        refusing = Path(tmp)
+        (refusing / "python3").symlink_to(PY)
+        shim = refusing / "git"
+        shim.write_text("#!/bin/sh\n"
+                        "echo \"fatal: detected dubious ownership in repository"
+                        " at '/x/y'\" >&2\n"
+                        "exit 128\n", encoding="utf-8")
+        shim.chmod(0o755)
+        refusing_env = dict(test_env, PATH=str(refusing))
+        proc = subprocess.run(
+            [PY, "-B", str(script), "--repo", str(repo),
+             "--base", "HEAD", "--head", "HEAD"],
+            cwd=repo, env=refusing_env, capture_output=True, text=True, timeout=30,
+        )
+        eq("arm/refusing-git-names-git",
+           (proc.returncode, proc.stderr.startswith("could-not-evaluate: "),
+            "is not a commit" in proc.stderr, "dubious ownership" in proc.stderr),
+           (2, True, False, True))
 
     print(f"self-test: {len(failures)} failure(s) over {assertions} assertions")
     for failure in failures:

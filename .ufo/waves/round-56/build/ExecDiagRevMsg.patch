@@ -1,0 +1,477 @@
+diff --git i/verifiers/box_proof_case_deletion.py w/verifiers/box_proof_case_deletion.py
+index 33b726e..cc30e58 100755
+--- i/verifiers/box_proof_case_deletion.py
++++ w/verifiers/box_proof_case_deletion.py
+@@ -209,6 +209,22 @@ def classify(exit_code: int, stdout: str, stderr: str,
+     return "killed" if (proven and named) else "survived"
+ 
+ 
++def revision_error(rev: str, where: Path, code: int, detail: str) -> str:
++    """The could-not-evaluate reason for a failed `rev-parse --verify --quiet`.
++
++    An unknown revision is git's own exit 1 with no diagnostic.  Any other
++    failure (a refusing git: dubious ownership, no repository, a broken object
++    store) is an environment failure and is reported with git's own words,
++    never as a claim about the revision.
++    """
++    detail = detail.strip()
++    if code == 1 and not detail:
++        return "revision %r is not a commit in %s" % (rev, where)
++    first = detail.splitlines()[0] if detail else "(git printed no diagnostic)"
++    return ("git rev-parse %r failed in %s (exit %d): %s"
++            % (rev, where, code, first))
++
++
+ # ---------------------------------------------------------------------------
+ # main
+ # ---------------------------------------------------------------------------
+@@ -390,6 +406,32 @@ raise SystemExit(1)
+             check("missing git returns could-not-evaluate", code, 2)
+             check("missing git reports could-not-evaluate",
+                   "could-not-evaluate:" in err, True)
++
++            # A git that is present and refuses (exit 128, e.g. dubious
++            # ownership) is an environment failure: the gate must quote git's
++            # own refusal, not claim the revision is unknown.
++            refusing = repo / "git-refusing"
++            refusing.mkdir()
++            (refusing / "python3").symlink_to(sys.executable)
++            shim = refusing / "git"
++            shim.write_text("#!/bin/sh\n"
++                            "echo \"fatal: detected dubious ownership in"
++                            " repository at '/x/y'\" >&2\n"
++                            "exit 128\n", encoding="utf-8")
++            shim.chmod(0o755)
++            try:
++                os.environ["PATH"] = str(refusing)
++                code, out, err = run_revision(rev_clean)
++            finally:
++                if old_path is None:
++                    os.environ.pop("PATH", None)
++                else:
++                    os.environ["PATH"] = old_path
++            check("refusing git returns could-not-evaluate", code, 2)
++            check("refusing git does not blame the revision",
++                  "is not a commit" in err, False)
++            check("refusing git reports git's own refusal",
++                  "dubious ownership" in err, True)
+     except (OSError, subprocess.SubprocessError, RuntimeError) as exc:
+         failures += 1
+         print("FAIL isolated fixture run: %s" % exc)
+@@ -424,8 +466,10 @@ def main(argv: list[str] | None = None) -> int:
+               % exc, file=sys.stderr)
+         return 2
+     if checked.returncode != 0:
+-        print("could-not-evaluate: revision %r is not a commit in %s"
+-              % (args.rev, root), file=sys.stderr)
++        print("could-not-evaluate: %s"
++              % revision_error(args.rev, root, checked.returncode,
++                               checked.stderr or ""),
++              file=sys.stderr)
+         return 2
+ 
+     with tempfile.TemporaryDirectory(prefix="box-proof-case-deletion-") as tmp:
+diff --git i/verifiers/check_correction_sweep.py w/verifiers/check_correction_sweep.py
+index 9755b0e..ecd0901 100755
+--- i/verifiers/check_correction_sweep.py
++++ w/verifiers/check_correction_sweep.py
+@@ -134,11 +134,28 @@ def reader(rev: str | None, root: str | None):
+     return read
+ 
+ 
++def revision_error(rev: str, where, code: int, detail: str) -> str:
++    """The could-not-evaluate reason for a failed `rev-parse --verify --quiet`.
++
++    An unknown revision is git's own exit 1 with no diagnostic.  Any other
++    failure (a refusing git: dubious ownership, no repository, a broken object
++    store) is an environment failure and is reported with git's own words,
++    never as a claim about the revision.
++    """
++    detail = detail.strip()
++    if code == 1 and not detail:
++        return "revision %r is not a commit in %s" % (rev, where)
++    first = detail.splitlines()[0] if detail else "(git printed no diagnostic)"
++    return ("git rev-parse %r failed in %s (exit %d): %s"
++            % (rev, where, code, first))
++
++
+ def verify_revision(rev: str) -> None:
+     r = subprocess.run(["git", "-C", str(LANE), "rev-parse", "--verify", "--quiet",
+                         "%s^{commit}" % rev], capture_output=True)
+     if r.returncode != 0:
+-        raise RuntimeError("revision %r is not a commit in %s" % (rev, LANE))
++        raise RuntimeError(revision_error(
++            rev, LANE, r.returncode, r.stderr.decode("utf-8", "replace")))
+ 
+ 
+ def self_test() -> int:
+@@ -219,6 +236,26 @@ def self_test() -> int:
+             or "'git'" not in p.stderr):
+         fails.append("git unavailable: exit %d, stderr %r" % (p.returncode, p.stderr))
+ 
++    # A git that is present and refuses (exit 128, e.g. dubious ownership) is
++    # an environment failure: the gate must quote git's own refusal, not claim
++    # the revision is unknown.
++    with tempfile.TemporaryDirectory() as t:
++        Path(t, "python3").symlink_to(sys.executable)
++        shim = Path(t, "git")
++        shim.write_text("#!/bin/sh\n"
++                        "echo \"fatal: detected dubious ownership in repository"
++                        " at '/x/y'\" >&2\n"
++                        "exit 128\n", encoding="utf-8")
++        shim.chmod(0o755)
++        env = os.environ.copy()
++        env["PATH"] = t
++        p = run_cli("HEAD", env)
++    n += 1
++    if (p.returncode != 2 or not p.stderr.startswith("could-not-evaluate: ")
++            or "is not a commit" in p.stderr
++            or "dubious ownership" not in p.stderr):
++        fails.append("refusing git: exit %d, stderr %r" % (p.returncode, p.stderr))
++
+     print("%d failure(s) over %d assertions" % (len(fails), n))
+     for f in fails:
+         print("FAIL", f)
+diff --git i/verifiers/check_description_thresholds.py w/verifiers/check_description_thresholds.py
+index 977ea76..28b503a 100755
+--- i/verifiers/check_description_thresholds.py
++++ w/verifiers/check_description_thresholds.py
+@@ -113,12 +113,29 @@ SOURCES_ROW_RE = re.compile(r"^\|[ \t]*S[0-9]{3,}[ \t]*\|")
+ QUOTED_TEXT_RE = re.compile(r'"([^"]*)"')
+ 
+ 
++def revision_error(rev: str, where, code: int, detail: str) -> str:
++    """The could-not-evaluate reason for a failed `rev-parse --verify --quiet`.
++
++    An unknown revision is git's own exit 1 with no diagnostic.  Any other
++    failure (a refusing git: dubious ownership, no repository, a broken object
++    store) is an environment failure and is reported with git's own words,
++    never as a claim about the revision.
++    """
++    detail = detail.strip()
++    if code == 1 and not detail:
++        return "revision %r is not a commit in %s" % (rev, where)
++    first = detail.splitlines()[0] if detail else "(git printed no diagnostic)"
++    return ("git rev-parse %r failed in %s (exit %d): %s"
++            % (rev, where, code, first))
++
++
+ def verify_rev(rev: str) -> None:
+     """Reject an unknown revision before `git show` can mistake it for absent paths."""
+     r = subprocess.run(["git", "-C", str(LANE), "rev-parse", "--verify", "--quiet",
+                         "%s^{commit}" % rev], capture_output=True)
+     if r.returncode != 0:
+-        raise RuntimeError("revision %r is not a commit in %s" % (rev, LANE))
++        raise RuntimeError(revision_error(
++            rev, LANE, r.returncode, r.stderr.decode("utf-8", "replace")))
+ 
+ 
+ def read_file(args: argparse.Namespace, path: str) -> str | None:
+@@ -415,6 +432,30 @@ def self_test() -> int:
+           (no_git.returncode, no_git.stderr.startswith("could-not-evaluate:")),
+           (2, True))
+ 
++    # A git that is present and refuses (exit 128, e.g. dubious ownership) is
++    # an environment failure: the gate must quote git's own refusal, not claim
++    # the revision is unknown.
++    with tempfile.TemporaryDirectory() as temp_dir:
++        Path(temp_dir, "python3").symlink_to(sys.executable)
++        shim = Path(temp_dir, "git")
++        shim.write_text("#!/bin/sh\n"
++                        "echo \"fatal: detected dubious ownership in repository"
++                        " at '/x/y'\" >&2\n"
++                        "exit 128\n", encoding="utf-8")
++        shim.chmod(0o755)
++        env = os.environ.copy()
++        env["PATH"] = temp_dir
++        refusing = subprocess.run(
++            [sys.executable, "-B", script, "--rev", "HEAD"],
++            capture_output=True, text=True, env=env, timeout=30)
++    check("refusing git exits 2 with could-not-evaluate",
++          (refusing.returncode, refusing.stderr.startswith("could-not-evaluate:")),
++          (2, True))
++    check("refusing git names git's refusal, not the revision",
++          ("is not a commit" in refusing.stderr,
++           "dubious ownership" in refusing.stderr),
++          (False, True))
++
+     print("self-test: %d failure(s) over %d assertions" % (failures, assertions))
+     return 1 if failures else 0
+ 
+diff --git i/verifiers/check_gate_finding_delta.py w/verifiers/check_gate_finding_delta.py
+index 0917a0f..be7bdae 100755
+--- i/verifiers/check_gate_finding_delta.py
++++ w/verifiers/check_gate_finding_delta.py
+@@ -85,6 +85,22 @@ def revision_env(repo, rev, index, tree):
+     return env
+ 
+ 
++def revision_error(rev, where, code: int, detail: str) -> str:
++    """The could-not-evaluate reason for a failed `rev-parse --verify --quiet`.
++
++    An unknown revision is git's own exit 1 with no diagnostic.  Any other
++    failure (a refusing git: dubious ownership, no repository, a broken object
++    store) is an environment failure and is reported with git's own words,
++    never as a claim about the revision.
++    """
++    detail = detail.strip()
++    if code == 1 and not detail:
++        return "revision %r is not a commit in %s" % (rev, where)
++    first = detail.splitlines()[0] if detail else "(git printed no diagnostic)"
++    return ("git rev-parse %r failed in %s (exit %d): %s"
++            % (rev, where, code, first))
++
++
+ def validate_revision(repo, rev):
+     proc = subprocess.run(
+         ["git", "-C", str(repo), "rev-parse", "--verify", "--quiet",
+@@ -92,7 +108,8 @@ def validate_revision(repo, rev):
+         capture_output=True, text=True,
+     )
+     if proc.returncode != 0:
+-        raise CouldNotEvaluate("revision %r is not a commit in %s" % (rev, repo))
++        raise CouldNotEvaluate(revision_error(rev, repo, proc.returncode,
++                                              proc.stderr or ""))
+ 
+ 
+ def run(repo, base, head, gate, as_json):
+@@ -195,6 +212,29 @@ def self_test():
+            (proc.returncode, proc.stderr.startswith("could-not-evaluate: ")),
+            (2, True))
+ 
++    # A git that is present and refuses (exit 128, e.g. dubious ownership) is
++    # an environment failure: the gate must quote git's own refusal, not claim
++    # the revision is unknown.
++    with tempfile.TemporaryDirectory(prefix="finding-delta-git128.") as tmp:
++        refusing = Path(tmp)
++        (refusing / "python3").symlink_to(PY)
++        shim = refusing / "git"
++        shim.write_text("#!/bin/sh\n"
++                        "echo \"fatal: detected dubious ownership in repository"
++                        " at '/x/y'\" >&2\n"
++                        "exit 128\n", encoding="utf-8")
++        shim.chmod(0o755)
++        refusing_env = dict(test_env, PATH=str(refusing))
++        proc = subprocess.run(
++            [PY, "-B", str(script), "--repo", str(repo),
++             "--base", "HEAD", "--head", "HEAD"],
++            cwd=repo, env=refusing_env, capture_output=True, text=True, timeout=30,
++        )
++        eq("arm/refusing-git-names-git",
++           (proc.returncode, proc.stderr.startswith("could-not-evaluate: "),
++            "is not a commit" in proc.stderr, "dubious ownership" in proc.stderr),
++           (2, True, False, True))
++
+     print(f"self-test: {len(failures)} failure(s) over {assertions} assertions")
+     for failure in failures:
+         print(f"FAIL {failure}")
+diff --git i/verifiers/check_mcp_instructions.py w/verifiers/check_mcp_instructions.py
+index 2901d7b..2127fed 100755
+--- i/verifiers/check_mcp_instructions.py
++++ w/verifiers/check_mcp_instructions.py
+@@ -282,10 +282,48 @@ def self_test() -> int:
+     check("G git unavailable reports could-not-evaluate",
+           no_git.stderr.startswith("could-not-evaluate: "), True)
+ 
++    # A git that is present and refuses (exit 128, e.g. dubious ownership) is
++    # an environment failure: the gate must quote git's own refusal, not claim
++    # the revision is unknown.
++    with tempfile.TemporaryDirectory(prefix="mcp-self-test-git128-") as td:
++        (Path(td) / "python3").symlink_to(sys.executable)
++        shim = Path(td) / "git"
++        shim.write_text("#!/bin/sh\n"
++                        "echo \"fatal: detected dubious ownership in repository"
++                        " at '/x/y'\" >&2\n"
++                        "exit 128\n", encoding="utf-8")
++        shim.chmod(0o755)
++        env = dict(os.environ)
++        env["PATH"] = td
++        for key in ("GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE"):
++            env.pop(key, None)
++        refusing = run_gate("HEAD", env)
++    check("G refusing git exits 2", refusing.returncode == 2, True)
++    check("G refusing git does not blame the revision",
++          "is not a commit" in refusing.stderr, False)
++    check("G refusing git reports git's own refusal",
++          "dubious ownership" in refusing.stderr, True)
++
+     print("self-test: %d failure(s) over %d assertions" % (failures, assertions))
+     return 1 if failures else 0
+ 
+ 
++def revision_error(rev: str, where, code: int, detail: str) -> str:
++    """The could-not-evaluate reason for a failed `rev-parse --verify --quiet`.
++
++    An unknown revision is git's own exit 1 with no diagnostic.  Any other
++    failure (a refusing git: dubious ownership, no repository, a broken object
++    store) is an environment failure and is reported with git's own words,
++    never as a claim about the revision.
++    """
++    detail = detail.strip()
++    if code == 1 and not detail:
++        return "revision %r is not a commit in %s" % (rev, where)
++    first = detail.splitlines()[0] if detail else "(git printed no diagnostic)"
++    return ("git rev-parse %r failed in %s (exit %d): %s"
++            % (rev, where, code, first))
++
++
+ def main(argv: list[str] | None = None) -> int:
+     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+     src = ap.add_mutually_exclusive_group()
+@@ -307,7 +345,9 @@ def main(argv: list[str] | None = None) -> int:
+                                 "--quiet", "%s^{commit}" % args.rev],
+                                capture_output=True)
+             if r.returncode != 0:
+-                raise RuntimeError("revision %r is not a commit in %s" % (args.rev, LANE))
++                raise RuntimeError(revision_error(
++                    args.rev, LANE, r.returncode,
++                    r.stderr.decode("utf-8", "replace")))
+         entry = read_file(args, ENTRY)
+         sources = read_file(args, SOURCES) or ""
+         lesson = read_file(args, LESSON) or ""
+diff --git i/verifiers/check_overlap_levers.py w/verifiers/check_overlap_levers.py
+index 81170ca..209ea06 100755
+--- i/verifiers/check_overlap_levers.py
++++ w/verifiers/check_overlap_levers.py
+@@ -527,6 +527,22 @@ class EnvError(Exception):
+     pass
+ 
+ 
++def revision_error(rev, where, code: int, detail: str) -> str:
++    """The could-not-evaluate reason for a failed `rev-parse --verify --quiet`.
++
++    An unknown revision is git's own exit 1 with no diagnostic.  Any other
++    failure (a refusing git: dubious ownership, no repository, a broken object
++    store) is an environment failure and is reported with git's own words,
++    never as a claim about the revision.
++    """
++    detail = detail.strip()
++    if code == 1 and not detail:
++        return "revision %r is not a commit in %s" % (rev, where)
++    first = detail.splitlines()[0] if detail else "(git printed no diagnostic)"
++    return ("git rev-parse %r failed in %s (exit %d): %s"
++            % (rev, where, code, first))
++
++
+ def verify_rev(repo, rev):
+     """An unknown revision is could-not-evaluate, not an empty input tree."""
+     try:
+@@ -537,7 +553,8 @@ def verify_rev(repo, rev):
+     except OSError as exc:
+         raise EnvError("git not runnable: %s" % exc) from exc
+     if proc.returncode != 0:
+-        raise EnvError("revision %r is not a commit in %s" % (rev, repo))
++        raise EnvError(revision_error(rev, repo, proc.returncode,
++                                      proc.stderr.decode("utf-8", "replace")))
+ 
+ 
+ def git_show(repo, rev, path):
+@@ -1242,6 +1259,36 @@ def self_test():
+                   git_rc == 2
+                   and "could-not-evaluate:" in git_err.getvalue(),
+                   "rc=%d stderr=%r" % (git_rc, git_err.getvalue()))
++
++            # A git that is present and refuses (exit 128, e.g. dubious
++            # ownership) is an environment failure: the gate must quote git's
++            # own refusal, not claim the revision is unknown.
++            with tempfile.TemporaryDirectory() as refusing_dir:
++                (Path(refusing_dir) / "python3").symlink_to(sys.executable)
++                shim = Path(refusing_dir) / "git"
++                shim.write_text("#!/bin/sh\n"
++                                "echo \"fatal: detected dubious ownership in"
++                                " repository at '/x/y'\" >&2\n"
++                                "exit 128\n", encoding="utf-8")
++                shim.chmod(0o755)
++                refusing_err = io.StringIO()
++                try:
++                    os.environ["PATH"] = refusing_dir
++                    with contextlib.redirect_stderr(refusing_err):
++                        refusing_rc = main(["--rev", rev2])
++                finally:
++                    if old_path is None:
++                        os.environ.pop("PATH", None)
++                    else:
++                        os.environ["PATH"] = old_path
++            check("refusing git is could-not-evaluate",
++                  refusing_rc == 2
++                  and "could-not-evaluate:" in refusing_err.getvalue(),
++                  "rc=%d stderr=%r" % (refusing_rc, refusing_err.getvalue()))
++            check("refusing git names git, not the revision",
++                  "is not a commit" not in refusing_err.getvalue()
++                  and "dubious ownership" in refusing_err.getvalue(),
++                  "stderr=%r" % refusing_err.getvalue())
+         finally:
+             globals()["default_root"] = orig_root
+ 
+diff --git i/verifiers/verify_corpus_independent.py w/verifiers/verify_corpus_independent.py
+index f424064..f4c591a 100755
+--- i/verifiers/verify_corpus_independent.py
++++ w/verifiers/verify_corpus_independent.py
+@@ -71,6 +71,21 @@ def _git(repo, *args):
+         raise EnvError("git not runnable: %s" % exc) from exc
+ 
+ 
++def git_unreadable(repo, proc):
++    """The EnvError text for a failed `git rev-parse --git-dir`.
++
++    A directory git reads and rejects is not a repository; a git that refuses
++    to read at all (dubious ownership, a broken installation) is an
++    environment failure and is reported with git's own words.
++    """
++    detail = (proc.stderr or "").strip()
++    if "not a git repository" in detail:
++        return "not a git repository: %s" % repo
++    first = detail.splitlines()[0] if detail else "(git printed no diagnostic)"
++    return ("git rev-parse --git-dir failed in %s (exit %d): %s"
++            % (repo, proc.returncode, first))
++
++
+ def _open_text(path, label):
+     """Open a corpus file for reading, or raise EnvError (exit 2) naming it.
+ 
+@@ -460,8 +475,9 @@ def analyse_commits(repo, tracked_corpus):
+ 
+ def analyse(repo):
+     repo = os.path.abspath(repo)
+-    if _git(repo, "rev-parse", "--git-dir").returncode != 0:
+-        raise EnvError("not a git repository: %s" % repo)
++    probe = _git(repo, "rev-parse", "--git-dir")
++    if probe.returncode != 0:
++        raise EnvError(git_unreadable(repo, probe))
+     if not os.path.isdir(os.path.join(repo, "corpus")):
+         raise EnvError("corpus/ missing in %s" % repo)
+     if not os.path.isfile(os.path.join(repo, "corpus", "README.md")):
+@@ -999,6 +1015,33 @@ def self_test():
+         st.eq(proc.returncode, 2, "cli: unavailable git exits 2")
+         st.eq(proc.stderr.startswith("could-not-evaluate: git not runnable:"), True,
+               "cli: unavailable git reports could-not-evaluate")
++
++        # -- could-not-evaluate: git is present and refuses (exit 128) ---------
++        # A refusing git is an environment failure: the gate must quote git's
++        # own words, not claim the repository is not a repository.
++        refusing_path = os.path.join(tmp, "refusing-git-path")
++        os.makedirs(refusing_path)
++        os.symlink(sys.executable, os.path.join(refusing_path, "python3"))
++        shim = os.path.join(refusing_path, "git")
++        with open(shim, "w", encoding="utf-8") as fh:
++            fh.write("#!/bin/sh\n"
++                     "echo \"fatal: detected dubious ownership in repository"
++                     " at '/x/y'\" >&2\n"
++                     "exit 128\n")
++        os.chmod(shim, 0o755)
++        refusing_env = dict(os.environ)
++        refusing_env["PATH"] = refusing_path
++        proc = subprocess.run(
++            [sys.executable, os.path.abspath(__file__), "--repo", froot],
++            capture_output=True, text=True, env=refusing_env,
++        )
++        st.eq(proc.returncode, 2, "cli: refusing git exits 2")
++        st.eq(proc.stderr.startswith("could-not-evaluate: "), True,
++              "cli: refusing git reports could-not-evaluate")
++        st.eq("not a git repository" in proc.stderr, False,
++              "cli: refusing git is not reported as a non-repository")
++        st.eq("dubious ownership" in proc.stderr, True,
++              "cli: refusing git quotes git's own refusal")
+     finally:
+         if old_home is None:
+             os.environ.pop("HOME", None)

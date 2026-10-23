@@ -282,8 +282,46 @@ def self_test() -> int:
     check("G git unavailable reports could-not-evaluate",
           no_git.stderr.startswith("could-not-evaluate: "), True)
 
+    # A git that is present and refuses (exit 128, e.g. dubious ownership) is
+    # an environment failure: the gate must quote git's own refusal, not claim
+    # the revision is unknown.
+    with tempfile.TemporaryDirectory(prefix="mcp-self-test-git128-") as td:
+        (Path(td) / "python3").symlink_to(sys.executable)
+        shim = Path(td) / "git"
+        shim.write_text("#!/bin/sh\n"
+                        "echo \"fatal: detected dubious ownership in repository"
+                        " at '/x/y'\" >&2\n"
+                        "exit 128\n", encoding="utf-8")
+        shim.chmod(0o755)
+        env = dict(os.environ)
+        env["PATH"] = td
+        for key in ("GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE"):
+            env.pop(key, None)
+        refusing = run_gate("HEAD", env)
+    check("G refusing git exits 2", refusing.returncode == 2, True)
+    check("G refusing git does not blame the revision",
+          "is not a commit" in refusing.stderr, False)
+    check("G refusing git reports git's own refusal",
+          "dubious ownership" in refusing.stderr, True)
+
     print("self-test: %d failure(s) over %d assertions" % (failures, assertions))
     return 1 if failures else 0
+
+
+def revision_error(rev: str, where, code: int, detail: str) -> str:
+    """The could-not-evaluate reason for a failed `rev-parse --verify --quiet`.
+
+    An unknown revision is git's own exit 1 with no diagnostic.  Any other
+    failure (a refusing git: dubious ownership, no repository, a broken object
+    store) is an environment failure and is reported with git's own words,
+    never as a claim about the revision.
+    """
+    detail = detail.strip()
+    if code == 1 and not detail:
+        return "revision %r is not a commit in %s" % (rev, where)
+    first = detail.splitlines()[0] if detail else "(git printed no diagnostic)"
+    return ("git rev-parse %r failed in %s (exit %d): %s"
+            % (rev, where, code, first))
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -307,7 +345,9 @@ def main(argv: list[str] | None = None) -> int:
                                 "--quiet", "%s^{commit}" % args.rev],
                                capture_output=True)
             if r.returncode != 0:
-                raise RuntimeError("revision %r is not a commit in %s" % (args.rev, LANE))
+                raise RuntimeError(revision_error(
+                    args.rev, LANE, r.returncode,
+                    r.stderr.decode("utf-8", "replace")))
         entry = read_file(args, ENTRY)
         sources = read_file(args, SOURCES) or ""
         lesson = read_file(args, LESSON) or ""

@@ -134,11 +134,28 @@ def reader(rev: str | None, root: str | None):
     return read
 
 
+def revision_error(rev: str, where, code: int, detail: str) -> str:
+    """The could-not-evaluate reason for a failed `rev-parse --verify --quiet`.
+
+    An unknown revision is git's own exit 1 with no diagnostic.  Any other
+    failure (a refusing git: dubious ownership, no repository, a broken object
+    store) is an environment failure and is reported with git's own words,
+    never as a claim about the revision.
+    """
+    detail = detail.strip()
+    if code == 1 and not detail:
+        return "revision %r is not a commit in %s" % (rev, where)
+    first = detail.splitlines()[0] if detail else "(git printed no diagnostic)"
+    return ("git rev-parse %r failed in %s (exit %d): %s"
+            % (rev, where, code, first))
+
+
 def verify_revision(rev: str) -> None:
     r = subprocess.run(["git", "-C", str(LANE), "rev-parse", "--verify", "--quiet",
                         "%s^{commit}" % rev], capture_output=True)
     if r.returncode != 0:
-        raise RuntimeError("revision %r is not a commit in %s" % (rev, LANE))
+        raise RuntimeError(revision_error(
+            rev, LANE, r.returncode, r.stderr.decode("utf-8", "replace")))
 
 
 def self_test() -> int:
@@ -218,6 +235,26 @@ def self_test() -> int:
     if (p.returncode != 2 or not p.stderr.startswith("could-not-evaluate: ")
             or "'git'" not in p.stderr):
         fails.append("git unavailable: exit %d, stderr %r" % (p.returncode, p.stderr))
+
+    # A git that is present and refuses (exit 128, e.g. dubious ownership) is
+    # an environment failure: the gate must quote git's own refusal, not claim
+    # the revision is unknown.
+    with tempfile.TemporaryDirectory() as t:
+        Path(t, "python3").symlink_to(sys.executable)
+        shim = Path(t, "git")
+        shim.write_text("#!/bin/sh\n"
+                        "echo \"fatal: detected dubious ownership in repository"
+                        " at '/x/y'\" >&2\n"
+                        "exit 128\n", encoding="utf-8")
+        shim.chmod(0o755)
+        env = os.environ.copy()
+        env["PATH"] = t
+        p = run_cli("HEAD", env)
+    n += 1
+    if (p.returncode != 2 or not p.stderr.startswith("could-not-evaluate: ")
+            or "is not a commit" in p.stderr
+            or "dubious ownership" not in p.stderr):
+        fails.append("refusing git: exit %d, stderr %r" % (p.returncode, p.stderr))
 
     print("%d failure(s) over %d assertions" % (len(fails), n))
     for f in fails:
