@@ -120,6 +120,30 @@ and is reported under Sources & frontier, not as a claim. The class is mined as 
 Round claims are now C1 (depth) and C2 (calibration). The sourced-claim rule is still met
 by C1's S112–S115.
 
+## Erratum E2 — arm A3 amended byte-identity → url_key identity, before any C1 data (2026-10-23)
+
+`MutA3` proved the frozen A3 sentence ("a re-open row's URL must be byte-identical to its
+base row's URL") unsatisfiable: r60's own eligible row S108 records
+`https://cursor.com/docs/rules` while its base row S049 records
+`https://cursor.com/docs/rules.md` — literal byte-identity rejects an eligible row the
+frozen predicate requires to pass. The arm is amended, **before any C1 data entered the
+lane** (no counter v3 measurement exists; the counter is still being drafted):
+
+- **A3 (amended)** — a re-open row's URL must have the same `url_key` as its base row's
+  URL, where `url_key` is the counter's existing canonicalization (host lowercased,
+  scheme/default-port/www normalized, a single trailing `.md` dropped). The C1 predicate
+  sentence is unchanged.
+- Limit (disclosed before data): url_key identity admits 11 canonical-equivalence URL
+  spellings of the same document (trailing slash, `.md` drop, query, fragment,
+  scheme/host case, www, default port, percent path, http downgrade, path case); alias
+  renderings whose path differs (locale `/de/`, enterprise `@latest`, the W2/W4 worlds)
+  keep distinct url_keys and stay rejected. MutA3 demonstrated the amended arm passes the
+  full counted surface (W2/W4 reject; S103/S106/S108 accept) and supplied a
+  sentence-fidelity detector for the literal-bytes mutant.
+- Fixture rule: every rebuilt world's receipt pins the rejecting arm and printed line
+  (literal A3 would have rejected W3's Cursor rows before the held-key arm ran — receipts
+  must name which arm fired).
+
 ## Commit order
 
 This plan + checker + C2 base control + census-before (freeze commit) → wave evidence →
