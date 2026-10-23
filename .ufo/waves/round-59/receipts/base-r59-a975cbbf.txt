@@ -1,0 +1,69 @@
+Round-59 base receipts (no-harm before-column)
+rev a975cbbf00534443c49bf02e29c813a3db0bf0f8
+Fri 23 Oct 2026 09:09:37 UTC
+seat KotobaR59.ExecR2TipReceipts, round-59 wave W0, 2026-10-23
+each command ran under `timeout 600`; every exit code below is the command's own
+
+Sandbox (bounds-compliant; nothing in the lane was written or mutated):
+  clone   /fast/scratch/hyaku/kotoba-r59/ExecR2TipReceipts
+  run dir /fast/scratch/hyaku/kotoba-r59/ExecR2TipReceipts/world2/kotoba-shokunin
+  head    a975cbbf00534443c49bf02e29c813a3db0bf0f8 (git rev-parse HEAD)
+  python  Python 3.14.8
+  host    Linux 7.2.11-arch1-1 x86_64
+  layout  clean clone checked out at the rev, in a directory named `kotoba-shokunin`,
+          with every fleet-root top-level entry (excluding the lane itself, .git and .jj)
+          symlinked read-only into its parent so `../` citation hops resolve exactly as
+          they do from the lane (same shape as .ufo/waves/round-58/build/noharm-base.txt § 9).
+
+== python3 -B verifiers/verify_skill_checklist.py --json
+{"exit_code": 0, "fail": 0, "na": 0, "pass": 11}
+checks: the same 11 ids as at ed44e0c4, all PASS, including
+        trigger.line_budget (596 lines within budget 600) and
+        trigger.citation_resolves (137 tokens),
+        governance.citation_resolves (1074 tokens)
+exit 0
+
+== python3 -B verifiers/verify_corpus_integrity.py --json
+DRIFT count: 5
+  corpus.index.tracked_files           observed=94  expected=81
+  corpus.index.unindexed               observed=1   expected=0 / empty
+    detail: corpus/lessons/round-58-verifier-spotcheck.md
+  corpus.pointers.report_total         observed=64  expected=51
+  corpus.pointers.commit_total         observed=33  expected=32
+  corpus.pointers.commit_unresolvable  observed=1   expected=0 / empty
+    detail: corpus/lessons/round-54-verifier-spotcheck.md:147: 451a02ff
+PASS: corpus.index.stale_patterns (0), corpus.index.missing_paths (0),
+      corpus.pointers.report_dead (0), corpus.pointers.commit_nonhash (0)
+4 of 9 checks pass
+exit 1
+
+== python3 -B verifiers/check_gate_registry.py --rev a975cbbf00534443c49bf02e29c813a3db0bf0f8
+gate registry rows conformant 32 of 32 lane verifiers; phantom 0
+exit 0
+
+== python3 -B verifiers/check_assertion_floors.py
+PASS harness observed=10 floor=10
+PASS corpus_integrity observed=152 floor=152
+PASS corpus_independent observed=99 floor=93
+PASS surfaces observed=175 floor=175
+PASS checklist observed=1852 floor=1852
+PASS pins observed=62 floor=62
+PASS harness_independent observed=123 floor=123
+PASS compare_harness_independent observed=330 floor=330
+PASS floors_guard observed=165 floor=150
+PASS dispatch_prompts observed=56 floor=56
+PASS sibling_census observed=68 floor=68
+PASS overlap_levers observed=55 floor=51
+PASS alwayson observed=89 floor=89
+PASS correction_sweep observed=25 floor=25
+exit 0
+
+== python3 -B verifiers/check_correction_sweep.py --root .
+correction sweep: 0 stale block(s)
+exit 0
+(registry entry command, verbatim: SKILL.md § Gate registry row for check_correction_sweep.py)
+
+== python3 -B verifiers/check_correction_sweep.py --rev a975cbbf00534443c49bf02e29c813a3db0bf0f8
+correction sweep: 0 stale block(s)
+exit 0
+(rev-pinned form, as the round-59 W0 item names it; agrees with the --root run)

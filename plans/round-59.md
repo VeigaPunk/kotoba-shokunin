@@ -60,7 +60,25 @@ draft):
   claim is redesigned before data, never after. Predicate (the same sentence in the counter, the receipt label and
   here): *exit 0 iff F ≥ T_F and G ≥ T_G* on `--rev <rev> --fetch`; receipt label
   `C1 predicate: --fetch exit 0 (F>=TARGET, G>=NEW_TARGET)`.
-- Targets: `TBD` (set at freeze from the census by the formula above).
+- **Census (freeze record, W0 reports `.ufo/waves/round-59/w0/Census*.md`, fetched 09:02–09:05Z, no lane content):**
+
+  | Client | census | eligible token | page (seat report) | base hits |
+  |---|---|---|---|---|
+  | Claude Code | ELIGIBLE | `.claude/settings.json` | code.claude.com/docs/en/hooks.md:910 (`CensusClaudeCode`) | 0 |
+  | Codex | ELIGIBLE | `~/.codex/hooks.json` | learn.chatgpt.com/docs/hooks.md:44 (`CensusCodex`) | 0 |
+  | VS Code | ELIGIBLE (Preview) | `.github/hooks/*.json` (the seat's lead was the example file `.github/hooks/audit.json`; the folder pattern is the documented location) | code.visualstudio.com/docs/agent-customization/hooks.md (`CensusVSCode`) | 0 |
+  | Copilot CLI | ELIGIBLE | `~/.copilot/hooks/*.json` (its repository pattern `.github/hooks/*.json` is VS Code's lead token, so the row leads with the personal path; E5) | docs.github.com/en/copilot/concepts/customizations/hooks.md:28 (`CensusCopilotCLI`) | 0 |
+  | Gemini CLI | ELIGIBLE | `.gemini/settings.json` | geminicli.com/docs/hooks/best-practices.md:413 (`CensusGeminiCLI`) | 0 |
+  | Cursor | ELIGIBLE | `.cursor/hooks.json` | cursor.com/docs/hooks.md:50 (`CensusCursor`) | 0 |
+  | opencode | NOT ELIGIBLE — hook code lives only in `.opencode/plugins/` / `~/.config/opencode/plugins/` (banned word `plugins`); no hooks file | — | opencode.ai/docs/plugins.md (`Censusopencode`) | — |
+
+  F_max = 6; G_max = 6 (every eligible token 0 hits: `git grep -ilF <t> a975cbbf -- . ':!.ufo' | wc -l`). Sibling scan
+  `w0/ConnSiblingHooks.md`: no lane owns the surface (FITS; tsukuroi's pacman/initramfs hooks are host hooks, not
+  client hook files).
+- **Targets (frozen by the formula): T_F = 4, T_G = 5.** Counter `verifiers/check_hook_files.py` with `TARGET = 4`,
+  `NEW_TARGET = 5` (built by `ExecC1Counter`, `w0/check_hook_files.py` sha256 `cfeb915d…` with `None` targets; frozen
+  sha256 `f695d59e109c20a80c1874298f580aadf1cfec0b353a8576ac3e238fb50dbe71`; self-test `0 failure(s) over 323
+  assertions`, exit 0; base `--rev a975cbbf` → `0 of 0; live not run; new ground 0`, exit 1).
 - Commit order: targets and counter are committed before the control wave scores them; a control that meets the
   predicate forces a redesign before any data (erratum), never a change after data.
 
