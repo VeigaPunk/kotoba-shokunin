@@ -208,3 +208,13 @@ withdrawn before data) and no axis is harmed. **Admitted.** SHONEN: the four box
 `[~]` with resolvable pointers and remain fully checkable by a non-author; this closure
 writes no `[x]`. Open L0 carried: the round-55 line and the round-61 r60-erratum
 authorization are operator-owned.
+
+## Correction (appended by the same closure, 2026-10-23T20:53Z)
+
+Section 1's table and Section 2's prose say "20 cited lane hashes"; the enumerated list in
+Section 2 contains **21** (`a745411c`, `f3246d14`, `7827628a`, `c630c4cb`, `3dbf0077`,
+`40fd9601`, `6a7f722e`, `5b8a533c`, `b4a8d2ee`, `43fe0180`, `57cc7976`, `de37c1d1`,
+`cd1910c4`, `526df5d4`, `3f47aaf6`, `147ac42e`, `8a8d3320`, `eb5e149a`, `daf4ad71`,
+`ee19e9c9`, `cf288d84`), and all 21 exit 0 under
+`git merge-base --is-ancestor <hash> master`. The superseded text is the count "20"; no
+verdict, claim, or conformance result changes.
