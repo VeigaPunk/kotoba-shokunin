@@ -132,6 +132,20 @@ A rule the model must follow every time is still text it reads; a command hook i
 | Cursor | `.cursor/hooks.json` (project; the user file is not available to cloud agents, S101 :102) | `preToolUse`, `postToolUse` (S101 :27, :67; cloud agents defer `sessionStart`, :88, self-hosted workers fire it, :104) | Keep cloud-agent checks in the project file; project hooks run only in a trusted workspace (S101 :649, :781) |
 | opencode | no hook file: hook code is a plugin module (§ Plugin manifests by client; S085, S087) | `execute.before`, `execute.after` (V2 plugin API, V1 used tool.execute.before/after; S085 index.mdx :1738, :1746) | Read the plugin module; do not look for a hook config file |
 
+### Scoped rule files by client
+
+A rule that matters only for some files can live in a scoped rule file the client loads only for matching paths; every-session constraints stay in the always-on file (§ Always-on constraint-file checklist) and a check that must run at an event is a hook (§ Hook files by client). Basis: `corpus/knowledge/scoped-rules-round60.md`, S103–S109 (vendor pages, not a runtime test; S103, S106, S108 re-open S043, S048, S049). VS Code's row is its Local/Copilot-harness behaviour (S105 :32); Codex, Gemini CLI and opencode scope by directory instead.
+
+| Client | Rule files | Scope key | Action |
+|---|---|---|---|
+| Claude Code | `.claude/rules/` (multi-file instructions, scoped to matching files; S103 :168) | `paths` (e.g. `src/api/**/*.ts`, S103 :198) | Scope rules to specific files using YAML frontmatter; apply only when matching specified patterns. (S103 :194) |
+| Codex | no scoped rule file: AGENTS.md instructions are discovered by directory walk (S104 :12) | none (the project-root-to-current-directory walk determines loaded instructions, S104 :12) | Use nested AGENTS.override.md/AGENTS.md for directory-specific instructions, not matching-file rules (S104 :12) |
+| VS Code | `.github/instructions/**/*.instructions.md` (Local-harness targeted instructions, S105 :32) | `applyTo` (`**/*.py`, S105 :164) | Use multiple instruction files per topic and apply them selectively (S105 :329) |
+| Copilot CLI | `.github/instructions/**/*.instructions.md` (modular repository instruction files, S106 :18) | `applyTo` (e.g. `app/models/**/*.rb`, S106 :66) | Create a path-specific instruction file with an `applyTo` glob; use glob syntax to specify the files or directories the instructions apply to (S106 :60). |
+| Gemini CLI | no scoped rule file: directory-scoped GEMINI.md context with just-in-time discovery (S107 :31-35) | none (directory and ancestor lookup scope context instead of a path-pattern key, S107 :31-33) | Put component-specific instructions in GEMINI.md context files; JIT discovery scans the accessed directory and its ancestors (S107 :31-33) |
+| Cursor | `.cursor/rules` (project rule folder for `.mdc` files, S108 :32) | `globs` (example `src/components/**/*.tsx`, S108 :85) | Use `globs` to scope a rule to specific files or directories. Separate multiple patterns with commas. (S108 :131) |
+| opencode | no scoped rule file: AGENTS.md guidance is directory-scoped, not matching-work-file scoped (S109 :64) | none (directory placement governs scope, S109 :64) | Place AGENTS.md in the project root; its guidance applies in that directory and its subdirectories (S109 :64) |
+
 ## Router model — which harness, which gate
 
 Two harnesses consume skills here, and neither shares the other's catalogue
@@ -469,6 +483,7 @@ reads as could-not-evaluate. `python3 -B verifiers/check_gate_registry.py --rev 
 | `verifiers/check_gate_finding_delta.py` | gate | `python3 -B verifiers/check_gate_finding_delta.py --base <rev> --head <rev>` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | `verifiers/corpus-baseline.json` | temp trees under `$TMPDIR` | kotoba |
 | `verifiers/check_gate_registry.py` | gate | `python3 -B verifiers/check_gate_registry.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file | none | kotoba |
 | `verifiers/check_hook_files.py` | gate | `python3 -B verifiers/check_hook_files.py --rev <rev> --fetch` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file | self-test repos under `$TMPDIR` (removed); `--fetch` reads the network | kotoba |
+| `verifiers/check_scoped_rules.py` | gate | `python3 -B verifiers/check_scoped_rules.py --rev <rev> --fetch` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file | self-test repos under `$TMPDIR` (removed); `--fetch` reads the network | kotoba |
 | `verifiers/check_infoless_fences.py` | gate | `python3 -B verifiers/check_infoless_fences.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate — claim withdrawn r57 before data; not a claim gate until redesigned and re-controlled | `--self-test` | in-file | temp archives and per-case dirs under `$TMPDIR` (removed) | kotoba |
 | `verifiers/check_mcp_instructions.py` | gate | `python3 -B verifiers/check_mcp_instructions.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file | none; `--fetch` reads the network | kotoba |
 | `verifiers/check_opencode_repin.py` | gate | `python3 -B verifiers/check_opencode_repin.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | `verifiers/surfaces-baseline.json`, `verifiers/baseline.json` | temp trees under `$TMPDIR` (removed) | kotoba |
@@ -506,19 +521,8 @@ reads as could-not-evaluate. `python3 -B verifiers/check_gate_registry.py --rev 
   lines at round-9 recount; round-7 audit: 30 restate the L2 map with stale
   aliases) — round
   self-iteration mode; template variance is name+path only.
-- `~/.config/opencode/agents/*.md` (historical: 18 files, 14–197 lines; absent on this host as of 2026-10-23) — agent-definition
-  surface: roster frontmatter (`subagents`, `cascade`, `permission_mode`),
-  negative routing (`NOT …` family in 11/18 — round-6 audit corrected
-  round-4's 7), shared godspeed preamble in 14/18 (doubled in
-  mutation-tester.md), stale dated `cascade_note` and missing `name:` key
-  in ufo.md, `aaron` bin declared-but-absent in scout.md.
-- `~/.config/opencode/command/*.md` (3 files, 10–13 lines) — command surface:
-  pointer-then-rules idiom, `agent:` delegation key, `$ARGUMENTS`.
-- CLAUDE.md files: `find ~ -maxdepth 6 -iname 'claude.md' -not -path
-  '*/node_modules/*'` → 18 hits at round-7 recount (5 operator-authored, 1
-  dispatch template, 12 vendored/cache); loader strings in both harness
-  binaries (9 opencode / 17 omp) but 0 captured injections — seventh surface
-  class, cold channel.
+- Host surfaces studied (opencode agent and command files, CLAUDE.md files) moved verbatim to
+  `corpus/knowledge/anatomy-and-compression.md` § Moved from SKILL.md § Sources — host surfaces (round 60).
 - `~/.local/share/opencode/opencode.db` — literal-trigger miss proxy over 398
   sessions / 415 skill calls (415/216 re-verified round 9): unique-token
   triggers 0 misses; godspeed always-on session coverage 51.5%, re-interpreted

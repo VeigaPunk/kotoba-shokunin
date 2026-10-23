@@ -177,3 +177,23 @@ the move, checked before and after — receipt in
   safety-rule callouts, config-location tables.
 - `~/.config/opencode/skills/ufo/SKILL.md` — invariant lists (I1–I10), load-order
   with fail-closed resolution, dispatch contract.
+
+## Moved from SKILL.md § Sources — host surfaces (round 60)
+
+Verbatim from `SKILL.md` § Sources at `31092dc6` lines 509–521 (round 60 line-budget move, 13 lines, replaced by a
+2-line pointer; the moved block's sha256 `20766162d5617f04ec566813d617182674fa5135ef8390f551c67f84c0482e4c` is the same before and after the move:
+`git show 31092dc6:SKILL.md | sed -n 509,521p | sha256sum` and, while this section is the file's last, `tail -n 13 corpus/knowledge/anatomy-and-compression.md | sha256sum`).
+
+- `~/.config/opencode/agents/*.md` (historical: 18 files, 14–197 lines; absent on this host as of 2026-10-23) — agent-definition
+  surface: roster frontmatter (`subagents`, `cascade`, `permission_mode`),
+  negative routing (`NOT …` family in 11/18 — round-6 audit corrected
+  round-4's 7), shared godspeed preamble in 14/18 (doubled in
+  mutation-tester.md), stale dated `cascade_note` and missing `name:` key
+  in ufo.md, `aaron` bin declared-but-absent in scout.md.
+- `~/.config/opencode/command/*.md` (3 files, 10–13 lines) — command surface:
+  pointer-then-rules idiom, `agent:` delegation key, `$ARGUMENTS`.
+- CLAUDE.md files: `find ~ -maxdepth 6 -iname 'claude.md' -not -path
+  '*/node_modules/*'` → 18 hits at round-7 recount (5 operator-authored, 1
+  dispatch template, 12 vendored/cache); loader strings in both harness
+  binaries (9 opencode / 17 omp) but 0 captured injections — seventh surface
+  class, cold channel.
