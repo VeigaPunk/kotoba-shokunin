@@ -231,3 +231,63 @@ report goes through `scripts/hyaku/fleet-commit.sh`.
   entry and lesson (novelty + economy pass), not assumed covered.
 - The E1 hollow-counterexample class (M92) is re-attacked against C1's matrix: the matrix
   must show both directions and a benign side; a presence counter cannot pass it.
+
+## Erratum E1 — C1's frozen line corrected, and the successor moved out of the counted predicate (pre-data, 2026-10-23)
+
+Two wave-1 seats (`ScribeLog62`, `ExecGateArms`) independently flagged that §C1's frozen
+predicate (`absorbed 4 of 5; surviving 2`) contradicts §C1's expected-result paragraph
+(`absorbed 4 of 5; surviving 1`). `ScoutCounterApi` then executed the arm-level probe and
+measured two more absences than §C1 assumed:
+
+- **E2f** — no G7/G9 code exists: `action_conjunct` implements the forward/reverse
+  fractions only, `content_words` strips backticked spans, and no claim-verb conjunct is
+  present; a backticked `InstructionsLoaded` cell returns `[]`.
+- **E2e** — the guarded form's colon-only and commented-key clauses are absent:
+  `KEY_SUFFIX_RE` is `["'`]?[ \t]*[:=]` (accepts `=`), and `key_site` does not reject a
+  commented key. The probe measured both accepting.
+
+**No C1 matrix data has run** (the instrument is still a draft; no survivor has been
+scored against a committed instrument). Amendment, before any data:
+
+1. The frozen predicate line is corrected to:
+
+   ```
+   errata measured 5 of 5; absorbed K of 5; surviving N; controls 2 of 2
+   ```
+
+   where K and N are **computed from the runs** and printed; exit 0 iff all five errata
+   were measured in both directions and the two seeded controls classified correctly.
+   The after-value C1 counts is `errata measured 5 of 5; controls 2 of 2` (fixed), with
+   K/N and every survivor name printed in the same receipt and quoted in the report.
+2. The expected result is corrected: at least **two** survivors are expected (E2f and
+   E2e); if the matrix prints 5 of 5 or fewer than two survivors, the frozen instances
+   were not the errata's classes and the round records a counter defect, not a pass.
+3. The successor (`verifiers/check_scoped_rules_v31.py`) moves **out of the counted
+   predicate**: it is landed fix evidence reported under Landed changes with its own
+   measured line `worlds reject 7 of 7; eligible rows pass 4 of 4; survivors closed S of S`
+   (S = the matrix's survivor count), and it lands only if both r61 sides stay green. C1's
+   counted predicate is item 1. This keeps the claim's after-state re-derivable with one
+   command while the successor remains honest frontier repair.
+4. C1's before-state is `0 of 5` committed erratum-level measurements against the landed
+   counter (`ScoutPriorReceipts` census: the five seat attack tables measured the draft
+   text/v2 oracle; 0 receipts name the landed counter sha for any erratum class).
+
+The wave-1 seats' drafts are unaffected except that `ExecAbsorbInstrument` and
+`ExecSuccessor31` must implement this corrected line; the L1 relays it.
+
+### E1 addendum — E2c's conditions 5 and 6 are also measured absent (pre-data, same window)
+
+`ExecInstancesA4` (wave 1) measured, before any matrix data, that the landed
+`alias_sha_why` enforces only the anchored `supersedes S###` prefix: it returns `[]` for
+(i) a wrong-target declaration (`supersedes S048 —` where S048 records only the
+`00e45ea5` prefix and not the counted row's full sha — E2c binding condition 5) and
+(ii) a declared byte-identity row whose anchor cell still carries a `fetched <ISO>`
+assertion (condition 6). `ExecInstancesA1` measured the E2e negated-key case accepted
+(`Do not use paths: src/legacy/**/*.ts` → `path_site=True`, `scope_conjunct=[]`), alongside
+the equals-form and commented-key accepts from `ScoutCounterApi`. The corrected expected
+result is therefore **at least three survivors** (E2c, E2e, E2f); E2 and E2b are expected
+absorbed. The matrix's `absorbed K of 5; surviving N` stays computed; the receipt names
+every survivor with its instance id and reason. The successor's scope grows to close the
+survivors it can (E2c conditions 5/6, E2e colon/negation/commented keys, E2f G7) while the
+r61 sides stay green; anything it cannot close stays a named bound. `ExecAbsorbInstrument`
+and `ExecSuccessor31` are relayed this addendum.
