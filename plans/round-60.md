@@ -43,6 +43,27 @@ that it was an event (`round-59-verifier-spotcheck.md` § Counter limits). This 
   at least 2 distinct content words with the cell (lowercase `[a-z]{4,}` words outside backticks and citations,
   minus a pinned stopword list in the counter). An action invented apart from the cited line fails.
 
+
+**Draft amendment A1 (10:36Z, before the freeze, before any control or C1 data; the rule is tightened, never loosened).**
+Census seat `CensusCursor` (`.ufo/waves/round-60/w0/CensusCursor.md:94-108`) showed the drafted Scope-key rule passes a
+wrong key: `cursor.com/docs/rules` line 65 (`` | `alwaysApply` | `description` | `globs` | ``) passes for `description`
+through the table-cell form plus the word `globs` elsewhere on the line, and line 99 (`description: RPC service
+conventions and patterns …`) passes through the word `patterns`. A printed-but-wrong name passing is the failure this
+round exists to stop, so the two conjuncts read, from A1 on:
+
+- **Scope key cell (A1)** — K must stand in **key form** on line L: K at an identifier boundary, followed (after an
+  optional closing `"`, `'` or backtick and optional spaces) by `:` or `=`. Its **value** V is the rest of line L after
+  that `:`/`=`; when V is empty or only `[`, `|` or `>`, V is the first nonblank line among the next 3 lines, which must
+  begin (after spaces) with `-` or a quote. After stripping leading `-`, `[`, quotes and spaces, the **first token** of V
+  (up to whitespace, a comma or a closing quote/bracket) must contain `*` and consist only of `[A-Za-z0-9_./*{},!-]`.
+  The table-cell form and the glob/pattern-word alternative are removed. `description: "Applies to **/*.ts"` fails
+  (first token `Applies`).
+- **Action cell (A1)** — W = the distinct content words of the cell (lowercase `[a-z]{4,}` outside backticks and
+  citations, minus the pinned stopwords); |W| ≥ 3 and at least max(2, ⌈|W|/2⌉) of W occur on the cited line. Limit
+  stated before any control: a cell built from the line's own words passes even if it inverts the line's meaning
+  (negation); that reading stays with the falsify-wave `Cells<Client>` seats.
+- The live conjunct uses the same key-form test at any line of the live page.
+
 Counter: `python3 -B verifiers/check_scoped_rules.py --rev <rev> --fetch` (built pre-freeze from
 `verifiers/check_hook_files.py`, sha256 `f695d59e…`; everything not named here is that counter's behaviour). Row rule
 (fixed in this draft):
