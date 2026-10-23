@@ -232,6 +232,21 @@ teaches cell must not also carry a fresh-fetch assertion (`fetched <ISO>` form, 
 row's recorded fetch-claim shape) — a byte-identity row claiming a fresh fetch of the
 same bytes is rejected (MutA4 seam 2).
 
+### E2f addendum — A2 is the guarded form, with a declared bound (same pre-data window)
+
+`MutA2` measured ten invented-action cells: all pass the committed counter's
+`action_conjunct` (the published W6 cell passes a key-binding-only A2 — it is rejected
+only by the claim-span check). The guarded minimum is G5 (the cited line carries the
+row's scope key plus half-overlap) AND G7 (a raw load/event claim requires all cell words
+on one line), with G9 for F6's compound-purpose class — this rejects all four requested
+classes + W6 while keeping the four eligible positives. Implementation pins: do NOT
+require all action words on one line for non-claim cells (the real rows have none); do
+NOT ban verbatim text (S108's action is :131 verbatim modulo backticks); detect claims
+with a RAW tokenizer (`content_words` strips backticked spans — F2a's `InstructionsLoaded`
+vanishes); do NOT put `apply` in the claim-verb set (the Claude Code positive fails).
+Bound, declared before data: F6 (listed-but-unwired compound-purpose events) survives
+even the full guard — an A2 bound, disclosed in the entry's limit list.
+
 ## Commit order
 
 This plan + checker + C2 base control + census-before (freeze commit) → wave evidence →
