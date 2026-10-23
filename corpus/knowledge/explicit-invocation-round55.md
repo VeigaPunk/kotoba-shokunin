@@ -35,17 +35,17 @@ set those turns aside first, and the per-client form below is what identifies th
    name in the same turn, so "starts with `/name`" and "holds `/name`" differ: the action cells say which.
 2. **Gemini CLI's documented form is the model's tool call, not the user's.** The tutorial's sequence is a
    description match, then the model calls `activate_skill`, then the user is asked to consent (S069). A
-   transcript that shows `activate_skill` therefore records an activation, and says nothing by itself about
+   transcript that shows `activate_skill` therefore records a consent-gated load request, and says nothing by itself about
    whether the user named the skill. The pages the seat read (`skills.md`, `using-agent-skills.md`, the
    tutorial) show no user-typed invocation form; that is "not found on those pages", not a Q30 negative —
    the changelog sweep was not run.
-3. **Four clients pair the explicit form with an automatic-invocation switch that keeps it.** Claude Code
+3. **Six of seven clients pair the explicit form with an automatic-invocation switch that keeps it** (Copilot CLI's `disable-model-invocation`, S031 `:1278`, and Codex's below were held at base; only Gemini CLI has none in the pages read). Claude Code
    `disable-model-invocation: true` (S065 `:577`), VS Code `disable-model-invocation: true` (S067 `:151`),
    Cursor `disable-model-invocation: true` (S070 `:175`) and opencode `opencode/autoinvoke: false` (S071
    `:142`); Codex's `allow_implicit_invocation: false` (S021, round 51) does the same. A skill with that switch
    set can only appear in explicit turns, so it belongs outside any implicit-trigger denominator.
 4. **The form is a mechanism, not the request's origin** (sibling scan, `ConnSiblingOverlap.md`): an
-   orchestrator or another skill can type `/name` into a turn too. The table identifies turns where the
+   orchestrator or an injected dispatch directive can put `/name` into a turn too. The table identifies turns where the
    skill was named; who named it is a separate question this entry does not answer.
 
 ## Relation to what the lane already held
