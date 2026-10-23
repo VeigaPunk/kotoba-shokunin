@@ -133,6 +133,14 @@ by client (`../verifiers/check_explicit_invocation.py --rev <rev> --fetch` → `
 live page F of K; new ground G`). Still not held: the intent-labeling pass itself, any measured client behaviour, and
 who typed the form (a user, an orchestrator or another skill).
 
+**Round 56 (append-only note on the checklist row above):** *Executed checklist coverage* — the agent-definition
+checklist gains its client map, not an executed box: where seven clients put their agent-definition files and what a
+file sets is held in `knowledge/agent-definition-files-round56.md` and acted on in `../SKILL.md` § Agent-definition
+files by client (`../verifiers/check_agent_definitions.py --rev <rev> --fetch` → `agent-definition locations found on
+the live page F of K; new ground G`). Still not held: any executed agentdef box (the round-56 box counter was met by
+two controls before data and withdrawn; redesign input `../../.ufo/waves/round-56/build/C2RedesignCounter.md`), which
+file each client actually loads, and a checklist for the six non-opencode schemas.
+
 ## Known gaps
 
 - **31 of the 41 `SKILL.md` checklist boxes are still lane-attested prose.** Round

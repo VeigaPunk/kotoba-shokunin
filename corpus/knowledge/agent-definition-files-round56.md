@@ -27,7 +27,11 @@ Markdown at all.
 | opencode | `.opencode/agents` | S078 | "A nested path becomes part of the agent ID: text .opencode/agents/team/reviewer.md → team/reviewer" |
 
 Quote notes: S072 is the Agent SDK page, which points back to Claude Code's filesystem definitions; the schema
-detail (`name`, `description`, `tools`, `model`) is from the base row S026 (`SrcClaudeCode`, `CriticC1Rows`). S073's
+detail (`name`, `description`, `tools`, `disallowedTools`, `model`) is from Claude Code's sub-agents page (base row S026),
+re-opened 2026-10-23T03:07:29Z (111,624 B, sha256 `84b2646c…`; `sub-agents.md:94,242,289,298-302,349,446`, seat
+`ReopenS072S073`); the S026 row's recorded scope covers delegation and name collisions only, so these lines are cited
+here, not through that row's anchors. S073's quote folds two line breaks (`subagents.md:341-343`) into spaces. S075's quote folds lines 23–25 and strips the
+list and bold markers on `* **Project**` (`SrcCopilotCLI`). S073's
 URL redirects to `learn.chatgpt.com/docs/agent-configuration/subagents.md` (a pinned Codex host). S076's quote is
 the user-level line; the project-level line `.gemini/agents/*.md` is the line before it (`subagents.md:323`) and
 holds no agent word. S078's quote is the body of a fenced example whose info string `text` stays in the quote; the
@@ -36,18 +40,28 @@ fence markers were removed (`Srcopencode`).
 ## Findings
 
 1. **Two shared folders, one format split.** VS Code and Copilot CLI both use `.github/agents/` in the repository and
-   `~/.copilot/agents/` for the user (S074, S075); Copilot CLI uses the personal profile when both define the same ID
+   `~/.copilot/agents/` for the user (S074, S075; for VS Code that is the Copilot harness's user folder —
+   its Local harness keeps user agents in profile storage, `custom-agents.md:112-113,126`); Copilot CLI uses the personal profile when both define the same ID
    (S075). Codex alone uses standalone TOML with required `name`, `description` and `developer_instructions` (S073);
    the other six use Markdown, with YAML frontmatter where the page names one.
 2. **Compatibility reads are not ownership.** Cursor also reads `.claude/agents/` and `.codex/agents/` (S077
-   `subagents.md:84-92`, its own files win name conflicts), and VS Code lists `.claude/agents` as a workspace
-   location in Claude format (S074 `custom-agents.md:123-126`). A row names each client's own folder; a
+   `subagents.md:84-92`, user forms `~/.claude/agents/` and `~/.codex/agents/` too; project beats user and `.cursor/`
+   beats `.claude/` and `.codex/` on a name conflict, `:92`; S077 documents Markdown files while Codex's own format is
+   TOML, S073), and VS Code lists `.claude/agents` as a workspace
+   location in Claude format (S074 `custom-agents.md:108-113`). A row names each client's own folder; a
    compatibility folder belongs to the client that defines it.
-3. **Required keys differ.** Claude Code requires `name` and `description` (S026); Gemini CLI requires both (S076);
-   Copilot CLI requires `description` and makes `name` optional (S075); Cursor lists every field as optional and
-   derives `name` from the file name (S077); opencode states no required key (S078).
+3. **Required keys differ.** Claude Code requires `name` and `description` (S026); Gemini CLI requires both for local agents, the default `kind` (S076 `:364-366`; a `kind: remote` file has its
+   own keys);
+   Copilot CLI makes `name` optional (S075 `:30`; the required-key table is on a linked reference page that is not a
+   SOURCES row); Cursor lists `name`, `description`, `model`,
+   `readonly` and `is_background`, all optional, and derives `name` from the file name (S077); opencode's V2 page labels no key required (S078), while its V1 `opencode.ai/docs/agents` page calls
+   `description` required (seat `ReopenS078`, not a SOURCES row); V2 ignores V1 fields mixed into a V2-format file
+   (`migrate-v1.mdx:504-507`), so the V1-shaped checklist in `SKILL.md` fits V1-format files only.
 4. **Tool limits use different keys.** `tools` (Claude Code, VS Code, Copilot CLI, Gemini CLI), `readonly`
-   (Cursor), `permissions` (opencode V2, which drops the legacy `tools` key), `features.*` switches (Codex).
+   (Cursor), `permissions` (opencode V2; V1 uses `permission` and deprecates `tools`), and in Codex five supported `features.*` keys set to false
+   (`shell_tool`, `apps`, `plugins`, `memories`, `request_permissions_tool`); a Codex agent file cannot override the
+   parent's permissions, sandbox mode or MCP servers (S073 `subagents.md:346-348,400-409`). Claude Code also has a
+   `disallowedTools` denylist (sub-agents page `:446`).
 5. **Location history (seat `ScoutChangelogSweep`, not SOURCES rows).** opencode moved its folders from `agent/` to
    `agents/` on 2026-01-17 and still loads the singular form; VS Code renamed chat modes (`.github/chatmodes`,
    `.chatmode.md`) to custom agents in release 1.106; Copilot CLI moved its user folder from
@@ -57,7 +71,7 @@ fence markers were removed (`Srcopencode`).
 
 - `verifiers/check_agent_definitions.py --rev <rev> --fetch` (v1.3, errata 1–3 in `../../plans/round-56.md`) checks
   only: the first table under `### Agent-definition files by client` (header, one row per client, the first
-  backticked location token, its `agent`/`agents` segment, that it sits under the client's own configuration
+  backticked location token, its dot-directory path form with an `agent`/`agents` segment, that it sits under the client's own configuration
   directory, and an Action of at least three words); this entry's table (one `S###`, a 3–25-word quote holding the
   token and an agent word outside it); the cited SOURCES row (new id, `docs` kind, tier A, `mined`, opened
   2026-10-22 or 2026-10-23, pinned host, not a base or tracker URL); the quote in the lesson Gate; and, with

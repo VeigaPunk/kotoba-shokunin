@@ -19,7 +19,8 @@ errata 1–3 (C2 withdrawn before data; C1 counter v1.3) `e02f5f5d2f37427e8a77b1
 | S077 | https://cursor.com/docs/subagents.md | 2026-10-23T02:47:16Z | 27660 B, sha256 `264b4b00…` | "You can also create subagents manually by adding markdown files to `.cursor/agents/` (project) or `~/.cursor/agents/` (user)." | `subagents.md:427` | SrcCursor |
 | S078 | https://raw.githubusercontent.com/anomalyco/opencode/4e0bc52216d91c3a8d10035837b1b6f9b82fd1d3/services/www/src/docs/content/agents.mdx | 2026-10-23T02:50:41Z | 8,779 B, sha256 `6cca5b0a…` | "A nested path becomes part of the agent ID: text .opencode/agents/team/reviewer.md → team/reviewer" | `agents.mdx:41-44` | Srcopencode |
 
-Quote notes: S073's URL redirects to `learn.chatgpt.com/docs/agent-configuration/subagents.md`; S076's quote is the
+Quote notes: S073's URL redirects to `learn.chatgpt.com/docs/agent-configuration/subagents.md` and its quote folds two
+line breaks (`:341-343`) into spaces; S075's quote folds lines 23–25 and strips the list and bold markers on `* **Project**`; S076's quote is the
 user-level line (the project line `:323` holds no agent word); S078's quote is a fenced example whose info string
 `text` stays and whose fence markers were removed. Detail in `corpus/knowledge/agent-definition-files-round56.md`.
 
@@ -58,8 +59,8 @@ scopes): a scope merge would rewrite a protected cell, so it is reported only (`
   pre-freeze control wave · fix: C2 withdrawn; redesign input `build/C2RedesignCounter.md`. Not shown able to fail
   in this round (no redesigned counter is committed).
 - **M56 `seat-killed-sibling-processes`** · seat `ExecFloorsTimeout` ran `pkill -f 'fast/scratch/hyaku/kotoba-r56'`,
-  which matched the shared scratch root and killed three runs of seat `ExecCneShortcuts` at ~03:06Z (disclosed by
-  the seat) · captured-by: none (the bound says "kill any process tree you started", not how) · fix: wave contexts
+  which matched the shared scratch root and killed three runs of seat `ExecCneShortcuts` at ~03:06Z, and its contention test (24 slow runs plus 48 CPU
+  workers, 02:57:41Z–03:04:05Z) drove the shared host to load 96 (both disclosed by the seat) · captured-by: none (the bound says "kill any process tree you started", not how) · fix: wave contexts
   say kill by PID of the processes you started, never by a pattern over a shared path.
 - **M57 `context-mislabels-counter-version`** · the build-wave context called the C1 counter "v1.1" while the
   commit it named held v1.3 (`CriticAxisFit`, `ScribeC1Frame`, `ReviewPlanCounters`) · captured-by: three seats ·
