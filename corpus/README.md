@@ -95,6 +95,9 @@ Domain: prompt & skill craft — SKILL.md/AGENTS.md quality, trigger fidelity.
 | Round-57 non-author spot-check (closure) | `lessons/round-57-verifier-spotcheck.md` | written by the hyaku closure, not the lane (outside review; never edited here): round 57 rejected (C1 missed, C2 withdrawn); routed defects R1–R8 (round 58 works R1–R7 in `lessons/round-58.md`); indexed round 58 |
 | Custom command files by client (round 58) | `knowledge/command-files-round58.md` | six clients' own docs (S089–S091, S093–S095) on where user-written command (prompt) files live — `.claude/commands/`, `~/.codex/prompts/`, `.github/prompts`, `~/.gemini/commands/`, `.cursor/commands`, `.opencode/commands/` — and what a file sets; Copilot CLI loads Claude Code's folder (S028); `SKILL.md` § Custom command files by client; `../verifiers/check_command_files.py --rev <rev> --fetch` |
 | Round-58 lessons | `lessons/round-58.md` | `## Gate` S089–S095 and the rejections (C2 withdrawn before data); `## Mistakes` M70 onward; the round-57 routed defects |
+| Round-58 non-author spot-check (closure) | `lessons/round-58-verifier-spotcheck.md` | written by the hyaku closure, not the lane (outside review; never edited here): round 58 admitted, C1 verified (`6 of 6; new ground 4`); routed defects R1–R6 (round 59 works R1–R5 in `lessons/round-59.md`); landed at `a975cbbf` without an index row (which turned `verify_corpus_integrity.py` red at that base: `unindexed 1`), indexed round 59 |
+| Hook files by client (round 59) | `knowledge/hook-files-round59.md` | six clients' own docs (S096–S101) on the file or folder each names for hook configuration — `.claude/settings.json`, `~/.codex/hooks.json`, `.github/hooks/*.json`, `~/.copilot/hooks/*.json`, `.gemini/settings.json`, `.cursor/hooks.json` — and the events each hook fires on; opencode not eligible (its hook code lives only in plugin folders); `SKILL.md` § Hook files by client; `../verifiers/check_hook_files.py --rev <rev> --fetch` |
+| Round-59 lessons | `lessons/round-59.md` | `## Gate` S096–S101 with access records and the rejections; `## Mistakes` M79 onward; the round-58 routed defects R1–R5 |
 
 ## Frontier
 
@@ -170,6 +173,8 @@ re-opened) and acted on in `../SKILL.md` § Custom command files by client. Six 
 Copilot CLI loads Claude Code's `.claude/commands/` and lets skills override commands. Still not held: any client run,
 argument-substitution behaviour as observed, and precedence between a command and a same-named skill beyond what a page
 states.
+
+**Round 59 (append-only note; new area *Hook files by client*):** six clients' own docs (S096–S101) on where hook configuration lives and which lifecycle events the pages name are recorded in `knowledge/hook-files-round59.md` and acted on in `../SKILL.md` § Hook files by client; the table routes a check that must run at an event to the client's hook file; writing or running hook code stays outside the lane. The counter `../verifiers/check_hook_files.py --rev <rev> --fetch` checks the cited event identifiers on committed snapshots and live pages, not observed execution. Still not held: client runtime behaviour. opencode hooks are code in plugin folders, so they remain a plugin surface outside this hook-file move.
 
 ## Known gaps
 

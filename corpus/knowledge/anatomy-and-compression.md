@@ -138,3 +138,42 @@ pressure.
 Not every file needs every section. godspeed is 18 lines: frontmatter + one
 deferral ("Read `directive.md` … apply verbatim") + one invocation note. Anatomy
 is a checklist of *available* organs, not a mandatory skeleton.
+
+## Moved from SKILL.md § Sources — production skill files (round 59)
+
+Verbatim from `SKILL.md` § Sources bullets 2–15 at `67b68e0f` lines 482–509
+(round 59 line-budget move, 28 lines; the moved block's sha256
+`9d74c44e2167800809efd93aae526f39f0523f090e1dfb865e6d184ffcb9a3c8` is unchanged by
+the move, checked before and after — receipt in
+`.ufo/waves/round-59/build/ExecBudgetMove.md`).
+
+### Production skill files studied
+
+- `~/.agents/skills/wwkd/SKILL.md` — posture-skill anatomy: principles, phased
+  protocol, refusals, quoted source excerpts.
+- `~/.agents/skills/godspeed/SKILL.md` — minimal always-on skill (18 lines);
+  deferral pattern.
+- `~/.agents/skills/sekhmet-l3/SKILL.md` — ops-skill anatomy: env blocks, smoke
+  gate, flag table.
+- `~/.agents/skills/xbrd-ask/SKILL.md` — lane table, advisory protocol, epistemic
+  constraints.
+- `~/.agents/skills/bailian-protocol/SKILL.md` — consent decision table,
+  classification with actions.
+- `~/.agents/skills/bailian-cli/SKILL.md` — hub/routing tables, soft hand-offs,
+  `metadata.requires.bins`.
+- `~/.agents/skills/bailian-train-deploy/SKILL.md` — 反触发表, 反幻觉清单,
+  numbered end-to-end procedure, failure signatures.
+- `~/.agents/skills/bailian-model-recommend/SKILL.md` — implicit-intent triggers,
+  sibling boundary arbitration.
+- `~/.agents/skills/bailian-web-search/SKILL.md`, `bailian-gen/SKILL.md`,
+  `bailian-finetune/SKILL.md` — routing workflows, consent short-forms.
+- `~/.agents/skills/bailian-docs-llm-wiki/SKILL.md` — layered depth trees
+  (wiki/models/raw), quality-score fallback, grep/jq query recipes.
+- `~/.agents/skills/bailian-managed-agent/SKILL.md` — plan-before-apply
+  guardrail, secrets-never-in-preview rules.
+- `~/.agents/skills/bailian-sandbox/SKILL.md` — operational-boundary section,
+  credential-redaction defaults.
+- `~/.agents/skills/omarchy/SKILL.md` — largest observed file (392 lines);
+  safety-rule callouts, config-location tables.
+- `~/.config/opencode/skills/ufo/SKILL.md` — invariant lists (I1–I10), load-order
+  with fail-closed resolution, dispatch contract.

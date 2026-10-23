@@ -118,6 +118,20 @@ A reusable prompt the user invokes by typing `/name` lives in a command (prompt)
 | Cursor | `.cursor/commands` (scope not printed on the cited pages) | Markdown workflow prompt; these pages document no frontmatter or argument schema (S094 `:54`, `customize-cursor.md:31`) | Audit the body; check Cursor's current docs for any newer schema |
 | opencode | `.opencode/commands/` (project; user `~/.config/opencode/commands/`) | `.md` only; nested path → `/`-separated name; optional YAML frontmatter; trimmed body is the template; `$ARGUMENTS`, `$1`–`$n`; legacy singular `command/` still read (S095 `:21,28,34,37,99,109`) | Keep the body a complete prompt template |
 
+### Hook files by client
+
+A rule the model must follow every time is still text it reads; a hook is code the client runs at an event. VS Code: hooks act "without relying on the model to request the action" (S098 `:6`); Copilot: "Unlike custom instructions, hooks run code rather than asking the model to follow a rule." (S099 `:15`). Route a must-run check to the client's hook file; writing or running hook code is out of scope (round-13 census), and host package/initramfs hooks are tsukuroi's. Basis: `corpus/knowledge/hook-files-round59.md`, S096–S101 (vendor pages, not a runtime test).
+
+| Client | Hook config | Events | Action |
+|---|---|---|---|
+| Claude Code | `.claude/settings.json` (project; user and local settings files too, S096 :243-245) | `PreToolUse`, `SessionStart` (S096 :37, :33) | Move a check that must run before a tool call into a hook here; review and test each command first, it runs with your user permissions (S096 :4146) |
+| Codex | `~/.codex/hooks.json` (user; repo layers and inline config.toml tables too, S097 :30-46) | `PreToolUse`, `SessionStart` (S097 :25, :27) | Put the hook here; a non-managed hook runs only after it is reviewed and trusted (S097 :19) |
+| VS Code | `.github/hooks/*.json` (repository-shared; personal, settings, plugin and agent sources too, S098 :58-62) | `preToolUse`, `sessionStart` (S098 :130, :128) | Preview (S098 :4); review hook config and scripts before use, they are executable code (S098 :202) |
+| Copilot CLI | `~/.copilot/hooks/*.json` (personal; repository hooks share the VS Code row's folder pattern, S099 :28) | `preToolUse`, `sessionStart` (S099 :37, :34) | Check each event on each surface before relying on it: the page says not to assume events work unchanged across surfaces (S099 :26) |
+| Gemini CLI | `.gemini/settings.json` (project, S100 :413) | `BeforeTool`, `AfterModel` (S100 :31) | Verify the source of project hooks before enabling them (S100 :442) |
+| Cursor | `.cursor/hooks.json` (project; the user file is not available to cloud agents, S101 :102) | `preToolUse`, `postToolUse` (S101 :27, :67; `sessionStart` is not run for cloud agents, :88) | Keep cloud-agent checks in the project file; project hooks run only in a trusted workspace (S101 :649, :781) |
+| opencode | no hook file: hook code is a plugin module (§ Plugin manifests by client; S085, S087) | `execute.before`, `execute.after` (S085 index.mdx :1738, :1746) | Read the plugin module; do not look for a hook config file |
+
 ## Router model — which harness, which gate
 
 Two harnesses consume skills here, and neither shares the other's catalogue
@@ -479,34 +493,10 @@ reads as could-not-evaluate. `python3 -B verifiers/check_gate_registry.py --rev 
 
 - `corpus/SOURCES.md` — where this lane learns: opened, scope-tiered source rows,
   study paths and search log; admission bar in `corpus/QUALITY.md`.
-- `~/.agents/skills/wwkd/SKILL.md` — posture-skill anatomy: principles, phased
-  protocol, refusals, quoted source excerpts.
-- `~/.agents/skills/godspeed/SKILL.md` — minimal always-on skill (18 lines);
-  deferral pattern.
-- `~/.agents/skills/sekhmet-l3/SKILL.md` — ops-skill anatomy: env blocks, smoke
-  gate, flag table.
-- `~/.agents/skills/xbrd-ask/SKILL.md` — lane table, advisory protocol, epistemic
-  constraints.
-- `~/.agents/skills/bailian-protocol/SKILL.md` — consent decision table,
-  classification with actions.
-- `~/.agents/skills/bailian-cli/SKILL.md` — hub/routing tables, soft hand-offs,
-  `metadata.requires.bins`.
-- `~/.agents/skills/bailian-train-deploy/SKILL.md` — 反触发表, 反幻觉清单,
-  numbered end-to-end procedure, failure signatures.
-- `~/.agents/skills/bailian-model-recommend/SKILL.md` — implicit-intent triggers,
-  sibling boundary arbitration.
-- `~/.agents/skills/bailian-web-search/SKILL.md`, `bailian-gen/SKILL.md`,
-  `bailian-finetune/SKILL.md` — routing workflows, consent short-forms.
-- `~/.agents/skills/bailian-docs-llm-wiki/SKILL.md` — layered depth trees
-  (wiki/models/raw), quality-score fallback, grep/jq query recipes.
-- `~/.agents/skills/bailian-managed-agent/SKILL.md` — plan-before-apply
-  guardrail, secrets-never-in-preview rules.
-- `~/.agents/skills/bailian-sandbox/SKILL.md` — operational-boundary section,
-  credential-redaction defaults.
-- `~/.agents/skills/omarchy/SKILL.md` — largest observed file (392 lines);
-  safety-rule callouts, config-location tables.
-- `~/.config/opencode/skills/ufo/SKILL.md` — invariant lists (I1–I10), load-order
-  with fail-closed resolution, dispatch contract.
+- Production skill files and what each demonstrates (wwkd, godspeed, sekhmet-l3,
+  xbrd-ask, the bailian family, omarchy, ufo) moved verbatim to
+  `corpus/knowledge/anatomy-and-compression.md` § Moved from SKILL.md § Sources —
+  production skill files (round 59).
 - `/home/vgpnk/Projects/shokunin/*/AGENTS.md` (17 files on 2026-10-22; 9 share
   the 5-line template body) + `~/.agents/AGENTS.md` (14 lines / 949 B) —
   always-on constraint files; no frontmatter, terse imperatives.
