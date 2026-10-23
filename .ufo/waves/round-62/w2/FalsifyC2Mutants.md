@@ -397,9 +397,10 @@ self-test: CLI dependency arm: a six-score scorer must make the base CLI exit 0,
 
 The draft adds a CLI-dependency arm (stub the module-level `check_repairs` and require
 `cli_measurement` to follow it) which rejects the split mutant. Its final printed line under
-the mutant is still `... base 0 of 6; tip 6 of 6` — the line alone is not the detector; the
-exit code is. I ran the split probe on the snapshot only; I make no verdict on the draft,
-which was uncommitted and possibly changing while this seat ran.
+the mutant is still `successor: dishonest rejected 6 of 6; honest passed 2 of 2; base 0 of 6; tip 6 of 6`
+— the line alone is not the detector; the exit code is. I ran the split probe on the snapshot
+only; I make no verdict on the draft, which was uncommitted and possibly changing while this
+seat ran.
 
 ## 6. Restoration
 
@@ -408,10 +409,41 @@ $ for m in <all copies>; do cp -f base/verifiers/check_routed_repairs_v2.py $m/v
 $ for m in base MGa MGb MGc MGc2 MGc3 MGc4 MGd MGe MGf MGdir MGdir2 MGdir3 MGdirBoth MGdir4 Msplit; do
     printf "%s %s\n" "$(sha256sum $m/verifiers/check_routed_repairs_v2.py | cut -d' ' -f1)" "$m"; done
 de5e347170e05738e030d681f4e2023eb3d3faec81ce352ae06924904273e7b7 base
-de5e3471... MGa / MGb / MGc / MGc2 / MGc3 / MGc4 / MGd / MGe / MGf / MGdir / MGdir2 / MGdir3 / MGdirBoth / MGdir4 / Msplit   (16/16 identical)
-$ for m in <all copies>; do python3 -B $m/verifiers/check_routed_repairs_v2.py --self-test >/dev/null 2>&1; printf "%s exit=%s\n" "$m" "$?"; done
-base exit=0 ... Msplit exit=0        (16/16 exit 0; final line in every case:
-                                     "successor: dishonest rejected 6 of 6; honest passed 2 of 2; base 0 of 6; tip 6 of 6")
+de5e347170e05738e030d681f4e2023eb3d3faec81ce352ae06924904273e7b7 MGa
+de5e347170e05738e030d681f4e2023eb3d3faec81ce352ae06924904273e7b7 MGb
+de5e347170e05738e030d681f4e2023eb3d3faec81ce352ae06924904273e7b7 MGc
+de5e347170e05738e030d681f4e2023eb3d3faec81ce352ae06924904273e7b7 MGc2
+de5e347170e05738e030d681f4e2023eb3d3faec81ce352ae06924904273e7b7 MGc3
+de5e347170e05738e030d681f4e2023eb3d3faec81ce352ae06924904273e7b7 MGc4
+de5e347170e05738e030d681f4e2023eb3d3faec81ce352ae06924904273e7b7 MGd
+de5e347170e05738e030d681f4e2023eb3d3faec81ce352ae06924904273e7b7 MGe
+de5e347170e05738e030d681f4e2023eb3d3faec81ce352ae06924904273e7b7 MGf
+de5e347170e05738e030d681f4e2023eb3d3faec81ce352ae06924904273e7b7 MGdir
+de5e347170e05738e030d681f4e2023eb3d3faec81ce352ae06924904273e7b7 MGdir2
+de5e347170e05738e030d681f4e2023eb3d3faec81ce352ae06924904273e7b7 MGdir3
+de5e347170e05738e030d681f4e2023eb3d3faec81ce352ae06924904273e7b7 MGdirBoth
+de5e347170e05738e030d681f4e2023eb3d3faec81ce352ae06924904273e7b7 MGdir4
+de5e347170e05738e030d681f4e2023eb3d3faec81ce352ae06924904273e7b7 Msplit
+$ for m in base MGa MGb MGc MGc2 MGc3 MGc4 MGd MGe MGf MGdir MGdir2 MGdir3 MGdirBoth MGdir4 Msplit; do
+    python3 -B $m/verifiers/check_routed_repairs_v2.py --self-test > /tmp/r62c2/$m.restored.out 2>&1
+    printf "%s exit=%s\n" "$m" "$?"; done
+base exit=0
+MGa exit=0
+MGb exit=0
+MGc exit=0
+MGc2 exit=0
+MGc3 exit=0
+MGc4 exit=0
+MGd exit=0
+MGe exit=0
+MGf exit=0
+MGdir exit=0
+MGdir2 exit=0
+MGdir3 exit=0
+MGdirBoth exit=0
+MGdir4 exit=0
+Msplit exit=0
+   (final line in every one: "successor: dishonest rejected 6 of 6; honest passed 2 of 2; base 0 of 6; tip 6 of 6")
 $ python3 -B probe.py /tmp/r62c2/Msplit      (restored copy)
 D1..D6: successor 5 of 6 REJECTED ... (identical to pristine baseline)
 $ cp -f wt-v2-604ae4fb.py Mdraft/verifiers/check_routed_repairs_v2.py && sha256sum Mdraft/verifiers/check_routed_repairs_v2.py
@@ -426,7 +458,7 @@ $ cd /home/vgpnk/Projects/shokunin/kotoba-shokunin && sha256sum verifiers/check_
 604ae4fb41779874eb420e8a904cb2ebdd953fa41dfc5f270ece53562b5c414d  verifiers/check_routed_repairs_v2.py   (uncommitted draft, §5; HEAD blob = de5e3471, seat-start tree = de5e3471)
 95ade9be1ed1930266bce4b98c8c593fff1feba89e2cf25763f0aa83f206cb88  verifiers/check_routed_repairs.py     (unchanged; never edited)
 $ git status --porcelain -- verifiers/
- M verifiers/check_routed_repairs_v2.py                (not this seat's write: §5 draft appeared after the mutation runs)
+ M verifiers/check_routed_repairs_v2.py                (appeared during the seat; not written by this seat — its only lane write is this report)
 ```
 
 ## 7. Verdicts
