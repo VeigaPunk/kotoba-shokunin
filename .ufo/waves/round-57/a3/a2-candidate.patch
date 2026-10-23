@@ -1,0 +1,119 @@
+diff --git i/SKILL.md w/SKILL.md
+index dc7987b..7b7a41e 100644
+--- i/SKILL.md
++++ w/SKILL.md
+@@ -110,17 +110,17 @@ Where each client's own documentation puts its agent (subagent, custom agent) fi
+ 
+ ### Plugin manifests by client
+ 
+-A skill, agent, command or rule file can arrive inside a plugin (Gemini CLI: an extension) rather than from the project tree; find its manifest first. Each row leads with the client's own-format manifest path, else the default its docs name. Basis: `corpus/knowledge/plugin-manifests-round57.md` (S079–S085); locations and quotes checked by `verifiers/check_plugin_manifests.py`, the other cells are reviewer readings.
++A skill, agent, command or rule file can arrive inside a plugin (Gemini CLI: an extension) rather than from the project tree; find its manifest first. Each row leads with the client's own-format manifest path, else the default its docs name. Basis: `corpus/knowledge/plugin-manifests-round57.md` (S079–S088; S086 and S087 correct S080 and S085); locations and quotes checked by `verifiers/check_plugin_manifests.py`, the other cells are reviewer readings.
+ 
+ | Client | Plugin manifest | What a plugin can ship | Action |
+ |---|---|---|---|
+-| Claude Code | `.claude-plugin/plugin.json` (optional; all other files at the plugin root) | skills, commands, agents, hooks, MCP and LSP server configs, output styles | Look in the plugin root when a skill or agent is not in the project tree |
++| Claude Code | `.claude-plugin/plugin.json` (optional; all other files at the plugin root) | skills, commands, agents, hooks, MCP and LSP server configs, output styles, workflows, themes, monitors, executables, settings; a plugin-root `CLAUDE.md` is not loaded as context (ship instructions as a skill) | Look in the plugin root when a skill or agent is not in the project tree |
+ | Codex | `.codex-plugin/plugin.json` (compatibility manifest the plugin creator scaffolds; portable packages use root `plugin.json`) | skills, MCP servers via `mcp.json`, lifecycle hooks for manually installed desktop plugins, assets | Check both manifest forms before trusting bundled instructions |
+ | VS Code | `plugin.json` at the plugin root (Agent Plugins 1.0 and the default Copilot format; also reads `.claude-plugin/plugin.json` and Legacy OpenPlugin `.plugin/plugin.json`) | portable skills and MCP servers; agents, commands, rules and hooks under `com.github.copilot`; automation templates | Identify the plugin format before moving components |
+-| Copilot CLI | `plugin.json` at the plugin root (legacy locations on its CLI plugin reference) | agents, skills, hooks, MCP server configs; Agent Plugins adds commands, rules, LSP servers | Read the manifest before the bundled skills |
+-| Gemini CLI | `gemini-extension.json` (required, each extension root) | MCP servers, a context file (`contextFileName`), TOML commands, hooks in `hooks/hooks.json`, skills, sub-agents, policy rules | Audit the extension's context file as always-on text |
+-| Cursor | `.cursor-plugin/plugin.json` (Cursor Plugins; Agent Plugins use root `plugin.json`) | Cursor Plugins: rules, skills, agents, commands, MCP servers, hooks; Agent Plugins: skills and MCP servers | Name the plugin format before packaging rules |
+-| opencode | `.opencode/plugins/` (no JSON manifest: a plugin is a JavaScript/TypeScript module) | agents, commands, MCP configuration, skills, tools and runtime hooks, registered in code | Review the module code; there is no manifest to read |
++| Copilot CLI | `plugin.json` at the plugin root (legacy locations on its CLI plugin reference) | agents, skills, hooks, MCP server configs; in Agent Plugins 1.0 the Copilot-specific agents, commands, rules, hooks and LSP servers come from `com.github.copilot` (legacy plugins name component paths in `plugin.json`) | Read the manifest before the bundled skills |
++| Gemini CLI | `gemini-extension.json` (required, each extension root) | MCP servers, a context file (`contextFileName`), TOML commands, hooks in `hooks/hooks.json`, skills, sub-agents (preview), policy rules; extensions load from `<home>/.gemini/extensions` | Audit the extension's context file as always-on text |
++| Cursor | `.cursor-plugin/plugin.json` (Cursor Plugins; Agent Plugins use root `plugin.json`) | Cursor Plugins: rules, skills, agents, commands, MCP servers, hooks, variables; Agent Plugins: skills and MCP servers; local development from `~/.cursor/plugins/local`; a root `SKILL.md` alone is a single-skill plugin | Name the plugin format before packaging rules |
++| opencode | `.opencode/plugins/` (no JSON manifest: a plugin is a JavaScript/TypeScript module) | agents, commands, MCP configuration, skills, tools and runtime hooks, registered in code; global folder `~/.config/opencode/plugins/`; a published package's `package.json` is the only file its docs call a manifest | Review the module code; there is no manifest to read |
+ 
+ ## Router model — which harness, which gate
+ 
+diff --git i/corpus/SOURCES.md w/corpus/SOURCES.md
+index 059e35a..22eec63 100644
+--- i/corpus/SOURCES.md
++++ w/corpus/SOURCES.md
+@@ -96,6 +96,9 @@ for a source the row's author opened this round; access evidence lives in
+ | S083 | Gemini CLI docs — Extensions reference — https://geminicli.com/docs/extensions/reference.md | docs | A | Gemini CLI extension manifest location and documented extension contents (vendor documentation; not runtime behavior) | § Extension format, `extensions-reference.md:104-112`; `mcpServers` and `contextFileName`, `:146-161`; Custom commands, `:229-238`; Hooks, `:240-244`; Agent skills, `:246-250`; Sub-agents, `:252-259`; Policy Engine, `:261-269`; fetched 2026-10-23T04:46:46Z, HTTP 200, 12,022 B, sha256 `8b9eecb254df04220b23d56da6d63018abe7c5364122af7dee16b05d63b1fe72` (seat SrcGeminiCLI) | Every extension requires a root `gemini-extension.json`; documented contents include MCP servers, context, commands, hooks, skills, sub-agent definitions, and policy rules/safety checkers | mined | 2026-10-23 | 90d | corpus/knowledge/plugin-manifests-round57.md |
+ | S084 | Cursor Docs — Plugins — https://cursor.com/docs/plugins.md | docs | A | Cursor's documented manifest paths and components for Agent Plugins and Cursor Plugins | § What plugins contain (`plugins.md:9-18`); § The Agent Plugins standard (`:22-30`); § Creating plugins and format layouts (`:253-298`); fetched as https://cursor.com/docs/plugins.md (200, 20,323 B, sha256 `74387ff95205965ca3060fac4d12966fea7b1525cc0e972e6f265bbee591cb62`) at 2026-10-23T04:46:52Z (seat SrcCursor) | Agent Plugins use a root `plugin.json` and package skills/MCP servers; Cursor Plugins use `.cursor-plugin/plugin.json` and can add rules, skills, agents, commands, MCP servers, hooks, and variables | mined | 2026-10-23 | 90d | corpus/knowledge/plugin-manifests-round57.md |
+ | S085 | anomalyco/opencode — V2 plugin documentation, pinned at `bdf757209ff742b8551a4874347edb845241e5bb` — https://raw.githubusercontent.com/anomalyco/opencode/bdf757209ff742b8551a4874347edb845241e5bb/services/www/src/docs/content/build/plugins/index.mdx | docs | A | OpenCode V2 package-plugin manifest label, plugin discovery locations, and programmatically registerable plugin surfaces | Local plugin (`index.mdx:10-22`); Agent (`:214-235`); Commands (`:414-445`); MCP (`:610-627`); Skills (`:865-892`); Tools (`:961-985`); Hooks (`:1335-1418`); Publish (`:1768-1786`); sibling discovery page `plugins.mdx:46-61,141-142`; fetched 2026-10-23T04:51:25Z (HTTP 200, 60,780 B, sha256 `e505931a59faa9a6685be195ccf42fcd8e3ddb9bb1d9e52f95d3b6c862cb83a5`); sibling page fetched 2026-10-23T04:47:59Z (HTTP 200, 4,371 B, sha256 `39afa29948069c9e8d95ba812ee1701535912a7e5ce3ed7fef5d4ba6d7521fd3`) | OpenCode calls `package.json` the minimal manifest for a package plugin and loads local plugin modules from `.opencode/plugins/`; global discovery uses `~/.config/opencode/plugins/`. The build guide documents plugin APIs for skills, agents, commands, MCP configuration, tools, and runtime hooks, but no plugin-specific JSON filename meeting the frozen token grammar. | mined | 2026-10-23 | 90d | corpus/knowledge/plugin-manifests-round57.md |
++| S086 | OpenAI Developers — Package your plugin (correction row: scaffold contents) — https://developers.openai.com/plugins/build/plugins.md | docs | A | Codex plugin-creator scaffold contents as the page states them (vendor documentation; not runtime behavior) | § Plugin creator output (`plugins.md:59-89`, the contents at `:76-84`); fetched 2026-10-23T05:33:17Z, HTTP 200, 38,036 B, sha256 `c37e330df8f040df8ee2f48035992b37c6a7decf6c3f5640822ca0907118c4e1` (residual seat RvS079S080; re-opened by the L1 05:44:34Z, same sha256) | supersedes S080 — its teaches clause "the compatibility scaffold also has optional app mappings, scripts, and hook files" is wrong: the scaffold always creates only `.codex-plugin/plugin.json`; `.mcp.json` and `.app.json` start empty and a requested `hooks/` stays empty until `hooks/hooks.json` and its scripts are added | mined | 2026-10-23 | 90d | corpus/knowledge/plugin-manifests-round57.md |
++| S087 | anomalyco/opencode — plugin discovery page, pinned at `bdf757209ff742b8551a4874347edb845241e5bb` — https://raw.githubusercontent.com/anomalyco/opencode/bdf757209ff742b8551a4874347edb845241e5bb/services/www/src/docs/content/plugins.mdx | docs | A | opencode plugin discovery folders, project and global (vendor documentation; not runtime behavior) | § Discover (`plugins.mdx:44-60`; global folder `:57,60`); fetched 2026-10-23T05:33:18Z, HTTP 200, 4,371 B, sha256 `39afa29948069c9e8d95ba812ee1701535912a7e5ce3ed7fef5d4ba6d7521fd3` (residual seat RvS085Entry; re-opened by the L1 05:44:34Z, same sha256) | supersedes S085 — its anchor names this page only as `plugins.mdx`, a path that does not resolve beside `index.mdx` (HTTP 404); the global discovery folder `~/.config/opencode/plugins/` is stated here, not on S085's page | mined | 2026-10-23 | 90d | corpus/knowledge/plugin-manifests-round57.md |
++| S088 | Cursor Docs — Plugins reference — https://cursor.com/docs/reference/plugins.md | docs | A | Cursor's plugin manifest schema, per-format component table and component discovery locations (vendor documentation; not runtime behavior) | § Formats (`reference-plugins.md:9-15`); § Cursor Plugin component discovery (`:152-165`); § Rule frontmatter fields (`:184-193`); fetched 2026-10-23T05:33:49Z, HTTP 200, 30,324 B, sha256 `3bbf36f3320382adb68509aa758e2e764fd31c5de5f5c70c6af1683497b11204` (residual seat RvS083S084; re-opened by the L1 05:47:52Z, same sha256) | When the manifest names no path, Cursor discovers components by folder: `skills/`, `rules/`, `agents/`, `commands/`, `hooks/hooks.json` and `mcp.json`, and a root `SKILL.md` is read as a single-skill plugin when there is no `skills/` folder or manifest `skills` field | mined | 2026-10-23 | 90d | corpus/knowledge/plugin-manifests-round57.md |
+ 
+ ## Paths
+ 
+diff --git i/corpus/knowledge/plugin-manifests-round57.md w/corpus/knowledge/plugin-manifests-round57.md
+index 9e0a027..29971b8 100644
+--- i/corpus/knowledge/plugin-manifests-round57.md
++++ w/corpus/knowledge/plugin-manifests-round57.md
+@@ -9,15 +9,21 @@ recheck: python3 -B verifiers/check_plugin_manifests.py --rev <rev> --fetch
+ A skill, agent, command or rule file can reach a client inside a plugin (Gemini CLI: an extension) instead of from the
+ project tree. Before auditing such a file, find the plugin it came from and its manifest. This entry records, from each
+ client's own documentation opened on 2026-10-23, where that manifest lives and what a plugin can ship. It is vendor
+-documentation, not a runtime measurement: no client was run.
++documentation, not a runtime measurement: no client was run. Where the plugin folder itself sits: Gemini CLI loads
++extensions from `<home>/.gemini/extensions` (S083 `extensions-reference.md:106`); either Cursor plugin format can be
++developed from `~/.cursor/plugins/local` (S084 `plugins.md:211`); opencode discovers `.opencode/plugins/` and the global
++`~/.config/opencode/plugins/` (S087 `plugins.mdx:44-60`).
+ 
+ **Row rule (applied to every row the same way).** The manifest cell leads with the client's own-format manifest path —
+ a path whose folder or file name names the client — and, where the client documents none, with the default manifest
+ its page names. Seven clients, one rule: Claude Code, Codex, Gemini CLI and Cursor document an own-format path; VS Code
+-and Copilot CLI default to the shared Agent Plugins root `plugin.json`; opencode plugins are code modules with no JSON
+-manifest. The rule was fixed when the source seats returned (after the counter was frozen) and it does not choose
++and Copilot CLI default to the shared Agent Plugins root `plugin.json`; opencode plugins are code modules with no
++plugin-specific JSON manifest (its build guide calls a published package's `package.json` "a minimal manifest",
++S085 `index.mdx:1770-1773`). The rule was fixed when the source seats returned (after the counter was frozen) and it does not choose
+ between paths to raise a count: VS Code's Legacy OpenPlugin `.plugin/plugin.json` would pass the counter and is not used
+-(`.ufo/waves/round-57/build/CriticC1Rows.md`, `SrcVSCode.md`).
++(`.ufo/waves/round-57/build/CriticC1Rows.md`, `SrcVSCode.md`), and neither is Copilot CLI's legacy
++`.github/plugin/plugin.json`, which meets the counter's token grammar (base row S028) but is neither own-format nor the
++default its creation guide names.
+ 
+ | Client | Manifest | Source | Quote |
+ |---|---|---|---|
+@@ -29,29 +35,34 @@ between paths to raise a count: VS Code's Legacy OpenPlugin `.plugin/plugin.json
+ | Cursor | `.cursor-plugin/plugin.json` | S084 | "plugins with a `.cursor-plugin/plugin.json` manifest, which add rules, agents, commands, hooks, and" |
+ | opencode | `.opencode/plugins/` | S085 | "Plugins under `.opencode/plugins/` are loaded automatically, like the local example above." |
+ 
+-Quote locations (fetched bytes, seat reports under `.ufo/waves/round-57/build/`): S079 `plugins-reference.md:34`; S080
+-`build-plugins.md:135-137` (line breaks folded to spaces); S081 `agent-plugin-reference.md:97`; S082
+-`plugins-creating.md` step 2 (the list number `2. ` is not quoted); S083 `extensions-reference.md:106-107` (one line
+-break folded); S084 `plugins.md:28`, a contiguous substring (the list marker and bold label before it and the link
+-after it are not quoted); S085 `index.mdx:21`.
++Quote locations (fetched bytes, seat reports under `.ufo/waves/round-57/build/`): S079 `plugins-reference.md:34`, the
++first of two sentences on the line; S080 `build-plugins.md:135-137` (two line breaks folded to spaces; the quote is the
++paragraph's first sentence, ending mid-line 137); S081 `agent-plugin-reference.md:97`, the middle sentence of a
++three-sentence line; S082 `plugins-creating.md:27`, step 2 (the list number `2. ` is not quoted); S083
++`extensions-reference.md:106-107` (one line break folded; the quote begins mid-line 106, after the load-path sentence,
++which is not quoted); S084 `plugins.md:28`, a contiguous substring (the list marker and bold label before it and the
++link after it are not quoted; the quote ends on `and`, and the link's word `variables` is not quoted); S085
++`index.mdx:21`. Re-derived against live bytes by the round-57 attempt-2 residual seats
++(`.ufo/waves/round-57/attempt2/residual/`).
+ 
+ ## What a plugin can ship
+ 
+ | Client | Instruction-bearing parts a plugin can ship | Source lines |
+ |---|---|---|
+-| Claude Code | skills, Markdown commands and agents, hooks, MCP and LSP server configurations, output styles; the manifest is optional and every other file sits at the plugin root, not inside `.claude-plugin/` | S079 `plugins-reference.md:34-36,611-629` |
++| Claude Code | skills, Markdown commands and agents, hooks, MCP and LSP server configurations, output styles, workflows, themes, monitors, executables, settings; the manifest is optional and every other file sits under the plugin root, not inside `.claude-plugin/`; a `CLAUDE.md` at the plugin root is not loaded as context (`claude plugin validate` warns on it), so instructions that must load go in a skill | S079 `plugins-reference.md:30,34,611-629,665` |
+ | Codex | skills under `skills/`, MCP servers through `mcp.json` (the scaffold writes `.mcp.json`), lifecycle hooks for manually installed desktop plugins, assets; portable packages put `plugin.json` at the root and `.codex-plugin/plugin.json` stays supported as a compatibility fallback | S080 `build-plugins.md:14-30,52-89` |
+ | VS Code | portable skills and MCP servers; client-specific agents, hooks, automation templates and slash commands; agents, commands, rules and hooks read from `com.github.copilot`; formats auto-detected (Agent Plugins 1.0 and Copilot root `plugin.json`, Claude `.claude-plugin/plugin.json`, Legacy OpenPlugin `.plugin/plugin.json`) | S081 `agent-plugin-reference.md:11-22,73-85,97-104` |
+-| Copilot CLI | agents, skills, hooks, MCP server configurations; Agent Plugins 1.0 adds Copilot-specific commands, rules and LSP servers | S082 `plugins-creating.md:14-21,48-71` |
+-| Gemini CLI | MCP servers, a context file (`contextFileName`), TOML commands, hooks (in `hooks/hooks.json`, not in the manifest), skills, sub-agents, policy rules | S083 `extensions-reference.md:104-112,146-161,229-269` |
+-| Cursor | Cursor Plugins: rules, skills, agents, commands, MCP servers, hooks; Agent Plugins (root `plugin.json`): skills and MCP servers | S084 `plugins.md:9-30` |
+-| opencode | a JavaScript/TypeScript module that registers agents, commands, MCP configuration, skills, tools and runtime hooks in code; a published package carries a `package.json` | S085 `index.mdx:10-22,214-235,414-445,610-627,865-892,1768-1786` |
++| Copilot CLI | agents, skills, hooks, MCP server configurations; in Agent Plugins 1.0, Copilot-specific agents, commands, rules, hooks and LSP servers come from `com.github.copilot` (legacy plugins declare component paths such as `commands` and `lspServers` in `plugin.json`) | S082 `plugins-creating.md:14-21,48-71`; S028 `cli-plugin-reference.md:152,213,217` |
++| Gemini CLI | MCP servers, a context file (`contextFileName`), TOML commands, hooks (in `hooks/hooks.json`, not in the manifest), skills, sub-agents (a preview feature), policy rules | S083 `extensions-reference.md:104-112,146-161,229-269` |
++| Cursor | Cursor Plugins: rules, skills, agents, commands, MCP servers, hooks, `variables` (user-config placeholders, not instruction-bearing); Agent Plugins (root `plugin.json`): skills and MCP servers; without manifest paths Cursor discovers `skills/`, `rules/`, `agents/`, `commands/`, `hooks/hooks.json`, `mcp.json`, and reads a root `SKILL.md` as a single-skill plugin | S084 `plugins.md:9-30`; S088 `reference-plugins.md:152-165` |
++| opencode | a JavaScript/TypeScript module that registers agents, commands, MCP configuration, skills, tools and runtime hooks in code; a published package carries a `package.json`, which the build guide calls a minimal manifest | S085 `index.mdx:10-22,214-236,414-445,610-631,865-894,961-996,1335-1418,1768-1786`; S087 `plugins.mdx:44-60` |
+ 
+ ## Findings
+ 
+ - Four of seven clients document an own-format manifest path (`.claude-plugin/plugin.json`, `.codex-plugin/plugin.json`,
+-  `gemini-extension.json`, `.cursor-plugin/plugin.json`). VS Code, Copilot CLI, Codex and Cursor also read the shared
+-  Agent Plugins root `plugin.json`, so a root `plugin.json` alone does not tell which client a plugin targets.
++  `gemini-extension.json`, `.cursor-plugin/plugin.json`) — 4 — `python3 -B verifiers/check_plugin_manifests.py --rev
++  ac22ca87 --fetch` 2026-10-23 (`.ufo/waves/round-57/C1-measure.txt`). VS Code, Copilot CLI, Codex and Cursor also read
++  the shared Agent Plugins root `plugin.json`, so a root `plugin.json` alone does not tell which client a plugin targets.
+ - One package can serve several clients at once: VS Code reads Claude's format (S081 `:103`), and the host inventory
+   found plugins shipping `.claude-plugin`, `.codex-plugin` and `.cursor-plugin` side by side
+   (`.ufo/waves/round-57/build/ScoutPluginSweep.md`, host observation, not a documented rule).

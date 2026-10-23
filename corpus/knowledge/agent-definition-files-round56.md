@@ -88,4 +88,5 @@ counted quote cells are unchanged.
   base text holds `.claude/AGENTS.md` and `.codex/AGENTS.md` (`ScoutHeldAgentDefs`); this only makes new ground
   harder to reach.
 - On this host `~/.config/opencode/agents/` does not exist (`C2RedesignTruth`, `ScoutHostClients`), although
-  `../../SKILL.md` § Sources still describes 18 files there; that statement is stale and is routed, not changed here.
+  `../../SKILL.md` § Sources still lists 18 files there, marked `historical: …; absent on this host as of 2026-10-23` at
+  the line since round 57 (R6); the routed fix has landed.
