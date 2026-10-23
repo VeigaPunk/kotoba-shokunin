@@ -48,3 +48,8 @@ S118's snapshot line `.ufo/waves/round-62/snapshots/S118.page:250` says (raw byt
 - It does not decide whether source prose entails an Action claim; that remains reviewer judgment per Q31.
 - It checks the counter bytes against the embedded SHA-256 pin, but does not independently establish the pin's historical authority.
 - It performs no network fetch and does not measure source freshness or current availability.
+- The printed headline is not parsed back from the public path by any committed executable; a hardcoded line above the computed survivor rows exits 0 (`FalsifyMatrixMutants`, m3). The receipt's survivor rows are the cross-check.
+- The counter pin is hash-then-import, not atomic: a writer racing between the hash and the import can spoof `self_sha()` (`FalsifyPin`, medium).
+- The acceptance layer is shape-only: `measured 5 of 5` is the length of the hard-coded erratum table, K/N never gate the exit, and a forged `MatrixRun` reproduces the receipt line; kill-rule (iii)'s own-mutation flip is not asserted (`FalsifyClaimC1`, `FalsifyMatrixAsserted`). The committed datum is unaffected (the public path builds the run with the real scorer).
+- The before-state is narrowed: 2 of 5 classes already had one committed synthetic arm-level reject (E2b W2, E2c W1), 0 of 5 had the attack tables re-scored with both directions (`FalsifyBeforeState`).
+- The v3.1 successor's closure is bounded: E2c's binding conditions are narrower than the two frozen instances, and G7 both misses one published event form and over-rejects an expanded token (`FalsifyE2cClass`, `FalsifyE2fPair`, `FalsifyV31G7TooStrong`).

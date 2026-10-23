@@ -14,7 +14,9 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import hashlib
 import io
+import json
 import re
 import subprocess
 import sys
@@ -440,7 +442,101 @@ def cli_measurement(rev: str) -> tuple[int, int | None, str, str]:
     return status, int(match.group(1)) if match else None, stdout.getvalue(), stderr.getvalue()
 
 
+def honest_fixture_map() -> dict[str, str | None]:
+    """The house-style H1 repair written the way the lane actually writes it."""
+    h1 = make_fixture_blob_map(29)
+    h1["LOG.md"] = (
+        "# Iteration log\n\n## 2026-10-23 — Round 61 (house style)\n"
+        "- Round-60 build reports: claimed 32, committed 29; counted at `"
+        ".ufo/waves/round-60/build`.\n"
+        "- R-b landed scope includes `plans/round-60.md` and "
+        "`considerthese/2026-10-23.md`.\n"
+        "- R-c: the base measurement is receipts/freeze2-selftest.txt;\n"
+        "  C1-measure.txt is NOT the base pointer.\n\n## Round 62 — next entry\n"
+    )
+    h1[".ufo/waves/round-61/receipts/controls-ancestry.txt"] = (
+        f"$ git merge-base --is-ancestor {HASH_CTL} {HASH_DATA}\nexit=0\n"
+    )
+    return h1
+
+
+def score_with(evaluator, blobs: dict[str, str | None]) -> int:
+    """Score one fixture map through a supplied evaluator (never a literal)."""
+    return evaluator(blobs, fixture_tree_names(blobs))[0]
+
+
+def fingerprint(blobs: dict[str, str | None]) -> str:
+    payload = json.dumps(
+        sorted((path, blob) for path, blob in blobs.items() if blob is not None)
+    )
+    return hashlib.sha256(payload.encode()).hexdigest()
+
+
+def invariance_probe(evaluator, oracle) -> tuple[bool, str]:
+    """Repeat/reorder and fresh-invariant-identity arms for a candidate evaluator.
+
+    A call-order transcript returns different scores for repeated calls; a
+    fixture-fingerprint table misses inputs it never memorized. Both are
+    invariants of the real evaluator (its score depends on the repair blobs).
+    """
+    base = make_fixture_blob_map(29)
+    d1 = dishonest_fixture_maps()["D1"]
+    h1 = honest_fixture_map()
+    first_h1 = score_with(evaluator, h1)
+    first_d1 = score_with(evaluator, d1)
+    again_h1 = score_with(evaluator, h1)
+    again_d1 = score_with(evaluator, d1)
+    order_ok = first_h1 == again_h1 and first_d1 == again_d1
+    fresh_a = dict(base)
+    fresh_a[".ufo/waves/round-62/unrelated-note.txt"] = "x\n"
+    fresh_b = dict(base)
+    fresh_b[".ufo/waves/round-62/unrelated-note.txt"] = "y\ny\n"
+    plain = score_with(evaluator, base)
+    fresh_one = score_with(evaluator, fresh_a)
+    fresh_two = score_with(evaluator, fresh_b)
+    fresh_ok = plain == fresh_one == fresh_two
+    expected = (score_with(oracle, h1), score_with(oracle, d1),
+                score_with(oracle, base))
+    observed = (first_h1, first_d1, plain)
+    absolute_ok = observed == expected
+    detail = (
+        f"repeat h1 {first_h1}->{again_h1}, d1 {first_d1}->{again_d1}; "
+        f"fresh {plain}/{fresh_one}/{fresh_two}; "
+        f"oracle {expected} vs observed {observed}"
+    )
+    return order_ok and fresh_ok and absolute_ok, detail
+
+
+def transcript_evaluator():
+    """Negative control: constants keyed only by call position, reading no input."""
+    scores = iter((5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6))
+
+    def evaluator(_blobs, _tree_names):
+        try:
+            return (next(scores), ["constant transcript"])
+        except StopIteration:
+            return (0, ["constant transcript exhausted"])
+
+    return evaluator
+
+
+def lookup_evaluator() -> tuple[object, int]:
+    """Negative control: a memorized fingerprint table built from known fixtures."""
+    table: dict[str, int] = {}
+    known = [make_fixture_blob_map(29), honest_fixture_map()]
+    filled = dict(dishonest_fixture_maps())
+    known.extend(filled.values())
+    for blobs in known:
+        table[fingerprint(blobs)] = score_with(check_repairs, blobs)
+
+    def evaluator(blobs: dict[str, str | None], _tree_names):
+        return (table.get(fingerprint(blobs), 0), ["fingerprint lookup"])
+
+    return evaluator, len(table)
+
+
 def self_test() -> int:
+    global check_repairs
     failures: list[str] = []
     rejected = 0
     old_scores: dict[str, int] = {}
@@ -535,6 +631,25 @@ def self_test() -> int:
             f"base CLI: exit {base_status}, score {base_score}; expected exit 1, score 0"
         )
 
+    real_check_repairs = check_repairs
+    try:
+        check_repairs = lambda *_a: (0, ["cli dependency stub"])
+        zero_status, zero_score, _, _ = cli_measurement(tip_resolved)
+        check_repairs = lambda *_a: (6, ["cli dependency stub"])
+        six_status, six_score, _, _ = cli_measurement(BASE_REV)
+    finally:
+        check_repairs = real_check_repairs
+    if zero_status != 1 or zero_score != 0:
+        failures.append(
+            "CLI dependency arm: a zero-score scorer must make the tip CLI exit 1, "
+            f"score 0 (observed exit {zero_status}, score {zero_score})"
+        )
+    if six_status != 0 or six_score != 6:
+        failures.append(
+            "CLI dependency arm: a six-score scorer must make the base CLI exit 0, "
+            f"score 6 (observed exit {six_status}, score {six_score})"
+        )
+
     unreadable_rev = "routed-repairs-v2-no-such-revision"
     unreadable_status, unreadable_score, _, unreadable_error = cli_measurement(
         unreadable_rev
@@ -548,15 +663,40 @@ def self_test() -> int:
             "unreadable-revision CLI control did not exit 2 with could-not-evaluate"
         )
 
-    constant_six_base = 6
-    constant_zero_h1 = 0
-    constant_zero_h2 = 0
-    if constant_six_base == base_score:
+    base_blobs = {
+        path: git_show(LANE, resolve_commit(LANE, BASE_REV) or BASE_REV, path)
+        for path in INPUT_PATHS
+    }
+    base_resolved = resolve_commit(LANE, BASE_REV) or BASE_REV
+    const_six = lambda _b, _t: (6, ["constant six"])
+    const_zero = lambda _b, _t: (0, ["constant zero"])
+    const_six_base = score_with(const_six, base_blobs)
+    const_zero_h1 = score_with(const_zero, h1)
+    const_zero_h2 = score_with(const_zero, tip_blobs)
+    if const_six_base == base_score:
         failures.append("constant-6 evaluator unexpectedly passes the base control")
-    if constant_zero_h1 == h1_score:
+    if const_zero_h1 == h1_score:
         failures.append("constant-0 evaluator unexpectedly passes H1")
-    if constant_zero_h2 == tip_score:
+    if const_zero_h2 == tip_score:
         failures.append("constant-0 evaluator unexpectedly passes H2")
+
+    real_invariance, real_detail = invariance_probe(check_repairs, check_repairs)
+    if not real_invariance:
+        failures.append(f"invariance arm failed on the real evaluator: {real_detail}")
+    transcript = transcript_evaluator()
+    transcript_ok, transcript_detail = invariance_probe(transcript, check_repairs)
+    if transcript_ok:
+        failures.append(
+            "call-order transcript evaluator passed the invariance arms: "
+            f"{transcript_detail}"
+        )
+    lookup, table_size = lookup_evaluator()
+    lookup_ok, lookup_detail = invariance_probe(lookup, check_repairs)
+    if lookup_ok:
+        failures.append(
+            f"fingerprint lookup ({table_size} memorized inputs) passed the "
+            f"invariance arms: {lookup_detail}"
+        )
 
 
 
@@ -572,6 +712,17 @@ def self_test() -> int:
         "label-only constants fail controls: "
         f"constant 6 vs base {base_score}; constant 0 vs H1 {h1_score}; "
         f"constant 0 vs H2 {tip_score}",
+        file=sys.stderr,
+    )
+    print(
+        "CLI scorer-dependency: zero-scorer tip exit=%d score=%s; six-scorer base "
+        "exit=%d score=%s" % (zero_status, zero_score, six_status, six_score),
+        file=sys.stderr,
+    )
+    print(
+        "invariance controls: real passes; "
+        f"call-order transcript rejected={not transcript_ok}; "
+        f"fingerprint lookup rejected={not lookup_ok} ({table_size} memorized inputs)",
         file=sys.stderr,
     )
 
