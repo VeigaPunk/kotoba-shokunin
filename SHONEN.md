@@ -3,7 +3,7 @@
 Promotion to shokunin requires all of:
 
 - [~] SKILL.md contains real decision tables, error patterns, checklists, cited sources
-  evidence: `.ufo/round-46/scouts/B2.md` (SKILL.md inventory: 7 anatomy rows, 5 decision rows, 41 checklist boxes 15/9/9/8, 38 Sources entries; lane-run). Recount at round 57 (`A3CriticScorecardCalib`): the 5 decision-shape rows moved to `corpus/knowledge/anatomy-and-compression.md:102-108` (pointer `SKILL.md:217`); § Sources holds 33 top-level entries (`awk '/^## Sources/{p=1;next} /^## /{p=0} p && /^- /' SKILL.md | wc -l`)
+  evidence: `.ufo/round-46/scouts/B2.md` (SKILL.md inventory: 7 anatomy rows, 5 decision rows, 41 checklist boxes 15/9/9/8, 38 Sources entries; lane-run). Recount at round 57 (`A3CriticScorecardCalib`): the 5 decision-shape rows moved to `corpus/knowledge/anatomy-and-compression.md:102-108` (pointer `SKILL.md:241`, repointed round 60 for the round-59 carried R4 drift); § Sources holds 33 top-level entries (`awk '/^## Sources/{p=1;next} /^## /{p=0} p && /^- /' SKILL.md | wc -l`)
 - [~] At least one end-to-end domain task executed and logged in LOG.md
   evidence: `corpus/knowledge/cold-run-round11.md` (corpus-integrity verifier red-before → green-after, cold run by a lane-dispatched reviewer — lane evidence per PROTOCOL Promotion gates)
 - [~] Instructions executable by an agent without oral context

@@ -1,0 +1,69 @@
+Result: MIXED — Negatives: all nine SKILL.md cells of the three NOT-ELIGIBLE rows hold on their cited snapshot lines (which are byte-identical to the live pages today), but the entry's Codex and Gemini CLI bullets carry three mis-citations whose bracketed snapshot lines do not contain the claims they support.
+
+Seat: KotobaR60.CellsNegatives · 2026-10-23 · lane `/home/vgpnk/Projects/shokunin/kotoba-shokunin` · data commit `7b80ae80cda69a95b6fc90879395113a99a57912` (`git rev-parse master` → same hash, exit 0). Scope: semantic re-read of `SKILL.md` § Scoped rule files by client rows Codex (`SKILL.md:142`), Gemini CLI (`SKILL.md:145`), opencode (`SKILL.md:147`); heading `:135`; intro sentence "Codex, Gemini CLI and opencode scope by directory instead." at `SKILL.md:137`. Snapshots `.ufo/waves/round-60/snapshots/S104.page` (218 lines, 9,149 B), `S107.page` (115 lines, 3,816 B), `S109.page` (182 lines, 6,684 B). All three snapshots were read in full; every cell citation was checked against the cited lines and the full page was scanned for any contradicting scoped-rule mechanism.
+
+## 0. Evidence currency (live re-fetch, ordinary curl)
+
+`date -u` → `Fri 23 Oct 2026 06:15:38 PM UTC`. `curl -sS -L --max-time 60` per URL:
+
+| src | URL | HTTP | bytes | sha256 (live == committed snapshot == SOURCES row) |
+|---|---|---|---|---|
+| S104 | https://learn.chatgpt.com/docs/agent-configuration/agents-md.md | 200 | 9,149 | `9d1f87a2d1cb55b4782b95abe710692b35b9659789c2db31a22c7074a3383e8e` |
+| S107 | https://geminicli.com/docs/cli/gemini-md.md | 200 | 3,816 | `e5fbfd6d580643a300b5ee0e622d9e2d8f97d4d23460e6b08e1c656251c2f2c2` |
+| S109 | https://opencode.ai/docs/rules.md | 200 | 6,684 | `dfb242d9a8c0cfb1c97cee74a895b56ba72cba64b558200f06eede4f5f93cb54` |
+
+`git show <rev>:<snapshot> | sha256sum` equals the live `sha256sum` for all three — zero drift between the landed data and the vendors' current pages. Bytes saved under `/fast/scratch/hyaku/kotoba-r60/CellsNegatives/` only.
+
+## 1. Cell-by-cell verdicts (9/9 HOLDS)
+
+### 1.1 Codex — `SKILL.md:142` (source S104)
+
+- **Rule files** — "no scoped rule file: AGENTS.md instructions are discovered by directory walk (S104 :12)" — **HOLDS.** `S104.page:12` (two slices, byte-exact): "Starting at the project root (typically the Git root), Codex walks down to your current working directory." and "In each directory along the path, it checks for `AGENTS.override.md`, then `AGENTS.md`, then any fallback names in `project_doc_fallback_filenames`." plus "Codex includes at most one file per directory." Directory walk, not matching-file scope. The token is the page's subject mechanism (page title "Custom instructions with AGENTS.md"), not an example file. Full-page scan: no frontmatter, no glob/path-pattern key, no rules folder for instructions (`grep -inE 'execpolicy|\.codex/rules|rules/' S104.page` → no match, exit 1); the only other "rules" hits are `## Add code review rules` content guidance inside AGENTS.md (`S104.page:124-143`). The separate `~/.codex/rules/` execpolicy (command prefixes, experimental) is correctly excluded from the row — see Finding F1.
+- **Scope key** — "none (the project-root-to-current-directory walk determines loaded instructions, S104 :12)" — **HOLDS.** Exactly `S104.page:12`; K=none is the page's state (fallback names are a config.toml filename list, `S104.page:151-159`, not a per-file scope key).
+- **Action** — "Use nested AGENTS.override.md/AGENTS.md for directory-specific instructions, not matching-file rules (S104 :12)" — **HOLDS.** `:12` names `AGENTS.override.md` then `AGENTS.md` per directory; the nested-override use the Action recommends is demonstrated on the same page (`S104.page:64` "Add overrides in nested directories when specific teams need different rules.", `:83` "Codex stops searching once it reaches your current directory, so place overrides as close to specialized work as possible."). No inverted meaning; "not matching-file rules" is the page-wide absence, correctly stated.
+
+### 1.2 Gemini CLI — `SKILL.md:145` (source S107)
+
+- **Rule files** — "no scoped rule file: directory-scoped GEMINI.md context with just-in-time discovery (S107 :31-35)" — **HOLDS.** `S107.page:31` "When a tool accesses a file or directory, the CLI" + `:32-33` "automatically scans for `GEMINI.md` files in that directory and its ancestors up to a trusted root."; `:34-35` "Lets the model discover highly specific instructions for particular components only when they are needed." Directory + JIT, as the cell says.
+- **Scope key** — "none (directory and ancestor lookup scope context instead of a path-pattern key, S107 :31-33)" — **HOLDS.** `:31-33` support the directory/ancestor mechanism; the full 115-line page contains no path-pattern key: the only configurable name key is `context.fileName`, "To specify a different name or a list of names, use the `context.fileName` property." (`S107.page:96-98`, example list at `:105` — names, not globs). K is not `description`/`name`/`alwaysApply`/`excludeAgent` — none of those appears on the page as a scope key.
+- **Action** — "Put component-specific instructions in GEMINI.md context files; JIT discovery scans the accessed directory and its ancestors (S107 :31-33)" — **HOLDS.** `:31-33` verbatim support; "component-specific" matches `:34-35`. INFO (no fix): the Action omits the bound "up to a trusted root" — a faithful abbreviation, not an inversion; the omitted words do not change what the line claims.
+
+### 1.3 opencode — `SKILL.md:147` (source S109)
+
+- **Rule files** — "no scoped rule file: AGENTS.md guidance is directory-scoped, not matching-work-file scoped (S109 :64)" — **HOLDS.** `S109.page:64` (23 words, byte-exact): "Place an `AGENTS.md` in your project root for project-specific rules. These only apply when you are working in this directory or its sub-directories." The scope condition is the working directory. The page's only `*`-bearing key, `instructions`, selects extra instruction files to load (example `"instructions": ["CONTRIBUTING.md", "docs/guidelines.md", ".cursor/rules/*.md"]`, `S109.page:111`), i.e. which files load, not which work-files trigger a rule — the census states this reading with the V2 text (Censusopencode.md:73-86, at `:86`: "the globs choose instruction files to load with `AGENTS.md`, not paths of files the agent is working on.").
+- **Scope key** — "none (directory placement governs scope, S109 :64)" — **HOLDS.** Placement is the whole mechanism `:64` states.
+- **Action** — "Place AGENTS.md in the project root; its guidance applies in that directory and its subdirectories (S109 :64)" — **HOLDS.** Near-verbatim paraphrase of `:64`; no claim beyond the line.
+
+## 2. Entry quote / word-count re-check for the negatives — vacuous, no defect
+
+The entry `corpus/knowledge/scoped-rules-round60.md` quote table (entry:13-18) contains exactly four rows — Claude Code, VS Code, Copilot CLI, Cursor. There is **no Quote cell and no stated word count for Codex, Gemini CLI, or opencode anywhere in the entry** (the "Quote shaping" section, entry:33-38, lists only S103/S105/S106/S108; `grep -nE '[0-9]+[- ]?(word|words)'` over the entry → exit 1, no matches). Byte-for-byte comparison and `wc -w` therefore have nothing to check for the three negative rows; recorded as vacuous rather than passed. This is consistent with lesson M86 (`corpus/lessons/round-60.md:49-53`): no stated word count exists, so none can lack a counting command.
+
+## 3. Findings by severity
+
+**F1 — MEDIUM (entry, not the SKILL.md cells): Codex bullet mis-citation.** entry:29 brackets "`~/.codex/rules/` is a separate experimental command execpolicy; its `pattern` matches command prefixes, not instruction-file paths [S104 :48-61,91]" — but `S104.page:48-61` is the AGENTS.override.md / "Layer project instructions" material ("## Layer project instructions" at `:49`; "1. In your repository root, add an `AGENTS.md` that covers basic setup:" at `:53`) and `:91` is the file-tree entry `name: "AGENTS.md",`. grep for `execpolicy|\.codex/rules|rules/` over S104.page → exit 1 (absent). The claim's substance is real but lives in the census's second fetch, not in S104: CensusCodex.md:48-61 is "Rejected candidate A — ~/.codex/rules/ (command execpolicy)" (":50" "Printed token on rules.body:15 and :46: ~/.codex/rules/default.rules, folder ~/.codex/rules/, project-local repo/.codex/rules/."; ":61" quoting rules.body — "- `pattern` **(required)**: A non-empty list that defines the command prefix to match."; ":91" the scope-key analysis; the rules.body URL and sha are at CensusCodex.md:12). The bracket repeats CensusCodex.md's own line numbers under an `S104` label [INFERENCE on the cause; the mismatch itself is observed]. Same bullet, lesser point: `[S104 :12,46]` — `S104.page:46` is a blank line; `:12` alone carries the sentence (fallback names and one-file-per-directory are both in `:12`).
+  **Corrected entry:29 (exact replacement):**
+  `- **Codex (S104).** The census documents `AGENTS.override.md`, `AGENTS.md`, and fallback names discovered along the directory walk, with at most one file included per directory; this is placement-based, not a file-path glob rule [S104 :12; CensusCodex.md:28-46]. `~/.codex/rules/` is a separate experimental command execpolicy; its `pattern` matches command prefixes, not instruction-file paths [CensusCodex.md:48-93; evidence is that census's second fetch https://learn.chatgpt.com/docs/agent-configuration/rules.md, which is not a committed round-60 snapshot]. The census also rejects `AGENTS.md` as a counted token because it is one segment and not dot-led [CensusCodex.md:95-100].`
+
+**F2 — MEDIUM (entry): Gemini CLI bullet, two mis-citations.** entry:30 brackets "The user-level `~/.gemini/GEMINI.md` provides defaults for all projects [S107 :38-40]" — but `S107.page:37-38` is "The CLI footer displays the number of loaded context files, which gives you a quick visual cue of the active instructional context." and `:40` is "### Example `GEMINI.md` file". The claim is supported at `S107.page:20-21` ("- **Location:** `~/.gemini/GEMINI.md` (in your user home directory). - **Scope:** Provides default instructions for all your projects."). And "The `fileName` setting names context filenames; … [S107 :66-79]" — `:66-79` is the `/memory` command and the imports intro ("## Modularize context with imports" `:71`; "components by importing content from other files using the `@file.md` syntax." `:73-74`); the `fileName` material is at `S107.page:94-108` ("## Customize the context file name" `:94`). The absence half of that sentence (no path-pattern key, no action line) is the census's: CensusGeminiCLI.md:66-77 (scope-key failure on `fileName`) and ":79" "No Action line tells a rule author to attach a path pattern.", ":88" docs-tree counts 0 — again census line numbers pasted under an `S107` label [INFERENCE on cause].
+  **Corrected entry:30 (exact replacement):**
+  `- **Gemini CLI (S107).** The default `GEMINI.md` context file is discovered by directory hierarchy and JIT access, not a matching-path frontmatter rule [S107 :20-35]. The user-level `~/.gemini/GEMINI.md` provides defaults for all projects [S107 :20-21]. The `fileName` setting names context filenames [S107 :94-108]; the census found no path-pattern key and no action line for attaching such a pattern [CensusGeminiCLI.md:66-88].`
+
+**F3 — no finding (info):** SKILL.md Gemini Action omits "up to a trusted root" (`S107.page:33`) — abbreviation without change of meaning; no correction required.
+
+**F4 — no finding:** entry:31 (opencode bullet) checks out entirely: `[S109 :64,68]` — `:64` project placement (quoted in §1.3), `:68` "You can also have global rules in a `~/.config/opencode/AGENTS.md` file. This gets applied across all opencode sessions." — and `[Censusopencode.md:73-86]` matches its content.
+
+## 4. Residual risk and verification gaps
+
+- The client-level "no scoped rule file" ruling rests on the census seats' three-leg Q30 sweeps, which are recorded per client and were read by this seat but not redone: CensusCodex.md:109-113 (changelog, docs tree, corpus), CensusGeminiCLI.md:90-105, Censusopencode.md:168-172. This seat's added value is currency: the three cited pages re-fetched byte-identical today (§0). The census's secondary pages (e.g. Codex `rules.md`, sha `4ecdfe26…`, 6,783 B, 2026-10-23T10:30Z) were not re-fetched.
+- Counter v2 was not run by this seat: C1 is declared exploratory (erratum E2, `plans/round-60.md:155-168`) and the counter is supporting evidence only; this semantic re-read is the substance. No lane code was executed, so no sandbox clone was needed; scratch stayed under `/fast/scratch/hyaku/kotoba-r60/CellsNegatives/`. No sandbox commit. No tools installed (directive: nothing to record).
+- Verdicts are vendor-documentation claims checked against vendor-documentation snapshots; no client was run (matches the entry's own "Not held" list, entry:40-46).
+
+## 5. Verification log (command → observed output → exit)
+
+- `git --no-optional-locks -C <lane> rev-parse master` → `7b80ae80cda69a95b6fc90879395113a99a57912` (== data commit) → exit 0.
+- `git show <rev>:.ufo/waves/round-60/snapshots/{S104,S107,S109}.page | sha256sum` vs `sha256sum` of today's live fetches → identical pairs, values in §0 → exit 0.
+- `git show <rev>:corpus/knowledge/scoped-rules-round60.md | grep -nE '[0-9]+[- ]?(word|words)'` → no output → exit 1 (no stated word counts).
+- `git show <rev>:.ufo/waves/round-60/snapshots/S104.page | grep -inE 'execpolicy|\.codex/rules|rules/'` → no output → exit 1 (F1 evidence).
+- `git show <rev>:SKILL.md | sed -n '133,148p'` → the 7-row table with Codex/Gemini CLI/opencode at :142/:145/:147 → exit 0.
+- curl loop (§0) → three `http=200` lines with byte counts and sha256s → exit 0.
+- `mkdir -p <lane>/.ufo/waves/round-60/residual` → exit 0.

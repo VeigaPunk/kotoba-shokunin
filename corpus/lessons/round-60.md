@@ -38,7 +38,8 @@ the re-open and correction rows are new rows).
   the span is 25 words: ``sed -n '94,97p' hooks.md | tr '\n' ' ' | sed -E 's/^.*Hooks/Hooks/; s/(`\.gemini\/settings\.json`).*/\1/' | wc -w``
   → 25 on `https://geminicli.com/docs/hooks.md` (2026-10-23T10:29:31Z, HTTP 200, 8,341 B, sha256 `a06a9243…`;
   `w0/ExecR1Recount.md`, re-run by `build/ReviewR1Correction.md`). The reject stands on Q42 (the span folds a blank line
-  and a list item), not on the cap; the unshaped 10-word `best-practices.md:413` quote names the same token.
+  and a list item), not on the cap; the unshaped 10-word (`sed -n '413p' best-practices.md | wc -w` → 10, exit 0)
+  `best-practices.md:413` quote names the same token.
 - **S096 anchor (round-59 carried R4)** — corrected by new row S110 (`supersedes S096 —`): `:31-65` is the event summary
   table under § Hook lifecycle (`:17`); § Hook events begins at `:1219`.
 - **S097 teaches wording (round-59 carried R4, LOW)** — corrected by new row S111 (`supersedes S097 —`): review and trust
