@@ -152,6 +152,21 @@ the held rows are round 53's), no code change; frozen v2 sha256
 `ca2585a4a06e6e88a3d881412199fa4743f1a4553dca121f396b58d5cdb8c04a`; seat self-test `0 failure(s) over 318
 assertions`, exit 0; L1 sandbox receipt `.ufo/waves/round-60/receipts/freeze2-selftest.txt`.
 
+**Erratum E2 — C1 declared exploratory before data (phase-4 rule: "a claim whose counter any control meets is
+re-designed before data or declared exploratory").** Two v2 control worlds meet the predicate (`F >= 3`, `--fetch`
+exit 0): `CtlReopenForged` variant d (`.ufo/waves/round-60/controls-v2/CtlReopenForged.md`: real rows, keys, quotes and
+actions, but the three re-open snapshots are round-53 scratch bytes from 2026-10-22 under a row that says it was
+fetched today) and `CtlReopenHeldKey` (b) (locale and enterprise alias URLs with real content; the L1 rejects aliases
+by judgment in E1, the counter does not). Neither world skips the table work; each forges only source provenance (when
+the bytes were fetched, or which URL is the held page), which the counter cannot authenticate. A redesign that tells
+an old identical byte stream from a fresh one does not exist, and no time remains to re-control another counter
+before the hard stop. So C1 is **exploratory** from this commit on, before any C1 data is integrated into the lane: it
+improves `SKILL.md` with a per-client scoped-rule decision table whose semantic cells (scope key in key form with a
+glob value; an action drawn from its cited line) are machine-read against committed snapshot lines, which round 59's
+hook table lacked (its Events conjunct proved only that a name was printed). It verifies only as
+`unprovable-but-better` with a named non-author reviewer; otherwise it lands `unprovable`. Counter v2 output is
+reported as supporting evidence, never as the claim's verdict; the counter, target and predicate stay unchanged.
+
 ## Pre-freeze control wave (phase-4 rule)
 
 Fresh mutation-tester / executor seats build and score, with the frozen counter at the freeze commit: do-nothing (the
