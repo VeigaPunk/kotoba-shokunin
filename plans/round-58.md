@@ -49,9 +49,28 @@ Counter: `python3 -B verifiers/check_command_files.py --rev <rev> --fetch` (buil
   with `--fetch` the quote found on the live page.
 - Prints `custom command files found on the live page F of K; new ground G`; G = distinct casefold(normalise(token))
   of backed rows with 0 case-insensitive segment-boundary hits in the base tree (`':!.ufo'`).
-- **Census (Q45, R6): `TBD` — filled at freeze from the W0 census seats, which write no lane content.**
-- **Targets: `TBD` at or below the census.** Predicate (the same sentence in the counter, the receipt label and
-  here): *exit 0 iff F ≥ T_F and G ≥ T_G*.
+- **Census (Q45, R6), recorded before the targets** — W0 census seats (one per client, scouts, no lane content;
+  reports `.ufo/waves/round-58/w0/Census*.md`, fetched 07:37–07:40Z), each scored against the row rule above:
+
+  | Client | census | eligible token | page (seat report) |
+  |---|---|---|---|
+  | Claude Code | ELIGIBLE | `.claude/commands/` | code.claude.com/docs/en/slash-commands.md:172 (`CensusClaudeCode`) |
+  | Codex | ELIGIBLE (page marks the form deprecated) | `~/.codex/prompts/` | learn.chatgpt.com/docs/custom-prompts.md:62 (`CensusCodex`) |
+  | VS Code | ELIGIBLE | `.github/prompts` | code.visualstudio.com/docs/agent-customization/prompt-files.md:25-28 (`CensusVSCode`) |
+  | Copilot CLI | NOT ELIGIBLE — its command reference reads `.claude/commands/` (foreign marker; E5 would also disqualify Claude Code) | — | docs.github.com command reference :1334 (`CensusCopilotCLI`) |
+  | Gemini CLI | ELIGIBLE | `~/.gemini/commands/` | geminicli.com/docs/cli/custom-commands.md:12 (`CensusGeminiCLI`) |
+  | Cursor | ELIGIBLE | `.cursor/commands` | cursor.com/docs/reference/deeplinks.md:54 (`CensusCursor`) |
+  | opencode | ELIGIBLE | `.opencode/commands/` | opencode.ai/v2/docs/commands/:19 (`Censusopencode`) |
+
+  Population F_max = 6. New-ground population (eligible tokens with 0 base hits, `git grep -ilF <t> f56f6e19 --
+  . ':!.ufo' | wc -l`): `.claude/commands`, `.gemini/commands`, `.cursor/commands`, `.opencode/commands` → 0 each,
+  G_max = 4; `.codex/prompts` and `.github/prompts` are held (1 file each). The Copilot CLI row, if written, must
+  carry no backticked path (E5).
+- **Targets: T_F = 4 (margin 2 below the census 6), T_G = 3 (margin 1 below 4).** Predicate (the same sentence in
+  the counter, the receipt label and here): *exit 0 iff F ≥ 4 and G ≥ 3* on `--rev <rev> --fetch`; receipt label
+  `C1 predicate: --fetch exit 0 (F>=TARGET, G>=NEW_TARGET)`.
+- Commit order: these targets and both counters are committed before the control wave scores them; a control that
+  meets either predicate forces a redesign before any data (erratum), never a change after data.
 
 ### C2 — operability (advisory, 8.5): correction-sweep arms discriminate (R3, M68)
 
