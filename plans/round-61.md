@@ -223,6 +223,14 @@ start (`supersedes S### —`), and a row carrying it is not counted as a fresh e
 defeats the kill (measured); (4) the scan covers the measured commit's table too (excluding
 self), so a same-changeset alias cannot hide. Clause (iii) stays consistency-only with no
 backdated fixture (its self-test stands on date arithmetic, not on world rejection).
+(5) The id named in the anchored `supersedes S### —` declaration must be a base-table row
+WHOSE RECORDED FULL SHA equals the counted row's sha — a name-only declaration naming a
+row that records only a prefix sha passes an unanchored-name check (MutA4 seam 1:
+`supersedes S048 — …` while S048 records only the `00e45ea5` prefix does NOT launder W1;
+else reject "declared row S048 does not record the aliased sha"). (6) The declaration's
+teaches cell must not also carry a fresh-fetch assertion (`fetched <ISO>` form, or the
+row's recorded fetch-claim shape) — a byte-identity row claiming a fresh fetch of the
+same bytes is rejected (MutA4 seam 2).
 
 ## Commit order
 
