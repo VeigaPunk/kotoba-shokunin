@@ -1,0 +1,217 @@
+diff --git a/verifiers/check_assertion_floors.py b/verifiers/check_assertion_floors.py
+index 3896e2b..9339804 100644
+--- a/verifiers/check_assertion_floors.py
++++ b/verifiers/check_assertion_floors.py
+@@ -45,7 +45,23 @@ Exit: 0 all floors hold;
+ 1 an instrument ran below its floor, or its summary could not be parsed or the
+ instrument could not be run (named, observed-vs-floor); 2 the in-file registry
+ or the external anchor disagrees (named), or a self-test timed out, or a
+-declared instrument path escapes --repo (named 'escape:'). Read-only.
++declared instrument path escapes --repo (named 'escape:'), or git is not
++runnable -- missing or refusing, named on stderr as
++'could-not-evaluate: git not runnable:'. Read-only.
++
++CHILD CAP (round 56, routed defect 4 of the round-55 spot-check). Each child
++self-test runs under a cap of `--self-test-timeout` SECONDS (base 120) scaled
++by the host's 1-minute runnable count, clamped at SELF_TEST_TIMEOUT_MAX_SCALE
++times the base. A flat base read this guard's own walk as exit 2 on a healthy
++tree whenever the host was saturated: round 39 recorded the same false red
++(verify_harness_independent past 120 s while a sibling wrote) and round 55
++measured the slowest child at 185-222 s against it. Measured at round 56 on
++this 32-CPU host: that child takes 53.8 s at loadavg 6.7 and the whole walk
++59 s at loadavg 12.25, so only real CPU contention pushes it past 120 s. The
++cap is a hang backstop, not a performance model: a child that hangs is still
++named (exit 2) once the cap elapses, and the timeout line prints the base, the
++load and the cap it used. `--load LOADAVG` is the probe affordance that pins
++the factor (`--load 1` pins the cap to the base exactly).
+ 
+ REGISTRY ANCHORS. Rounds 31 (scout G2/G3) added the two-way in-file registry
+ self-check; round 37 (claim C2a, scouts C2/M7) closed its residual: those two
+@@ -145,6 +161,24 @@ EXPECTED_INSTRUMENTS = {
+     "alwayson": 89,
+ }
+ SELF_TEST_TIMEOUT_S = 120
++# Round-56 routed defect 4 (round-55 spot-check, 'routed defects' item 4): the
++# cap is the base scaled by the host load, clamped so a runaway load cannot
++# postpone hang detection without bound. 15 x 120 s = 30 min at the default.
++SELF_TEST_TIMEOUT_MAX_SCALE = 15.0
++
++
++def child_timeout_s(base, load):
++    '''The per-child cap: `base` scaled by the host's 1-minute runnable count.
++
++    Round-56 routed defect 4: a flat base made this guard itself exit 2 on a
++    healthy tree under fleet load (round 55 measured the slowest child at
++    185-222 s against 120 s). Scaling up is the safe direction -- a cap that is
++    too generous only delays the report of a genuinely hung child, while a cap
++    that is too tight turns host load into a false could-not-evaluate. A load
++    of 1 or less (an idle host) leaves the base untouched; the factor is
++    clamped at SELF_TEST_TIMEOUT_MAX_SCALE.
++    '''
++    return base * min(max(1.0, load), SELF_TEST_TIMEOUT_MAX_SCALE)
+ 
+ # Round-37 external anchor (claim C2a): the registry the two in-file tables are
+ # cross-checked against. Relative to --repo; see registry_anchor_drift().
+@@ -455,17 +489,34 @@ def main(argv=None):
+     parser.add_argument("--repo", type=Path, default=DEFAULT_REPO)
+     parser.add_argument("--script", action="append", default=[], metavar="NAME=PATH")
+     parser.add_argument("--self-test-timeout", type=float, default=SELF_TEST_TIMEOUT_S,
+-                        metavar="SECONDS")
++                        metavar="SECONDS",
++                        help="base cap per child self-test; scaled by the host load "
++                             "(--load 1 pins it to the base exactly)")
++    parser.add_argument("--load", type=float, default=None, metavar="LOADAVG",
++                        help="probe affordance: the load average the cap scales with "
++                             "(default: the host's own os.getloadavg())")
+     parser.add_argument("--self-test", action="store_true",
+                         help="assert the registry/anchor verdicts and exit codes on temporary fixtures only")
+     args = parser.parse_args(argv)
+     if args.self_test:
+         return self_test()
++    # Round-56 routed defect 5b (round-55 spot-check, 'routed defects' item 5):
++    # the preflight reads the returncode, not only OSError. A `git` that runs
++    # but refuses -- a broken install, a wrapper, a blocked environment -- is
++    # the same environment error as a missing one, and belongs on the
++    # could-not-evaluate channel before any child self-test turns it into a
++    # misattributed floor failure.
+     try:
+-        subprocess.run(["git", "--version"], capture_output=True, text=True)
++        preflight = subprocess.run(["git", "--version"], capture_output=True, text=True)
+     except OSError as exc:
+         print("could-not-evaluate: git not runnable: %s" % exc, file=sys.stderr)
+         return 2
++    if preflight.returncode != 0:
++        print("could-not-evaluate: git not runnable: `git --version` exit %d: %s"
++              % (preflight.returncode,
++                 (preflight.stderr.strip() or preflight.stdout.strip() or "(no output)")),
++              file=sys.stderr)
++        return 2
+     repo = args.repo.resolve()
+     # Round-38 claim C2b (V4-S): a non-str table key is fail-closed BEFORE the
+     # anchor runs -- the anchor's own set arithmetic (`sorted(set(...) - set(...))`)
+@@ -527,13 +578,25 @@ def main(argv=None):
+ 
+     failed = False
+     run_error = False
++    getloadavg = getattr(os, "getloadavg", None)
+     for name, (_, floor, pattern, assertion_group, failure_group) in INSTRUMENTS.items():
++        # Round-56 routed defect 4: the load is read per child, so a host that
++        # loads up mid-walk is not judged by the load the walk started under.
++        if args.load is not None:
++            load = args.load
++        elif getloadavg is not None:
++            load = getloadavg()[0]
++        else:
++            load = 1.0    # no load average on this platform: the base cap stands
++        cap = child_timeout_s(args.self_test_timeout, load)
+         try:
+             proc = subprocess.run([sys.executable, str(paths[name]), "--self-test"],
+                                   cwd=repo, capture_output=True, text=True,
+-                                  timeout=args.self_test_timeout)
++                                  timeout=cap)
+         except subprocess.TimeoutExpired:
+-            print("FAIL %s self-test timed out after %gs (hung?)" % (name, args.self_test_timeout))
++            print("FAIL %s self-test timed out after %.1fs "
++                  "(base %.1fs x load %.2f = cap %.1fs; hung?)"
++                  % (name, cap, args.self_test_timeout, load, cap))
+             run_error = True
+             continue
+         match = re.search(pattern, proc.stdout)
+@@ -589,7 +652,14 @@ def self_test() -> int:
+     absolute declaration each named on BOTH channels (red-before: exit 0 with
+     both channels agreeing), and an in-repo `..` control that must stay allowed
+     (the mirror-world idiom). F29 pins confinement_problem() over ten shapes.
+-    F30 pins a missing git executable as exit 2, not a failed child self-test.
++    F30 pins a missing git executable as exit 2, not a failed child self-test;
++    F31 pins a git that runs and refuses (round-56 routed defect 5b, red-before:
++    exit 0 with no diagnostic, the stub walk misreading the environment as a
++    verdict). T1-T3 pin the round-56 child cap (routed defect 4): T1 a child
++    slower than the base cap completes when the host is loaded, T2 an idle host
++    keeps the base exactly, T3 a runaway load is clamped to
++    SELF_TEST_TIMEOUT_MAX_SCALE (red-before: `--load` is an unrecognised
++    argument, argparse exit 2).
+     The override closure is LAYERED, so the mutant battery is compound as well
+     as single-move (drafts/p3/mutants40.py, out/MUTANTS.txt): M-digest alone
+     reddens F22/F23, M-row-esc and M-reg-esc each redden F26/F27, while F21's
+@@ -1218,6 +1288,81 @@ def self_test() -> int:
+         rec("F30 missing git: diagnostic",
+             proc.stderr.startswith("could-not-evaluate: git not runnable:"), proc.stderr)
+ 
++        # T1-T3 (round-56 routed defect 4): the per-child cap must scale with
++        # the host load instead of failing a healthy child on a loaded host.
++        # The world is hermetic (one stub instrument) and the base is tiny, so
++        # the arms cost milliseconds and do not depend on this host's load.
++        slow_stub = ("import time\n"
++                     "time.sleep(%r)\n"
++                     "print('0 failure(s) over 3 assertions')\n"
++                     "raise SystemExit(0)\n")
++
++        def slow_world(name, sleep_s):
++            text = swap(source, entry_anchor, hermetic_tables + entry_anchor, name + "/tables")
++            script = write_tree(tmp / name, text, stub_registry)
++            (tmp / name / "verifiers" / "stub-instrument.py").write_text(slow_stub % sleep_s)
++            return script
++
++        def run_flags(script, repo, *flags):
++            return subprocess.run([sys.executable, str(script), "--repo", str(repo), *flags],
++                                  cwd=str(repo), capture_output=True, text=True,
++                                  timeout=SELF_TEST_TIMEOUT_S)
++
++        # T1 -- a loaded host: base 0.2s x load 10 = 2.0s cap, so a 0.6s child
++        # completes. Red-before: `--load` is unknown, argparse exit 2.
++        script = slow_world("t1", 0.6)
++        proc = run_flags(script, tmp / "t1", "--self-test-timeout", "0.2", "--load", "10")
++        rec("T1 loaded host: the cap scales and the slow child completes: exit 0",
++            proc.returncode == 0, proc.returncode)
++        rec("T1 loaded host: the PASS line is printed",
++            proc.stdout == "PASS stub observed=3 floor=3\n", proc.stdout)
++
++        # T2 -- an idle host: a load of 1 or less leaves the base untouched, so
++        # the same 0.6s child times out at 0.2s and the line names base, load
++        # and cap.
++        script = slow_world("t2", 0.6)
++        proc = run_flags(script, tmp / "t2", "--self-test-timeout", "0.2", "--load", "0.5")
++        rec("T2 idle host: the cap is the base and the child times out: exit 2",
++            proc.returncode == 2, proc.returncode)
++        rec("T2 idle host: the timeout line names base, load and cap",
++            "FAIL stub self-test timed out after 0.2s (base 0.2s x load 0.50 = cap 0.2s; hung?)"
++            in proc.stdout, proc.stdout)
++
++        # T3 -- a runaway load: the factor is clamped at MAX_SCALE, so a hung
++        # child cannot postpone its report past 15 x the base.
++        script = slow_world("t3", 3.5)
++        proc = run_flags(script, tmp / "t3", "--self-test-timeout", "0.2", "--load", "1000000")
++        rec("T3 runaway load: the cap is clamped to the maximum scale: exit 2",
++            proc.returncode == 2, proc.returncode)
++        rec("T3 runaway load: the timeout line names the clamped cap",
++            "timed out after 3.0s (base 0.2s x load 1000000.00 = cap 3.0s; hung?)" in proc.stdout,
++            proc.stdout)
++
++        # F31 (round-56 routed defect 5b) -- a `git` that runs and refuses is
++        # the same environment error as a missing one. The world is a hermetic
++        # stub world, so red-before the guard ignores the exit code, runs the
++        # walk and reads exit 0 (the stub passes) with no diagnostic at all.
++        refuse_bin = tmp / "refuse-bin"
++        refuse_bin.mkdir()
++        (refuse_bin / "python3").symlink_to(sys.executable)
++        git_shim = refuse_bin / "git"
++        git_shim.write_text("#!/bin/sh\necho 'fatal: refusing to run' >&2\nexit 7\n")
++        git_shim.chmod(0o755)
++        env = dict(os.environ)
++        env["PATH"] = str(refuse_bin)
++        stub_repo = tmp / "f31"
++        text = swap(source, entry_anchor, hermetic_tables + entry_anchor, "F31/tables")
++        script = write_tree(stub_repo, text, stub_registry)
++        (stub_repo / "verifiers" / "stub-instrument.py").write_text(stub_script)
++        proc = subprocess.run([sys.executable, str(script), "--repo", str(stub_repo)],
++                              cwd=str(stub_repo), env=env, capture_output=True, text=True,
++                              timeout=SELF_TEST_TIMEOUT_S)
++        rec("F31 refusing git: exit 2", proc.returncode == 2, proc.returncode)
++        rec("F31 refusing git: the diagnostic names the preflight and the exit code",
++            proc.stderr.startswith("could-not-evaluate: git not runnable:")
++            and "exit 7" in proc.stderr, proc.stderr)
++        rec("F31 refusing git: no instrument reran", "PASS " not in proc.stdout, proc.stdout)
++
+     print("%d failure(s) over %d assertions" % (len(failures), total))
+     for f in failures:
+         print("FAIL: %s" % f)
