@@ -1,19 +1,21 @@
 # Round-61 controls-ancestry receipt (R-f)
-# date -u: 2026-10-23T20:32:59Z
+# date -u: 2026-10-23T20:34:25Z (receipt v2 — the command lines themselves are recorded, not only their output)
 # C_CTL (control-receipts commit, carries .ufo/waves/round-61/receipts/C1-worlds.txt + controls/C1-base.txt) = b4a8d2ee79a6190cf5ece5d11395544876e1fc8a
-# C_DATA (C1 data commit: S112-S115 rows etc.) = 43fe01804708d65e53965b4be31e9dc7dce793e4
-# Claim (DAG chronology ONLY, per CriticTiming/RevAncestry — not wall-clock dispatch order):
-#   the controls commit is a STRICT ANCESTOR of the C1 data commit.
-# Both commits: author+committer kotoba-shokunin <kotoba@shokunin.local>; full 40-hex below.
+# C_DATA (C1 data commit) = 43fe01804708d65e53965b4be31e9dc7dce793e4
+# Claim (DAG chronology ONLY — not wall-clock dispatch order): C_CTL is a STRICT ANCESTOR of C_DATA.
+# Both commits: author+committer kotoba-shokunin <kotoba@shokunin.local>.
 #
-# role binding:
-#   b4a8d2ee79a6190cf5ece5d11395544876e1fc8a round-61: C1-worlds receipt summary ends each world line at exit 1 (counted-set grep now prints 7)
-#   43fe01804708d65e53965b4be31e9dc7dce793e4 round-61: C1 data commit — S112-S115+S117 SOURCES rows, snapshots, v3 knowledge entry, writing-revision entry, lesson (M91/M92, Gate, status log), Q56, README rows, SKILL v3 annotation, LOG round-61 entry (R-a/R-b/R-c lines)
-# distinctness test (CTL != DATA):
+# C_CTL b4a8d2ee79a6190cf5ece5d11395544876e1fc8a round-61: C1-worlds receipt summary ends each world line at exit 1 (counted-set grep now prints 7)
+# C_DATA 43fe01804708d65e53965b4be31e9dc7dce793e4 round-61: C1 data commit — S112-S115+S117 SOURCES rows, snapshots, v3 knowledge entry, writing-revision entry, lesson (M91/M92, Gate, status log), Q56, README rows, SKILL v3 annotation, LOG round-61 entry (R-a/R-b/R-c lines)
+# distinctness test:
+#   $ test "b4a8d2ee79a6190cf5ece5d11395544876e1fc8a" != "43fe01804708d65e53965b4be31e9dc7dce793e4"
 #   exit 0 (hashes differ)
 # strict-ancestor test:
+#   $ git merge-base --is-ancestor b4a8d2ee79a6190cf5ece5d11395544876e1fc8a 43fe01804708d65e53965b4be31e9dc7dce793e4
 exit 0
-# merge-base prints CTL itself:
+# merge-base prints C_CTL itself:
+#   $ git merge-base b4a8d2ee79a6190cf5ece5d11395544876e1fc8a 43fe01804708d65e53965b4be31e9dc7dce793e4
 b4a8d2ee79a6190cf5ece5d11395544876e1fc8a
 # controls receipt file present at C_CTL:
-#   exit 0 (C1-worlds.txt at C_CTL)
+#   $ git cat-file -e :.ufo/waves/round-61/receipts/C1-worlds.txt
+exit 0
