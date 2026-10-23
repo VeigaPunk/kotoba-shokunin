@@ -52,9 +52,11 @@ from __future__ import annotations
 import argparse
 import html
 import json
+import os
 import re
 import subprocess
 import sys
+import tempfile
 import urllib.parse
 import urllib.request
 from pathlib import Path
@@ -259,6 +261,27 @@ def self_test() -> int:
     check("M16 rejects quote recorded for another row", gate_quote_matches(
         gate_quotes, "S037", full_quote), False)
 
+    def run_gate(rev: str, env: dict[str, str] | None = None) -> subprocess.CompletedProcess:
+        return subprocess.run([sys.executable, "-B", str(Path(__file__).resolve()),
+                              "--rev", rev], cwd=LANE, env=env,
+                             capture_output=True, text=True)
+
+    unknown = run_gate("0" * 40)
+    check("R unknown revision exits 2", unknown.returncode == 2, True)
+    check("R unknown revision reports could-not-evaluate",
+          unknown.stderr.startswith("could-not-evaluate: "), True)
+
+    with tempfile.TemporaryDirectory(prefix="mcp-self-test-", dir=LANE) as td:
+        (Path(td) / "python3").symlink_to(sys.executable)
+        env = dict(os.environ)
+        env["PATH"] = td
+        for key in ("GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE"):
+            env.pop(key, None)
+        no_git = run_gate("HEAD", env)
+    check("G git unavailable exits 2", no_git.returncode == 2, True)
+    check("G git unavailable reports could-not-evaluate",
+          no_git.stderr.startswith("could-not-evaluate: "), True)
+
     print("self-test: %d failure(s) over %d assertions" % (failures, assertions))
     return 1 if failures else 0
 
@@ -279,10 +302,16 @@ def main(argv: list[str] | None = None) -> int:
     if not args.rev and not args.root:
         ap.error("one of --rev or --root is required")
     try:
+        if args.rev:
+            r = subprocess.run(["git", "-C", str(LANE), "rev-parse", "--verify",
+                                "--quiet", "%s^{commit}" % args.rev],
+                               capture_output=True)
+            if r.returncode != 0:
+                raise RuntimeError("revision %r is not a commit in %s" % (args.rev, LANE))
         entry = read_file(args, ENTRY)
         sources = read_file(args, SOURCES) or ""
         lesson = read_file(args, LESSON) or ""
-    except RuntimeError as e:
+    except (RuntimeError, OSError) as e:
         print("could-not-evaluate: %s" % e, file=sys.stderr)
         return 2
     rows = entry_rows(entry) if entry is not None else []

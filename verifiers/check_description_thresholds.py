@@ -66,9 +66,11 @@ from __future__ import annotations
 import argparse
 import html
 import json
+import os
 import re
 import subprocess
 import sys
+import tempfile
 import urllib.parse
 import urllib.request
 from pathlib import Path
@@ -109,6 +111,14 @@ SID_RE = re.compile(r"^`?(S\d{3,})`?$")
 URL_RE = re.compile(r"https?://[^\s)>\]`]+")
 SOURCES_ROW_RE = re.compile(r"^\|[ \t]*S[0-9]{3,}[ \t]*\|")
 QUOTED_TEXT_RE = re.compile(r'"([^"]*)"')
+
+
+def verify_rev(rev: str) -> None:
+    """Reject an unknown revision before `git show` can mistake it for absent paths."""
+    r = subprocess.run(["git", "-C", str(LANE), "rev-parse", "--verify", "--quiet",
+                        "%s^{commit}" % rev], capture_output=True)
+    if r.returncode != 0:
+        raise RuntimeError("revision %r is not a commit in %s" % (rev, LANE))
 
 
 def read_file(args: argparse.Namespace, path: str) -> str | None:
@@ -387,6 +397,24 @@ def self_test() -> int:
           len(table_rows(skill + "\n### Description thresholds by client2\n", SKILL_HEADING,
                          SKILL_HEADER)), 3)
 
+    script = str(Path(__file__).resolve())
+    unknown = subprocess.run(
+        [sys.executable, "-B", script, "--rev", "0" * 40],
+        capture_output=True, text=True, timeout=30)
+    check("unknown revision exits 2 with could-not-evaluate",
+          (unknown.returncode, unknown.stderr.startswith("could-not-evaluate:")),
+          (2, True))
+    with tempfile.TemporaryDirectory() as temp_dir:
+        Path(temp_dir, "python3").symlink_to(sys.executable)
+        env = os.environ.copy()
+        env["PATH"] = temp_dir
+        no_git = subprocess.run(
+            [sys.executable, "-B", script, "--rev", "HEAD"],
+            capture_output=True, text=True, env=env, timeout=30)
+    check("missing git exits 2 with could-not-evaluate",
+          (no_git.returncode, no_git.stderr.startswith("could-not-evaluate:")),
+          (2, True))
+
     print("self-test: %d failure(s) over %d assertions" % (failures, assertions))
     return 1 if failures else 0
 
@@ -407,6 +435,8 @@ def main(argv: list[str] | None = None) -> int:
     if not args.rev and not args.root:
         ap.error("one of --rev or --root is required")
     try:
+        if args.rev:
+            verify_rev(args.rev)
         skill = read_file(args, SKILL) or ""
         entry = read_file(args, ENTRY) or ""
         sources = read_file(args, SOURCES) or ""

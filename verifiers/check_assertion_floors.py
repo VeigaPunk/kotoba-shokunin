@@ -461,6 +461,11 @@ def main(argv=None):
     args = parser.parse_args(argv)
     if args.self_test:
         return self_test()
+    try:
+        subprocess.run(["git", "--version"], capture_output=True, text=True)
+    except OSError as exc:
+        print("could-not-evaluate: git not runnable: %s" % exc, file=sys.stderr)
+        return 2
     repo = args.repo.resolve()
     # Round-38 claim C2b (V4-S): a non-str table key is fail-closed BEFORE the
     # anchor runs -- the anchor's own set arithmetic (`sorted(set(...) - set(...))`)
@@ -584,6 +589,7 @@ def self_test() -> int:
     absolute declaration each named on BOTH channels (red-before: exit 0 with
     both channels agreeing), and an in-repo `..` control that must stay allowed
     (the mirror-world idiom). F29 pins confinement_problem() over ten shapes.
+    F30 pins a missing git executable as exit 2, not a failed child self-test.
     The override closure is LAYERED, so the mutant battery is compound as well
     as single-move (drafts/p3/mutants40.py, out/MUTANTS.txt): M-digest alone
     reddens F22/F23, M-row-esc and M-reg-esc each redden F26/F27, while F21's
@@ -1196,6 +1202,21 @@ def self_test() -> int:
             want_ok = (got is None) if expected is None else (
                 got is not None and expected in got and got.startswith("escape: stub row"))
             rec("F29 confinement_problem(%r) -> %r" % (declared, expected), want_ok, got)
+        # F30 -- this gate runs child self-tests that need git. Keep a missing
+        # git executable on the environment-error channel, not the floor-fail
+        # channel.
+        nogit_bin = tmp / "nogit-bin"
+        nogit_bin.mkdir()
+        (nogit_bin / "python3").symlink_to(sys.executable)
+        env = dict(os.environ)
+        env["PATH"] = str(nogit_bin)
+        proc = subprocess.run(
+            [sys.executable, str(Path(__file__).resolve()), "--repo", str(DEFAULT_REPO)],
+            cwd=DEFAULT_REPO, env=env, capture_output=True, text=True,
+            timeout=SELF_TEST_TIMEOUT_S)
+        rec("F30 missing git: exit 2", proc.returncode == 2, proc.returncode)
+        rec("F30 missing git: diagnostic",
+            proc.stderr.startswith("could-not-evaluate: git not runnable:"), proc.stderr)
 
     print("%d failure(s) over %d assertions" % (len(failures), total))
     for f in failures:

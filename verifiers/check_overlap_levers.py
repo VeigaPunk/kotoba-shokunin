@@ -523,11 +523,31 @@ def default_root():
     return Path(__file__).resolve().parent.parent
 
 
+class EnvError(Exception):
+    pass
+
+
+def verify_rev(repo, rev):
+    """An unknown revision is could-not-evaluate, not an empty input tree."""
+    try:
+        proc = subprocess.run(
+            ["git", "-C", str(repo), "rev-parse", "--verify", "--quiet",
+             "%s^{commit}" % rev],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    except OSError as exc:
+        raise EnvError("git not runnable: %s" % exc) from exc
+    if proc.returncode != 0:
+        raise EnvError("revision %r is not a commit in %s" % (rev, repo))
+
+
 def git_show(repo, rev, path):
     """Run `git -C repo show rev:path`; None when the file is absent."""
-    proc = subprocess.run(
-        ["git", "-C", str(repo), "show", "%s:%s" % (rev, path)],
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    try:
+        proc = subprocess.run(
+            ["git", "-C", str(repo), "show", "%s:%s" % (rev, path)],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    except OSError as exc:
+        raise EnvError("git not runnable: %s" % exc) from exc
     if proc.returncode != 0:
         return None
     return proc.stdout.decode("utf-8", "replace")
@@ -576,10 +596,15 @@ def main(argv=None):
                 return None
 
     try:
+        if args.rev:
+            verify_rev(repo, args.rev)
         skill_text = read_path("SKILL.md") or ""
         sources_text = read_path("corpus/SOURCES.md") or ""
         entry_text = read_path(ENTRY_PATH) or ""
         lesson_text = read_path(LESSON_PATH) or ""
+    except EnvError as exc:
+        print("could-not-evaluate: %s" % exc, file=sys.stderr)
+        return 2
     except OSError as exc:
         print("ERROR reading input: %s" % exc, file=sys.stderr)
         return 2
@@ -1192,6 +1217,31 @@ def self_test():
                   and "backed 0 of 7" in out1.getvalue()
                   and "backed 7 of 7" in out2.getvalue(),
                   "rc1=%d rc2=%d" % (rc1, rc2))
+            unknown_err = io.StringIO()
+            with contextlib.redirect_stderr(unknown_err):
+                unknown_rc = main(["--rev", "0" * 40])
+            check("unknown --rev is could-not-evaluate",
+                  unknown_rc == 2
+                  and "could-not-evaluate:" in unknown_err.getvalue(),
+                  "rc=%d stderr=%r" % (unknown_rc, unknown_err.getvalue()))
+
+            with tempfile.TemporaryDirectory() as no_git_dir:
+                (Path(no_git_dir) / "python3").symlink_to(sys.executable)
+                old_path = os.environ.get("PATH")
+                git_err = io.StringIO()
+                try:
+                    os.environ["PATH"] = no_git_dir
+                    with contextlib.redirect_stderr(git_err):
+                        git_rc = main(["--rev", rev2])
+                finally:
+                    if old_path is None:
+                        os.environ.pop("PATH", None)
+                    else:
+                        os.environ["PATH"] = old_path
+            check("unavailable git is could-not-evaluate",
+                  git_rc == 2
+                  and "could-not-evaluate:" in git_err.getvalue(),
+                  "rc=%d stderr=%r" % (git_rc, git_err.getvalue()))
         finally:
             globals()["default_root"] = orig_root
 
