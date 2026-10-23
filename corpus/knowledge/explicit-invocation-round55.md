@@ -22,9 +22,9 @@ set those turns aside first, and the per-client form below is what identifies th
 | Claude Code | S065 | "You can type `/skill-name` to invoke it directly, and Claude can load it automatically when relevant to your conversation." | `skills.md:547` | Typing the slash form invokes the named skill directly; the same sentence says Claude may also load it automatically. |
 | Codex | S066 | "Use the $setup-demo-app skill to create the project in this directory." | `eval-skills.md:148` (inside a `codex exec` prompt string) | The prompt names the skill with `$`; the page calls this an explicit-invocation prompt (`:171-172`). |
 | VS Code | S067 | "You can add extra context after the slash command. For example, `/webapp-testing for the login page` or `/github-actions-debugging PR #42`." | `agent-skills.md:287` | Selecting or typing the skill's slash command invokes it (`:285`); extra task context may follow the command. |
-| Copilot CLI | S068 | "Use the /frontend-design skill to create a responsive navigation bar in React." | `add-skills.md:128` (body of a fenced example; direction at `:125`) | The slash-prefixed skill name in the prompt tells Copilot to use that skill (`:125`); otherwise Copilot decides from the description (`:121`). |
+| Copilot CLI | S068 | "Use the /frontend-design skill to create a responsive navigation bar in React." | `add-skills.md:128` (body of a fenced example; direction at `:125`) | The slash-prefixed skill name in the prompt tells Copilot to use that skill (`:125`); otherwise Copilot decides from the prompt and the skill's description (`:121`). |
 | Gemini CLI | S069 | "description and calls the `activate_skill` tool." | `skills-getting-started.md:127-129` | The model calls the tool after the request matches a skill description; the tutorial then asks the user to consent. It is not a user-typed form. |
-| Cursor | S070 | "When `true`, the skill is only included when explicitly invoked via `/skill-name`. The agent will not automatically apply it based on context." | `cursor-skills.md:175` | Typing `/` plus the skill name in Agent chat invokes it for one message (`:29`); with the flag set it is the only way the skill is included. |
+| Cursor | S070 | "When `true`, the skill is only included when explicitly invoked via `/skill-name`. The agent will not automatically apply it based on context." | `cursor-skills.md:175` | Typing `/` plus the skill name in Agent chat invokes it for one message (`:29`); with the flag set the agent will not apply it from context, though the same page lets any skill back a Custom Mode that keeps it in context all session (`:218`, falsify seat `ReopenS070`). |
 | opencode | S071 | "To load a skill yourself, mention it in your prompt as @skill-id." | `skills.mdx:201` (the source wraps `@skill-id` in backticks; stripped here as the counter's page normalisation does) | A user mention of the skill's ID loads it; `opencode/autoinvoke: false` hides it from the model's list but keeps this path (`:142`). |
 
 ## Findings
@@ -50,10 +50,16 @@ set those turns aside first, and the per-client form below is what identifies th
 
 ## Relation to what the lane already held
 
-Round 51 held the switches that remove a skill from automatic choice (`skill-overlap-levers-round51.md`),
-including Codex's "explicit `$skill` use still works" (S021). It did not hold the per-client explicit form
-as a classifier for measurement, nor the Copilot CLI, VS Code, Cursor and opencode forms, nor the Gemini
-CLI distinction between a model load call and a user-typed form.
+Round 51 held the switches that remove a skill from automatic choice (`skill-overlap-levers-round51.md`)
+and, with them, four of the forms: Codex's "explicit `$skill` invocation still works" (S021), Copilot CLI's
+`/SKILL-NAME` (S031, `SOURCES.md:44` at `f0e5de82`), and VS Code's "manual `/` invocation only" and Claude
+Code's "`/name` still works" (`SKILL.md:432-433` at `f0e5de82`). Round 6 already stripped slash tokens as
+"invocation verbs, not router intent" (`trigger-miss-proxy-round6.md:14-16`). New here (falsify seat
+`CriticNewGround`): Cursor's form (S070), opencode V2's `@skill-id` mention (S071; the V1 page states only
+loading by exact name), Copilot CLI's slash name inside a prompt rather than at its start (S068 `:125`), the
+Gemini CLI distinction between a model load call and a user-typed form, and the per-client form used as a
+classifier for measurement. The counter's `new ground 4` counts example tokens; in substance the new forms
+are Cursor's and opencode V2's.
 
 ## Limits
 
