@@ -37,9 +37,9 @@ $ git show HEAD:verifiers/check_routed_repairs.py | sha256sum
 
 §3/§4 give the verdicts for the **assigned** `de5e3471` bytes (the sha the plan and the C2
 receipt name). §3.8 and §4b re-run the **identical** mutations on the landed `604ae4fb`
-bytes (its six guard functions are unchanged — the landed diff adds self-test arms only:
-CLI-dependency, invariance/transcript/lookup, `score_with` constants); those are the
-verdicts for the file at tip.
+bytes (its six guard functions are unchanged — the landed diff adds self-test arms and
+their helpers, plus two imports: CLI-dependency, invariance/transcript/lookup, `score_with`
+constants); those are the verdicts for the file at tip.
 
 Scratch copies (lane read-only):
 
