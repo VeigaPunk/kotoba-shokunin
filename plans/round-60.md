@@ -122,6 +122,36 @@ Counter: `python3 -B verifiers/check_scoped_rules.py --rev <rev> --fetch` (built
 - Commit order: target and counter are committed before the control wave scores them; a control that meets the
   predicate forces a redesign before any data (erratum), never a change after data.
 
+**Erratum E1 — redesign before data (pre-registered branch: F_max < 3).** No C1 data has been scored; no lane row,
+entry, snapshot or SKILL section exists. Control seat `CtlFabSnapshot` (`.ufo/waves/round-60/controls/CtlFabSnapshot.md`)
+found that the frozen v1 counter rejects a source whose URL is already a base SOURCES URL (`check_scoped_rules.py`
+`base_url_keys`, `url_key`, the `already a base SOURCES URL` reason), a conjunct the W0 census seats never scored: the
+Claude Code, Copilot CLI and Cursor census pages are base rows S043, S048 and S049 (round 53, always-on rule files;
+none of the three rows records `paths`, `applyTo` or `globs`: `grep "^| S04[3-9] |" corpus/SOURCES.md | grep -cw` → 0
+each). Re-census W0b (`.ufo/waves/round-60/w0b/`, one scout per affected client, the base key list in
+`.ufo/waves/round-60/w0b-base-url-keys.txt`) scored that conjunct:
+
+| Client | non-base page found | L1 decision |
+|---|---|---|
+| Claude Code | only locale copies of the base page (`/docs/de/memory.md`, `/docs/ja/memory.md`; the token's quote meets the rule word only through an English anchor slug) | **reject**: a locale copy is the base page under another URL; using it evades the novelty conjunct without new reading |
+| Copilot CLI | only the `enterprise-cloud@latest` rendering of the base how-to (same text, 8,826 B vs 8,730 B) | **reject**: a versioned copy of the base page, same reason |
+| Cursor | none (`docs/context/rules` redirects to the base page; 367 sitemap URLs swept) | not eligible under v1 |
+| VS Code | its census URL `docs/agent-customization/custom-instructions.md` is not a base key | eligible under v1 |
+
+Under v1, F_max = 1 < 3, so the plan's rule redesigns the claim before data. **Counter v2** changes only that
+conjunct, so that the novelty sits on the fact, not the URL: a row whose URL is a base URL is accepted only when its
+SOURCES teaches cell starts `re-opens S### —` naming the base row with that URL, and the client's scope key K occurs
+nowhere in that base row's line (the held row never recorded the scoping fact); the live final URL may equal only the
+row's own re-opened key. Everything else, `TARGET = 3` and the predicate sentence are unchanged. Census under v2:
+Claude Code (re-opens S043), VS Code (new URL), Copilot CLI (re-opens S048), Cursor (re-opens S049) → F_max = 4,
+T_F = F_max − 1 = 3 by the same formula. The v1 control receipts stay committed as v1 evidence; every control is
+re-scored under v2, and v2-specific controls (forged `re-opens` prefix, wrong base id, alias URL) are scored before data.
+Counter v2: `verifiers/check_scoped_rules.py`, built by `ExecC1Counter` (`w0/check_scoped_rules_v2.py` sha256
+`89754828…`, diff `w0/counter-v1-v2.diff`); the L1 then corrected one docstring word (line 30, "round-59" → "round-53":
+the held rows are round 53's), no code change; frozen v2 sha256
+`ca2585a4a06e6e88a3d881412199fa4743f1a4553dca121f396b58d5cdb8c04a`; seat self-test `0 failure(s) over 318
+assertions`, exit 0; L1 sandbox receipt `.ufo/waves/round-60/receipts/freeze2-selftest.txt`.
+
 ## Pre-freeze control wave (phase-4 rule)
 
 Fresh mutation-tester / executor seats build and score, with the frozen counter at the freeze commit: do-nothing (the

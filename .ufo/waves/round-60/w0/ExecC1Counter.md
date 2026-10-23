@@ -219,4 +219,84 @@ the floor.
   passes even if it inverts the line's meaning; the `Cells<Client>` falsify seats own that reading.
 - The `--json` projection carries `backed`, `of`, `found`, `target`, `receipt` and the per-client report; no G.
 
+## v2 — erratum E1: the base-URL conjunct (pre-data redesign)
+
+`Result: DONE` for the v2 build. Built in a fresh sandbox clone at the freeze `49c3e87d4fb5677783c55f8225c9e4f892273879`
+(`/fast/scratch/hyaku/kotoba-r60/ExecC1CounterV2`, v1 = `verifiers/check_scoped_rules.py` sha `6aea3be0…` there).
+`date -u` before this section: `Fri 23 Oct 2026 11:05:10 AM UTC`.
+
+| artifact | path / value |
+|---|---|
+| v2 counter | `.ufo/waves/round-60/w0/check_scoped_rules_v2.py` — sha256 `89754828de4447fa08aafada4f754d1c5e66355ce8c0f949477d2d1dc6220379`, 2566 lines |
+| v1→v2 unified diff | `.ufo/waves/round-60/w0/counter-v1-v2.diff` — 378 lines, 17 hunks (`diff -u` of the frozen v1 against v2) |
+| unchanged | `TARGET = 3`; A1 Scope-key and Action conjuncts; token grammar; quote/Gate/snapshot rules; HOSTS; the Events-free, G-free shape |
+
+### The v2 rule, exactly as built
+
+- **Backed, base URL (new)**: when a row's `url_key` (`url_key(url)`) is a BASE_REV key, the row is accepted only if
+  its SOURCES **teaches** cell (cell 7, the one S102 uses for `supersedes S089 —`) **starts** with
+  `re-opens S### —`, S### is a row of the BASE SOURCES table whose own URL cell holds that same `url_key`, **and** the
+  client's Scope-key K does not occur (identifier boundary, case-sensitive — the same `key_occurrences` helper the
+  key-form test uses) anywhere in that base row's raw SOURCES line. Otherwise the row keeps the v1 wording
+  (`<sid> URL '<url>' is already a base SOURCES URL`) plus one specific reason:
+  `re-open names no base row with this URL`, or `base row S### already records key K`.
+- **Separator**: the recorded spelling is the em dash; `–`, `--` and `-` are accepted as the same separator so an
+  encoding rewrite of the cell does not silently flip a verdict. The prefix is a prefix: a teaches cell that merely
+  *mentions* `re-opens` mid-cell (`supersedes S089 — re-opens S020 — …`) is rejected.
+- **`at_base`**: membership in the BASE table already implies a BASE row (both maps are parsed from the BASE
+  SOURCES text), so the explicit id-set test was dropped as redundant; a malformed base row is absent from the table
+  and therefore rejected.
+- **Fetch (new)**: `fetch(..., own_key=...)`; a final URL on a base key is rejected **unless** its `url_key` equals
+  the row's own `own_key`. `main` passes `own_key=url_key(r["url"])`. A redirect to a *different* base row's URL
+  still fails; a re-opened row may reach its own URL.
+- Everything else is the frozen v1 behaviour, unchanged.
+
+### Evidence
+
+```
+$ TMPDIR=$PWD/.tmp timeout 600 python3 -B verifiers/check_scoped_rules_v2.py --self-test
+counter sha256 89754828de4447fa08aafada4f754d1c5e66355ce8c0f949477d2d1dc6220379
+self-test: 0 failure(s) over 318 assertions
+exit=0
+
+$ TMPDIR=$PWD/.tmp timeout 300 python3 -B verifiers/check_scoped_rules_v2.py --rev 31092dc6f875370bddd6eb1e4da4ca0d210c56af
+scoped rule files backed on committed snapshots 0 of 0; live not run
+counter sha256 89754828de4447fa08aafada4f754d1c5e66355ce8c0f949477d2d1dc6220379; rev 31092dc6f875370bddd6eb1e4da4ca0d210c56af
+reject Claude Code: SKILL.md rows naming client: 0 (need exactly 1); no entry row names the client
+… (one reject line per client; identical to v1)
+exit=1
+```
+
+Required v2 arms (each turns red under its mutation; mutation probe `.mutants/probe_v2.py`, log
+`.mutants/probe_v2.txt`, pristine sha identical before/after):
+
+| v2 arm | assertion | mutation that kills it |
+|---|---|---|
+| re-open with the correct base id passes | `v2: a base URL re-opened by its base id backs` (S900→S020, S901→S021) | V2 (always keep the v1 rejection): 9 failures |
+| end-to-end `main()` exit 0 with 3 found, 2 re-opens | `v2 main: 3 of 3 found with 2 re-opens exits 0`, exact line `…backed on committed snapshots 3 of 3; found on the live page 3 of 3`, no reject line for the three clients; fixture arm `v2 fixture: two of the three measured rows are re-opens` | V8 (`own_key=None` in `main`): 3 failures, F drops to 1 |
+| re-open naming a base id whose URL differs fails | `v2: a re-open naming a base row whose URL differs is not backed` (S900→S001) | V5 (URL-match check removed): 1 failure |
+| re-open whose base row line already holds K fails | `v2: a re-open whose base row line already holds K is not backed`, `v2: the key collision is named` (`base row S022 already records key paths`) | V3 (K test removed): 2 failures |
+| base URL with no `re-opens` prefix fails | `v2: base URLs without the re-open prefix are not backed`, `v2: the missing re-open is named` | V1 (base guard removed) / V2: 9 failures each |
+| `re-opens` naming a NON-base id fails | `v2: a re-open naming a non-base id is not backed` (S777) | V4 (unknown target trusted with the row's own URL): 1 failure |
+| live redirect to a different base key fails | `fetch v2: a redirect to a different base key fails`; own key accepted: `fetch v2: the row's own re-opened base key is accepted`; non-base final still accepted | M14 (base-URL rejection removed): 2 failures; V7 (own-key exemption removed): 4 failures |
+
+Also added: `v2: the re-open prefix is a prefix, not a mention mid-cell` (killed by V6, `match`→`search` with the
+anchor removed: 1 failure) and `v2: a plain hyphen is the same re-open separator`.
+
+**No regression on the round-59 survivors**: all 12 still-applicable v1 survivors were re-probed against v2 with the
+same defects (M06-analogue 2 failures, M09 10, M12 1, M13 1, M14 2, M15 1, M16 1, M17 1, M18 2, M19 1, M24 1,
+M26 4) — every one an assertion failure, no crashes, all 20 probe runs restored the file byte-identically
+(`89754828…`).
+
+### Limits of v2
+
+- The re-open must be a NEW SOURCES row (the `S### in at_base` guard is unchanged), so a base row cannot re-open
+  itself; the teaches cell is the only place the link is read.
+- The K collision test reads the whole base row line, including its scope and anchor cells: a base row whose prose
+  happens to contain the client's key rejects the re-open (that is the rule, and it is why S043 would have to be
+  re-opened carefully if Claude Code's key were written into its line).
+- The re-open acceptance does not weaken the other conjuncts: quote, host pin, kind/tier/status/opened, snapshot
+  sha, A1 key form and A1 action still decide the row.
+- `TARGET` remains `3`; nothing about the predicate changed.
+
 Report: .ufo/waves/round-60/w0/ExecC1Counter.md
