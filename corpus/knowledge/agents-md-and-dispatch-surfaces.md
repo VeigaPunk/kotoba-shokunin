@@ -8,7 +8,7 @@ Sourced 2026-09-28. Closes the AGENTS.md gap filed in round-1 corpus README.
 |---------|----------------|----------------|
 | SKILL.md | 16 under `~/.agents/skills/` + `~/.config/opencode/skills/` | Opt-in via frontmatter `description` routing |
 | AGENTS.md | 6 identical-shape files in `/home/vgpnk/projects/shokunin/*/AGENTS.md` + `~/.agents/AGENTS.md` — **round-53 correction (2026-10-22):** the root is `/home/vgpnk/Projects/shokunin` (capital `P`; the lowercase path does not exist on this host) and it held 17 `AGENTS.md` files, of which 9 share the 5-line body (md5 `12a62ab9…` over lines 2-end), 4 share a second body (`96f7dfd1…`) and 4 are singletons | Always injected for sessions rooted in the repo — **bounded round-53 (2026-10-22):** true of the harnesses of that era (omp, opencode), not of every client: Claude Code reads `CLAUDE.md` files only when one counts and nothing under `.agents/` (S043 `memory.md:357`, `:378`), Codex reads `AGENTS.override.md` ahead of `AGENTS.md` with at most one file per directory (S044 `agents-md.md:11-12`); per-client table `corpus/knowledge/alwayson-rule-files-round53.md` |
-| Dispatch prompt | 8 files `/home/vgpnk/projects/shokunin/.ufo/prompts/*-L1.md` (9–12 lines) | One-shot, read once by a spawned subagent |
+| Dispatch prompt | 8 files `/home/vgpnk/projects/shokunin/.ufo/prompts/*-L1.md` (9–12 lines) — **round-58 correction (2026-10-23):** the root is `/home/vgpnk/Projects/shokunin` (capital `P`; the lowercase path does not exist on this host), where the 8 `*-L1.md` files are | One-shot, read once by a spawned subagent |
 
 ## Fact — AGENTS.md shape is constraint-only
 

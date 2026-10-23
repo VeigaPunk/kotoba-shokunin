@@ -1,0 +1,44 @@
+Result: HOLDS — every admitted row carries URL + ISO access time + a located quote ≤ 25 words verified byte-exact by independent re-fetch (sha256 match on all seven pages), every reject carries a corroborated reason, and rows-touched records a true re-open; two low findings (S028 used-by now stale by its own definition, the S092 gap unrecorded in the Gate).
+
+Seat ReviewLessonGate, falsify wave. Read-only in lane; sandbox clone `/fast/scratch/hyaku/kotoba-r58/ReviewLessonGate` at `46b4a7061c688cefd3e3ec9cbb655130ba1aafbe`. Target: `corpus/lessons/round-58.md` § Gate against CORPUS.md § SOURCES.md rule 1 (URL + access date + ≤25-word located quote per new row) and rule 2 (append-only; cell changes logged old→new). No tools installed or updated.
+
+## Axis 1 — admitted rows: URL / access time / located quote ≤ 25 words
+
+Independent re-fetch (`date -u`: `Fri 23 Oct 2026 08:28:35 AM UTC`), ~20 min after the seats' fetches, all `curl -sS` HTTP 200:
+
+| row | cited line | bytes rec/mine | sha256 rec/mine (full hash) | quote words | verdict |
+|---|---|---|---|---|---|
+| S089 slash-commands.md | :172 | 114,542 / 114,542 | 6b070e87…/6b070e872dea28905a7ea7f45c4d5960f5bdf28cc73ac808799af6d50435ffbd | 14 | verbatim substring of :172 (`* ` list marker and trailing sentence dropped — quote is a clean mid-line substring) |
+| S090 custom-prompts.md | :62 | 3,357 / 3,357 | d6f7cf8d…/d6f7cf8dd9f31d2faf5604ef3a6f8322132a7b66fa50823109cb681e372a0fa9 | 9 | verbatim, first sentence of :62 |
+| S091 prompt-files.md | :21-25 | 13,729 / 13,729 | 4ad1b2bc…/4ad1b2bcaf78c9166b1609610f354d9cb8b1ff9c9e7cf643c443fad04dac6685 | 22 | located: tail of :21 paragraph + table lines :22-25 joined; `&#124;` escaping disclosed in Gate line and entry note; byte-reconstruction works |
+| S093 custom-commands.md | :12-13 | 12,129 / 12,129 | 8f3295e8…/8f3295e8ca502b0c70bb3bf672f0dc0130ecb868fad4a88d5cac0f36ac6f3872 | 18 | joins :12 and :13 (`These commands\n    are` → one space); `1.` and `**` retained as noted |
+| S094 deeplinks.md | :54 | 5,972 / 5,972 | 7ceb6578…/7ceb657892bdfa5d7a32f1168411fcaeb63c2f6ab41a5f0c45116a0a3f3a6bf4 | 13 | verbatim mid-line substring of :54 |
+| S095 commands.mdx | :21 | 7,242 / 7,242 | dda6bba0…/dda6bba03043afff71a0bec4f0cfa40aaac12d53c1b20358df15e557c1a7ec11 | 10 | verbatim, whole line |
+
+Word counts by `python3` split on whitespace, both raw and backtick-stripped (the counter's convention): 14/9/22/18/13/10 — all ≤ 25 and within the frozen counter's 6–25 band. Every row carries an ISO timestamp `accessed 2026-10-23T08:xx:xxZ`, and each named seat report exists at `.ufo/waves/round-58/build/Src*.md` with matching timestamp/bytes/sha (`SrcClaudeCode.md:6-14`, `SrcCodex.md:11-14`, `SrcVSCode.md:5`, `SrcGeminiCLI.md:5`, `SrcCursor.md:13-14`, `Srcopencode.md:37-41`); each named census report exists at `.ufo/waves/round-58/w0/Census*.md`. Registry completeness: `git diff f56f6e19..46b4a706 corpus/SOURCES.md` shows exactly six `+` rows and zero `−` rows; the census count 88 → 94 (`grep -cE '^\|[[:space:]]*S[0-9]{3,}[[:space:]]*\|'`) confirms every admitted row is a new row and no unlogged row exists.
+
+## Axis 2 — every reject has a reason (all six checked against their cited evidence)
+
+1. C2 counter as claim gate — `controls/CtlC2SourceGrep.md:1` (`Result: BREAKS`, K=11 E=5 exit 0 on a source-grep self-test) corroborates the stated reason verbatim.
+2. `.claude/commands/` as Copilot CLI token — S028 re-open shows the path is inside Claude Code's folder in the plugin precedence line (fetched `:456`); E5 shared-token logic confirmed in `verifiers/check_command_files.py:666-672` (`shared_tokens` disqualifies both users).
+3. `com.github.copilot/commands/` — verbatim at fetched `cli-plugin-reference.md:159` inside the plugin's client-specific components table (`:154` "Copilot CLI reads its client-specific components from the `com.github.copilot` directory") — a plugin namespace, no leading dot, dot in non-final segment; reason accurate.
+4. `.github/prompts/` for Copilot CLI — `build/ScoutCopilotPrompts.md:9-24`: 54-file GitHub docs-source sweep + changelog + README found `.github/prompts` 0 times under copilot-cli trees; `controls/CtlC1SharedLabel.md:1,29` confirmed the IDE-page counterexample counts F=1 — the reason and its "row rule keeps it out" framing both hold.
+5. opencode served page — reproduced at my access time: `curl https://opencode.ai/v2/docs/commands/` → HTTP 200, `content-type: text/html`, 32,304 B; `found_on_page` (module `.ufo/waves/round-58/w0/check_command_files.py`) returns False on that HTML and True on the same URL fetched with `Accept: text/markdown` (7,220 B). The admitted row's pinned `.mdx` carries the sentence at `:21` (sha-matched above). Reject reason accurate.
+6. Cursor `.cursor/commands/[command].md` — `https://cursor.com/changelog/1-6` → HTTP 200, 145,839 B, contains `cursor/commands/[command].md`; the URL contains `changelog` and is excluded by the row rule. Reason accurate.
+## Axis 3 — rows touched (old → new)
+
+S028: re-open record carries URL + ISO time + HTTP 200 + 47,200 B + sha256 `d0d362cc…` — all match my re-fetch exactly, and match the seat `SrcCopilotCLI.md:38` and scout `ScoutCopilotPrompts.md:48`. The cited `cli-plugin-reference.md:456` quote `then commands (.claude/commands/), skills override commands` is a verbatim substring of fetched line 456 (`  │  --- then commands (.claude/commands/), skills override commands ---│`), inside an ASCII diagram — seat's "no bytes stripped" claim means the quote itself needed no shaping. Diff confirms the S028 registry row is byte-identical between base and content commit, so "used-by unchanged" is factually true.
+
+## Findings
+
+- **F1 (low): S028 `used-by` is now stale against the contract's own definition.** The cell at `corpus/SOURCES.md:41` reads `corpus/knowledge/sibling-overlap-census-round49.md, corpus/lessons/round-50.md, corpus/knowledge/skill-selection-rules-round50.md` — the new entry `corpus/knowledge/command-files-round58.md` cites S028 (frontmatter `source:` and body `:19-20`), so under the column definition "repo-relative paths of the knowledge entries or lessons citing the row" the cell is incomplete. The Gate records the choice (`used-by` unchanged … the citation is recorded here) as an append-only reading, but contract rule 2 explicitly permits `used-by` to change in place — with an old→new log line, which this section already exists for. The information is not lost (the Gate carries it); the registry column is what drifts. Correction text the L1 may integrate: S028 `used-by` — `corpus/knowledge/sibling-overlap-census-round49.md, corpus/lessons/round-50.md, corpus/knowledge/skill-selection-rules-round50.md` → `…, corpus/knowledge/command-files-round58.md`.
+- **F2 (low/informational): the S092 id gap is unexplained in the Gate.** Rows run S089, S090, S091, S093–S095; S092 is absent at `46b4a706`. The build record shows it was the reserved conditional slot for a Copilot CLI own-folder source (`build/ScribeFrontier.md:5,13`; `build/ScoutCopilotPrompts.md:3` "S092 stays unused"; a ScribeEntry draft cited it before the Copilot row was dropped). Contract `id` text says "the next unused; never reused," so the gap is permanent and unremarkable to a reader who knows; to a reader of the Gate alone it looks like a dropped row. One line in Admitted or Rejected — "S092 reserved for a Copilot CLI source, never opened; the id stays unused" — would close it.
+- **F3 (observation, not a defect):** the blanket sentence "every quote is copied from the fetched bytes" (`knowledge/command-files-round58.md:28`) is literally false for the two joined quotes (S091 spans `file location` paragraph→table across a blank line; S093 spans a hard-wrapped list item) — but the Gate itself stays honest: it cites the line ranges, and the entry note discloses both the `&#124;` escaping and the list-marker retention. Quotes remain verbatim substrings modulo whitespace-join of the cited ranges. Contract rule 1 (located, ≤25 words, verbatim) is met in substance.
+
+## What did not defect
+
+- Rows-touched completeness: zero `−`/`modified` S-rows in the registry diff — the single logged touch (S028) is the only touch.
+- "spot-check result": absent as a named subsection, matching the r57 Gate convention (`corpus/lessons/round-57.md:10-56` uses the same three subsections); the falsify wave is that spot-check.
+- Access times are plausible-ordered (07:59–08:11Z fetches vs 08:20Z L1 measure `C1-measure.txt`) and internally consistent with seat reports.
+- Cursor `changelog/1-6.md` → 404 confirmed (the `.md` mirror does not exist); the supplemental fetch in the S094 row used the HTML URL honestly labelled as a changelog supplement.
+- `used-by` on all six new rows names `corpus/knowledge/command-files-round58.md`, matching the r57 convention (S086–S088 `used-by` names only the knowledge entry, not the round lesson).

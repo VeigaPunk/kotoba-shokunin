@@ -6,9 +6,10 @@ recheck: python3 -B verifiers/check_command_files.py --rev <rev> --fetch
 
 # Custom command files by client (round 58)
 
-A custom command (VS Code: a prompt file; Codex: a custom prompt) is a file the user writes once and invokes by typing
-`/name`. It is a different instruction surface from a skill: the model does not choose it from a description, the user
-types it. Before auditing one, find the folder the client reads and what a file in it may set. This entry records, from
+A custom command (VS Code: a prompt file; Codex: a custom prompt) is a file the user writes once and invokes as a slash
+command — `/name`, or a prefixed or namespaced form (Codex `/prompts:name`, Gemini CLI `/dir:name`). The pages below
+describe it as user-invoked; that the model does not pick it from a description, as it may pick a skill, is this lane's
+reading of those pages, not a sentence any of them states. Before auditing one, find the folder the client reads and what a file in it may set. This entry records, from
 each client's own documentation opened on 2026-10-23, where that folder is and what a file sets. It is vendor
 documentation, not a runtime measurement: no client was run.
 
@@ -20,15 +21,22 @@ its plugin reference loads Claude Code's folder and lets skills override it — 
 override commands" (S028 `cli-plugin-reference.md:456`, re-opened this round); a CLI plugin's `com.github.copilot/commands/`
 namespace is a plugin path, not a user folder (W0 `CensusCopilotCLI`).
 
-**Row rule (applied to every row the same way).** The Command files cell leads with the folder (or file pattern) the
-client's own page names for user-written command or prompt files — the project folder where both a project and a user
-folder exist, else the only one documented — and the quote is the page's own sentence naming it. The rule and the
-targets were frozen before any row was written (`plans/round-58.md` § C1, census before targets). Codex's and VS Code's
-folders were already named in this corpus (`instruction-surface-census-round13.md`), so they are not new ground.
-Quote notes: every quote is copied from the fetched bytes; the VS Code quote spans a Markdown table
-(`prompt-files.md:21-25`), so its table pipes are written as `&#124;` to keep them inside one cell — no other byte is
-changed; the Gemini CLI quote keeps the page's list marker `1.` and bold markers; the opencode quote is from the pinned
-docs source because the served page is HTML without `Accept: text/markdown`.
+**Row rule (applied to every row the same way).** The Command files cell leads with the folder (or file pattern) named
+in the census token the plan froze for that client (`plans/round-58.md` § C1, census before targets): the project folder
+for Claude Code, Cursor and opencode; the only documented folder for Codex (user) and VS Code (workspace; its user prompt
+files live in profile data, not a named folder); for Gemini CLI the user folder `~/.gemini/commands/`, because its project
+form is printed as `<your-project-root>/.gemini/commands/`, which the counter's token grammar rejects. Codex's and VS
+Code's folders were already named in this corpus (`instruction-surface-census-round13.md`), so they are not new ground.
+
+Quote notes (corrected in the falsify wave, seats `ReviewEntry`, `CriticVSCodeQuote`, `ReopenS091`): Codex, Cursor and
+opencode quote one source line verbatim. Claude Code drops the line's leading `* ` list marker. Gemini CLI keeps the
+page's `1.` list marker and bold markers and folds one line break (`custom-commands.md:12-13`) to a space. VS Code spans
+five source lines of a Markdown table (`prompt-files.md:21-25`): the line breaks and the blank line are folded to single
+spaces and each table pipe is written `&#124;` so the quote stays inside one table cell; no word is changed; the page has
+no prose sentence naming the folder in 6–25 words. opencode quotes the pinned docs source because the served page is HTML
+without `Accept: text/markdown`, on which the counter's tag stripping separates the folder from its closing period.
+S089's URL (`slash-commands.md`) serves the same bytes as `skills.md`, the URL of base row S065: S089 is a second row
+on the same document, mined for the command-file content, not an independent authority (`CriticS089Alias`).
 
 | Client | Command files | Source | Quote |
 |---|---|---|---|
@@ -48,15 +56,16 @@ docs source because the served page is HTML without `Accept: text/markdown`.
   `$ARGUMENTS` placeholders (`:42`).
 - **VS Code** (S091): `.prompt.md` Markdown files (`:35`); optional frontmatter `description`, `name`, `argument-hint`,
   `agent`, `model`, `tools` (`:39-44`); `name` follows `/` and defaults to the file name (`:40`); `${input:…}`
-  variables (`:69-70`); user-level files live in the profile folder.
+  variables (`:69`); user-level files live in VS Code profile user data (`:26`).
 - **Gemini CLI** (S093): TOML files with the `.toml` extension (`:41-42`); required `prompt`, optional `description`;
   the path under `commands/` names the command and subfolders make `:` namespaces (`:25-27`); `{{args}}` substitutes
   what follows the command (`:58-67`); a project `.gemini/commands/` sits beside the user folder (`:8-17`).
-- **Cursor** (S094): Markdown files in the project folder (`customize-cursor.md:31`, supporting page in the S094 row);
-  no frontmatter or argument schema is documented on these pages.
+- **Cursor** (S094): Markdown files (`customize-cursor.md:31`, supporting page in the S094 row) in `.cursor/commands`
+  (`deeplinks.md:54`); these pages document no frontmatter or argument schema, and no user-level path is printed.
 - **opencode** (S095): only `.md` files are discovered and nested paths become `/`-separated names (`:28`); optional YAML
-  frontmatter, and the trimmed body is the prompt template (`:37`); `$ARGUMENTS` is the whole argument string (`:99`);
-  the user folder is `~/.config/opencode/commands/` (`:21`).
+  frontmatter, and the trimmed body is the prompt template (`:37`); `$ARGUMENTS` is the whole argument string (`:99`) and
+  `$1`–`$n` positional placeholders exist (`:109`); the user folder is `~/.config/opencode/commands/` (`:21`); legacy
+  singular `command/` folders are still discovered (`:34`).
 
 ## Limits
 
@@ -64,5 +73,6 @@ docs source because the served page is HTML without `Accept: text/markdown`.
   where a page states it (Copilot CLI, S028 `:456`).
 - What the counter reads (Q31): `verifiers/check_command_files.py` reads the SKILL.md table's Client, Command files (first
   backticked span) and Action (word count only) cells, this table, the SOURCES rows and the lesson `## Gate`, and with
-  `--fetch` the live page. It does not read the `What a file sets` cells or the list above; those are reviewer judgment,
-  re-opened by the round's falsify seats.
+  `--fetch` the live page, and scans the base revision's blobs outside `.ufo/` for held tokens (new ground). It does not
+  read the `What a file sets` cells or the list above; those are reviewer judgment, re-opened by the round's falsify seats
+  (a mutant making Gemini's `prompt` optional still scores 6 of 6, `RerunC1Counter`).

@@ -113,6 +113,10 @@ rule adopted this round).
 | H:8-13, 541-570 | cache `17 rows`, `all 17 keys reproduced`, 273-byte template | `python3 verifiers/verify_harness_claims.py` | `db_rows=17 offered=17 keys_reproduced=17 misses=0`, template sha match, `27/27` | AGREES |
 | PROVINCE.md | — (no numeric or zero/absent claim) | `grep -cE '[0-9]' PROVINCE.md` | `0` | nothing to census |
 
+Round 58 note (append-only): the row `F:6` anatomy recipe reads `0` from round 58 on because § Skill-file anatomy
+moved verbatim to `anatomy-and-compression.md` (round 57 moved § Decision tables the same way); run the same `awk` over
+that file to re-derive `9` and `7`. The verdicts above stay records of the round-12 tree.
+
 Legend for verdicts: **AGREES** = executed command reproduces the stated value;
 **STALE** = command runs and yields a *different* value at HEAD 7d15407 (the claim was
 truthful for a named or unnamed older tree); **UNEXPRESSIBLE** = no command available can

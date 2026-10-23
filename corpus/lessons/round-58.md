@@ -37,7 +37,11 @@ client. C2 (operability) was withdrawn before data. Seat reports: `.ufo/waves/ro
 
 - **S028** (Copilot CLI plugin reference) — re-opened 2026-10-23T08:08:39Z (HTTP 200, 47,200 B, sha256 `d0d362cc…`,
   seat `SrcCopilotCLI`); cited by the new entry for `cli-plugin-reference.md:456` "then commands (.claude/commands/), skills
-  override commands"; `used-by` unchanged (append-only registry; the citation is recorded here).
+  override commands"; `used-by` old → new: `corpus/knowledge/sibling-overlap-census-round49.md, corpus/lessons/round-50.md,
+  corpus/knowledge/skill-selection-rules-round50.md` → the same plus `corpus/knowledge/command-files-round58.md`
+  (falsify seat `ReviewLessonGate` F1). No other row touched.
+- **S092** — not written: the id was reserved for a Copilot CLI page that is not already a base row; every Copilot CLI
+  page the seats used is a base row (S028, S031), so the id stays unused and the registry has no S092.
 
 ## Mistakes
 
@@ -46,7 +50,7 @@ M70–M73 are the round-57 spot-check routes R1, R4, R5 and R3, drafted by seat 
 draft cites a sandbox hash that does not resolve to the lane commit it names — `07c33d73ddce769d9cea2844…` versus the lane's
 `07c33d73ddce769d9cea2846…` — so it is not used.)
 
-- **M70 `withdrawn-counter-kept-as-gate`** · `verifiers/check_infoless_fences.py` remained registered as a `gate` although C2 was withdrawn after hollow controls met its frozen predicate (`corpus/lessons/round-57-verifier-spotcheck.md:92-104,203-205`) · captured-by: the round-57 non-author verifier spot-check, routed defect R1 · fix: round 58 relabels the `SKILL.md` gate-registry row as `probe` and records the withdrawal reason (`plans/round-58.md:13`) · shown able to fail: the round-57 controls `CtlC2GeneratorKeyed`, `CtlC2DoNothingJunk`, and `CtlC2CharShortcuts` each reached `120 of 120`, exit 0, and `MutC2Counter` also met the predicate; the spot-check therefore withdrew the claim while the registry still called its counter a gate (`corpus/lessons/round-57-verifier-spotcheck.md:98-104,203-205`).
+- **M70 `withdrawn-counter-kept-as-gate`** · `verifiers/check_infoless_fences.py` remained registered as a `gate` although C2 was withdrawn after hollow controls met its frozen predicate (`corpus/lessons/round-57-verifier-spotcheck.md:92-104,203-205`) · captured-by: the round-57 non-author verifier spot-check, routed defect R1 · fix: in-cell `claim withdrawn … not a claim gate until redesigned and re-controlled` annotations on the `check_infoless_fences.py` (r57), `check_sweep_mutants.py` (r58) and, after falsify seat `ReviewR1Annotations` F1, `check_agentdef_boxes.py` (r56) registry rows; the plan's `probe` relabel fails the registry gate (M77) · shown able to fail: the round-57 controls `CtlC2GeneratorKeyed`, `CtlC2DoNothingJunk`, and `CtlC2CharShortcuts` each reached `120 of 120`, exit 0, and `MutC2Counter` also met the predicate; the spot-check therefore withdrew the claim while the registry still called its counter a gate (`corpus/lessons/round-57-verifier-spotcheck.md:98-104,203-205`).
 
 - **M71 `self-test-no-successful-main-path`** · the frozen round-57 C1 v2 self-test called `main()` only with an invalid revision, which returns before the real measurement path; it tested `predicate()` directly but never the final CLI return (`.ufo/waves/round-57/a3/falsify/A3CriticScorecardCalib.md:62-70`; routed R4: `corpus/lessons/round-57-verifier-spotcheck.md:210`) · captured-by: `A3CriticScorecardCalib` M05 / the round-57 non-author spot-check R4 · fix: add a successful-main-path arm to `check_plugin_manifests.py` and give the new C1 counter one from birth (`plans/round-58.md:16`) · shown able to fail: the existing pristine `python3 -B verifiers/check_plugin_manifests.py --self-test` passed with `0 failure(s) over 235 assertions`, while the recorded AST probe found only `main(['--rev', 'not-a-hash'])`; no successful-path mutant was run, so the mutation consequence is not demonstrated here ([INFERENCE] from the unexercised path).
 
@@ -71,3 +75,4 @@ draft cites a sandbox hash that does not resolve to the lane commit it names —
   (`ExecR1Registry`: 30 of 32 under that relabel) · captured-by: the executor seat · fix: the in-cell `claim withdrawn`
   annotation (32 of 32); same class as M69 — check a routed fix against the gate that judges it before writing it into a
   plan.
+- **M78 `quote-note-overclaimed-again`** · the entry's quote note said "no other byte is changed" and "every quote is copied from the fetched bytes" while three quotes fold line breaks or drop list markers (`ReviewEntry` F2–F3, `CriticVSCodeQuote`) · captured-by: Q42 — the same class as M65 one round later, so Q42 as written does not stop it · fix: the note now names each shaping per row; shown able to fail: the falsify seats' byte comparison of each quote against the fetched page found the three undisclosed shapings.

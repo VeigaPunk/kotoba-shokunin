@@ -7,7 +7,10 @@ this guard reruns every self-test and FAILs when the observed count is below
 the recorded floor (harness 10, corpus_integrity 152, corpus_independent 93,
 surfaces 175, overlap_levers 51, checklist 1852, pins 62,
 harness_independent 123, compare_harness_independent 330, floors_guard 150,
-dispatch_prompts 56, sibling_census 68, alwayson 89; round 53 bumped surfaces 129->175
+dispatch_prompts 56, sibling_census 68, alwayson 89, correction_sweep 25;
+round 58 (routed defect R3, second guard) registers correction_sweep at 25
+(verifiers/check_correction_sweep.py: its self-test was unfloored, so a dropped
+case -- the frozen mutants M08-M11 -- still read green); round 53 bumped surfaces 129->175
 (two round-52 fix arms, opencode 1.19.4 rule and decoy arms, the falsify-wave delivery and walk-target decoys), corpus_integrity 150->152 and
 corpus_independent 91->93 (fleet-report pointer arms), checklist 1851->1852 (absolute-delegate arm)
 and registered alwayson at 89 (verifiers/verify_alwayson.py); round 52 bumped surfaces 119->129 (callee-rename
@@ -159,6 +162,7 @@ EXPECTED_INSTRUMENTS = {
     "sibling_census": 68,
     "overlap_levers": 51,
     "alwayson": 89,
+    "correction_sweep": 25,
 }
 SELF_TEST_TIMEOUT_S = 120
 # Round-56 routed defect 4 (round-55 spot-check, 'routed defects' item 4): the
@@ -211,6 +215,8 @@ INSTRUMENTS = {
                        r"(?m)^(\d+) failures\n(\d+) assertions$", 2, 1),
     "alwayson": ("verifiers/verify_alwayson.py", 89,
                  r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
+    "correction_sweep": ("verifiers/check_correction_sweep.py", 25,
+                         r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
 }
 
 
@@ -789,10 +795,11 @@ def self_test() -> int:
 
         # F6 -- the registry's own declared size is load-bearing. The anchor is
         # the live registry's own declared total (round 49: 10; round 50: 11 with
-        # sibling_census; round 51: 12 with overlap_levers; round 53: 13 with alwayson),
+        # sibling_census; round 51: 12 with overlap_levers; round 53: 13 with alwayson;
+        # round 58: 14 with correction_sweep),
         # including this guard's self-test); a stale literal here would stop landing
         # and the count-check would name it.
-        text = swap(registry_text, '"instrument_total": 13', '"instrument_total": 10',
+        text = swap(registry_text, '"instrument_total": 14', '"instrument_total": 10',
                     "F6/total")
         proc = run(write_tree(tmp / "f6", source, text), tmp / "f6")
         rec("F6 size drift: exit 2", proc.returncode == 2, proc.returncode)

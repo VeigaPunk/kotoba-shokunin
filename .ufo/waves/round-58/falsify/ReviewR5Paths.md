@@ -1,0 +1,57 @@
+# ReviewR5Paths — lowercase `/home/vgpnk/projects/` sweep at `46b4a70` (round-58 falsify)
+
+Result: MIXED — R5's own SKILL.md repair holds (0 lowercase cites left in SKILL.md at `46b4a7061c688cefd3e3ec9cbb655130ba1aafbe`; all three corrected targets resolve live today), but the same sweep leaves 23 lowercase hits at the content commit, of which 1 is an unbounded dead pointer on a PROVINCE-held knowledge entry a reader would follow and 22 are quoted era records, verifier fixtures, or the repair row itself.
+
+Seat: KotobaR58.ReviewR5Paths. Lane read-only; no lane git/jj writes; extracts under `/fast/scratch/hyaku/kotoba-r58/ReviewR5Paths/` (no sandbox commits made). No tools installed (none needed). No web fetches (item needs none). All line numbers below are at `46b4a7061c688cefd3e3ec9cbb655130ba1aafbe` unless stated.
+
+## Method (commands as run, with exit codes)
+
+- Exact assignment grep, frozen content commit, exclusions per item:
+  `git --no-optional-locks -C /home/vgpnk/Projects/shokunin/kotoba-shokunin grep -n -I '/home/vgpnk/projects/' 46b4a7061c688cefd3e3ec9cbb655130ba1aafbe -- ':(exclude).ufo' ':(exclude)LOG.md' ':(exclude)corpus/lessons'` → exit 0, 23 hit lines.
+- Case-insensitive variant (`grep -n -i -I 'home/vgpnk/'`, same rev + exclusions) → exit 0; adds only capital-P (`Projects`) hits — live pointers — and no lowercase site the exact grep missed.
+- Lane tip `8e52f064f21580dff368b50a2a2d304ecccaaea9`, same case-insensitive form → exit 0; identical lowercase hit set (the three round-58 index rows the tip adds are path-clean: no `home/vgpnk` substring).
+- Working-tree strays: `git --no-optional-locks -C <lane> ls-files --others --exclude-standard -- ':(exclude).ufo' ':(exclude)LOG.md' ':(exclude)corpus/lessons'` → exit 0, empty. No untracked live-surface file exists outside the exclusions, so a plain `grep -rn` over the checkout would find nothing beyond the 23 tracked hits (its `.ufo` matches are session transcripts and wave receipts, excluded by the item).
+- Host existence tests (2026-10-23): `test -e /home/vgpnk/projects` → exit 1 (absent); `test -f /home/vgpnk/Projects/shokunin/MISSION.md` → exit 0; `ls /home/vgpnk/Projects/shokunin/*/AGENTS.md | wc -l` → 17; `ls /home/vgpnk/Projects/shokunin/.ufo/prompts/*-L1.md | wc -l` → 8; `ls /home/vgpnk/Projects/shokunin/.ufo/prompts/*-round-*.md | wc -l` → 361; `test -f /home/vgpnk/Projects/shokunin/.ufo/reports/round-7/kotoba.md` → exit 0.
+
+## The 23 hits, classified
+
+Classification rule applied: a hit is a **quoted/frozen record** if it is a verbatim transcript line, a census row's as-run command column, a correction's own text, or a round-record written before the lowercase-absence was known and preserved by the corpus's record convention; it is a **dead pointer a reader would follow** if the text asserts a present-tense location with no bound in the entry, on a surface the lane holds live.
+
+| # | path:line | text (short) | class |
+|---|---|---|---|
+| 1 | corpus/knowledge/agents-md-and-dispatch-surfaces.md:10 | "6 identical-shape files in `/home/vgpnk/projects/shokunin/*/AGENTS.md` … **round-53 correction (2026-10-22):** the root is `/home/vgpnk/Projects/shokunin` (capital `P`; the lowercase path does not exist on this host)…" | bounded record — corrected in place |
+| 2 | corpus/knowledge/agents-md-and-dispatch-surfaces.md:11 | "Dispatch prompt \| 8 files `/home/vgpnk/projects/shokunin/.ufo/prompts/*-L1.md` (9–12 lines)" | **FINDING F1 — dead pointer, unbounded** |
+| 3 | corpus/knowledge/checklist-execution-round15.md:78 | "floor is `/home/vgpnk/projects/shokunin/MISSION.md` § L2" | unbounded era record (round 15); capital twin exists |
+| 4 | corpus/knowledge/checklist-execution-round16.md:88 | "all three sites now read `/home/vgpnk/projects/shokunin/.ufo/prompts/`, the form the file already used at five other sites" | quoted record — reports the round-16 state of SKILL.md sites |
+| 5 | corpus/knowledge/checklist-execution-round17.md:263 | "Every dead pointer used `/home/vgpnk/projects/shokunin/.ufo/reports/…`." | the correction record itself (line 264: "`/home/vgpnk/projects` is absent on this host") |
+| 6–7 | corpus/knowledge/claim-census-round12.md:40,80 | census rows' as-run command columns (`test -f /home/vgpnk/projects/…`, `for f in /home/vgpnk/projects/*-shokunin/SKILL.md…`) | quoted records — commands as run at round 12 (the round-12 host resolved lowercase; `independent-verification-round12.md:298` records this) |
+| 8–10 | corpus/knowledge/cold-run-round11.md:58,59,200 | verbatim cold-run shell line, its sha256sum output, and `R = "/home/vgpnk/projects/shokunin/kotoba-shokunin"` in a quoted script | quoted records (round-21 seat already recorded: not replayable verbatim today, wrong token class for the verifier) |
+| 11–12 | corpus/knowledge/corpus-integrity-round11.md:110,131 | verbatim pointer-census output line and the round-11 printf command | quoted records |
+| 13–17 | corpus/knowledge/instruction-surface-census-round13.md:467,476,485,523,532 | round-13 census: "no harness loads `/home/vgpnk/projects/shokunin/.ufo/prompts/`" ×2, `/*/AGENTS.md` "re-verified", anatomy "from …*-L1.md", round-7 caveat | quoted records — file moved verbatim from SKILL.md in round 22; the dead cites were adjudicated then (round-22 seats: "low — verbatim carries a dead cite"; preservation deliberate) |
+| 18 | corpus/knowledge/sibling-description-rewrites-round8.md:5 | "five sibling `*-shokunin/SKILL.md` files, all under `/home/vgpnk/projects/shokunin/`" | quoted record — already adjudicated as D12/D9 (round-23 seats: "case-only … informational") |
+| 19 | plans/round-58.md:17 | "R5 \| dead lowercase `/home/vgpnk/projects/` at `SKILL.md:514-515` \| corrected to the live path" | record — the repair row quoting the routed defect |
+| 20–23 | verifiers/verify_corpus_integrity.py:748,894,895,930 | `FIXTURE_POINTER_SHAPES` "hosted: `/home/vgpnk/projects/shokunin/.ufo/reports/round-7/kotoba.md`" and the self-test asserting the regex harvests exactly that dead absolute form (expected `report_dead_detail` includes `corpus/lessons/round-3.md:4: …`) | intentional test fixtures — the lowercase form is the harvested shape vector, marked by the self-test docstring as a dead-tree stand-in; not a pointer |
+
+Surfaces with zero lowercase hits at `46b4a70`: SKILL.md, PROVINCE.md, corpus/SOURCES.md, corpus/QUALITY.md (Q46–Q48 included), corpus/knowledge/command-files-round58.md (the new C1 entry names no host-absolute path at all — only source URLs and repo-relative pointers), SCORECARD.md, MINT.md/SHONEN.md, all other verifiers (only capital-P `LANE_FALLBACK`/`DEFAULT_*` constants). corpus/README.md contains lowercase only inside R2's corrective note at :12 ("the lowercase `/home/vgpnk/projects` root the knowledge file cites does not exist") — bounded.
+
+## R5 verification (the routed repair itself)
+
+- Diff `3de87aa29e960c95ed35840442f424c48c29729..46b4a70` on SKILL.md: R5 case-corrected exactly three sites — the dispatch-prompt checklist's "observed form:" line (350→349), and the two § Sources bullets (512: `*-L1.md`, 514: `*-round-*.md`). Line 509 (`/*/AGENTS.md`) was already capital at the freeze (fixed in round 53). No lowercase `/home/vgpnk/projects/` remains in SKILL.md at `46b4a70` (grep, exit 0, 0 hits).
+- Repaired targets resolve live today: `…/Projects/shokunin/.ufo/prompts/` exists; `*-L1.md` measures 8 (matches the undated "(8 files, 9–12 lines)"); `/*/AGENTS.md` measures 17 (matches "(17 files on 2026-10-22…)", still 17 on 2026-10-23).
+- The bullet's "`*-round-*.md` (50 files, 3–11 lines at round-9 recount …)" is explicitly dated to the round-9 recount, so the live 361 (2026-10-23) does not falsify it as written; noted as drift context only (lineage on record: 53 at round-10, 122 at the round-21 spot-check era, 361 now).
+- Cosmetic gap (info): the plan row names the defect at "SKILL.md:514-515", but the landed repair also fixed the :349 and :512 sites. The row records what was routed, not what was done; no reader harm. No change requested.
+
+## Findings by severity
+
+**F1 — LOW-MEDIUM — one unbounded dead pointer on a held knowledge entry.** `corpus/knowledge/agents-md-and-dispatch-surfaces.md:11` (Dispatch prompt row) still cites `/home/vgpnk/projects/shokunin/.ufo/prompts/*-L1.md` as the location of the 8 spawn prompts, with no bound in the entry: the round-53 correction inside the same file bounded the AGENTS.md row (:10) and the `~/.agents/AGENTS.md` section but missed row 11. `test -e /home/vgpnk/projects` → absent, so a reader following row 11 literally gets ENOENT; the count (8) still measures true, only the spelling is dead. The entry is routed as live: PROVINCE.md § Core names this file, and corpus/README.md:12 (this commit's R2 note) documents the lowercase root rather than fixing it — so the corpus knows and bounds it from the index side only. This is not a round-58 regression and not in R5's routed scope (SKILL.md only); it is the same defect class R5 repaired, surviving one row away from its own in-place correction. Suggested correction text for L1 (integrate or discard): extend the row-11 cell with the row-10 bound, e.g. append " — **round-53 correction (2026-10-22):** root is `/home/vgpnk/Projects/shokunin` (capital `P`); the count still measures 8."
+
+**F2 — INFO — unbounded era records (no rewrite required by the corpus's own convention).** Hits 3, 8–10, 13–17, 18 (r15:78, cold-run r11, round-13 census, r8:5) present lowercase paths in present-tense attribution ("floor is", "from", "all under") with no in-file bound. The fleet has already adjudicated this class: the round-17 case-correction deliberately covered only the 32 `.ufo/reports/round-N/kotoba.md` pointers, and the round-21/22/23 seats recorded that era recipes and verbatim-moved text are frozen records ("the lowercase-`projects` recipes in round records are NOT defects … recorded as the record behaving as recorded"). I do not propose changing them; listed for completeness because the item asks for every hit and its class.
+
+**F3 — INFO — the token class is instrument-blind (structural residual).** `verifiers/verify_corpus_integrity.py` gates only the `.ufo/reports/…/kotoba.md` pointer shapes (`FIXTURE_POINTER_SHAPES` :744-750, `report_dead` checks); lowercase host paths pointing at `.ufo/prompts/`, `*/AGENTS.md` or `MISSION.md` are outside every gate, which is why the class survives at `46b4a70`. Recorded as residual risk; no counter change proposed (frozen counters out of scope).
+
+## Residual risk and verification gaps
+
+- Existence tests were run on the live host today (2026-10-23); "reader would follow" judgments for record-class hits rest on the corpus's recorded conventions (per-round-record claim-scope rule, round-22 verbatim-move decision) — cited, not re-derived from first principles.
+- I did not run any lane counter or fetch any source (out of this item's scope); the C1 counter's own paths are capital and resolve (`check_command_files.py:254` `LANE_FALLBACK`), but counter behavior is RerunC1Counter's item.
+- Adjacent observation while reading, out of my string scope: `agents-md-and-dispatch-surfaces.md:9` ("16 under `~/.agents/skills/` + `~/.config/opencode/skills/`") was already recorded stale by earlier seats (8 found / opencode skills root absent); row 11's count-8 half is still true.
+- No installs or tool updates were performed; no lane state was mutated; scratch extracts live only under `/fast/scratch/hyaku/kotoba-r58/ReviewR5Paths/`.
