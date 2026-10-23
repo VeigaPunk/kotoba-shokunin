@@ -57,3 +57,53 @@ None. S079–S085 are new rows; S005 and S028 are unchanged.
 - **Round-56 report line 14.** `40c2b5eb`, `41c2f484` and `7639deba` are sandbox commits in
   `/fast/scratch/hyaku/kotoba-r56/` clones (their receipts: `controls/CtlC2Heuristics.md:5`,
   `CtlC2GeneratorKeyed.md:140`, `CtlC1RealNoForm.txt:27` in `.ufo/waves/round-56/`). The fleet report is not edited.
+
+## Mistakes
+
+M58–M61 are the round-56 spot-check routes R1, R2, R4 and R7, drafted by seat `ScribeMistakes` (`.ufo/waves/round-57/build/ScribeMistakes.md`) and checked by the L1; M62–M64 are this round's own.
+
+- **M58 `sandbox-hash-unlabelled`** · `.ufo/reports/round-56/kotoba.md:14` cites `40c2b5eb`, `41c2f484` and `7639deba` without a `sandbox` label; the non-author spot-check says they do not resolve in the lane and are scratch-clone commits (`corpus/lessons/round-56-verifier-spotcheck.md:30-31,219-221`) · captured-by: the round-56 non-author spot-check (R1) · fix: label sandbox hashes with `sandbox` and their clone path in each context/report, or cite the committed receipt lines (`plans/round-57.md:81-85`; `.ufo/waves/round-57/bounds.md:4`) · shown able to fail: this read-only scan skips tokens explicitly introduced by `sha256` (digest prefixes, not commit references), checks unresolved 7–40-hex commit candidates with `git rev-parse --verify -q <h>^{commit}`, and prints the three unlabelled references:
+
+  ```sh
+  python3 -B -c 'import pathlib,re,subprocess; p=pathlib.Path("/home/vgpnk/Projects/shokunin/.ufo/reports/round-56/kotoba.md"); repo="/home/vgpnk/Projects/shokunin/kotoba-shokunin"; out=sorted({h for line in p.read_text().splitlines() if not re.search(r"\bsandbox\b",line,re.I) for h in re.findall(r"(?<![0-9a-fA-F])[0-9a-fA-F]{7,40}(?![0-9a-fA-F])",line) if not re.search(r"\bsha256\s+`?"+re.escape(h)+r"(?![0-9a-fA-F])",line,re.I) and subprocess.run(["git","-C",repo,"rev-parse","--verify","-q",h+"^{commit}"],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL).returncode != 0}); print("\n".join(out))'
+  ```
+
+  ```text
+  40c2b5eb
+  41c2f484
+  7639deba
+  exit code: 0
+  ```
+
+- **M59 `shaped-quote-note-unverified`** · the round-56 lesson's quote-note paragraph describes S076's project line and S078's fenced example inaccurately (`corpus/lessons/round-56.md:22-25`); the re-open found S076's quote verbatim but a better unshaped quote across `:320-323`, and that S078's `text` is a fence info string, not quote prose (`corpus/lessons/round-56-verifier-spotcheck.md:107-121,222-228`) · captured-by: the round-56 non-author source spot-check (R2) · fix: correct the S076/S078 notes (prefer S076 `:320-323`), accurately mark what was removed/normalized, and source or drop the separate `SKILL.md:109` clause as routed in R2 (`round-56-verifier-spotcheck.md:222-228`; `plans/round-57.md:83-85`) · shown able to fail: the source re-open caught the note/source mismatch for both entries; the spot-check says neither choice changed G's substance (`round-56-verifier-spotcheck.md:107-121`).
+
+- **M60 `case-folded-held-ground`** · the round-56 counter case-folded held-ground counts and treated `.claude/AGENTS.md` and `.codex/AGENTS.md` as the lowercase agent directories, understating G (3 rather than 5) (`corpus/lessons/round-56-verifier-spotcheck.md:63-67,233-236`) · captured-by: the round-56 non-author spot-check (R4) · fix: the round-57 C1 v2 rule checks held paths case-insensitively at segment boundaries while keeping distinct new-ground values case-folded (`plans/round-57.md:35-40,114-118`; `verifiers/check_plugin_manifests.py:960-979`) · shown able to fail: CtlC1HeldVariant re-scored its exact v1 held-variant world under v2 as `0 of 0; new ground 0`, exit 1 (`.ufo/waves/round-57/controls/CtlC1HeldVariant.md:65-72`). This closes that world, but its bare tokens and duplicate rows also trigger other v2 guards, so it is not an isolated demonstration of the case-fold check. The frozen counter has explicit case-variant, segment-boundary and memory-file-analogue self-test cases (`verifiers/check_plugin_manifests.py:1681-1690`); I did not execute that self-test.
+
+- **M61 `pattern-kill-no-cap`** · round-56's `ExecFloorsTimeout` used `pkill -f` on a shared scratch path, killed three sibling runs and ran a contention test that drove load to 96 (`.ufo/reports/round-56/kotoba.md:36`; `corpus/lessons/round-56.md:61-64`); R7 notes that M56's PID-only fix and contention cap had not been shown able to fail (`corpus/lessons/round-56-verifier-spotcheck.md:241-246`) · captured-by: the round-56 non-author spot-check (R7) · fix: round-57 bounds require killing only PIDs started by the seat and cap requested contention tests at 4 processes/120 seconds (`.ufo/waves/round-57/bounds.md:6`; `plans/round-57.md:85-87`) · shown able to fail: the required presence check distinguishes the old context from the new bound (the grep tests the PID sentence; the cap is independently visible on bounds line 6):
+
+  ```sh
+  grep -c 'Kill only by the PIDs you started' /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-56/build-spec.json
+  ```
+
+  ```text
+  0
+  exit code: 1
+
+- **M62 `target-above-reachable-population`** (the mined mistake) · C1's frozen target was F ≥ 5 of seven clients
+  (`plans/round-57.md` § Claims), set before any census of how many clients document an own-format plugin manifest; the
+  honest count is 4 (Claude Code, Codex, Gemini CLI, Cursor), so the landed table scores `plugin manifests found on the
+  live page 4 of 4; new ground 4`, exit 1 (`.ufo/waves/round-57/C1-measure.txt`). The zero margin was reported
+  during the build wave (`CriticAxisFit`, `ScoutPluginMcp`, `CriticC1Rows`, ~04:50–04:54Z), after the target was frozen · captured-by: none (the
+  pre-freeze control wave asks whether a do-nothing control reaches the target, not whether honest content can) ·
+  fix: Q45 — before freezing a per-client target, a seat that writes no content counts the clients whose own
+  documentation states the claimed form under the counter's token rule, and the plan records that census with the target
+  set at or below it; not yet shown able to fail (no round-58 plan exists).
+- **M63 `bound-carried-by-reference`** · the pre-freeze control call's context named `bounds.md` and summarised the kill
+  bound in lower case, so `grep -c 'Kill only by the PIDs you started' .ufo/waves/round-57/controls-call.json` prints 0
+  (`.ufo/waves/round-57/r7-bound-grep.txt`) while the w0 and build contexts carry it verbatim · captured-by: Q44 (this
+  round) · fix: every later context inlines `bounds.md`; the falsify call's grep is recorded in the report.
+- **M64 `hollow-control-met-both-v1-counters`** · both v1 counters frozen at `ee50d8fa` were met by hollow worlds within
+  25 minutes (Gate, Rejected rows 1–2): C1's token grammar admitted bare words and nav text; C2's generator leaked case
+  names, fixed command lines and the extraction path · captured-by: the phase-4 pre-freeze control wave · fix: C1 v2
+  (erratum 1), shown able to fail by the five seats' v2 re-scores (best hollow world `found 1 of 7`, exit 1); C2
+  withdrawn, redesign input `build/check_infoless_fences_v3.py`.

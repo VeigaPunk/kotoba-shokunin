@@ -144,6 +144,17 @@ the live page F of K; new ground G`). Still not held: any executed agentdef box 
 two controls before data and withdrawn; redesign input `../../.ufo/waves/round-56/build/C2RedesignCounter.md`), which
 file each client actually loads, and a checklist for the six non-opencode schemas.
 
+**Round 57 (append-only note on the MCP/plugin and command-extraction rows above):** *MCP/plugin instruction surfaces* —
+the plugin half is recorded, not held as a verified claim: where seven clients put a plugin's manifest and what a plugin
+can ship is in `knowledge/plugin-manifests-round57.md` (S079–S085) and acted on in `../SKILL.md` § Plugin manifests by
+client, but the frozen counter `../verifiers/check_plugin_manifests.py --rev <rev> --fetch` prints `found on the live
+page 4 of 4; new ground 4`, short of its F ≥ 5 target (four clients document an own-format manifest; VS Code and
+Copilot CLI default to the shared root `plugin.json`; opencode plugins are code modules). Still not held: any measured
+plugin loading, plugin-shipped MCP `instructions` per client, and the legacy locations on base row S028. *Command
+extraction* — the info-less fence false FAILs stay open: the round-57 counter was met by four hollow controls before
+data and the claim was withdrawn; 105 of 171 fleet FAIL subjects come from info-less fences, none of them a real
+command (`lessons/round-57.md` § Gate; redesign inputs in the round's build wave).
+
 ## Known gaps
 
 - **31 of the 41 `SKILL.md` checklist boxes are still lane-attested prose.** Round
