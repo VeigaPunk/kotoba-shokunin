@@ -1,0 +1,334 @@
+{
+ "wave": "kotoba-r55-falsify",
+ "milestone": "Round-55 falsify: re-run both counters, re-open S065-S071, attack each C1 row and each C2 gate patch, routed repairs, no-harm receipts at the tip",
+ "axes": [
+  "depth",
+  "operability",
+  "consistency",
+  "calibration"
+ ],
+ "reportDir": ".ufo/waves/round-55/falsify",
+ "context": "# Goal\nkotoba round 55 (attempt 1) FALSIFY wave, hyaku session 2026-10-22/23. Lane repo /home/vgpnk/Projects/shokunin/kotoba-shokunin (the prompt and skill craft shokunin; jj-colocated). Base f0e5de820a60ec44ff7e5b7c88ac8c8d463dde0c; plan commit a10240c0940f770a5f2a5f32a7e3c363dd5d40c0 (both claim counters and the \u00a79 control receipts are frozen there); current tip f0e6b695b746775823b65a8c45de7d50ea33e84f. Read /home/vgpnk/Projects/shokunin/kotoba-shokunin/plans/round-55.md first; it states the two claims and their frozen predicates exactly. Also useful: /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/lessons/round-54-verifier-spotcheck.md (the outside check of round 54 and its routed defects 1-8), /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/lessons/round-54.md, /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/QUALITY.md, /home/vgpnk/Projects/shokunin/kotoba-shokunin/SKILL.md (599 of 600 lines at base; \u00a7 Gate registry; \u00a7 Description thresholds by client), /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md (contract v1: /home/vgpnk/Projects/shokunin/CORPUS.md section 'SOURCES.md \u2014 where a shokunin learns'), /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/README.md \u00a7 Frontier, and the round-54 falsify reports /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-54/falsify/.\n- C1 depth (the learning claim; sourced): predicate `python3 -B /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/check_explicit_invocation.py --rev <rev> --fetch` exits 0 (prints `explicit invocation forms found on the live page F of K; new ground G`, F>=4 and G>=2). Clients: Claude Code, Codex, VS Code, Copilot CLI, Gemini CLI, Cursor, opencode. SKILL.md gains `### Explicit invocation by client` (header `Client | Explicit form | What it does | Action`), whose form cell holds a backticked invocation token (starts with / $ @ # then a letter or <, or a tool name containing _), grounded in a new entry corpus/knowledge/explicit-invocation-round55.md (`## Per-client record`, header `client | row | quote | location | reading`) quoting that token verbatim in 3-25 words from a NEW tier-A `mined` SOURCES row (not a row at f0e5de82) opened 2026-10-22 or 2026-10-23 on the client's pinned host (hosts: see the counter's HOSTS table), the quote also recorded in corpus/lessons/round-55.md \u00a7 Gate and found on the live page. Read the counter's docstring for exact rules. Frontier row served: Implicit-intent fidelity \u2014 an implicit-trigger measure must set aside turns where a skill was invoked explicitly.\n- C2 operability: predicate `python3 -B /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/check_could_not_evaluate.py --rev <rev>` exits 0 (prints `could-not-evaluate probes honoured 25 of 25; controls held 13 of 13`). Thirteen registered gates must exit 2 on a random unknown revision (class R) and with git absent from PATH (class G), while their own --self-test exits 0 and a run on the real revision exits 0 or 1. Read the counter's docstring. Base receipt: /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-55/controls/C2-base.txt.\nSession rules (binding): no freshness work, no change to verifiers/verify_surfaces.py. Both counters, their tables, targets and predicates are frozen at the plan commit; seats never edit the counters; a weakness you find is reported, never fixed in the counter. A fix to a gate never changes its judging lines (what it reads, compares and counts); only its could-not-evaluate paths and its self-test arms.\nWave 2 is FALSIFY: every item attacks something wave 1 produced; read-only on the lane; findings are reported, never fixed in lane files. Settle deadline: return within 30 minutes of dispatch with what you have.\n# Bounds (binding on every seat)\n- Message target: only agent://KotobaR55 (your L1). Never agent://all. Seats are leaves: no task spawns, no swarms (an executor may spawn at most one read-only labrat probe).\n- Write ONLY your own report file (executors: also the one patch file their item names). Every `Report:` trailer path is relative to /home/vgpnk/Projects/shokunin/kotoba-shokunin \u2014 write it at /home/vgpnk/Projects/shokunin/kotoba-shokunin/<that path>. Never write anything else in the lane, never in the fleet root /home/vgpnk/Projects/shokunin, never in a sibling lane. Never edit lane files: you deliver text or a patch; the L1 integrates.\n- Anything that writes or executes lane code (self-tests, probes, mutated copies, counters) runs in your OWN sandbox clone: `unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE; git clone -q /home/vgpnk/Projects/shokunin/kotoba-shokunin /fast/scratch/hyaku/kotoba-r55/<YourSeatName> && git -C /fast/scratch/hyaku/kotoba-r55/<YourSeatName> checkout -q f0e6b695b746775823b65a8c45de7d50ea33e84f`; scratch files under /fast/scratch/hyaku/kotoba-r55/<YourSeatName>/ only. Git writes are allowed only inside that clone. Never push.\n- Never run git writes (add, commit, stash, checkout, switch, reset, pull, push, worktree) in the lane, and never mutate lane jj state or the lane Git index. Read-only git in the lane is fine. jj only read-only with --ignore-working-copy, in the lane only; never any jj command at /home/vgpnk/Projects/shokunin. Never mutate the fleet repo, sibling lanes, MANIFEST.json, .ufo/state or .ufo/watchdog.log.\n- Process hygiene: cap every run you start with `timeout` (at most 900 s per command); no unbounded recursive test runs; kill any process tree you started before you return.\n- Sources are opened by ordinary means only (curl, the read tool, web search). Never use a headless browser or any tool to pass a bot challenge, captcha or access control. Record URL, UTC access time (paste the `date -u` line), HTTP status, byte count and sha256 of what you fetched; quote verbatim (at most 25 words per quote, byte-exact; if you strip markdown say so) with line numbers in the fetched bytes. Before recording that a client documents nothing about a topic (Q30), open its changelog or release notes AND its current docs source tree AND grep the lane corpus; a sweep missing any of the three makes the client `not checked`, never `silent`.\n- Never make paid model calls through any client CLI (no `claude -p`, `codex exec`, `opencode run`, `gemini -p`); version, help, debug and config introspection only.\n- Never pass a `model` parameter; never call `ask`.\n- Tooling: the operator authorizes installs and upgrades that help the task; read /home/vgpnk/.omp/agent/RULES.md before installing; official channels only; record tool, version, channel and reason in your report. Pacman guard: all pacman transactions are PAUSED host-wide (install via uv tool, npx or an official binary in ~/.local/bin, or report the need); never -Sy, -Syu, -U, -R, downgrade, or restart a host service.\n- Honesty: an unrun check has not passed; paste commands with exit codes and observed output; mark inference as [INFERENCE]. A record states only what was verified; a statement may say no more than its evidence (the over-wide-record defect recurred in rounds 50-54). Plain English, no run-together words or private jargon.\n- Report shape: first line `Result: DONE|PARTIAL|BLOCKED|HOLDS|BREAKS|MIXED \u2014 <one sentence>`; then findings with evidence pointers (path:line, command + exit code + output).\n",
+ "items": [
+  {
+   "name": "W2RerunC1",
+   "role": "reviewer",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Target: C1 numbers. In a sandbox clone, run `python3 -B verifiers/check_explicit_invocation.py --rev <r> --fetch` (the counter file at the tip, v2) at f0e5de82, a10240c0, b04a9005, 96155796 and f0e6b695b746775823b65a8c45de7d50ea33e84f, and the v1 bytes (`git show a10240c0:verifiers/check_explicit_invocation.py > verifiers/cei_v1.py`) at 96155796 and f0e6b695b746775823b65a8c45de7d50ea33e84f; paste every summary line and exit code with `date -u`. Check the declared predicate (v2 --fetch exit 0, F>=4, G>=2) at f0e6b695b746775823b65a8c45de7d50ea33e84f. Then check the erratum claim that v2 is strictly stricter than v1: every client v2 backs at f0e6b695b746775823b65a8c45de7d50ea33e84f is also backed by v1. Landed commits (lane master): plan a10240c0; SKILL.md routed cells + verbatim move + registry rows ed3e8996; erratum 1 (C1 counter v2) b04a9005; C1 content 96155796; routed registry/fault-injection 4d700b17; C2 gate fixes e966cd59; QUALITY + lesson f2cc4099; build evidence f0e6b695b746775823b65a8c45de7d50ea33e84f."
+  },
+  {
+   "name": "ReopenS065",
+   "role": "reviewer",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Target: SOURCES row S065 (Claude Code) and its uses. Re-open the row's URL yourself (curl; record date -u, status, bytes, sha256). Check: the lesson Gate quote for S065 (corpus/lessons/round-55.md) is on the fetched bytes at the stated location (byte-exact, or the stated normalisation only); the `teaches` cell is \u226425 words and says no more than the page; the entry row in corpus/knowledge/explicit-invocation-round55.md (reading cell) and the SKILL.md \u00a7 Explicit invocation by client row (form, what it does, action) say no more than the page (Q31, Q26) \u2014 quote any over-wide phrase. Verdict per cell: HOLDS/BREAKS with evidence. Read-only; tip f0e6b695b746775823b65a8c45de7d50ea33e84f."
+  },
+  {
+   "name": "ReopenS066",
+   "role": "reviewer",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Target: SOURCES row S066 (Codex) and its uses. Re-open the row's URL yourself (curl; record date -u, status, bytes, sha256). Check: the lesson Gate quote for S066 (corpus/lessons/round-55.md) is on the fetched bytes at the stated location (byte-exact, or the stated normalisation only); the `teaches` cell is \u226425 words and says no more than the page; the entry row in corpus/knowledge/explicit-invocation-round55.md (reading cell) and the SKILL.md \u00a7 Explicit invocation by client row (form, what it does, action) say no more than the page (Q31, Q26) \u2014 quote any over-wide phrase. Verdict per cell: HOLDS/BREAKS with evidence. Read-only; tip f0e6b695b746775823b65a8c45de7d50ea33e84f."
+  },
+  {
+   "name": "ReopenS067",
+   "role": "reviewer",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Target: SOURCES row S067 (VS Code) and its uses. Re-open the row's URL yourself (curl; record date -u, status, bytes, sha256). Check: the lesson Gate quote for S067 (corpus/lessons/round-55.md) is on the fetched bytes at the stated location (byte-exact, or the stated normalisation only); the `teaches` cell is \u226425 words and says no more than the page; the entry row in corpus/knowledge/explicit-invocation-round55.md (reading cell) and the SKILL.md \u00a7 Explicit invocation by client row (form, what it does, action) say no more than the page (Q31, Q26) \u2014 quote any over-wide phrase. Verdict per cell: HOLDS/BREAKS with evidence. Read-only; tip f0e6b695b746775823b65a8c45de7d50ea33e84f."
+  },
+  {
+   "name": "ReopenS068",
+   "role": "reviewer",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Target: SOURCES row S068 (Copilot CLI) and its uses. Re-open the row's URL yourself (curl; record date -u, status, bytes, sha256). Check: the lesson Gate quote for S068 (corpus/lessons/round-55.md) is on the fetched bytes at the stated location (byte-exact, or the stated normalisation only); the `teaches` cell is \u226425 words and says no more than the page; the entry row in corpus/knowledge/explicit-invocation-round55.md (reading cell) and the SKILL.md \u00a7 Explicit invocation by client row (form, what it does, action) say no more than the page (Q31, Q26) \u2014 quote any over-wide phrase. Verdict per cell: HOLDS/BREAKS with evidence. Read-only; tip f0e6b695b746775823b65a8c45de7d50ea33e84f."
+  },
+  {
+   "name": "ReopenS069",
+   "role": "reviewer",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Target: SOURCES row S069 (Gemini CLI) and its uses. Re-open the row's URL yourself (curl; record date -u, status, bytes, sha256). Check: the lesson Gate quote for S069 (corpus/lessons/round-55.md) is on the fetched bytes at the stated location (byte-exact, or the stated normalisation only); the `teaches` cell is \u226425 words and says no more than the page; the entry row in corpus/knowledge/explicit-invocation-round55.md (reading cell) and the SKILL.md \u00a7 Explicit invocation by client row (form, what it does, action) say no more than the page (Q31, Q26) \u2014 quote any over-wide phrase. Verdict per cell: HOLDS/BREAKS with evidence. Read-only; tip f0e6b695b746775823b65a8c45de7d50ea33e84f."
+  },
+  {
+   "name": "ReopenS070",
+   "role": "reviewer",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Target: SOURCES row S070 (Cursor) and its uses. Re-open the row's URL yourself (curl; record date -u, status, bytes, sha256). Check: the lesson Gate quote for S070 (corpus/lessons/round-55.md) is on the fetched bytes at the stated location (byte-exact, or the stated normalisation only); the `teaches` cell is \u226425 words and says no more than the page; the entry row in corpus/knowledge/explicit-invocation-round55.md (reading cell) and the SKILL.md \u00a7 Explicit invocation by client row (form, what it does, action) say no more than the page (Q31, Q26) \u2014 quote any over-wide phrase. Verdict per cell: HOLDS/BREAKS with evidence. Read-only; tip f0e6b695b746775823b65a8c45de7d50ea33e84f."
+  },
+  {
+   "name": "ReopenS071",
+   "role": "reviewer",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Target: SOURCES row S071 (opencode) and its uses. Re-open the row's URL yourself (curl; record date -u, status, bytes, sha256). Check: the lesson Gate quote for S071 (corpus/lessons/round-55.md) is on the fetched bytes at the stated location (byte-exact, or the stated normalisation only); the `teaches` cell is \u226425 words and says no more than the page; the entry row in corpus/knowledge/explicit-invocation-round55.md (reading cell) and the SKILL.md \u00a7 Explicit invocation by client row (form, what it does, action) say no more than the page (Q31, Q26) \u2014 quote any over-wide phrase. Verdict per cell: HOLDS/BREAKS with evidence. Read-only; tip f0e6b695b746775823b65a8c45de7d50ea33e84f."
+  },
+  {
+   "name": "CriticC1Landed",
+   "role": "critic",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Target: does C1 verify as declared (plans/round-55.md incl. Erratum 1) at f0e6b695b746775823b65a8c45de7d50ea33e84f? Attack: is the depth axis named by the surface it changes (\u00a79); is the table new ground or re-scoring held knowledge (compare with SKILL.md \u00a7 Overlap levers and corpus/knowledge/skill-overlap-levers-round51.md at f0e5de82); was erratum 1 a rule change after data (check commit order and times: b04a9005 vs 96155796; whether any seat scored C1 content before b04a9005 \u2014 read .ufo/waves/round-55/build/*.md); can a cheaper shortcut still meet v2 (build one in a sandbox and run the counter)? Report findings; never edit the lane."
+  },
+  {
+   "name": "MutC1v2",
+   "role": "mutation-tester",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Target: verifiers/check_explicit_invocation.py at f0e6b695b746775823b65a8c45de7d50ea33e84f (v2). In a sandbox, mutate the v2 rules one at a time (TOKEN_RE, BUILTINS, the `skill`-word rule, norm_page style/script drop, url_key, base_url_keys, case-fold new ground, distinct-token count, the exit condition TARGET/NEW_TARGET) and record which mutants survive --self-test and which change the --fetch line at f0e6b695b746775823b65a8c45de7d50ea33e84f. Report survivors as limits."
+  },
+  {
+   "name": "ReviewC1Entry",
+   "role": "reviewer",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Target: corpus/knowledge/explicit-invocation-round55.md at f0e6b695b746775823b65a8c45de7d50ea33e84f. Check every Finding and the 'Relation to what the lane already held' paragraph against the cited rows and earlier entries (skill-overlap-levers-round51.md, trigger-miss-proxy-round6.md): numbers, which clients, which flags (Finding 3), and the Gemini 'not found on those pages' statement (Q30 wording). Check the Q12 header (source:, verified-at:, recheck: runs). Quote any over-wide sentence and give the narrowest true wording. Read-only."
+  },
+  {
+   "name": "ReviewSkillTable",
+   "role": "reviewer",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Target: SKILL.md \u00a7 Explicit invocation by client at f0e6b695b746775823b65a8c45de7d50ea33e84f (intro + 7 rows). Check: each action cell is actionable on SKILL.md alone; 'starts with' vs 'holds' matches each client's documented form; the intro's claim about Frontier and who chose the skill; the seat ScoutPlanWalk notes (.ufo/waves/round-55/build/ScoutPlanWalk.md \u00a7 3: (A) match the form on raw turn text before the round-6 slash-stripping; (B) set aside the named skill's activation, not the whole turn) \u2014 are they reflected or missing? Draft exact replacement text where needed (one line per row; SKILL.md must stay \u2264600 lines). Read-only."
+  },
+  {
+   "name": "CriticNewGround",
+   "role": "critic",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Target: C1's `new ground 4` at f0e6b695b746775823b65a8c45de7d50ea33e84f. For each counted token ($setup-demo-app, /frontend-design, /skill-name for Cursor, @skill-id): is it genuinely new knowledge for the lane, or a renamed placeholder of a held form (e.g. Claude Code's `/name` at f0e5de82 SKILL.md and the round-51 entry)? Grep f0e5de82 SKILL.md and corpus/knowledge for each client's form. Report per token: new / held-in-substance, with path:line. Read-only."
+  },
+  {
+   "name": "ReviewFixBoxProof",
+   "role": "reviewer",
+   "axes": [
+    "operability"
+   ],
+   "prompt": "Target: the C2 change to verifiers/box_proof_case_deletion.py (`git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin diff a10240c0 e966cd59 -- verifiers/box_proof_case_deletion.py`). Check in a sandbox clone: (1) judging lines (what it reads, compares, counts, prints on the clean path) unchanged; (2) no remap of exit 1 to 2, no catch-all that turns a real finding into 2, no keying on argv shape, temp-dir names or PATH strings; (3) the new self-test arms assert exit codes and fail when the fix is reverted (revert it in the sandbox, run --self-test); (4) red anchor: find a revision or input where the gate exits 1 at base (a real finding) and show it still exits 1 with the tip code; (5) the real verdict at f0e5de82 and f0e6b695b746775823b65a8c45de7d50ea33e84f prints the same summary line; (6) `--root`/default forms without git keep their base exit code. Paste commands and exit codes."
+  },
+  {
+   "name": "ReviewFixFindingDelta",
+   "role": "reviewer",
+   "axes": [
+    "operability"
+   ],
+   "prompt": "Target: the C2 change to verifiers/check_gate_finding_delta.py (`git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin diff a10240c0 e966cd59 -- verifiers/check_gate_finding_delta.py`). Check in a sandbox clone: (1) judging lines (what it reads, compares, counts, prints on the clean path) unchanged; (2) no remap of exit 1 to 2, no catch-all that turns a real finding into 2, no keying on argv shape, temp-dir names or PATH strings; (3) the new self-test arms assert exit codes and fail when the fix is reverted (revert it in the sandbox, run --self-test); (4) red anchor: find a revision or input where the gate exits 1 at base (a real finding) and show it still exits 1 with the tip code; (5) the real verdict at f0e5de82 and f0e6b695b746775823b65a8c45de7d50ea33e84f prints the same summary line; (6) `--root`/default forms without git keep their base exit code. Paste commands and exit codes."
+  },
+  {
+   "name": "ReviewFixOverlapLevers",
+   "role": "reviewer",
+   "axes": [
+    "operability"
+   ],
+   "prompt": "Target: the C2 change to verifiers/check_overlap_levers.py (`git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin diff a10240c0 e966cd59 -- verifiers/check_overlap_levers.py`). Check in a sandbox clone: (1) judging lines (what it reads, compares, counts, prints on the clean path) unchanged; (2) no remap of exit 1 to 2, no catch-all that turns a real finding into 2, no keying on argv shape, temp-dir names or PATH strings; (3) the new self-test arms assert exit codes and fail when the fix is reverted (revert it in the sandbox, run --self-test); (4) red anchor: find a revision or input where the gate exits 1 at base (a real finding) and show it still exits 1 with the tip code; (5) the real verdict at f0e5de82 and f0e6b695b746775823b65a8c45de7d50ea33e84f prints the same summary line; (6) `--root`/default forms without git keep their base exit code. Paste commands and exit codes."
+  },
+  {
+   "name": "ReviewFixMcpInstructions",
+   "role": "reviewer",
+   "axes": [
+    "operability"
+   ],
+   "prompt": "Target: the C2 change to verifiers/check_mcp_instructions.py (`git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin diff a10240c0 e966cd59 -- verifiers/check_mcp_instructions.py`). Check in a sandbox clone: (1) judging lines (what it reads, compares, counts, prints on the clean path) unchanged; (2) no remap of exit 1 to 2, no catch-all that turns a real finding into 2, no keying on argv shape, temp-dir names or PATH strings; (3) the new self-test arms assert exit codes and fail when the fix is reverted (revert it in the sandbox, run --self-test); (4) red anchor: find a revision or input where the gate exits 1 at base (a real finding) and show it still exits 1 with the tip code; (5) the real verdict at f0e5de82 and f0e6b695b746775823b65a8c45de7d50ea33e84f prints the same summary line; (6) `--root`/default forms without git keep their base exit code. Paste commands and exit codes."
+  },
+  {
+   "name": "ReviewFixDescThresholds",
+   "role": "reviewer",
+   "axes": [
+    "operability"
+   ],
+   "prompt": "Target: the C2 change to verifiers/check_description_thresholds.py (`git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin diff a10240c0 e966cd59 -- verifiers/check_description_thresholds.py`). Check in a sandbox clone: (1) judging lines (what it reads, compares, counts, prints on the clean path) unchanged; (2) no remap of exit 1 to 2, no catch-all that turns a real finding into 2, no keying on argv shape, temp-dir names or PATH strings; (3) the new self-test arms assert exit codes and fail when the fix is reverted (revert it in the sandbox, run --self-test); (4) red anchor: find a revision or input where the gate exits 1 at base (a real finding) and show it still exits 1 with the tip code; (5) the real verdict at f0e5de82 and f0e6b695b746775823b65a8c45de7d50ea33e84f prints the same summary line; (6) `--root`/default forms without git keep their base exit code. Paste commands and exit codes."
+  },
+  {
+   "name": "ReviewFixCorrectionSweep",
+   "role": "reviewer",
+   "axes": [
+    "operability"
+   ],
+   "prompt": "Target: the C2 change to verifiers/check_correction_sweep.py (`git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin diff a10240c0 e966cd59 -- verifiers/check_correction_sweep.py`). Check in a sandbox clone: (1) judging lines (what it reads, compares, counts, prints on the clean path) unchanged; (2) no remap of exit 1 to 2, no catch-all that turns a real finding into 2, no keying on argv shape, temp-dir names or PATH strings; (3) the new self-test arms assert exit codes and fail when the fix is reverted (revert it in the sandbox, run --self-test); (4) red anchor: find a revision or input where the gate exits 1 at base (a real finding) and show it still exits 1 with the tip code; (5) the real verdict at f0e5de82 and f0e6b695b746775823b65a8c45de7d50ea33e84f prints the same summary line; (6) `--root`/default forms without git keep their base exit code. Paste commands and exit codes."
+  },
+  {
+   "name": "ReviewFixAssertionFloors",
+   "role": "reviewer",
+   "axes": [
+    "operability"
+   ],
+   "prompt": "Target: the C2 change to verifiers/check_assertion_floors.py (`git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin diff a10240c0 e966cd59 -- verifiers/check_assertion_floors.py`). Check in a sandbox clone: (1) judging lines (what it reads, compares, counts, prints on the clean path) unchanged; (2) no remap of exit 1 to 2, no catch-all that turns a real finding into 2, no keying on argv shape, temp-dir names or PATH strings; (3) the new self-test arms assert exit codes and fail when the fix is reverted (revert it in the sandbox, run --self-test); (4) red anchor: find a revision or input where the gate exits 1 at base (a real finding) and show it still exits 1 with the tip code; (5) the real verdict at f0e5de82 and f0e6b695b746775823b65a8c45de7d50ea33e84f prints the same summary line; (6) `--root`/default forms without git keep their base exit code. Paste commands and exit codes."
+  },
+  {
+   "name": "ReviewFixCorpusIndependent",
+   "role": "reviewer",
+   "axes": [
+    "operability"
+   ],
+   "prompt": "Target: the C2 change to verifiers/verify_corpus_independent.py (`git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin diff a10240c0 e966cd59 -- verifiers/verify_corpus_independent.py`). Check in a sandbox clone: (1) judging lines (what it reads, compares, counts, prints on the clean path) unchanged; (2) no remap of exit 1 to 2, no catch-all that turns a real finding into 2, no keying on argv shape, temp-dir names or PATH strings; (3) the new self-test arms assert exit codes and fail when the fix is reverted (revert it in the sandbox, run --self-test); (4) red anchor: find a revision or input where the gate exits 1 at base (a real finding) and show it still exits 1 with the tip code; (5) the real verdict at f0e5de82 and f0e6b695b746775823b65a8c45de7d50ea33e84f prints the same summary line; (6) `--root`/default forms without git keep their base exit code. Paste commands and exit codes."
+  },
+  {
+   "name": "W2RerunC2",
+   "role": "reviewer",
+   "axes": [
+    "operability"
+   ],
+   "prompt": "Target: C2 numbers. In a sandbox clone at f0e6b695b746775823b65a8c45de7d50ea33e84f, paste `uptime` then run the frozen counter `python3 -B verifiers/check_could_not_evaluate.py --rev f0e6b695b746775823b65a8c45de7d50ea33e84f` (sha256 of the file must equal 0c1258e2c282996a9ea1e5e5da2fa269cdb4c10f88a3ddc17da1f76c8ad56c3d) and paste every MISS line, the summary and exit, then `uptime` again. If check_assertion_floors V misses, rerun `timeout 900 python3 -B verifiers/check_assertion_floors.py` and paste which child timed out (load-dependent 120 s nested timeout). Also run it once with PYTHONSAFEPATH=1 as a second measurement (reported beside, never in place). Compare with .ufo/waves/round-55/C2-measure-e966cd59.txt if present."
+  },
+  {
+   "name": "CriticC2Landed",
+   "role": "critic",
+   "axes": [
+    "operability"
+   ],
+   "prompt": "Target: does C2 verify as declared at f0e6b695b746775823b65a8c45de7d50ea33e84f? Read .ufo/waves/round-55/build/CriticC2Sizing.md (shortcuts D remap, P entry check, S argparse shadow met the frozen predicate) and lesson M50. Rule on: is the frozen predicate's verdict meaningful when a shortcut meets it (addendum \u00a79: 'a target a shortcut already meets')? Do the landed patches (diff a10240c0..e966cd59) use only the P pattern, and is P itself the claimed work or a shortcut? Is any `verifiers/*.py` module named like a standard-library module at f0e6b695b746775823b65a8c45de7d50ea33e84f? Recommend the honest verdict wording. Read-only; sandbox runs allowed."
+  },
+  {
+   "name": "ExecHandProbes",
+   "role": "executor",
+   "axes": [
+    "operability"
+   ],
+   "prompt": "Target: C2 guards outside the counter. In a sandbox clone at f0e6b695b746775823b65a8c45de7d50ea33e84f (cwd inside the sandbox; use an absolute no-git shim dir with only a python3 link and `hash -r`): for each of the 13 gates in verifiers/check_could_not_evaluate.py GATES, run by hand (not via the counter) the class-R probe with your own random 40-hex and the class-G probe; also run the same at f0e5de82 for comparison; also run the four `--root .` forms (check_description_thresholds, check_mcp_instructions, check_overlap_levers, check_correction_sweep) without git at both revisions. Table: gate, probe, base exit, tip exit. Never touch the lane or fleet repo."
+  },
+  {
+   "name": "MutC2NewArms",
+   "role": "mutation-tester",
+   "axes": [
+    "operability"
+   ],
+   "prompt": "Target: the new could-not-evaluate self-test arms of the 8 gates changed in e966cd59. For each gate in a sandbox at f0e6b695b746775823b65a8c45de7d50ea33e84f: mutate the new rev-verify or OSError\u21922 path (e.g. return 1 instead of 2; drop the rev check), run the gate's --self-test, record killed/survived. Report the table and survivors."
+  },
+  {
+   "name": "ReviewRegistryHarden",
+   "role": "reviewer",
+   "axes": [
+    "consistency"
+   ],
+   "prompt": "Target: routed defect 5, verifiers/check_gate_registry.py change in 4d700b17 (`git diff a10240c0 4d700b17 -- verifiers/check_gate_registry.py`). In a sandbox: run --self-test; run `--rev f0e6b695b746775823b65a8c45de7d50ea33e84f` (expect 26 of 26, phantom 0); build an all-probe/none registry at f0e6b695b746775823b65a8c45de7d50ea33e84f and show it fails; put a borrowed `--self-test` flag in a comment of a gate without a handler and show it fails; check the rule 'probe rows declaring 1=failed or having an exact --self-test handler are rejected' is what the code reads (Q31). Paste commands and exits."
+  },
+  {
+   "name": "ReviewFaultInjection",
+   "role": "reviewer",
+   "axes": [
+    "operability"
+   ],
+   "prompt": "Target: routed defect 6, verifiers/fault_injection_corpus.sh change in 4d700b17. In a sandbox at f0e6b695b746775823b65a8c45de7d50ea33e84f (TMPDIR inside your sandbox, timeout 900): run the entry and --self-test; check each change only repairs a stale expectation or harness defect and does not weaken a fault's detection (mutate: revert one fault's injection and confirm the gate notices). Is the remaining red (control dirty) a real corpus finding? Read-only on the lane."
+  },
+  {
+   "name": "ReviewSkillMove",
+   "role": "reviewer",
+   "axes": [
+    "consistency"
+   ],
+   "prompt": "Target: the SKILL.md budget move in ed3e8996. Check: `git show f0e5de82:SKILL.md | sed -n 407,426p` equals the appended section of corpus/knowledge/skill-overlap-levers-round51.md at f0e6b695b746775823b65a8c45de7d50ea33e84f byte for byte; the two replacement lines in SKILL.md (\u00a7 Anti-patterns) state no fact the moved text does not, and drop no rule a reader acting on SKILL.md alone needs (name it if so); `python3 -B verifiers/check_overlap_levers.py --rev f0e6b695b746775823b65a8c45de7d50ea33e84f` and `verify_skill_checklist.py` (line budget) still pass. Read-only."
+  },
+  {
+   "name": "ReviewC1Cells",
+   "role": "reviewer",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Target: routed defect 3 (four narrowed cells in SKILL.md \u00a7 Description thresholds by client, ed3e8996). Re-open S057 (geminicli.com/docs/cli/skills-best-practices.md), S058 (cursor.com/docs/release-notes.md) and google-gemini/gemini-cli@451a02ff skillLoader.ts:211, snippets.ts:320 (raw.githubusercontent.com); check each new cell says no more than its source; run `python3 -B verifiers/check_description_thresholds.py --rev f0e6b695b746775823b65a8c45de7d50ea33e84f --fetch`. Read-only."
+  },
+  {
+   "name": "ReviewQuality",
+   "role": "reviewer",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Target: corpus/QUALITY.md Q34-Q37 at f0e6b695b746775823b65a8c45de7d50ea33e84f. For each: grounded in a real lesson row (round-54 M45, M47; round-55 M48-M50); one checkable sentence; every factual clause true (e.g. Q34's crash on row removal, Q35's `0 of 26` receipt, Q37's control list matches the critic reports). Read-only."
+  },
+  {
+   "name": "ReviewLessonMistakes",
+   "role": "reviewer",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Target: corpus/lessons/round-55.md \u00a7 Mistakes (M48-M51) and \u00a7 Routed defects at f0e6b695b746775823b65a8c45de7d50ea33e84f. Resolve every pointer (path:line, commit, sandbox hash recorded in seat reports) and check every statement; list any that do not resolve or say more than the evidence. Read-only."
+  },
+  {
+   "name": "ReviewL0Line",
+   "role": "reviewer",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Target: the round-55 kotoba line in /home/vgpnk/Projects/shokunin/.ufo/l0-questions.md (read-only). Check its 13 changes against `python3 -B verifiers/check_sources_append_only.py --rev f0e5de82` in a sandbox and against .ufo/waves/round-55/build/ScoutL0Sources.md; check the quoted lesson lines. Read-only."
+  },
+  {
+   "name": "NoHarmScores",
+   "role": "reviewer",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Target: no-harm on records. Compare f0e5de82 with the lane master tip at your run time (`git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin rev-parse master`): SCORECARD.md axis scores at both (extract the Score column); LOG.md append-only (`git diff f0e5de82 master -- LOG.md | grep -c '^-[^-]'`); SOURCES append-only (`python3 -B verifiers/check_sources_append_only.py --base f0e5de820a60ec44ff7e5b7c88ac8c8d463dde0c --rev <tip>` in a sandbox); deleted files (`git diff --name-status --diff-filter=D f0e5de82 <tip>`); SKILL.md line count \u2264600. Paste outputs with the revision."
+  },
+  {
+   "name": "NoHarmGates",
+   "role": "executor",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Target: tip receipts naming their revision (M48, Q36). In a sandbox clone at the lane master tip at your run time (print `git rev-parse HEAD` and `date -u` and `uptime` before each), run with timeout 900: verify_corpus_integrity.py; check_gate_finding_delta.py --base f0e5de820a60ec44ff7e5b7c88ac8c8d463dde0c --head <tip>; check_assertion_floors.py; check_gate_registry.py --rev <tip>; verify_corpus_independent.py; and verify_skill_checklist.py read-only against the lane path /home/vgpnk/Projects/shokunin/kotoba-shokunin/SKILL.md (it resolves ../ citations only there). Compare each with .ufo/waves/round-55/build/ExecBaseReceipts.md (base) and name any new finding."
+  },
+  {
+   "name": "ReviewFrontierIndex",
+   "role": "reviewer",
+   "axes": [
+    "consistency"
+   ],
+   "prompt": "Target: corpus/README.md at f0e6b695b746775823b65a8c45de7d50ea33e84f: the three new Coverage-map rows and the Round-55 Frontier note. Each says no more than the counter prints and the entry holds (Q26, Q31); the 'Still not held' list is honest. Read-only."
+  },
+  {
+   "name": "ReviewSeatAccounting",
+   "role": "reviewer",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Target: build-wave accounting. From .ufo/waves/round-55/build-spec.json, build-taskcall-sent.json, build/swarm-registry.json and the report files in .ufo/waves/round-55/build/: count seats by role, list every seat with a report file, and any without one (KotobaR55.MutC2Counter was cancelled by the L1 at about 00:07Z after the settle deadline). Q06, Q27: is any report written after its seat was recorded cancelled? Read-only."
+  },
+  {
+   "name": "ScoutMisroot",
+   "role": "scout",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Target: misroot sweep. Run `git -C /home/vgpnk/Projects/shokunin status --porcelain` (read-only) and list every untracked fleet-root file whose content names kotoba round 55 or a KotobaR55 seat (grep). Also list files under /home/vgpnk/Projects/shokunin/.ufo/waves/round-55/ if any. Never move or delete anything; report paths and the lines that name our round."
+  },
+  {
+   "name": "CriticAxes",
+   "role": "critic",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Target: the round's honest verdicts. Using plans/round-55.md, the lesson, CriticC1Sizing.md, CriticC2Sizing.md and the control receipts, rule as a critic: C1 (depth, after erratum 1) \u2014 verifies or not, and why; C2 (operability) \u2014 verifiable as declared or not given M50; is any axis harmed; trend verdicts for expansion, quality, discernment. Give one-line verdicts with evidence. Read-only."
+  },
+  {
+   "name": "ReviewControlsReceipts",
+   "role": "reviewer",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Target: Q24 for all receipts in .ufo/waves/round-55/controls/ at f0e6b695b746775823b65a8c45de7d50ea33e84f: each receipt's recorded counter sha256 equals the committed bytes of the counter it names (`git show a10240c0:<path> | sha256sum` for v1 and C2; `git show b04a9005:verifiers/check_explicit_invocation.py | sha256sum` for v2); each receipt's summary line is what that counter prints when you re-run it on the named sandbox commit if reachable (/fast/scratch/hyaku/kotoba-r55/ctl-c1, ctl-c2, ctl-c1v2 \u2014 read-only use; run copies in your own sandbox). Read-only."
+  },
+  {
+   "name": "ReviewRegistryRows55",
+   "role": "reviewer",
+   "axes": [
+    "consistency"
+   ],
+   "prompt": "Target: the two new registry rows in SKILL.md \u00a7 Gate registry (check_could_not_evaluate.py, check_explicit_invocation.py) at f0e6b695b746775823b65a8c45de7d50ea33e84f: each cell matches the script (entry command, exit map produced, self-test flag handled, write scope \u2014 the C2 counter clones into a temp dir and runs 13 gates; the C1 counter reads the network with --fetch). Run each --self-test and a nonexistent --rev (expect 2). Read-only."
+  }
+ ]
+}
