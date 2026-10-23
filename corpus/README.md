@@ -109,6 +109,8 @@ Domain: prompt & skill craft — SKILL.md/AGENTS.md quality, trigger fidelity.
 | Erratum absorption (round 62) | `knowledge/erratum-absorption-round62.md` | the five r61 errata (E2, E2b, E2c, E2e, E2f) scored arm-by-arm against the landed v3 counter: `errata measured 5 of 5; absorbed 2 of 5; surviving 6; controls 2 of 2`; guard-mutation direction per erratum; the E2c/E2e/E2f survivors and the G9 compound-purpose bound; `../verifiers/check_erratum_absorption.py --self-test` |
 | Round-62 lessons | `lessons/round-62.md` | `## Gate` S118 with its access record and the rejections carried from the r61 wave; `## Mistakes` M93 (erratum recorded as absorbed without an arm-level receipt); `## Status changes` S118 queued→mined; `## Falsify corrections` |
 
+| Compound-clause citation + correction practice (round 63) | `knowledge/compound-clause-citation-round63.md` | the G9 class closed: a compound action cell must clear A2's forward-support fraction clause by clause at its cited line, so an unrelated purpose clause the page carries elsewhere is rejected (`survivors closed 6 of 6`, `../verifiers/check_scoped_rules_v32.py --self-test`); plus the appended-notice correction practice sourced at S119, counted by `../verifiers/check_r63_routed_repairs.py --rev <rev>` (`5 of 5` at the r63 rev, `0 of 5` at the r62 tip) |
+| Round-63 lessons | `lessons/round-63.md` | `## Gate` S119 with its access record, the S049 conditional-404 errata and the rejected correction-policy URLs; `## Mistakes` M94 (a frozen plan whose expected headline contradicted its own check) |
 ## Frontier
 
 Areas being explored and not yet held (LEARNING.md § Files the path writes); appended round 46 from `## Known gaps` below.

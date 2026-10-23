@@ -146,3 +146,14 @@ write only their own report file under
 authorization per `~/.omp/agent/RULES.md`; the pacman pause (no `pacman -S`/`-Sy`/`-Syu`;
 use `uv tool`/`npx`/official binary); and the misroot rule (every `Report:` trailer is
 relative to the lane repo).
+
+## Erratum E1 (pre-data, declared before any C2 measurement)
+
+`§C2` check 4 as first written ("`git show 35d44b4b:LOG.md` is a byte-prefix of
+`git show <rev>:LOG.md`") passes trivially at the r62 tip, where the two texts are
+identical, so the declared before `0 of 5` and the check's arithmetic disagreed. E1
+refines the check to **two conjuncts**, both reported separately: the r62-tip bytes are a
+prefix of the measured rev's LOG, **and** the measured rev's LOG adds at least one line
+beyond that prefix. At the r62 tip the second conjunct is false (no correction appended),
+so the check fails there and the before total is a truthful `0 of 5`; a tree carrying the
+appended corrections passes both. The target and every other check are unchanged.
