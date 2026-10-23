@@ -44,7 +44,7 @@ that it was an event (`round-59-verifier-spotcheck.md` § Counter limits). This 
   minus a pinned stopword list in the counter). An action invented apart from the cited line fails.
 
 
-**Draft amendment A1 (10:36Z, before the freeze, before any control or C1 data; the rule is tightened, never loosened).**
+**Draft amendment A1 (committed `bfe8cc2b`; before the freeze, before any control or C1 data; the rule is tightened, never loosened).**
 Census seat `CensusCursor` (`.ufo/waves/round-60/w0/CensusCursor.md:94-108`) showed the drafted Scope-key rule passes a
 wrong key: `cursor.com/docs/rules` line 65 (`` | `alwaysApply` | `description` | `globs` | ``) passes for `description`
 through the table-cell form plus the word `globs` elsewhere on the line, and line 99 (`description: RPC service
@@ -96,8 +96,29 @@ Counter: `python3 -B verifiers/check_scoped_rules.py --rev <rev> --fetch` (built
   eligible clients. If F_max < 3 the claim is redesigned before data, never after. Predicate (the same sentence in the
   counter, the receipt label and here): *exit 0 iff F ≥ T_F* on `--rev <rev> --fetch`; receipt label
   `C1 predicate: --fetch exit 0 (F>=TARGET)`.
-- **Census (freeze record):** TBD (filled at the freeze commit from `.ufo/waves/round-60/w0/Census*.md`).
-- **Target:** TBD (filled at the freeze commit by the formula).
+- **Census (freeze record, W0 reports `.ufo/waves/round-60/w0/Census*.md`, fetched 10:29–10:34Z, no lane content;
+  every eligible key line re-read by the L1 against amendment A1 from the lines the seats pasted):**
+
+  | Client | census | eligible token | key K, line (A1 value) | page (seat report) |
+  |---|---|---|---|---|
+  | Claude Code | ELIGIBLE | `.claude/rules/` | `paths` :198, block value, next line `- "src/api/**/*.ts"` | code.claude.com/docs/en/memory.md, quote :168 (`CensusClaudeCode`) |
+  | Codex | NOT ELIGIBLE — nested `AGENTS.md`/`AGENTS.override.md` by directory; `~/.codex/rules/` is an experimental command execpolicy whose `pattern` key takes no glob | — | — | developers.openai.com Codex AGENTS.md and rules pages (`CensusCodex`) |
+  | VS Code | ELIGIBLE | `.github/instructions/**/*.instructions.md` | `applyTo` :164, `applyTo: '**/*.py'` | code.visualstudio.com/docs/agent-customization/custom-instructions.md, quote :32 (`CensusVSCode`) |
+  | Copilot CLI | ELIGIBLE | `.github/instructions/**/*.instructions.md` (same token as VS Code; E5 dropped by the draft) | `applyTo` :66, `applyTo: "app/models/**/*.rb"` | docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-custom-instructions.md, quote :18 (`CensusCopilotCLI`) |
+  | Gemini CLI | NOT ELIGIBLE — directory-scoped `GEMINI.md` (JIT discovery in the accessed directory and its ancestors); `fileName` takes no glob | — | — | geminicli.com/docs/cli/gemini-md.md (`CensusGeminiCLI`) |
+  | Cursor | ELIGIBLE | `.cursor/rules` | `globs` :85, `globs: src/components/**/*.tsx` | cursor.com/docs/rules (`Accept: text/markdown`; the `.md` URL 404s), quote :32 (`CensusCursor`) |
+  | opencode | NOT ELIGIBLE — nested `AGENTS.md` by directory; the `instructions` key adds files, it does not scope a rule to matching files | — | — | opencode.ai/docs/rules.md (`Censusopencode`) |
+
+  F_max = 4. Wrong keys the census found on the eligible pages, each failing A1: Cursor `description` :65/:99/:179
+  and `alwaysApply` :65 (`CensusCursor`), VS Code `description` :163 (`CensusVSCode`), Copilot `excludeAgent` :95
+  (`CensusCopilotCLI`). Sibling scan `w0/ConnSiblingScoped.md`: no lane owns the surface (FITS).
+- **Target (frozen by the formula): T_F = 3.** Counter `verifiers/check_scoped_rules.py` with `TARGET = 3` (line 232),
+  built by `ExecC1Counter` from the draft plus A1 (A1 sent to the seat by message before its build finished); the seat
+  read this freeze record's T_F = 3 from the L1's working copy after every census report was written and set the
+  constant itself (disclosed, `w0/ExecC1Counter.md`); frozen sha256
+  `6aea3be07b769bc83724fe814493e6b2ab8baa4482f8ff58c776ab7e0d0ef440`; self-test `0 failure(s) over 302 assertions`,
+  exit 0; base `--rev 31092dc6` → `0 of 0; live not run`, exit 1 (seat run; the L1 re-runs both in a sandbox clone of
+  the freeze commit, receipt `.ufo/waves/round-60/receipts/freeze-selftest.txt`).
 - Commit order: target and counter are committed before the control wave scores them; a control that meets the
   predicate forces a redesign before any data (erratum), never a change after data.
 
