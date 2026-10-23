@@ -125,7 +125,7 @@ cc3801b470bd8e13453ff1e9f84d8403a257c73c876ca51c106afd5f99eb8640  MGdir3  (denia
 1bdd8a7115d959fd099472cf9ad1b63dc7e0a883c7e46c1d4ffab6ad47f6330d  Msplit
 ```
 
-### 3.1 G-a — self-derived count (`r_a_count_correction`, line 176)
+### 3.1 G-a — self-derived count (`r_a_count_correction`, line 174)
 
 Edit: remove `and int(committed.group(1)) == derived_count` from the conjunction.
 
@@ -142,7 +142,7 @@ self-test: dishonest rejected 5 of 6, expected 6
 **Killed.** D1 (tree 30 names, line claims `committed 29`) stops being rejected. The
 paired-population control is a second, independent detector of this same defect.
 
-### 3.2 G-b — assertion direction (`affirmed_count`, line 168)
+### 3.2 G-b — assertion direction (`affirmed_count`, line 166)
 
 Edit: `return None if NEGATION_RE.search(neighborhood) else match` → `return match`.
 
@@ -229,7 +229,7 @@ universe's membership rule, not as a mutant flipper.
 **Verdict: G-c SURVIVED (coverage finding).** The committed `--self-test` passes with a
 window/scope/cue guard removed and no committed D tree notices.
 
-### 3.4 G-d — census body (`r_d_census_body`, line 239)
+### 3.4 G-d — census body (`r_d_census_body`, line 237)
 
 Edit: `return len(lines) >= 2 and lines[-1] == "exit=0" and any(...)` → `return bool(lines) and lines[-1] == "exit=0"`.
 
@@ -243,7 +243,7 @@ self-test: dishonest rejected 5 of 6, expected 6
 
 **Killed.** D4 (census file containing only `exit=0`).
 
-### 3.5 G-e — exact ids (`exact_quality_row` line 248, `r_e_exact_ids` line 288)
+### 3.5 G-e — exact ids (`exact_quality_row` line 246, `r_e_exact_ids` line 272)
 
 Edits: `^\s*\|\s*Q56\s*\|` → `^\s*\|\s*Q56`; `(?<![A-Za-z0-9])M91(?![A-Za-z0-9])` → `M91`.
 
@@ -257,7 +257,7 @@ self-test: dishonest rejected 5 of 6, expected 6
 
 **Killed.** D5 (`Q560`, `M910`).
 
-### 3.6 G-f — owned exit (`r_f_owned_ancestry`, line 290)
+### 3.6 G-f — owned exit (`r_f_owned_ancestry`, line 286)
 
 Edit: replace the command/operand/adjacent-exit loop with
 `return any(EXIT_ZERO_RE.fullmatch(line) for line in lines)`.
@@ -275,7 +275,7 @@ self-test: dishonest rejected 5 of 6, expected 6
 ### 3.7 Unnamed seventh site — R-c direction: D3's only owner
 
 There is a hardening site the plan's G-a…G-f list does not name: `r_c_pointer_direction`
-(line 231) beyond its window — `freeze_pointer_asserted` (no C1 or negation between the
+(line 229) beyond its window — `freeze_pointer_asserted` (no C1 or negation between the
 base mention and the freeze pointer) plus `c1_pointer_denied`. D3 is the tree that only this
 site rejects. Guard-level disable (body → frozen co-occurrence):
 
@@ -312,7 +312,7 @@ over-determined by two redundant sub-checks, so no single-site sub-mutation isol
 
 ## 4. Split-evaluator hollow — the public CLI wired to the frozen counter
 
-Edit in `main()` (line 793): `score, why = check_repairs(blobs, tree_names, census_regular)`
+Edit in `main()` (line 642): `score, why = check_repairs(blobs, tree_names, census_regular)`
 → `score, why = frozen.check_repairs(blobs)`. Mutant sha256
 `1bdd8a7115d959fd099472cf9ad1b63dc7e0a883c7e46c1d4ffab6ad47f6330d`.
 
@@ -320,9 +320,15 @@ Edit in `main()` (line 793): `score, why = check_repairs(blobs, tree_names, cens
 $ python3 -B Msplit/verifiers/check_routed_repairs_v2.py --self-test; echo "EXIT=$?"
 G-a paired population control: 29 names/committed 29=6; 30 names/committed 29=5; 30 names/committed 30=6; frozen=6/6/5
 label-only constants fail controls: constant 6 vs base 0; constant 0 vs H1 6; constant 0 vs H2 6
-frozen counter before: D1 6 of 6; ...; H2 tip 6 of 6
+frozen counter before: D1 6 of 6; D2 6 of 6; D3 6 of 6; D4 6 of 6; D5 6 of 6; D6 6 of 6; H1 4 of 6; H2 tip 6 of 6
 self-test base CLI output:
-... routed repairs verified 0 of 6
+R-a count correction: missing
+R-b landed-scope names: missing
+R-c base-measure pointer: missing
+R-d census-after file: missing
+R-e byte-exact criterion + M91: missing
+R-f controls-ancestry receipt: missing
+routed repairs verified 0 of 6
 self-test tip CLI output:
 R-a count correction: ok
 R-b landed-scope names: ok
@@ -331,7 +337,7 @@ R-d census-after file: ok
 R-e byte-exact criterion + M91: ok
 R-f controls-ancestry receipt: ok
 routed repairs verified 6 of 6
-self-test CLI exits: base rev f3246d14... exit 1; tip rev 45a7ecfa... exit 0; unreadable rev ... exit 2
+self-test CLI exits: base rev f3246d1493b60ea1c0d947a19c39f9e08e92f326 exit 1; tip rev 45a7ecfac9e203297f3146c45d63f5e79367470c exit 0; unreadable rev routed-repairs-v2-no-such-revision exit 2
 successor: dishonest rejected 6 of 6; honest passed 2 of 2; base 0 of 6; tip 6 of 6
 EXIT=0
 ```

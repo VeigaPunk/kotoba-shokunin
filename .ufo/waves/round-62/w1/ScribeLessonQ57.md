@@ -46,7 +46,7 @@ This verifier reported index/pointer drift, not a QUALITY table parse error. It 
 - The hollow control receipt records the variant exiting 1, but the diagnostic is a missing `/tmp/r62hollow/check_scoped_rules.py` path. The lesson discloses that this receipt alone does not show failure for the intended guard-direction reason; `ExecAbsorbInstrument.md:70-72` separately reports rejection of the semantic hollow shortcut for missing run records.
 - `corpus/knowledge/erratum-absorption-round62.md` was absent when read and was not created by this assignment. The S118 `used-by` cell already names it. No post-round census was run.
 - The v31 source was present when inspected and declares G9 as surviving in its self-test code; no v31 self-test was run by this scribe.
-- No tools were installed. No product code, source registry, index, knowledge entry, git/jj state, build, lint, or other test was changed or run.
+- No tools were installed. No product code, source registry, index, knowledge entry, or git/jj state was changed. No build, lint, C1 matrix rerun, or post-round census was run.
 
 ## Touched surfaces and artifacts
 
