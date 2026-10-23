@@ -230,7 +230,13 @@ row that records only a prefix sha passes an unanchored-name check (MutA4 seam 1
 else reject "declared row S048 does not record the aliased sha"). (6) The declaration's ROW is scanned for the fetch-claim shape (all 11 parsed cells —
 a `fetched <ISO>` assertion in the anchor or scope cell defeats a teaches-only scan,
 MutA4 seam 3); a declared byte-identity row claiming a fresh fetch of the same bytes is
-rejected (MutA4 seam 2).
+rejected (MutA4 seam 2). (7) A4(iv) compares FULL 64-hex sha strings only: the r60
+eligible rows and the S114/S115 re-opens record 8-hex prefixes, which are never alias
+evidence (a prefix-prefix collision is A4(i)'s domain — sha equality against the committed
+snapshot bytes — not A4(iv)'s); without this pin the measured-table self-scan fatally
+rejects the 4-of-4 positives (ExecWorldFixtures risk 1). The honest byte-identical re-open
+(declared lineage, same content under the same URL) stays eligible because no full-sha
+collision exists.
 
 ### E2f addendum — A2 is the guarded form, with a declared bound (same pre-data window)
 
