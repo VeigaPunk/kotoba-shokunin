@@ -1,0 +1,1401 @@
+# MutC2Counter raw output -- round 57 pre-freeze control call (R5 guard-mutation check of C2)
+# Counter under test: verifiers/check_infoless_fences.py at freeze ee50d8fa7b5d260fff8bc332f4a90513bee518ff,
+#   counter sha256 b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac (printed by the counter on every run below).
+# Sandbox: /fast/scratch/hyaku/kotoba-r57/MutC2Counter, HEAD ee50d8fa7b5d260fff8bc332f4a90513bee518ff.
+# Sandbox worlds measured (all labelled sandbox, /fast/scratch/hyaku/kotoba-r57/MutC2Counter; hollow, never for landing):
+#   sandbox 23b527aae934532e80d90c032bf60b12f2c0d38c (J: instrument prints nothing)
+#   sandbox 715766a3653a31c50e08c3b29d3702aa13fc714f (X: instrument deleted)
+#   sandbox fa4a7e4f6894663a24300ec8a6bcc152246be733 (S: 50-line char-keyed stub replaces the whole verifier)
+#   sandbox cf660f9235ae4a3461c5a0cbaf4272a62454271c (Y: instrument is an absolute symlink to the uncommitted stub)
+#   plus base 47c05558fa4e6043e45c7abca1fb5fd2fb8cda5a (lane commit, do-nothing instrument).
+# Mutants are written in place over the sandbox counter and the exact frozen bytes restored after every run;
+# lines 'counter sha256 <hex>' that differ from b3dbe72f... are the MUTATED counter's own bytes, not the frozen counter.
+# Sections: 1 self-test sweep (driver.py)  2 measured runs (demos.py)  3 measured runs (demos2.py)
+#           4 pristine wrapper-timeout probe + final restoration  5 stub vs instrument self-test guard
+# In sections 2-3 the per-case 'wrong ...' lines are counted (by class in section 2), not pasted.
+
+####################################################################################################
+# 1 SELF-TEST SWEEP: python3 -B mut/driver.py (timeout 300 per detector run, sequential)
+####################################################################################################
+date -u: Fri Oct 23 04:24:38 AM UTC 2026
+target /fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py  pristine sha256 b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+detector: timeout 300 python3 -B -P /fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py --self-test
+== PRISTINE baseline rc=0 wall=0.15s
+   | counter sha256 b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   | self-test: 0 failure(s) over 105 assertions
+== C01 [class] line 108  verdict=killed
+   old: '("P1", "PASS")'
+   new: '("P1", "FAIL")'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 9eccc8735a4ba8d11004caedf7f78d7f084e13822bb9fe08b25c586d40bb62b0 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.13s :: 2 failing arm(s); first: FAIL hard-negative head is a drawn token: got False, expected True
+   | counter sha256 9eccc8735a4ba8d11004caedf7f78d7f084e13822bb9fe08b25c586d40bb62b0
+   | FAIL hard-negative head is a drawn token: got False, expected True
+   | FAIL hard negatives carry no real command: got False, expected True
+   | self-test: 2 failure(s) over 105 assertions
+   restored rc=0 wall=0.13s :: self-test: 0 failure(s) over 105 assertions
+== C02 [class] line 108  verdict=killed
+   old: '("P2", "PASS")'
+   new: '("P2", "FAIL")'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 608ee5557abeea651a41ed93eb031a4cff8c2cfd2d236910be05a590ffd0e32f | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.12s :: 2 failing arm(s); first: FAIL hard-negative head is a drawn token: got False, expected True
+   | counter sha256 608ee5557abeea651a41ed93eb031a4cff8c2cfd2d236910be05a590ffd0e32f
+   | FAIL hard-negative head is a drawn token: got False, expected True
+   | FAIL hard negatives carry no real command: got False, expected True
+   | self-test: 2 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== C03 [class] line 108  verdict=killed
+   old: '("P3", "PASS")'
+   new: '("P3", "FAIL")'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 4f801a7d13a3aa480d94fd93f7fe6175782003bcdd122728e0d5de8a42f186f1 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.12s :: 2 failing arm(s); first: FAIL hard-negative head is a drawn token: got False, expected True
+   | counter sha256 4f801a7d13a3aa480d94fd93f7fe6175782003bcdd122728e0d5de8a42f186f1
+   | FAIL hard-negative head is a drawn token: got False, expected True
+   | FAIL hard negatives carry no real command: got False, expected True
+   | self-test: 2 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== C04 [class] line 108  verdict=killed
+   old: '("P4", "PASS")'
+   new: '("P4", "FAIL")'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 3fc023c11216e28de51394db7d48c214f78dc26944034780e2479578917c8b7d | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.12s :: 2 failing arm(s); first: FAIL hard-negative head is a drawn token: got False, expected True
+   | counter sha256 3fc023c11216e28de51394db7d48c214f78dc26944034780e2479578917c8b7d
+   | FAIL hard-negative head is a drawn token: got False, expected True
+   | FAIL hard negatives carry no real command: got False, expected True
+   | self-test: 2 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== C05 [class] line 109  verdict=killed
+   old: '("P5", "PASS")'
+   new: '("P5", "FAIL")'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 8eab6dc41dbd185075a6d9895d4a12746da3f82404f03ebc64c1657de9eaf0a8 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.12s :: 2 failing arm(s); first: FAIL hard-negative head is a drawn token: got False, expected True
+   | counter sha256 8eab6dc41dbd185075a6d9895d4a12746da3f82404f03ebc64c1657de9eaf0a8
+   | FAIL hard-negative head is a drawn token: got False, expected True
+   | FAIL hard negatives carry no real command: got False, expected True
+   | self-test: 2 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== C06 [class] line 109  verdict=killed
+   old: '("H1", "FAIL")'
+   new: '("H1", "PASS")'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 79ebfed3d784e47ba19227c73e179251c668bbe01ebffba2e055c7cd0e7f0054 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.12s :: 1 failing arm(s); first: FAIL pass cases carry exactly one real command: got False, expected True
+   | counter sha256 79ebfed3d784e47ba19227c73e179251c668bbe01ebffba2e055c7cd0e7f0054
+   | FAIL pass cases carry exactly one real command: got False, expected True
+   | self-test: 1 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== C07 [class] line 109  verdict=killed
+   old: '("H2", "FAIL")'
+   new: '("H2", "PASS")'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated edd84b7a221f1a11666285d2037b2a3fe262c0c1ab32bf85ce35b02884b6634e | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.12s :: 1 failing arm(s); first: FAIL pass cases carry exactly one real command: got False, expected True
+   | counter sha256 edd84b7a221f1a11666285d2037b2a3fe262c0c1ab32bf85ce35b02884b6634e
+   | FAIL pass cases carry exactly one real command: got False, expected True
+   | self-test: 1 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== C08 [class] line 109  verdict=killed
+   old: '("H3", "FAIL")'
+   new: '("H3", "PASS")'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 73e5f2fde0b7fb5dd8aaf0a4e17ca850493cb95b5c7299fa8e3a44bda11da296 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.12s :: 1 failing arm(s); first: FAIL pass cases carry exactly one real command: got False, expected True
+   | counter sha256 73e5f2fde0b7fb5dd8aaf0a4e17ca850493cb95b5c7299fa8e3a44bda11da296
+   | FAIL pass cases carry exactly one real command: got False, expected True
+   | self-test: 1 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== C09 [class] line 110  verdict=killed
+   old: '("H4", "FAIL")'
+   new: '("H4", "PASS")'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 9430ba28adb86916c8dd088eeafca39b4a1cde181021813c0d0c9bc4ff09dc45 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.12s :: 1 failing arm(s); first: FAIL pass cases carry exactly one real command: got False, expected True
+   | counter sha256 9430ba28adb86916c8dd088eeafca39b4a1cde181021813c0d0c9bc4ff09dc45
+   | FAIL pass cases carry exactly one real command: got False, expected True
+   | self-test: 1 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== C10 [class] line 110  verdict=killed
+   old: '("H5", "FAIL")'
+   new: '("H5", "PASS")'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 61b74ee8b15408032248cba2d1556f9b6426ff12c1454bd074f82c92283da59f | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.12s :: 1 failing arm(s); first: FAIL pass cases carry exactly one real command: got False, expected True
+   | counter sha256 61b74ee8b15408032248cba2d1556f9b6426ff12c1454bd074f82c92283da59f
+   | FAIL pass cases carry exactly one real command: got False, expected True
+   | self-test: 1 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== C11 [class] line 109  verdict=killed
+   old: '("H3", "FAIL")'
+   new: '("H1", "FAIL")'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated ac57d62a790a7c3cd5f703564149c08badf8f603f1b90f454d74cbfd19622911 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.12s :: 2 failing arm(s); first: FAIL every (seed, class) has 4: got [4, 8], expected [4]
+   | counter sha256 ac57d62a790a7c3cd5f703564149c08badf8f603f1b90f454d74cbfd19622911
+   | FAIL every (seed, class) has 4: got [4, 8], expected [4]
+   | FAIL class set: got ['H1', 'H2', 'H4', 'H5', 'P1', 'P2', 'P3', 'P4', 'P5'], expected ['H1', 'H1', 'H2', 'H4', 'H5', 'P1', 'P2', 'P3', 'P4', 'P5']
+   | self-test: 2 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== C12 [class] line 105  verdict=killed
+   old: 'CASES_PER_CLASS = 4'
+   new: 'CASES_PER_CLASS = 3'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 3e7148febcbbe8d0c49ba6213d6082e6ee7e5e0c93c8b7ade156c48dbba993a8 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.10s :: 3 failing arm(s); first: FAIL cases per class: got 3, expected 4
+   | counter sha256 3e7148febcbbe8d0c49ba6213d6082e6ee7e5e0c93c8b7ade156c48dbba993a8
+   | FAIL cases per class: got 3, expected 4
+   | FAIL expected total: got 90, expected 120
+   | FAIL every (seed, class) has 4: got [3], expected [4]
+   | self-test: 3 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== C13 [class] line 104  verdict=survived
+   old: 'DEFAULT_SEEDS = (11, 22, 33)'
+   new: 'DEFAULT_SEEDS = (1, 2, 3)'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 66aab909d1d865183c4b0bdc44deab862f424fc6b81add9e26511622fe154a7f | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=0 wall=0.13s :: self-test: 0 failure(s) over 105 assertions
+   | counter sha256 66aab909d1d865183c4b0bdc44deab862f424fc6b81add9e26511622fe154a7f
+   | self-test: 0 failure(s) over 105 assertions
+   restored rc=0 wall=0.13s :: self-test: 0 failure(s) over 105 assertions
+== C14 [class] line 368  verdict=survived
+   old: 'info = "bash" if cls == "H5" else ""'
+   new: 'info = "bash" if cls == "H4" else ""'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 6863b5b8db4af9466257be5c81dd697fd5b49a64bd2b0037cbedbe72d5fcb328 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+   | counter sha256 6863b5b8db4af9466257be5c81dd697fd5b49a64bd2b0037cbedbe72d5fcb328
+   | self-test: 0 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== C15 [class] line 394  verdict=survived
+   old: '"```" + case.info]'
+   new: '"```"]'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 8980d586f810ca596ad12109526ad1b668223247a83cd65b2e4e7008bcb12b96 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+   | counter sha256 8980d586f810ca596ad12109526ad1b668223247a83cd65b2e4e7008bcb12b96
+   | self-test: 0 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== C16 [class] line 356  verdict=survived
+   old: '"H4": case_h4'
+   new: '"H4": case_h1'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 50248e94ef0b5a01338a6dfd9dc01b3d7ba40c18eb718da3f52bcf7d8a04b68b | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+   | counter sha256 50248e94ef0b5a01338a6dfd9dc01b3d7ba40c18eb718da3f52bcf7d8a04b68b
+   | self-test: 0 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== C17 [class] line 346  verdict=survived
+   old: '"%s --opt=%s:%s"'
+   new: '"%s --opt=%s-%s"'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated d38f1d25ba8502adba0ea15820eb5eec1c94535fb31035fd63747f5b3f83a721 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+   | counter sha256 d38f1d25ba8502adba0ea15820eb5eec1c94535fb31035fd63747f5b3f83a721
+   | self-test: 0 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== C18 [class] line 334  verdict=survived
+   old: '["ls | %s" % head]'
+   new: '["ls ; %s" % head]'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 46b6841e237f01dba10bc8298b9b1007a23beac7c4051fa2151514359cc6b27b | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+   | counter sha256 46b6841e237f01dba10bc8298b9b1007a23beac7c4051fa2151514359cc6b27b
+   | self-test: 0 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== C19 [class] line 118  verdict=survived
+   old: 'REAL_COMMANDS = ("ls -la", "git --version")'
+   new: 'REAL_COMMANDS = ("lsq -la", "gitq --version")'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated faf78b6c4e05aa0a2ff54274c6dc813955cfc478f8e057a058eaa309076dcc49 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+   | counter sha256 faf78b6c4e05aa0a2ff54274c6dc813955cfc478f8e057a058eaa309076dcc49
+   | self-test: 0 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== C20 [class] line 291  verdict=killed
+   old: 'return insert_command(rng, table_rows(rng, tok)), None'
+   new: 'return table_rows(rng, tok), None'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 90e8fae8e8a4cee606833a0c5d8237c4de57dc727a82faa5ae695e61acdf88a4 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.12s :: 1 failing arm(s); first: FAIL pass cases carry exactly one real command: got False, expected True
+   | counter sha256 90e8fae8e8a4cee606833a0c5d8237c4de57dc727a82faa5ae695e61acdf88a4
+   | FAIL pass cases carry exactly one real command: got False, expected True
+   | self-test: 1 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== D01 [verdict] line 455  verdict=killed
+   old: 'return status == "FAIL" and case.head in detail'
+   new: 'return status == "FAIL"'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated a962e22e61863ff914590a63e53b46662a90e64e728d086ee809fd69181f9408 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.12s :: 1 failing arm(s); first: FAIL verdict: negative on FAIL without its head: got True, expected False
+   | counter sha256 a962e22e61863ff914590a63e53b46662a90e64e728d086ee809fd69181f9408
+   | FAIL verdict: negative on FAIL without its head: got True, expected False
+   | self-test: 1 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== D02 [verdict] line 455  verdict=killed
+   old: 'return status == "FAIL" and case.head in detail'
+   new: 'return status == "FAIL" and case.head not in detail'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated ae5855b6f1605532ef0cf4f208f97b1fbded31d6ecf5470cd202f884a052225b | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.12s :: 2 failing arm(s); first: FAIL verdict: negative on FAIL with its head: got False, expected True
+   | counter sha256 ae5855b6f1605532ef0cf4f208f97b1fbded31d6ecf5470cd202f884a052225b
+   | FAIL verdict: negative on FAIL with its head: got False, expected True
+   | FAIL verdict: negative on FAIL without its head: got True, expected False
+   | self-test: 2 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== D03 [verdict] line 455  verdict=survived
+   old: 'return status == "FAIL" and case.head in detail'
+   new: 'return status != "PASS" and case.head in detail'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 26352ea54779df037e9aee4f11bc87d296fe22afdfc0c0ed2c6f4a2dc743bd12 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+   | counter sha256 26352ea54779df037e9aee4f11bc87d296fe22afdfc0c0ed2c6f4a2dc743bd12
+   | self-test: 0 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== D04 [verdict] line 455  verdict=survived
+   old: 'return status == "FAIL" and case.head in detail'
+   new: 'return status == "FAIL" and case.head[:4] in detail'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated cb791453d495b530215afdda936ef27ea990edd79f34a6b27884e5c2e5e56e93 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+   | counter sha256 cb791453d495b530215afdda936ef27ea990edd79f34a6b27884e5c2e5e56e93
+   | self-test: 0 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== D05 [verdict] line 455  verdict=survived
+   old: 'return status == "FAIL" and case.head in detail'
+   new: 'return status == "FAIL" and any(t in detail for t in case.tokens)'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 3f5a0bf4431d7bbc955e89b6340836d69dd0840b50c92f87e18e50791c141d1c | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+   | counter sha256 3f5a0bf4431d7bbc955e89b6340836d69dd0840b50c92f87e18e50791c141d1c
+   | self-test: 0 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== D06 [verdict] line 454  verdict=killed
+   old: 'return status == "PASS"'
+   new: 'return status != "FAIL"'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated db0bdb8b55a1ca887a1f08046066d3863180002e45e4a3a67e5049f61ed3b14a | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.12s :: 1 failing arm(s); first: FAIL verdict: pass on N/A: got True, expected False
+   | counter sha256 db0bdb8b55a1ca887a1f08046066d3863180002e45e4a3a67e5049f61ed3b14a
+   | FAIL verdict: pass on N/A: got True, expected False
+   | self-test: 1 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== D07 [verdict] line 450  verdict=killed
+   old: 'if parsed is None:\n        return False'
+   new: 'if parsed is None:\n        return True'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 8ddf6d160ec7aae2734d1b7b011ed77d5d461ac9ca52d0851677601c77af3160 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.12s :: 2 failing arm(s); first: FAIL verdict: pass on unparseable: got True, expected False
+   | counter sha256 8ddf6d160ec7aae2734d1b7b011ed77d5d461ac9ca52d0851677601c77af3160
+   | FAIL verdict: pass on unparseable: got True, expected False
+   | FAIL verdict: negative on unparseable: got True, expected False
+   | self-test: 2 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== D08 [verdict] line 453  verdict=killed
+   old: 'if case.expect == "PASS":'
+   new: 'if case.expect == "FAIL":'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated b80268262d1e6111a20acd57ae0c1efad289785bac6f2bb35d1e5efe945f20e5 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.12s :: 1 failing arm(s); first: FAIL verdict: pass on PASS: got False, expected True
+   | counter sha256 b80268262d1e6111a20acd57ae0c1efad289785bac6f2bb35d1e5efe945f20e5
+   | FAIL verdict: pass on PASS: got False, expected True
+   | Traceback (most recent call last):
+   |   File "/fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py", line 917, in <module>
+   |     sys.exit(main())
+   |              ~~~~^^
+   |   File "/fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py", line 892, in main
+   |     return self_test()
+   |   File "/fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py", line 720, in self_test
+   |     check("verdict: pass on FAIL", case_correct(pcase, ("FAIL", "")), False)
+   |                                    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+   |   File "/fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py", line 455, in case_correct
+   |     return status == "FAIL" and case.head in detail
+   |                                 ^^^^^^^^^^^^^^^^^^^
+   | TypeError: 'in <string>' requires string as left operand, not NoneType
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== S01 [parse] line 428  verdict=killed
+   old: 'except (TypeError, ValueError):\n        return None'
+   new: 'except (TypeError, ValueError):\n        return ("PASS", "")'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated efec47e40f715e47308fd0d698bb7d851b1d04f53c1e39d6351e77feafd1370a | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.12s :: 3 failing arm(s); first: FAIL parse: invalid json: got ('PASS', ''), expected None
+   | counter sha256 efec47e40f715e47308fd0d698bb7d851b1d04f53c1e39d6351e77feafd1370a
+   | FAIL parse: invalid json: got ('PASS', ''), expected None
+   | FAIL parse: empty output: got ('PASS', ''), expected None
+   | FAIL runner: empty output is a wrong case: got ('PASS', ''), expected None
+   | self-test: 3 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== S02 [parse] line 430  verdict=killed
+   old: 'if not isinstance(doc, dict):'
+   new: 'if False:'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 2f310475fa3f27628d1b36097b9b0450456573378b219052aeb767aed72ad135 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.13s :: crash: AttributeError: 'list' object has no attribute 'get'
+   | counter sha256 2f310475fa3f27628d1b36097b9b0450456573378b219052aeb767aed72ad135
+   | Traceback (most recent call last):
+   |   File "/fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py", line 917, in <module>
+   |     sys.exit(main())
+   |              ~~~~^^
+   |   File "/fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py", line 892, in main
+   |     return self_test()
+   |   File "/fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py", line 700, in self_test
+   |     check("parse: non-dict document", parse_status("[]"), None)
+   |                                       ~~~~~~~~~~~~^^^^^^
+   |   File "/fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py", line 432, in parse_status
+   |     checks = doc.get("checks")
+   |              ^^^^^^^
+   | AttributeError: 'list' object has no attribute 'get'
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== S03 [parse] line 433  verdict=killed
+   old: 'if not isinstance(checks, list):'
+   new: 'if False:'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 62d561198661f3ce6bcdccacbfd45a11d8a63c253f23b1433b24a9de2e9b4797 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.12s :: crash: TypeError: 'int' object is not iterable
+   | counter sha256 62d561198661f3ce6bcdccacbfd45a11d8a63c253f23b1433b24a9de2e9b4797
+   | Traceback (most recent call last):
+   |   File "/fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py", line 917, in <module>
+   |     sys.exit(main())
+   |              ~~~~^^
+   |   File "/fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py", line 892, in main
+   |     return self_test()
+   |   File "/fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py", line 701, in self_test
+   |     check("parse: checks not a list", parse_status('{"checks": 7}'), None)
+   |                                       ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+   |   File "/fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py", line 435, in parse_status
+   |     for item in checks:
+   |                 ^^^^^^
+   | TypeError: 'int' object is not iterable
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== S04 [parse] line 436  verdict=killed
+   old: 'if not isinstance(item, dict):'
+   new: 'if False:'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 6651bdf677a765b3bad08acd4b5ce36ce87c67350d9d45f6d83f66dd6976ef2c | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.12s :: crash: AttributeError: 'str' object has no attribute 'get'
+   | counter sha256 6651bdf677a765b3bad08acd4b5ce36ce87c67350d9d45f6d83f66dd6976ef2c
+   | Traceback (most recent call last):
+   |   File "/fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py", line 917, in <module>
+   |     sys.exit(main())
+   |              ~~~~^^
+   |   File "/fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py", line 892, in main
+   |     return self_test()
+   |   File "/fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py", line 713, in self_test
+   |     parse_status(json.dumps({"checks": [
+   |     ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+   |         "x", {"id": CHECK_ID, "status": "N/A"}]})), ("N/A", ""))
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |   File "/fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py", line 438, in parse_status
+   |     if item.get("id") != CHECK_ID:
+   |        ^^^^^^^^
+   | AttributeError: 'str' object has no attribute 'get'
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== S05 [parse] line 438  verdict=killed
+   old: 'if item.get("id") != CHECK_ID:'
+   new: 'if item.get("id") == CHECK_ID:'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated c21414c08dbf00a84628175b091a822f4810b3ec4fc43152b57c3e71a1a1c35f | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.12s :: 6 failing arm(s); first: FAIL parse: valid: got None, expected ('PASS', 'd')
+   | counter sha256 c21414c08dbf00a84628175b091a822f4810b3ec4fc43152b57c3e71a1a1c35f
+   | FAIL parse: valid: got None, expected ('PASS', 'd')
+   | FAIL parse: other check ignored: got ('PASS', ''), expected None
+   | FAIL parse: missing detail: got None, expected ('FAIL', '')
+   | FAIL parse: detail not a string: got None, expected ('FAIL', '')
+   | FAIL parse: non-dict entry skipped: got None, expected ('N/A', '')
+   | FAIL runner: parsed status: got None, expected ('PASS', 'ok')
+   | self-test: 6 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== S06 [parse] line 438  verdict=killed
+   old: 'if item.get("id") != CHECK_ID:'
+   new: 'if False:'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 55a177555bded757f72552757705a540c4fe8c02af91b504bb7d7660af56d1be | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.12s :: 1 failing arm(s); first: FAIL parse: other check ignored: got ('PASS', ''), expected None
+   | counter sha256 55a177555bded757f72552757705a540c4fe8c02af91b504bb7d7660af56d1be
+   | FAIL parse: other check ignored: got ('PASS', ''), expected None
+   | self-test: 1 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== S07 [parse] line 441  verdict=killed
+   old: 'if not isinstance(status, str):'
+   new: 'if False:'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 15a87ca4c83dd5b95342b5584536a7f7010703b167ca1857707a52653d701e4d | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.13s :: 1 failing arm(s); first: FAIL parse: status not a string: got (1, ''), expected None
+   | counter sha256 15a87ca4c83dd5b95342b5584536a7f7010703b167ca1857707a52653d701e4d
+   | FAIL parse: status not a string: got (1, ''), expected None
+   | self-test: 1 failure(s) over 105 assertions
+   restored rc=0 wall=0.13s :: self-test: 0 failure(s) over 105 assertions
+== S08 [parse] line 444  verdict=killed
+   old: 'else ""\n    return None'
+   new: 'else ""\n    return ("PASS", "")'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 9970b3bc4081140c49fd59c0296442fb750f1a63596015c1946788260f252a2a | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.12s :: 1 failing arm(s); first: FAIL parse: other check ignored: got ('PASS', ''), expected None
+   | counter sha256 9970b3bc4081140c49fd59c0296442fb750f1a63596015c1946788260f252a2a
+   | FAIL parse: other check ignored: got ('PASS', ''), expected None
+   | self-test: 1 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== S09 [parse] line 444  verdict=killed
+   old: 'return status, detail if isinstance(detail, str) else ""'
+   new: 'return status, ""'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 79537899a9d7bdf30b8004a74f5cc3cd3f20e2ef4b3c58ab5047c2a6ead0e944 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.12s :: 2 failing arm(s); first: FAIL parse: valid: got ('PASS', ''), expected ('PASS', 'd')
+   | counter sha256 79537899a9d7bdf30b8004a74f5cc3cd3f20e2ef4b3c58ab5047c2a6ead0e944
+   | FAIL parse: valid: got ('PASS', ''), expected ('PASS', 'd')
+   | FAIL runner: parsed status: got ('PASS', ''), expected ('PASS', 'ok')
+   | self-test: 2 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== S10 [parse] line 116  verdict=survived
+   old: 'CHECK_ID = "trigger.command_binary_resolves"'
+   new: 'CHECK_ID = "trigger.command_binary_resolve"'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated ab454b9c65e3afc8748a25e897bae397afc1f6ca44ff6f7188c2a05be441e29e | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=0 wall=0.13s :: self-test: 0 failure(s) over 105 assertions
+   | counter sha256 ab454b9c65e3afc8748a25e897bae397afc1f6ca44ff6f7188c2a05be441e29e
+   | self-test: 0 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== T01 [timeout] line 419  verdict=killed
+   old: 'except subprocess.TimeoutExpired:\n        return None'
+   new: 'except subprocess.TimeoutExpired:\n        return ("PASS", "")'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated aa58e291cf3b220d8270d50f557dc711bd711979ac4240ee3b1a5500d527ea73 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.12s :: 1 failing arm(s); first: FAIL runner: timeout is a wrong case: got ('PASS', ''), expected None
+   | counter sha256 aa58e291cf3b220d8270d50f557dc711bd711979ac4240ee3b1a5500d527ea73
+   | FAIL runner: timeout is a wrong case: got ('PASS', ''), expected None
+   | self-test: 1 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== T02 [timeout] line 114  verdict=killed
+   old: 'CASE_TIMEOUT = 60'
+   new: 'CASE_TIMEOUT = 600'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 637c2dfa9c99f57e94b8eaf16613e199ea1077cc0e531f913e09a69ec8f4f6f1 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.12s :: 1 failing arm(s); first: FAIL runner: frozen argv: got ['timeout', '600', 'python3', '-B', '-P', '/tmp/infoless-run-uirfxtbn/tree/verifiers/verify_skill_checklist.py', '--repo', '/tmp/i
+   | counter sha256 637c2dfa9c99f57e94b8eaf16613e199ea1077cc0e531f913e09a69ec8f4f6f1
+   | FAIL runner: frozen argv: got ['timeout', '600', 'python3', '-B', '-P', '/tmp/infoless-run-uirfxtbn/tree/verifiers/verify_skill_checklist.py', '--repo', '/tmp/infoless-run-uirfxtbn/cases/skill-b7baf0a6', '--skill', '/tmp/infoless-run-uirfxtbn/cases/skill-b7baf0a6/SKILL.md', '--check', 'trigger.command_binary_resolves', '--json'], expected ['timeout', '60', 'python3', '-B', '-P', '/tmp/infoless-run-uirfxtbn/tree/verifiers/verify_skill_checklist.py', '--repo', '/tmp/infoless-run-uirfxtbn/cases/skill-b7baf0a6', '--skill', '/tmp/infoless-run-uirfxtbn/cases/skill-b7baf0a6/SKILL.md', '--check', 'trigger.command_binary_resolves', '--json']
+   | self-test: 1 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== T03 [timeout] line 403  verdict=survived
+   old: 'timeout=CASE_TIMEOUT + 10)'
+   new: 'timeout=None)'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated ec8b30ebc2d363584995d9dd59d27eaab2d3129dc8ccd7c2dd14dc3495e6f1a2 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+   | counter sha256 ec8b30ebc2d363584995d9dd59d27eaab2d3129dc8ccd7c2dd14dc3495e6f1a2
+   | self-test: 0 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== T04 [timeout] line 403  verdict=survived
+   old: 'timeout=CASE_TIMEOUT + 10)'
+   new: 'timeout=1)'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 17c57a682f756f5baece31fe1256d2bd173c0d50b10c5a94951fb440d7008406 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+   | counter sha256 17c57a682f756f5baece31fe1256d2bd173c0d50b10c5a94951fb440d7008406
+   | self-test: 0 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== T05 [timeout] line 413  verdict=killed
+   old: 'argv = ["timeout", str(CASE_TIMEOUT), "python3"'
+   new: 'argv = ["python3"'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 42a202bc3a5d390ab642fcd78b13b3fa6ebd23aaf78d179f61f635e4326b7cbe | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.12s :: 1 failing arm(s); first: FAIL runner: frozen argv: got ['python3', '-B', '-P', '/tmp/infoless-run-7a2i0n3v/tree/verifiers/verify_skill_checklist.py', '--repo', '/tmp/infoless-run-7a2i0n
+   | counter sha256 42a202bc3a5d390ab642fcd78b13b3fa6ebd23aaf78d179f61f635e4326b7cbe
+   | FAIL runner: frozen argv: got ['python3', '-B', '-P', '/tmp/infoless-run-7a2i0n3v/tree/verifiers/verify_skill_checklist.py', '--repo', '/tmp/infoless-run-7a2i0n3v/cases/skill-b7baf0a6', '--skill', '/tmp/infoless-run-7a2i0n3v/cases/skill-b7baf0a6/SKILL.md', '--check', 'trigger.command_binary_resolves', '--json'], expected ['timeout', '60', 'python3', '-B', '-P', '/tmp/infoless-run-7a2i0n3v/tree/verifiers/verify_skill_checklist.py', '--repo', '/tmp/infoless-run-7a2i0n3v/cases/skill-b7baf0a6', '--skill', '/tmp/infoless-run-7a2i0n3v/cases/skill-b7baf0a6/SKILL.md', '--check', 'trigger.command_binary_resolves', '--json']
+   | self-test: 1 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== T06 [timeout] line 419  verdict=killed
+   old: 'except subprocess.TimeoutExpired:'
+   new: 'except OSError:'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated ba26b87291e866ecfd0fd85e85a108c2a6d60df5d9a2d18348e16d6a3a0b3a2e | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.12s :: crash: subprocess.TimeoutExpired: Command '['timeout', '60', 'python3', '-B', '-P', '/tmp/infoless-run-3o52twd5/tree/verifiers/verify_skill_checklist.py', '--repo', '/
+   | counter sha256 ba26b87291e866ecfd0fd85e85a108c2a6d60df5d9a2d18348e16d6a3a0b3a2e
+   | Traceback (most recent call last):
+   |   File "/fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py", line 917, in <module>
+   |     sys.exit(main())
+   |              ~~~~^^
+   |   File "/fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py", line 892, in main
+   |     return self_test()
+   |   File "/fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py", line 845, in self_test
+   |     run_case(pcase, work / "tree", work,
+   |     ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |              {"PYTHONSAFEPATH": "1"}, runner=timeout_runner), None)
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |   File "/fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py", line 418, in run_case
+   |     result = (runner or default_runner)(argv, cwd, env)
+   |   File "/fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py", line 842, in timeout_runner
+   |     raise subprocess.TimeoutExpired(argv, CASE_TIMEOUT)
+   | subprocess.TimeoutExpired: Command '['timeout', '60', 'python3', '-B', '-P', '/tmp/infoless-run-3o52twd5/tree/verifiers/verify_skill_checklist.py', '--repo', '/tmp/infoless-run-3o52twd5/cases/skill-b7baf0a6', '--skill', '/tmp/infoless-run-3o52twd5/cases/skill-b7baf0a6/SKILL.md', '--check', 'trigger.command_binary_resolves', '--json']' timed out after 60 seconds
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== P01 [predicate] line 466  verdict=killed
+   old: 'return correct == total and total >= MIN_TOTAL'
+   new: 'return correct == total'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 13fe57fbf5d06f209397dbf64b2ee22b2ccac7eaaf7452d136b3d0e829fc4767 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.12s :: 2 failing arm(s); first: FAIL predicate: fewer than 120 fails: got True, expected False
+   | counter sha256 13fe57fbf5d06f209397dbf64b2ee22b2ccac7eaaf7452d136b3d0e829fc4767
+   | FAIL predicate: fewer than 120 fails: got True, expected False
+   | FAIL predicate: zero fails: got True, expected False
+   | self-test: 2 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== P02 [predicate] line 466  verdict=killed
+   old: 'return correct == total and total >= MIN_TOTAL'
+   new: 'return total >= MIN_TOTAL'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 748755746a905eb950b39c880b1aba93e2624e5466c70a417a9b0d36a98d2848 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.12s :: 2 failing arm(s); first: FAIL predicate: one wrong fails: got True, expected False
+   | counter sha256 748755746a905eb950b39c880b1aba93e2624e5466c70a417a9b0d36a98d2848
+   | FAIL predicate: one wrong fails: got True, expected False
+   | FAIL predicate: extra wrong fails: got True, expected False
+   | self-test: 2 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== P03 [predicate] line 466  verdict=killed
+   old: 'total >= MIN_TOTAL'
+   new: 'total > MIN_TOTAL'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 78ada064dc9e3f699a825c9c4f0e4be2b5d859cf1aef80ba2ae1408499e1683d | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.12s :: 1 failing arm(s); first: FAIL predicate: met: got False, expected True
+   | counter sha256 78ada064dc9e3f699a825c9c4f0e4be2b5d859cf1aef80ba2ae1408499e1683d
+   | FAIL predicate: met: got False, expected True
+   | self-test: 1 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== P04 [predicate] line 466  verdict=killed
+   old: 'correct == total and total'
+   new: 'correct == total or total'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated a9df31529f5348e0555273efc759ec1ba287278fe981c3e53d8fd3b86d1ba8d5 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.13s :: 4 failing arm(s); first: FAIL predicate: one wrong fails: got True, expected False
+   | counter sha256 a9df31529f5348e0555273efc759ec1ba287278fe981c3e53d8fd3b86d1ba8d5
+   | FAIL predicate: one wrong fails: got True, expected False
+   | FAIL predicate: fewer than 120 fails: got True, expected False
+   | FAIL predicate: zero fails: got True, expected False
+   | FAIL predicate: extra wrong fails: got True, expected False
+   | self-test: 4 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== P05 [predicate] line 466  verdict=killed
+   old: 'return correct == total and'
+   new: 'return correct >= total - 1 and'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated ade476141248cd72926a59ef38757f1b59bbed9c35f2cf352f17351e6b65dd63 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.12s :: 2 failing arm(s); first: FAIL predicate: one wrong fails: got True, expected False
+   | counter sha256 ade476141248cd72926a59ef38757f1b59bbed9c35f2cf352f17351e6b65dd63
+   | FAIL predicate: one wrong fails: got True, expected False
+   | FAIL predicate: extra wrong fails: got True, expected False
+   | self-test: 2 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== P06 [predicate] line 466  verdict=survived
+   old: 'return correct == total and'
+   new: 'return correct >= total and'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 9cc512ebad61506d314909df25521fe7a10598fc3f43c7e74bfbebe967eb1b1f | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+   | counter sha256 9cc512ebad61506d314909df25521fe7a10598fc3f43c7e74bfbebe967eb1b1f
+   | self-test: 0 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== P07 [predicate] line 113  verdict=killed
+   old: 'MIN_TOTAL = 120'
+   new: 'MIN_TOTAL = 12'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 82cab9dcca1ab5627b365d75b2d73e94da266629c99d65e254bcc5f00ca59b0b | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.12s :: 2 failing arm(s); first: FAIL frozen minimum: got 12, expected 120
+   | counter sha256 82cab9dcca1ab5627b365d75b2d73e94da266629c99d65e254bcc5f00ca59b0b
+   | FAIL frozen minimum: got 12, expected 120
+   | FAIL predicate: fewer than 120 fails: got True, expected False
+   | self-test: 2 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== P08 [predicate] line 906  verdict=survived
+   old: 'correct = sum(pair[0] for pair in tallies.values())'
+   new: 'correct = sum(pair[1] for pair in tallies.values())'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 816aea7269bbf77849f2b90ab5043e344b99564ec434671cde2090b804d02976 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+   | counter sha256 816aea7269bbf77849f2b90ab5043e344b99564ec434671cde2090b804d02976
+   | self-test: 0 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== P09 [predicate] line 905  verdict=survived
+   old: 'total = len(cases)'
+   new: 'total = len(cases) - len(wrong)'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 07fb0eac1043ae1baf5fd23a653a49e13c12e7d23944ab638628732b462e12a5 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+   | counter sha256 07fb0eac1043ae1baf5fd23a653a49e13c12e7d23944ab638628732b462e12a5
+   | self-test: 0 failure(s) over 105 assertions
+   restored rc=0 wall=0.13s :: self-test: 0 failure(s) over 105 assertions
+== P10 [predicate] line 913  verdict=survived
+   old: 'return 0 if predicate_ok(correct, total) else 1'
+   new: 'return 1 if predicate_ok(correct, total) else 0'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated f0f03979bf0d1543d927d67da54fb3dc5d9e0b0c91f410e5da4e0d265dfe63bc | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+   | counter sha256 f0f03979bf0d1543d927d67da54fb3dc5d9e0b0c91f410e5da4e0d265dfe63bc
+   | self-test: 0 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== P11 [predicate] line 913  verdict=survived
+   old: 'return 0 if predicate_ok(correct, total) else 1'
+   new: 'return 0 if predicate_ok(total, total) else 1'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 6b95db557efcac75d642a8a5b7701c39682e42f5660a5d014ea84d27f490d91c | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+   | counter sha256 6b95db557efcac75d642a8a5b7701c39682e42f5660a5d014ea84d27f490d91c
+   | self-test: 0 failure(s) over 105 assertions
+   restored rc=0 wall=0.11s :: self-test: 0 failure(s) over 105 assertions
+== P12 [predicate] line 498  verdict=survived
+   old: 'if case_correct(case, parsed):'
+   new: 'if True:'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 69c732022eaaafa886d7936726847240df8095bbeccc94bda1250397b5e88f71 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+   | counter sha256 69c732022eaaafa886d7936726847240df8095bbeccc94bda1250397b5e88f71
+   | self-test: 0 failure(s) over 105 assertions
+   restored rc=0 wall=0.11s :: self-test: 0 failure(s) over 105 assertions
+== P13 [predicate] line 498  verdict=survived
+   old: 'if case_correct(case, parsed):'
+   new: 'if not case_correct(case, parsed):'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated c10bb93854e01a3c2ca942d41aaa89a2733cac47bb4ac2b63ebf3202ba9c169a | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=0 wall=0.13s :: self-test: 0 failure(s) over 105 assertions
+   | counter sha256 c10bb93854e01a3c2ca942d41aaa89a2733cac47bb4ac2b63ebf3202ba9c169a
+   | self-test: 0 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== P14 [predicate] line 497  verdict=survived
+   old: 'tallies[case.expect][1] += 1'
+   new: 'pass'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 714e2b03b039b7cbd55b7df4df1eac39d4258425890360f92e2b22941e2fc416 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+   | counter sha256 714e2b03b039b7cbd55b7df4df1eac39d4258425890360f92e2b22941e2fc416
+   | self-test: 0 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== P15 [predicate] line 900  verdict=survived
+   old: '    if result is None:\n        return code'
+   new: '    if result is None:\n        return 0'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated b2a9bc01fd341d701c680c4d84a3adcc25423dfd0e712ee041f3cca8b692c464 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+   | counter sha256 b2a9bc01fd341d701c680c4d84a3adcc25423dfd0e712ee041f3cca8b692c464
+   | self-test: 0 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== P16 [predicate] line 885  verdict=survived
+   old: '    if sha is None:\n        return code'
+   new: '    if sha is None:\n        return 0'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 3aee2e9e40653b115d8faa9b1607523f17ed866bc1a730b7537209b4fc7a8991 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+   | counter sha256 3aee2e9e40653b115d8faa9b1607523f17ed866bc1a730b7537209b4fc7a8991
+   | self-test: 0 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== P17 [predicate] line 894  verdict=survived
+   old: '    if problem:\n        ap.error(problem)'
+   new: '    if False:\n        ap.error(problem)'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 07938afa35c19d149aee74ecc1df78a0b6390dea4130280b9eca76494df63006 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+   | counter sha256 07938afa35c19d149aee74ecc1df78a0b6390dea4130280b9eca76494df63006
+   | self-test: 0 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== A01 [archive] line 496  verdict=survived
+   old: 'parsed = run_case(case, tree, work, env, runner=runner)'
+   new: 'parsed = run_case(case, repo, work, env, runner=runner)'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated dff22c8f7119a397d7bcdf8e28066b2172eb3dd8730ac5bf6da2f360bb33c743 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+   | counter sha256 dff22c8f7119a397d7bcdf8e28066b2172eb3dd8730ac5bf6da2f360bb33c743
+   | self-test: 0 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== A02 [archive] line 192  verdict=survived
+   old: '["archive", "--format=tar", rev, "verifiers"]'
+   new: '["archive", "--format=tar", "HEAD", "verifiers"]'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 27ec3868073b3fd9ba42807d3278fb85fa7fb6bf5ae4483317d520b81b0ec895 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+   | counter sha256 27ec3868073b3fd9ba42807d3278fb85fa7fb6bf5ae4483317d520b81b0ec895
+   | self-test: 0 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== A03 [archive] line 489  verdict=survived
+   old: 'instrument_sha = hashlib.sha256(instrument.read_bytes()).hexdigest()'
+   new: 'instrument_sha = hashlib.sha256((Path(repo) / INSTRUMENT).read_bytes()).hexdigest()'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated a8cca76436a96be2276b35bc54c1d2113e111b86ec827c6666f5e186e1113e40 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+   | counter sha256 a8cca76436a96be2276b35bc54c1d2113e111b86ec827c6666f5e186e1113e40
+   | self-test: 0 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== A04 [archive] line 206  verdict=survived
+   old: 'tf.extractall(dest, filter="data")'
+   new: 'tf.extractall(dest, filter="fully_trusted")'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated fab902b156387318d987296ccfd0a0f78eebdcf59833d9efdf4e7131b6c3b219 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+   | counter sha256 fab902b156387318d987296ccfd0a0f78eebdcf59833d9efdf4e7131b6c3b219
+   | self-test: 0 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== A05 [archive] line 177  verdict=survived
+   old: '"%s^{commit}" % rev])'
+   new: '"%s" % rev])'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 35a93beb977899e99afd0839c736d1c52eb804a1befd3655864d7f78fb15997d | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+   | counter sha256 35a93beb977899e99afd0839c736d1c52eb804a1befd3655864d7f78fb15997d
+   | self-test: 0 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== A06 [archive] line 212  verdict=killed
+   old: 'if not path.is_file():'
+   new: 'if False:'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated c63926077a04aef3924d0a4249010e78b8ad0afd89902597ef3c10875f830708 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.12s :: 1 failing arm(s); first: FAIL extract: missing instrument raises: got 'no exception', expected True
+   | counter sha256 c63926077a04aef3924d0a4249010e78b8ad0afd89902597ef3c10875f830708
+   | FAIL extract: missing instrument raises: got 'no exception', expected True
+   | self-test: 1 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== A07 [archive] line 192  verdict=killed
+   old: '"verifiers"])\n    if r.returncode != 0:'
+   new: '"verifiers"])\n    if False:'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 7fb17c8d06c01dfe34d9500f73eb3921dbd2cb03c2bc9a6129510728f5bda648 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.12s :: 1 failing arm(s); first: FAIL archive: failure raises: got 'no exception', expected True
+   | counter sha256 7fb17c8d06c01dfe34d9500f73eb3921dbd2cb03c2bc9a6129510728f5bda648
+   | FAIL archive: failure raises: got 'no exception', expected True
+   | self-test: 1 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== A08 [archive] line 178  verdict=killed
+   old: '.strip()\n    if r.returncode != 0:'
+   new: '.strip()\n    if False:'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated e5b9c151226ab8853de948cd53577b5b2e6b8dbefb1ba0b1f4ef9c469165ea2d | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.12s :: 1 failing arm(s); first: FAIL resolve: git failure raises: got 'no exception', expected True
+   | counter sha256 e5b9c151226ab8853de948cd53577b5b2e6b8dbefb1ba0b1f4ef9c469165ea2d
+   | FAIL resolve: git failure raises: got 'no exception', expected True
+   | self-test: 1 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== A09 [archive] line 184  verdict=killed
+   old: 'if not FULL_REV_RE.match(out):'
+   new: 'if False:'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 7a009c7d4280fb3a724bd61d93ad3e0e319b13e3df01cf598aaeff1a73cc7b9e | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.11s :: 2 failing arm(s); first: FAIL resolve: non-hex output raises: got 'no exception', expected True
+   | counter sha256 7a009c7d4280fb3a724bd61d93ad3e0e319b13e3df01cf598aaeff1a73cc7b9e
+   | FAIL resolve: non-hex output raises: got 'no exception', expected True
+   | FAIL resolve: empty output raises: got 'no exception', expected True
+   | self-test: 2 failure(s) over 105 assertions
+   restored rc=0 wall=0.11s :: self-test: 0 failure(s) over 105 assertions
+== A10 [archive] line 158  verdict=killed
+   old: 'if not FULL_REV_RE.match(rev):'
+   new: 'if False:'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 3cbf175902a7189dcd59a6da2f60e467c341beb9647ca7bc7c5b4c60af6a57a9 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.11s :: 4 failing arm(s); first: FAIL rev: short hash: got False, expected True
+   | counter sha256 3cbf175902a7189dcd59a6da2f60e467c341beb9647ca7bc7c5b4c60af6a57a9
+   | FAIL rev: short hash: got False, expected True
+   | FAIL rev: 39 hex: got False, expected True
+   | FAIL rev: 41 hex: got False, expected True
+   | FAIL rev: non-hex: got False, expected True
+   | self-test: 4 failure(s) over 105 assertions
+   restored rc=0 wall=0.11s :: self-test: 0 failure(s) over 105 assertions
+== A11 [archive] line 156  verdict=killed
+   old: 'if not rev:'
+   new: 'if False:'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 5d0b598bc7e8832d3d22982a9beeef9968ec4e4707ed6aa16866434c9d43ca65 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.11s :: 1 failing arm(s); first: FAIL rev: missing: got 'raised TypeError', expected True
+   | counter sha256 5d0b598bc7e8832d3d22982a9beeef9968ec4e4707ed6aa16866434c9d43ca65
+   | FAIL rev: missing: got 'raised TypeError', expected True
+   | self-test: 1 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== A12 [archive] line 120  verdict=killed
+   old: 'FULL_REV_RE = re.compile(r"^[0-9a-fA-F]{40}$")'
+   new: 'FULL_REV_RE = re.compile(r"^[0-9a-fA-F]{7,40}$")'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 3fa0003c0e5773d7716384539d44394596a93df6a93212366f8e61ecd20ba6c8 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.12s :: 2 failing arm(s); first: FAIL rev: short hash: got False, expected True
+   | counter sha256 3fa0003c0e5773d7716384539d44394596a93df6a93212366f8e61ecd20ba6c8
+   | FAIL rev: short hash: got False, expected True
+   | FAIL rev: 39 hex: got False, expected True
+   | self-test: 2 failure(s) over 105 assertions
+   restored rc=0 wall=0.11s :: self-test: 0 failure(s) over 105 assertions
+== A13 [archive] line 487  verdict=survived
+   old: 'extract_tar(archive_verifiers(repo, full, run=run), tree)'
+   new: 'extract_tar(archive_verifiers(repo, full, run=run), tree / "unused")'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 3b46c187b8a776b0577f16181eb2abb16fdcd690a697e5d4a07a45c3c028610a | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+   | counter sha256 3b46c187b8a776b0577f16181eb2abb16fdcd690a697e5d4a07a45c3c028610a
+   | self-test: 0 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== I01 [isolation] line 408  verdict=killed
+   old: 'casedir = Path(workdir) / "cases" / case.dirname'
+   new: 'casedir = Path(workdir) / "cases"'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated a296cbbe1a04d5662c78746dc58e991ed917906729844c577f95dff1ad0aaed2 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.12s :: 2 failing arm(s); first: FAIL runner: frozen argv: got ['timeout', '60', 'python3', '-B', '-P', '/tmp/infoless-run-gyi2n3xl/tree/verifiers/verify_skill_checklist.py', '--repo', '/tmp/in
+   | counter sha256 a296cbbe1a04d5662c78746dc58e991ed917906729844c577f95dff1ad0aaed2
+   | FAIL runner: frozen argv: got ['timeout', '60', 'python3', '-B', '-P', '/tmp/infoless-run-gyi2n3xl/tree/verifiers/verify_skill_checklist.py', '--repo', '/tmp/infoless-run-gyi2n3xl/cases', '--skill', '/tmp/infoless-run-gyi2n3xl/cases/SKILL.md', '--check', 'trigger.command_binary_resolves', '--json'], expected ['timeout', '60', 'python3', '-B', '-P', '/tmp/infoless-run-gyi2n3xl/tree/verifiers/verify_skill_checklist.py', '--repo', '/tmp/infoless-run-gyi2n3xl/cases/skill-b7baf0a6', '--skill', '/tmp/infoless-run-gyi2n3xl/cases/skill-b7baf0a6/SKILL.md', '--check', 'trigger.command_binary_resolves', '--json']
+   | FAIL runner: SKILL.md written: got False, expected True
+   | Traceback (most recent call last):
+   |   File "/fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py", line 917, in <module>
+   |     sys.exit(main())
+   |              ~~~~^^
+   |   File "/fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py", line 892, in main
+   |     return self_test()
+   |   File "/fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py", line 839, in self_test
+   |     .read_text(encoding="utf-8"), render_skill(pcase))
+   |      ~~~~~~~~~^^^^^^^^^^^^^^^^^^
+   |   File "/usr/lib/python3.14/pathlib/__init__.py", line 787, in read_text
+   |     with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:
+   |          ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |   File "/usr/lib/python3.14/pathlib/__init__.py", line 771, in open
+   |     return io.open(self, mode, buffering, encoding, errors, newline)
+   |            ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   | FileNotFoundError: [Errno 2] No such file or directory: '/tmp/infoless-run-gyi2n3xl/cases/skill-b7baf0a6/SKILL.md'
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== I02 [isolation] line 411  verdict=killed
+   old: 'cwd = Path(workdir) / "cwd" / case.dirname'
+   new: 'cwd = Path(workdir)'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 0e8e6487b132b9ffc7df045635b69d4d91d019280c3436510786646800dabbb6 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.12s :: 1 failing arm(s); first: FAIL runner: empty cwd: got [PosixPath('/tmp/infoless-run-5fl17jku/cases')], expected []
+   | counter sha256 0e8e6487b132b9ffc7df045635b69d4d91d019280c3436510786646800dabbb6
+   | FAIL runner: empty cwd: got [PosixPath('/tmp/infoless-run-5fl17jku/cases')], expected []
+   | self-test: 1 failure(s) over 105 assertions
+   restored rc=0 wall=0.17s :: self-test: 0 failure(s) over 105 assertions
+== I03 [isolation] line 411  verdict=survived
+   old: 'cwd = Path(workdir) / "cwd" / case.dirname'
+   new: 'cwd = Path(workdir) / "cwd"'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated fb3e5c0bd9b78c06aa26d9bb17228d423a58403a89a3986e1fa220b0e2adafde | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=0 wall=0.15s :: self-test: 0 failure(s) over 105 assertions
+   | counter sha256 fb3e5c0bd9b78c06aa26d9bb17228d423a58403a89a3986e1fa220b0e2adafde
+   | self-test: 0 failure(s) over 105 assertions
+   restored rc=0 wall=0.13s :: self-test: 0 failure(s) over 105 assertions
+== I04 [isolation] line 492  verdict=survived
+   old: 'env["PYTHONSAFEPATH"] = "1"'
+   new: 'env.pop("PYTHONSAFEPATH", None)'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated d78be8c85d79b75d1dc85e287317568b72c4956e106ac82e1bb46ec012391291 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+   | counter sha256 d78be8c85d79b75d1dc85e287317568b72c4956e106ac82e1bb46ec012391291
+   | self-test: 0 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== I05 [isolation] line 413  verdict=killed
+   old: 'str(CASE_TIMEOUT), "python3", "-B", "-P",'
+   new: 'str(CASE_TIMEOUT), "python3", "-B",'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated b04cf314767d1bf47226d6718a02a4a14f14783956b927f0ab15b5449fbfa339 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.13s :: 1 failing arm(s); first: FAIL runner: frozen argv: got ['timeout', '60', 'python3', '-B', '/tmp/infoless-run-002b0xvo/tree/verifiers/verify_skill_checklist.py', '--repo', '/tmp/infoless
+   | counter sha256 b04cf314767d1bf47226d6718a02a4a14f14783956b927f0ab15b5449fbfa339
+   | FAIL runner: frozen argv: got ['timeout', '60', 'python3', '-B', '/tmp/infoless-run-002b0xvo/tree/verifiers/verify_skill_checklist.py', '--repo', '/tmp/infoless-run-002b0xvo/cases/skill-b7baf0a6', '--skill', '/tmp/infoless-run-002b0xvo/cases/skill-b7baf0a6/SKILL.md', '--check', 'trigger.command_binary_resolves', '--json'], expected ['timeout', '60', 'python3', '-B', '-P', '/tmp/infoless-run-002b0xvo/tree/verifiers/verify_skill_checklist.py', '--repo', '/tmp/infoless-run-002b0xvo/cases/skill-b7baf0a6', '--skill', '/tmp/infoless-run-002b0xvo/cases/skill-b7baf0a6/SKILL.md', '--check', 'trigger.command_binary_resolves', '--json']
+   | self-test: 1 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== I06 [isolation] line 371  verdict=survived
+   old: 'taken_names.add(dirname)'
+   new: 'pass'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated ea5079a678e881741f25ffa15c07483526570c5f7f0200643ab30cef5387773d | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+   | counter sha256 ea5079a678e881741f25ffa15c07483526570c5f7f0200643ab30cef5387773d
+   | self-test: 0 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== I07 [isolation] line 375  verdict=survived
+   old: 'word = make_token(rng, drawn, which=which)'
+   new: 'word = make_token(rng, (), which=which)'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 01bbcc405a24c4488ebde75263ba1f7ee16891be5c4331762ef4fd8fec1ead36 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+   | counter sha256 01bbcc405a24c4488ebde75263ba1f7ee16891be5c4331762ef4fd8fec1ead36
+   | self-test: 0 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== I08 [isolation] line 410  verdict=killed
+   old: '(casedir / "SKILL.md").write_text(render_skill(case), encoding="utf-8")'
+   new: '(casedir / "SKILL.md").touch()'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 7229e9aa00284ba70873d4391b747f18b04005b5d1d1eafb3d7d97351078c6ee | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.12s :: 1 failing arm(s); first: FAIL runner: skill bytes are the rendered case: got '', expected '---\nname: skill-b7baf0a6\ndescription: wobo hujujuj gepenun jefe\n---\n\n# Case\n\n```\n┌────
+   | counter sha256 7229e9aa00284ba70873d4391b747f18b04005b5d1d1eafb3d7d97351078c6ee
+   | FAIL runner: skill bytes are the rendered case: got '', expected '---\nname: skill-b7baf0a6\ndescription: wobo hujujuj gepenun jefe\n---\n\n# Case\n\n```\n┌──────────┐\n│ dira82 │\nls -la\n└──────────┘\n└── bajupifu\n```\n'
+   | self-test: 1 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== I09 [isolation] line 385  verdict=killed
+   old: 'rng.shuffle(block)'
+   new: 'pass'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 2edc116ef4ebc131ef6da8be563bb03da988029f383fe0ba046be582a776da72 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.12s :: 1 failing arm(s); first: FAIL shuffle changes every seed block: got 0, expected 3
+   | counter sha256 2edc116ef4ebc131ef6da8be563bb03da988029f383fe0ba046be582a776da72
+   | FAIL shuffle changes every seed block: got 0, expected 3
+   | self-test: 1 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== I10 [isolation] line 364  verdict=killed
+   old: 'rng = random.Random(seed)'
+   new: 'rng = random.Random(0)'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 4ecfad7061bb40ab737fa1a20efc1e24369d621e97a9470c361ba1b7e7261a15 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.11s :: 1 failing arm(s); first: FAIL P1 has 4-5 table lines: got {4}, expected {4, 5}
+   | counter sha256 4ecfad7061bb40ab737fa1a20efc1e24369d621e97a9470c361ba1b7e7261a15
+   | FAIL P1 has 4-5 table lines: got {4}, expected {4, 5}
+   | self-test: 1 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== G01 [guard] line 250  verdict=killed
+   old: 'if not TOKEN_RE.match(tok):'
+   new: 'if False:'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated c8045773abe61fd1c0f92620eac118b57bd66f32f16162f8c6c514cecd120ae8 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.12s :: 1 failing arm(s); first: FAIL token: shape rejected: got 'A', expected 'molvat'
+   | counter sha256 c8045773abe61fd1c0f92620eac118b57bd66f32f16162f8c6c514cecd120ae8
+   | FAIL token: shape rejected: got 'A', expected 'molvat'
+   | self-test: 1 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== G02 [guard] line 252  verdict=killed
+   old: 'if tok in taken:'
+   new: 'if False:'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated f8df94d87613156381b13d6124c6dc1daf6bbbcbab2481a418202534f865d4ba | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.12s :: 1 failing arm(s); first: FAIL token: taken rejected: got 'molvat', expected 'bandor42'
+   | counter sha256 f8df94d87613156381b13d6124c6dc1daf6bbbcbab2481a418202534f865d4ba
+   | FAIL token: taken rejected: got 'molvat', expected 'bandor42'
+   | self-test: 1 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== G03 [guard] line 254  verdict=killed
+   old: 'if tok in RESERVED:'
+   new: 'if False:'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated ae25907772e680dfba457f3679a74dc2911461cda251c715634e7682a9af6303 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.12s :: 2 failing arm(s); first: FAIL token: reserved word rejected: got 'esac', expected 'molvat'
+   | counter sha256 ae25907772e680dfba457f3679a74dc2911461cda251c715634e7682a9af6303
+   | FAIL token: reserved word rejected: got 'esac', expected 'molvat'
+   | FAIL token: exhaustion raises: got 'no exception', expected True
+   | self-test: 2 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== G04 [guard] line 256  verdict=killed
+   old: 'if which(tok):'
+   new: 'if False:'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 38b6138232306eae9b3b60abd1b89cd217b5e15c83f7d79f0e4ef88a65e14457 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.07s :: 2 failing arm(s); first: FAIL every generated token unresolvable: got ['gem', 'jar', 'jar'], expected []
+   | counter sha256 38b6138232306eae9b3b60abd1b89cd217b5e15c83f7d79f0e4ef88a65e14457
+   | FAIL every generated token unresolvable: got ['gem', 'jar', 'jar'], expected []
+   | FAIL token: which hit rejected: got 'molvat', expected 'trel-quosk'
+   | self-test: 2 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== G05 [guard] line 259  verdict=killed
+   old: 'raise RuntimeError("token generator exhausted %d draws" % MAX_DRAWS)'
+   new: 'return None'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated f8d44f42de055ad83da23fd02e126902315f495a8ba2a5ce5a7d0334d588b127 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.12s :: 1 failing arm(s); first: FAIL token: exhaustion raises: got 'no exception', expected True
+   | counter sha256 f8d44f42de055ad83da23fd02e126902315f495a8ba2a5ce5a7d0334d588b127
+   | FAIL token: exhaustion raises: got 'no exception', expected True
+   | self-test: 1 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== G06 [guard] line 267  verdict=killed
+   old: 'if name in taken:'
+   new: 'if False:'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated c800c6c0042f30170bc6994cb0b2e1ba876b7be9bce7c3263570d2c36c30ad78 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.13s :: 2 failing arm(s); first: FAIL dirname: collision rejected: got 'skill-00000001', expected 'skill-00000002'
+   | counter sha256 c800c6c0042f30170bc6994cb0b2e1ba876b7be9bce7c3263570d2c36c30ad78
+   | FAIL dirname: collision rejected: got 'skill-00000001', expected 'skill-00000002'
+   | FAIL dirname: exhaustion raises: got 'no exception', expected True
+   | self-test: 2 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== G07 [guard] line 270  verdict=killed
+   old: 'raise RuntimeError("case-directory generator exhausted %d draws" % MAX_DRAWS)'
+   new: 'return None'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 8db1c8165ee7cf5479de41333e8d3317cf46125fe13b2550bbd7758284bc7823 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.13s :: 1 failing arm(s); first: FAIL dirname: exhaustion raises: got 'no exception', expected True
+   | counter sha256 8db1c8165ee7cf5479de41333e8d3317cf46125fe13b2550bbd7758284bc7823
+   | FAIL dirname: exhaustion raises: got 'no exception', expected True
+   | self-test: 1 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== G08 [guard] line 131  verdict=survived
+   old: 'getopts let declare'
+   new: 'getopts declare'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 3aa8ae873925eaf488f3a124d3de65a054945f54bd0db7ac7ba9b6ca5852cf8c | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+   | counter sha256 3aa8ae873925eaf488f3a124d3de65a054945f54bd0db7ac7ba9b6ca5852cf8c
+   | self-test: 0 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== G09 [guard] line 165  verdict=killed
+   old: 'if self_test and (rev or seeds):'
+   new: 'if False:'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated c91fefadd6283f6ff690c6bf5248fe908965fbef4f05dab42e0723d4d5f3827a | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.12s :: 2 failing arm(s); first: FAIL conflict: self-test with rev: got False, expected True
+   | counter sha256 c91fefadd6283f6ff690c6bf5248fe908965fbef4f05dab42e0723d4d5f3827a
+   | FAIL conflict: self-test with rev: got False, expected True
+   | FAIL conflict: self-test with seed: got False, expected True
+   | self-test: 2 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== G10 [guard] line 476  verdict=killed
+   old: '        return 2, None'
+   new: '        return 0, None'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 3be2bcc43085cb155c8bb05a826d5d2d21e9cb7cac714bb81c58dc43fbb3e7a0 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.12s :: 1 failing arm(s); first: FAIL guarded: env failure is exit 2: got 0, expected 2
+   | counter sha256 3be2bcc43085cb155c8bb05a826d5d2d21e9cb7cac714bb81c58dc43fbb3e7a0
+   | FAIL guarded: env failure is exit 2: got 0, expected 2
+   | self-test: 1 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== G11 [guard] line 221  verdict=killed
+   old: 'if missing:'
+   new: 'if False:'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated 3312640f6cf3f7d6d61f064d1126b7a9a9a2266e71ea2d97c0bef48b1f3f308d | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.12s :: 1 failing arm(s); first: FAIL tools: missing raises: got 'no exception', expected True
+   | counter sha256 3312640f6cf3f7d6d61f064d1126b7a9a9a2266e71ea2d97c0bef48b1f3f308d
+   | FAIL tools: missing raises: got 'no exception', expected True
+   | self-test: 1 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+== G12 [guard] line 151  verdict=killed
+   old: 'raise EnvError("cannot read own file %s: %s" % (p, e))'
+   new: 'return None'
+   sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | mutated a96491b89efc88f65a03635f7082db742d82e8c26b5ea7b3efe1ee155c661c90 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   mutated rc=1 wall=0.12s :: 1 failing arm(s); first: FAIL sha: unreadable raises: got 'no exception', expected True
+   | counter sha256 a96491b89efc88f65a03635f7082db742d82e8c26b5ea7b3efe1ee155c661c90
+   | FAIL sha: unreadable raises: got 'no exception', expected True
+   | self-test: 1 failure(s) over 105 assertions
+   restored rc=0 wall=0.12s :: self-test: 0 failure(s) over 105 assertions
+
+SUMMARY id | area | line | verdict | detail
+C01 | class | 108 | killed | 2 failing arm(s); first: FAIL hard-negative head is a drawn token: got False, expected True
+C02 | class | 108 | killed | 2 failing arm(s); first: FAIL hard-negative head is a drawn token: got False, expected True
+C03 | class | 108 | killed | 2 failing arm(s); first: FAIL hard-negative head is a drawn token: got False, expected True
+C04 | class | 108 | killed | 2 failing arm(s); first: FAIL hard-negative head is a drawn token: got False, expected True
+C05 | class | 109 | killed | 2 failing arm(s); first: FAIL hard-negative head is a drawn token: got False, expected True
+C06 | class | 109 | killed | 1 failing arm(s); first: FAIL pass cases carry exactly one real command: got False, expected True
+C07 | class | 109 | killed | 1 failing arm(s); first: FAIL pass cases carry exactly one real command: got False, expected True
+C08 | class | 109 | killed | 1 failing arm(s); first: FAIL pass cases carry exactly one real command: got False, expected True
+C09 | class | 110 | killed | 1 failing arm(s); first: FAIL pass cases carry exactly one real command: got False, expected True
+C10 | class | 110 | killed | 1 failing arm(s); first: FAIL pass cases carry exactly one real command: got False, expected True
+C11 | class | 109 | killed | 2 failing arm(s); first: FAIL every (seed, class) has 4: got [4, 8], expected [4]
+C12 | class | 105 | killed | 3 failing arm(s); first: FAIL cases per class: got 3, expected 4
+C13 | class | 104 | survived | self-test: 0 failure(s) over 105 assertions
+C14 | class | 368 | survived | self-test: 0 failure(s) over 105 assertions
+C15 | class | 394 | survived | self-test: 0 failure(s) over 105 assertions
+C16 | class | 356 | survived | self-test: 0 failure(s) over 105 assertions
+C17 | class | 346 | survived | self-test: 0 failure(s) over 105 assertions
+C18 | class | 334 | survived | self-test: 0 failure(s) over 105 assertions
+C19 | class | 118 | survived | self-test: 0 failure(s) over 105 assertions
+C20 | class | 291 | killed | 1 failing arm(s); first: FAIL pass cases carry exactly one real command: got False, expected True
+D01 | verdict | 455 | killed | 1 failing arm(s); first: FAIL verdict: negative on FAIL without its head: got True, expected False
+D02 | verdict | 455 | killed | 2 failing arm(s); first: FAIL verdict: negative on FAIL with its head: got False, expected True
+D03 | verdict | 455 | survived | self-test: 0 failure(s) over 105 assertions
+D04 | verdict | 455 | survived | self-test: 0 failure(s) over 105 assertions
+D05 | verdict | 455 | survived | self-test: 0 failure(s) over 105 assertions
+D06 | verdict | 454 | killed | 1 failing arm(s); first: FAIL verdict: pass on N/A: got True, expected False
+D07 | verdict | 450 | killed | 2 failing arm(s); first: FAIL verdict: pass on unparseable: got True, expected False
+D08 | verdict | 453 | killed | 1 failing arm(s); first: FAIL verdict: pass on PASS: got False, expected True
+S01 | parse | 428 | killed | 3 failing arm(s); first: FAIL parse: invalid json: got ('PASS', ''), expected None
+S02 | parse | 430 | killed | crash: AttributeError: 'list' object has no attribute 'get'
+S03 | parse | 433 | killed | crash: TypeError: 'int' object is not iterable
+S04 | parse | 436 | killed | crash: AttributeError: 'str' object has no attribute 'get'
+S05 | parse | 438 | killed | 6 failing arm(s); first: FAIL parse: valid: got None, expected ('PASS', 'd')
+S06 | parse | 438 | killed | 1 failing arm(s); first: FAIL parse: other check ignored: got ('PASS', ''), expected None
+S07 | parse | 441 | killed | 1 failing arm(s); first: FAIL parse: status not a string: got (1, ''), expected None
+S08 | parse | 444 | killed | 1 failing arm(s); first: FAIL parse: other check ignored: got ('PASS', ''), expected None
+S09 | parse | 444 | killed | 2 failing arm(s); first: FAIL parse: valid: got ('PASS', ''), expected ('PASS', 'd')
+S10 | parse | 116 | survived | self-test: 0 failure(s) over 105 assertions
+T01 | timeout | 419 | killed | 1 failing arm(s); first: FAIL runner: timeout is a wrong case: got ('PASS', ''), expected None
+T02 | timeout | 114 | killed | 1 failing arm(s); first: FAIL runner: frozen argv: got ['timeout', '600', 'python3', '-B', '-P', '/tmp/infoless-run-uirfxtbn/tree/verifiers/verify_skill_checklist.py', '--repo', '/tmp/i
+T03 | timeout | 403 | survived | self-test: 0 failure(s) over 105 assertions
+T04 | timeout | 403 | survived | self-test: 0 failure(s) over 105 assertions
+T05 | timeout | 413 | killed | 1 failing arm(s); first: FAIL runner: frozen argv: got ['python3', '-B', '-P', '/tmp/infoless-run-7a2i0n3v/tree/verifiers/verify_skill_checklist.py', '--repo', '/tmp/infoless-run-7a2i0n
+T06 | timeout | 419 | killed | crash: subprocess.TimeoutExpired: Command '['timeout', '60', 'python3', '-B', '-P', '/tmp/infoless-run-3o52twd5/tree/verifiers/verify_skill_checklist.py', '--repo', '/
+P01 | predicate | 466 | killed | 2 failing arm(s); first: FAIL predicate: fewer than 120 fails: got True, expected False
+P02 | predicate | 466 | killed | 2 failing arm(s); first: FAIL predicate: one wrong fails: got True, expected False
+P03 | predicate | 466 | killed | 1 failing arm(s); first: FAIL predicate: met: got False, expected True
+P04 | predicate | 466 | killed | 4 failing arm(s); first: FAIL predicate: one wrong fails: got True, expected False
+P05 | predicate | 466 | killed | 2 failing arm(s); first: FAIL predicate: one wrong fails: got True, expected False
+P06 | predicate | 466 | survived | self-test: 0 failure(s) over 105 assertions
+P07 | predicate | 113 | killed | 2 failing arm(s); first: FAIL frozen minimum: got 12, expected 120
+P08 | predicate | 906 | survived | self-test: 0 failure(s) over 105 assertions
+P09 | predicate | 905 | survived | self-test: 0 failure(s) over 105 assertions
+P10 | predicate | 913 | survived | self-test: 0 failure(s) over 105 assertions
+P11 | predicate | 913 | survived | self-test: 0 failure(s) over 105 assertions
+P12 | predicate | 498 | survived | self-test: 0 failure(s) over 105 assertions
+P13 | predicate | 498 | survived | self-test: 0 failure(s) over 105 assertions
+P14 | predicate | 497 | survived | self-test: 0 failure(s) over 105 assertions
+P15 | predicate | 900 | survived | self-test: 0 failure(s) over 105 assertions
+P16 | predicate | 885 | survived | self-test: 0 failure(s) over 105 assertions
+P17 | predicate | 894 | survived | self-test: 0 failure(s) over 105 assertions
+A01 | archive | 496 | survived | self-test: 0 failure(s) over 105 assertions
+A02 | archive | 192 | survived | self-test: 0 failure(s) over 105 assertions
+A03 | archive | 489 | survived | self-test: 0 failure(s) over 105 assertions
+A04 | archive | 206 | survived | self-test: 0 failure(s) over 105 assertions
+A05 | archive | 177 | survived | self-test: 0 failure(s) over 105 assertions
+A06 | archive | 212 | killed | 1 failing arm(s); first: FAIL extract: missing instrument raises: got 'no exception', expected True
+A07 | archive | 192 | killed | 1 failing arm(s); first: FAIL archive: failure raises: got 'no exception', expected True
+A08 | archive | 178 | killed | 1 failing arm(s); first: FAIL resolve: git failure raises: got 'no exception', expected True
+A09 | archive | 184 | killed | 2 failing arm(s); first: FAIL resolve: non-hex output raises: got 'no exception', expected True
+A10 | archive | 158 | killed | 4 failing arm(s); first: FAIL rev: short hash: got False, expected True
+A11 | archive | 156 | killed | 1 failing arm(s); first: FAIL rev: missing: got 'raised TypeError', expected True
+A12 | archive | 120 | killed | 2 failing arm(s); first: FAIL rev: short hash: got False, expected True
+A13 | archive | 487 | survived | self-test: 0 failure(s) over 105 assertions
+I01 | isolation | 408 | killed | 2 failing arm(s); first: FAIL runner: frozen argv: got ['timeout', '60', 'python3', '-B', '-P', '/tmp/infoless-run-gyi2n3xl/tree/verifiers/verify_skill_checklist.py', '--repo', '/tmp/in
+I02 | isolation | 411 | killed | 1 failing arm(s); first: FAIL runner: empty cwd: got [PosixPath('/tmp/infoless-run-5fl17jku/cases')], expected []
+I03 | isolation | 411 | survived | self-test: 0 failure(s) over 105 assertions
+I04 | isolation | 492 | survived | self-test: 0 failure(s) over 105 assertions
+I05 | isolation | 413 | killed | 1 failing arm(s); first: FAIL runner: frozen argv: got ['timeout', '60', 'python3', '-B', '/tmp/infoless-run-002b0xvo/tree/verifiers/verify_skill_checklist.py', '--repo', '/tmp/infoless
+I06 | isolation | 371 | survived | self-test: 0 failure(s) over 105 assertions
+I07 | isolation | 375 | survived | self-test: 0 failure(s) over 105 assertions
+I08 | isolation | 410 | killed | 1 failing arm(s); first: FAIL runner: skill bytes are the rendered case: got '', expected '---\nname: skill-b7baf0a6\ndescription: wobo hujujuj gepenun jefe\n---\n\n# Case\n\n```\n┌────
+I09 | isolation | 385 | killed | 1 failing arm(s); first: FAIL shuffle changes every seed block: got 0, expected 3
+I10 | isolation | 364 | killed | 1 failing arm(s); first: FAIL P1 has 4-5 table lines: got {4}, expected {4, 5}
+G01 | guard | 250 | killed | 1 failing arm(s); first: FAIL token: shape rejected: got 'A', expected 'molvat'
+G02 | guard | 252 | killed | 1 failing arm(s); first: FAIL token: taken rejected: got 'molvat', expected 'bandor42'
+G03 | guard | 254 | killed | 2 failing arm(s); first: FAIL token: reserved word rejected: got 'esac', expected 'molvat'
+G04 | guard | 256 | killed | 2 failing arm(s); first: FAIL every generated token unresolvable: got ['gem', 'jar', 'jar'], expected []
+G05 | guard | 259 | killed | 1 failing arm(s); first: FAIL token: exhaustion raises: got 'no exception', expected True
+G06 | guard | 267 | killed | 2 failing arm(s); first: FAIL dirname: collision rejected: got 'skill-00000001', expected 'skill-00000002'
+G07 | guard | 270 | killed | 1 failing arm(s); first: FAIL dirname: exhaustion raises: got 'no exception', expected True
+G08 | guard | 131 | survived | self-test: 0 failure(s) over 105 assertions
+G09 | guard | 165 | killed | 2 failing arm(s); first: FAIL conflict: self-test with rev: got False, expected True
+G10 | guard | 476 | killed | 1 failing arm(s); first: FAIL guarded: env failure is exit 2: got 0, expected 2
+G11 | guard | 221 | killed | 1 failing arm(s); first: FAIL tools: missing raises: got 'no exception', expected True
+G12 | guard | 151 | killed | 1 failing arm(s); first: FAIL sha: unreadable raises: got 'no exception', expected True
+TOTAL 96 mutants: 61 killed, 35 survived, 0 other
+final target sha256 b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+
+####################################################################################################
+# 2 MEASURED RUNS: python3 -B mut/demos.py (timeout 300 per run, sequential)
+####################################################################################################
+date -u: Fri Oct 23 04:27:20 AM UTC 2026
+worlds: base 47c05558fa4e6043e45c7abca1fb5fd2fb8cda5a | sandbox J 23b527aae934532e80d90c032bf60b12f2c0d38c | sandbox X 715766a3653a31c50e08c3b29d3702aa13fc714f | sandbox S fa4a7e4f6894663a24300ec8a6bcc152246be733 (all /fast/scratch/hyaku/kotoba-r57/MutC2Counter)
+working-tree instrument sha256 at start 629867d19e16a3bd125a11437a624895222c2c602d449c06128ef056e7c56cab
+== R01 counter=FROZEN rev=47c05558fa4e6043e45c7abca1fb5fd2fb8cda5a mode=- wt-instrument-swapped=False
+   cmd: timeout 300 python3 -B -P /fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py --rev 47c05558fa4e6043e45c7abca1fb5fd2fb8cda5a
+   counter sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | run b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | wt instrument restored 629867d19e16a3bd125a11437a624895222c2c602d449c06128ef056e7c56cab
+   | counter sha256 b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   | measured 47c05558fa4e6043e45c7abca1fb5fd2fb8cda5a
+   | instrument sha256 629867d19e16a3bd125a11437a624895222c2c602d449c06128ef056e7c56cab
+   | info-less fence cases correct 48 of 120 (pass-expected 0 of 60; hard negatives 48 of 60)
+   | (72 wrong lines; by class H3=12, P1=12, P2=12, P3=12, P4=12, P5=12)
+   exit=1 wall=5.92s
+== R02 counter=MUTANT P08 rev=47c05558fa4e6043e45c7abca1fb5fd2fb8cda5a mode=- wt-instrument-swapped=False
+   cmd: timeout 300 python3 -B -P /fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py --rev 47c05558fa4e6043e45c7abca1fb5fd2fb8cda5a
+   counter sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | run 816aea7269bbf77849f2b90ab5043e344b99564ec434671cde2090b804d02976 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | wt instrument restored 629867d19e16a3bd125a11437a624895222c2c602d449c06128ef056e7c56cab
+   | counter sha256 816aea7269bbf77849f2b90ab5043e344b99564ec434671cde2090b804d02976
+   | measured 47c05558fa4e6043e45c7abca1fb5fd2fb8cda5a
+   | instrument sha256 629867d19e16a3bd125a11437a624895222c2c602d449c06128ef056e7c56cab
+   | info-less fence cases correct 120 of 120 (pass-expected 0 of 60; hard negatives 48 of 60)
+   | (72 wrong lines; by class H3=12, P1=12, P2=12, P3=12, P4=12, P5=12)
+   exit=0 wall=6.01s
+== R03 counter=MUTANT P12 rev=47c05558fa4e6043e45c7abca1fb5fd2fb8cda5a mode=- wt-instrument-swapped=False
+   cmd: timeout 300 python3 -B -P /fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py --rev 47c05558fa4e6043e45c7abca1fb5fd2fb8cda5a
+   counter sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | run 69c732022eaaafa886d7936726847240df8095bbeccc94bda1250397b5e88f71 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | wt instrument restored 629867d19e16a3bd125a11437a624895222c2c602d449c06128ef056e7c56cab
+   | counter sha256 69c732022eaaafa886d7936726847240df8095bbeccc94bda1250397b5e88f71
+   | measured 47c05558fa4e6043e45c7abca1fb5fd2fb8cda5a
+   | instrument sha256 629867d19e16a3bd125a11437a624895222c2c602d449c06128ef056e7c56cab
+   | info-less fence cases correct 120 of 120 (pass-expected 60 of 60; hard negatives 60 of 60)
+   | (0 wrong lines; by class none)
+   exit=0 wall=5.37s
+== R04 counter=MUTANT P10 rev=47c05558fa4e6043e45c7abca1fb5fd2fb8cda5a mode=- wt-instrument-swapped=False
+   cmd: timeout 300 python3 -B -P /fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py --rev 47c05558fa4e6043e45c7abca1fb5fd2fb8cda5a
+   counter sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | run f0f03979bf0d1543d927d67da54fb3dc5d9e0b0c91f410e5da4e0d265dfe63bc | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | wt instrument restored 629867d19e16a3bd125a11437a624895222c2c602d449c06128ef056e7c56cab
+   | counter sha256 f0f03979bf0d1543d927d67da54fb3dc5d9e0b0c91f410e5da4e0d265dfe63bc
+   | measured 47c05558fa4e6043e45c7abca1fb5fd2fb8cda5a
+   | instrument sha256 629867d19e16a3bd125a11437a624895222c2c602d449c06128ef056e7c56cab
+   | info-less fence cases correct 48 of 120 (pass-expected 0 of 60; hard negatives 48 of 60)
+   | (72 wrong lines; by class H3=12, P1=12, P2=12, P3=12, P4=12, P5=12)
+   exit=0 wall=5.14s
+== R05 counter=MUTANT P11 rev=47c05558fa4e6043e45c7abca1fb5fd2fb8cda5a mode=- wt-instrument-swapped=False
+   cmd: timeout 300 python3 -B -P /fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py --rev 47c05558fa4e6043e45c7abca1fb5fd2fb8cda5a
+   counter sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | run 6b95db557efcac75d642a8a5b7701c39682e42f5660a5d014ea84d27f490d91c | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | wt instrument restored 629867d19e16a3bd125a11437a624895222c2c602d449c06128ef056e7c56cab
+   | counter sha256 6b95db557efcac75d642a8a5b7701c39682e42f5660a5d014ea84d27f490d91c
+   | measured 47c05558fa4e6043e45c7abca1fb5fd2fb8cda5a
+   | instrument sha256 629867d19e16a3bd125a11437a624895222c2c602d449c06128ef056e7c56cab
+   | info-less fence cases correct 48 of 120 (pass-expected 0 of 60; hard negatives 48 of 60)
+   | (72 wrong lines; by class H3=12, P1=12, P2=12, P3=12, P4=12, P5=12)
+   exit=0 wall=5.07s
+== R06 counter=MUTANT P09 rev=47c05558fa4e6043e45c7abca1fb5fd2fb8cda5a mode=- wt-instrument-swapped=False
+   cmd: timeout 300 python3 -B -P /fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py --rev 47c05558fa4e6043e45c7abca1fb5fd2fb8cda5a
+   counter sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | run 07fb0eac1043ae1baf5fd23a653a49e13c12e7d23944ab638628732b462e12a5 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | wt instrument restored 629867d19e16a3bd125a11437a624895222c2c602d449c06128ef056e7c56cab
+   | counter sha256 07fb0eac1043ae1baf5fd23a653a49e13c12e7d23944ab638628732b462e12a5
+   | measured 47c05558fa4e6043e45c7abca1fb5fd2fb8cda5a
+   | instrument sha256 629867d19e16a3bd125a11437a624895222c2c602d449c06128ef056e7c56cab
+   | info-less fence cases correct 48 of 48 (pass-expected 0 of 60; hard negatives 48 of 60)
+   | (72 wrong lines; by class H3=12, P1=12, P2=12, P3=12, P4=12, P5=12)
+   exit=1 wall=5.02s
+== R07 counter=FROZEN rev=23b527aae934532e80d90c032bf60b12f2c0d38c mode=- wt-instrument-swapped=False
+   cmd: timeout 300 python3 -B -P /fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py --rev 23b527aae934532e80d90c032bf60b12f2c0d38c
+   counter sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | run b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | wt instrument restored 629867d19e16a3bd125a11437a624895222c2c602d449c06128ef056e7c56cab
+   | counter sha256 b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   | measured 23b527aae934532e80d90c032bf60b12f2c0d38c
+   | instrument sha256 202a54db3f547da8dffb70c0e046fc173231f6fe1cd6a9667143893580d98bac
+   | info-less fence cases correct 0 of 120 (pass-expected 0 of 60; hard negatives 0 of 60)
+   | (120 wrong lines; by class H1=12, H2=12, H3=12, H4=12, H5=12, P1=12, P2=12, P3=12, P4=12, P5=12)
+   exit=1 wall=1.05s
+== R08 counter=MUTANT P13 rev=23b527aae934532e80d90c032bf60b12f2c0d38c mode=- wt-instrument-swapped=False
+   cmd: timeout 300 python3 -B -P /fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py --rev 23b527aae934532e80d90c032bf60b12f2c0d38c
+   counter sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | run c10bb93854e01a3c2ca942d41aaa89a2733cac47bb4ac2b63ebf3202ba9c169a | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | wt instrument restored 629867d19e16a3bd125a11437a624895222c2c602d449c06128ef056e7c56cab
+   | counter sha256 c10bb93854e01a3c2ca942d41aaa89a2733cac47bb4ac2b63ebf3202ba9c169a
+   | measured 23b527aae934532e80d90c032bf60b12f2c0d38c
+   | instrument sha256 202a54db3f547da8dffb70c0e046fc173231f6fe1cd6a9667143893580d98bac
+   | info-less fence cases correct 120 of 120 (pass-expected 60 of 60; hard negatives 60 of 60)
+   | (0 wrong lines; by class none)
+   exit=0 wall=1.05s
+== R09 counter=FROZEN rev=715766a3653a31c50e08c3b29d3702aa13fc714f mode=- wt-instrument-swapped=False
+   cmd: timeout 300 python3 -B -P /fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py --rev 715766a3653a31c50e08c3b29d3702aa13fc714f
+   counter sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | run b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | wt instrument restored 629867d19e16a3bd125a11437a624895222c2c602d449c06128ef056e7c56cab
+   | counter sha256 b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   | infoless-fences: verifiers/verify_skill_checklist.py is absent from the extracted tree /tmp/kotoba-r57-infoless-qqx4vfs8/tree
+   | (0 wrong lines; by class none)
+   exit=2 wall=0.08s
+== R10 counter=MUTANT P15 rev=715766a3653a31c50e08c3b29d3702aa13fc714f mode=- wt-instrument-swapped=False
+   cmd: timeout 300 python3 -B -P /fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py --rev 715766a3653a31c50e08c3b29d3702aa13fc714f
+   counter sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | run b2a9bc01fd341d701c680c4d84a3adcc25423dfd0e712ee041f3cca8b692c464 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | wt instrument restored 629867d19e16a3bd125a11437a624895222c2c602d449c06128ef056e7c56cab
+   | counter sha256 b2a9bc01fd341d701c680c4d84a3adcc25423dfd0e712ee041f3cca8b692c464
+   | infoless-fences: verifiers/verify_skill_checklist.py is absent from the extracted tree /tmp/kotoba-r57-infoless-aynrt8x9/tree
+   | (0 wrong lines; by class none)
+   exit=0 wall=0.08s
+== R11 counter=FROZEN rev=23b527aae934532e80d90c032bf60b12f2c0d38c mode=- wt-instrument-swapped=False
+   cmd: timeout 300 python3 -B -P /fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py --rev 23b527aae934532e80d90c032bf60b12f2c0d38c
+   counter sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | run b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | wt instrument restored 629867d19e16a3bd125a11437a624895222c2c602d449c06128ef056e7c56cab
+   | counter sha256 b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   | measured 23b527aae934532e80d90c032bf60b12f2c0d38c
+   | instrument sha256 202a54db3f547da8dffb70c0e046fc173231f6fe1cd6a9667143893580d98bac
+   | info-less fence cases correct 0 of 120 (pass-expected 0 of 60; hard negatives 0 of 60)
+   | (120 wrong lines; by class H1=12, H2=12, H3=12, H4=12, H5=12, P1=12, P2=12, P3=12, P4=12, P5=12)
+   exit=1 wall=1.04s
+== R12 counter=MUTANT A02 rev=23b527aae934532e80d90c032bf60b12f2c0d38c mode=- wt-instrument-swapped=False
+   cmd: timeout 300 python3 -B -P /fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py --rev 23b527aae934532e80d90c032bf60b12f2c0d38c
+   counter sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | run 27ec3868073b3fd9ba42807d3278fb85fa7fb6bf5ae4483317d520b81b0ec895 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | wt instrument restored 629867d19e16a3bd125a11437a624895222c2c602d449c06128ef056e7c56cab
+   | counter sha256 27ec3868073b3fd9ba42807d3278fb85fa7fb6bf5ae4483317d520b81b0ec895
+   | measured 23b527aae934532e80d90c032bf60b12f2c0d38c
+   | instrument sha256 629867d19e16a3bd125a11437a624895222c2c602d449c06128ef056e7c56cab
+   | info-less fence cases correct 48 of 120 (pass-expected 0 of 60; hard negatives 48 of 60)
+   | (72 wrong lines; by class H3=12, P1=12, P2=12, P3=12, P4=12, P5=12)
+   exit=1 wall=5.20s
+== R13 counter=FROZEN rev=47c05558fa4e6043e45c7abca1fb5fd2fb8cda5a mode=- wt-instrument-swapped=True
+   cmd: timeout 300 python3 -B -P /fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py --rev 47c05558fa4e6043e45c7abca1fb5fd2fb8cda5a
+   counter sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | run b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | wt instrument restored 629867d19e16a3bd125a11437a624895222c2c602d449c06128ef056e7c56cab
+   | counter sha256 b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   | measured 47c05558fa4e6043e45c7abca1fb5fd2fb8cda5a
+   | instrument sha256 629867d19e16a3bd125a11437a624895222c2c602d449c06128ef056e7c56cab
+   | info-less fence cases correct 48 of 120 (pass-expected 0 of 60; hard negatives 48 of 60)
+   | (72 wrong lines; by class H3=12, P1=12, P2=12, P3=12, P4=12, P5=12)
+   exit=1 wall=5.55s
+== R14 counter=MUTANT A01 rev=47c05558fa4e6043e45c7abca1fb5fd2fb8cda5a mode=- wt-instrument-swapped=True
+   cmd: timeout 300 python3 -B -P /fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py --rev 47c05558fa4e6043e45c7abca1fb5fd2fb8cda5a
+   counter sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | run dff22c8f7119a397d7bcdf8e28066b2172eb3dd8730ac5bf6da2f360bb33c743 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | wt instrument restored 629867d19e16a3bd125a11437a624895222c2c602d449c06128ef056e7c56cab
+   | counter sha256 dff22c8f7119a397d7bcdf8e28066b2172eb3dd8730ac5bf6da2f360bb33c743
+   | measured 47c05558fa4e6043e45c7abca1fb5fd2fb8cda5a
+   | instrument sha256 629867d19e16a3bd125a11437a624895222c2c602d449c06128ef056e7c56cab
+   | info-less fence cases correct 60 of 120 (pass-expected 60 of 60; hard negatives 0 of 60)
+   | (60 wrong lines; by class H1=12, H2=12, H3=12, H4=12, H5=12)
+   exit=1 wall=1.67s
+== R15 counter=FROZEN rev=fa4a7e4f6894663a24300ec8a6bcc152246be733 mode=colon wt-instrument-swapped=False
+   cmd: KOTOBA_R57_MUT_MODE=colon timeout 300 python3 -B -P /fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py --rev fa4a7e4f6894663a24300ec8a6bcc152246be733
+   counter sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | run b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | wt instrument restored 629867d19e16a3bd125a11437a624895222c2c602d449c06128ef056e7c56cab
+   | counter sha256 b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   | measured fa4a7e4f6894663a24300ec8a6bcc152246be733
+   | instrument sha256 dbb86ab4dd2bc0a0d6448d66fa7bfbf012d77aaaff90e046d82d0343114cb9d8
+   | info-less fence cases correct 108 of 120 (pass-expected 60 of 60; hard negatives 48 of 60)
+   | (12 wrong lines; by class H4=12)
+   exit=1 wall=2.65s
+== R16 counter=MUTANT C17 rev=fa4a7e4f6894663a24300ec8a6bcc152246be733 mode=colon wt-instrument-swapped=False
+   cmd: KOTOBA_R57_MUT_MODE=colon timeout 300 python3 -B -P /fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py --rev fa4a7e4f6894663a24300ec8a6bcc152246be733
+   counter sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | run d38f1d25ba8502adba0ea15820eb5eec1c94535fb31035fd63747f5b3f83a721 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | wt instrument restored 629867d19e16a3bd125a11437a624895222c2c602d449c06128ef056e7c56cab
+   | counter sha256 d38f1d25ba8502adba0ea15820eb5eec1c94535fb31035fd63747f5b3f83a721
+   | measured fa4a7e4f6894663a24300ec8a6bcc152246be733
+   | instrument sha256 dbb86ab4dd2bc0a0d6448d66fa7bfbf012d77aaaff90e046d82d0343114cb9d8
+   | info-less fence cases correct 120 of 120 (pass-expected 60 of 60; hard negatives 60 of 60)
+   | (0 wrong lines; by class none)
+   exit=0 wall=2.04s
+== R17 counter=MUTANT C16 rev=fa4a7e4f6894663a24300ec8a6bcc152246be733 mode=colon wt-instrument-swapped=False
+   cmd: KOTOBA_R57_MUT_MODE=colon timeout 300 python3 -B -P /fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py --rev fa4a7e4f6894663a24300ec8a6bcc152246be733
+   counter sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | run 50248e94ef0b5a01338a6dfd9dc01b3d7ba40c18eb718da3f52bcf7d8a04b68b | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | wt instrument restored 629867d19e16a3bd125a11437a624895222c2c602d449c06128ef056e7c56cab
+   | counter sha256 50248e94ef0b5a01338a6dfd9dc01b3d7ba40c18eb718da3f52bcf7d8a04b68b
+   | measured fa4a7e4f6894663a24300ec8a6bcc152246be733
+   | instrument sha256 dbb86ab4dd2bc0a0d6448d66fa7bfbf012d77aaaff90e046d82d0343114cb9d8
+   | info-less fence cases correct 120 of 120 (pass-expected 60 of 60; hard negatives 60 of 60)
+   | (0 wrong lines; by class none)
+   exit=0 wall=2.02s
+== R18 counter=MUTANT C14 rev=fa4a7e4f6894663a24300ec8a6bcc152246be733 mode=colon wt-instrument-swapped=False
+   cmd: KOTOBA_R57_MUT_MODE=colon timeout 300 python3 -B -P /fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py --rev fa4a7e4f6894663a24300ec8a6bcc152246be733
+   counter sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | run 6863b5b8db4af9466257be5c81dd697fd5b49a64bd2b0037cbedbe72d5fcb328 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | wt instrument restored 629867d19e16a3bd125a11437a624895222c2c602d449c06128ef056e7c56cab
+   | counter sha256 6863b5b8db4af9466257be5c81dd697fd5b49a64bd2b0037cbedbe72d5fcb328
+   | measured fa4a7e4f6894663a24300ec8a6bcc152246be733
+   | instrument sha256 dbb86ab4dd2bc0a0d6448d66fa7bfbf012d77aaaff90e046d82d0343114cb9d8
+   | info-less fence cases correct 120 of 120 (pass-expected 60 of 60; hard negatives 60 of 60)
+   | (0 wrong lines; by class none)
+   exit=0 wall=2.03s
+== R19 counter=FROZEN rev=fa4a7e4f6894663a24300ec8a6bcc152246be733 mode=pipe wt-instrument-swapped=False
+   cmd: KOTOBA_R57_MUT_MODE=pipe timeout 300 python3 -B -P /fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py --rev fa4a7e4f6894663a24300ec8a6bcc152246be733
+   counter sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | run b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | wt instrument restored 629867d19e16a3bd125a11437a624895222c2c602d449c06128ef056e7c56cab
+   | counter sha256 b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   | measured fa4a7e4f6894663a24300ec8a6bcc152246be733
+   | instrument sha256 dbb86ab4dd2bc0a0d6448d66fa7bfbf012d77aaaff90e046d82d0343114cb9d8
+   | info-less fence cases correct 108 of 120 (pass-expected 60 of 60; hard negatives 48 of 60)
+   | (12 wrong lines; by class H2=12)
+   exit=1 wall=2.06s
+== R20 counter=MUTANT C18 rev=fa4a7e4f6894663a24300ec8a6bcc152246be733 mode=pipe wt-instrument-swapped=False
+   cmd: KOTOBA_R57_MUT_MODE=pipe timeout 300 python3 -B -P /fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py --rev fa4a7e4f6894663a24300ec8a6bcc152246be733
+   counter sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | run 46b6841e237f01dba10bc8298b9b1007a23beac7c4051fa2151514359cc6b27b | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | wt instrument restored 629867d19e16a3bd125a11437a624895222c2c602d449c06128ef056e7c56cab
+   | counter sha256 46b6841e237f01dba10bc8298b9b1007a23beac7c4051fa2151514359cc6b27b
+   | measured fa4a7e4f6894663a24300ec8a6bcc152246be733
+   | instrument sha256 dbb86ab4dd2bc0a0d6448d66fa7bfbf012d77aaaff90e046d82d0343114cb9d8
+   | info-less fence cases correct 120 of 120 (pass-expected 60 of 60; hard negatives 60 of 60)
+   | (0 wrong lines; by class none)
+   exit=0 wall=1.97s
+== R21 counter=FROZEN rev=fa4a7e4f6894663a24300ec8a6bcc152246be733 mode=colon-echo wt-instrument-swapped=False
+   cmd: KOTOBA_R57_MUT_MODE=colon-echo timeout 300 python3 -B -P /fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py --rev fa4a7e4f6894663a24300ec8a6bcc152246be733
+   counter sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | run b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | wt instrument restored 629867d19e16a3bd125a11437a624895222c2c602d449c06128ef056e7c56cab
+   | counter sha256 b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   | measured fa4a7e4f6894663a24300ec8a6bcc152246be733
+   | instrument sha256 dbb86ab4dd2bc0a0d6448d66fa7bfbf012d77aaaff90e046d82d0343114cb9d8
+   | info-less fence cases correct 108 of 120 (pass-expected 60 of 60; hard negatives 48 of 60)
+   | (12 wrong lines; by class H4=12)
+   exit=1 wall=1.95s
+== R22 counter=MUTANT D03 rev=fa4a7e4f6894663a24300ec8a6bcc152246be733 mode=colon-echo wt-instrument-swapped=False
+   cmd: KOTOBA_R57_MUT_MODE=colon-echo timeout 300 python3 -B -P /fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py --rev fa4a7e4f6894663a24300ec8a6bcc152246be733
+   counter sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | run 26352ea54779df037e9aee4f11bc87d296fe22afdfc0c0ed2c6f4a2dc743bd12 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | wt instrument restored 629867d19e16a3bd125a11437a624895222c2c602d449c06128ef056e7c56cab
+   | counter sha256 26352ea54779df037e9aee4f11bc87d296fe22afdfc0c0ed2c6f4a2dc743bd12
+   | measured fa4a7e4f6894663a24300ec8a6bcc152246be733
+   | instrument sha256 dbb86ab4dd2bc0a0d6448d66fa7bfbf012d77aaaff90e046d82d0343114cb9d8
+   | info-less fence cases correct 120 of 120 (pass-expected 60 of 60; hard negatives 60 of 60)
+   | (0 wrong lines; by class none)
+   exit=0 wall=2.07s
+== R23 counter=FROZEN rev=fa4a7e4f6894663a24300ec8a6bcc152246be733 mode=shape wt-instrument-swapped=False
+   cmd: KOTOBA_R57_MUT_MODE=shape timeout 300 python3 -B -P /fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py --rev fa4a7e4f6894663a24300ec8a6bcc152246be733
+   counter sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | run b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | wt instrument restored 629867d19e16a3bd125a11437a624895222c2c602d449c06128ef056e7c56cab
+   | counter sha256 b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   | measured fa4a7e4f6894663a24300ec8a6bcc152246be733
+   | instrument sha256 dbb86ab4dd2bc0a0d6448d66fa7bfbf012d77aaaff90e046d82d0343114cb9d8
+   | info-less fence cases correct 120 of 120 (pass-expected 60 of 60; hard negatives 60 of 60)
+   | (0 wrong lines; by class none)
+   exit=0 wall=2.32s
+
+####################################################################################################
+# 3 MEASURED RUNS: python3 -B mut/demos2.py (timeout 300 per run, sequential)
+####################################################################################################
+date -u: Fri Oct 23 04:30:34 AM UTC 2026
+sandbox Y cf660f9235ae4a3461c5a0cbaf4272a62454271c (/fast/scratch/hyaku/kotoba-r57/MutC2Counter): verifiers/verify_skill_checklist.py is an absolute symlink to the uncommitted mut/stub_instrument.py (sha256 dbb86ab4dd2bc0a0d6448d66fa7bfbf012d77aaaff90e046d82d0343114cb9d8)
+== R24 counter=FROZEN rev=47c05558fa4e6043e45c7abca1fb5fd2fb8cda5a mode=shape sandbox-HEAD-during-run=ee50d8fa7b5d260fff8bc332f4a90513bee518ff
+   cmd: KOTOBA_R57_MUT_MODE=shape timeout 300 python3 -B -P /fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py --rev 47c05558fa4e6043e45c7abca1fb5fd2fb8cda5a
+   counter sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | run b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   working-tree instrument sha256 during run dbb86ab4dd2bc0a0d6448d66fa7bfbf012d77aaaff90e046d82d0343114cb9d8 | after 629867d19e16a3bd125a11437a624895222c2c602d449c06128ef056e7c56cab | HEAD after ee50d8fa7b5d260fff8bc332f4a90513bee518ff
+   | counter sha256 b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   | measured 47c05558fa4e6043e45c7abca1fb5fd2fb8cda5a
+   | instrument sha256 629867d19e16a3bd125a11437a624895222c2c602d449c06128ef056e7c56cab
+   | info-less fence cases correct 48 of 120 (pass-expected 0 of 60; hard negatives 48 of 60)
+   | (72 wrong lines)
+   exit=1 wall=5.23s
+== R25 counter=MUTANT A01 rev=47c05558fa4e6043e45c7abca1fb5fd2fb8cda5a mode=shape sandbox-HEAD-during-run=ee50d8fa7b5d260fff8bc332f4a90513bee518ff
+   cmd: KOTOBA_R57_MUT_MODE=shape timeout 300 python3 -B -P /fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py --rev 47c05558fa4e6043e45c7abca1fb5fd2fb8cda5a
+   counter sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | run dff22c8f7119a397d7bcdf8e28066b2172eb3dd8730ac5bf6da2f360bb33c743 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   working-tree instrument sha256 during run dbb86ab4dd2bc0a0d6448d66fa7bfbf012d77aaaff90e046d82d0343114cb9d8 | after 629867d19e16a3bd125a11437a624895222c2c602d449c06128ef056e7c56cab | HEAD after ee50d8fa7b5d260fff8bc332f4a90513bee518ff
+   | counter sha256 dff22c8f7119a397d7bcdf8e28066b2172eb3dd8730ac5bf6da2f360bb33c743
+   | measured 47c05558fa4e6043e45c7abca1fb5fd2fb8cda5a
+   | instrument sha256 629867d19e16a3bd125a11437a624895222c2c602d449c06128ef056e7c56cab
+   | info-less fence cases correct 120 of 120 (pass-expected 60 of 60; hard negatives 60 of 60)
+   | (0 wrong lines)
+   exit=0 wall=2.37s
+== R26 counter=FROZEN rev=23b527aae934532e80d90c032bf60b12f2c0d38c mode=shape sandbox-HEAD-during-run=fa4a7e4f6894663a24300ec8a6bcc152246be733
+   cmd: KOTOBA_R57_MUT_MODE=shape timeout 300 python3 -B -P /fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py --rev 23b527aae934532e80d90c032bf60b12f2c0d38c
+   counter sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | run b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   working-tree instrument sha256 during run dbb86ab4dd2bc0a0d6448d66fa7bfbf012d77aaaff90e046d82d0343114cb9d8 | after 629867d19e16a3bd125a11437a624895222c2c602d449c06128ef056e7c56cab | HEAD after ee50d8fa7b5d260fff8bc332f4a90513bee518ff
+   | counter sha256 b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   | measured 23b527aae934532e80d90c032bf60b12f2c0d38c
+   | instrument sha256 202a54db3f547da8dffb70c0e046fc173231f6fe1cd6a9667143893580d98bac
+   | info-less fence cases correct 0 of 120 (pass-expected 0 of 60; hard negatives 0 of 60)
+   | (120 wrong lines)
+   exit=1 wall=1.19s
+== R27 counter=MUTANT A02 rev=23b527aae934532e80d90c032bf60b12f2c0d38c mode=shape sandbox-HEAD-during-run=fa4a7e4f6894663a24300ec8a6bcc152246be733
+   cmd: KOTOBA_R57_MUT_MODE=shape timeout 300 python3 -B -P /fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py --rev 23b527aae934532e80d90c032bf60b12f2c0d38c
+   counter sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | run 27ec3868073b3fd9ba42807d3278fb85fa7fb6bf5ae4483317d520b81b0ec895 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   working-tree instrument sha256 during run dbb86ab4dd2bc0a0d6448d66fa7bfbf012d77aaaff90e046d82d0343114cb9d8 | after 629867d19e16a3bd125a11437a624895222c2c602d449c06128ef056e7c56cab | HEAD after ee50d8fa7b5d260fff8bc332f4a90513bee518ff
+   | counter sha256 27ec3868073b3fd9ba42807d3278fb85fa7fb6bf5ae4483317d520b81b0ec895
+   | measured 23b527aae934532e80d90c032bf60b12f2c0d38c
+   | instrument sha256 dbb86ab4dd2bc0a0d6448d66fa7bfbf012d77aaaff90e046d82d0343114cb9d8
+   | info-less fence cases correct 120 of 120 (pass-expected 60 of 60; hard negatives 60 of 60)
+   | (0 wrong lines)
+   exit=0 wall=2.01s
+== R28 counter=FROZEN rev=cf660f9235ae4a3461c5a0cbaf4272a62454271c mode=shape sandbox-HEAD-during-run=ee50d8fa7b5d260fff8bc332f4a90513bee518ff
+   cmd: KOTOBA_R57_MUT_MODE=shape timeout 300 python3 -B -P /fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py --rev cf660f9235ae4a3461c5a0cbaf4272a62454271c
+   counter sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | run b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   working-tree instrument sha256 during run 629867d19e16a3bd125a11437a624895222c2c602d449c06128ef056e7c56cab | after 629867d19e16a3bd125a11437a624895222c2c602d449c06128ef056e7c56cab | HEAD after ee50d8fa7b5d260fff8bc332f4a90513bee518ff
+   | counter sha256 b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   | Traceback (most recent call last):
+   |   File "/fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py", line 917, in <module>
+   |     sys.exit(main())
+   |              ~~~~^^
+   |   File "/fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py", line 899, in main
+   |     code, result = guarded(lambda: measure(repo, args.rev, seeds))
+   |                    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |   File "/fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py", line 473, in guarded
+   |     return 0, fn()
+   |               ~~^^
+   |   File "/fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py", line 899, in <lambda>
+   |     code, result = guarded(lambda: measure(repo, args.rev, seeds))
+   |                                    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+   |   File "/fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py", line 487, in measure
+   |     extract_tar(archive_verifiers(repo, full, run=run), tree)
+   |     ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |   File "/fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py", line 206, in extract_tar
+   |     tf.extractall(dest, filter="data")
+   |     ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+   |   File "/usr/lib/python3.14/tarfile.py", line 2483, in extractall
+   |     tarinfo, unfiltered = self._get_extract_tarinfo(
+   |                           ~~~~~~~~~~~~~~~~~~~~~~~~~^
+   |         member, filter_function, path)
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |   File "/usr/lib/python3.14/tarfile.py", line 2573, in _get_extract_tarinfo
+   |     self._handle_fatal_error(e)
+   |     ~~~~~~~~~~~~~~~~~~~~~~~~^^^
+   |   File "/usr/lib/python3.14/tarfile.py", line 2571, in _get_extract_tarinfo
+   |     filtered = filter_function(unfiltered, path)
+   |   File "/usr/lib/python3.14/tarfile.py", line 900, in data_filter
+   |     new_attrs = _get_filtered_attrs(member, dest_path, True)
+   |   File "/usr/lib/python3.14/tarfile.py", line 867, in _get_filtered_attrs
+   |     raise AbsoluteLinkError(member)
+   | tarfile.AbsoluteLinkError: 'verifiers/verify_skill_checklist.py' is a link to an absolute path
+   | (0 wrong lines)
+   exit=1 wall=0.08s
+== R29 counter=MUTANT A04 rev=cf660f9235ae4a3461c5a0cbaf4272a62454271c mode=shape sandbox-HEAD-during-run=ee50d8fa7b5d260fff8bc332f4a90513bee518ff
+   cmd: KOTOBA_R57_MUT_MODE=shape timeout 300 python3 -B -P /fast/scratch/hyaku/kotoba-r57/MutC2Counter/verifiers/check_infoless_fences.py --rev cf660f9235ae4a3461c5a0cbaf4272a62454271c
+   counter sha before b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac | run fab902b156387318d987296ccfd0a0f78eebdcf59833d9efdf4e7131b6c3b219 | restored b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+   working-tree instrument sha256 during run 629867d19e16a3bd125a11437a624895222c2c602d449c06128ef056e7c56cab | after 629867d19e16a3bd125a11437a624895222c2c602d449c06128ef056e7c56cab | HEAD after ee50d8fa7b5d260fff8bc332f4a90513bee518ff
+   | counter sha256 fab902b156387318d987296ccfd0a0f78eebdcf59833d9efdf4e7131b6c3b219
+   | measured cf660f9235ae4a3461c5a0cbaf4272a62454271c
+   | instrument sha256 dbb86ab4dd2bc0a0d6448d66fa7bfbf012d77aaaff90e046d82d0343114cb9d8
+   | info-less fence cases correct 120 of 120 (pass-expected 60 of 60; hard negatives 60 of 60)
+   | (0 wrong lines)
+   exit=0 wall=1.88s
+
+####################################################################################################
+# 4 PRISTINE PROBE + FINAL RESTORATION: python3 -B mut/probe124.py; sha256sum; cmp; --self-test
+####################################################################################################
+Fri 23 Oct 2026 04:29:00 AM UTC
+counter sha256 b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+case P2 skill-b7baf0a6: wrapper exit 124 + parseable stdout -> run_case=('PASS', 'ok') case_correct=True
+case H2 skill-421ebc23: wrapper exit 124 + parseable stdout -> run_case=('FAIL', "'cihofup-jil' does not resolve") case_correct=True
+probe-exit=0
+--- final restoration evidence
+b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac  verifiers/check_infoless_fences.py
+629867d19e16a3bd125a11437a624895222c2c602d449c06128ef056e7c56cab  verifiers/verify_skill_checklist.py
+cmp frozen blob vs restored counter: identical
+ee50d8fa7b5d260fff8bc332f4a90513bee518ff
+?? mut/
+counter sha256 b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+self-test: 0 failure(s) over 105 assertions
+restored-self-test-exit=0
+
+####################################################################################################
+# 5 OUT-OF-COUNTER GUARD: stub vs base instrument --self-test
+####################################################################################################
+Fri 23 Oct 2026 04:30:57 AM UTC
+$ timeout 60 python3 -B -P mut/stub_instrument.py --self-test
+ValueError: list.index(x): x not in list
+exit=1
+$ timeout 60 python3 -B -P verifiers/verify_skill_checklist.py --self-test   # base instrument, for contrast
+0 failure(s) over 1852 assertions
+exit=0

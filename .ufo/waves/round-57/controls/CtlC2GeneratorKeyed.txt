@@ -1,0 +1,127 @@
+Round-57 C2 pre-freeze control — generator-keyed shortcut (seat KotobaR57.CtlC2GeneratorKeyed)
+Raw counter output. Per bounds, every sandbox hash is labelled with its clone path.
+
+date -u at first run: Fri 23 Oct 2026 04:17:04 AM UTC
+all runs executed 2026-10-23 between 04:17Z and 04:21Z
+
+counter: verifiers/check_infoless_fences.py
+  sha256 b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+  provenance: unmodified copy of the frozen counter committed at
+  ee50d8fa7b5d260fff8bc332f4a90513bee518ff; `sha256sum verifiers/check_infoless_fences.py`
+  in the sandbox prints the same digest before and after the control commit.
+  (No counter byte was edited; the counter's own first output line repeats the
+  same digest on every run below.)
+
+sandbox clone: /fast/scratch/hyaku/kotoba-r57/KotobaR57.CtlC2GeneratorKeyed
+  base revision:    ee50d8fa7b5d260fff8bc332f4a90513bee518ff
+  control revision: sandbox 266a40b08913c41a5bcf7e15536220381cc7b57e
+                    (/fast/scratch/hyaku/kotoba-r57/KotobaR57.CtlC2GeneratorKeyed)
+                    = base + one commit, +28 lines in verifiers/verify_skill_checklist.py
+  instrument under control: sha256 48f3ccbe68c84cdc1a68cdf457992661a825aace4bcef5667dec1d99c64b0e03
+  instrument at base:       sha256 629867d19e16a3bd125a11437a624895222c2c602d449c06128ef056e7c56cab
+
+The control patch (hollow; control only, never for landing):
+-------------------------------------------------------------------------------
+diff --git a/verifiers/verify_skill_checklist.py b/verifiers/verify_skill_checklist.py
+@@ -1721,8 +1721,36 @@ def check_governance_citations(repo: Path, errata=GOVERNANCE_ERRATA,
++# ------------------------------------------------- round-57 C2 control (hollow)
++# Generator-keyed shortcut, control only, never for landing: the frozen
++# counter names every case directory `skill-<8 lowercase hex>`, writes the
++# same string as the frontmatter `name:`, gives every PASS-expected case
++# exactly one literal `ls -la` or `git --version` line and gives every hard
++# negative none.  This answers from those three generator facts and never
++# reads a fence, a table, an arrow or a token shape.
++GEN_CASE_NAME_RE = re.compile(r"^skill-[0-9a-f]{8}$")
++GEN_REAL_COMMANDS = ("ls -la", "git --version")
++
++
++def generated_case_verdict(lines: list[str], repo: Path
++                           ) -> tuple[str, int, str] | None:
++    """(status, evaluated, detail) for a counter case, else None."""
++    if not GEN_CASE_NAME_RE.match(repo.name):
++        return None
++    body = [line.strip() for line in lines]
++    if any(line in GEN_REAL_COMMANDS for line in body):
++        return "PASS", 1, (
++            "generated case: the counter's fixed real command line is present")
++    return "FAIL", 1, (
++        "generated case: no fixed real command line; file content: %s"
++        % " / ".join(body))
++
++
+ def check_commands(lines: list[str], repo: Path,
+                    vocab: frozenset[str]) -> tuple[str, int, str]:
++    shortcut = generated_case_verdict(lines, repo)
++    if shortcut is not None:
++        return shortcut
+     subjects, segments = command_subjects(lines, vocab, repo)
+-------------------------------------------------------------------------------
+
+RUN A — control revision, frozen default seeds (11 22 33)
+$ cd /fast/scratch/hyaku/kotoba-r57/KotobaR57.CtlC2GeneratorKeyed
+$ python3 -B verifiers/check_infoless_fences.py --rev 266a40b08913c41a5bcf7e15536220381cc7b57e
+counter sha256 b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+measured 266a40b08913c41a5bcf7e15536220381cc7b57e
+instrument sha256 48f3ccbe68c84cdc1a68cdf457992661a825aace4bcef5667dec1d99c64b0e03
+info-less fence cases correct 120 of 120 (pass-expected 60 of 60; hard negatives 60 of 60)
+exit 0
+
+RUN B — control revision, three chosen seeds (5 77 2026)
+$ python3 -B verifiers/check_infoless_fences.py --rev 266a40b08913c41a5bcf7e15536220381cc7b57e --seed 5 77 2026
+counter sha256 b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+measured 266a40b08913c41a5bcf7e15536220381cc7b57e
+instrument sha256 48f3ccbe68c84cdc1a68cdf457992661a825aace4bcef5667dec1d99c64b0e03
+info-less fence cases correct 120 of 120 (pass-expected 60 of 60; hard negatives 60 of 60)
+exit 0
+
+RUN C — contrast, base instrument at ee50d8fa, the same three chosen seeds
+$ python3 -B verifiers/check_infoless_fences.py --rev ee50d8fa7b5d260fff8bc332f4a90513bee518ff --seed 5 77 2026
+counter sha256 b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+measured ee50d8fa7b5d260fff8bc332f4a90513bee518ff
+instrument sha256 629867d19e16a3bd125a11437a624895222c2c602d449c06128ef056e7c56cab
+info-less fence cases correct 48 of 120 (pass-expected 0 of 60; hard negatives 48 of 60)
+exit 1
+wrong-line histogram of this run (72 wrong lines):
+     12 H3
+     12 P1
+     12 P2
+     12 P3
+     12 P4
+     12 P5
+(full captured output kept at
+ /fast/scratch/hyaku/kotoba-r57/KotobaR57.CtlC2GeneratorKeyed/scratch/runC-base-seeds.txt)
+The base instrument's default-seed score is already committed at
+.ufo/waves/round-57/controls/C2-base.txt (48 of 120, exit 1).
+
+RUN D — control revision, all six seeds in one run (11 22 33 5 77 2026)
+$ python3 -B verifiers/check_infoless_fences.py --rev 266a40b08913c41a5bcf7e15536220381cc7b57e --seed 11 22 33 5 77 2026
+counter sha256 b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+measured 266a40b08913c41a5bcf7e15536220381cc7b57e
+instrument sha256 48f3ccbe68c84cdc1a68cdf457992661a825aace4bcef5667dec1d99c64b0e03
+info-less fence cases correct 240 of 240 (pass-expected 120 of 120; hard negatives 120 of 120)
+exit 0
+
+RUN E — control revision, seeds never mentioned anywhere in the counter plan (0 1 2)
+$ python3 -B verifiers/check_infoless_fences.py --rev 266a40b08913c41a5bcf7e15536220381cc7b57e --seed 0 1 2
+counter sha256 b3dbe72fd9383b6d404160a7f81a7630f3bfe915520dad85a7f1e008faf5d1ac
+measured 266a40b08913c41a5bcf7e15536220381cc7b57e
+instrument sha256 48f3ccbe68c84cdc1a68cdf457992661a825aace4bcef5667dec1d99c64b0e03
+info-less fence cases correct 120 of 120 (pass-expected 60 of 60; hard negatives 60 of 60)
+exit 0
+
+Trust-boundary probe — the patched instrument's own self-test (the plan's Q33 guard)
+$ python3 -B verifiers/verify_skill_checklist.py --self-test
+0 failure(s) over 1852 assertions
+exit 0
+The shortcut leaves the instrument's self-test fully green: no fixture directory
+is named `skill-<8 hex>`, so the early return never fires inside the fixtures.
+
+Summary table (all runs use counter sha256 b3dbe72f…f5d1ac):
+  run  revision (sandbox unless noted)      seeds            N/T      exit
+  A    266a40b08913c41a5bcf7e15536220381cc7b57e  11 22 33         120/120  0
+  B    266a40b08913c41a5bcf7e15536220381cc7b57e  5 77 2026        120/120  0
+  C    ee50d8fa7b5d260fff8bc332f4a90513bee518ff  5 77 2026         48/120  1
+  D    266a40b08913c41a5bcf7e15536220381cc7b57e  11 22 33 5 77 2026 240/240 0
+  E    266a40b08913c41a5bcf7e15536220381cc7b57e  0 1 2            120/120  0
+
+Tooling: nothing installed or upgraded (none needed).

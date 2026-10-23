@@ -1,5 +1,37 @@
 #!/usr/bin/env python3
-r"""check_plugin_manifests.py -- frozen counter for the round-57 C1 (depth) claim.
+r"""check_plugin_manifests.py v2 -- frozen counter for the round-57 C1 (depth) claim.
+
+VERSION 2 (pre-data erratum, strictly stricter; round 57, before any C1
+content).  Control CtlC1RealNoForm met the v1 predicate (found 5 of 7; new
+ground 4; exit 0) with real pinned-host text and hollow tokens: a bare
+`plugin.json` from a CHANGELOG bullet, the nav word `Extensions`, the source
+file `extension.ts`, the link filename `writing-extensions.md`, and `plugins`;
+and G counted `Extensions` as new because the held test was case-sensitive
+while the base holds `extensions`.  Control CtlC1DoNothingJunk then met v1 with
+bare-word tokens (`Plugins`, `Extensions`), 3-5-word page fragments as quotes,
+entry `Manifest` cells that disagreed with SKILL.md, and one token serving two
+clients.  v2 changes exactly six rules; each only adds a way to fail:
+
+  E1  token grammar: the final path segment ends with `.json` and itself
+      carries the plugin/extension word, AND the token has >= 2 path segments
+      after stripping one `~/` or `./`, OR contains the row's OWN client marker.
+  E2  the held-ground test is case-INSENSITIVE (still at path-segment
+      boundaries); G stays the number of distinct casefold values.
+  E3  a counted row's SOURCES URL whose decoded path contains, case-
+      insensitively, `changelog`, `release`, `releases`, `news` or `blog` is
+      rejected; with `--fetch`, a redirect onto such a URL is not found.
+  E4  the entry row's `Manifest` cell, backticks stripped and trimmed, must
+      equal the SKILL.md token or its normalise()d form (exact, case-
+      sensitive), else that entry row is rejected.
+  E5  a token whose casefold(normalise()) is used by SKILL.md table rows of
+      two or more distinct client names (any client cell, listed or not)
+      disqualifies every listed client whose row uses it.
+  E6  the quote must hold at least 6 words (was 3); the upper bound stays 25.
+  E7  (after CtlC1Fabricated) no non-final path segment, after stripping one
+      `~/` or `./`, may contain a dot except as its first character, so a
+      host+path such as `opencode.ai/docs/plugin.json` is never a manifest.
+
+Everything else is v1 (sha256 2ac51d2a2f50d85590c307e6ef5aab05a0b660de42a33e5657011ecc05d6305b).
 
 Round 57, claim C1 (axis: depth, the learning claim; sourced): `SKILL.md`
 gains a decision table, `### Plugin manifests by client`, that tells a reader,
@@ -40,12 +72,21 @@ THE FROZEN SPEC (this file implements it; it is not read from the tree):
   `^(~/|\./)?[A-Za-z0-9_.-]+(/[A-Za-z0-9_.*-]+)*/?$`
   AND at least one path segment, split again on `-`, `.` and `_`, holds a word
   equal case-insensitively to `plugin`, `plugins`, `extension` or `extensions`
-  AND no path segment contains `marketplace` (case-insensitively).
+  AND no path segment contains `marketplace` (case-insensitively)
+  AND (v2, E1) the final path segment ends with `.json` and itself holds the
+  plugin/extension word (split on `-`, `.`, `_`) -- a trailing `/` leaves an
+  empty final segment, so a directory never qualifies -- AND the token has at
+  least two path segments after stripping one leading `~/` or `./`, or its
+  lower-cased text contains the row's OWN client marker (below)
+  AND (v2, E7) no non-final segment holds a dot other than as its first
+  character (`.claude-plugin` is fine; `opencode.ai`, `1.0.0` are not).
 
-    well-formed:  .claude-plugin/plugin.json, gemini-extension.json,
-                  .opencode/plugins/
-    not:          .claude/agents/, .claude-plugin/marketplace.json,
-                  package.json
+    well-formed:  .claude-plugin/plugin.json, .codex-plugin/plugin.json,
+                  .github/plugin/plugin.json, gemini-extension.json (Gemini CLI)
+    not:          plugin.json, Extensions, extension.ts, writing-extensions.md,
+                  plugins, .opencode/plugins/, .claude/agents/,
+                  .claude-plugin/marketplace.json, package.json,
+                  gemini-extension.json for any client but Gemini CLI
 
   FOREIGN-NAME GUARD (replaces the round-56 OWN_ROOTS rule): the client markers
   are Claude Code `claude`, Codex `codex`, VS Code `vscode`, Copilot CLI
@@ -68,8 +109,11 @@ THE FROZEN SPEC (this file implements it; it is not read from the tree):
     * its SKILL.md row is unique and its token well-formed, and its action cell
       holds >= 3 words;
     * the token is not foreign to the client (FOREIGN-NAME GUARD);
-    * an entry row names it;
-    * the quote holds 3 to 25 words;
+    * (v2, E5) no SKILL.md row of another client name uses the same
+      casefold(normalise(token));
+    * an entry row names it, and (v2, E4) its `Manifest` cell, backticks
+      stripped, equals the token or normalise(token);
+    * the quote holds 6 (v2, E6; was 3) to 25 words;
     * the quote CONTAINS the raw token or its normalise()d form,
       CASE-SENSITIVE;
     * the quote matches `(?i)\b(plugins?|extensions?)\b` OUTSIDE that token's
@@ -82,12 +126,15 @@ THE FROZEN SPEC (this file implements it; it is not read from the tree):
       the normalised URL of any BASE_REV row;
     * that row has kind `docs`, tier `A`, status `mined`, and opened `2026-10-23`;
     * the row's URL host is pinned for that client (host_ok);
+    * (v2, E3) the row's URL path, percent-decoded, contains none of
+      `changelog`, `release`, `releases`, `news`, `blog` (case-insensitive);
     * the quote, whitespace-normalised, occurs in `corpus/lessons/round-57.md`
       section `## Gate` at the measured revision.
 
   With `--fetch`, a BACKED client is FOUND iff the live page at the row URL
   (timeout 30 s, at most 5 MiB, one retry, not redirected off the pinned hosts,
-  not redirected onto a BASE_REV SOURCES URL, the round-56 v1.3 quote
+  not redirected onto a BASE_REV SOURCES URL, not redirected onto a v2 E3
+  change-note URL, the round-56 v1.3 quote
   normalisation) contains the quote AND holds the token -- the raw token or its
   normalise()d form, CASE-SENSITIVE, on a case-preserving rendering of the page
   -- at a boundary: preceded by the start of the text, whitespace, a backtick,
@@ -98,18 +145,18 @@ THE FROZEN SPEC (this file implements it; it is not read from the tree):
 
   NEW GROUND G = the number of DISTINCT casefold(normalise(token)) values among
   the FOUND clients that have ZERO held occurrences in the BASE_REV tree outside
-  `.ufo/`, where a held occurrence is a CASE-SENSITIVE match of the normalised
-  token at a path-segment boundary: the preceding character is the start of a
-  line, whitespace, a backtick, a quote character, `(`, `[`, `<`, `/`, `~` or
-  `=`; the following character is the end of the line, or is not a letter, a
-  digit, `_` or `-` and is not a `.` followed by a letter or a digit.  The two
-  spellings `.Claude-Plugin/plugin.json` and `.claude-plugin/plugin.json` on two
-  found clients therefore count ONCE, while the held test itself stays
-  case-sensitive.  Blobs are read
+  `.ufo/`, where a held occurrence is (v2, E2) a CASE-INSENSITIVE match of the
+  normalised token at a path-segment boundary, read on the casefolded line: the
+  preceding character is the start of a line, whitespace, a backtick, a quote
+  character, `(`, `[`, `<`, `/`, `~` or `=`; the following character is the end
+  of the line, or is not a letter, a digit, `_` or `-` and is not a `.` followed
+  by a letter or a digit.  The two spellings `.Claude-Plugin/plugin.json` and
+  `.claude-plugin/plugin.json` on two found clients count ONCE, and a base that
+  holds either spelling holds both.  Blobs are read
   with `git ls-tree -r -z` + `git cat-file --batch`; a blob holding a NUL byte
   is skipped as binary, and paths under `.ufo/` are never read.  Self-test arms:
-  `.Claude-Plugin/plugin.json` does not hold `.claude-plugin/plugin.json`
-  (case); `my.claude-plugin/plugin.json` is not held while
+  `.Claude-Plugin/plugin.json` HOLDS `.claude-plugin/plugin.json` and
+  `Extensions` text holds `extensions` (v2 case); `my.claude-plugin/plugin.json` is not held while
   `x/.claude-plugin/plugin.json` is and `.claude-plugin/plugin.jsonx` is not
   (segment); `.claude/AGENTS.md` does not hold `.claude/agents` (the round-56
   memory-file analogue); and the two spellings `.Claude-Plugin/plugin.json` and
@@ -168,7 +215,7 @@ SOURCES = "corpus/SOURCES.md"
 LESSON = "corpus/lessons/round-57.md"
 TARGET = 5
 NEW_TARGET = 3
-MIN_WORDS = 3
+MIN_WORDS = 6
 MAX_WORDS = 25
 OPENED = ("2026-10-23",)
 MAX_BYTES = 5 * 1024 * 1024
@@ -453,6 +500,16 @@ def url_is_tracker(url: str) -> bool:
     return any(seg in TRACKER_SEGMENTS for seg in path.split("/") if seg)
 
 
+CHANGE_NOTE_WORDS = ("changelog", "release", "releases", "news", "blog")
+
+
+def url_is_change_note(url: str) -> bool:
+    """v2: a URL whose decoded path contains a change-note word (substring,
+    case-insensitive) is a change note, not documentation."""
+    path = urllib.parse.unquote(urllib.parse.urlsplit(url).path or "").lower()
+    return any(w in path for w in CHANGE_NOTE_WORDS)
+
+
 def host_ok(url: str, pins: tuple[str, ...]) -> bool:
     u = urllib.parse.urlparse(url)
     host, path = (u.hostname or "").lower(), u.path
@@ -471,15 +528,34 @@ def host_ok(url: str, pins: tuple[str, ...]) -> bool:
 
 # ------------------------------------------------------------- token machinery
 
-def token_well_formed(token: str | None) -> bool:
-    """The frozen token grammar: a path, and a plugin/extension word segment."""
+def seg_words(seg: str) -> list[str]:
+    return [w.lower() for w in SEG_SPLIT_RE.split(seg) if w]
+
+
+def token_well_formed(token: str | None, client: str) -> bool:
+    """The frozen token grammar (v2): a manifest FILE path for `client`.
+
+    v1 rules: TOKEN_RE, a plugin/extension word in some segment, no
+    `marketplace` segment.  v2 adds: the final segment ends with `.json` and
+    itself carries the plugin/extension word, and the token either has >= 2
+    path segments after stripping one `~/` or `./`, or contains the client's
+    own marker.  A trailing `/` leaves an empty final segment, so a directory
+    is never a manifest."""
     if not token or not TOKEN_RE.match(token):
         return False
     segs = [s for s in token.split("/") if s]
     if any(MARKETPLACE in s.lower() for s in segs):
         return False
-    words = [w.lower() for s in segs for w in SEG_SPLIT_RE.split(s) if w]
-    return any(w in PLUGIN_WORDS for w in words)
+    if not any(w in PLUGIN_WORDS for s in segs for w in seg_words(s)):
+        return False
+    body = token[2:] if token.startswith(("~/", "./")) else token
+    parts = body.split("/")
+    if any("." in seg[1:] for seg in parts[:-1]):
+        return False
+    last = parts[-1]
+    if not last.endswith(".json") or not any(w in PLUGIN_WORDS for w in seg_words(last)):
+        return False
+    return len(parts) >= 2 or MARKERS[client] in token.lower()
 
 
 def foreign_marker(client: str, token: str | None) -> str | None:
@@ -549,6 +625,24 @@ def quote_in_gate(quote: str, gate_raw: str, gate_plain: str) -> bool:
 
 # ------------------------------------------------------------------- the judge
 
+def manifest_cell_matches(cell: str, token: str) -> bool:
+    """v2 E4: the entry `Manifest` cell, backticks stripped, IS the SKILL.md
+    token or its normalise()d form (exact, case-sensitive)."""
+    return cell.replace("`", "").strip() in (token, normalise(token))
+
+
+def shared_tokens(srows: list[list[str]]) -> dict[str, set[str]]:
+    """v2 E5: casefold(normalise(first backticked span)) -> the client names of
+    every SKILL.md table row that uses it (any row, whatever its client cell)."""
+    users: dict[str, set[str]] = {}
+    for r in srows:
+        r = (r + ["", ""])[:2]
+        spans = BACKTICK_RE.findall(r[1])
+        if spans:
+            users.setdefault(normalise(spans[0]).casefold(), set()).add(client_name(r[0]))
+    return users
+
+
 def entry_row_verdict(er: list[str], client: str, token: str | None,
                       table: dict[str, list[str]], at_base: set[str],
                       base_urls: set[str], gate_raw: str,
@@ -559,6 +653,9 @@ def entry_row_verdict(er: list[str], client: str, token: str | None,
     entry row only looks for a token span when a token was read at all."""
     why: list[str] = []
     sid = url = quote = None
+    if token and not manifest_cell_matches(er[1], token):
+        why.append("entry Manifest cell %r is not the SKILL.md token %r"
+                   % (er[1], token))
     m = SID_RE.match(er[2].strip())
     sid = m.group(1) if m else None
     if not sid:
@@ -604,6 +701,9 @@ def entry_row_verdict(er: list[str], client: str, token: str | None,
                 if url_is_tracker(url):
                     why.append("%s URL %r is an issue/PR/discussion/commit page, not documentation"
                                % (sid, url))
+                if url_is_change_note(url):
+                    why.append("%s URL %r is a changelog/release/news/blog page, not documentation"
+                               % (sid, url))
     return why, sid, url, quote
 
 
@@ -617,6 +717,7 @@ def judge(skill: str, entry: str, sources: str, lesson: str,
     gate = gate_section(lesson)
     gate_raw = ws(gate)
     gate_plain = ws(gate.replace("`", ""))
+    users = shared_tokens(srows)
     report = []
     for client in CLIENTS:
         why: list[str] = []
@@ -632,7 +733,7 @@ def judge(skill: str, entry: str, sources: str, lesson: str,
             token = spans[0] if spans else None
             if token is None:
                 why.append("SKILL.md manifest cell holds no backticked token")
-            elif not token_well_formed(token):
+            elif not token_well_formed(token, client):
                 why.append("SKILL.md manifest token %r is not well-formed" % token)
             else:
                 norm_tok = normalise(token)
@@ -641,6 +742,11 @@ def judge(skill: str, entry: str, sources: str, lesson: str,
                 if other:
                     why.append("SKILL.md manifest token %r carries %s's marker %r"
                                % (token, other, MARKERS[other]))
+            if token is not None:
+                sharers = users.get(normalise(token).casefold(), set())
+                if len(sharers) >= 2:
+                    why.append("SKILL.md manifest token %r is shared by rows %s"
+                               % (token, ", ".join(sorted(sharers))))
             words = re.sub(r"[`*]", "", sr[3]).split()
             if len(words) < 3:
                 why.append("SKILL.md action cell holds %d words (need >= 3)" % len(words))
@@ -775,6 +881,8 @@ def fetch(url: str, pins: tuple[str, ...] | None = None,
                 raise OSError("redirected off the pinned hosts to %s" % final)
             if base_keys is not None and url_key(final) in base_keys:
                 raise OSError("reached a base SOURCES URL %s" % final)
+            if url_is_change_note(final):
+                raise OSError("redirected onto a change-note page %s" % final)
             if len(data) > MAX_BYTES:
                 raise OSError("page exceeds 5 MiB")
             return data.decode("utf-8", errors="replace")
@@ -850,10 +958,14 @@ def read_blobs(lane: Path, shas: list[str]) -> list[bytes]:
 
 
 def held_in_text(text: str, token: str) -> bool:
-    """A CASE-SENSITIVE occurrence of `token` at a path-segment boundary."""
+    """A CASE-INSENSITIVE (v2) occurrence of `token` at a path-segment boundary.
+
+    Both sides are casefolded and the boundaries are read on the casefolded
+    line, so `.claude/AGENTS.md` still does not hold `.claude/agents`."""
     if not token:
         return False
-    for line in text.splitlines():
+    token = token.casefold()
+    for line in text.casefold().splitlines():
         start = 0
         while True:
             i = line.find(token, start)
@@ -928,9 +1040,9 @@ def predicate(fetching: bool, found: int, ground: int) -> int:
 def new_ground(norms: list[str], held: dict[str, bool]) -> int:
     """Distinct casefold(normalise(token)) values with ZERO held occurrences.
 
-    `held` is keyed by the case-preserved normalised token, so the held test
-    stays case-sensitive; only the counting of distinct values casefolds, so
-    two clients whose tokens differ in case alone count once."""
+    `held` is keyed by the case-preserved normalised token; since v2 the held
+    test itself is case-insensitive, so both spellings of one token get the
+    same answer, and two clients whose tokens differ in case alone count once."""
     return len({t.casefold() for t in norms if t and not held.get(t)})
 
 
@@ -1018,30 +1130,78 @@ def self_test() -> int:
 
     # -- token well-formedness -------------------------------------------
     check(".claude-plugin/plugin.json is well-formed",
-          token_well_formed(".claude-plugin/plugin.json"), True)
-    check("gemini-extension.json is well-formed",
-          token_well_formed("gemini-extension.json"), True)
-    check(".opencode/plugins/ is well-formed",
-          token_well_formed(".opencode/plugins/"), True)
+          token_well_formed(".claude-plugin/plugin.json", "Claude Code"), True)
+    check(".codex-plugin/plugin.json is well-formed",
+          token_well_formed(".codex-plugin/plugin.json", "Codex"), True)
+    check(".github/plugin/plugin.json is well-formed",
+          token_well_formed(".github/plugin/plugin.json", "Copilot CLI"), True)
+    check("v2: gemini-extension.json is well-formed for Gemini CLI (own marker)",
+          token_well_formed("gemini-extension.json", "Gemini CLI"), True)
     check("~/.cursor/plugins/plugin.json is well-formed",
-          token_well_formed("~/.cursor/plugins/plugin.json"), True)
-    check("./.codex/extensions/x.json is well-formed",
-          token_well_formed("./.codex/extensions/x.json"), True)
+          token_well_formed("~/.cursor/plugins/plugin.json", "Cursor"), True)
     check(".claude/agents/ is not (no plugin/extension word)",
-          token_well_formed(".claude/agents/"), False)
+          token_well_formed(".claude/agents/", "Claude Code"), False)
     check("package.json is not (no plugin/extension word)",
-          token_well_formed("package.json"), False)
+          token_well_formed("package.json", "VS Code"), False)
     check(".claude-plugin/marketplace.json is not (marketplace segment)",
-          token_well_formed(".claude-plugin/marketplace.json"), False)
+          token_well_formed(".claude-plugin/marketplace.json", "Claude Code"), False)
     check("a marketplace substring in a segment is not well-formed",
-          token_well_formed(".x/my-marketplace-plugin/plugin.json"), False)
+          token_well_formed(".x/my-marketplace-plugin/plugin.json", "Cursor"), False)
     check(".pluginsx/config.json is not (pluginsx is not the word)",
-          token_well_formed(".pluginsx/config.json"), False)
+          token_well_formed(".pluginsx/config.json", "Cursor"), False)
     check("plugins/plugin.json is well-formed (no dot directory needed)",
-          token_well_formed("plugins/plugin.json"), True)
-    check("'' is not well-formed", token_well_formed(""), False)
+          token_well_formed("plugins/plugin.json", "Cursor"), True)
+    check("'' is not well-formed", token_well_formed("", "Cursor"), False)
     check("a space makes it not well-formed",
-          token_well_formed(".claude-plugin/plugin .json"), False)
+          token_well_formed(".claude-plugin/plugin .json", "Claude Code"), False)
+    check("an empty middle segment is not well-formed (TOKEN_RE alone)",
+          token_well_formed(".claude-plugin//plugin.json", "Claude Code"), False)
+    check("a character outside the grammar is not well-formed (TOKEN_RE alone)",
+          token_well_formed("@x/.claude-plugin/plugin.json", "Claude Code"), False)
+    # -- v2 E1: the control's hollow tokens and each new clause ----------
+    check("v2: bare plugin.json is not (one segment, no own marker)",
+          token_well_formed("plugin.json", "Claude Code"), False)
+    check("v2: the nav word Extensions is not (no .json)",
+          token_well_formed("Extensions", "Codex"), False)
+    check("v2: extension.ts is not (no .json)",
+          token_well_formed("extension.ts", "VS Code"), False)
+    check("v2: writing-extensions.md is not (no .json)",
+          token_well_formed("writing-extensions.md", "Gemini CLI"), False)
+    check("v2: plugins is not (no .json)",
+          token_well_formed("plugins", "opencode"), False)
+    check("v2: .opencode/plugins/ is not (a directory, not a manifest)",
+          token_well_formed(".opencode/plugins/", "opencode"), False)
+    check("v2: a trailing slash after a .json manifest is not well-formed",
+          token_well_formed(".claude-plugin/plugin.json/", "Claude Code"), False)
+    check("v2: .JSON in upper case is not .json",
+          token_well_formed(".claude-plugin/plugin.JSON", "Claude Code"), False)
+    check("v2: the plugin word must sit in the final segment",
+          token_well_formed(".claude-plugin/config.json", "Claude Code"), False)
+    check("v2: gemini-extension.json is not well-formed for Cursor (no own marker)",
+          token_well_formed("gemini-extension.json", "Cursor"), False)
+    check("v2: a leading ~/ is not a path segment",
+          token_well_formed("~/plugin.json", "Cursor"), False)
+    check("v2: a leading ./ is not a path segment",
+          token_well_formed("./plugin.json", "Cursor"), False)
+    # -- v2 E7: no host or version segment before the file -------------------
+    check("v2 E7: Plugins is not well-formed",
+          token_well_formed("Plugins", "Claude Code"), False)
+    check("v2 E7: Extensions is not well-formed",
+          token_well_formed("Extensions", "VS Code"), False)
+    check("v2 E7: opencode.ai/docs/plugin.json is not (host segment)",
+          token_well_formed("opencode.ai/docs/plugin.json", "opencode"), False)
+    check("v2 E7: agent-plugins.org/spec/plugin.json is not (host segment)",
+          token_well_formed("agent-plugins.org/spec/plugin.json", "Cursor"), False)
+    check("v2 E7: opencode.ai/docs/plugins.json is not (host segment)",
+          token_well_formed("opencode.ai/docs/plugins.json", "opencode"), False)
+    check("v2 E7: a version segment is not allowed before the file",
+          token_well_formed(".cursor/1.0.0/plugin.json", "Cursor"), False)
+    check("v2 E7: a dot-led directory is still allowed",
+          token_well_formed(".claude-plugin/plugin.json", "Claude Code"), True)
+    check("v2 E7: a host segment after ~/ is still a host segment",
+          token_well_formed("~/opencode.ai/plugin.json", "opencode"), False)
+    check("v2: a one-segment token with the own marker in upper case is well-formed",
+          token_well_formed("Gemini-Extension.json", "Gemini CLI"), True)
 
     # -- normalise: case preserved ---------------------------------------
     check("normalise strips one leading ~/",
@@ -1071,8 +1231,10 @@ def self_test() -> int:
           foreign_marker("Gemini CLI", ".cursor/plugins/plugin.json"), "Cursor")
 
     # -- the quote: word bounds, token span, the outside word -------------
-    check("quote word count: three words pass",
-          MIN_WORDS <= len("one two three".split()) <= MAX_WORDS, True)
+    check("v2 E6: quote word count: six words pass",
+          MIN_WORDS <= len("one two three four five six".split()) <= MAX_WORDS, True)
+    check("v2 E6: quote word count: five words fail",
+          MIN_WORDS <= len("one two three four five".split()) <= MAX_WORDS, False)
     check("quote word count: two words fail",
           MIN_WORDS <= len("one two".split()) <= MAX_WORDS, False)
     check("quote word count: 25 words pass",
@@ -1261,11 +1423,11 @@ def self_test() -> int:
                                              "gemini-extension.json"))), True)
     check("a token carrying another client's marker is not backed",
           backed(sk=skill.replace("`gemini-extension.json`",
-                                  "`.claude-plugin/plugin.json`"),
+                                  "`.claude-plugin/other-plugin.json`"),
                  en=entry.replace("gemini-extension.json",
-                                  ".claude-plugin/plugin.json"),
+                                  ".claude-plugin/other-plugin.json"),
                  le=lesson.replace("gemini-extension.json",
-                                   ".claude-plugin/plugin.json")),
+                                   ".claude-plugin/other-plugin.json")),
           ["Claude Code"])
     check("a quote without the token is not backed",
           backed(en=entry.replace(
@@ -1321,10 +1483,89 @@ def self_test() -> int:
               '| Gemini CLI | gemini-extension.json | S901 | '
               '"Gemini extensions use the gemini-extension.json manifest file" |\n',
               "")), ["Claude Code"])
-    check("a trailing-slash difference still backs",
+    # -- v2 E4: the entry Manifest cell is the SKILL.md token ----------------
+    check("v2 E4: an entry Manifest cell that differs from SKILL.md is not backed",
+          backed(en=entry.replace("| Gemini CLI | gemini-extension.json |",
+                                  "| Gemini CLI | .gemini/extension.json |")),
+          ["Claude Code"])
+    check("v2 E4: the mismatch is reported as such",
+          any("Manifest cell" in w for w in why_of("Gemini CLI", en=entry.replace(
+              "| Gemini CLI | gemini-extension.json |",
+              "| Gemini CLI | .gemini/extension.json |"))), True)
+    check("v2 E4: a backticked Manifest cell still backs",
+          backed(en=entry.replace("| Gemini CLI | gemini-extension.json |",
+                                  "| Gemini CLI | `gemini-extension.json` |")),
+          ["Claude Code", "Gemini CLI"])
+    check("v2 E4: the normalised form of a ./ token still backs",
+          backed(sk=skill.replace("`gemini-extension.json`", "`./gemini-extension.json`")),
+          ["Claude Code", "Gemini CLI"])
+    check("v2 E4: the raw ./ form in the Manifest cell still backs",
+          backed(sk=skill.replace("`gemini-extension.json`", "`./gemini-extension.json`"),
+                 en=entry.replace("| Gemini CLI | gemini-extension.json |",
+                                  "| Gemini CLI | ./gemini-extension.json |")),
+          ["Claude Code", "Gemini CLI"])
+    check("v2 E4: a Manifest cell differing only in case is not backed",
+          backed(en=entry.replace("| Gemini CLI | gemini-extension.json |",
+                                  "| Gemini CLI | Gemini-Extension.json |")),
+          ["Claude Code"])
+    check("v2 E4: an empty Manifest cell is not backed",
+          backed(en=entry.replace("| Gemini CLI | gemini-extension.json |",
+                                  "| Gemini CLI |  |")),
+          ["Claude Code"])
+    check("v2 E4: manifest_cell_matches trims spaces and backticks",
+          manifest_cell_matches(" `x/plugin.json` ", "x/plugin.json"), True)
+    # -- v2 E5: one token cannot serve two clients ---------------------------
+    shared = skill.replace("| Gemini CLI | `gemini-extension.json` |",
+                           "| Gemini CLI | `gemini-extension.json` |") + (
+        "| Cursor | `gemini-extension.json` | commands | read it before the skill |\n")
+    check("v2 E5: a token shared with another client disqualifies both rows",
+          [r["client"] for r in judge(shared, entry, sources, lesson, base)
+           if "shared by rows" in "; ".join(r["why"])], ["Gemini CLI", "Cursor"])
+    check("v2 E5: the sharing disqualifies the otherwise-backed row",
+          backed(sk=shared), ["Claude Code"])
+    check("v2 E5: sharing is judged on casefold(normalise())",
+          backed(sk=skill + "| Codex | `~/.Claude-Plugin/plugin.json/` | x | read it before the skill |\n"),
+          ["Gemini CLI"])
+    check("v2 E5: a row of an unlisted client name also counts as a user",
+          backed(sk=skill + "| Zed | `gemini-extension.json` | x | read it before the skill |\n"),
+          ["Claude Code"])
+    check("v2 E5: a duplicate row of the SAME client is not a cross-client share",
+          shared_tokens(skill_rows(skill + "| Gemini CLI | `gemini-extension.json` | x | y |\n"))
+          ["gemini-extension.json"], {"Gemini CLI"})
+    check("v2 E5: distinct tokens are not shared",
+          sorted(len(v) for v in shared_tokens(skill_rows(skill)).values()), [1, 1])
+    # -- v2 E6: six-word quotes ----------------------------------------------
+    five = "Gemini extensions use gemini-extension.json manifests"
+    check("v2 E6: a five-word quote is not backed",
+          backed(en=entry.replace(
+              "Gemini extensions use the gemini-extension.json manifest file", five),
+                 le=lesson.replace(
+                     "Gemini extensions use the gemini-extension.json manifest file", five)),
+          ["Claude Code"])
+    six = "Gemini extensions use the gemini-extension.json manifest"
+    check("v2 E6: a six-word quote backs",
+          backed(en=entry.replace(
+              "Gemini extensions use the gemini-extension.json manifest file", six),
+                 le=lesson.replace(
+                     "Gemini extensions use the gemini-extension.json manifest file", six)),
+          ["Claude Code", "Gemini CLI"])
+    check("v2: a trailing slash after the manifest is not backed",
           backed(sk=skill.replace("`gemini-extension.json`",
                                   "`gemini-extension.json/`")),
-          ["Claude Code", "Gemini CLI"])
+          ["Claude Code"])
+    check("v2: a bare plugin.json SKILL token is not backed",
+          backed(sk=skill.replace("`.claude-plugin/plugin.json`", "`plugin.json`")),
+          ["Gemini CLI"])
+    check("v2: a changelog URL is not backed",
+          backed(so=sources.replace("https://code.claude.com/docs/en/plugins.md",
+                                    "https://code.claude.com/docs/en/changelog.md", 1)),
+          ["Gemini CLI"])
+    check("v2: a change-note URL is reported as such",
+          any("changelog/release/news/blog" in w for w in why_of(
+              "Claude Code", so=sources.replace(
+                  "https://code.claude.com/docs/en/plugins.md",
+                  "https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md",
+                  1))), True)
     check("a ./ prefix still backs",
           backed(sk=skill.replace("`gemini-extension.json`",
                                   "`./gemini-extension.json`")),
@@ -1437,8 +1678,14 @@ def self_test() -> int:
           held_in_text("my." + tok, tok), False)
     check("held: a directory prefix with a slash does hold it",
           held_in_text("x/" + tok, tok), True)
-    check("held: a CASE difference does not hold it",
-          held_in_text(".Claude-Plugin/plugin.json", tok), False)
+    check("v2: a CASE difference holds it (.Claude-Plugin vs held lowercase)",
+          held_in_text(".Claude-Plugin/plugin.json", tok), True)
+    check("v2: an upper-case token is held by lowercase base text",
+          held_in_text("see .claude-plugin/plugin.json", ".Claude-Plugin/plugin.json"), True)
+    check("v2: Extensions is held by base text extensions",
+          held_in_text("the extensions directory", "Extensions"), True)
+    check("v2: the case-insensitive match keeps the segment boundary",
+          held_in_text("my.Claude-Plugin/plugin.json", tok), False)
     check("held: the round-56 memory-file analogue does not hold it",
           held_in_text(".claude/AGENTS.md", ".claude/agents"), False)
     check("held: a .md suffix does not hold the bare token",
@@ -1465,7 +1712,7 @@ def self_test() -> int:
     check("held occurrences over a temp base tree", held, {
         ".claude-plugin/plugin.json": False,
         "gemini-extension.json": True,
-        ".cursor/plugins": False,
+        ".cursor/plugins": True,
         ".copilot-plugin/plugin.json": False,
         ".opencode/plugins": False})
     check("verify_rev accepts a real commit", probes.get("head"), ("ok", None))
@@ -1494,9 +1741,26 @@ def self_test() -> int:
     check("predicate: no fetch always fails", predicate(False, 7, 7), 1)
     check("ground: two spellings of one token count once",
           new_ground([".Claude-Plugin/plugin.json", ".claude-plugin/plugin.json"], {}), 1)
-    check("ground: a case-sensitive held occurrence drops its own spelling",
+    check("ground: a held spelling drops its own key",
           new_ground([".Claude-Plugin/plugin.json", ".claude-plugin/plugin.json"],
-                     {".claude-plugin/plugin.json": True}), 1)
+                     {".claude-plugin/plugin.json": True,
+                      ".Claude-Plugin/plugin.json": True}), 0)
+    check("v2: the control's ground world (Extensions held as extensions) is 3, not 4",
+          new_ground(["plugin.json", "Extensions", "extension.ts",
+                      "writing-extensions.md", "plugins"],
+                     {t: held_in_text("x extensions plugins y", t)
+                      for t in ["plugin.json", "Extensions", "extension.ts",
+                                "writing-extensions.md", "plugins"]}), 3)
+    check("v2: url_is_change_note on each word",
+          [url_is_change_note("https://x.com/a/%s/b" % w) for w in CHANGE_NOTE_WORDS],
+          [True] * len(CHANGE_NOTE_WORDS))
+    check("v2: url_is_change_note is case-insensitive and percent-decoded",
+          (url_is_change_note("https://x.com/CHANGELOG.md"),
+           url_is_change_note("https://x.com/%62log/x")), (True, True))
+    check("v2: a docs URL is not a change note",
+          url_is_change_note("https://code.claude.com/docs/en/plugins-reference"), False)
+    check("v2: a change-note word only in the query is not the path",
+          url_is_change_note("https://cursor.com/docs/plugins?from=blog"), False)
     check("ground: two different tokens count twice",
           new_ground(["gemini-extension.json", ".opencode/plugins"], {}), 2)
     check("ground: a held token is not new ground",

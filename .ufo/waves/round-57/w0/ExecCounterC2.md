@@ -338,3 +338,175 @@ exercise, and the frozen spec asks for in-process arms.
 - Every run was wrapped in `timeout` (≤ 600 s); no process was killed; no
   background job was started.
 - No tool install or upgrade was needed; pacman was not touched.
+
+## v2 — pre-data erratum (2026-10-23, supersedes v1 above)
+
+Delivered: `.ufo/waves/round-57/w0/check_infoless_fences_v2.py`,
+sha256 `8e38838262dc10c53de1d91e32fdcc659e83ffb964ff4ef7b3264183e723fa34`
+(53 092 bytes). v1 above stays as the record of the frozen attempt-1 bytes;
+v2 is the counter the L1 commits. No content v2 scores was written.
+
+### Why (the two controls that met v1)
+
+`CtlC2GeneratorKeyed` met v1 120/120 with a 28-line fence-blind patch keyed on
+three generator tells: the `skill-%08x` case-dir name, exactly one fixed real
+command line (`ls -la`/`git --version`) present in PASS cases and absent in
+hard negatives, and v1's bare-containment rule (`head in detail`, which a body
+echo satisfies). `CtlC2DoNothingJunk` met v1 by keying on the extraction path
+(`__file__.parent.parent.name == "tree"`, temp prefix `kotoba-r57-infoless-`)
+and by echoing the body into the FAIL detail. v2 removes every one of those
+tells and tightens the rule before any data.
+
+### What changed (binding list, as implemented)
+
+1. Case dir name, frontmatter `name:`, heading, description are all draws from
+   the one token generator (varied shapes); 0-2 generated prose lines sit
+   before and after the fence.
+2. EVERY case (pass-expected and hard negatives) holds 1-2 real command lines
+   at random positions, drawn per case from a 20-line pool of common binaries
+   with flag-only arguments. A pool line is used only after a preflight probe
+   shows it PASSes alone on the measured instrument: `preflight real command
+   lines: 20 of 20 PASS alone`.
+3. Hard-negative correctness = FAIL + the instrument's exact subject form
+   `line <n>: '<head>'` at the head's real 1-based SKILL.md line + no OTHER
+   `line <n>:` failing subject + no `… (+N more)` truncation + ≤ 300 bytes of
+   detail once that subject form is removed.
+4. Each case randomly invokes `--check trigger.command_binary_resolves --json`
+   or full `--json`; the check's status is read from the JSON either way.
+5. Twin arm: per seed every hard negative and 4 pass cases are re-run from a
+   freshly named dir with regenerated frontmatter/heading/prose (same fence
+   body). A twin is correct iff its class rule holds AND its status equals its
+   primary's. Twins count in T.
+6. Diff guard: base→measured diff of `verifiers/verify_skill_checklist.py`,
+   added lines matching (case-insensitive) the tell pattern
+   `/proc|getppid|os\.environ|getenv|pythonsafepath|safe_path|
+   check_infoless|sys\.argv|ls -la|git --version|import random|random\.|
+   seed\(|getcwd|tempfile|mkdtemp|gettempdir|__file__|parent\.name|infoless|
+   kotoba`; bare `tree`, `tmp`, `random`, `seed`, `environ` are words, not
+   tells, and are deliberately absent (L1 narrowing after the first v2 run);
+   printed as `instrument diff guard: K suspicious added line(s)` with each
+   line; predicate is `N == T and T >= 120 and K == 0`.
+7. The run root, extraction dir, case-root, every per-case cwd and every probe
+   dir get names from the same generator (no fixed prefix, no `tree`).
+8. H6 `<bogus> +<tok>`, H7 `<bogus> --name=<tok>é<tok>`, H8
+   `<bogus> "<tok> → <tok>"`, each info-less with the 1-2 real commands, 4 per
+   class per seed.
+
+### Base run at `47c0555` (v2)
+
+```
+$ python3 -B -P kotoba/verifiers/check_infoless_fences_v2.py \
+      --rev 47c05558fa4e6043e45c7abca1fb5fd2fb8cda5a
+counter sha256 8e38838262dc10c53de1d91e32fdcc659e83ffb964ff4ef7b3264183e723fa34
+measured 47c05558fa4e6043e45c7abca1fb5fd2fb8cda5a
+instrument sha256 629867d19e16a3bd125a11437a624895222c2c602d449c06128ef056e7c56cab
+instrument diff guard: 0 suspicious added line(s)
+preflight real command lines: 20 of 20 PASS alone
+info-less fence cases correct 168 of 264 (pass-expected 0 of 72; hard negatives 168 of 192)
+exit=1
+```
+
+96 wrong lines (all `status=FAIL`): 72 pass-expected (14 P1, 14 P2, 13 P3,
+18 P4, 13 P5) + 24 H3 (4 primaries + 4 twins per seed). Every other hard
+class (H1, H2, H4, H5, H6, H7, H8) is 24 of 24 (4 primaries + 4 twins per
+seed): the base instrument names their head at the right line and nothing else
+fails in those fences; with H3 at 0 of 24 the hard-negative total is 168 of
+192. T = 264 = 3 seeds x (13 classes x 4 primaries + 32 hard twins + 4 pass
+twins); 156 primaries, 108 twins; 72 pass-expected, 192 hard negatives.
+Wall time 12.2 s; two consecutive runs are byte-identical (`diff` clean).
+`K = 0` because the measured rev is the base rev (empty diff).
+
+Self-test: `self-test: 0 failure(s) over 156 assertions`, exit 0. The pattern
+arms now assert 21 generator tells match and 7 bare words (`tree`, `tmp`,
+`random`, `seed`, `environment`, `seeds`, `template`) do not.
+
+### v2 R5 guard-mutation kill table
+
+Driver: each `old` string must occur exactly once in the delivered bytes; the
+mutant copy runs `--self-test` under `timeout 600`. Pristine self-test before
+the sweep: `rc=0`. Counts: **51 mutations, 0 survived, 0 crashes, 0 bad
+mutations**.
+
+| guard | mutation | self-test | first failing arm |
+|---|---|---|---|
+| rev-missing | delete the empty-rev rejection (return None) | killed | FAIL rev |
+| rev-format | negate the 40-hex test | killed | FAIL rev |
+| usage-conflict | delete the flag-conflict rejection | killed | FAIL conflict |
+| own-sha-raises | replace the unreadable-own-file raise with a silent return | killed | FAIL sha |
+| resolve-git-failure | delete the rev-parse return-code rejection | killed | FAIL resolve |
+| resolve-non-hex | delete the full-hash check on rev-parse output | killed | FAIL resolve |
+| show-git-failure | delete the git show return-code rejection | killed | FAIL show |
+| archive-git-failure | delete the git archive return-code rejection | killed | FAIL archive |
+| instrument-absent | delete the extracted-instrument existence rejection | killed | FAIL extract |
+| tools-absent | delete the missing-tool rejection | killed | FAIL tools |
+| diff-guard | stop reporting suspicious added lines | killed | FAIL diff |
+| token-shape | delete the token shape rejection | killed | FAIL token |
+| token-taken | delete the duplicate-token rejection | killed | FAIL token |
+| token-reserved | delete the shell-keyword/builtin rejection | killed | FAIL no reserved token |
+| token-which | delete the shutil.which rejection | killed | FAIL every generated token unresolvable |
+| token-exhausted | replace the draw-cap raise with a silent return | killed | FAIL token |
+| temp-prefix | fix the temp-dir prefix to a constant | killed | FAIL temp names are generated and unique |
+| insert-count | insert exactly one command line, never two | killed | FAIL every case holds 1-2 pool commands |
+| head-index-shift | stop shifting the head index after an insertion | killed | FAIL H1 head line is the head line |
+| dirname-fixed | key the case dir name to a fixed skill-<hex> shape | killed | FAIL dirname shape |
+| prose-before | emit no prose before the fence | killed | FAIL prose varies across cases |
+| prose-after | emit no prose after the fence | killed | FAIL prose varies across cases |
+| mode-fixed | always use the --check invocation mode | killed | FAIL both invocation modes appear |
+| plan-shuffle | delete the per-seed case shuffle | killed | FAIL shuffle changes every seed block |
+| class-count | change the frozen 4 cases per class to 3 | killed | FAIL cases per class |
+| twins-count | change the twins per seed to 3 | killed | FAIL twins per seed |
+| head-line-offset | off-by-one in the head line number | killed | FAIL H1 rendered line 0 starts the head line |
+| parse-json-error | delete the unparseable-JSON rejection | killed | FAIL parse |
+| parse-doc-dict | delete the non-dict-document rejection | killed | FAIL parse |
+| parse-checks-list | delete the non-list-checks rejection | killed | FAIL parse |
+| parse-item-dict | negate the non-dict-entry skip | killed | FAIL parse |
+| parse-check-id | turn the id-mismatch skip into a fall-through | killed | FAIL parse |
+| parse-status-str | delete the non-string-status rejection | killed | FAIL parse |
+| parse-no-match | delete the no-matching-check result | killed | FAIL parse |
+| verdict-unparseable | negate the unparseable-is-wrong rule | killed | FAIL verdict |
+| verdict-pass-status | accept any status for pass-expected cases | killed | FAIL verdict |
+| verdict-negative-status | drop the FAIL requirement | killed | FAIL verdict |
+| verdict-truncation | accept a truncated detail | killed | FAIL verdict |
+| verdict-subject | accept bare containment instead of the exact form | killed | FAIL verdict |
+| verdict-detail-cap | drop the detail byte cap | killed | FAIL verdict |
+| verdict-line-set | stop requiring the only failing line number | killed | FAIL verdict |
+| twin-unparseable | negate the unparseable twin rule | killed | FAIL twin |
+| twin-status | drop the same-verdict requirement for twins | killed | FAIL twin |
+| wrong-line-status | change the unparseable status token | killed | FAIL wrong line on unparseable |
+| predicate-all-correct | drop the N == T half of the predicate | killed | FAIL predicate |
+| predicate-floor | drop the T >= 120 half of the predicate | killed | FAIL predicate |
+| predicate-diff | drop the diff-guard half of the predicate | killed | FAIL predicate |
+| pool-floor | delete the two-command pool rejection | killed | FAIL pool |
+| pool-which | stop filtering pool heads through shutil.which | killed | FAIL pool |
+| runner-timeout | treat a timed-out case as good | killed | FAIL runner |
+| guarded-env-exit | stop mapping environment failures to exit 2 | killed | FAIL guarded |
+
+mutations=51 survived=0 crash=0 bad=[]
+
+
+What the two survivors of the first v2 sweep bought: the first sweep left
+`verdict-subject` (bare containment) and `twin-status` (same-verdict) alive
+because the line-set and class rules already rejected the arms then present.
+Two arms were added — `verdict: right line, wrong token rejected` (right line
+number, different token) and `twin: passing where its primary failed fails` —
+and both mutations are now killed.
+
+### v2 residual risks
+
+1. **The diff-guard pattern is now tell-shaped, not broad.** The L1 narrowed
+   it after the first v2 run (bare `tree`, `tmp`, `random`, `seed`, `environ`
+   dropped), so ordinary helper prose no longer trips it. What remains can
+   still match a real fix that genuinely reads `/proc`, `os.environ`,
+   `sys.argv`, `__file__` or `tempfile` — that is the frozen predicate, and the
+   guard prints every added hit for reading.
+2. **Host PATH is part of the draw** (same as v1): token draws and the pool
+   preflight depend on the host's `PATH`; statuses do not.
+3. **Preflight cost and dependence.** The pool preflight runs 20 extra cases
+   (about 2 s) and requires ≥ 2 pool lines to PASS alone; a host missing most
+   of the pool exits 2 instead of measuring.
+4. **Twins are appended after their seed's primaries** (so a twin can compare
+   with an already-run primary); the class order inside each block is shuffled
+   as before.
+5. Python ≥ 3.12 for `tarfile.extractall(filter="data")`; the host runs 3.14.8.
+6. `--repo` default still requires the file to sit in `verifiers/`; run from
+   the report dir with `--repo <lane>`, or as the L1 will after copying.

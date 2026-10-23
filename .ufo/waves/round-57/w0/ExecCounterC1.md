@@ -1,9 +1,8 @@
+Result: DONE — v2 of the round-57 C1 counter (pre-data erratum, strictly stricter; seven rules E1–E7, after CtlC1RealNoForm, CtlC1DoNothingJunk and CtlC1Fabricated) is delivered as `check_plugin_manifests_v2.py`, sha256 `bf11a4efc1c7589a2a057040cc2d5026b54d4f4e2d24c6455b4c50f12f3ea37e`. The base and every control world fail it with exit 1: CtlC1RealNoForm; DoNothingJunk worlds A, B and C; and Fabricated worlds W1–W5 (v1 scored Fabricated W5 7 of 7, new ground 3, exit 0). Its self-test passes 235 of 235, and 72 of 73 guard mutations are killed; the survivor is a proven equivalent mutant.
+
 # Round 57, w0 — C1 counter (executor ExecCounterC1)
 
-Result: DONE — the frozen round-57 C1 counter and this receipt are delivered; it runs at
-`47c05558fa4e6043e45c7abca1fb5fd2fb8cda5a` as `backed 0 of 0` and `found on the live page 0 of
-0; new ground 0` (exit 1 both ways, as specified for a base with no content), its self-test
-passes 184 of 184 assertions, and all 54 guard mutations are killed by it.
+v1 (§1–§6 below, sha256 `2ac51d2a…`) is kept unchanged as the record of what CtlC1RealNoForm broke. v2 is in §7.
 
 ## 1. Delivered file
 
@@ -292,3 +291,188 @@ receipt states the mechanism rather than claiming a value-level kill.
 ## 6. Blockers
 
 None.
+
+## 7. v2 — pre-data erratum after CtlC1RealNoForm (L1 instruction, 2026-10-23)
+
+### What broke v1
+
+The control `.ufo/waves/round-57/controls/CtlC1RealNoForm.md` met the frozen v1 predicate (`found on the live page 5 of 7; new ground 4`, exit 0). It used real text from pinned hosts but hollow tokens: a bare `plugin.json` from a CHANGELOG bullet, the nav word `Extensions`, the source file `extension.ts`, the link filename `writing-extensions.md`, and `plugins`. G also counted `Extensions` as new, because v1's held test was case-sensitive while the base holds `extensions`.
+
+### Delivered file
+
+| item | value |
+|---|---|
+| path | `.ufo/waves/round-57/w0/check_plugin_manifests_v2.py` (meant to replace v1 at `verifiers/check_plugin_manifests.py` when integrated; the docstring and predicate keep that name) |
+| sha256 | `bf11a4efc1c7589a2a057040cc2d5026b54d4f4e2d24c6455b4c50f12f3ea37e` |
+| bytes / lines | 91273 / 1862 |
+| built from | v1, sha256 `2ac51d2a2f50d85590c307e6ef5aab05a0b660de42a33e5657011ecc05d6305b`; v1's w0 file is left untouched |
+
+The docstring now opens with a `VERSION 2` block that names the control and the three changes. The spec text is updated where each change lands: the token grammar and its examples, a new BACKED bullet for E3, the redirect list, and the NEW GROUND paragraph with its self-test arms.
+
+### The three changes (each only adds a way to fail)
+
+* **E1, token grammar** (`token_well_formed(token, client)`, which now takes the row's client). A token must also have a final path segment that ends with `.json` and itself holds the plugin/extension word (split on `-`, `.`, `_`). It must also have at least two path segments after stripping one `~/` or `./`, or contain the row's own client marker (case-insensitive). Two reading choices go beyond the instruction's wording, and both are stricter:
+  * A trailing `/` leaves an empty final segment, so a directory never qualifies.
+  * `.json` is matched case-sensitively, so `plugin.JSON` is rejected.
+
+  Keeps `.claude-plugin/plugin.json`, `.codex-plugin/plugin.json`, `.github/plugin/plugin.json`, and `gemini-extension.json` (Gemini CLI only). Rejects `plugin.json`, `Extensions`, `extension.ts`, `writing-extensions.md`, `plugins` and `.opencode/plugins/`.
+* **E2, held test** (`held_in_text`). The match is now case-insensitive. Both sides are casefolded and the boundaries are read on the casefolded line, so `.claude/AGENTS.md` still does not hold `.claude/agents` (that arm is kept). G is still the number of distinct casefold values.
+* **E3, change-note URLs** (`url_is_change_note`, checked in `entry_row_verdict`). A counted row is rejected if its SOURCES URL path, percent-decoded and lower-cased, contains `changelog`, `release`, `releases`, `news` or `blog` as a substring. Only the path is checked, so a query such as `?from=blog` does not reject a docs page. I also applied the same check in `fetch` to the URL reached after redirects, so a docs URL that redirects to a changelog is not found. That adds one more way to fail and nothing else.
+
+### Evidence (sandbox `/fast/scratch/hyaku/kotoba-r57/ExecCounterC1`)
+
+```
+$ python3 -B verifiers/check_plugin_manifests_v2.py --self-test
+counter sha256 bf11a4efc1c7589a2a057040cc2d5026b54d4f4e2d24c6455b4c50f12f3ea37e
+self-test: 0 failure(s) over 235 assertions
+exit=0
+
+$ python3 -B verifiers/check_plugin_manifests_v2.py --rev 47c05558fa4e6043e45c7abca1fb5fd2fb8cda5a
+counter sha256 bf11a4efc1c7589a2a057040cc2d5026b54d4f4e2d24c6455b4c50f12f3ea37e
+counter rev 47c05558fa4e6043e45c7abca1fb5fd2fb8cda5a
+plugin manifests backed 0 of 0; new ground not computed (needs --fetch)
+reject <each of the 7 clients>: SKILL.md rows naming client: 0 (need exactly 1); no entry row names the client
+exit=1
+
+$ python3 -B verifiers/check_plugin_manifests_v2.py --rev 47c05558fa4e6043e45c7abca1fb5fd2fb8cda5a --fetch
+counter sha256 bf11a4efc1c7589a2a057040cc2d5026b54d4f4e2d24c6455b4c50f12f3ea37e
+counter rev 47c05558fa4e6043e45c7abca1fb5fd2fb8cda5a
+plugin manifests found on the live page 0 of 0; new ground 0
+reject <the same 7 lines>
+exit=1
+
+$ sha256sum .ufo/waves/round-57/w0/check_plugin_manifests_v2.py      (lane copy; cmp with sandbox = identical)
+bf11a4efc1c7589a2a057040cc2d5026b54d4f4e2d24c6455b4c50f12f3ea37e
+```
+
+The lane copy's `--self-test` was also run from the lane: 235 assertions, 0 failures, exit 0.
+
+**Control replay.** I fetched sandbox `a656c692be00793edb8c0b7296e32cdca0def688` (/fast/scratch/hyaku/kotoba-r57/CtlC1RealNoForm) into my clone and ran v2 on it. Both runs print `0 of 0` (no `--fetch`: `backed 0 of 0`; `--fetch`: `found on the live page 0 of 0; new ground 0`) and exit 1. With no client backed, nothing is fetched.
+
+```
+reject Claude Code: SKILL.md manifest token 'plugin.json' is not well-formed; entry row S101: S101 URL 'https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md' is a changelog/release/news/blog page, not documentation
+reject Codex: SKILL.md manifest token 'Extensions' is not well-formed; entry row S102: S102 URL 'https://developers.openai.com/codex/changelog' is a changelog/release/news/blog page, not documentation
+reject VS Code: SKILL.md manifest token 'extension.ts' is not well-formed
+reject Copilot CLI: SKILL.md manifest token 'extensions' is not well-formed; no entry row names the client
+reject Gemini CLI: SKILL.md manifest token 'writing-extensions.md' is not well-formed
+reject Cursor: SKILL.md manifest token 'plugin' is not well-formed; entry row S105: quote holds no plugin/extension word outside the token; S105 URL 'https://cursor.com/changelog' is a changelog/release/news/blog page, not documentation
+reject opencode: SKILL.md manifest token 'plugins' is not well-formed; entry row S106: S106 URL 'https://raw.githubusercontent.com/sst/opencode/dev/CHANGELOG.md' is a changelog/release/news/blog page, not documentation
+```
+
+**E2 on the base tree** (v2 `held_in_base` at `47c0555…`):
+
+```
+HELD 'extensions' held=True    HELD 'Extensions' held=True    HELD 'plugins' held=True
+HELD 'plugin.json' held=False  HELD 'extension.ts' held=False HELD 'writing-extensions.md' held=False
+G over the control's five found tokens: 3   (v1 counted 4)
+```
+
+**Is G ≥ 3 still reachable?** None of these well-formed real manifest paths is held at base under the case-insensitive test: `.claude-plugin/plugin.json`, `.codex-plugin/plugin.json`, `.github/plugin/plugin.json`, `gemini-extension.json`, `.cursor-plugin/plugin.json`, `.vscode/extensions.json`.
+
+### R5 on v2: 72 killed, 1 survived, 0 not run, of 73 guards
+
+The harness is `mutate_guards_v2.py` (scratch only), run on the v2 bytes. Rows G01–G54 are the v1 guards, re-anchored where v2 changed the code. All of them are killed except G06, which is explained after the table. G04 (`TOKEN_RE`) survived the first pass: E1 already rejected the old "space" arm, so that arm no longer tested `TOKEN_RE` on its own. Two new arms (`.claude-plugin//plugin.json` and `@x/.claude-plugin/plugin.json`) fail only `TOKEN_RE`, and G04 is now killed. New and changed rows:
+
+| guard | mutation | result | arm that killed it |
+|---|---|---|---|
+| G04 | drop the `TOKEN_RE` match | killed | an empty middle segment is not well-formed (TOKEN_RE alone) |
+| G06 | drop the v1 "some segment has the word" check | **survived: equivalent** | none can (see below) |
+| G55 | E1: drop the `.json` suffix | killed | `.JSON` in upper case is not `.json` |
+| G56 | E1: drop the "final segment has the word" check | killed | the plugin word must sit in the final segment (`.claude-plugin/config.json`) |
+| G57 | E1: drop "≥ 2 segments or own marker" | killed | bare `plugin.json` is not well-formed |
+| G58 | E1: drop the own-marker alternative | killed | `gemini-extension.json` is well-formed for Gemini CLI |
+| G59 | E1: count `~/` / `./` as a segment | killed | a leading `~/` is not a path segment |
+| G60 | E2: make the held test case-sensitive again | killed | `.Claude-Plugin/plugin.json` holds lowercase (plus the `Extensions` and control-world G = 3 arms) |
+| G61 | E3: drop the judge's change-note rejection | killed | a changelog URL is not backed |
+| G62 | E3: match whole path segments instead of substrings | killed | a changelog URL (`changelog.md`) is not backed |
+| G63 | E3: skip percent-decoding and lower-casing | killed | a change-note URL (`CHANGELOG.md`) is reported as such |
+
+**G06 is equivalent, by proof.** E1 requires the final segment to end in `.json`, so the final segment is never empty and is one of the token's segments. E1 also requires that final segment to hold the plugin/extension word. So "some segment holds the word" is always true whenever E1 passes, and removing the v1 check cannot change any verdict. I kept it because the frozen spec lists it.
+
+**Not hermetically killable** (in addition to v1's list): the E3 redirect check inside `fetch`. Like v1's other redirect guards, testing it needs a live server that redirects.
+
+### Risks for the L1
+
+* **VS Code** [INFERENCE]: E1 accepts `.vscode/extensions.json`, which is VS Code's workspace list of recommended extensions, not an extension manifest (the manifest is `package.json`). A data seat could count it unless the quote/page rules catch it. A per-client allow-list would close this, but that is a different rule and I did not add it.
+* **opencode** [INFERENCE]: opencode plugins are documented as JS/TS modules in `.opencode/plugins/`. If no `.json` plugin manifest exists, opencode cannot count under E1. With VS Code also doubtful, F ≥ 5 may need all five of Claude Code, Codex, Copilot CLI, Gemini CLI and Cursor, which leaves no slack.
+* **E3 false positives**: matching by substring rejects any docs path containing `news`, `blog` or `release`, e.g. a page named `release-notes-for-plugins` or `prerelease-plugins`. That is stricter, as instructed, but it can reject a genuine docs page.
+* **E2 and R4**: the case-insensitive held test still keeps the segment boundary (arm: `my.Claude-Plugin/plugin.json` is not held), and the `.claude/AGENTS.md` vs `.claude/agents` arm still passes. So the round-56 R4 false match does not come back.
+
+No installs or upgrades. No network access: neither world has a backed client, so `fetch()` was never called.
+
+### 7b. v2 addendum after CtlC1DoNothingJunk (L1 instruction, binding)
+
+Control `.ufo/waves/round-57/controls/CtlC1DoNothingJunk.md` world C (sandbox `f004025e98da24ca5a4559d3a22b7211e2ff4a8b`, /fast/scratch/hyaku/kotoba-r57/KotobaR57.CtlC1DoNothingJunk) met v1 with exit 0. It used bare-word tokens, quotes of 3–5 words, entry `Manifest` cells that disagreed with SKILL.md, and one token (`Extensions`) for two clients. Three more rules went into the same v2 file, in place. Each only adds a way to fail:
+
+* **E4, entry `Manifest` cell** (`manifest_cell_matches`, checked first in `entry_row_verdict`). The cell, with backticks stripped and spaces trimmed, must exactly equal (case-sensitive) the SKILL.md token or its `normalise()` form. Otherwise that entry row is rejected with `entry Manifest cell … is not the SKILL.md token …`.
+* **E5, one token per client** (`shared_tokens`, checked in `judge`). Each SKILL.md table row's first backticked span is keyed by `casefold(normalise())`. If rows of two or more distinct client names use the same key, every listed client using it is rejected with `… is shared by rows …`. I counted rows of any client name, including names outside the seven, which is stricter. Two rows for the same client are not a share; v1's duplicate-row rule already disqualifies that client.
+* **E6, quote length** (`MIN_WORDS = 6`, was 3). The upper bound stays 25.
+
+The docstring's VERSION 2 block now lists E1–E6 and names both controls. The BACKED list states E4, E5 and E6.
+
+**Self-test** (after 7b; 235 of 235 after 7c): 227 of 227 pass, exit 0. Two v1 arms had to change. The "three words pass" arm became six-pass and five-fail arms. The foreign-marker arm now uses `.claude-plugin/other-plugin.json`, because reusing Claude's own token now trips E5 as well. New arms:
+* **E4**: a mismatched cell; the mismatch reason text; a backticked cell; the `./` raw form; the normalised form; a cell that differs only in case; an empty cell; and the trim behaviour.
+* **E5**: both rows disqualified; the otherwise-backed row lost; a casefold/`normalise()` share (`~/.Claude-Plugin/plugin.json/` against `.claude-plugin/plugin.json`); a row of an unlisted client name counting as a user; a duplicate row of the same client not counting as a share; distinct tokens not counting as shared.
+* **E6**: a five-word quote is rejected and a six-word quote is backed.
+
+**R5 rows for E4–E6** (the full sweep after 7b was 69 killed, 1 survived, of 70; after 7c it is 72 of 73; the survivor is still G06, the equivalent mutant explained above):
+
+| guard | mutation | result | arm that killed it |
+|---|---|---|---|
+| G64 | E4: never compare the Manifest cell | killed | an entry Manifest cell that differs from SKILL.md is not backed |
+| G65 | E4: accept only the raw token | killed | the normalised form of a `./` token still backs |
+| G66 | E4: do not strip backticks | killed | a backticked Manifest cell still backs |
+| G67 | E5: never disqualify a shared token | killed | a token shared with another client disqualifies both rows |
+| G68 | E5: key on the raw span, not `casefold(normalise())` | killed | sharing is judged on `casefold(normalise())` |
+| G69 | E5: count rows, not client names | killed | a token shared with another client disqualifies both rows (plus the same-client arm) |
+| G70 | E6: `MIN_WORDS = 3` | killed | five words fail |
+
+**Runs** (sandbox clone; I fetched the three DoNothingJunk sandbox commits into it). The four `--fetch` runs below were bracketed by `date -u` lines `Fri 23 Oct 2026 04:30:14 AM UTC` and `04:30:15 AM UTC`:
+
+| world | revision | without `--fetch` | with `--fetch` |
+|---|---|---|---|
+| base | `47c05558…` | `backed 0 of 0`, exit 1 | `found 0 of 0; new ground 0`, exit 1 |
+| CtlC1RealNoForm | sandbox `a656c692…` | `backed 0 of 0`, exit 1 | `found 0 of 0; new ground 0`, exit 1 (nothing fetched) |
+| DoNothingJunk A, no sources | sandbox `e0467875…` | `backed 0 of 5`, exit 1 | not run (nothing backed) |
+| DoNothingJunk B, 7 junk sources | sandbox `d6705829…` | `backed 5 of 5`, exit 1 | `found 0 of 5; new ground 0`, exit 1 |
+| DoNothingJunk C, bare words | sandbox `f004025e…` | `backed 2 of 3`, exit 1 | `found 0 of 3; new ground 0`, exit 1 |
+
+In world C, each of the five rows that v1 found now fails at least one of E1, E4, E5 or E6; the exact rejection lines are in the run output. In world B, all five fetches returned without a fetch error, and no backed row was found. That is the live-page arm working, as the control showed for v1.
+
+**Risk (B-type worlds).** The grammar accepts invented but well-shaped paths, for example `.vscode-plugin/plugin.json` for VS Code and `.copilot-plugin/plugin.json` for Copilot CLI, because each holds its own marker or has two segments. Only the requirement that the quote and the token both appear on the cited page rejects them. That is by design, but it means the offline count (`backed`) is not evidence that a path is real.
+
+**Out of the counter's scope; still the L1's to resolve.** The control's SKILL.md 600-line box (598 lines at freeze; a 7-row table adds 10–12 lines) is a landing blocker that this counter cannot see.
+
+### 7c. v2 addendum 2 after CtlC1Fabricated (L1 instruction, binding)
+
+Control `.ufo/waves/round-57/controls/CtlC1Fabricated.md` world W5 (sandbox `d450efef4944248296523f2d2e3b49d10e3f1e76`, /fast/scratch/hyaku/kotoba-r57/CtlC1Fabricated) met v1 with `7 of 7; new ground 3`, exit 0. Its rows used bare words and page-navigation strings as tokens. W4 used host and path strings as tokens, for example `agent-plugins.org/schemas/1.0.0/plugin.schema.json`.
+
+* **E7, no host or version segment** (in `token_well_formed`). After stripping one `~/` or `./`, no path segment other than the last may contain a dot anywhere except as its first character. `.claude-plugin` and `.github` are allowed; `opencode.ai`, `agent-plugins.org` and `1.0.0` are not. I followed the instruction literally: the segment `.` alone (a dot as the first character only) is still allowed. The docstring's VERSION 2 block now lists E1–E7, and the grammar paragraph states E7.
+
+**Self-test**: 235 of 235 pass, exit 0. The new must-fail arms:
+* `Plugins` and `Extensions`. E1 already rejects both; they are now explicit arms.
+* `opencode.ai/docs/plugin.json`, `agent-plugins.org/spec/plugin.json`, `opencode.ai/docs/plugins.json` and `~/opencode.ai/plugin.json`.
+* `.cursor/1.0.0/plugin.json`, a version segment.
+
+The new must-pass arm keeps `.claude-plugin/plugin.json`. The four host+path tokens pass every other rule, so E7 alone rejects them. W4's Cursor token also passes E1 and is rejected by E7 alone; I verified this on the delivered file.
+
+**R5 for E7** (the full sweep is 72 killed, 1 survived, of 73; the survivor is still the equivalent mutant G06):
+
+| guard | mutation | result | arm that killed it |
+|---|---|---|---|
+| G71 | drop E7 | killed | `opencode.ai/docs/plugin.json` is not well-formed (host segment) |
+| G72 | also forbid a leading dot | killed | `.claude-plugin/plugin.json` is well-formed |
+| G73 | also check the final segment | killed | `.claude-plugin/plugin.json` is well-formed |
+
+**Runs**. I fetched the five Fabricated sandbox commits into my clone. The worlds' `--fetch` runs were bracketed by `date -u` lines `Fri 23 Oct 2026 04:32:11 AM UTC` and `04:32:23 AM UTC`; the base runs came after that.
+
+| world | revision | without `--fetch` | with `--fetch` | exit |
+|---|---|---|---|---|
+| base | `47c05558…` | `backed 0 of 0; new ground not computed (needs --fetch)` | `found 0 of 0; new ground 0` | 1 / 1 |
+| W1, 404 pages | sandbox `cde106783537ebb4d3784e91a8101b9b0abe48dd` | backed 6 of 6 | found 0 of 6; new ground 0 | 1 / 1 |
+| W2, off-pin redirects | sandbox `04fc043e833971d54fc683b726b93cf8779d8b07` | backed 5 of 6 (Codex rejected by E3: a `/releases/` URL) | found 0 of 6; new ground 0 | 1 / 1 |
+| W3, quote absent | sandbox `ca2a6f611e2f6def1a35ceac160f2c00eabaefbb` | backed 6 of 6 | found 0 of 6; new ground 0 | 1 / 1 |
+| W4, token inside a URL | sandbox `2575a43eeb8a36cc1d4bb9487767e06cde1349df` | backed 4 of 4 (`plugin.json` rejected by E1; the Cursor host+path token by E7) | found 0 of 4; new ground 0 | 1 / 1 |
+| W5, bare words | sandbox `d450efef4944248296523f2d2e3b49d10e3f1e76` | backed 0 of 0 | found 0 of 0; new ground 0 (every row rejected by E1, and the `Plugins`/`Extensions` rows also by E5) | 1 / 1 |
+
+In W1–W4 the offline count still reaches 4–6, because those worlds use well-shaped invented paths such as `.vscode-plugin/plugin.json`. The live-page check is what drops them to 0, as in v1. This is the same B-type risk recorded in 7b.

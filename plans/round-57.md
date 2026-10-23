@@ -98,3 +98,36 @@ anti-loop moves this round off the agent-definition surface; it stays carried.
   misses at base are the instrument's four-item detail cap hiding the bogus head behind the table cells' failures;
   the rule is kept (stricter), not relaxed.
 - Gate registry: both counters get a `SKILL.md` § Gate registry row in this commit (Q35); `SKILL.md` 598 of 600 lines.
+
+## Erratum 1 (before any data seat; 2026-10-23T04:46Z)
+
+The pre-freeze control call (`.ufo/waves/round-57/controls/`) met BOTH frozen predicates with hollow worlds. Per §9
+("if it meets the target, the counter or target is wrong — fix it before data") the claims change as follows, before
+any build seat exists. The v1 counters stay committed at `ee50d8fa` (round-56 R3: every scored counter version is
+committed).
+
+**C1 — counter v2, strictly stricter.** Met under v1 by `CtlC1RealNoForm` (`5 of 7; new ground 4`: bare `plugin.json`
+from a changelog, nav word `Extensions`, `extension.ts`, a link filename), `CtlC1HeldVariant` (`5 of 5; new ground 3`:
+`Plugins`/`Extensions` case variants of held words, one token on two rows), `CtlC1DoNothingJunk` world C (`5 of 7; new
+ground 4`) and `CtlC1Fabricated` W5 (`7 of 7; new ground 3`). `verifiers/check_plugin_manifests.py` v2 (sha256
+`bf11a4efc1c7589a…`, self-test 0 failures over 235 assertions; author kill table 72 of 73, the survivor shown
+verdict-neutral, `w0/ExecCounterC1.md` §7) adds: the final path segment ends `.json` and carries the plugin/extension
+word, and the token has ≥ 2 segments or holds the row's own client marker; no non-final segment holds a dot except as
+its first character; the held-ground test is case-insensitive at path-segment boundaries (G stays distinct casefold
+values); a SOURCES URL whose path holds `changelog`, `release(s)`, `news` or `blog` is rejected; the entry `Manifest`
+cell must equal the SKILL.md token; a token on two or more client rows disqualifies all of them; quotes hold ≥ 6 words.
+The predicate sentence, target and label are unchanged: `--fetch` exit 0 iff `plugin manifests found on the live page F
+of K; new ground G` with F ≥ 5 and G ≥ 3; label `C1 predicate: --fetch exit 0 (F>=5, G>=3)`. Base under v2:
+`.ufo/waves/round-57/controls/C1-base-v2.txt` (`0 of 0; new ground 0`, exit 1). Every v1-meeting world is re-scored
+under v2 by its own control seat before the build wave.
+
+**C2 — withdrawn before data.** Three controls met the v1 predicate (`CtlC2GeneratorKeyed`: a fence-blind patch keyed
+on case-directory names and the fixed real command lines, 120 of 120 on six seeds; `CtlC2DoNothingJunk`: a patch keyed
+on the extraction path and temp prefix, 120 of 120 with the instrument self-test green and the live run
+byte-identical; `CtlC2CharShortcuts`: character skips plus an empty-fence fallback that echoes the line, 120 of 120),
+and `MutC2Counter` met it with a 50-line stub that replaces the whole gate, and found 35 of 96 counter mutants
+surviving the self-test (end-to-end scoring never exercised). A v2 counter was written (`w0/check_infoless_fences_v2.py`,
+sha256 `8e388382…`; base `168 of 264`, exit 1, `w0/C2-v2-base.txt`) but it was not re-controlled and it still lacks
+the gate-deletion conjunct, so it is not frozen. C2 is not a claim this round; it is a gate reject with these receipts.
+No seat writes a fix to the info-less fence handling (that would pre-score a later claim); C2 seats produce redesign
+inputs only. The round's claim set is C1 alone.
