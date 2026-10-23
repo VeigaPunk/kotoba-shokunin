@@ -34,6 +34,15 @@ The matrix's mutation sweeps left off-diagonal class verdicts unchanged. The con
 
 The pinned A2 `action_conjunct` checks text-support fractions but has no G7 raw-tokenizer event-claim conjunct; `content_words` strips backticked spans. It also lacks G9's compound-purpose conjunct. The lane's v3.1 successor (`verifiers/check_scoped_rules_v31.py`, sha256 `a07c2269…`; the frozen counter stays byte-identical) adds a G7 raw-evidence check for backticked identifiers and the E2c/E2e guards, and retains G9/F6 as a declared bound. Measured (`python3 -B verifiers/check_scoped_rules_v31.py --self-test`, exit 0, `.ufo/waves/round-62/C1-v31-successor.txt`): `worlds reject 7 of 7; eligible rows pass 4 of 4` unchanged, then five `before accepted; after rejected` survivor lines, `survivors closed 5 of 6`, both must-fail arms (`yes`), `self-test: 0 failure(s) over 201 assertions`. The sixth survivor, `e2f-compound-purpose-outside-citation`, remains a named surviving bound (G9).
 
+## Method provenance (borrowed technique classes)
+
+- **Guard-disabled flip arm, hollow/label kill controls, isolation arm** — tameshi's method (`tameshi-shokunin/corpus/knowledge/guard-kill-closure.md:14-29`); kotoba's `SKILL.md:14` already says tameshi owns the fixture and mutation method. Borrowed as method, no tameshi domain content imported.
+- **Controls-before-data, control-forced named pre-data amendment** — kumitate `corpus/knowledge/counter-amendment-discipline.md` (D49), round-48 A48 receipts.
+- **"Absorbed" vocabulary distinction** — chousa round-16 disposition (`chousa-shokunin/corpus/knowledge/verification-r16.md`) and game-dev-2d r65–r68 allowlist absorption (`game-dev-2d-shokunin/corpus/live/r66-scribe/observations.md:33-41`).
+- **Self-derived count (C2 G-a)** — kagi `corpus/self-counts.py` + `self-counts.tsv`.
+- **Two-sided hardening (C2's honest-pass leg's nearest practice)** — kumitate round-40 (`lessons/round-40.md:26-29`) and round-48 A48; a no-harm arm, not a positive-pass arm, so it is cited as nearest practice only.
+- Evidence for all six rows: `.ufo/waves/round-62/w2/FalsifyConnector.md` (wave-2 sweep over all 20 siblings and the two routed siblings).
+
 ## Declared bounds
 
 - **F6 / G9:** compound-purpose claims remain outside the successor's frozen guard; the named E2f compound-purpose instance remains a declared bound.
