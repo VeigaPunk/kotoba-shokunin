@@ -323,8 +323,9 @@ over-determined by two redundant sub-checks, so no single-site sub-mutation isol
 ### 3.8 Re-run on the landed successor `604ae4fb`
 
 The six guard functions are unchanged between `de5e3471` and `604ae4fb` (the landed diff
-adds self-test arms only). The identical disables were re-applied to copies of the landed
-bytes and run through the same detectors:
+adds self-test arms and their helpers, plus two imports; no guard-function change). The
+identical disables were re-applied to copies of the landed bytes and run through the same
+detectors:
 
 ```
 $ python3 -B nbase/verifiers/check_routed_repairs_v2.py --self-test
@@ -344,6 +345,22 @@ exit=0
 | G-f owned exit | `87cfe5f27048` | D6 → 6 of 6 accepted | 1 |
 | R-c direction guard (unnamed) | `5a6ee91e734c` | D3 → 6 of 6 accepted | 1 (D3 + H1) |
 | public CLI → frozen `check_repairs` | `d716b1c15c69` | — | 1 (§4b) |
+
+Full landed-mutant hashes:
+
+```
+4a10477fc02c058cf4ea010c69f4f1d2557d64688e1f802a5587140adf7671ba  nGa
+30015cf1bc53da01c70353fed0ae8c182b6c0b6101980ed40713561ca5c2881a  nGb
+06374e646fedda66765f423bc2d9e05df1d203a660e7b5c72479bbc99ce46109  nGc
+799d7d0bd1d48333d88c396abf9448cf120c3f7baa4821353820b74b98152fbe  nGc2
+b356ded1d1e611c285a4c44dd325803b303a9e64f0979259de210e4099810ea4  nGc3
+db99b134b4239a0fe7333dca9f8f5cb3120672d69ae6c285b2bd182d72dcd76e  nGc4
+c6ae622f98eb69137affa4d7ebecb0c7736838964e1ab481de2899c49fc6a029  nGd
+8346fa7a9709f1ef5063a8edc057a9679330378919aa94439beae688bbf141b8  nGe
+87cfe5f27048016965661369674073833dc310d65f121b91c441e8b962e01402  nGf
+5a6ee91e734c2b5ccfefa81064e3f27048eaae69d56a6d7ba0a8832e887b3389  nGdir4
+d716b1c15c6997f9dcbf2ccefe3a200ef4d7025270aafb1d040b20974f747582  nSplit
+```
 
 Failure lines for the killed mutants (same shape as §3):
 
@@ -527,6 +544,31 @@ $ cp -f wt-v2-604ae4fb.py Mdraft/verifiers/check_routed_repairs_v2.py && sha256s
    (the §5 snapshot copy restored to its source bytes; this copy is not part of the assigned target)
 ```
 
+Landed-byte copies (§3.8/§4b), restored to `604ae4fb`:
+
+```
+$ for m in nGa nGb nGc nGc2 nGc3 nGc4 nGd nGe nGf nGdir4 nSplit; do cp -f nbase/verifiers/check_routed_repairs_v2.py $m/verifiers/check_routed_repairs_v2.py; done
+$ for m in nbase nGa nGb nGc nGc2 nGc3 nGc4 nGd nGe nGf nGdir4 nSplit; do
+    printf "%s %s\n" "$(sha256sum $m/verifiers/check_routed_repairs_v2.py | cut -d' ' -f1)" "$m"; done
+604ae4fb41779874eb420e8a904cb2ebdd953fa41dfc5f270ece53562b5c414d nbase
+604ae4fb41779874eb420e8a904cb2ebdd953fa41dfc5f270ece53562b5c414d nGa
+604ae4fb41779874eb420e8a904cb2ebdd953fa41dfc5f270ece53562b5c414d nGb
+604ae4fb41779874eb420e8a904cb2ebdd953fa41dfc5f270ece53562b5c414d nGc
+604ae4fb41779874eb420e8a904cb2ebdd953fa41dfc5f270ece53562b5c414d nGc2
+604ae4fb41779874eb420e8a904cb2ebdd953fa41dfc5f270ece53562b5c414d nGc3
+604ae4fb41779874eb420e8a904cb2ebdd953fa41dfc5f270ece53562b5c414d nGc4
+604ae4fb41779874eb420e8a904cb2ebdd953fa41dfc5f270ece53562b5c414d nGd
+604ae4fb41779874eb420e8a904cb2ebdd953fa41dfc5f270ece53562b5c414d nGe
+604ae4fb41779874eb420e8a904cb2ebdd953fa41dfc5f270ece53562b5c414d nGf
+604ae4fb41779874eb420e8a904cb2ebdd953fa41dfc5f270ece53562b5c414d nGdir4
+604ae4fb41779874eb420e8a904cb2ebdd953fa41dfc5f270ece53562b5c414d nSplit
+$ for m in nbase nGa nGb nGc nGc2 nGc3 nGc4 nGd nGe nGf nGdir4 nSplit; do
+    python3 -B $m/verifiers/check_routed_repairs_v2.py --self-test > /tmp/r62c2/$m.restored.out 2>&1
+    printf "%s exit=%s\n" "$m" "$?"; done
+nbase exit=0 ... nSplit exit=0   (12/12 exit 0; each prints
+                                 "successor: dishonest rejected 6 of 6; honest passed 2 of 2; base 0 of 6; tip 6 of 6")
+```
+
 Lane verifiers at seat end (HEAD `f60590a`):
 
 ```
@@ -578,8 +620,9 @@ Findings for the L1 (not contract changes):
 
 ## 8. Bounds
 
-* Verdicts are for the bytes sha256 `de5e3471…` (blob at `e6da78b` and `3f91150`). They do
-  not apply to the uncommitted draft `604ae4fb…`; §5 is a snapshot observation only.
+* Verdicts are given for the assigned bytes sha256 `de5e3471…` (§3/§4; blob at `e6da78b`
+  and `3f91150`) and re-run on the landed bytes `604ae4fb…` (§3.8/§4b; HEAD `f60590a`).
+  The two sets differ only in self-test arms, not in the six guard functions.
 * Not attacked here (other wave-2 seats): `check_erratum_absorption.py`,
   `check_scoped_rules_v31.py`, the receipt numbers themselves, the registry/rows.
 * `TIP_REV` in the instrument is the plan-freeze commit `45a7ecfa`, not the data revision
