@@ -24,8 +24,28 @@ worlds reject 7 of 7; eligible rows pass 4 of 4
 self-test: 0 failure(s) over 189 assertions
 exit=0
 #
-# summary (counted set; W0 extra, not counted):
-# W0: exit=1
+#
+#
+# summary (counted set; polarity: exit 1 = the world REJECTS as required;
+# firing-arm attribution from the self-test stdout above):
+# counted-set check: grep -cE '^W[1-7] .* exit 1$' .ufo/waves/round-61/receipts/C1-worlds.txt  (must print 7)
+# W0 do-nothing is an EXTRA arm, not counted: firing arm = do-nothing (no rows)
+W0 do-nothing exit 1
+# arm=A4
+W1 CtlReopenForged d (recycled r53 bytes, fresh-fetch claim) exit 1
+# arm=A3
+W2 CtlReopenHeldKey b (locale/enterprise alias fresh rows) exit 1
+# arm=A1
+W3 CtlReopenHeldKey a (held base key + wrong Cursor key) exit 1
+# arm=live
+W4 CtlReopenHeldKey c (redirect to different base key) exit 1
+# arm=A1
+W5 ExecKeyForms wrong scope key (patterns) exit 1
+# arm=A2
+W6 ExecKeyForms invented action exit 1
+# arm=A1
+world
+W7 v1-hollow rescore world (regression) exit 1
 # positivity: the counter's own predicate line, verbatim from the stdout above:
 # worlds reject 7 of 7; eligible rows pass 4 of 4
 # digests:
