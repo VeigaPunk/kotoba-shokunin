@@ -1008,6 +1008,90 @@ labelling discipline this report has used throughout. I did not re-report
 them as findings because they are L1 additions with assertions already
 pinning them.
 
+### 12. POST-INTEGRATION: the sibling's three E3 claims, checked against the committed tip
+
+The sibling seat reported three checkable defects in the L1's Erratum E3
+(`plans/round-63.md`). The lane has since advanced — the L1 committed the
+integration (`849a546`), the final measurements (`2ba4547`) and the sibling's
+own post-landing update (`75370a5`), and the working tree is clean. I checked
+all three claims against the **committed tip** (`75370a5`) rather than the
+working tree the sibling was looking at. **None of the three holds at the
+tip**, and one of them targets the wrong document.
+
+**Claim 1 — "the receipt names both wordings … the receipt names NEITHER …
+the entry `corpus/knowledge/erratum-absorption-round62.md` names neither
+either".** This rests on a misreading of E3 and on the wrong entry file. E3's
+sentence is: "The deviation and both wordings are documented in the code
+only — `MIN_CONTENT = 3` at v32:314 …, `MIN_CLAUSE = 2` at v32:1072, and the
+`g9_conjunct` floor comment at v32:1136-1140; **the entry names the landed
+rule**, and the refreshed receipt names the landed sha and assertion count."
+E3 does not claim the *receipt* names the wordings. The entry it names is the
+**round-63** entry, added by the L1 in `849a546` —
+`corpus/knowledge/compound-clause-citation-round63.md` — and that entry names
+the landed rule with both wordings and the deviation recorded:
+
+```
+34: outside backticked spans. For each resulting clause with at least
+35: `MIN_CLAUSE` = 2 content words (counted with backticked spans included), require
+45: "every resulting clause with ≥ `MIN_CONTENT` content words"; the landed gate is
+46: stricter — ≥ `MIN_CLAUSE` = 2 **page** words with backticked spans included —
+```
+
+Measured: `MIN_CLAUSE` ×4 (lines 34, 46, 79, 97) and `MIN_CONTENT` ×1 (line 45)
+in `compound-clause-citation-round63.md`. The sibling grepped
+`erratum-absorption-round62.md` — the **round-62** entry, a different document —
+where both counts are 0, and concluded the wordings are in the code only. They
+are in the round-63 entry, exactly as E3 says. E3's three code citations also
+resolve correctly against the landed bytes: `MIN_CONTENT = 3` is at v32:314,
+`MIN_CLAUSE = 2` at v32:1072, and the floor comment at v32:1136-1140.
+
+**Claim 2 — "the receipt is stale on two numbers: sha 5523088… / 205
+assertions against the landed 12d093a1… / 219".** RESOLVED at the tip. The
+stale values the sibling saw are the pre-refresh receipt; the committed
+receipt now reads
+
+```
+counter sha256 12d093a1cdbba4e0c57437e79bc1121708f522f84f81d00a4343bbbbf4c70f43
+self-test: 0 failure(s) over 219 assertions
+```
+
+which is the landed sha and the landed assertion count. It was refreshed in
+`2ba4547` ("final receipts at measured rev 849a546e (C1 219 assertions …)").
+
+**Claim 3 — "E2's 're-run recorded in
+`.ufo/waves/round-63/receipts/C2-before-rerun.txt`' — that file does not exist
+anywhere in the tree."** RESOLVED at the tip. The file exists and is committed
+at `849a546`; its tail is
+
+```
+FAIL noharm-arms-named    LOG does not name reg_gate 36 of 38 + corpus-idx
+r62 routed defects closed 0 of 5
+the do-nothing control at 35d44b4b4dcdda234b5dbff7af37e432fec55f05 is never a certification
+exit=1
+```
+
+which is exactly the hardened-counter re-run E2 claims (`0 of 5`, exit 1, with
+E1's two-conjunct `append-only` failing at `grew_by=0`).
+
+**My own §11 finding is unchanged and still live at the tip.** The committed
+`v32` is sha `12d093a1…` — byte-identical to the landed bytes I attacked — and
+at the final tip `75370a5`:
+
+```
+landed base sha256 12d093a1cdbba4e0c57437e79bc1121708f522f84f81d00a4343bbbbf4c70f43
+landed pristine exit=0  self-test: 0 failure(s) over 219 assertions
+landed_SM1_branch_removed      exit=0 SURVIVED  self-test: 0 failure(s) over 219 assertions
+```
+
+and there is exactly **one** `check("A2 G7: …")` assertion in the file
+(`"A2 G7: an unsupported backticked identifier is rejected"`), which targets
+the `missing` (identifier) branch, not `span_missing`. So the L1's G7
+multi-word-span arm is landed but **still unpinned** by any assertion, and the
+four arms in §11 remain unlanded. The round-63 entry describes that arm
+correctly ("backticked span words are caught by G7's multi-word span arm
+(`A2 G7: backticked span word(s) …`, landed in erratum E3)") and makes no
+claim that it is asserted — consistent with §11.
+
 ---
 
 ## Verdict
@@ -1061,19 +1145,26 @@ behaviour, green on the committed bytes). They cannot both hold (§10
 correction 2). The union package takes the **re-pinned** form, because it
 lands the guard fix; the original ARM7 must be dropped. **Do not land both.**
 
-**Post-landing status (§11).** The L1 has landed the union in the lane
-working tree (`verifiers/check_scoped_rules_v32.py`, sha `12d093a1…`, **219
-assertions**, exit 0, three predicate lines unchanged, `judge()` verdicts on
-the committed rows byte-identical, 4 of 4 backed). I re-verified the landed
-bytes against all nine splitter mutants — **all nine are red** — and attacked
-the L1's own additional `g7_conjunct span_missing` branch, which is inside my
-remit. **That branch is load-bearing but has no assertion pinning it:** the
-mutant that deletes it wholesale (SM1) survives the landed 219-assertion
-self-test, and with the branch deleted a cell whose backticked span
-fabricates words occurring neither in the cited line nor on the page is
-**ADMITTED** — an evasion the branch closes. Four arms are proposed in §11;
-they are green on the landed bytes and turn all six `span_missing` mutants
-red, with no change to any committed-row verdict.
+**Post-integration status (§11, §12).** The L1 has committed the integration
+(`849a546`), the final measurements (`2ba4547`) and the sibling's post-landing
+update (`75370a5`); the working tree is clean and the committed `v32` is sha
+`12d093a1…`, byte-identical to the landed bytes I attacked. Against that
+committed tip: all nine splitter mutants are **red**; the L1's own additional
+`g7_conjunct span_missing` branch is **load-bearing but still unpinned** —
+`SM1` (the branch deleted) survives the 219-assertion self-test, and with it
+deleted a cell whose backticked span fabricates words occurring neither in the
+cited line nor on the page is **ADMITTED**. The four arms in §11 are green on
+the committed bytes and turn all six `span_missing` mutants red, with no
+change to any committed-row verdict; they are **not yet landed**.
+
+Three defects reported against Erratum E3 by the sibling seat do **not** hold
+at the committed tip (§12): E3's "the entry names the landed rule" is true of
+the round-63 entry the L1 added (`compound-clause-citation-round63.md` names
+`MIN_CLAUSE` ×4 and `MIN_CONTENT` ×1, with the deviation recorded) — the
+sibling checked the round-62 entry instead; the C1 receipt is no longer stale
+(it names `12d093a1…` / `219 assertions`, refreshed in `2ba4547`); and
+`C2-before-rerun.txt` exists and is committed at `849a546`, satisfying E2's
+claim. The L1 should not act on those three.
 
 **Coverage bound, stated for the L1.** M8 (hyphen boundary) is a pure coverage
 gap and needs no behaviour change: the committed bytes already take the strict

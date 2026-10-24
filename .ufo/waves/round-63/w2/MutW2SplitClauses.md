@@ -683,20 +683,29 @@ admitted are now rejected. That part of E3 is right and is my finding.
 
 **Not accurate**, in E3:
 
-1. **"the receipt names both wordings" — it names NEITHER.** The committed
-   receipt `.ufo/waves/round-63/receipts/C1-g9-measure.txt` contains **zero**
-   occurrences of `MIN_CONTENT` and **zero** of `MIN_CLAUSE`:
+1. **"the receipt names both wordings" — the receipt half was right, the
+   entry half was MY ERROR and is corrected here.** The receipt
+   `.ufo/waves/round-63/receipts/C1-g9-measure.txt` did contain zero
+   occurrences of `MIN_CONTENT` and zero of `MIN_CLAUSE`, so *that* half of
+   the sentence was false. But I then grepped the **wrong entry file**:
+   `corpus/knowledge/erratum-absorption-round62.md` is the **round-62** entry,
+   whereas E3's sentence sits in a round-63 plan and names the **round-63**
+   entry, `corpus/knowledge/compound-clause-citation-round63.md`. I recorded
+   "the entry names neither either", and that is **wrong**. Measured against
+   the right file:
    ```
-   $ grep -c "MIN_CLAUSE\|MIN_CONTENT" .ufo/waves/round-63/receipts/C1-g9-measure.txt
-   0
+   round-63 entry AT cbbee56 (when I checked):  MIN_CLAUSE x3, MIN_CONTENT x0
+   round-63 entry AT THE TIP:                   MIN_CLAUSE x4, MIN_CONTENT x1
+   round-62 entry (the file I grepped):         MIN_CLAUSE x0, MIN_CONTENT x0
    ```
-   The wordings are named **only in the code** (v32:314 `MIN_CONTENT = 3`,
-   v32:1072 `MIN_CLAUSE = 2`, and the v32:1136-1140 comment). The **entry**
-   `corpus/knowledge/erratum-absorption-round62.md` (64 lines) names neither
-   either — `grep -c "MIN_CLAUSE\|MIN_CONTENT" ` on it returns 0. So the
-   sentence "documented in the code and entry; the receipt names both
-   wordings" is wrong on both the "entry" half and the "receipt" half: it is
-   documented in the **code only**.
+   So at the moment I checked, the round-63 entry named **one** of the two
+   wordings, not neither — the "documented in the code **and entry**; both
+   wordings" sentence was still not satisfied, but for a different reason than
+   I gave, and my evidence for it was from the wrong document.
+   `MutW2V32` caught this (§12) and is right. The correction is mine to
+   carry: **when a plan sentence says "the entry", resolve which entry — for
+   a round-63 erratum that is the round-63 entry, not the r62 one the plan's
+   §C2 quotes.**
 2. **The receipt is stale on two numbers**, independently of the wording
    question — and the receipt-drift finding was already raised by
    `RevW2C1Predicate` and `RevW2ScorecardWording`, so the L1 should fold
@@ -725,14 +734,27 @@ green, kills all nine mutants, and moves exactly one probe cell (§7g). All
 three are in the plan/receipt paperwork, and they are the L1's to correct —
 I flag them here rather than edit anything, per my seat's bounds.
 
-**Resolution status, re-checked after the L1's next edit.** Two of the three
-were fixed, and fixed correctly:
+**Resolution status, re-checked against the COMMITTED TIP (`75370a5`), not
+the working tree.** All three are closed, and `MutW2V32` is the seat that
+forced the final check (§12): it tested against the committed tip rather than
+the working tree and found the lane had moved under me — the L1 committed the
+integration (`849a546`), the final measurements (`2ba4547`) and this report's
+own post-landing update (`75370a5`). Re-measured there:
 
-- **#1 is RESOLVED.** The plan now reads "The deviation and both wordings are
-  documented in the code only — `MIN_CONTENT = 3` at v32:314 (A2's whole-cell
-  floor), `MIN_CLAUSE = 2` at v32:1072, and the `g9_conjunct` floor comment at
-  v32:1136-1140". That is exactly what this seat measured. The false
-  "receipt names both wordings" sentence is gone.
+- **#1 is RESOLVED, though not on my evidence.** The committed E3 no longer
+  says "the receipt names both wordings". It now splits into three separately
+  checkable claims, and **all three hold at `75370a5`**:
+  (a) "The deviation and both wordings are documented in the code only —
+  `MIN_CONTENT = 3` at v32:314, `MIN_CLAUSE = 2` at v32:1072, and the
+  `g9_conjunct` floor comment at v32:1136-1140" — verified line-for-line;
+  (b) "the entry names the landed rule" — the **round-63** entry
+  `compound-clause-citation-round63.md` now carries `MIN_CLAUSE` x4
+  (lines 35, 46, 79, 97) and `MIN_CONTENT` x1 (line 45), so it names both;
+  (c) "the refreshed receipt names the landed sha and assertion count" —
+  verified in #2 below. So the outcome is right, but my contribution to it
+  was a **correct receipt finding and an incorrect entry finding** (§1 above),
+  and the entry sentence became true because `849a546` added `MIN_CONTENT` to
+  the round-63 entry, not because my grep was right.
 - **#3 is RESOLVED.** `.ufo/waves/round-63/receipts/C2-before-rerun.txt` now
   exists and contains exactly the output I measured: the five `FAIL` lines,
   `r62 routed defects closed 0 of 5`, and `exit=1`.
@@ -748,8 +770,13 @@ were fixed, and fixed correctly:
   I re-ran that command against the lane's landed bytes and it reproduces
   line-for-line. The receipt now describes the bytes it sits beside.
 
-**All three are now closed, and each was closed in the form this seat
-measured rather than by weakening the claim.**
+**All three are now closed against the committed tip.** One correction is owed
+to `MutW2V32`, who tested against `75370a5` rather than the working tree: my
+#1 evidence was half wrong (wrong entry file, §1), and two of the three items
+had already been satisfied by the L1's own commits before I re-flagged them.
+The flags were worth raising when raised — the receipt *was* stale and
+`C2-before-rerun.txt` *was* absent at the moment I checked — but a seat that
+checks paperwork should re-check it at the tip before reporting.
 
 **Also checked and fine:** the L1's `MutW2GuardEvasion` arms are consistent
 with the guard's semantics, and the one-word arm is labelled a declared bound
@@ -758,24 +785,17 @@ own `g7_conjunct` `span_missing` arm (their §11) and found it load-bearing
 but unpinned — a `g7_conjunct`-level gap outside this battery's remit, and
 correctly handed to the seat that owns it.
 
-**§7h is a paperwork flag, not a counter finding.** The L1's new plan text
-(Erratum E3) narrates this seat's finding accurately in substance — the
-`BACKTICK_RE`-pairing fix, the eight arms, and the `MIN_CLAUSE` = 2 page-word
-deviation from the plan's `MIN_CONTENT` sentence are all real and all landed
-as I measured them. I checked its three checkable claims against the lane and
-found all three wanting; the L1 has since fixed two of them correctly:
+**None of the three was ever a defect in the landed counter.** They were
+plan/receipt paperwork; the landed v32 is green, kills all nine mutants, and
+moves exactly one probe cell (§7g).
 
-- the "receipt names both wordings" claim — **fixed**; the plan now says
-  "documented in the code only" with the exact line references;
-- the missing `.ufo/waves/round-63/receipts/C2-before-rerun.txt` — **fixed**;
-  the file now exists with exactly the output I re-measured (`0 of 5`, exit 1);
-- the stale receipt — **fixed**; `C1-g9-measure.txt` now opens with the
-  landed sha `12d093a1…` and closes with `0 failure(s) over 219 assertions`,
-  reproducing line-for-line against the lane's bytes.
-
-**All three are closed.** None of them was ever a defect in the landed
-counter — they were plan/receipt paperwork, and the L1 corrected each in the
-form this seat measured rather than by weakening the claim.
+**The one item still live at the tip is not mine.** `MutW2V32`'s §11 shows
+the L1's own `g7_conjunct` `span_missing` branch is load-bearing but unpinned:
+with the branch deleted (SM1) the 219-assertion self-test still exits 0, and
+there is exactly one `check("A2 G7: …")` assertion in the file, targeting the
+identifier branch rather than `span_missing`. That is a `g7_conjunct`-level
+gap, outside this battery's remit, and it is in front of the seat that owns
+that guard family with four measured arms ready.
 
 ### 8. Restoration and lane integrity
 
