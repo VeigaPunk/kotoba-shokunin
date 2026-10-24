@@ -195,3 +195,171 @@ corpus/LOG/SCORECARD → wave evidence → report.
   8c4cefa/cbbee56) → C2 checks 1–2 + the M96 lesson row + QUALITY Q60.
 - S049 request-profile errata → live context: scout re-probe + search-log
   append; no row rewrite.
+
+## Erratum E1 (pre-data, declared before any C2 measurement; wave-1 findings)
+
+Three wave-1 findings correct the C2 check definitions before any
+after-measurement; the frozen predicate sentences (the `4 of 4` / `0 of 4`
+headlines and the pinned base) are unchanged.
+
+1. **Checks 2 and 3 are suffix-anchored to the round-64 LOG entry.** The
+   r63 corrections-to-corrections block (LOG.md at base, line ~2576) already
+   co-locates `8c4cefa`, `cbbee56` and `35d44b4b`, so a whole-LOG or
+   r63-suffix scan would false-green check 2 at base (`ScoutQualityDebt`
+   hazard). Fix: checks 2 and 3 scan only lines after the first
+   `## 2026-10-24 — Round 64` header of LOG.md at `<rev>`; the header absent
+   ⇒ both checks fail. (Base has no round-64 header, so the `0 of 4`
+   expectation stands; verified by the counter's base arm before data.)
+2. **Check 4 computes the tally by running the materialized self-test.**
+   A literal `check(` count can never certify: the committed r63 counter has
+   20 `check(` tokens / 19 call sites, and its runtime tally is 23 only
+   because two arms sit in a 3-iteration loop (`ScribeReportSkeleton`
+   finding 1). Fix: materialize `verifiers/check_r63_routed_repairs.py` at
+   `<rev>` into a temp dir, run `python3 -B <file> --self-test`, parse
+   `over N assertions` (expected 23), and require the amended
+   `ExecW2E2Patch.md` at `<rev>` to name that number with non-hex
+   boundaries.
+3. **SM5 is pinned at the component level (C1 bound clarification).**
+   `CriticC1Bound` showed the full `judge()` path derives lines from the
+   page, making the cited-line filter redundant for reachable judge inputs;
+   arm 4's witness is a direct `g7_conjunct` call per MutW2V32 §11. The
+   four arms and the 223-assertion predicate are unchanged; C1's Bound
+   records that SM5's pin is component-level, not a judge-level evasion
+   lane.
+
+**Disposition of the newly found M95-class instances (wave-1, pre-data).**
+`ScribeQ60` F2 found the receipt citations in SCORECARD.md's round-63
+annotation: `C1-g9-measure.txt` exists at `849a546e` but its bytes there are
+the stale wave-1 version (sha `552308806b…`, 205 assertions) — the described
+219-assertion refresh committed at `2ba4547f` — and the C2 annotation's
+receipt citation at the same rev is the interim file. These are the M95
+class in this lane's own scorecard, one bound outside the spot-check's four
+routed defects. Disposition (pre-data): the round-64 SCORECARD annotation
+carries an erratum line naming the refreshed receipts' committing rev
+`2ba4547f` and the stale-content fact; the repair is verified by the
+`ScoutReceiptSweep` census and wave-2 re-derivation but is NOT one of the
+four counted checks — the counter's bound (below) names exactly the
+spot-check's four routed defects.
+
+**C2 bound (amended, pre-data).** The counter binds these four routed
+defects of one spot-check; a new self-assessment mismatch class is outside
+it (the SCORECARD receipt-citation instance above is repaired and recorded,
+not headline-counted; the SCORECARD Next-line debt remains named there).
+
+## Erratum E2 (pre-data, declared before any C2 measurement; wave-1 findings)
+
+`RevC2Checks` attacked all four checks and the control rule; three sibling
+seats (`ScribeLesson`, `CriticC2Bound`, `ScribeReportSkeleton`) independently
+corroborated. The frozen predicate headlines are unchanged; the check
+implementations are hardened as follows — all verified FAIL-at-base before
+any after-measurement.
+
+1. **Check 1 gains a discrimination floor.** The marker `temporal mismatch`
+   alone credits the check from a one-sentence note (the phrase also sits in
+   committed `plans/round-64.md`). Fix: the check requires, all computed at
+   `<rev>`: marker present; the marker line is an addition vs `38defdc`; and
+   `git diff --numstat 38defdc <rev> -- <path>` reports ≥60 added lines (the
+   inherited edit measures 82+/29-). (A full-blob sha pin was rejected: it
+   would freeze the seat file against later honest appends.)
+2. **Check 2's suffix line is content-shaped.** One line under the round-64
+   header must carry both computed committing revs, the computed base
+   `35d44b4b…`, both control basenames, and the word `committed`;
+   derivations that yield no commit (e.g. `git log <rev>` for a rev
+   predating the file, which exits 0 with empty output) must FAIL. Self-test
+   arms: look-alike line, one-sided line, wrong rev, repinned base, empty
+   derivation, full/short-hash acceptance.
+3. **Check 3's parse is section-bounded.** The axes parse is bounded to the
+   `## axes` section (a second table exists under `## Move log`); the owned
+   set derives from the header sentence; the score is `cells[1]`'s leading
+   number; the suffix line must contain `lowest` + `depth` + `consistency`
+   + both digit-bounded scores.
+4. **Check 4 pairs the runtime tally with a static cross-check.** The
+   materialized self-test's `over N assertions` is cross-checked against the
+   static call-site reconstruction (17 fixed + 2 loop-body sites × 3 arms =
+   23); both must agree. The amended `ExecW2E2Patch.md` line must carry the
+   bounded tally, the word `assertions`, and be an addition vs `BASE_REV`.
+   Failure modes fail closed: absent path → 128, bogus rev → 128, missing
+   `git` → OSError.
+5. **Control rule: refuse unless `base_closed == 0`.** The r63 rule (refuse
+   while the control is green) admits a counter whose checks are vacuous
+   token scans: they print `1 of 4` at base (the `LOG.md:2576` leak) and
+   `4 of 4` at target, passing both conjuncts. The r64 counter refuses to
+   certify any revision unless the pinned base scores exactly `0 of 4`, and
+   its self-test carries a partial-world arm (suffix present, wrong values
+   → still refuse) plus a repointed-`BASE_REV` arm.
+
+**Spot-check size-quote erratum (recorded, not repaired by us).** The r63
+spot-check's defect 1 quotes the working-tree edit as "41+/13-"; the
+measured diff at base is 82+/29- (`git diff --numstat`). The spot-check file
+is non-author — never edited; the misquote is recorded in the round-64
+lesson and report (the substantive routing stands: the edit was uncommitted
+at closure; it lands under round 64).
+
+## Erratum E3 (pre-data, declared before any C1/C2 after-measurement)
+
+Wave-1 falsifiers (`RevC1Predicate`, `MutSpanArms`, `RevC2Checks`,
+`RevSpotcheckCrosswalk`, `CriticC1Bound`) attacked both predicates; the
+frozen headlines stand, the instruments and receipts are hardened, all
+pre-data.
+
+1. **C1's counted predicate gains its kill conjunct and pin pair.**
+   `RevC1Predicate` Q1 built a dishonest counter that prints the four
+   predicate lines with four tautology checks while SM1 still admits the
+   evasion — the printed lines alone are satisfiable with zero pinning.
+   The counted predicate (one sentence, same in plan, receipt and
+   SCORECARD) is therefore: `python3 -B verifiers/check_scoped_rules_v32.py
+   --self-test` prints the four frozen lines and exits 0, AND the receipt
+   pins the `(sha256, 223)` pair recomputed from the landed bytes, AND the
+   kill conjunct holds: each of SM1–SM6 scores exit 1 on the landed bytes
+   with its own discriminating FAIL label — an arm is credited only when
+   its own `check()` label is the FAIL line (the kotodama R64-M9 lesson via
+   `ConnSibling`: SM4/SM6 are red on pre-existing `eligible world` arms and
+   are not new-arm pins). Honest-padding objection (Q2: an unrelated future
+   arm moves N to 224 and the literal predicate says no): a later
+   measurement on later bytes is a second measurement under Q28, never the
+   declared one; the declared claim is measured at this round's rev.
+2. **Arm 4 lands with the hardened fixture (`MutSpanArms` §6).** Cell
+   `The tool writes quota nightly and \`mode quota\`.` — the page-absent
+   word occurs only inside the backticked span, so A2's page gate cannot
+   mask the witness; measured green at 223 assertions and kills SM5 under
+   either call site. Same arm name, same expectation, all prior lines
+   unchanged.
+3. **E1 item 3 is falsified and withdrawn.** `RevC1Predicate` Q4 showed SM5
+   IS judge-reachable (cell with the word only inside backticks: landed
+   ADMIT / SM5 REJECT); the "redundant for reachable judge inputs" premise
+   is false. The wrapper-level SM5 witness arm is part of the deferred
+   closing package below, not landed this round.
+4. **The M7–M22 lanes are newly found surviving debt, not claim scope.**
+   `RevC1Predicate` Q3 found six verdict-flipping lanes beyond SM1–SM6
+   (M8 `len>=4`→`>=5` admits a fabricated four-char span word; M12 line
+   check via `page_words` admits a word present only inside another
+   backticked span; M7 floor 3; M9/M10 case-sensitivity on STOPWORDS and
+   the line set; M17 exact-vs-prefix match) plus diagnostic lanes, with a
+   measured closing package (6 arms → 229 assertions, sha `f3c82574…`;
+   plus the wrapper SM5 arm → 230, sha `b614e8b1…`). These lanes are outside
+   the deferred row-(t) obligation; they are recorded in the SCORECARD
+   Next-line debt and the round-64 lesson as round-65 candidates with the
+   seat's byte-exact package cited. The claim's motivating evidence (row
+   (t): SM1/SM2/SM3/SM5 survive, four arms measured green, all six red)
+   is exactly what lands.
+5. **C2 matcher discipline (from `RevSpotcheckCrosswalk` D3/D4).** Checks 2
+   and 3 use ordered, content-shaped matchers (a suffix line carrying
+   basename↔rev pairing and the word `committed`; a suffix line carrying
+   `lowest` + `depth` + `consistency` + both digit-bounded scores) — token
+   scans green-light inverted statements. The SCORECARD parse is
+   right-split, section-bounded to `## axes`. The C2 `Bounds` paragraph
+   (D2) names the non-counted items: spot-check items 5 (C1's deferred
+   arms) and 6 (operator-owned SHONEN).
+6. **Remedy-choice bound (F3).** Checks 1 and 4 each hard-code one of two
+   admitted remedies (commit vs revert; amend vs drift-note). The plan
+   elects: commit the edit (it is a verified seat self-correction) and
+   append the drift note (M95 discipline: never rewrite a dated seat cell).
+   The alternative remedies remain recorded in the lesson.
+
+**Stale-219 repairs (freshness, landed with the arms).** After the arms
+land, `corpus/README.md:112` and
+`corpus/knowledge/compound-clause-citation-round63.md:120` carry stale
+`219` citations — corrected in the same round (no source row rewrite).
+**Carried gate debt.** `check_scoped_rules_v32.py` has no
+`floors-registry.json` row (the r62 F17 debt re-found by
+`RevC1Predicate` Q2); the round-65 candidate list names it.
