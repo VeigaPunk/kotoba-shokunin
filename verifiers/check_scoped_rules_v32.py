@@ -2160,6 +2160,98 @@ def self_test() -> int:
                   1,
                   "The tool writes quota nightly.\n\n## Appendix\n"
                   "The agent secretly uploads files."), "G7"), False)
+        # Round-65 closing package (RevC1Predicate §3, six arms + wrapper,
+        # re-measured by MutW2M7M22 §4; plus four arms for the judge-level
+        # lanes the package leaves open -- MutW2M7M22 §5 M20, §8a SPAN_FIRST/
+        # SPAN_LAST, §8b M11-exact-case): one positive witness + negative
+        # witnesses pinning each filter, the span iterator, and both set
+        # constructions of g7_conjunct's span_missing branch.
+        check("A2 G7: a fabricated four-character span word is rejected",
+              named(action_conjunct(
+                  ["The tool writes mode quota nightly."],
+                  "The tool writes mode quota nightly and `zeta quota`.",
+                  1,
+                  "The tool writes mode quota nightly.\n\n## Appendix\n"
+                  "The agent secretly uploads files."), "G7"), True)
+        check("A2 G7: a three-character span word is not rejected",
+              named(action_conjunct(
+                  ["The tool writes mode quota nightly."],
+                  "The tool writes mode quota nightly and `zap quota`.",
+                  1,
+                  "The tool writes mode quota nightly.\n\n## Appendix\n"
+                  "The agent secretly uploads files."), "G7"), False)
+        check("A2 G7: a span word present in the cited line only inside "
+              "backticks is rejected",
+              named(action_conjunct(
+                  ["The tool writes `zeta` quorum nightly."],
+                  "The tool writes quorum nightly and `zeta quorum`.",
+                  1,
+                  "The tool writes quorum nightly.\n\n## Appendix\n"
+                  "The agent secretly uploads files."), "G7"), True)
+        check("A2 G7: a span word supported by a four-character prefix on the "
+              "page is not rejected",
+              named(action_conjunct(
+                  ["The scanner applies scoped rules to files."],
+                  "The scanner applies scoped rules to files and `scope rules`.",
+                  1,
+                  "The scanner applies scoped rules to files."), "G7"), False)
+        check("A2 G7: a capitalised stopword-only span is not rejected",
+              named(action_conjunct(
+                  ["The tool writes mode quota nightly."],
+                  "The tool writes mode quota nightly and `Because only`.",
+                  1,
+                  "The tool writes mode quota nightly.\n\n## Appendix\n"
+                  "The agent secretly uploads files."), "G7"), False)
+        check("A2 G7: a capitalised span word present in the cited line is "
+              "not rejected",
+              named(action_conjunct(
+                  ["The tool writes Mode quota nightly."],
+                  "The tool writes quota nightly and `Mode quota`.",
+                  1,
+                  "The tool writes quota nightly.\n\n## Appendix\n"
+                  "The agent secretly uploads files."), "G7"), False)
+        check("A2 G7 (wrapper): a span word present in the cited line is not "
+              "rejected even when the page lacks it",
+              named(action_conjunct(
+                  ["The tool writes mode quota nightly."],
+                  "The tool writes quota nightly and `mode`.",
+                  1,
+                  "The tool writes quota nightly.\n\n## Appendix\n"
+                  "The agent secretly uploads files."), "G7"), False)
+        check("A2 G7: a fabricated first backticked span is rejected when an "
+              "honest second span follows it",
+              named(action_conjunct(
+                  ["The tool writes mode quota nightly."],
+                  "The tool writes mode quota nightly and `zeta quota` and "
+                  "`mode quota`.",
+                  1,
+                  "The tool writes mode quota nightly.\n\n## Appendix\n"
+                  "The agent secretly uploads files."), "G7"), True)
+        check("A2 G7: a fabricated second backticked span is rejected when an "
+              "honest first span precedes it",
+              named(action_conjunct(
+                  ["The tool writes mode quota nightly."],
+                  "The tool writes mode quota nightly and `mode quota` and "
+                  "`zeta quota`.",
+                  1,
+                  "The tool writes mode quota nightly.\n\n## Appendix\n"
+                  "The agent secretly uploads files."), "G7"), True)
+        check("A2 G7: a span word whose only page occurrence is inside "
+              "backticks is not rejected",
+              named(action_conjunct(
+                  ["The tool writes mode quota nightly."],
+                  "The tool writes mode quota nightly and `zeta`.",
+                  1,
+                  "The tool writes mode quota nightly.\n\nThe `zeta` "
+                  "appendix sentence."), "G7"), False)
+        check("A2 G7: a capitalised span word present on the page only as an "
+              "exact-case token is not rejected",
+              named(action_conjunct(
+                  ["The tool writes mode quota nightly."],
+                  "The tool writes mode quota nightly and `ZETA`.",
+                  1,
+                  "The tool writes mode quota nightly.\n\nThe `ZETA` "
+                  "appendix sentence."), "G7"), False)
         check("A2 G9: an `and`-joined purpose clause off the cited line is rejected",
               named(action_conjunct(
                   [g9_line],

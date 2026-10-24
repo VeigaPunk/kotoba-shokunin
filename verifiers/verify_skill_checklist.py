@@ -202,8 +202,15 @@ governance.citation_resolves    the same existence predicate over repo-root
     excluded.  A pinned ``GOVERNANCE_ERRATA`` row excuses one ``LOG.md``
     subject whose own line records its absence: the line sits at or below
     the horizon, matches the row's SHA-256 and absence wording, and the path
-    still does not resolve; any other row shape FAILs.  Every other subject
-    must resolve at HEAD.  ``evaluated`` = checked subjects after those three
+    still does not resolve; any other row shape FAILs.  A pinned
+    ``GOVERNANCE_CORRECTIONS`` row (round 65) excuses one named stale
+    subject -- in either governance file -- superseded by an appended,
+    byte-pinned ``LOG.md`` notice that names the stale and corrected tokens
+    on its own line, while the subject is still red at HEAD and the
+    corrected token resolves; any other row shape FAILs (append-only files
+    are corrected by appended notices, never in-place edits).  Every other
+    subject must resolve at HEAD.  ``evaluated`` = checked subjects after
+    those three
     counted exclusions; zero is a FAIL.
 
 
@@ -396,6 +403,29 @@ GOVERNANCE_ERRATA = (
      "7dcbf123313d46c469cab9f5dac2daa7567e54ac1ddf7cffdd1fd38c74200135",
      ".ufo/round-45/drafts/v10/post-r44-hunt.py",
      "each exited 2 because the referenced runners are absent"),
+)
+# Round 65 (claim C2): append-only corrections.  A stale citation cell in an
+# append-only governance file (LOG.md/SCORECARD.md) is fixed by an appended
+# LOG.md notice, never an in-place edit; the notice names the subject
+# (file:line + stale token) and its replacement, and the replacement must
+# resolve.  Rows: (log line, line sha256, subject file, subject line, stale
+# token, corrected token).  Same fail-closed discipline as GOVERNANCE_ERRATA:
+# horizon-bounded, byte-pinned, subject must be live and red, corrected token
+# must resolve, never masks another dead subject.
+GOVERNANCE_CORRECTIONS_HORIZON = 2621
+GOVERNANCE_CORRECTIONS = (
+    (2619,
+     "b11e4e8be95834db367e50ccf67e1ceec0dacdfdd95cb7e0d66095814d4cf949",
+     "LOG.md", 2533, ".ufo/reports/round-60/kotoba.md",
+     "../.ufo/reports/round-60/kotoba.md"),
+    (2620,
+     "1dcb9d9e6206608972b38043401359e934523dc72e129c5713a23c5824d833bf",
+     "LOG.md", 2580, ".ufo/watchdog.log",
+     "../.ufo/watchdog.log"),
+    (2621,
+     "6836c34a99a4db12266cf724c995c59260aaf985ad2c92d93af8ae1a6165f0d2",
+     "SCORECARD.md", 158, ".ufo/reports/round-60/kotoba.md",
+     "../.ufo/reports/round-60/kotoba.md"),
 )
 EMPTY_SCALARS = frozenset(["", "~", "null", "Null", "NULL"])
 
@@ -1666,10 +1696,58 @@ def errata_problems(errata, horizon: int, log_lines: list[str],
     return problems, excused
 
 
+def correction_problems(corrections, horizon: int, log_lines: list[str],
+                        subjects: list[dict], repo: Path
+                        ) -> tuple[list, set]:
+    """Validate append-only correction rows; return (problems, excused keys).
+
+    Round 65 (claim C2): a correction excuses exactly one named subject --
+    (source, line, stale token) -- when its appended LOG.md notice is
+    horizon-bounded and byte-pinned, names the stale and corrected tokens on
+    the line, the subject is live and still red at HEAD, and the corrected
+    token resolves.  Fail-closed mirrors errata_problems: line drift, missing
+    subject, restored (no-longer-red) stale token, dead corrected token, and
+    never excusing a subject that is not named.
+    """
+    problems: list[str] = []
+    excused: set[tuple[str, int, str]] = set()
+    live = {(s["source"], s["line"], s["token"]) for s in subjects}
+    for line, digest, sfile, sline, stale, corrected in corrections:
+        where = ("correction LOG.md:%d %s:%d %r" % (line, sfile, sline, stale))
+        if not 1 <= line <= min(horizon, len(log_lines)):
+            problems.append("%s is past horizon %d or absent" % (where, horizon))
+            continue
+        text = log_lines[line - 1]
+        if hashlib.sha256(text.encode("utf-8")).hexdigest() != digest:
+            problems.append("%s: line text drifted" % where)
+        elif stale not in text or corrected not in text:
+            problems.append("%s: correction wording not on the line" % where)
+        elif (sfile, sline, stale) not in live:
+            problems.append("%s: names no live red subject" % where)
+        elif citation_resolve(stale, repo):
+            problems.append("%s: stale, the old token now resolves" % where)
+        elif not citation_resolve(corrected, repo):
+            problems.append("%s: corrected token %r does not resolve"
+                            % (where, corrected))
+        else:
+            excused.add((sfile, sline, stale))
+    return problems, excused
+
+
 def check_governance_citations(repo: Path, errata=GOVERNANCE_ERRATA,
-                               horizon: int = GOVERNANCE_ERRATA_HORIZON
+                               horizon: int = GOVERNANCE_ERRATA_HORIZON,
+                               corrections=(),
+                               corrections_horizon: int =
+                               GOVERNANCE_CORRECTIONS_HORIZON,
                                ) -> tuple[str, int, str]:
-    """Round-17: root governance path claims remain navigable at HEAD."""
+    """Round-17: root governance path claims remain navigable at HEAD.
+
+    Round 65: append-only corrections (the caller passes GOVERNANCE_CORRECTIONS)
+    excuse named stale subjects superseded by an appended, byte-pinned LOG.md
+    notice whose corrected token resolves; the fail-closed discipline mirrors
+    the recorded-absence errata beside it.  Default () keeps fixture worlds
+    hermetic.
+    """
     repo = repo.resolve()
     subjects: list[dict] = []
     excluded: dict[str, list[dict]] = {"quoted": [], "schematic": []}
@@ -1695,11 +1773,17 @@ def check_governance_citations(repo: Path, errata=GOVERNANCE_ERRATA,
                                         subjects, repo)
     subjects = [s for s in subjects if s["source"] != "LOG.md"
                 or (s["line"], s["token"]) not in excused]
+    cproblems, cexcused = correction_problems(corrections, corrections_horizon,
+                                              log_lines, subjects, repo)
+    problems += cproblems
+    subjects = [s for s in subjects
+                if (s["source"], s["line"], s["token"]) not in cexcused]
     evaluated = len(subjects)
     context = ("%d quoted meta-finding(s), %d schematic token(s) excluded, "
-               "%d recorded absence(s) excused"
+               "%d recorded absence(s) excused, %d recorded correction(s) "
+               "excused"
                % (len(excluded["quoted"]), len(excluded["schematic"]),
-                  len(excused)))
+                  len(excused), len(cexcused)))
     if unreadable:
         return "FAIL", evaluated, "unreadable governance file(s): %s; %s" % (
             ", ".join(unreadable), context)
@@ -2358,6 +2442,70 @@ def self_test() -> int:
             and "1 recorded absence(s) excused" in detail,
             (status, evaluated, detail))
 
+        # Round 65 (claim C2): append-only corrections.  A stale subject in
+        # either governance file is excused only by a pinned appended notice
+        # whose corrected token resolves; every other row shape fails closed.
+        log_path.write_text("`corpus/live.md`\n"
+                            "SCORECARD.md:9 token \"corpus/gone.md\" -> "
+                            "\"corpus/live.md\" (round-65 notice).\n",
+                            encoding="utf-8")
+        scorecard.write_text("padding line\n" * 8 + "`corpus/gone.md`\n",
+                             encoding="utf-8")
+        notice = log_path.read_text(encoding="utf-8").splitlines()[1]
+        ndigest = hashlib.sha256(notice.encode("utf-8")).hexdigest()
+        crow = (2, ndigest, "SCORECARD.md", 9, "corpus/gone.md",
+                "corpus/live.md")
+        status, evaluated, detail = check_governance_citations(
+            gov_repo, errata=(), corrections=(crow,), corrections_horizon=2)
+        rec("governance: pinned correction excuses the named stale subject",
+            status == "PASS" and evaluated == 1
+            and "1 recorded correction(s) excused" in detail,
+            (status, evaluated, detail))
+        status, evaluated, detail = check_governance_citations(
+            gov_repo, errata=(), corrections=())
+        rec("governance: unregistered correction still fails",
+            status == "FAIL" and "corpus/gone.md" in detail,
+            (status, evaluated, detail))
+        for label, corrs, horizon, needle in (
+                ("past horizon", (crow,), 1, "past horizon"),
+                ("line drift", ((2, "0" * 64) + crow[2:],), 2, "drifted"),
+                ("wording", (crow[:5] + ("corpus/x.md",),), 2, "wording"),
+                ("no live red subject", (crow[:3] + (8,) + crow[4:],), 2,
+                 "names no live red subject"),
+                ("corrected token dead", (crow[:5] + ("corpus/absent-xyz.md",),),
+                 2, "does not resolve")):
+            status, evaluated, detail = check_governance_citations(
+                gov_repo, errata=(), corrections=corrs,
+                corrections_horizon=horizon)
+            rec("governance: correction %s fails closed" % label,
+                status == "FAIL" and needle in detail
+                and "corpus/gone.md" in detail, (status, evaluated, detail))
+        (gov_repo / "corpus" / "gone.md").write_text("", encoding="utf-8")
+        status, evaluated, detail = check_governance_citations(
+            gov_repo, errata=(), corrections=(crow,), corrections_horizon=2)
+        rec("governance: correction for a restored token is stale",
+            status == "FAIL" and "stale" in detail,
+            (status, evaluated, detail))
+        (gov_repo / "corpus" / "gone.md").unlink()
+        log_path.write_text("`corpus/live.md`\n"
+                            "SCORECARD.md:9 token \"corpus/gone.md\" -> "
+                            "\"corpus/live.md\" (round-65 notice).\n"
+                            "`corpus/other-dead.md`\n", encoding="utf-8")
+        status, evaluated, detail = check_governance_citations(
+            gov_repo, errata=(), corrections=(crow,), corrections_horizon=2)
+        rec("governance: correction never masks another dead subject",
+            status == "FAIL" and "corpus/other-dead.md" in detail
+            and "1 recorded correction(s) excused" in detail,
+            (status, evaluated, detail))
+        # live corrections land against the real repo: the three round-65
+        # rows excuse the three base reds and the check prints PASS.
+        status, evaluated, detail = check_governance_citations(
+            Path(__file__).resolve().parent.parent,
+            corrections=GOVERNANCE_CORRECTIONS)
+        rec("governance: live round-65 corrections land, check PASS",
+            status == "PASS" and "3 recorded correction(s) excused" in detail,
+            (status, evaluated, detail))
+
     # An explicit relative --repo must be normalized before bounded `..`
     # hops; Path('.').parent otherwise stays '.', changing the verdict.
     with tempfile.TemporaryDirectory(prefix="kotoba-relative-repo-") as td:
@@ -2611,7 +2759,8 @@ def main(argv: list[str] | None = None) -> int:
             st, ev, detail = check_citation_resolves(lines, repo)
         elif cid == "governance.citation_resolves":
             if governance_enabled:
-                st, ev, detail = check_governance_citations(repo)
+                st, ev, detail = check_governance_citations(
+                    repo, corrections=GOVERNANCE_CORRECTIONS)
             else:
                 st, ev, detail = (
                     "N/A", 0,

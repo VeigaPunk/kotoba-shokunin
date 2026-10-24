@@ -5,9 +5,15 @@ The claim under test: a self-test that silently loses assertions must never
 still read green. Each instrument's --self-test prints an assertion count;
 this guard reruns every self-test and FAILs when the observed count is below
 the recorded floor (harness 10, corpus_integrity 152, corpus_independent 93,
-surfaces 175, overlap_levers 51, checklist 1852, pins 62,
+surfaces 175, overlap_levers 51, checklist 1862, pins 62,
 harness_independent 123, compare_harness_independent 330, floors_guard 150,
-dispatch_prompts 56, sibling_census 68, alwayson 89, correction_sweep 25;
+dispatch_prompts 56, sibling_census 68, alwayson 89, correction_sweep 25,
+scoped_rules_v32 234; round 65 (claim C1) registers scoped_rules_v32 at the
+round-65 landed count (234) so the v32 pinning arms cannot be deleted with
+every gate green (r62 F17 re-found by RevC1Predicate Q2), and bumps checklist
+1852 -> 1862 (claim C2's governance-corrections battery: one positive arm,
+five fail-closed shapes, a stale-restored arm, a never-masks arm, and a live
+landing arm));
 round 58 (routed defect R3, second guard) registers correction_sweep at 25
 (verifiers/check_correction_sweep.py: its self-test was unfloored, so a dropped
 case -- the frozen mutants M08-M11 -- still read green); round 53 bumped surfaces 129->175
@@ -153,7 +159,7 @@ EXPECTED_INSTRUMENTS = {
     "corpus_integrity": 152,
     "corpus_independent": 93,
     "surfaces": 175,
-    "checklist": 1852,
+    "checklist": 1862,
     "pins": 62,
     "harness_independent": 123,
     "compare_harness_independent": 330,
@@ -163,6 +169,7 @@ EXPECTED_INSTRUMENTS = {
     "overlap_levers": 51,
     "alwayson": 89,
     "correction_sweep": 25,
+    "scoped_rules_v32": 234,
 }
 SELF_TEST_TIMEOUT_S = 120
 # Round-56 routed defect 4 (round-55 spot-check, 'routed defects' item 4): the
@@ -197,7 +204,7 @@ INSTRUMENTS = {
                            r"self-test:\s*(\d+) assertions,\s*(\d+) failures", 1, 2),
     "surfaces": ("verifiers/verify_surfaces.py", 175,
                  r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
-    "checklist": ("verifiers/verify_skill_checklist.py", 1852,
+    "checklist": ("verifiers/verify_skill_checklist.py", 1862,
                   r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
     "pins": ("verifiers/check_substrate_pins.py", 62,
              r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
@@ -217,6 +224,12 @@ INSTRUMENTS = {
                  r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
     "correction_sweep": ("verifiers/check_correction_sweep.py", 25,
                          r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
+    # Round 65 (C1, r62 F17 close re-found by RevC1Predicate Q2): the v32
+    # pinning suite's arms could be deleted with every gate green; the row
+    # makes silent arm deletion a floors-guard FAIL.  Count line matches the
+    # v32 self-test summary (`self-test: 0 failure(s) over 234 assertions`).
+    "scoped_rules_v32": ("verifiers/check_scoped_rules_v32.py", 234,
+                         r"self-test:\s*(\d+) failure\(s\) over (\d+) assertions", 2, 1),
 }
 
 
@@ -796,10 +809,10 @@ def self_test() -> int:
         # F6 -- the registry's own declared size is load-bearing. The anchor is
         # the live registry's own declared total (round 49: 10; round 50: 11 with
         # sibling_census; round 51: 12 with overlap_levers; round 53: 13 with alwayson;
-        # round 58: 14 with correction_sweep),
+        # round 58: 14 with correction_sweep; round 65: 15 with scoped_rules_v32),
         # including this guard's self-test); a stale literal here would stop landing
         # and the count-check would name it.
-        text = swap(registry_text, '"instrument_total": 14', '"instrument_total": 10',
+        text = swap(registry_text, '"instrument_total": 15', '"instrument_total": 10',
                     "F6/total")
         proc = run(write_tree(tmp / "f6", source, text), tmp / "f6")
         rec("F6 size drift: exit 2", proc.returncode == 2, proc.returncode)
