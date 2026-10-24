@@ -120,6 +120,8 @@ Domain: prompt & skill craft — SKILL.md/AGENTS.md quality, trigger fidelity.
 | Round-64 non-author spot-check (closure) | `lessons/round-64-verifier-spotcheck.md` | closure re-derivation of round-64 C1/C2 evidence, kill receipts, no-harm disposition, source census, and report/commit ancestry; written by the hyaku closure, not the lane |
 | Round-65 non-author spot-check (closure) | `lessons/round-65-verifier-spotcheck.md` | closure re-derived C1/C2 pins and kill evidence, agreed with the source admit/reject, and routed D1 registry artifacts, D2 integrity drift, and D3 SHONEN boxes; written by the hyaku closure, not the lane |
 | Repository-context commit resolution (round 66) | `knowledge/fleet-commit-resolution-round66.md` | integrity citations resolve lane-first then fleet-root; code-span meta-findings stay context and nonexistent commits stay unresolved; source S122, `verifiers/verify_corpus_integrity.py --self-test` (161 assertions), counted by `verifiers/check_r66_routed_repairs.py --rev <rev>` |
+| Round-66 lessons | `lessons/round-66.md` | `## Gate` S122 access record and located §6.7 quote; `## Mistakes` M102 foreign-repository commit reference misclassified as unresolved, with base-control and no-hop counter evidence; source status and non-author spot-check limits recorded |
+
 
 ## Frontier
 
