@@ -29,3 +29,8 @@ S122 (FORCE11 Software Citation Principles, opened 2026-10-24) will support C2's
 ## L2 preparation
 
 The L1 holds the planner seat. Prepare one v1 build wave and one v1 falsify wave under `.ufo/waves/round-66/`; this seat has no task/AgentSwarm dispatch surface, so the specs are preparation evidence and remain undispatched for the orchestrator. No wave seat has scored data.
+
+## Post-freeze execution note (frozen claim predicates unchanged)
+
+- Wave shape correction: the prepared evidence is one policy-v1 wave (`w1-spec.json`, 35 distinct seats), not a prepared wave 1 plus wave 2. No task call was dispatched from this L1 seat; no wave-1 output exists, so the v1 rule requiring at least 32 distinct returned attack items does not authorize a wave 2. The L1 still holds the planner seat; no seat has scored the claims.
+- No-harm follow-through: after the primary corpus-integrity gate and C2 counter were measured at the pinned tip, `verify_corpus_independent.py --json` exposed the same three pre-existing commit-context rows. The independent implementation is extended with its own lane/fleet lookup and code-span context tests; the C2 frozen 2-of-2 predicate and values are unchanged. Its before/after gate evidence is recorded separately.

@@ -4,7 +4,7 @@
 The claim under test: a self-test that silently loses assertions must never
 still read green. Each instrument's --self-test prints an assertion count;
 this guard reruns every self-test and FAILs when the observed count is below
-the recorded floor (harness 10, corpus_integrity 161, corpus_independent 93,
+the recorded floor (harness 10, corpus_integrity 161, corpus_independent 103,
 surfaces 175, overlap_levers 51, checklist 1862, pins 62,
 harness_independent 123, compare_harness_independent 330, floors_guard 150,
 dispatch_prompts 56, sibling_census 68, alwayson 89, correction_sweep 25,
@@ -15,8 +15,9 @@ every gate green (r62 F17 re-found by RevC1Predicate Q2), and bumps checklist
 five fail-closed shapes, a stale-restored arm, a never-masks arm, and a live
 landing arm));
 round 66 raises corpus_integrity 152 -> 161 with fleet-hop and code-span
-context arms, and raises scoped_rules_v32 234 -> 240 with the one-word G9
-off-citation witness, cited-line control and clause-floor mutation arms;
+context arms, raises scoped_rules_v32 234 -> 240 with the one-word G9
+off-citation witness and controls, and raises corpus_independent 93 -> 103
+with independent fleet-object and code-span context fixtures;
 round 58 (routed defect R3, second guard) registers correction_sweep at 25
 (verifiers/check_correction_sweep.py: its self-test was unfloored, so a dropped
 case -- the frozen mutants M08-M11 -- still read green); round 53 bumped surfaces 129->175
@@ -160,7 +161,7 @@ DEFAULT_REPO = Path(__file__).resolve().parent.parent
 EXPECTED_INSTRUMENTS = {
     "harness": 10,
     "corpus_integrity": 161,
-    "corpus_independent": 93,
+    "corpus_independent": 103,
     "surfaces": 175,
     "checklist": 1862,
     "pins": 62,
@@ -203,7 +204,7 @@ INSTRUMENTS = {
                 r"self-test:\s*(\d+) failure\(s\) over (\d+) assertions", 2, 1),
     "corpus_integrity": ("verifiers/verify_corpus_integrity.py", 161,
                          r"self-test:\s*(\d+) failure\(s\) over (\d+) assertions", 2, 1),
-    "corpus_independent": ("verifiers/verify_corpus_independent.py", 93,
+    "corpus_independent": ("verifiers/verify_corpus_independent.py", 103,
                            r"self-test:\s*(\d+) assertions,\s*(\d+) failures", 1, 2),
     "surfaces": ("verifiers/verify_surfaces.py", 175,
                  r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),

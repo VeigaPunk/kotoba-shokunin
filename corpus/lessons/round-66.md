@@ -26,3 +26,7 @@ lane: kotoba
 - The claim freeze and do-nothing controls are in `plans/round-66.md` and `.ufo/waves/round-66/controls/`.
 - C1's G9 witness and coupled-floor self-test are measured in `.ufo/waves/round-66/receipts/C1-measure.txt`; its mutation-kill outcomes are recorded in `.ufo/waves/round-66/receipts/C1-kill.txt`.
 - C2's integrity-gate and routed-repair results are recorded in `.ufo/waves/round-66/receipts/C2-integrity-after.txt` and `.ufo/waves/round-66/receipts/C2-routed-after.txt`.
+
+## Post-landing no-harm finding
+
+- **M103 — class: independent integrity implementation diverged on repository context.** Evidence: `verify_corpus_independent.py --json` at the round-66 baseline tip still reported `commit_unresolvable=3`, even after the primary integrity gate became green; the before output is `.ufo/waves/round-66/receipts/C2-independent-before.txt`. Captured-by: Q61 applies to every commit-citation integrity gate; the independent gate's no-harm run exposed that its own resolver still queried only the lane repo. Fix: independently implement the lane-first/fleet-root lookup and matching-code-span context rule, with lane-only, fleet-only, neither, and code-span fixtures. Shown able to fail: the before run exits 1 with three unresolved tokens; the independent self-test's fleet-only/no-hop distinctions are pinned at 103 assertions and the after run exits 0 (`.ufo/waves/round-66/receipts/C2-independent-after.txt`).

@@ -24,8 +24,9 @@ POINTERS   a token whose text matches ``…/.ufo/reports/round-<digits>/….md``
            `..` segment after the leading `../` hops; a quoted token is CONTEXT.
 COMMITS    ``commit `<token>``` (word ``commit`` not preceded by a letter, digit,
            underscore or hyphen, token backticked) must be 7-40 hex characters and
-           ``git -C <repo> cat-file -e <token>^{commit}`` must succeed.  A citation
-           fully inside double quotes on its line is CONTEXT.
+           name a commit object in the lane repo or declared parent fleet root.
+           A citation inside double quotes or a matching Markdown code span is
+           CONTEXT, not a live commit reference.
 
 Exit: 0 every violation class empty, 1 any violation, 2 environment unreadable.
 Read-only: never writes inside the analysed repository.  Deterministic output.
@@ -157,6 +158,37 @@ def quote_spans(line):
                 opening = None
         i += 1
     return spans
+
+def code_span_spans(line):
+    """[(start, end)] complete matching Markdown code spans on one line."""
+    runs = [(m.start(), m.end(), len(m.group())) for m in re.finditer(r"`+", line)]
+
+    def unescaped(pos):
+        slashes = 0
+        pos -= 1
+        while pos >= 0 and line[pos] == "\\":
+            slashes += 1
+            pos -= 1
+        return slashes % 2 == 0
+
+    spans = []
+    i = 0
+    while i < len(runs):
+        open_start, _open_end, width = runs[i]
+        if not unescaped(open_start):
+            i += 1
+            continue
+        for j in range(i + 1, len(runs)):
+            close_start, close_end, close_width = runs[j]
+            if close_width == width and unescaped(close_start):
+                spans.append((open_start, close_end))
+                i = j + 1
+                break
+        else:
+            i += 1
+    return spans
+
+
 
 
 def _inside(spans, start, end):
@@ -436,15 +468,16 @@ def analyse_pointers(repo, tracked_corpus, fleet_root=FLEET_ROOT):
     }
 
 
-def analyse_commits(repo, tracked_corpus):
+def analyse_commits(repo, tracked_corpus, fleet_root=FLEET_ROOT):
     quoted, nonhash, unresolvable, citations = [], [], [], []
     for rel in tracked_corpus:
         path = os.path.join(repo, rel)
         with _open_text(path, rel) as fh:
             for lineno, line in enumerate(fh, 1):
                 quotes = quote_spans(line)
+                code = code_span_spans(line)
                 for token, start, end in commit_tokens(line):
-                    if _inside(quotes, start, end):
+                    if _inside(quotes, start, end) or _inside(code, start, end):
                         quoted.append("%s:%d: %s" % (rel, lineno, token))
                         continue
                     citations.append("%s:%d: %s" % (rel, lineno, token))
@@ -452,6 +485,10 @@ def analyse_commits(repo, tracked_corpus):
                         nonhash.append("%s:%d: %s" % (rel, lineno, token))
                         continue
                     proc = _git(repo, "cat-file", "-e", "%s^{commit}" % token)
+                    if (proc.returncode != 0 and fleet_root
+                            and os.path.abspath(fleet_root) != os.path.abspath(repo)):
+                        proc = _git(fleet_root, "cat-file", "-e",
+                                    "%s^{commit}" % token)
                     if proc.returncode != 0:
                         unresolvable.append("%s:%d: %s" % (rel, lineno, token))
     return {
@@ -962,6 +999,28 @@ def self_test():
               "commits: uppercase hex accepted")
         st.eq(bool(7 <= len("abcdef") <= 40 and HEX_RE.match("abcdef")), False,
               "commits: 6 hex rejected by length")
+        # Round 66: independently derive the parent-fleet object fallback and
+        # code-span context exclusion. The lane and fleet objects are distinct;
+        # the nested single-backtick token is inside an outer double-backtick
+        # example and must not become a live unresolved citation.
+        fleet_root = os.path.join(tmp, "commit-fleet")
+        _write(os.path.join(fleet_root, "seed.txt"), "fleet-only object\n")
+        _git_init(fleet_root, commit=True)
+        fleet_sha = _git(fleet_root, "rev-parse", "HEAD").stdout.strip()
+        _write(os.path.join(croot, "corpus/knowledge/fleet.md"),
+               "fleet-only commit `%s`\n"
+               "The `` commit `451a02ff` `` grammar is explanatory.\n" % fleet_sha)
+        _git(croot, "add", "-A")
+        fleet_com = analyse_commits(croot, corpus_markdown(croot), fleet_root)
+        st.eq(fleet_com["commit_total"], 6,
+              "commits: fleet-only object is one live citation")
+        st.eq(fleet_com["commit_unresolvable"], 1,
+              "commits: only the genuinely absent lane token stays unresolved")
+        st.eq(fleet_com["commit_quoted"], 2,
+              "commits: double-quoted and code-span examples are context")
+        st.eq(fleet_com["commit_candidates"], 8,
+              "commits: context candidates remain visible but are not live")
+
 
         # -- clean fixture: verdicts and exit code -------------------------------
         froot = os.path.join(tmp, "clean")
