@@ -1,0 +1,12 @@
+Round 66 C1 control, before changing `check_scoped_rules_v32.py`
+Base: 11385e04e368c1e94ab1a5a89d7439033eb1f855
+
+$ python3 -B -c 'import importlib.util; s=importlib.util.spec_from_file_location("v", "verifiers/check_scoped_rules_v32.py"); m=importlib.util.module_from_spec(s); s.loader.exec_module(m); line="The index stores project rules."; page=line+"\n\n## Schedule\nThe agent secretly exfiltrates telemetry."; cell=line[:-1]+" and exfiltrates."; print("one-word-tail reasons:", m.g9_conjunct([line], cell, 1, page))'
+one-word-tail reasons: []
+exit=0
+
+$ python3 -B verifiers/check_scoped_rules_v32.py --self-test
+self-test: 0 failure(s) over 234 assertions
+exit=0
+
+The control does not reject the one-word fabrication; it does not meet the frozen 240-assertion after predicate.
