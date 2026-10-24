@@ -1,0 +1,11 @@
+Round 66 C1 mutation battery — each variant was a temporary copy of the measured verifier under `$TMPDIR`; the lane file was not mutated. Command for each: `python3 -B <mutant>/check_scoped_rules_v32.py --self-test`.
+
+| Mutant | Mutation | Exit | Attributed failure |
+|---|---|---:|---|
+| K1 uncoupled floor | `clause_need(n)` returns `fwd_need(n)` | 1 | `FAIL A2 G9: a ONE-word off-citation clause is rejected: got False, expected True` |
+| K2 old minimum-clause exemption | skip every clause with fewer than two content words | 1 | `FAIL A2 G9: a ONE-word off-citation clause is rejected: got False, expected True` |
+| K3 page floor uncoupled | page-side comparison uses `fwd_need(len(w))` | 1 | `FAIL A2 G9: a ONE-word off-citation clause is rejected: got False, expected True` |
+| K4 line floor uncoupled | cited-line comparison uses `fwd_need(len(w))` | 1 | `FAIL A2 G9: a ONE-word clause supported by the cited line passes: got True, expected False` |
+| K5 zero floor | `clause_need(n)` returns 0 | 1 | `FAIL A2 G9: a ONE-word off-citation clause is rejected: got False, expected True` |
+
+The uncoupled and zero-floor mutants also trip secondary arms; attribution above names the first load-bearing C1 witness/control in each output. All five temporary variants failed the self-test; the honest measured bytes remain green at 240 assertions (`C1-measure.txt`).

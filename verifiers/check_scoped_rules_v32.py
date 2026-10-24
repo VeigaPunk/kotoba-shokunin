@@ -1069,7 +1069,9 @@ def g7_conjunct(lines: list[str], cell: str, L: int | None,
 
 
 CLAUSE_AND_RE = re.compile(r"\band\b", re.IGNORECASE)
-MIN_CLAUSE = 2
+def clause_need(n_content: int) -> int:
+    """Couple the MIN_SHARED floor to clause length: one word needs one match."""
+    return min(fwd_need(n_content), n_content)
 
 
 def split_clauses(cell: str) -> list[str]:
@@ -1120,10 +1122,11 @@ def g9_conjunct(lines: list[str], cell: str, L: int | None,
     words occur elsewhere on the committed page, so A2's forward fraction,
     page containment, reverse coverage and G7 all pass. Each clause split by
     `split_clauses` must clear the same forward-support fraction A2 uses
-    (`fwd_need`) against the CITED LINE. A clause the line does not support is
-    rejected when the page does — a clause absent from the page too is already
-    reported by A2's page-containment check, so this arm never double-reports
-    it."""
+    (`fwd_need`) against the CITED LINE. The floor is capped by the clause's
+    own content-word count: one word needs one shared word, while clauses of
+    two or more words keep A2's existing MIN_SHARED/fraction threshold. A
+    clause absent from the page too is already reported by A2's page-
+    containment check, so this arm never double-reports it."""
     if L is None or not cell or L < 1 or L > len(lines):
         return []
     line_w = content_words(lines[L - 1])
@@ -1133,15 +1136,16 @@ def g9_conjunct(lines: list[str], cell: str, L: int | None,
         # G9 counts CONTENT WORDS INCLUDING BACKTICKED SPANS: `content_words`
         # strips them, so a fabrication wrapped in backticks would carry too few
         # words to be checked while `page_words` still finds it on the page
-        # (RevG9Guard's lane 2). MIN_CLAUSE = 2 is the floor that still checks
-        # the smallest fabrication (`and uploads files`); a one-word clause is
-        # below A2's own MIN_SHARED floor and stays exempt.
+        # (RevG9Guard's lane 2). The shared-word floor is coupled to clause
+        # length, so a one-word clause on the page but not the cited line is
+        # rejected rather than skipped as below MIN_SHARED.
         w = page_words(clause)
-        if len(w) < MIN_CLAUSE:
+        if not w:
             continue
-        if covered(w, line_w) >= fwd_need(len(w)):
+        need = clause_need(len(w))
+        if covered(w, line_w) >= need:
             continue
-        if covered(w, page) >= fwd_need(len(w)):
+        if covered(w, page) >= need:
             reasons.append(
                 'A2 G9: clause "%s" is supported outside the cited line'
                 % clause)
@@ -1752,7 +1756,7 @@ def self_test() -> int:
     real git repositories here and scored through the SAME judge/fetch path the
     CLI uses.  The predicate line is computed from those verdicts, never
     printed unconditionally."""
-    global BASE, TARGET, lane_dir, run_curl
+    global BASE, TARGET, lane_dir, run_curl, clause_need
     assertions = 0
     failures = 0
     temps: list[str] = []
@@ -2956,11 +2960,40 @@ def self_test() -> int:
                   g9_line[:-1] + " and `secretly exfiltrates telemetry "
                   "beacons nightly`. (S900 :1)",
                   1, g9_page), [])
-        check("A2 G9: a ONE-word clause is exempt (declared bound)",
-              g9_conjunct(
+        one_word_page = (g9_page + "\n\n## Schedule\n"
+                         "The agent secretly exfiltrates telemetry.")
+        one_word_cell = g9_line[:-1] + " and exfiltrates. (S900 :1)"
+        check("A2 G9: a ONE-word off-citation clause is rejected",
+              named(action_conjunct(
+                  [g9_line], one_word_cell, 1, one_word_page), "G9"), True)
+        check("A2 G9: a ONE-word clause supported by the cited line passes",
+              named(action_conjunct(
                   [g9_line],
-                  g9_line[:-1] + " and exfiltrates. (S900 :1)",
-                  1, g9_page), [])
+                  g9_line[:-1] + " and glob. (S900 :1)",
+                  1, one_word_page), "G9"), False)
+        check("A2 G9: clause need couples the one-word floor",
+              clause_need(1), 1)
+        check("A2 G9: clause need retains the two-word floor",
+              clause_need(2), fwd_need(2))
+        check("A2 G9: clause need retains the three-word fraction",
+              clause_need(3), fwd_need(3))
+        saved_clause_need = clause_need
+        try:
+            clause_need = lambda n: fwd_need(n)
+            uncoupled_admits = not named(
+                g9_conjunct([g9_line], one_word_cell, 1, one_word_page), "G9")
+        finally:
+            clause_need = saved_clause_need
+        check("must-fail G9 uncoupled MIN_SHARED admits one-word fabrication",
+              uncoupled_admits, True)
+        try:
+            clause_need = lambda _n: 0
+            zero_floor_admits = not named(
+                g9_conjunct([g9_line], one_word_cell, 1, one_word_page), "G9")
+        finally:
+            clause_need = saved_clause_need
+        check("must-fail G9 zero clause floor admits one-word fabrication",
+              zero_floor_admits, True)
 
         # -- G9 probes that kill the split/threshold/backtick mutants -----
         # MutG9Guard (round 63) showed three G9-class mutants the survivor

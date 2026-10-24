@@ -318,6 +318,30 @@ def inside_quotes(line: str, start: int, end: int) -> bool:
     """
     return line.count('"', 0, start) % 2 == 1 and '"' in line[end:]
 
+def inside_code_span(line: str, start: int, end: int) -> bool:
+    """True when line[start:end] is enclosed by a matching backtick run."""
+    runs = [(m.start(), m.end(), len(m.group())) for m in re.finditer(r"`+", line)]
+
+    def unescaped(pos: int) -> bool:
+        slashes = 0
+        pos -= 1
+        while pos >= 0 and line[pos] == "\\":
+            slashes += 1
+            pos -= 1
+        return slashes % 2 == 0
+
+    for index, (open_start, open_end, width) in enumerate(runs):
+        if open_end > start or not unescaped(open_start):
+            continue
+        for close_start, _close_end, close_width in runs[index + 1:]:
+            if close_width == width and unescaped(close_start):
+                if open_end <= start and end <= close_start:
+                    return True
+                break
+    return False
+
+
+
 
 # ---------------------------------------------------------------------------
 # INDEX: coverage-map table in corpus/README.md
@@ -495,7 +519,8 @@ def citation_findings(rel: str, text: str, pointer_exists, commit_resolves) -> d
                 report_dead.append(f"{rel}:{line_no}: {token}")
         for match in COMMIT_RE.finditer(line):
             token = match.group(1)
-            if inside_quotes(line, match.start(1), match.end(1)):
+            if (inside_quotes(line, match.start(1), match.end(1))
+                    or inside_code_span(line, match.start(0), match.end(0))):
                 quoted.append(f"{rel}:{line_no}: {token} (quoted meta-finding)")
                 continue
             if not is_hex_object_id(token):
@@ -552,6 +577,30 @@ def git_ok(repo: Path, *args: str) -> bool:
         ["git", "-C", str(repo), *args], capture_output=True, text=True, check=False
     )
     return proc.returncode == 0
+
+
+# Round 66 (routed defect D2 of lessons/round-65-verifier-spotcheck.md):
+# closure-authored spot-check lessons cite their parent-fleet report commits
+# (e.g. the round-65 fleet report commit), which are fleet objects, never lane
+# objects -- the round-11 report-pointer hop's commit analogue. A cited commit
+# resolves against the lane repository first, then the fleet root; a token
+# that resolves in both is one citation, counted once.
+COMMIT_HOP_MARKER = "resolves against the lane repository first, then the fleet root"
+
+
+def commit_resolves(hex_id: str, repo: Path, fleet_root: Path = FLEET_ROOT) -> bool:
+    """A cited commit resolves against the lane repository first, then the fleet root.
+
+    The fleet fallback is the report-pointer hop's commit analogue: a fleet
+    commit cited from lane corpus (a closure spot-check naming its
+    parent-fleet report revision) is a real object in the fleet repository.
+    A fleet_root that is missing or is not a git repository reads False, never
+    raises: the hop is a fallback, not a new failure mode."""
+    if git_ok(repo, "cat-file", "-e", commit_peel_arg(hex_id)):
+        return True
+    if not fleet_root.is_dir():
+        return False
+    return git_ok(fleet_root, "cat-file", "-e", commit_peel_arg(hex_id))
 
 
 def tracked_corpus_files(repo: Path) -> list[str]:
@@ -613,9 +662,7 @@ def corpus_observations(repo: Path) -> dict:
             text,
             # base = the citing file's own directory, as written in its path
             lambda base, token, _repo=repo: report_pointer_exists(_repo / base, token),
-            lambda hex_id, _repo=repo: git_ok(
-                _repo, "cat-file", "-e", commit_peel_arg(hex_id)
-            ),
+            lambda hex_id, _repo=repo: commit_resolves(hex_id, _repo),
         )
         for key in agg:
             agg[key] += found[key]
@@ -963,6 +1010,59 @@ def self_test() -> int:
         )
         eq("pointer/fleet-root/checked", fleet_found["report_total"], 1)
         eq("pointer/fleet-root/resolves-existing-report", fleet_found["report_dead"], 0)
+
+    # --- round 66: the commit fleet-hop (routed defect D2 of the round-65
+    # spot-check) ----------------------------------------------------------
+    # A closure spot-check cites its parent-fleet report commit; the object
+    # lives only in the fleet repository. The hop resolves lane-first and
+    # falls back to the fleet root; a fleet root that is missing or is not a
+    # git repository reads False, never raises; the marker sentence is the
+    # frozen literal the round-66 repairs counter pins in this source.
+    def _one_commit_repo(path: Path, content: str) -> str:
+        path.mkdir(parents=True)
+        (path / "seed.txt").write_text(content, encoding="utf-8")
+        subprocess.run(["git", "init", "-q", str(path)], check=True)
+        subprocess.run(["git", "-C", str(path), "add", "seed.txt"], check=True)
+        subprocess.run(
+            ["git", "-C", str(path), "-c", "user.name=t", "-c",
+             "user.email=t@t", "commit", "-q", "-m", "seed"], check=True)
+        out = subprocess.run(["git", "-C", str(path), "rev-parse", "HEAD"],
+                             capture_output=True, text=True, check=True)
+        return out.stdout.strip()
+
+    context_found = citation_findings(
+        "corpus/lessons/context.md",
+        "The `` commit `451a02ff` `` grammar is explanatory.\n"
+        "A live commit `3b029b8` remains a citation.\n",
+        lambda _base, _token: False,
+        lambda token: token == "3b029b8",
+    )
+    eq("cites/commit-context/code-span-excluded",
+       context_found["commit_quoted_excluded"], 1)
+    eq("cites/commit-context/live-citation-counted",
+       context_found["commit_total"], 1)
+    eq("cites/commit-context/detail",
+       context_found["commit_quoted_detail"],
+       ["corpus/lessons/context.md:1: 451a02ff (quoted meta-finding)"])
+
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        root = Path(tmpdir)
+        lane_git = root / "lane-git"
+        fleet_git = root / "fleet-git"
+        lane_hex = _one_commit_repo(lane_git, "lane seed\n")
+        fleet_hex = _one_commit_repo(fleet_git, "fleet seed\n")
+        eq("commit-hop/lane-first", commit_resolves(lane_hex, lane_git, fleet_git), True)
+        eq("commit-hop/fleet-fallback", commit_resolves(fleet_hex, lane_git, fleet_git), True)
+        eq("commit-hop/neither", commit_resolves("f" * 40, lane_git, fleet_git), False)
+        not_a_repo = root / "not-a-repo"
+        not_a_repo.mkdir()
+        eq("commit-hop/fleet-not-a-repo",
+           commit_resolves(fleet_hex, lane_git, not_a_repo), False)
+        eq("commit-hop/fleet-missing-dir",
+           commit_resolves(fleet_hex, lane_git, root / "missing-fleet"), False)
+        eq("commit-hop/marker-pinned",
+           COMMIT_HOP_MARKER in (commit_resolves.__doc__ or ""), True)
 
     # --- citation fixture: pointers, commits, quoted meta-findings -------
     found = citation_findings(
