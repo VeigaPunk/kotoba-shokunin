@@ -1,0 +1,99 @@
+# C1 kill battery @ 80bb8921 (committed bytes; each lane one exact-string replacement)
+# attribution: SM4 first kill = M17 prefix arm (then eligible-world lines); SM6 first kill = pre-existing A2 cell arm (R64-M9 rule); M11 first kill = pre-existing main-world arms, the new M11 arm FAILs as collateral (witness, not load-bearing, MutW2M7M22 F7)
+# candidate baseline
+== baseline: exit=0  self-test: 0 failure(s) over 234 assertions
+   self-test: 0 failure(s) over 234 assertions
+
+# kill set (each must exit 1, attributed to its arm)
+== SM1-span-empty: exit=1  self-test: 5 failure(s) over 234 assertions
+   FAIL A2 G7: a backticked span whose words occur in neither the cited line nor the page is rejected: got False, expected True
+   FAIL A2 G7: a fabricated four-character span word is rejected: got False, expected True
+   FAIL A2 G7: a span word present in the cited line only inside backticks is rejected: got False, expected True
+   FAIL A2 G7: a fabricated first backticked span is rejected when an honest second span follows it: got False, expected True
+== SM2-floor2: exit=1  self-test: 2 failure(s) over 234 assertions
+   FAIL A2 G7: a backticked span word shorter than four characters is not rejected: got True, expected False
+   FAIL A2 G7: a three-character span word is not rejected: got True, expected False
+   self-test: 2 failure(s) over 234 assertions
+== SM3-no-stopword: exit=1  self-test: 2 failure(s) over 234 assertions
+   FAIL A2 G7: a backticked span made only of stopwords is not rejected: got True, expected False
+   FAIL A2 G7: a capitalised stopword-only span is not rejected: got True, expected False
+   self-test: 2 failure(s) over 234 assertions
+== SM4-no-page-check: exit=1  self-test: 8 failure(s) over 234 assertions
+   FAIL A2 G7: a span word supported by a four-character prefix on the page is not rejected: got True, expected False
+   FAIL A2 G7: a span word whose only page occurrence is inside backticks is not rejected: got True, expected False
+   FAIL A2 G7: a capitalised span word present on the page only as an exact-case token is not rejected: got True, expected False
+   FAIL eligible world: the four counted rows are backed: got ['Claude Code', 'VS Code'], expected ['Claude Code', 'Copilot CLI', 'Cursor', 'VS Code']
+== SM5-no-line-check: exit=1  self-test: 3 failure(s) over 234 assertions
+   FAIL A2 G7: a backticked span word present in the cited line is not rejected even when the page lacks it: got True, expected False
+   FAIL A2 G7: a capitalised span word present in the cited line is not rejected: got True, expected False
+   FAIL A2 G7 (wrapper): a span word present in the cited line is not rejected even when the page lacks it: got True, expected False
+   self-test: 3 failure(s) over 234 assertions
+== SM6-always-fires: exit=1  self-test: 17 failure(s) over 234 assertions
+   FAIL A2: a cell the cited line supports passes: got ['A2 G7: backticked span word(s)  occur in neither the cited line nor the committed snapshot'], ex
+   FAIL A2 G7: a backticked span made only of stopwords is not rejected: got True, expected False
+   FAIL A2 G7: a backticked span word shorter than four characters is not rejected: got True, expected False
+   FAIL A2 G7: a backticked span word present in the cited line is not rejected even when the page lacks it: got True, expected False
+== M7-floor3: exit=1  self-test: 1 failure(s) over 234 assertions
+   FAIL A2 G7: a three-character span word is not rejected: got True, expected False
+   self-test: 1 failure(s) over 234 assertions
+== M8-floor5: exit=1  self-test: 4 failure(s) over 234 assertions
+   FAIL A2 G7: a fabricated four-character span word is rejected: got False, expected True
+   FAIL A2 G7: a span word present in the cited line only inside backticks is rejected: got False, expected True
+   FAIL A2 G7: a fabricated first backticked span is rejected when an honest second span follows it: got False, expected True
+   FAIL A2 G7: a fabricated second backticked span is rejected when an honest first span precedes it: got False, expected True
+== M9-stopword-no-lower: exit=1  self-test: 1 failure(s) over 234 assertions
+   FAIL A2 G7: a capitalised stopword-only span is not rejected: got True, expected False
+   self-test: 1 failure(s) over 234 assertions
+== M10-line-no-lower: exit=1  self-test: 1 failure(s) over 234 assertions
+   FAIL A2 G7: a capitalised span word present in the cited line is not rejected: got True, expected False
+   self-test: 1 failure(s) over 234 assertions
+== M12-line-page-words: exit=1  self-test: 1 failure(s) over 234 assertions
+   FAIL A2 G7: a span word present in the cited line only inside backticks is rejected: got False, expected True
+   self-test: 1 failure(s) over 234 assertions
+== M17-exact-page: exit=1  self-test: 1 failure(s) over 234 assertions
+   FAIL A2 G7: a span word supported by a four-character prefix on the page is not rejected: got True, expected False
+   self-test: 1 failure(s) over 234 assertions
+== M14-wrapper-no-page: exit=1  self-test: 3 failure(s) over 234 assertions
+   FAIL A2 G7: a span word present in the cited line only inside backticks is rejected: got False, expected True
+   FAIL A2 G7: a span word whose only page occurrence is inside backticks is not rejected: got True, expected False
+   FAIL A2 G7: a capitalised span word present on the page only as an exact-case token is not rejected: got True, expected False
+   self-test: 3 failure(s) over 234 assertions
+== SPAN_FIRST: exit=1  self-test: 1 failure(s) over 234 assertions
+   FAIL A2 G7: a fabricated second backticked span is rejected when an honest first span precedes it: got False, expected True
+   self-test: 1 failure(s) over 234 assertions
+== SPAN_LAST: exit=1  self-test: 1 failure(s) over 234 assertions
+   FAIL A2 G7: a fabricated first backticked span is rejected when an honest second span follows it: got False, expected True
+   self-test: 1 failure(s) over 234 assertions
+== M20-page-content-words: exit=1  self-test: 2 failure(s) over 234 assertions
+   FAIL A2 G7: a span word whose only page occurrence is inside backticks is not rejected: got True, expected False
+   FAIL A2 G7: a capitalised span word present on the page only as an exact-case token is not rejected: got True, expected False
+   self-test: 2 failure(s) over 234 assertions
+== M11-page-no-lower: exit=1  self-test: 7 failure(s) over 234 assertions
+   FAIL A2: a cell the cited line supports passes: got ['A2: action word(s) scope do not occur on the committed snapshot'], expected []
+   FAIL A2 G7: a capitalised span word present on the page only as an exact-case token is not rejected: got True, expected False
+   FAIL eligible world: the four counted rows are backed: got ['VS Code'], expected ['Claude Code', 'Copilot CLI', 'Cursor', 'VS Code']
+   FAIL eligible world: the four counted rows are found live: got [False, True, False, False], expected [True, True, True, True]
+
+# equivalents (must exit 0 on the candidate)
+== M19-sorted-list: exit=0  self-test: 0 failure(s) over 234 assertions
+   self-test: 0 failure(s) over 234 assertions
+== M22-L-guard: exit=0  self-test: 0 failure(s) over 234 assertions
+   self-test: 0 failure(s) over 234 assertions
+
+# control world: pkg7-equivalent (candidate minus the 4 round-65-new arms)
+== pkg7-control: exit=0  self-test: 0 failure(s) over 230 assertions
+   self-test: 0 failure(s) over 230 assertions
+== control+SPAN_FIRST: exit=0  self-test: 0 failure(s) over 230 assertions
+   self-test: 0 failure(s) over 230 assertions
+== control+SPAN_LAST: exit=0  self-test: 0 failure(s) over 230 assertions
+   self-test: 0 failure(s) over 230 assertions
+== control+M20-page-content-words: exit=0  self-test: 0 failure(s) over 230 assertions
+   self-test: 0 failure(s) over 230 assertions
+== control+M11-page-no-lower: exit=1  self-test: 6 failure(s) over 230 assertions
+   FAIL A2: a cell the cited line supports passes: got ['A2: action word(s) scope do not occur on the committed snapshot'], expected []
+   FAIL eligible world: the four counted rows are backed: got ['VS Code'], expected ['Claude Code', 'Copilot CLI', 'Cursor', 'VS Code']
+   FAIL eligible world: the four counted rows are found live: got [False, True, False, False], expected [True, True, True, True]
+   FAIL eligible world: the CLI exits 0 at a target of 4: got 1, expected 0
+
+RESULT: ALL OK
+harness_exit=0
