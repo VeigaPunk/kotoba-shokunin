@@ -658,7 +658,7 @@ nor the page). It is a `g7_conjunct`-level addition, not a `split_clauses`
 one, and it did not move any of this battery's probe cells or eligible rows.
 It is recorded here only so the L1 knows it is unexamined by this seat.
 
-### 7h. THE L1's E3 TEXT, CHECKED AGAINST THE LANE — THREE CLAIMS THAT DO NOT HOLD
+### 7h. THE L1's E3 TEXT, CHECKED AGAINST THE LANE — THREE FALSE CLAIMS, ALL NOW FIXED
 
 The L1 has rewritten `plans/round-63.md` in the working tree, adding
 **Erratum E3**, which narrates this seat's finding and the landing. Most of
@@ -725,6 +725,32 @@ green, kills all nine mutants, and moves exactly one probe cell (§7g). All
 three are in the plan/receipt paperwork, and they are the L1's to correct —
 I flag them here rather than edit anything, per my seat's bounds.
 
+**Resolution status, re-checked after the L1's next edit.** Two of the three
+were fixed, and fixed correctly:
+
+- **#1 is RESOLVED.** The plan now reads "The deviation and both wordings are
+  documented in the code only — `MIN_CONTENT = 3` at v32:314 (A2's whole-cell
+  floor), `MIN_CLAUSE = 2` at v32:1072, and the `g9_conjunct` floor comment at
+  v32:1136-1140". That is exactly what this seat measured. The false
+  "receipt names both wordings" sentence is gone.
+- **#3 is RESOLVED.** `.ufo/waves/round-63/receipts/C2-before-rerun.txt` now
+  exists and contains exactly the output I measured: the five `FAIL` lines,
+  `r62 routed defects closed 0 of 5`, and `exit=1`.
+- **#2 is RESOLVED.** It persisted for one edit — a refreshed receipt existed
+  only at **cbbee56e** (`42460691…`, 208 assertions), while the plan asserted
+  "the refreshed receipt names the landed sha and assertion count" and no file
+  named `12d093a1…` or `219`. The L1 then rewrote
+  `.ufo/waves/round-63/receipts/C1-g9-measure.txt` in place. It now opens
+  `counter sha256 12d093a1cdbba4e0c57437e79bc1121708f522f84f81d00a4343bbbbf4c70f43`
+  — the landed sha — and closes
+  `self-test: 0 failure(s) over 219 assertions` / `exit=0`, with all seven
+  world lines, the six survivor lines and the three must-fail lines intact.
+  I re-ran that command against the lane's landed bytes and it reproduces
+  line-for-line. The receipt now describes the bytes it sits beside.
+
+**All three are now closed, and each was closed in the form this seat
+measured rather than by weakening the claim.**
+
 **Also checked and fine:** the L1's `MutW2GuardEvasion` arms are consistent
 with the guard's semantics, and the one-word arm is labelled a declared bound
 rather than an endorsement. `MutW2V32` has independently attacked the L1's
@@ -736,15 +762,20 @@ correctly handed to the seat that owns it.
 (Erratum E3) narrates this seat's finding accurately in substance — the
 `BACKTICK_RE`-pairing fix, the eight arms, and the `MIN_CLAUSE` = 2 page-word
 deviation from the plan's `MIN_CONTENT` sentence are all real and all landed
-as I measured them — but three of its checkable claims do not hold against
-the lane: the receipt names **neither** wording (it names neither `MIN_CLAUSE`
-nor `MIN_CONTENT`), the entry names neither either (so the wordings are
-documented in the **code only**), the receipt's sha and assertion count are
-stale by two revisions (`5523088…`/`205` against the landed `12d093a1…`/`219`),
-and E2 points at a receipt file `.ufo/waves/round-63/receipts/C2-before-rerun.txt`
-that does not exist. The C2 before-control claim itself is **true** — I
-re-ran it: `r62 routed defects closed 0 of 5`, exit 1. None of the three is a
-defect in the landed counter.
+as I measured them. I checked its three checkable claims against the lane and
+found all three wanting; the L1 has since fixed two of them correctly:
+
+- the "receipt names both wordings" claim — **fixed**; the plan now says
+  "documented in the code only" with the exact line references;
+- the missing `.ufo/waves/round-63/receipts/C2-before-rerun.txt` — **fixed**;
+  the file now exists with exactly the output I re-measured (`0 of 5`, exit 1);
+- the stale receipt — **fixed**; `C1-g9-measure.txt` now opens with the
+  landed sha `12d093a1…` and closes with `0 failure(s) over 219 assertions`,
+  reproducing line-for-line against the lane's bytes.
+
+**All three are closed.** None of them was ever a defect in the landed
+counter — they were plan/receipt paperwork, and the L1 corrected each in the
+form this seat measured rather than by weakening the claim.
 
 ### 8. Restoration and lane integrity
 
