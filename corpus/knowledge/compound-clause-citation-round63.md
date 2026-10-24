@@ -125,7 +125,11 @@ in-place rewrites; S119 is the primary source opened this round for it.
   multi-word-span extension closes the backticked page-absent fabrication with a
   0-row real-corpus diff (`MutW2GuardEvasion` §4). Do-nothing control:
   `verifiers/check_scoped_rules_v31.py --self-test` → `survivors closed 5 of 6`,
-  exit 0, and it cannot meet the target.
+  exit 0, and it cannot meet the target. *Freshness note (2026-10-24, round 64):
+  the `219` tally was true at this entry's measured rev; the round-64 G7
+  `span_missing` pinning arms moved the suite to `223` assertions — see
+  `corpus/knowledge/g7-span-pinning-round64.md`; this entry's historical
+  measurement stands as recorded.*
 - `python3 -B verifiers/check_r63_routed_repairs.py --self-test` → `self-test: 0
   failure(s) over 23 assertions`, exit 0. Wave-2 hardening (erratum E2): the
   pinned BASE_REV base arm (refuse-to-certify), label-only/fingerprint/

@@ -129,6 +129,8 @@ for a source the row's author opened this round; access evidence lives in
 | S118 | Claude Code Docs — How Claude remembers your project — https://code.claude.com/docs/en/memory.md | docs | A | Current Claude Code `.claude/rules/` `paths` frontmatter matching syntax (vendor documentation; not a runtime test) | § Rule frontmatter reference (`memory.md:244-250`), especially `paths` (`:250`); § Path-specific rules (`:194-200`); fetched 2026-10-23T20:49:56Z (HTTP 200, 55,354 B, sha256 `02632438e022b5fc70b470b02d59819d9739756c2666b5632734b4564a08a801`); snapshot `.ufo/waves/round-62/snapshots/S118.page` | re-opens S103 — opened this round because the round-62 C1 E2e instances need the vendor's own statement of how the `paths` key takes glob patterns; S103's scope covered the directory overview, and this row records the current-round access to the rule-frontmatter reference | mined | 2026-10-23 | 90d | corpus/lessons/round-62.md, corpus/knowledge/erratum-absorption-round62.md |
 | S119 | ICMJE — Corrections and Version Control — https://www.icmje.org/recommendations/browse/publishing-and-editorial-issues/corrections-and-version-control.html | docs | A | Correction practice for a published record: a transparent correction notice that cites the original, and preservation of prior versions | § Corrections (snapshot `.page:170-174`); fetched 2026-10-23T23:04Z (HTTP 200, 22,722 B, sha256 `d76af0c067c1f09a21113857f66eb6725ee75d1731f5339da464e5555d3bc9d2`; the page carries a dynamic element — a re-fetch of the same size hashed `e2c3db05…` in a seat probe, so byte-identity across fetches is not claimed, only the located quotes); snapshot `.ufo/waves/round-63/snapshots/S119.page` | A journal publishes a correction notice "as soon as possible detailing changes from and citing the original publication" and "archive all prior versions of the article" — transparent correction with preserved history, not a silent rewrite of the record; the page does not mandate literal append-only files | mined | 2026-10-23 | 365d | corpus/knowledge/compound-clause-citation-round63.md, corpus/lessons/round-63.md |
 
+| S120 | Practical Mutation Testing at Scale: A view from Google (Petrović, Ivanković, Fraser & Just) — https://arxiv.org/html/2102.11378 | paper | A | Primary peer-reviewed study for the claim this row scopes: mutation analysis measures a test suite's adequacy by whether it detects seeded faults — so survival, not line coverage, locates an unasserted effect at covered code. Scoped to the paper's own statement; the lane's load-bearing-branch application is the lane's inference, not the paper's study object. Not a survey | arXiv:2102.11378v2 HTML (26 Feb 2021), the artifact opened and quoted: abstract `#abstract1.1` snapshot lines 283-284, §1 Introduction `#S1.p1.1` line 324, §III-B2 Heuristics to Prevent Equivalent Mutants `#S3.SS2.SSS2.p1.1` lines 780-782; journal version IEEE TSE 48(10):3900-3912 issue Oct 2022 (online Aug 2021), DOI 10.1109/TSE.2021.3107634, metadata from `curl -sS https://api.crossref.org/works/10.1109/TSE.2021.3107634` only — the IEEE HTML was not opened; fetched 2026-10-24 (HTTP 200, 571,600 B, sha256 `15963c3e67b577182fb40318960ca654d70951ddc8827529de82d7f563cc79e8`); snapshot `.ufo/waves/round-64/snapshots/S120.page` | "Mutation analysis assesses a test suite’s adequacy by measuring its ability to detect small artificial faults, systematically seeded into the tested program" — mutant-kill is the adequacy witness, so a survivor on a covered branch is a lead that its assertion is missing, not proof of a gap (equivalent mutants can be productive, §III-B2) | mined | 2026-10-24 | 180d | corpus/knowledge/g7-span-pinning-round64.md, corpus/lessons/round-64.md |
+
 ## Paths
 
 - **Authoring a SKILL.md that loads everywhere — S018 → S017 → S008 → S019 → S012 → S002 → S011.**
@@ -241,3 +243,44 @@ for a source the row's author opened this round; access evidence lives in
   serves the same content at the same path modulo the request profile, so a second row
   would duplicate the scope S088/S115 already govern. The row's recorded receipt stays as
   the dated original.
+- **2026-10-24 — round-64 S120 opening (C1's method source).** Question: which primary source teaches
+  mutation-kill as witnessed coverage — a surviving mutant as the signal that a load-bearing guard
+  branch is exercised but never witnessed — and states the equivalent-mutant caveat. Where: two web
+  searches (the plan's named candidate; then the mutant-versus-real-fault validity line), the arXiv
+  record and PDF for `2102.11378` (fetched twice byte-identical), the arXiv HTML the snapshot pins,
+  Crossref for both DOIs the plan named and for the journal version, and the included paper's own
+  bibliography. Identified 8 distinct candidate works; screened 8; included 1 (S120); excluded 7 —
+  (a) Just, Jalali, Inozemtseva, Ernst, Holmes and Fraser, "Are Mutants a Valid Substitute for Real
+  Faults in Software Testing?", FSE 2014, DOI 10.1145/2635868.2635929: grounds a different claim
+  (mutant detection correlates with real-fault detection beyond coverage), so carrying it would widen
+  S120's scope against rule 2, and it was not opened this round, so rule 1 forbids a row; (b)
+  Petrović and Ivanković, "State of Mutation Testing at Google", ICSE-SEIP 2018, pp. 163–171, DOI
+  10.1145/3183519.3183521: the same authors' earlier, smaller report (6,000 engineers against the
+  included paper's 24,000 developers on 1,000+ projects), superseded for this scope; (c) Jia and
+  Harman, "An Analysis and Survey of the Development of Mutation Testing", IEEE TSE 37(5):649–678,
+  2011: secondary survey, tier B at best, and it is the included paper's own reference [28] for the
+  equivalent-mutant problem, so it duplicates S120's scope; (d) "Mutation Testing in the Wild:
+  Challenges and Lessons from Bitcoin" (SBC/SAST, surfaced 2026): single-system experience report in
+  another domain, no scale claim for this scope, not opened; (e) "Does mutation testing improve
+  testing practices" (ICSE 2021, pp. 910–921, the same four authors, identified by RevSourcesGate's
+  independent record check and surfaced by my search only as a secondary index page): a different
+  question — whether mutation testing changes developer testing behaviour — and a different venue
+  class from the included journal article, not opened; (f) `arXiv:2103.02722`, the plan's identifier:
+  opened, and it is Peralta, "A Markov jump process associated with the matrix-exponential
+  distribution" — wrong work, rejected; (g) DOI 10.1109/ICSE43902.2021.00068, the plan's DOI:
+  resolved through Crossref, and it is Chen et al., "An Empirical Study on Deployment Faults of Deep
+  Learning Based Mobile Applications", ICSE 2021, pp. 674–685 — wrong work, rejected. The plan's
+  candidate citation is therefore corrected by the opened record in three places: the authors are
+  Petrović, Ivanković, Fraser and Just (no Ernst), the venue is IEEE Transactions on Software
+  Engineering 48(10):3900–3912, published in issue Oct 2022 (Crossref published-print 2022-10-01,
+  created 2021-08-27), not ICSE 2021, and the preprint is `arXiv:2102.11378v2` (26 Feb 2021), not
+  `2103.02722`. Stop rationale (rule 5): the plan's two identifiers were opened and rejected rather
+  than silently skipped, and the title-matched primary then opened and carries both located quotes
+  the `teaches` cell needs — the adequacy definition at `abstract1.1` and "are a plague in mutation
+  testing and cannot generally be detected automatically" at `S3.SS2.SSS2.p1.1` — so the sweep stops
+  at full inclusion of the one qualifying source; every other screened work grounds a different
+  claim, is secondary, or was not opened, and ScoutS120Alt's three fallbacks (a Google engineering
+  blog post, a university mutation-testing chapter, PIT's equivalent-mutant docs) stay unscreened
+  because the title match succeeded — recorded there, not counted here.
+
+- **2026-10-24 — round-64 S049 live-context re-probe (appended; the S049 row and the 2026-10-23 errata are not rewritten).** Question: does the request-profile split on `https://cursor.com/docs/rules.md` still hold, and does either profile reproduce a held receipt? Where: that URL under curl 8.23.0 default `Accept` (sent `Accept: */*`, no `-H`) and under `Accept: text/markdown`, plus one control fetch of `https://cursor.com/docs/rules` (no `.md`, default Accept). Probed 2026-10-24T03:35:37Z. Default `Accept`: HTTP 200, `content-length` absent, body 17,252 B, sha256 `dae9d3ecd7e389fc94ee57d87911fe8d54bae1f00ce451d44303616648247ce0` (`text/markdown; charset=utf-8`; `vary: Accept`; Vercel cache HIT, age 1254, `Date: Sat, 24 Oct 2026 03:14:43 GMT`). `Accept: text/markdown`: HTTP 404, `content-length` absent, body 389 B, sha256 `4f98eb063d1914a3100f2c7e6bab3a449877d33da375eb3c05edc3a61e78afb1` (body headed `# Page not found`; Vercel cache MISS, age 0, `Date: Sat, 24 Oct 2026 03:35:37 GMT`). The 2026-10-22 receipt (17,403 B, sha256 `884c67ca…`, fetched 2026-10-22T20:09:33Z) does not reproduce under either profile. The 2026-10-23 default-Accept receipt (17,252 B, sha256 `dae9d3ec…`) reproduces byte-for-byte, and the request-profile-dependent 404 still reproduces. Control `https://cursor.com/docs/rules`: HTTP 200, `content-length: 540892`, body 540,892 B, `text/html; charset=utf-8`, sha256 `35ff98b0fca637195a670ca8907d32b52642cb311d5455717aedfbc2d91e6ee2` (0 redirects; same byte count as the 2026-10-23 extensionless HTML fetch, which recorded no digest). No S049 field is rewritten.

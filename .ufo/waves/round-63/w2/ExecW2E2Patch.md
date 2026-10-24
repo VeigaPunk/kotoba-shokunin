@@ -596,3 +596,7 @@ no-rewrite invariant; the assertion count moves 15 → 21 and every citation of 
 be updated on adoption.
 
 Report: .ufo/waves/round-63/w2/ExecW2E2Patch.md
+
+---
+
+2026-10-24 — Drift note (appended in kotoba round 64; the dated "21 assertions" cells above stand unrewritten): I ran `python3 -B verifiers/check_r63_routed_repairs.py --self-test`, which printed `self-test: 0 failure(s) over 23 assertions` and exited 0; the table's 21 is an intermediate tally. The r63 spot-check's defect 4 says, "ExecW2E2Patch's table records the patched C2 counter at "21 assertions"; the committed counter has 23 (my count)." This append records the measured `23` and resolves the reported assertion-count drift.

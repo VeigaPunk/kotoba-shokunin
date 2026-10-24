@@ -2126,6 +2126,40 @@ def self_test() -> int:
         g9_page = (g9_line + " An unrelated section: the agent secretly uploads "
                    "files and stores secrets exfiltrated nightly.")
         g9_after = " secretly uploads files."
+        # Round-64 pinning arms (MutW2V32 §11, deferred row (t); arm 4 cell
+        # hardened per MutSpanArms §6 so A2's page gate cannot mask the
+        # witness): one positive evasion witness + negative witnesses pinning
+        # each floor and filter of g7_conjunct's span_missing branch.
+        check("A2 G7: a backticked span whose words occur in neither the "
+              "cited line nor the page is rejected",
+              named(action_conjunct(
+                  [g9_line],
+                  g9_line[:-1] + " and `exfiltrates credentials`.",
+                  1, g9_page), "G7"), True)
+        check("A2 G7: a backticked span made only of stopwords is not "
+              "rejected",
+              named(action_conjunct(
+                  ["The tool writes mode quota nightly."],
+                  "The tool writes mode quota nightly and `because otherwise`.",
+                  1,
+                  "The tool writes mode quota nightly.\n\n## Appendix\n"
+                  "The agent secretly uploads files."), "G7"), False)
+        check("A2 G7: a backticked span word shorter than four characters is "
+              "not rejected",
+              named(action_conjunct(
+                  ["The tool writes mode quota nightly."],
+                  "The tool writes mode quota nightly and `ox it`.",
+                  1,
+                  "The tool writes mode quota nightly.\n\n## Appendix\n"
+                  "The agent secretly uploads files."), "G7"), False)
+        check("A2 G7: a backticked span word present in the cited line is "
+              "not rejected even when the page lacks it",
+              named(g7_conjunct(
+                  ["The tool writes mode quota nightly."],
+                  "The tool writes quota nightly and `mode quota`.",
+                  1,
+                  "The tool writes quota nightly.\n\n## Appendix\n"
+                  "The agent secretly uploads files."), "G7"), False)
         check("A2 G9: an `and`-joined purpose clause off the cited line is rejected",
               named(action_conjunct(
                   [g9_line],

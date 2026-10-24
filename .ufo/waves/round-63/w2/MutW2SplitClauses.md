@@ -689,11 +689,15 @@ admitted are now rejected. That part of E3 is right and is my finding.
 
 **Not accurate**, in E3:
 
-1. **"the receipt names both wordings" — the receipt half was right, the
-   entry half was MY ERROR and is corrected here.** The receipt
-   `.ufo/waves/round-63/receipts/C1-g9-measure.txt` did contain zero
-   occurrences of `MIN_CONTENT` and zero of `MIN_CLAUSE`, so *that* half of
-   the sentence was false. But I then grepped the **wrong entry file**:
+1. **"the receipt names both wordings" — the receipt half was factually right,
+   the entry half was MY ERROR and is corrected here.** No receipt names
+   either wording, at any revision:
+   ```
+   for f in .ufo/waves/round-63/receipts/*:
+     grep -c "MIN_CLAUSE|MIN_CONTENT"  ->  0  for every file, including at HEAD
+   ```
+   So *that* half of the sentence was false. But I then grepped the **wrong
+   entry file**:
    `corpus/knowledge/erratum-absorption-round62.md` is the **round-62** entry,
    whereas E3's sentence sits in a round-63 plan and names the **round-63**
    entry, `corpus/knowledge/compound-clause-citation-round63.md`. I recorded
@@ -704,29 +708,70 @@ admitted are now rejected. That part of E3 is right and is my finding.
    round-63 entry AT THE TIP:                   MIN_CLAUSE x4, MIN_CONTENT x1
    round-62 entry (the file I grepped):         MIN_CLAUSE x0, MIN_CONTENT x0
    ```
-   So at the moment I checked, the round-63 entry named **one** of the two
-   wordings, not neither — the "documented in the code **and entry**; both
-   wordings" sentence was still not satisfied, but for a different reason than
-   I gave, and my evidence for it was from the wrong document.
-   `MutW2V32` caught this (§12) and is right. The correction is mine to
-   carry: **when a plan sentence says "the entry", resolve which entry — for
-   a round-63 erratum that is the round-63 entry, not the r62 one the plan's
-   §C2 quotes.**
-2. **The receipt is stale on two numbers**, independently of the wording
-   question — and the receipt-drift finding was already raised by
-   `RevW2C1Predicate` and `RevW2ScorecardWording`, so the L1 should fold
-   their proposed three-token edit in rather than re-derive it:
+   **And there was never a committed revision in which the sentence was
+   false.** My first draft of this correction kept a clause claiming "at
+   cbbee56 the entry named only one wording, so the sentence was then not
+   satisfied". `MutW2V32` rejected it (§12) and is right — I verified the
+   history myself:
+   ```
+   git show <rev>:plans/round-63.md | grep -c "Erratum E3":
+     cbbee56 0 | 849a546 1 | 2ba4547 1 | 75370a5 1 | HEAD 1
+   git log --all -S"documented in the code and entry"   -- plans/round-63.md  -> (empty)
+   git log --all -S"receipt names both wordings"        -- plans/round-63.md  -> (empty)
+   ```
+   E3 did not exist at `cbbee56` at all. Its actual sentence is **"the entry
+   names the landed rule"**, which is present from `849a546` onward and
+   absent before it — so it was **true at every revision where it exists**.
+   E3 and the entry's `MIN_CONTENT` line arrived in the **same** commit, so
+   the sentence was true at introduction and is true at the tip. Comparing
+   the entry's `cbbee56` state against a sentence written two commits later
+   was a **temporal mismatch** on my part.
+
+   **A second correction, on the provenance of the wording I quoted.** I
+   first wrote here that the sentence "documented in the code and entry; the
+   receipt names both wordings" was "a pre-commit draft the L1 superseded".
+   That is an **inference I cannot support and have withdrawn**
+   (`MutW2V32`, §12, second precision). What the record actually shows: the
+   wording appears in **no commit** (`git log --all -S` finds nothing for
+   either phrase), in **no file** in the tree except this report, and in no
+   snapshot of `plans/round-63.md` I could recover from jj's operation log.
+   So the honest statement is the narrower one: **I quoted E3 inaccurately,
+   and then audited the entry that my inaccurate quote happened to name.**
+   "Superseded draft" asserts a process I did not observe; a future reader
+   would go looking for an artefact that does not exist. Withdrawn.
+
+   The correct criticism of my flag is therefore only this: **I misquoted
+   E3 and grepped the round-62 entry rather than the round-63 one.** The
+   lessons: when a plan sentence says "the entry", resolve *which* entry;
+   when auditing paperwork, audit the **committed** text rather than a
+   working tree caught mid-edit; and do not narrate a provenance you cannot
+   produce evidence for.
+
+   Two things are still true and worth keeping, because they are why the flag
+   was worth raising at the time even though its evidence was flawed: the
+   **receipt genuinely does not name either wording** (verified at HEAD, all
+   five files in `receipts/`), and the committed E3 correctly responds to that
+   by attributing the wordings to the **code only** and giving the entry and
+   the receipt their own, narrower jobs. The committed text is accurate; my
+   flag was one part right, one part wrong, and one part misquoted.
+2. **The receipt WAS stale on two numbers** (now refreshed — see the
+   resolution block below), independently of the wording question — and the
+   receipt-drift finding was already raised by `RevW2C1Predicate` and
+   `RevW2ScorecardWording`, so the L1 folded their proposed three-token edit
+   in rather than re-deriving it:
    ```
    receipt: v32 sha256 552308806b17e0e48fedb083eb6d55b722a7ef080aa7de8402601bbbc27d8f39
             self-test: 0 failure(s) over 205 assertions
    landed : v32 sha256 12d093a1cdbba4e0c57437e79bc1121708f522f84f81d00a4343bbbbf4c70f43
             self-test: 0 failure(s) over 219 assertions
    ```
-   The receipt's sha is now two revisions stale (it names the pre-wave-1
-   working copy, then `42460691…` at cbbee56e, now `12d093a1…`), and its
-   assertion count is 205 against the landed 219.
+   At the time, the receipt's sha was two revisions stale (it named the
+   pre-wave-1 working copy `5523088…`; `42460691…` was the cbbee56e value and
+   `12d093a1…` is the landed one), and its assertion count read 205 against
+   the landed 219. It now reads `12d093a1…` / 219.
 3. **E2's "re-run recorded in `.ufo/waves/round-63/receipts/C2-before-rerun.txt`" —
-   that file does not exist.** The receipts directory holds exactly one file
+   that file did not exist when I checked** (it is now committed — see the
+   resolution block). The receipts directory held exactly one file
    (`C1-g9-measure.txt`); `find` over the whole tree finds no
    `C2-before-rerun*`. The **claim itself is true** — I re-ran the hardened
    C2 counter at the before-control and it does print `r62 routed defects
@@ -1088,14 +1133,22 @@ baseline. The shared caveat stands: the quoted-`;` and the `-and-` lexeme
 arms freeze behaviour RevG9Guard named defective, and must be labelled bounds
 rather than endorsements.
 
-**§7h records the paperwork check, including a correction to myself.** I
+**§7h records the paperwork check, including two corrections to myself.** I
 tested three checkable claims in the L1's new Erratum E3 against the lane.
 The receipt was stale and `C2-before-rerun.txt` was absent when I checked —
 both were real at the time and both are now fixed at the committed tip. The
-third flag was **half my error**: I grepped the round-**62** entry to test a
-sentence about the round-**63** entry, and recorded "the entry names neither
-wording" when the round-63 entry carried `MIN_CLAUSE` x3 at `cbbee56` (and
-carries both wordings now). `MutW2V32` caught it, and the retracted claim is
-corrected in §7h item 1 rather than left standing. The lesson for a seat that
-audits paperwork: resolve *which* document a plan sentence names, and
-re-check at the committed tip before reporting.
+third flag was wrong in two independent ways, and `MutW2V32` caught both: I
+grepped the round-**62** entry to test a sentence about the round-**63**
+entry (the round-63 entry carried `MIN_CLAUSE` x3 at `cbbee56` and carries
+both wordings now), **and** I misquoted E3 — the wording I attributed to it
+appears in **no commit**, and I could not recover it from any snapshot either,
+so I withdrew my "superseded draft" story as an inference I cannot evidence.
+E3's actual sentence is "the entry names the landed rule", true at every
+revision where E3 exists; it and the entry's `MIN_CONTENT` line arrived in
+the same commit. The one part of that flag that survives is factual and was
+the reason to raise it: **no receipt names either wording** (verified at HEAD,
+all five receipt files), which is exactly why the committed E3 assigns the
+wordings to the code only. Lessons for a seat that audits paperwork: resolve
+*which* document a plan sentence names; audit the **committed** text rather
+than a working tree caught mid-edit; and never narrate a provenance you
+cannot produce evidence for.
