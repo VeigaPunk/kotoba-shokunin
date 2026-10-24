@@ -1,0 +1,274 @@
+{
+ "wave": "kotoba-r64-w2",
+ "milestone": "Round-64 wave 2 (falsify): re-run every counting command at the measured tip, attack both predicates with dishonest worlds and mutation batteries, re-open S120, audit receipts/census/no-harm/scope, and draft the dispositions.",
+ "axes": [
+  "depth",
+  "calibration",
+  "freshness",
+  "coverage",
+  "quality"
+ ],
+ "reportDir": ".ufo/waves/round-64/w2",
+ "context": "# Goal\nkotoba round 64, WAVE 2 of 2 (falsify), hyaku run 5, 2026-10-24. Lane repo /home/vgpnk/Projects/shokunin/kotoba-shokunin (jj-colocated). You are ONE seat. The L1 is the only writer of lane production files; you write ONLY your own report file at the absolute path\n/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-64/w2/<YourName>.md\nEvery `Report:` trailer path is relative to /home/vgpnk/Projects/shokunin/kotoba-shokunin — write it at /home/vgpnk/Projects/shokunin/kotoba-shokunin/<that path>.\n\n# Measured tip\nThe round's data/integration commit is `c019919c97ab5fe98e87a7754b4449ea4e699c99` (base `078eec4a1f6a41c64ff8806f58b46a67cd413bfc`). Attack what wave 1 produced: the landed v32 arms, the landed r64 counter, the receipts, the LOG corrections block + round-64 entry, the SCORECARD annotation block, the S120 row + snapshot + entry, the lesson, Q59/Q60, the drift-note amendment, and both claims' declared predicates (frozen in /home/vgpnk/Projects/shokunin/kotoba-shokunin/plans/round-64.md with errata E1–E3). Wave-1 seat reports are under /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-64/w1/ — read the ones your item names.\n\n# Write bounds\nRead-only outside your own report file. Never mutate the fleet repo, sibling lanes, lane jj state or the lane Git index; never run git/jj writes. Scratch only under /tmp. Paste real command output with exit codes; label inferences [INFERENCE].\n\n# Tooling authorization\nAny agent may install or upgrade tools that help the task — read /home/vgpnk/Projects/shokunin/.omp/agent/RULES.md first (official channels, update-safety gate, record tool/version/channel/reason in your report).\n\n# Pacman guard (orchestrator ruling 2026-10-20)\nAll pacman transactions are PAUSED host-wide until the operator resolves the host-recovery L0 question — install via uv tool/npx/an official binary in ~/.local/bin, or file an L0 question. Never -Sy, -Syu, -U, -R, downgrade, or restart a host service.",
+ "items": [
+  {
+   "name": "RevW2C1Count",
+   "role": "reviewer",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Re-run and independently re-derive C1's counted predicate at the measured tip c019919c97ab5fe98e87a7754b4449ea4e699c99: `python3 -B verifiers/check_scoped_rules_v32.py --self-test` — paste the four frozen lines + exit code; recompute the sha256 yourself and compare against the receipt's pair in .ufo/waves/round-64/receipts/C1-span-measure.txt (the pair must match the committed bytes). Then attack the kill conjunct: re-run the SM1–SM6 battery yourself from the committed bytes at c019919c (scratch copies; verifiers siblings on the import path) and verify each mutant's exit code AND that the FAIL label attribution matches receipts/C1-span-kill.txt (SM4/SM6 via pre-existing arms). Any mismatch or unattributed kill is a finding.\n\nTime-box: return within 15 minutes with your best findings+evidence; partial results are acceptable.\nYou are an independent leaf: never block on or wait for another seat; if a needed artifact is absent, record the dependency as a finding and return.\n"
+  },
+  {
+   "name": "RevW2C2Count",
+   "role": "reviewer",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Re-run C2's frozen predicate at the measured tip and the pinned base: `python3 -B verifiers/check_r64_routed_repairs.py --rev c019919c97ab5fe98e87a7754b4449ea4e699c99` must print `r63 routed defects closed 4 of 4` exit 0; `--rev 078eec4a1f6a41c64ff8806f58b46a67cd413bfc` must print `0 of 4` exit nonzero; paste both. Verify the refuse-to-certify: find in the counter source the exact mechanism that enforces base_closed == 0 and demonstrate it (a scratch world where the base scores 1 of 4 must not certify). Recompute the counter sha256 and compare with receipts/C2-r64-measure.txt.\n\nTime-box: return within 15 minutes with your best findings+evidence; partial results are acceptable.\nYou are an independent leaf: never block on or wait for another seat; if a needed artifact is absent, record the dependency as a finding and return.\n"
+  },
+  {
+   "name": "RevW2PredWording",
+   "role": "reviewer",
+   "axes": [
+    "depth",
+    "calibration"
+   ],
+   "prompt": "Attack the two frozen predicate sentences as worded in plans/round-64.md (with errata E1–E3) vs the receipts and SCORECARD annotation at c019919c: is every clause of each predicate sentence the SAME sentence in all three sites (plan, receipt, SCORECARD row)? Check the C1 predicate's three conjuncts (lines + exit 0, (sha256,223) pair, kill conjunct) and the C2 two conjuncts (4 of 4 / 0 of 4 + pinned base + refuse rule). Any paraphrase drift between sites is a finding with the exact bytes.\n\nTime-box: return within 15 minutes with your best findings+evidence; partial results are acceptable.\nYou are an independent leaf: never block on or wait for another seat; if a needed artifact is absent, record the dependency as a finding and return.\n"
+  },
+  {
+   "name": "RevW2Receipts",
+   "role": "reviewer",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Audit the receipt discipline: (1) the round-63 receipts (.ufo/waves/round-63/receipts/*) and controls must be byte-untouched by round 64 — `git log --oneline 078eec4..c019919c -- .ufo/waves/round-63/receipts .ufo/waves/round-63/controls` must be empty, paste it; (2) the new round-64 receipts must name the measured rev c019919c and carry the sha256 pins — read all five files in .ufo/waves/round-64/{receipts,controls} and check every number against your own re-computation; (3) the receipts must assert measured facts only (no claims) — flag any sentence that overreaches.\n\nTime-box: return within 15 minutes with your best findings+evidence; partial results are acceptable.\nYou are an independent leaf: never block on or wait for another seat; if a needed artifact is absent, record the dependency as a finding and return.\n"
+  },
+  {
+   "name": "RevW2S120Reopen",
+   "role": "reviewer",
+   "axes": [
+    "coverage"
+   ],
+   "prompt": "Independently re-open S120: fetch https://arxiv.org/html/2102.11378 live (default request profile), record status/bytes/sha256, and verify against the committed snapshot .ufo/waves/round-64/snapshots/S120.page (sha256 15963c3e67b5…): same size? same hash? if both differ, check whether the three Gate quotes (abstract1.1 lines 283-284; S1.p1.1 line 324; S3.SS2.SSS2.p1.1 lines 780-782) are still literal substrings of the live bytes and of the snapshot. Check the row's anchor cell names the snapshot and its sha; check the teaches cell does not attribute the load-bearing-branch application to the paper (tier-inflation check). Verdict: row stands / needs correction, with bytes.\n\nTime-box: return within 15 minutes with your best findings+evidence; partial results are acceptable.\nYou are an independent leaf: never block on or wait for another seat; if a needed artifact is absent, record the dependency as a finding and return.\n"
+  },
+  {
+   "name": "RevW2Entry",
+   "role": "reviewer",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Review the landed C1 entry corpus/knowledge/g7-span-pinning-round64.md at c019919c against the knowledge-entry bar: provenance trio first (source/verified-at/recheck), source: cites S120 with URL + snapshot anchor + internal evidence path; teaches the class, the method, the measured record, and Limits; every quoted number re-verifiable (223 assertions, 219 before, sha pins, SM table, the 20k-cell divergence figures attributed to MutW2V32 §11). Attack: any claim in the entry not supported by a named committed artifact is a finding; run the entry's own 'How to re-run' commands and paste outputs.\n\nTime-box: return within 15 minutes with your best findings+evidence; partial results are acceptable.\nYou are an independent leaf: never block on or wait for another seat; if a needed artifact is absent, record the dependency as a finding and return.\n"
+  },
+  {
+   "name": "RevW2Lesson",
+   "role": "reviewer",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Review corpus/lessons/round-64.md at c019919c: the ## Gate records URL + access date + <=25-word quotes for S120 (verify each quote is a literal substring of the snapshot and <=25 words by your own grep/wc) and the S049 re-probe digests; the ## Mistakes rows carry class/evidence/captured-by/fix with M96/M97/M98; the ## Falsify corrections table maps wave-1 dispositions. Attack: any Gate quote that fails the substring check, any mistake row without a shown-able-to-fail fix, any disposition that misstates its seat's finding (spot-check 3 seats against their w1 reports).\n\nTime-box: return within 15 minutes with your best findings+evidence; partial results are acceptable.\nYou are an independent leaf: never block on or wait for another seat; if a needed artifact is absent, record the dependency as a finding and return.\n"
+  },
+  {
+   "name": "RevW2SCORECARD",
+   "role": "reviewer",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Review the SCORECARD.md round-64 material at c019919c: the annotation block names both frozen predicates verbatim and the measured rev; the Next: round 65 line carries the debt with evidence pointers. Attack the honesty of 'score held 9 / held 10, delta 0': is any axis harmed anywhere in the round window — run `git diff --numstat 078eec4 c019919c` and audit every changed file for deletions that falsify a standing claim (expected: the declared repairs only — Q59 pipes, stale-219 numbers, Next-line replacement). Any unrecorded deletion is a finding.\n\nTime-box: return within 15 minutes with your best findings+evidence; partial results are acceptable.\nYou are an independent leaf: never block on or wait for another seat; if a needed artifact is absent, record the dependency as a finding and return.\n"
+  },
+  {
+   "name": "RevW2Crosswalk2",
+   "role": "reviewer",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Crosswalk round 64 against the r63 spot-check's routed items one final time at c019919c: items 1–4 each closed by exactly one counted check (demonstrate each check's FAIL line at base and PASS at tip from your own runs); items 5–6 explicitly outside the bound and named in the lesson Bounds. Verify the check-2 counted line is ONE physical line under the round-64 header carrying both basenames + both committing revs + the base + `committed` (paste the exact line and your matcher simulation).\n\nTime-box: return within 15 minutes with your best findings+evidence; partial results are acceptable.\nYou are an independent leaf: never block on or wait for another seat; if a needed artifact is absent, record the dependency as a finding and return.\n"
+  },
+  {
+   "name": "CriticW2C1Dishonest",
+   "role": "critic",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Adversarial: construct on scratch the strongest dishonest world that passes C1's counted predicate letter while NOT pinning the branch — tautology arms reaching 223, sha-forgery, receipt-side substitution. Which conjunct stops each? If any construction passes all three conjuncts (lines+exit0, (sha,223) pair, kill battery red), demonstrate it byte-exact; if none can, state precisely what the kill conjunct adds over r63's predicate shape and whether the receipt (not the self-test) is the load-bearing evidence.\n\nTime-box: return within 15 minutes with your best findings+evidence; partial results are acceptable.\nYou are an independent leaf: never block on or wait for another seat; if a needed artifact is absent, record the dependency as a finding and return.\n"
+  },
+  {
+   "name": "CriticW2C2Dishonest",
+   "role": "critic",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Adversarial: construct on scratch the strongest label-only / fingerprint / worktree counter that prints `r63 routed defects closed 4 of 4` at any rev. Which self-test arm kills each? Enumerate the arm-to-shortcut mapping like r63's E2 analysis; if a shortcut survives the landed self-test (run it — the counter substitutes processes against constructed worlds), demonstrate and deliver the exact missing arm text. Also verify the --base argparse rejection (rc 2) on the real binary.\n\nTime-box: return within 15 minutes with your best findings+evidence; partial results are acceptable.\nYou are an independent leaf: never block on or wait for another seat; if a needed artifact is absent, record the dependency as a finding and return.\n"
+  },
+  {
+   "name": "CriticW2Bounds",
+   "role": "critic",
+   "axes": [
+    "depth",
+    "calibration"
+   ],
+   "prompt": "Adversarial review of every bound recorded this round: C1's M7–M22 deferral (is the deferral honest — does RevC1Predicate's package actually close those lanes, and does anything admission-flipping remain unrecorded? spot-check M8 and M12 yourself on the landed bytes); C2's four-check bound (is the ScoutReceiptSweep census line's 8-pair enumeration complete — re-derive it); the E1.3 withdrawal (SM5 wrapper witness — re-run the landed-ADMIT/SM5-REJECT probe yourself); the honest-padding Q28 ruling. Any bound that hides a live lane is a finding.\n\nTime-box: return within 15 minutes with your best findings+evidence; partial results are acceptable.\nYou are an independent leaf: never block on or wait for another seat; if a needed artifact is absent, record the dependency as a finding and return.\n"
+  },
+  {
+   "name": "CriticW2NoHarm",
+   "role": "critic",
+   "axes": [
+    "quality"
+   ],
+   "prompt": "Adversarial no-harm audit: read .ufo/waves/round-64/receipts/noharm-tip.txt (if present; else run bash .ufo/waves/round-62/noharm-battery.sh --base 078eec4a1f6a41c64ff8806f58b46a67cd413bfc --tip c019919c97ab5fe98e87a7754b4449ea4e699c99 yourself and paste the full output). Check every arm: PASS expected except the two known informational non-PASS arms recorded by ExecNoHarmBase (live-fetch exit 2, plugin arm exit 1) which must be column-identical base==base vs base→tip. Any NEW red, any red without a recorded pre-existing twin, is a no-harm failure — name it.\n\nTime-box: return within 15 minutes with your best findings+evidence; partial results are acceptable.\nYou are an independent leaf: never block on or wait for another seat; if a needed artifact is absent, record the dependency as a finding and return.\n"
+  },
+  {
+   "name": "CriticW2Frontier",
+   "role": "critic",
+   "axes": [
+    "coverage",
+    "freshness"
+   ],
+   "prompt": "Adversarial frontier audit: run the census validator /home/vgpnk/Projects/shokunin/scripts/sources-census.sh validate --root /home/vgpnk/Projects/shokunin kotoba and paste output+exit; run the seven frozen manual census commands from /home/vgpnk/Projects/shokunin/CORPUS.md against corpus/SOURCES.md at c019919c (rows, malformed, tiers, statuses, duplicates, enums, mined used-by existence) and paste each. Verify: S120's used-by paths exist; the row sits inside the Registry section (not after ## Search log — the E12 trap); the S049 append did not touch the row's cells (`git diff 078eec4 c019919c -- corpus/SOURCES.md` shows the row + notes as additions only).\n\nTime-box: return within 15 minutes with your best findings+evidence; partial results are acceptable.\nYou are an independent leaf: never block on or wait for another seat; if a needed artifact is absent, record the dependency as a finding and return.\n"
+  },
+  {
+   "name": "MutW2Counter",
+   "role": "mutation-tester",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Mutation-test the LANDED verifiers/check_r64_routed_repairs.py at c019919c (real bytes, scratch copies). Mutants: (1) BASE_REV constant changed to c019919c (the repointed-base arm must catch it — demonstrate); (2) check 2's matcher relaxed to whole-LOG (the LOG.md:2576 leak must make base score 1 of 4 → refuse — demonstrate); (3) check 1's floor 60→90 (the real 82-line edit must fail — demonstrate); (4) check 4's static cross-check removed (arm must catch); (5) the heading anchor reverted to exact-equality (the parenthetical heading must fail — demonstrate); (6) the refuse rule weakened to r63's green-control form (the partial-world arm must catch). For each: paste the mutant's behavior and which self-test arm kills it; if any mutant survives, deliver the exact arm text.\n\nTime-box: return within 15 minutes with your best findings+evidence; partial results are acceptable.\nYou are an independent leaf: never block on or wait for another seat; if a needed artifact is absent, record the dependency as a finding and return.\n"
+  },
+  {
+   "name": "MutW2V32Arms",
+   "role": "mutation-tester",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Mutation-test the LANDED v32 arms at c019919c (real bytes): (a) flip each new arm's expectation; (b) swap arm 4 back to the unhardened cell (MutW2V32 §11's original) — demonstrate the A2-wiring mask returns and that SM5-under-A2-wiring then survives (making E3.2 load-bearing); (c) delete arms 2–3 (the count must drop to 221 — the frozen 223 line is the anti-deletion guard; verify); (d) re-run MutSpanArms' A3 positive control. Paste per-mutant verdicts; confirm the landed suite kills every mutant that r63's 219-suite admitted.\n\nTime-box: return within 15 minutes with your best findings+evidence; partial results are acceptable.\nYou are an independent leaf: never block on or wait for another seat; if a needed artifact is absent, record the dependency as a finding and return.\n"
+  },
+  {
+   "name": "MutW2M7M22",
+   "role": "mutation-tester",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Spot-check RevC1Predicate's M7–M22 lanes against the LANDED bytes at c019919c: construct M8 (len>=4 → >=5) and M12 (cited-line check via page_words) and verify each is admission-flipping on its witness cell through judge(); then apply the seat's closing package (6 arms → 229, sha f3c82574…; +wrapper arm → 230, sha b614e8b1… — reconstruct from RevC1Predicate.md if the package is quoted there, else implement the arms from its descriptions, labelled) and verify the lanes close. Deliver: per-lane verdicts on landed bytes + whether the deferred package verifies — this feeds the round-65 candidate list.\n\nTime-box: return within 15 minutes with your best findings+evidence; partial results are acceptable.\nYou are an independent leaf: never block on or wait for another seat; if a needed artifact is absent, record the dependency as a finding and return.\n"
+  },
+  {
+   "name": "MutW2ReceiptSubs",
+   "role": "mutation-tester",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Receipt-side substitution attack on the C2 counter at the measured tip: on a scratch clone of c019919c, commit single-sided mutations one at a time — (1) amend the counted citation line to swap the two committing revs (wrong attribution); (2) invert the axis line's scores ('consistency 9 depth 10'); (3) grow the seat file by 100 junk lines without the marker; (4) rewrite the ExecW2E2Patch note to name '23' without 'assertions'; (5) rewrite a round-63 LOG line (non-append) with the right tokens. For each: the counter at the mutated rev must print <4 of 4 (and the append-only world must fail check 4's addition-vs-BASE requirement). Paste each run; any substitution that still prints 4 of 4 is a CRITICAL finding.\n\nTime-box: return within 15 minutes with your best findings+evidence; partial results are acceptable.\nYou are an independent leaf: never block on or wait for another seat; if a needed artifact is absent, record the dependency as a finding and return.\n"
+  },
+  {
+   "name": "ScoutW2SiblingVerify",
+   "role": "scout",
+   "axes": [
+    "adjacency"
+   ],
+   "prompt": "Independently verify the sibling-overlap scans rather than trusting them: re-run ConnSibling's and ScoutSiblingOverlap's core greps over /home/vgpnk/Projects/shokunin/*/corpus for 'span_missing', 'g7_conjunct', 'check_r64', 'temporal mismatch', 'M95' (STRICT semantic read of any hit, like ScoutSiblingOverlap's method) and confirm STRICT_HITS = 0 for the three new artifacts. Also read kotodama's round-64 lesson R64-M9 (the attributed method credit) enough to confirm the attribution is fair. Deliver the independent counts + any disagreement with the wave-1 seats.\n\nTime-box: return within 15 minutes with your best findings+evidence; partial results are acceptable.\nYou are an independent leaf: never block on or wait for another seat; if a needed artifact is absent, record the dependency as a finding and return.\n"
+  },
+  {
+   "name": "ScoutW2QualityDebt2",
+   "role": "scout",
+   "axes": [
+    "freshness"
+   ],
+   "prompt": "Re-verify the carry-forward quality debt at c019919c (the round moved some pieces): the six ScoutQualityDebt 'lesson note' items — are the recommended notes now present in corpus/lessons/round-64.md (M93 wording, LOG.md:2549 clock, r62 no-harm sentence, r61 R-b list — the lesson's Bounds section names them; verify each name + evidence pointer resolves at c019919c); the SentBounds/helper-receipts deferrals (still open — confirm no receipt exists); the governance.citation_resolves red (ScribeSHONEN F2 — confirm still red at c019919c and now named in the Next line). Deliver the open/closed table with the c019919c evidence.\n\nTime-box: return within 15 minutes with your best findings+evidence; partial results are acceptable.\nYou are an independent leaf: never block on or wait for another seat; if a needed artifact is absent, record the dependency as a finding and return.\n"
+  },
+  {
+   "name": "ScoutW2SourcesAudit",
+   "role": "scout",
+   "axes": [
+    "coverage"
+   ],
+   "prompt": "Audit the S120 sweep's exclusions: ScoutS120Alt rejected the Google Testing Blog post because its key sentence is a refusal ('did not calculate the Mutation score'); ScribeSOURCESRow's search log names 7 exclusions. Open the Google post (testing.googleblog.com/2021/04/mutation-testing.html) and verify the refusal sentence is quoted correctly and in context; check the Cornell slides and PIT docs alternates are honestly tiered (B / A-for-own-statements-only). Deliver: per-exclusion agree/disagree with bytes; any exclusion that misquotes or mis-tiers is a finding.\n\nTime-box: return within 15 minutes with your best findings+evidence; partial results are acceptable.\nYou are an independent leaf: never block on or wait for another seat; if a needed artifact is absent, record the dependency as a finding and return.\n"
+  },
+  {
+   "name": "ScoutW2ReceiptPaths",
+   "role": "scout",
+   "axes": [
+    "operability"
+   ],
+   "prompt": "Sweep every evidence pointer in the round-64 artifacts for resolvability at c019919c: extract all repo-relative paths from the LOG round-64 entry, the SCORECARD annotation, the lesson, the entry, and the receipts (a path token has a slash or extension), then `git cat-file -e c019919c:<path>` each (and `ls` for worktree-only .ufo paths — those must exist on disk). Deliver: the full table with EXIST/ABSENT; any ABSENT pointer cited as evidence is a finding (the M95 class in our own round-64 artifacts — the class the round teaches).\n\nTime-box: return within 15 minutes with your best findings+evidence; partial results are acceptable.\nYou are an independent leaf: never block on or wait for another seat; if a needed artifact is absent, record the dependency as a finding and return.\n"
+  },
+  {
+   "name": "ScoutW2CensusAfter",
+   "role": "scout",
+   "axes": [
+    "freshness"
+   ],
+   "prompt": "Run the round-end census NOW against the working tree (all wave-1 lands are committed at c019919c; SCORECARD/SHONEN may still be uncommitted — record what you see): the sources-census.sh validate command (paste output + exit code) AND the seven frozen manual commands from CORPUS.md (paste each). Expected: 118 rows, 0 malformed, A-tier histogram including the new paper row, mined 110+, no duplicate ids, no enum violations, no missing used-by. Deliver the runbook result table; any E-class error is a CRITICAL finding (it blocks the round-end census gate).\n\nTime-box: return within 15 minutes with your best findings+evidence; partial results are acceptable.\nYou are an independent leaf: never block on or wait for another seat; if a needed artifact is absent, record the dependency as a finding and return.\n"
+  },
+  {
+   "name": "SentW2Scope",
+   "role": "sentinel",
+   "axes": [
+    "quality"
+   ],
+   "prompt": "Security and scope review of the two new/changed verifiers at c019919c: read verifiers/check_r64_routed_repairs.py and the v32 diff (`git diff 078eec4 c019919c -- verifiers/`) hunting: network access (must be none), unbounded subprocess (the materialization + git calls — check timeouts and argv), path escape from the lane root (the --root argument — can it read arbitrary paths?), writes outside temp dirs, and secrets. Also verify the write-scope discipline for the whole round: `git diff --name-only 078eec4 c019919c` — every changed path must be inside the lane repo; fleet/sibling paths must be absent. Deliver per-item verdicts with the exact lines.\n\nTime-box: return within 15 minutes with your best findings+evidence; partial results are acceptable.\nYou are an independent leaf: never block on or wait for another seat; if a needed artifact is absent, record the dependency as a finding and return.\n"
+  },
+  {
+   "name": "SentW2Evidence",
+   "role": "sentinel",
+   "axes": [
+    "quality"
+   ],
+   "prompt": "Evidence-integrity review: (1) verify all 32 wave-1 seat reports are committed and unmodified since (`git log --format='%h %s' -1 -- .ufo/waves/round-64/w1/` sample + `git status --porcelain .ufo/waves/round-64` clean except declared); (2) verify the spec/dispatch/registry triple matches the validator's schema (json parse + the note's shape); (3) check the w1-dispatch.err is empty or harmless; (4) confirm no seat wrote outside its report (the fleet-root misroot sweep: `git -C /home/vgpnk/Projects/shokunin status --porcelain` — name any kotoba-r64 stray at the fleet root). Deliver findings with bytes.\n\nTime-box: return within 15 minutes with your best findings+evidence; partial results are acceptable.\nYou are an independent leaf: never block on or wait for another seat; if a needed artifact is absent, record the dependency as a finding and return.\n"
+  },
+  {
+   "name": "RevW2Intent",
+   "role": "revenger",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Reverse-engineering seat: the r64 C2 counter is modeled on r63's E2-hardened counter. Diff the two files' check structure and self-test philosophy and answer: what did the r63 wave-2 falsifications actually teach this round (map each r64 arm to the r63 attack it defends against — the label-only/fingerprint/worktree arms, the suffix scoping, the refuse rule), and is the r64 counter a genuine descendant or a cargo-cult copy (any r63 arm that lost its meaning in translation)? Deliver the lineage table + any orphan arm.\n\nTime-box: return within 15 minutes with your best findings+evidence; partial results are acceptable.\nYou are an independent leaf: never block on or wait for another seat; if a needed artifact is absent, record the dependency as a finding and return.\n"
+  },
+  {
+   "name": "ConnW2Fleet",
+   "role": "connector",
+   "axes": [
+    "adjacency"
+   ],
+   "prompt": "§3 connector for wave 2: scan the OTHER lanes' round-64 reports (fleet .ufo/reports/round-64/ and lane corpora) for the same instruments — routed-repairs counters, citation-freshness criteria, kill-conjunct receipts. Name the closest sibling implementation (kake's freshness sweep? kotodama's pinning legs?) and what THIS round should learn from it next (one concrete move). Deliver the lane table + the single recommendation, with the sweep as evidence.\n\nTime-box: return within 15 minutes with your best findings+evidence; partial results are acceptable.\nYou are an independent leaf: never block on or wait for another seat; if a needed artifact is absent, record the dependency as a finding and return.\n"
+  },
+  {
+   "name": "ScribeW2Dispositions",
+   "role": "scribe",
+   "axes": [
+    "consistency"
+   ],
+   "prompt": "Draft the wave-2 dispositions: read every w2 report when filing yours is not possible — instead, deliver the append-ready table ROWS for the lesson's ## Falsify corrections table covering the wave-2 attack items you can verify from your own seat: run the C1 and C2 counting commands at c019919c AND at base, paste both, and draft one disposition row per wave-2 attack theme (re-count, dishonest-world, mutation, substitution, census) with your measured verdict filled where your own run adjudicates it. Leave <PENDING-SEAT> only where another seat's evidence is required. Also draft the census-after bullet for the lesson Gate (paste your census run if you run it; else mark PENDING ScoutW2CensusAfter).\n\nTime-box: return within 15 minutes with your best findings+evidence; partial results are acceptable.\nYou are an independent leaf: never block on or wait for another seat; if a needed artifact is absent, record the dependency as a finding and return.\n"
+  },
+  {
+   "name": "ScribeW2Report",
+   "role": "scribe",
+   "axes": [
+    "consistency"
+   ],
+   "prompt": "Draft the round-64 report's evidence-fill pack: from c019919c bytes, produce (1) the exact 'Before → after' bullet texts for C1 (commands, before receipt lines at 078eec4, after lines at c019919c, both sha pins) and C2 (the two conjuncts with pasted outputs); (2) the 'Sources & frontier' bullet texts (census 117→118 with both commands' exit codes, rows added by tier A+1, rows touched old→new — S120 new→mined, S049 unchanged, the search-log appends); (3) the 'Landed changes' bullet list (commit c019919c with its file list from `git show --stat`). Deliver paste-ready text; no placeholders you could have measured.\n\nTime-box: return within 15 minutes with your best findings+evidence; partial results are acceptable.\nYou are an independent leaf: never block on or wait for another seat; if a needed artifact is absent, record the dependency as a finding and return.\n"
+  },
+  {
+   "name": "SimpW2DeadWeight",
+   "role": "simplifier",
+   "axes": [
+    "quality"
+   ],
+   "prompt": "YAGNI sweep of the round-64 lands: read verifiers/check_r64_routed_repairs.py fully — any dead code, unused arms, redundant computation (e.g. repeated git calls that one call could serve), or over-general machinery the four checks never exercise? Check the lesson/entry for filler. Deliver: per-item keep/delete verdicts with line numbers; delete nothing yourself — the L1 lands any agreed cut. If the counter is lean as landed, say so with the evidence of your read (name what you checked).\n\nTime-box: return within 15 minutes with your best findings+evidence; partial results are acceptable.\nYou are an independent leaf: never block on or wait for another seat; if a needed artifact is absent, record the dependency as a finding and return.\n"
+  },
+  {
+   "name": "ExecW2Gates",
+   "role": "executor",
+   "axes": [
+    "operability"
+   ],
+   "prompt": "Run the standing gate battery at the measured tip c019919c97ab5fe98e87a7754b4449ea4e699c99 and paste every output + exit code: `python3 -B verifiers/check_gate_registry.py --rev c019919c97ab5fe98e87a7754b4449ea4e699c99` (expect 42 of 42 — verify the r64 counter's registry row conforms); `python3 -B verifiers/check_seat_counts.py --spec .ufo/waves/round-64/w1-spec.json --dir .ufo/waves/round-64/w1 --rev c019919c97ab5fe98e87a7754b4449ea4e699c99` (expect 32 of 32); `python3 -B verifiers/check_scoped_rules_v31.py --self-test | tail -1` (v31 unchanged, 201 assertions); `python3 -B verifiers/check_r63_routed_repairs.py --rev c019919c97ab5fe98e87a7754b4449ea4e699c99 | tail -1` (the r63 counter still prints 5 of 5 at the r64 tip — its LOG suffix scans must not false-green on the round-64 corrections; if it prints anything else, that is a finding). Any unexpected number is a finding with the paste.\n\nTime-box: return within 15 minutes with your best findings+evidence; partial results are acceptable.\nYou are an independent leaf: never block on or wait for another seat; if a needed artifact is absent, record the dependency as a finding and return.\n"
+  },
+  {
+   "name": "ExecW2MidHistory",
+   "role": "executor",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Probe the C2 counter at mid-history revisions (read-only): run `--rev c04fffbeafcaf810897258d56f99cca736ed3a91` (the plan freeze) and `--rev 5613392d5a4a14a50753ab0ed5545fe7d85f3d9f` (errata commit) — each must print `0 of 4` exit nonzero (no round-64 header yet). Then construct on a scratch clone of c019919c a commit that ONLY moves the two counted LOG lines above the round-64 header (scratch world; git commit) and verify the counter prints <=2 of 4 at that rev — demonstrating the suffix anchor is load-bearing on the real bytes, not just the self-test worlds. Paste all runs.\n\nTime-box: return within 15 minutes with your best findings+evidence; partial results are acceptable.\nYou are an independent leaf: never block on or wait for another seat; if a needed artifact is absent, record the dependency as a finding and return.\n"
+  }
+ ]
+}
