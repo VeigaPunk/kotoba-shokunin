@@ -658,12 +658,18 @@ nor the page). It is a `g7_conjunct`-level addition, not a `split_clauses`
 one, and it did not move any of this battery's probe cells or eligible rows.
 It is recorded here only so the L1 knows it is unexamined by this seat.
 
-### 7h. THE L1's E3 TEXT, CHECKED AGAINST THE LANE — THREE FALSE CLAIMS, ALL NOW FIXED
+### 7h. THE L1's E3 TEXT, CHECKED AGAINST THE LANE — THREE FLAGS, ONE OF THEM HALF MINE, ALL CLOSED
 
-The L1 has rewritten `plans/round-63.md` in the working tree, adding
-**Erratum E3**, which narrates this seat's finding and the landing. Most of
-it is accurate; three of its checkable claims are not. I verified each
-against the lane's own bytes rather than accepting the narration.
+The L1 added **Erratum E3** to `plans/round-63.md` (now committed at
+`75370a5`), narrating this seat's finding and the landing. Most of it is
+accurate. I checked three of its checkable claims against the lane rather
+than accepting the narration and flagged all three. Two were real at the
+moment I checked (a stale receipt, an absent receipt file) and both are now
+fixed; the third flag was **half my own error** — right about the receipt,
+wrong about which entry file to grep — and is corrected in item 1 below.
+Every statement in this subsection is measured against the **committed tip**,
+not a working tree — `MutW2V32` caught that distinction (§12) and is right to
+insist on it.
 
 **Accurate** (checked): "`BACKTICK_RE`-pairing fix in `split_clauses`" —
 landed at v32:1092 as `in_code = any(m.start() == i for m in
@@ -780,17 +786,14 @@ checks paperwork should re-check it at the tip before reporting.
 
 **Also checked and fine:** the L1's `MutW2GuardEvasion` arms are consistent
 with the guard's semantics, and the one-word arm is labelled a declared bound
-rather than an endorsement. `MutW2V32` has independently attacked the L1's
-own `g7_conjunct` `span_missing` arm (their §11) and found it load-bearing
-but unpinned — a `g7_conjunct`-level gap outside this battery's remit, and
-correctly handed to the seat that owns it.
+rather than an endorsement.
 
 **None of the three was ever a defect in the landed counter.** They were
 plan/receipt paperwork; the landed v32 is green, kills all nine mutants, and
 moves exactly one probe cell (§7g).
 
-**The one item still live at the tip is not mine.** `MutW2V32`'s §11 shows
-the L1's own `g7_conjunct` `span_missing` branch is load-bearing but unpinned:
+**The one item still live at the tip is not mine.** `MutW2V32`'s §11 shows the
+L1's own `g7_conjunct` `span_missing` branch is load-bearing but unpinned:
 with the branch deleted (SM1) the 219-assertion self-test still exits 0, and
 there is exactly one `check("A2 G7: …")` assertion in the file, targeting the
 identifier branch rather than `span_missing`. That is a `g7_conjunct`-level
@@ -1084,3 +1087,15 @@ including all four eligible rows, is byte-identical to the committed
 baseline. The shared caveat stands: the quoted-`;` and the `-and-` lexeme
 arms freeze behaviour RevG9Guard named defective, and must be labelled bounds
 rather than endorsements.
+
+**§7h records the paperwork check, including a correction to myself.** I
+tested three checkable claims in the L1's new Erratum E3 against the lane.
+The receipt was stale and `C2-before-rerun.txt` was absent when I checked —
+both were real at the time and both are now fixed at the committed tip. The
+third flag was **half my error**: I grepped the round-**62** entry to test a
+sentence about the round-**63** entry, and recorded "the entry names neither
+wording" when the round-63 entry carried `MIN_CLAUSE` x3 at `cbbee56` (and
+carries both wordings now). `MutW2V32` caught it, and the retracted claim is
+corrected in §7h item 1 rather than left standing. The lesson for a seat that
+audits paperwork: resolve *which* document a plan sentence names, and
+re-check at the committed tip before reporting.
