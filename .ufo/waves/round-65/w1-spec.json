@@ -1,0 +1,270 @@
+{
+ "wave": "kotoba-r65-w1",
+ "milestone": "Round-65 wave 1 (recon + first falsifiers; prepared-but-undispatched \u2014 the L1 executed the lane work): re-open S121, re-run receipts, probe floors + GOVERNANCE_CORRECTIONS, sibling scan, first attackers.",
+ "axes": [
+  "depth",
+  "calibration",
+  "freshness",
+  "coverage"
+ ],
+ "reportDir": ".ufo/waves/round-65/w1",
+ "context": "# Goal\nkotoba round 65, WAVE 1 of 2 (recon + first falsifiers), hyaku run 5, 2026-10-24. Lane repo /home/vgpnk/Projects/shokunin/kotoba-shokunin (jj-colocated). You are ONE seat. The L1 has ALREADY landed the round's claims (tip 0e104f49; implementation 80bb8921; receipts 5253b281; frontier 0e104f49) \u2014 this wave is recon + first falsifiers: you write ONLY your own report file at the absolute path\n/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-65/w1/<YourName>.md\nEvery `Report:` trailer path is relative to /home/vgpnk/Projects/shokunin/kotoba-shokunin \u2014 write it at /home/vgpnk/Projects/shokunin/kotoba-shokunin/<that path>.\n\n# Read first\n/home/vgpnk/Projects/shokunin/kotoba-shokunin/plans/round-65.md \u2014 the frozen plan (claims C1 depth closing package 223->234 + floors registration; C2 consistency governance corrections, checklist 1852->1862). Claim evidence: .ufo/waves/round-65/receipts/C1-close-measure.txt, C1-close-kill.txt, C2-governance-measure.txt, C2-selfreference-redbefore.txt, M99-fixture-leak.txt, noharm-tip.txt; corpus/knowledge/g7-span-closure-round65.md; corpus/lessons/round-65.md; the round-64 wave-2 reports .ufo/waves/round-64/w2/MutW2M7M22.md (the M7-M22 lanes), RevC1Predicate.md (the package arms).\n\n# Write bounds\nRead-only outside your own report file \u2014 the landed bytes are the attack surface; never mutate the fleet repo, sibling lanes, lane jj state or the lane Git index; never run git/jj writes. All paths absolute under /home/vgpnk/Projects/shokunin/kotoba-shokunin. Scratch work only under /tmp. Kill only by the PIDs you started; cap any contention at 4 processes and 120 s.\n\n# Tooling authorization\nAny agent may install or upgrade tools that help the task \u2014 read /home/vgpnk/.omp/agent/RULES.md first (official channels, update-safety gate, record tool/version/channel/reason in your report).\n\n# Pacman guard (orchestrator ruling 2026-10-20)\nAll pacman transactions are PAUSED host-wide until the operator resolves the host-recovery L0 question \u2014 install via uv tool/npx/an official binary in ~/.local/bin, or file an L0 question. When the pause lifts the dry-run rule applies. Never -Sy, -Syu, -U, -R, downgrade, or restart a host service.\n\n# Evidence discipline\nAn unrun check has not passed. Paste real command output (with exit codes) into your report; label inferences [INFERENCE]. Name every claim your findings support or falsify.",
+ "items": [
+  {
+   "name": "ScoutS121Reopen",
+   "role": "scout",
+   "axes": [
+    "freshness"
+   ],
+   "prompt": "Re-open S121 live: curl -sSL https://madeyski.e-informatyka.pl/download/Madeyski13TSE.pdf to /tmp, sha256sum it, byte-compare against the committed snapshot /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-65/snapshots/S121.pdf. Verify both quotes (abstract; lines 1174-1176 of the extracted text) exist whitespace-normalized in the fresh bytes. Also re-open the REJECTED first candidate https://arxiv.org/abs/1309.4818 and confirm it is not the mutation paper. Report byte sizes, hashes, agree/disagree with the row's anchor cells."
+  },
+  {
+   "name": "ScoutReceiptSweep",
+   "role": "scout",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Re-run every command in /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-65/receipts/*.txt at the tip (git rev-parse master first; verify 0e104f49). Each must reproduce its recorded output; note any drift with the exact differing line. Include: v32 self-test (234), checklist --json (11/11 exit 0), checklist self-test (1862), r64/r63 counters, gate registry 42 of 42, census validate exit 0."
+  },
+  {
+   "name": "ScoutQualityDebt3",
+   "role": "scout",
+   "axes": [
+    "freshness"
+   ],
+   "prompt": "Sweep the carry-forward quality debt named in SCORECARD 'Next: round 66': SentBounds' pre-wave baseline receipt; helper-invocation receipts; the r62 wave-2 dispositions remainder (M93 wording, LOG.md:2549 clock, r62 no-harm sentence vs the receipt's two interim reds, r61 R-b corpus-idx omission); the corpus_integrity baseline re-record debt (red identically at c98d137 and 80bb8921: tracked_files 113 vs 81, unindexed 3, report_total 76 vs 51, commit_total 37 vs 32, commit_unresolvable 2). For each: still open? evidence pointer? Do not fix anything."
+  },
+  {
+   "name": "ConnSibling2",
+   "role": "connector",
+   "axes": [
+    "adjacency"
+   ],
+   "prompt": "Sibling-overlap scan of the round's new artifacts (corpus/knowledge/g7-span-closure-round65.md, corpus/lessons/round-65.md, SCORECARD round-65 annotations): any scope statement another lane owns? Run /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/check_sibling_census.py --province /home/vgpnk/Projects/shokunin/kotoba-shokunin/PROVINCE.md and report STRICT_HITS."
+  },
+  {
+   "name": "ExecKillReverify",
+   "role": "executor",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Independently rebuild the C1 kill battery from the COMMITTED bytes: git archive 0e104f49 to /tmp, apply each of the 17 named single-string mutants listed in /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-65/receipts/C1-close-kill.txt to verifiers/check_scoped_rules_v32.py, run --self-test on each, and verify: exit 1, the arm-attributed FAIL line, and the attribution notes (SM4 first = M17 prefix arm; SM6 first = pre-existing A2 cell arm; M11 killed by pre-existing collateral). Also re-verify the two equivalents (M19, M22) survive green and the pkg7 control world (bytes minus the four new arms) admits SPAN_FIRST/SPAN_LAST/M20 at exit 0. Paste your own mutant/receipt table."
+  },
+  {
+   "name": "ExecFloorsProbe",
+   "role": "executor",
+   "axes": [
+    "operability"
+   ],
+   "prompt": "Probe the new floors registration in /tmp tree copies: (1) delete ONE of the 11 new arms from check_scoped_rules_v32.py and run check_assertion_floors.py on that tree \u2014 show the guard FAILs naming scoped_rules_v32 observed<N floor 234; (2) a tree with the scoped_rules_v32 row deleted from floors-registry.json fails the anchor drift check \u2014 name the class; (3) the live walk at the tip is all-PASS and the guard self-test prints 165."
+  },
+  {
+   "name": "ExecGovProbe",
+   "role": "executor",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Probe GOVERNANCE_CORRECTIONS fail-closed shapes in /tmp fixture worlds (import verifiers/verify_skill_checklist.py): each of past-horizon, line-drift, wording, no-live-subject, corrected-dead, stale-restored, never-masks must FAIL with the named class; the honest world must PASS. Then demonstrate the do-nothing control: with corrections=() the live repo check fails on the three original cells (paste the FAIL lines)."
+  },
+  {
+   "name": "ScribeEntryCheck",
+   "role": "scribe",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Cross-check corpus/knowledge/g7-span-closure-round65.md against the receipts: every command quoted in the entry exists in a receipt with matching output; the measured-record block matches C1-close-measure.txt; the provenance trio (source/verified-at/recheck) is present; S121's anchor cells match the row. List any mismatch."
+  },
+  {
+   "name": "ScribeLessonCheck",
+   "role": "scribe",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Cross-check corpus/lessons/round-65.md: the Gate carries S121's URL, access date, byte size, sha256 and a <=25-word located quote; ## Mistakes rows carry class/evidence/captured-by/fix; the two red-before receipts exist and show what each claims; status changes name S121 mined. Flag any missing element."
+  },
+  {
+   "name": "ScribeScorecardCheck",
+   "role": "scribe",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Cross-check the SCORECARD round-65 annotations: the frozen predicate sentence is IDENTICAL in plans/round-65.md, the annotation, and the receipts; the before/after revs (c98d137 -> 80bb8921) are ancestors of master; the Next-66 rename consumed exactly the round-65 debt it names. Flag drift."
+  },
+  {
+   "name": "ScribeSHONEN2",
+   "role": "scribe",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Re-run the SHONEN box-1 counting commands at 0e104f49: the 18-row Sources count and the gate registry 42-of-42 run; verify the refreshed evidence lines name real revs and the box-2/box-3 pointers still resolve. Report the outputs."
+  },
+  {
+   "name": "ScribeSourcesRow2",
+   "role": "scribe",
+   "axes": [
+    "freshness"
+   ],
+   "prompt": "Audit the S121 row against contract v1: 11 well-formed cells, kind/tier/status enums, tier scoped not inflated, used-by paths exist, no in-place edits elsewhere (git diff c98d137..0e104f49 -- corpus/SOURCES.md shows exactly one added line). Run the census and paste the row/status histograms."
+  },
+  {
+   "name": "RevC1Predicate2",
+   "role": "reviewer",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Attack C1's predicate: could a dishonest counter print 234/exit 0 while the span branch is gutted? Check the kill conjunct exercises the branch (SM1 dies), the receipts pin the (sha256, 234) pair recomputed from committed bytes, and the floors row makes deletion loud. Try to construct a world meeting the frozen sentence without the honest arms \u2014 name it or explain why each shortcut dies."
+  },
+  {
+   "name": "RevC1Arms",
+   "role": "reviewer",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Review the 11 new arms' witness texts for vacuity: is any arm's expectation already entailed by a pre-existing arm (duplicate pin)? Is any witness impossible at judge level (line not on page)? Verify each new arm fails under at least one mutant AND passes on honest bytes \u2014 non-redundant and non-vacuous."
+  },
+  {
+   "name": "RevC2Mechanism",
+   "role": "reviewer",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Review GOVERNANCE_CORRECTIONS for laundering doors: can a correction excuse a subject not really red? excuse two subjects? excuse a red subject outside the two governance files? ride on a line that also introduces a new dead token (M100 class \u2014 is the backticked-notice shape structurally prevented or only conventionally avoided)? Name any door or record why each is closed."
+  },
+  {
+   "name": "RevReceiptRevs",
+   "role": "reviewer",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Verify the receipts name their measured revs internally (Q36): each receipt file prints or headers the rev it measured; the SCORECARD citations match. Flag any receipt that doesn't."
+  },
+  {
+   "name": "CriticC1Bound",
+   "role": "critic",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Falsify the C1 headline per Q26: does 'the closing package + new judge lanes land' assert anything the counter does not measure? Check '17 named lanes' \u2014 does the kill receipt enumerate exactly 17 and name each? Does the 'two-sided measure' clause have surviving-equivalent evidence? Bound or correct."
+  },
+  {
+   "name": "CriticC2Bound",
+   "role": "critic",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Falsify the C2 headline: '11/11 exit 0' \u2014 is the governance PASS a function of the corrections or would ANY three appended lines do? Run the do-nothing world (corrections=() at tip) and confirm FAIL; check the mechanism arms are load-bearing (delete one self-test arm in a /tmp copy and show the self-test reddens)."
+  },
+  {
+   "name": "CriticFrontier",
+   "role": "critic",
+   "axes": [
+    "coverage"
+   ],
+   "prompt": "Attack the frontier step: is S121's tier-A defensible (author-hosted preprint, not the IEEE record)? Is the teaches cell scoped, not global? Is the sourced-claim honestly met (C1's entry cites S121 for the two-span design \u2014 does the design text rest on it)? Does the census exit-0 hold at the tip?"
+  },
+  {
+   "name": "CriticReceipts",
+   "role": "critic",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Attack the receipts: are the kill-battery mutants exactly one-string replacements (spot-check 5 of 17 by re-deriving the replacement yourself)? Is the pkg7 control world really 'candidate minus the four new arms' (rebuild it independently)? Is the C2 self-reference red-before honest (the FAIL line names the notice token)?"
+  },
+  {
+   "name": "MutNewLanes",
+   "role": "mutation-tester",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Mutation-test the 11 new arms beyond the named lanes: build 10 fresh single-string mutants of the span branch (swap the two page-set operands; supported() prefix length 4->8; len>=6; BACKTICK_RE.finditer instead of findall; span.split()[:1] word-level; `not in` -> `in` inversion in the line-set check; .lower() dropped inside content_words instead...). For each: killed by an arm (name it) or survives (name it a new lane)."
+  },
+  {
+   "name": "MutGovArms",
+   "role": "mutation-tester",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Mutation-test the GOVERNANCE_CORRECTIONS mechanism: 8 single-string mutants of correction_problems / check_governance_citations (skip the resolve check; skip the sha check; excuse by line-only match; horizon+1000; swap stale/corrected in the row; excused-set keyed by token only; wording check loosened to stale-only). Each must be killed by a self-test arm or named a new lane."
+  },
+  {
+   "name": "SentScope",
+   "role": "sentinel",
+   "axes": [
+    "operability"
+   ],
+   "prompt": "Security review of the round's verifier changes: check_scoped_rules_v32.py and verify_skill_checklist.py still make no network calls, no shell-outs to untrusted paths, and the --rev materialization boundary is unchanged (r64 SentW2Scope debt: sandbox + timeouts \u2014 still open? name it)."
+  },
+  {
+   "name": "SentWaveSpecs",
+   "role": "sentinel",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Verify the wave evidence dir .ufo/waves/round-65 contains no secrets and the prepared wave contexts carry the absolute-path bounds sentence and the Q44 kill-cap sentence (grep -c 'Kill only by the PIDs you started' = 1 per context)."
+  },
+  {
+   "name": "RevNoHarm",
+   "role": "reviewer",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Re-run the noharm battery at the tip (v32 234, checklist 11/11, r64 counter, r63 counter 5 of 5, gate registry, census, sources append-only over c98d137..tip) and confirm no prior gate regressed; confirm the SCORECARD/LOG diffs are append-only except the recorded Next-block rename and SHONEN evidence refresh."
+  },
+  {
+   "name": "ScoutS049Recheck",
+   "role": "scout",
+   "axes": [
+    "freshness"
+   ],
+   "prompt": "Re-probe S049: both request profiles (default Accept; Accept: text/markdown) against the row's URL; does the 2026-10-24 receipt (17,252 B, dae9d3ec\u2026) still reproduce? Read-only \u2014 the row is not rewritten; report whether a recheck note is due."
+  },
+  {
+   "name": "ScoutLessonBacklog",
+   "role": "scout",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Verify every M-row in corpus/lessons/round-65.md cites evidence that resolves (receipt paths exist, commands run); verify the Gate quotes are <=25 words each (count them with wc -w)."
+  },
+  {
+   "name": "CriticPlanFreeze",
+   "role": "critic",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Verify the plan-freeze discipline: plans/round-65.md committed (2fdfc1fd) BEFORE the implementation (80bb8921) \u2014 git log order; the frozen predicate sentence is byte-identical in plan, SCORECARD annotation, and receipts; no after-state counting command ran before the freeze (receipt commits vs freeze commit)."
+  },
+  {
+   "name": "ScribeDispositions",
+   "role": "scribe",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Prepare the wave-2 disposition table skeleton: list every attack item in both prepared specs with columns attack / claimed-finding / disposition \u2014 fill what the L1's receipts already settle and leave orchestrator-dispatched rows open for the closure."
+  },
+  {
+   "name": "ExecHarnessArchive",
+   "role": "executor",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "The kill-battery harness is committed at /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-65/receipts/kill_battery.py (it targets a git-archive extraction, never the live tree). Run it yourself against a fresh archive of 0e104f49 and confirm it prints RESULT: ALL OK; then report any divergence between the harness text and the receipt C1-close-kill.txt."
+  },
+  {
+   "name": "CriticPlanSizing",
+   "role": "critic",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Check claim sizing per brief \u00a79: each claim's after-state is one concrete value re-derivable with one command; the \u00a79 shortcut controls (fabricated input, cheapest real-input shortcut, remap, shadow module) were built before data and their receipts committed (controls/C1-before.txt, C2-before.txt, C2-selfreference-redbefore.txt, M99-fixture-leak.txt); the frozen predicate sentence is identical in plan, counter, and receipt. Name any violation."
+  },
+  {
+   "name": "ScribeCensusCheck",
+   "role": "scribe",
+   "axes": [
+    "freshness"
+   ],
+   "prompt": "Verify census-before.txt and census-after.txt are committed, both exit 0, before=118 rows / after=119 rows, and the W04 count is 16 in both; verify the census command output format matches CORPUS.md's frozen manual census section."
+  }
+ ]
+}

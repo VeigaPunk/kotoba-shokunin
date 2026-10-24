@@ -1,0 +1,271 @@
+{
+ "wave": "kotoba-r65-w2",
+ "milestone": "Round-65 wave 2 (falsify; prepared-but-undispatched): re-run every count at tip+base, attack both predicates, re-open S121 live, audit receipts/append-only/no-harm/scope.",
+ "axes": [
+  "depth",
+  "calibration",
+  "freshness",
+  "coverage",
+  "quality"
+ ],
+ "reportDir": ".ufo/waves/round-65/w2",
+ "context": "# Goal\nkotoba round 65, WAVE 2 of 2 (falsify), hyaku run 5, 2026-10-24. Lane repo /home/vgpnk/Projects/shokunin/kotoba-shokunin (jj-colocated). You are ONE seat. The L1 has ALREADY landed the round's claims (tip 0e104f49; implementation 80bb8921; receipts 5253b281; frontier 0e104f49) \u2014 this wave is falsify: you write ONLY your own report file at the absolute path\n/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-65/w2/<YourName>.md\nEvery `Report:` trailer path is relative to /home/vgpnk/Projects/shokunin/kotoba-shokunin \u2014 write it at /home/vgpnk/Projects/shokunin/kotoba-shokunin/<that path>.\n\n# Read first\n/home/vgpnk/Projects/shokunin/kotoba-shokunin/plans/round-65.md \u2014 the frozen plan (claims C1 depth closing package 223->234 + floors registration; C2 consistency governance corrections, checklist 1852->1862). Claim evidence: .ufo/waves/round-65/receipts/C1-close-measure.txt, C1-close-kill.txt, C2-governance-measure.txt, C2-selfreference-redbefore.txt, M99-fixture-leak.txt, noharm-tip.txt; corpus/knowledge/g7-span-closure-round65.md; corpus/lessons/round-65.md; the round-64 wave-2 reports .ufo/waves/round-64/w2/MutW2M7M22.md (the M7-M22 lanes), RevC1Predicate.md (the package arms).\n\n# Write bounds\nRead-only outside your own report file \u2014 the landed bytes are the attack surface; never mutate the fleet repo, sibling lanes, lane jj state or the lane Git index; never run git/jj writes. All paths absolute under /home/vgpnk/Projects/shokunin/kotoba-shokunin. Scratch work only under /tmp. Kill only by the PIDs you started; cap any contention at 4 processes and 120 s.\n\n# Tooling authorization\nAny agent may install or upgrade tools that help the task \u2014 read /home/vgpnk/.omp/agent/RULES.md first (official channels, update-safety gate, record tool/version/channel/reason in your report).\n\n# Pacman guard (orchestrator ruling 2026-10-20)\nAll pacman transactions are PAUSED host-wide until the operator resolves the host-recovery L0 question \u2014 install via uv tool/npx/an official binary in ~/.local/bin, or file an L0 question. When the pause lifts the dry-run rule applies. Never -Sy, -Syu, -U, -R, downgrade, or restart a host service.\n\n# Evidence discipline\nAn unrun check has not passed. Paste real command output (with exit codes) into your report; label inferences [INFERENCE]. Name every claim your findings support or falsify.",
+ "items": [
+  {
+   "name": "RevW2C1Count",
+   "role": "reviewer",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "RE-RUN the C1 counting command at tip and base: 234/exit 0 @ tip vs 223/exit 0 @ c98d137; sha256 at both; verify the recorded pair (b6cfc764\u2026, 234) matches your re-derived pair at the tip. Paste both runs."
+  },
+  {
+   "name": "RevW2C2Count",
+   "role": "reviewer",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "RE-RUN the C2 counting command: --json at tip (11/11 exit 0) and at base c98d137 (10/1 exit 1); verify the governance detail carries '3 recorded correction(s) excused'. Paste both runs."
+  },
+  {
+   "name": "RevW2Kill",
+   "role": "reviewer",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "RE-RUN the full kill battery (re-derive each of the 17 mutants yourself from the committed bytes): all lanes exit 1 with attribution; equivalents survive; the pkg7 control world admits SPAN_FIRST/SPAN_LAST/M20."
+  },
+  {
+   "name": "MutW2NewLanes",
+   "role": "mutation-tester",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Attack the four NEW arms at judge level (build a judge() harness like MutW2M7M22 \u00a71): construct cells the honest bytes ADMIT while an arm expects REJECT or vice versa \u2014 two-span orderings, spans sharing words, exact-case variants. Name any discriminating witness the arms miss."
+  },
+  {
+   "name": "MutW2GovLanes",
+   "role": "mutation-tester",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Attack the corrections mechanism with live-repo mutations: in a /tmp full-tree copy, edit the three notice lines (one word each) and show each fails closed (sha drift); then fix LOG.md:2533 in place to the ../ form and show the correction row goes stale \u2014 naming the class."
+  },
+  {
+   "name": "CriticW2Dishonest",
+   "role": "critic",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Build the cheapest dishonest world meeting the C1 frozen sentence: pad to 234 with a gutted span branch (SM1) \u2014 show the kill conjunct fails it; bump the floors row to 999 \u2014 show the guard names it. Conclude each conjunct is load-bearing."
+  },
+  {
+   "name": "CriticW2GovDishonest",
+   "role": "critic",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Build the cheapest dishonest world meeting the C2 frozen sentence: revert ONLY the resolve-check in a /tmp copy and show a dead corrected token now excuses (which self-test arm reddens?); revert ONLY the sha check \u2014 which arm reddens? Each single revert caught by a named arm."
+  },
+  {
+   "name": "ScoutW2Census",
+   "role": "scout",
+   "axes": [
+    "freshness"
+   ],
+   "prompt": "Re-run the census at the tip; row count 119, tier/status histograms, duplicate-id scan, mined used-by existence for S121's two paths; paste outputs and the exit code."
+  },
+  {
+   "name": "ScoutW2S121Live",
+   "role": "scout",
+   "axes": [
+    "freshness"
+   ],
+   "prompt": "Independently re-open S121 (fresh curl), hash, compare to the snapshot, re-derive the normalized gate quote \u2014 byte-identical or not? If live bytes drifted, say so and stop (the row pins the snapshot)."
+  },
+  {
+   "name": "ScoutW2ReceiptPaths",
+   "role": "scout",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Verify every path cited in the SCORECARD round-65 annotation and the lesson exists at the tip (receipts, snapshots, knowledge entry, lesson, plan, controls, census files). Name any dead pointer."
+  },
+  {
+   "name": "ScoutW2AppendOnly",
+   "role": "scout",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Run the append-only sweeps: check_sources_append_only.py over c98d137..tip; git diff --numstat for LOG.md/SCORECARD.md/corpus/** showing additions only except the two recorded renames (Next block, SHONEN evidence line). Paste outputs."
+  },
+  {
+   "name": "ExecW2RedoMeasure",
+   "role": "executor",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Re-measure both claims from a clean git-archive extraction of the tip (no working tree): both frozen sentences reproduce byte-exact; paste both outputs in your report (do not write into the lane)."
+  },
+  {
+   "name": "ScribeW2Report",
+   "role": "scribe",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Draft the wave-2 disposition table from the L1's settled receipts: for each of the 32 w2 attack items, cite the receipt that settles it or mark it open-for-orchestrator. This table rides the closure report."
+  },
+  {
+   "name": "ScribeW2LessonAddendum",
+   "role": "scribe",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Draft the lesson addendum skeleton for orchestrator-dispatched wave results: Gate recheck rows, new-mistake rows (class/evidence/captured-by/fix placeholders), status-change placeholders."
+  },
+  {
+   "name": "RevW2EntryTruth",
+   "role": "reviewer",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Verify every falsifiable sentence in corpus/knowledge/g7-span-closure-round65.md against committed bytes: the measured-record block, the kill attributions (SM4/M17-first, SM6/A2-first, M11-collateral), the pkg7 control description, the do-nothing controls. Flag any sentence the bytes do not support."
+  },
+  {
+   "name": "RevW2ScorecardTruth",
+   "role": "reviewer",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Same truth pass over the SCORECARD round-65 annotations and Next-66 block: every rev cited is an ancestor of master; every consumed-debt claim matches a landed change; carried debt items are verbatim from the r64 record."
+  },
+  {
+   "name": "RevW2NoHarm2",
+   "role": "reviewer",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Verify no prior round's pinned counter regressed: run check_erratum_absorption, check_r63/r64 routed repairs, check_scoped_rules_v32, check_mcp_instructions, check_alwayson_boxes, check_gate_registry at the tip; compare against each round's recorded pin; paste the table."
+  },
+  {
+   "name": "CriticW2FrontierBound",
+   "role": "critic",
+   "axes": [
+    "coverage"
+   ],
+   "prompt": "Check the expansion evidence: is S121 on uncovered ground (not duplicating S120's scope)? Is the new entry's ground new per the coverage map? Does the sourced-claim rule bind C1 honestly? Bound any overclaim."
+  },
+  {
+   "name": "CriticW2Q47",
+   "role": "critic",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Check Q47 two-sidedness: is the surviving-equivalent set (M19/M22) generated at measurement time or a fixed list? Is M22 truly semantics-preserving (weakened guard unreachable)? Name any equivalent that should survive but doesn't, or any 'equivalent' that is actually a lane."
+  },
+  {
+   "name": "SentW2Scope2",
+   "role": "sentinel",
+   "axes": [
+    "operability"
+   ],
+   "prompt": "Re-audit the r64 sentinel debt on the new bytes: counters still materialize and execute <rev> code unsandboxed (named debt); git calls unbounded? Confirm nothing got worse; state the sandbox+timeouts recommendation status."
+  },
+  {
+   "name": "SimpW2DeadWeight",
+   "role": "simplifier",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Look for dead weight in the round's additions: any arm, receipt, or prose block duplicating an existing pin or carrying no claim? Check the 11 arms for redundancy against the r64 four and each other. Name deletions only if the counters' prints are unchanged."
+  },
+  {
+   "name": "RevengerGovIntent",
+   "role": "revenger",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Reverse-engineer the GOVERNANCE_ERRATA vs GOVERNANCE_CORRECTIONS split: is the absence-record vs correction-record distinction consistent with the round-47 erratum's intent and the r63 S119 correction-practice entry? Any behavior one has that the other should share but doesn't?"
+  },
+  {
+   "name": "MutW2LabEquiv",
+   "role": "mutation-tester",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Probe one falsifiable hypothesis: 'the M20 arm alone (of the four new arms) is sufficient to kill the M20 mutant' \u2014 run pkg7-control+M20 (no M20 arm) and candidate+M20 (with it); record both verdicts and whether the hypothesis holds."
+  },
+  {
+   "name": "ScoutW2Spotcheck",
+   "role": "scout",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Prepare the non-author spot-check material for the closure: the round's gate decisions (S121 admit; arXiv:1309.4818 reject) with re-open commands so the integrator's sample re-opens resolve fast."
+  },
+  {
+   "name": "CriticW2SHONEN",
+   "role": "critic",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Check the SHONEN refresh honesty: box-1's refreshed command really prints what the line claims at 0e104f49; the '18 at 80bb8921' count is real; no box carries an [x] without a named non-author verifier."
+  },
+  {
+   "name": "RevW2Plan",
+   "role": "reviewer",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Plan-fidelity check: the landed work matches plans/round-65.md's frozen predicates (C1's N measured at landing = 234; C2's 11/11); disposition any deviation (two SPAN arms where the plan named the lane as one item \u2014 within the frozen sentence's N-measured-at-landing?)."
+  },
+  {
+   "name": "ScribeW2ReceiptAudit",
+   "role": "scribe",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Audit receipt completeness per Q36/Q11: every receipt names its measured rev internally; the evidence bundle is sized to the claims; controls/receipts split respected."
+  },
+  {
+   "name": "MutW2Floors",
+   "role": "mutation-tester",
+   "axes": [
+    "operability"
+   ],
+   "prompt": "Mutation-test the floors registration: delete the v32 row from one of the three artifacts (registry json / INSTRUMENTS / EXPECTED_INSTRUMENTS) in a /tmp tree \u2014 each deletion must be named by the guard's drift checks; lower the floor to 233 \u2014 the guard must FAIL on the next run."
+  },
+  {
+   "name": "ConnW2Fleet2",
+   "role": "connector",
+   "axes": [
+    "adjacency"
+   ],
+   "prompt": "Check the prepared wave specs themselves for sibling-scope items, the Q44 sentence (grep -c 'Kill only by the PIDs you started' on each spec context = 1), and the absolute-path bounds; report."
+  },
+  {
+   "name": "CriticW2Mistakes",
+   "role": "critic",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Audit the mined mistakes M99-M101: is each a real class with a shown-able-to-fail fix (receipts exist and demonstrate the FAIL)? Is M101 honestly 'caught before data' (the plan text names the rejection)? Any minimality problem (one mistake that is really two)?"
+  },
+  {
+   "name": "ScoutW2State",
+   "role": "scout",
+   "axes": [
+    "operability"
+   ],
+   "prompt": "Final state sweep for the closure: jj-lane.sh state (ahead=0), git status --porcelain empty at the lane, no stray files under the fleet root from this lane's seats (print the misroot sweep command and output), .ufo/watchdog.log untouched by the lane."
+  },
+  {
+   "name": "RevW2FrontierGate",
+   "role": "reviewer",
+   "axes": [
+    "freshness"
+   ],
+   "prompt": "Re-verify the round-65 lesson Gate: S121's gate quote <=25 words (count with wc -w on the quoted string), the access line carries URL + date + byte size + sha256, the rejected arXiv:1309.4818 row carries a reason and a flip; the search log names the round-65 search. Flag any missing element."
+  }
+ ]
+}
