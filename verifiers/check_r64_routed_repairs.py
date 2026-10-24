@@ -16,8 +16,18 @@ Pre-data integration fix (no measurement taken with the prior bytes): the
 round-heading anchor accepts the lane's parenthetical heading form
 (`## 2026-10-24 — Round 64 (...)`) via a boundary-safe exact-or-space match —
 a bare startswith would let a future `Round 64b` heading anchor the suffix —
-and the self-test gains the parenthetical-heading and Round-64b-sibling arms
-(32 assertions).
+and the self-test gains the parenthetical-heading and Round-64b-sibling arms.
+
+Wave-2 hardening (post-data, predicate unchanged; the counted runs are
+re-measured on the hardened bytes with both pins recorded in the lesson and
+SCORECARD): wave 2 demonstrated surviving shortcuts — swapped basename/rev
+pairing, inverted and negated lowest-axis claims, one bundled line serving
+checks 2+3, a marker sentence plus padding for check 1, a deleted drift note
+with a rewritten tally cell, a guard-skewed runtime tally, committed-score
+substitution with a stale LOG, a substituted control pinned-base, and a
+nonexistent revision — and the self-test gains one constructed-world arm per
+shortcut (43 assertions). The honest world still certifies 4 of 4 and the
+pinned base still scores exactly 0 of 4 on the hardened bytes.
 """
 from __future__ import annotations
 
@@ -40,6 +50,21 @@ EXPECTED_STATIC_SHAPE = (17, 2, 3)
 EXPECTED_PINNED_BASE_PREFIX = "35d44b4b"
 ROUND64_HEADER = "## 2026-10-24 — Round 64"
 SEAT_MARKER = "temporal mismatch"
+# Verbatim signature lines of the inherited seat correction (.ufo/waves/round-63/
+# w2/MutW2SplitClauses.md, additions vs 38defdc). Hardening (wave 2, MutW2ReceiptSubs
+# M3b): a marker sentence plus filler padding must not credit check 1 — at least five
+# of these eight signatures must be additions.
+SEAT_SIGNATURES = (
+    "the receipt half was factually right",
+    "the entry half was MY ERROR and is corrected here",
+    "And there was never a committed revision in which the sentence was",
+    "MutW2V32 rejected it (§12) and is right",
+    "was a **temporal mismatch** on my part",
+    "E3 did not exist at `cbbee56` at all",
+    "Its actual sentence is **\"the entry names the landed rule\"**",
+    "true at every revision where it exists",
+)
+PATCH_MARKER = "Drift note (appended in kotoba round 64"
 
 SEAT_EDIT = ".ufo/waves/round-63/w2/MutW2SplitClauses.md"
 CONTROL_PATHS = (
@@ -140,13 +165,18 @@ def check_seat_edit(root: Path, rev: str) -> tuple[bool, str]:
         return False, "%s absent at %s" % (SEAT_EDIT, rev)
     marker_lines = [line for line in content.splitlines() if SEAT_MARKER in line]
     added = _added_lines(root, SEAT_BASE_REV, rev, SEAT_EDIT)
-    added_count = _numstat_added(root, SEAT_BASE_REV, rev, SEAT_EDIT)
-    if added is None or added_count is None:
+    if added is None:
         return False, "could not compare %s with %s" % (SEAT_EDIT, SEAT_BASE_REV)
+    added_count = len(added)
     marker_added = any(SEAT_MARKER in line for line in added)
-    ok = bool(marker_lines) and marker_added and added_count >= 60
-    return ok, ("marker=%s added-marker=%s added-lines=%d (need >=60)" %
-                (bool(marker_lines), marker_added, added_count))
+    signatures = [s for s in SEAT_SIGNATURES
+                  if any(s in line for line in added)]
+    ok = (bool(marker_lines) and marker_added and added_count >= 60
+          and len(signatures) >= 5)
+    return ok, ("marker=%s added-marker=%s added-lines=%d (need >=60) "
+                "signatures=%d of %d (need >=5)" %
+                (bool(marker_lines), marker_added, added_count,
+                 len(signatures), len(SEAT_SIGNATURES)))
 
 
 def _committing_rev(root: Path, rev: str, path: str) -> str | None:
@@ -175,6 +205,28 @@ def _control_base(root: Path, rev: str) -> str | None:
     return base
 
 
+def _paired_basename_rev(line: str, basename: str, rev: str) -> bool:
+    """The basename and its OWN committing rev paired within one clause.
+
+    The clause scope is a `;`- or `.`-delimited segment (a one-line citation
+    carrying both controls must not let basename0 borrow rev1 by proximity);
+    the rev may appear as any 7-40 hex prefix."""
+    for segment in re.split(r"[;]", line):
+        if basename not in segment:
+            continue
+        for token in re.finditer(
+                r"(?<![0-9a-fA-F])[0-9a-fA-F]{7,40}(?![0-9a-fA-F])",
+                segment):
+            value = token.group(0).lower()
+            if len(value) <= len(rev) and rev.startswith(value):
+                return True
+    return False
+
+
+_NEGATION_RE = re.compile(
+    r"(?i)\b(no|not|never|neither)\b[^;\n]{0,90}\bcommitted\b")
+
+
 def check_control_revs(root: Path, rev: str) -> tuple[bool, str]:
     commits = [_committing_rev(root, rev, path) for path in CONTROL_PATHS]
     if any(commit is None for commit in commits):
@@ -186,9 +238,10 @@ def check_control_revs(root: Path, rev: str) -> tuple[bool, str]:
     basenames = [Path(path).name for path in CONTROL_PATHS]
     matches = []
     for line in _r64_suffix_lines(root, rev):
-        if (all(_matches_hash_prefix(line, value) for value in commits)
+        if (_NEGATION_RE.search(line) is None
+                and all(_paired_basename_rev(line, name, commit)
+                        for name, commit in zip(basenames, commits))
                 and _matches_hash_prefix(line, pinned_base)
-                and all(name in line for name in basenames)
                 and re.search(r"\bcommitted\b", line, re.IGNORECASE)):
             matches.append(line)
     if matches:
@@ -268,16 +321,45 @@ def check_lowest_axis(root: Path, rev: str) -> tuple[bool, str]:
         return False, ("computed owned minimum is %s at %s; expected depth 9 < consistency 10"
                        % (", ".join(lowest), _score_text(minimum)))
 
-    depth_token = _number_token_re(_score_text(scores["depth"]))
-    consistency_token = _number_token_re(_score_text(scores["consistency"]))
+    depth_score = _score_text(scores["depth"])
+    consistency_score = _score_text(scores["consistency"])
+    # Hardening (wave 2, MutW2ReceiptSubs M2 / RevW2Lesson): token co-presence
+    # green-lights inverted claims ("consistency 10 is the lowest... depth 9 is
+    # higher"). Require pairing depth<->its score and consistency<->its score,
+    # the direction "depth ... is ... lowest", no higher/negation clause on
+    # depth, and a physical line distinct from the control-citation line (one
+    # bundled line must not serve checks 2 and 3 together).
+    d_tok = r"(?<![0-9])" + re.escape(depth_score) + r"(?![0-9])(?!\.[0-9])"
+    c_tok = r"(?<![0-9])" + re.escape(consistency_score) + r"(?![0-9])(?!\.[0-9])"
+    pairing_re = re.compile(
+        r"(?i)\bdepth\b[^.\n]{0,40}" + d_tok +
+        r"|" + d_tok + r"[^.\n]{0,40}\bdepth\b")
+    cpairing_re = re.compile(
+        r"(?i)\bconsistency\b[^.\n]{0,40}" + c_tok +
+        r"|" + c_tok + r"[^.\n]{0,40}\bconsistency\b")
+    direction_re = re.compile(
+        r"(?i)\bdepth\b[^.\n]{0,45}\bis\b[^.\n]{0,30}\blowest\b")
+    higher_re = re.compile(
+        r"(?i)\bdepth\b[^.\n]{0,40}\b(higher|lower|worse)\b"
+        r"|\b(higher|lower|worse)\b[^.\n]{0,40}\bdepth\b")
+    control_hits = set()
     for line in _r64_suffix_lines(root, rev):
+        if ("committed" in line.casefold()
+                and any(_matches_hash_prefix(line, value)
+                        for value in ("35d44b4b",))):
+            control_hits.add(line)
+    for line in _r64_suffix_lines(root, rev):
+        if line in control_hits:
+            continue
         if (re.search(r"\blowest\b", line, re.IGNORECASE)
-                and re.search(r"\bdepth\b", line, re.IGNORECASE)
-                and re.search(r"\bconsistency\b", line, re.IGNORECASE)
-                and depth_token.search(line)
-                and consistency_token.search(line)):
-            return True, "round-64 LOG suffix names depth 9 < consistency 10 as lowest"
-    return False, "round-64 LOG suffix lacks lowest/depth/consistency and both computed scores"
+                and pairing_re.search(line)
+                and cpairing_re.search(line)
+                and direction_re.search(line)
+                and higher_re.search(line) is None):
+            return True, "round-64 LOG suffix names depth %s < consistency %s as lowest" % (
+                depth_score, consistency_score)
+    return False, ("round-64 LOG suffix lacks a paired, directed lowest-axis "
+                   "line with both computed scores")
 
 
 def _check_call_nodes(node: ast.AST) -> list[ast.Call]:
@@ -368,8 +450,13 @@ def check_assertion_count(root: Path, rev: str) -> tuple[bool, str]:
     named = [line for line in additions
              if _hash_token_re(str(count)).search(line)
              and re.search(r"\bassertions\b", line, re.IGNORECASE)]
+    note_added = any(PATCH_MARKER in line for line in additions)
+    if named and note_added:
+        return True, ("%s; added patch line names %d assertions with the "
+                      "round-64 drift note" % (detail, count))
     if named:
-        return True, "%s; added patch line names %d assertions" % (detail, count)
+        return False, ("%s; the tally line is added but the round-64 drift-note "
+                       "marker is absent (deletion-plus-rewrite class)" % detail)
     return False, "%s; no BASE_REV-added patch line names %d assertions" % (
         detail, count)
 
@@ -535,9 +622,12 @@ def _scorecard_text(reordered: bool = False, move_table: bool = False) -> str:
     return text
 
 
-def _seat_edit_text(lines: int = 82) -> str:
-    return SEAT_MARKER + "\n" + "".join(
-        "measured seat line %d\n" % index for index in range(lines - 1))
+def _seat_edit_text() -> str:
+    body = [SEAT_MARKER]
+    body.extend(SEAT_SIGNATURES[:6])
+    body.extend("measured seat line %d\n" % index
+                for index in range(82 - 1 - 6))
+    return "\n".join(line.rstrip("\n") for line in body) + "\n"
 
 
 def _new_world(root: Path) -> tuple[str, str]:
@@ -590,7 +680,8 @@ def _control_line(root: Path, rev: str, full: bool = False,
 
 
 def _axis_line() -> str:
-    return "- lowest owned axis: depth 9 < consistency 10."
+    return ("- the axes table owns depth 9 and consistency 10; "
+            "depth is the lowest owned axis.")
 
 
 def _log_with_entry(base_log: str, control_line: str,
@@ -722,7 +813,8 @@ def self_test() -> int:
             # computed control commits/base and both score tokens are present.
             _write(root, SEAT_EDIT, _seat_edit_text())
             _write(root, PATCH_RECEIPT,
-                   "C2 patch tally measured by runtime and static reconstruction: 23 assertions\n")
+                   "C2 patch tally measured by runtime and static reconstruction: 23 assertions\n"
+                   + PATCH_MARKER + "**: the measured 23 supersedes the 21 tally.\n")
             short_line = _control_line(root, base_rev)
             _write(root, LOG, _log_with_entry(base_log, short_line))
             target_rev = _commit(root, "constructed corrected target")
@@ -758,6 +850,115 @@ def self_test() -> int:
             not_r64_rev = _commit(root, "constructed round 64b sibling")
             check("heading: a Round-64b sibling heading does not anchor the suffix",
                   check_control_revs(root, not_r64_rev)[0], False)
+
+            # Wave-2 hardening arms: the mutants wave 2 demonstrated surviving
+            # the 32-assertion suite must now be killed (MutW2ReceiptSubs
+            # M1/M2/M3b/M5c, RevW2Lesson, RevW2Crosswalk2 F2, MutW2Counter M4,
+            # RevW2C2Count F1, CriticW2C2Dishonest, RevW2Intent F2).
+            swapped = ("- committed %s at %s; %s at %s; pinned base %s.\n"
+                       % (Path(CONTROL_PATHS[0]).name, commits[1][:8],
+                          Path(CONTROL_PATHS[1]).name, commits[0][:8],
+                          pinned_base[:8]))
+            swapped_rev = _commit_log_variant(root, base_log, swapped,
+                                              append_axis=True)
+            check("citation: swapped basename/rev pairing fails",
+                  check_control_revs(root, swapped_rev)[0], False)
+
+            negated = ("- neither C1-do-nothing-v31.txt nor C2-before-r62tip.txt "
+                       "was committed at %s or %s; pinned base %s.\n"
+                       % (commits[0][:8], commits[1][:8], pinned_base[:8]))
+            negated_rev = _commit_log_variant(root, base_log, negated,
+                                              append_axis=True)
+            check("citation: a negated committed-line fails",
+                  check_control_revs(root, negated_rev)[0], False)
+
+            bundled = (short_line.rstrip("\n") + " "
+                       + _axis_line().lstrip("- ") + "\n")
+            bundled_rev = _commit_log_variant(root, base_log, bundled,
+                                              append_axis=False)
+            check("citation: one bundled line fails both LOG checks",
+                  (check_control_revs(root, bundled_rev)[0],
+                   check_lowest_axis(root, bundled_rev)[0]), (True, False))
+
+            inverted_axis = ("- consistency 10 is the lowest owned axis; "
+                             "depth 9 is higher.\n")
+            inverted_log = (base_log + "\n" + ROUND64_HEADER + "\n"
+                            + short_line + "\n" + inverted_axis)
+            _write(root, LOG, inverted_log)
+            inverted_rev = _commit(root, "constructed inverted axis claim")
+            check("axes: an inverted lowest-axis claim fails",
+                  check_lowest_axis(root, inverted_rev)[0], False)
+            _write(root, LOG, m_log := _log_with_entry(base_log, short_line))
+            _commit(root, "restore honest LOG after inversion arm")
+
+            marker_filler = ("There was a temporal mismatch in my reasoning.\n"
+                             + "".join("filler line %d\n" % index
+                                       for index in range(100)))
+            _write(root, SEAT_EDIT, marker_filler)
+            filler_rev = _commit(root, "constructed marker-plus-filler edit")
+            check("seat edit: marker sentence plus padding fails",
+                  check_seat_edit(root, filler_rev)[0], False)
+            _write(root, SEAT_EDIT, _seat_edit_text())
+
+            ep_base = show(root, base_rev, PATCH_RECEIPT)
+            _write(root, PATCH_RECEIPT,
+                   ep_base.replace("15 → 21", "15 → 23", 1))
+            note_deleted_rev = _commit(root, "constructed note-deleted rewrite")
+            check("assertion count: deleted drift note fails",
+                  check_assertion_count(root, note_deleted_rev)[0], False)
+            _write(root, PATCH_RECEIPT,
+                   "C2 patch tally measured by runtime and static reconstruction: 23 assertions\n"
+                   + PATCH_MARKER + "**: supersedes 21.\n")
+
+            honest_scorecard = _scorecard_text(reordered=True, move_table=True)
+            _write(root, SCORECARD, honest_scorecard.replace(
+                "| depth | 9 |", "| depth | 8 |", 1))
+            stale_axis_rev = _commit(root, "changed score source, unchanged LOG")
+            check("axes: committed score substitution rejects stale LOG",
+                  check_lowest_axis(root, stale_axis_rev)[0], False)
+            _write(root, SCORECARD, honest_scorecard)
+            check("axes: dirty scorecard cannot repair committed score",
+                  check_lowest_axis(root, stale_axis_rev)[0], False)
+            _write(root, SCORECARD, _scorecard_text())
+            _commit(root, "restore scorecard after provenance arms")
+
+            guarded = _r63_fixture_source().replace(
+                "    for arm in (0, 1, 2):\n"
+                "        check('reject', True, True)\n"
+                "        check('honest', True, True)\n",
+                "    for arm in (0, 1, 2):\n"
+                "        if arm != 2:\n"
+                "            check('reject', True, True)\n"
+                "            check('honest', True, True)\n")
+            _write(root, R63_COUNTER, guarded)
+            _write(root, PATCH_RECEIPT,
+                   "C2 patch tally measured by runtime and static reconstruction: 23 assertions\n"
+                   + PATCH_MARKER + "**: supersedes 21.\n")
+            skewed_rev = _commit(root, "constructed guard-skewed tally")
+            check("assertion tally: runtime 22 against static 23 is refused",
+                  check_assertion_count(root, skewed_rev)[0], False)
+            _write(root, R63_COUNTER, _r63_fixture_source())
+
+            wrong_base_contents = [
+                show(root, base_rev, path) or "" for path in CONTROL_PATHS]
+            for index, path in enumerate(CONTROL_PATHS):
+                _write(root, path, wrong_base_contents[index].replace(
+                    pinned_base, "1" * 40, 1))
+            subbed_rev = _commit(root, "constructed substituted control base")
+            check("control citation: substituted pinned base fails",
+                  check_control_revs(root, subbed_rev)[0], False)
+            for index, path in enumerate(CONTROL_PATHS):
+                _write(root, path, wrong_base_contents[index])
+            _commit(root, "restore control files after substitution arm")
+
+            missing_rev = "f" * 40
+            honest_source = Path(__file__).read_text(encoding="utf-8")
+            honest = _candidate(temp / "honest-missing.py", honest_source,
+                                base_rev)
+            missing_code, _missing_count = _candidate_run(honest, root,
+                                                          missing_rev)
+            check("revision: nonexistent object cannot certify",
+                  missing_code != 0, True)
 
             one_sided = ("- committed %s at %s; pinned base %s.\n"
                          "- committed %s at %s.\n" %

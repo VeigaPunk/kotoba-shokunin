@@ -2,7 +2,7 @@ source: S120 — Petrović, Ivanković, Fraser & Just, "Practical Mutation Testi
 verified-at: 2026-10-24 — base `078eec4`, v32 sha256 `12d093a1…`: `self-test: 0 failure(s) over 219 assertions`, exit 0 (re-run by this seat); 223 on `landed_plus_spanfix7` (sha256 `ae84673e…`) per MutW2V32 §11; branch at `verifiers/check_scoped_rules_v32.py:1055-1067`
 recheck: 180d — `python3 -B verifiers/check_scoped_rules_v32.py --self-test`: all four printed lines and the assertion count against § The measured record; sooner on any mutation reported surviving this branch
 
-*Round-64 landing note (2026-10-24): the four arms are landed at the round-64 integration commit; the `(sha256, 223)` pair measured on the landed bytes is recorded in `.ufo/waves/round-64/receipts/C1-span-measure.txt` (the kill battery: SM1–SM6 all red, each by its own arm's `check()` label except SM4/SM6 which the pre-existing `eligible world` arms kill — attribution per the kotodama R64-M9 lesson). Arm 4's cell is the MutSpanArms §6 hardened form (`The tool writes quota nightly and \`mode quota\`.`), which pins SM5 at the component level under either call site and, through `action_conjunct`, at the judge level too (landed ADMIT / SM5 REJECT on the same fixture).*
+*Round-64 landing note (2026-10-24): the four arms are landed at the round-64 integration commit; the `(sha256, 223)` pair measured on the landed bytes is recorded in `.ufo/waves/round-64/receipts/C1-span-measure.txt` (the kill battery: SM1–SM6 all red, each by its own arm's `check()` label except SM4/SM6 which the pre-existing `eligible world` arms kill — attribution per the kotodama R64-M9 lesson). Arm 4's cell is the MutSpanArms §6 hardened form (`The tool writes quota nightly and \`mode quota\`.`), which pins SM5 at the component level under either call site (landed ADMIT / SM5 REJECT through `action_conjunct` with a hand-built `lines` argument). At `judge()` level SM5 is NOT discriminable — `judge()` derives `lines = page.splitlines()` (E1.3; wave-2 `MutW2M7M22`) — the wrapper arm of the deferred closing package (230 assertions, `a198aa50…`) closes that lane. Attribution correction (wave 2): SM6's first FAIL is the pre-existing A2 cell arm, with arms 2–4 as collateral; SM4 is the `eligible world` kill.*
 
 ## What it is
 
@@ -50,8 +50,8 @@ Four arms, one per load-bearing lane, texts byte-for-byte as measured in
    The cell is the round-64 hardened form (`MutSpanArms` §6): the page-absent
    word occurs only inside the backticked span, so `action_conjunct`'s A2 page
    gate cannot mask the witness — measured on the landed bytes, the same
-   fixture through the wrapper discriminates SM5 at judge level (landed
-   ADMIT / SM5 REJECT).
+   fixture through the wrapper discriminates SM5 (landed ADMIT / SM5
+   REJECT); `judge()` level stays component-masked (E1.3).
 
 Two disciplines make the arms discriminating rather than decorative. **Isolate
 the lane when a wrapper decides first:** `action_conjunct` runs A2's
@@ -64,8 +64,7 @@ needle)` pins the arm that produced the verdict, so another arm's True/False
 cannot satisfy it.
 
 The kill rule is two-part: each mutant must be red **and** its red line must be
-the arm aimed at it. SM4 and SM6 are red only through `FAIL eligible world: the
-four counted rows are backed` — a kill of the mutant, not a witness for the arm.
+the arm aimed at it. SM4 is red only through `FAIL eligible world` (a kill of the mutant, not a witness for the arm). SM6's first FAIL is the pre-existing `A2: a cell the cited line supports passes`, with arms 2–4 failing on their own labels as collateral (wave-2 attribution per `ConnW2Fleet`/`RevW2Entry`).
 
 Frozen predicate: `python3 -B verifiers/check_scoped_rules_v32.py --self-test`
 prints all four lines and exits 0 —
@@ -82,7 +81,7 @@ self-test: 0 failure(s) over 223 assertions
 | state | assertions | exit | SM1 | SM2 | SM3 | SM4 | SM5 | SM6 |
 |---|---|---|---|---|---|---|---|---|
 | r63 bytes (`12d093a1…`) | 219 | 0 | survives | survives | survives | red (`eligible world`) | survives | red (`eligible world`) |
-| + the four arms | 223 | 0 | red (arm 1) | red (arm 3) | red (arm 2) | red (`eligible world`) | red (arm 4) | red (`eligible world`) |
+| + the four arms (arm 4 the hardened cell) | 223 | 0 | red (arm 1) | red (arm 3) | red (arm 2) | red (`eligible world` × 5) | red (arm 4) | red (pre-existing `A2: a cell the cited line supports passes` FIRST; arms 2–4 also fail on their own labels — collateral) |
 
 Measured in §11: the arms are green on the r63 bytes plus the arms
 (`landed_plus_spanfix7`, sha256 `ae84673e…`; `0 failure(s) over 223
@@ -98,7 +97,7 @@ moving what the lane certifies.
   which are semantically equivalent to the mutated program, are a plague in
   mutation testing and cannot generally be detected automatically` (line breaks
   joined; no other shaping). SM2, SM3 and SM5 were argued *not* equivalent by
-  divergence rather than assumed: over 20 000 random cells SM2 differs on 3 607;
+  divergence rather than assumed: over 20 000 random cells SM2 differs on 3 607 (wave-2 re-measures: 3 567 / 3 505 — the §11 generator is unrecorded, so the figure is attributable, order-verified, not exactly reproducible) ;
   SM3 differs on any span whose only ≥4-character word is a stopword; SM5
   differs on a span word present in the cited line but absent from the page.
   This record is a divergence set, not a kill rate — a mutant whose divergence

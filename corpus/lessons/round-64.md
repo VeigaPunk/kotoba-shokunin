@@ -96,11 +96,17 @@ wave-1 falsifications that shaped the instruments before any after-measurement.
 | h | BASE_REV relocation guard only blocks green controls, not moved constants | `CriticC2Bound` 2 | **bound-recorded** — tamper-evidence rests on the frozen predicate sentence naming `078eec4…` + the sha256-pinned counter bytes at the measured rev (Q28 freeze discipline) |
 | i | M95 class census: 15 absence instances (10 unique pairs), check 2 covers the 2 routed | `ScoutReceiptSweep` | **class repair + bound** — the 8 uncovered pairs named with their committing revs in the LOG census line; the counted bound stays the two routed instances |
 | j | SCORECARD r63 annotation cites receipt bytes stale at the cited rev (`C1-g9-measure.txt` at `849a546e` names the 205-assertion wave-1 receipt; the 219-assertion refresh committed at `2ba4547f`) | `ScribeQ60` F2 | **fixed** — round-64 SCORECARD erratum line naming `2ba4547f`; recorded, not headline-counted (E1 disposition) |
-| k | token-only matchers green-light inverted statements; one line can serve checks 2+3 | `RevSpotcheckCrosswalk` F5/F6 | **fixed pre-data (E3.5)** — ordered, content-shaped matchers |
+| k | token-only matchers green-light inverted statements; one line can serve checks 2+3 | `RevSpotcheckCrosswalk` F5/F6 | **fixed pre-data, then hardened post-data (row n)** — ordered, content-shaped matchers; wave 2 showed the landed matcher still green-lit inverted prose; the hardened matcher is the landed one |
 | l | SHONEN box-3 anchor falsified ("B1/B2 both fixed in round 13" — the record says the recipe gap stands) | `ScribeSHONEN` F1 | **fixed** — the refreshed line withdraws the claim, stays `[~]` |
 | k' | census grammar trap (adjacency vs reversed forms over/under-flag ~10×) | `ScribeQ60` F5 | **fixed in Q60** — the criterion binds the path-claim form only |
 
-(Wave-2 rows append below this table post-wave-2.)
+| m | both counting commands re-run independently at tip and base; predicates reproduce byte-exact (`RevW2C1Count`, `RevW2C2Count`, `ScribeW2Dispositions`) | **verified** — C1 223/exit 0 @ `c019919c`, 219 @ base, sha pair reproduced; C2 4 of 4/exit 0 @ tip, 0 of 4/exit 1 @ base, refuse mechanism demonstrated on a 1-of-4 base world |
+| n | inverted/swapped/negated/bundled prose certifies (checks 2/3 presence-only); marker+filler credits check 1; note-deletion + cell rewrite credits check 4 (`MutW2ReceiptSubs` M1/M2/M3b/M5c, `RevW2Lesson`, `RevW2Crosswalk2` F2) | **fixed post-data (hardening; predicate unchanged)** — pairing-, direction-, negation-, distinctness-, signature-, and note-marker-aware matchers; one self-test arm per demonstrated shortcut; honest world still 4 of 4, base still 0 of 4 on the hardened bytes; C2's measured pin moves to the close commit with both pins recorded (Q28 second measurement) |
+| o | three self-test shortcuts survived the 32-assertion suite (`CriticW2C2Dishonest`; `MutW2Counter` M4; `RevW2C2Count` F1; `RevW2Intent` F2) | **fixed** — hardcoded-axis, dirty-scorecard, missing-rev, guard-skewed tally, substituted control-base, and base-threshold arms added (43 assertions) |
+| p | M7–M22 re-derived at judge level: only M8 is judge-reachable admission; M20 also flips; closing package VERIFIED at 229 (`56fb9b3a…`)/230 (`a198aa50…`) shas — wave-1's `f3c82574…`/`b614e8b1…` do not reproduce; M20 survives the package (`MutW2M7M22`) | **debt-recorded with corrected package** — round-65 candidates: M8, M20, the wrapper SM5 arm, and a floors row; E1.3 stands (SM5 not judge-discriminable; the round-64 E3.3 withdrawal is itself corrected here) |
+| q | paperwork defects: S120 blank-line table split + §III-B2 caveat mis-cite + notes under Leads; LOG receipts bullet cites absent `noharm-base.txt`; C2 receipts lacked rev/command/exit; noharm FAIL receipt overwritten (`CriticW2Frontier`, `RevW2S120Reopen`, `RevW2Receipts` H1/H2, `RevW2PredWording` F4/F6) | **fixed** — SOURCES table/caveat/placement repaired (old→new logged here: caveat §III-B2 → §VI Related Work `#S6.p3.1` lines 1911-1916); receipts rewritten with command/rev/exit; the failing c019919c no-harm receipt preserved as `receipts/noharm-c019919c-FAIL.txt`, the green b99fb79c run as `receipts/noharm-b99fb79c-OK.txt`; census-after committed |
+| r | Sentinel HIGH: the counter materializes and executes `<rev>` code unsandboxed; git calls unbounded (`SentW2Scope`) | **debt-recorded** — lane-internal gate (revs are lane-authored); sandbox + timeouts named for round 65; the predicate's evidence does not rest on hostile revs |
+
 
 ## Routed-input handling
 
@@ -118,6 +124,7 @@ wave-1 falsifications that shaped the instruments before any after-measurement.
 
 ## Status changes
 
+- S120 teaches-cell citation repair (this lesson, wave 2): the productive-equivalent-mutant caveat's section moved `§III-B2` → `§VI Related Work #S6.p3.1, snapshot lines 1911-1916` (old → new logged here per contract rule 2's spirit); the row's other cells stand.
 - S120: new row this round, status `mined` at landing (used-by the C1 entry and this
   lesson; both paths committed in the same commit — the E11 landing-order gate stays
   green at the after-census).

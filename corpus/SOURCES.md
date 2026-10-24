@@ -128,8 +128,7 @@ for a source the row's author opened this round; access evidence lives in
 | S117 | Sibling lane kama, Checking self-assessment statements at writing — https://raw.githubusercontent.com/VeigaPunk/kama-shokunin/6de225c289b7682bf280cffb4a07de3fb7d1275c/corpus/knowledge/self-assessment-at-writing.md (kama-shokunin/corpus/knowledge/self-assessment-at-writing.md at commit 6de225c, git blob 0601bd0301d65cb4a688901b0db6c8488a739f03), opened 2026-10-23 | docs | B | writing-revision calibration for prompt-craft self-assessment | § Checking self-assessment statements at writing, lines 7 and 22; kama commit 6de225c (2026-10-23T16:09:39-03:00); file sha256 cd6e3730085ed08ca583604390e84c352ea122e4a6386e383d261a0a0b4cf959; re-fetched 2026-10-23 as raw.githubusercontent.com/VeigaPunk/kama-shokunin/6de225c…/corpus/knowledge/self-assessment-at-writing.md, HTTP 200, 5,831 B, byte-identical to the lane working copy | A self-assessment statement can be checked against the committed tree at the revision that wrote it, so an overclaim or a wrong pointer is a calibration error present at writing time rather than later drift | mined | 2026-10-23 | 180d | corpus/knowledge/writing-revision-calibration-round61.md |
 | S118 | Claude Code Docs — How Claude remembers your project — https://code.claude.com/docs/en/memory.md | docs | A | Current Claude Code `.claude/rules/` `paths` frontmatter matching syntax (vendor documentation; not a runtime test) | § Rule frontmatter reference (`memory.md:244-250`), especially `paths` (`:250`); § Path-specific rules (`:194-200`); fetched 2026-10-23T20:49:56Z (HTTP 200, 55,354 B, sha256 `02632438e022b5fc70b470b02d59819d9739756c2666b5632734b4564a08a801`); snapshot `.ufo/waves/round-62/snapshots/S118.page` | re-opens S103 — opened this round because the round-62 C1 E2e instances need the vendor's own statement of how the `paths` key takes glob patterns; S103's scope covered the directory overview, and this row records the current-round access to the rule-frontmatter reference | mined | 2026-10-23 | 90d | corpus/lessons/round-62.md, corpus/knowledge/erratum-absorption-round62.md |
 | S119 | ICMJE — Corrections and Version Control — https://www.icmje.org/recommendations/browse/publishing-and-editorial-issues/corrections-and-version-control.html | docs | A | Correction practice for a published record: a transparent correction notice that cites the original, and preservation of prior versions | § Corrections (snapshot `.page:170-174`); fetched 2026-10-23T23:04Z (HTTP 200, 22,722 B, sha256 `d76af0c067c1f09a21113857f66eb6725ee75d1731f5339da464e5555d3bc9d2`; the page carries a dynamic element — a re-fetch of the same size hashed `e2c3db05…` in a seat probe, so byte-identity across fetches is not claimed, only the located quotes); snapshot `.ufo/waves/round-63/snapshots/S119.page` | A journal publishes a correction notice "as soon as possible detailing changes from and citing the original publication" and "archive all prior versions of the article" — transparent correction with preserved history, not a silent rewrite of the record; the page does not mandate literal append-only files | mined | 2026-10-23 | 365d | corpus/knowledge/compound-clause-citation-round63.md, corpus/lessons/round-63.md |
-
-| S120 | Practical Mutation Testing at Scale: A view from Google (Petrović, Ivanković, Fraser & Just) — https://arxiv.org/html/2102.11378 | paper | A | Primary peer-reviewed study for the claim this row scopes: mutation analysis measures a test suite's adequacy by whether it detects seeded faults — so survival, not line coverage, locates an unasserted effect at covered code. Scoped to the paper's own statement; the lane's load-bearing-branch application is the lane's inference, not the paper's study object. Not a survey | arXiv:2102.11378v2 HTML (26 Feb 2021), the artifact opened and quoted: abstract `#abstract1.1` snapshot lines 283-284, §1 Introduction `#S1.p1.1` line 324, §III-B2 Heuristics to Prevent Equivalent Mutants `#S3.SS2.SSS2.p1.1` lines 780-782; journal version IEEE TSE 48(10):3900-3912 issue Oct 2022 (online Aug 2021), DOI 10.1109/TSE.2021.3107634, metadata from `curl -sS https://api.crossref.org/works/10.1109/TSE.2021.3107634` only — the IEEE HTML was not opened; fetched 2026-10-24 (HTTP 200, 571,600 B, sha256 `15963c3e67b577182fb40318960ca654d70951ddc8827529de82d7f563cc79e8`); snapshot `.ufo/waves/round-64/snapshots/S120.page` | "Mutation analysis assesses a test suite’s adequacy by measuring its ability to detect small artificial faults, systematically seeded into the tested program" — mutant-kill is the adequacy witness, so a survivor on a covered branch is a lead that its assertion is missing, not proof of a gap (equivalent mutants can be productive, §III-B2) | mined | 2026-10-24 | 180d | corpus/knowledge/g7-span-pinning-round64.md, corpus/lessons/round-64.md |
+| S120 | Practical Mutation Testing at Scale: A view from Google (Petrović, Ivanković, Fraser & Just) — https://arxiv.org/html/2102.11378 | paper | A | Primary peer-reviewed study for the claim this row scopes: mutation analysis measures a test suite's adequacy by whether it detects seeded faults — so survival, not line coverage, locates an unasserted effect at covered code. Scoped to the paper's own statement; the lane's load-bearing-branch application is the lane's inference, not the paper's study object. Not a survey | arXiv:2102.11378v2 HTML (26 Feb 2021), the artifact opened and quoted: abstract `#abstract1.1` snapshot lines 283-284, §1 Introduction `#S1.p1.1` line 324, §III-B2 Heuristics to Prevent Equivalent Mutants `#S3.SS2.SSS2.p1.1` lines 780-782; journal version IEEE TSE 48(10):3900-3912 issue Oct 2022 (online Aug 2021), DOI 10.1109/TSE.2021.3107634, metadata from `curl -sS https://api.crossref.org/works/10.1109/TSE.2021.3107634` only — the IEEE HTML was not opened; fetched 2026-10-24 (HTTP 200, 571,600 B, sha256 `15963c3e67b577182fb40318960ca654d70951ddc8827529de82d7f563cc79e8`); snapshot `.ufo/waves/round-64/snapshots/S120.page` | "Mutation analysis assesses a test suite’s adequacy by measuring its ability to detect small artificial faults, systematically seeded into the tested program" — mutant-kill is the adequacy witness, so a survivor on a covered branch is a lead that its assertion is missing, not proof of a gap (equivalent mutants can be productive, §VI Related Work `#S6.p3.1`, snapshot lines 1911-1916) | mined | 2026-10-24 | 180d | corpus/knowledge/g7-span-pinning-round64.md, corpus/lessons/round-64.md |
 
 ## Paths
 
@@ -179,7 +178,13 @@ for a source the row's author opened this round; access evidence lives in
 - **2026-10-21 — round-47 sources sweep (C1, C2 grounding).** Question: which opened
   sources ground the description XML-tag rule beyond S003, how the skill-routing hosts
   load descriptions, and which bytes the substrate re-pin measures. Where: the round-46
-  `## Leads (unopened)` list (anthropics/skills, Anthropic Engineering, learn.chatgpt.com
+  `
+
+- **2026-10-24 — placement correction (appended by the L1 in wave 2):** the two round-64 notes
+  originally landed at EOF under `## Leads (unopened)` (the placement defect `CriticW2Frontier` F3 caught at the
+  measured tip); their content is preserved verbatim and they are relocated to the end of `## Search log` here.
+
+## Leads (unopened)` list (anthropics/skills, Anthropic Engineering, learn.chatgpt.com
   Build skills) plus the opencode skills docs and Anthropic platform skills pages, and the
   frozen snapshot directory. Identified 7 candidates; screened 7; included 4 (S012–S015);
   excluded 3 — the anthropics/skills `spec/agent-skills-spec.md` (a 3-line pointer, no
@@ -201,6 +206,48 @@ for a source the row's author opened this round; access evidence lives in
   every round-48 claim rests on an opened row. Full record: `corpus/lessons/round-48.md` § Gate.
 - Round 51 (2026-10-22): overlap levers by client — searched each client's skills page and about one secondary page per client (settings, permissions, configuration, command references) for levers other than the description that remove one skill from the candidates (`disable`, `deny`, `permission`, `invocation`, `hidden`, `autoinvoke`); seat reports `.ufo/waves/round-51/build/Src*.md` and `LeverOtherPages.md`. Opened and written: S030, S031. Re-opened: S021, S022, S024, S025, S029. Rounds 49 and 50 kept their search notes in their lessons' `## Gate` sections and seat reports, not here.
 
+## Leads (unopened)
+
+- anthropics/skills — skill-creator/SKILL.md (executable trigger-optimization loop: 20 queries, 3 runs, 60/40 held-out split).
+- Claude blog — Improving skill-creator: Test, measure, and refine Agent Skills.
+- developers.openai.com — Testing Agent Skills Systematically with Evals (should_trigger CSV protocol).
+- SkillsBench (arXiv 2602.12670) — paired with/without-skill efficacy; cite v1 for the self-generated condition.
+- SkillRouter (arXiv 2603.22455) — metadata-only routing loses 37–44 points at ~80K skills.
+- ACES (arXiv 2608.20614) — Skill Lift via paired live trials; scans vs LLM-judge correlate at ρ 0.14.
+- Self-evolving skills study (arXiv 2608.02636) — sparse validation-filtered search; all 11 selections used failure feedback.
+- Vercel — AGENTS.md outperforms skills in our agent evals (56% non-invocation; compressed index at 100%).
+- arXiv 2602.11988 — context files: no general gain, +20% inference cost.
+- arXiv 2606.20512 — probe-and-refine guidance tuning: 33.0% vs 28.3% vs 25.5%.
+- Anthropic Engineering — Effective context engineering for AI agents.
+- Chroma — Context Rot technical report.
+- ACE (arXiv 2510.04618), GEPA (arXiv 2507.19457), dspy.GEPA docs — reflective optimizers and delta playbooks.
+- OpenAI — IH-Challenge, Model Spec 2026-08-18, ManyIH (arXiv 2604.09443) — instruction-hierarchy authority models.
+- Skill-injection evidence (arXiv 2510.26328, 2601.10338, 2510.09023), Meta Rule of Two — adjacent to kasegi; report, do not absorb.
+- Full unopened lead lists in `.tower` fleet-ledger `kaika-w1/kotoba-art.md` § "Leads (unopened)" (skill routing, skill evaluation, self-evolution, skill security, context files, injection architecture, vendor code pins).
+- **2026-10-23 — round-63 sources sweep (C2's repair method) and the S049 errata.**
+  Question: which primary source grounds "correct by appended notice, not by rewriting the
+  record", and what does Cursor's `rules.md` actually serve today? Where: the three named
+  correction-practice URLs (COPE correction guidance, COPE retraction guidelines, NISO
+  RP-8), then the ICMJE corrections page, then Acta Orthopaedica's correction policy as a
+  negative check. Identified 5; screened 5; included 1 (S119); excluded 4 — COPE ×2 (HTTP
+  403, no body to quote) and NISO RP-8 (HTTP 404) never opened, so no row is minted from
+  them; Acta Orthopaedica (HTTP 200, byte-stable) was opened and excluded as
+  counter-evidence because its text authorizes in-place correction. Stop rationale: the
+  first opened primary source (ICMJE) carries both located quotes the teaches cell needs,
+  and the remaining candidates were either unopenable or contrary, so the sweep stopped at
+  full inclusion of the one qualifying source (rule 5: a negative claim carries its sweep).
+  **S049 errata (appended, not rewritten):** the held `.md` receipt (17,403 B, sha256
+  `884c67ca…`, fetched 2026-10-22T20:09:33Z) does not reproduce on 2026-10-23 — default
+  `Accept` returns HTTP 200, 17,252 B, sha256 `dae9d3ecd7e389fc94ee57d87911fe8d54bae1f00ce451d44303616648247ce0`;
+  `Accept: text/markdown` returns HTTP 404 with a 389 B body, and `Accept: */*` returns the
+  200 form. The round-62 spot-check's 404 is therefore a request-profile result, not a dead
+  URL. The rejection of a second row from the `.md` spelling still holds, but the reason
+  corrected: it is not "S108 re-opens S049 at the same URL" (false — S049 holds
+  `https://cursor.com/docs/rules.md`, S108/S115 hold `https://cursor.com/docs/rules`, and
+  S088 already holds the non-`.md` URL); the standing reason is that the `.md` spelling
+  serves the same content at the same path modulo the request profile, so a second row
+  would duplicate the scope S088/S115 already govern. The row's recorded receipt stays as
+  the dated original.
 ## Leads (unopened)
 
 - anthropics/skills — skill-creator/SKILL.md (executable trigger-optimization loop: 20 queries, 3 runs, 60/40 held-out split).
