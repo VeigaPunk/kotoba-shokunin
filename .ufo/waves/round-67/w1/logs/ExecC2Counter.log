@@ -1,0 +1,445 @@
+kimi version 2.3.1
+• I need execute assigned seat: draft checker exact path and report. Should obey no writes except draft/report, temp /tmp mutations. Should inspect plan QUALITY verifiers patterns sources format. Should read rules before tool install only if install; no need. Should have axes name? User says immediately direct calls no philosophy. I can act. Should possibly use one labrat only explicitly? Lane bounds leaf no subagent except single labrat. Probe seat instruction says only when explicitly seated as probeParent spawn exactly one; here leaf member no subagent dispatch except single labrat but not explicitly probeParent, so spawn zero. Should have tools available. Should likely multi-step use TodoList? Task substantial; but output restrictions only allowed output own report file and draft exact. TodoList not file? okay but perhaps unnecessary. Should concurrent read in large batches. First read plan, quality, comparable verifiers, SOURCES, README, corpus contract maybe Q25 Q26 Q48. Should inspect directories known via Glob for verifiers/*.py and corpus knowledge relevant. Can parallel Read known files + Glob. Should have no git writes; read git allowed? User says do not run git or jj write commands at all, so read git okay. Should preserve base vs measured tip. Should check base behavior eventually using draft with --rev base. Should checker at base print 0 of 1 exit nonzero, likely run. Self-test satisfying and each broken world exactly one conjunct. Should design robust content read and git rev content without writing repo. Must support --rev full sha and --self-test. Should understand existing verifier patterns and SOURCES table. I'll read.Should read AGENTS before changes. Also relevant verifiers: check_r66_routed_repairs simple rev/self-test; check_mcp_instructions likely similar source/anchor parsing and selftest; check_command_files main selftest. Should inspect assimilation drafts perhaps entry/source format currently being built by other seats? My counter needs compatible. Should read package source append rows relevant authority ladder and knowledge entries to infer citation syntax. Can Grep package for instruction authority. Also drafts directory perhaps other seats writing; read only permitted. Should not rely uncommitted perhaps current files. I can glob exact round67 w1 drafts. I have output huge but okay. I'll parallel read AGENTS + relevant scripts + grep source ids and knowledge entry opening examples + assimilation MERGE.Interesting logs own ExecC2Counter perhaps seat log. No drafts yet when glob. Should check lane AGENTS nested? system says root only, but nested lane may have AGENTS. Should read /home.../kotoba-shokunin/AGENTS.md before change. Also package exact entry and SOURCES append relevant rows. Should use Grep scoped to specific files not huge. Read package knowledge instruction-authority-ladder.md. Read SOURCES.append perhaps rows S123... need find citations in entry. Do parallel. Also read ReviewCounter log? It may be empty/inflight and could contain guidance but assigned materials data only. I can read ScribeEntry log to coordinate format? Probably useful. Perhaps draft appears later. Read logs own? Could be command trace, not needed. Should design likely author uses `source: S123 ...` lines, plus per-source located quote lines in entry perhaps format `quote[S123]:`? Plan doesn't freeze syntax for quotes besides "entry's located quote ... for each cited id". Should have counter must know how to parse. Could choose flexible robust parser supporting multiple common syntax, but needs actual integration compatibility. Should inspect package entry and current ScribeEntry drafts once appear. I'll read.Lots logs from other seats reveal potential plan review concerns. But my assignment exactly seven conjuncts, can't widen beyond. Should implement exactly seven no extra conjuncts (e.g. opened date not listed, used-by not listed, tier not listed). I shouldn't add. Make sure counter content enough as specified. User specifically wants quote occurs in anchor (substring) even Q32 conflict? Assigned exact conjunct says occurs, not equal. Must implement as assigned, no judging. Review seats handle. Could use exact token URL extraction to avoid sibling host? Conjunct says source URL occurs verbatim; Q32 says exact identity but my assignment only seven; can implement source URL exact token occurrence (boundaries) to avoid matching prefix, still within. Quote "occurs" explicitly substring, no equality beyond, and at most 25. Should not enforce exact full quote because would violate intended anchor containing other text (the anchor cell has prose + `quote "..."`, so entry quote must be substring, not whole anchor). Q32 may require extracting quoted text from anchor and equality to one recorded quote; but user says occurs in anchor, could implement substring. However review log indicates Q32 potential defect but no code yet. I need assigned exactly. Could strengthen quote extraction from entry and anchor while satisfying occurs: choose full entry quote occurs verbatim. It's still substring. Q32 fragment not preventable unless anchor quotes parsed and require equality to one of them. Would that be extra conjunct? It would change semantics from occurs to exact quote recorded. Should not add. Perhaps quote extraction should be from source lines themselves? Plan says entry opens with source lines naming ids, each line includes URL/anchor, and located quote for each cited id perhaps in source line? Existing package source lines don't contain quotes. New entry likely Scribe writes source lines with quotes? Should inspect current ScribeEntry log later lines to see intended format. Read last 60 perhaps it mentions design.Other seats read-only can't write reports, but my executor has write tools. ScribeEntry has write tools likely will draft. I need not read too many logs; I have relevant intent: likely entry uses quotes from three rows, exact source lines package style, body quotes. Counter must extract located quotes per cited id from entry. Could define explicit grammar and perhaps include source-line optional `quote "..."`? I should coordinate via actual draft artifact once ready, but can build flexible robust parser that handles typical citations.
+
+  I'll parse assignment literally:
+  (2) "it opens with `source:` lines naming at least one `S###` id"
+  (4) "each cited row's `source` URL occurs verbatim in the entry's `source:` line for that id"
+  (6) "the entry's located quote (at most 25 words) for each cited id occurs in that SOURCES row's `anchor` cell"
+  No specific markup for quote. Could be `quote[S123]: "..."` lines? Since no format frozen, counter can discover quotes associated with id via patterns. Perhaps derive intended by plan C2 entry author seat full prompt? I can inspect swarm-registry for ScribeEntry item? It might have item text including quote formatting. I only saw logs thought. Read registry perhaps exact prompt not included? I'll inspect grep around ScribeEntry in registry.I need proceed efficiently. I can design script with my own explicit accepted quote association rules and self-test fixture using that. But actual entry may use quotes in body with IDs not adjacent. To maximize compatibility, implement robust per-ID quote extraction from:
+  - source line itself if contains `quote` perhaps no.
+  - dedicated lines such as `quote: S123 "..."`, `quote[S123]: "..."`, `S123 quote: "..."`, `- S123 ... "..."`, table row `| S123 | "..." |`.
+  - general body paragraphs with S id and quotes anywhere in paragraph, possibly entry original:
+    - S123 source line no quotes but body paragraph no id? First body paragraph begins "**The ladder.** OpenAI's Model Spec ..." no S123, source line has S123. Should associate based on section? Without explicit ID in body quote cannot reliably map.
+    - S124 body paragraph mentions Anthropic but no S124, quote fragment.
+    - S129 body paragraph has `(S129)` but no direct quote, perhaps new draft adds quote with S129.
+  Plan says "entry's located quote ... for each cited id" implies author expected to format dedicated located quotes perhaps source lines include `quote`? Could use source lines themselves to hold `quote "..."` for each. In source lines from package, they have anchor but not quote. ScribeEntry likely will add quotes because knows plan, perhaps format `source: S123 — URL — § ... — quote "..."`. Then quote extraction from each source line works and easy. I need check actual draft after some time. Current logs show ScribeEntry actively fetching. I can build script now, perhaps wait to run against draft when appears to adjust. But self-test and report cannot stall. I can choose grammar: each opening `source:` line must have exactly one S id and at least one URL, and quote may be in that line or subsequent associated `quote:` line. However requiring quote on source line could be stricter than conjunct 6 (entry located quote anywhere), false red if body. Should avoid overconstraint. Better parse any quote spans tied to same line or block labelled with ID; and fallback global quotes if exactly one cited ID. Actual entry cites 3, so fallback not enough.
+
+  Could define entry quote extraction as:
+  - Find all Markdown straight/curly double-quoted spans in each "citation unit": a `source:` line for ID; subsequent non-source lines until next source/verified/recheck? But body not in opening source block, so no.
+  - Explicit per-ID records in body: paragraph, list item, or table row containing ID. Extract quotes in same block/line.
+  - A quote labelled with ID in a previous/next line? e.g. `quote: S123 — "..."`.
+  - Possibly source lines `source: S123 ...` and later `quote-S123: ...`.
+  - If citation source line contains only one ID, all quotes on it candidates.
+  - table rows with ID and quote.
+  - paragraphs with ID and quote.
+  - For prose paragraphs without ID but referencing source title, cannot map automatically without extra semantic aliases; could infer order of opening sources to order of body quotes? Dangerous and not content proof. But could assign quotes in document order to citation IDs in order if exactly one unmatched quote per ID? That can admit misassociation, not ideal.
+  Perhaps actual draft will be adjusted to explicit per-ID quotes by ScribeEntry based on plan. I'll inspect logs near latest to see when draft written and perhaps planned formatting. Since logs are live, read negative lines perhaps last 30.Negative line offset behavior returned start 37 not last? Because total 76, line_offset -40 should start 37 yes exactly last 40. ScribeEntry log still in progress 76 lines, no draft yet. I need not coordinate through messages prohibited? I could not send to other seat (no tool) anyway.
+
+  Should build robust script and selftest. Could make source line grammar require dedicated quote in each source line. But if draft different, integration fails and L1 can adjust entry to counter (integration owner). My report can specify expected quote syntax so L1 aligns. However user says exact seven conjuncts, not format, so design should be clear docstring: located quote recognized in `source:` line or explicit `quote:` record. I can support multiple to avoid integration issues.
+
+  Perhaps best generic algorithm: for each source ID, collect all quoted strings in entry that are "associated" via:
+  1. same opening `source:` line;
+  2. any line containing that ID (excluding other S IDs?);
+  3. Markdown table row containing that ID;
+  4. paragraph containing that ID.
+  Then if any candidate quote nonempty <=25 words and appears verbatim in anchor, conjunct 6 passes.
+  This is broad but implements "entry's located quote for each id". It might credit a quote in body with explicit ID, sensible. For source lines with no quotes and body paragraphs lacking IDs, fails. But new draft likely uses explicit citations `(S123)` in paragraphs; original first two lack but ScribeEntry might add. Could enhance association with source-line order? No.
+
+  Could locate quote blocks by labels in a `## Located quotes` section with lines like `- S123 — "..." (§...)` which generic line containing ID handles. That's likely what author will do because requirement. Good.
+
+  Opening source lines:
+  - "opens with `source:` lines" means first nonblank lines? Existing package begins blank then # title before source lines, which technically not opens with source. Lane contract says entries opens with source trio; existing all line1 source. Plan says entry opens with source lines, likely require first line source and subsequent consecutive source lines. I should implement first nonblank? To be robust allow initial blank? "opens" should be first line (perhaps no leading blank). Selftest can use exact line1. If file starts heading then source lines should fail. Should have no extra conjunct. Implementation: split lines, skip initial blank lines? Byte content opens with blank not source, but semantic opens perhaps whitespace okay. Use `lines = text.splitlines(); idx=0; while blank skip`; require source at first nonblank. Collect contiguous `source:` lines; allow no blank between? "lines" plural. Existing entries have source lines consecutive. If blank between source lines? Could collect until first non-source nonblank, then stop. If a blank appears between source lines, perhaps allow blanks within opening block and continue while later source before verified? Could simpler prefix: skip blank lines, then while line starts `source:` collect; after each, allow blank? Should strict enough. For integration, likely contiguous. Selftest broken world no opening source (prepend heading) fails #2. If source lines after title, reject. Good.
+  - A source line may name multiple IDs (existing mcp line has many IDs). Conjunct 2 at least one, and (4) source line for that id. Should allow multiple IDs on one line. For every cited ID in opening lines, resolve. If duplicate ID across lines, can allow as long each line contains URL? "entry's source: line for that id" singular implies unique. But not specified to reject duplicates; implement resolve per ID with one or more lines and require at least one exact URL? Could require every line for same id has URL to prevent conflicting. However "the entry's source: line for that id" suggests exactly one; duplicate should fail closed. Is duplicate check extra? It's interpretation for unambiguous binding, fine.
+  - `S###` means exactly S + 3 digits? Contract says 3 or more but user uses S### id generic. Existing IDs 3. Use `S\d{3,}` consistent contract. ID regex boundaries negative digits and letters. Should not treat S12.
+  - Cited ids only opening source lines, not all body, as plan.
+
+  Source table parser:
+  - At same rev `corpus/SOURCES.md`, parse registry rows only, not search log rows. Should restrict between `## Registry` and next `## ` to avoid accidental row outside? Conjunct row in SOURCES; could accept anywhere but robust to only registry. Should exact 11 cells. Markdown table no escaped pipes allowed contract. Use line strip starts "|" ends "|" split; count 11. Row first cell ID. Require 0–3 leading spaces perhaps strip. Track duplicates: dict list; cited id resolves to a row status mined. If duplicate same id, "a row" ambiguous. For fail closed require exactly one well-formed registry row for cited id. This is extra but prevents silent arbitrary. Could treat each cited row any mined with URL/quote; duplicates perhaps all must match same line impossible if URLs different. I can not add extra check and just gather all rows, require exactly one? Better exactly one is natural resolution.
+  - Should row source URL extraction: source cell contains title + one or multiple URLs. Conjunct "each cited row's `source` URL" implies canonical URL in cell. Existing rows sometimes multiple URLs incl DOI. New rows likely one. I need choose which. Use URL regex `https?://[^\s|<>()\[\]`]+` trimming punctuation `.,;:!?` but URLs may trailing `)` legitimately? Wikipedia not relevant. In source cell, titles separated em dash. Could extract all and require at least one? If multiple, ambiguous. New S123/4/129 one each. Define canonical URL as first HTTP(S) URL in source cell, consistent other verifiers. Then require that exact URL occurs in source line as a complete URL token. If first is archive and second original, perhaps not but new okay.
+  - Entry source line for id must contain exact URL token, not substring within larger URL. Implement `URL_RE.finditer(line)` and compare token == row URL. This is stricter than verbatim substring but content correct and prevents sibling host/path. Still exactly conjunct 4? Yes URL occurs verbatim as whole token. Could accept Markdown `<url>` and backtick wrappers via regex excludes. URL punctuation trimmed consistently.
+  - Source cell own-work path not URL? Claim sourced external expects URLs. Conjunct says source URL, so if no URL fail.
+  - status cell index: cells list 11 fields: 0 id,1 source,2 kind,3 tier,4 scope,5 anchor,6 teaches,7 status,8 opened,9 recheck,10 used-by. Good.
+
+  Metadata:
+  - entry carries a `verified-at:` line dated exactly 2026-10-24 and a `recheck:` line. "opens with" provenance trio suggests immediately following source lines. Conjunct 5 only entry carries anywhere? Implement in opening block perhaps exact line `verified-at: 2026-10-24` and `recheck:` nonempty after sources before body. To avoid body comments fooling, parse opening prefix (after source lines, optional blanks) and require these lines at top. But exact says entry carries, not necessarily opening for verified/recheck? Contract says opens with trio. I can require line anchored anywhere? Selftest broken verified/recheck. Better line-by-line anchored optional bullet? Existing uses exact. Use regex `(?m)^verified-at:[ \t]*2026-10-24[ \t]*$` and `(?m)^recheck:[ \t]*\S.*$`, no extra validation. Recheck line can be anything per exact. Require exactly one? "a line" at least one, duplicates okay? Could require at least one. Verified line with trailing commentary fails date line, appropriate. If curly date no.
+  - I should not check opened date as not in conjuncts.
+  - Recheck line nonempty is natural. It can be non-command but exact only line.
+
+  Quote extraction:
+  Should define word count whitespace-separated, <=25, nonempty. Q32 exact? Could extract quoted text from source/entry lines using straight `"` and curly `“”` perhaps source anchors use `"`. Existing entries use `"`. Use regex for double quotes only; single quotes not located quote. Should avoid quoted phrases in `source:` URL? URL no quotes. Entry quotes may be Markdown backticks rather than double quotes. Plan says located quote not format. Could support `quote:` syntax with unquoted text after colon? e.g `quote: S123 — Instructions...` no double quotes. I could support but makes association easier. Perhaps use explicit grammar:
+    - `quote: S123 — "text" (§...)` or `quote[S123]: "text"` or `S123 quote: "text"`
+    - any double-quoted span on a line containing exactly that one cited ID.
+    - quote in source line itself.
+    - table row with id.
+    - paragraphs? A quote may be on following line after a list item line `- S123 — §...` then indented `"..."` next line. Should support block grouping. Could group Markdown paragraphs/list blocks; if id in first line and quote next indented line, collect. Existing MCP gate style:
+  ```
+  - **S123** — source. Quote (`file:line`):
+    "quote"
+  ```
+  I can parse per-ID "citation block": any line containing ID starts block until next line with any S ID or heading or blank? But body paragraph with S129 and no quote then next paragraph quote perhaps could associate wrongly. Better explicit lines enough? New entry likely uses table rows `| S123 | "quote" | location |`.
+  Could implement paragraph grouping separated by blank lines, including list continuation. For each paragraph, gather IDs. If exactly one distinct cited ID, all quotes in paragraph candidates for that ID. If multiple IDs, only quotes on same lines as each ID to avoid cross-association. Source lines with multiple IDs and one quote can't uniquely assign, so should not assign to all; require each id line quote? Plan each id located quote; if one quote generic for two sources not sufficient. I can for source line with multiple IDs not use quotes unless line explicitly labels quote with ID. But original mcp multi-source line irrelevant new. For robust:
+    - Split entry into blocks by blank lines.
+    - Within each block, if only one distinct opening-cited ID appears anywhere, collect all quote spans in block for it (this handles body paragraph with single ID and source line).
+    - If multiple IDs, for each line with exactly one cited ID collect quotes on that line; also explicit `quote...S` labeling.
+    - Opening source lines themselves perhaps contain 1 id and quote; good.
+    - Paragraph with no S ID but source line before? Not associated. Fine.
+  - Quotes can span lines? Regex with DOTALL on block can match across newline, word count works; but anchor cell one line so quote containing newline can't occur. Normalize? Conjunct verbatim means exact; no whitespace normalization. Quotes likely single line. Use `QUOTE_RE = re.compile(r'"([^"\r\n]+)"|“([^”]+)”')`, nonempty. Single straight quotes no escaped quotes. If text includes inner quotes could split, fail perhaps false red but okay. Should be exact.
+  - Located quote means location nearby? I only quote association, no location check besides anchor matching. Conjunct 6 says "entry's located quote" meaning entry must name location too? It could require source line with § and quote, but plan only quote occurs in anchor. My parser doesn't check location separately. Fine.
+
+  - At most 25 words; choose any candidate <=25 and quote in anchor. But if entry has one >25 and another valid, passes. "the entry's located quote ... for each cited id" could allow multiple located quotes each must <=25? Wording singular each cited id, at least one qualifying enough. Selftest broken quote world remove quotes or use 26-word only. Fine.
+  - Q32 says fragment; to strengthen while still occurs, require quote equal to one of anchor's quoted spans? As discussed, not required. But can implement anchor occurrence with substring. Must not empty. Selftest include must-fail quote not in anchor and >25. User specifically broken conjunct world each exactly one. Could add extra fragment arm? That would expect fragment to fail contrary to #6 occurs; no.
+  - I should perhaps treat quote as exact matching substring case-sensitive. Good.
+
+  Coverage map:
+  - read `corpus/README.md` same rev, locate `## Coverage map` section until next `## ` (not `###`).
+  - entry indexed in coverage map: require Markdown table row whose File cell exactly `` `knowledge/instruction-authority-ladder-round67.md` `` (relative to corpus). Could accept full `corpus/knowledge/...`? Existing coverage uses `knowledge/...`. Plan "indexed ... coverage map", path exact enough. Should not count mentions in frontier or prose. Use parse table rows in coverage section, header Area|File|Basis, but file cell may have multiple paths + verifier; for target row likely `knowledge/instruction...md` alone. Should require regex backticked path at whole cell or token within cell? Existing rows with multiple paths include target and others. New row likely one. Use extract backtick spans from File cell and require target `knowledge/...` or `corpus/knowledge/...`? Exact relative contract is former. The counter should prevent name occurrence elsewhere. Should identify table columns using header, not assume second? Existing fixed. Parse first table after coverage heading, find header with area,file,basis, then rows. Could simpler iterate table lines in coverage section, split cells, skip header/separator, if len>=2 and target in backticks of second cell. This is enough. If path without backticks? Existing uses backticks, plan not specify but coverage shape does. Require exact backticked path to avoid substring `fooinstruction...`.
+  - Path might be `` `knowledge/instruction-authority-ladder-round67.md` + `../verifiers/...` ``; extract includes target. Good.
+  - No entry in base, so score 0.
+
+  Counter scoring N of 1:
+  - A single entry counts 1 only if all seven true. Not sum 0..7. `checks` dict seven booleans. `score` returns int(all(checks)) and details. At base entry missing all false except metadata? none. Print just headline perhaps diagnostic to stderr or extra stdout? User "Print `authority ladder grounded N of 1`", self-test exact line. Simplest only headline stdout, no detail. Could print failures stderr? Not necessary and exact output clean. For debugging, could details to stderr but tests likely expect only headline. Keep only headline.
+  - Exit 0 if n=1 else 1. Env errors exit 2 with `could-not-evaluate:` stderr no headline. Base returns 0 count and exit1.
+  - `--rev` full-sha validate 40 hex and resolve commit via `git rev-parse --verify --quiet <rev>^{commit}`. Use subprocess bytes, timeout 20, env perhaps. `--root` optional? User only --rev/self-test, but selftest needs temp repo. Could support private `--root` optional (public extra harmless) to drive main on fixture. Existing patterns do. Self-test can patch global LANE to temp root instead of `--root`, but public main should be used; `--root` easier. It doesn't widen scoring. Add `--root` hidden? argparse help. Use main `--rev --root` and selftest incompatible. Full-sha required even selftest fixture. `--rev` and `--self-test` mutually exclusive. No rev and no self-test -> argparse error (exit 2 by default, lane says usage 64 but existing use 2). User only nonzero except success, fine.
+  - LANE determination: script draft located `.ufo/waves/.../drafts`, parent.parent isn't lane. When run draft against lane base, need lane root correct. I must support running it before installation. Set `LANE_FALLBACK` absolute given lane and `lane_dir()` like other counters: if here.name=="verifiers" use parent; otherwise search parents for `SKILL.md` and `corpus/SOURCES.md`, then fallback absolute. The draft is under lane/.ufo so walking parents finds lane root. Good. If copied to /tmp for selftest, fallback lane; main `--root` overrides.
+  - Use `git -C root show rev:path`, never worktree for inputs. In selftest temp repo, commits created with git commands in /tmp allowed. User prohibits git write commands at all? "Do not run git or jj write commands at all." This is broad, but later "Use only temporary sandboxes under /tmp for mutations." Existing selftest creates temp git repo with git init/add/commit. Am I allowed to run selftest which does git writes in /tmp? They likely mean no git/jj write commands in lane, but wording "at all" could be interpreted no even /tmp. Yet task explicitly requires self-test on fixture at `--rev` and committed bytes; using temp git repo is established and temporary mutations allowed. The tool execution of selftest invokes git init/add/commit under /tmp; is that violating? The user says do not run git or jj write commands at all, no exception, but how to test rev? Could construct fixture without git by mocking `show` and revision validator in-process, driving public main with mocks, no git writes. That would satisfy self-test and avoid any git write. But satisfying fixture needs main with `--rev` can patch `read_blob`/verify functions; selftest main still measurement path? If mock all git access with in-memory store, public main runs parsing/scoring. Good. Could design main dependency injection through globals `read_at_rev` and `validate_rev`, selftest patch these; no actual git init. But Q48 wants satisfying fixture public main; in-memory fixture works, and broken worlds single-conjunct. No git writes anywhere. This may be best. Yet code selftest when run uses temp dirs? Not needed. I can have `FixtureRepo` dict and monkeypatch global function `git_show` and `verify_rev` or `run_git`. Use `unittest.mock.patch` stdlib? Could simply save globals and assign. `main` uses `resolve_revision(root,rev)` and `show(root,rev,path)`; selftest replaces with fake functions. Root can be `/fixture` no existence required if not validated otherwise. `--root` type Path accepted. `verify_rev` fake checks full-sha format perhaps main already regex. Main calls `validate_revision`; fake no-op. `show` fake returns repo.blobs.get(path). All worlds driven through public main with `--rev` full dummy SHA and `--root` fake path. No real git. This tests everything except git integration; I can separately run real base behavior to validate git reads.
+
+  - However self-test requirement "satisfying fixture" not necessarily real git. It might be considered helper mocking not measurement path? It drives main and uses same parsing/scoring, good. Existing Q48 wants public main, okay. Could use actual temp git repos but no need and avoids prohibition. I can also design `--root` fake and `main` verify rev fake. Should have selftest not bypass main. Good.
+  - Selftest should verify each broken world breaks exactly one conjunct. I can compute `score`? User explicitly each broken world must break exactly one conjunct, so selftest should assert checks mapping: expected failing set exactly {conjunct}. And `main` exit1/headline 0. To ensure a deleted conjunct fails suite, if a check removed from code how selftest behaves? Suppose conjunct function always True due deletion, broken world expected check False fails. Also `score` doesn't include check at all, expected keys mismatch should fail. Selftest needs assert full set keys equals seven frozen names for honest and each world. Then if deleted check from `score` dictionary, assertion fails. Good.
+  - Use fixture mutation functions each change one input aspect. Make sure other six still pass measured via `evaluate` checks. Construct valid fixture with 3 source ids to test per-id mapping, or 2? At least one enough but multi catches association. Use 3 matching expected new sources S123, S124, S129 with realistic URLs and quotes and source lines. Each opening source line includes id URL and `quote "..."` perhaps quote extraction from source lines. To test generic body association, put located quote lines separately in body to emulate entry:
+  ```
+  source: S123 — https://... — § ...
+  source: S124 — https...
+  source: S129 — https...
+  verified-at...
+  recheck...
+  # ...
+  ## Located quotes
+  - S123 — § ... — "Instructions..."
+  - S124 — § ... — "The description..."
+  - S129 — abstract — "requiring..."
+  ```
+  SOURCES anchor cells include quotes. README coverage row. This satisfying fixture uses per-ID body lines. I can include quote in source lines too? If source lines quote and body quote duplicated not needed. Use body explicit records to test.
+  - Broken worlds:
+    1. entry exists: remove ENTRY blob. All checks depending entry false too (#2,#5,#6), so broken world breaks multiple conjuncts, violating exactly one. Should selftest world break exactly one conjunct while entry exists check false but other checks still computed independently from alternate data? In real logic if entry missing, all content checks naturally fail, so missing file world necessarily multiple. User demands each broken world exactly one conjunct. Should interpret "each broken world must break exactly one conjunct" means construct worlds so only that predicate condition false, but for #1 missing entry cascades #2/5/6 unless score short-circuits independent? Should design evaluate independent conjuncts to avoid cascade? Could define each conjunct score independently from raw blobs, missing entry causes #1 and #2 etc as raw facts, can't avoid. But selftest can create a world where #1 false while other conjuncts true by injecting content? Contradiction if file absent but other functions read content from same absent file. Could make conjunct #1 check file tracked regular vs exists? Then #2 etc use fallback? Not legitimate.
+
+  Should think carefully. They specifically require seven conjunct self-test each broken world exactly one. This implies conjunct evaluations should be independent, and for missing entry #1 false but #2 etc perhaps vacuously true? Could score conjuncts conditional: #2 if no entry? Not, then multiple fails. Alternatively broken world for #1 is not deleting file but simulating `exists` check false only via mocked existence function while content still readable. In in-memory fixture, can patch `entry_exists` independent from `show` for #1, so other checks pass. But then a deleted #1 check fails suite. This is synthetic single-conjunct fault injection, acceptable: each world uses mocks to force one conjunct false. However user likely expects fixture variants (remove file for #1) and checks independently? They may accept broken world #1 has expected cascade? They explicitly exactly one, so need engineer.
+
+  Better scoring architecture: each of seven conjunct functions receives all blob content, but no short circuit. #1 `entry is not None`; #2 `source_ids` nonempty; #5 metadata; #6 quotes; when entry None all false. To selftest #1 only, fake a special `entry` object? I can model `entry_exists` separate from entry content via blob object with `exists=False, text=...` impossible git but fixture dependency injection. Could patch only check function in selftest? Then not testing world input mutation, and deleted conjunct detection? Could patch score to force check false not genuine fixture. Not ideal.
+  Alternative define N based on independent seven booleans where checks 2-7 are defined as conditional on relevant content presence with vacuous truth if missing? E.g. #2 returns True if no entry, because conjunct 2 "if entry exists then opens with..." but actual statement (2) it opens, presupposes exists. Logic conjunction #1 ∧ #2, #2 could be material implication `entry absent => True` so missing file only fails #1. Similarly #3 if no cited ids vacuously true, #4 vacuously true, #5 and #6? #5 still requires metadata; could vacuous true if no entry, #7 independent README can still pass. This makes single failure for absent entry and still overall red. But broken #2 world with source lines missing causes #3/4/6 universally quantified over empty set vacuously true, #5/#7 pass, only #2 false. Nice! Formalizing later conjuncts as conditional guards rather than independent requirements:
+    1 file exists.
+    2 if file exists, opening source lines at least one id.
+    3 every cited id resolves mined (vacuously true if none; #2 catches none).
+    4 every cited row URL in line (vacuously true if no rows; #3 catches unresolved? Should handle if missing row, #4 also could fail if row nonexistent; to avoid cascade define #4 only check rows that resolved, #3 catches unresolved).
+    5 if file exists, metadata present (missing file vacuously true).
+    6 every cited id has valid quote in resolved row anchor (if missing row, skip -> #3 only; if no ids, vacuous).
+    7 entry indexed independent.
+  This dependency-aware vacuous evaluation is common to isolate root cause and selftest exact single-conjunct worlds. Does it weaken overall conjunction? No, because count 1 requires all seven, and earlier check catches missing prerequisites. But if code deletes #2, a no-source fixture could pass #3/4/6 vacuously and #1/#5/#7 true -> overall green; selftest would catch honest? Broken #2 expected false fails because check removed. Fine. If code deletes #3, unresolved row with URL? #4 skip so green unless #3 present; selftest catches. In actual counter if #3 removed and not selftest, weakness but that's the point.
+  I can implement evaluate checks using guard conditions so exactly one root failure per world. But is this faithful "Implement exactly seven conjuncts"? Yes overall conjunction exactly same for actual entry; vacuous cases don't make invalid fixture pass because another conjunct red. Selftest more elegant.
+  However for a world broken #4 (URL mismatch) need #3 pass row mined; #6 quote pass; #5/#7 pass. Good.
+  For #5 combines verified-at and recheck in one conjunct. Should broken world only #5 by changing date or removing recheck. Could have two variants for date/recheck but each only #5. User says each broken world one conjunct, not necessarily one per subpart; add both for coverage.
+  For #6 invalid quote can make one id quote absent anchor while other requirements pass. #3 row mined unaffected, #4 URL unaffected. Good.
+  For #7 remove coverage row, rest pass.
+  For #2 source lines removed but keep body located quotes and metadata; #3/4/6 vacuous if no cited ids. Overall only #2 false. Good.
+
+  For #1 entry missing, #2 and #5 should return True on None as conditional, #3/4/6 no citations -> True, #7 can still pass because README unchanged. So only #1 false. But conjunct 2 wording not conditional; as boolean check entry exists then opens, vacuous truth is logical `not exists or opens`. Overall conjunction with #1 equivalent to direct. I can name functions and docstring "prerequisite failures are reported at their owning conjunct; later checks are guarded so self-tests can attribute one broken conjunct." This is reasonable and meets exact one world requirement.
+  But selftest should also test base-like empty fixture: no entry and no README index => #1 and #7 false, output 0 exit1. Broken world #1 specifically keeps index to only fail #1. User says each broken world exactly one, okay.
+  Potential concern tests/review expect missing entry all checks false? They only care output N=0, not details. Fine.
+  - #3 every cited id resolves to row mined; if duplicate rows, function false. #4 for each cited id if row missing/not mined? To isolate #3, guard `if not check3: True` perhaps if one bad id among others, skip entire #4 to avoid additional failures. Could compute #4 only for ids with unique mined rows; broken #3 world one unresolved ID, other resolved all okay, #4 remains true. No need global guard. If status queued row, #3 false, #4 could still pass URL; #6 anchor pass. Good. If row absent, #4 no row skip, #6 skip, only #3. If duplicate rows, choose no resolved row for that id, skip #4/#6 for it, only #3.
+  - #2 parse source IDs. If opening lines exist but no S IDs, ids empty and #2 false, #3/4/6 vacuous. Good.
+  - #5 `entry is None or (metadata)` conditional. If no entry only #1.
+  - #6 for each cited id with valid row; if quote missing invalid => false. If #2 false due no IDs, true. If #3 false unresolved, skip. Good.
+  - #7 indexed independent can be true even entry absent because README row remains, enabling single #1.
+
+  Should output only N not number checks. Good.
+
+  Selftest should ensure satisfying main exact output line, exit0, full keys. Broken worlds main exit1 exact `authority ladder grounded 0 of 1`. Each world's check result expected only one false. Could use `evaluate_blobs` pure function independent from git, so selftest can get details without patched main. To satisfy deleted conjunct fails, expected `set(details)==set(CONJUNCTS)` for every world. `main` calls same.
+  No git write if pure in-memory selftest:
+  - main normal gets `reader`? I can define `main` uses global `load_blobs(root,rev)` returning dict paths->Optional[str]. `load_blobs` verifies rev and reads three files. Selftest patches `load_blobs` to lambda root,rev: world.blobs. Main calls public with fake root. This bypasses only I/O, measurement pure. `main` also full SHA validation before load? Put revision regex in main, fake full 40. `load_blobs` handles actual git verify. No patch of rev needed.
+  - `--root` defaults lane, selftest uses `--root /fixture` but no existence because load patched. Should not use actual temp.
+  - `main` catches EnvError/OSError and returns 2. Selftest ensures no stderr? capture both.
+  - Save/restore `load_blobs` in finally.
+  - Selftest itself calls `score(world.blobs)` for check attribution and main with patched loader.
+  - Extra arms: invalid rev returns 2 (no loader call), unknown quote etc. Not required but helpful. Could test revision reading on actual base outside selftest report.
+
+  Fixture data representation:
+  ```
+  VALID = {
+   ENTRY: entry_text,
+   SOURCES: sources_text,
+   README: readme_text
+  }
+  ```
+  mutator deep copy strings.
+  Should have convenience build world with parameters? To ensure each world differs exactly one semantic conjunct, construct explicit:
+  1 missing entry: del; README still index.
+  2 no opening source ids: replace opening three source lines with `source: no resolvable identifier`? That is source line no id, #2 false; body quote lines still contain IDs but cited ids only opening => none, other guarded pass. However source line no id but body IDs don't count. Fine. Better replace entire prefix with `source: no id\n` and keep metadata/body. Only #2 false. This world also no opening source lines naming id but source line exists; exactly #2.
+  3 unresolved id: change one opening id S129 -> S999, but body quote remains S129; #3 false for S999, #4 and #6 skip unresolved S999, S123/S124 valid. SOURCES unchanged. Only #3.
+     Alternative status queued: change row S129 status to queued and keep opening ID, #3 false; #4 and #6 still computed using row even not mined? Define resolved_rows includes any unique row independent of status for #4/#6 to isolate; #3 status false only. If #4 uses row regardless status, passes. Good. For unresolved id missing row skip.
+  4 URL mismatch: change entry source line S124 URL to `https://example.invalid/...` (valid token), #4 false; row status mined, #6 body quote/anchor unchanged. Only #4.
+  5 verified date: change entry `verified-at: 2026-10-24` -> 2026-10-23; #5 false only. Recheck separate arm remove line -> #5 only.
+  6 quote: change S129 body quote to `not present in the registry anchor` (4? no matter) and not in anchor. #6 false only. Also >25 arm replace S124 quote with 26 words and anchor perhaps contains same? To isolate word bound need anchor also changed to contain 26 words, but that changes SOURCES content, still semantic only #6. Could simply 26-word quote not in anchor conflates two reasons within same conjunct, user says exactly one conjunct not one reason, okay but better separate two worlds: quote-not-anchor; overlong with anchor updated same 26 words, all else pass. Could add fragment test if strengthening not needed.
+  7 coverage: remove target row from README; #7 false only.
+  - For #1 file absent, evaluate conditional #2/#5 true as above; #7 remains true. Good.
+  - Additional base world all absent? Should main exit1, output 0; not single broken world? It's control, not part of seven broken worlds; okay. User says each broken world must break exactly one conjunct; a junk control isn't selftest broken world? To avoid violating literal, don't include multi-failure "base world" in selftest. Only satisfying + seven single-conjunct worlds (+optional subcases each one).
+  - To test URL exact token boundary (sibling path) without failing extra conjunct: change entry S123 URL to rowURL + `.evil` -> #4 false only. This is within same broken #4 variant. Good. Report can mention included.
+  - Quote empty string: regex requires nonempty, #6 false. Could add but not needed.
+  - Recheck missing separate #5.
+  - Metadata verified missing separate #5.
+  Total 1 honest + 9 broken variants + invalid rev perhaps 12. Assertions ~:
+    - honest keys exact, failures empty, main exit0, stdout exact, stderr empty =5
+    - each broken world keys exact, set false=={name}, main exit1, stdout exact =4 *9=36
+    - invalid rev exit2 and no headline =2
+    - loader error perhaps exit2 =2
+    - final line printed.
+  Selftest returns 0 if no failures, prints `self-test: 0 failure(s) over N assertions`. Fine.
+  Make sure "each broken world must break exactly one conjunct, so a deleted conjunct fails suite" selftest also checks all seven keys. Good.
+
+  Real run at base:
+  `python3 -B .ufo/.../drafts/check_instruction_authority.py --rev 2a8...`
+  should print `authority ladder grounded 0 of 1`, exit1. `--self-test` should exit0.
+  Perhaps run with measured tip? Base pinned only current. User asks run it and paste real output; run selftest + base + perhaps unknown rev to verify 2. Report distinguishes draft path, base measured. Could run compile? Selftest enough. Narrow behavioral check exact. Could run `python3 -m py_compile` writes pyc to drafts __pycache__ (not allowed extra), avoid. `python3 -B` prevents.
+  Should perhaps test worktree-vs-rev by using actual repo where working tree drafts exist but rev base absent. Base output 0 demonstrates reads committed bytes not worktree if production entry absent anyway. Could create temporary copy of draft? Not needed. In-memory selftest ensures loader called rev. Real base only.
+  Could run script against current HEAD (same base) only. Should not run actual tip since no entry yet. When drafts from scribes appear, could create temporary sandbox fixture using real draft files and run script pure? Not required assigned only counter selftest. But compatibility check valuable; if entry draft appears, inspect and adjust quote parser. I can wait naturally while coding. I'll create draft now with Write. Before Write root PROTOCOL requirement from AGENTS "Read PROTOCOL before changing anything here." I haven't read PROTOCOL myself. Should read /home/vgpnk/Projects/shokunin/PROTOCOL.md before writing lane? It applies root but says read before changing anything here. Do so perhaps relevant lines. Also no need RULES as no installs. Read perhaps first 160 lines enough? Must read whole? "Read PROTOCOL.md" likely full 100ish. Do Read.I read enough? "Read PROTOCOL" could mean whole, but requested n400 of 533 incomplete. Better read remaining before write to comply.Now write script. Should have meticulous implementation. I'll draft in mind full code ~500 lines? I can write ~400 lines with selftest. Should not have overly long but enough. Use stdlib only. Header comment required: docstring states contract exit codes. New script starts `#!/usr/bin/env python3` then docstring. `from __future__`.
+  Constants:
+  ```
+  ENTRY, SOURCES, README, INDEX_ENTRY
+  REV_RE, SID_RE, URL_RE, QUOTE_RE
+  CONJUNCTS = ("01-entry-exists",...)
+  LANE_FALLBACK = Path(...)
+  ```
+  I/O:
+  ```
+  class EnvError(Exception): pass
+  def lane_dir():...
+  def git(root,args):
+   try subprocess.run([...], capture_output=True, timeout=20)
+   except (OSError, subprocess.TimeoutExpired) as e: raise EnvError
+   if returns bytes.
+  def load_blobs(root,rev):
+   if not REV_RE.fullmatch(rev): raise EnvError("--rev must be ...")
+   result = git(root, ["rev-parse","--verify","--quiet", rev+"^{commit}"])
+   if nonzero raise ...
+   blobs={}
+   for path in ...:
+     r=git(root,["show",f"{rev}:{path}"])
+     if nonzero:
+       err decode
+       if "does not exist" etc -> None; but missing entry `fatal: path ... does not exist in <rev>`; missing SOURCES/README should also None and score fail not env? At base SOURCES/README exist. For arbitrary rev missing registry, claim red rather than env okay.
+       else return None? Simpler all git show failures for these paths treat None could hide git errors as claim failure, but reviewer expects could-not-evaluate on git failure. Use detect missing strings; else EnvError.
+     decode utf8 strict; UnicodeDecodeError -> EnvError.
+   return
+  ```
+  Main checks REV_RE before load to return 2 for invalid full sha. `load_blobs` also verifies but selftest patched loader bypasses rev existence only; okay. `verify_rev` in load.
+  `git` timeouts 20 each three + rev = 80 sec under 120 batch. Fine. Selftest no subprocess.
+
+  Source opening parser:
+  ```
+  def opening_source_lines(text):
+   lines=text.splitlines()
+   i=0
+   while i<len and not lines[i].strip(): i++
+   sources=[]
+   while i<len and lines[i].startswith("source:"):
+      sources.append(lines[i]); i++
+   return sources
+  ```
+  Should verified/recheck be anywhere independent, not opening parser.
+  If first nonblank starts `source:`, collect contiguous. If blank between source lines stops and subsequent source ignored. That's okay "opens with source lines" contiguous. I might allow whitespace before `source:`? Contract exact begins `source:` line, no indentation. Use `line.startswith("source:")`; case sensitive. Could permit `source :`? no.
+  `source_ids`: for each line `SID_RE.findall(line)`. Should distinct preserving order. If duplicate across lines, perhaps still one ID and source lines map list. Conjunct 2 true. #4 require every line for each id has canonical URL? If duplicate source lines and one wrong, #4 false. This is stronger safe.
+  ```
+  def source_map(lines):
+   dict id->list lines
+  ```
+  No requirement at least one line per id obviously.
+  Conjunct 2 = if entry None True else bool(ids) and all lines? opening_source_lines ensures prefix. Should handle if first nonblank not source, lines empty -> false. If source lines with no IDs -> false.
+  No check if extra source lines later; not cited.
+
+  Source table:
+  ```
+  def registry_rows(text):
+   in_reg false
+   for line:
+    if re.match(r"^ {0,3}##\s+",line):
+      in_reg = line.strip()=="## Registry"; continue
+    if not in_reg: continue
+    c=cells(line)
+    if len(c)==11 and SID_FULL.match(c[0]):
+      rows.setdefault(c[0],[]).append(c)
+  ```
+  Heading line `## Registry` exact; okay. The table separator len11 but first cell `---` not ID.
+  If text None -> {}.
+  `rows_for` unique: valid row only if len list ==1. Duplicate => unresolved #3. For #4/#6, if duplicates, could skip to keep only #3 false. resolved mapping only unique row, regardless status. For #3 require unique and status mined.
+  #3 if entry None or no ids -> True; otherwise all unique row status mined. If source row malformed no cells => missing, false.
+  #4 for each id: if not unique row skip (owned by #3); get URL first from row[1]; for each opening line associated with id, entry_urls list; require canonical in exact list. If duplicate source lines all must have URL; good. If no URL row -> false (row exists but source no URL; #3 status mined passes, so #4 owns).
+  Potential row status queued but unique row resolved; #4 passes so only #3 false. Good.
+  URL extraction:
+  ```
+  URL_RE = re.compile(r'https?://[^\s<>"\'`\\|\[\]{}]+')
+  def urls(text):
+   for m:
+    token=m.group(0).rstrip(".,;:!?)]}")
+    # careful closing slash? no strip.
+  ```
+  If URL inside markdown parentheses `(https://...)`, regex includes trailing `)` then strip. If URL has closing parentheses meaningful (rare) would alter both source/entry consistently. Good.
+  Use same function both row and entry so equality. Row first URL canonical.
+  #5 entry None true else `re.search(r"(?m)^verified-at:\s*2026-10-24\s*$", entry)` and recheck. `\s*` includes newlines could cross lines! Use `[ \t]*`. Exact.
+  `recheck:` line could have leading whitespace? contract no. use `(?m)^recheck:[ \t]*\S[^\r\n]*` where `\S` could next line? after `[ \t]*`, \S matched non-newline but could if line empty then next line first char because regex engine can \S across newline? It doesn't skip automatically, so at immediate position newline is not \S -> fail. Good. `^recheck:[ \t]*\S.*$` dot no newline. Fine.
+  #6 quotes:
+  `located_quotes(entry, cited_ids)` parse blocks separated by blank lines. Include all entry text including opening source lines. Should not pick up verified `recheck` quotes with ids? If a block has id and quote, might credit recheck quote. But located quote for id should be actual quote; if recheck line mentions id and quoted command not anchor likely no match. Fine.
+  ```
+  def quote_candidates(entry, sid, cited):
+   result=[]
+   blocks=re.split(r"\n[ \t]*\n", entry)
+   for block in blocks:
+     ids_in_block=set(SID_RE.findall(block)) & cited
+     if ids_in_block == {sid}:
+        result += extract_quotes(block)
+     else:
+        for line in block.splitlines():
+          ids_line=...
+          if ids_line == {sid}:
+             result += extract_quotes(line)
+   return result
+  ```
+  If block contains other S IDs not cited (e.g S999) then ids_in_block uses all IDs or cited? Use all to prevent association ambiguity. For target sid, `all_ids == {sid}`. In multi ID source line, fallback line also multi -> no quote candidates. Good. Body paragraph with `(S129)` and no other ID quotes -> candidate. Opening source line with 3 separate lines and no blank: block includes all 3 IDs plus verified/recheck maybe body until first blank, so multi => line fallback each one id, quote on each line recognized. Great.
+
+  A `## Located quotes` block with 3 list lines separated no blank contains all IDs -> line fallback works. If quote on continuation line with no ID under multi block, not recognized. Could handle list item grouping:
+  ```
+  for blocks, split into lines and group list item with continuation lines:
+   start line with `- ` contains sid, collect until next `- ` or heading; even if block multi, process item.
+  ```
+  Perhaps unnecessary but easy to support. I can implement `citation_units` per line and Markdown list blocks:
+  - Always each block if exactly one id.
+  - For multi block, each line with exactly one id.
+  - Also explicit record pattern `^\s*(?:[-*]\s+)?(?:quote(?:\[(S...)\])?:|(...)\s+quote:)` not needed if quote next line.
+  Could handle continuation by iterating lines: when a line contains exactly one target ID and next lines indented at least 2 spaces until next ID, concatenate into unit. This might associate properly. But complexity not necessary for new draft likely single-line quotes.
+  Quote extraction straight and curly:
+  ```
+  for match in re.finditer(r'"([^"\n]+)"|“([^”\n]+)”', text):
+   q=group1 or group2
+   if q.strip(): yield q.strip()? 
+  ```
+  "occurs verbatim" should not strip internal or surrounding? Quotation delimiters not part. Use q as exact, require q.strip()==q? Could allow surrounding whitespace and count; anchor likely no surrounding. I should `q = q.strip()` for practical but that shapes quote and still occurs. Plan says quote occurs verbatim, stripping outer whitespace within quote delimiters minor. Better preserve and reject if q != q.strip()? Nonempty quote no whitespace. Use `q.strip()` and anchor contains stripped quote, okay.
+  At most 25 words `len(q.split())`. 0 excluded.
+  `quote_ok = any(1<=len(q.split())<=25 and q in row[5] for q in candidates)`.
+  If duplicate IDs across source lines and candidates repeated no issue.
+  Conjunct 6 guard if no ids true; for each unique row skip unresolved; if no candidates false.
+  #7 coverage:
+  ```
+  def coverage_indexed(readme):
+   if None false
+   section = split at `## Coverage map` exact until `^##\s`
+   for line in section:
+    cells = table_cells(line)
+    if len(cells)>=2:
+      paths = re.findall(r"`([^`]+)`", cells[1])
+      if INDEX_PATH in paths: return True
+   return False
+  ```
+  The header `| Area | File | Basis |` second cell File no match. The target perhaps full `corpus/knowledge`? Use only knowledge relative, as contract coverage map. `INDEX_ENTRY = "knowledge/instruction-authority-ladder-round67.md"`.
+  Could path be unbackticked? Not accepted but existing style backticks.
+  No other check.
+
+  Evaluate:
+  ```
+  def evaluate(blobs):
+   entry=...
+   lines=...
+   ids=...
+   rows=...
+   unique={sid: rows[sid][0] if len==1 else None}
+   checks={}
+   checks["01"] = entry is not None
+   checks["02"] = entry is None or bool(ids)
+   checks["03"] = not ids or all(...)
+   checks["04"] = not ids or all(row is None or url_ok(...))
+   checks["05"] = entry is None or metadata
+   checks["06"] = not ids or all(row is None or quote_ok(...))
+   checks["07"] = coverage...
+   return checks
+  ```
+  Wait if entry missing `ids=[]`, #7 independent. Good.
+  If entry exists but no opening source #2 false, #3/4/6 true vacuous. Good.
+  If SOURCES missing and ids present: #3 false, #4/6 skip rows (row None) -> only #3; perhaps okay.
+  If README missing #7 false only.
+  N = int(all(checks.values())).
+  Potential #2 condition entry None or bool(ids) means if entry None and ids empty true, good.
+  Could a deleted #1 function from checks dict but all else true on missing entry world with README index true -> green; selftest expected key set fails and false set mismatch.
+  Output exact.
+
+  Selftest fixture builder:
+  ```
+  def valid_blobs():
+   source entry lines with quotes in body. sources table rows anchors with quotes.
+   return...
+  ```
+  Source quotes:
+  q123 = "Instructions with higher authority override those with lower authority." 9 words
+  q124 = "The description field in SKILL.md frontmatter is the primary mechanism that determines whether Claude invokes a skill." 17
+  q129 = "requiring models to navigate up to 12 levels of conflicting instructions with varying privileges" 14
+  Entry:
+  ```
+  source: S123 — https://model-spec.openai.com/2026-08-18 — § ...
+  source: S124 — https://github.com/... — ...
+  source: S129 — https://arxiv.org/abs/2604.09443 — ...
+  verified-at...
+  recheck: python3 -B verifiers/check_instruction_authority.py --rev <rev>
+
+  # Instruction authority ladder
+  ## Located quotes
+  - S123 — § Instructions... — "q123"
+  - S124 — § Description... — "q124"
+  - S129 — abstract — "q129"
+  ```
+  SOURCES rows with status mined and `used-by` target. `opened` 2026-10-24 though not checked. Should recheck cells no pipe. All 11.
+  README:
+  ```
+  # corpus
+  ## Coverage map
+  | Area | File | Basis |
+  ...
+  | Instruction authority | `knowledge/...` | S123...
+  ## Frontier
+  ```
+  Mutators use exact `.replace(old,new,1)` with assert changed? helper `replace_once(text,old,new)` raises if count !=1, ensures fixture valid. This is selftest code and no external writes.
+  World list perhaps tuples `(label,conjunct,blobs)`:
+  1 `c01-entry-absent` delete ENTRY
+  2 `c02-no-opening-id`: replace three source lines with `source: no source id\n` but body retains quotes and IDs. Metadata unchanged. #2 false. #3/4/6 no ids true. #5/7 pass.
+  3 `c03-unresolved-id`: change `source: S129 —` -> `source: S999 —`, body still S129. Opening ids S123,S124,S999. Row for S999 absent => #3 false, #4 skip S999, #6 skip. Good.
+     Also `c03-not-mined`: replace `| S129 |` row `| mined |` specific cell carefully not global. Use helper to parse? Simply `sources.replace("| mined | 2026-10-24 | 180d | corpus/...S129 usedby|", "| queued | ...")` but same usedby all three. Should unique full row replacement or helper `replace_cell` to make easy.
+  Could define `source_row(sid,url,quote,status="mined")` and valid sources built from rows; mutator `replace("| S129 | ... full",...)` unwieldy. I can just world unresolved only satisfies #3, no need status variant but status is key conjunct so add not-mined to ensure queued rejected. Create helper:
+  ```
+  def row_with_status(text,sid,status):
+   lines; for line starts f"| {sid} |": cells; cells[7]=status; return join...
+  ```
+  Preserve newline. Use generic `set_source_status`.
+  4 `c04-wrong-url`: replace S124 URL with `https://example.invalid/SKILL.md` once. #4 false.
+     `c04-url-prefix`: replace S123 URL with S123_URL + ".evil" -> exact token mismatch, #4 false. This strengthens Q32 within conjunct 4.
+  5 `c05-stale-verified`: replace date once.
+     `c05-no-recheck`: remove line `recheck...`.
+  6 `c06-quote-not-anchor`: replace q129 in ENTRY only with "a quote absent from the anchor" using replace on entry whole; since q129 appears only body once, okay. Sources anchor unchanged.
+     `c06-overlong-quote`: create 26 words e.g `"one two three ... twenty-six"`; replace q124 in ENTRY and SOURCES with overlong so anchor contains; #6 false due word count. This changes two files but single conjunct. Good.
+     `c06-empty-quote`: replace q123 in ENTRY with `""`; my QUOTE_RE requires + so matches `"`? Pattern `"([^"\n]+)"` on `""` no; candidates none -> #6 false. Sources anchor still q123. Only #6.
+  7 `c07-unindexed`: remove README row exact.
+  Each main output 0. All checks false exactly named.
+
+  Could selftest main load_blobs patched with worlds dict; for invalid rev test I want actual loader not called. Main with `--rev bad` returns 2 before load, capture stderr. Could include after restore or while patched doesn't matter. For loader error:
+  ```
+  def failing_loader... raise EnvError("fixture git failure")
+  load_blobs=failing; main valid rev returns 2 no headline
+  ```
+  This isn't broken conjunct world but env test, okay "each broken world" refers conjunct worlds; label environment not world. Fine.
+  Selftest `run_main(world)`:
+  ```
+  out,err=StringIO...
+  with redirects:
+   code=main(["--rev", REV, "--root","/fixture"])
+  return code,out.getvalue(),err...
+  ```
+  Patch `load_blobs = lambda root,rev: dict(current_blobs)` but late binding current set each loop synchronous.
+  Assertions check stdout exactly line + newline. For broken all output `authority ladder grounded 0 of 1\n`; stderr empty. `main` no print details.
+  `evaluate` expected false set.
+  Check `set(checks)==set(CONJUNCTS)`.
+  Use nonlocal assertions/failures.
+  At end print tally. Return 1 if failures.
+  No external temp fixture, but requirement selftest isolated fixture, in-memory isolated qualifies. Docstring state no git writes/network.
+
+  Should have actual self-test detect a conjunct deleted from `CONJUNCTS` constant vs from checks? If someone deletes name from `CONJUNCTS` too, expected set changes and tests may not detect. To freeze, define `CONJUNCTS` and selftest `EXPECTED_CONJUNCTS = (...)` separate? Duplicate constants could both edited but deletion one test perhaps. Q48 says deleted conjunct fails suite: if check removed from evaluate but constant remains, catches. If constant also removed, broken world expected name still explicit in world list and `set(false)=={expected}` could pass if all checks true? false empty != {name}, so catches even if key set expected lacks name? Main would return 1? If deleted check and constant, honest all true; broken world all true => main exit0 expected1 catches. Good. World list conjunct name literal remains. If deleted selftest world too then not, but that's deleting test not conjunct. Fine.
+  N computed `all(checks.values())`, if missing key from checks and broken world still others perhaps all true; main expected1 catches. Great.
+  - In valid world, set(checks)==set(CONJUNCTS) if constant manipulated perhaps no; but broken main catches.
+  - All seven broken worlds each one conjunct explicit.
+
+  I'll write it.
+
+error: failed to run prompt: provider.api_error: 429 You've reached your weekly (7-day) usage limit. Your quota will reset when the current 7-day window ends. To continue now, purchase extra usage or upgrade your plan: https://www.kimi.com/membership/subscription?tab=quota
+See log: /home/vgpnk/.kimi-code/logs/kimi-code.log

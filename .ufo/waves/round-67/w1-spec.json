@@ -1,0 +1,270 @@
+{
+  "wave": "kotoba-r67-w1",
+  "milestone": "Round-67 wave 1 (build): two frozen claims — C1 consistency (r66 corpus-index repair) and C2 depth (instruction-authority ladder, sourced) — plus the frontier step and the item-10 assimilation.",
+  "axes": [
+    "depth",
+    "calibration",
+    "coverage",
+    "adjacency"
+  ],
+  "reportDir": ".ufo/waves/round-67/w1",
+  "context": "You are a Godspeed-enabled subagent.\n\n1. **Name the axes.**\n2. **Iterate cheap, in parallel.**\n3. **Keep moves that improve any axis and harm none.**\n4. **Don't aim — let the frontier walk itself.**\n\n## IMMEDIATELY STOP ASKING CLARIFYING QUESTIONS. Execute tool calls concurrently in large batches. Do not serialize what can run in parallel. Do not output philosophical reasoning or verbose plans. Act directly via tool calls.\n\n# Goal\nRound 67 of the kotoba lane. Base lane tip (branch `master`): `2a8eba56b3f9321b70c569fa2816d42237ca49a2`.\nTwo declared claims, frozen in `/home/vgpnk/Projects/shokunin/kotoba-shokunin/plans/round-67.md` before any seat scored anything:\n\n- **C1 consistency (calibration sub-axis)** — the routed r66 repair: the hyaku closure's\n  `corpus/lessons/round-66-verifier-spotcheck.md` is an unindexed corpus file, so\n  `verify_corpus_integrity.py` is red at the base (5/9, exit 1) and `verify_corpus_independent.py`\n  exits 1. Frozen predicate: `python3 -B verifiers/verify_corpus_integrity.py` prints\n  `9/9 checks pass` and exits 0, AND `python3 -B verifiers/verify_corpus_independent.py --json`\n  exits 0.\n- **C2 depth (lowest owned axis)** — the instruction-authority ladder, sourced: a knowledge entry\n  grounded in sources re-opened THIS round. Frozen predicate:\n  `python3 -B verifiers/check_instruction_authority.py --rev <rev>` prints\n  `authority ladder grounded 1 of 1` and exits 0; at the base it must print\n  `authority ladder grounded 0 of 1` and exit nonzero.\n\nThe L1 (this seat) owns the plan, the canonical planner seat and the single integration owner.\nNo seat is a judge. Report observed evidence only; never fabricate a command output, a quote, a\ncommit hash or a source that you did not open.\n\n# Write and report scope\nThe only allowed output of your seat is your own report file at\n`/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/<YourSeatName>.md`. Every `Report:` trailer path is relative to\n`/home/vgpnk/Projects/shokunin/kotoba-shokunin` — write it at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/<that path>`.\nNever write to the fleet root `/home/vgpnk/Projects/shokunin` (outside your lane), to another lane,\nto `/home/vgpnk/Projects/shokuknow` (read-only), to domain source trees, to the lane's jj state, or\nto the lane's Git index. Do not run git or jj write commands at all.\nWhere an item names a draft path, write ONLY to that exact absolute path under\n`/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/drafts` / `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/controls` — the L1 is the integration owner and materialises production files.\nRead-only seats return findings in their report and write no draft file.\nUse only temporary sandboxes under `/tmp` for mutations. Every concurrent writer has its own\ndistinct absolute path.\n\n# First-line rules\nEvery seat prompt begins with `/skill:godspeed` followed by the verbatim directive above. No model\nalias may be specified by you; the taxonomy role selects the operator route.\nTooling authorization: you and every seat may install or upgrade tools that help the task — read\n`/home/vgpnk/.omp/agent/RULES.md` first (official channels, update-safety gate, record\ntool/version/channel/reason). Pacman transactions are PAUSED host-wide until the operator resolves\nthe host-recovery L0 question; install via `uv tool`/`npx`/an official binary in `~/.local/bin`, or\nfile an L0 question. When the pause lifts, before any `pacman -S`, run\n`pacman -Sp --print-format '%n %v' <pkgs>` and proceed only if every listed package is not\ninstalled yet; never run `-Sy`, `-Syu`, `-U`, `-R`, a downgrade, or restart a host service.\n\n# Planner mapping and evidence\nThe L1 holds the canonical planner seat; the validator rejects a `planner` swarm seat. A bounded\nplanning data-walk rides a scout/connector/revenger item and is named as such. No seat is a judge.\nIdentify the revision or temporary sandbox you measured. Preserve the distinction between the\npinned base `2a8eba56b3f9321b70c569fa2816d42237ca49a2` and the measured tip.\n\n# Host bounds — process discipline\nKill only by the PIDs you started. Never use a bare `pkill`/`killall` pattern that can reach a\nsibling seat or another lane's process. Contention cap: at most 4 concurrent processes and 120 s\nwall time for any batch you start.\n\n# Round facts you need\n- Sources census (before): `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/census-before.txt` — exit 0, 120 rows,\n  16 W04 duplicate-URL notices.\n- Assimilation package (READ-ONLY, never write, commit or run a campaign tool there):\n  `/home/vgpnk/Projects/shokuknow/merge/kotoba/` — `MERGE-REPORT.md`, `SOURCES.append.md`\n  (164 staged rows, first staged id `S123`), `knowledge/corpus/knowledge/*.md`.\n  `doctrine/` is curation guidance, not corpus material.\n- Lane corpus contract: `/home/vgpnk/Projects/shokunin/CORPUS.md`; lane admission bar:\n  `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/QUALITY.md`; registry: `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md`; coverage map:\n  `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/README.md`.\n- considerthese (operator-authored input, never edit): `/home/vgpnk/Projects/shokunin/kotoba-shokunin/considerthese/2026-10-23.md`.\n",
+  "items": [
+    {
+      "name": "ExecC2Counter",
+      "role": "executor",
+      "axes": [
+        "depth"
+      ],
+      "prompt": "Draft the C2 counter at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/drafts/check_instruction_authority.py` (do NOT write to `verifiers/`; the L1 installs it).\n\nImplement exactly the seven conjuncts the plan freezes for `verifiers/check_instruction_authority.py`:\n(1) the entry file `corpus/knowledge/instruction-authority-ladder-round67.md` exists at the given `--rev`;\n(2) it opens with `source:` lines naming at least one `S###` id;\n(3) every cited id resolves to a row in `corpus/SOURCES.md` at the same `--rev` whose `status` is `mined`;\n(4) each cited row's `source` URL occurs verbatim in the entry's `source:` line for that id;\n(5) the entry carries a `verified-at:` line dated `2026-10-24` and a `recheck:` line;\n(6) the entry's located quote (at most 25 words) for each cited id occurs in that SOURCES row's `anchor` cell;\n(7) the entry is indexed in `corpus/README.md`'s coverage map at the same `--rev`.\n\nThe counter must READ CONTENT (QUALITY Q25/Q26): a counter that only counts names or files is a\ncensus observable and cannot carry this claim. It must support `--rev <full-sha>` and `--self-test`.\nIts self-test must drive its public `main()` on a satisfying fixture asserting exit 0 with the exact\nline `authority ladder grounded 1 of 1`, and on broken-conjunct worlds asserting exit 1 — each broken\nworld must break exactly one conjunct, so a deleted conjunct fails the suite (QUALITY Q48).\nPrint `authority ladder grounded N of 1` and exit 0 when N == 1, exit nonzero otherwise.\nRun it and paste the real output in your report at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/ExecC2Counter.md`."
+    },
+    {
+      "name": "ExecC1BaseControl",
+      "role": "executor",
+      "axes": [
+        "calibration"
+      ],
+      "prompt": "Measure and record the C1 BEFORE control. At the pinned base `2a8eba56b3f9321b70c569fa2816d42237ca49a2` of `/home/vgpnk/Projects/shokunin/kotoba-shokunin` run:\n`python3 -B verifiers/verify_corpus_integrity.py` and `python3 -B verifiers/verify_corpus_independent.py --json`.\nWrite the verbatim outputs (stdout, stderr and the exit code of each) to `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/controls/C1-base.txt`.\nDo not repair anything. Do not modify any file under `corpus/` or `verifiers/`.\nAlso state in your report `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/ExecC1BaseControl.md` which baseline keys in\n`verifiers/corpus-baseline.json` are DRIFT and what the gate prints for each."
+    },
+    {
+      "name": "ExecC1HalfControls",
+      "role": "executor",
+      "axes": [
+        "calibration"
+      ],
+      "prompt": "Build the two half-repair control worlds for C1 in scratch (never in the lane tree) and record their verdicts.\n\nK2 world: a copy of the lane tree at `/home/vgpnk/Projects/shokunin/kotoba-shokunin` where `corpus/README.md` gains ONE coverage-map index\nrow naming `lessons/round-66-verifier-spotcheck.md`, and `verifiers/corpus-baseline.json` is NOT\nre-recorded. Expected: the gate is STILL red (the three census DRIFT cells remain).\nK3 world: a copy of the lane tree where `verifiers/corpus-baseline.json` IS re-recorded to the\nobserved census values but `corpus/README.md` gains NO index row. Expected: the gate is STILL red\n(`corpus.index.unindexed observed=1`).\n\nCopy the tree to `/tmp/k67-k2` and `/tmp/k67-k3` (or a scratch mirror under\n`/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/controls/`), run `python3 -B verifiers/verify_corpus_integrity.py`\nin each, and write the verbatim outputs and exit codes to `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/controls/C1-half-controls.txt`.\nReport which conjunct each half-repair fails at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/ExecC1HalfControls.md`."
+    },
+    {
+      "name": "ExecC2JunkControl",
+      "role": "executor",
+      "axes": [
+        "depth"
+      ],
+      "prompt": "Build the C2 do-nothing control: a junk knowledge entry that a copy-paste could satisfy, and show the counter rejects it.\n\nUse the drafted counter at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/drafts/check_instruction_authority.py` (if the file does not exist yet,\nsay so and build the control world anyway, then run it when the file appears — but do not wait in a\nloop; if it is absent, report that plainly and leave the world ready at\n`/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/controls/junk-world/`).\nThe junk world is a scratch mirror of the lane tree in which\n`corpus/knowledge/instruction-authority-ladder-round67.md` holds real bytes but (a) cites no\nresolvable `S###` id, (b) carries no `verified-at:` line, and (c) is not indexed in\n`corpus/README.md`. Run the counter against the junk world at its `--rev`; expected: it does NOT\nprint `authority ladder grounded 1 of 1` and exits nonzero.\nWrite the command, the verbatim output and the exit code to `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/controls/C2-junk-control.txt` and\nreport at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/ExecC2JunkControl.md`."
+    },
+    {
+      "name": "ExecCollision",
+      "role": "executor",
+      "axes": [
+        "calibration"
+      ],
+      "prompt": "Run the id-collision check in scratch, exactly as the round prompt's assimilation clause states it, and write the outputs.\n\nCommands (the census parser accepts rows with 0-3 leading spaces, so the extractor must too):\n\n    A=/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/controls\n    grep -oE '^ {0,3}\\|[[:space:]]*S[0-9]{3,}' /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md | grep -oE 'S[0-9]+' | sort > \"$A/reg-ids\"\n    grep -oE '^ {0,3}\\|[[:space:]]*S[0-9]{3,}' /home/vgpnk/Projects/shokuknow/merge/kotoba/SOURCES.append.md | grep -oE 'S[0-9]+' | sort > \"$A/staged-ids\"\n    comm -12 \"$A/reg-ids\" \"$A/staged-ids\" > \"$A/collisions\"\n\nWrite `reg-ids`, `staged-ids`, `collisions` and the collision COUNT into `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/controls/`.\nReport the count at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/ExecCollision.md`. If the collision set is nonempty, also write the\nrenumber map you would apply, re-pointing each adopted citation BY DOCUMENT (the URL/anchor is the\nevidence; the id follows it, never arithmetic) — and say so, but do not renumber anything yet.\nAlso confirm the guard is not vacuous: prove that a scratch registry row with two leading spaces\n(`  | S002 |`) IS caught by the same pattern (the prompt records that a column-zero-only pattern\nmisses it)."
+    },
+    {
+      "name": "ExecTransform",
+      "role": "executor",
+      "axes": [
+        "calibration"
+      ],
+      "prompt": "Build the transformed SOURCES append block in scratch — no staged row is appended as-is.\n\nTake ONLY the rows the admitted entries cite from `/home/vgpnk/Projects/shokuknow/merge/kotoba/SOURCES.append.md`\n(the admitted theme is the instruction authority ladder; the rows it cites are the Model Spec row,\nthe anthropics/skills skill-creator row and the arXiv row). Write the transformed block to\n`/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/drafts/SOURCES.append.r67.md` in the lane's OWN 11-column schema (`corpus/SOURCES.md` header):\nnormalise every row so that `recheck` is a valid ISO date, `NNd`, or a symbolic cadence with the\nstripped prose (the re-verify conditions and the Gate pointers) recorded separately in your report;\nno cell may contain a literal or escaped `|` (rewrite the anchor in your own located quote so the\nrow parses as 11 columns); `used-by` lists exactly the admitted entries citing that row; `status` is\n`mined`; `opened` is THIS round's date `2026-10-24` (not the campaign's date).\nThen mirror the lane in scratch: copy `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/` to `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/controls/validate/corpus/`, insert your\nappend block into the Registry table, and gate it:\n\n    /home/vgpnk/Projects/shokunin/scripts/sources-census.sh validate --file /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/controls/validate/corpus/SOURCES.md\n\nWrite the verbatim census output and exit code to `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/controls/census-validate-append.txt` and report\nat `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/ExecTransform.md`: the before/after row counts, the exact recheck transformation you\napplied to each row, and any E03/E04 finding."
+    },
+    {
+      "name": "ExecQualityBar",
+      "role": "executor",
+      "axes": [
+        "calibration"
+      ],
+      "prompt": "Produce the admission-bar checklist for this round's corpus writes.\n\nRead `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/QUALITY.md` (append-only criteria Q01..Q58) and the contract\n`/home/vgpnk/Projects/shokunin/CORPUS.md`. List, with `file:line` citations, every criterion that\nbinds (a) admitting a new knowledge entry, (b) appending new `corpus/SOURCES.md` rows, (c) a\nround report's before/after claims, and (d) a seat-count statement. Report only the criteria that\napply and the file:line where each lives, plus one line each on what the criterion demands of this\nround. Write your report at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/ExecQualityBar.md`. Do not edit any file."
+    },
+    {
+      "name": "ScoutModelSpec",
+      "role": "scout",
+      "axes": [
+        "depth"
+      ],
+      "prompt": "Re-open the OpenAI Model Spec page and locate the quotes the assimilated ladder entry needs.\n\nOpen `https://model-spec.openai.com/2026-08-18`. Locate the section `Instructions and levels of\nauthority` -> `The chain of command`. Report: the authority levels in the order the page names them;\nthe exact sentence stating the override rule (quote at most 25 words, verbatim); whether the page\ncarries a document version `2026/08/18`. Record YOUR access date (today) and the URL you actually\nfetched. If the page does not load or does not carry the claim, say so plainly — a missing source is\na refusal, not a paraphrase. Write your report at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/ScoutModelSpec.md` with the verbatim\nquoted line and the section path you located it under."
+    },
+    {
+      "name": "ScoutSkillCreator",
+      "role": "scout",
+      "axes": [
+        "depth"
+      ],
+      "prompt": "Re-open the pinned Anthropic skill-creator SKILL.md and locate the trigger-mechanism quotes.\n\nOpen\n`https://github.com/anthropics/skills/blob/dbd4588f9e1033efb41dad4bef2f7947c8993d44/skills/skill-creator/SKILL.md`\n(or the raw file at the same tree pin). Locate `Description Optimization` -> `Step 1: Generate trigger\neval queries` and `How skill triggering works`. Report: the sentence describing the description\nfield as the mechanism that decides invocation (quote at most 25 words, verbatim); the trigger-eval\nnumbers the page states (query count, train/test split, runs per query, iteration cap). Record YOUR\naccess date and the exact tree pin you read. Report at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/ScoutSkillCreator.md`.\nNote whether the same URL already exists as a row in `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md` (it may be S012's\nneighbour) — report the exact row id if so; a duplicate URL is a refusal reason."
+    },
+    {
+      "name": "ScoutArxiv",
+      "role": "scout",
+      "axes": [
+        "depth"
+      ],
+      "prompt": "Re-open the arXiv record the ladder entry cites for the measurement.\n\nOpen `https://arxiv.org/abs/2604.09443`. Report the exact title, the abstract's claim about fixed\nfew-level instruction hierarchies in agentic settings, the benchmark's level count, task count and\nagent count, and the reported frontier-model score — each with a verbatim quote of at most 25 words\nwhere the page states it. Record YOUR access date. If the record does not exist or the page does not\ncarry those numbers, say so plainly (fabrication class). Report at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/ScoutArxiv.md`."
+    },
+    {
+      "name": "ScoutQwen",
+      "role": "scout",
+      "axes": [
+        "depth"
+      ],
+      "prompt": "Re-open the Qwen Code Agent Skills page and check the two quotes the ladder entry leans on.\n\nOpen `https://qwenlm.github.io/qwen-code-docs/en/users/features/skills/`. Report: the verbatim\nsentence stating what a SKILL.md body is (quote at most 25 words), the page's `Last updated` footer,\nand the frontmatter keys the page lists. Record YOUR access date. Report at\n`/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/ScoutQwen.md`. This page is a candidate corroboration only; do not widen its scope to\nother clients."
+    },
+    {
+      "name": "ScoutIndexShape",
+      "role": "scout",
+      "axes": [
+        "calibration"
+      ],
+      "prompt": "Report the exact shape the C1 index row must take.\n\nRead the coverage-map rows in `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/README.md` that already index the closure spot-checks\nfor rounds 60 and 61 (and any other closure spot-check rows). Read the corpus-index check in\n`/home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/verify_corpus_integrity.py` and report the exact rule that decides a corpus file\nis \"indexed\" (which column, which pattern, which section of README.md counts).\nThen report the exact row text that would index\n`corpus/lessons/round-66-verifier-spotcheck.md`, matching the r60/r61 shape (including the note that\nthe file is written by the hyaku closure, not the lane, and the round it reviews).\nAlso report which baseline keys in `/home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/corpus-baseline.json` the re-record must change\nand which command derives each value. Report at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/ScoutIndexShape.md`. Read-only."
+    },
+    {
+      "name": "ScoutBaselineShape",
+      "role": "scout",
+      "axes": [
+        "calibration"
+      ],
+      "prompt": "Derive, from the gate's own code, the exact census command that re-derives the baseline values.\n\nRead `/home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/verify_corpus_integrity.py` and `/home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/verify_corpus_independent.py`\nand report: which corpus files are counted as tracked, how the `unindexed` set is computed, how\n`report_total` and `commit_total` are computed, and the exact command(s) that reproduce each\nbaseline value at the current tree. Report the baseline keys and their current values side by side\nwith the values the code would compute now, and the difference. Report at\n`/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/ScoutBaselineShape.md`. Read-only; do not edit the baseline."
+    },
+    {
+      "name": "ScoutConsiderthese",
+      "role": "scout",
+      "axes": [
+        "calibration"
+      ],
+      "prompt": "Mine the one still-unimplemented proposal from the latest considerthese file, and open what it points at.\n\nRead `/home/vgpnk/Projects/shokunin/kotoba-shokunin/considerthese/2026-10-23.md` (operator-authored, NEVER edit it). Identify the\nproposals marked \"proposals only — not acted on\" that are still unimplemented. Choose at most ONE\nand ground it through the lane's own bar: open what it points at — for the self-description audit\nproposal, open `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/knowledge/skill-listing-thresholds-round54.md` and the skill's own\n`description` in `/home/vgpnk/Projects/shokunin/kotoba-shokunin/SKILL.md` — and MEASURE the skill's own description against each of the\nseven clients' documented cuts in that table.\nReport: the exact character count of the skill's own description, each client's documented limit from\nthe committed table, and which clients would truncate it and where. Report at\n`/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/ScoutConsiderthese.md` with the commands you ran."
+    },
+    {
+      "name": "ScribeEntry",
+      "role": "scribe",
+      "axes": [
+        "depth"
+      ],
+      "prompt": "Draft the C2 knowledge entry at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/drafts/instruction-authority-ladder-round67.md`.\n\nBase it on the assimilated package entry\n`/home/vgpnk/Projects/shokuknow/merge/kotoba/knowledge/corpus/knowledge/instruction-authority-ladder.md`\n(read-only) and on the scouts' re-opened sources. The entry must satisfy QUALITY Q12: it opens with\n`source:` lines naming an `S###` row plus URL/anchor, a `verified-at:` line, and a `recheck:` that\nruns. It must satisfy QUALITY Q23: a rule attributed to an authority carries a located quote from\nthat authority, and the sweep showing whether the other authorities state it.\nTarget path when installed: `corpus/knowledge/instruction-authority-ladder-round67.md`.\nKeep every located quote at most 25 words and verbatim. Record the access date THIS round\n(2026-10-24). Name the `S###` ids you cite — the SOURCES rows themselves are drafted by another\nscribe; use the ids S123 (Model Spec), S124 (anthropics skill-creator) and S129 (arXiv) only if your\nre-opened sources support them.\nReport at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/ScribeEntry.md`: the entry's draft path, its section structure, and the\ncriteria it satisfies."
+    },
+    {
+      "name": "ScribeSources",
+      "role": "scribe",
+      "axes": [
+        "calibration"
+      ],
+      "prompt": "Draft the new `corpus/SOURCES.md` rows in the lane's own 11-column schema.\n\nWrite `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/drafts/SOURCES.rows.r67.md` containing ONLY the rows the admitted ladder entry cites\n(Model Spec, anthropics skill-creator, arXiv), in the header order and cell shape of\n`/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md` (read its header and three existing rows first — copy the shape exactly,\nincluding `id`, `source`, `kind`, `tier`, `scope`, `anchor`, `teaches`, `status`, `opened`,\n`recheck`, `used-by`).\nRules: `status` is `mined`; `opened` is `2026-10-24` (this round's access date, not the campaign's);\n`recheck` is a bare cadence (`90d`, `30d`) with the prose stripped; `used-by` lists exactly the\nadmitted entries citing that row; `anchor` carries a located quote of at most 25 words that you\nactually read this round; no cell contains a literal or escaped `|`.\nThe ids are the staged ids S123 / S124 / S129 unless the collision check says otherwise — if the\ncollision check file `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/controls/collisions` is non-empty, say so and use the renumber map instead.\nReport at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/ScribeSources.md` with the rows you drafted and the cell-by-cell rationale for\nthe two cells you transformed (`recheck`, `opened`)."
+    },
+    {
+      "name": "ScribeLesson",
+      "role": "scribe",
+      "axes": [
+        "calibration"
+      ],
+      "prompt": "Draft the round-67 lesson at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/drafts/round-67-lesson.md`.\n\nShape it on `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/lessons/round-66.md` (read it first). It needs:\n- `## Gate` — the lesson's gate record: the admit/reject decision for the assimilated set (at least\n  ONE admit and at least ONE reject from the round's assimilation set, with the reason and the flip\n  condition for the refusal), the access date and the located quote for each admitted source, and the\n  stripped prose from the transformed `recheck` cells (which condition each `recheck` cadence carried).\n- `## Mistakes` — at least ONE mined mistake with class, evidence pointer, captured-by (the criterion\n  or rule that should have caught it) and fix. A fix counts only once shown able to fail. The\n  strongest candidate this round is the r66 closure spot-check left unindexed by the corpus gate\n  (the routed defect the run card recorded), and the class of the staged rows' campaign schema.\nDo not invent a mistake you did not observe; if you find none, paste the sweep that found none.\nReport at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/ScribeLesson.md`."
+    },
+    {
+      "name": "ScribeReadmeIndex",
+      "role": "scribe",
+      "axes": [
+        "calibration"
+      ],
+      "prompt": "Draft the two coverage-map index rows for `corpus/README.md` at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/drafts/README-index-rows.r67.md`.\n\nRow 1 — index the r66 closure spot-check: one row in the coverage map matching the shape of the\nexisting rows that index the round-60 and round-61 closure spot-checks (same column count, same\nkind of note: written by the hyaku closure, not the lane; the round it reviews).\nRow 2 — index the new knowledge entry `corpus/knowledge/instruction-authority-ladder-round67.md`\nin the knowledge-entry coverage rows, matching the shape of the neighbouring entry rows.\nWrite the two rows as exact markdown table rows, plus one line each saying where they belong (which\nsection and roughly after which existing row). Do NOT edit `corpus/README.md` itself — the L1 does.\nReport at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/ScribeReadmeIndex.md`."
+    },
+    {
+      "name": "ScribeReport",
+      "role": "scribe",
+      "axes": [
+        "calibration"
+      ],
+      "prompt": "Draft the round-67 report skeleton at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/drafts/round-67-report.md`.\n\nRequired canonical sections, in this order: **Work performed** (opens by naming the round's 1-3\ndeclared claims and their target axes, then one bullet per work item with an evidence pointer),\n**Landed changes** (each tied to a LOG.md entry and to the commit hash that carries it),\n**Before -> after measurements** (one per claim, each with its counting command and the commit it was\nmeasured against), **Sources & frontier** (SOURCES rows before->after with the counting command, rows\nadded by tier, rows touched old->new, frontier rows advanced), **Trend verdicts** (one verdict each\nfor expansion, quality, discernment), **SHONEN** (one line per box of the lane's SHONEN.md\nchecklist: `[x]` only with a named non-author verifier, `[~]` with a resolvable evidence pointer,\n`[ ]` if untouched).\nLeave every value that is not yet measured as an explicit `TBD` placeholder with the sentence that\nwill fill it — never invent a number, a hash or a quote. Read the lane's `SHONEN.md` and\n`/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/lessons/round-66.md` for the shape. Report at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/ScribeReport.md`."
+    },
+    {
+      "name": "ReviewEntry",
+      "role": "reviewer",
+      "axes": [
+        "depth"
+      ],
+      "prompt": "Review the drafted C2 entry against the lane's bar and the plan's seven conjuncts.\n\nRead `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/drafts/instruction-authority-ladder-round67.md` (if absent, read the package entry\n`/home/vgpnk/Projects/shokuknow/merge/kotoba/knowledge/corpus/knowledge/instruction-authority-ladder.md`\nand review it as the draft). Check QUALITY Q12 (opens with `source:` naming an S### row plus URL/anchor,\n`verified-at:`, a `recheck:` that runs), Q23 (a rule attributed to an authority carries a located\nquote from that authority, and the sweep of whether the other authorities state it), Q20, Q31, and\nPROVINCE.md scope (is this material inside kotoba's province, or is it chousa's research method?).\nFor each defect: the file:line, the criterion it violates, and the fix. Report at\n`/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/ReviewEntry.md`. Do not edit the draft."
+    },
+    {
+      "name": "ReviewSources",
+      "role": "reviewer",
+      "axes": [
+        "calibration"
+      ],
+      "prompt": "Review the drafted SOURCES rows for schema, provenance and append-only safety.\n\nRead `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/drafts/SOURCES.rows.r67.md` (if absent, review the corresponding staged rows in\n`/home/vgpnk/Projects/shokuknow/merge/kotoba/SOURCES.append.md` and say so). Check against\n`/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md`'s header and existing rows: exactly 11 columns; `id` is the next free id\nand does not collide; `status` is `mined`; `opened` is this round's date; `recheck` is a bare\ncadence; `used-by` lists exactly the admitted entries that cite the row and each path exists; no\ncell contains a literal or escaped `|`; the `anchor` quote is at most 25 words and is verbatim from\nthe source the row names; the `teaches` cell does not overclaim beyond the row's `scope`.\nReport every defect with file:line and the fix. Report at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/ReviewSources.md`."
+    },
+    {
+      "name": "ReviewCounter",
+      "role": "reviewer",
+      "axes": [
+        "depth"
+      ],
+      "prompt": "Review the drafted C2 counter for honest measurement.\n\nRead `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/drafts/check_instruction_authority.py` (if absent, report that plainly and review the\nplan's seven conjuncts instead). Attack it against QUALITY Q25 (the counter must be shown able to\nfail — it is run on a mutant with the claimed content removed), Q26 (every clause of the claim\nheadline is turned on by the counter's output), Q48 (the self-test must drive the public `main()` on\na satisfying fixture asserting exit 0 with the exact printed line, and on broken-conjunct worlds\nasserting exit 1), and Q31 (prose describing the counter names only the cells and tests its code\nreads). Also check: does it read committed bytes at `--rev` rather than the working tree? Does it\nprint exactly `authority ladder grounded N of 1`? Report at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/ReviewCounter.md` with a\ndefect list and, for each defect, the conjunct it would let through."
+    },
+    {
+      "name": "ReviewC1Repair",
+      "role": "reviewer",
+      "axes": [
+        "calibration"
+      ],
+      "prompt": "Review the C1 repair shape against the routed cause.\n\nThe routed cause is recorded in the hyaku run card at\n`/home/vgpnk/Projects/shokunin/.ufo/waves/hyaku/inline-run-20261023.md:181-185`: the r66 closure\nspot-check is an unindexed corpus file, so the corpus-integrity gate is red at the lane tip.\nThe repair shape under review: one coverage-map index row for\n`corpus/lessons/round-66-verifier-spotcheck.md` in `corpus/README.md` (the closure's file — the lane\nnever edits it) PLUS a re-record of `verifiers/corpus-baseline.json` to the census values the gate's\nown code derives.\nJudge against QUALITY Q21 (a repair claim names the routed cause and re-measures that cause;\nclosing an input gap without moving the cause is `improved-bounded`) and Q58 (a routed defect is\nclosed only when a committed counter recomputes the corrected value from the measured revision's\nbytes). Answer: does the re-record move the CAUSE (the unindexed corpus file) or only the SYMPTOM\n(the baseline's stale expectations)? Is exempting the file instead of indexing it a legitimate\nalternative? Report at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/ReviewC1Repair.md` with a verdict and the reason."
+    },
+    {
+      "name": "ReviewAppendOnly",
+      "role": "reviewer",
+      "axes": [
+        "calibration"
+      ],
+      "prompt": "Check the planned SOURCES append against the append-only rule and the census schema.\n\nRead `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/QUALITY.md` Q34, the lane's `verifiers/check_sources_append_only.py`, and the\nplanned append block at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/drafts/SOURCES.append.r67.md` (if absent, review the staged rows and say\nso). Determine: (a) does the planned append preserve every protected cell of the existing rows; (b)\nwould `python3 -B verifiers/check_sources_append_only.py --base <base> --tip <tip>` pass on a world\nwhere the block is appended; (c) which E03/E04 findings the census validator could raise on the\ntransformed rows (duplicate id, within-scope duplicate URL) and how each would be refused.\nReport at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/ReviewAppendOnly.md` with the exact commands a reviewer would run."
+    },
+    {
+      "name": "CriticC1",
+      "role": "critic",
+      "axes": [
+        "calibration"
+      ],
+      "prompt": "Attack C1's frozen predicate and report every way a cheap world reaches it.\n\nPredicate: `python3 -B verifiers/verify_corpus_integrity.py` prints `9/9 checks pass` and exits 0,\nAND `python3 -B verifiers/verify_corpus_independent.py --json` exits 0.\nEnumerate and, where cheap, TEST in a scratch copy under `/tmp` (never in the lane tree) the worlds\nthat could reach it without doing the claimed work: exempting the r66 spot-check from the index\ncensus instead of indexing it; deleting the file; editing the gate's own expectation source;\nsetting the baseline's expected values to whatever the gate prints today (a rubber-stamp\nre-record); making the independent gate a copy of the primary; weakening the `unindexed` check.\nFor each world: the command, the observed exit code, and whether the world reaches the predicate.\nReport at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/CriticC1.md`. A world that reaches the predicate is a defect in the predicate\nor in the repair shape; name it."
+    },
+    {
+      "name": "CriticC2",
+      "role": "critic",
+      "axes": [
+        "depth"
+      ],
+      "prompt": "Attack C2's frozen predicate and report every junk that satisfies it.\n\nPredicate: `python3 -B verifiers/check_instruction_authority.py --rev <rev>` prints\n`authority ladder grounded 1 of 1` and exits 0, and at the base it prints `0 of 1` and exits nonzero.\nEnumerate the cheap worlds that could satisfy it: a copy of an existing admitted entry renamed to the\ntarget path; a stub entry that cites an S### id which exists but whose row says nothing about the\nentry; a `verified-at:` line with a placeholder quote copied from another row; an entry indexed in a\ndifferent README section than the coverage map; an entry whose `recheck:` is a sentence, not a\ncadence. For each: what the counter would print, and what must be added to the counter to reject it.\nReport at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/CriticC2.md`."
+    },
+    {
+      "name": "CriticProvenance",
+      "role": "critic",
+      "axes": [
+        "depth"
+      ],
+      "prompt": "Attack the assimilation package for scope overreach and unsupported claims.\n\nRead `/home/vgpnk/Projects/shokuknow/merge/kotoba/knowledge/corpus/knowledge/instruction-authority-ladder.md`\n(read-only) and `/home/vgpnk/Projects/shokunin/kotoba-shokunin/PROVINCE.md`. Answer: does the entry's content stay inside kotoba's province\n(prompt and skill craft) or does it absorb chousa's research method, or another lane's ground?\nName every sentence in the entry that claims more than a skill-craft reader can act on, and every\ncitation that is asserted rather than quoted. Report at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/CriticProvenance.md` with a\nverdict per claim (admit / admit-bounded / refuse) and the reason."
+    },
+    {
+      "name": "ConnSibling",
+      "role": "connector",
+      "axes": [
+        "adjacency"
+      ],
+      "prompt": "Sibling-overlap scan for the new ground, at pinned sibling commits, read-only.\n\nThe round's new ground is the instruction-authority layer (what a skill body may assert and at whose\nauthority level). Read the sibling lane repos under `/home/vgpnk/Projects/shokunin/` — their\n`SKILL.md` and `PROVINCE.md` — READ ONLY, at the tip each sibling currently has. Report: any sibling\nwhose description or PROVINCE claims instruction-authority / instruction-hierarchy / skill-body\nauthority craft (a contested surface), with the file:line and the commit you read; and the sibling\nwhose own scope the new entry must not absorb.\nAlso report the lane's own `PROVINCE.md` § Adjacent classification of those siblings as it stands.\nReport at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/ConnSibling.md`. Do not write to any sibling repo."
+    },
+    {
+      "name": "MutC2Counter",
+      "role": "mutation-tester",
+      "axes": [
+        "depth"
+      ],
+      "prompt": "Mutation-test the drafted C2 counter: each mutant must die.\n\nTake `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/drafts/check_instruction_authority.py` (if absent, report that plainly). In a scratch copy\nunder `/tmp` build and run these mutants, each breaking exactly one conjunct:\nM-a delete conjunct 6 (the anchor-quote check); M-b delete conjunct 7 (the coverage-map index check);\nM-c make conjunct 3 accept any `status`; M-d make conjunct 2 accept any `S###`-looking string;\nM-e make conjunct 5 accept any `verified-at:` value; M-f make the counter count by file name only\n(no content read).\nFor each mutant: the command, the exit code, and the FIRST failing assertion or printed line. The\nhonest bytes must stay green (exit 0, `authority ladder grounded 1 of 1`) — record that too, and\nname the mutant that survived if any. Write the results to `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/controls/C2-mutants.txt` and report at\n`/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/MutC2Counter.md`."
+    },
+    {
+      "name": "MutC1Index",
+      "role": "mutation-tester",
+      "axes": [
+        "calibration"
+      ],
+      "prompt": "Mutation-test the C1 repair shape: each mutation must turn the gate red.\n\nIn a scratch copy of the lane tree under `/tmp` (never in the lane tree), build and run:\nM-a remove the r66 spot-check index row from `corpus/README.md` (the coverage map) -> the gate must\nreport `corpus.index.unindexed observed=1` and exit nonzero;\nM-b corrupt one baseline value (e.g. `report_total`) without changing the tree -> the gate must\nreport the DRIFT and exit nonzero;\nM-c append a junk corpus file under `corpus/lessons/` without indexing it -> the gate must report\n`unindexed` and exit nonzero.\nFor each: the command, the verbatim DRIFT/FAIL line and the exit code. The honest tree (with the\nrepair) must print `9/9 checks pass` and exit 0 — record that as the control.\nWrite the results to `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/controls/C1-mutants.txt` and report at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/MutC1Index.md`."
+    },
+    {
+      "name": "SentScope",
+      "role": "sentinel",
+      "axes": [
+        "calibration"
+      ],
+      "prompt": "Scope sentinel: watch for writes outside the lane and for misrooted reports.\n\nDuring this wave, check for: (1) any file a seat wrote under the fleet root\n`/home/vgpnk/Projects/shokunin` outside `/home/vgpnk/Projects/shokunin/kotoba-shokunin` — run\n`git -C /home/vgpnk/Projects/shokunin status --porcelain` and report every untracked path that is not\na driver file (`.ufo/state/`, `.ufo/watchdog.log`) and names kotoba or round-67;\n(2) any write inside `/home/vgpnk/Projects/shokuknow` — run\n`find /home/vgpnk/Projects/shokuknow -newermt '-40 minutes' -type f` and report every hit;\n(3) any change to the lane's jj state or Git index — report `git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin status --porcelain` lines\nthat are not the lane's own wave directory;\n(4) any seat report written outside `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1`.\nDo NOT move or delete anything — the L1 owns the misroot sweep. Report findings at\n`/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/SentScope.md` with the commands you ran and the observed output."
+    },
+    {
+      "name": "RevFabrication",
+      "role": "revenger",
+      "axes": [
+        "depth"
+      ],
+      "prompt": "Hostile re-read of the staged package for unsupported or fabricated claims.\n\nRead `/home/vgpnk/Projects/shokuknow/merge/kotoba/knowledge/corpus/knowledge/instruction-authority-ladder.md`\nand the three rows it cites in\n`/home/vgpnk/Projects/shokuknow/merge/kotoba/SOURCES.append.md` (read-only). For every factual\nstatement in the entry and every claim in those three rows, name whether the cited source (as\ndescribed by its `anchor`) actually supports it. Report each statement that the cited anchor does\nNOT support, with the row id and the sentence. Also report whether any of the three rows' quotes\nexceeds 25 words, contains a literal or escaped `|`, or names an access date that is not the round\nin which the source was actually opened. Report at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/RevFabrication.md`."
+    }
+  ]
+}
