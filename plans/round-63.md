@@ -152,8 +152,68 @@ relative to the lane repo).
 `§C2` check 4 as first written ("`git show 35d44b4b:LOG.md` is a byte-prefix of
 `git show <rev>:LOG.md`") passes trivially at the r62 tip, where the two texts are
 identical, so the declared before `0 of 5` and the check's arithmetic disagreed. E1
-refines the check to **two conjuncts**, both reported separately: the r62-tip bytes are a
-prefix of the measured rev's LOG, **and** the measured rev's LOG adds at least one line
+refines the check to **two conjuncts**, both reported separately: the r62-tip bytes are
+a prefix of the measured rev's LOG, **and** the measured rev's LOG adds at least one line
 beyond that prefix. At the r62 tip the second conjunct is false (no correction appended),
 so the check fails there and the before total is a truthful `0 of 5`; a tree carrying the
 appended corrections passes both. The target and every other check are unchanged.
+
+## Erratum E2 (pre-data, declared before any C2 after-measurement; wave-2 falsify output)
+
+Wave-2 reviewers falsified the frozen C2 predicate **at the letter**: a 17-line
+label-only counter (`print('r62 routed defects closed 5 of 5'); exit 0`) satisfies the
+plan sentence at the base rev, the tip, and a nonexistent rev (`RevW2LabelOnly`,
+`RevW2C2Interim`); a fingerprint counter keyed on the LOG-blob difference plus the
+tracked late-write path scores nothing yet meets the honest-computation clause
+(`RevW2Fingerprint`, demonstrated at a synthetic mid-score rev); the self-test never
+substituted the receipt side of checks 2 and 5 (`MutW2C2Counter`); and checks 2/3/5
+credited whole-LOG substring matches, so a pre-existing base line could receive check-3
+credit with no correction written (`RevW2SpecPrec`, adversarial fixtures). E2 hardens
+the counter **without changing the frozen predicate's two-conjunct shape**: (a) `BASE_REV`
+is pinned in code with a refuse-to-certify base arm and `--base-arm`; (b) the self-test
+runs label-only, fingerprint and worktree-read counters as **processes** against
+constructed worlds, plus receipt-side substitution arms for checks 2 and 5; (c) checks
+2/3/5 scan only the appended suffix that check 4 proves, with non-hex token boundaries.
+Declared bounds carried with it: a rev-keyed constant printer that never runs the
+self-test is killed by the self-test arm, not the CLI predicate; check 4 remains a
+frozen-prefix preservation guard, not history-level append-only enforcement
+(`RevW2Check4`, demonstrated on synthetic objects); the five checks remain repair checks,
+not the spot-check's five obligations (headline wording fixed per `CriticW2Headline`).
+The before-control receipt at `35d44b4b` stays `0 of 5`, exit 1, under the hardened
+counter (re-run recorded in `.ufo/waves/round-63/receipts/C2-before-rerun.txt`).
+
+## Erratum E3 (pre-data, declared before any C1 after-measurement; wave-2 falsify output)
+
+Wave-2 mutation testers showed the landed v32 guard had coverage holes no assertion
+could see: seven of nine `split_clauses` mutants survived the 208-assertion suite
+(`MutW2SplitClauses`), an unpaired backtick admitted a one-character-evasion of the
+whole G9 class by latching code mode (`MutW2V32` M7, verified admitted at the
+committed bytes), the two-word floor, page-scope gate and one-word exemption were
+unpinned (`MutW2GuardEvasion` M1/M6/M11), and a multi-word backticked span absent from
+both the cited line and the page was admitted because G7 reached only single-token
+identifiers (`MutW2GuardEvasion` §4 — the lesson's "G9 never double-reports" premise is
+false for backticked spans). E3 lands the measured hardening package with the frozen
+predicate's three lines unchanged: the `BACKTICK_RE`-pairing fix in `split_clauses`,
+eight split-semantics arms, three clause-floor/page-gate assertions, and the G7
+multi-word-span extension (real-corpus diff 0 rows, verified by the seats on
+revision-pinned copies). Recorded bounds that stay open by design: the one-word tail
+lane is structurally unclosable without touching A2's `MIN_SHARED` floor (a v33 move);
+the `-and-` and quoted-`;` over-rejections and the missing relatedness test are pinned
+as visibility arms, labelled bounds, not endorsements; the 4-char prefix collision is
+inherited from A2's `supported()`. The landed gate also deliberately deviates from one
+plan sentence: "every resulting clause with ≥ `MIN_CONTENT` content words" landed as
+"≥ `MIN_CLAUSE` = 2 **page** words including backticked spans" (stricter). The deviation
+and both wordings are documented in the code only — `MIN_CONTENT = 3` at v32:314 (A2's
+whole-cell floor), `MIN_CLAUSE = 2` at v32:1072, and the `g9_conjunct` floor comment at
+v32:1136-1140; the entry names the landed rule, and the refreshed receipt names the
+landed sha and assertion count. Self-test: 219 assertions.
+
+## Erratum E4 (paperwork, pre-close): census after-count mis-predicted
+
+§Sources predicted "expected exit 0, 17 W04" on the belief that S119's URL would
+duplicate an existing row's URL. `W04` counts one URL held by more than one scope;
+S119's URL (`icmje.org/.../corrections-and-version-control.html`) is new to the
+registry, so the measured after-state is **16 W04, exit 0** — the before count
+unchanged, plus one row (`.ufo/waves/round-63/census-after.txt`). The wave-2 census
+attack (`CriticW2Census`) re-ran the validator and confirmed the measured value; the
+frozen census gate (exit 0) is met by both states.

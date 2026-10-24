@@ -127,7 +127,6 @@ for a source the row's author opened this round; access evidence lives in
 | S115 | Cursor Docs — Rules — https://cursor.com/docs/rules | docs | A | Cursor project rule files under `.cursor/rules` and documented `globs` path-pattern scoping | § Project rules (`rules.md:30-32`); rule metadata (`:52-70`); auto-attached example (`:83-87`); § Glob pattern examples (`:129-141`); fetched 2026-10-23T19:09:41Z (HTTP 200, 17,403 B, sha256 `884c67ca161142c2f3f0e4ef66a732dd48119cb08bd0dc2ff73e693721546bc8`) | re-opens S108 — Cursor project rule files live under `.cursor/rules` as `.mdc` files, and `globs` scopes rules to specific files or directories; scope-key[Cursor]=globs | mined | 2026-10-23 | 90d | SKILL.md, corpus/lessons/round-61.md |
 | S117 | Sibling lane kama, Checking self-assessment statements at writing — https://raw.githubusercontent.com/VeigaPunk/kama-shokunin/6de225c289b7682bf280cffb4a07de3fb7d1275c/corpus/knowledge/self-assessment-at-writing.md (kama-shokunin/corpus/knowledge/self-assessment-at-writing.md at commit 6de225c, git blob 0601bd0301d65cb4a688901b0db6c8488a739f03), opened 2026-10-23 | docs | B | writing-revision calibration for prompt-craft self-assessment | § Checking self-assessment statements at writing, lines 7 and 22; kama commit 6de225c (2026-10-23T16:09:39-03:00); file sha256 cd6e3730085ed08ca583604390e84c352ea122e4a6386e383d261a0a0b4cf959; re-fetched 2026-10-23 as raw.githubusercontent.com/VeigaPunk/kama-shokunin/6de225c…/corpus/knowledge/self-assessment-at-writing.md, HTTP 200, 5,831 B, byte-identical to the lane working copy | A self-assessment statement can be checked against the committed tree at the revision that wrote it, so an overclaim or a wrong pointer is a calibration error present at writing time rather than later drift | mined | 2026-10-23 | 180d | corpus/knowledge/writing-revision-calibration-round61.md |
 | S118 | Claude Code Docs — How Claude remembers your project — https://code.claude.com/docs/en/memory.md | docs | A | Current Claude Code `.claude/rules/` `paths` frontmatter matching syntax (vendor documentation; not a runtime test) | § Rule frontmatter reference (`memory.md:244-250`), especially `paths` (`:250`); § Path-specific rules (`:194-200`); fetched 2026-10-23T20:49:56Z (HTTP 200, 55,354 B, sha256 `02632438e022b5fc70b470b02d59819d9739756c2666b5632734b4564a08a801`); snapshot `.ufo/waves/round-62/snapshots/S118.page` | re-opens S103 — opened this round because the round-62 C1 E2e instances need the vendor's own statement of how the `paths` key takes glob patterns; S103's scope covered the directory overview, and this row records the current-round access to the rule-frontmatter reference | mined | 2026-10-23 | 90d | corpus/lessons/round-62.md, corpus/knowledge/erratum-absorption-round62.md |
-
 | S119 | ICMJE — Corrections and Version Control — https://www.icmje.org/recommendations/browse/publishing-and-editorial-issues/corrections-and-version-control.html | docs | A | Correction practice for a published record: a transparent correction notice that cites the original, and preservation of prior versions | § Corrections (snapshot `.page:170-174`); fetched 2026-10-23T23:04Z (HTTP 200, 22,722 B, sha256 `d76af0c067c1f09a21113857f66eb6725ee75d1731f5339da464e5555d3bc9d2`; the page carries a dynamic element — a re-fetch of the same size hashed `e2c3db05…` in a seat probe, so byte-identity across fetches is not claimed, only the located quotes); snapshot `.ufo/waves/round-63/snapshots/S119.page` | A journal publishes a correction notice "as soon as possible detailing changes from and citing the original publication" and "archive all prior versions of the article" — transparent correction with preserved history, not a silent rewrite of the record; the page does not mandate literal append-only files | mined | 2026-10-23 | 365d | corpus/knowledge/compound-clause-citation-round63.md, corpus/lessons/round-63.md |
 
 ## Paths
@@ -222,14 +221,23 @@ for a source the row's author opened this round; access evidence lives in
   Question: which primary source grounds "correct by appended notice, not by rewriting the
   record", and what does Cursor's `rules.md` actually serve today? Where: the three named
   correction-practice URLs (COPE correction guidance, COPE retraction guidelines, NISO
-  RP-8 — HTTP 403, 403, 404, no body to quote), then the ICMJE corrections page (HTTP 200,
-  22,722 B, snapshot `S119.page`, quotes at `:170` and `:172`). Identified 4; screened 4;
-  included 1 (S119); excluded 0 for scope — the three 403/404 responses are recorded here
-  rather than as rows because no page was opened. **S049 errata (appended, not rewritten):**
-  the held `.md` receipt (17,403 B, sha256 `884c67ca…`, fetched 2026-10-22T20:09:33Z) does
-  not reproduce on 2026-10-23 — default `Accept` returns HTTP 200, 17,252 B, sha256
-  `dae9d3ecd7e389fc94ee57d87911fe8d54bae1f00ce451d44303616648247ce0`; `Accept: text/markdown`
-  returns HTTP 404 with a 389 B body, and `Accept: */*` returns the 200 form. The round-62
-  spot-check's 404 is therefore a request-profile result, not a dead URL; the decision not
-  to mint a distinct row from the `.md` spelling still holds because S108 already re-opens
-  S049 at the same URL. The row's recorded receipt stays as the dated original.
+  RP-8), then the ICMJE corrections page, then Acta Orthopaedica's correction policy as a
+  negative check. Identified 5; screened 5; included 1 (S119); excluded 4 — COPE ×2 (HTTP
+  403, no body to quote) and NISO RP-8 (HTTP 404) never opened, so no row is minted from
+  them; Acta Orthopaedica (HTTP 200, byte-stable) was opened and excluded as
+  counter-evidence because its text authorizes in-place correction. Stop rationale: the
+  first opened primary source (ICMJE) carries both located quotes the teaches cell needs,
+  and the remaining candidates were either unopenable or contrary, so the sweep stopped at
+  full inclusion of the one qualifying source (rule 5: a negative claim carries its sweep).
+  **S049 errata (appended, not rewritten):** the held `.md` receipt (17,403 B, sha256
+  `884c67ca…`, fetched 2026-10-22T20:09:33Z) does not reproduce on 2026-10-23 — default
+  `Accept` returns HTTP 200, 17,252 B, sha256 `dae9d3ecd7e389fc94ee57d87911fe8d54bae1f00ce451d44303616648247ce0`;
+  `Accept: text/markdown` returns HTTP 404 with a 389 B body, and `Accept: */*` returns the
+  200 form. The round-62 spot-check's 404 is therefore a request-profile result, not a dead
+  URL. The rejection of a second row from the `.md` spelling still holds, but the reason
+  corrected: it is not "S108 re-opens S049 at the same URL" (false — S049 holds
+  `https://cursor.com/docs/rules.md`, S108/S115 hold `https://cursor.com/docs/rules`, and
+  S088 already holds the non-`.md` URL); the standing reason is that the `.md` spelling
+  serves the same content at the same path modulo the request profile, so a second row
+  would duplicate the scope S088/S115 already govern. The row's recorded receipt stays as
+  the dated original.

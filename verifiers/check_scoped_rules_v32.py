@@ -1052,9 +1052,19 @@ def g7_conjunct(lines: list[str], cell: str, L: int | None,
     raw_page = page_text if page_text is not None else "\n".join(lines)
     missing = sorted({token for token in BACKTICKED_IDENTIFIER_RE.findall(cell)
                       if token not in raw_line and token not in raw_page})
+    span_missing = sorted({
+        word
+        for span in BACKTICK_RE.findall(cell)
+        for word in span.split()
+        if len(word) >= 4 and word.lower() not in STOPWORDS
+        and word.lower() not in content_words(raw_line)
+        and not supported(word.lower(), page_words(raw_page))})
     if missing:
         return ["A2 G7: backticked identifier(s) %s occur in neither the cited "
                 "line nor the committed snapshot" % ", ".join(missing)]
+    if span_missing:
+        return ["A2 G7: backticked span word(s) %s occur in neither the cited "
+                "line nor the committed snapshot" % ", ".join(span_missing)]
     return []
 
 
@@ -1074,7 +1084,12 @@ def split_clauses(cell: str) -> list[str]:
     while i < len(cell):
         ch = cell[i]
         if ch == "`":
-            in_code = not in_code
+            # Round-63 wave-2 hardening (MutW2SplitClauses/MutW2V32): mask
+            # only CLOSED backtick spans, paired exactly as content_words and
+            # G7 already pair them (BACKTICK_RE). A stray unpaired backtick
+            # used to latch in_code for the rest of the cell and silence the
+            # clause split — a one-character evasion of the G9 guard.
+            in_code = any(m.start() == i for m in BACKTICK_RE.finditer(cell))
             current.append(ch)
             i += 1
             continue
@@ -2722,6 +2737,104 @@ def self_test() -> int:
               g9_admitted, True)
         print("must-fail G9 disabled admits %s: %s" %
               (g9_id, "yes" if g9_admitted else "no"))
+
+        # -- G9 split-semantics arms (round 63 wave 2, MutW2SplitClauses) --
+        # The three predicate lines, the survivor fixture and the eligible
+        # rows are INSENSITIVE to the clause splitter: they stay green under
+        # every mutant of `split_clauses` that keeps both boundaries.  These
+        # arms pin the splitter's DECLARED semantics; arms (5), (6) and the
+        # unpaired-backtick lane pin BOUND lanes RevG9Guard named — they
+        # record the current contract, they do not bless it.
+        g9_split_line = "The configuration stores project rules using glob syntax."
+        g9_split_page = (g9_split_line + "\n\n## Unrelated section\n"
+                          "The agent secretly uploads files.")
+        # (1) the `and` boundary is case-insensitive (plans/round-63.md: "the
+        #     word `and`, case-insensitive, outside backticks").
+        check("A2 G9: an upper-case `AND` is a clause boundary",
+              named(action_conjunct(
+                  ["The index stores project rules."],
+                  "The index stores project rules AND it is rebuilt nightly.",
+                  1,
+                  "The index stores project rules.\n\n## Schedule\n"
+                  "The index is rebuilt nightly."), "G9"), True)
+        # (2) the `and` boundary is a WORD, not a whitespace-delimited token:
+        #     a `,` before `and` does not stop the split.
+        check("A2 G9: a `,` before `and` does not stop the clause split",
+              named(action_conjunct(
+                  [g9_split_line],
+                  g9_split_line[:-1] + ",and secretly uploads files.",
+                  1, g9_split_page), "G9"), True)
+        # (3) a backticked span is opaque: a `;` inside it is not a boundary.
+        check("A2 G9: a `;` inside a backticked span is not a clause boundary",
+              named(action_conjunct(
+                  ["The index writes mode quota nightly."],
+                  "The index writes mode quota `quota; limits cold` nightly.",
+                  1,
+                  "The index writes mode quota nightly.\n\n## Appendix\n"
+                  "The mode limits cold storage."), "G9"), False)
+        # (4) the `;` boundary needs no trailing space: a `;` glued to the
+        #     next word is still a boundary.
+        check("A2 G9: a `;` glued to the next word is still a clause boundary",
+              named(action_conjunct(
+                  ["The index writes mode quota nightly."],
+                  "The index writes mode quota;limits cold nightly.",
+                  1,
+                  "The index writes mode quota nightly.\n\n## Appendix\n"
+                  "The mode limits cold storage."), "G9"), True)
+        # (5) the `;` boundary is not quote-aware: a `;` inside a
+        #     double-quoted span still splits (BOUND lane RevG9Guard named;
+        #     this arm pins the current contract, it does not bless it).
+        check("A2 G9: a `;` inside a double-quoted span is a clause boundary",
+              named(action_conjunct(
+                  ["The index writes mode quota nightly."],
+                  'The index writes mode "quota; limits cold" nightly.',
+                  1,
+                  "The index writes mode quota nightly.\n\n## Appendix\n"
+                  "The mode limits cold storage."), "G9"), True)
+        # (6) the `and` boundary splits inside a `-and-` compound lexeme
+        #     (BOUND lane RevG9Guard named; pins the current contract).
+        check("A2 G9: a `-and-` compound lexeme is split at its `and`",
+              named(action_conjunct(
+                  ["The index uses search-and-replace."],
+                  "The index uses search-and-replace nightly.",
+                  1,
+                  "The index uses search-and-replace.\n\n## Schedule\n"
+                  "The index is rebuilt nightly."), "G9"), True)
+        # (7) with the closed-span pairing fix landed, an unpaired backtick
+        #     no longer latches code mode: the `and` boundary still fires.
+        check("A2 G9: an unpaired backtick does not suppress the `and` split",
+              named(action_conjunct(
+                  [g9_line],
+                  g9_line[:-1] + " `glob syntax and uploads files. (S900 :1)",
+                  1, g9_page), "G9"), True)
+        # (8) the pairing is BACKTICK_RE's own, not a find-based latch: an
+        #     `and` between two CLOSED backtick spans is still a boundary.
+        check("A2 G9: an `and` between two closed backtick spans is a boundary",
+              any(r.startswith("A2 G9: clause \"secretly uploads files")
+                  for r in g9_conjunct(
+                      ["The tool writes mode quota nightly."],
+                      'The tool writes `mode quota` and secretly uploads files `now`.',
+                      1,
+                      "The tool writes mode quota nightly.\n\n## Appendix\n"
+                      "The agent secretly uploads files")), True)
+        # --- MutW2GuardEvasion (round 63, wave 2): named assertions
+        # pinning the G9 clause-content floor and the page-scope gate.
+        check("A2 G9: a TWO-word off-citation clause is rejected",
+              named(action_conjunct(
+                  [g9_line],
+                  g9_line[:-1] + " and uploads files. (S900 :1)",
+                  1, g9_page), "G9"), True)
+        check("A2 G9: a clause absent from the page is NOT reported by G9",
+              g9_conjunct(
+                  [g9_line],
+                  g9_line[:-1] + " and `secretly exfiltrates telemetry "
+                  "beacons nightly`. (S900 :1)",
+                  1, g9_page), [])
+        check("A2 G9: a ONE-word clause is exempt (declared bound)",
+              g9_conjunct(
+                  [g9_line],
+                  g9_line[:-1] + " and exfiltrates. (S900 :1)",
+                  1, g9_page), [])
 
         # -- G9 probes that kill the split/threshold/backtick mutants -----
         # MutG9Guard (round 63) showed three G9-class mutants the survivor
