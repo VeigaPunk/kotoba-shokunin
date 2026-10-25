@@ -127,3 +127,5 @@ corpus-index omission below) is worked here.
 - The C1 base control is `.ufo/waves/round-67/w1/controls/C1-base.txt`; the id-collision outputs are
   `.ufo/waves/round-67/w1/controls/{reg-ids,staged-ids,collisions}`; the pre-append census of the
   scratch mirror is `.ufo/waves/round-67/w1/controls/census-validate-append.txt`.
+
+- **M107 — class: a seat wrote into a production directory it did not own.** Evidence: the wave-2 `ExecTransform` seat created an empty `corpus/live.md` inside the lane's corpus directory (0 bytes, untracked, found by the final sweep after the last seat write). Captured-by: `none` — the wave context named the report directory and the draft/control paths as the seat-writable surface, but no rule forbade a scratch write inside `corpus/`. Fix: the empty file was removed by the L1 in the final sweep and is not committed; the corpus directory stays L1-owned. Shown able to fail: `git status --porcelain` lists `corpus/live.md` as an untracked file before the sweep and lists nothing after it.
