@@ -112,14 +112,16 @@ def _baseline_values(repo: Path, rev: str) -> dict[str, int]:
         }
 
 
-def check(repo: Path, rev: str, root: Path) -> tuple[int, list[str]]:
+def check(repo: Path, rev: str, root: Path, records_override: dict[str, str] | None = None,
+          observed_override: dict[str, int] | None = None) -> tuple[int, list[str]]:
     findings: list[str] = []
-    records = {}
-    for path in RECORDS:
-        text = _git_show(repo, rev, path)
-        if text is None:
-            raise EnvError(f"cannot read {path} at {rev}")
-        records[path] = text
+    records = dict(records_override or {})
+    if not records_override:
+        for path in RECORDS:
+            text = _git_show(repo, rev, path)
+            if text is None:
+                raise EnvError(f"cannot read {path} at {rev}")
+            records[path] = text
     joined = "\n".join(records.values())
 
     closed = 0
@@ -160,7 +162,7 @@ def check(repo: Path, rev: str, root: Path) -> tuple[int, list[str]]:
             "corpus.pointers.report_total": checks.get("corpus.pointers.report_total", {}).get("expect"),
             "corpus.pointers.commit_total": checks.get("corpus.pointers.commit_total", {}).get("expect"),
         }
-        observed = _baseline_values(repo, rev)
+        observed = observed_override if observed_override is not None else _baseline_values(repo, rev)
         mapping = {
             "corpus.index.tracked_files": observed["tracked_files"],
             "corpus.index.unindexed": observed["unindexed"],
@@ -179,12 +181,82 @@ def check(repo: Path, rev: str, root: Path) -> tuple[int, list[str]]:
     return closed, []
 
 
+def selftest(repo: Path) -> int:
+    """One honest world and one broken world per routed defect.
+
+    The worlds are synthetic: the records and the gate measurement are injected, so the
+    self-test never touches the repository and never runs the corpus gate.
+    """
+    good_records = {
+        "LOG.md": f"the observed base line was\n{OBSERVED}\n{REAL_RECEIPT}\n{JUNK}\n",
+        "SCORECARD.md": f"{OBSERVED}\n",
+        "corpus/lessons/round-68.md": f"{REAL_RECEIPT}\n{JUNK}\n",
+    }
+    good_readme = f"| Round-67 spot-check | `lessons/{Path(SPOTCHECK).name}` | x |\n"
+    good_baseline = json.dumps({"checks": {
+        "corpus.index.tracked_files": {"expect": 7},
+        "corpus.index.unindexed": {"expect": 0},
+        "corpus.pointers.report_total": {"expect": 5},
+        "corpus.pointers.commit_total": {"expect": 4},
+    }})
+    observed = {"tracked_files": 7, "unindexed": 0, "report_total": 5, "commit_total": 4}
+
+    def run_world(records, readme, baseline, junk_exists):
+        with tempfile.TemporaryDirectory(prefix="k68-selftest-") as tmp:
+            root = Path(tmp)
+            (root / README).parent.mkdir(parents=True, exist_ok=True)
+            (root / BASELINE).parent.mkdir(parents=True, exist_ok=True)
+            (root / README).write_text(readme, encoding="utf-8")
+            (root / BASELINE).write_text(baseline, encoding="utf-8")
+            (root / JUNK).mkdir(parents=True, exist_ok=True)
+            if not junk_exists:
+                (root / JUNK).rmdir()
+            return check(Path("/nonexistent"), "rev", root,
+                         records_override=records, observed_override=dict(observed))
+
+    failures = 0
+    n, findings = run_world(good_records, good_readme, good_baseline, False)
+    if n != TOTAL:
+        print(f"FAIL honest world: closed {n} of {TOTAL}; {findings}", file=sys.stderr)
+        failures += 1
+    else:
+        print(f"PASS honest world: closed {TOTAL} of {TOTAL}")
+
+    broken = {
+        "D1 correction absent": ({k: v for k, v in good_records.items() if OBSERVED not in v},
+                                 good_readme, good_baseline, False),
+        "D2 receipt path absent": ({k: v for k, v in good_records.items() if REAL_RECEIPT not in v},
+                                   good_readme, good_baseline, False),
+        "D3 disclosure absent": ({k: v for k, v in good_records.items() if JUNK not in v},
+                                 good_readme, good_baseline, False),
+        "D4 index row absent": (good_records, good_readme.replace(
+            f"`lessons/{Path(SPOTCHECK).name}`", "`lessons/absent.md`"), good_baseline, False),
+        "D4 stale baseline": (good_records, good_readme, json.dumps({"checks": {
+            "corpus.index.tracked_files": {"expect": 1},
+            "corpus.index.unindexed": {"expect": 0},
+            "corpus.pointers.report_total": {"expect": 5},
+            "corpus.pointers.commit_total": {"expect": 4}}}), False),
+    }
+    for name, (records, readme, baseline, junk) in broken.items():
+        n, findings = run_world(records, readme, baseline, junk)
+        if n == TOTAL:
+            print(f"FAIL broken world survived: {name} -> closed {n}", file=sys.stderr)
+            failures += 1
+        else:
+            print(f"PASS broken world rejected: {name}")
+    print(f"self-test: {failures} failure(s) over {len(broken) + 1} assertions")
+    return 1 if failures else 0
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(add_help=True)
     ap.add_argument("--rev", default=None, help="measured revision (full sha)")
     ap.add_argument("--repo", default=str(Path(__file__).resolve().parent.parent))
+    ap.add_argument("--self-test", action="store_true")
     args = ap.parse_args(argv)
     repo = Path(args.repo)
+    if args.self_test:
+        return selftest(repo)
     try:
         if not args.rev:
             raise EnvError("--rev <full-sha> is required")
