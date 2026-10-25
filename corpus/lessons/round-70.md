@@ -133,6 +133,22 @@ announcement post) are the suggested sample.
   sweep only after every wave seat has returned and immediately before the report; the round-start
   state (`plans/round-70.md` § Inherited state, two modified paths) is the red-before, and the C1
   K69-5 item fails at the base on the unpinned blobs.
+- **M116 — class: vacuous (an unsatisfiable counter item, this round's own).** Evidence: the frozen
+  C1 item K69-11 runs `verify_skill_checklist.py --json` in a `git clone --shared` sandbox under
+  the system temp dir, but the gate's `governance.citation_resolves` resolves `../` tokens against
+  the checkout's parent — the fleet root only when the checkout is the real lane. In any `/tmp`
+  sandbox the three round-65 corrected tokens and 30+ other `../.ufo/…` tokens are dead, so the
+  item reads FAIL at every revision, repaired or not: at the content commit
+  `8edeb4900f0b576881a8216ec6dc54599299ff59` the counter printed `r69 routed defects closed 9 of
+  10` with `K69-11: governance.citation_resolves FAIL`, while the same gate run in the clean lane
+  tree at that commit reads 11/11 PASS. Captured by: `none` — Q48/Q45 ask for controls and a census
+  before a target, and the controls here were all below-target worlds; the self-test's honest
+  world used a fake repo, so no honest run of the real sandbox path happened before freezing.
+  **Fix (shown able to fail):** before freezing any counter item that runs a lane gate in a
+  sandbox, run the item once on an honest real world and commit that receipt; this round's
+  first measurement (`receipts/C1-measure.txt`, 9 of 10) is the red-before. The frozen predicate is
+  not changed after data: C1 stands a **miss as declared** (9 of 10), and K69-11's repair is shown
+  separately by an in-place receipt (`receipts/K69-11-inplace.txt`), outside the claim.
 
 ## Status changes
 

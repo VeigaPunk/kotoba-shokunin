@@ -17,7 +17,7 @@ trigger rate). Human review is reserved for what neither can capture.
 | id | fact | row | located quote |
 |---|---|---|---|
 | F1 | The one hand-authored artefact lives inside the skill directory at `evals/evals.json` (prompt, expected output, optional input files per case). | S209 | "The main file you author by hand is evals/evals.json." |
-| F2 | Three more JSON files are produced by the run, not written by the author: per-run `grading.json` and `timing.json`, and one `benchmark.json` per iteration. | S209 | "The other JSON files (grading.json, timing.json, benchmark.json) are produced during the eval process" |
+| F2 | Three more JSON files come out of the eval run rather than being authored up front — per-run `grading.json` and `timing.json`, and one `benchmark.json` per iteration — produced by the agent, by scripts, or by the author during the run. | S209 | "The other JSON files (grading.json, timing.json, benchmark.json) are produced during the eval process" |
 | F3 | Every case runs twice — with the skill and without it (or against a snapshot of the previous version) — so the result is a delta over a baseline, not an absolute score. | S209 | "run each test case twice: once with the skill and once without it" |
 | F4 | Grading is evidence-bearing: each assertion gets PASS or FAIL plus evidence that quotes or references the output. | S209 | "recording PASS or FAIL with specific evidence" |
 | F5 | Assertions a program can check (valid JSON, row count, file exists) go to a verification script; an LLM judge is the fallback for the rest. | S209 | "scripts are more reliable than LLM judgment for mechanical checks" |
