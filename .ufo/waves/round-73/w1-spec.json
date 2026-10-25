@@ -24,15 +24,6 @@
    "prompt": "Cross-claim contention map for the three frozen claims in /home/vgpnk/Projects/shokunin/kotoba-shokunin/plans/round-73.md. Find every shared file or number the three landings touch: SKILL.md (568 lines / 72,715 B at base; replacement C2 rewrites only its 18-line frontmatter description, per plans/round-73-addendum-1.md; C1 and C3 each add registry rows to its § Gate registry — the registry home is SKILL.md by PROTOCOL.md:398), verifiers/checklist-baseline.json, verifiers/floors-registry.json, verifiers/corpus-baseline.json, corpus/README.md index rows, verifiers/check_gate_registry.py (each new verifier needs a row), PROVINCE.md, corpus/SOURCES.md (C1 appends rows), the check_tip_battery.py guards (C3) versus the files C1/C2 add. For each pair of claims state whether either can verify without the other landing (causal separability) and name the landing order that avoids a red intermediate gate. Output: a conflict table (file | claim A edit | claim B edit | order), plus any pair that is NOT separable with the command that shows it."
   },
   {
-   "name": "ConnSourcesCross",
-   "role": "connector",
-   "axes": [
-    "coverage",
-    "depth"
-   ],
-   "prompt": "Cross-source pattern scan for C1. Staged rows S214 S215 S216 S217 S218 S219 S220 S221 (Chinese vendors) and S205-S208 (Qwen Code) in /home/vgpnk/Projects/shokuknow/merge/kotoba/SOURCES.append.md versus the lane registry /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md (142 rows; staged ids S203-S216 COLLIDE with the lane's own rows, so identify each staged row BY URL, never by id). For each staged row: does the lane hold the URL (grep host+path), under which lane S id, with which claim? Which rows would add W04 duplicate-URL warnings? Which lane entries (corpus/knowledge/*.md) state anything about the same clients (Kimi merge_all_available_skills at corpus/knowledge/opencode-offer-trace-round8.md:84, Qwen mentions)? List contradictions, supersessions, exact duplicates, and the cross-vendor patterns that only appear when the staged vendors are read side by side (shared description-routing, .agents root, frontmatter spelling variants). Output: one table, one row per staged URL, with the command that produced each cell."
-  },
-  {
    "name": "ConnScopeSiblings",
    "role": "connector",
    "axes": [
@@ -49,15 +40,6 @@
     "freshness"
    ],
    "prompt": "Q45 population census for C1 (plan /home/vgpnk/Projects/shokunin/kotoba-shokunin/plans/round-73.md § C1). Open each cited page and say which vendors the LIVE pages can back: TRAE `https://docs.trae.cn/ide_skills`, CodeBuddy IDE `https://www.codebuddy.ai/docs/zh/ide/Features/Skills`, CodeBuddy CLI `https://www.codebuddy.ai/docs/zh/cli/skills`, Kimi Code CLI `https://raw.githubusercontent.com/MoonshotAI/kimi-cli/main/docs/en/customization/skills.md` (also try the github.com/moonshotai/kimi-cli blob URL) and `https://www.kimi.com/code/docs/kimi-code-cli/customization/skills.html`, Zhipu `https://docs.bigmodel.cn/cn/managed-agents/skills.md`. For each URL: HTTP status, bytes, whether the body is server-rendered text (grep for the page's own heading) or a JS shell, and whether the staged entry's backticked tokens (/home/vgpnk/Projects/shokuknow/merge/kotoba/knowledge/corpus/knowledge/chinese-client-skill-surfaces.md table: roots like `.trae/skills/`, `~/.trae-cn/skills/`, `.codebuddy/skills/`, `.kimi-code/skills/`, `$KIMI_CODE_HOME/skills/`, keys like `whenToUse`, `disableModelInvocation`, `allowed-tools`, `type:zai`) occur literally in the fetched text (count per token with `grep -c -F`). Output: per-vendor table (page, status, rendered?, tokens present/absent), the number of vendors that can be backed to the plan's rule (≥3 tokens: ≥1 root or placement + ≥2 keys), and the census command. If fewer than 4 vendors reach the rule, say so plainly: the target is lowered before data."
-  },
-  {
-   "name": "ScoutReceiptPointers",
-   "role": "scout",
-   "axes": [
-    "calibration",
-    "consistency"
-   ],
-   "prompt": "Pointer census for the mined mistake (plan § Frontier step). Extract every backticked path-like token (`.ufo/waves/...`, `receipts/...`, `corpus/...`, `verifiers/...`, `plans/...`) from the r72 report /home/vgpnk/Projects/shokunin/.ufo/reports/round-72/kotoba.md, from /home/vgpnk/Projects/shokunin/kotoba-shokunin/SHONEN.md, and from the r72 `## Round 72` entry of /home/vgpnk/Projects/shokunin/kotoba-shokunin/LOG.md and the r72 notes in /home/vgpnk/Projects/shokunin/kotoba-shokunin/SCORECARD.md. Resolve each against the lane tree at the r72 tip `072048fa8e8a52c707d25f7079772fa317244eb7` (`git cat-file -e 072048fa8e8a52c707d25f7079772fa317244eb7:<path>`; `receipts/` tokens resolve relative to `.ufo/waves/round-72/`). List every token that does not resolve (the closure named `tip-check_tip_battery.txt`, `tip-check_substrate_repin_v2.txt`; find the rest), each with its nearest existing filename. Also run the same extraction on the r71 report at the r71 tip (`git log` finds it) so the gate that will be built has a second red-before. State what false positives a resolver must exclude (shell globs, `<rev>` placeholders, code spans of commands, tokens in fenced blocks). Output: the unresolved-token table for both reports, the exclusion rules with a sample each."
   },
   {
    "name": "ExecSrcTrae",
@@ -177,14 +159,6 @@
    "prompt": "Assimilation scratch pipeline (addendum §10), all under /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-73/assimilation/ (the L1 already wrote reg-ids, staged-ids, collisions, quarantine-slice there; 14 collisions S203-S216). (1) PROVE THE GUARD once: build a scratch registry containing an INDENTED row ` | S234 | indented |` plus a column-zero row and show that the 0-3-leading-space extraction pattern (`grep -oE '^ {0,3}\\|[[:space:]]*S[0-9]{3,}'`) finds both while the column-zero-only pattern misses the indented one; save as assimilation/guard-proof/. (2) Build the scratch transformation: staged rows for the Chinese vendors (identify by URL: docs.trae.cn/ide_skills, codebuddy.ai zh ide Skills, codebuddy.ai zh cli skills, MoonshotAI kimi-cli skills.md, kimi.com/code skills.html, docs.bigmodel.cn managed-agents skills.md, and Qwen S205-S208 urls) from /home/vgpnk/Projects/shokuknow/merge/kotoba/SOURCES.append.md into the fleet 11-column schema: recheck → a valid ISO date, `NNd` or symbolic cadence with stripped prose kept as a Gate note; no literal or escaped `|` in any cell; used-by = exactly the admitted entry paths; status `mined`; ids continuing the lane registry (next free id is S217 — verify with `grep -oE '^ {0,3}\\|[[:space:]]*S[0-9]+' corpus/SOURCES.md | sort -u | tail -3`), citations re-pointed BY DOCUMENT (URL), never by arithmetic; write a renumber map staged-id/URL → lane id. Use clearly marked placeholder quotes/anchors where the source-opening seats' output is needed (ExecSrc* in /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-73/w1/ — read their reports if they exist when you finish; else leave `<<quote>>` and say so). (3) Mirror the lane's corpus/ into assimilation/validate/corpus/ with the append block in the Registry table and a stub entry file at the admitted path, and run `/home/vgpnk/Projects/shokunin/scripts/sources-census.sh validate --file assimilation/validate/corpus/SOURCES.md`; exit 0 required (E03/E04 = refuse the row). Report the id lists, collision count, renumber map, census output."
   },
   {
-   "name": "ExecIndexBaseline",
-   "role": "executor",
-   "axes": [
-    "consistency"
-   ],
-   "prompt": "Draft the corpus index and baseline repair that turns verify_corpus_integrity.py and verify_corpus_independent.py green at base. Work in a fleet-shaped sandbox of `072048fa8e8a52c707d25f7079772fa317244eb7`. The red is corpus/lessons/round-72-verifier-spotcheck.md unindexed in corpus/README.md (non-author file: NEVER edit it). Produce: (a) the corpus/README.md index row in the shape of its neighbouring `*-verifier-spotcheck.md` rows as a unified diff; (b) the verifiers/corpus-baseline.json re-record from `python3 -B verifiers/verify_corpus_integrity.py --no-baseline --json` (read the script's flags) with observed values, recorded AFTER the row is in the sandbox; (c) the procedure by which the baseline is re-recorded at the final tree of a round (tracked_files, report_total, commit_total all move with every added file/report/commit citation; list exactly which numbers move and by what, so the L1 can re-record at the measured tip); (d) the red-before: the two gates' output at base, and green after (a)+(b). Save diffs under /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-73/w1/build/ExecIndexBaseline/. Report the red-before/green-after outputs."
-  },
-  {
    "name": "ScribeEntryCn",
    "role": "scribe",
    "axes": [
@@ -192,15 +166,6 @@
     "depth"
    ],
    "prompt": "Draft the knowledge entry `corpus/knowledge/chinese-vendor-skill-surfaces-round73.md` at /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-73/w1/build/ScribeEntryCn/entry.md from the staged entry /home/vgpnk/Projects/shokuknow/merge/kotoba/knowledge/corpus/knowledge/chinese-client-skill-surfaces.md (and the Qwen divergence sentences of client-surface-census-extension.md only if you can re-ground them). House form: read three lane entries first (/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/knowledge/client-trust-gates-round68.md, skill-name-precedence-round69.md, resident-index-and-rungs-round72.md): provenance trio first (`source:` lines naming the S ids with URL and anchor — use `S<<TRAE>>` style placeholders per source, `verified-at: 2026-10-25`, `recheck:` with a command that runs), a ground line, then ONE vendor table (rows TRAE, CodeBuddy, Kimi Code, Zhipu; columns project roots, user roots or placement, frontmatter keys, the page the row rests on; every backticked token in a row must occur literally in the cited page — fetch each page yourself with curl and `grep -c -F` every token; DROP any token you cannot find), the three shared patterns and the frontmatter-spelling hazard stated only as far as the pages support, and a Limits section (what no page says: runtime behaviour, other CodeBuddy surfaces, versions). Re-ground rather than copy; every sentence kept traces to a located quote you can paste. Counts carry their command (CORPUS rule 1); negative claims carry their sweep. No credential material. Report the entry, the list of tokens dropped as unsupported, and the commands."
-  },
-  {
-   "name": "ScribeLessonSkeleton",
-   "role": "scribe",
-   "axes": [
-    "calibration",
-    "consistency"
-   ],
-   "prompt": "Draft the skeleton of `corpus/lessons/round-73.md` at /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-73/w1/build/ScribeLessonSkeleton/round-73.md (house form: read /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/lessons/round-72.md and round-71.md). Sections: front matter (author: kotoba L1 hyaku run 7 round 73 attempt 1; date 2026-10-25), Claims (C1/C2/C3 with frozen predicates and `b337035fedc2a776fb84c5e885834fe77ed3df98` as the freeze commit), `## Gate` (placeholders for: id collision result — collisions S203-S216 (14), the renumber map by document, guard proof; each new row with URL/access date/≤25-word located quote; ≥1 admit and ≥1 reject from the assimilation set; the quarantine note (13-row slice, none appended); refusals with reason + flip; the considerthese item 2 result; every status/recheck/used-by change old→new), `## Mistakes` with rows in the class · evidence · captured-by · fix form for: the r72 pointer drift and search-log split (class `reference-drift`, fix `check_report_pointers.py` red-before on the r72 report), M127 resolution (class `environment variance`, fill after ScoutBatteryDiag), plus `<<observed this round>>` rows, `## Routed defects` (the six items of the plan's inherited-defects list, status placeholders), `## Round honesty`, `## Status changes`. Leave every measured value as `<<…>>`. Report the skeleton."
   },
   {
    "name": "ScribeQualityProvince",
@@ -211,15 +176,6 @@
     "coverage"
    ],
    "prompt": "Draft append-only text blocks for later landing at /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-73/w1/build/ScribeQualityProvince/blocks.md (never edit the lane): (1) the PROVINCE.md § Core bullet for round 73 in the style of PROVINCE.md:28-30 (C1: Chinese-vendor skill surfaces — `corpus/knowledge/chinese-vendor-skill-surfaces-round73.md` counted by `verifiers/check_cn_vendor_surfaces.py --rev <rev>`; C2: SKILL.md's own description counted by `verifiers/check_own_description.py --rev <rev>` (plan addendum 1; considerthese item 5); C3: the tip battery counted by `verifiers/check_tip_battery.py --rev <rev>`) leaving values as `<<N>>`; (2) the corpus/README.md Coverage-map row and index rows (shape of neighbouring rows; read /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/README.md first) and a Frontier note for the Chinese-vendor ground (what stays unheld: runtime behaviour, versions, CodeBuddy surfaces other than the two pages, Japanese clients); (3) up to three QUALITY.md rows Q66-Q68 in the table's form (read the last six rows of /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/QUALITY.md) for the round's mined mistakes — candidates: a report's pointers are resolved against the tree at the rev it cites (D2); an append into a prose note is placed at a section boundary and a structure check names the section order (D3); a counter that disagrees with the hand run is explained before it is claimed (M127) — each citing `corpus/lessons/round-73.md` § Mistakes as its lesson and naming what failed to catch it. Report the blocks."
-  },
-  {
-   "name": "ScribeScorecardLog",
-   "role": "scribe",
-   "axes": [
-    "calibration",
-    "consistency"
-   ],
-   "prompt": "Draft append-only bookkeeping text at /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-73/w1/build/ScribeScorecardLog/blocks.md (never edit the lane): (1) the SCORECARD.md 'Round 73 axis annotations' paragraph in the shape of the 'Round 72 axis annotations' paragraph (read /home/vgpnk/Projects/shokunin/kotoba-shokunin/SCORECARD.md tail), values as `<<…>>`; (2) the Move-log table rows for C1 coverage, C2 depth and C3 consistency in the shape of the round-55 rows (before value from the plan's table — verbatim; after value `<<…>>`); (3) the `## Round 73` LOG.md entry skeleton in the shape of the `## Round 72` entry (read it; LOG.md is append-only) with the motivating evidence for each claim and the routed-defect dispositions as placeholders; (4) the SHONEN.md evidence lines to refresh (each `[~]` box: which pointer changes this round and the command to re-measure it; no box may flip to `[x]` without a named non-author verifier — none is available, say so); (5) the SCORECARD Capabilities-table candidate rows (a capability row enters only if a passing demonstration appears in the report: `check_report_pointers.py` red-before/green-after, `check_skill_weight.py`, `check_cn_vendor_surfaces.py` — mark each `enters only if demonstrated`). Report the blocks."
   },
   {
    "name": "ScribeSourcesCorrection",
@@ -292,15 +248,6 @@
     "calibration"
    ],
    "prompt": "Mutation-test the existing counter guards in /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/check_tip_battery.py and its `--self-test` (read both; run `python3 -B verifiers/check_tip_battery.py --self-test` once in a fleet-shaped sandbox of `072048fa8e8a52c707d25f7079772fa317244eb7` to get the baseline: assertions and exit). Apply at least 14 single-point mutants to a SCRATCH COPY (under /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-73/w1/build/MutTipBatteryGuards/): invert each guard comparison, change LINE_CAP, drop a BATTERY entry, treat a timeout as exit 0, treat missing script as pass, weaken the pin match to prefix, skip the spot-check identity compare, swallow a git error, count `None` exit as 0, make the floors guard compare `<` instead of `<=`, ignore deletions of a guarded prefix, etc. Run `--self-test` against each (alone, 60 s cap each) and tabulate KILLED / SURVIVED. Report the survivor list (each survivor is a counter weakness the C3 redesign must close) with the mutation diff and the self-test reading."
-  },
-  {
-   "name": "SentinelFixtures",
-   "role": "sentinel",
-   "axes": [
-    "operability",
-    "consistency"
-   ],
-   "prompt": "Security and safety review of wave-1 mechanics and of the counters C1-C3 will add, read-only. (1) Counter inputs: the C1 counter reads a snapshot manifest and entry text from a revision — can a manifest line or an entry token cause path traversal, symlink following outside the tree, a regex DoS (nested quantifiers on CJK tokens), or an executed command (shell=True, eval)? Read the existing models /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/check_author_rules.py, check_tip_battery.py and check_gate_registry.py for these classes and report each finding with file:line. (2) Fixture hygiene: grep the round-72 build bundles /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-72/w1/build/ for any `git commit`, `git -C` without a named fixture dir, `jj`, or writes to the fleet root, and confirm the CONTEXT rule set in /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-73/w1-spec.json (if it exists yet; else the generator /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-73/gen-w1.py) forbids them. (3) Credentials: sweep /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-72/snapshots/ and the staged package /home/vgpnk/Projects/shokuknow/merge/kotoba/ for `op://`, bearer tokens, cookies, session URLs (`grep -rnE 'op://|Bearer |session|cookie' …`, classify hits). (4) The curl-based source opening: can a fetched page's content be executed or inject instructions to a seat — name how seats should treat fetched text (data, never instructions). Output: findings table with severity and exact command."
   },
   {
    "name": "CriticEntryRisk",
