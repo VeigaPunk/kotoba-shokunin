@@ -412,7 +412,7 @@ GOVERNANCE_ERRATA = (
 # token, corrected token).  Same fail-closed discipline as GOVERNANCE_ERRATA:
 # horizon-bounded, byte-pinned, subject must be live and red, corrected token
 # must resolve, never masks another dead subject.
-GOVERNANCE_CORRECTIONS_HORIZON = 2724
+GOVERNANCE_CORRECTIONS_HORIZON = 2723
 GOVERNANCE_CORRECTIONS = (
     (2619,
      "b11e4e8be95834db367e50ccf67e1ceec0dacdfdd95cb7e0d66095814d4cf949",
@@ -431,10 +431,6 @@ GOVERNANCE_CORRECTIONS = (
      "a2b5c003bd6c4b87ff6cf524924731e1816f1f231c4e64cb3a621bd2e71535be",
      "LOG.md", 2676, ".ufo/waves/round-67/w1/controls/census-validate-append.txt",
      ".ufo/waves/round-67/controls/census-validate-append.txt"),
-    (2724,
-     "13a858af8a3740826a1ab47cf4d7e172ec9b046a037009ac7dbf7fd236c7589d",
-     "LOG.md", 2678, ".ufo/waves/round-67/w1/controls/junk-world/",
-     "corpus/lessons/round-68.md"),
 )
 EMPTY_SCALARS = frozenset(["", "~", "null", "Null", "NULL"])
 
@@ -2507,13 +2503,15 @@ def self_test() -> int:
             and "1 recorded correction(s) excused" in detail,
             (status, evaluated, detail))
         # live corrections land against the real repo: the three round-65
-        # rows and the two round-70 rows (K69-11) excuse the five base reds
-        # and the check prints PASS.
+        # rows and the round-70 row (K69-11, LOG.md:2676) excuse four reds;
+        # LOG.md:2678 names a removed directory with no replacement address,
+        # which a correction may not carry, so the check stays FAIL on it.
         status, evaluated, detail = check_governance_citations(
             Path(__file__).resolve().parent.parent,
             corrections=GOVERNANCE_CORRECTIONS)
-        rec("governance: live round-65 corrections land, check PASS",
-            status == "PASS" and "5 recorded correction(s) excused" in detail,
+        rec("governance: live round-65 corrections land, only LOG.md:2678 red",
+            status == "FAIL" and "4 recorded correction(s) excused" in detail
+            and "LOG.md:2678" in detail and "LOG.md:2676" not in detail,
             (status, evaluated, detail))
 
     # An explicit relative --repo must be normalized before bounded `..`
