@@ -32,7 +32,7 @@ So: **the round now explains the freeze-time exit 2**, and the explanation's cor
 setup artifact, not a defect verdict; the measurement path is where a missing entry becomes a content
 verdict. Its **closing clause is false**, and the round's answer to the second half of the ticket
 ("at the branch tip the self-test now exits 0") is **no for the committed tip, yes for the working
-tree**. F1-F5 below are the calibrated defects; the exonerations section records what the receipt does
+tree**. F1-F7 below are the calibrated defects; the exonerations section records what the receipt does
 not corrupt. One rebuttal was accepted: ScoutStaleLane's point that the `--self-test` exit 2 is
 implemented and intentional narrows my first framing — the counter is not routed as a defect, only its
 docstring carve-out (F2b) and its missing receipt (F2).
@@ -54,7 +54,8 @@ So the freeze receipt's hash lines no longer describe the working tree, and the 
 | live counter bytes, committed tip `a238989`, entry absent | `--self-test` | `selftest setup failed…`, **exit 2** |
 | live counter bytes, base `a5f7459` | `--rev a5f7459` | `skill precedence backed 0 of 5` / `entry missing`, **exit 1** |
 | live counter bytes, sandbox commit carrying the entry (`8ca2828`) | `--rev HEAD` | `skill precedence backed 5 of 5`, **exit 0** |
-| live C2 counter bytes (`9cf97497…`, edited 10:22:44Z) | `--self-test` | `0 failure(s) over 25 assertions`, **exit 0** — intermediate copies inside the edit window: `fdafd542…` → `NameError: R68_INS`, traceback exit 1; `5be7f1e1…` → 1 failure over 23 |
+| live C2 counter bytes (`9cf97497…`, edited 10:22:44Z) | `--self-test` | `0 failure(s) over 25 assertions`, **exit 0** — intermediate copies inside the edit window: `fdafd542…` → `NameError: R68_INS`, traceback exit 1; `5be7f1e1…` → 1 failure over 23. Those two blobs are gone from disk, so only this cell's final state is reproducible |
+| C3 counter, unchanged bytes (`c85f9d7…`) | `--self-test` | `0 failure(s) over 10 assertions`, **exit 0** |
 
 `git ls-tree HEAD corpus/lessons/` also carries no `round-69` lesson: entry and lesson are
 uncommitted drafts. **Counter bytes matched the receipt at 10:17Z and no longer do**: at 10:21:28Z the
@@ -151,7 +152,7 @@ counter guards the same loop with `if src.is_file()` (`check_client_trust_gates.
 `SOURCES.md`/`README.md` raises an uncaught `FileNotFoundError` (traceback, exit 1) instead of a
 classified setup exit — the same unclassified-environment seam as F2b, one file over.
 
-### F5 — HIGH: the freeze receipt no longer pins two of the three counters it names, and no re-freeze artifact exists
+### F5 — HIGH: the shipped counters are no longer the frozen instruments, and no re-freeze artifact exists
 
 The receipt's first three lines are the freeze pin (`sha256 of the frozen counters as committed with
 plans/round-69.md`). As of this review:
@@ -174,9 +175,14 @@ truncation arm and tightens D5/D6. But they are **post-freeze and undisclosed**:
 `.ufo/waves/round-69/` or in the lesson records either new hash, and the freeze receipt still prints
 the old ones. Consequences under the lane's own bar:
 
-- **Q24** — "a receipt's recorded instrument hash is checked against the committed instrument bytes
-  before the receipt is cited" — the freeze receipt fails that check as of 10:21:28Z, so it cannot be
-  cited for either edited counter.
+- **The receipt remains true of `a238989` but no longer describes the instrument that will measure the
+  claim.** `git show a238989:verifiers/check_skill_precedence.py | sha256sum` still gives
+  `9c796574…da48` and the C2 file still gives `3202549…dcf2`, so Q24 — a receipt's hash checked against
+  the *committed* instrument bytes — passes for the revision the receipt names. The break is against
+  `plans/round-69.md:42` ("Counter semantics (frozen with this plan; sha256 recorded in the plan
+  commit's receipt)") and against the tree that will measure the claim. A reviewer can rebut "the hash
+  matches the committed bytes"; they cannot rebut "the shipped bytes are no longer the frozen
+  instrument".
 - **Seat evidence is pinned to a superseded instrument**: `MutC1Counter.md:34,167-168`,
   `RevC1Counter.md:5`, `ScribeFactsAudit.md:87` and `ExecFetchArm.md:5` all cite `9c796574…` as the
   working-tree bytes; that was true when they ran and is no longer true.
@@ -190,6 +196,39 @@ each change (MutC1Counter for the C1 arms; the D5/D6/D7 findings for C2), re-cap
 the new hashes, and the lesson's `18` updated to the measured arm count — or commit the counters at the
 frozen bytes and carry the strengthening to round 70. Either way the receipt as committed cannot be the
 round's instrument pin.
+
+### F6 — MEDIUM: the three cheapest controls cite revisions that do not exist in the lane object database
+
+Each control receipt names a sandbox commit as `measured-rev:`. Verified in the lane:
+
+```
+95651d4d6a465d7986f993cfe9c47b394fd53ea0  (C1 junk control)   ABSENT
+bf69a719846436a0a08ff4235fa9c676df09cbbd  (C2 cheap control)  ABSENT
+00b5ddeab26d94f3a07860ed5a3bfba74034a20a  (C3 cheap control)  ABSENT
+e94ae32a5cd8dc3ee8e2d247816784bec2750cc0  (r68 base)          PRESENT
+2cf0d99a6d5a3e1cb0b73e3b71cb495fd1eadc6f  (r68 tip)           PRESENT
+```
+
+(`git cat-file -e <rev>`; reps in `controls/C1-junk-control.txt`, `C2-cheap-control.txt`,
+`C3-cheap-control.txt`.) The base controls at `a5f7459` are reproducible — I re-ran the C1 base myself
+(`0 of 5`, exit 1) — but the three shortcut controls cannot be re-measured by any reader, now or at
+closure, because the objects were never pushed into the lane. That undercuts the plan's own control
+requirement (each shortcut control runs under the frozen predicate *before* data): the receipts exist,
+the evidence does not. Cure, folded into the F5 re-freeze: re-capture the three controls on
+lane-present revisions (commit the control worlds through `jj-lane.sh`, or rebuild each world from a
+lane-visible commit) and name the revision in the receipt.
+
+### F7 — LOW/MEDIUM: the C2 counter hard-codes `4081`/`251` with no receipt naming the command or revision
+
+`verifiers/check_r68_routed_repairs.py:100` fixes `R68_INS, R68_DEL = 4081, 251`, and `d7_wave_paths`
+(:312-317) compares `git diff --numstat R69_BASE..measured -- <24 paths>` to that pair by **exact
+equality**. The only record of where the numbers came from is another seat's prose
+(`.ufo/waves/round-69/w1/CritC2Repairs.md:175-176`, "verified at the lane's working tree today"), not a
+receipt naming the command and revision. Two consequences: a legitimate later append to any of the 24
+paths fails D7 for a non-defect, and the constant itself is unfalsifiable from lane artifacts if it is
+wrong. CritC2Repairs recommended a floor (`insertions ≥ 4081`, `deletions ≥ 251`); the shipped code uses
+equality. Cure: commit a receipt with the measured command and revision, and use the floor the critic
+asked for.
 
 ## What is exonerated (calibration in the other direction)
 
@@ -234,6 +273,12 @@ clone exit 2; entry overlaid exit 0). Four sharpenings after two exchanges:
 4. He reports the entry-only `KeyError` robustness item as fixed by the live setup exits; I verified
    that (:330-338) and route it as *closed inside round 69, still true of the frozen/committed bytes*
    (F2b note), not as an open defect.
+5. His Q24 refinement is adopted verbatim in F5: the receipt still hashes `a238989`'s bytes exactly, so
+   the defect is "true of a revision the lane no longer ships", not "a bad receipt". F6 and F7 are his
+   findings, verified here: the three shortcut-control revisions are `git cat-file -e` ABSENT from the
+   lane while `e94ae32`/`2cf0d99` are present, and the C2 counter's `4081`/`251` has no receipt naming
+   its measurement (only `CritC2Repairs.md:175-176` prose) while `d7_wave_paths` compares by equality
+   rather than the floor the critic recommended.
 
 ## Residual risk
 
@@ -243,9 +288,12 @@ wording fix ("working tree" for "committed tip") and the count updated to the li
 re-capture of `check_skill_precedence --self-test` under an instrument-naming filename (or a rename of
 the r68 `C1-*` receipts); F2b with a docstring carve-out or an erratum; F3/F4 persist unless the
 counter is amended at landing. F5 needs a re-freeze receipt (new sha256 lines, a note naming the seat
-findings that drove each change, re-captured controls) before any claim cites either counter's hash —
-otherwise the round ships an instrument pin that Q24 rejects on inspection. Until the entry is
-committed, every `--rev <tip>` measurement still prints `0 of 5`, exit 1.
+findings that drove each change, re-captured controls) before any claim cites the shipped instrument —
+the current receipt is true of `a238989` and describes nothing the lane will run. F6's three shortcut
+controls must be re-captured on lane-present revisions inside that same re-freeze, and F7 needs a
+receipt naming the `--numstat` command and revision behind `4081`/`251`, with the floor the critic
+asked for instead of equality. Until the entry is committed, every `--rev <tip>` measurement still
+prints `0 of 5`, exit 1.
 
 ## Verification gaps
 
@@ -256,6 +304,9 @@ committed, every `--rev <tip>` measurement still prints `0 of 5`, exit 1.
   tip" is `git rev-parse HEAD` only.
 - `--fetch` was not run (network, out of ticket scope); no claim is made about the five live pages.
 - No corpus gate was run; scope is the freeze receipt and the artifacts that could explain it.
+- The three shortcut-control revisions are absent from the lane (F6), so I verified those controls only
+  from their receipts, not by re-running them; the two C2 counter blobs I caught mid-edit are gone
+  (table note), so those two non-green observations cannot be re-derived by a reader.
 
 ## Commands run (sandboxes `/tmp/rfr69`, `/tmp/rfr69b`, `/tmp/rfr69c`; `git clone --shared`, reset to `a238989`)
 

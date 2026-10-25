@@ -150,7 +150,7 @@ parsed characters against the documented 1,024 cap — the proposal stays open.
   **Fix (shown able to fail):** each of the 24 paths is committed under this round's landing
   commit, or dispositioned — the clone is dispositioned as
   `disposition: removed .ufo/waves/round-68/w1/controls/c2falsify-clone/` — and D7 also pins the
-  landed diff at +4081/−251, so a one-line replacement of the largest log fails the counter.
+  landed diff at +6379/−251, so a one-line replacement of the largest log fails the counter.
 
 ## Status changes
 

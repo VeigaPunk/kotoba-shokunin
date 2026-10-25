@@ -2,7 +2,7 @@ source: S203 — Roo Code Documentation — Skills — https://docs.roocode.com/
 source: S204 — Amp — Agent Skills — https://ampcode.com/docs/customize/skills — the "Skill Sources and Precedence" section — located quote "Local skills mask repository skills with the same name."
 source: S205 — Deep Code — Agent Skills — https://deepcode.vegamo.cn/en/docs/configuration/agent-skills — the "Scan Locations" section — located quote "only the highest-priority one is kept"
 source: S206 — Junie — Agent Skills — https://junie.jetbrains.com/docs/agent-skills.html — the "Skill location" section — located quote "the project-level skill takes precedence and the user-level skill is ignored."
-source: S207 — opencode — Agent skills (served docs page) — https://opencode.ai/docs/skills/ — the "Troubleshoot loading" section — located quote "Ensure skill names are unique across all locations"
+source: S207 — opencode — Agent skills (served V1 docs page) — https://opencode.ai/docs/skills/ — the "Troubleshoot loading" section — located quote "Ensure skill names are unique across all locations"
 verified-at: 2026-10-25
 recheck: 90d — re-fetch all five pages and confirm each located quote and the rule it carries are unchanged
 

@@ -80,29 +80,43 @@ a (live: ≥6-word) rule cell and carries the quote; five distinct clients; an i
 `:184-240` frozen, `:193-256` live; the invariants pass through `cells[0]`/`cells[1]` only as
 non-empty/word-count tests at `:226`/`:238-241`).
 
-Six worlds built from the measured bytes, one declared substitution each, run through both counter
-versions (`/tmp/c1sem/controls/semantic_worlds.py`, `.../version_matrix.py`):
+Six worlds plus four quote/plumbing worlds, each one declared substitution, run through both counter
+versions (`/tmp/c1sem/controls/snapshot_matrix.py` and the consolidated run that produced this
+table). Base = the measured entry with the one-string S207 title fix, so P1 does not mask the
+semantic conjuncts:
 
 | world (one substitution) | frozen `9c796574` | live `dc9f1507` |
 |---|---|---|
-| honest (as measured, pre-P1 retitle) | 5 | 5 |
+| honest base | 5 | 5 |
 | Roo rule cell inverted ("a global skill beats a project one") | **5** | **5** |
-| opencode cell invents a first-wins precedence for the V1 route | **5** | **5** |
-| synthesis bullet replaced by "All five clients merge a collision." | **5** | **5** |
-| Limits negated ("all of them the lane's pinned seven") | **5** | **5** |
-| SOURCES anchor text contradicts its own rule cell | **5** | **5** |
-| 5-word section heading ("What Skills Let You Do") as the located quote | **5** | **5** |
-| 2-word section heading ("What Skills") as the located quote | **5** | **0** |
+| Amp rule cell invents a first-wins scope rule | **5** | **5** |
+| Junie rule cell claims a general project-over-user rule | **5** | **5** |
+| synthesis bullet inverted ("All five cited routes merge a collision") | **5** | **5** |
+| Limits pinned line inverted ("all five are non-pinned … every pinned client is out of scope") | **5** | **5** |
+| SOURCES anchor sentence contradicts its own rule cell | **5** | **5** |
+| located quote replaced everywhere by a 5-word heading ("What Skills Let You Do") | 0 | **5** |
+| located quote replaced everywhere by a 2-word heading ("What Skills") | 0 | 0 |
+| located quote changed only in the `source:` line (table keeps the real one) | 5 | 5 |
 
-So: a counter-green entry can state the opposite of every page on all five rows, can negate its own
-Limits, and can carry a section heading as its "located quote". The number certifies that citations
-are *plumbed*, not that the map is *true*. **This is the semantic gap the claim sentence hides.**
+So: a counter-green entry can state the opposite of the pages on all five rows, can negate its own
+Limits, and (live version) can carry a five-word section heading as its "located quote". The number
+certifies that citations are *plumbed*, not that the map is *true*. **This is the semantic gap the
+claim sentence hides.**
+
+Why the heading world passes the live counter but not the frozen one — mechanism, measured: the
+candidate pool is `_quoted(_norm(entry))`, i.e. **every** 5–25-word double-quoted span in the whole
+entry, including `source:` lines, the `## Limits` prose and the synthesis; `_row_quote` then picks
+the longest pool member that is a substring of the SOURCES anchor (`:178-181`). With the real
+sentence removed, the live counter's longest surviving match is the source line's section name
+"`What Skills Let You Do`", which the table row carries → 5. The frozen counter has no word floor,
+so a 3-word Limits label ("`Roo-specific (higher priority)`", `:45`) wins the longest match and the
+row does not carry it → 0. Neither outcome is a designed guarantee.
 
 Correction to a peer claim: `MutC1Counter`'s F3 (a 2-word section title passes) is **true of the
-frozen bytes only**; the working-tree counter raises the floor to five words (P3), and my
-reproduction of that exact S206 world returns `0 of 5` with
-`S206: no located quote of the entry occurs in the row's anchor cell`. The 5-word heading still
-passes.
+frozen bytes**, reproducible with S206 ("Skill location": no competing short label in that anchor),
+and **false of the working-tree bytes**, whose five-word floor rejects it — my S206 reproduction
+against the live file returns `0 of 5` with `S206: no located quote of the entry occurs in the
+row's anchor cell`. The live counter re-opens the same class at five words, as the table shows.
 
 ## P3 — the frozen predicate has changed identity since the freeze (false provenance)
 
@@ -155,10 +169,12 @@ Every `source:` line's section claim is accurate. S206's `SOURCES.md` word-count
 (`(12 words)`; the quote is 11), and nothing checks it.
 
 Provenance note: S203's recorded URL is a 301 to a GitHub Pages host; the `--fetch` arm follows
-redirects and prints only `found`, so the receipt cannot say which host served the quote. And
-`fetch()` (`:269-273`) tests quote *presence* only, which means the entry's own
-`recheck: 90d — … confirm each located quote **and the rule it carries** are unchanged` (`:7`) has
-no implementation anywhere: a page that kept the sentence and reversed the rule still passes.
+redirects and prints only `found`, so the receipt cannot say which host served the quote. Two further
+leniences, both measured: `fetch()` (`:269-273`) tests quote *presence* only, so the entry's own
+`recheck: 90d — … confirm each located quote **and the rule it carries** are unchanged` (`:7`) has no
+implementation anywhere (a page that kept the sentence and reversed the rule still passes); and the
+`source:` line's "located quote" clause is never compared with the table's quote cell — changing only
+the source line leaves the counter at 5 of 5 (last row of the P2 table).
 
 ### (2) fair reading of the rule cells — 3 clean, 1 partly, 1 with an uncounted citation
 
@@ -252,23 +268,27 @@ wins" column with same-name rules for six client pages (`:13-16`), which is corr
 `:23` Gemini, `:24` Claude Code; `README.md:72` "the documented rules decide between copies of one
 name"). Good — that closes the false-novelty finding.
 
-What the revision did **not** close: **S207 duplicates S024.** Same URL, same section, same
-sentence, both `mined`: S024 (`SOURCES.md:37`, opened 2026-10-22) anchors "§ Troubleshoot loading
-`skills.md:223-231`" and its rule cell already says "its only collision controls are name uniqueness
-across locations and `opencode/autoinvoke: \"false\"`". S207 (`:148`) is a second registry row for
-one source and one fact. The counter's five-distinct-clients test cannot see it (it compares cells,
-not sources), so `5 of 5` is reachable with a duplicate authority inside the five.
+What the revision did **not** close: **S207 duplicates S024.** Same URL, same section, one fact, two
+`mined` rows: S024 (`SOURCES.md:37`, opened 2026-10-22) anchors "§ Troubleshoot loading
+`skills.md:223-231`" and its rule cell already records "its only collision controls are name
+uniqueness across locations and `opencode/autoinvoke: \"false\"`"; round-50's entry quotes the
+sentence verbatim at `skill-selection-rules-round50.md:18` (`skills.md:229`). S207 (`:148`) is the
+second registry row for that source. The counter's five-distinct-clients test cannot see it (it
+compares client cells, not sources), so `5 of 5` is reachable with one authority counted twice inside
+the five.
 
 ## Impacted axes
 
 - **depth (C1, owned, 9)** — the number is a plumbing measure; at the measured instant it is 0 of 5,
   and the entry's remaining prose gaps (Amp direction, Junie scope) are exactly the depth the round
   promised.
-- **consistency (C2, owned, 10)** — three documents now disagree about the gate: `SKILL.md:517`
-  (≤25 words), the plan (≤25 words), the freeze receipt (`9c796574`, i.e. version A), and the file
-  that runs (version B, `dc9f1507`, uncommitted). `README.md:130` also still carries the retracted
-  synthesis ("Deep Code by root, Amp by source, and opencode states only a uniqueness rule") and
-  "five clients" framing that the entry's own body now contradicts.
+- **consistency (C2, owned, 10)** — the gate now has two identities and three stale descriptions:
+  `plans/round-69.md`, `SKILL.md:517` and `controls/freeze-receipt.txt` all describe/record version A
+  (≤25 words, entry `9c796574`), while the file that runs is version B (`dc9f1507`, uncommitted,
+  5–25 words + ≥6-word rule cell + quote-cell-only + `## Coverage map` heading + first-row dedupe).
+  `README.md:130` also still carries the retracted synthesis ("Deep Code by root, Amp by source, and
+  opencode states only a uniqueness rule") and the "five clients" framing that the entry's own body
+  now contradicts.
 - **sourcing/provenance** — S064 cited for a section its anchor does not hold and whose bytes have
   changed since it was mined; S207 a duplicate of S024.
 

@@ -307,10 +307,15 @@ only the r68-era revisions (`e94ae32`, `2cf0d99`) are present. So no later seat 
 re-open the junk/cheap controls: their receipts are assertions, not reproducible measurements, and
 a re-capture on lane-present revisions is required before those controls can be cited again.
 
-**A live constant with no receipt.** The C2 counter edit adds `R68_INS, R68_DEL = 4081, 251` and
-fails D7 when the `--numstat` diff over the 24 r68 paths differs from it. That pair was measured
-during the edit; nothing in `controls/` records the command or the revision it was taken at, so any
-later content change under those paths silently flips D7.
+**A live constant that also contradicts its routed specification.** The C2 counter edit adds
+`R68_INS, R68_DEL = 4081, 251` (`:100`) and `d7_wave_paths` fails when the `--numstat` diff over the
+24 r68 paths is **not exactly** that pair (`:315`, `!=`). The requirement it implements asks for a
+**floor**: "sum `git diff --numstat R69_BASE..rev` over the ten `MODIFIED` paths and require
+`insertions ≥ 4081` and `deletions ≥ 251` (growth from later seat appends passes; a trimmed commit
+fails)" — `CritC2Repairs.md:180-183`. The shipped arm is therefore *stricter than its own spec*: a
+legitimate later append to any of the 24 paths fails D7 as a non-defect (and the 24 include seat
+logs the round itself is still writing). Its only provenance is prose (`CritC2Repairs.md:175-176`);
+no receipt names the numstat command or the revision it was taken at.
 
 ## 6. Current-currency summary a seat can cite
 
@@ -417,3 +422,11 @@ Third IRC message (RevFreezeReceipt, received ~07:24) — instrument divergence.
   with the editing process; only the settled 25-assertion result is checkable, and it is green.
 - **Adjacent, same section.** The live C2 counter hard-codes `R68_INS, R68_DEL = 4081, 251` with no
   receipt line (§5e); that pair should be re-derived against a named revision before it gates D7.
+
+Fourth IRC message (RevFreezeReceipt, ~07:28) closed the exchange: its F5 was reworded to the
+Q24 refinement above, its F6 mirrors §5e's unmeasurable controls (it re-confirmed the C1 base at
+`a5f7459` as `0 of 5`, exit 1), and its F7 mirrors §5e's constant. One datum added on verification —
+the floor requirement the shipped equality arm diverges from is at `CritC2Repairs.md:180-183`
+("require `insertions ≥ 4081` and `deletions ≥ 251` (growth from later seat appends passes; a
+trimmed commit fails)"), not merely at the prose line `:175-176`; §5e now quotes it, which makes the
+arm's over-strictness a spec divergence rather than only an unreceipted constant.

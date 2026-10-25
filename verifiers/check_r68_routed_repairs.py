@@ -95,9 +95,10 @@ UNTRACKED = [f"{W}/{n}.md" for n in (
     f"{W}/drafts/fetch-arm-execC1Fetch.py", f"{W}/drafts/r68-mistakes-M108-M110.md",
     f"{W}/seat-results.json"]
 R68_PATHS = MODIFIED + UNTRACKED
-# The landed form of the 24 round-68 wave paths, measured at R69_BASE: 4081 insertions,
+# The landed form of the 24 round-68 wave paths, measured at R69_BASE: 6379 insertions
+# (4081 in the ten tracked modified paths plus 2298 in the fourteen untracked ones) and
 # 251 deletions. A landing that touches every path but carries a truncated body fails.
-R68_INS, R68_DEL = 4081, 251
+R68_INS, R68_DEL = 6379, 251
 
 SHA_RE = re.compile(r"^measured-rev:\s*([0-9a-f]{40})\s*$", re.M)
 EXIT_RE = re.compile(r"^exit=(\d+)\s*$", re.M)
