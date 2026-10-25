@@ -377,4 +377,57 @@ gate registry rows conformant 43 of 43 lane verifiers; phantom 0
 
   ## Requested checks / passed axes
   table:
-  Registry shape
+  Registry shape yes 8 cells fields...
+  Paragraph yes tokens identical, 25->24, grammatical.
+  Checklist yes 11 PASS exit0, 600 lines.
+  Registry tip yes 44/44 phantom0 exit0; base43/43.
+  C2 tip yes1/1 exit0; base no as above.
+  Perhaps C2 tip is extra.
+  ## Residual risk and verification gaps
+  - `44/44` proves only structural conformity, no semantic exit/write-scope; cite checker.
+  - selftest bypasses public main/rev, no base test; no need additional.
+  - current lane had unrelated dirty files, tip `--rev` results read git revision, checklist initially current tree; clean export check (if run) eliminates.
+  - Manual grammar assessment + whitespace token comparison; not semantic proof? I can state manual review.
+  - no tool installs.
+  ```
+  Should not include massive logs, concise but enough.
+
+  Before report, run clean checklist export and perhaps clean base command to verify exact in clean sandbox. Could combine full archive then run both sequentially but avoid serialize? I can run one clean export and within run checklist then base; they could parallel via background but process cap and 120 sec. Instructions insist execute concurrently large batches, I've done. No need repeated base. Clean checklist only. Also perhaps inspect `git status --short SKILL...` after to ensure no mutation and report path? Not necessary after write maybe status scoped. Should not re-read report after write solely prove write; instruction says don't. I can inspect external contract before finishing? I know report path. I can write with Python and perhaps no re-read.
+
+  Clean archive command:
+  ```
+  tmp=...
+  trap...
+  git archive tip | tar -x -C "$tmp"
+  cd? use `(cd "$tmp" && python3 -B...)` but Bash cwd instruction says pass cwd rather than cd for known directory, dynamic impossible; can use `python3 -B "$tmp/verifiers/verify..."` but script root derived path so working dir maybe commands delegate relative? It probably uses root from file. Yet command requirement run from repo root; use Bash `cwd` cannot dynamic. Could create fixed `/tmp/revskillgate-clean-da86` and use tool cwd there after setup, but that serializes. Or in one shell `(cd "$tmp" && ...)` is appropriate dynamic. Tool guideline says use cwd argument rather than relying on cd earlier; within same call dynamic necessary, okay.
+  ```
+  git archive ... | tar...
+  (
+  cd "$tmp" || exit
+  python3 -B ...
+  )
+  rc...
+  ```
+  This archive includes `.ufo` wave1 large maybe still okay. `git archive` full tree maybe size moderate. Should have no more than 120. Could export only needed files? Checklist citation resolver requires all repo-rooted citations across SKILL, AGENTS, CORPUS? It checks 165 tokens and governance 1206, needs entire tree. Full archive safest.
+
+  Run also `python3 -B check_instruction_authority --rev base` from clean export? Since script `--repo` defaults to clean export which is not a git repo (archive no .git), `git -C` fails; cannot measure lane rev unless pass `--repo` lane but then measured entry sources from lane git and base script clean. I can invoke clean script from lane cwd with `--repo /home/...` but then exact code from export. No need.
+
+  For clean checklist, full archive excludes `.git`, script probably no git needed normal. It delegates verify_dispatch_prompts and alwayson within export. Fine. Run.
+
+• The stronger falsification is the pinned-base control: at `2a8eba56…` the landed counter exits **2** with `environment error: cannot read …round-67.md`, never printing `0 of 1`. I’m validating the checklist once from a clean archive of the landed revision because the live lane has unrelated dirty files.PASS checklist.box_map_complete: evaluated 41 — 41 boxes mapped (8 executed, 4 delegated, 29 unexecuted); delegated verifiers/verify_dispatch_prompts.py: --box-proof exit 0: boxes proven 2; delegated verifiers/verify_alwayson.py: --box-proof exit 0: boxes proven 2
+PASS trigger.frontmatter_parses: evaluated 4 — frontmatter parses: name='kotoba-shokunin', description 1019 chars
+FAIL trigger.name_directory: evaluated 1 — name 'kotoba-shokunin' != directory 'revskillgate-clean-tip.Afmqex'
+PASS trigger.literal_trigger_string: evaluated 1 — description carries literal 'Triggers:'
+PASS trigger.anti_trigger_clause: evaluated 1 — exclusion marker 'Anti-triggers' present (vocabulary test, not semantics: a vacuous 'Never use this skill.' passes and an unlisted real exclusion fails)
+PASS trigger.no_xml_tag: evaluated 2 — no XML tag in name, description (S019 Anthropic rule, absent from the open spec (S018), approximated lexically on the unparsed text; Anthropic's packager (S012) bans any '<'/'>' in the parsed value, and the two disagree in both directions (corpus/knowledge/frontmatter-rule-authorities-round48.md))
+PASS trigger.line_budget: evaluated 600 — 600 lines within budget 600 (from box at line 319)
+PASS trigger.no_placeholder: evaluated 533 — no placeholder markers in 533 scanned lines
+PASS trigger.command_binary_resolves: evaluated 36 — 20 segments; 36 command subject(s) resolve
+PASS trigger.citation_resolves: evaluated 165 — 165 repo-rooted citation token(s) resolve from the repo root
+FAIL governance.citation_resolves: evaluated 1206 — LOG.md:311: '../PROTOCOL.md' does not resolve from /tmp/revskillgate-clean-tip.Afmqex; LOG.md:824: '../kasegi-shokunin/corpus/instruments/resolve.py' does not resolve from /tmp/revskillgate-clean-tip.Afmqex; LOG.md:824: '../kasegi-shokunin/corpus/instruments/anchorcheck.py' does not resolve from /tmp/revskillgate-clean-tip.Afmqex; LOG.md:1203: '../AXES.md' does not resolve from /tmp/revskillgate-clean-tip.Afmqex … (+9 more); 10 quoted meta-finding(s), 3 schematic token(s) excluded, 1 recorded absence(s) excused, 3 recorded correction(s) excused
+
+[clean-tip checklist exit=1]
+
+
+error: failed to run prompt: provider.api_error: 429 You've reached your 5-hour usage limit. Your quota will reset when the current 5-hour window ends. To continue now, purchase extra usage or upgrade your plan: https://www.kimi.com/membership/subscription?tab=quota
+See log: /home/vgpnk/.kimi-code/logs/kimi-code.log

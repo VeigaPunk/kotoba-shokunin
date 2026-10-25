@@ -66,7 +66,7 @@ the campaign's own `opened` date and quote prove nothing about this lane (CORPUS
 
 **Id collision.** The lane registry held 120 rows (last id S122) and the staged set's first id is
 S123, so the collision set is empty; the check ran in scratch with the census parser's 0-3-space
-pattern (`.ufo/waves/round-67/controls/reg-ids`, `staged-ids`, `collisions` — 120 / 164 / **0
+pattern (`.ufo/waves/round-67/w1/controls/reg-ids`, `staged-ids`, `collisions` — 120 / 164 / **0
 collisions**). The guard was proved non-vacuous on a scratch fixture: a row with two leading
 spaces (`  | S002 |`) is caught by the 0-3-space pattern and missed by a column-zero-only pattern.
 No renumbering was needed and no adopted citation was re-pointed.
@@ -82,14 +82,14 @@ corpus-index omission below) is worked here.
   kotoba r66's post-closure corpus-integrity observation is red at tip `2a8eba56` “because the
   closure spot-check is an unindexed corpus file”, and routes the issue to round 67 rather than
   applying it retroactively. The measured base control
-  (`.ufo/waves/round-67/controls/C1-base.txt`) shows the primary gate at `5/9 checks pass`,
+  (`.ufo/waves/round-67/w1/controls/C1-base.txt`) shows the primary gate at `5/9 checks pass`,
   exit 1, with `unindexed: corpus/lessons/round-66-verifier-spotcheck.md` and three census DRIFT
   cells. Captured-by: `none` — no QUALITY criterion named the closure-authored spot-check as a
   corpus file that the coverage map must index, and the index census only counts what the
   coverage map already promises. Fix: index the r66 closure spot-check in the coverage map with
   the same shape as the r60/r61 rows, and re-record the census baseline from the gate's own
   measurement. Shown able to fail: the two half-repair control worlds (K2 index-row-only, K3
-  baseline-only) each leave the gate red (`.ufo/waves/round-67/controls/C1-half-controls.txt`).
+  baseline-only) each leave the gate red (`.ufo/waves/round-67/w1/controls/C1-half-controls.txt`).
 - **M105 — class: an identifier asserted about a source that the source does not carry.** Evidence:
   the staged S123 row asserts the document version as the literal `2026/08/18`; the re-opened
   page renders `August 18, 2026` and the literal is absent from the fetched main text
@@ -124,6 +124,6 @@ corpus-index omission below) is worked here.
 - The wave-1 spec is `.ufo/waves/round-67/w1-spec.json`; the validator's rendered task call and
   the seat results are `.ufo/waves/round-67/w1/seat-results.json` and
   `.ufo/waves/round-67/w1/logs/`.
-- The C1 base control is `.ufo/waves/round-67/controls/C1-base.txt`; the id-collision outputs are
-  `.ufo/waves/round-67/controls/{reg-ids,staged-ids,collisions}`; the pre-append census of the
-  scratch mirror is `.ufo/waves/round-67/controls/census-validate-append.txt`.
+- The C1 base control is `.ufo/waves/round-67/w1/controls/C1-base.txt`; the id-collision outputs are
+  `.ufo/waves/round-67/w1/controls/{reg-ids,staged-ids,collisions}`; the pre-append census of the
+  scratch mirror is `.ufo/waves/round-67/w1/controls/census-validate-append.txt`.

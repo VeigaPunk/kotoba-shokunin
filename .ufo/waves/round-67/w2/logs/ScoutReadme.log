@@ -141,4 +141,42 @@ kimi version 2.3.1
   - **Revision-binding falsifier: bare da86 lacks third row.**
   This avoids saying overall fail.
 
-  I need mention all three row tokens
+  I need mention all three row tokens explicit and line paths.
+
+  Response note report target unwritten. Should I include entire markdown report or summary? User expects report file; response can be ready-to-save content. Use markdown headings.
+
+  I'll produce.
+
+• Report target could not be written because this seat has a read-only tool allowlist: `.ufo/waves/round-67/w2/ScoutReadme.md`.
+
+  # ScoutReadme — coverage-map attack
+
+  ## Verdict
+
+  **The three rows pass in the current integrated working tree. A bare-commit interpretation of `da86c03e482a6aef433c34d733726b37c7cf6607` is falsified:** the round-67 lesson row is an uncommitted integration addition, and the commit-only measurement reports that lesson unindexed.
+
+  ## Index rule and per-row results
+
+  `file_column_tokens` reads only `## Coverage map`, stops at the next level-two heading, and harvests backticked tokens from `cells[2]` of pipe rows (`verifiers/verify_corpus_integrity.py:385-418`). `index_findings` excludes fenced rows, matches tokens against tracked corpus paths, checks on-disk existence, and derives stale/missing/unindexed findings (`:421-485`).
+
+  The section begins at `corpus/README.md:5` and ends before `## Frontier` at `:129`.
+
+  | Row | Column-2 token | Harvested | Resolves/tracked | Inside section |
+  |---|---|---|---|---|
+  | `:124` r66 closure | `lessons/round-66-verifier-spotcheck.md` | Yes | Yes | Yes |
+  | `:125` knowledge | `knowledge/instruction-authority-ladder-round67.md` | Yes | Yes | Yes |
+  | `:126` r67 lesson | `lessons/round-67.md` | Yes, in integrated worktree | Yes | Yes |
+
+  All three target files were opened successfully. No current token is stale, missing, fenced, excluded, or outside the section.
+
+  ## Gate evidence and strongest counterexample
+
+  - **Current HEAD + integration edits:** recorded primary output is `tracked=121 unindexed=0 stale=0 missing=0` with **139** FILE-column patterns, followed by `9/9 checks pass` (`.ufo/waves/round-67/w2/logs/CritC1Baseline.log:521-539`). The independent receipt likewise records 139 tokens and `unindexed: 0` (`.ufo/waves/round-67/receipts/C1-independent-at-tip.json:22-32`).
+  - **Bare `da86c03…`:** the README diff shows the round-67 lesson row with a leading `+`; the other two rows are already present (`CritC1Baseline.log:350-361`). The commit-only `/tmp` archive measurement reports **138** patterns and `unindexed=1`, specifically `corpus/lessons/round-67.md` (`:497-520`).
+  - The saved primary receipt also records that 138-token state, with `unindexed: 1` for the same lesson (`.ufo/waves/round-67/receipts/C1-nobaseline-at-tip.json:4-21`). It must not be presented as evidence for the final integrated working tree.
+
+  **Confidence:** high for row harvesting and placement; high for the recorded gate outputs, which were opened from receipts/logs rather than freshly executed by this read-only seat.
+
+  **Remaining unknown:** whether the integrated README state has subsequently been included in another commit.
+
+To resume this session: kimi -r session_f20b83f9-5050-47e6-93bd-b7e944c87eae

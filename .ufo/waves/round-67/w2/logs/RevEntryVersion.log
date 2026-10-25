@@ -287,4 +287,91 @@ Strong. Perhaps no further investigation needed? I need write report file. Only 
   curl -fsSL https://model-spec.openai.com/2026-08-18 |
     python3 -c 'import sys; s=sys.stdin.read(); print(s.count("2026/08/18"))'
   ```
-  My second refetch command similar with byte read; output literal 1.
+  My second refetch command similar with byte read; output literal 1. I can state this check is checkable and already positive. However if title removed in future and metadata remains, current condition may be false later despite evidence now; correction should happen based current evidence, not wait. But residual risk: live page mutable; no lane snapshot of raw HTML; my evidence in /tmp not durable. The report itself includes digest and exact line, but no preserved raw bytes in allowed report path. Could I include evidence snapshot under w2? User says only allowed output own report file; cannot save snapshot there. /tmp okay but ephemeral. Mention gap: no durable raw response in lane, later rounds must refetch; live content can drift. I shouldn't write extra evidence files in lane. Good.
+
+  Potential issue report "as written checkable" — perhaps answer "partly": It is a decidable string-presence predicate, but missing fetch representation, so not reliably checkable by later round using existing main-text-only evidence. Should respond direct:
+  - **Checkability:** Yes, if "on a versioned permalink" includes content served at that URL—the natural reading—and raw HTML is inspected. It is already satisfied, so this is not merely a future flip. No, if the later round repeats only the main-text extraction; the condition doesn't explicitly require raw HTML or identify `<title>`, so it is under-specified as an operational procedure. Recommend rewrite "fetch raw HTML from [URL] and inspect `<title>`/metadata for exact literal". This covers both without ambiguity.
+  Would reviewers consider this hedging? Could phrase "The predicate is checkable; the documented method is inadequate." This is clear. "As written" does not specify method, but condition itself doesn't need method. It is checkable by later round, so yes. Residual risk under-specified representation. Good.
+
+  Severity: Perhaps **High** because false refusal violates source grounding, but does not propagate harmful behavior. Use "High — refusal is falsified; flip already triggered". Or Medium? Instructions say prioritize concrete defects. Report findings by severity. Only one finding with subparts. I can call **High (claim correctness)**. Residual risk low for main text, moderate durability. Should not judge admission. Verdict recommendation not admission, align "A verdict you emit is recommendation, never admission." I can explicitly "Recommended verdict: attack succeeds; do not treat the refusal as grounded. This is a review recommendation, not an admission." But user says "No seat is a judge" and report verdict. Say "Attack verdict: FALSIFIED" maybe judgment? They ask verdict. Instructions say verdict recommendation. Use "Recommended verdict: refusal does not hold." Avoid actual admit. "The evidence supports correcting by appended notice" not integrating. Good.
+
+  Should identify actual revision/tip and no mutations. Report:
+  ```
+  # RevEntryVersion — round-67 wave 2
+
+  ## Scope / axes
+  Attacks ...
+  Measured landed files at da86...; base irrelevant? pinned base ... contains none of these new files (diff new). Independent live source ...
+  ```
+  Could mention base vs tip as user instructs. "The refusal exists only in landed tip diff; base 2a8... does not contain round-67 lesson/entry (both new in diff)." I saw git diff new file. Include if relevant. Perhaps not necessary but identifies revision. "Measured revision: da86... (HEAD; target lesson/entry unmodified in working tree)." This is accurate from status. I don't need base. Distinguish if mention. Good.
+
+  ## Finding
+  Evidence table:
+  - staged source row line 7 exact claim.
+  - lesson line 46-53 refusal and flip.
+  - Scout log 121-123 scoped main text raw uninspected.
+  - independent raw response line 5 title; line 1401 body attr hyphen; line 1869 visible date.
+  - raw exact count 1, visible body count 0, title count 1; second fetch same bytes hash.
+  This proves narrow absence and broad refusal false.
+  Potential concern citing `/tmp/rev-entry-version.html:5` in report after ephemeral; okay evidence path identified as temporary sandbox. User said identify revision or temporary sandbox measured. Mention sandbox `/tmp/rev-entry-version.html` (raw response) and headers. Digest. Commands exact.
+
+  Perhaps include command outputs:
+  ```
+  http=200 final=... bytes=2662295
+  sha256=...
+  raw count 1
+  visible body count 0
+  refetch same digest
+  ```
+  No need full headers.
+  No fabricated quote. I have exact `<title>Model Spec (2026/08/18)</title>`.
+
+  ## Flip condition checkability
+  "Already true on both plausible routes:
+  - versioned permalink serves title literal
+  - document title in `<head>` is page metadata.
+  At minimum first does not depend on metadata definition."
+  Check raw HTML not extracted text. "Later round can run ...; main-text-only extraction cannot falsify."
+  Perhaps "The condition is therefore checkable, but not using the only method documented in ScoutModelSpec; as written, 'page's own metadata' is less precise than naming `<title>`." Good.
+
+  ## Residual risk/gaps
+  - Live source no immutable receipt; digest from two immediate fetches only, not historical Oct24 scout bytes. But last-modified Aug18 and same content likely; don't overclaim historical. Importantly current falsification at landed tip uses today's later fetch maybe one day? Still source current. The original scout could have fetched same bytes but I cannot prove. My counterexample present now, flip condition says on evidence may admit. I can say "This proves the current flip condition is satisfied now; it does not prove the scout's earlier extracted main text contained it (it explicitly did not), nor does it rely on that."
+  - I didn't execute JS; raw HTML enough. Main-body text extraction via stdlib skipped script/style/svg, not a full browser rendering; only used to confirm narrow absence. The title evidence is raw, not dependent on renderer.
+  - No durable raw snapshot because scope only report; digest and exact tag recorded. Good.
+
+  Do I need perhaps include "No source files mutated; only report written" not necessary but could.
+
+  Perhaps check whether `title` is "fetched text" — yes raw HTML is text. Fine.
+
+  Before write maybe one more cheap independent alternative fetch with `.html`? Not needed; two identical raw fetches canonical URL enough. No actionable unknown remains. I can write now.
+
+  Make sure report not too verbose, maybe 100 lines max. I can produce ~70 lines. Use Python write. Since no Write tool, use Bash. Only allowed output file. Avoid temporary mutation beyond /tmp already okay. Use exact report. I'll draft carefully.
+
+  Possible wording:
+  "**Severity: High — source-grounding / false negative.** The narrow observation (not in extracted body) is correct, but the refusal and M105's 'source does not carry' class are falsified. The exact staged identifier is in the document title on the cited versioned permalink. This also means the entry's rationale at lines 14-16 is incomplete, not that its rendered date is wrong."
+  This distinguishes.
+
+  "Flip condition as written is checkable but already fired; not a future hypothetical. A later round can fetch raw HTML and inspect `<title>`; checking only extracted main text is not a valid test of the disjuncts. It would be more operational to name raw HTML and `<title>`; 'metadata' alone is imprecise." This responds.
+
+  Do I call it high? Fine.
+
+  Should cite `corpus/lessons/round-67.md:46-53`, `:93-101`, entry `...:14-16`, scout log `:121-123`. Good.
+  SOURCES staged path outside lane line 7.
+
+  Measured revision at HEAD `da86...`, and independent live fetch not pinned to commit obviously. Report exact requested/final URL. Date header perhaps omit.
+
+  Evidence command:
+  ```
+  curl -sS -L --max-time 45 -D /tmp/rev-entry-version.headers \
+    -o /tmp/rev-entry-version.html \
+    -w '...' https...
+  ```
+  Output summary. Refetch same digest.
+  Then body extraction details enough.
+
+  Could include no raw snapshot in lane as residual gap; `/tmp` path may persist now but not durable.
+
+  I'll write.
+
+error: failed to run prompt: provider.api_error: 429 You've reached your 5-hour usage limit. Your quota will reset when the current 5-hour window ends. To continue now, purchase extra usage or upgrade your plan: https://www.kimi.com/membership/subscription?tab=quota
+See log: /home/vgpnk/.kimi-code/logs/kimi-code.log

@@ -365,3 +365,82 @@ C5 mutant crash due Python local variable shadowing any entire function. Verdict
   Run baseline again before valid C5? Directive same detector pristine, mutated, restored bytes. I already baseline and restored after invalid C5 green. For valid C5, before is current pristine and run baseline maybe restored-after-C5 previous counts as pre baseline. To be rigorous run `valid-C5-pristine-before` then mutate then restore run. Should have no need for for C6/C7 again. But final hashes after valid C5 restore. Run only baseline + valid mutant + restored, final cmp. At most 3. Include diff. Also perhaps selftest output first failing line ordering odd: in C6 output FAIL appears first before PASS honest because stderr unbuffered vs stdout captured; actual first failing line correct. C5 expected two FAIL lines maybe at top. Fine.
 
   I'll execute.
+=== detector: valid-C5-pristine-before ===
+command=TMPDIR=<sandbox>/tmp timeout 20s python3 -B <scratch-counter> --self-test --repo <scratch-repo>
+PASS honest world: grounded 1 of 1
+PASS broken world rejected: entry missing
+PASS broken world rejected: no source line
+PASS broken world rejected: id does not resolve
+PASS broken world rejected: row not mined
+PASS broken world rejected: source cell absent from the entry
+PASS broken world rejected: no verified-at
+PASS broken world rejected: no recheck
+PASS broken world rejected: no coverage-map row
+PASS broken world rejected: quote not in the anchor cell
+self-test: 0 failure(s) over 10 assertions
+exit=0
+first-failing-line=<none>
+counter-sha256=
+e4f50ca466d19f6297d8f7a66ac90268ee7da7324ff2483fda8f30ebc43a3212
+
+=== valid mutant C5 diff ===
+--- /tmp/kotoba-r67-mutcounter-conj567.BV387V/check_instruction_authority.pristine.py	2026-10-24 21:05:48.104755468 -0300
++++ /tmp/kotoba-r67-mutcounter-conj567.BV387V/repo/verifiers/check_instruction_authority.py	2026-10-24 21:06:33.919184210 -0300
+@@ -181,6 +181,7 @@
+             continue
+ 
+     # (5) verified-at and recheck
++    entry = f"verified-at: {VERIFIED_AT}\nrecheck: forced-valid"  # MUTANT C5: constant metadata
+     if not any(line.strip() == f"verified-at: {VERIFIED_AT}" for line in entry.splitlines()):
+         findings.append(f"no `verified-at: {VERIFIED_AT}` line")
+     if not any(line.strip().startswith("recheck:") for line in entry.splitlines()):
+
+=== detector: mutant-C5-constant-metadata ===
+command=TMPDIR=<sandbox>/tmp timeout 20s python3 -B <scratch-counter> --self-test --repo <scratch-repo>
+FAIL broken world survived: no verified-at -> grounded 1
+FAIL broken world survived: no recheck -> grounded 1
+PASS honest world: grounded 1 of 1
+PASS broken world rejected: entry missing
+PASS broken world rejected: no source line
+PASS broken world rejected: id does not resolve
+PASS broken world rejected: row not mined
+PASS broken world rejected: source cell absent from the entry
+PASS broken world rejected: no coverage-map row
+PASS broken world rejected: quote not in the anchor cell
+self-test: 2 failure(s) over 10 assertions
+exit=1
+first-failing-line=FAIL broken world survived: no verified-at -> grounded 1
+counter-sha256=
+bcdd03a75f07d8c9c5bea0097ea17a66d000330c5f02b4a85a618105ad927611
+restore-cmp=identical
+
+=== detector: restored-after-valid-C5 ===
+command=TMPDIR=<sandbox>/tmp timeout 20s python3 -B <scratch-counter> --self-test --repo <scratch-repo>
+PASS honest world: grounded 1 of 1
+PASS broken world rejected: entry missing
+PASS broken world rejected: no source line
+PASS broken world rejected: id does not resolve
+PASS broken world rejected: row not mined
+PASS broken world rejected: source cell absent from the entry
+PASS broken world rejected: no verified-at
+PASS broken world rejected: no recheck
+PASS broken world rejected: no coverage-map row
+PASS broken world rejected: quote not in the anchor cell
+self-test: 0 failure(s) over 10 assertions
+exit=0
+first-failing-line=<none>
+counter-sha256=
+e4f50ca466d19f6297d8f7a66ac90268ee7da7324ff2483fda8f30ebc43a3212
+
+=== final valid-C5 restoration evidence ===
+final-counter-vs-pristine: 
+identical
+final-counter-vs-committed-rev: 
+identical
+e4f50ca466d19f6297d8f7a66ac90268ee7da7324ff2483fda8f30ebc43a3212  /tmp/kotoba-r67-mutcounter-conj567.BV387V/repo/verifiers/check_instruction_authority.py
+e4f50ca466d19f6297d8f7a66ac90268ee7da7324ff2483fda8f30ebc43a3212  /tmp/kotoba-r67-mutcounter-conj567.BV387V/check_instruction_authority.pristine.py
+e4f50ca466d19f6297d8f7a66ac90268ee7da7324ff2483fda8f30ebc43a3212  /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/check_instruction_authority.py
+
+
+error: failed to run prompt: provider.api_error: 429 You've reached your 5-hour usage limit. Your quota will reset when the current 5-hour window ends. To continue now, purchase extra usage or upgrade your plan: https://www.kimi.com/membership/subscription?tab=quota
+See log: /home/vgpnk/.kimi-code/logs/kimi-code.log
