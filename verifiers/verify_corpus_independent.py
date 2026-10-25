@@ -26,7 +26,8 @@ COMMITS    ``commit `<token>``` (word ``commit`` not preceded by a letter, digit
            underscore or hyphen, token backticked) must be 7-40 hex characters and
            name a commit object in the lane repo or declared parent fleet root.
            A citation inside double quotes or a matching Markdown code span is
-           CONTEXT, not a live commit reference.
+           CONTEXT, not a live commit reference.  A 7-40 hex prefix closed by a
+           single U+2026 ellipsis is truncated CONTEXT (`commit_truncated_detail`).
 
 Exit: 0 every violation class empty, 1 any violation, 2 environment unreadable.
 Read-only: never writes inside the analysed repository.  Deterministic output.
@@ -134,6 +135,7 @@ COMMIT_RE = re.compile(r"(?<![A-Za-z0-9_-])commit\s+`([^`\s]+)`")
 # indented code, content -- it neither opens nor closes a region.
 FENCE_RE = re.compile(r"^ {0,3}(`{3,}|~{3,})(.*)$")
 HEX_RE = re.compile(r"\A[0-9a-fA-F]+\Z")
+TRUNCATED_RE = re.compile(r"\A[0-9a-fA-F]{7,40}\u2026\Z")
 
 
 def backticked_spans(line):
@@ -470,6 +472,7 @@ def analyse_pointers(repo, tracked_corpus, fleet_root=FLEET_ROOT):
 
 def analyse_commits(repo, tracked_corpus, fleet_root=FLEET_ROOT):
     quoted, nonhash, unresolvable, citations = [], [], [], []
+    truncated = []
     for rel in tracked_corpus:
         path = os.path.join(repo, rel)
         with _open_text(path, rel) as fh:
@@ -479,6 +482,9 @@ def analyse_commits(repo, tracked_corpus, fleet_root=FLEET_ROOT):
                 for token, start, end in commit_tokens(line):
                     if _inside(quotes, start, end) or _inside(code, start, end):
                         quoted.append("%s:%d: %s" % (rel, lineno, token))
+                        continue
+                    if TRUNCATED_RE.match(token):
+                        truncated.append("%s:%d: %s" % (rel, lineno, token))
                         continue
                     citations.append("%s:%d: %s" % (rel, lineno, token))
                     if not (7 <= len(token) <= 40 and HEX_RE.match(token)):
@@ -492,7 +498,7 @@ def analyse_commits(repo, tracked_corpus, fleet_root=FLEET_ROOT):
                     if proc.returncode != 0:
                         unresolvable.append("%s:%d: %s" % (rel, lineno, token))
     return {
-        "commit_candidates": len(citations) + len(quoted),
+        "commit_candidates": len(citations) + len(quoted) + len(truncated),
         "commit_total": len(citations),
         "commit_hex_total": sum(
             1 for c in citations if HEX_RE.match(c.rsplit(": ", 1)[-1])
@@ -502,6 +508,8 @@ def analyse_commits(repo, tracked_corpus, fleet_root=FLEET_ROOT):
         "commit_quoted_detail": sorted(quoted),
         "commit_nonhash": len(nonhash),
         "commit_nonhash_detail": sorted(nonhash),
+        "commit_truncated": len(truncated),
+        "commit_truncated_detail": sorted(truncated),
         "commit_unresolvable": len(unresolvable),
         "commit_unresolvable_detail": sorted(unresolvable),
     }
@@ -604,6 +612,7 @@ def render(repo, head, observed, results, as_json):
     for key in ("unindexed_detail", "stale_tokens_detail", "missing_paths_detail",
                 "report_dead_detail", "report_excluded_detail",
                 "report_quoted_detail", "commit_nonhash_detail",
+                "commit_truncated_detail",
                 "commit_unresolvable_detail", "commit_quoted_detail"):
         src = idx if key in idx else ptr if key in ptr else com
         for row in src[key]:
@@ -735,6 +744,7 @@ unresolvable commit `deadbeef`
 nonhash word commit `notahash`
 nonhash short commit `abc123`
 nonhash long commit `%s`
+truncated id commit `abcdef1…`
 quoted context "commit `deadbeef`"
 hyphen prefix foo-commit `deadbeef`
 letter prefix xcommit `deadbeef`
@@ -988,7 +998,10 @@ def self_test():
         st.eq(com["commit_hex_total"] - com["commit_unresolvable"], 1,
               "commits: exactly one hex citation resolves")
         st.eq(com["commit_quoted"], 1, "commits: quoted citation is context")
-        st.eq(com["commit_candidates"], 6, "commits: candidate population")
+        st.eq(com["commit_candidates"], 7, "commits: candidate population")
+        st.eq(com["commit_truncated"], 1, "commits: hex+ellipsis is context")
+        st.eq(TRUNCATED_RE.match("abc12\u2026") is not None, False,
+              "commits: short prefix stays nonhash")
         st.eq(com["commit_hex_total"], 2, "commits: two hex-shaped citations")
         st.eq(len(com["commit_nonhash_detail"]), 3, "commits: nonhash detail sorted")
         st.eq(sorted(r.rsplit(": ", 1)[-1] for r in com["commit_unresolvable_detail"]),
@@ -1018,8 +1031,8 @@ def self_test():
               "commits: only the genuinely absent lane token stays unresolved")
         st.eq(fleet_com["commit_quoted"], 2,
               "commits: double-quoted and code-span examples are context")
-        st.eq(fleet_com["commit_candidates"], 8,
-              "commits: context candidates remain visible but are not live")
+        st.eq(fleet_com["commit_candidates"], 9,
+              "commits: context candidates stay visible, never live")
 
 
         # -- clean fixture: verdicts and exit code -------------------------------

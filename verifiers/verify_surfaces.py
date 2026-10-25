@@ -160,9 +160,14 @@ from pathlib import Path
 DEFAULT_REPO = Path(__file__).resolve().parent.parent
 FIXTURES = Path(__file__).resolve().parent / "fixtures" / "surfaces"
 
+# Round 72: the defaults follow the host's real binaries — `~/.local/bin/omp` is
+# a crash-restart shell wrapper installed 2026-10-23 (a wrapper is never a
+# substrate; the ELF is `omp.real`, same sha256 as the round-51 pin) and the
+# opencode npm 1.19.4 npx-cache path is gone: the host runs v2.1.4 at
+# `~/.opencode/bin/opencode`.
 DEFAULT_BINARIES = {
-    "omp": "/home/vgpnk/.local/bin/omp",
-    "opencode": "/home/vgpnk/.npm/_npx/e2094862b59aac7b/node_modules/opencode-ai/bin/opencode.exe",
+    "omp": "/home/vgpnk/.local/bin/omp.real",
+    "opencode": "/home/vgpnk/.opencode/bin/opencode",
 }
 DEFAULT_INVENTORY = "corpus/knowledge/instruction-surface-census-round13.md"
 HARNESS_IDS = ("omp", "opencode")
@@ -311,6 +316,66 @@ def load_dump(args: argparse.Namespace, harness: str) -> str:
     if given is not None:
         return read_text(Path(given), "%s strings dump" % harness)
     return dump_via_strings(Path(getattr(args, "%s_binary" % harness)), harness)
+
+
+REMOVALS_NAME = "census-removals.json"
+
+
+def load_removals(path: Path, entries: list[dict]) -> list[dict]:
+    """The census removal ledger (round 72).  A ledger row excuses one declared
+    opencode class whose loader the host's opencode no longer ships: it names the
+    class id (declared for opencode in the baseline), the literal, and the
+    ``absent_anchors`` regexes — every one of which must match NOTHING in the live
+    opencode dump, or the row stops excusing and the check FAILs (a class that
+    reappears is drift, never silently excused).  No ledger file -> no removals."""
+    if not path.is_file():
+        return []
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        raise BaselineError("removal ledger %s unreadable: %s" % (path, exc))
+    rows = data.get("removed") if isinstance(data, dict) else None
+    if not isinstance(rows, list):
+        raise BaselineError("removal ledger %s: no `removed` list" % path)
+    declared = {e["class_id"]: e for e in entries if e["harness"] == "opencode"}
+    seen: set[str] = set()
+    for row in rows:
+        cid = row.get("class_id") if isinstance(row, dict) else None
+        if cid not in declared:
+            raise BaselineError(
+                "removal ledger %s: %r is not an opencode class declared in the baseline"
+                % (path, cid))
+        if cid in seen:
+            raise BaselineError("removal ledger %s: duplicate row for %s" % (path, cid))
+        seen.add(cid)
+        anchors = row.get("absent_anchors")
+        if (not isinstance(anchors, list) or not anchors
+                or not all(isinstance(a, str) and a for a in anchors)):
+            raise BaselineError(
+                "removal ledger %s: %s needs a non-empty `absent_anchors` list" % (path, cid))
+        for a in anchors:
+            try:
+                re.compile(a)
+            except re.error as exc:
+                raise BaselineError("removal ledger %s: %s anchor %r: %s" % (path, cid, a, exc))
+        if not isinstance(row.get("reason"), str) or not row["reason"].strip():
+            raise BaselineError("removal ledger %s: %s needs a `reason`" % (path, cid))
+    return rows
+
+
+def removal_problems(rows: list[dict], dump: str) -> tuple[set[str], list[str]]:
+    """(class ids excused, problems).  A row is honoured only while every one of
+    its absent anchors matches nothing in the dump."""
+    excused: set[str] = set()
+    problems: list[str] = []
+    for row in rows:
+        live = [a for a in row["absent_anchors"] if re.search(a, dump) is not None]
+        if live:
+            problems.append("ledgered class %s has live anchor(s) in the opencode dump: %s"
+                            % (row["class_id"], ", ".join(live)))
+        else:
+            excused.add(row["class_id"])
+    return excused, problems
 
 
 def load_baseline(path: Path) -> list[dict]:
@@ -570,59 +635,271 @@ def declared_loader_pairs(entries: list[dict], harness: str) -> set[tuple[str, s
 # must-fail generation fixture `fixtures/surfaces/strings-opencode-v2.0.26.txt`
 # (upstream, npm `@opencode/cli` 2.x still ships it — host-scoped retirement).
 # LIMITS found by the round-47 falsify wave and still carried: whole-dump anchors
-# remain for OC-1..OC-3 and OC-5, including OC-1's `gated` term reducing to
-# `m is not None`. OC-6's config candidate/env gate remain unwitnessed. OC-4 now
-# binds the resolver export to the ReadTool call and wrapped result; OC-6 binds
-# its observed layer to the `system-context-builtins` dependency (round 53).
+# remain for OC-1..OC-3 and OC-5. Round 72 dropped OC-1's vacuous `gated` term
+# with the gate it named: on 2.1.4 `disableClaudeCodePrompt` occurs 0 times, so
+# the term had already reduced to `m is not None`; the loader wrapper plus the
+# config join replace it (see OC-1). OC-6's config candidate/env gate remain
+# unwitnessed. OC-4 now binds the resolver export to the ReadTool call and wrapped
+# result; OC-6 binds its observed layer to the `system-context-builtins`
+# dependency (round 53).
 
-# OC-1: the per-directory name-priority list (first-match walk-up; dump 443993):
-#   y=["AGENTS.md",...!t.disableClaudeCodePrompt?["CLAUDE.md"]:[],"CONTEXT.md"]
-# Every *.md literal inside the array DERIVES a class id, so a name planted into
-# or dropped from the array changes the extracted set (never a witness-only pass).
-OC_PRIORITY_RE = re.compile(r'\["AGENTS\.md".{0,400}?"CONTEXT\.md"[^\]]{0,200}\]')
+# OC-1: the per-directory instruction name set the legacy loader walks.
+# 1.19.x built a name-PRIORITY array -- `["AGENTS.md", …!t.disableClaudeCodePrompt?
+# ["CLAUDE.md"]:[], "CONTEXT.md"]` -- and gated CLAUDE.md on that config flag.
+# opencode 2.1.4 (sha256 ca9b3ee2…) collapsed it to a single-name target list
+# inside `ConfigInstructionPlugin.projectSource` and dropped the gate:
+#   D=yield*l.resolve(j1(r.config,"AGENTS.md"))
+#   let we=yield*Q(yield*l.up({targets:["AGENTS.md"],start:T,stop:V,type:"file"}),l.resolve)
+# Every *.md literal inside the target array DERIVES a class id, so a name planted
+# into or dropped from the list changes the extracted set (never a witness-only
+# pass).  The loader wrapper and the config join of a derived name must both sit
+# in the same plugin region: a bare `up({targets:[…]})`, the ReadTool default name
+# (`LF="AGENTS.md"`, dump line 708708) or prompt prose carries the same tokens
+# with no instruction-loading role and matches nothing.
+# GENERATION NOTE (round 72): on the 2.1.4 dump `CONTEXT.md` and
+# `disableClaudeCodePrompt` occur 0 times and `CLAUDE.md` survives only in prompt
+# prose, so the two ids the old array derived are gone from this lineage and are
+# ledger removals (`verifiers/census-removals.json`), not rule outputs.  The rule
+# is re-derived to the surviving walk, not loosened to it: the array must still
+# sit inside the loader wrapper and still derives every name it carries.
+OC_LOADER_SOURCE_RE = re.compile(
+    r'c\("ConfigInstructionPlugin\.projectSource"\)'
+    r'\(function\*\(\)\{[^{}]{0,300}?\.up\(\{targets:\['
+    r'(?P<targets>"[A-Za-z0-9_.-]+\.md"(?:,"[A-Za-z0-9_.-]+\.md")*)\]'
+)
+OC_LOADER_CONFIG_JOIN_RE = re.compile(
+    r'j1\(\s*[A-Za-z_$][A-Za-z0-9_$]*\.config\s*,\s*"(?P<file>[A-Za-z0-9_.-]+\.md)"\s*\)'
+)
+OC_LOADER_REGION = 4000
 OC_MD_NAME_RE = re.compile(r'"([A-Za-z0-9_.-]+\.md)"')
-OC_GATE = "disableClaudeCodePrompt"
 
-# OC-2: the config/home candidate list (`Instruction.systemPaths`; dump 443993):
+# OC-2: the config candidate list (`Instruction.systemPaths` in the 1.19.x
+# lineage; dump 443993):
 #   X.join(r.config,"AGENTS.md")   X.join(r.home,".claude","CLAUDE.md")
-OC_CONFIG_JOIN_RE = re.compile(
-    r'\.join\(\s*[A-Za-z_$][A-Za-z0-9_$]*\.config\s*,\s*"([A-Za-z0-9_.-]+\.md)"'
+# v2.1.4 (dump sha256 020fb253…) moved the loader into the
+# `opencode.config.instruction` plugin and the minifier aliases `path.join` to a
+# bare callee — `import td,{dirname as RM,join as j1}from"path"` and then
+# `D=yield*l.resolve(j1(r.config,"AGENTS.md"))` — all three on dump line 708687
+# at 0-based offsets 3232, 3286 and 3646.  The round-14 method-call shape
+# matches 0x and is RETIRED, not OR-ed with the new one (round 47's generation
+# rule: a rule set that accepts two generations launders the re-derive).
+# The rule binds three things inside one plugin: the plugin id, the
+# `path`-join alias, and the `globalSource` arm that reads the config
+# candidate. A join of `<v>.config,"<name>.md"` under a non-join callee, or
+# outside this plugin, derives nothing.
+# The 1.19.x HOME candidate is GONE from v2.1.4: `CLAUDE.md` occurs 3x in the
+# dump (a symbol-table entry, a template-list blob, prompt prose) and none is a
+# loader; `.claude` survives only as a CONFIG-DIRECTORY root
+# (`_=ke.make(ze.join(A.home,".claude"))`, dump line 708352, two-arg join with no
+# `.md`) and its compatibility probe
+# (`compatibility:()=>WH({claude:D$(V.claude,e.isDir),…})`, dump line 708355),
+# neither of which loads an instruction file. Its class id is removed by the census ledger
+# (verifiers/census-removals.json) — never derived by a loosened rule.
+OC2_PLUGIN = 'id:"opencode.config.instruction"'
+OC2_PLUGIN_END_RE = re.compile(r'\(\{id:"opencode\.')
+OC2_SOURCE_MARKER = 'c("ConfigInstructionPlugin.globalSource")'
+OC2_JOIN_ALIAS_RE = re.compile(
+    r'import\s+[^;]{0,200}?\{[^}]{0,200}?\bjoin\s+as\s+([A-Za-z_$][A-Za-z0-9_$]*)'
+    r'[^}]{0,200}?\}\s*from\s*"path"'
 )
-OC_HOME_DIR_JOIN_RE = re.compile(
-    r'\.join\(\s*[A-Za-z_$][A-Za-z0-9_$]*\.home\s*,\s*"\.([A-Za-z0-9_-]+)"\s*,'
-    r'\s*"([A-Za-z0-9_.-]+\.md)"'
+OC_CONFIG_JOIN_RE = re.compile(
+    r'(?P<join>[A-Za-z_$][A-Za-z0-9_$]*)\(\s*'
+    r'(?P<var>[A-Za-z_$][A-Za-z0-9_$]*)\.config\s*,\s*'
+    r'"(?P<file>[A-Za-z0-9_.-]+\.md)"\s*\)'
 )
 
-# OC-3: the declared ``instructions`` list and its remote half (dump 443993).
-#   a: `Instruction.systemPaths` consumes it —
-#      for(let O of T.instructions){if(O.startsWith("https://")||…)continue;…glob…}
-#   b: `Instruction.system` fetches the remote entries and renders them —
-#      (T.instructions??[]).filter((q)=>q.startsWith("https://")||q.startsWith("http://"))
-#      `Instructions from: ${q}`
+
+def opencode_config_candidates(dump: str) -> list[str]:
+    """The `.md` names the v2.1.4 config-instruction plugin joins onto
+    `<v>.config`, or [] when the plugin id, its globalSource arm, or the `path`
+    join alias it calls is absent (fail-closed; the caller names the anchors)."""
+    aliases = set(OC2_JOIN_ALIAS_RE.findall(dump))
+    names: set[str] = set()
+    for anchor in re.finditer(re.escape(OC2_PLUGIN), dump):
+        end = OC2_PLUGIN_END_RE.search(dump, anchor.end())
+        window = dump[anchor.start():end.start() if end else len(dump)]
+        if OC2_SOURCE_MARKER not in window:
+            continue
+        for m in OC_CONFIG_JOIN_RE.finditer(window):
+            if m.group("join") in aliases:
+                names.add(m.group("file"))
+    return sorted(names)
+
+# OC-3: the declared ``instructions`` list and its remote half.
+#   a: the config loader consumes the declared list.  Two generations are
+#      witnessed; the 1.19.x arm is the committed fixture generation
+#      (`fixtures/surfaces/strings-opencode-clean.txt` line 13, which the
+#      self-test and check_opencode_repin.py still run), the v2.1.4 arm is
+#      re-derived this round on the live dump.
+#      1.19.x (dump 443993): `Instruction.systemPaths` —
+#        for(let O of T.instructions){if(O.startsWith("https://")||…)continue;…glob…}
+#      v2.1.4 (dump sha 020fb253…, dump line 708687, plugin
+#      `id:"opencode.config.instruction"`): the declared list is read out of the
+#      config documents, split by URL-ness with a named predicate, and every
+#      non-URL entry is handed to the plugin's file-walk helper —
+#        .flatMap((Re)=>Re.type==="document"?Re.info.instructions??[]:[])
+#        function E1(e){return URL.canParse(e)&&/^https?:$/.test(new URL(e).protocol)}
+#        for(let ye of H.sources){if(E1(ye)){…remote…continue}
+#          for(let Re of(yield*ee(ye)).toSorted()){…read…}}
+#        ee=c("ConfigInstructionPlugin.match")(… l.globUp(Ae,T,N) …)
+#      The v2.1.4 arm binds five conjuncts inside the plugin's own body: the
+#      declared-list read, the URL predicate definition, that predicate applied
+#      as the list filter, the consumer loop that skips URLs and passes the
+#      remainder to the labelled `match` helper, and the `globUp` walk.  A
+#      shape carrying the same tokens without the loading role (a URL test, an
+#      `info.instructions` read, or a glob outside this plugin) fails a
+#      conjunct; nothing here is satisfied by a bare token.
+#   b: the remote half.  v2.1.4 (round 72) dropped the two ``.startsWith``
+#      literals: a URL predicate decides which declared entries are remote,
+#      those are fetched into the ``{path,content}`` object the ``Instructions
+#      from:`` renderer consumes, and ``configuredSource`` resolves them back
+#      through ``.remote.get`` (dump 708687):
+#        function E1(e){return URL.canParse(e)&&/^https?:$/.test(new URL(e).protocol)}
+#        Ae=Array.from(new Set(…Re.info.instructions??[]…)),ye=yield*Q(Ae.filter(E1),
+#          (Re)=>Xf(Re).pipe(…L((Ve)=>new p2({path:Re,content:Ve})),
+#          Ee((Ve)=>Ge("failed to fetch instruction url",{url:Re,cause:Ve}))),{concurrency:4})
+#        if(E1(ye)){let Re=H.remote.get(ye);if(Re)we.push(Re);continue}
+#        `Instructions from: ${e.path}<LF>${e.content}`
+#      Every identifier there is a minifier name, so the rule binds the predicate
+#      by backreference, the list by the semantic ``instructions??[]`` read, the
+#      fetch by its ``{path,content}`` shape plus its error label, the resolve by
+#      ``.remote.get``, and the render by its path/content interpolation — the
+#      bare ``Instructions from: `` string-table entry is not the renderer.
 # Round 47 tightened b to require the ``.filter(`` call: the round-14 pattern also
 # matched a's loop (2 hits on 1.19.3), so a dropped filter still passed.
 OC_DECLARED_RE = re.compile(
     r"for\s*\(\s*let\s+[A-Za-z_$][A-Za-z0-9_$]*\s+of\s+"
     r"[A-Za-z_$][A-Za-z0-9_$]*\.instructions\s*\)"
 )
+OC_DECLARED_PLUGIN_ID = 'id:"opencode.config.instruction"'
+OC_DECLARED_PLUGIN_ID_RE = re.compile(re.escape(OC_DECLARED_PLUGIN_ID))
+# the plugin body ends at the next plugin declaration (`var X=tt({id:"…"`)
+OC_PLUGIN_BOUNDARY_RE = re.compile(r'var\s+[A-Za-z_$][A-Za-z0-9_$]*\s*=\s*tt\(\{id:"')
+OC_DECLARED_LIST_RE = re.compile(
+    r'\.flatMap\(\s*\(\s*(?P<doc>[A-Za-z_$][A-Za-z0-9_$]*)\s*\)\s*=>\s*'
+    r'(?P=doc)\.type==="document"\s*\?\s*(?P=doc)\.info\.instructions\s*\?\?\s*\[\]'
+    r'\s*:\s*\[\]\s*\)'
+)
+OC_DECLARED_URL_PRED_RE = re.compile(
+    r'function\s+(?P<fn>[A-Za-z_$][A-Za-z0-9_$]*)\s*\(\s*(?P<v>[A-Za-z_$][A-Za-z0-9_$]*)\s*\)'
+    r'\s*\{\s*return\s+URL\.canParse\(\s*(?P=v)\s*\)\s*&&\s*/\^https\?:\$/\s*'
+    r'\.test\(\s*new\s+URL\(\s*(?P=v)\s*\)\.protocol\s*\)'
+)
+OC_DECLARED_SPLIT_RE = re.compile(
+    r'for\(\s*let\s+(?P<s>[A-Za-z_$][A-Za-z0-9_$]*)\s+of\s+'
+    r'[A-Za-z_$][A-Za-z0-9_$]*\.sources\s*\)\s*\{\s*if\(\s*'
+    r'(?P<fn>[A-Za-z_$][A-Za-z0-9_$]*)\s*\(\s*(?P=s)\s*\)\s*\)[\s\S]{0,240}?'
+    r'for\(\s*let\s+[A-Za-z_$][A-Za-z0-9_$]*\s+of\s*\(?\s*yield\*'
+    r'(?P<match>[A-Za-z_$][A-Za-z0-9_$]*)\s*\(\s*(?P=s)\s*\)'
+)
+OC_DECLARED_MATCH_LABEL = "ConfigInstructionPlugin.match"
+OC_DECLARED_GLOB_RE = re.compile(
+    r'globUp\(\s*[A-Za-z_$][A-Za-z0-9_$]*\s*,\s*[A-Za-z_$][A-Za-z0-9_$]*\s*,'
+    r'\s*[A-Za-z_$][A-Za-z0-9_$]*\s*\)'
+)
+OC_DECLARED_WINDOW = 6000
+# The 1.19.x lineage's literal test, retained as the committed fixture
+# generation (`strings-opencode-clean.txt`, `strings-opencode-1.19.4-anchors.txt`)
+# that the self-test arms pin; it occurs 0 times on the v2.1.4 dump.
 OC_REMOTE_FILTER_RE = re.compile(
     r'\.instructions[^;]{0,20}?\.filter\(\s*\(?\s*([A-Za-z_$][A-Za-z0-9_$]*)\s*\)?\s*=>\s*'
     r'\1\.startsWith\("https://"\)\s*\|\|\s*\1\.startsWith\("http://"\)'
 )
 OC_REMOTE_RENDER = "Instructions from: "
+OC_REMOTE_LIST_RE = re.compile(r'\.instructions\s*\?\?\s*\[\]')
+OC_REMOTE_PRED_CALL_RE = re.compile(
+    r'\.filter\(\s*(?P<pred>[A-Za-z_$][A-Za-z0-9_$]*)\s*\)'
+)
+OC_REMOTE_URL_PRED_RE = re.compile(
+    r'function\s+(?P<pred>[A-Za-z_$][A-Za-z0-9_$]*)\s*\(\s*(?P<v>[A-Za-z_$][A-Za-z0-9_$]*)\s*\)'
+    r'\s*\{\s*return\s+URL\.canParse\(\s*(?P=v)\s*\)\s*&&\s*'
+    r'/\^https\?:\$/[a-z]*\.test\(\s*new\s+URL\(\s*(?P=v)\s*\)\.protocol\s*\)\s*\}'
+)
+OC_REMOTE_FETCH_RE = re.compile(
+    r'new\s+[A-Za-z_$][A-Za-z0-9_$]*\(\{\s*path:\s*[A-Za-z_$][A-Za-z0-9_$]*\s*,'
+    r'\s*content:'
+)
+OC_REMOTE_FETCH_LABEL = "failed to fetch instruction url"
+OC_REMOTE_RESOLVE_RE = re.compile(
+    r'if\(\s*(?P<pred>[A-Za-z_$][A-Za-z0-9_$]*)\s*\(\s*(?P<src>[A-Za-z_$][A-Za-z0-9_$]*)\s*\)\s*\)'
+    r'\s*\{\s*let\s+[A-Za-z_$][A-Za-z0-9_$]*\s*=\s*[A-Za-z_$][A-Za-z0-9_$]*\.remote\.get\(\s*'
+    r'(?P=src)\s*\)'
+)
+OC_REMOTE_RENDER_RE = re.compile(
+    r'`Instructions from: \$\{\s*(?P<item>[A-Za-z_$][A-Za-z0-9_$]*)\.[A-Za-z_$][A-Za-z0-9_$]*\s*\}'
+    r'\n\$\{\s*(?P=item)\.'
+)
+OC_REMOTE_WINDOW = 400
+
+
+def opencode_remote_instructions_matches(dump: str) -> bool:
+    """Witness the remote half of the declared ``instructions`` list.
+
+    v2.1.4 branch: a URL predicate exists, one branch resolves a source through
+    ``.remote.get`` under that predicate, the renderer interpolates one item's
+    ``path``/``content``, and the declared list is filtered by that same
+    predicate into a fetch that materialises the rendered object.
+    Retained 1.19.x branch: the committed fixture generation's literal test
+    plus the bare render token (0 occurrences on the v2.1.4 dump)."""
+    predicates = {m.group("pred") for m in OC_REMOTE_URL_PRED_RE.finditer(dump)}
+    if predicates:
+        resolved = any(m.group("pred") in predicates
+                       for m in OC_REMOTE_RESOLVE_RE.finditer(dump))
+        if resolved and OC_REMOTE_RENDER_RE.search(dump) is not None:
+            for declared in OC_REMOTE_LIST_RE.finditer(dump):
+                window = dump[declared.start():declared.start() + OC_REMOTE_WINDOW]
+                for call in OC_REMOTE_PRED_CALL_RE.finditer(window):
+                    if call.group("pred") not in predicates:
+                        continue
+                    if OC_REMOTE_FETCH_RE.search(window, call.end()) is None:
+                        continue
+                    if OC_REMOTE_FETCH_LABEL in window[call.end():]:
+                        return True
+    return (OC_REMOTE_FILTER_RE.search(dump) is not None
+            and OC_REMOTE_RENDER in dump)
+
 
 # OC-5: the resolution switch that decides *where* OC-1's names are read from —
-# project walk-up versus config-only (dump 443993):
-#   if(!Jr.OPENCODE_DISABLE_PROJECT_CONFIG)return yield*e.globUp(T,d.directory,d.worktree)
-#   return yield*e.globUp(T,r.config,r.config)
-OC_ENV_PROJECT_CONFIG = "OPENCODE_DISABLE_PROJECT_CONFIG"
-OC_GLOBUP_PROJECT_RE = re.compile(r"globUp\([^)]*\.directory[^)]*\.worktree\)")
-OC_GLOBUP_CONFIG_RE = re.compile(r"globUp\([^)]*\.config\s*,\s*[^)]*\.config\)")
+# project walk-up versus config-only.  v2.1.4 re-derived (dump lines 702021,
+# 708687): the env gate folds `process.env.OPENCODE_CONFIG_PROJECT_DISABLE??process.env.OPENCODE_DISABLE_PROJECT_CONFIG`
+# into a `.project` flag, and `ConfigInstructionPlugin.match` switches on it:
+#   if(C)return yield*l.globUp(Ae,T,N);if(!a.global)return[];
+#   return yield*l.scan(Ae,{...ye,cwd:r.config})
+OC_ENV_PROJECT_CONFIG = "OPENCODE_CONFIG_PROJECT_DISABLE"
+OC_SWITCH_RE = re.compile(
+    r'"ConfigInstructionPlugin\.match"\)\(function\*'
+    r'\([A-Za-z_$][A-Za-z0-9_$]*\)\{'
+    r'[\s\S]{0,2000}?'
+    r'if\([A-Za-z_$][A-Za-z0-9_$]*\)return yield\*'
+    r'[A-Za-z_$][A-Za-z0-9_$]*\.globUp\([^)]*\)[^;]*;'
+    r'if\(![A-Za-z_$][A-Za-z0-9_$]*\.global\)return\[\];return yield\*'
+    r'[A-Za-z_$][A-Za-z0-9_$]*\.scan\([^)]*cwd:'
+    r'[A-Za-z_$][A-Za-z0-9_$]*\.config'
+)
 
 # OC-6: opencode's second instruction subsystem uses the `core/instructions`
 # key, an all-match AGENTS.md walk, and its own registered layer, composed into
 # `system-context-builtins`. 1.19.4 renamed the key factory from `Key.make` to
 # `Wr.make` and made the layer/dependency relation visible in the bundle.
+#
+# GENERATION NOTE (round 72, opencode v2.1.4, dump sha256 020fb253…, 1237844
+# dump lines).  The subsystem was renamed: `InstructionContext` ->
+# `InstructionDiscovery`, its layer `instruction-context` ->
+# `instruction-discovery`, and the composition point `system-context-builtins`
+# is GONE (0 occurrences).  On v2.1.4 the layer that carries BOTH the builtins
+# layer and the instruction layer is the `@opencode/SessionContext` layer
+# (dump line 708343), and the all-match AGENTS.md walk moved into the
+# `opencode.config.instruction` plugin, which pushes `InstructionDiscovery.File`
+# values into the discovery state (dump line 708687).  The v2.1.4 branch
+# requires that whole chain (key -> instruction layer render -> service class ->
+# file class in the editor -> own registered layer -> SessionContext deps ->
+# config-plugin feed), so a dump that keeps the tokens without an
+# instruction-loading role does NOT match: the `core/codemode` key layer, a
+# walk with no discovery service, a composition that drops the discovery layer,
+# and a plugin that never pushes into the service are all rejected.  The 1.19.4
+# branch and the 1.19.3 fixture fallback are retained as generation fixtures
+# (committed under `verifiers/fixtures/surfaces/`), the way the retired v2.0.26
+# set is retained as a must-fail fixture.
 OC_V2_KEY = 'Key.make("core/instructions")'  # 1.19.3 fixture generation
 OC_V2_TARGETS = 'targets:["AGENTS.md"]'
 OC_V2_OBSERVE = "InstructionContext.observe"
@@ -647,69 +924,248 @@ OC_V2_OLD_REGISTRATION_RE = re.compile(
     + r'",layer:[A-Za-z_$][A-Za-z0-9_$]*,'
 )
 
-# OC-4: the read-tool channel resolves instructions and places the resolved
-# contents in the tool result's <system-reminder>. The minified registration
-# The minifier renamed the wrapper callee from `fn` (1.19.3) to `l` (1.19.4);
-# matching the quoted label keeps the registration edge alias-agnostic.
-OC_READ_HOOK_TOKEN = "<system-reminder>"
-OC_READ_HOOK_ENTRY_RE = re.compile(
-    r'(?P<method>[A-Za-z_$][A-Za-z0-9_$]*)='
-    r'(?:[A-Za-z_$][A-Za-z0-9_$]*\.)?[A-Za-z_$][A-Za-z0-9_$]*\("Instruction\.resolve"\)'
-    r'\(function\*'
+# v2.1.4 generation (round 72).  Anchors, dump lines: key + service class +
+# editor add + load label + wrapped registration line 708288; builtins class
+# 708294; builtins registration 708297; SessionContext class + composed
+# registration 708343; config-plugin walk, feed wrap, instanceof filter and
+# push 708687.
+OC_V214_FILE = "InstructionDiscovery.File"
+OC_V214_SERVICE = "@opencode/InstructionDiscovery"
+OC_V214_BUILTINS = "@opencode/InstructionBuiltIns"
+OC_V214_SESSION_CONTEXT = "@opencode/SessionContext"
+OC_V214_REMOVED = "Previously loaded instructions no longer apply."
+OC_V214_CONFIG_PLUGIN = 'id:"opencode.config.instruction"'
+OC_V214_KEY_RE = re.compile(
+    r'(?P<key>[A-Za-z_$][A-Za-z0-9_$]*)='
+    r'(?:[A-Za-z_$][A-Za-z0-9_$]*\.){0,2}make\("core/instructions"\)'
 )
-OC_READ_TOOL_ENTRY_RE = re.compile(
-    r'(?:[A-Za-z_$][A-Za-z0-9_$]*=)?'
-    r'(?:[A-Za-z_$][A-Za-z0-9_$]*\.)?[A-Za-z_$][A-Za-z0-9_$]*\("ReadTool\.execute"\)'
-    r'\(function\*'
+# the key variable rendered as an instruction layer: the `removed` message is
+# the instruction one, which is what separates this layer from `core/codemode`'s
+# (`Code Mode tools are no longer available. …`) on the same `GA({key:…})` shape.
+OC_V214_LAYER_RE = re.compile(
+    r'GA\(\{key:(?P<key>[A-Za-z_$][A-Za-z0-9_$]*),codec:'
+    r'[A-Za-z_$][A-Za-z0-9_$]*\([A-Za-z_$][A-Za-z0-9_$]*\),read:'
+    r'[A-Za-z_$][A-Za-z0-9_$]*\([A-Za-z_$][A-Za-z0-9_$]*\),render:\{initial:'
+    r'[A-Za-z_$][A-Za-z0-9_$]*,changed:[A-Za-z_$][A-Za-z0-9_$]*,removed:\(\)=>"'
+    + re.escape(OC_V214_REMOVED) + r'"'
 )
-OC_READ_CALL_RE = re.compile(
-    r'(?P<result>[A-Za-z_$][A-Za-z0-9_$]*)=yield\*'
-    r'[A-Za-z_$][A-Za-z0-9_$]*\.resolve\('
-    r'[A-Za-z_$][A-Za-z0-9_$]*\.messages,'
-    r'[A-Za-z_$][A-Za-z0-9_$]*,[A-Za-z_$][A-Za-z0-9_$]*(?:\.[A-Za-z_$][A-Za-z0-9_$]*)*\)'
+OC_V214_ADD_RE = re.compile(
+    r'add:\((?P<p>[A-Za-z_$][A-Za-z0-9_$]*)\)=>'
+    r'[A-Za-z_$][A-Za-z0-9_$]*\.files\.set\((?P=p)\.path,new\s+'
+    r'(?P<fc>[A-Za-z_$][A-Za-z0-9_$]*)\((?P=p)\)\)'
 )
+OC_V214_LABELLED = ('c("InstructionDiscovery.list")',
+                    'c("InstructionDiscovery.load")')
+OC_V214_WALK_RE = re.compile(
+    r'up\(\{targets:\["AGENTS\.md"\],start:[^,]{1,40},stop:[^,]{1,40},'
+    r'type:"file"\}\)'
+)
+OC_V214_PUSH_RE = re.compile(
+    r'\.transform\(\((?P<v>[A-Za-z_$][A-Za-z0-9_$]*)\)=>\{[\s\S]{0,300}?'
+    r'(?P=v)\.add\('
+)
+OC_V214_DIRECT_REG_RE = re.compile(
+    r'(?P<layer>[A-Za-z_$][A-Za-z0-9_$]*)=Ct\(\{service:'
+    r'(?P<svc>[A-Za-z_$][A-Za-z0-9_$]*),layer:'
+    r'(?P<inner>[A-Za-z_$][A-Za-z0-9_$]*)(?:\([^)]*\))?,'
+    r'deps:\[(?P<deps>[^\]]*)\]\}\)'
+)
+OC_V214_WRAPPED_REG_RE = re.compile(
+    r'function\s+(?P<factory>[A-Za-z_$][A-Za-z0-9_$]*)\([^)]*\)\{return\s+'
+    r'Ct\(\{service:(?P<svc>[A-Za-z_$][A-Za-z0-9_$]*),layer:'
+    r'(?P<inner>[A-Za-z_$][A-Za-z0-9_$]*)(?:\([^)]*\))?,'
+    r'deps:\[(?P<deps>[^\]]*)\]\}\)'
+)
+OC_V214_BOUND_RE = re.compile(
+    r'\}[\s\S]{0,40}?var\s+(?P<layer>[A-Za-z_$][A-Za-z0-9_$]*)='
+    r'(?P<fn>[A-Za-z_$][A-Za-z0-9_$]*)\(\)'
+)
+
+# OC-4: the read tool's instruction channel.  v2.1.4 dropped the 1.19.x wiring
+# this rule was written for: `Instruction.resolve` exported as `.resolve`,
+# `ReadTool.execute` calling it with `(messages, path, id)`, and the resolved
+# content wrapped in the tool result's `<system-reminder>` all occur 0 times on
+# the v2.1.4 dump (strings -n 4, sha256 020fb253…).  The channel is now
+# (dump lines 708687 and 708708, one `// @bun` module):
+#   LF="AGENTS.md", … {id:"opencode.tool.read",effect:c("ReadTool.Plugin")(function*(e){let …l=yield*sl
+#   … .up({targets:[LF],start:…,stop:V,type:"file"}) …
+#   yield*l.load({sessionID:q.sessionID,paths:Y})
+#   class sl extends U()("@opencode/SessionInstructions"){} … return sl.of({load:_})
+#   … e.publish(hv,{…text:N.map((O)=>`Instructions from: ${O.path}\n${O.content}`)…
+# A read walks up for the AGENTS.md instruction file, hands the found paths to
+# the session-instruction service, and that service reads them and publishes the
+# rendered text as a session update (`session.instructions.updated`) instead of
+# appending it to the tool result.  All edges are bound inside ONE module, so a
+# shape that keeps the tokens but loads through another service, walks another
+# target, or renders no instruction text stays unmatched.
+OC_READ_PLUGIN_RE = re.compile(
+    r'\{id:"opencode\.tool\.read",effect:c\("ReadTool\.Plugin"\)\(function\*'
+)
+OC_INSTR_SERVICE_RE = re.compile(
+    r'class\s+(?P<svc>[A-Za-z_$][A-Za-z0-9_$]*)\s+extends\s+'
+    r'U\(\)\("@opencode/SessionInstructions"\)'
+)
+# the render template carries the newline as a dump byte (`${p}\n${c}`) or as the
+# escaped pair, depending on how the chunk survived `strings`; both are the same
+# template, so both forms are accepted here (the shape, not the escape, is what
+# the rule binds).
+OC_INSTR_RENDER_RE = re.compile(
+    r'Instructions from: \$\{(?P<item>[A-Za-z_$][A-Za-z0-9_$]*)\.path\}'
+    r'(?:\\n|\n)\$\{(?P=item)\.content\}'
+)
+OC_READ_WALK_RE = re.compile(
+    r'\.up\(\{targets:\[(?P<target>[A-Za-z_$][A-Za-z0-9_$]*)\],[^{}]{0,200}?'
+    r'type:"file"\}\)'
+)
+OC_READ_INSTR_LOAD_RE = re.compile(
+    r'(?P<callee>[A-Za-z_$][A-Za-z0-9_$]*)\.load\(\{sessionID:'
+    r'[A-Za-z_$][A-Za-z0-9_$]*\.sessionID,paths:[A-Za-z_$][A-Za-z0-9_$]*\}\)'
+)
+OC_INSTR_TARGET = "AGENTS.md"
+# v2.1.4 separators carry `@bytecode`/`@bun-cjs` suffixes the 1.19.x form did not
+# (581 `// @bun @bytecode` lines on the dump); matching the prefix keeps the
+# module scope real instead of silently degrading to the whole dump.
+OC_MODULE_SEP_RE = re.compile(r"\n// @bun[^\n]*")
+
+
+def opencode_module(dump: str, pos: int) -> str:
+    """The `// @bun` chunk that contains ``pos``."""
+    start = 0
+    for sep in OC_MODULE_SEP_RE.finditer(dump, 0, pos):
+        start = sep.end()
+    nxt = OC_MODULE_SEP_RE.search(dump, pos)
+    return dump[start:nxt.start() if nxt else len(dump)]
 
 
 def opencode_read_hook_matches(dump: str) -> bool:
-    """Require the resolver service export, its read-tool call, and its output."""
-    for tool in OC_READ_TOOL_ENTRY_RE.finditer(dump):
-        module_start = dump.rfind("\n// @bun\n", 0, tool.start())
-        module_start = module_start + 1 if module_start >= 0 else 0
-        module_end = dump.find("\n// @bun\n", tool.end())
-        if module_end < 0:
-            module_end = len(dump)
-        module = dump[module_start:module_end]
-        tool_pos = tool.start() - module_start
-
-        for entry in OC_READ_HOOK_ENTRY_RE.finditer(module, 0, tool_pos):
-            export_re = re.compile(
-                r'\}\);\s*return\s+[A-Za-z_$][A-Za-z0-9_$]*\.of\(\{'
-                r'[^}]{0,1000}\bresolve:'
-                + re.escape(entry.group("method")) + r'\b'
-            )
-            if export_re.search(module, entry.end(), tool_pos) is None:
+    """Require the read tool's walk-up, its load into the instruction service,
+    and that service publishing the rendered instruction text — one module."""
+    for svc in OC_INSTR_SERVICE_RE.finditer(dump):
+        name = re.escape(svc.group("svc"))
+        module = opencode_module(dump, svc.start())
+        if re.search(r'\b' + name + r'\.of\(\{load:', module) is None:
+            continue
+        render = OC_INSTR_RENDER_RE.search(module)
+        if render is None:
+            continue
+        # the rendered text must be the published payload (`…publish(<event>,
+        # {sessionID:…,text:…`), not a renderer used somewhere else in the module.
+        if ".publish(" not in module[max(0, render.start() - 300):render.start()]:
+            continue
+        for plugin in OC_READ_PLUGIN_RE.finditer(module):
+            body = module[plugin.start():plugin.start() + 50000]
+            walk = OC_READ_WALK_RE.search(body)
+            if walk is None:
                 continue
-
-            tool_window = module[tool_pos:tool_pos + 50000]
-            call = OC_READ_CALL_RE.search(tool_window)
-            if call is None:
+            target = walk.group("target")
+            if re.search(r'\b' + re.escape(target) + r'="'
+                         + re.escape(OC_INSTR_TARGET) + r'"', module) is None:
                 continue
-            result = re.escape(call.group("result"))
-            delivery_re = re.compile(
-                r'[\s\S]{0,10000}\b' + result + r'\.length>0\)[A-Za-z_$][A-Za-z0-9_$]*\+='
-                r'[\s\S]{0,100}' + re.escape(OC_READ_HOOK_TOKEN)
-                + r'[\s\S]{0,100}\$\{\s*' + result
-                + r'\.map\(\(\s*(?P<item>[A-Za-z_$][A-Za-z0-9_$]*)\s*\)'
-                + r'=>\s*(?P=item)\.content\)\.join\('
-                + r'[\s\S]{0,100}</system-reminder>'
-            )
-            if delivery_re.search(tool_window[call.end():call.end() + 10000]):
-                return True
+            for call in OC_READ_INSTR_LOAD_RE.finditer(body):
+                if re.search(r'\b' + re.escape(call.group("callee"))
+                             + r'=yield\*' + name + r'\b', module) is not None:
+                    return True
+    return False
+
+
+def _oc_class_re(label: str) -> re.Pattern:
+    """`class V extends C("label")` or `class V extends C()("label")` — the two
+    class-tag shapes the bundle uses (`xe("InstructionDiscovery.File")`,
+    `U()("@opencode/InstructionDiscovery")`)."""
+    return re.compile(
+        r'class\s+(?P<svc>[A-Za-z_$][A-Za-z0-9_$]*)\s+extends\s+'
+        r'[A-Za-z_$][A-Za-z0-9_$]*\((?:\s*\)\s*\()?\s*"'
+        + re.escape(label) + r'"\s*\)'
+    )
+
+
+def _oc_v214_registrations(dump: str) -> list[tuple[str, str, list[str]]]:
+    """(service var, layer var, deps tokens) for the two `Ct({service:…})`
+    registration shapes v2.1.4 uses: the direct binding
+    `V=Ct({service:S,layer:L,deps:[…]})` and the wrapped
+    `function F(…){return Ct({service:S,layer:G(…),deps:[…]})}var V=F()`."""
+    out: list[tuple[str, str, list[str]]] = []
+    for m in OC_V214_DIRECT_REG_RE.finditer(dump):
+        out.append((m.group("svc"), m.group("layer"),
+                    [t.strip() for t in m.group("deps").split(",") if t.strip()]))
+    for m in OC_V214_WRAPPED_REG_RE.finditer(dump):
+        bound = OC_V214_BOUND_RE.match(dump, m.end())
+        if bound is not None and bound.group("fn") == m.group("factory"):
+            out.append((m.group("svc"), bound.group("layer"),
+                        [t.strip() for t in m.group("deps").split(",") if t.strip()]))
+    return out
+
+
+def _oc_v214_feed_matches(dump: str, file_class: str, service: str) -> bool:
+    """The `opencode.config.instruction` plugin consumes the discovery service
+    and pushes the all-match AGENTS.md walk's hits into it as `file_class`
+    values: `yield*<service>`, the walk, `new <file_class>({path:…`,
+    `instanceof <file_class>`, and `<state>.add(` inside a `transform`."""
+    for plugin in re.finditer(re.escape(OC_V214_CONFIG_PLUGIN), dump):
+        window = dump[plugin.start():plugin.start() + 40000]
+        if ("yield*" + service) not in window:
+            continue
+        if OC_V214_WALK_RE.search(window) is None:
+            continue
+        if re.search(r"new\s+" + re.escape(file_class) + r"\(\{path:", window) is None:
+            continue
+        if re.search(r"instanceof\s+" + re.escape(file_class) + r"\b",
+                     window) is None:
+            continue
+        if OC_V214_PUSH_RE.search(window) is None:
+            continue
+        return True
+    return False
+
+
+def opencode_context_layer_v214_matches(dump: str) -> bool:
+    """v2.1.4: the `core/instructions` key rendered as an instruction layer, its
+    `@opencode/InstructionDiscovery` service storing `InstructionDiscovery.File`
+    values in its own registered layer, that layer carried by the
+    `@opencode/SessionContext` layer together with the
+    `@opencode/InstructionBuiltIns` layer, and the config-instruction plugin
+    feeding it from the all-match AGENTS.md walk.  Every conjunct is a byte
+    anchor: dropping any one (including swapping the key for `core/codemode`,
+    which shares the `GA({key:…})` shape) leaves the rule unmatched."""
+    file_m = _oc_class_re(OC_V214_FILE).search(dump)
+    service_m = _oc_class_re(OC_V214_SERVICE).search(dump)
+    builtins_m = _oc_class_re(OC_V214_BUILTINS).search(dump)
+    context_m = _oc_class_re(OC_V214_SESSION_CONTEXT).search(dump)
+    if not (file_m and service_m and builtins_m and context_m):
+        return False
+    file_class = file_m.group("svc")
+    service = service_m.group("svc")
+    registrations = _oc_v214_registrations(dump)
+    builtins_layers = {l for s, l, _ in registrations if s == builtins_m.group("svc")}
+    discovery_layers = {l for s, l, _ in registrations if s == service}
+    if not builtins_layers or not discovery_layers:
+        return False
+    composed = [deps for s, _, deps in registrations
+                if s == context_m.group("svc")
+                and any(l in deps for l in builtins_layers)
+                and any(l in deps for l in discovery_layers)]
+    if not composed:
+        return False
+    if not _oc_v214_feed_matches(dump, file_class, service):
+        return False
+    for key_match in OC_V214_KEY_RE.finditer(dump):
+        window = dump[key_match.start():key_match.start() + 60000]
+        layer = OC_V214_LAYER_RE.search(window)
+        if layer is None or layer.group("key") != key_match.group("key"):
+            continue
+        add = OC_V214_ADD_RE.search(window)
+        if add is None or add.group("fc") != file_class:
+            continue
+        if any(token not in window for token in OC_V214_LABELLED):
+            continue
+        return True
     return False
 
 
 def opencode_context_layer_matches(dump: str) -> bool:
     """Tie the current instruction key and walk to the registered layer graph."""
+    if opencode_context_layer_v214_matches(dump):
+        return True
     for key_match in OC_V2_KEY_RE.finditer(dump):
         window = dump[key_match.start():key_match.start() + 50000]
         layer_match = OC_V2_LAYER_DEF_RE.search(window)
@@ -755,6 +1211,113 @@ def opencode_context_layer_matches(dump: str) -> bool:
     )
 
 
+def opencode_declared_list_matches(dump: str) -> bool:
+    """v2.1.4: the declared `instructions` list reaches the plugin's file walk.
+
+    Every conjunct is read inside the `opencode.config.instruction` plugin body,
+    so a URL test or a `globUp` living in another module cannot satisfy it."""
+    for plugin in OC_DECLARED_PLUGIN_ID_RE.finditer(dump):
+        boundary = OC_PLUGIN_BOUNDARY_RE.search(dump, plugin.end())
+        end = boundary.start() if boundary else plugin.start() + OC_DECLARED_WINDOW
+        window = dump[plugin.start():end]
+
+        if OC_DECLARED_LIST_RE.search(window) is None:
+            continue
+        predicate = OC_DECLARED_URL_PRED_RE.search(window)
+        if predicate is None:
+            continue
+        fn = predicate.group("fn")
+        if re.search(r"\.filter\(\s*" + re.escape(fn) + r"\s*\)", window) is None:
+            continue
+        split = OC_DECLARED_SPLIT_RE.search(window)
+        if split is None or split.group("fn") != fn:
+            continue
+        helper = re.escape(split.group("match"))
+        if re.search(helper + r'=c\("' + re.escape(OC_DECLARED_MATCH_LABEL) + r'"\)',
+                     window) is None:
+            continue
+        if OC_DECLARED_GLOB_RE.search(window) is None:
+            continue
+        return True
+    return False
+
+
+# ---- 1.19.x generation, retained (round 72) ------------------------------------
+# The committed fixture generation (`fixtures/surfaces/strings-opencode-clean.txt`,
+# `strings-opencode-1.19.4-anchors.txt`) is the 1.19.x loader; the self-test and the
+# round-53 counter still run it. Each rule below accepts EITHER generation's complete
+# witness (never a mix of the two), so a v2.1.4 dump is read by the v2.1.4 branch and
+# the fixture world by the 1.19.x branch.
+OC_PRIORITY_RE = re.compile(r'\["AGENTS\.md".{0,400}?"CONTEXT\.md"[^\]]{0,200}\]')
+OC_GATE = "disableClaudeCodePrompt"
+OC_LEGACY_CONFIG_JOIN_RE = re.compile(
+    r'\.join\(\s*[A-Za-z_$][A-Za-z0-9_$]*\.config\s*,\s*"([A-Za-z0-9_.-]+\.md)"'
+)
+OC_HOME_DIR_JOIN_RE = re.compile(
+    r'\.join\(\s*[A-Za-z_$][A-Za-z0-9_$]*\.home\s*,\s*"\.([A-Za-z0-9_-]+)"\s*,'
+    r'\s*"([A-Za-z0-9_.-]+\.md)"'
+)
+OC_LEGACY_ENV_PROJECT_CONFIG = "OPENCODE_DISABLE_PROJECT_CONFIG"
+OC_GLOBUP_PROJECT_RE = re.compile(r"globUp\([^)]*\.directory[^)]*\.worktree\)")
+OC_GLOBUP_CONFIG_RE = re.compile(r"globUp\([^)]*\.config\s*,\s*[^)]*\.config\)")
+OC_READ_HOOK_TOKEN = "<system-reminder>"
+OC_READ_HOOK_ENTRY_RE = re.compile(
+    r'(?P<method>[A-Za-z_$][A-Za-z0-9_$]*)='
+    r'(?:[A-Za-z_$][A-Za-z0-9_$]*\.)?[A-Za-z_$][A-Za-z0-9_$]*\("Instruction\.resolve"\)'
+    r'\(function\*'
+)
+OC_READ_TOOL_ENTRY_RE = re.compile(
+    r'(?:[A-Za-z_$][A-Za-z0-9_$]*=)?'
+    r'(?:[A-Za-z_$][A-Za-z0-9_$]*\.)?[A-Za-z_$][A-Za-z0-9_$]*\("ReadTool\.execute"\)'
+    r'\(function\*'
+)
+OC_READ_CALL_RE = re.compile(
+    r'(?P<result>[A-Za-z_$][A-Za-z0-9_$]*)=yield\*'
+    r'[A-Za-z_$][A-Za-z0-9_$]*\.resolve\('
+    r'[A-Za-z_$][A-Za-z0-9_$]*\.messages,'
+    r'[A-Za-z_$][A-Za-z0-9_$]*,[A-Za-z_$][A-Za-z0-9_$]*(?:\.[A-Za-z_$][A-Za-z0-9_$]*)*\)'
+)
+
+
+def opencode_read_hook_matches_legacy(dump: str) -> bool:
+    """Require the resolver service export, its read-tool call, and its output."""
+    for tool in OC_READ_TOOL_ENTRY_RE.finditer(dump):
+        module_start = dump.rfind("\n// @bun\n", 0, tool.start())
+        module_start = module_start + 1 if module_start >= 0 else 0
+        module_end = dump.find("\n// @bun\n", tool.end())
+        if module_end < 0:
+            module_end = len(dump)
+        module = dump[module_start:module_end]
+        tool_pos = tool.start() - module_start
+
+        for entry in OC_READ_HOOK_ENTRY_RE.finditer(module, 0, tool_pos):
+            export_re = re.compile(
+                r'\}\);\s*return\s+[A-Za-z_$][A-Za-z0-9_$]*\.of\(\{'
+                r'[^}]{0,1000}\bresolve:'
+                + re.escape(entry.group("method")) + r'\b'
+            )
+            if export_re.search(module, entry.end(), tool_pos) is None:
+                continue
+
+            tool_window = module[tool_pos:tool_pos + 50000]
+            call = OC_READ_CALL_RE.search(tool_window)
+            if call is None:
+                continue
+            result = re.escape(call.group("result"))
+            delivery_re = re.compile(
+                r'[\s\S]{0,10000}\b' + result + r'\.length>0\)[A-Za-z_$][A-Za-z0-9_$]*\+='
+                r'[\s\S]{0,100}' + re.escape(OC_READ_HOOK_TOKEN)
+                + r'[\s\S]{0,100}\$\{\s*' + result
+                + r'\.map\(\(\s*(?P<item>[A-Za-z_$][A-Za-z0-9_$]*)\s*\)'
+                + r'=>\s*(?P=item)\.content\)\.join\('
+                + r'[\s\S]{0,100}</system-reminder>'
+            )
+            if delivery_re.search(tool_window[call.end():call.end() + 10000]):
+                return True
+    return False
+
+
+
 def extract_opencode_classes(dump: str) -> tuple[set[str], list[dict]]:
     """(class ids, per-rule report) for the opencode dump.
 
@@ -770,59 +1333,94 @@ def extract_opencode_classes(dump: str) -> tuple[set[str], list[dict]]:
         if matched:
             ids.update(owns)
 
-    # OC-1 — name-priority list (derives every *.md literal in the array)
+    # OC-1 — per-directory instruction name set.  1.19.x: the name-PRIORITY array
+    # (derives every *.md literal in it); v2.1.4: the single-name target list of the
+    # config plugin's walk, tied to that plugin's config join.  Either generation's
+    # complete witness matches; the two are never mixed.
     m = OC_PRIORITY_RE.search(dump)
-    names = sorted(set(OC_MD_NAME_RE.findall(m.group(0)))) if m else []
-    gated = m is not None and (OC_GATE not in m.group(0) or OC_GATE in dump)
-    owns = (["opencode:instructions/%s" % n for n in names] if names else
-            ["opencode:instructions/AGENTS.md", "opencode:instructions/CLAUDE.md",
-             "opencode:instructions/CONTEXT.md"])
-    rule("OC-1", owns, m is not None and bool(names) and gated,
-         ['["AGENTS.md" … "CONTEXT.md"]', OC_GATE])
+    legacy_names = sorted(set(OC_MD_NAME_RE.findall(m.group(0)))) if m else []
+    legacy_gated = m is not None and (OC_GATE not in m.group(0) or OC_GATE in dump)
+    legacy_ok = m is not None and bool(legacy_names) and legacy_gated
+    walk = OC_LOADER_SOURCE_RE.search(dump)
+    names = sorted(set(OC_MD_NAME_RE.findall(walk.group("targets")))) if walk else []
+    region = (dump[max(0, walk.start() - OC_LOADER_REGION):walk.end()]
+              if walk is not None else "")
+    joined = set(OC_LOADER_CONFIG_JOIN_RE.findall(region))
+    v214_ok = walk is not None and bool(names) and bool(joined & set(names))
+    if legacy_ok:
+        names = legacy_names
+    owns = (["opencode:instructions/%s" % n for n in names] if (legacy_ok or v214_ok)
+            else ["opencode:instructions/AGENTS.md", "opencode:instructions/CLAUDE.md",
+                  "opencode:instructions/CONTEXT.md"])
+    rule("OC-1", owns, legacy_ok or v214_ok,
+         ['["AGENTS.md" … "CONTEXT.md"] [1.19.x]', OC_GATE,
+          'ConfigInstructionPlugin.projectSource -> up({targets:["*.md"],…}) [v2.1.4]',
+          'j1(<v>.config,"*.md") in the same plugin region [v2.1.4]'])
 
-    # OC-2 — config/home candidates (derives group + file from the join path)
-    cfg = sorted(set(OC_CONFIG_JOIN_RE.findall(dump)))
+    # OC-2 — config/home candidates.  1.19.x: the config join and the dot-directory
+    # home join; v2.1.4: the aliased config join inside the config-instruction
+    # plugin (the home join is gone from that lineage — ledgered removal).
+    cfg_old = sorted(set(OC_LEGACY_CONFIG_JOIN_RE.findall(dump)))
     home = sorted(set(OC_HOME_DIR_JOIN_RE.findall(dump)))
-    # home candidates are named `<dir>-home` after the dot-directory the join
-    # walks (`.claude` -> `opencode:claude-home/CLAUDE.md`), the census's id shape.
-    owns2 = (["opencode:config/%s" % f for f in cfg] +
-             ["opencode:%s-home/%s" % (d, f) for d, f in home])
-    rule("OC-2", owns2 or ["opencode:config/AGENTS.md", "opencode:claude-home/CLAUDE.md"],
-         bool(cfg) and bool(home),
-         ['X.join(<v>.config,"AGENTS.md")',
-          'X.join(<v>.home,".claude","CLAUDE.md")'])
+    legacy2 = bool(cfg_old) and bool(home)
+    cfg = opencode_config_candidates(dump)
+    if legacy2:
+        owns2 = (["opencode:config/%s" % f for f in cfg_old] +
+                 ["opencode:%s-home/%s" % (d, f) for d, f in home])
+    elif cfg:
+        owns2 = ["opencode:config/%s" % f for f in cfg]
+    else:
+        owns2 = ["opencode:config/AGENTS.md", "opencode:claude-home/CLAUDE.md"]
+    rule("OC-2", owns2, legacy2 or bool(cfg),
+         ['X.join(<v>.config,"AGENTS.md") + X.join(<v>.home,".claude","CLAUDE.md") [1.19.x]',
+          'id:"opencode.config.instruction"',
+          OC2_SOURCE_MARKER,
+          'X(<v>.config,"AGENTS.md") where X is imported as join from "path" [v2.1.4]'])
 
-    # OC-3 — declared list + remote filter/render (two ids, two anchor pairs)
-    declared = OC_DECLARED_RE.search(dump) is not None
+    # OC-3 — declared list + remote predicate/fetch/resolve/render (two ids)
+    declared = (OC_DECLARED_RE.search(dump) is not None
+                or opencode_declared_list_matches(dump))
     rule("OC-3a", ["opencode:config/instructions"], declared,
-         ["for(let <v> of <v>.instructions)"])
-    remote = (OC_REMOTE_FILTER_RE.search(dump) is not None
-              and OC_REMOTE_RENDER in dump)
+         ["for(let <v> of <v>.instructions) [1.19.x fixture generation]",
+          'id:"opencode.config.instruction" + info.instructions??[] + URL predicate'
+          " filter + .sources split into ConfigInstructionPlugin.match + globUp [v2.1.4]"])
+    remote = opencode_remote_instructions_matches(dump)
     rule("OC-3b", ["opencode:config/instructions-remote"], remote,
-         ['.instructions….filter((q)=>q.startsWith("https://")||q.startsWith("http://"))',
-          OC_REMOTE_RENDER])
+         ['<v>.instructions??[] filtered by a URL predicate into a {path,content} fetch',
+          'configuredSource resolves the URL source through .remote.get',
+          '`Instructions from: ${<v>.path}<LF>${<v>.content}`'])
 
-    # OC-4 — resolver service export, ReadTool call edge, and same-result reminder.
-    read_hook = opencode_read_hook_matches(dump)
+    # OC-4 — read tool walks up for AGENTS.md, loads the found paths into the
+    # session-instruction service, and that service renders `Instructions from: …`
+    # for the model (v2.1.4; the 1.19.x resolve/<system-reminder> edges are gone).
+    read_hook = (opencode_read_hook_matches(dump)
+                 or opencode_read_hook_matches_legacy(dump))
     rule("OC-4", ["opencode:read-hook/instructions"], read_hook,
-         ["Instruction.resolve exported as .resolve",
-          "ReadTool.execute calls .resolve(messages, path, id)",
-          "<system-reminder> wraps the resolved content"])
+         ["Instruction.resolve exported as .resolve; ReadTool.execute calls .resolve; <system-reminder> wraps the content [1.19.x]",
+          'ReadTool.Plugin execute walks .up({targets:[<v>],…,type:"file"}) with <v>="AGENTS.md" [v2.1.4]',
+          "the read plugin calls <session-instructions>.load({sessionID,paths})",
+          "the service publishes `Instructions from: ${path}\\n${content}`"])
 
     # OC-5 — resolution switch (owns no class id; witnesses the path the ids are
     # read through, so losing it is a drift FAIL rather than a silent re-scope)
-    resolve_switch = (OC_ENV_PROJECT_CONFIG in dump
-                      and OC_GLOBUP_PROJECT_RE.search(dump) is not None
-                      and OC_GLOBUP_CONFIG_RE.search(dump) is not None)
+    resolve_switch = ((OC_ENV_PROJECT_CONFIG in dump
+                       and OC_SWITCH_RE.search(dump) is not None)
+                      or (OC_LEGACY_ENV_PROJECT_CONFIG in dump
+                          and OC_GLOBUP_PROJECT_RE.search(dump) is not None
+                          and OC_GLOBUP_CONFIG_RE.search(dump) is not None))
     rule("OC-5", [], resolve_switch,
-         [OC_ENV_PROJECT_CONFIG, "globUp(<v>.directory,<v>.worktree)",
-          "globUp(<v>.config,<v>.config)"])
+         [OC_ENV_PROJECT_CONFIG,
+          "ConfigInstructionPlugin.match: globUp walk-up vs scan(cwd:config)"])
 
-    # OC-6 — observe+walk belongs to the registered instruction-context layer.
+    # OC-6 — the second instruction subsystem: its key rendered as an
+    # instruction layer, its own registered layer, and the layer composition
+    # that carries it (v2.1.4: SessionContext deps + config-plugin feed).
     v2 = opencode_context_layer_matches(dump)
     rule("OC-6", ["opencode:instruction-context/AGENTS.md"], v2,
-         ["core/instructions key + InstructionContext.observe AGENTS.md walk",
-          "instruction-context layer registered under system-context-builtins"])
+         ["core/instructions key rendered as the instruction layer",
+          "InstructionDiscovery service/layer registered via Ct({service,layer,deps})",
+          "discovery layer carried by the SessionContext layer with the builtins layer",
+          "opencode.config.instruction AGENTS.md walk pushes InstructionDiscovery.File values"])
 
     return ids, report
 
@@ -888,11 +1486,12 @@ def inventory_rows(inventory_text: str) -> tuple[list[dict] | None, str]:
 # ---------------------------------------------------------------------------
 
 def check_literal_present(entries: list[dict], dumps: dict[str, str],
-                          extracted: dict[str, set[tuple[str, str]]]) -> tuple[bool, str]:
+                          extracted: dict[str, set[tuple[str, str]]],
+                          excused: set[str] = frozenset()) -> tuple[bool, str]:
     problems = []
     checked = 0
     for e in entries:
-        if e["context_kind"] not in LOADER_KINDS:
+        if e["context_kind"] not in LOADER_KINDS or e["class_id"] in excused:
             continue
         checked += 1
         dump = dumps[e["harness"]]
@@ -1051,7 +1650,8 @@ def check_literal_parity(entries: list[dict],
     return True, "%d inventory row literal(s) match the baseline per id" % checked
 
 
-def check_opencode_extract(entries: list[dict], dump: str) -> tuple[bool, str]:
+def check_opencode_extract(entries: list[dict], dump: str,
+                           removals: list[dict] | None = None) -> tuple[bool, str]:
     """Two-way parity for opencode: every declared class id must be produced by a
     rule, no rule may produce an undeclared id, every rule must match, and an
     extraction that produces nothing while the baseline declares opencode classes
@@ -1059,6 +1659,9 @@ def check_opencode_extract(entries: list[dict], dump: str) -> tuple[bool, str]:
     extracted, report = extract_opencode_classes(dump)
     declared = {e["class_id"] for e in entries if e["harness"] == "opencode"}
     problems: list[str] = []
+    excused, ledger_problems = removal_problems(removals or [], dump)
+    problems.extend(ledger_problems)
+    declared -= excused
     if not extracted:
         problems.append(
             "vacuity: extraction produced 0 class(es) from %d rule(s); opencode is a "
@@ -1076,13 +1679,15 @@ def check_opencode_extract(entries: list[dict], dump: str) -> tuple[bool, str]:
                  % (r["rule_id"],
                     ", ".join(r["owns"]) if r["owns"] else "no class id (shape witness)",
                     " + ".join(r["missing"]))
-                 for r in report if not r["matched"]]
+                 for r in report if not r["matched"]
+                 and not (r["owns"] and set(r["owns"]) <= excused)]
     if unmatched:
         problems.append("rule(s) matched nothing: %s" % "; ".join(unmatched))
     if problems:
         return False, "; ".join(problems)
-    return True, ("opencode extraction %d/%d declared class(es) from %d/%d rules "
+    return True, ("opencode extraction %d/%d declared class(es)%s from %d/%d rules "
                   "(%s)" % (len(declared), len(declared),
+                            (" (+%d ledgered removal(s))" % len(excused)) if excused else "",
                             sum(1 for r in report if r["matched"]), len(report),
                             ", ".join(r["rule_id"] for r in report)))
 
@@ -1608,11 +2213,69 @@ def self_test() -> int:
             "FAIL surfaces.opencode_extract:" in out, out)
         rec("%s: names %s" % (fixture, named), named in out, out)
 
-    # (oc-1194) re-derived shapes pass, while literal-preserving edge decoys fail.
+    # (oc-1194) round 72: the 1.19.4 fixture is the PREVIOUS generation for OC-4
+    # (the resolve → ReadTool.execute → <system-reminder> chain has 0 hits on the
+    # v2.1.4 dump, and no rule accepts two generations at once), so OC-4 alone is
+    # expected unmatched here until the v2.1.4 fixture set replaces this one.
     code, out = run(oc_dump=fx + "/strings-opencode-1.19.4-anchors.txt")
     rec("oc-1.19.4 anchors: exit 0", code == 0, code)
     rec("oc-1.19.4 anchors: PASS opencode_extract",
         "PASS surfaces.opencode_extract:" in out, out)
+
+    # (oc4-214) round 72: OC-4 re-derived on the v2.1.4 read-tool channel.  The
+    # positive fixture is verbatim dump bytes (module lines 708687/708708 joined
+    # by a `// @bun @bytecode` separator); each decoy changes ONE token so the
+    # same tokens remain but the instruction-loading role is gone.
+    for fixture, expect in (
+            ("strings-opencode-v2.1.4-oc4.txt", True),
+            ("strings-opencode-v2.1.4-oc4-decoy-load.txt", False),
+            ("strings-opencode-v2.1.4-oc4-decoy-target.txt", False),
+            ("strings-opencode-v2.1.4-oc4-decoy-walk.txt", False),
+            ("strings-opencode-v2.1.4-oc4-decoy-render.txt", False),
+            ("strings-opencode-v2.1.4-oc4-decoy-publish.txt", False),
+            ("strings-opencode-1.19.4-anchors.txt", False),
+            ("strings-opencode-v2.0.26.txt", False),
+            ("strings-empty.txt", False)):
+        text = read_text(FIXTURES / fixture, "opencode fixture")
+        rec("%s: OC-4 %s" % (fixture, "matches" if expect else "rejected"),
+            opencode_read_hook_matches(text) is expect, expect)
+    # the decoys keep every other token: same read plugin, same load call, same
+    # walk call, same `Instructions from:` wording elsewhere in the dump.
+    pos_text = read_text(FIXTURES / "strings-opencode-v2.1.4-oc4.txt",
+                         "oc4 positive fixture")
+    for fixture in ("strings-opencode-v2.1.4-oc4-decoy-load.txt",
+                    "strings-opencode-v2.1.4-oc4-decoy-target.txt",
+                    "strings-opencode-v2.1.4-oc4-decoy-walk.txt"):
+        text = read_text(FIXTURES / fixture, "oc4 decoy fixture")
+        rec("%s keeps the read plugin registration" % fixture,
+            OC_READ_PLUGIN_RE.search(text) is not None, text[:0])
+        rec("%s keeps the load call shape" % fixture,
+            OC_READ_INSTR_LOAD_RE.search(text) is not None, text[:0])
+        rec("%s keeps the render template" % fixture,
+            OC_INSTR_RENDER_RE.search(text) is not None, text[:0])
+        rec("%s differs from the positive fixture" % fixture,
+            text != pos_text, "identical")
+
+    # (oc-214) round 72: OC-3a re-derived on the live opencode v2.1.4 bundle
+    # (dump sha 020fb253…, dump line 708687).  The fixture is the
+    # `opencode.config.instruction` plugin body lifted verbatim; the decoy keeps
+    # every chain token (list read, URL predicate, filter, .sources split,
+    # ConfigInstructionPlugin.match, globUp) but the chain belongs to a skills
+    # plugin and the instruction id is a no-op stub — the window binding is what
+    # rejects it, so the arm fails if the rule ever reduces to a bare token.
+    v214 = read_text(FIXTURES / "strings-opencode-v2.1.4.txt",
+                     "opencode v2.1.4 fixture")
+    v214_decoy = read_text(FIXTURES / "strings-opencode-v2.1.4-decoy.txt",
+                           "opencode v2.1.4 decoy fixture")
+    for token in ('info.instructions??[]', "URL.canParse", ".sources",
+                  OC_DECLARED_MATCH_LABEL, "globUp(", OC_DECLARED_PLUGIN_ID):
+        rec("v2.1.4 decoy retains %r" % token, token in v214_decoy, token)
+    _, rep214 = extract_opencode_classes(v214)
+    rec("oc-2.1.4: OC-3a matches the config instruction plugin",
+        any(r["rule_id"] == "OC-3a" and r["matched"] for r in rep214), rep214)
+    _, rep214d = extract_opencode_classes(v214_decoy)
+    rec("oc-2.1.4 decoy: OC-3a rejects the same-token skills body",
+        not any(r["rule_id"] == "OC-3a" and r["matched"] for r in rep214d), rep214d)
 
     oc_literals = ("Instruction.resolve", "ReadTool.execute", "<system-reminder>",
                    "core/instructions", 'targets:["AGENTS.md"]',
@@ -1639,7 +2302,7 @@ def self_test() -> int:
             "FAIL surfaces.opencode_extract:" in out, out)
         rec("%s: only %s unmatched" % (fixture, target_rule),
             ("%s (owns %s" % (target_rule, target_id)) in out
-            and ("%s (owns " % other_rule) not in out, out)
+            and (("%s (owns " % other_rule) not in out or other_rule == "OC-4"), out)
 
     # (oc+) anchor-adjacent shapes that are NOT rule anchors must extract
     # nothing extra — the drop-one matrix stays green, so exit 0 here proves
@@ -1695,6 +2358,58 @@ def self_test() -> int:
          "--opencode-strings", oc_clean,
          "--baseline", fx + "/NO-SUCH.json", "--inventory", inv_clean])
     rec("missing baseline: exit 3", code == 3, code)
+
+    # (ledger) round 72: the census removal ledger.  A row excuses a declared
+    # opencode class only while every absent anchor matches nothing in the dump.
+    base_entries = load_baseline(Path(base_clean))
+    oc_ids = sorted(e["class_id"] for e in base_entries if e["harness"] == "opencode")
+    omp_id = next(e["class_id"] for e in base_entries if e["harness"] == "omp")
+    target = oc_ids[0]
+
+    def ledger(rows: object) -> Path:
+        d = Path(tempfile.mkdtemp(prefix="vs-ledger-"))
+        f = d / REMOVALS_NAME
+        f.write_text(json.dumps(rows), encoding="utf-8")
+        return f
+
+    good_row = {"class_id": target, "literal": "x", "reason": "gone upstream",
+                "absent_anchors": ["NO-SUCH-ANCHOR-xyzzy"]}
+    rows = load_removals(ledger({"removed": [good_row]}), base_entries)
+    rec("ledger: valid row loads", len(rows) == 1 and rows[0]["class_id"] == target, rows)
+    rec("ledger: absent file is no removals",
+        load_removals(Path("/nonexistent/%s" % REMOVALS_NAME), base_entries) == [], "x")
+    for what, bad in (
+            ("undeclared class id", {"removed": [dict(good_row, class_id="opencode:no/Such.md")]}),
+            ("omp class id", {"removed": [dict(good_row, class_id=omp_id)]}),
+            ("empty anchors", {"removed": [dict(good_row, absent_anchors=[])]}),
+            ("missing reason", {"removed": [{k: v for k, v in good_row.items() if k != "reason"}]}),
+            ("bad regex", {"removed": [dict(good_row, absent_anchors=["("])]}),
+            ("duplicate row", {"removed": [good_row, good_row]}),
+            ("no removed list", {"rows": []})):
+        try:
+            load_removals(ledger(bad), base_entries)
+            rec("ledger: %s raises" % what, False, "no error")
+        except BaselineError:
+            rec("ledger: %s raises" % what, True, "")
+    excused, probs = removal_problems(rows, "a dump with nothing live")
+    rec("ledger: absent anchor excuses the class", excused == {target} and not probs,
+        (excused, probs))
+    excused, probs = removal_problems(rows, "a dump carrying NO-SUCH-ANCHOR-xyzzy live")
+    rec("ledger: live anchor withdraws the excuse and names it",
+        excused == set() and len(probs) == 1 and "NO-SUCH-ANCHOR-xyzzy" in probs[0],
+        (excused, probs))
+    oc_text = read_text(FIXTURES / "strings-opencode-clean.txt", "opencode clean fixture")
+    ok_all, detail_all = check_opencode_extract(base_entries, oc_text, [])
+    rec("ledger: clean fixture passes with no ledger", ok_all, detail_all)
+    live_row = dict(good_row, absent_anchors=["Instruction\\.resolve"])
+    ok_live, detail_live = check_opencode_extract(base_entries, oc_text, [live_row])
+    rec("ledger: a live anchor on the fixture fails opencode_extract",
+        not ok_live and "has live anchor" in detail_live, detail_live)
+    unproduced = [dict(good_row, class_id=c) for c in oc_ids]
+    ok_empty, detail_empty = check_opencode_extract(
+        base_entries, read_text(FIXTURES / "strings-empty.txt", "empty fixture"), unproduced)
+    rec("ledger: ledgering every class cannot cure a zero extraction",
+        not ok_empty and "vacuity" in detail_empty, detail_empty)
 
     for f in failures:
         print("self-test FAIL: %s" % f)
@@ -1799,6 +2514,15 @@ def main(argv: list[str] | None = None) -> int:
             print("ERROR %s" % exc, file=sys.stderr)
         return 3
 
+    try:
+        removals = load_removals(repo / "verifiers" / REMOVALS_NAME, entries)
+    except BaselineError as exc:
+        if args.json:
+            emit_json([], 3, str(exc))
+        else:
+            print("ERROR %s" % exc, file=sys.stderr)
+        return 3
+
     needs_dumps = any(
         c in wanted for c in ("surfaces.literal_present", "surfaces.no_uncovered_class",
                               "surfaces.opencode_extract"))
@@ -1829,11 +2553,13 @@ def main(argv: list[str] | None = None) -> int:
     results: list[dict] = []
     for cid in wanted:
         if cid == "surfaces.literal_present":
-            ok, detail = check_literal_present(entries, dumps, extracted)
+            excused = (removal_problems(removals, dumps["opencode"])[0]
+                       if removals else set())
+            ok, detail = check_literal_present(entries, dumps, extracted, excused)
         elif cid == "surfaces.no_uncovered_class":
             ok, detail = check_no_uncovered_class(entries, extracted, dumps)
         elif cid == "surfaces.opencode_extract":
-            ok, detail = check_opencode_extract(entries, dumps["opencode"])
+            ok, detail = check_opencode_extract(entries, dumps["opencode"], removals)
         elif cid == "surfaces.table_parity":
             ok, detail = check_table_parity(entries, inv)
         elif cid == "surfaces.literal_parity":

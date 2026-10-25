@@ -2513,16 +2513,33 @@ def self_test() -> int:
             and "1 recorded correction(s) excused" in detail,
             (status, evaluated, detail))
         # live corrections land against the real repo: the three round-65
-        # rows and the round-70 row (K69-11, LOG.md:2676) excuse four reds;
-        # LOG.md:2678 names a removed directory with no replacement address,
-        # which a correction may not carry, so the check stays FAIL on it.
+        # rows and the round-70 row (K69-11, LOG.md:2676) excuse four reds,
+        # and the round-71 errata row (LOG.md:2678, routed defect R67-3)
+        # records the removed control mirror that no correction may carry,
+        # so the check is green with two absences and four corrections
+        # excused (round 72: the r71 erratum retired the old red).
+        live_repo = Path(__file__).resolve().parent.parent
         status, evaluated, detail = check_governance_citations(
-            Path(__file__).resolve().parent.parent,
-            corrections=GOVERNANCE_CORRECTIONS)
-        rec("governance: live round-65 corrections land, only LOG.md:2678 red",
-            status == "FAIL" and "4 recorded correction(s) excused" in detail
-            and "LOG.md:2678" in detail and "LOG.md:2676" not in detail,
+            live_repo, corrections=GOVERNANCE_CORRECTIONS)
+        rec("governance: live round-65 corrections land, errata-excused",
+            status == "PASS" and "2 recorded absence(s) excused" in detail
+            and "4 recorded correction(s) excused" in detail,
             (status, evaluated, detail))
+        # regression: that LOG.md:2678 row is load-bearing -- dropping it or
+        # lowering the horizon below 2678 must turn the live check red, so
+        # the boundary is a literal here, not read back from the constant.
+        dropped = check_governance_citations(
+            live_repo, errata=tuple(r for r in GOVERNANCE_ERRATA
+                                    if r[0] != 2678),
+            corrections=GOVERNANCE_CORRECTIONS)
+        low = check_governance_citations(
+            live_repo, errata=GOVERNANCE_ERRATA, horizon=2677,
+            corrections=GOVERNANCE_CORRECTIONS)
+        rec("governance: LOG.md:2678 erratum is load-bearing",
+            GOVERNANCE_ERRATA_HORIZON >= 2678
+            and dropped[0] == "FAIL" and "LOG.md:2678" in dropped[2]
+            and low[0] == "FAIL" and "past horizon 2677" in low[2],
+            (dropped, low))
 
     # An explicit relative --repo must be normalized before bounded `..`
     # hops; Path('.').parent otherwise stays '.', changing the verdict.

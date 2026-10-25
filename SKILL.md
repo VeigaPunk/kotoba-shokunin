@@ -147,61 +147,8 @@ A rule that matters only for some files can live in a scoped rule file the clien
 
 ## Router model — which harness, which gate
 
-Two harnesses consume skills here, and neither shares the other's catalogue
-tag, render, or offer gate. Read the harness's own artifacts before predicting
-a render — a rule proven on omp is wrong on opencode.
-
-| Harness | Catalogue tag | Description render | Offer gate (action) | Failure mode |
-|---------|---------------|--------------------|---------------------|--------------|
-| omp | `<skills>` (ELF template) | `cache.get(key) ?? previewSkillDescription` — cached LLM line, else deterministic truncator (`_8n=100`; first sentence if ≥40 chars, else last-space cut + `…`); hard 99-char cliff | Ship the dir under an omp discovery root (`~/.agents/skills`, `~/.omp/agent/skills`, `~/.claude/skills`, project walk-up) and front-load the capability + WHEN into the first ≤99 chars | Trigger material past offset 99 or in sentence 2 renders as nothing (all 13 observed `Triggers:`/反触发/`Excludes` clauses lost) |
-| opencode | `<available_skills>` (`fmt(list,{verbose:true})`) | Full `description` byte-for-byte + `<location>` in the system-prompt catalogue; no truncation, no cache (the TUI skill list collapses whitespace only) | Define `description` and a frontmatter `name:`; leave the `skill` permission enabled; if a same-name duplicate exists, do not rely on which copy wins | Missing `description` is filtered out of the catalogue; a denied `skill` permission omits the whole block; duplicate names are last-parsed-wins under unbounded parse concurrency (round-9 re-verify: first-scanned-wins was wrong) |
-
-Check before predicting: on omp read the cache db
-(`sqlite3 -readonly ~/.omp/agent/skill-descriptions.db "select count(*) from
-skill_descriptions;"`) **and** the newest *catalogue-bearing* `<skills>` block —
-mtime order is not a selection rule: the newest session file
-(`~/.omp/agent/sessions/<project-slug>/<ts>/<Agent>.jsonl`) may carry no
-`<skills>` block (round-8 box-3 cold run's B1), so take the two fields the verifier already resolves:
-`python3 verifiers/verify_harness_claims.py --json` → `omp.catalogue_path` /
-`omp.catalogue_timestamp`. The catalogue freezes at session start, so db coverage
-is time-varying; on opencode read the global roots and
-`grep -o 'message=init count=[0-9]*' ~/.local/share/opencode/log/opencode.log`.
-
-### Run the verifier instead of re-typing the recipe
-
-`python3 verifiers/verify_harness_claims.py` recomputes this whole table from
-live state against `verifiers/baseline.json` and exits non-zero on drift —
-**28 checks**: the omp key prefix read out of the ELF
-(`omp.elf.template_sha256`, 273 B), `keys_reproduced` per offered skill under the
-style-aware salt, cache-miss/truncation count, the newest captured `<skills>`
-block matched line-by-line against the cache, offered vs dangling skill dirs,
-name==folder, unmodelled YAML scalar forms (excluded, never guessed), opencode
-`init count` max vs root-union+builtin, `<available_skills>` hits, per-root
-duplicate split, `skill`-permission allow lines. Exit 0 agree / 1 drift
-/ 2 environment unreadable / 3 no baseline; `--self-test` falsifies the script's
-own truncator + block-scalar model. Cite this file for any harness number rather
-than a hand-run recipe, and update the baseline only with a LOG entry naming the
-mechanism that moved. Model + gaps: `corpus/knowledge/harness-verifier-round10.md`.
-
-`python3 verifiers/verify_skill_checklist.py` executes this file's own checklist:
-**11 checks** (`checklist.box_map_complete` + the eight boxes marked
-`(executed: …)` below + `trigger.no_xml_tag`, bound to no box since round 47 +
-`governance.citation_resolves` over the two root governance files), each fail-closed on fixtures, `evaluated N` per check,
-exit 0/1/2/3 (`3` = box map missing, unparseable, or bound elsewhere).
-`verifiers/checklist-baseline.json` maps **all 41 boxes** (8 executed, 2
-delegated, 31 unexecuted with reason) by text hash, so drift FAILs. The two
-delegated boxes are the dispatch-prompt fidelity boxes `dispatch.04` and
-`dispatch.08`, run by `verifiers/verify_dispatch_prompts.py` (its
-`--box-proof` prints `boxes proven 2` only when both boxes are delegated there
-and each of its six named conjuncts has an isolated must-fail case, judged on
-observed statuses; the checklist gate runs `--box-proof` only when the
-delegate's `--help` output contains the flag text (a substring test) — a probe that times out, cannot
-execute or does not show the flag is reported PASS with "not run", so the gate
-fails open there, and a relative `--map` run from another directory gives a
-false red and non-UTF-8 `--help` output crashes the gate
-(`.ufo/waves/round-50/falsify/ReviewBoxProofGate.md` F1–F5, carried); the
-unsubstituted-variable clause, the `≤` equality boundary, the legacy-state
-arm and a non-digit round folder have no fixture yet). Limits and ceilings: `corpus/knowledge/checklist-execution-round17.md`.
+The body (the two-harness table, the check-before-predicting recipe and the verifier recipes) moved verbatim to
+`corpus/knowledge/anatomy-and-compression.md` § Moved from SKILL.md § Router model (round 72).
 
 ## Frontmatter craft — the trigger surface
 
@@ -256,7 +203,7 @@ Run before shipping any SKILL.md. Every item is checkable by reading the file �
 no runtime needed. (For AGENTS.md / dispatch prompts, use the per-surface rows
 in "Instruction surfaces" instead — this checklist assumes a routed file.)
 
-Eight of the fifteen boxes are **executed, not read** — marked
+Eight of the nineteen boxes are **executed, not read** — marked
 `(executed: <check-id>)`: `python3 verifiers/verify_skill_checklist.py` runs them
 and exits non-zero on any FAIL. `verifiers/checklist-baseline.json` maps every box
 in this file to `executed:` / `delegated:` / `unexecuted:<reason>`, pinned by the
@@ -324,6 +271,22 @@ passing silently.
       or names the missing prerequisite.
       (executed: `trigger.no_placeholder` — a line that names the marker after a
       negation, or quotes it in backticks, is read as the rule, not a stub)
+- [ ] `name` is unique among the skills likely installed alongside it: a
+      same-name collision resolves by precedence order on four of the five
+      cited clients, not by merging; the orders differ per client. (sourced: S203,
+      S204, S205, S206, S207; entry: corpus/knowledge/skill-name-precedence-round69.md)
+- [ ] Every instruction the `body` gives names the `authority` level it
+      speaks at and asserts no higher one: a skill body is text a model may
+      obey, not a privileged level, and no fixed ladder settles conflicts.
+      (sourced: S123, S129; entry: corpus/knowledge/instruction-authority-ladder-round67.md)
+- [ ] The install path is declared and its trust level stated: the same body
+      is untrusted data in one client and a gated capability in another, and
+      a project or remote path runs no embedded command in at least one client.
+      (sourced: S198, S199, S200, S202; entry: corpus/knowledge/client-trust-gates-round68.md)
+- [ ] Content sits on the right rung: a skill holds what is too specific
+      for an always-on file and too shaped for a one-off prompt, and the
+      always-resident surface is an index, not a payload.
+      (sourced: S214, S215, S216; entry: corpus/knowledge/resident-index-and-rungs-round72.md)
 
 ## Agent-definition fidelity checklist
 
@@ -520,6 +483,11 @@ reads as could-not-evaluate. `python3 -B verifiers/check_gate_registry.py --rev 
 | `verifiers/check_province_core.py` | gate | `python3 -B verifiers/check_province_core.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate — round-69 C3 counter: the round-67 instruction-authority and round-68 client-trust-gate areas are held in `PROVINCE.md` § Core (entry, counter and round named in one bullet) with the entry indexed and `## Frontier`/`## Adjacent` byte-identical to the base; `province core rows 2 of 2` at the measured rev and `0 of 2` at the pinned base | `--self-test` | in-file | none (read-only) | kotoba |
 | `verifiers/check_r69_routed_repairs.py` | gate | `python3 -B verifiers/check_r69_routed_repairs.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate — round-70 C1 counter: ten of the eleven round-69 routed defects close (r69 SCORECARD annotation; LOG round-69 entry with branch, attribution and numeric corrections; the two late seat reports at pinned blobs; r69 tip-defense receipt; S201 old→new; lesson erratum; checklist governance PASS in a sandbox); frozen target `10 of 10`, measured `9 of 10` — the K69-11 item cannot pass in a `/tmp` sandbox, where the gate's `../` tokens are dead (lesson M116, QUALITY Q63) — and `0 of 10` at the pinned base | `--self-test` | in-file | temporary sandbox clone under `$TMPDIR` (removed) | kotoba |
 | `verifiers/check_skill_evals.py` | gate | `python3 -B verifiers/check_skill_evals.py --rev <rev> --fetch` | 0=clean, 1=failed, 2=could-not-evaluate (incl. a tampered snapshot) — round-70 C2 counter: eight skill-evaluation facts, each a located quote carrying its pinned key terms, found in its sha256-pinned snapshot, its row `mined` with the entry in `used-by`, and `SKILL.md` citing the entry; `skill eval facts backed 8 of 8` at the measured rev and `0 of 8` at the pinned base | `--self-test` | in-file; `.ufo/waves/round-70/snapshots/` | none (read-only); `--fetch` reads the three live URLs | kotoba |
+| `verifiers/check_r69_routed_repairs_v2.py` | gate | `python3 -B verifiers/check_r69_routed_repairs_v2.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate — round-71 C1 successor counter: redesigned against the round-70 closure's routed defects (base-prefix byte integrity, exact headings, whole-word/digit-bounded tokens, ordered old→new values, pinned blob SHAs, git-object recomputation, real re-runs of the receipt's three counters at the pinned rev, fleet-shaped sandbox); K69-11 passes on the GOVERNANCE_ERRATA-recorded absence; `r69 routed defects closed N of 10` frozen target | `--self-test` | in-file | temporary sandbox clone under `$TMPDIR` (removed) | kotoba |
+| `verifiers/check_skill_evals_v2.py` | gate | `python3 -B verifiers/check_skill_evals_v2.py --rev <rev> --fetch` | 0=clean, 1=failed, 2=could-not-evaluate (incl. a tampered snapshot) — round-71 C2 successor counter (depth): exactly-4-cell fact rows; HTML comments and fenced blocks stripped from the entry, SKILL.md and SOURCES.md; word-bounded quotes; `used-by` EXACTLY the entry path; census-validate over the revision's registry; superseding agentskills.io rows carry an upstream-commit anchor; SELF_SHA drift = exit 2; `skill eval artefacts verified N of 10` frozen target | `--self-test` | in-file; `.ufo/waves/round-70/snapshots/` | none (read-only); `--fetch` reads the three live URLs | kotoba |
+| `verifiers/check_author_rules.py` | gate | `python3 -B verifiers/check_author_rules.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate — round-72 C1 counter: four rendered checklist boxes in § Trigger-fidelity checklist (A1 name uniqueness, A2 authority level, A3 install-path trust, A4 rung) each with its frozen token set, a body of at least 25 words and a `(sourced: S###…; entry: <path>)` tail; cited rows `mined` tier A/B with `used-by` listing the entry; entry provenance trio; A4 quotes in sha256-pinned snapshots; `author-facing rules in SKILL.md N of 4`; counts form and sources, rule carriage is reviewer judgement | `--self-test` | in-file SELF_SHA; `.ufo/waves/round-72/snapshots/` | none (read-only) | kotoba |
+| `verifiers/check_substrate_repin_v2.py` | gate | `python3 -B verifiers/check_substrate_repin_v2.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate — round-72 C2 counter (freshness): runs `<rev>`'s verify_surfaces.py and check_substrate_pins.py at their own default paths; the removal ledger must equal the three frozen classes (`FROZEN_REMOVALS`) whose anchors the counter finds absent from the live opencode dump; `host substrate re-derived: pins OK k/3; surfaces pass p of 7; removal ledger l of l verified`; reads the host binaries | `--self-test` | in-file; host omp.real and opencode paths | temporary extraction under `$TMPDIR` (removed) | kotoba |
+| `verifiers/check_tip_battery.py` | gate | `python3 -B verifiers/check_tip_battery.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate — round-72 C3 counter (consistency): fleet-shaped sandbox of `<rev>`, six frozen gate commands, N = number exiting 0; guards: no base-tracked corpus/verifiers/SKILL.md deletion, floors never lower, instrument size cap, `instrument-pin` blobs, non-author spot-check lessons byte-identical; `tip battery exit 0: N of 6` | `--self-test` | in-file INSTRUMENT_PINS | temporary fleet-shaped sandbox under `$TMPDIR` (removed) | kotoba |
 
 ## Sources
 

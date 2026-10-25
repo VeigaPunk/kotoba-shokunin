@@ -197,3 +197,63 @@ Verbatim from `SKILL.md` § Sources at `31092dc6` lines 509–521 (round 60 line
   dispatch template, 12 vendored/cache); loader strings in both harness
   binaries (9 opencode / 17 omp) but 0 captured injections — seventh surface
   class, cold channel.
+
+## Moved from SKILL.md § Router model (round 72)
+
+Moved verbatim to free lines for four author-facing boxes and five gate-registry rows (SKILL.md was 600 of 600 lines; `File ≤ 600 lines` is an executed box). The heading stays in SKILL.md with a pointer. Body (SKILL.md lines 150-204 at `c69711ee`) sha256 `7aa505aadb970057cf7cbcfd0c9ca0414fbbbda701b50060043e61f41df738bb` (`sed -n '150,204p' SKILL.md | sha256sum` at that revision).
+
+Two harnesses consume skills here, and neither shares the other's catalogue
+tag, render, or offer gate. Read the harness's own artifacts before predicting
+a render — a rule proven on omp is wrong on opencode.
+
+| Harness | Catalogue tag | Description render | Offer gate (action) | Failure mode |
+|---------|---------------|--------------------|---------------------|--------------|
+| omp | `<skills>` (ELF template) | `cache.get(key) ?? previewSkillDescription` — cached LLM line, else deterministic truncator (`_8n=100`; first sentence if ≥40 chars, else last-space cut + `…`); hard 99-char cliff | Ship the dir under an omp discovery root (`~/.agents/skills`, `~/.omp/agent/skills`, `~/.claude/skills`, project walk-up) and front-load the capability + WHEN into the first ≤99 chars | Trigger material past offset 99 or in sentence 2 renders as nothing (all 13 observed `Triggers:`/反触发/`Excludes` clauses lost) |
+| opencode | `<available_skills>` (`fmt(list,{verbose:true})`) | Full `description` byte-for-byte + `<location>` in the system-prompt catalogue; no truncation, no cache (the TUI skill list collapses whitespace only) | Define `description` and a frontmatter `name:`; leave the `skill` permission enabled; if a same-name duplicate exists, do not rely on which copy wins | Missing `description` is filtered out of the catalogue; a denied `skill` permission omits the whole block; duplicate names are last-parsed-wins under unbounded parse concurrency (round-9 re-verify: first-scanned-wins was wrong) |
+
+Check before predicting: on omp read the cache db
+(`sqlite3 -readonly ~/.omp/agent/skill-descriptions.db "select count(*) from
+skill_descriptions;"`) **and** the newest *catalogue-bearing* `<skills>` block —
+mtime order is not a selection rule: the newest session file
+(`~/.omp/agent/sessions/<project-slug>/<ts>/<Agent>.jsonl`) may carry no
+`<skills>` block (round-8 box-3 cold run's B1), so take the two fields the verifier already resolves:
+`python3 verifiers/verify_harness_claims.py --json` → `omp.catalogue_path` /
+`omp.catalogue_timestamp`. The catalogue freezes at session start, so db coverage
+is time-varying; on opencode read the global roots and
+`grep -o 'message=init count=[0-9]*' ~/.local/share/opencode/log/opencode.log`.
+
+### Run the verifier instead of re-typing the recipe
+
+`python3 verifiers/verify_harness_claims.py` recomputes this whole table from
+live state against `verifiers/baseline.json` and exits non-zero on drift —
+**28 checks**: the omp key prefix read out of the ELF
+(`omp.elf.template_sha256`, 273 B), `keys_reproduced` per offered skill under the
+style-aware salt, cache-miss/truncation count, the newest captured `<skills>`
+block matched line-by-line against the cache, offered vs dangling skill dirs,
+name==folder, unmodelled YAML scalar forms (excluded, never guessed), opencode
+`init count` max vs root-union+builtin, `<available_skills>` hits, per-root
+duplicate split, `skill`-permission allow lines. Exit 0 agree / 1 drift
+/ 2 environment unreadable / 3 no baseline; `--self-test` falsifies the script's
+own truncator + block-scalar model. Cite this file for any harness number rather
+than a hand-run recipe, and update the baseline only with a LOG entry naming the
+mechanism that moved. Model + gaps: `corpus/knowledge/harness-verifier-round10.md`.
+
+`python3 verifiers/verify_skill_checklist.py` executes this file's own checklist:
+**11 checks** (`checklist.box_map_complete` + the eight boxes marked
+`(executed: …)` below + `trigger.no_xml_tag`, bound to no box since round 47 +
+`governance.citation_resolves` over the two root governance files), each fail-closed on fixtures, `evaluated N` per check,
+exit 0/1/2/3 (`3` = box map missing, unparseable, or bound elsewhere).
+`verifiers/checklist-baseline.json` maps **all 41 boxes** (8 executed, 2
+delegated, 31 unexecuted with reason) by text hash, so drift FAILs. The two
+delegated boxes are the dispatch-prompt fidelity boxes `dispatch.04` and
+`dispatch.08`, run by `verifiers/verify_dispatch_prompts.py` (its
+`--box-proof` prints `boxes proven 2` only when both boxes are delegated there
+and each of its six named conjuncts has an isolated must-fail case, judged on
+observed statuses; the checklist gate runs `--box-proof` only when the
+delegate's `--help` output contains the flag text (a substring test) — a probe that times out, cannot
+execute or does not show the flag is reported PASS with "not run", so the gate
+fails open there, and a relative `--map` run from another directory gives a
+false red and non-UTF-8 `--help` output crashes the gate
+(`.ufo/waves/round-50/falsify/ReviewBoxProofGate.md` F1–F5, carried); the
+unsubstituted-variable clause, the `≤` equality boundary, the legacy-state
+arm and a non-digit round folder have no fixture yet). Limits and ceilings: `corpus/knowledge/checklist-execution-round17.md`.

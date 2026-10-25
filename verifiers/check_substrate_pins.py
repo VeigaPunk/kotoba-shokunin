@@ -61,9 +61,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 DEFAULT_REPO = Path(__file__).resolve().parent.parent
+# Round 72: omp is the ELF `omp.real` (the `omp` file installed 2026-10-23 is a
+# crash-restart shell wrapper; its sha says nothing about the ELF that runs) and
+# opencode is v2.1.4 at `~/.opencode/bin/opencode` (the npx 1.19.4 path is gone).
 BINARIES = {
-    "omp": "/home/vgpnk/.local/bin/omp",
-    "opencode": "/home/vgpnk/.npm/_npx/e2094862b59aac7b/node_modules/opencode-ai/bin/opencode.exe",
+    "omp": "/home/vgpnk/.local/bin/omp.real",
+    "opencode": "/home/vgpnk/.opencode/bin/opencode",
 }
 # The pin set the guard's contract requires. Discovery additionally checks any
 # other measured_against key shaped like `<substrate>_binary_<kind>`: a pin the

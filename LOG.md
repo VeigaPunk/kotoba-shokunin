@@ -2766,3 +2766,16 @@ Core rows) — but filed no entry here. This entry is that record, appended, nev
   junk worlds are rejected by the real-git self-test arms (5/10 and 0/10).
 - **Pointer:** `plans/round-71.md`, `corpus/lessons/round-71.md`,
   `.ufo/waves/round-71/receipts/`, `.ufo/waves/round-71/controls/`.
+
+## Round 72 — C1 depth (author-facing rules, sourced), C2 freshness (host substrate), C3 consistency (tip battery)
+
+- **Trigger:** the round-72 steer (hyaku run 7, attempt 1); base `c69711e` read `51 of 53` gate-registry rows,
+  assertion floors red, corpus gates red and four substrate instruments red (`.ufo/waves/round-72/receipts/base-battery.txt`);
+  `considerthese/2026-10-25.md` item 3.
+- **Action:** plan `7b229a1`, addendum E1–E4; wave 1 (53 seats, 0 dead); three counters
+  (`check_author_rules.py`, `check_substrate_repin_v2.py`, `check_tip_battery.py`); OC-1…OC-6 re-derived on opencode v2.1.4
+  with a three-class removal ledger; pins moved to `omp.real` and v2.1.4; the stale checklist arm and the truncated-id
+  context class repaired; four rule boxes, S214–S216 and the rung entry; the Router-model body moved verbatim to
+  `corpus/knowledge/anatomy-and-compression.md`. Wave 2 not run.
+- **Outcome:** measured in `.ufo/waves/round-72/receipts/` (tip receipts) and the fleet report.
+- **Pointer:** `plans/round-72.md`, `plans/round-72-addendum-1.md`, `corpus/lessons/round-72.md`, `.ufo/waves/round-72/`.

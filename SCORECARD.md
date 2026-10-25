@@ -458,3 +458,5 @@ things stand.
   600, census exit 0 before and after.
 
 **Round 71 axis annotations (append-only; verdicts belong to the non-author closure).** *Consistency (C1):* `python3 -B verifiers/check_r69_routed_repairs_v2.py --rev <rev>` → `r69 routed defects closed 9 of 10` exit 1 @ `2b79115` → `10 of 10` exit 0 @ `bf98d28`; junk world 5 of 10. *Depth (C2):* `python3 -B verifiers/check_skill_evals_v2.py --rev <rev>` → `skill eval artefacts verified 1 of 10` exit 1 @ `2b79115` → `10 of 10` exit 0 @ `bf98d28`; junk world 0 of 10. Revisions: `2b79115` `bf98d28` `3677b2e`; counters `check_r69_routed_repairs_v2.py` `check_skill_evals_v2.py`.
+
+**Round 72 axis annotations (append-only; verdicts belong to the non-author closure).** *Depth (C1):* `python3 -B verifiers/check_author_rules.py --rev <rev>` — `0 of 4` exit 1 at `c69711e`. *Freshness (C2):* `python3 -B verifiers/check_substrate_repin_v2.py --rev <rev>` — exit 2 at `c69711e` (default opencode path gone). *Consistency (C3):* `python3 -B verifiers/check_tip_battery.py --rev <rev>` — `2 of 6` at `c69711e`. Tip values are in the round-72 report and receipts; scores held.

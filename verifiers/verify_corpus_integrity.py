@@ -59,6 +59,8 @@ fixture and the fixture asserts 0 findings):
     or `../godspeed-core/directive.md` inside the round-6 agent-def audit table.
     A commit citation fully enclosed in double quotes on its line is recorded in
     `commit_quoted_detail` (context), never in `commit_nonhash`.
+  * truncated commit ids (`commit `955ffd5d…``) — a 7-40 hex prefix closed by a
+    single U+2026 ellipsis is a rendering, not a promise: `commit_truncated_detail`.
   * quoted report pointers — the same idiom for a report path a document is
     *reporting on* rather than promising: a dead pointer named inside double
     quotes on its line (e.g. the root a cold run probed and found ABSENT) is
@@ -148,6 +150,7 @@ UFO_POINTER_RE = re.compile(
 # out, and the token must be backticked.
 COMMIT_RE = re.compile(r"(?<![A-Za-z0-9_-])commit[ \t]+`([^`\n]+)`")
 HEX_RE = re.compile(r"\A[0-9a-fA-F]{7,40}\Z")
+TRUNCATED_COMMIT_RE = re.compile(r"\A[0-9a-fA-F]{7,40}\u2026\Z")
 BACKTICK_RE = re.compile(r"`([^`]+)`")
 SECTION_HEADING_RE = re.compile(r"^##[ \t]")
 COVERAGE_HEADING_RE = re.compile(r"^##[ \t]+Coverage map[ \t]*$")
@@ -501,6 +504,7 @@ def citation_findings(rel: str, text: str, pointer_exists, commit_resolves) -> d
     pointer_shapes = {"relative": 0, "absolute": 0, "tilde": 0, "bare": 0}
     unresolvable: list[str] = []
     nonhash: list[str] = []
+    truncated: list[str] = []
     quoted: list[str] = []
     report_total = 0
     commit_total = 0
@@ -523,6 +527,9 @@ def citation_findings(rel: str, text: str, pointer_exists, commit_resolves) -> d
                     or inside_code_span(line, match.start(0), match.end(0))):
                 quoted.append(f"{rel}:{line_no}: {token} (quoted meta-finding)")
                 continue
+            if TRUNCATED_COMMIT_RE.match(token):
+                truncated.append(f"{rel}:{line_no}: {token}")
+                continue
             if not is_hex_object_id(token):
                 nonhash.append(f"{rel}:{line_no}: {token}")
                 continue
@@ -543,6 +550,8 @@ def citation_findings(rel: str, text: str, pointer_exists, commit_resolves) -> d
         "commit_unresolvable_detail": sorted(unresolvable),
         "commit_nonhash": len(nonhash),
         "commit_nonhash_detail": sorted(nonhash),
+        "commit_truncated": len(truncated),
+        "commit_truncated_detail": sorted(truncated),
         "commit_quoted_excluded": len(quoted),
         "commit_quoted_detail": sorted(quoted),
     }
@@ -639,6 +648,7 @@ def corpus_observations(repo: Path) -> dict:
         "commit_total": 0,
         "commit_unresolvable": 0,
         "commit_nonhash": 0,
+        "commit_truncated": 0,
         "commit_quoted_excluded": 0,
     }
     shapes = {"relative": 0, "absolute": 0, "tilde": 0, "bare": 0}
@@ -648,6 +658,7 @@ def corpus_observations(repo: Path) -> dict:
         "report_pointers_quoted_detail": [],
         "commit_unresolvable_detail": [],
         "commit_nonhash_detail": [],
+        "commit_truncated_detail": [],
         "commit_quoted_detail": [],
     }
     for rel in md_files:
@@ -704,6 +715,7 @@ DETAIL_KEYS = (
     "report_pointers_quoted_detail",
     "commit_unresolvable_detail",
     "commit_nonhash_detail",
+    "commit_truncated_detail",
     "commit_quoted_detail",
 )
 
@@ -786,6 +798,7 @@ LOG.md round-8, commit `round-8`, report `../.ufo/reports/round-8/kotoba.md`
 | `corpus/lessons/round-{1,4,5,6,7}.md:3`, `corpus/README.md:23-25` "commit `round-N`" | `git rev-parse --verify round-5` | fail |
 Evidence: commit `8c300ad` ("round-8 report")
 pre-commit `deadbee` hook
+truncated id commit `955ffd5d…`
 """
 
 
@@ -1093,6 +1106,9 @@ def self_test() -> int:
         found["commit_nonhash_detail"],
         ["corpus/README.md:4: round-8"],
     )
+    eq("cites/commit-truncated", found["commit_truncated"], 1)
+    eq("cites/commit-truncated-detail", found["commit_truncated_detail"], ["corpus/README.md:8: 955ffd5d…"])
+    eq("truncated/short-prefix", TRUNCATED_COMMIT_RE.match("955ffd\u2026") is not None, False)
     eq("cites/lookbehind/hook-marker", [d for d in found["commit_unresolvable_detail"] if "deadbee" in d], [])
     eq("cites/quoted-excluded", found["commit_quoted_excluded"], 1)
     eq(

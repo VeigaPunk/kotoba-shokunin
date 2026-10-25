@@ -120,7 +120,8 @@ from pathlib import Path
 # Substrates.  Defaults are this host's installs; every path is overridable so
 # fixtures can drive the same code (--self-test does exactly that).
 # ---------------------------------------------------------------------------
-DEFAULT_OMP_BINARY = Path("/home/vgpnk/.local/bin/omp")
+# Round 72: `~/.local/bin/omp` is a crash-restart shell wrapper; the substrate is the ELF.
+DEFAULT_OMP_BINARY = Path("/home/vgpnk/.local/bin/omp.real")
 DEFAULT_AGENTS_ROOT = Path("/home/vgpnk/.agents/skills")
 DEFAULT_SKILL_DB = Path("/home/vgpnk/.omp/agent/skill-descriptions.db")
 DEFAULT_OC_LOG = Path("/home/vgpnk/.local/share/opencode/log/opencode.log")

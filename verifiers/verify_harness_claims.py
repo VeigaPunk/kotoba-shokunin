@@ -50,10 +50,10 @@ import sys
 from pathlib import Path
 
 HOME = Path.home()
-OMP_BIN = HOME / ".local/bin/omp"
+OMP_BIN = HOME / ".local/bin/omp.real"  # round 72: `omp` is a wrapper script
 OMP_DB = HOME / ".omp/agent/skill-descriptions.db"
 OC_LOG = HOME / ".local/share/opencode/log/opencode.log"
-OC_BIN = HOME / ".npm/_npx/e2094862b59aac7b/node_modules/opencode-ai/bin/opencode.exe"
+OC_BIN = HOME / ".opencode/bin/opencode"  # round 72: v2.1.4
 OMP_SESSIONS = HOME / ".omp/agent/sessions"
 BASELINE = Path(__file__).resolve().parent / "baseline.json"
 
