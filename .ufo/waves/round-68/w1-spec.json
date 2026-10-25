@@ -1,0 +1,273 @@
+{
+ "wave": "kotoba-r68-w1",
+ "milestone": "Round-68 wave 1 (build): two frozen claims \u2014 C1 depth (client trust gates, sourced) and C2 consistency (the routed r67 repairs) \u2014 plus the frontier step and the item-10 assimilation.",
+ "axes": [
+  "depth",
+  "consistency",
+  "freshness",
+  "calibration"
+ ],
+ "reportDir": ".ufo/waves/round-68/w1",
+ "context": "You are a Godspeed-enabled subagent.\n\n1. **Name the axes.**\n2. **Iterate cheap, in parallel.**\n3. **Keep moves that improve any axis and harm none.**\n4. **Don't aim \u2014 let the frontier walk itself.**\n\n## IMMEDIATELY STOP ASKING CLARIFYING QUESTIONS. Execute tool calls concurrently in large batches. Do not serialize what can run in parallel. Do not output philosophical reasoning or verbose plans. Act directly via tool calls.\n\n# Goal\nRound 68 of the kotoba lane (hyaku campaign, attempt 1). Base lane tip (branch `master`):\n`e94ae32a5cd8dc3ee8e2d247816784bec2750cc0`. The frozen plan is\n`/home/vgpnk/Projects/shokunin/kotoba-shokunin/plans/round-68.md` \u2014 READ IT FIRST. Two claims,\nfrozen before any seat scored anything:\n\n- **C1 \u2014 depth (the lane's lowest owned axis) \u2014 client trust gates.** What a client documents\n  about an UNTRUSTED skill body (the half the round-67 authority ladder does not cover).\n  Frozen predicate: `python3 -B verifiers/check_client_trust_gates.py --rev <rev>` prints\n  `client trust gates backed N of 5` and exits 0 when N == 5; at the base it prints\n  `client trust gates backed 0 of 5` and exits 1; `--fetch` finds each of the 5 located quotes on\n  its live page. Before: the instrument does not exist and the lane holds no trust-gate ground\n  (no entry, no coverage-map row, none of the five client URLs in `corpus/SOURCES.md`).\n- **C2 \u2014 consistency (this lane's calibration sub-axis) \u2014 the routed r67 repairs.** Frozen\n  predicate: `python3 -B verifiers/verify_corpus_integrity.py` prints `9/9 checks pass` and exits 0,\n  AND `python3 -B verifiers/verify_corpus_independent.py --json` exits 0, AND\n  `python3 -B verifiers/check_r67_routed_repairs.py --rev <rev>` prints\n  `r67 routed defects closed 4 of 4` and exits 0. Before (measured at the base): primary\n  `6/9 checks pass`, exit 1, `unindexed: corpus/lessons/round-67-verifier-spotcheck.md`;\n  the independent gate exits 1.\n\n# Absolute paths \u2014 every seat's tools start at the FLEET root\nYour working directory for tools is the fleet root `/home/vgpnk/Projects/shokunin`. Every path you\nwrite or read MUST be absolute and MUST live under the lane repo\n`/home/vgpnk/Projects/shokunin/kotoba-shokunin`. A relative path such as `.ufo/waves/...` lands in\nthe FLEET repo \u2014 never do that.\n\n**Every `Report:` trailer path is relative to /home/vgpnk/Projects/shokunin/kotoba-shokunin \u2014\nwrite it at /home/vgpnk/Projects/shokunin/kotoba-shokunin/<that path>.**\n\n# Write scope (hard bounds)\n- You may write ONLY under `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/`.\n  The L1 (integrator) owns every production edit: `corpus/`, `verifiers/`, `SKILL.md`, `LOG.md`,\n  `SCORECARD.md`, `plans/`.\n- NEVER mutate the fleet repo `/home/vgpnk/Projects/shokunin` (outside the lane dir), any sibling\n  lane repo, the lane's jj state or the lane's Git index. NEVER run `git add`, `git commit`,\n  `git stash`, `git checkout`, `git reset`, `git push` or any mutating `jj` command.\n- `/home/vgpnk/Projects/shokuknow` is READ-ONLY: never write, commit, fetch or push there and\n  never run a campaign tool there (`renumber-staged.py`, `merge-plan.py`, `quote-lint.py`,\n  `absent-defect-register.py` all write into it).\n- Read-only seats (scout/reviewer/critic/sentinel/revenger/connector): do not write files at all.\n  Return your findings in your final response \u2014 the L1 writes your report from it.\n- Writing seats (executor/scribe/mutation-tester): write your draft under\n  `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/drafts/` only, and report\n  the path in your final response.\n\n# Tool installs\nYou may install or upgrade a tool only if the task genuinely needs it, and only after reading\n`/home/vgpnk/.omp/agent/RULES.md` (official-source/channel policy, host update-safety gate, and the\ninstallation-record requirement). **pacman guard: all pacman transactions are PAUSED host-wide**\nuntil the operator resolves the host-recovery L0 question. Install via `uv tool`, `npx`, or an\nofficial binary in `~/.local/bin`, or report that an L0 question is needed. Never `pacman -Sy`,\n`-Syu`, `-U`, `-R`, never downgrade, never restart a host service.\n\n# Evidence rules\n- Evidence is a resolvable pointer: a path, a command plus its output, or a commit hash. A naked\n  assertion is not evidence. Quote what a command actually printed.\n- Never fabricate a source, a quote or a measurement. If you could not fetch a page, say so and\n  mark the item unverifiable \u2014 `unreachable` is not fabrication.\n- One assistant turn: do the work with tool calls in large parallel batches, then answer.\n\n# Roles\n- executor: writes or runs code (scripts, gates, selftests, fixtures, parsers, counting commands).\n- scribe: prose drafting (knowledge entries, SOURCES rows, lessons, errata text).\n- scout / reviewer / critic / mutation-tester / sentinel / revenger / connector: reconnaissance\n  and attack. Name what you attack.\n",
+ "items": [
+  {
+   "name": "ExecC1Counter",
+   "role": "executor",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Draft the C1 counter at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/drafts/check_client_trust_gates.py` (do NOT write to `verifiers/`; the L1 installs it).\n\nContract: `python3 -B check_client_trust_gates.py --rev <full-sha>` prints `client trust gates backed N of 5` and exits 0 when N == 5, nonzero otherwise; exit 2 for a usage/environment error. `--repo <path>` defaults to the lane root. `--fetch` additionally re-opens each cited URL and confirms the located quote is present on the live page (print how many of 5 were found; network failures are reported, never silently counted).\n\nWhat it reads (CONTENT, not names \u2014 QUALITY Q25/Q26). For `corpus/knowledge/client-trust-gates-round68.md` at the measured revision:\n(1) the entry file exists;\n(2) the entry opens with `source:` lines naming `S###` ids, one per client row;\n(3) every cited id resolves to a row in `corpus/SOURCES.md` whose `status` is `mined`;\n(4) each cited row's `source` cell occurs verbatim in that id's `source:` line;\n(5) the entry carries a `verified-at: 2026-10-24` line and a `recheck:` line;\n(6) for each cited id, the entry carries a double-quoted located quote of at most 25 words that also occurs in that row's `anchor` cell;\n(7) each client row's client name and its quoted behaviour occur in the entry's per-client table, and the entry is indexed in `corpus/README.md`'s coverage map.\n\nTHE CLASSIFICATION THE r67 COUNTER GOT WRONG (routed defect R67-1 \u2014 the reason this counter is new): a MISSING ENTRY is a CONTENT verdict \u2014 print `client trust gates backed 0 of 5` and exit 1. A genuinely unreadable ENVIRONMENT (unknown revision, unreadable repo) is exit 2 with `environment error: ...` on stderr. The counter must distinguish the two.\n\nModel it on `/home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/check_instruction_authority.py` (read it first) but fix the classification above and extend it to 5 rows. Python stdlib only. Report the file path and the `--self-test` output."
+  },
+  {
+   "name": "ExecC1CounterTest",
+   "role": "executor",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Write the `--self-test` arm for the C1 counter at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/drafts/check_client_trust_gates.py` (the L1 installs it; do not write to `verifiers/`).\n\nThe self-test must drive the public `main()`/check path on ONE honest world and on ONE broken world per conjunct (9 broken worlds: entry missing; no source line; id does not resolve; row not mined; row source cell absent from the entry's source line; no verified-at; no recheck; no coverage-map row; located quote absent from the row's anchor cell; one client row's client name absent from the table). It must ALSO pin the new classification: (a) a missing entry exits 1 and prints `client trust gates backed 0 of 5` (NOT exit 2); (b) an unknown revision exits 2 with `environment error`. Print `self-test: N failure(s) over M assertions` and exit 0 only when no failure. Python stdlib only; use `tempfile` scratch worlds; never mutate the lane tree."
+  },
+  {
+   "name": "ExecC1Fetch",
+   "role": "executor",
+   "axes": [
+    "depth",
+    "freshness"
+   ],
+   "prompt": "Build the `--fetch` arm for the C1 counter at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/drafts/check_client_trust_gates.py`: for each of the five cited rows, read the row's `source` cell, extract the URL, fetch it with `curl -sSL --max-time 30` (or `urllib`), and check whether the entry's located quote (normalized whitespace) occurs in the fetched text. Print one line per client: `S### <client>: found` / `NOT FOUND` / `FETCH FAILED <error>`, then `live quotes found N of 5`. A fetch failure must NOT be counted as a found quote, and must not crash the counter (exit 2 only for a usage/environment error of the counter itself). Add `--fetch` to the parser. Report the file path and the printed output of a dry run against the lane's current `corpus/SOURCES.md` (which holds none of the five URLs yet, so the dry run may report 0 of 5 \u2014 that is fine and expected)."
+  },
+  {
+   "name": "ScribeC1Entry",
+   "role": "scribe",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Draft the knowledge entry `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/knowledge/client-trust-gates-round68.md` (draft only \u2014 the L1 installs it; write your draft to `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/drafts/client-trust-gates-round68.md`).\n\nShape (the lane's QUALITY Q12 convention \u2014 the `source:` block is the entry's OPENING, then a `verified-at:` line, then a `recheck:` line, then the body):\n\n```\nsource: S198 \u2014 https://raw.githubusercontent.com/vinhnx/vtcode/main/docs/skills/SKILLS_GUIDE.md \u2014 the \"Prompting Behavior\" paragraph \u2014 located quote \"<=25 words>\"\nsource: S199 \u2014 ...\nsource: S200 \u2014 ...\nsource: S201 \u2014 ...\nsource: S202 \u2014 ...\nverified-at: 2026-10-24\nrecheck: 90d \u2014 re-fetch each of the five URLs and confirm the five located quotes are unchanged\n\n# Client trust gates \u2014 what a client documents about an untrusted skill body\n\n| client | what the client documents about an untrusted skill body | located quote | source |\n|---|---|---|---|\n| ... |\n```\n\nThe five sources and their staged anchors are in `/home/vgpnk/Projects/shokuknow/merge/kotoba/knowledge/corpus/knowledge/client-trust-gates-round7.md` and the staged rows in `/home/vgpnk/Projects/shokuknow/merge/kotoba/SOURCES.append.md` (ids S198\u2013S202). Read both. IMPORTANT: the staged quotes are the CAMPAIGN's claims \u2014 you may carry them into the draft as CANDIDATES, but mark each one with the URL it came from and leave a `located-by:` placeholder for the seat that re-opens the source this round. Do not write an access date you did not earn; the L1 fills `verified-at:` only after the re-open receipts exist.\n\nAlso draft two short sections: `## Limits` (this is documentary evidence, not observed runtime behaviour; five clients only; the lane holds no runtime measurement) and `## Scope` (why this is prompt-and-skill craft and not a sibling lane's ground). Report the draft path."
+  },
+  {
+   "name": "ScribeC1Sources",
+   "role": "scribe",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Draft the five `corpus/SOURCES.md` rows this round appends, in the lane's own 11-column schema (id | source | kind | tier | scope | anchor | teaches | status | opened | recheck | used-by), and write them to `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/drafts/sources-append-block.md` as a markdown table with the same header as `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md`.\n\nThe source rows are the staged S198\u2013S202 in `/home/vgpnk/Projects/shokuknow/merge/kotoba/SOURCES.append.md` \u2014 read them. Transform them to the lane's schema (CORPUS.md rule: no cell may contain a literal or escaped `|`; `recheck` must be a bare valid value such as `90d`, NOT prose; `status` is `mined`; `opened` is `2026-10-24` \u2014 this round's date; `used-by` lists exactly `corpus/knowledge/client-trust-gates-round68.md`; the `anchor` cell keeps the located quote in double quotes, at most 25 words).\n\nLeave a `<!-- located-by: <seat> -->` marker next to each row's quote so the L1 can bind the seat that re-opened the source this round. Also record the stripped prose from each staged `recheck` cell in a `## Stripped recheck prose` list at the end of your draft (the lesson's Gate block needs it). Do not edit `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md` yourself. Report the draft path and the five rows."
+  },
+  {
+   "name": "ScoutVtcode",
+   "role": "scout",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Source opening, one row. Open `https://raw.githubusercontent.com/vinhnx/vtcode/main/docs/skills/SKILLS_GUIDE.md` with FetchURL (fetch the RAW url; the html view is not the file). Locate the \"Prompting Behavior\" paragraph \u2014 the campaign's staged row S198 claims a quote there; read `/home/vgpnk/Projects/shokuknow/merge/kotoba/SOURCES.append.md` row S198 to see the exact staged quote before you fetch.\n\nReport (in your final response; you are read-only \u2014 do not write files): the exact URL fetched, the access date (2026-10-24), the section heading where the quote sits, the VERBATIM quote text (\u226425 words, copy it exactly \u2014 do not paraphrase), whether the staged quote is present VERBATIM in the page, and any nearby sentence that qualifies it. If the page cannot be fetched, say `FETCH FAILED` with the error and mark the row unverifiable \u2014 never invent a quote."
+  },
+  {
+   "name": "ScoutParallel",
+   "role": "scout",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Source opening, one row. Open `https://parallelworks.com/docs/ai/code/skills` with FetchURL. Locate the \"Trust\" section; the campaign's staged row S199 claims a quote there \u2014 read `/home/vgpnk/Projects/shokuknow/merge/kotoba/SOURCES.append.md` row S199 for the exact staged quote first.\n\nReport: the exact URL fetched, the access date (2026-10-24), the heading where the quote sits, the VERBATIM quote (\u226425 words, exact), whether the staged quote occurs VERBATIM, and any qualifying sentence next to it. If the fetch fails, report `FETCH FAILED` with the error and mark the row unverifiable."
+  },
+  {
+   "name": "ScoutKilo",
+   "role": "scout",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Source opening, one row. Open `https://kilo.ai/docs/customize/skills` with FetchURL. Locate the \"Trusted skills only\" list; the campaign's staged row S200 claims a quote there \u2014 read `/home/vgpnk/Projects/shokuknow/merge/kotoba/SOURCES.append.md` row S200 first.\n\nReport: exact URL fetched, access date (2026-10-24), the heading, the VERBATIM quote (\u226425 words), whether the staged quote occurs VERBATIM, and the full list of what the client trusts by default. If the fetch fails, report `FETCH FAILED` with the error and mark the row unverifiable."
+  },
+  {
+   "name": "ScoutMsAgentFramework",
+   "role": "scout",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Source opening, one row. Open `https://learn.microsoft.com/en-us/agent-framework/agents/skills` with FetchURL. Locate the \"Security best practices\" subsection; the campaign's staged row S201 claims a quote there \u2014 read `/home/vgpnk/Projects/shokuknow/merge/kotoba/SOURCES.append.md` row S201 first.\n\nReport: exact URL fetched, access date (2026-10-24), the heading, the VERBATIM quote (\u226425 words), whether the staged quote occurs VERBATIM, and the surrounding security guidance in your own words (clearly marked as paraphrase). If the fetch fails, report `FETCH FAILED` with the error and mark the row unverifiable."
+  },
+  {
+   "name": "ScoutMistral",
+   "role": "scout",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Source opening, one row. Open `https://raw.githubusercontent.com/mistralai/mistral-vibe/main/README.md` with FetchURL (raw URL, not the html view). Locate the \"Skills System\" section; the campaign's staged row S202 claims a quote there \u2014 read `/home/vgpnk/Projects/shokuknow/merge/kotoba/SOURCES.append.md` row S202 first.\n\nReport: exact URL fetched, access date (2026-10-24), the heading, the VERBATIM quote (\u226425 words), whether the staged quote occurs VERBATIM, and what the section says about trust or approval of a skill. If the fetch fails, report `FETCH FAILED` with the error and mark the row unverifiable."
+  },
+  {
+   "name": "ExecCollision",
+   "role": "executor",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Id-collision check in scratch, BEFORE any append. Run exactly this (it is the lane's frozen check, from the round prompt's item 10) and report every printed number:\n\n```\nA=/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/assimilation; mkdir -p \"$A\"\ngrep -oE '^ {0,3}\\|[[:space:]]*S[0-9]{3,}' /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md | grep -oE 'S[0-9]+' | sort > \"$A/reg-ids\"\ngrep -oE '^ {0,3}\\|[[:space:]]*S[0-9]{3,}' /home/vgpnk/Projects/shokuknow/merge/kotoba/SOURCES.append.md | grep -oE 'S[0-9]+' | sort > \"$A/staged-ids\"\ncomm -12 \"$A/reg-ids\" \"$A/staged-ids\" > \"$A/collisions\"\nwc -l \"$A/reg-ids\" \"$A/staged-ids\" \"$A/collisions\"\n```\n\nThen PROVE THE GUARD NON-VACUOUS: build a scratch registry fixture that contains an INDENTED row (two leading spaces) whose id collides with a staged id, run the same 0\u20133-space pattern against it, and show that a column-zero-only pattern (`^\\|`) would MISS it while the 0\u20133-space pattern CATCHES it. Write both pattern outputs to `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/assimilation/guard-proof.txt`.\n\nReport: the three counts, whether `collisions` is empty, and the guard-proof output."
+  },
+  {
+   "name": "ExecTransform",
+   "role": "executor",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Scratch transformation and validation, BEFORE any append. Build the append block in scratch from the staged rows the admitted entry cites (S198\u2013S202 only), normalized to the lane's 11-column schema: `recheck` a bare valid value (`90d`), no literal or escaped `|` in any cell, `used-by` exactly `corpus/knowledge/client-trust-gates-round68.md`, `status mined`, `opened 2026-10-24`, and the located quote in the `anchor` cell in double quotes.\n\nThen MIRROR the lane in scratch: copy `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/` to `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/assimilation/validate/corpus/`, append your normalized block to the mirrored `SOURCES.md`, and gate it:\n\n```\n/home/vgpnk/Projects/shokunin/scripts/sources-census.sh validate --file /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/assimilation/validate/corpus/SOURCES.md\n```\n\nReport the exit code and the printed output. Exit 0 (warnings allowed) is required before the first registry append; a malformed-row or duplicate-id finding must be fixed in scratch and reported, never appended past. Also report the staged `recheck` prose you stripped from each of the five rows. Write your scratch artifacts under `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/assimilation/` only."
+  },
+  {
+   "name": "ScribeGate",
+   "role": "scribe",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Draft the round-68 lesson's `## Gate` block at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/drafts/lesson-gate.md` (draft only; the L1 installs it).\n\nThe Gate block must record, for the ONE theme this round assimilates (client trust gates): (a) the admits \u2014 for each of the five rows: the URL, this round's access date, the \u226425-word located quote, and the seat that opened it; (b) the REJECTS \u2014 at least one refused item with its reason and a FLIP condition; (c) the stripped `recheck` prose; (d) the id-collision result (registry ids, staged ids, collisions count, and the renumber map if any); (e) the quarantine verdicts (13 rows).\n\nUse the shape of `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/lessons/round-67.md` `## Gate` \u2014 read it first. Leave `<!-- seat -->`, `<!-- quote -->` and `<!-- verdict -->` placeholders wherever the value is not yet measured; never write a date or a quote that no seat produced. Report the draft path."
+  },
+  {
+   "name": "ScribeC2Erratum",
+   "role": "scribe",
+   "axes": [
+    "consistency"
+   ],
+   "prompt": "Draft the append-only erratum text for routed defects R67-1 and R67-2 (draft only; the L1 installs it). Write to `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/drafts/erratum-r67.md`.\n\nR67-1: the round-67 report, `LOG.md` and `SCORECARD.md` state that the r67 C2 base printed `authority ladder grounded 0 of 1`. Re-running the counter at the r67 base revision `2a8eba56b3f9321b70c569fa2816d42237ca49a2` prints, on stderr, `environment error: cannot read corpus/knowledge/instruction-authority-ladder-round67.md at 2a8eba56b3f9321b70c569fa2816d42237ca49a2` and exits 2 \u2014 it prints NOTHING on stdout. The r67 claim therefore stands a MISS AS DECLARED, and its before-line is corrected by an appended notice (never a rewrite of the r67 report).\n\nR67-2: the r67 report cites the census receipt `.ufo/waves/round-67/w1/controls/census-validate-append.txt`; the file that exists is `.ufo/waves/round-67/controls/census-validate-append.txt`. Verify this yourself (list both paths) and state the real path in the erratum.\n\nR67-3: `.ufo/waves/round-67/w1/controls/junk-world/` is a 254 MB untracked control mirror left in the lane working tree; the erratum must DISCLOSE it (its size and that it was never disclosed) and record that this round removes it.\n\nDraft: (1) a short erratum paragraph for `LOG.md`, (2) a short erratum paragraph for `SCORECARD.md` (appended to the round-67 depth annotation), (3) a `## Mistakes` entry for `corpus/lessons/round-68.md` in the lane's form `class \u00b7 evidence pointer \u00b7 captured-by \u00b7 fix`, and (4) the exact correction the L1 must apply to the r67 counter's own docstring (which currently promises the base prints `0 of 1` \u2014 check `verifiers/check_instruction_authority.py`'s docstring and the `--rev` path). Do NOT edit any of those files yourself. Report the draft path and the three verify commands you ran with their output."
+  },
+  {
+   "name": "ExecC2Baseline",
+   "role": "executor",
+   "axes": [
+    "consistency"
+   ],
+   "prompt": "Compute the corpus-baseline re-record for C2 (draft only; the L1 installs it). Write the candidate values to `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/drafts/corpus-baseline-candidate.json`.\n\nRun the lane's own measurement command and quote its output:\n\n```\npython3 -B /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/verify_corpus_integrity.py --no-baseline --json\n```\n\nThen show the BEFORE state at the base revision `e94ae32a5cd8dc3ee8e2d247816784bec2750cc0` and the state after the two halves are applied: (K2) the coverage-map index row for `corpus/lessons/round-67-verifier-spotcheck.md` added to `corpus/README.md`; (K3) the baseline re-record. Do-nothing controls: the index row ALONE must leave the gate red, and the baseline re-record ALONE must leave the gate red (the same K2/K3 shape the round-67 report used). Build the two scratch copies under `/tmp` (never inside the lane tree) and measure each.\n\nReport: the exact values the re-recorded baseline needs (tracked_files, unindexed, report_total, commit_total \u2014 whatever the gate's own measurement yields), the exit codes of each of the three states, and the printed lines proving K2-alone and K3-alone stay red."
+  },
+  {
+   "name": "ScribeC2Index",
+   "role": "scribe",
+   "axes": [
+    "consistency"
+   ],
+   "prompt": "Draft the coverage-map index row for `corpus/lessons/round-67-verifier-spotcheck.md` in `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/README.md` (draft only; the L1 installs it). Write the single markdown table row to `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/drafts/coverage-row.md`.\n\nRead the existing rows in `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/README.md`'s coverage map first \u2014 in particular the rows for the round-65 and round-66 closure spot-checks \u2014 and match their shape and tone exactly (they name the closure author, the round, what the closure checked, and that the file is outside review and never edited by the lane). The row for the r67 closure spot-check must say what that closure re-derived, its three routed defects (the C2 miss as declared, the census receipt path, the undisclosed 254 MB control mirror) and the fourth (its own unindexed file turning the corpus gate red), and that the file is written by the hyaku closure and never edited by the lane.\n\nAlso draft the round-68 lesson's `## Mistakes` entries (M107 onward \u2014 read `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/lessons/round-67.md` for the numbering and the form) for: the dishonestly-stated before-line, the wrong receipt path, and the undisclosed untracked control mirror. Report the draft path and the text."
+  },
+  {
+   "name": "ExecR67Repairs",
+   "role": "executor",
+   "axes": [
+    "consistency"
+   ],
+   "prompt": "Draft the C2 routed-repairs counter at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/drafts/check_r67_routed_repairs.py` (do NOT write to `verifiers/`; the L1 installs it).\n\nContract: `python3 -B check_r67_routed_repairs.py --rev <full-sha>` prints `r67 routed defects closed N of 4` and exits 0 when N == 4, nonzero otherwise; exit 2 for a usage/environment error. `--repo <path>` defaults to the lane root.\n\nThe four routed defects, each checked from the COMMITTED bytes at `--rev` (not from the working tree):\nD1 \u2014 the R67-1 erratum exists and no lane record asserts the unobserved base line: the lane's records must carry an appended correction naming the observed `environment error: cannot read corpus/knowledge/instruction-authority-ladder-round67.md` line (and the SCORECARD/LOG/lesson records must not assert that the r67 base printed `authority ladder grounded 0 of 1`).\nD2 \u2014 the R67-2 correction names the real census receipt path `.ufo/waves/round-67/controls/census-validate-append.txt` and the wrong `w1/controls/` path is not asserted anywhere as the receipt's location.\nD3 \u2014 the R67-3 disclosure exists (the 254 MB `junk-world` control mirror is named in the round's records) AND the path no longer exists in the working tree.\nD4 \u2014 the R67-4 repair: `corpus/README.md` carries a coverage-map index row for `corpus/lessons/round-67-verifier-spotcheck.md` AND `verifiers/corpus-baseline.json`'s re-recorded values match what the gate's own measurement yields at that revision (run the gate; do not trust the stored numbers).\n\nRead `/home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/check_r66_routed_repairs.py` (or `check_r63_routed_repairs.py`) first and model the shape, including a `--self-test` with one broken world per defect (drop the index row; keep a stale baseline; restore the wrong receipt path; drop the disclosure). Print `self-test: N failure(s) over M assertions`. Python stdlib only."
+  },
+  {
+   "name": "ScoutQuarantine1",
+   "role": "scout",
+   "axes": [
+    "consistency"
+   ],
+   "prompt": "Quarantine hand-check, part 1 of 3. The campaign's absent-defect register is at `/home/vgpnk/Projects/shokuknow/.ufo/waves/corpus-expansion-1/absent-defect-register.md` \u2014 READ-ONLY, never edit it, never run a campaign tool. Your three rows: **S151, S167, S168**.\n\nFor each row: read its full line (the table row may wrap over several lines \u2014 read enough of it to see the quoted span), fetch the cited URL with FetchURL, and search the fetched text for the quoted span. Report per row: the class (`payload-absent` or `unreachable`), the cited URL, the quoted span, whether the span was FOUND VERBATIM on the page (and if so, the surrounding sentence so the L1 can write the corrected anchor), or NOT FOUND, or FETCH FAILED. A row whose class cell is prose (\"the cited source could not be fetched\") is UNVERIFIABLE \u2014 mark it unverifiable, never a fabrication. You are read-only: return the verdicts in your final response; do not write files."
+  },
+  {
+   "name": "ScoutQuarantine2",
+   "role": "scout",
+   "axes": [
+    "consistency"
+   ],
+   "prompt": "Quarantine hand-check, part 2 of 3. The campaign's absent-defect register is at `/home/vgpnk/Projects/shokuknow/.ufo/waves/corpus-expansion-1/absent-defect-register.md` \u2014 READ-ONLY, never edit it, never run a campaign tool. Your three rows: **S172, S176, S180**.\n\nFor each row: read its full line (it may wrap), fetch the cited URL with FetchURL, and search the fetched text for the quoted span. Report per row: the class, the cited URL, the quoted span, whether the span was FOUND VERBATIM (with the surrounding sentence if found), or NOT FOUND, or FETCH FAILED. A prose class cell (\"could not be fetched\") means UNVERIFIABLE, never a fabrication. Read-only: return the verdicts in your final response; do not write files."
+  },
+  {
+   "name": "ScoutQuarantine3",
+   "role": "scout",
+   "axes": [
+    "consistency"
+   ],
+   "prompt": "Quarantine hand-check, part 3 of 3. The campaign's absent-defect register is at `/home/vgpnk/Projects/shokuknow/.ufo/waves/corpus-expansion-1/absent-defect-register.md` \u2014 READ-ONLY, never edit it, never run a campaign tool. Your four rows: **S185** (class `payload-absent`) and **S169, S236, S237** (class `unreachable`).\n\nFor S185: read its full line, fetch the cited URL, search for the quoted span, and report FOUND VERBATIM (with the surrounding sentence) / NOT FOUND / FETCH FAILED. For S169, S236, S237: confirm from the register line that the class cell is the prose \"the cited source could not be fetched\" and that the row therefore is UNVERIFIABLE (not fabrication); you may try ONE fetch each to record whether the page is reachable today, and report the outcome as an observation, but a failure to fetch does NOT make the row a fabrication. Read-only: return the verdicts in your final response; do not write files."
+  },
+  {
+   "name": "ScoutConsiderthese",
+   "role": "scout",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Mine exactly ONE still-unimplemented proposal from `/home/vgpnk/Projects/shokunin/kotoba-shokunin/considerthese/2026-10-24.md` (operator-authored input: READ IT, NEVER EDIT IT). If that file has no unimplemented proposal, say so plainly and check `/home/vgpnk/Projects/shokunin/kotoba-shokunin/considerthese/2026-10-23.md` instead \u2014 but report which file you used.\n\nA proposal is still unimplemented when it is not already carried by the lane: check against `/home/vgpnk/Projects/shokunin/kotoba-shokunin/SCORECARD.md`, `/home/vgpnk/Projects/shokunin/kotoba-shokunin/LOG.md` and `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/README.md` (grep for the proposal's key terms) before calling it unimplemented.\n\nThen GROUND it through the lane's own bar: the reflection is a pointer, not evidence \u2014 open what it points at (a file, a page, a command) and MEASURE it. Report: the file and the proposal's number/heading you mined, the quote from the proposal (\u226425 words), why it is still unimplemented (the grep evidence), what you opened to ground it, the measured result with the exact command and its output, and where the result would land (a lesson, a `corpus/QUALITY.md` criterion, or a `corpus/SOURCES.md` row). Read-only: return your findings; do not write files."
+  },
+  {
+   "name": "ScoutPlanWalk",
+   "role": "scout",
+   "axes": [
+    "depth",
+    "consistency"
+   ],
+   "prompt": "The planning data-walk (the L1's canonical planner seat rides on this item). Read `/home/vgpnk/Projects/shokunin/kotoba-shokunin/plans/round-68.md`, `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/QUALITY.md` (the criteria the drafts must clear: Q12, Q25, Q26, Q33 and anything about admission, located quotes and trust boundaries), and `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/lessons/round-67.md` (the r67 lesson, especially M104\u2013M106).\n\nThen report the ADMISSION BAR the wave's drafts must clear, item by item: for the C1 entry draft, the counter draft, the SOURCES block draft, the erratum draft and the routed-repairs counter draft \u2014 what each must contain, which QUALITY criterion or lesson rule governs it, and what a reviewer would call a failure. Name the specific line-level checks (e.g. \"the `source:` block must be the entry's opening \u2014 the r66 entry's shape\", \"the located quote must appear in the row's anchor cell\", \"the counter must read content, not names\"). Also report any place where the frozen plan's predicate and the draft work could disagree \u2014 that is the most valuable thing you can find. Read-only: report in your final response."
+  },
+  {
+   "name": "ReviewC1Counter",
+   "role": "reviewer",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "ATTACK the C1 counter draft at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/drafts/check_client_trust_gates.py` (read it; if the file does not exist yet, say so and attack the CONTRACT instead). Name what you attack: the frozen predicate `client trust gates backed N of 5`.\n\nIs the counter copy-satisfiable? Can a counter or a do-nothing world reach `5 of 5` without the five sources being open? Specifically: (1) can a stub entry with five fake rows and five matching (lane-authored) SOURCES rows satisfy every conjunct? (2) does the `--fetch` arm actually discriminate, or does it accept a quote that appears in a navigation menu or a 404 page? (3) does the missing-entry path really print `0 of 5` and exit 1 (the r67 defect it must not repeat)? (4) does the counter distinguish an environment error (exit 2) from a content verdict (exit 1)? (5) is the `--self-test` real, or does it call `check()` directly while the `--rev` path behaves differently (the r67 self-test's exact blind spot)?\n\nReport each finding as: what you attacked, the evidence (a line, a command, a constructed case), severity, and the fix. Read-only: report in your final response; do not write files."
+  },
+  {
+   "name": "ReviewC1Entry",
+   "role": "reviewer",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "ATTACK the C1 entry draft at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/drafts/client-trust-gates-round68.md` (if it does not exist yet, attack the PACKAGE entry `/home/vgpnk/Projects/shokuknow/merge/kotoba/knowledge/corpus/knowledge/client-trust-gates-round7.md` instead and report what the L1 must not copy blindly).\n\nName what you attack: each per-client claim's provenance and scope. (1) Does each of the five clients' staged claim say something about an UNTRUSTED skill body, or is it about a different topic (loading, frontmatter, discovery)? A row that is not about trust is off-theme and must not be admitted. (2) Is any staged quote longer than 25 words or paraphrased rather than verbatim? (3) Is any client a sibling lane's ground rather than prompt-and-skill craft (read `/home/vgpnk/Projects/shokunin/kotoba-shokunin/PROVINCE.md` \u00a7 Core and \u00a7 Adjacent)? (4) Does the entry claim runtime behaviour it cannot have from documentation?\n\nReport per row: ADMIT / REFUSE, the reason, and for a REFUSE the flip condition. Read-only: report in your final response."
+  },
+  {
+   "name": "CriticC1Predicate",
+   "role": "critic",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "FALSIFY the frozen C1 predicate. The frozen sentence is: `python3 -B verifiers/check_client_trust_gates.py --rev <rev>` prints `client trust gates backed N of 5` and exits 0 when N == 5, and at the base it prints `client trust gates backed 0 of 5` and exits 1.\n\nAttack it: (1) Build the CHEAPEST do-nothing control that skips the claimed work \u2014 e.g. a scratch tree whose entry lists five clients with five quotes that the counter accepts without any source being open \u2014 and run the frozen counter over it. If that control reaches `5 of 5`, the counter or the target is WRONG and must be fixed before data, not after. (2) Is `5` the right number, or is it a target set to fit the package? (3) Does the predicate depend on the entry's own bytes (a lane-authored input) in a way that makes it hollow? (4) Would a `--rev` at the base revision really print `0 of 5`, or could the base tree produce an environment error (exit 2) \u2014 the r67 defect?\n\nYou may create scratch worlds under `/tmp` only. Report: the control you built, the counter's output on it, and whether the predicate stands as frozen. If it does not stand, say exactly how it must be re-frozen BEFORE any seat scores. Read-only with respect to the lane tree."
+  },
+  {
+   "name": "CriticC2Predicate",
+   "role": "critic",
+   "axes": [
+    "consistency"
+   ],
+   "prompt": "FALSIFY the frozen C2 predicate: `verify_corpus_integrity.py` prints `9/9 checks pass` and exits 0, AND `verify_corpus_independent.py --json` exits 0, AND `check_r67_routed_repairs.py --rev <rev>` prints `r67 routed defects closed 4 of 4` and exits 0.\n\nAttack it: (1) Can a rubber-stamp satisfy it \u2014 e.g. an index row that names the file but carries no content, or a baseline re-record whose numbers are copied rather than derived from the gate's own measurement? The round-66 lesson M101/M99 class: a stale-premise or self-referential candidate. (2) Is `4 of 4` the right count, and does each of the four checks read COMMITTED bytes rather than the working tree? (3) Does the predicate still pass if D3's disclosure is deleted but the erratum text stays? (4) Do the do-nothing halves (index row alone; baseline alone) each leave the gate red? Build the cheapest do-nothing control that skips the claimed work, run the frozen counter over it, and report whether it meets the target.\n\nReport: the controls you built, their outputs and exit codes, and whether the predicate stands as frozen. Read-only with respect to the lane tree."
+  },
+  {
+   "name": "MutC1Counter",
+   "role": "mutation-tester",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "MUTATION-TEST the C1 counter draft at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/drafts/check_client_trust_gates.py` (read it; if it is not there yet, say so and state which mutants you would run).\n\nFor each conjunct, construct the mutant that breaks exactly that conjunct in a scratch copy and check that the counter REJECTS it (exit nonzero, with a message naming the defect). The mutants: (a) the entry's `source:` block moved out of the opening position; (b) one row's `status` changed from `mined` to `queued`; (c) one row's `source` cell altered so the entry's source line no longer matches it verbatim; (d) one located quote removed from the row's `anchor` cell; (e) the `verified-at:` date changed; (f) the coverage-map index row renamed to another file; (g) one client row's client name changed so it does not match the table; (h) the whole entry deleted (must print `0 of 5` and exit 1, NOT exit 2); (i) an unknown revision (must exit 2).\n\nReport a table: mutant, expected verdict, observed verdict, PASS/FAIL. Scratch copies only, under `/tmp`. Read-only with respect to the lane tree."
+  },
+  {
+   "name": "MutR67Repairs",
+   "role": "mutation-tester",
+   "axes": [
+    "consistency"
+   ],
+   "prompt": "MUTATION-TEST the C2 routed-repairs counter draft at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/drafts/check_r67_routed_repairs.py` (read it; if it is not there yet, say so and state which mutants you would run).\n\nConstruct, in scratch copies under `/tmp`, one mutant per routed defect and check the counter REJECTS each: (D1) delete the appended erratum naming the observed `environment error: cannot read \u2026` line; (D2) restore the wrong receipt path `w1/controls/census-validate-append.txt` as the asserted location; (D3) remove the `junk-world` disclosure from the records; (D4) drop the coverage-map index row, or keep a stale baseline whose numbers do not match the gate's own measurement at that revision.\n\nFor each mutant report: expected verdict, observed verdict, PASS/FAIL, and the printed message. Also report whether the counter's `--self-test` kills the same mutants. Read-only with respect to the lane tree."
+  },
+  {
+   "name": "RevC1Scope",
+   "role": "revenger",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "ATTACK the scope of C1: does \"client trust gates\" belong to kotoba, or is it a sibling lane's ground? Read `/home/vgpnk/Projects/shokunin/kotoba-shokunin/PROVINCE.md` (\u00a7 Core, \u00a7 Frontier, \u00a7 Adjacent) and `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/knowledge/sibling-overlap-census-round49.md` (the lane's own sibling classification and the precedence rule between `contested` and a stated split), then check the five clients of C1 against the sibling table.\n\nName what you attack: each of the five clients (vtcode, parallelworks, kilo.ai, Microsoft Agent Framework, mistral-vibe) \u2014 does any sibling lane own \"how a client treats an untrusted skill body\" (e.g. chousa's claim-admission method, kasegi's injection work, kengaku's calibration, kama's serving)? Report per client: kotoba-owned / sibling-owned / contested, with the sibling's own words as the evidence. If any is contested, report it as contested \u2014 the L1 must not absorb contested scope silently.\n\nRead-only: report in your final response."
+  },
+  {
+   "name": "RevC2Honesty",
+   "role": "revenger",
+   "axes": [
+    "consistency"
+   ],
+   "prompt": "HUNT the honesty defect class of this round: a lane record that asserts something the committed evidence does not show. Search the lane's own records (read-only): `/home/vgpnk/Projects/shokunin/kotoba-shokunin/LOG.md`, `/home/vgpnk/Projects/shokunin/kotoba-shokunin/SCORECARD.md`, `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/lessons/round-67.md`, `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/lessons/round-68.md` (if present), `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/README.md`, and `/home/vgpnk/Projects/shokunin/kotoba-shokunin/SKILL.md`.\n\nTwo hunts: (1) every place that asserts the r67 base printed `authority ladder grounded 0 of 1` \u2014 report file:line for each, and whether an appended correction already covers it; (2) every place that cites `.ufo/waves/round-67/w1/controls/census-validate-append.txt` (the wrong receipt path) versus the real `.ufo/waves/round-67/controls/census-validate-append.txt` \u2014 report file:line for each.\n\nAlso check the fleet report (read-only): `/home/vgpnk/Projects/shokunin/.ufo/reports/round-67/kotoba.md` \u2014 list every line that states the unobserved base line or the wrong receipt path (the r67 report is APPEND-ONLY and must never be edited; the correction belongs in round 68). Report a precise list of file:line so the L1 can append, never rewrite. Read-only: report in your final response."
+  },
+  {
+   "name": "SentinelC1",
+   "role": "sentinel",
+   "axes": [
+    "depth",
+    "consistency"
+   ],
+   "prompt": "WATCH THE BOUNDS of this round's work. Two jobs.\n\n(1) Scope sentinel: check that nothing this round has written so far lives outside the lane repo `/home/vgpnk/Projects/shokunin/kotoba-shokunin` and its wave directory. Run `git -C /home/vgpnk/Projects/shokunin status --porcelain` (no pathspec) and report every untracked/modified path at the FLEET root, stating for each whether it names kotoba or round-68 (the misroot sweep the round prompt requires). Also check `git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin status --porcelain` and report whether any seat touched the lane's jj state or the Git index.\n\n(2) Honesty sentinel: the r67 lesson recorded a 254 MB untracked control mirror `.ufo/waves/round-67/w1/controls/junk-world/` that was never disclosed. Check the lane's records (LOG.md, the r67 lesson, the r67 report on the fleet repo) for whether it is disclosed anywhere, and report the exact file:line where it is NOT disclosed. Measure its size with `du -sh` and report it.\n\nRead-only: report in your final response."
+  },
+  {
+   "name": "ConnectorCensus",
+   "role": "connector",
+   "axes": [
+    "consistency"
+   ],
+   "prompt": "CONNECT the round to the fleet's own contracts. Read (read-only) `/home/vgpnk/Projects/shokunin/CORPUS.md` (the SOURCES.md contract, the census clause and the rule that rows with 0\u20133 leading spaces are valid) and `/home/vgpnk/Projects/shokunin/scripts/sources-census.sh` (the validator's rules: cell counts, forbidden characters, duplicate ids, duplicate URLs, status values, recheck formats).\n\nThen report, for the five rows this round appends and for the lesson's Gate block: (1) the exact schema the census enforces (column count, allowed `kind`, `tier`, `status`, `recheck` values, what makes a `recheck` cell invalid); (2) which of the staged rows' cells would FAIL the census as-is (escaped pipes, prose recheck cells, unknown status) \u2014 the item-10 note says a byte-exact append fails on the real package, so demonstrate it on ONE staged row in a scratch copy under `/tmp` and quote the validator's finding; (3) the rules for `used-by` (exactly the admitted entries citing the row) and for `status`. Read-only with respect to the lane tree and the campaign tree."
+  }
+ ]
+}

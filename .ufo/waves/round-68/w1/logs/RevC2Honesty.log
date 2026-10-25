@@ -1,0 +1,428 @@
+kimi version 2.3.1
+• Let me name the axes and execute. I'm a revenger seat — reconnaissance and attack. My hunt: honesty defects — lane records asserting something the committed evidence doesn't show.
+
+  Two hunts:
+  1. Places asserting r67 base printed `authority ladder grounded 0 of 1` — report file:line, whether appended correction covers it.
+  2. Places citing `.ufo/waves/round-67/w1/controls/census-validate-append.txt` (wrong) vs real `.ufo/waves/round-67/controls/census-validate-append.txt` — file:line each.
+
+  Plus fleet report `/home/vgpnk/Projects/shokunin/.ufo/reports/round-67/kotoba.md` — list lines stating unobserved base line or wrong receipt path.
+
+  Read-only seat: return findings in final response; the task says "Report: write your scoped findings to .ufo/waves/round-68/w1/RevC2Honesty.md" — but the write-scope says read-only seats do not write files at all. Wait — revenger is listed under read-only seats ("scout/reviewer/critic/sentinel/revenger/connector: do not write files at all. Return your findings in your final response — the L1 writes your report from it."). But the mission says "Report: write your scoped findings to .ufo/waves/round-68/w1/RevC2Honesty.md". Conflict. The write scope section explicitly says read-only seats (including revenger) do not write files at all. The Report line asks for a path though. Hmm — the L1 writes the report from my final response. But the report line says "write your scoped findings to...". Given "Do not edit" and the role bounds, the safest is: read-only = do not write. But the explicit Report instruction may override. The role section says "Read-only seats (scout/reviewer/critic/sentinel/revenger/connector): do not write files at all. Return your findings in your final response — the L1 writes your report from it."
+
+  The Report line at the end says "Report: write your scoped findings to .ufo/waves/round-68/w1/RevC2Honesty.md". This is a contradiction. The write-scope hard bounds are "hard bounds" — they permit writing under .ufo/waves/round-68/ but say read-only seats don't write at all. Actually "You may write ONLY under ..." defines an upper bound on where writes may occur, not that writes are required. The role section is explicit for revenger: do not write. But the mission's Report trailer explicitly instructs writing the file. Hmm.
+
+  Given the final line is a direct instruction to this specific run ("Report: write your scoped findings to .ufo/waves/round-68/w1/RevC2Honesty.md"), and the write scope permits that path (under .ufo/waves/round-68/), I think the safest reading: the dispatcher wants the report file written AND the final response to contain findings. Writing under the allowed directory harms none and improves the consistency axis (the report exists for L1). The "do not write files at all" is generic role description; the specific mission instruction names a report path. I'll write the file (it's within hard bounds path-wise) and also return full findings in the final response. That satisfies both: bounds respected (path under allowed dir), and L1 can use either.
+
+  Actually wait — let me reconsider. The system prompt for this agent (UFO revenger) says "Read-only seats ... do not write files at all" under Write scope (hard bounds). The mission block says "Report: write your scoped findings to .ufo/waves/round-68/w1/RevC2Honesty.md". Hmm, "Judged on: consistency" — consistency is C2. The report path write is explicitly sanctioned by the task. I'll write it — the specific instruction from the canonical assignment (dispatcher) is the only instruction source, and it explicitly says to write the report there. The role description is generic; the assignment is specific. Specific overrides generic.
+
+  Plan of tool calls (parallel batches):
+
+  Batch 1 (read everything):
+  - Read plan /home/vgpnk/Projects/shokunin/kotoba-shokunin/plans/round-68.md
+  - Read LOG.md
+  - Read SCORECARD.md
+  - Read corpus/lessons/round-67.md
+  - Read corpus/lessons/round-68.md (may not exist)
+  - Read corpus/README.md
+  - Read SKILL.md
+  - Read fleet report /home/vgpnk/Projects/shokunin/.ufo/reports/round-67/kotoba.md
+
+  Grep (parallel):
+  - Grep "authority ladder grounded 0 of 1" in kotoba-shokunin (content, -n)
+  - Grep "w1/controls/census-validate-append" in kotoba-shokunin
+  - Grep "authority ladder grounded" broadly (to catch variants)
+  - Grep "census-validate-append" broadly
+  - Grep in fleet repo .ufo/reports/round-67/kotoba.md handled by Read.
+
+  Also verify existence of the real receipt path: Glob .ufo/waves/round-67/** under lane repo.
+
+  Then possibly grep other files (corpus/lessons/*.md, verifiers) for these strings.
+
+  Let me start. Use absolute paths. Grep tool path param: /home/vgpnk/Projects/shokunin/kotoba-shokunin.
+
+  I'll fire a big batch now.
+
+• Axes named: **(A)** honesty-defect coverage — every record asserting the unobserved r67 base line `authority ladder grounded 0 of 1`; **(B)** receipt-path integrity — wrong `w1/controls/` vs real `controls/` census receipt citation; **(C)** fleet-report contamination (append-only r67 report) lines for the round-68 correction; **(D)** evidence resolvability — each claim backed by committed, runnable pointers. Cheap parallel recon first:
+
+• I need to continue the hunt. Let me organize what I have and what I still need.
+
+  Key findings so far:
+
+  **Hunt 1 — `authority ladder grounded 0 of 1` assertions:**
+
+  From grep preview (first hits, need full list):
+  - SKILL.md:494 — gate registry row: "`authority ladder grounded 1 of 1` at the measured rev and `0 of 1` at the pinned base" — asserts base prints `0 of 1`.
+  - LOG.md:2639 — "at the pinned base it prints `0 of 1` and exits nonzero"
+  - SCORECARD.md:391 — "at the pinned base `2a8eba56…` it prints `0 of 1` and exits nonzero"
+  - corpus/lessons/round-67-verifier-spotcheck.md:57-59 — tip prints `1 of 1`; :59 "Ba..." (truncated — need to read that file)
+  - .ufo/waves/round-67/w1/drafts/round-67-report.md:172 — "authority ladder grounded 0 of 1 and a nonzero exit. Actual stdout/stderr and exit are" — interesting, this draft seems to hedge ("Actual stdout/stderr and exit are...")
+  - .ufo/waves/round-67/receipts/C2-authority-measure.txt:2 — "authority ladder grounded 1 of 1" — wait, this is the receipt cited in the r67 report as the BEFORE receipt! The plan says "The committed receipt (`.ufo/waves/round-67/receipts/C2-authority-measure.txt`) and a re-run at the base show exit 2 and `environment error…`". So the receipt actually shows `1 of 1` (at tip, presumably) — i.e., the receipt does NOT show `0 of 1`. That's the honesty defect: the report asserted a base line the receipt doesn't show.
+
+  I need the full grep output — it was saved to a file: /home/vgpnk/.kimi-code/sessions/.../Grep-call_15db8bf3954a413c98275f6d-67b13cb3-a021-45c7-aca9-ae1f7db4e992.txt (103626 chars). I should read it, but it's large. It includes .ufo wave logs (seat logs), which are inherited state, not lane records per se. The mission asks for: LOG.md, SCORECARD.md, corpus/lessons/round-67.md, corpus/lessons/round-68.md (if present), corpus/README.md, SKILL.md — plus the fleet report. But "every place that asserts" — I should cover the named records precisely, and note others (plans/round-67.md, the r67 report draft, verifiers docstrings) as secondary.
+
+  Actually the frozen plan round-68.md C2 R67-1 says: "The r67 report, `LOG.md` and `SCORECARD.md` state that the r67 C2 base prints `authority ladder grounded 0 of 1`." So the expected assertion sites: r67 report (fleet), LOG.md, SCORECARD.md. And the spot-check file (round-67-verifier-spotcheck.md) — written by the closure — may state what it observed (environment error). Let me check :59.
+
+  **Hunt 2 — census receipt path:**
+
+  - LOG.md:2641 — cites the REAL path `.ufo/waves/round-67/controls/census-validate-append.txt` (correct).
+  - corpus/lessons/round-67.md:129 — cites the WRONG path `w1/controls/`.
+  - corpus/lessons/round-67-verifier-spotcheck.md:70 and :103 — the spot-check (append-only closure file, indexed round 68) already names the wrong path and corrects it: "the report cites X, which is absent. The committed receipt is Y."
+  - plans/round-68.md:109-110 — plan describes the defect (quoting wrong + real).
+  - corpus/lessons/round-68.md:149-150 — the r68 lesson already names the wrong path and the real one (the correction exists).
+  - Fleet report kotoba.md:55 — "The pre-append gate on the scratch mirror is `.ufo/waves/round-67/w1/controls/census-validate-append.txt`" — WRONG path in the fleet report.
+
+  So I need to read the fleet report fully — wait, I already read it! The Read of /home/vgpnk/Projects/shokunin/.ufo/reports/round-67/kotoba.md returned the full 98 lines. Let me scan it:
+
+  - Line 42: "- Before (base `2a8eba56`, receipt `.ufo/waves/round-67/receipts/C2-authority-measure.txt`): `authority ladder grounded 0 of 1`, **exit nonzero**." — THE unobserved base line assertion, with a receipt that (per the receipt file itself) actually shows `1 of 1`. That's the fabrication.
+  - Line 40: "Frozen predicate: ... at the pinned base it prints `0 of 1` and exits nonzero." — this is the frozen predicate statement (plan-level), asserting the base behavior. Hmm — the predicate was frozen in plans/round-67.md presumably as "prints 0 of 1 at base". That's a claim about the world that turned out false (the counter can't read the entry at base → environment error exit 2). Is line 40 an assertion of the base line? It states the predicate expects that. I should report it: line 40 (frozen predicate sentence), line 42 (before-measurement claim).
+  - Line 55: census receipt wrong path `w1/controls/census-validate-append.txt` — the wrong receipt path.
+  - Also line 44: "Second implementation: ... now prints the same `authority ladder grounded 1 of 1`" — fine.
+  - Line 70-72: SHONEN boxes — box 3 cites `C1-base.txt` controls; fine.
+
+  Also the r67 report line 16 says: "The wave falsified the first landed entry and the L1 corrected it before the measurement... both implementations now print `authority ladder grounded 1 of 1`."
+
+  Now for LOG.md — I read only lines 1-1522. The round-67 LOG entry is around line 2639-2641 (from grep). I need to read LOG.md from ~2500 to end (2644 lines total) to see the full round-67 entry and check whether an appended correction already exists. Also SCORECARD.md I read fully (394 lines) — the round-67 axis annotation at :389-394; line 391 asserts the base `0 of 1`. Is there an appended correction? The read ended at line 394 and no erratum was visible. Need to check if there's an erratum appended after — the file is 394 lines and I read to the end. So no correction in SCORECARD.md yet.
+
+  corpus/lessons/round-68.md — I haven't read it. From grep: round-68.md:149-150 names both paths (wrong + real). Need to read the whole r68 lesson to check M107-M110 and whether it covers R67-1 (the unobserved base line) and R67-2 (receipt path). Also corpus/README.md row :128-129 already describe the round-68 entry and lesson (the "Client trust gates (round 68)" row exists and the "Round-68 lessons" row exists — meaning the L1 has already landed part of round 68? Wait — the corpus README rows 128-129 mention round-68 knowledge entry and lesson with S198-S202, M107-M110. And the working tree has .ufo/waves/round-68/ with w1 logs (my own log is there: .ufo/waves/round-68/w1/logs/RevC2Honesty.log — interesting, my session is being logged there). The base tip e94ae32a is the frozen base; the working tree may have moved past it (round 68 in progress). The corpus/README.md:127 row mentions "indexed round 68" for the r67 spot-check, and rows 128-129 for round 68. So the L1 has landed the round-68 corpus changes already (or the working tree carries them uncommitted). My job is read-only hunting regardless.
+
+  Key questions to answer precisely:
+  1. All file:line asserting `authority ladder grounded 0 of 1` in the named lane records + whether an appended correction covers each.
+  2. All file:line citing the wrong census receipt path vs real path.
+  3. Fleet report lines stating unobserved base line or wrong receipt path.
+
+  I need:
+  - LOG.md lines 2500-2644 (the round-67 entry in full).
+  - corpus/lessons/round-68.md in full.
+  - corpus/lessons/round-67-verifier-spotcheck.md in full (lines around 55-110).
+  - The full grep output file for "authority ladder grounded" (to catch every lane-record site; but it's 103K chars mostly .ufo logs — I can grep it more narrowly, or re-run Grep with path restricted to the six named files + plans + verifiers + fleet report).
+  - Check whether the receipts/controls actually show what the plan says: read `.ufo/waves/round-67/receipts/C2-authority-measure.txt` (5 lines), `.ufo/waves/round-67/w1/controls/C2-base.txt`? Wait, does that exist? The plan says the committed receipt `.ufo/waves/round-67/receipts/C2-authority-measure.txt` shows the tip (1 of 1). And the spot-check re-ran at base showing exit 2. Also check `.ufo/waves/round-67/controls/` directory listing and the C2-authority receipt content.
+  - SKILL.md:494 — need to check if SKILL.md has other assertions (grep hit showed only :494 in the preview; need full list).
+  - corpus/README.md — grep showed rows 125-128 mention "authority ladder grounded"? Not in the preview. The README row :125 mentions "counted by `../verifiers/check_instruction_authority.py`" but maybe not the 0 of 1 claim. Need to check.
+  - plans/round-67.md — the frozen plan states the predicate "at the pinned base it prints 0 of 1" — that's a lane record too (plans are committed). The mission says search "the lane's own records (read-only):" listing six files, "Also check the fleet report". The plan files aren't listed but plans/round-67.md asserting it is relevant context — I can report as secondary (plans are frozen pre-data records; the correction convention treats them as records too — r63 lesson M94 "a frozen plan whose expected headline contradicted its own check"). I'll include as secondary with the caveat that frozen plans are pre-data records.
+  - verifiers/check_instruction_authority.py docstring — the scribe spec says the docstring promises the base prints `0 of 1`. That's a lane record asserting unobserved behavior. Include.
+
+  Also: does an appended correction already cover any of these? The corpus/README row :127 (r67 spot-check indexed round 68) and the r68 lesson M107-M110 are the corrections-in-progress. The r67-verifier-spotcheck.md:55-59 lines state what the spot-check observed — let me read them.
+
+  Also need to verify the claim "exit 2 environment error" myself? The plan says a re-run at base shows it. As revenger I can run the counter at the base rev read-only — but wait, base tip is e94ae32a per the mission (r68 base), while r67 base is 2a8eba56. Running `python3 -B verifiers/check_instruction_authority.py --rev 2a8eba56...` is read-only. That would give direct executable evidence of the environment-error classification. That strengthens the evidence chain: the unobserved line is not just "not in the receipt" — a re-run shows exit 2 + stderr. Let me do that.
+
+  Also verify the wrong path is absent and real path exists: `ls` both paths (already done by ScribeC2Index log, but I should verify myself — evidence rule: quote what a command actually printed).
+
+  Also read the receipt C2-authority-measure.txt to quote it.
+
+  Also check LOG.md for any appended r67 erratum (read the tail).
+
+  Batch 2 (parallel):
+  - Read LOG.md offset ~2560 to end (2644).
+  - Read corpus/lessons/round-68.md (full).
+  - Read corpus/lessons/round-67-verifier-spotcheck.md (full, ~110 lines).
+  - Read .ufo/waves/round-67/receipts/C2-authority-measure.txt.
+  - Grep "authority ladder grounded" restricted to the six named files + plans/ + verifiers/ (content mode with -n) — actually simpler: Grep in specific files one by one? The Grep tool takes one path. I can use path=/home/vgpnk/Projects/shokunin/kotoba-shokunin and glob filter? Glob matches full path... I could run three greps: one on LOG.md, one on SCORECARD.md, one on SKILL.md, one on corpus/ (README + lessons), one on plans/, one on verifiers/. That's 6 greps — fine, parallel.
+  - Bash: ls both census paths; ls receipts/controls dirs; wc -l on relevant files.
+  - Bash: run the counter at r67 base rev (read-only) to capture the actual output.
+
+  Wait — careful with running the counter: it's a verifier that reads git objects; running it with --rev is read-only (it did temp git fixture only for --self-test). The spot-check already ran it. I'll run it and quote output. Also run at r68 base e94ae32a? The r68 base has the entry (r67 landed it), so `0 of 1` vs environment... not needed. The relevant rev for the honesty defect is the r67 base 2a8eba56.
+
+  Also the AGENTS.md reminder: /home/vgpnk/Projects/shokunin/AGENTS.md applies to the fleet dir I'm reading from (the fleet report). It says read before making changes in those directories — I'm read-only there, but I should read it to comply. It's cheap; include in batch.
+
+  Let me fire batch 2.
+
+• Fleet report, LOG/SCORECARD/corpus reads landed. Now I need the LOG round-67 tail, the r68 lesson, the r67 spot-check, the receipt bytes, and per-file precise line hits. Also reading the fleet AGENTS.md per the reminder.
+
+• Excellent — the picture is nearly complete. Let me now compile the precise findings.
+
+  **The receipt (`.ufo/waves/round-67/receipts/C2-authority-measure.txt`)** — committed evidence: line 5-7 shows the base control printed `environment error: cannot read corpus/knowledge/instruction-authority-ladder-round67.md at 2a8eba56b3f9321b70c569fa2816d42237ca49a2` and `exit=2`. So the receipt does NOT show `authority ladder grounded 0 of 1`. Any lane record asserting the base printed `0 of 1` asserts something the committed receipt contradicts.
+
+  **Hunt 1 — assertions of `authority ladder grounded 0 of 1` (base printed it):**
+
+  Lane records (the six named + plans + verifiers docstring):
+
+  1. **LOG.md:2639** — "at the pinned base it prints `0 of 1` and exits nonzero." — asserted, NO appended correction in LOG.md yet (LOG ends at 2696 with the round-67 entry; the round-68 entry has not been appended — wait, LOG.md is 2696 lines and I read to 2644. I read 2600-2644 which was "Total lines in file: 2696". So lines 2645-2696 exist that I haven't seen! I must read them — they might contain a round-68 entry or erratum. Let me read LOG.md 2644-2696.)
+
+  2. **SCORECARD.md:391** — "at the pinned base `2a8eba56…` it prints `0 of 1` and exits nonzero" — the round-67 depth annotation. SCORECARD.md is 394 lines; I read to 394 (end). No correction appended yet.
+
+  3. **SKILL.md:496** — gate-registry row: "`authority ladder grounded 1 of 1` at the measured rev and `0 of 1` at the pinned base" — asserts the base prints `0 of 1`. (Earlier grep preview said :494 — now precise :496. Note SKILL.md may have shifted lines since the round-68 gate-registry row was added; current line 496.)
+
+  4. **corpus/lessons/round-67.md** — the grep for "authority ladder grounded" in that file returned nothing (the round-67 lesson grep hit at :129 was only the census path; the full grep preview of the lane-wide search showed round-67.md hits only at :129 for census-validate-append). Let me double check the big grep output — preview showed "corpus/lessons/round-67-verifier-spotcheck.md:57" and ":59" but for round-67.md only :129 (census). Actually the preview cut at "[elided: chars [4096, 102602)]" — I only saw the first 4096 chars and last 1024. The elided middle contains the rest of the matches. I should re-grep more precisely on the named records to enumerate every hit with line numbers. Specifically:
+     - corpus/lessons/round-67.md for "authority ladder"
+     - corpus/lessons/round-68.md for "authority ladder|0 of 1" (M107 mentions the report asserting it — that's the correction, quoting the claim; fine — it's an erratum, covers itself)
+     - LOG.md full-file grep for "authority ladder grounded" with -n (preview showed only :2639-2640 for the round-67 entry; but older entries may mention it — unlikely, r67 is the only round with that counter).
+
+  5. **plans/round-67.md:80** — frozen predicate: "at the base 2a8eba56…: prints "authority ladder grounded 0 of 1", exit nonzero" — pre-data frozen record; the spot-check's kill rule (:98) fires on it. Frozen plans are records; the correction convention (r32/r52 etc.) appends errata rather than rewriting. The plan's lines 79-80, 98 are the origin of the false expectation. Whether "an appended correction already covers it" — no; plans/round-67.md has no erratum (need to check the tail of the plan file? plans are typically not edited post-hoc; the correction belongs in round 68 records. I can check quickly with grep for erratum in plans/round-67.md).
+
+  6. **verifiers/check_instruction_authority.py:9** — docstring: "`authority ladder grounded 0 of 1` and exit nonzero." and :25 "the base control prints `0 of 1`" — the landed instrument's own docstring asserts the unobserved behavior. The r68 scribe spec explicitly says the L1 must fix the docstring. This is a lane record (committed code) asserting unobserved behavior.
+
+  7. **corpus/README.md** — no hit for `0 of 1` / authority ladder grounded (only row :125 which doesn't state the base line). Good — README does not assert it.
+
+  8. **corpus/lessons/round-68.md:133-147 (M107)** — this is the appended correction itself; it QUOTES the false assertion (round-67 report/LOG/SCORECARD) and states the observed exit-2 line. So M107 covers LOG/SCORECARD corrections? It says "round 68 appends the correction to `LOG.md`, `SCORECARD.md` and this lesson" — but has the LOG.md/SCORECARD.md erratum actually been appended yet? SCORECARD ends at 394 without it. LOG.md — need lines 2645-2696.
+
+  **Coverage status of corrections:**
+  - corpus/lessons/round-67-verifier-spotcheck.md (the closure file, indexed round 68) lines 57-61, 88, 100-102 already document the observed base line (exit 2) and route the defect. This is the closure's record — it does NOT assert `0 of 1`; it refutes it. So the spot-check is the correcting record, and it's now indexed (README :127).
+  - corpus/lessons/round-68.md M107 — the lane's own appended correction (covers the r68 lesson side).
+  - Whether LOG.md and SCORECARD.md carry their errata: check LOG 2645-2696 and re-confirm SCORECARD end.
+
+  **Hunt 2 — census receipt path:**
+
+  Wrong path `.ufo/waves/round-67/w1/controls/census-validate-append.txt`:
+  - **corpus/lessons/round-67.md:129** — "the pre-append census of the scratch mirror is `.ufo/waves/round-67/w1/controls/census-validate-append.txt`." — asserts the wrong path as the receipt location. Correction status: the spot-check (:70, :103) corrects it; r68 lesson M108 corrects it; but the r67 lesson itself has no appended erratum (lessons are append-only? The lane convention appends errata to lessons too — e.g., "append-only erratum" in census files. But the plan's repair says the erratum lands in LOG.md, SCORECARD.md, corpus/lessons/round-68.md and the round-68 report; the r67 lesson is not edited).
+  - **plans/round-68.md:109** — quotes the wrong path as the defect description (not an assertion of location; it's the routed-defect statement).
+  - **LOG.md:2641** — cites the REAL path (`.ufo/waves/round-67/controls/census-validate-append.txt`). Correct.
+  - **Fleet report kotoba.md:55** — wrong path: "The pre-append gate on the scratch mirror is `.ufo/waves/round-67/w1/controls/census-validate-append.txt` (`sources-census.sh validate --file …` → exit 0, `ok`)." — APPEND-ONLY, never edit; correction belongs in round 68.
+
+  Real path `.ufo/waves/round-67/controls/census-validate-append.txt`:
+  - LOG.md:2641 (real path)
+  - plans/round-68.md:110 (real path, in defect description)
+  - corpus/lessons/round-68.md:149-150 (both, M108 correction)
+  - spot-check :70, :103 (both)
+
+  Also `.ufo/waves/round-67/controls/validate/corpus/lessons/round-67.md:129` — a scratch-mirror copy of the lesson (control artifact), same text. Not a lane record per se; it's a committed control mirror under .ufo/waves. Worth a footnote.
+
+  Existence check: ScribeC2Index.log showed `ls: cannot access '.ufo/waves/round-67/w1/controls/census-validate-append.txt'` and the real file exists (1573 bytes). I should verify myself with my own command (evidence rule). 
+
+  **Fleet report lines (append-only):**
+  - kotoba.md:42 — Before line: "Before (base `2a8eba56`, receipt `.ufo/waves/round-67/receipts/C2-authority-measure.txt`): `authority ladder grounded 0 of 1`, **exit nonzero**." — states the unobserved base line AND cites the receipt that actually shows exit=2 + environment error. This is the sharpest fabrication: the receipt is cited right there and contradicts the sentence.
+  - kotoba.md:40 — frozen predicate sentence: "at the pinned base it prints `0 of 1` and exits nonzero." — restates the plan's predicate. It's the predicate statement, not a measurement claim; but it does assert the base behavior. I'll list it as a secondary line (the primary defect line is 42).
+  - kotoba.md:43 — "After (tip `89ca03ae`): `authority ladder grounded 1 of 1`, **exit 0**; the counter's own `--self-test`..." — fine.
+  - kotoba.md:44 — second implementation — fine.
+  - kotoba.md:55 — wrong census receipt path.
+  - Also line 16 mentions both implementations print 1 of 1 — fine.
+  - Line 71 (SHONEN box 2) cites `kotoba-shokunin/.ufo/waves/round-67/` — fine.
+  - Line 72 (SHONEN box 3) cites `C1-base.txt` — fine.
+
+  Any other fleet-report line? Line 40 is the C2 frozen-predicate sentence. I'll report 40 (predicate restatement) and 42 (the false before-measurement) and 55 (wrong path). Also note line 42's receipt citation contradiction.
+
+  **Do the corrections already cover?**
+  - LOG.md — need to check tail 2645-2696.
+  - SCORECARD.md — 394 lines read fully; the round-67 annotation at :389-394 has no erratum after it. So NOT yet covered in SCORECARD.md (unless the round-68 annotation was supposed to be appended later — current state: not covered).
+  - corpus/lessons/round-67.md — :129 wrong path asserted; no appended erratum in that file (131 lines, read fully — ends at M107 note "git status --porcelain lists corpus/live.md before the sweep and lists nothing after it" — which the spot-check :92-93 refutes re junk-world; that's R67-3/M109's evidence, noted).
+  - corpus/lessons/round-68.md — M107/M108/M109/M110 exist (the corrections).
+  - corpus/README.md — :127 row for the spot-check says "routed four defects to round 68 — the base line the r67 report asserted but did not observe, the wrong census receipt path, the undisclosed 254 MB junk-world control mirror, and this file's own unindexed state". So README documents the defects (correction-adjacent) but doesn't assert the false line.
+  - SKILL.md:496 — asserts `0 of 1` at pinned base; correction status: none yet in SKILL.md. The gate-registry row needs either an appended erratum note or correction when the counter is fixed. (r68 plan says the r67 counter is NOT modified; SKILL.md row would then still assert the unobserved line → the erratum should name it. Worth flagging as a site the plan's repair list does NOT name: plan R67-1 repair names LOG.md, SCORECARD.md, corpus/lessons/round-68.md and the round-68 report — it does NOT name SKILL.md:496 nor verifiers/check_instruction_authority.py:9/:25 docstring. But the w1 scribe spec (round-68/w1-spec.json) does instruct drafting "the exact correction the L1 must apply to the r67 counter's own docstring". So the executor wave knows. As revenger I flag both sites.)
+
+  Also **verifiers/check_r67_routed_repairs.py:18** — the new r68 counter's docstring quotes `authority ladder grounded 0 of 1` — need to check context: line 18 in docstring probably says "the records must not assert that the base printed `0 of 1`" — a mention in the correction contract, fine. Line 30/63 OBSERVED the environment error line — the corrected classification. Not defects.
+
+  Now — does the LOG have a round-68 entry/erratum appended (lines 2645-2696)? Must read. Also check whether corpus/SOURCES.md S198-S202 exist (C1 ground) — not needed for my hunt, but the mission is "revenger/C2 honesty". My mission: the two hunts + fleet report. Keep scope.
+
+  One more check: the big lane-wide grep output file — the elided middle may contain other `authority ladder grounded 0 of 1` assertion sites in .ufo/waves (seat logs, drafts). Those are inherited wave evidence, not lane records; the drafts/round-67-report.md:172 shows the DRAFT hedged ("Actual stdout/stderr and exit are...") — interesting: the draft report apparently had a hedge that was dropped/changed in the final report? Actually draft line 172: "`authority ladder grounded 0 of 1` and a nonzero exit. Actual stdout/stderr and exit are" — suggests the draft carried a "replace with actual output" placeholder. And :184 "replaced by that full tip and require `authority ladder grounded 1 of 1`; actual exit is". So the draft was a template with placeholders; the L1 filled the before-line with the fabricated `0 of 1` instead of the receipt's actual exit-2 line. That's provenance for the defect (inference, marked as such). I can cite the draft as context (wave evidence, not a record).
+
+  Let me also check LOG.md 2645-2696 and quickly verify existence of both census paths + run the counter at base myself for a fresh measurement (read-only). Also grep corpus/lessons/round-67.md for "authority ladder" to be thorough, and grep LOG.md whole-file for "0 of 1" to catch any other site (e.g., older rounds use "0 of 1" for other counters — the r56 plan hit `0 of 1` was a different counter; in LOG.md, check each hit's context). LOG.md "0 of 1" hits: need line numbers; from the earlier lane-wide grep for "authority ladder grounded" only :2639/2640 (plus .ufo). But "0 of 1" alone might appear elsewhere for this counter? The assertion "prints `0 of 1`" appears at 2639. Good enough, but let me grep LOG.md for "0 of 1" with -n to be exhaustive about THIS hunt's phrasing (and check contexts are not this counter... older rounds: r56 C1 `0 of 1`? That was `check_plugin_manifests`? No — r56: "9af7ea81 → 0 of 1" in plans/round-56.md is a receipt. In LOG.md, might exist. Context check needed only if hits exist near round-67.)
+
+  Also SCORECARD.md "0 of 1" — only :391 (round-67 depth annotation) per earlier read; but let me grep to be sure.
+
+  Batch 3 (parallel):
+  - Read LOG.md offset 2644 to end (53 lines).
+  - Grep LOG.md "0 of 1" -n content.
+  - Grep SCORECARD.md "0 of 1" -n content.
+  - Grep corpus/lessons/round-67.md "authority ladder|0 of 1|census-validate" -n.
+  - Bash: ls -la both census paths; du -sh junk-world if exists; git -C lane rev-parse HEAD (read-only, to note working-tree state? careful — reading git state is fine); run counter at base rev.
+  - Grep fleet report for "0 of 1|census-validate|authority ladder" -n (to nail precise line numbers in the fleet file — I have the full read already with line numbers: 40, 42, 55. The read gave line numbers. Good, no need).
+  - Also check plans/round-67.md tail for any erratum (grep "erratum|Erratum" plans/round-67.md).
+
+  Run the counter: `cd /home/vgpnk/Projects/shokunin/kotoba-shokunin && python3 -B verifiers/check_instruction_authority.py --rev 2a8eba56b3f9321b70c569fa2816d42237ca49a2; echo "exit=$?"`. Read-only. Also existence: `ls .ufo/waves/round-67/w1/controls/census-validate-append.txt .ufo/waves/round-67/controls/census-validate-append.txt`.
+
+  Note the wc: LOG.md is 2696 lines (was 2644 in my earlier read — wait, earlier read said "Total lines in file: 2644". Now it says 2696. The file GREW between reads — the L1 is actively landing round-68 content concurrently! So lines 2645-2696 are new since my first read. Must read them — they may be the round-68 LOG entry with the errata. Important for "whether an appended correction already covers it" — the answer may be changing under me. I'll read the tail and note the as-of state.
+
+• The receipt is decisive: the committed receipt itself shows the base control printed the **environment error, exit=2** — not `0 of 1`. LOG.md grew from 2644 to 2696 lines between my two reads (the L1 is landing round-68 content concurrently) — reading the new tail, plus precise per-file line pins and my own verification commands:--- wrong path:
+ls: cannot access '.ufo/waves/round-67/w1/controls/census-validate-append.txt': No such file or directory
+--- real path:
+-rw-r--r-- 1 vgpnk vgpnk 1573 Oct 24 20:45 .ufo/waves/round-67/controls/census-validate-append.txt
+--- junk-world:
+du: cannot access '.ufo/waves/round-67/w1/controls/junk-world': No such file or directory
+--- counter re-run at r67 base (read-only):
+environment error: cannot read corpus/knowledge/instruction-authority-ladder-round67.md at 2a8eba56b3f9321b70c569fa2816d42237ca49a2
+exit=2
+
+
+• Now the picture is complete and current. New findings from the grown LOG tail (lines 2646-2696): the round-68 LOG entry HAS been appended, including:
+  - :2667-2674 — the R67-1 erratum (covers LOG's own :2639 assertion and names the correction carriers: "this entry, the SCORECARD annotation and corpus/lessons/round-68.md M107").
+  - :2675-2677 — the R67-2 erratum (names wrong + real path).
+  - :2678-2682 — R67-3 disclosure.
+  - :2683-2686 — R67-4.
+
+  And SCORECARD.md grew too: now has :424 — "That annotation states that the r67 C2 base "prints `authority ladder grounded 0 of 1`". The" — an appended erratum after :391. I only saw line 424 partially. SCORECARD.md was 394 lines at my first read; now it has ≥424 lines. I need to read SCORECARD.md 394-end to confirm the erratum's extent (does it cover :391? does it also mention the receipt path R67-2?).
+
+  Also corpus/lessons/round-67.md:101 — "quote is not the row's, and the base control prints `0 of 1`." — ANOTHER assertion site in the r67 lesson (M105's "shown able to fail" clause asserts the base control prints `0 of 1`). That's a hit my earlier grep for "authority ladder grounded" missed because it says "the base control prints `0 of 1`" without the full phrase. So the hunt for the *assertion* should include phrasing variants: "prints `0 of 1`". Sites asserting the base behavior:
+  - LOG.md:2639 ("at the pinned base it prints `0 of 1` and exits nonzero") — now covered by the appended erratum :2667-2674.
+  - SCORECARD.md:391 ("at the pinned base `2a8eba56…` it prints `0 of 1` and exits nonzero") — covered by appended erratum at :424+ (verify extent).
+  - SKILL.md:496 (gate-registry row: "`authority ladder grounded 1 of 1` at the measured rev and `0 of 1` at the pinned base") — correction status: need to check whether SKILL.md has an appended note. The w1 spec says the L1 must fix the counter docstring; the SKILL.md row? Let me grep SKILL.md for "environment error|cannot read|erratum" near that row to see if a correction landed.
+  - corpus/lessons/round-67.md:101 ("the base control prints `0 of 1`") — correction status: no erratum in the r67 lesson file itself (it ends at :131); the r68 lesson M107 quotes "the r67 LOG.md/SCORECARD.md entries repeat it" but does NOT name the r67 lesson :101 or SKILL.md:496. So :101 and SKILL.md:496 are assertion sites NOT covered by any appended correction. That's a gap for the L1's append list. Wait — does M107's text name them? M107 (round-68.md:133-147): "the round-67 report's Before → after section states... and the r67 LOG.md/SCORECARD.md entries repeat it." It doesn't name the r67 lesson's :101 or SKILL.md:496. The LOG erratum :2673 says "this entry, the SCORECARD annotation and corpus/lessons/round-68.md M107 carry the correction" — again not the r67 lesson :101 nor SKILL.md:496.
+  - verifiers/check_instruction_authority.py:9 and :25 (docstring asserts base prints `0 of 1` / "the base control prints `0 of 1`") — check if the docstring was corrected in the working tree. Grep showed :9 still has it. Correction status: NOT covered; the w1 spec instructs the L1 to apply the docstring correction. Note: the counter itself is NOT modified per the plan ("The r67 counter is NOT modified — its frozen claim stands a miss, corrected by an appended erratum (see C2)"), yet the scribe spec says draft "the exact correction the L1 must apply to the r67 counter's own docstring". Slight tension in the plan vs spec — the plan says don't modify the counter; the spec says correct its docstring. As revenger I flag both sites and the tension; the L1 decides. Actually re-read plan line 68-70: "The r67 counter is NOT modified — its frozen claim stands a miss, corrected by an appended erratum (see C2)." So plan says counter untouched. The w1-spec seat item asked for a DRAFT of the docstring correction — drafts only. Current docstring: uncorrected. So the docstring assertion remains uncovered → flag for the L1's erratum list (either an appended docstring erratum comment or a note in the r68 records naming the docstring lines).
+
+  Also check: does the SKILL.md gate-registry row have any erratum marker? Let me grep SKILL.md around :496 for "environment error" / "erratum".
+
+  Also SCORECARD.md new tail 395-430+ — read it.
+
+  Also: plans/round-67.md:80/:98 — the frozen plan asserts the base prints `0 of 1` (pre-data record; kill rule). Not covered by an appended erratum in the plan file (grep for erratum found nothing in plans/round-67.md). Frozen plans are typically left standing; the r63 M94 precedent corrected a plan's contradiction via erratum. I'll report as secondary sites (frozen pre-data records; correction optional per lane convention — the round-68 plan already documents the defect).
+
+  Also LOG.md:2640 "It reported `0 of 1` at the landed tip" — that's the wave falsification narrative (the seat's draft printed 0 of 1 at tip because the entry shape was wrong) — NOT an assertion about the base. Exclude, note as non-defect.
+
+  corpus/lessons/round-67-verifier-spotcheck.md:57-59 — the closure's re-measure (states base printed environment error exit 2; "It does not print `authority ladder grounded 0 of 1`") — a REFUTATION, not an assertion. Exclude from defect list; it's the correcting evidence.
+
+  Draft/wave evidence (not lane records): .ufo/waves/round-67/w1/drafts/round-67-report.md:172 — the report draft template carried the `0 of 1` line as a placeholder to be replaced with actual stdout/stderr; the final report filled it with the unobserved line. Provenance context.
+
+  Now the census receipt path hunt — complete list:
+  Wrong path `.ufo/waves/round-67/w1/controls/census-validate-append.txt` cited:
+  1. corpus/lessons/round-67.md:129 — asserts it as the receipt location ("the pre-append census of the scratch mirror is …"). Covered? The spot-check (:70, :103) corrects; r68 lesson M108 (:148-153) corrects; LOG :2675-2677 erratum corrects. The r67 lesson itself carries no appended erratum — but is the correction "appended" anywhere the contract requires? Plan R67-2 repair: "the erratum names the real path; the r67 report is not edited." Done in LOG/r68-lesson/r68-report(pending). The r67 lesson's own wrong assertion (:129) remains in place without an in-file erratum — same treatment as LOG:2639 (whose correction lives in the r68 records, not in place). But note asymmetry: LOG's :2639 got an explicit erratum naming it; the r67 lesson :129 wrong-path assertion is corrected generically (spot-check + M108) but no record says "corpus/lessons/round-67.md:129 cites the wrong path". Hmm — M108 says "the round-67 report cites the census receipt w1/..." — it names the REPORT only, not the lesson :129. So the r67 lesson's wrong-path assertion is currently unnamed in the corrections. Flag: the L1's append list should name corpus/lessons/round-67.md:129 as an additional wrong-path site (or accept the spot-check's blanket correction — but precision favors naming it).
+  2. Fleet report kotoba.md:55 — wrong path; append-only; correction belongs in r68 report.
+  3. plans/round-68.md:109 — quotes the wrong path as the defect description (not an assertion of location). Non-defect.
+  4. .ufo/waves/round-68/w1-spec.json + seat logs — dispatch context, non-records.
+  5. .ufo/waves/round-67/controls/validate/corpus/lessons/round-67.md:129 — committed scratch-mirror copy of the lesson (control artifact, not a lane record). Footnote.
+
+  Real path cited:
+  - LOG.md:2641 (r67 entry — correct already)
+  - corpus/lessons/round-67-verifier-spotcheck.md:70, :103
+  - corpus/lessons/round-68.md:150 (M108)
+  - plans/round-68.md:110
+  - LOG.md:2676-2677 (the R67-2 erratum names wrong + real)
+
+  My verification: wrong path absent (ls: No such file or directory), real path exists (1573 bytes), junk-world GONE (du: cannot access — the R67-3 removal already happened), and my own re-run at the r67 base prints the environment error and exit=2 — matching the receipt and the spot-check, refuting every `0 of 1` assertion.
+
+  Also the SKILL.md:496 check for correction. And read SCORECARD.md tail. Let me do a final small batch:
+  - Read SCORECARD.md offset 394 to end.
+  - Grep SKILL.md for "environment error|cannot read corpus/knowledge/instruction-authority" and "authority ladder" again (already have :496; check for erratum lines).
+  - Check the knowledge entry instruction-authority-ladder-round67.md for base-line assertions? Grep corpus/knowledge/instruction-authority-ladder-round67.md for "0 of 1|authority ladder grounded". Quick.
+  - Also corpus/README.md:127-128 rows mention "the base line the r67 report asserted but did not observe" — corrective. Fine.
+
+  Then write the report file (the mission explicitly says write to .ufo/waves/round-68/w1/RevC2Honesty.md — that path is within my hard-bounded write scope, and the write-scope section permits executor/scribe/mutation-tester to write drafts there; for read-only seats it says don't write. But the mission line says "Report: write your scoped findings to .ufo/waves/round-68/w1/RevC2Honesty.md". Hmm. Conflict again. The role section: "Read-only seats (scout/reviewer/critic/sentinel/revenger/connector): do not write files at all. Return your findings in your final response — the L1 writes your report from it."
+
+  The mission trailer says "Report: write your scoped findings to .ufo/waves/round-68/w1/RevC2Honesty.md". Given my own session log is already at .ufo/waves/round-68/w1/logs/RevC2Honesty.log (the host logs my transcript there automatically), and the assignment's final line explicitly directs the report path... The hard-bounds section says read-only seats do not write files AT ALL. The final Report line conflicts. Decision: the hard bounds are labeled "hard bounds" and repeated ("Read-only: report in your final response" appears in the mission's own hunt paragraph: "Report a precise list of file:line so the L1 can append, never rewrite. Read-only: report in your final response."). That's decisive — the mission's own hunt text says READ-ONLY: REPORT IN YOUR FINAL RESPONSE. The trailer's "Report: write..." line is the generic template; the specific instruction for this seat says read-only, final response. I will NOT write the file; I'll deliver the full report in my final response. Wait — but the trailer explicitly names RevC2Honesty.md... and other r68 revenger logs exist (RevC2Honesty.log exists with my commands). Hmm, the .log file is auto-captured. Let me look: .ufo/waves/round-68/w1/logs/RevC2Honesty.log exists and contains my grep commands (from the earlier grep output — it showed my planned steps). That's the host capturing my session. The L1 reads logs or final response.
+
+  Given "Read-only: report in your final response" is explicit in the mission body and the write-scope hard bound says read-only seats do not write files at all, the safest Godspeed move: return findings in the final response. Writing the .md would violate the role bound; not writing it violates only a template line that the body overrides. However... risk assessment: writing one file under the allowed directory harms nothing and satisfies both readings; NOT writing risks the L1 missing the report if it only reads files. But the L1 demonstrably reads logs and the final response flows to it. The body text is explicit and repeated. Decision: do not write; final response carries the full report. Hmm, actually wait — let me re-read: "Report: write your scoped findings to .ufo/waves/round-68/w1/RevC2Honesty.md" — this is at the very bottom after "Judged on: consistency / Milestone...". The instruction hierarchy: the "Write scope (hard bounds)" says read-only seats don't write at all, and the mission body's own line 2 of the hunt says "Read-only: report in your final response." Two explicit read-only directives vs one trailer line. I'll comply with read-only and state clearly in my response that per the read-only bound I did not write the file, and the L1 can materialize it from this response.
+
+  Hmm, but one more consideration: the executor seats in this round wrote drafts (ExecR67Repairs etc. wrote .md reports). The revenger role spec in this very mission lists revenger under read-only. Confirmed: no write.
+
+  Final data-gathering batch: SCORECARD tail, SKILL.md erratum check, knowledge-entry grep.
+
+• The LOG tail shows the R67-1/R67-2 errata **have already been appended** (:2667-2677), and SCORECARD grew past :391 to a :424 erratum. Final verification batch — SCORECARD's appended erratum extent, whether SKILL.md:496 and the r67 counter docstring carry any correction, and the knowledge entry:#!/usr/bin/env python3
+"""check_instruction_authority.py — C2 counter for kotoba round 67.
+
+Contract
+--------
+`python3 -B verifiers/check_instruction_authority.py --rev <full-sha>` prints
+    authority ladder grounded N of 1
+and exits 0 when N == 1, nonzero otherwise.  At the pinned base it must print
+`authority ladder grounded 0 of 1` and exit nonzero.
+
+What the counter reads (content, not names — QUALITY Q25/Q26).  For
+`corpus/knowledge/instruction-authority-ladder-round67.md` at the measured revision:
+
+  1. the entry file exists;
+  2. it opens with `source:` lines naming at least one `S###` id;
+  3. every cited id resolves to a row in `corpus/SOURCES.md` whose `status` is `mined`;
+  4. each cited row's `source` cell occurs verbatim in the entry's `source:` line for that id;
+  5. the entry carries a `verified-at:` line dated 2026-10-24 and a `recheck:` line;
+  6. for each cited id, the entry carries a double-quoted located quote of at most 25 words
+     that also occurs in that row's `anchor` cell;
+  7. the entry is indexed in `corpus/README.md`'s coverage map.
+
+Trust boundary (QUALITY Q33): the counter runs the measured revision's own bytes, so a
+revision that rewrites the instrument can change the verdict.  The claim's verdict therefore
+also cites the controls outside this counter: the base control prints `0 of 1`, the junk-entry
+control is rejected, and the mutation battery in `.ufo/waves/round-67/controls/` shows each
+conjunct is load-bearing.
+
+Exit codes: 0 grounded · 1 not grounded · 2 usage/environment error.
+"""
+=== wc
+  2696 LOG.md
+   429 SCORECARD.md
+   600 SKILL.md
+  3725 total
+
+
+• All evidence is in. Let me finalize the complete findings.
+
+  **State as of now (working tree, mid-round-68 landing):**
+  - LOG.md 2696 lines: round-68 entry appended with R67-1 erratum (:2667-2674) and R67-2 erratum (:2675-2677).
+  - SCORECARD.md 429 lines: round-68 annotation block (:396-422) + erratum to the r67 depth annotation (:423-429) covering both R67-1 (the `0 of 1` line at :391) and R67-2 (the census receipt path).
+  - corpus/lessons/round-68.md: M107 (:133-147) and M108 (:148-153).
+  - corpus/lessons/round-67-verifier-spotcheck.md: :59-61, :100-103 (closure's own refutation + routed defects 1-2).
+  - SKILL.md: still 600 lines; the gate-registry row at :496 still asserts "`0 of 1` at the pinned base" with NO appended correction — SKILL.md's grep for erratum/environment shows no correction near :496. UNCOVERED SITE.
+  - verifiers/check_instruction_authority.py docstring :8-9 ("At the pinned base it must print `authority ladder grounded 0 of 1` and exit nonzero") and :25 ("the base control prints `0 of 1`") — UNCOVERED; no in-file erratum. (Plan says the counter is NOT modified; but the docstring assertion remains a lane record asserting the unobserved line — the L1's erratum list should name it, either as an appended docstring erratum or a named line in the r68 report.)
+  - corpus/lessons/round-67.md:101 — "and the base control prints `0 of 1`" (M105's shown-able-to-fail clause) — assertion site; the corrections (M107, LOG erratum, SCORECARD erratum) name "the r67 report/LOG/SCORECARD" but NOT the r67 lesson :101. UNCOVERED (no record names it).
+  - corpus/lessons/round-67.md:129 — wrong census receipt path asserted as the scratch mirror's receipt location. Corrections name the REPORT's wrong path (SCORECARD :428 "the r67 census receipt path in that round's report", M108 "the round-67 report cites") — none names the r67 LESSON :129. Partially uncovered: the wrong-path fact is corrected fleet-wide, but the lesson's own assertion site is unnamed. Same for the r68 report (pending) — it should name both the report :55 and lesson :129 sites. Actually let me be careful: is corpus/lessons/round-67.md:129 an *assertion that the wrong path is the receipt's location*? Yes: "the pre-append census of the scratch mirror is `.ufo/waves/round-67/w1/controls/census-validate-append.txt`." — asserts the receipt lives at the wrong path; the file does not exist there (my ls proves it). So it's an honesty defect site of the same class. Unnamed by the corrections.
+  - plans/round-67.md:79-80, 97-98 — frozen pre-data predicate and kill rule asserting the base prints `0 of 1`. Frozen plans stand as records (r63 M94 precedent: a plan contradiction is recorded, and the r63 case got a lesson entry; here M107 quotes the kill rule from "the round-67 plan" without line numbers — M107:139-140 says 'Captured by: the round-67 plan's kill rule ("if the base control does not print `0 of 1`, C2 is a miss as declared")'. So the plan's :98 is quoted in M107 — the plan's assertion is thereby documented, though the plan's own :80 line (the predicate) is not named. Plans are pre-data frozen records; convention = leave, cite. Covered-enough; list as secondary.
+  - verifiers/check_r67_routed_repairs.py:18 — docstring quotes the false line inside the correction contract ("must not assert…") — non-defect (mention-in-correction). :30/:63 carry the OBSERVED environment-error line — the corrected classification. Non-defects.
+  - LOG.md:2640 — "It reported `0 of 1` at the landed tip" — about the seat draft at the TIP (entry-shape falsification), not the base. Non-defect.
+  - corpus/README.md:127 — names the routed defects (corrective). Non-defect.
+  - Knowledge entry instruction-authority-ladder-round67.md — no hits. Clean.
+
+  **Fleet report `/home/vgpnk/Projects/shokunin/.ufo/reports/round-67/kotoba.md` (APPEND-ONLY):**
+  - :40 — C2 frozen-predicate sentence: "at the pinned base it prints `0 of 1` and exits nonzero." (predicate restatement — asserts the base behavior).
+  - :42 — "**Before (base `2a8eba56`, receipt `.ufo/waves/round-67/receipts/C2-authority-measure.txt`): `authority ladder grounded 0 of 1`, exit nonzero.**" — the unobserved base line asserted AS MEASURED, citing the very receipt whose committed bytes (:5-7) show `environment error: …` + `exit=2`. Sharpest fabrication.
+  - :55 — "**The pre-append gate on the scratch mirror is `.ufo/waves/round-67/w1/controls/census-validate-append.txt` (`sources-census.sh validate --file …` → exit 0, `ok`).**" — wrong receipt path; real file is `.ufo/waves/round-67/controls/census-validate-append.txt` (1573 B, verified).
+  - Non-defect lines in the report: :16, :43, :44 (all print `1 of 1` statements, true), :51-57 census sentences otherwise fine.
+
+  **My own executable evidence:**
+  - `python3 -B verifiers/check_instruction_authority.py --rev 2a8eba56…` → stderr `environment error: cannot read corpus/knowledge/instruction-authority-ladder-round67.md at 2a8eba56b3f9321b70c569fa2816d42237ca49a2`, exit=2, nothing on stdout.
+  - Receipt `.ufo/waves/round-67/receipts/C2-authority-measure.txt:5-7` — same line + `exit=2`.
+  - `ls` — wrong census path: No such file or directory; real path: 1573 bytes.
+  - `du` — junk-world already removed (cannot access) — R67-3 removal already executed.
+
+  **Coverage matrix (assertion site → appended correction?):**
+  1. LOG.md:2639 → COVERED by LOG.md:2667-2674 (R67-1 erratum).
+  2. SCORECARD.md:391 → COVERED by SCORECARD.md:423-429.
+  3. corpus/lessons/round-67.md:101 → NOT COVERED (no appended correction names it; M107 quotes only the plan kill rule and names report/LOG/SCORECARD).
+  4. SKILL.md:496 (gate-registry row) → NOT COVERED (no erratum; row still live).
+  5. verifiers/check_instruction_authority.py:8-9, :25 (docstring) → NOT COVERED (frozen counter, unmodified per plan; docstring still promises the base prints `0 of 1`; the w1 scribe seat drafted the docstring correction per w1-spec.json:124 — the L1 has not applied it, consistent with the plan's "counter is NOT modified" — the tension needs an explicit disposition: an appended docstring erratum comment, or a named line in the r68 report).
+  6. plans/round-67.md:79-80/:97-98 → frozen pre-data record; the kill rule is quoted in M107; predicate line :80 unnamed. Secondary/optional.
+  7. Fleet report :40/:42 → NEVER EDITED; correction belongs in round 68 (already drafted in r68 lesson M107 + LOG erratum + SCORECARD erratum; the r68 REPORT should cite fleet :40 and :42 precisely).
+
+  **Wrong-path sites:**
+  1. Fleet report :55 — wrong path; append-only.
+  2. corpus/lessons/round-67.md:129 — wrong path asserted; no in-file erratum; corrections name the report only, not the lesson.
+  3. Real path already cited by: LOG.md:2641 (r67 entry), LOG.md:2676-2677 (erratum), SCORECARD.md:428, round-68.md:150, spotcheck :70/:103, plans/round-68.md:110.
+  4. Non-records quoting the wrong path: plans/round-68.md:109 (defect description), w1-spec.json, seat logs, and the committed scratch-mirror copy `.ufo/waves/round-67/controls/validate/corpus/lessons/round-67.md:129` (control artifact).
+
+  Confidence: high. Everything quoted from committed bytes or commands I ran. Uncertain/inference marks: the draft-provenance claim (round-67-report.md:172 shows the before-line was a template placeholder — inference that the L1 filled it with the unobserved line rather than the receipt's content; the draft is wave evidence, not proof of intent). Also the "coverage" judgments are as-of-now working-tree state — the round is still landing (LOG grew during my hunt), so COVERED/NOT COVERED is a snapshot at my read time.
+
+  Deliverable: read-only seat → full report in final response (the mission's hunt text says "Read-only: report in your final response"; the trailer's RevC2Honesty.md path conflicts with the hard bound "read-only seats do not write files at all" — I follow the hard bound and deliver here, noting the L1 can materialize the file verbatim from this response).
+
+  Now write the final answer: precise, structured, evidence-quoted, with file:line lists. Keep it tight but complete.
+
+• Hunt complete. **Revenger seat, round-68 w1 — honesty-defect hunt (C2/consistency).** Read-only seat: per the write-scope hard bound ("read-only seats: do not write files at all") and the mission's own "Read-only: report in your final response," I did **not** write `RevC2Honesty.md`; the L1 can materialize it verbatim from this response.
+
+  ## Ground truth first (what the committed evidence actually shows)
+
+  - Receipt `.ufo/waves/round-67/receipts/C2-authority-measure.txt:5-7`: `environment error: cannot read corpus/knowledge/instruction-authority-ladder-round67.md at 2a8eba56b3f9321b70c569fa2816d42237ca49a2` / `exit=2`.
+  - My own re-run (read-only): `python3 -B verifiers/check_instruction_authority.py --rev 2a8eba56b3f9321b70c569fa2816d42237ca49a2` → stderr `environment error: cannot read corpus/knowledge/instruction-authority-ladder-round67.md at 2a8eba56…`, **exit=2**, nothing on stdout. It never prints `authority ladder grounded 0 of 1`.
+  - `ls`: `.ufo/waves/round-67/w1/controls/census-validate-append.txt` → `No such file or directory`; `.ufo/waves/round-67/controls/census-validate-append.txt` → exists, 1573 B. `du`: `junk-world` already removed (R67-3 removal has executed).
+
+  ## Hunt 1 — assertions that the r67 base printed `authority ladder grounded 0 of 1`
+
+  | # | Site | Text asserted | Appended correction covers it? |
+  |---|---|---|---|
+  | 1 | `LOG.md:2639` | "at the pinned base it prints `0 of 1` and exits nonzero" | **YES** — `LOG.md:2667-2674` (round-68 R67-1 erratum, names the observed exit-2 line and the receipt) |
+  | 2 | `SCORECARD.md:391` | "at the pinned base `2a8eba56…` it prints `0 of 1` and exits nonzero" | **YES** — `SCORECARD.md:423-429` (erratum to the round-67 depth annotation) |
+  | 3 | `corpus/lessons/round-67.md:101` | M105's shown-able-to-fail clause: "and the base control prints `0 of 1`" | **NO** — M107/`round-68.md:133-147` names only "the r67 report, LOG.md/SCORECARD.md entries"; no record names the r67 lesson's own :101 |
+  | 4 | `SKILL.md:496` | gate-registry row: "`authority ladder grounded 1 of 1` at the measured rev and `0 of 1` at the pinned base" | **NO** — no erratum anywhere in SKILL.md; row still live |
+  | 5 | `verifiers/check_instruction_authority.py:8-9` and `:25` | docstring: "At the pinned base it must print `authority ladder grounded 0 of 1` and exit nonzero"; "the base control prints `0 of 1`" | **NO** — counter frozen/unmodified per plan (`plans/round-68.md:68-70`); the w1 scribe seat drafted the docstring correction (`.ufo/waves/round-68/w1-spec.json:124`) but nothing landed it. Plan-vs-spec tension: plan says counter NOT modified; the docstring assertion remains uncovered — L1 must dispose explicitly (appended docstring erratum, or name these lines in the r68 report) |
+  | 6 | `plans/round-67.md:79-80, 97-98` | frozen predicate ":80 prints `0 of 1`, exit nonzero"; kill rule :97-98 | Secondary — frozen pre-data record, never rewritten by convention; kill rule is quoted in M107 (`round-68.md:139-140`), predicate line :80 is not named. Optional to name in the r68 report |
+
+  Non-defect look-alikes (verified, do not correct): `LOG.md:2640` ("reported `0 of 1` at the landed tip" — the seat draft vs the first entry's shape, not the base); `corpus/lessons/round-67-verifier-spotcheck.md:59-61` and `:100-103` (the closure's **refutation**, the correcting record); `verifiers/check_r67_routed_repairs.py:18/:30/:63` (the new counter quoting the false line inside its own contract + the observed error line); `corpus/README.md:127` (names the routed defects); knowledge entry — 0 hits. Wave-evidence provenance (inference, not a record): `.ufo/waves/round-67/w1/drafts/round-67-report.md:172` shows the before-line as a template placeholder ("Actual stdout/stderr and exit are …") — the final report filled it with the unobserved line instead of the receipt's bytes.
+
+  ## Hunt 2 — census receipt path (`w1/controls/` wrong vs `controls/` real)
+
+  Wrong path `.ufo/waves/round-67/w1/controls/census-validate-append.txt` **asserted as the receipt's location**:
+
+  1. **Fleet report `/home/vgpnk/Projects/shokunin/.ufo/reports/round-67/kotoba.md:55`** — "The pre-append gate on the scratch mirror is `.ufo/waves/round-67/w1/controls/census-validate-append.txt` … exit 0, `ok`." (append-only, never edit)
+  2. **`corpus/lessons/round-67.md:129`** — "the pre-append census of the scratch mirror is `.ufo/waves/round-67/w1/controls/census-validate-append.txt`." — **no correction names this site**: SCORECARD:428 and M108 (`round-68.md:148-153`) both say "the round-67 *report* cites"; the r67 lesson's own wrong assertion is unnamed.
+
+  Real path `.ufo/waves/round-67/controls/census-validate-append.txt` already cited at: `LOG.md:2641` (r67 entry), `LOG.md:2675-2677` (R67-2 erratum), `SCORECARD.md:428`, `corpus/lessons/round-68.md:150`, `corpus/lessons/round-67-verifier-spotcheck.md:70` and `:103`, `plans/round-68.md:110`. Non-record quotes of the wrong path (context only): `plans/round-68.md:109` (defect description), `w1-spec.json`, seat logs, and the committed scratch-mirror copy `.ufo/waves/round-67/controls/validate/corpus/lessons/round-67.md:129` (control artifact).
+
+  ## Fleet report lines for the round-68 append (never rewrite round-67)
+
+  - **`kotoba.md:42`** — the load-bearing one: "Before (base `2a8eba56`, **receipt `.ufo/waves/round-67/receipts/C2-authority-measure.txt`**): `authority ladder grounded 0 of 1`, exit nonzero." It cites the receipt whose committed bytes :5-7 show the exit-2 environment error — the report contradicted its own cited evidence.
+  - **`kotoba.md:40`** — the C2 frozen-predicate sentence restating "at the pinned base it prints `0 of 1` and exits nonzero."
+  - **`kotoba.md:55`** — the wrong census receipt path.
+  - Lines :16/:43/:44 (`1 of 1` statements) verify and need nothing.
+
+  ## Divergences the L1 should close in round 68 (append, never rewrite)
+
+  1. Name **`corpus/lessons/round-67.md:101`** and **`SKILL.md:496`** in the R67-1 erratum surface (currently uncovered assertion sites).
+  2. Dispose of the **`check_instruction_authority.py:8-9/:25` docstring** explicitly (appended erratum comment or a named line in the r68 report), resolving the plan's "counter is NOT modified" against the still-asserting docstring.
+  3. Name **`corpus/lessons/round-67.md:129`** as a wrong-path site (corrections currently name only the report).
+  4. The round-68 report should cite fleet-report lines **:40, :42, :55** precisely.
+
+  Confidence: **high** — every site quoted from committed bytes or commands I ran this session; coverage verdicts are a snapshot of the working tree at read time (LOG.md grew 2644→2696 and SCORECARD 394→429 mid-hunt; the round is still landing). The draft-provenance note is marked inference.
+
+To resume this session: kimi -r session_40ed77dd-f606-44ab-b9fa-011c43eebe99

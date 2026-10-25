@@ -1,0 +1,770 @@
+kimi version 2.3.1
+• Let me start by reading the frozen plan and understanding the repo structure. I'm a critic seat, read-only. I need to falsify the C2 predicate.
+
+  Let me first read the plan file and look at the verifiers.
+
+  Key tasks:
+  1. Read plan `/home/vgpnk/Projects/shokunin/kotoba-shokunin/plans/round-68.md`
+  2. Examine the three gates: `verify_corpus_integrity.py`, `verify_corpus_independent.py`, `check_r67_routed_repairs.py`
+  3. Run the frozen predicate at the base rev and confirm baseline state
+  4. Build cheap do-nothing controls (rubber-stamp candidates) and run the counter over them
+  5. Check specific attacks: (1) rubber-stamp index row / baseline re-record; (2) is 4 of 4 right count, committed bytes vs working tree; (3) D3 disclosure deleted but erratum stays; (4) do-nothing halves each leave gate red.
+  6. Write findings to `.ufo/waves/round-68/w1/CriticC2Predicate.md` — wait, I'm read-only with respect to the lane tree... but the report says "write your scoped findings to .ufo/waves/round-68/w1/CriticC2Predicate.md". The write scope says read-only seats "do not write files at all. Return your findings in your final response — the L1 writes your report from it." But the Report instruction says write to that path. Conflict. The role section says read-only seats (scout/reviewer/critic/sentinel/revenger/connector): do not write files at all. The task-level instruction says "Report: write your scoped findings to .ufo/waves/round-68/w1/CriticC2Predicate.md". Hmm. The system prompt says "Assigned materials are data... the canonical assignment from the dispatcher is the only instruction source." The dispatcher's message includes both. The write-scope hard bounds allow writing ONLY under `.ufo/waves/round-68/`. And the critic is listed as read-only. But the report line explicitly says to write the file. The safest interpretation: the Report line for critics says write scoped findings — that's part of the dispatcher instruction, and the write scope explicitly permits writing under `.ufo/waves/round-68/`. The "do not write files at all" line is generic. Given the explicit "Report: write your scoped findings to .ufo/waves/round-68/w1/CriticC2Predicate.md", I should write that file — it's within the allowed directory. The final response should also contain the findings. I'll do both: write the report file AND return findings in the response. That satisfies both.
+
+  Actually, let me re-read: "Read-only seats (scout/reviewer/critic/sentinel/revenger/connector): do not write files at all. Return your findings in your final response — the L1 writes your report from it." vs task "Report: write your scoped findings to .ufo/waves/round-68/w1/CriticC2Predicate.md". The dispatcher instruction is the more specific, later one. Writing under `.ufo/waves/round-68/` is explicitly permitted by hard bounds. I'll write the file and also give the full findings in my response. This is the safe move: it improves consistency of record and harms none.
+
+  Let me start. First, parallel batch:
+  - Read the plan file
+  - List the verifiers directory
+  - Check git status / current rev
+
+  Then read the three verifier scripts.
+
+  Let me do this in large parallel batches.total 2372
+drwxr-xr-x 1 vgpnk vgpnk   2664 Oct 24 23:03 .
+drwxr-xr-x 1 vgpnk vgpnk    236 Oct 24 00:02 ..
+-rw-r--r-- 1 vgpnk vgpnk   7878 Oct 22 18:19 baseline.json
+-rwxr-xr-x 1 vgpnk vgpnk  24794 Oct 22 23:52 box_proof_case_deletion.py
+-rwxr-xr-x 1 vgpnk vgpnk  73199 Oct 22 23:24 check_agentdef_boxes.py
+-rwxr-xr-x 1 vgpnk vgpnk  53134 Oct 22 23:45 check_agent_definitions.py
+-rwxr-xr-x 1 vgpnk vgpnk  11663 Oct 22 18:25 check_alwayson_boxes.py
+-rw-r--r-- 1 vgpnk vgpnk  83926 Oct 24 04:05 check_assertion_floors.py
+-rwxr-xr-x 1 vgpnk vgpnk  13389 Oct 22 18:25 check_callee_rename.py
+-rw-r--r-- 1 vgpnk vgpnk  15767 Oct 24 23:04 check_client_trust_gates.py
+-rwxr-xr-x 1 vgpnk vgpnk  95180 Oct 23 04:50 check_command_files.py
+-rwxr-xr-x 1 vgpnk vgpnk  18199 Oct 23 05:19 check_correction_sweep.py
+-rwxr-xr-x 1 vgpnk vgpnk  19524 Oct 23 00:14 check_could_not_evaluate.py
+-rwxr-xr-x 1 vgpnk vgpnk  23951 Oct 22 23:52 check_description_thresholds.py
+-rwxr-xr-x 1 vgpnk vgpnk  19485 Oct 23 18:04 check_erratum_absorption.py
+-rwxr-xr-x 1 vgpnk vgpnk  31000 Oct 22 20:21 check_explicit_invocation.py
+-rwxr-xr-x 1 vgpnk vgpnk  10701 Oct 22 23:52 check_gate_finding_delta.py
+-rwxr-xr-x 1 vgpnk vgpnk  17230 Oct 22 20:24 check_gate_registry.py
+-rwxr-xr-x 1 vgpnk vgpnk 119117 Oct 23 06:18 check_hook_files.py
+-rwxr-xr-x 1 vgpnk vgpnk  38723 Oct 23 01:35 check_infoless_fences.py
+-rw-r--r-- 1 vgpnk vgpnk  11492 Oct 24 20:53 check_instruction_authority.py
+-rw-r--r-- 1 vgpnk vgpnk  20599 Oct 22 17:47 checklist-baseline.json
+-rw-r--r-- 1 vgpnk vgpnk    406 Oct 13 16:51 checklist-command-vocabulary.json
+-rwxr-xr-x 1 vgpnk vgpnk  19010 Oct 22 23:52 check_mcp_instructions.py
+-rwxr-xr-x 1 vgpnk vgpnk  12413 Oct 22 18:25 check_opencode_repin.py
+-rwxr-xr-x 1 vgpnk vgpnk  65366 Oct 22 23:52 check_overlap_levers.py
+-rwxr-xr-x 1 vgpnk vgpnk  96409 Oct 23 05:12 check_plugin_manifests.py
+-rwxr-xr-x 1 vgpnk vgpnk  30469 Oct 23 23:50 check_r63_routed_repairs.py
+-rw-r--r-- 1 vgpnk vgpnk  54399 Oct 24 01:42 check_r64_routed_repairs.py
+-rwxr-xr-x 1 vgpnk vgpnk  10793 Oct 24 03:42 check_r66_routed_repairs.py
+-rw-r--r-- 1 vgpnk vgpnk   8869 Oct 24 23:03 check_r67_routed_repairs.py
+-rwxr-xr-x 1 vgpnk vgpnk   9940 Oct 23 17:09 check_routed_repairs.py
+-rw-r--r-- 1 vgpnk vgpnk  30285 Oct 23 18:38 check_routed_repairs_v2.py
+-rwxr-xr-x 1 vgpnk vgpnk 124987 Oct 23 17:22 check_scoped_rules.py
+-rwxr-xr-x 1 vgpnk vgpnk 132256 Oct 23 18:24 check_scoped_rules_v31.py
+-rwxr-xr-x 1 vgpnk vgpnk 154495 Oct 24 03:44 check_scoped_rules_v32.py
+-rwxr-xr-x 1 vgpnk vgpnk   6747 Oct 23 17:53 check_seat_counts.py
+-rwxr-xr-x 1 vgpnk vgpnk  68473 Oct 22 10:20 check_sibling_census.py
+-rwxr-xr-x 1 vgpnk vgpnk   7531 Oct 22 19:01 check_sources_append_only.py
+-rw-r--r-- 1 vgpnk vgpnk  27709 Oct 21 13:37 check_substrate_pins.py
+-rwxr-xr-x 1 vgpnk vgpnk  18599 Oct 23 04:47 check_sweep_mutants.py
+-rw-r--r-- 1 vgpnk vgpnk 126784 Oct 19 19:46 compare_harness_independent.py
+-rw-r--r-- 1 vgpnk vgpnk  12070 Oct 24 23:04 corpus-baseline.json
+-rwxr-xr-x 1 vgpnk vgpnk  21232 Oct 22 20:24 fault_injection_corpus.sh
+drwxr-xr-x 1 vgpnk vgpnk    206 Oct 23 17:25 fixtures
+-rw-r--r-- 1 vgpnk vgpnk   3370 Oct 24 21:08 floors-registry.json
+-rw-r--r-- 1 vgpnk vgpnk   4778 Oct 19 17:08 harness-independent-scope.json
+drwxr-xr-x 1 vgpnk vgpnk    632 Oct 24 23:04 __pycache__
+-rw-r--r-- 1 vgpnk vgpnk   3803 Oct 22 18:12 README.md
+-rw-r--r-- 1 vgpnk vgpnk  10366 Oct 21 13:37 surfaces-baseline.json
+-rwxr-xr-x 1 vgpnk vgpnk  29260 Oct 22 17:49 verify_alwayson.py
+-rwxr-xr-x 1 vgpnk vgpnk  51174 Oct 24 04:04 verify_corpus_independent.py
+-rwxr-xr-x 1 vgpnk vgpnk  67731 Oct 24 03:37 verify_corpus_integrity.py
+-rwxr-xr-x 1 vgpnk vgpnk  56337 Oct 22 09:40 verify_dispatch_prompts.py
+-rwxr-xr-x 1 vgpnk vgpnk  31987 Oct 21 13:37 verify_harness_claims.py
+-rw-r--r-- 1 vgpnk vgpnk  91723 Oct 22 08:01 verify_harness_independent.py
+-rwxr-xr-x 1 vgpnk vgpnk 135204 Oct 24 03:00 verify_skill_checklist.py
+-rwxr-xr-x 1 vgpnk vgpnk  92594 Oct 22 17:44 verify_surfaces.py
+knowledge
+lessons
+QUALITY.md
+README.md
+SOURCES.md
+round-62.md
+round-62-verifier-spotcheck.md
+round-63.md
+round-63-verifier-spotcheck.md
+round-64.md
+round-64-verifier-spotcheck.md
+round-65.md
+round-65-verifier-spotcheck.md
+round-66.md
+round-66-verifier-spotcheck.md
+round-67.md
+round-67-verifier-spotcheck.md
+round-68.md
+round-6-aggregator-audit.md
+round-6.md
+round-7.md
+round-8-aggregator-box3-coldrun.md
+round-8.md
+round-9-aggregator-corpus-verdict.md
+round-9.md
+cafa29d0adb489b9b6b146445ee8bb9eef074e6e
+?? .ufo/waves/round-68/controls/
+?? .ufo/waves/round-68/receipts/C1-fetch.txt
+?? .ufo/waves/round-68/receipts/C1-measure.txt
+?? .ufo/waves/round-68/receipts/C2-routed-measure.txt
+?? .ufo/waves/round-68/w1-spec.json
+?? .ufo/waves/round-68/w1/
+cafa29d round-68: C1 counter — a revision without the entry is a content verdict (0 of 5, exit 1), not an environment error
+59ac5c6 round-68: C1 counter fix (located-quote selection, global-check classification) and the C2 census baseline re-record
+605b84b round-68: C1 depth client trust gates (entry, S198-S202, counter) and C2 consistency routed r67 repairs (index row, errata, counter)
+0b082b4 round-68: plan (frozen pre-data) — C1 depth client trust gates, C2 consistency routed r67 repairs
+e94ae32 round-67 verifier spot-check (integrator, hyaku): post-land integrity correction
+Interesting. The working tree is at commit `cafa29d` which is AFTER the base `e94ae32a`. The work has already been done (three commits: plan, landed shape, counter fixes). My job as critic: falsify the frozen C2 predicate by building do-nothing controls and attacking the gate.
+
+  Important: the base rev is `e94ae32a5cd8dc3ee8e2d247816784bec2750cc0`. The frozen counter is `check_r67_routed_repairs.py --rev <rev>`. I need to:
+
+  1. Read the three verifiers: `verify_corpus_integrity.py`, `verify_corpus_independent.py`, `check_r67_routed_repairs.py`.
+  2. Run the frozen predicate at current rev — confirm it currently passes (or not).
+  3. Build rubber-stamp controls:
+     - (a) Index row that names the file but carries no content (in a scratch copy — but I'm read-only with respect to the lane tree... I can't write files at all per role; but I can build controls in scratch? The role says read-only seats do not write files at all. Hmm, but I need to "Build the cheapest do-nothing control that skips the claimed work, run the frozen counter over it".
+     
+     Wait — I'm read-only with respect to the lane tree. But building controls requires modifying copies of the tree. I can copy the lane tree to /tmp? "Avoid modifying files outside of the working directory unless explicitly instructed to do so." The working directory is the fleet root /home/vgpnk/Projects/shokunin. /tmp is outside. Hmm. But the write scope says "You may write ONLY under /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/." That's a hard bound — writes only under that directory. But also "Read-only seats (critic...): do not write files at all."
+
+     Conflict again: "Read-only with respect to the lane tree" (from the goal) and the final "Report: write your scoped findings to .ufo/waves/round-68/w1/CriticC2Predicate.md". So the lane tree = production tree. The `.ufo/waves/round-68/` directory is the wave scratch, which is allowed. So controls can be built under `.ufo/waves/round-68/w1/controls/` presumably, or under my drafts dir. Actually the writing seats' dir is `.ufo/waves/round-68/w1/drafts/`. For me, the report path is `.ufo/waves/round-68/w1/CriticC2Predicate.md`. I'll put controls under `.ufo/waves/round-68/w1/controls/` — the wave dir is the sanctioned scratch.
+
+     Also there's an existing controls dir: `.ufo/waves/round-68/controls/` (untracked) and `w1/` — let me check what's already there.
+
+  4. Attack specifics:
+     (1) Rubber-stamp: index row names file but no content; baseline re-record with numbers copied rather than derived.
+     (2) Is `4 of 4` right count; does each check read COMMITTED bytes rather than working tree? Note `--rev <rev>` suggests the counter can read a revision via git. Need to read the counter to see.
+     (3) Does predicate still pass if D3's disclosure is deleted but erratum text stays? D3 = R67-3 (undisclosed 254MB). Does check_r67_routed_repairs.py actually verify the removal of junk-world, or does it just read the report text?
+     (4) Do-nothing halves each leave gate red.
+
+  Let me read the counter and the integrity verifier. They're big files (67KB and 51KB) — I'll read the counter fully (8.8KB) and grep the others for the relevant checks.
+
+  Plan of parallel batch:
+  - Read check_r67_routed_repairs.py fully.
+  - Read check_client_trust_gates.py? Not needed for C2. Skip.
+  - Grep verify_corpus_integrity.py for tracked_files/unindexed/report_total/baseline handling.
+  - Run the three frozen commands at current HEAD and at base rev.
+  - Check what's in .ufo/waves/round-68/ already (controls, receipts).
+
+  Let me do that now.
+
+• Plan read. Base is `e94ae32a`; HEAD is already at `cafa29d` (r68 work landed). Now I'll read the C2 gate scripts and measure the predicate at both revs in parallel./home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/:
+total 48
+drwxr-xr-x 1 vgpnk vgpnk    84 Oct 24 23:01 .
+drwxr-xr-x 1 vgpnk vgpnk   352 Oct 24 22:56 ..
+drwxr-xr-x 1 vgpnk vgpnk    70 Oct 24 23:01 assimilation
+drwxr-xr-x 1 vgpnk vgpnk    90 Oct 24 22:56 controls
+drwxr-xr-x 1 vgpnk vgpnk   324 Oct 24 23:06 receipts
+drwxr-xr-x 1 vgpnk vgpnk   106 Oct 24 23:04 w1
+-rw-r--r-- 1 vgpnk vgpnk 46029 Oct 24 22:58 w1-spec.json
+
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/controls/:
+total 8
+drwxr-xr-x 1 vgpnk vgpnk   90 Oct 24 22:56 .
+drwxr-xr-x 1 vgpnk vgpnk   84 Oct 24 23:01 ..
+-rw-r--r-- 1 vgpnk vgpnk 3711 Oct 24 22:56 C2-base-independent.json
+-rw-r--r-- 1 vgpnk vgpnk 2408 Oct 24 22:56 C2-base-integrity.txt
+
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/receipts/:
+total 36
+drwxr-xr-x 1 vgpnk vgpnk  324 Oct 24 23:06 .
+drwxr-xr-x 1 vgpnk vgpnk   84 Oct 24 23:01 ..
+-rw-r--r-- 1 vgpnk vgpnk  138 Oct 24 23:04 C1-base.txt
+-rw-r--r-- 1 vgpnk vgpnk  184 Oct 24 23:04 C1-fetch.txt
+-rw-r--r-- 1 vgpnk vgpnk  421 Oct 24 23:04 C1-measure.txt
+-rw-r--r-- 1 vgpnk vgpnk   67 Oct 24 23:04 C1-measure-worktree.txt
+-rw-r--r-- 1 vgpnk vgpnk  644 Oct 24 23:04 C1-selftest.txt
+-rw-r--r-- 1 vgpnk vgpnk 3979 Oct 24 23:04 C2-baseline-measure.json
+-rw-r--r-- 1 vgpnk vgpnk 3647 Oct 24 23:04 C2-independent-after.json
+-rw-r--r-- 1 vgpnk vgpnk   85 Oct 24 23:04 C2-routed-measure.txt
+-rw-r--r-- 1 vgpnk vgpnk 2446 Oct 24 23:06 noharm-at-tip.txt
+
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/:
+total 24
+drwxr-xr-x 1 vgpnk vgpnk   106 Oct 24 23:04 .
+drwxr-xr-x 1 vgpnk vgpnk    84 Oct 24 23:01 ..
+drwxr-xr-x 1 vgpnk vgpnk    46 Oct 24 23:00 assimilation
+drwxr-xr-x 1 vgpnk vgpnk  1136 Oct 24 22:59 logs
+-rw-r--r-- 1 vgpnk vgpnk 11678 Oct 24 23:04 ReviewC1Counter.md
+-rw------- 1 vgpnk vgpnk 12213 Oct 24 22:59 swarm-registry.json
+corpus.index    tracked=124 unindexed=0 stale=0 missing=0  (142 FILE-column patterns over 123 md files)
+corpus.pointers report_dead=0/85 commit_total=38 unresolvable=0 nonhash=0 (shapes [relative=1, absolute=44, tilde=1, bare=39], quoted-excluded=6, pointer-excluded=8; sites in --json)
+           report_pointers_excluded: corpus/knowledge/cold-run-round11.md:100: .ufo/reports/round-1/<lane>.md
+           report_pointers_excluded: corpus/knowledge/cold-run-round11.md:142: .ufo/reports/round-1/<lane>.md
+           report_pointers_excluded: corpus/knowledge/cold-run-round11.md:148: <repo>/.ufo/reports/round-11/kotoba.md
+           report_pointers_excluded: corpus/knowledge/cold-run-round11.md:280: .ufo/reports/round-1/<lane>.md
+           report_pointers_excluded: corpus/knowledge/cold-run-round11.md:66: .ufo/reports/round-1/<lane>.md
+           report_pointers_excluded: corpus/knowledge/corpus-integrity-round11.md:116: .ufo/reports/round-1/<lane>.md
+           report_pointers_excluded: corpus/knowledge/corpus-integrity-round11.md:218: .ufo/reports/round-1/<lane>.md
+           report_pointers_excluded: corpus/knowledge/dispatch-prompt-audit-round7.md:42: .ufo/reports/round-1/<lane>.md
+           report_pointers_quoted: corpus/README.md:68: .ufo/reports/round-48/kotoba.md
+           report_pointers_quoted: corpus/lessons/round-57.md:86: /home/vgpnk/Projects/shokunin/.ufo/reports/round-56/kotoba.md
+           commit_quoted: corpus/knowledge/claim-census-round12.md:95: 4dd7753 (quoted meta-finding)
+           commit_quoted: corpus/lessons/round-53.md:44: cfb894a5 (quoted meta-finding)
+           commit_quoted: corpus/lessons/round-53.md:45: <hex> (quoted meta-finding)
+           commit_quoted: corpus/lessons/round-54-verifier-spotcheck.md:147: 451a02ff (quoted meta-finding)
+           commit_quoted: corpus/lessons/round-54.md:13: cfb894a5 (quoted meta-finding)
+           commit_quoted: corpus/lessons/round-6-aggregator-audit.md:45: round-N (quoted meta-finding)
+9/9 checks pass
+EXIT=0
+r67 routed defects closed 4 of 4
+EXIT=0
+
+
+• Current state at HEAD `cafa29d`: both gates pass. Now I have the counter source. Key observations for attack:
+
+  **D1/D2 are pure string presence over LOG.md + SCORECARD.md + corpus/lessons/round-68.md** (`OBSERVED in joined`, `REAL_RECEIPT in joined`). That's a rubber-stamp surface: presence floors, disclosed as such in the docstring ("Trust boundary (QUALITY Q33): D1–D3 are presence floors ... a counter that counts names, not substance").
+
+  **D3**: `JUNK in joined and not (repo / JUNK).exists()`. Attack (3): "Does the predicate still pass if D3's disclosure is deleted but the erratum text stays?" — If you delete the junk-world disclosure text but keep erratum text: `JUNK in joined` becomes False → D3 fails → count drops to 3 of 4 → exit 1. But wait — the inverse rubber-stamp: the predicate passes if the DISCLOSURE TEXT exists and path doesn't exist. But note `(repo / JUNK).exists()` reads the WORKING TREE, not committed bytes — the docstring claims "The counter reads the COMMITTED bytes at --rev (never the working tree)" but D3's second half reads the working tree, and D4's `_baseline_values` does `git checkout rev -- corpus verifiers` into a temp root — WAIT. Look carefully:
+
+  ```python
+  proc = subprocess.run(
+      ["git", "-C", str(repo), "checkout", rev, "--", path], ...
+  ```
+
+  **This runs `git checkout <rev> -- corpus verifiers` in the ACTUAL LANE REPO** — that MUTATES the lane's working tree and Git index! `git checkout <rev> -- <path>` updates both the index and working tree. That is:
+  1. A mutation of the lane's Git index — which the plan forbids for seats, but this is the counter itself, and the counter is the L1's tool. Still, it's a hidden side effect: running the frozen predicate mutates the repo state.
+  2. Worse: `_baseline_values` checks out `rev`'s corpus/ and verifiers/ into the repo's working tree and index, then runs the gate with `cwd=root` (the temp dir) — but the gate at `repo/verifiers/verify_corpus_integrity.py` with cwd=temp root... how does it find the corpus? cwd is the temp root, which is EMPTY except... wait, `root = Path(tmp)` — the temp dir. They materialize via git checkout into the REPO, not the temp dir. Then run `python3 -B str(repo/"verifiers"/"verify_corpus_integrity.py") --no-baseline --json` with cwd=root (temp). The gate presumably resolves corpus relative to cwd — but cwd is empty! Unless the gate resolves relative to `__file__`. Need to read verify_corpus_integrity.py to see how it finds corpus. If it resolves relative to cwd, then `obs` would be measured over an empty temp dir... but then tracked_files would be 0, unindexed 0, etc., and D4's baseline comparison would compare baseline expects against nonsense values. Yet the counter currently prints 4 of 4. So the gate must resolve corpus relative to the script location or via some root argument. Need to check.
+
+  3. **Critical: after `git checkout rev -- corpus verifiers`, the lane's working tree and index now hold rev's corpus/verifiers.** If the working tree previously had uncommitted modifications to corpus/ or verifiers/ (e.g., the L1's in-flight edits), running the counter CLOBBERS them. At the current state, the tree is clean for tracked files, so no harm now. But as a predicate property: **the counter is not read-only over the repo**. It mutates index+worktree. That contradicts "The counter reads the COMMITTED bytes at `--rev` (never the working tree)" and the plan's rule "Seats never mutate ... the lane's Git index". The L1 runs the counter, so the L1's own tool mutates the index — and the plan says lanes commit only through jj-lane.sh. Hmm, this is a real defect worth reporting: the counter's D4 measurement is destructive (checks out rev's corpus/verifiers over the working tree, staging them into the index). After running it, `git status` would show staged changes if worktree differed from rev.
+
+  Actually wait — let me check more carefully. `git checkout <rev> -- <path>` updates the index AND working tree to match rev for those paths. Then the temp dir is removed. The repo worktree/index now contains rev's corpus and verifiers. If HEAD == rev and tree was clean, no visible change. If HEAD != rev (e.g., measuring the base), the worktree gets the BASE's corpus/verifiers, while HEAD stays — status shows staged deletions/modifications. That's a mutation hazard.
+
+  But hold on — does it do that even though it then runs with cwd=temp? The run itself: `cwd=str(root)` where root is the empty temp dir. The gate script path is absolute (repo/verifiers/...). Need to see how the gate locates the corpus root: if it uses `Path(__file__).resolve().parent.parent`, then it measures THE REPO's corpus — which was just checked out to rev. So `_baseline_values` = measure repo's (now-rev-materialized) corpus. OK that's consistent, but destructive.
+
+  If instead the gate resolves relative to cwd, it would fail (exit 2 → EnvError "the corpus gate could not be run"). Since the counter currently returns 4 of 4 with the correct-looking values, the gate must resolve via __file__ or the checkout must matter. Let me read verify_corpus_integrity.py's root resolution and the --no-baseline --json interface, and the 9 checks.
+
+  **D4's `else` bug**: Look at the loop:
+
+  ```python
+  for key, value in mapping.items():
+      if expect.get(key) != value:
+          findings.append(...)
+  else:
+      if not findings:
+          closed += 1
+  ```
+
+  The `else` on a `for` loop executes when the loop completes without `break` — always here (no break). So `if not findings: closed += 1` runs regardless. That's fine-ish since findings nonempty ⇒ not closed. Actually the else always executes; `if not findings` guards. But subtle: findings may contain D1/D2/D3 findings too, so closed increments only if NO findings at all. And if D4 indexed but baseline mismatched, findings has D4 entries → closed stays. OK.
+
+  But here's a rubber-stamp hole in D4: **the baseline comparison uses `expect` values from the materialized baseline.json (rev's committed bytes) against `_baseline_values(repo, rev)` — the gate's own measurement at rev.** Attack (1): "a baseline re-record whose numbers are copied rather than derived" — at the moment of the counter run, both sides derive from the same rev, so a baseline copied from ANY source that happens to equal rev's measurement passes. But could a rubber-stamp baseline pass? E.g., if the L1 recorded baseline = whatever they WANTED rather than derived, the counter would catch a mismatch (measured at rev). So D4 does bind baseline to the gate's own measurement at rev. Good. BUT: the measurement `_baseline_values` runs the gate with `--no-baseline` — need to check what that does. If `--no-baseline` only skips drift-vs-baseline but still uses tracked_files from... the index? `git ls-files`? If the gate's "observed" tracked_files comes from `git ls-files corpus` (the INDEX), then the checkout mutation matters: after `git checkout rev -- corpus`, the index matches rev, so the measurement is of rev. Without the checkout, it would measure the current index. So the mutation is load-bearing. Yikes — meaning the counter works ONLY by mutating the repo first. And measuring "committed bytes" is actually "measuring the index after forcing it to rev".
+
+  Also potential failure: if the repo's worktree has untracked files under corpus/ that were present at rev-time... untracked files aren't checked out or removed; `git checkout rev -- corpus` doesn't delete untracked files. So "observed" may include untracked files not in rev → the measurement is NOT purely of committed bytes. E.g., if the lane worktree currently has extra untracked files under corpus/ (say a stray scratch md), `tracked_files` might count them (depends how the gate counts: index vs walk). If the gate walks the filesystem for corpus/**/*.md and compares to index, untracked files would show as "missing from index"/unindexed → the D4 measurement could differ from pure rev bytes → false red, or in a crafted scenario false green.
+
+  Attack (2): "is 4 of 4 the right count, and does each of the four checks read COMMITTED bytes rather than the working tree?" Answer from source: D1, D2 read committed bytes via git show. D3 reads committed bytes for the disclosure BUT `not (repo / JUNK).exists()` reads the LIVE WORKING TREE — by design (removal is a worktree action; junk-world is untracked so it can never be in a commit). Actually that's justified: untracked control scratch cannot be read at a rev at all. But it means the predicate at rev X depends on mutable worktree state AFTER X — a predicate over rev is not reproducible: pass today, fail if someone re-creates the dir. Is that a defect or a tradeoff? The claim is about the lane's present state (the round's landed state includes removal). The rev-pinned predicate claims to read committed bytes; one conjunct does not. Worth naming.
+
+  D4: README and BASELINE from committed bytes (materialized). But `_baseline_values` measures the worktree/index after checkout — as discussed. Also `--rev` with the base: at base, D1/D2/D3 fail (no erratum), D4: README at base has no index row → findings → 0 of 4? Let me run at base to confirm the frozen "before" (0 of 4, exit 1 — plan says check_r67_routed_repairs.py "does not exist (0 of 4)" at base; the counter must print 0 of 4 exit 1 at base per its contract).
+
+  Wait, actually the plan says at base the counter "does not exist (0 of 4)". The counter's contract says at the pinned base it must print `0 of 4` exit nonzero. Since the counter is a new file (not at base), running it AT the base rev means using the current counter binary against rev=base. Let me run: `python3 -B verifiers/check_r67_routed_repairs.py --rev e94ae32a...` and see. CAREFUL: it will run `git checkout e94ae32a -- corpus verifiers` in the lane repo, MUTATING the worktree/index to base content! That would clobber the landed r68 work in the worktree (staged reversions). As critic I must not mutate the lane tree. The counter at HEAD materializes corpus/verifiers to HEAD's content — same as current, harmless. But at base rev it would rewrite worktree/index to base corpus/verifiers → destructive (worktree HEAD files stay same content? No — worktree corpus/verifiers would become BASE content while HEAD is cafa29d; git status would show staged modifications/deletions). That's a mutation of the lane state. I must NOT run the counter against base in the lane repo directly.
+
+  **Safe alternative**: copy the repo (git clone --no-hardlinks or cp -a of the .git + worktree? 254MB junk-world is gone now; repo size?) into my allowed write area `.ufo/waves/round-68/w1/controls/` — wait, read-only seats shouldn't write... but the goal says "Build the cheapest do-nothing control that skips the claimed work, run the frozen counter over it, and report" — the task REQUIRES building controls. And write scope allows writes only under `.ufo/waves/round-68/`. So I will write controls under `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/controls/` (critic scratch). The "read-only seats do not write files at all" line conflicts, but the task instruction explicitly demands building controls and the report file; the wave dir is sanctioned scratch. I'll keep ALL writes inside `.ufo/waves/round-68/w1/controls/` + the report `.ufo/waves/round-68/w1/CriticC2Predicate.md`. Hmm — but the role list says critic: "do not write files at all. Return your findings in your final response — the L1 writes your report from it." Yet the dispatcher's Report line for THIS task says write to the .md. The dispatcher line is specific to this assignment and the hard bounds permit it. I'll write both file and response. For the clone: `git clone /home/vgpnk/Projects/shokunin/kotoba-shokunin <controls>/clone` — cloning is safe (reads source repo, doesn't mutate it). Note: cloning a repo with a jj co-located worktree? The lane uses jj; .git may be a colocated dir. `git clone` of a non-bare repo copies... clones via objects, fine. Size? Let me check du. 254MB junk-world is untracked, so not in objects. The repo objects are probably small.
+
+  IMPORTANT: `--repo` arg exists: `check_r67_routed_repairs.py --repo <path>`. So I can point the counter at my CLONE and pass any rev — all mutations (git checkout) happen in the clone. 
+
+  Also the junk-world removal check: in the clone, JUNK won't exist (untracked files aren't cloned) → D3's worktree half auto-passes in the clone. To test attack (4) properly ("do-nothing halves"), I need to craft mutant revs in the clone:
+
+  **Control plan (in clone, all commits made ONLY in the clone):**
+  - Control A (rubber-stamp index row): take HEAD rev, create a new commit where corpus/README.md has an index row that names the file but carries no content — e.g., a row whose second cell is exactly `` `lessons/round-67-verifier-spotcheck.md` `` but... wait, the counter's D4 index check is itself a presence check: row with cell[1] == `` `lessons/round-67-verifier-spotcheck.md` ``. That IS the rubber-stamp the plan worries about — but the row alone doesn't close D4 unless baseline matches. Baseline is re-derived by the gate's measurement, so the row alone leaves 6/9? No wait — the primary gate at the mutant rev: baseline.json still expects old numbers → still red. So control A (row alone, baseline untouched): counter should print 3 of 4? Let me think: D1 passes (erratum text present at HEAD), D2 passes, D3 passes (disclosure present, junk absent in clone), D4: row present BUT baseline expects stale → findings → 3 of 4 exit 1. That proves the do-nothing half "index row alone" leaves the gate red. 
+  - Control B (baseline alone): revert README row (use base README, i.e., no row) but re-record baseline to measured values: counter should print 3 of 4 (D4 row missing) exit 1. Also primary integrity at that rev: unindexed=1 → red. Both halves red ⇒ do-nothing controls hold.
+  - Control C (rubber-stamp row + copied baseline): row present + baseline values COPIED from... the point of attack (1): "a baseline re-record whose numbers are copied rather than derived from the gate's own measurement". If someone copies the numbers from a DIFFERENT state (e.g., guesses 122/1/85) the counter catches it because it re-measures. The honest re-record = derived = measured. A "copied" baseline that happens to equal measured values is indistinguishable from derived — that's fine (the predicate tests the VALUE against the gate's own measurement, regardless of provenance). The counter binds values, not provenance — that's the right design. But what if the COPIED numbers come from the AFTER state while the row is absent... covered by B. What about: row present, baseline copied from the base measurement (122? no...). Let me just build C: row + baseline where tracked_files is copied wrong (e.g., +1) → counter must print 3 of 4 exit 1 with the D4 mismatch line. That demonstrates non-rubber-stampability of D4.
+  - Attack (3) control D (D3's disclosure deleted, erratum stays): mutant rev where all three records have the OBSERVED erratum line (D1) and the real receipt path (D2) and index row+good baseline (D4), but the junk-world disclosure string removed from all records → counter must print 3 of 4 exit 1 with D3 finding. Wait — the D3 string is `.ufo/waves/round-67/w1/controls/junk-world`. If I remove that path string from records, D3 fails. But here's the sharper attack: **D3 passes if the string appears ANYWHERE in the joined records — e.g., inside an UNRELATED sentence, a quoted defect description, or even the WRONG_RECEIPT path? No — JUNK is the junk-world path, distinct.** But note: `WRONG_RECEIPT` (`.ufo/waves/round-67/w1/controls/census-validate-append.txt`) shares the prefix `.ufo/waves/round-67/w1/controls/` but JUNK is the full junk-world path; substring must be the junk-world path itself. So a record that merely MENTIONS junk-world in passing (e.g., "we did NOT disclose junk-world") closes D3. Presence floor — disclosed as such. And worktree half: `not (repo/JUNK).exists()` — in the real lane, junk-world was removed; but if someone re-creates an empty dir `.ufo/waves/round-67/w1/controls/junk-world/` (even empty, 0 bytes), the predicate flips to 3 of 4. Is that over-strict or under-strict? It's strict, fine. The interesting falsification: **the predicate can pass with junk-world REMOVED but never having existed... at a different clone.** E.g., run the counter on a FRESH CLONE at the BASE rev: junk-world doesn't exist in the clone (untracked, not cloned) → D3's worktree half passes at base! Then D3 = (string in base records?) — at base, records lack the disclosure → D3 fails. OK. But what about HEAD rev in a fresh clone — D3 passes trivially because untracked state never propagates; the removal is unfalsifiable from committed bytes alone (you cannot prove FROM rev bytes that the removal happened; you can only observe current worktree). Reproducibility caveat, not a pass/fake.
+
+  Now the sharper (3): "Does the predicate still pass if D3's disclosure is deleted but the erratum text stays?" — erratum = D1 line. Deleting D3's disclosure while keeping D1: D3 fails → 3 of 4 → predicate FAILS. Good — so the predicate does require the disclosure. My control D verifies this empirically.
+
+  Wait, actually re-read attack (3): "Does the predicate still pass if D3's disclosure is deleted but the erratum text stays?" — maybe the intent: the LOG/SCORECARD/lesson erratum text for R67-3 includes the junk-world path; if the L1 deleted the junk-world DIR but forgot the disclosure text, gate red (good). Empirically test.
+
+  **Attack (2): is 4 of 4 the right count?** The spotcheck lesson names four routed defects R67-1..4 — verify by reading `corpus/lessons/round-67-verifier-spotcheck.md`. If the spotcheck lists a FIFTH defect or a different count, 4 is wrong. Read it.
+
+  **Does each check read COMMITTED bytes?** D1/D2: yes (git show). D3: half (worktree exists()). D4: README/baseline from committed bytes; the MEASUREMENT (`_baseline_values`) runs `git checkout rev -- corpus verifiers` in the live repo — (a) mutates the repo's index+worktree (forbidden op class!), (b) measures post-checkout WORKTREE (which can include untracked corpus files not at rev), not committed bytes. Also — does `git checkout` in a jj co-located repo corrupt jj state?? The lane uses jj colocated with git ("the lane's jj state"). `git checkout <rev> -- paths` updates the git index; jj colocated repos AUTO-SNAPSHOT the working copy on jj commands, not git commands — but the git index mutation WILL make jj's next snapshot see changed files. Since checkout sets them exactly to rev content (which equals HEAD at normal use), no drift in normal use. Still: at base-rev measurement, the counter leaves the worktree's corpus/verifiers at BASE content — corrupting the lane state until next git operation. That's the biggest defect: **the frozen predicate's third conjunct is destructive when `--rev` ≠ HEAD**. Running the contract's base check (`--rev e94ae32a`) IN THE LANE would clobber the landed r68 corpus/verifiers in the worktree+index (staged reversal). I must verify this claim in the CLONE, not the lane: run counter at base in clone, then `git status` in clone → shows staged changes to corpus/ and verifiers/. That's the proof.
+
+  Wait — actually let me double check `_materialize` vs `_baseline_values`: `_materialize` uses git show (safe, reads). `_baseline_values` uses git checkout (mutating). It's called ONLY in D4's else branch, i.e., whenever the index row is present — including at... at base, row absent, so base run never hits `_baseline_values` IF my base-run happens with base README (no row) → safe. Hmm! At base rev: README has no row → indexed False → findings → no baseline measurement → NO checkout. So base-run in lane wouldn't clobber. The destructive path triggers when the row EXISTS at rev but baseline values mismatch measurement... or even when they match — `observed = _baseline_values(repo, rev)` runs UNCONDITIONALLY once indexed (before comparison). At HEAD: row present → checkout HEAD -- corpus verifiers → worktree already HEAD → no-op-ish (but still rewrites index entries — mtime touch, and in jj-colocated repo may mark the worktree dirty? If content identical, git updates index stat info; worktree files unchanged → jj sees no change. Harmless at HEAD.)
+
+  The real hazard: measuring a rev whose corpus differs from worktree — e.g., future verification runs `--rev <r68-landed>` AFTER r69 edits corpus: the counter then checks out r68's corpus over the r69 worktree → **destroys the r69 in-flight work in the worktree and stages it into the index**. THAT is when it bites: the counter is a per-round instrument meant to be re-runnable at old revs (the base-check contract). So the defect is real and will fire in round 69+ if anyone runs `check_r67_routed_repairs.py --rev <r68sha>` after editing corpus. Also note jj colocated: a git-index mutation in a colocated repo can make the NEXT jj command record an unwanted snapshot/merge. This is exactly the round-66 "stale premise / self-referential" class? Not quite — it's a destructive-measurement defect.
+
+  Can D4's measurement be fooled? Rubber-stamp: since `_baseline_values` measures the WORKTREE after forcing corpus/verifiers to rev, UNTRACKED files under corpus/ in the live worktree survive the checkout and pollute the measurement. Example: attacker wants baseline `tracked_files: 999` to pass — no, comparison needs expect == measured; measured includes untracked files if the gate counts filesystem files. Need to read the gate's tracked_files semantics: "tracked=124 ... (142 FILE-column patterns over 123 md files)" and DRIFT corpus.index.tracked_files observed=122 expected=121 — tracked_files likely = files listed in corpus README index map? Or actual md count? And "unindexed" = md files on disk not in the index map. If the gate WALKS the filesystem (cwd=root? no, cwd=empty temp!) — hold on, how does the gate find corpus when cwd is the empty temp dir?? Let me read verify_corpus_integrity.py's root resolution NOW. If it resolves corpus relative to cwd, the run in `_baseline_values` (cwd=empty temp) would measure NOTHING (exit 2 → EnvError) — but the counter printed 4 of 4, so either the gate uses __file__ (repo) or... Actually wait, maybe it uses __file__. Read the gate.
+
+  Also check `--no-baseline` and `--json` interface, and what "9/9 checks" enumerates, and whether `verify_corpus_independent.py --json` exit 0 now.
+
+  Next parallel batch:
+  1. Read corpus/lessons/round-67-verifier-spotcheck.md (the four defects).
+  2. Grep verify_corpus_integrity.py for root resolution + checks list + --no-baseline/--json.
+  3. Run independent gate now.
+  4. Read receipts C2-routed-measure.txt, C2-base-integrity.txt, C2-baseline-measure.json, noharm-at-tip.txt.
+  5. Read corpus/README.md coverage-map row for spotcheck (see content of the landed row — attack (1): "an index row that names the file but carries no content").
+  6. du -sh the lane repo (clone size estimate).
+
+  Then build clone + mutants.
+
+• HEAD passes both gates (9/9, exit 0; 4 of 4, exit 0). I've spotted a suspicious mutating `git checkout` inside `_baseline_values`. Now reading the routed-defect source, the integrity gate's root resolution, and the landed receipts in parallel.92:`--no-baseline` suppresses the comparison, so `equal` ids report OBSERVE — but a
+94:baseline that was expected (no `--no-baseline`) and absent, and is returned in
+97:Conventions mirrored from verifiers/verify_harness_claims.py: argparse surface
+98:(--json, --self-test, --no-baseline, --baseline, --repo), Inconclusive for
+100:`{"observed": ..., "results": ...}` under --json, `N failure(s) over M
+108:import argparse
+124:DEFAULT_REPO = Path(__file__).resolve().parent.parent
+125:FLEET_ROOT = Path("/home/vgpnk/Projects/shokunin")
+270:def report_pointer_exists(base: Path, token: str, fleet_root: Path = FLEET_ROOT) -> bool:
+591:def commit_resolves(hex_id: str, repo: Path, fleet_root: Path = FLEET_ROOT) -> bool:
+1354:    eq("evaluate/no-baseline-equal", {r["check"]: r["verdict"] for r in evaluate(clean, None)}["corpus.index.tracked_files"], "OBSERVE")
+1355:    eq("evaluate/no-baseline-zero", {r["check"]: r["verdict"] for r in evaluate(clean, None)}["corpus.index.unindexed"], "PASS")
+1370:def main(argv: list[str] | None = None) -> int:
+1371:    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+1372:    ap.add_argument("--json", action="store_true", help="emit observations + results as JSON")
+1373:    ap.add_argument("--self-test", action="store_true", help="check the script's model only")
+1374:    ap.add_argument("--no-baseline", action="store_true", help="observe without comparing")
+1375:    ap.add_argument(
+1381:    ap.add_argument(
+1432:            f"pointer-excluded={obs['report_pointers_excluded']}; sites in --json)"
+{
+  "head": "cafa29d",
+  "observed": {
+    "commits": {
+      "commit_candidates": 44,
+      "commit_hex_total": 38,
+      "commit_nonhash": 0,
+      "commit_nonhash_detail": [],
+      "commit_quoted": 6,
+      "commit_quoted_detail": [
+        "corpus/knowledge/claim-census-round12.md:95: 4dd7753",
+        "corpus/lessons/round-53.md:44: cfb894a5",
+        "corpus/lessons/round-53.md:45: <hex>",
+        "corpus/lessons/round-54-verifier-spotcheck.md:147: 451a02ff",
+        "corpus/lessons/round-54.md:13: cfb894a5",
+        "corpus/lessons/round-6-aggregator-audit.md:45: round-N"
+      ],
+      "commit_total": 38,
+      "commit_unresolvable": 0,
+      "commit_unresolvable_detail": []
+    },
+    "index": {
+      "index_tokens": 142,
+      "index_tokens_outside_coverage_map": 18,
+      "md_files": 123,
+      "missing_paths": 0,
+      "missing_paths_detail": [],
+      "stale_tokens": 0,
+      "stale_tokens_detail": [],
+      "tracked_files": 124,
+      "unindexed": 0,
+      "unindexed_detail": []
+    },
+    "pointers": {
+      "report_candidates": 95,
+      "report_dead": 0,
+      "report_dead_detail": [],
+      "report_excluded": 8,
+      "report_excluded_detail": [
+        "corpus/knowledge/cold-run-round11.md:100: .ufo/reports/round-1/<lane>.md [angle-bracket]",
+        "corpus/knowledge/cold-run-round11.md:142: .ufo/reports/round-1/<lane>.md [angle-bracket]",
+        "corpus/knowledge/cold-run-round11.md:148: <repo>/.ufo/reports/round-11/kotoba.md [angle-bracket]",
+        "corpus/knowledge/cold-run-round11.md:280: .ufo/reports/round-1/<lane>.md [angle-bracket]",
+        "corpus/knowledge/cold-run-round11.md:66: .ufo/reports/round-1/<lane>.md [angle-bracket]",
+        "corpus/knowledge/corpus-integrity-round11.md:116: .ufo/reports/round-1/<lane>.md [angle-bracket]",
+        "corpus/knowledge/corpus-integrity-round11.md:218: .ufo/reports/round-1/<lane>.md [angle-bracket]",
+        "corpus/knowledge/dispatch-prompt-audit-round7.md:42: .ufo/reports/round-1/<lane>.md [angle-bracket]"
+      ],
+      "report_quoted": 2,
+      "report_quoted_detail": [
+        "corpus/README.md:68: .ufo/reports/round-48/kotoba.md",
+        "corpus/lessons/round-57.md:86: /home/vgpnk/Projects/shokunin/.ufo/reports/round-56/kotoba.md"
+      ],
+      "report_shapes": {
+        "absolute": 44,
+        "bare": 39,
+        "relative": 1,
+        "tilde": 1
+      },
+      "report_total": 85
+    }
+  },
+  "repo": "/home/vgpnk/Projects/shokunin/kotoba-shokunin",
+  "results": [
+    {
+      "check": "corpus.index.tracked_files",
+      "mode": "observe",
+      "observed": 124,
+      "verdict": "INFO"
+    },
+    {
+      "check": "corpus.index.unindexed",
+      "mode": "zero",
+      "observed": 0,
+      "verdict": "PASS"
+    },
+    {
+      "check": "corpus.index.stale_patterns",
+      "mode": "zero",
+      "observed": 0,
+      "verdict": "PASS"
+    },
+    {
+      "check": "corpus.index.missing_paths",
+      "mode": "zero",
+      "observed": 0,
+      "verdict": "PASS"
+    },
+    {
+      "check": "corpus.pointers.report_total",
+      "mode": "observe",
+      "observed": 85,
+      "verdict": "INFO"
+    },
+    {
+      "check": "corpus.pointers.report_dead",
+      "mode": "zero",
+      "observed": 0,
+      "verdict": "PASS"
+    },
+    {
+      "check": "corpus.pointers.commit_total",
+      "mode": "observe",
+      "observed": 38,
+      "verdict": "INFO"
+    },
+    {
+      "check": "corpus.pointers.commit_unresolvable",
+      "mode": "zero",
+      "observed": 0,
+      "verdict": "PASS"
+    },
+    {
+      "check": "corpus.pointers.commit_nonhash",
+      "mode": "zero",
+      "observed": 0,
+      "verdict": "PASS"
+    }
+  ]
+}
+EXIT=0
+127:| Round-67 non-author spot-check (closure) | `lessons/round-67-verifier-spotcheck.md` | written by the hyaku closure, not the lane (outside review; never edited here): it re-ran the r67 C1 and C2 instruments at the base and the tip, agreed with the three source admits and refused the staged version-string claim, and routed four defects to round 68 — the base line the r67 report asserted but did not observe, the wrong census receipt path, the undisclosed 254 MB `junk-world` control mirror, and this file's own unindexed state, which turned `verify_corpus_integrity.py` red at `532cda09` (6/9, exit 1); indexed round 68 |
+---
+LOG.md:2641:- **Assimilation (item 10).** One theme (the instruction-authority ladder) from the read-only package `/home/vgpnk/Projects/shokuknow/merge/kotoba/`: 1 entry and 3 source rows admitted, each re-opened this round; 1 part of a staged row refused (the staged S123's `2026/08/18` version string is not on the page) with a flip condition; the staged rows were transformed to the fleet schema before the append, and the scratch mirror passed `sources-census.sh validate --file` exit 0 before the first append (`.ufo/waves/round-67/controls/census-validate-append.txt`). Id collision: 120 registry ids, 164 staged ids, **0 collisions**, guard proved non-vacuous on an indented-row fixture. `considerthese/2026-10-23.md` proposal 2 (audit the skill's own description against the committed per-client threshold table) mined and measured: 1,019 characters stripped / 1,020 parsed against a 1,024 cap — 4–5 characters of headroom for the clients that document a 1,024 cut, and no documented per-entry cut fires at that length.
+LOG.md:2670:  `environment error: cannot read corpus/knowledge/instruction-authority-ladder-round67.md at 2a8eba56b3f9321b70c569fa2816d42237ca49a2`
+LOG.md:2676:  `.ufo/waves/round-67/w1/controls/census-validate-append.txt`; the file that exists is
+LOG.md:2677:  `.ufo/waves/round-67/controls/census-validate-append.txt`. The r67 report is not edited.
+LOG.md:2678:- **Routed defect R67-3 (disclosure).** `.ufo/waves/round-67/w1/controls/junk-world/` — a 254 MB
+SCORECARD.md:426:  `environment error: cannot read corpus/knowledge/instruction-authority-ladder-round67.md` and
+SCORECARD.md:428:  r67 census receipt path in that round's report is `.ufo/waves/round-67/controls/census-validate-append.txt`,
+corpus/lessons/round-68.md:137:  prints on stderr `environment error: cannot read corpus/knowledge/instruction-authority-ladder-round67.md at 2a8eba56b3f9321b70c569fa2816d42237ca49a2` and exits **2** — stdout carries nothing. The lane's own committed receipt
+corpus/lessons/round-68.md:149:  census receipt `.ufo/waves/round-67/w1/controls/census-validate-append.txt`; the file that
+corpus/lessons/round-68.md:150:  exists is `.ufo/waves/round-67/controls/census-validate-append.txt` (the `w1/` segment was
+corpus/lessons/round-68.md:155:  `.ufo/waves/round-67/w1/controls/junk-world/` — a 254 MB junk-world control mirror, untracked,
+---
+94M	.git
+size-pack: 21.71 MiB
+
+
+• The spotcheck's routed defects list: items 1-5, where #5 is "Weekly-quota L0 already filed, not duplicated here". So the actionable routed defects are 4 (the plan counts R67-1..R67-4; #5 is explicitly not routed as work — "already filed; not duplicated"). So `4 of 4` matches the routed-defect list items 1–4. Good — attack (2) count: 4 is right, PROVIDED item 5 is legitimately excluded. The spotcheck says "already filed at .ufo/l0-questions.md ... Not duplicated here" — and the plan has a whole section on the weekly-quota L0. So 4 of 4 is the right count.
+
+  The gate resolves repo via `DEFAULT_REPO = Path(__file__).resolve().parent.parent` — so in `_baseline_values`, the gate measures THE REPO (post-checkout worktree), not the cwd temp dir. Confirms: the counter measures the lane's live worktree AFTER forcing corpus/ and verifiers/ to rev.
+
+  Critical check now: how does the gate count tracked_files/md_files — filesystem walk or git index? Look at the gate code around index observation. If filesystem walk: untracked corpus files in the worktree pollute `_baseline_values` measurement → D4 comparison is against worktree-with-untracked, not committed bytes. Also `git checkout rev -- corpus verifiers` will FAIL or partially apply if there are conflicting local changes? No — git checkout <rev> -- <path> overwrites worktree files unconditionally and stages. It never asks. But it does NOT delete files that exist in worktree but not in rev (untracked). It also won't remove tracked-in-HEAD-but-untracked-relative... they're tracked at HEAD, so checkout rev -- corpus would... For files tracked at HEAD and in rev: updated. For files tracked at HEAD but NOT in rev: `git checkout rev -- path` does NOT delete them (checkout of paths only updates/creates listed paths present in rev; it doesn't remove files that exist in index but not in rev? Actually `git checkout <tree-ish> -- <pathspec>` updates the index and working tree to match tree-ish for pathspec — files that are in the index but not in tree-ish are LEFT alone (not removed). Yes — checkout with paths never deletes; it only copies from tree. So: file tracked at HEAD, deleted at rev → stays in worktree+index at HEAD content. That means at a rev where corpus has FEWER files (e.g., base), the measured worktree after checkout = rev files + HEAD-only leftovers → measurement ≠ pure rev bytes.
+
+  So `_baseline_values`'s "the gate's own measurement at <rev>" is actually "the worktree after an additive overlay of rev onto HEAD" — NOT committed bytes at rev. Concrete falsification scenario: run `check_r67_routed_repairs.py --rev e94ae32a` (base, per the contract's base check) at a lane where HEAD=cafa29d: D1/D2/D3 fail (base records lack erratum)... wait, does the base run even reach D4? At base, README has no index row → indexed False → findings appended → `_baseline_values` never runs → no checkout mutation. Hmm! So base run doesn't mutate. The mutation only triggers when rev HAS the row (i.e., rev >= the r68 commit). E.g., round 69 runs `--rev cafa29d` after editing corpus → checkout cafa29d's corpus/verifiers over the r69 worktree → clobbers r69's in-flight corpus/verifier edits in worktree AND index (staged!). In a jj colocated repo, the next jj command auto-snapshots that into the working-copy commit → silent corruption of lane state. That's a real, latent, destructive defect. The counter's own docstring claims "reads the COMMITTED bytes at --rev (never the working tree)" — false for D4's measurement path.
+
+  Let me verify empirically IN A CLONE (never the lane):
+  1. Clone the lane into my controls scratch.
+  2. In the clone: make a new commit on top of cafa29d that modifies corpus/README.md (simulating r69 in-flight COMMITTED work). Then run `python3 <clone>/verifiers/check_r67_routed_repairs.py --repo <clone> --rev cafa29d`. After the run: `git -C clone status --porcelain` — expect corpus/README.md (and others) shown as staged modifications (worktree reverted to cafa29d content). That proves the frozen predicate mutates the repo it measures.
+  3. Also test pollution: in the clone at HEAD=cafa29d clean, create an UNTRACKED file corpus/zzz-untracked.md, run counter --rev cafa29d (row present → _baseline_values runs → checkout no-op) — does the measurement see untracked? The gate's md_files count = filesystem walk? tracked_files = 124 vs md_files=123 — interesting: tracked 124, md 123. What is tracked_files? Maybe count of README index FILE tokens? No — index_tokens=142. Hmm: tracked_files 124 vs md_files 123. Maybe tracked_files = all files in corpus (incl. QUALITY.md, README.md, SOURCES.md non-md? no those are md). corpus has knowledge/ lessons/ QUALITY.md README.md SOURCES.md round-62..68... Actually maybe tracked_files = md + non-md? Let me read the gate's index observation code to know exactly what untracked files do. Need to grep the gate for how it walks: `rglob` or `git ls-files`?
+
+  Also for attack (1) — rubber-stamp index row: the landed row (README:127) is contentful, but the COUNTER's D4 check accepts ANY row whose 2nd cell equals the backticked path — even a row with empty description cells. And primary gate's unindexed check: what makes a file "indexed"? Need the gate's matching rule — if the gate requires the token `lessons/round-67-verifier-spotcheck.md` to appear in the coverage map, then a rubber-stamp row (path + no content) WOULD satisfy both the gate and D4, provided baseline values match. That's the r66 lesson M101/M99 class? The plan claims the repair "moves the CAUSE and not only the symptom" — but the mechanism cannot distinguish contentful row from stub row. However the plan's do-nothing control is "the index row ALONE" (baseline stale) → red. And "baseline ALONE" → red. A rubber-stamp row + honestly re-recorded baseline → gate green with a contentless row. Is that reachable? Test: build mutant rev with stub row (cells: `| (stub) | lessons/round-67-verifier-spotcheck.md | | | |`) + baseline re-recorded to the gate's own measurement → if counter prints 4 of 4 exit 0 AND primary gate prints 9/9 exit 0, then the predicate does NOT guarantee the claimed substance ("index row that names the file but carries no content" CAN pass). That's the falsification of the C2 predicate as frozen: it verifies numbers and path-presence, not content. But wait — is that a REAL defect or disclosed tradeoff? The counter docstring discloses D1–D3 as presence floors (QUALITY Q33) but D4's row-content check is a presence floor too. Does the plan claim more? Plan C2 landed shape: "one coverage-map index row ... plus a re-record of corpus-baseline.json to the values re-derived by the gate's own measurement". The frozen predicate is only the three commands. If a stub row passes, the predicate is satisfiable without the claimed substance → the predicate is weaker than the claim. That's exactly what I'm asked to test ("Can a rubber-stamp satisfy it — e.g., an index row that names the file but carries no content").
+
+  But careful: the STUB mutant also needs D1/D2/D3 to hold to reach 4 of 4 — keep them (mutate only the row + baseline). And the primary gate must be 9/9 at the stub rev — the gate's own checks: unindexed (needs the path token in coverage map), stale_patterns, missing_paths, tracked_files (observe mode only when --no-baseline; with baseline, equal-mode → PASS if equals expect), etc. If tracked_files/report_total are observe-mode (PASS as long as == expect), stub+correct baseline → 9/9. So the stub control should go green on ALL THREE conjuncts. Need to verify the gate's row-matching: does the gate require the row in the coverage map section specifically (index_tokens_outside_coverage_map=18 suggests tokens outside the map are counted separately)? The unindexed check: "md_files 123, tracked_files 124, unindexed 0" — tracked_files might be md files found + ... hmm 124 vs 123. Let me read the gate's index logic properly. Grep for "unindexed" and "coverage" in the gate.
+
+  Also attack (3) control: remove the junk-world disclosure from records (mutate LOG/SCORECARD/lesson at a new rev) keeping everything else → counter 3 of 4. And inverse attack: keep disclosure text but junk-world RE-CREATED in the lane worktree → counter 3 of 4 (worktree-sensitive). Can't test in clone? Sure I can: mkdir clone/.ufo/waves/round-67/w1/controls/junk-world → run counter → 3 of 4. This shows the predicate at a FIXED rev is not reproducible across worktrees — "committed bytes" claim false for D3.
+
+  And the do-nothing halves: 
+  - Control A: row alone (add row, keep stale baseline) → primary gate red (6/9? unindexed clears, tracked_files stale → drift), counter 3 of 4.
+  - Control B: baseline alone (re-record baseline to measured, no row) → primary gate red (unindexed 1), counter 3 of 4 (no row). Also independent gate red.
+  - Control C: stub row + copied-wrong baseline (e.g., tracked_files+1) → counter 3 of 4 with D4 mismatch.
+  - Control D: disclosure deleted → counter 3 of 4.
+  - Control E (rubber-stamp green): stub row + measured baseline → all three conjuncts green? → the falsifier.
+
+  Also verify the base control: counter --rev e94ae32a in clone → 0 of 4 exit 1 (frozen contract) — plus NO mutation since no row at base.
+
+  And confirm conjunct 1/2 at base: primary 6/9 exit 1, independent exit 1 — in the clone via git checkout base? I can create a worktree... In the clone I can freely `git checkout e94ae32a` and run gates. That reproduces the "before" receipt (controls/C2-base-integrity.txt exists; read it too).
+
+  Also read the receipts to cross-check what the L1 recorded: C2-routed-measure.txt, C2-baseline-measure.json, noharm-at-tip.txt, C2-base-integrity.txt.
+
+  Now, how does the gate decide "indexed"? Grep the gate. Also need baseline schema for crafting mutants: read verifiers/corpus-baseline.json checks section.
+
+  Batch now:
+  1. Grep gate for index walk logic (unindexed, coverage map detection, tracked_files).
+  2. Read verifiers/corpus-baseline.json (checks section).
+  3. Read the four C2 receipts.
+  4. Clone the repo into controls scratch (read-only for source; writes land in my scratch).
+
+• The spotcheck routes exactly 4 actionable defects (item 5 is L0, already filed) — count source confirmed. Now I need the gate's indexing rule and the baseline schema, plus the L1's receipts, and a throwaway clone so the counter's mutating `git checkout` never touches the lane.6:  corpus.index.tracked_files          (equal)  `git ls-files corpus/` row count.
+7:  corpus.index.unindexed              (zero)   tracked corpus files (minus
+153:COVERAGE_HEADING_RE = re.compile(r"^##[ \t]+Coverage map[ \t]*$")
+202:def has_glob(token: str) -> bool:
+254:        if has_glob(variant):
+286:    if any(c.isspace() for c in token) or has_glob(token):
+393:    the section carries a column-2 token today (`index_tokens_outside_coverage_map`
+402:            inside = COVERAGE_HEADING_RE.match(line) is not None
+459:        if has_glob(token):
+462:            if has_glob(variant):
+467:    unindexed_names = [t for t in tracked if t != INDEX_NAME and t not in covered]
+468:    unindexed = [f"{CORPUS_DIR}/{t}" for t in unindexed_names]
+479:        "unindexed": len(unindexed),
+480:        "unindexed_detail": sorted(unindexed),
+607:    """Sorted corpus-relative paths of `git ls-files corpus/`."""
+608:    out = git(repo, "ls-files", CORPUS_DIR)
+630:    obs: dict = {"tracked_files": len(tracked)}
+633:    md_files = [t for t in tracked if t.endswith(".md")]
+653:    for rel in md_files:
+678:    obs["corpus_md_files"] = len(md_files)
+687:    "corpus.index.tracked_files": ("equal", "tracked_files"),
+688:    "corpus.index.unindexed": ("zero", "unindexed"),
+699:    "unindexed_detail",
+1109:    eq("index/unindexed", idx["unindexed"], 0)  # round-9-audit.md is covered by the glob row
+1161:    eq("glob/detected", has_glob("knowledge/*.md"), True)
+1162:    eq("glob/absent", has_glob("lessons/round-3.md"), False)
+1261:    eq("fence/fenced-file-unindexed", fidx["unindexed_detail"], ["corpus/knowledge/b.md"])
+1274:    eq("fence/blockquote-file-remains-unindexed",
+1275:       bqidx["unindexed_detail"], ["corpus/knowledge/b.md"])
+1280:    eq("fence/control-unfenced-covered", uidx["unindexed"], 0)
+1285:    # reported unindexed=0 (V6b's silent false-PASS, exit 0).
+1297:    eq("fence/pseudo-closer-file-unindexed",
+1298:       pidx["unindexed_detail"], ["corpus/knowledge/b.md"])
+1305:    # (unindexed=0, exit 0). Every expected set below is derived from cmark
+1330:    # knowledge/b.md stays unindexed and the gate fails safe.
+1343:        eq(f"fence/indent-{tag}-file-unindexed",
+1344:           iidx["unindexed_detail"], ["corpus/knowledge/b.md"])
+1348:    clean["tracked_files"] = 33
+1350:    base = {"checks": {cid: {"expect": 33 if key == "tracked_files" else 19 if key == "commit_total" else 0}
+1354:    eq("evaluate/no-baseline-equal", {r["check"]: r["verdict"] for r in evaluate(clean, None)}["corpus.index.tracked_files"], "OBSERVE")
+1355:    eq("evaluate/no-baseline-zero", {r["check"]: r["verdict"] for r in evaluate(clean, None)}["corpus.index.unindexed"], "PASS")
+1359:    eq("evaluate/equal-drift", {r["check"]: r["verdict"] for r in evaluate(dict(clean, tracked_files=34), base)}["corpus.index.tracked_files"], "DRIFT")
+1420:            f"{CORPUS_DIR}.index    tracked={obs['tracked_files']} "
+1421:            f"unindexed={obs['unindexed']} stale={obs['stale_patterns']} "
+1423:            f"({obs['index_patterns']} FILE-column patterns over {obs['corpus_md_files']} md files)"
+{
+ "corpus.index.tracked_files": {
+  "mode": "equal",
+  "expect": 124
+ },
+ "corpus.index.unindexed": {
+  "mode": "zero",
+  "expect": 0
+ },
+ "corpus.index.stale_patterns": {
+  "mode": "zero",
+  "expect": 0
+ },
+ "corpus.index.missing_paths": {
+  "mode": "zero",
+  "expect": 0
+ },
+ "corpus.pointers.report_total": {
+  "mode": "equal",
+  "expect": 85
+ },
+ "corpus.pointers.report_dead": {
+  "mode": "zero",
+  "expect": 0
+ },
+ "corpus.pointers.commit_total": {
+  "mode": "equal",
+  "expect": 38
+ },
+ "corpus.pointers.commit_unresolvable": {
+  "mode": "zero",
+  "expect": 0
+ },
+ "corpus.pointers.commit_nonhash": {
+  "mode": "zero",
+  "expect": 0
+ }
+}
+keys: ['as_of', 'host', 'measured_against', 'checks', 'notes']
+=== C2 routed-repairs counter at the tip ===
+r67 routed defects closed 4 of 4
+exit=0
+=== corpus integrity at base (r67 tip e94ae32a) ===
+corpus.index    tracked=122 unindexed=1 stale=0 missing=0  (139 FILE-column patterns over 121 md files)
+corpus.pointers report_dead=0/85 commit_total=38 unresolvable=0 nonhash=0 (shapes [relative=1, absolute=44, tilde=1, bare=39], quoted-excluded=6, pointer-excluded=8; sites in --json)
+           unindexed: corpus/lessons/round-67-verifier-spotcheck.md
+           report_pointers_excluded: corpus/knowledge/cold-run-round11.md:100: .ufo/reports/round-1/<lane>.md
+           report_pointers_excluded: corpus/knowledge/cold-run-round11.md:142: .ufo/reports/round-1/<lane>.md
+           report_pointers_excluded: corpus/knowledge/cold-run-round11.md:148: <repo>/.ufo/reports/round-11/kotoba.md
+           report_pointers_excluded: corpus/knowledge/cold-run-round11.md:280: .ufo/reports/round-1/<lane>.md
+           report_pointers_excluded: corpus/knowledge/cold-run-round11.md:66: .ufo/reports/round-1/<lane>.md
+           report_pointers_excluded: corpus/knowledge/corpus-integrity-round11.md:116: .ufo/reports/round-1/<lane>.md
+           report_pointers_excluded: corpus/knowledge/corpus-integrity-round11.md:218: .ufo/reports/round-1/<lane>.md
+           report_pointers_excluded: corpus/knowledge/dispatch-prompt-audit-round7.md:42: .ufo/reports/round-1/<lane>.md
+           report_pointers_quoted: corpus/README.md:68: .ufo/reports/round-48/kotoba.md
+           report_pointers_quoted: corpus/lessons/round-57.md:86: /home/vgpnk/Projects/shokunin/.ufo/reports/round-56/kotoba.md
+           commit_quoted: corpus/knowledge/claim-census-round12.md:95: 4dd7753 (quoted meta-finding)
+           commit_quoted: corpus/lessons/round-53.md:44: cfb894a5 (quoted meta-finding)
+           commit_quoted: corpus/lessons/round-53.md:45: <hex> (quoted meta-finding)
+           commit_quoted: corpus/lessons/round-54-verifier-spotcheck.md:147: 451a02ff (quoted meta-finding)
+           commit_quoted: corpus/lessons/round-54.md:13: cfb894a5 (quoted meta-finding)
+           commit_quoted: corpus/lessons/round-6-aggregator-audit.md:45: round-N (quoted meta-finding)
+DRIFT   corpus.index.tracked_files: observed=122 expected=121
+DRIFT   corpus.index.unindexed: observed=1 expected=0 / empty
+DRIFT   corpus.pointers.report_total: observed=85 expected=82
+6/9 checks pass; DRIFT: corpus.index.tracked_files, corpus.index.unindexed, corpus.pointers.report_total
+exit=1
+=== gate registry ===
+verifiers/box_proof_case_deletion.py         OK 
+verifiers/check_agent_definitions.py         OK 
+verifiers/check_agentdef_boxes.py            OK 
+verifiers/check_alwayson_boxes.py            OK 
+verifiers/check_assertion_floors.py          OK 
+verifiers/check_callee_rename.py             OK 
+verifiers/check_client_trust_gates.py        OK 
+verifiers/check_command_files.py             OK 
+verifiers/check_correction_sweep.py          OK 
+verifiers/check_could_not_evaluate.py        OK 
+verifiers/check_description_thresholds.py    OK 
+verifiers/check_erratum_absorption.py        OK 
+verifiers/check_explicit_invocation.py       OK 
+verifiers/check_gate_finding_delta.py        OK 
+verifiers/check_gate_registry.py             OK 
+verifiers/check_hook_files.py                OK 
+verifiers/check_infoless_fences.py           OK 
+verifiers/check_instruction_authority.py     OK 
+verifiers/check_mcp_instructions.py          OK 
+verifiers/check_opencode_repin.py            OK 
+verifiers/check_overlap_levers.py            OK 
+verifiers/check_plugin_manifests.py          OK 
+verifiers/check_r63_routed_repairs.py        OK 
+verifiers/check_r64_routed_repairs.py        OK 
+verifiers/check_r66_routed_repairs.py        OK 
+verifiers/check_r67_routed_repairs.py        no self-test cell names no backticked flag
+verifiers/check_routed_repairs.py            OK 
+verifiers/check_routed_repairs_v2.py         OK 
+verifiers/check_scoped_rules.py              OK 
+verifiers/check_scoped_rules_v31.py          OK 
+verifiers/check_scoped_rules_v32.py          OK 
+verifiers/check_seat_counts.py               OK 
+verifiers/check_sibling_census.py            OK 
+verifiers/check_sources_append_only.py       OK 
+verifiers/check_substrate_pins.py            OK 
+verifiers/check_sweep_mutants.py             OK 
+verifiers/compare_harness_independent.py     OK 
+verifiers/fault_injection_corpus.sh          OK 
+verifiers/verify_alwayson.py                 OK 
+verifiers/verify_corpus_independent.py       OK 
+verifiers/verify_corpus_integrity.py         OK 
+verifiers/verify_dispatch_prompts.py         OK 
+verifiers/verify_harness_claims.py           OK 
+verifiers/verify_harness_independent.py      OK 
+verifiers/verify_skill_checklist.py          OK 
+verifiers/verify_surfaces.py                 OK 
+gate registry rows conformant 45 of 46 lane verifiers; phantom 0
+exit=1
+=== checklist ===
+  "na": 0,
+  "pass": 10
+}
+=== floors ===
+PASS alwayson observed=89 floor=89
+PASS correction_sweep observed=25 floor=25
+PASS scoped_rules_v32 observed=240 floor=240
+cafa29d round-68: C1 counter — a revision without the entry is a content verdict (0 of 5, exit 1), not an environment error
+CLONE_OK
+
+
+• Very interesting finding in `noharm-at-tip.txt`: the gate registry check reports `check_r67_routed_repairs.py  no self-test cell names no backticked flag` and `gate registry rows conformant 45 of 46 lane verifiers; exit=1`. So the lane's own gate-registry verifier FAILS on the new C2 counter (no `--self-test`)! That's a side finding: the no-harm receipt itself records an exit=1 — the C2 counter lacks a `--self-test` and the registry gate is red. The frozen C2 predicate's three conjuncts still pass (they don't include the registry), but "no owned-axis harm" is contradicted by the L1's own receipt. Also `check_client_trust_gates.py` shows OK in registry.
+
+  Also key mechanics confirmed:
+  - `tracked_files` = `git ls-files corpus/` row count → **the INDEX, not committed bytes**. So `_baseline_values` measures the live index after `git checkout rev -- corpus verifiers`. Untracked files do NOT affect tracked_files. But files deleted at rev but tracked at HEAD remain (checkout doesn't delete) → measurement at rev ≠ rev's committed ls-files in the deleted-file case. And when rev == HEAD, measurement = HEAD index = committed. OK.
+  - unindexed: tracked files (minus README) not covered by coverage-map tokens; coverage map tokens come from FILE columns under `## Coverage map` heading. Glob rows count. So a rubber-stamp row with the FILE token `lessons/round-67-verifier-spotcheck.md` in column 2 (or anywhere in a FILE column) inside the coverage map satisfies both gate's `covered` set and D4's `cells[1] == backticked name` check — IF placed as the second cell. Note D4 checks `cells[1].strip() == f"`lessons/{name}`"` — second cell. The landed row at README:127 is `| Round-67 non-author spot-check (closure) | `lessons/round-67-verifier-spotcheck.md` | ...` — first cell is title, second cell is the backticked path. A stub row `| x | `lessons/round-67-verifier-spotcheck.md` |  |  |` would satisfy both.
+
+  Now build the controls in the clone. Plan (all inside clone; commits only in clone):
+
+  Control 0 (base contract): `python3 <lane counter>? No — use the CLONE's counter` — wait, the clone's verifiers are at cafa29d, same as lane. Run `python3 -B verifiers/check_r67_routed_repairs.py --rev e94ae32a...` in clone → expect `0 of 4` exit 1, and NO mutation (no row at base → _baseline_values not called). Verify `git status --porcelain` clean after.
+
+  Control A (index row alone, baseline stale): commit 1: edit clone's corpus/README.md, insert row `| (stub) | `lessons/round-67-verifier-spotcheck.md` |  |  |` inside coverage map. Keep baseline stale (121/0/82? wait baseline at HEAD is 124/0/85/38 — HEAD baseline already re-recorded. To make "row alone from the BASE" shape, better start from base rev for the do-nothing halves. Hmm — the plan's do-nothing controls are "the index row alone and the baseline re-record alone each leave the primary gate red" measured from the BASE. Let me reconstruct from base like the r67 closure did (K2/K3 at base):
+
+  K2' (row alone at base): start from e94ae32a; add the stub row to README; commit; run primary gate in clone (checkout the mutant, run gate) → expect unindexed cleared but tracked_files/report_total drift → 7/9? At base observed tracked=122 (with the spotcheck file present but unindexed? wait base ls-files corpus = 122 including spotcheck? At base, spotcheck is tracked (committed at e94ae32 "round-67 verifier spot-check"). tracked_files=122, unindexed=1. After adding row: tracked stays 122, unindexed=0, report_total=85 vs expect 82 → DRIFT; tracked 122 vs 121 DRIFT → 7/9 exit 1. Counter at that rev: D1/D2/D3 fail (no erratum at base+row) → let me compute: D1 needs OBSERVED line in records — absent at base → fail; D2 absent → fail; D3: junk string in records? At base, records don't name junk-world... the spotcheck lesson DOES name `.ufo/waves/round-67/w1/controls/junk-world/` — but RECORDS = LOG.md, SCORECARD.md, corpus/lessons/round-68.md only — not the spotcheck. At base, LOG/SCORECARD/round-68.md lack junk-world → D3 fail. D4: row present → indexed True → baseline compare: baseline at base is stale (121/82...) vs measured at that rev... _baseline_values runs (checkout base+row corpus/verifiers → measures). measured tracked=122, report_total=85, vs baseline expects 121/82 → mismatch → D4 findings. So 0 of 4, exit 1. Red. Good.
+
+  K3' (baseline alone at base): start from base; re-record baseline to gate's own measured values at that rev (tracked=122, unindexed=0? NO — unindexed observed is 1 at base; re-recording "the gate's own measurement" for unindexed would set expect=1?? mode is zero → expect 0... The r67 K3 set "equal-mode expects to the --no-baseline observation". For my control: set tracked_files expect=122, report_total=85, commit_total=38, unindexed expect=0 (can't fix zero-mode) → gate: unindexed still 1 → DRIFT → red (8/9). Counter: D4 row absent → fail; D1/D2/D3 fail → 0 of 4. Red. 
+
+  Control E (rubber-stamp green — THE falsifier): from HEAD cafa29d, create commit replacing the CONTENTFUL landed row with a STUB row (second cell the backticked path, other cells empty/`—`), keep everything else, re-record baseline NOT NEEDED (keep HEAD's baseline) → run all three conjuncts at that rev in clone. If 9/9 + independent 0 + 4 of 4 → **predicate passes with a contentless index row** → the falsification succeeds: the frozen predicate cannot distinguish the landed contentful row from a rubber stamp. Also make the ERRATUM content stub? Attack (1) says "an index row that names the file but carries no content" — just the row. Do minimal: only swap row content. Expect: primary 9/9 exit 0 (unindexed 0: token present; equal checks equal), independent exit 0? independent checks unindexed=0 etc. — should pass. Counter: D4 cells[1] matches → indexed; baseline equal → 4 of 4. If so, predicate = rubber-stampable. Report it.
+
+  Control D (D3 disclosure deleted, erratum stays): from HEAD, create commit where the junk-world path string is REMOVED from all three records (LOG, SCORECARD, lesson round-68) — but keep the OBSERVED erratum line and real receipt path. Run counter at that rev in clone → expect 3 of 4 exit 1 with D3 finding. That answers attack (3): predicate does NOT pass — it requires the disclosure. BUT the inverse subtlety: disclosure presence is satisfied by ANY mention anywhere in the three records — e.g., LOG.md line 2641 mentions `.ufo/waves/round-67/controls/census-validate-append.txt` (pre-existing r67 assimilation text) — hmm that's REAL_RECEIPT not JUNK. For JUNK: is there any PRE-EXISTING mention of junk-world in LOG/SCORECARD/round-68.md BEFORE the r68 erratum? LOG:2678 has the R67-3 disclosure (new). If the r68 erratum had NOT been written, would old text mention junk-world? The spotcheck (line 27, 93) names it but is not in RECORDS. So D3's text half genuinely required new text. OK.
+
+  Control M (mutation/mutation-of-record attack — the sharpest): since D1/D2 are substring tests over the JOINED records, a record that says "we did NOT observe `environment error: cannot read corpus/knowledge/instruction-authority-ladder-round67.md`" would CLOSE D1. Cheap to demo: from HEAD, rewrite LOG/SCORECARD/lesson replacing the erratum sentences with a single line "R67-1 was never observed: `environment error: cannot read corpus/knowledge/instruction-authority-ladder-round67.md` did not print." → D1 closes on a sentence asserting the opposite. That's the classic presence-floor counterexample. It's disclosed (QUALITY Q33 presence floor), so it's a bound, not a bug — but worth reporting as the demonstrated bound with the mutant's 4 of 4? Wait — if I replace all three records' content with denial-text that still contains the substrings, D1/D2 close; D3: keep junk mention + path absent → closes; D4 fine → 4 of 4 exit 0 with records asserting the OPPOSITE. Worth building as Control F to show the floor is truly name-only. It's the strongest single counterexample. Cheap: commit with sed-replaced records. I'll build it.
+
+  Control G (destructive-measurement proof): in clone, from HEAD make commit H2 that APPENDS a line to corpus/README.md (simulating future round r69 committed work). Run counter --rev cafa29d (the r68 rev) in clone. Then `git status --porcelain` in clone → expect `M corpus/README.md` staged (worktree+index reverted to cafa29d content by the counter's checkout). Also verifiers/ — if H2 changed a verifier, same. This proves the predicate's third conjunct MUTATES the measured repo (git index!) whenever rev ≠ HEAD and the row exists — violating both its own docstring ("never the working tree") and the lane's "never mutate the lane's Git index" rule. Then reset the clone (or just re-clone; it's scratch).
+
+  Also Control B (junk-world re-created): mkdir the junk dir in clone → counter at HEAD → 3 of 4 → shows worktree sensitivity. Then rmdir.
+
+  Also verify base-run contract prints `0 of 4` exit 1 and leaves clone clean.
+
+  Also: does `_baseline_values` fail if repo has untracked files under corpus? tracked via ls-files only → untracked ignored. Fine.
+
+  One more: `git checkout rev -- corpus verifiers` in a jj-colocated repo — the lane IS colocated (jj-lane.sh). In the clone, .git is a plain git dir (clone strips jj). The lane's real runs happen in the colocated repo. The mutation claim stands regardless (git index written). I can't test jj behavior in the clone; I'll note it as risk, evidence: plan says lanes commit through jj-lane.sh and seats must never mutate the Git index — the counter's `_baseline_values` writes the index by construction (subprocess git checkout). That's enough.
+
+  Implementation detail: running the counter in the clone — use `--repo <clone>` and run the LANE's counter? Use the clone's own counter (same bytes, cafa29d). cwd=clone. `python3 -B verifiers/check_r67_routed_repairs.py --rev <rev>` from clone cwd (default repo = clone/.. of script → clone). Good.
+
+  For gate runs at arbitrary revs in clone: `git -C clone checkout <rev>` (detached) then run primary gate + independent gate. Fine in scratch.
+
+  Baseline re-record for K3': write clone's verifiers/corpus-baseline.json with measured values. The baseline JSON has keys as_of/host/measured_against/checks/notes — mimic minimal (checks only needed).
+
+  Sequence (must be serial per control, but I can script one big bash per control batch). Let me write a single script that builds all controls and prints a table. Careful with backticks in bash — use python for file edits. Let me write a python driver script into my controls dir? I'm allowed to write in w1/controls. Yes — I'll put `c2falsify.py` there (wave scratch, sanctioned).
+
+  Script outline:
+  ```python
+  import json, subprocess, shutil, os
+  C = "/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/controls/c2falsify-clone"
+  HEAD = "cafa29d0adb489b9b6b146445ee8bb9eef074e6e"
+  BASE = "e94ae32a5cd8dc3ee8e2d247816784bec2750cc0"
+  def sh(*a, cwd=C): return subprocess.run(a, cwd=cwd, capture_output=True, text=True)
+  def git(*a): r=sh("git",*a); assert r.returncode==0, r.stderr; return r.stdout
+  def counter(rev):
+      r=sh("python3","-B","verifiers/check_r67_routed_repairs.py","--rev",rev)
+      return r.stdout.strip().splitlines()[0], r.returncode, r.stderr.strip()
+  def gates():
+      a=sh("python3","-B","verifiers/verify_corpus_integrity.py")
+      b=sh("python3","-B","verifiers/verify_corpus_independent.py","--json")
+      line=a.stdout.strip().splitlines()[-2] ... 
+  ```
+  Primary gate output: last lines: `6/9 checks pass; DRIFT ...` then `exit=...`? No — the receipt shows "6/9 checks pass; DRIFT..." as a line; my earlier run printed `9/9 checks pass` and EXIT=0. The line containing "checks pass" is findable.
+
+  Commit helpers: `git checkout -B ctrl <start>`, edit files, `git -c user.name=critic -c user.email=critic@scratch commit -am ...`.
+
+  Steps:
+  1. base: `git checkout -B c0 BASE`; counter(BASE) → expect 0 of 4 exit1; `git status --porcelain` → clean (no mutation).
+  2. K2' row-alone-at-base: from BASE, insert stub row into README coverage map; commit; run primary gate at that commit (worktree is at it) → expect ~7/9 exit 1; counter(rev) → 0 of 4 exit 1.
+  3. K3' baseline-alone-at-base: from BASE, write baseline checks {tracked_files:122, report_total:85, commit_total:38, unindexed:0, others from base baseline}; commit; gate → 8/9 exit 1 (unindexed still 1); counter → 0 of 4.
+  4. E rubber-stamp-green: from HEAD, replace landed row line with stub row (second cell exactly backticked path, rest empty) via python; commit; run gate → expect 9/9 exit 0; independent --json exit 0; counter(HEAD-of-branch) → expect 4 of 4 exit 0. **The falsifier.**
+  5. D disclosure-deleted: from HEAD, remove junk-world path string from LOG/SCORECARD/lesson (keep OBSERVED + receipt lines); commit; counter → expect 3 of 4 exit 1 (D3 finding).
+  6. F denial-records: from HEAD, replace the three records' erratum paragraphs with a sentence that asserts the opposite while CONTAINING the required substrings (OBSERVED line, REAL_RECEIPT, JUNK); commit; counter → expect 4 of 4 exit 0. Name-only floor demonstrated.
+  7. G destructive: from HEAD, commit appended README line (r69 sim) → rev H2; run counter --rev HEAD; then `git status --porcelain` → expect staged revert of corpus/README.md (+ verifiers?). Print it.
+  8. B junk-recreated: at HEAD clean, mkdir junk dir; counter(HEAD) → expect 3 of 4 (worktree); rmdir.
+
+  Also capture `git status --porcelain` after step 1 to prove base-run non-mutating, and after a HEAD run WITHOUT step G's commit: checkout -B c0 HEAD... careful ordering; keep each control on its own branch from HEAD/BASE, and reset worktree state between (git checkout -B resets).
+
+  For step 4, counter's _baseline_values will run `git checkout <rev> -- corpus verifiers` — rev == current HEAD of the branch; worktree matches → no-op.
+
+  For step 7, counter --rev cafa29d will checkout cafa29d corpus/verifiers → reverts README.md appended line in worktree+index → status shows staged modification? Worktree file now differs from H2 HEAD → `M corpus/README.md` staged (index matches cafa29d, worktree matches cafa29d → actually index=cafa29d, worktree=cafa29d, HEAD=H2 → `M ` in index column? `git status --porcelain` shows first column vs HEAD: README differs HEAD vs index → "M  corpus/README.md" (staged modification, worktree clean relative to index). That IS the mutation: the counter rewrote the index to rev content. Perfect evidence.
+
+  Edge: step 7's counter run — H2's row exists (HEAD has row) → indexed → _baseline_values runs → checkout. Yes.
+
+  Also step E check independent gate exit code at the stub rev — include.
+
+  Then write CriticC2Predicate.md with all results. Also record predicate verdict.
+
+  One more check for attack (2) "does each of the four checks read COMMITTED bytes": D1/D2 committed bytes (git show). D3: records via git show; existence via live worktree. D4: README+baseline via git show (materialize); measurement via live index after mutating checkout; ALSO `verify_corpus_integrity.py --no-baseline --json` measures `git ls-files` — the INDEX — and commit_resolves reads the repo's objects (rev accessible since in-repo). Note `commit_total` measured from corpus bytes (rev's corpus, post-checkout). OK.
+
+  Note: `_baseline_values` measures with `cwd=root` (empty temp) but gate uses `Path(__file__).parent.parent` — measures the REPO. And `--repo` default. Also gate's `FLEET_ROOT = /home/vgpnk/Projects/shokunin` for report-pointer existence: report pointers resolve against the FLEET repo (shared .ufo/reports), fine.
+
+  Now — one subtlety in step 4: the landed row is at README line 127; replace JUST that line with a stub. Row: `| x | \`lessons/round-67-verifier-spotcheck.md\` | | |` — must the table row have ≥2 cells — yes cells[1] must equal backticked name. Gate coverage: token extraction — covered set from FILE columns: needs the token `lessons/round-67-verifier-spotcheck.md` to appear in a FILE column? The gate scans lines under Coverage map heading for backticked tokens (index_tokens=142 "FILE-column patterns"). The stub's cell 2 has the token → covered. Should pass. Also stale_patterns: token exists as file → not stale. missing_paths 0. Good.
+
+  And step 4's counter check `cells[1].strip() == "`lessons/round-67-verifier-spotcheck.md`"` — with cell2 exactly that. Good.
+
+  Write the driver and run. Also guard: all git commits use -c user identities (clone-local config), no hooks (clone has no hooks). No network. All inside scratch. Lane untouched.
+
+  Also read `measured_against` in baseline to mimic for K3' (not strictly needed).
+
+  Let me also confirm LOG/SCORECARD/lesson junk-world strings so step 5 removes them: LOG:2678, SCORECARD has R67-3? grep showed SCORECARD:426/428 for observed/receipt; junk-world in SCORECARD? grep output earlier: only LOG:2678 and lesson:155 for junk-world. SCORECARD may mention it too — script will just remove the path substring from all three files wherever present.
+
+  For step F, replace the OBSERVED sentence context — simpler: APPEND a denial paragraph containing all three substrings (D1 needs OBSERVED anywhere in joined; D2 REAL_RECEIPT anywhere; D3 JUNK anywhere). Appending a paragraph like: "Erratum-of-the-erratum (FALSIFIER CONTROL, never to land): this control asserts the opposite of R67-1 — the line `environment error: cannot read corpus/knowledge/instruction-authority-ladder-round67.md` was never printed; the receipt path `.ufo/waves/round-67/controls/census-validate-append.txt` was never missing; the mirror `.ufo/waves/round-67/w1/controls/junk-world` never existed." → all three substrings present → counter closes D1/D2/D3 on text asserting they're false → 4 of 4 exit 0. That's the presence-floor counterexample.
+
+  Time to run. One big script, then a second batch if needed.
+
+• Gate registry receipt shows a side-defect already (`check_r67_routed_repairs.py — no self-test cell…; 45 of 46; exit=1`), and `tracked_files` counts `git ls-files` (the **index**), which makes the counter's `git checkout` load-bearing. Now I build all falsification controls inside the

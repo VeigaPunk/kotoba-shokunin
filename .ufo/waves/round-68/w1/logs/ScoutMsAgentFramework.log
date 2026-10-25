@@ -1,0 +1,211 @@
+kimi version 2.3.1
+• Let me parse the task. I'm a scout (read-only seat) for Round 68 of the kotoba lane. My specific assignment:
+
+  1. Read the frozen plan `/home/vgpnk/Projects/shokunin/kotoba-shokunin/plans/round-68.md` FIRST.
+  2. Read `/home/vgpnk/Projects/shokuknow/merge/kotoba/SOURCES.append.md` row S201 first (well, after the plan — the instruction says "READ IT FIRST" for the plan, and "read row S201 first" for the source opening — the plan takes precedence in ordering).
+  3. Open `https://learn.microsoft.com/en-us/agent-framework/agents/skills` with FetchURL. Locate "Security best practices" subsection. Verify the staged quote from S201 occurs VERBATIM.
+  4. Report: exact URL fetched, access date (2026-10-24), the heading, VERBATIM quote (≤25 words), whether staged quote occurs verbatim, surrounding security guidance paraphrased. If fetch fails → FETCH FAILED.
+  5. Write scoped findings to `.ufo/waves/round-68/w1/ScoutMsAgentFramework.md` — wait, but I'm a scout: "Read-only seats (scout/reviewer/critic/sentinel/revenger/connector): do not write files at all. Return your findings in your final response — the L1 writes your report from it."
+
+  Hmm, but the task prompt says "Report: write your scoped findings to .ufo/waves/round-68/w1/ScoutMsAgentFramework.md". There's a conflict between the role rules (scout doesn't write files) and the task instruction. The write scope says "You may write ONLY under `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/`" — which permits scout writes there, but the roles section explicitly says scout should not write files at all and the L1 writes the report from the final response.
+
+  Actually, re-reading: "Report: write your scoped findings to .ufo/waves/round-68/w1/ScoutMsAgentFramework.md" — the Report trailer path is relative to the lane repo. The write scope hard bounds permit writing under `.ufo/waves/round-68/`. The roles section says read-only seats don't write files. Hmm. The task-specific instruction (per-seat assignment) says to write the file. The general rule says scouts don't write. The safest interpretation: the task explicitly asks for the file at that path; the write scope explicitly permits it. But the roles section explicitly says "Read-only seats (scout/...): do not write files at all."
+
+  Given contradiction, the task-level instruction is more specific to my assignment ("Report: write your scoped findings to ...") — but roles is also explicit. Actually the roles bullet says "Return your findings in your final response — the L1 writes your report from it." The final line of my assignment says to write the file. I think the pragmatic resolution: I am allowed to write under .ufo/waves/round-68/ (hard bounds permit), and my assignment explicitly directs the report file. I'll write the file AND include full findings in my final response. That satisfies both as best as possible — L1 can use either. Writing under .ufo is not a production edit (L1 owns corpus/, verifiers/, SKILL.md, LOG.md, SCORECARD.md, plans/). So writing the scout report under .ufo/waves/round-68/w1/ is within my write scope. I'll do that.
+
+  Note the Report trailer: "Every `Report:` trailer path is relative to /home/vgpnk/Projects/shokunin/kotoba-shokunin — write it at /home/vgpnk/Projects/shokunin/kotoba-shokunin/<that path>." So the file goes to `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/ScoutMsAgentFramework.md`.
+
+  I don't have a Write tool listed! My tools: FetchURL, Glob, Grep, Read, WebSearch. There's no Write or Edit tool. So I literally cannot write files. So "do not write files at all" for scout is enforced by the toolset — I can only return findings in my final response. Good, that resolves the conflict: return findings in final response with the Report: trailer path noted, and the L1 writes it.
+
+  Now the steps:
+
+  1. Read the frozen plan: `/home/vgpnk/Projects/shokunin/kotoba-shokunin/plans/round-68.md`.
+  2. Read `/home/vgpnk/Projects/shokuknow/merge/kotoba/SOURCES.append.md` — find row S201. This file may be large; I could Grep for "S201" first. But instruction says "read row S201 first" (before fetching). Let me Grep with context to get the S201 row, and also read the plan.
+
+  Parallel batch 1: Read plan + Grep S201 in SOURCES.append.md + FetchURL the page. Wait — "read row S201 first" before opening the source. To be safe and faithful: first read plan and the S201 row, then fetch. But Godspeed says parallelize. The dependency: I need S201's staged quote before comparing, but the fetch itself is independent (fetching the page doesn't depend on the row). Fetching in parallel is fine — the comparison happens after. The instruction ordering is about epistemics (know what claim to verify before looking), but doing both concurrently and then comparing is equivalent. Actually, to be strictly faithful to "read ... row S201 first", I could still issue the fetch in the same batch since I'll read the outputs of both before forming the comparison. I'll do: Read plan, Grep S201, FetchURL — all in one batch. That's maximal parallelism and I evaluate the quote only after seeing both.
+
+  Hmm, but the plan read might be large. Let me use Read with default. And Grep for "S201" with context lines (-B 2 -A 6) in SOURCES.append.md.
+
+  The URL: https://learn.microsoft.com/en-us/agent-framework/agents/skills
+
+  Let me also think about axes (Godspeed): axes here — (a) verbatim-match fidelity of staged quote vs live page; (b) source stability/authority (Microsoft Learn, official docs); (c) completeness of the scout report (heading, URL, date, quote, paraphrase); (d) staying in bounds (read-only, absolute paths). Cheap iterations: one fetch, plus maybe a fallback WebSearch if fetch fails or heading not found.
+
+  Let me execute. First batch:
+  - Read /home/vgpnk/Projects/shokunin/kotoba-shokunin/plans/round-68.md
+  - Grep pattern "S201" path /home/vgpnk/Projects/shokuknow/merge/kotoba/SOURCES.append.md, output content, -C 4
+  - FetchURL https://learn.microsoft.com/en-us/agent-framework/agents/skills
+
+  Then analyze and respond. Possibly a second fetch if the page content is truncated or the subsection missing.
+
+  Let me go.
+
+• **Axes:** (a) verbatim fidelity of staged quote S201 vs the live Microsoft Learn page; (b) source authority/stability (official docs); (c) report completeness (URL, date, heading, quote, marked paraphrase); (d) read-only bounds + absolute paths. Cheap parallel batch: plan read, S201 row read, live fetch — all independent.
+
+• The S201 row is found. The staged quote anchor per S201: "the 'Security best practices' subsection, at the 'All three skill tools require approval by default' sentence and the MCP-source sentence that follows".
+
+  The page was fetched (90,193 chars) and saved to a file. The preview shows the top of the page and the tail, but the "Security best practices" subsection is in the elided middle. I need to Grep the saved output file for "Security best practices" and the sentence "All three skill tools require approval by default".
+
+  Grep the saved file: /home/vgpnk/.kimi-code/sessions/wd_kotoba-shokunin_dbf35917deb4/session_0e0f2885-e49f-4a8d-9b36-42d248beb6c2/agents/main/tool-results/FetchURL-call_badbf9d3c3b449ed83bab86b-07ad9753-6c51-4e15-9cdd-509a549feec3.txt
+
+  Search for "Security best practices" and "approval by default" with context.
+
+• Plan and S201 row in hand; the page fetched successfully (90,193 chars, saved to file). S201's anchor: the **"Security best practices"** subsection — the *"All three skill tools require approval by default"* sentence and the MCP-source sentence following it. Now locating that subsection in the saved page text.
+
+• The "Security best practices" heading is at line 1789 in the extracted text. The sentence "All three skill tools require approval by default" appears at lines 147, 179, 1314 (as "All tools exposed by AgentSkillsProvider ... require approval by default"), 1436, 1456 — but the S201 anchor says the quote is in the "Security best practices" subsection. The heading at 1789 — I need to read the subsection content after line 1789 to find the exact sentences there. The Grep for "approval by default" didn't show a hit after line 1789... Interesting. Let me read lines 1789 onward to see the Security best practices subsection content. The subsection may use different wording, e.g., "require approval" or "MCP". Also need the MCP-source sentence ("treat MCP-sourced skill responses as untrusted input" per S201's paraphrase).
+
+  Let me read from line 1789 for ~80 lines.
+
+• The heading is at line 1789 of the extracted text; the `approval by default` hits are all *before* it (lines 147–1456, in earlier subsections). I need the subsection's actual body to check S201's staged sentences.
+
+• Now I have the actual "Security best practices" subsection (lines 1789–1795). Key finding:
+
+  The subsection does NOT contain the sentence "All three skill tools require approval by default" — that sentence appears in earlier subsections (lines 147, 179, 1314-ish area "Tool approval", 1436, 1456), not inside "Security best practices". Also the subsection does NOT contain an MCP-source sentence. Let me check for "MCP" mentions in the subsection — no. Let me grep for MCP near the security section to be thorough.
+
+  The S201 row claims: 'the "Security best practices" subsection, at the "All three skill tools require approval by default" sentence and the MCP-source sentence that follows'. This anchor is WRONG as stated: the "Security best practices" subsection contains different content (review before use, source trust, sandboxing, audit and logging) and does not contain the approval-by-default sentence nor an MCP sentence.
+
+  But wait — maybe the row's "quote" column isn't the anchor column. Let me re-check the S201 row columns. The row is an 11-column schema. Looking at the row:
+
+  | S201 | Microsoft Agent Framework — Agent Skills — https://learn.microsoft.com/en-us/agent-framework/agents/skills | docs | B | Microsoft's own approval default and untrusted-input handling for its Agent Framework skills; one implementation, and the English upstream of the page the lane holds in Japanese as S146 | the "Security best practices" subsection, at the "All three skill tools require approval by default" sentence and the MCP-source sentence that follows; page as served 2026-10-24 | a third client gate, expressed as approval-by-default on the skill tools rather than as a load-time trust check, plus an explicit instruction to treat MCP-sourced skill responses as untrusted input | mined | 2026-10-24 | 90d — re-fetch the English page and confirm the approval-by-default sentence and the untrusted-input instruction are unchanged (ran 2026-10-24) | corpus/knowledge/client-trust-gates-round7.md |
+
+  Columns: id | title+URL | type | grade | scope note | located-quote/anchor column | takeaway | status | access date | recheck | used-by.
+
+  So the anchor column states the located quote should be "All three skill tools require approval by default" (the sentence) and the MCP-source sentence that follows — in the "Security best practices" subsection.
+
+  My task from the operator: "Locate the 'Security best practices' subsection; the campaign's staged row S201 claims a quote there". Report: heading, VERBATIM quote (≤25 words), whether the staged quote occurs VERBATIM, and surrounding security guidance in my own words.
+
+  So I need to determine what "the staged quote" is. The staged anchor names the sentence "All three skill tools require approval by default". Does it occur verbatim on the page? YES — it occurs on the page, at lines 147 and 179 (and paraphrase variants at 1314/1436/1456), but NOT inside the "Security best practices" subsection — it occurs in earlier subsections (the .NET and Python harness/provider sections, which appear around lines 147 and 179 of the extracted text).
+
+  And "the MCP-source sentence that follows" — I should check whether there's an MCP sentence near those. Let me grep for "MCP" in the file to find the MCP-source sentence (e.g., "treat ... MCP ... untrusted"). The S201 takeaway says "an explicit instruction to treat MCP-sourced skill responses as untrusted input".
+
+  Let me grep for MCP with context. Also, to be careful about the subsection placement: the extracted text order might place the security subsection at the end (line 1789), and "Tool approval" section around line 1312. The "All three skill tools require approval by default" sentences at 147 and 179 are in the .NET/Python "register provider" sections early in the doc.
+
+  So the finding: the staged quote sentence DOES occur verbatim on the page, but NOT within the "Security best practices" subsection — the subsection itself contains different security guidance (review before use, source trust, sandboxing, audit/logging) and no approval sentence and no MCP sentence. The MCP-source sentence — need to verify whether it exists anywhere on the page. Let me grep for "MCP".
+
+  Also double-check whether there might be a second "Security best practices" heading (only one hit at line 1789, good).
+
+  Let me also check the "Tool approval" subsection around line 1312 — that's where "All tools exposed by AgentSkillsProvider (load_skill, read_skill_resource, run_skill_script) require approval by default" appears. And line 1436 the Python variant. The MCP sentence might be in a "Note" or "Warning" near these. Grep "MCP" with context.
+
+• The subsection body (lines 1789–1795) does **not** contain the staged sentence — the `approval by default` hits are all earlier in the page. Checking whether the MCP-source sentence (the second half of S201's anchor) exists anywhere, and where the verbatim approval sentence lives section-wise.
+
+• Now I have the full picture. Let me consolidate the facts:
+
+  **Page structure (extracted text, 1817 lines):**
+  - One "Security best practices" heading: line 1789.
+  - Its body (lines 1790–1795): intro sentence + four bullets (Review before use / Source trust / Sandboxing / Audit and logging).
+  - The exact sentence "All three skill tools require approval by default" appears at lines 147 and 179 — in the early harness sections (.NET "create_harness_agent" area and Python harness area), NOT in the Security best practices subsection.
+  - The MCP "untrusted input" sentence appears at line 907: "An external MCP server controls what skill content - including instructions and scripts the agent may run - reaches the agent. Only connect MCPSkillsSource to servers you have vetted and trust, and treat their responses as untrusted input." — in the Python "MCP-based skills" subsection (heading at line 853), NOT in Security best practices.
+  - Also line 849 (C# MCP archive): "Scripts bundled in archive-type skills are never executed. This is a deliberate security measure - executable content from remote MCP servers requires explicit trust."
+
+  **S201's staged anchor:** 'the "Security best practices" subsection, at the "All three skill tools require approval by default" sentence and the MCP-source sentence that follows'.
+
+  **Verdict on the staged quote:**
+  - The sentence "All three skill tools require approval by default" occurs VERBATIM on the live page (twice: lines 147, 179 of extracted text) — but NOT within the "Security best practices" subsection.
+  - The MCP-source "untrusted input" sentence occurs on the page (line 907) — but in the Python "MCP-based skills" subsection, and it does NOT directly follow the approval sentence; the approval sentences at 147/179 are followed by different text (ReadOnlyToolsAutoApprovalRule / auto_approval_rules guidance), and the MCP untrusted-input sentence is ~730 lines earlier in the extracted text.
+  - The "Security best practices" subsection itself contains NEITHER sentence.
+
+  So the S201 anchor's *subsection placement* is wrong, though both quoted sentences exist verbatim elsewhere on the same page. The takeaway (approval-by-default + treat MCP responses as untrusted) is substantively supported by the page, but the located-quote anchor as staged does not hold at the named location.
+
+  Per my instructions: report the exact URL, access date, heading, the verbatim quote (≤25 words), whether the staged quote occurs verbatim, surrounding security guidance paraphrased.
+
+  The staged quote = "All three skill tools require approval by default" (the sentence S201 names). It occurs verbatim on the page — but not in the Security best practices subsection. I should report this nuance precisely, because the campaign's gate (`--fetch` finds each of the 5 located quotes on its live page) cares about located quotes on the live page. The quote DOES occur on the live page verbatim — so a `--fetch` grep for the sentence would pass — but the row's claimed subsection placement ("Security best practices") is factually wrong, which matters for the located-quote column's honesty ("the 'Security best practices' subsection, at the ... sentence").
+
+  Word count of the quote: "All three skill tools require approval by default" = 8 words. Good, ≤25.
+
+  Should I offer an alternative verbatim quote from within the actual Security best practices subsection for the row's fix? That's useful for the L1: e.g., "Agent Skills should be treated like any third-party code you bring into your project." (13 words) — that IS in the Security best practices subsection and is verbatim (line 1790: "Agent Skills should be treated like any third-party code you bring into your project.Because skill instructions are injected..."). Note the extraction shows the two sentences concatenated without a space after the period ("project.Because") — that could be an extraction artifact or actual page formatting; I should quote only the first sentence to be safe: "Agent Skills should be treated like any third-party code you bring into your project." — verbatim as a substring.
+
+  Also the subsection bullets: "Review before use", "Source trust", "Sandboxing", "Audit and logging" — paraphrase these.
+
+  Also note: is the staged-quote placement possibly a match against the Japanese S146 page? Not my assignment. Note as unknown/gap: S146 (Japanese upstream/downstream relationship) — S201 claims this English page is "the English upstream of the page the lane holds in Japanese as S146". Not verified here (out of scope).
+
+  Also, one more check for rigor: could the extracted text have reordered content such that the "Security best practices" subsection in the actual HTML contains the approval sentence? The extracted text is the main text from the page in document order; heading positions map to the TOC order. The "Tool approval" heading is at 1312, and security best practices at 1789 near the end. In the real page, "Security best practices" is a late section. The approval-by-default sentences are in the earlier harness/agent-creation sections and the "Tool approval" section. Extraction reordering across sections is very unlikely (the extractor preserves document order; only inline formatting/whitespace is normalized). Confidence: high that the subsection does not contain the staged sentence. I'll note this as high-confidence with the caveat that it rests on the extractor's document-order preservation.
+
+  One more consideration: the C1 predicate says five client URLs including `agent-framework`. My finding matters for the L1's SOURCES row S201 append decision: the anchor column as staged mis-locates the quote. The verbatim sentence exists on the page, so a naive `--fetch` substring check would pass; the mis-location is a consistency defect in the staged row text, not a fabrication — the quotes are real, the section attribution is wrong. I should state exactly that.
+
+  Also the "MCP-source sentence that follows" — in the C# "MCP-based skills" subsection, line 849's Important block ("Scripts bundled in archive-type skills are never executed... executable content from remote MCP servers requires explicit trust") and in the Python one at 907 ("...Only connect MCPSkillsSource to servers you have vetted and trust, and treat their responses as untrusted input."). The Python one (907) is the closest match to S201's takeaway "treat MCP-sourced skill responses as untrusted input". It is verbatim on the page but ~400 lines before the approval sentences and not "following" them.
+
+  Word count check for quote 907 excerpt: "Only connect MCPSkillsSource to servers you have vetted and trust, and treat their responses as untrusted input." = 18 words. Verbatim substring of line 907. Good as the located MCP quote.
+
+  Now the deliverables:
+  1. Final response with all findings (I'm a read-only scout — no file writes; the L1 writes the report. But the task says "Report: write your scoped findings to .ufo/waves/round-68/w1/ScoutMsAgentFramework.md". I have no Write tool — I cannot write files. State this: the report content is delivered in this response for the L1 to land at that path. I must include the Report: trailer with the path relative to the lane repo.)
+
+  Evidence hygiene: quote what commands printed — I have line numbers from the saved fetch output. Cite the page as a markdown link per the fetch note.
+
+  Let me now compose the final response: concise, structured, with observed facts vs inference vs gaps, the verbatim quotes, the verdict, the paraphrase clearly marked, and the Report: trailer.
+
+  Format:
+
+  ## Axes (named)
+  brief.
+
+  ## Observed facts (with evidence)
+  - URL fetched, date, access method, output size, saved-output path.
+  - Heading found: "Security best practices", single occurrence, line 1789 of extracted text.
+  - Subsection body verbatim (short excerpts).
+  - Staged quote "All three skill tools require approval by default" — verbatim occurrences at extracted lines 147 and 179 (harness sections), NOT in the security subsection.
+  - MCP sentence verbatim at line 907 (Python MCP-based skills, Important callout).
+  - Section map: Tool approval at 1312; approval sentence variants at 1314 (C#), 1436 (Python), comment at 1456.
+
+  ## Verdict on S201
+  - Occurs VERBATIM on the page: YES (the approval sentence; and the MCP untrusted-input sentence).
+  - Occurs VERBATIM in the "Security best practices" subsection: NO. The row's located-quote column is mis-anchored. Not a fabrication — both sentences exist on the same page — but the subsection attribution in the anchor is wrong and should be corrected before append (the round-68 gate's `--fetch` substring check would still pass; the located-quote prose would not survive a hand-check).
+
+  ## Proposed corrected anchor (for the L1)
+  Either keep the approval quote and re-anchor to the "Tool approval" subsection ("All tools exposed by SkillsProvider (load_skill, read_skill_resource, and run_skill_script) require approval by default." — hmm, word count: that's 20 words. Let me count: All(1) tools(2) exposed(3) by(4) SkillsProvider(5) (load_skill,(6) read_skill_resource,(7) and(8) run_skill_script)(9) require(10) approval(11) by(12) default.(13) — 13 words plus parenthetical tokens. Fine.)
+  Or re-anchor the quote to the actual Security best practices subsection: "Agent Skills should be treated like any third-party code you bring into your project." (15 words).
+  And the MCP quote: "Only connect MCPSkillsSource to servers you have vetted and trust, and treat their responses as untrusted input." (17 words) — Python "MCP-based skills" Important callout.
+
+  Wait — precision check on line 1314: "All tools exposed by AgentSkillsProvider (load_skill, read_skill_resource, run_skill_script) require approval by default." That's the C# Tool approval subsection. Line 1436 Python variant includes "and" and "request.to_function_approval_response". Either works as verbatim.
+
+  ## Paraphrase (clearly marked)
+  The subsection's guidance in my own words...
+
+  ## Confidence and gaps
+  - High confidence subsection lacks the staged sentence (extractor preserves document order; single heading occurrence).
+  - Extraction artifact caveat: line 1790 shows "project.Because" concatenated — likely extractor whitespace loss; I quoted only up to "project." Also the dash usage "-" instead of em dash — normalized by extractor; quotes used should avoid the dash-containing spans or accept the ASCII dash as served... Actually for --fetch substring checks, dash normalization matters: line 907 contains " - " ASCII dashes in the extracted text. The actual HTML may use "-" too. Unresolved: byte-level fidelity of dashes. Mark as a small gap for whoever writes the `--fetch` greps: prefer dash-free spans (my proposed quotes are dash-free).
+  - S146 Japanese-page relationship: not verified (out of scope).
+  - I could not write the report file (scout is read-only; no write tool); L1 should land it at the trailer path.
+
+  Report: .ufo/waves/round-68/w1/ScoutMsAgentFramework.md
+
+  Word counts for the quotes I cite:
+  - "All three skill tools require approval by default" → 8 words. ✓
+  - "Only connect MCPSkillsSource to servers you have vetted and trust, and treat their responses as untrusted input." → Only(1) connect(2) MCPSkillsSource(3) to(4) servers(5) you(6) have(7) vetted(8) and(9) trust,(10) and(11) treat(12) their(13) responses(14) as(15) untrusted(16) input.(17) → 17 words ✓
+  - "Agent Skills should be treated like any third-party code you bring into your project." → Agent(1) Skills(2) should(3) be(4) treated(5) like(6) any(7) third-party(8) code(9) you(10) bring(11) into(12) your(13) project.(14) → 14 words ✓
+  - "All tools exposed by AgentSkillsProvider (load_skill, read_skill_resource, run_skill_script) require approval by default." → All(1) tools(2) exposed(3) by(4) AgentSkillsProvider(5) load_skill(6) read_skill_resource(7) run_skill_script(8) require(9) approval(10) by(11) default(12) → 12–15 tokens ✓
+
+  The primary requested quote (≤25 words) = the staged one: "All three skill tools require approval by default". I'll lead with it.
+
+  Also cite the page as markdown link: [Agent Skills - Microsoft Agent Framework](https://learn.microsoft.com/en-us/agent-framework/agents/skills).
+
+  Keep it tight.
+
+• ## Axes named
+  (a) verbatim fidelity of staged S201 quote vs live page; (b) anchor correctness (does the quote live where the row says it lives); (c) report completeness; (d) read-only bounds. All cheap reads ran in one batch; the verification greps ran in a second batch against the saved fetch output. No writes performed (scout is a read-only seat and has no write tool) — the L1 lands the report at the trailer path below.
+
+  ## Source opening — S201 verification
+
+  **Exact URL fetched:** `https://learn.microsoft.com/en-us/agent-framework/agents/skills` ([Agent Skills — Microsoft Agent Framework](https://learn.microsoft.com/en-us/agent-framework/agents/skills)) — **access date 2026-10-24**. Fetch succeeded: main text extracted, 90,193 chars, saved to `/home/vgpnk/.kimi-code/sessions/wd_kotoba-shokunin_dbf35917deb4/session_0e0f2885-e49f-4a8d-9b36-42d248beb6c2/agents/main/tool-results/FetchURL-call_badbf9d3c3b449ed83bab86b-07ad9753-6c51-4e15-9cdd-509a549feec3.txt` (all line numbers below are from that extracted text).
+
+  **Heading:** `Security best practices` — found at extracted line **1789**, the only occurrence in the page (single subsection, near the end, after "Tool approval" at 1312).
+
+  **The staged quote (≤25 words):** "All three skill tools require approval by default" (8 words).
+
+  **Does the staged quote occur VERBATIM?** Split verdict, both halves evidenced:
+
+  - **Verbatim on the page: YES** — exactly twice, extracted lines **147** and **179** (the .NET and Python harness-registration passages: "All three skill tools require approval by default. The harness tool-approval middleware is enabled by default, but its default options don't auto-approve any tool. Use AgentSkillsProvider.ReadOnlyToolsAutoApprovalRule or AgentSkillsProvider.AllToolsAutoApprovalRule only for skill sources you trust." / "…pass a session on every run and use auto_approval_rules for trusted read-only or all-tool approval policies."). The "Tool approval" subsection carries near-variants: line 1314 "All tools exposed by AgentSkillsProvider (load_skill, read_skill_resource, run_skill_script) require approval by default." (C#) and line 1436 (Python, same shape).
+  - **Verbatim inside the "Security best practices" subsection: NO.** The subsection's entire body (extracted lines 1790–1795) is an intro sentence plus four bullets — Review before use, Source trust, Sandboxing, Audit and logging. It contains neither the approval-by-default sentence nor any MCP sentence. The staged MCP-source sentence exists elsewhere: extracted line **907**, a Python "MCP-based skills" Important callout: "Only connect MCPSkillsSource to servers you have vetted and trust, and treat their responses as untrusted input." (17 words) — ~880 lines *before* the security subsection, not "following" the approval sentence.
+
+  **Surrounding security guidance (PARAPHRASE, my own words):** The subsection tells integrators to treat a skill like any third-party dependency: read everything it ships (instructions, scripts, resources) and check scripts do what they claim while watching for adversarial instructions; install only from trusted, provenance-clear authors (beware typosquats); run script-bearing skills sandboxed with least filesystem/network access and explicit confirmation for sensitive operations; and log which skills, resources, and scripts ran so behavior is traceable. The approval-default guidance the row actually points at lives in other subsections: the three skill tools (`load_skill`, `read_skill_resource`, `run_skill_script`) pause for human approval before executing, auto-approval rules should be granted only for trusted sources, and MCP-served skill content — including archive scripts, which are never executed as scripts — must come only from vetted servers and be handled as untrusted input.
+
+  **Fact vs inference vs gaps:**
+  - *Facts:* the fetch, the heading at line 1789, the four bullets, the two verbatim approval sentences at 147/179, the MCP untrusted-input sentence at 907, all quoted above from the saved output.
+  - *Inference (high confidence):* the S201 anchor's section attribution is wrong — extraction preserves document order, and there is one heading occurrence, so the staged sentence is not in that subsection. This is a **mis-anchored located-quote column, not a fabrication**: both quoted sentences genuinely exist on the same live page, and a `--fetch` substring check for either would pass.
+  - *Gaps:* (1) byte-level dash fidelity — the extractor renders some dashes as ASCII `-` (e.g., line 907), so `--fetch` greps should use dash-free spans; my proposed replacement quotes are dash-free. (2) Line 1790 shows "project.Because" run together — extractor whitespace loss; the safe verbatim span is "Agent Skills should be treated like any third-party code you bring into your project." (14 words, dash-free, inside the subsection). (3) The S201→S146 English/Japanese upstream claim is unverified — out of this seat's scope.
+
+  **Fix for the L1 before appending S201** (pick one consistent anchor; never arithmetic): either keep the approval quote and re-anchor it to the "Tool approval" subsection (quote: "All tools exposed by AgentSkillsProvider (load_skill, read_skill_resource, run_skill_script) require approval by default."), pairing it with the line-907 MCP quote re-anchored to "MCP-based skills"; or keep the "Security best practices" subsection and quote its own opening sentence (the 14-word span above). As staged, the row would not survive a hand-check of the located quote at the named heading — the exact failure class this round's quarantine step exists to catch.
+
+  **Lane bounds honored:** read-only; no files written; `/home/vgpnk/Projects/shokuknow` only read via Grep; plan read first; the fetch output used only from the tool-result store.
+
+  Report: .ufo/waves/round-68/w1/ScoutMsAgentFramework.md
+
+To resume this session: kimi -r session_0e0f2885-e49f-4a8d-9b36-42d248beb6c2

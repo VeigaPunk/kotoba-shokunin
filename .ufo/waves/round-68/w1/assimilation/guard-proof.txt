@@ -1,0 +1,33 @@
+Guard non-vacuousness proof — round 68, item 10 (id-collision check)
+Scratch fixture only; nothing under corpus/ was written.
+
+Fixture: .ufo/waves/round-68/w1/assimilation/fixture-registry.md
+Colliding id used: S130 (head -1 of staged-ids)
+Fixture bytes:
+
+| id | source | kind |
+|---|---|---|
+| S001 | a normal column-zero registry row | docs |
+  | S130 | an INDENTED colliding row (two leading spaces) | docs |
+
+(row 4 carries TWO leading spaces before the pipe)
+
+--- Pattern A: census parser pattern, 0-3 leading spaces ---
+command:
+  grep -nE '^ {0,3}\|[[:space:]]*S[0-9]{3,}' fixture-registry.md
+output (catches BOTH rows):
+3:| S001 | a normal column-zero registry row | docs |
+4:  | S130 | an INDENTED colliding row (two leading spaces) | docs |
+
+--- Pattern B: column-zero-only pattern (^\\|) ---
+command:
+  grep -nE '^\|[[:space:]]*S[0-9]{3,}' fixture-registry.md
+output (MISSES the indented colliding row):
+3:| S001 | a normal column-zero registry row | docs |
+
+Verdict: Pattern A extracts 2 ids {S001, S130}; Pattern B extracts 1 id {S001}.
+Pattern B would silently miss an indented row whose id collides with a staged id,
+so the collision set it computes would be falsely empty. The 0-3-space pattern
+CATCHES it. The frozen check's use of the 0-3-space pattern is therefore
+non-vacuous: the guard has discriminating power exactly where the naive
+column-zero pattern fails.

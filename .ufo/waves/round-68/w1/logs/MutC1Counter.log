@@ -1,0 +1,908 @@
+kimi version 2.3.1
+• Let me start by reading the frozen plan and the draft counter file. I need to work under Godspeed posture: name the axes, iterate cheap in parallel, scratch copies under /tmp, read-only with respect to the lane tree.
+
+  Let me first read the plan and the draft in parallel.ls: cannot access '/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/drafts/': No such file or directory
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/:
+assimilation
+logs
+swarm-registry.json
+The draft counter doesn't exist yet. The tasking says: "read it; if it is not there yet, say so and state which mutants you would run."
+
+  But per Godspeed posture, let me not stall — let me check whether the counter exists elsewhere (maybe under `verifiers/` in the working tree, or maybe another wave directory), and poll briefly. Actually the instruction says: if it is not there yet, say so and state which mutants I would run. Let me do a quick check of what exists — maybe there's a draft elsewhere under the wave dir or the executor seat has produced it somewhere. Let me check the w1 dir contents more deeply and also poll for a short time since it may be being written concurrently by the executor seat.
+
+  Let me look at the directory structure to understand. Also, check whether `verifiers/check_client_trust_gates.py` exists in the lane tree (read-only for me — I must not modify, but can read). Also check base rev and what the C1 landed shape would be.
+
+  I'll do a quick parallel batch:
+  1. Deep listing of .ufo/waves/round-68/ recursively.
+  2. Glob for check_client_trust_gates.py anywhere under the lane.
+  3. Wait/poll briefly (sleep and re-check drafts dir a couple times).
+
+  Also, to "state which mutants I would run", I can prepare the mutation battery: mutants (a)–(i) as specified. I should also look at what the landed shape would be: `corpus/knowledge/client-trust-gates-round68.md` entry with per-client table, SOURCES.md rows with `status: mined`, coverage map row in `corpus/README.md`, etc. The mutants map onto those structures.
+
+  Since the draft doesn't exist yet, maybe the executor will write it soon. I could wait a bit (e.g., poll for up to ~60-120 seconds) then proceed. The instruction explicitly allows "say so and state which mutants you would run" if not there. But to maximize value, let me poll a few times over a short window. Let me first explore.
+
+• The plan is read. The draft counter is not present yet. Let me check the wave tree thoroughly and poll briefly in case the executor seat lands it mid-flight./home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/receipts/C1-measure.txt
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/receipts/C1-base.txt
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/receipts/C1-selftest.txt
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/receipts/C2-baseline-measure.json
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/controls/C2-base-integrity.txt
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/controls/C2-base-independent.json
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1-spec.json
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/swarm-registry.json
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/logs/ExecC1Counter.log
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/logs/ExecC1CounterTest.log
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/logs/ExecC1Fetch.log
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/logs/ScribeC1Entry.log
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/logs/ScribeC1Sources.log
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/logs/ScoutVtcode.log
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/logs/ScoutParallel.log
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/logs/ScoutKilo.log
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/logs/ScoutMsAgentFramework.log
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/logs/ScoutMistral.log
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/logs/ExecCollision.log
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/logs/ExecTransform.log
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/logs/ScribeGate.log
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/logs/ScribeC2Erratum.log
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/logs/ExecC2Baseline.log
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/logs/ScribeC2Index.log
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/logs/ExecR67Repairs.log
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/logs/ScoutQuarantine1.log
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/logs/ScoutQuarantine2.log
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/logs/ScoutQuarantine3.log
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/logs/ScoutConsiderthese.log
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/logs/ScoutPlanWalk.log
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/logs/ReviewC1Counter.log
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/logs/ReviewC1Entry.log
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/logs/CriticC1Predicate.log
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/logs/CriticC2Predicate.log
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/logs/MutC1Counter.log
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/logs/MutR67Repairs.log
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/logs/RevC1Scope.log
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/logs/RevC2Honesty.log
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/logs/SentinelC1.log
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/logs/ConnectorCensus.log
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/assimilation/sources-append-block.md
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/reg-ids
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/staged-ids
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/collisions
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/validate/corpus/knowledge/agent-def-audit-round6.md
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/validate/corpus/knowledge/agent-defs-commands-and-round-prompts.md
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/validate/corpus/knowledge/alwayson-checklist-round7.md
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/validate/corpus/knowledge/checklist-execution-round15.md
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/validate/corpus/knowledge/checklist-execution-round16.md
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/validate/corpus/knowledge/claim-census-round12.md
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/validate/corpus/knowledge/claim-scope-audit-round9.md
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/validate/corpus/knowledge/cold-run-round11.md
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/validate/corpus/knowledge/corpus-integrity-round11.md
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/validate/corpus/knowledge/dispatch-prompt-audit-round7.md
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/validate/corpus/knowledge/fleet-skill-audit-round5.md
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/validate/corpus/knowledge/frontmatter-trigger-surface.md
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/validate/corpus/knowledge/harness-router-models-round9.md
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/validate/corpus/knowledge/harness-system-prompt.md
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/validate/corpus/knowledge/instruction-surface-remeasure-round13.md
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/validate/corpus/knowledge/opencode-extraction-round14.md
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/validate/corpus/knowledge/opencode-offer-trace-round8.md
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/validate/corpus/knowledge/render-mechanism-round7.md
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/validate/corpus/knowledge/sibling-description-rewrites-round8.md
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/validate/corpus/knowledge/skill-activation-telemetry.md
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/validate/corpus/knowledge/trigger-miss-proxy-round6.md
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/validate/corpus/knowledge/sibling-citation-routing-round21.md
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/validate/corpus/knowledge/checklist-execution-round17.md
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/validate/corpus/knowledge/fail-closed-and-anti-patterns.md
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/validate/corpus/knowledge/harness-independent-round37.md
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/validate/corpus/knowledge/harness-verifier-round10.md
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/validate/corpus/knowledge/independent-verification-round12.md
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/validate/corpus/knowledge/sibling-citation-routing-round16.json
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/validate/corpus/knowledge/sibling-citation-routing-round16.md
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/validate/corpus/knowledge/substrate-pin-guard-round23.md
+/home/vgpnk/Projects/shokunin/koto
+ba-shokunin/.ufo/waves/round-68/assimilation/validate/corpus/knowledge/harness-independent-round41-census.md
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/validate/corpus/knowledge/frontmatter-rule-authorities-round48.md
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/validate/corpus/knowledge/skill-selection-rules-round50.md
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/validate/corpus/knowledge/sibling-overlap-census-round49.md
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/validate/corpus/knowledge/skill-overlap-levers-round51.md
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/validate/corpus/knowledge/mcp-server-instructions-round52.md
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/validate/corpus/knowledge/alwayson-rule-files-round53.md
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/validate/corpus/knowledge/agents-md-and-dispatch-surfaces.md
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/validate/corpus/knowledge/claude-md-surface.md
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/validate/corpus/knowledge/instruction-surface-census-round13.md
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/validate/corpus/knowledge/skill-listing-thresholds-round54.md
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/validate/corpus/knowledge/explicit-invocation-round55.md
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/validate/corpus/knowledge/agent-definition-files-round56.md
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/validate/corpus/knowledge/plugin-manifests-round57.md
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/validate/corpus/knowledge/command-files-round58.md
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/validate/corpus/knowledge/hook-files-round59.md
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/validate/corpus/knowledge/anatomy-and-compression.md
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/validate/corpus/knowledge/scoped-rules-round60.md
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/validate/corpus/knowledge/scoped-rules-counter-round61.md
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/validate/corpus/knowledge/writing-revision-calibration-round61.md
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/validate/corpus/knowledge/erratum-absorption-round62.md
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/validate/corpus/knowledge/compound-clause-citation-round63.md
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/validate/corpus/knowledge/g7-span-pinning-round64.md
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/validate/corpus/knowledge/g7-span-closure-round65.md
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/validate/corpus/knowledge/fleet-commit-resolution-round66.md
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/assimilation/validate/corpus/knowledge/instruction-authority-ladder-round67.md
+baseline.json
+box_proof_case_deletion.py
+check_agentdef_boxes.py
+check_agent_definitions.py
+check_alwayson_boxes.py
+check_assertion_floors.py
+check_callee_rename.py
+check_client_trust_gates.py
+check_command_files.py
+check_correction_sweep.py
+check_could_not_evaluate.py
+check_description_thresholds.py
+check_erratum_absorption.py
+check_explicit_invocation.py
+check_gate_finding_delta.py
+check_gate_registry.py
+check_hook_files.py
+check_infoless_fences.py
+check_instruction_authority.py
+checklist-baseline.json
+checklist-command-vocabulary.json
+check_mcp_instructions.py
+check_opencode_repin.py
+check_overlap_levers.py
+check_plugin_manifests.py
+check_r63_routed_repairs.py
+check_r64_routed_repairs.py
+check_r66_routed_repairs.py
+check_r67_routed_repairs.py
+check_routed_repairs.py
+check_routed_repairs_v2.py
+check_scoped_rules.py
+check_scoped_rules_v31.py
+check_scoped_rules_v32.py
+check_seat_counts.py
+check_sibling_census.py
+check_sources_append_only.py
+check_substrate_pins.py
+check_sweep_mutants.py
+compare_harness_independent.py
+corpus-baseline.json
+fault_injection_corpus.sh
+fixtures
+floors-registry.json
+harness-independent-scope.json
+__pycache__
+README.md
+surfaces-baseline.json
+verify_alwayson.py
+verify_corpus_independent.py
+verify_corpus_integrity.py
+verify_dispatch_prompts.py
+verify_harness_claims.py
+verify_harness_independent.py
+verify_skill_checklist.py
+verify_surfaces.py
+605b84b round-68: C1 depth client trust gates (entry, S198-S202, counter) and C2 consistency routed r67 repairs (index row, errata, counter)
+{
+  "schema": "ufo-swarm-registry-v1",
+  "wave": "kotoba-r68-w1",
+  "createdAt": "2026-10-25T01:59:05.049Z",
+  "updatedAt": "2026-10-25T01:59:05.049Z",
+  "reportDir": ".ufo/waves/round-68/w1",
+  "members": {
+    "ExecC1Counter": {
+      "kind": "spawn",
+      "agentId": null,
+      "role": "executor",
+      "item": null,
+      "axes": [
+        "depth"
+      ],
+      "milestone": "Round-68 wave 1 (build): two frozen claims — C1 depth (client trust gates, sourced) and C2 consistency (the routed r67 repairs) — plus the frontier step and the item-10 assimilation."
+    },
+    "ExecC1CounterTest": {
+      "kind": "spawn",
+      "agentId": null,
+      "role": "executor",
+      "item": null,
+      "axes": [
+        "depth"
+      ],
+      "milestone": "Round-68 wave 1 (build): two frozen claims — C1 depth (client trust gates, sourced) and C2 consistency (the routed r67 repairs) — plus the frontier step and the item-10 assimilation."
+    },
+    "ExecC1Fetch": {
+      "kind": "spawn",
+      "agentId": null,
+      "role": "executor",
+      "item": null,
+      "axes": [
+        "depth",
+        "freshness"
+      ],
+      "milestone": "Round-68 wave 1 (build): two frozen claims — C1 depth (client trust gates, sourced) and C2 consistency (the routed r67 repairs) — plus the frontier step and the item-10 assimilation."
+    },
+    "ScribeC1Entry": {
+      "kind": "spawn",
+      "agentId": null,
+      "role": "scribe",
+      "item": null,
+      "axes": [
+        "depth"
+      ],
+      "milestone": "Round-68 wave 1 (build): two frozen claims — C1 depth (client trust gates, sourced) and C2 consistency (the routed r67 repairs) — plus the frontier step and the item-10 assimilation."
+    },
+    "ScribeC1Sources": {
+      "kind": "spawn",
+
+
+• The working tree already has `verifiers/check_client_trust_gates.py` landed (commit `605b84b` — "round-68: C1 depth client trust gates (entry, S198-S202, counter) and C2 consistency routed r67 repairs"). But my task is specifically to mutation-test the DRAFT at `.ufo/waves/round-68/w1/drafts/check_client_trust_gates.py`. The draft directory doesn't exist yet.
+
+  There is a `MutC1Counter.log` in the logs dir — that might be my own log file (from a previous attempt or the seat's log). Let me check it. Also, the executor seat may be writing the draft concurrently. Let me poll for the draft file — the tasking says if it's not there yet, say so and state which mutants I would run. But first, let me give it a short poll window since the log dir shows ExecC1Counter ran.
+
+  Wait — the git log shows commit 605b84b already landed the counter in `verifiers/`. So the executor seat may have landed the counter directly in verifiers/ and the draft may never appear, OR the draft appears later. The tasking says the draft should be at `.ufo/waves/round-68/w1/drafts/check_client_trust_gates.py`.
+
+  Important: the task says "Mutate the smallest behavior-bearing point in the assigned isolated scratch copy; never modify a sibling's source during a concurrent wave." And "Read-only with respect to the lane tree." So I must NOT test against `verifiers/check_client_trust_gates.py` in the lane tree by mutating it — but I can READ the lane's landed counter to understand the spec, and... hmm, the task explicitly says to mutate the draft. The draft isn't there.
+
+  Options:
+  1. Poll for the draft for a short time.
+  2. If it never appears, say so and state which mutants I would run.
+
+  But I can also make progress: the landed `verifiers/check_client_trust_gates.py` exists in the lane tree. I can copy it (read-only copy) to /tmp and run the mutation battery against a scratch copy — that gives the fleet real mutation evidence on the same behavior-bearing point, while leaving the lane tree untouched. However, the tasking is specific: test the DRAFT. If the draft is absent, "say so and state which mutants you would run."
+
+  Best move: poll briefly (the draft may be written while I work), and in parallel, read the landed counter in verifiers/ to understand the exact conjunct structure so my mutant battery is precise. If the draft shows up, run the battery against the draft (copied to /tmp). If not, run the battery against a /tmp copy of the landed counter as a best-effort proxy (clearly labeled), AND state which mutants I would run.
+
+  Wait — careful. "Scratch copies only, under /tmp. Read-only with respect to the lane tree." Copying to /tmp and mutating the copy is fine. The mutation-tester role: "Mutate the smallest behavior-bearing point in the assigned isolated scratch copy". The assigned draft is absent; the landed counter is the same behavior-bearing point. Testing the landed counter copy in /tmp is valuable and doesn't harm anyone. But I must be careful about "never modify a sibling's source during a concurrent wave" — I'm copying, not modifying. That's fine.
+
+  Also check MutC1Counter.log — that's probably my own seat's log (the L1 pre-created log files?). Let me read it, plus the ExecC1Counter logs and receipts to understand what the counter does and what's already been validated.
+
+  Let me do a parallel batch:
+  1. Read /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/check_client_trust_gates.py
+  2. Read MutC1Counter.log, ExecC1Counter.log, ExecC1CounterTest.log
+  3. Read receipts C1-measure.txt, C1-base.txt, C1-selftest.txt
+  4. Poll: ls the drafts dir again after a sleep (chained later).
+
+• The lane tree already has the landed `verifiers/check_client_trust_gates.py` (commit `605b84b`), but the **draft** path is absent. Let me read the landed counter (read-only) plus the seat logs/receipts, and poll for the draft.=== .ufo/waves/round-68/w1/logs/MutC1Counter.log ===
+      "kind": "spawn",
+
+
+• The working tree already has `verifiers/check_client_trust_gates.py` landed (commit `605b84b` — "round-68: C1 depth client trust gates (entry, S198-S202, counter) and C2 consistency routed r67 repairs"). But my task is specifically to mutation-test the DRAFT at `.ufo/waves/round-68/w1/drafts/check_client_trust_gates.py`. The draft directory doesn't exist yet.
+
+  There is a `MutC1Counter.log` in the logs dir — that might be my own log file (from a previous attempt or the seat's log). Let me check it. Also, the executor seat may be writing the draft concurrently. Let me poll for the draft file — the tasking says if it's not there yet, say so and state which mutants I would run. But first, let me give it a short poll window since the log dir shows ExecC1Counter ran.
+
+  Wait — the git log shows commit 605b84b already landed the counter in `verifiers/`. So the executor seat may have landed the counter directly in verifiers/ and the draft may never appear, OR the draft appears later. The tasking says the draft should be at `.ufo/waves/round-68/w1/drafts/check_client_trust_gates.py`.
+
+  Important: the task says "Mutate the smallest behavior-bearing point in the assigned isolated scratch copy; never modify a sibling's source during a concurrent wave." And "Read-only with respect to the lane tree." So I must NOT test against `verifiers/check_client_trust_gates.py` in the lane tree by mutating it — but I can READ the lane's landed counter to understand the spec, and... hmm, the task explicitly says to mutate the draft. The draft isn't there.
+
+  Options:
+  1. Poll for the draft for a short time.
+  2. If it never appears, say so and state which mutants I would run.
+
+  But I can also make progress: the landed `verifiers/check_client_trust_gates.py` exists in the lane tree. I can copy it (read-only copy) to /tmp and run the mutation battery against a scratch copy — that gives the fleet real mutation evidence on the same behavior-bearing point, while leaving the lane tree untouched. However, the tasking is specific: test the DRAFT. If the draft is absent, "say so and state which mutants you would run."
+
+  Best move: poll briefly (the draft may be written while I work), and in parallel, read the landed counter in verifiers/ to understand the exact conjunct structure so my mutant battery is precise. If the draft shows up, run the battery against the draft (copied to /tmp). If not, run the battery against a /tmp copy of the landed counter as a best-effort proxy (clearly labeled), AND state which mutants I would run.
+
+  Wait — careful. "Scratch copies only, under /tmp. Read-only with respect to the lane tree." Copying to /tmp and mutating the copy is fine. The mutation-tester role: "Mutate the smallest behavior-bearing point in the assigned isolated scratch copy". The assigned draft is absent; the landed counter is the same behavior-bearing point. Testing the landed counter copy in /tmp is valuable and doesn't harm anyone. But I must be careful about "never modify a sibling's source during a concurrent wave" — I'm copying, not modifying. That's fine.
+
+  Also check MutC1Counter.log — that's probably my own seat's log (the L1 pre-created log files?). Let me read it, plus the ExecC1Counter logs and receipts to understand what the counter does and what's already been validated.
+
+  Let me do a parallel batch:
+  1. Read /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/check_client_trust_gates.py
+  2. Read MutC1Counter.log, ExecC1Counter.log, ExecC1CounterTest.log
+  3. Read receipts C1-measure.txt, C1-base.txt, C1-selftest.txt
+  4. Poll: ls the drafts dir again after a sleep (chained later).
+
+• The lane tree already has the landed `verifiers/check_client_trust_gates.py` (commit `605b84b`), but the **draft** path is absent. Let me read the landed counter (read-only) plus the seat logs/receipts, and poll for the draft.=== .ufo/waves/round-68/w1/logs/MutC1Counter.log ===
+=== .ufo/waves/round-68/w1/logs/ExecC1Counter.log ===
+          if row is None:
+              lines.append(f"--fetch {sid}: no row — url unknown, not fetched")
+              continue
+          m = URL_RE.search(row[1])
+          if not m:
+              lines.append(f"--fetch {sid}: the row's source cell carries no URL — not fetched")
+              continue
+          url = m.group(0).rstrip('.,;:)\]}"\'')
+          sid_quotes = [q for q in quotes if q in _norm(row[5])] or quotes
+          try:
+              page = _norm(_live_page(url))
+          except Exception as exc:  # network failure: reported, never counted
+              lines.append(f"--fetch {sid}: unreachable ({type(exc).__name__}: {exc}) <{url}>")
+              continue
+          if any(q in page for q in sid_quotes):
+              found += 1
+              lines.append(f"--fetch {sid}: quote found <{url}>")
+          else:
+              lines.append(f"--fetch {sid}: quote NOT found on the live page <{url}>")
+      lines.insert(0, f"--fetch: quotes located on live pages: {found} of {len(src_lines)}")
+      return found, lines
+  ```
+
+  `sid_quotes = [...] or quotes` — if the anchor match fails (content broken), fall back to any entry quote for that id? Hmm — that weakens "confirms the located quote". Actually for fetch, the located quote per id should be the one bound to the id. If no quote is in the anchor, use quotes found near the id? Simplest honest: use anchor-shared quotes; if none, report `quote NOT found`-adjacent ambiguity... I'll keep fallback `or quotes` but it only fires in already-broken content states (verdict exit 1 anyway). Actually cleaner: if no anchor-shared quote, report `--fetch {sid}: no anchor-bound quote to check — not fetched`. Honest, no fallback. Let me do that.
+
+  main:
+
+  ```python
+  def _default_repo() -> Path:
+      here = Path(__file=== .ufo/waves/round-68/w1/logs/ExecC1CounterTest.log ===
+      return backed, findings
+  ```
+  → change semantics so any finding reduces the verdict below TOTAL. The most principled: `return min(backed, TOTAL - 1), findings`? Arbitrary. OR: verified-at/recheck/index are apparatus conjuncts — without them NOTHING is fully backed → return 0? Both defensible. Which does the frozen text suggest? "prints client trust gates backed N of 5, exit 0 when N == 5" — the predicate doesn't pin N for broken worlds; only base→0 and landing→5. So any reduction works for the predicate. But for the scorecard semantics ("backed N of 5" as a progress measure), keeping per-client signal (N=4) while exit!=0 preserves the most information... but then printed "5 of 5" with exit 1 would violate the letter of "exit 0 when N == 5". With N=4: "backed 4 of 5", exit 1 — letter preserved (exit 0 when N==5; N≠5 → exit≠0 — wait, the predicate only says exit 0 when N==5, not exit≠0 when N≠5... but the base control pins exit 1 at N=0, and honesty demands the mapping be a function). Cleanest: `min(backed, TOTAL-1)` keeps per-client info and keeps the printed line consistent with the exit. Hmm, but "min(backed, TOTAL-1)" is weird: a missing verified-at isn't a per-client failure.
+
+  Fix B (in main()): `return 0 if n == TOTAL and not findings else 1`. Then a no-verified-at world prints "backed 5 of 5" and exits 1. The printed line contradicts the exit — ugly, and the letter of the predicate ("exit 0 when N==5" — reads as iff) is strained.
+
+  Fix A with min-cap is best: printed line always consistent with exit; per-client signal preserved; every conjunct gates the verdict.
+
+  Hmm wait, actually, let me reconsider: is capping at TOTAL-1 honest as a *count*? "backed 4 of 5" would claim 4 clients fully backed — true per-client (each has row, quote, table) — the missing verified-at is entry-global, reflected in findings and the exit. Yes, honest.
+
+  But wait — should I even be modifying check()? My assignment: the self-test arm. But the self-test's mandate is "break each conjunct" — and three conjuncts currently don't break the verdict. If I ship a self-test asserting those worlds stay below TOTAL, my draft must ALSO carry the minimal check-path fix, else the draft is self-inconsistent (self-test fails against its own counter). Alternatives: assert only "findings non-empty" for those three worlds (passes against current check) — but then the self-test does NOT pin that the conjunct gates the EXIT — a dishonest gate: the counter would exit 0 on a no-verified-at world. The task says "drive the public main()/check path on ... broken world per conjunct" — the point is each conjunct KILLS the verdict. The r67 lesson is exactly about exit-code honesty. I'll implement Fix A (minimal, in check()) and pin all three worlds via public main() exit==1 + printed line `client trust gates backed 4 of 5` (for single-client breaks) or `... 0 of 5` (for global breaks if I chose return-0)... 
+
+  Decision on the cap value: For "no verified-at"/"no recheck"/"no coverage-map row" (entry-global apparatus breaks), what N? I'll go with: any findings → the verdict is not fully backed, and to keep printed-N == exit-consistency, cap at TOTAL-1... Hmm, hold on, let me think about which is MORE defensible to a reviewer: 
+
+  Option 1: `if findings: return min(backed, TOTAL-1), findings` — no-verified-at world prints "4 of 5". But NOTHING failed per-client! Claiming 4-of-5 when all 5 clients are individually backed is arguably LESS honest than 5-of-5+exit-1 or 0-of-5. Ugh.
+
+  Option 2: global apparatus failure → `return 0, findings` — "0 of 5, exit 1". Defensible: the claim is "the entry documents, sourced, verified, indexed" — verified-at and the coverage row are part of the grounding; without them the entry is not grounded → 0 backed. And it matches the base-control shape (0 of 5, exit 1). The findings list says exactly what's missing. I find Option 2 cleaner and easier to defend: apparatus conjuncts are conjuncts of the WHOLE verdict.
+
+  Hmm, but is "0 of 5" for a missing coverage row misleading (the per-client documentary content is all there)? The findings lines printed under it explain. The frozen base control is "0 of 5 exit 1" — same shape. OK going with Option 2 but ONLY when backed == TOTAL would otherwise be reported (i.e., only apparatus breaks): if backed < TOTAL already, keep backed (per-client signal) — no wait, that's inconsistent... Let me simplify:
+
+  ```python
+  if findings:
+      return (0 if backed == TOTAL else backed), findings
+  return backed, []
+  ```
+  Hmm, that's convoluted. Honest simple rule: "the verdict is fully backed only if every conjunct holds; the printed count carries per-client signal, capped at TOTAL-1 when any conjunct fails" vs "0". 
+
+  You know what — let me look at it from the SCORECARD/predicate angle once more. The claim closure line will be "client trust gates backed 5 of 5" exit 0. Partial worlds: any N<5 exit 1. Both options satisfy this. The mutation battery (wave 2 falsifiers) will attack: does each conjunct kill? The simplest defensible invariant to pin in the self-test: **any conjunct break → exit != 0 AND printed N < 5**. Both options satisfy it. I'll pick the cap-at-TOTAL-1 rule: `return min(backed, TOTAL - 1), findings` — no...
+
+  FINAL decision: Option 2 — apparatus/global conjunct failure → 0 backed. Rationale I can defend in one sentence: verified-at, recheck, and the coverage row are conjuncts of the entry's grounding as a whole; when the grounding apparatus fails, nothing is "backed" — mirrors the base control exactly (0 of 5, exit 1) and keeps the printed line a function of the verdict. Actually hmm, one more consideration — per-client breaks give n=4, exit 1 ("4 of 5"):
+=== .ufo/waves/round-68/receipts/C1-measure.txt ===
+=== C1 counter at the content commit ===
+client trust gates backed 0 of 5
+  - S198: the per-client table row does not carry the located quote
+  - S199: the per-client table row does not carry the located quote
+  - S200: the per-client table row does not carry the located quote
+  - S201: the per-client table row does not carry the located quote
+  - S202: the per-client table row does not carry the located quote
+exit=1
+=== .ufo/waves/round-68/receipts/C1-base.txt ===
+=== C1 at the base e94ae32a ===
+client trust gates backed 0 of 5
+  - entry missing: corpus/knowledge/client-trust-gates-round68.md
+exit=1
+=== .ufo/waves/round-68/receipts/C1-selftest.txt ===
+=== C1 self-test ===
+PASS honest world: backed 5 of 5
+PASS broken world rejected: entry missing
+PASS broken world rejected: no source line
+PASS broken world rejected: id does not resolve
+PASS broken world rejected: row not mined
+PASS broken world rejected: source cell absent from the entry
+PASS broken world rejected: no verified-at
+PASS broken world rejected: no recheck
+PASS broken world rejected: no coverage-map row
+PASS broken world rejected: quote not in the anchor cell
+PASS broken world rejected: table row loses the quote
+PASS missing-entry classification: backed 0 (content verdict)
+self-test: 0 failure(s) over 12 assertions
+exit=0
+
+
+• The MutC1Counter.log is my own session log (the L1 is tee-ing my output there). The draft at `.ufo/waves/round-68/w1/drafts/check_client_trust_gates.py` doesn't exist. The executor's work landed directly at `verifiers/check_client_trust_gates.py` in commit `605b84b`.
+
+  Per tasking: "read it; if it is not there yet, say so and state which mutants you would run."
+
+  But Godspeed: don't stall. The landed counter is the same behavior-bearing point, and the task's spirit is: mutation-test the C1 counter. The safest move that harms nothing:
+  1. Poll briefly once more for the draft.
+  2. Regardless, run the full mutant battery (a)–(i) against scratch copies under /tmp. If the draft appears, use it. If not, use a /tmp copy of the landed counter and clearly label that the assigned draft was absent, plus state which mutants I would run (which I will have actually run against the landed bytes).
+
+  The mutant battery per the tasking:
+  - (a) the entry's `source:` block moved out of the opening position → counter must reject. Hmm — does the landed counter check position? `_entry_source_lines` matches `SOURCE_LINE_RE` anywhere in the file (`text.splitlines()`), not just at the opening. Moving the `source:` lines to the bottom would still match. Interesting — this mutant might SURVIVE on the landed counter. Wait, let me check the landed counter again: `_entry_source_lines(entry)` iterates all lines. There's no "opening position" check. So mutant (a) as literally specified (moved out of the opening position) would survive — the counter doesn't enforce position. Hmm. But wait — maybe "opening position" matters for another reason... The docstring says "it opens with `source:` lines naming the five `S###` ids" — contract conjunct 2 says "it opens with `source:` lines". But the code doesn't enforce "opens with"! That's a potential defect finding: the docstring claims a conjunct the code doesn't check. So mutant (a) is expected to SURVIVE against the landed counter → a coverage finding. Interesting!
+
+  Actually wait — let me think. Is this my job? My job: for each conjunct, construct the mutant that breaks exactly that conjunct and check the counter REJECTS it. The task lists (a) as "the entry's `source:` block moved out of the opening position". If the counter doesn't enforce the opening position, the mutant survives → verdict SURVIVED → coverage finding. That's a legit mutation-testing result: "A surviving mutant is a coverage finding, not permission to change the contract."
+
+  Let me verify: does the counter have any positional check on `source:` lines? Reading `_entry_source_lines`: no. So (a) will survive. Unless... moving the block also breaks something else? If I move the entire `source:` lines from the top to the bottom of the entry, all checks still pass: src_lines found, ids resolved, rows mined, source cells in src_lines, quotes, table rows, verified-at, recheck, indexed. So yes → SURVIVES.
+
+  Hmm wait, but the tasking says "construct the mutant that breaks exactly that conjunct in a scratch copy and check that the counter REJECTS it". The frozen docstring conjunct 2: "it opens with `source:` lines naming the five `S###` ids". If the counter doesn't reject, that's the finding. Fine — record honestly.
+
+  - (b) one row's `status` changed from `mined` to `queued` → row[7] != "mined" → finding → backed 4 → exit 1. Wait — need to check the SOURCES.md schema: which column is status? In `_source_rows`, cells[0]=S### id, cells[7] = status (checked `row[7] != "mined"`). The self-test does `l.replace("| mined |", "| queued |", 1)` for the S198 row — replacing the first "| mined |" occurrence in the row. Need to check the actual SOURCES.md row layout to construct the mutant precisely (the first `| mined |` in the line might not be column 7 if an earlier cell contains "mined"). Let me read the actual SOURCES.md rows S198–S202.
+
+  - (c) one row's `source` cell altered so the entry's source line no longer matches it verbatim → check `row[1] not in src_lines[sid]` → finding. Note: it's a substring check (row cell in entry line), so the mutant must alter the ROW's source cell (not the entry line).
+
+  - (d) one located quote removed from the row's `anchor` cell → `matched` empty → finding.
+
+  - (e) the `verified-at:` date changed → global finding → 0 backed, exit 1.
+
+  - (f) the coverage-map index row renamed to another file → `_indexed` false → global finding → exit 1.
+
+  - (g) one client row's client name changed so it does not match the table... wait, the tasking says "one client row's client name changed so it does not match the table". Hmm — re-read: "(g) one client row's client name changed so it does not match the table". Actually in the entry, the per-client table's client cell emptied → `not table_row[0].strip()` → finding. The landed counter checks the client cell is FILLED, not that it matches anything else (there's no external client table to match — the entry itself carries the per-client table). Hmm, "changed so it does not match the table" — maybe means the client cell emptied. The landed counter rejects an empty client cell. Let me construct: clear the client cell of the S198 row in the entry's table → `table_row[0].strip()` empty → finding → exit 1. PASS expected.
+
+  - (h) the whole entry deleted → must print `0 of 5` and exit 1, NOT exit 2. The landed counter: `_materialize` skips missing ENTRY → check(root) → entry missing → return 0, ["entry missing: ..."] → prints "client trust gates backed 0 of 5" + finding, exit 1. PASS expected. But note: with `--rev`, the counter materializes from git. For the scratch run I need a git repo with a rev carrying the mutated entry... Simpler: run the counter against a scratch world directory via `check()` directly (like the self-test's `_world`), or run the counter with `--repo <scratch-tree>` without `--rev` (the no-rev branch reads the working tree of `--repo`). The counter supports `--repo`. That's the cleanest scratch harness: build a full mini-repo tree in /tmp (corpus/knowledge/entry, corpus/SOURCES.md, corpus/README.md), copy the counter to /tmp, and run `python3 -B /tmp/.../check_client_trust_gates.py --repo /tmp/.../world`. For mutant (h): drop the entry → expect "0 of 5", exit 1.
+
+    Also for (i) unknown revision: `--rev <bogus-sha>` → `_materialize` → `_git_show` returns None for SOURCES → raise EnvError("cannot read corpus/SOURCES.md at <rev>") → exit 2. Must run inside a real git repo (or the lane repo read-only — running `git show` in the lane repo is read-only, fine). The counter's `--repo` default is the parent of the script's dir; with the script copied to /tmp, `--repo` default breaks — pass `--repo /home/vgpnk/Projects/shokunin/kotoba-shokunin` explicitly for (i). `git show bogusrev:path` in the lane repo → returncode != 0 → None → EnvError → exit 2. PASS expected. Wait — careful: `git -C repo show deadbeef...:corpus/SOURCES.md` — for an unknown revision git exits 128 → proc.returncode != 0 → None. Good. EnvError raised on SOURCES (first path iterated is ENTRY, which returns None → continue since path == ENTRY... wait: ENTRY missing at the bogus rev → `continue`; then SOURCES → None → raise EnvError. Exit 2. 
+
+    Note: the tasking says (i) must exit 2. 
+
+  Now, which conjunct does each mutant "exactly break", and does the counter reject? Also (a) — let me first look at the actual entry file to see the opening position of `source:` lines.
+
+  Also important: the frozen predicate's mainline: pristine world must give "backed 5 of 5", exit 0 — baseline. Let me verify the pristine world first (baseline sanity: a detector failure on pristine = inconclusive). The working tree at HEAD (605b84b) should give 5 of 5 per the self-test receipt. But the working tree may have moved (L1 may be mid-edit). Safer: build the pristine scratch world from `git show 605b84b:<path>` bytes? Hmm — read-only git commands are fine. Or just read the working tree files (read-only). The mutation-tester must test the counter against pristine, mutated, and restored bytes. Since I copy everything to /tmp, "restored" = re-run on the unmutated copy.
+
+  Plan:
+  1. Read the entry file `corpus/knowledge/client-trust-gates-round68.md` (working tree) to see structure (source: lines at top, verified-at, recheck, table).
+  2. Read the five SOURCES.md rows S198–S202 (grep).
+  3. Check the coverage-map row in corpus/README.md.
+  4. Build scratch harness under /tmp: copy counter, build pristine world, run baseline (expect 5 of 5 exit 0).
+  5. Run mutants a–i in separate scratch worlds, record exit codes + output.
+  6. Also poll for the draft file at intervals — if it appears, rerun the battery against it.
+  7. Write report to .ufo/waves/round-68/w1/MutC1Counter.md (my write scope allows writing under .ufo/waves/round-68/ — the tasking says report path .ufo/waves/round-68/w1/MutC1Counter.md; the write-scope section says writing seats write drafts under .../w1/drafts/ only, but the tasking explicitly says "Report: write your scoped findings to .ufo/waves/round-68/w1/MutC1Counter.md". The tasking's explicit report path wins — it's within .ufo/waves/round-68/ which is my write scope. Also there's already a MutC1Counter.log there being tee'd, so the L1 expects that path.)
+
+  Let me now read the entry + sources rows + README row, and poll for the draft, in one batch.
+
+• `MutC1Counter.log` is my own tee'd session log — the L1 expects my output there. The **assigned draft is absent**; the executor landed the counter directly at `verifiers/check_client_trust_gates.py` (commit `605b84b`). Godspeed: I will not stall — I'll run the full (a)–(i) battery against /tmp scratch copies of the landed bytes (the same behavior-bearing point), label the substitution, and state which mutants I would run against the draft if it lands mid-flight.
+
+  First, the ground truth the counter reads — entry, SOURCES rows, coverage-map row — plus a draft poll:139:| S198 | VT Code — SKILLS_GUIDE.md — https://raw.githubusercontent.com/vinhnx/vtcode/main/docs/skills/SKILLS_GUIDE.md | docs | B | VT Code's own documented activation envelope and its untrusted-content posture; one client's implementation, no claim about any other client | the "Activation Context" section; quote "Skill content is untrusted resource data; host tool and sandbox policy remains authoritative." (13 words) | a client that renders an activated skill as bounded untrusted data and subordinates it to the host's own tool and sandbox policy | mined | 2026-10-24 | 90d | corpus/knowledge/client-trust-gates-round68.md |
+140:| S199 | Parallel Works — pw code skills — https://parallelworks.com/docs/ai/code/skills | docs | B | Parallel Works' own two-gate trust model for project skills; one client's implementation, no claim about any other client | the "Trust" section; quote "Project skills are repository-controlled instructions, so they clear two independent gates." (12 words) | a project skill clears a workspace-level grant and a separate per-skill execution grant, and a model invocation can never grant either | mined | 2026-10-24 | 90d | corpus/knowledge/client-trust-gates-round68.md |
+141:| S200 | Kilo Code — Skills — https://kilo.ai/docs/customize/skills | docs | B | Kilo Code's own trusted-location rule for skill-embedded commands; one client's implementation, no claim about any other client | the "Shell commands in skills" section; quote "Project skills (.kilo/skills/ in a repository) and skills fetched from remote URLs never execute commands" (16 words) | commands embedded in a skill body execute only from trusted locations, and a project or remote-URL skill never executes them | mined | 2026-10-24 | 90d | corpus/knowledge/client-trust-gates-round68.md |
+142:| S201 | Microsoft Agent Framework — Agent Skills — https://learn.microsoft.com/en-us/agent-framework/agents/skills | docs | B | Microsoft's own approval default and review guidance for Agent Framework skills; one implementation, and the English upstream of the page the lane holds in Japanese | the "Security best practices" subsection; quote "Agent Skills should be treated like any third-party code you bring into your project." (13 words) | the skill tools require approval by default, and a skill is to be reviewed with the discipline of a third-party dependency | mined | 2026-10-24 | 90d | corpus/knowledge/client-trust-gates-round68.md |
+143:| S202 | Mistral AI Vibe — README — https://raw.githubusercontent.com/mistralai/mistral-vibe/main/README.md | docs | B | Mistral AI Vibe's own skill discovery and trusted-folder model; one client's implementation, no claim about any other client | the "Skill Discovery" section; quote "Standard Agent Skills path (project root, trusted folders only)" (9 words) | a project skill is discovered only inside a trusted folder, so the install path is part of what the skill can do | mined | 2026-10-24 | 90d | corpus/knowledge/client-trust-gates-round68.md |
+---README---
+128:| Client trust gates (round 68) | `knowledge/client-trust-gates-round68.md` | the other half of the skill-authority boundary: what five clients document about an UNTRUSTED skill body — VT Code subordinating the body to the host's own tool and sandbox policy (S198), Parallel Works' two independent trust gates (S199), Kilo Code's trusted-location rule for embedded commands (S200), the Agent Framework's approval-by-default skill tools (S201) and Mistral Vibe's trusted-folder discovery (S202), each re-opened 2026-10-24 with a located quote; counted by `verifiers/check_client_trust_gates.py --rev <rev>` |
+---draft poll---
+ls: cannot access '.ufo/waves/round-68/w1/drafts/'
+: No such file or directory
+---git status---
+ M verifiers/check_r67_routed_repairs.py
+?? .ufo/waves/round-68/controls/
+?? .ufo/waves/round-68/receipts/C1-fetch.txt
+?? .ufo/waves/round-68/receipts/C1-measure.txt
+?? .ufo/waves/round-68/receipts/C2-routed-measure.txt
+?? .ufo/waves/round-68/receipts/noharm-at-tip.txt
+?? .ufo/waves/round-68/w1-spec.json
+?? .ufo/waves/round-68/w1/
+cafa29d round-68: C1 counter — a revision without the entry is a content verdict (0 of 5, exit 1), not an environment error
+59ac5c6 round-68: C1 counter fix (located-quote selection, global-check classification) and the C2 census baseline re-record
+605b84b round-68: C1 depth client trust gates (entry, S198-S202, counter) and C2 consistency routed r67 repairs (index row, errata, counter)
+
+
+• The working tree has moved: HEAD is now `cafa29d` (two more commits after 605b84b, fixing the counter). The counter I read earlier was the working-tree version, which is presumably at cafa29d's state (git status shows `verifiers/check_client_trust_gates.py` is NOT modified — only `check_r67_routed_repairs.py` is modified). So the working-tree counter = cafa29d version. Good — I already read the current version (the Read tool read the working tree, which is at cafa29d for this file).
+
+  Wait, but the version I read has `_world` and `selftest` which the receipts reference. And the working tree matches HEAD for this file. Good.
+
+  Note: the working tree counter I read DOES have `_materialize` skipping missing ENTRY and `check()` returning 0 for missing entry. Also the located-quote selection: `quote = _norm(max(matched, key=len))`.
+
+  Now build the scratch harness under /tmp. The draft still doesn't exist. I'll proceed with the landed bytes (cafa29d = working tree) as the subject, clearly labeled.
+
+  Scratch harness plan (all under /tmp/mutc1):
+
+  ```
+  /tmp/mutc1/
+    counter.py            # pristine copy of verifiers/check_client_trust_gates.py
+    world-pristine/
+      corpus/knowledge/client-trust-gates-round68.md
+      corpus/SOURCES.md
+      corpus/README.md
+  ```
+
+  Run: `python3 -B /tmp/mutc1/counter.py --repo /tmp/mutc1/world-pristine` → expect "client trust gates backed 5 of 5", exit 0. (No `--rev`, so it reads the working tree of `--repo` directly.)
+
+  Then each mutant: a fresh world dir (copy of pristine) with one smallest edit, run, record stdout+exit.
+
+  Mutants per the tasking, mapped to the smallest behavior-bearing edit:
+
+  (a) entry's `source:` block moved out of the opening position — move lines 1–5 (`source:` lines) to the end of the file. The counter's `_entry_source_lines` scans all lines → should still find them → verdict 5 of 5 → SURVIVES (predicted). This is the coverage finding: the docstring contract conjunct 2 says "it opens with `source:` lines", but no code enforces the position.
+
+  (b) one row's status `mined`→`queued`: edit SOURCES row S199: the status is cell 8 (index 7). In the row text, replace the first `| mined |` in the S199 line... careful: does any earlier cell contain "| mined |"? Cells: S199 | Parallel Works — pw code skills — https://... | docs | B | description | the "Trust" section; quote ... | a project skill clears... | mined | 2026-10-24 | 90d | used-by. No earlier cell is exactly "| mined |". So sed-style replacement of first `| mined |` in that line hits cell 8. Expected: finding "S199: status is 'queued', expected 'mined'" → 0 of 5? No — backed would be 4 (other four ids still pass... wait, no: per-id loop, S199 fails → backed 4; no global findings; so prints "backed 4 of 5", exit 1). Good — rejected (exit 1 ≠ 0).
+
+  (c) one row's `source` cell altered so the entry's source line no longer matches it verbatim: alter the S200 row's cell 2 (source cell): e.g. change "Kilo Code — Skills — https://kilo.ai/docs/customize/skills" to "Kilo — Skills — https://kilo.ai/docs/customize/skills" (drop " Code"). Then `row[1] not in src_lines["S200"]` → finding → exit 1. Expected reject.
+
+  (d) one located quote removed from the row's `anchor` cell: edit S201's anchor cell (cell 6, index 5), removing the quote "Agent Skills should be treated like any third-party code you bring into your project." from it → `matched` empty → finding → exit 1. The self-test did this for S198's anchor with a replace; I'll do it for S201 to vary. Replace `the "Security best practices" subsection; quote "Agent Skills should be treated like any third-party code you bring into your project." (13 words)` with `the "Security best practices" subsection` — that removes the located quote from the anchor cell. Expected reject.
+
+  (e) `verified-at:` date changed: entry line 6 `verified-at: 2026-10-24` → `verified-at: 2026-10-23` → global finding → 0 backed exit 1 (per the code: `if global_findings or findings: return 0, ...`). Expected reject, printed "0 of 5".
+
+  (f) coverage-map index row renamed to another file: in README row 128, replace `knowledge/client-trust-gates-round68.md` with `knowledge/some-other-file.md` → `_indexed` false → global finding → 0 of 5 exit 1. Expected reject.
+
+  (g) one client row's client name changed so it does not match the table — hmm. The tasking's phrasing: "one client row's client name changed so it does not match the table". In the landed entry, the per-client table IS the table; there is no second table to mismatch. The nearest smallest mutant that breaks exactly the "client cell" conjunct: empty the client cell of the S198 table row (`| VT Code |` → `|  |`). The counter checks `table_row[0].strip()` non-empty → finding → exit 1. I'll run both variants: (g1) client cell emptied; (g2) client name changed to a different non-empty name ("VT Code" → "VT-Code altered") — note (g2) would likely SURVIVE since the counter only checks the cell is non-empty and carries the quote. Predicting: (g1) rejected; (g2) survives → coverage finding: the counter enforces "client cell filled", not any name consistency. I'll record both, labeled.
+
+  Actually, re-read the tasking: "(g) one client row's client name changed so it does not match the table". Hmm — "client row" might mean the SOURCES row? The SOURCES row's "used-by" cell (cell 11) names the entry file. Or the client name in the SOURCES row's source cell? Wait — conjunct 4 is (c) (source cell verbatim). What client name exists where? The entry's table client cell vs... there's no other table. I think (g) targets the entry's per-client table row: change the client name so it doesn't match... the SOURCES row's source cell? E.g. S199's source cell says "Parallel Works — pw code skills — ..." and the table client cell says "Parallel Works (pw code)". If I change the table cell to "Something Else", the counter has no cross-check between the client cell and the SOURCES row's client name → survives. The counter only checks non-empty + quote carried. So the honest execution: construct (g) as specified (client name changed to a non-matching name), observe, and report. Prediction: SURVIVES → coverage finding. I'll also run the emptied-cell variant (g1) as the conjunct the code actually enforces, to show what IS enforced. Both are informative; the tasking's (g) as literally specified is the primary.
+
+  (h) whole entry deleted → expect print "client trust gates backed 0 of 5" exit 1 (NOT exit 2). Run without entry file in world.
+
+  (i) unknown revision → exit 2. Run the counter from a scratch copy but with `--repo` pointing at the lane repo and `--rev deadbeef...`. Note: default `--repo` is derived from `Path(__file__).resolve().parent.parent` → /tmp/mutc1/counter.py parent.parent = /tmp → wrong. Pass `--repo /home/vgpnk/Projects/shokunin/kotoba-shokunin` explicitly. Read-only (git show). Also test `--rev` with a real rev + `--fetch`? No — not in scope; the fetch arm was ExecC1Fetch's job. But note: for (i) the materialize loop reads ENTRY first (None → continue), then SOURCES (None → EnvError) → exit 2. Expected exit 2.
+
+  Also — the counter's `--rev` arm with a valid rev reads from git. My scratch worlds aren't git repos. I use the no-rev `--repo` arm for mutants (a)–(h) — that's the same `check()` path after materialization, so the behavioral detector is the same code path for content verdicts. That's fine and keeps everything in scratch. For (i) I need git → use the lane repo read-only. Alternatively init a tiny git repo in /tmp as the repo for (i) — even cleaner isolation: `git -C /tmp/mutc1/revworld init`, add the three files, commit. Then `--rev <sha> --repo /tmp/mutc1/revworld`. Then (i) unknown rev: use a full 40-hex bogus sha. And (h) can ALSO be tested through the --rev arm: commit world without entry → rev2; measure rev2 → expect 0 of 5 exit 1 not 2. That's actually the exact frozen-predicate path (the base control). Let me do both: (h) via the no-rev scratch world AND via the --rev arm in the scratch git repo (h-rev), since the r67 lesson (R67-1) is specifically about the --rev classification.
+
+  Baseline requirement: run pristine through the same detector (no-rev world AND --rev world) — a baseline failure would make mutant verdicts inconclusive.
+
+  Also per the mutation protocol: pristine / mutated / restored — restored = rerun pristine world after mutations to show no state leaked (my worlds are separate copies, but I'll re-run pristine at the end as restoration evidence + hash the counter copy before/after to show the counter itself was never mutated across the battery).
+
+  Hashes: sha256 of the counter copy before/after, and of each world's mutated file vs pristine (before/after evidence).
+
+  Now, the counter copy at /tmp/mutc1/counter.py: run with `python3 -B`. The `-B` matters not for scratch.
+
+  One more check on (b): the tasking says "one row's `status` changed from `mined` to `queued`". Fine, S199.
+
+  Let me also double check the `--repo` no-rev path: `n, findings = check(repo)` then `print(f"client trust gates backed {n} of {TOTAL}")` then findings, exit `0 if n == TOTAL else 1`. For worlds where check() raises EnvError (e.g., SOURCES missing) → exit 2. Fine.
+
+  And the fetch arm: not needed. (The tasking's mutants don't include fetch.)
+
+  Edge: `check()` reads `root/ENTRY` etc. My world dir must have `corpus/...` structure. Copy pristine files with correct relative layout.
+
+  Now — write the battery as a single bash script that builds everything and runs all mutants, capturing outputs. Use python for precise edits (sed with pipes containing | is fiddly; python is safer). Actually let me write a python driver script in /tmp that:
+  1. Reads pristine bytes from the lane tree (read-only).
+  2. Builds world dirs.
+  3. Applies each mutation via exact string replacement (asserting each replacement actually applied — a mutant that silently no-ops is inconclusive; must assert).
+  4. Runs the counter per world, records stdout/stderr/exit.
+  5. Prints a table.
+
+  Also verify mutant (a) construction: move the five `source:` lines (plus keep verified-at/recheck where they are? "the source: block moved out of the opening position" — move the five source: lines to the very end of the file). Assert the mutation applied and that the file no longer STARTS with `source:`.
+
+  For (g) as-specified: change table client cell "Parallel Works (pw code)" → "Unrelated Client Name" (non-empty, doesn't match the SOURCES source cell "Parallel Works — pw code skills — …"). Keep the quote cell. Prediction: survives (only non-emptiness is enforced). Also (g1): empty the client cell of S198 row: `| VT Code | the body is data` → `|  | the body is data`. Careful with exact spacing: row is `| VT Code | the body is data, not instruction: ...`. Replace `| VT Code | the body` with `|  | the body`.
+
+  Wait, also careful with (g) S199 table row: `| Parallel Works (pw code) | two independent gates — ...`. Replace `| Parallel Works (pw code) | two independent` → `| Unrelated Client Name | two independent`.
+
+  For (d) S201 anchor edit in SOURCES row: original cell: `the "Security best practices" subsection; quote "Agent Skills should be treated like any third-party code you bring into your project." (13 words)`. Remove the quote part → `the "Security best practices" subsection (13 words)`. Exact replace of `; quote "Agent Skills should be treated like any third-party code you bring into your project." (13 words)` → ` (13 words)`.
+
+  For (c): S200 source cell: `Kilo Code — Skills — https://kilo.ai/docs/customize/skills` → `Kilo Skills — https://kilo.ai/docs/customize/skills`. This string occurs in both SOURCES row AND the entry's source: line — I only mutate the SOURCES row (the row's source cell). Assert the entry file in that world is untouched.
+
+  For (e): `verified-at: 2026-10-24` → `verified-at: 2026-10-23` in the entry. Note this string also appears in SOURCES rows (cell 9 `2026-10-24` — no, that's without the `verified-at: ` prefix) and in README row ("re-opened 2026-10-24"). The exact string `verified-at: 2026-10-24` appears only in the entry (line 6). Assert count==1.
+
+  For (f): README row: `` `knowledge/client-trust-gates-round68.md` `` → `` `knowledge/renamed-away.md` ``. Also appears... in README only within backticks in row 128; the entry filename appears elsewhere? In SOURCES rows the used-by cell is `corpus/knowledge/client-trust-gates-round68.md` (no backticks, has corpus/ prefix). In README row 128 the needle is `` `knowledge/client-trust-gates-round68.md` ``. `_indexed` looks for `` `knowledge/client-trust-gates-round68.md` `` as cell[1] exact match. Replace with `knowledge/renamed-away.md`. Assert applied once.
+
+  (b): in S199 SOURCES row only: first occurrence of `| mined |` within that line → `| queued |`. I'll do it line-scoped in python.
+
+  (a): entry lines 1-5 are the source: lines. Mutant: remove those lines from the top and append them at the end (after line 75). Assert: first line is now `verified-at: 2026-10-24` and the last 5 lines are the source lines.
+
+  (h): drop entry file entirely from world.
+
+  (i): git scratch repo. Steps: mkdir revworld, copy three pristine files, git init, add, commit → rev A (pristine, expect 5 of 5 exit 0 — this is also the pristine --rev baseline). Then create rev B with entry deleted (rm entry, commit) → expect 0 of 5 exit 1. Then `--rev $(python3 -c bogus 40-hex) --repo revworld` → expect exit 2 with "environment error". Use a sha like `f`*40 — but wait, could `ffff...` match? No. Use `deadbeef` + zeros, 40 hex chars. git show will fail with exit 128.
+
+  Hmm — one caveat: `git init` in /tmp — the working-copy git config... `git commit` needs user.email/user.name. Use `git -c user.email=m@e -c user.name=m commit`. Also the fleet root may have weird git configs; local repo in /tmp is isolated. Fine — this is scratch, allowed (no lane jj/git state touched).
+
+  Restore-evidence: sha256 the lane's verifiers/check_client_trust_gates.py before and after the battery (should be identical — I never write there); `git status --porcelain` for the lane after (should show no new modifications beyond what was already there: ` M verifiers/check_r67_routed_repairs.py` + untracked round-68 paths — those are not mine; I must not have added anything).
+
+  Also confirm: python3 available. Yes (plan uses python3 -B).
+
+  Report: write `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/MutC1Counter.md` with the table, hashes, restoration evidence, and the "draft absent" disclosure.
+
+  Let me now write the driver script. I'll write it with the Write tool to /tmp (allowed — /tmp scratch is explicitly the mutation area; write scope bound says lane writes only under .ufo/waves/round-68/, and scratch copies under /tmp per the tasking).
+
+  Let me write /tmp/mutc1/battery.py.
+
+  Key detail — counter invocation: `python3 -B /tmp/mutc1/counter.py --repo <world>` (no --rev). And rev-mode: `python3 -B /tmp/mutc1/counter.py --rev <sha> --repo /tmp/mutc1/revworld`.
+
+  The counter's main(): if not self_test and not args.rev → check(repo) directly on the repo tree. 
+
+  Now the exact pristine file reads: use the working tree bytes (HEAD=cafa29d for these three files — verify with git status: none of the three corpus files are modified; ` M verifiers/check_r67_routed_repairs.py` only. Good.)
+
+  Also: should I use `git show cafa29d:<path>` bytes instead of working tree to pin the exact revision? Working tree == HEAD for those files; simpler to read working tree, and I'll note the rev. Actually, to be exact and reproducible, read bytes via `git show cafa29d:...`? That's more precise for the report ("mutated from the cafa29d bytes"). But the entry/SOURCES/README could be further edited by L1 during my run (concurrent wave!). To avoid racing a concurrent L1 edit, reading once via git show pins the bytes. Let me do that: subprocess git show into the battery. If git show differs from working tree, note it. Actually simpler: the battery script reads the files ONCE at start via `git show cafa29d:<path>` — pinned, immutable, concurrent-edit-proof. 
+
+  Wait, is `git show` in the lane repo safe/read-only? Yes.
+
+  Let me also record sha256 of pristine entry/sources/readme (as used) and of counter.py.
+
+  Edge on (a): "moved out of the opening position" — also possible: move the source: block to after the header line. My construction (append at EOF) is the cleanest "out of the opening position".
+
+  Predicted outcomes (to pre-register in the report):
+  - baseline pristine: 5 of 5 exit 0 (both arms) — required for any verdict.
+  - (a) PREDICT SURVIVE (docstring conjunct not enforced by code).
+  - (b) kill (exit 1, finding status).
+  - (c) kill (exit 1, finding source-cell).
+  - (d) kill (exit 1, finding located quote).
+  - (e) kill (exit 1, 0 of 5).
+  - (f) kill (exit 1, 0 of 5).
+  - (g) as-specified PREDICT SURVIVE (non-empty check only); (g1) empty-cell kill.
+  - (h) 0 of 5 exit 1 (content verdict; also via --rev arm) — the R67-1 lesson check.
+  - (i) exit 2.
+
+  Now write the script. One script, single run, JSON-ish output lines I can paste into the report. Let me be careful with quoting (the entry contains quotes and unicode em-dashes; I'll embed replacement strings in python triple-quoted or read from the pristine file programmatically — better: derive exact substrings programmatically where possible, but exact literals are clearer for the report. I'll use exact literals copied from the files above; they contain " and — characters; in a python file written via Write tool that's fine.)
+
+  For (b) line-scoped: find the line starting with `| S199 |` and replace first `| mined |` → `| queued |`.
+
+  For (a): split entry into lines; src_lines = lines starting with `source:`; assert len==5 and all at indices 0-4; remaining = lines without them; mutated = remaining + src_lines.
+
+  Assertions each mutant: `assert old in text` and `new not in text` pre-state, then write.
+
+  Run counter via subprocess, capture stdout, stderr, returncode.
+
+  Output a clean table to stdout; I'll then write the report .md manually from the captured output (or have the script emit markdown directly — emit markdown directly, then I read it and compose the report with my analysis).
+
+  Let me write the script now. Also include restoration evidence inside the script: hash lane counter before/after (it's read anyway), and final re-run of pristine world.
+
+  One more: `-B` flag and `python3`. Also ensure TMP worlds under /tmp/mutc1 only.
+
+  For (i): bogus rev `deadbeefdeadbeefdeadbeefdeadbeefdeadbeef` (40 hex). git show fails → EnvError → exit 2, stderr "environment error: cannot read corpus/SOURCES.md at <rev>".
+
+  Also for the (h) --rev arm: commit1 with entry (pristine) → sha A; then remove entry, commit → sha B; run --rev shaB → expect 0 of 5 exit 1. This directly replicates the frozen base-control shape in scratch.
+
+  Write the battery script now.
+
+• The draft is absent and the counter has moved twice since `605b84b` (HEAD now `cafa29d` — the counter file itself is clean in the working tree, i.e. at `cafa29d` bytes). Pre-registering predictions, then running the full battery in scratch. Building the harness at `/tmp/mutc1/` now — bytes pinned via `git show cafa29d:…` so a concurrent L1 edit cannot race me:c68b03117f9f0fec1f2e76a91d9679c0c5e7993999bf035e5a58e5e58373e483  /tmp/mutc1/counter.py
+374847e5e63f95c72c5660d520ce3f6ecca3ad74cfa3742640da0758db990937  /tmp/mutc1/pristine-entry.md
+09bfd0c1e4fc9b16925f24a974f2feab9321619f357d1d9aab4c1d52e8b60c2d  /tmp/mutc1/pristine-README.md
+3eedcecaa1adea18422e77cd0bc08d4b088596983887af25be10568dcb6a7122  /tmp/mutc1/pristine-SOURCES.md
+   401 /tmp/mutc1/counter.py
+    75 /tmp/mutc1/pristine-entry.md
+   282 /tmp/mutc1/pristine-README.md
+   347 /tmp/mutc1/pristine-SOURCES.md
+  1105 total
+
+
+• Now write the battery driver. All mutations applied with assert-checked exact replacements. Worlds: /tmp/mutc1/world-<name>/. Plus the git rev-world for (h)-rev and (i).Traceback (most recent call last):
+  File "/tmp/mutc1/battery.py", line 55, in <module>
+    (d / SOURCES).parent.mkdir(parents=True); (d / SOURCES).write_text(SRC, encoding="utf-8")
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 1011, in mkdir
+    os.mkdir(self, mode)
+    ~~~~~~~~^^^^^^^^^^^^
+FileExistsError: [Errno 17] File exists: '/tmp/mutc1/world-a/corpus'
+Bug in world-a construction: after `shutil.rmtree(d)` I do `(d / ENTRY).parent.mkdir(parents=True)` which creates `world-a/corpus/knowledge`, then `(d / SOURCES).parent.mkdir(parents=True)` without `exist_ok=True` fails because `world-a/corpus` exists... actually mkdir(parents=True) without exist_ok raises if the dir exists. Add exist_ok=True everywhere. Let me fix and re-run.## baselines
+Traceback (most recent call last):
+  File "/tmp/mutc1/battery.py", line 106, in <module>
+    code, out, err = run(WORLDS["a"])  # world-a carries pristine bytes if (a) edit is neutral
+                         ~~~~~~^^^^^
+KeyError: 'a'
+I left a stray baseline call referencing WORLDS["a"] which no longer exists (I replaced it with the manual world-a construction). Remove that line — the real pristine baseline is world-pristine built right after. Let me patch: delete the two lines
+
+  ```
+  code, out, err = run(WORLDS["a"])  # world-a carries pristine bytes if (a) edit is neutral
+  print(f"pristine(no-rev, world-a pre-copy): see below")  # world-a IS the (a) world; real pristine:
+  ```
+
+  Also remove the now-dead `mutants` dict and `WORLDS["a-source-block-moved"] = build("a", [], drop=())` + `shutil.rmtree(d); (d / ENTRY)...` line that got replaced. Let me just view the file quickly and patch the dead lines.## baselines
+BASELINE no-rev  exit=0
+  stdout: client trust gates backed 5 of 5
+  stderr: 
+BASELINE --rev 2f8358cc5b77  exit=0
+  stdout: client trust gates backed 5 of 5
+  stderr: 
+## mutants
+### a source:-block moved out of opening (to EOF)
+expected: REJECT expected (docstring conjunct 2 'opens with source: lines')
+exit=0
+  stdout: client trust gates backed 5 of 5
+  stderr: 
+### b S199 status mined->queued
+expected: REJECT exit!=0, finding names status
+exit=1
+  stdout: client trust gates backed 0 of 5
+  - S199: status is 'queued', expected 'mined'
+  stderr: 
+### c S200 source cell altered, entry line no longer matches
+expected: REJECT exit!=0
+exit=1
+  stdout: client trust gates backed 0 of 5
+  - S200: the row's source cell is not in the entry's source line
+  stderr: 
+### d S201 located quote removed from anchor cell
+expected: REJECT exit!=0
+exit=1
+  stdout: client trust gates backed 0 of 5
+  - S201: the per-client table row does not carry the located quote
+  stderr: 
+### e verified-at date changed
+expected: REJECT exit 1, 0 of 5
+exit=1
+  stdout: client trust gates backed 0 of 5
+  - no `verified-at: 2026-10-24` line
+  stderr: 
+### f coverage-map index row renamed
+expected: REJECT exit 1, 0 of 5
+exit=1
+  stdout: client trust gates backed 0 of 5
+  - the entry has no coverage-map index row in corpus/README.md
+  stderr: 
+### g client name changed, no longer matches source row
+expected: REJECT expected
+exit=0
+  stdout: client trust gates backed 5 of 5
+  stderr: 
+### g1 client cell emptied
+expected: REJECT exit!=0
+exit=0
+  stdout: client trust gates backed 5 of 5
+  stderr: 
+### h entry deleted (no-rev arm)
+expected: 0 of 5, exit 1 — NOT exit 2
+exit=1
+  stdout: client trust gates backed 0 of 5
+  - entry missing: corpus/knowledge/client-trust-gates-round68.md
+  stderr: 
+### h-rev entry deleted (--rev arm, frozen base-control shape)
+expected: 0 of 5, exit 1 — NOT exit 2 (R67-1 classification)
+exit=1
+  stdout: client trust gates backed 0 of 5
+  - entry missing: corpus/knowledge/client-trust-gates-round68.md
+  stderr: 
+### i unknown revision
+expected: exit 2, environment error
+exit=2
+  stdout: 
+  stderr: environment error: cannot read corpus/SOURCES.md at deadbeefdeadbeefdeadbeefdeadbeefdeadbeef
+## restoration
+lane counter sha256 now: c68b03117f9f0fec1f2e76a91d9679c0c5e7993999bf035e5a58e5e58373e483
+scratch counter sha256   : c68b03117f9f0fec1f2e76a91d9679c0c5e7993999bf035e5a58e5e58373e483
+post-battery pristine re-run exit=0: client trust gates backed 5 of 5
+Interesting results. Baselines pass (5 of 5, exit 0, both arms) — so verdicts are conclusive, not inconclusive.
+
+  Results:
+  - (a) SURVIVED: 5 of 5, exit 0. The docstring conjunct 2 says "it opens with `source:` lines" but the code has no positional check. Coverage finding.
+  - (b) KILLED: exit 1, finding names the defect ("S199: status is 'queued', expected 'mined'"). Note printed "0 of 5" not "4 of 5" — because the current `check()` returns 0 whenever there are findings (the cafa29d fix: "global-check classification"). Message names the defect. PASS.
+  - (c) KILLED: exit 1, "S200: the row's source cell is not in the entry's source line". PASS.
+  - (d) KILLED: exit 1 — but the finding message is interesting: "S201: the per-client table row does not carry the located quote" — the first failure in the chain is at the anchor-match step... wait, actually the message printed is the table-row one, not the anchor one. Why? Let me trace: `matched = [q for q in quotes if _norm(q) in anchor]` — anchor no longer contains the S201 quote. BUT the quote also still occurs... hmm, `quotes` are all quoted strings in the entry. Are there other quotes in the entry that occur in S201's anchor? S201's anchor after mutation: `the "Security best practices" subsection (13 words)` — the quoted "Security best practices" is a quote in the anchor cell, and is it quoted in the entry? The entry's source: line for S201 says `the "Security best practices" subsection` — so "Security best practices" is in `quotes` and `_norm("Security best practices") in anchor` → matched! Then quote = "Security best practices", and the table row must carry it: the table's located-quote cell has the long quote; does `"Security best practices"` appear in the table row? The table row: `| Microsoft Agent Framework | the skill tools require approval by default, and a skill is reviewed as third-party code before it is deployed | "Agent Skills should be treated like..." | S201 |` — does not contain "Security best practices". So finding: "the per-client table row does not carry the located quote". So the mutant WAS killed, but at a downstream conjunct, and the message names the table conjunct rather than the anchor conjunct. Hmm — is that a problem? The tasking says "check that the counter REJECTS it (exit nonzero, with a message naming the defect)". The counter rejected with exit 1 and a message, but the message names the wrong conjunct (the table row, not the anchor cell). Actually wait — the defect IS real (the anchor cell no longer carries the located quote), but the reported finding is about the table. That's a message-precision observation worth noting: kill confirmed, but the finding names the downstream conjunct because a shorter quote ("Security best practices") still matched the anchor. It's a genuine weakness in located-quote binding (quote-selection picks `max(matched, key=len)`... no wait, matched had only "Security best practices" since the long quote no longer occurs in anchor). So the S201 id was killed via the table conjunct. Verdict: KILLED (exit 1, message names a defect, though a downstream one). I should note the imprecision honestly.
+
+    Hmm, actually also note: is this mutant "breaking exactly that conjunct"? The tasking's (d): "one located quote removed from the row's `anchor` cell". My edit removed the quote from S201's anchor. The counter rejected. KILLED. Good. The message nuance is a note.
+
+  - (e) KILLED: exit 1, 0 of 5, message "no `verified-at: 2026-10-24` line". PASS.
+  - (f) KILLED: exit 1, 0 of 5, message names the coverage-map row. PASS.
+  - (g) as-specified SURVIVED: client name changed to "Unrelated Client Name" → still 5 of 5, exit 0. The counter never cross-checks the client cell against the row's source cell (client identity). Coverage finding.
+  - (g1) client cell EMPTIED → SURVIVED?! Expected kill! exit=0, 5 of 5. Why? Trace: table rows from `_table_rows(entry)`. For S198's table row, cells = ["", "the body is data, ...", '"Skill content..."', "S198"]. Check `if len(table_row) < 3 or not table_row[0].strip()` → table_row[0] is "" → not "" .strip() → True → finding "the per-client table row has no client cell". That SHOULD fire... unless the table_row found for S198 is a different row! The loop: `for cells in table: if any(c.strip() == sid for c in cells): table_row = cells; break`. The first row containing "S198"... The header row `| client | the gate the client documents | located quote | source |` — no S198. Hmm what about... wait — maybe my edit didn't apply where I thought. My edit: replace `| VT Code | the body is data` with `|  | the body is data`. But the entry line 22 is:
+    `| VT Code | the body is data, not instruction: the host's own tool and sandbox policy stays authoritative over the skill | "Skill content is untrusted resource data; host tool and sandbox policy remains authoritative." | S198 |`
+    My anchor `| VT Code | the body is data` — count==1? The build() asserted uniqueness and application — it did apply. Hmm wait — did it? For world-g1 I used `build("g1", ...)` which asserts. It passed the asserts. So the client cell is now empty.
+    
+    Then why did the counter pass?! Let me think about `_split_row`: line[1:] = `|  | the body is data...` wait no. The line starts with `|`, then `line[1:]` is `  | the body...`? No wait. The mutated line: `|  | the body is data, ... | "Skill content ..." | S198 |`. `_table_rows` takes lines starting with `|` and calls `_split_row(line[1:])`. line[1:] = `  | the body is data, ... | "Skill content..." | S198 |`. `_split_row`: split("|") → ["  ", " the body is data...", ' "Skill content..." ', " S198 ", " "]. cells[0].strip()=="" → cells=cells[1:]. cells[-1].strip()=="" → popped. → ["the body is data...", '"Skill content..."', "S198"] — only THREE cells! The empty client cell was SWALLOWED by the leading-empty-cell handling in `_split_row` (it strips a leading empty cell, designed for the line-leading pipe). So table_row = [body, quote, "S198"], table_row[0] = the body text — non-empty → check passes; `quote in _norm(" ".join(table_row))` — quote still present → backed. SURVIVED.
+    
+    So (g1) SURVIVES due to `_split_row`'s leading-empty-cell normalization colliding with the leading-pipe format: an emptied FIRST cell is indistinguishable from the line-leading pipe remnant. That's a real coverage finding: the "client cell filled" conjunct is vacuous for an emptied first cell. Excellent mutation-testing yield — the counter's own self-test does not test this shape (its "table row loses the quote" world changes the quote cell, not the client cell).
+
+    Wait, but actually let me double-check the empty-client mutant truly is 'the conjunct broken': the conjunct is "whose client cell is filled". After mutation the client cell IS empty, so the conjunct is broken, and the counter should reject — it doesn't → SURVIVED. Genuine.
+
+    Hmm — but hold on. Is my `_split_row` analysis right? `_table_rows`: `cells = _split_row(line[1:])`. For a normal row `| A | B | C | D |`: line[1:] = ` A | B | C | D |` → split("|") → [" A ", " B ", " C ", " D ", ""] → first empty? cells[0].strip() == "A" ≠ "" → keep. Last "" popped → 4 cells. Good. For the mutated row `|  | B | C | D |`: line[1:] = `  | B | C | D |` → split → ["  ", " B ", " C ", " D ", ""] → cells[0].strip()=="" → cells=cells[1:] → [" B "," C "," D ",""] → last popped → 3 cells. Yes — confirmed, the empty client cell shifts everything left. So S198's row became [body, quote, S198] and passed. SURVIVED — and importantly the SOURCES `mined`-row parser `_source_rows` uses a DIFFERENT split (`m.group(1).split("|")` on the regex group after `^|`), which counts 11 cells — an emptied first cell there would give 11 still... not relevant.
+
+    Also note (g1) has a second-order effect: with only 3 cells, table_row[2]=="S198"... the sid match `any(c.strip()==sid)` works, quote present → pass. Yes.
+
+  - (h) KILLED-correctly-as-content: "0 of 5" exit 1, message "entry missing: ..." — both arms (no-rev and --rev). Exactly the frozen predicate (0 of 5, exit 1, NOT exit 2). PASS.
+  - (i) exit 2 with `environment error: cannot read corpus/SOURCES.md at deadbeef...` — as required. PASS.
+
+  Also (b): printed "0 of 5" rather than "4 of 5" — cafa29d's semantics: any findings → 0. Fine per predicate; note it.
+
+  (a) survived — but wait, one more consideration on (a): my construction moved the source: lines to EOF but left `verified-at:` and `recheck:` lines at top. The counter passed. So the "opens with" conjunct is not enforced — only "exists anywhere". The docstring (contract text) promises conjunct 2 "it opens with source: lines". Coverage finding, not permission to change the contract.
+
+  Now, what about the `--fetch` conjunct? Not in the mutant list; skip (ExecC1Fetch owns it).
+
+  Also should I test the counter byte-integrity: lane counter hash before (c68b0311...) == after — yes, matches. Pristine re-run passes. Restoration evidence: lane tree untouched — verify `git status --porcelain` shows the same entries as before my run (M check_r67_routed_repairs.py + untracked round-68 paths). Let me re-check and also confirm no new paths (my writes were /tmp only + the report file I'm about to write under .ufo/waves/round-68/w1/).
+
+  One more mutant candidate worth adding quickly? The tasking lists exactly (a)–(i); I ran a, b, c, d, e, f, g, g1, h, h-rev, i = 11 worlds. Good coverage. Two survivors = coverage findings: (a) position not enforced; (g) client-name cross-match not enforced; (g1) empty-client-cell conjunct vacuous due to _split_row leading-empty-cell swallow. Three findings actually (g and g1 are distinct defects).
+
+  Also poll the draft one last time before writing the report; if it appeared, re-run the battery against it. Let me check now, then write the report.
+
+  Report content (MutC1Counter.md):
+  - Disclosure: assigned draft absent (path checked at T0 and again now); battery run against the landed counter bytes pinned at cafa29d (sha256 c68b0311...), copied to /tmp — lane tree read-only throughout.
+  - Harness: /tmp/mutc1 (counter.py, pristine-*.{md}, battery.py, world-*/ + revworld git repo).
+  - Baselines: pristine 5 of 5 exit 0 (no-rev and --rev arms) — verdicts conclusive.
+  - Table: mutant | expected | observed | verdict.
+  - Findings (survivors): (a), (g), (g1) with analysis and exact evidence; (d) killed-but-message-precision note; (b) prints 0 of 5 (semantics note).
+  - Restoration evidence: hashes, pristine re-run, git status unchanged, draft still absent.
+
+  Mutants-to-run-if-draft-lands: same battery verbatim (the draft should fail the same three survivors unless it enforces position/client-identity/first-cell).
+
+  Let me do the final poll + git status + then write the report file.
+
+• Battery complete — baselines green (5 of 5, exit 0, both arms), so verdicts are conclusive. Three survivors found, including a subtle one on (g1). Final draft poll + lane-tree integrity check before writing the report:total 28
+drwxr-xr-x 1 vgpnk vgpnk    54 Oct 24 23:09 .
+drwxr-xr-x 1 vgpnk vgpnk   198 Oct 24 23:11 ..
+-rw-r--r-- 1 vgpnk vgpnk 25989 Oct 24 23:09 check_client_trust_gates.py
+---lane integrity---
+ M SKILL.md
+ M verifiers/check_r67_routed_repairs.py
+?? .ufo/waves/round-68/controls/
+?? .ufo/waves/round-68/receipts/C1-fetch.txt
+?? .ufo/waves/round-68/receipts/C1-measure.txt
+?? .ufo/waves/round-68/receipts/C2-routed-measure.txt
+?? .ufo/waves/round-68/receipts/C2-routed-selftest.txt
+?? .ufo/waves/round-68/receipts/noharm-at-tip.txt
+?? .ufo/waves/round-68/w1-spec.json
+?? .ufo/waves/round-68/w1/
+---head---
+cafa29d0adb489b9b6b146445ee8bb9eef074e6e
+---scratch tree---
+battery.py
+counter.py
+pristine-entry.md
+pristine-README.md
+pristine-SOURCES.md
+revworld
+world-a
+world-b
+world-c
+world-d
+world-e
+world-f
+world-g
+world-g1
+world-h
+world-pristine
+
+
+• The draft LANDed mid-flight: `.ufo/waves/round-68/w1/drafts/check_client_trust_gates.py` now exists (25989 bytes — much larger than the landed 401-line counter; it's probably a literate/dev version). Per the tasking, THIS is my assigned subject. I must now read it and run the battery against IT.
+
+  The lane integrity: `M SKILL.md` is new since my earlier check (L1 working concurrently) — not mine. I wrote nothing in the lane tree yet.
+
+  Plan: read the draft, then re-run the same battery against the draft bytes. My battery hardcodes COUNTER = /tmp/mutc1/counter.py. I'll copy the draft to /tmp/mutc1/draft-counter.py and parameterize. Simplest: build a second battery run with COUNTER pointing at the draft copy. The battery script reads COUNTER path — let me just copy draft over a new file and create battery-draft.py by replacing the COUNTER path. Also the draft may have a different CLI shape (--repo default etc.). Let me read it first — 25989 bytes, ~600 lines. Read it.
+
+• The draft **landed mid-flight** (25,989 bytes, written 23:09). The assigned subject now exists — reading it immediately, then re-running the full battery against IT:
+
+• The draft is substantially different from the landed counter. Key differences relevant to my mutants:
+
+  - Conjunct 2 (position): `_entry_source_lines` only scans `text.splitlines()[:ENTRY_WINDOW]` (first 10 lines). So moving the source: block to EOF → NOT found in first 10 lines → "no `source:` line naming an S### id in the entry's first 10 lines" → 0 of 5, exit 1. Also the global finding "the entry does not open with a `source:` line". So mutant (a) should be KILLED by the draft.
+  - Counting semantics: global findings → 0 of 5 exit 1; per-client failures → partial credit (e.g. 4 of 5) exit 1. So (b) mined→queued → problems for S199 → backed 4 of 5, exit 1. REJECTED (nonzero) with message "S199: status is 'queued', expected 'mined'". PASS.
+  - (c) source cell altered → "the row's source cell does not occur in the entry's source line" → 4 of 5 exit 1. PASS.
+  - (d) quote removed from anchor → "no located quote of the entry occurs in the row's anchor cell" → 4 of 5 exit 1. Note: the draft's `quotes` come from the ENTRY (not the anchor), and `anchor_quotes = [q for q in quotes if q in anchor]`. For S201, after removing the long quote from the anchor, does another entry quote still occur in the anchor? The anchor becomes `the "Security best practices" subsection (13 words)`. Is "Security best practices" quoted in the entry? The entry's source: line 4: `source: S201 — Microsoft Agent Framework — Agent Skills — https://learn.microsoft.com/... — the "Security best practices" subsection — located quote "Agent Skills should be treated..."`. Yes — "Security best practices" appears in double quotes in the entry → it's in `quotes` (2 words ≤25). And `q in anchor` — `_norm`-folded both. anchor = `the "Security best practices" subsection (13 words)`; q = `"Security best practices"` → is q a substring of anchor? anchor contains `"Security best practices"` — yes. So anchor_quotes non-empty → then `_table_row_for(entry_lines, "S201", anchor_quotes)`: finds the line with S201, cells ≥4, and checks `any(q in _norm(line) for q in quotes)` — does the S201 table line contain `"Security best practices"`? The table row is `| Microsoft Agent Framework | the skill tools require approval by default... | "Agent Skills should be treated like any third-party code you bring into your project." | S201 |` — does NOT contain "Security best practices". So problems → "no per-client table row carries the id and its located quote" → 4 of 5 exit 1. Still KILLED, but again via the downstream conjunct with a table message. Same nuance as before. Hmm wait — also quotes from OTHER source lines: e.g. entry line for S200: `the "Shell commands in skills" section` etc. Only quotes that occur in S201's anchor matter. "Security best practices" is the one. OK.
+
+    Also careful: `_quoted(entry_norm)` — the QUOTED_RE on the whole normalized entry. Quotes list includes "Skill content...", "Project skills are...", "Project skills (.kilo/skills/ in a repository) and skills fetched from remote URLs never execute commands" (16 words, ≤25 → included), "Agent Skills should be treated...", "Standard Agent Skills path (project root, trusted folders only)", plus short ones like "Security best practices", "Activation Context", "Trust", "Shell commands in skills", "Skill Discovery". Right.
+
+  - (e) verified-at changed → global finding → 0 of 5 exit 1. PASS. Also note the draft ADDS a global check "the entry does not open with a `source:` line" (first non-blank line check).
+  - (f) index renamed → global → 0 of 5 exit 1. PASS.
+  - (g) client name changed to non-matching → the docstring explicitly says: "The client *name* is prose the counter deliberately does not hardcode (content, not names); the table column carrying it is enforced structurally." So (g) as specified is EXPECTED TO SURVIVE by design — the counter deliberately does not cross-check the client name. My mutant (g) will survive → this is a documented design decision in the draft (the landed counter's docstring lacks this sentence? Actually the landed counter at cafa29d also only checks structural). So verdict: SURVIVED-by-design (coverage finding, matches the frozen landed shape — the design decision is documented in the draft docstring). I report it as SURVIVED (design-documented).
+  - (g1) client cell emptied → the draft's `_table_row_for` requires `len(cells) >= 4`. With the client cell emptied, `_split_row` swallows the leading empty → 3 cells → `continue` → falls through → no row → "no per-client table row carries the id and its located quote" → S198 dropped → 4 of 5 exit 1. KILLED! Interesting — the draft's ≥4-cells structural check kills what the landed counter's `table_row[0].strip()` check missed. Wait let me double check `_split_row` swallowing: line = `|  | the body is data, ... | "Skill content..." | S198 |`. `_table_row_for`: `line.lstrip().startswith("|")` true, sid in line true. `cells = _split_row(line.strip())`. line.strip() = `|  | the body...`. body after split... _split_row receives the whole line including leading `|`: split("|") → ["", " ", " the body...", ' "Skill..." ', " S198 ", ""]. cells[0].strip()=="" → cells=cells[1:] → [" ", " the body...", ...,""]. cells[-1].strip()=="" → pop → [" ", "the body...", '"Skill..."', "S198"]... 
+
+    WAIT. Careful! The line is `|  | the body is data...`. split("|") on `|  | the body is data, ... | "quote" | S198 |`:
+    - "" (before first |)
+    - "  " (the emptied client cell: two spaces)
+    - " the body is data, ..."
+    - ' "Skill content..." '
+    - " S198 "
+    - "" (after trailing |)
+    cells[0].strip()=="" → drop → ["  ", " the body...", ' "Skill..." ', " S198 ", ""]; last "" popped → ["  ", "the body...", '"Skill..."', "S198"] → 4 CELLS, not 3! Because the line retains its leading pipe, split produces the empty-before-first-pipe PLUS the empty client cell. Only ONE leading empty is swallowed. The mutated line's first cell after the leading pipe is the empty client cell ("  "), which becomes cells[0] after dropping the pre-pipe empty. So cells = ["  "→"", ...]. Hmm wait: after dropping cells[0] (the "" before the leading pipe), the new cells[0] is "  " (the emptied client cell), which strips to "". It is NOT dropped (only one leading drop). So cells = ["", "the body is data...", '"Skill content..."', "S198"] → len 4 ✓. Then the draft's `_table_row_for` does NOT check cells[0] non-empty — only `len(cells) >= 4` and quote co-occurrence. `norm = _norm(line)`; `any(q in norm for q in anchor_quotes)` — the S198 quote is still in the line → True → row found → backed. SURVIVES on the draft too!
+
+    And the landed counter (cafa29d): table_row[0] = "" → `not table_row[0].strip()` → finding → KILLED there... but wait, I observed g1 SURVIVED on the landed counter (exit 0, 5 of 5)! Let me recheck my (g1) observation on the landed counter. Observed: "### g1 client cell emptied / exit=0 / client trust gates backed 5 of 5". Hmm — but by my trace, landed `_table_rows` → `_split_row(line[1:])`: line[1:] strips the leading pipe FIRST, so split gives ["  ", " the body...", ...] wait no:
+
+    Landed `_table_rows`: `cells = _split_row(line[1:])`. line = `|  | the body...`. line[1:] = `  | the body is data, ... | "quote" | S198 |`. split("|") → ["  ", " the body...", ' "quote" ', " S198 ", ""]. cells[0].strip()=="" (it's "  ") → drop → [" the body...", ' "quote" ', " S198 ", ""] → last popped → 3 cells. So landed: table_row = [body, quote, "S198"] → table_row[0] = body (non-empty) → passes → SURVIVED. ✓ matches observation.
+
+    Draft `_table_row_for`: `cells = _split_row(line.strip())` — passes the WHOLE line including leading `|`: split → ["", "  ", " the body...", ' "quote" ', " S198 ", ""] → drop cells[0] ("" pre-pipe) → ["  ", " the body...", ' "quote" ', " S198 ", ""] → pop last → ["  ", "the body...", '"quote"', "S198"] → 4 cells! cells[0] strips to "" but the draft never checks the client cell content — only len ≥ 4 and quote co-occurrence → row found → SURVIVED.
+
+    So (g1) survives on BOTH. The draft's docstring claims "the table column carrying it is enforced structurally" (≥4 cells) — but the emptied-client-cell mutant keeps 4 cells because the split of a full line differs from split of line[1:]. The `not table_row[0].strip()` check in the LANDED counter is defeated by its own `_split_row` swallowing the second leading empty... wait no — the landed counter passes `line[1:]` (leading pipe already stripped), so the emptied client cell lands in cells[0] and IS swallowed by the leading-drop. One drop eats it. Yes.
+
+    So (g1) = genuine coverage finding on both versions: the "client cell filled" conjunct is vacuous — an emptied client cell is re-absorbed by row-splitting and the row still passes (landed) / still has ≥4 cells (draft).
+
+    Hmm, actually — for the DRAFT, is the "client cell filled" conjunct even claimed? The draft says: "the client *name* is prose the counter deliberately does not hardcode (content, not names); the table column carrying it is enforced structurally." "Enforced structurally" = ≥4 cells. The emptied-cell mutant yields 4 cells (split artifact) → the structural enforcement is illusory for an emptied first column. That's the precise finding: the ≥4-cell check cannot distinguish an empty first cell because _split_row on the full line consumes the pre-pipe empty and keeps the cell-slot count at 4 only when... hold on, recount: normal row `| VT Code | body | "q" | S198 |` → split full line: ["", " VT Code ", " body ", ' "q" ', " S198 ", ""] → drop first, pop last → 4 cells: [VT Code, body, "q", S198]. Emptied: ["", "  ", " body ", ' "q" ', " S198 ", ""] → drop first, pop last → 4 cells: ["", body, "q", S198]. Both 4 cells! So len(cells)>=4 holds either way — the structural check is truly blind to emptiness of the first column. And an entirely REMOVED client cell (`| body | "q" | S198 |` → 3 cells after processing... split full line ["", " body ", ' "q" ', " S198 ", ""] → drop/pop → 3 cells → rejected). So the structural check only catches cell-count collapse, not emptiness. Fine — precise finding.
+
+    So my predictions for the draft:
+    (a) KILLED (0 of 5, exit 1: no source: line in first 10 lines + does-not-open finding)
+    (b) KILLED (4 of 5, exit 1)
+    (c) KILLED (4 of 5, exit 1)
+    (d) KILLED (4 of 5, exit 1, message via table conjunct — note)
+    (e) KILLED (0 of 5, exit 1)
+    (f) KILLED (0 of 5, exit 1)
+    (g) SURVIVED (by documented design — client name is prose)
+    (g1) SURVIVED (split-artifact: 4 cells preserved; NOT documented)
+    (h) 0 of 5 exit 1 both arms (content verdict) — draft's check returns (0, ["entry missing: ..."]) → main prints 0 of 5 exit 1. Also the draft has _resolve_rev FIRST: for --rev arm with the entry missing at a VALID rev → _read_at None → content verdict. For an INVALID rev → exit 2 via _resolve_rev.
+    (i) exit 2 (unknown revision → _resolve_rev fails → "environment error: unknown revision ...")
+
+    Also the draft default `--repo` = nearest ancestor holding corpus/SOURCES.md — when run from /tmp/mutc1, no ancestor holds it → Path.cwd(). I'll pass --repo explicitly anyway.
+
+    One more draft-specific subtlety for (h) no-rev arm: `check(state)` with state[ENTRY] None → returns 0 with finding — fine, exit 1.
+
+    And `_load` no-rev mode reads working tree of --repo. My worlds are plain dirs — `_state_of` handles missing files as None. Good.
+
+    For the --rev arms I need git: the draft's `_run_git` uses `git -C repo`. My revworld fixture works. Also `_resolve_rev` runs `git rev-parse --verify --quiet <rev>^{commit}` — for "deadbeef"*5 → fails → EnvError → exit 2. 
+
+    Now build battery2 against the draft: copy draft to /tmp/mutc1/draft-counter.py, rebuild worlds from the SAME pristine bytes (git show cafa29d:...), run same mutants. Note the draft is fresher than cafa29d — the entry bytes it will measure are still the same three files (entry/SOURCES/README unchanged since 605b84b? SOURCES/README/entry — L1 hasn't touched them per git status: not listed as modified. Good — same bytes).
+
+    Also: the draft's own `--self-test` — I can run it as additional evidence (fixture-built, no network, no lane writes: it uses tempfile.mkdtemp under /tmp and shutil.rmtree — scratch-only. Safe to run; it does NOT touch the lane tree. Running it is read-only for the lane. Do it.)
+
+    Edge: running the draft from /tmp with `--self-test` — selftest(repo) ignores repo. Safe.
+
+    Let me now write battery2. I'll adapt the previous script with a COUNTER parameter via env var or argv. Quick approach: sed the COUNTER line into battery2.py and adjust mutant set identical (same worlds rebuilt). Also keep world-a special construction. Simplest: copy battery.py → battery2.py, replace counter path and output header. The worlds are rebuilt fresh by battery2 anyway.
+
+    Then run, compare, write the report.
+
+  Also confirm draft hash for the report: sha256 of the draft file. And re-verify lane tree untouched after all runs (git status). The report path: .ufo/waves/round-68/w1/MutC1Counter.md (explicitly directed by the tasking; inside my write scope .ufo/waves/round-68/).
+
+  One consideration: my write-scope says writing seats write under .../w1/drafts/ only, but the tasking's Report line explicitly directs .ufo/waves/round-68/w1/MutC1Counter.md. The tasking directive is the seat assignment; follow it.
+
+  Now: build and run battery2.
+
+• The draft has materially different conjunct code from the landed copy (positional `source:` window, ≥4-cell structural table check, partial-credit counting, documented client-name-as-prose decision). Predictions change: (a) should now die, (g1) should still survive on a split artifact. Re-running the identical battery against the draft bytes:9909dc65ae35a44ed797427d71b98440f49abb2c4b0535fb3ec7466db5c88626  /tmp/mutc1/draft-counter.py
+7:COUNTER = S / "draft-counter.py"
+106:dp = S / "d-d-world-pristine"; shutil.rmtree(dp, ignore_errors=True)
+114:rg = S / "d-revworld"; shutil.rmtree(rg, ignore_errors=True)
+Traceback (most recent call last):
+  File "/tmp/mutc1/battery2.py", line 53, in <module>
+    d = S / "d-world-a"; shutil.rmtree(d); (d / ENTRY).parent.mkdir(parents=True, exist_ok=True)
+                         ~~~~~~~~~~~~~^^^
+  File "/usr/lib/python3.14/shutil.py", line 852, in rmtree
+    _rmtree_impl(path, dir_fd, onexc)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/shutil.py", line 721, in _rmtree_safe_fd
+    _rmtree_safe_fd_step(stack, onexc)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/shutil.py", line 799, in _rmtree_safe_fd_step
+    onexc(func, path, err)
+    ~~~~~^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/shutil.py", line 760, in _rmtree_safe_fd_step
+    orig_st = os.lstat(name, dir_fd=dirfd)
+FileNotFoundError: [Errno 2] No such file or directory: PosixPath('/tmp/mutc1/d-world-a')
+
+

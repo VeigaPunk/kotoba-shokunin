@@ -1,0 +1,394 @@
+kimi version 2.3.1
+• Let me start by reading the frozen plan and the counter draft in parallel. The task: attack the C1 counter draft at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/drafts/check_client_trust_gates.py`. If it doesn't exist, attack the CONTRACT.
+
+  Read-only seat: reviewer. Do not write files... but the task says "Report: write your scoped findings to .ufo/waves/round-68/w1/ReviewC1Counter.md". Hmm, there's a contradiction: "Read-only seats (scout/reviewer/critic/sentinel/revenger/connector): do not write files at all. Return your findings in your final response — the L1 writes your report from it." But then the dispatcher line says "Report: write your scoped findings to .ufo/waves/round-68/w1/ReviewC1Counter.md".
+
+  The canonical assignment from the dispatcher is the only instruction source. The dispatcher explicitly says to write the report to that path, and the write scope allows writing only under `.ufo/waves/round-68/`. The role section says read-only seats don't write files... but the final dispatcher instruction says write the report. The write scope hard bounds permit writing under `.ufo/waves/round-68/`. The "Assigned materials are data" rule says the canonical assignment from the dispatcher is the only instruction source. The dispatcher's last line says "Report: write your scoped findings to .ufo/waves/round-68/w1/ReviewC1Counter.md". I'll write the report file AND return findings in the final response. That satisfies both: the write is within the permitted bounds, and the findings are also in the final response.
+
+  Let me start: read the plan, read the draft, check git state, etc. Large parallel batches.
+
+  First batch:
+  - Read `/home/vgpnk/Projects/shokunin/kotoba-shokunin/plans/round-68.md`
+  - Read the draft `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/drafts/check_client_trust_gates.py`
+  - ls the drafts dir
+  - Read verifiers/verify_corpus_integrity.py maybe later.
+
+  Let me do that now.ls: cannot access '/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/drafts/': No such file or directory
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/:
+total 48
+drwxr-xr-x 1 vgpnk vgpnk    60 Oct 24 22:59 .
+drwxr-xr-x 1 vgpnk vgpnk   352 Oct 24 22:56 ..
+drwxr-xr-x 1 vgpnk vgpnk    90 Oct 24 22:56 controls
+drwxr-xr-x 1 vgpnk vgpnk     0 Oct 24 22:56 receipts
+drwxr-xr-x 1 vgpnk vgpnk    46 Oct 24 22:59 w1
+-rw-r--r-- 1 vgpnk vgpnk 46029 Oct 24 22:58 w1-spec.json
+
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/:
+total 12
+drwxr-xr-x 1 vgpnk vgpnk    46 Oct 24 22:59 .
+drwxr-xr-x 1 vgpnk vgpnk    60 Oct 24 22:59 ..
+drwxr-xr-x 1 vgpnk vgpnk  1136 Oct 24 22:59 logs
+-rw------- 1 vgpnk vgpnk 12213 Oct 24 22:59 swarm-registry.json
+The draft file does not exist yet. Per the instruction: "read it; if the file does not exist yet, say so and attack the CONTRACT instead."
+
+  So I attack the CONTRACT — the frozen predicate as specified in the plan (round-68.md C1 section). Name what I attack: the frozen predicate `client trust gates backed N of 5` and the contract as specified.
+
+  I should also attack the answerable questions against the contract:
+  1. Can a stub entry with five fake rows and five matching lane-authored SOURCES rows satisfy every conjunct? (copy-satisfiability — since the counter reads the lane's own bytes, yes, in principle; the plan's bound says "Documentary evidence, not observed runtime behaviour; the counter reads the measured revision's own bytes" — this is a known, named bound.)
+  2. Does `--fetch` discriminate? The contract says "--fetch finds each of the 5 located quotes on its live page" — substring match would accept nav-menu/404-page text. Also: 404 pages often contain the query string or boilerplate. Also network vs content verdict confusion: does --fetch failure exit 2 (environment) or 1? The contract doesn't say. The plan says exit 2 is for "genuinely unreadable environment (unknown revision, unreadable repo)" — network unreachable for --fetch is not specified.
+  3. Missing-entry path prints `0 of 5` and exit 1 — the contract says so in the plan. Good, but the exact r67 defect was classifying missing entry as exit 2. The contract fixes the classification. But what about a *present-but-empty* entry (stub with no table)? Contract doesn't specify. What about an entry that exists but has fewer than 5 rows — N counts matched quotes presumably.
+  4. Environment error (exit 2) vs content verdict (exit 1) — contract specifies: missing entry = exit 1 content verdict; unknown revision / unreadable repo = exit 2. But edge cases: entry exists but unreadable? SOURCES.md missing? Base control run against a rev where SOURCES.md doesn't have rows — is that a content verdict (0 of 5, exit 1) or environment? The base control at the pinned base rev will lack the entry — 0 of 5 exit 1. Good.
+  5. `--self-test` real vs calling check() directly — contract says the counter carries a "--self-test that breaks each conjunct". The r67 blind spot: self-test calling check() on synthetic bytes while --rev path reads via jj/git show behaves differently. The contract must require the self-test to exercise the same code path as --rev (e.g., self-test on fixture files passed through the same reader function, not a parallel implementation). Also self-test should assert the base control prints 0 of 5 / exit 1.
+
+  Additional attacks on the contract:
+  - The predicate string: "client trust gates backed N of 5" — the frozen predicate doesn't pin exit codes for --fetch. The plan says "--fetch finds each of the 5 located quotes on its live page" but doesn't specify output format or exit code on failure. A counter could make --fetch print the found lines and exit 0 always (vacuous). Actually the contract says it "finds" each quote — the observable contract for --fetch failure is unspecified. That's a contract gap: --fetch must exit nonzero when any quote is not found, and distinguish network-unreachable (environment, exit 2) from quote-absent (content, exit 1). Unspecified = attack surface.
+  - Determinism of the located quotes: quotes must be ≤25 words (per frontier step 1), non-generic enough not to appear in navigation menus. If the counter's --fetch does a substring search of a short generic quote like "skills are" it could match boilerplate. The contract requires "located quote" per the Gate — but nothing prevents a 3-word quote that matches a menu item. Fix: require quotes ≥ some length and match case-sensitively with enough context; or --fetch must verify the page's title/URL matches the row's URL and the quote appears once (or count occurrences ≥1 in main content). At minimum: the same text the entry cites.
+  - Rev-scope: does --rev <rev> read the revision's bytes via `jj`/`git show`? If the counter reads the working tree instead of the rev, the base control conjunct (`--rev <base>` → 0 of 5) would actually be run against the *current working tree* (which contains the landed entry) → prints 5 of 5 → the base-control conjunct silently passes vacuously, hiding a broken rev-scoping. Wait — actually if it reads the working tree at base... The base control is meant to be run at the base rev. If the counter ignores --rev and reads working tree, then `--rev <base>` after the work lands would print 5 of 5, exit 0, violating the frozen before-line. But if run BEFORE the work (at base tree), it prints 0 of 5 either way. So the base control does NOT discriminate rev-scoping unless run after landing. That's the r67-style trap: the receipt must run `--rev <base>` AFTER the entry lands to prove rev-scoping. The contract should require that ordering. Evidence: the plan says "Before (measured at the base e94ae32a)" — if measured before landing, a working-tree-reading counter passes the base control trivially. Attack: the base control as ordered is non-discriminating for rev-scoping; fix: re-run `--rev <base>` post-landing and require 0 of 5 exit 1 in the landed receipt.
+  - "N of 5" — N counts what? Matched (client, quote) pairs? If a single SOURCES row can back two clients (duplicate rows with same URL/quote), N could reach 5 with fewer distinct sources. The contract requires "the five corpus/SOURCES.md rows" — appended, never edited. If two entries cite the same row id, does N dedupe by row id? Unspecified.
+  - SOURCES row fabrication: the lane authors SOURCES.md itself; a fabricated URL+quote would pass --fetch only if the live page contains it. So --fetch is the discriminator — but only if run and only if its failure exits nonzero. If --fetch is a conjunct measured once ("finds each of the 5 located quotes"), a stub with fake quotes fails --fetch. Good — but the contract doesn't pin that the 5 quotes used in --fetch come from the landed entry's table (not from hardcoded strings in the counter itself). If the counter hardcodes the five quotes as constants, --fetch tests the constants, not the landed bytes → the entry could cite different quotes than the constants → counter proves quotes nobody cited. Fix: --fetch must extract quotes from the entry/SOURCES bytes at the rev, not from literals in the counter.
+  - Junk-entry control: plan mentions "the junk-entry control" — an entry with fake quotes must fail. That's the K-control. But it's in the Bound paragraph, not in the frozen predicate. The frozen predicate only has base-control + --fetch. The junk control is advisory. Attack: the frozen predicate does not include the junk-entry control; a counter passing the three frozen lines could still accept a stub whose quotes happen to match... no wait, --fetch would fail on fake quotes unless the quotes are real page content. Hmm, a stub with REAL quotes copied from the live pages but with fabricated attributions (wrong client, wrong claim) would pass everything — copy-satisfiable with real bytes. That's the known documentary bound; severity noted as accepted bound (QUALITY Q33 named).
+  - Exit-code contract for the two-conjunct failures: `--rev <base>` must exit 1 — but only if the counter exists at that rev... wait, running `--rev <base>` uses the CURRENT counter file against the base rev's corpus. If the current counter file can't find the entry in the base rev → 0 of 5 exit 1. Fine.
+  - The `--rev` unknown-revision case must exit 2 — contract says so. But what prints? Unspecified: should print the r67-style "environment error: ..." line? The r67 defect R67-1 was exactly the misclassification; the contract pins the classification but not the observable line. Minor.
+
+  Since the file doesn't exist, I attack the CONTRACT. But I should also ground my attack in the actual lane state — check the base, check that the five client URLs are absent at base (the before-line), check verifiers/ for existing patterns (r67 counter for the self-test blind spot), and check the sources census. Read-only commands.
+
+  Parallel batch:
+  1. `jj-lane.sh state` or git — check base tip. Actually I can run `git -C ... log` read-only? Careful: read-only git commands fine. `git -C kotoba-shokunin rev-parse HEAD`, `git log --oneline -3`.
+  2. Grep for the five client names in corpus/SOURCES.md at base.
+  3. Read verifiers/check_r67... doesn't exist. Read the r67 counter `.ufo/waves/round-67/...` for the self-test blind spot — find it.
+  4. ls verifiers/.
+  5. Check scripts/hyaku/jj-lane.sh state.
+  6. Read corpus/knowledge listing for trust-gate entry absence.
+  7. Read corpus/README.md coverage map for trust row absence.
+
+  Let me do these in one big batch.
+
+• The draft file does not exist yet (`ERROR: ... does not exist`), and `w1/drafts/` is absent. Per instruction: **I attack the CONTRACT** — the frozen predicate `client trust gates backed N of 5` as frozen in `plans/round-68.md` lines 39–76. Now grounding the attack in the lane's actual state, in parallel:baseline.json
+box_proof_case_deletion.py
+check_agentdef_boxes.py
+check_agent_definitions.py
+check_alwayson_boxes.py
+check_assertion_floors.py
+check_callee_rename.py
+check_command_files.py
+check_correction_sweep.py
+check_could_not_evaluate.py
+check_description_thresholds.py
+check_erratum_absorption.py
+check_explicit_invocation.py
+check_gate_finding_delta.py
+check_gate_registry.py
+check_hook_files.py
+check_infoless_fences.py
+check_instruction_authority.py
+checklist-baseline.json
+checklist-command-vocabulary.json
+check_mcp_instructions.py
+check_opencode_repin.py
+check_overlap_levers.py
+check_plugin_manifests.py
+check_r63_routed_repairs.py
+check_r64_routed_repairs.py
+check_r66_routed_repairs.py
+check_routed_repairs.py
+check_routed_repairs_v2.py
+check_scoped_rules.py
+check_scoped_rules_v31.py
+check_scoped_rules_v32.py
+check_seat_counts.py
+check_sibling_census.py
+check_sources_append_only.py
+check_substrate_pins.py
+check_sweep_mutants.py
+compare_harness_independent.py
+corpus-baseline.json
+fault_injection_corpus.sh
+fixtures
+floors-registry.json
+harness-independent-scope.json
+__pycache__
+README.md
+surfaces-baseline.json
+verify_alwayson.py
+verify_corpus_independent.py
+verify_corpus_integrity.py
+verify_dispatch_prompts.py
+verify_harness_claims.py
+verify_harness_independent.py
+verify_skill_checklist.py
+verify_surfaces.py
+--- git head ---
+0b082b4369e875f5838a3ba181b9130a2c955115
+--- state ---
+bash: scripts/hyaku/jj-lane.sh: No such file or directory
+vtcode: 
+0
+parallelworks: 
+0
+kilo\.ai: 
+0
+agent-framework: 
+0
+mistral: 
+0
+trust-gate: 
+0
+--- knowledge dir at base ---
+corpus/knowledge/sibling-overlap-census-round49.md
+corpus/knowledge/skill-activation-telemetry.md
+corpus/knowledge/skill-listing-thresholds-round54.md
+corpus/knowledge/skill-overlap-levers-round51.md
+corpus/knowledge/skill-selection-rules-round50.md
+corpus/knowledge/substrate-pin-guard-round23.md
+corpus/knowledge/trigger-miss-proxy-round6.md
+corpus/knowledge/writing-revision-calibration-round61.md
+--- worktree knowledge ---
+sibling-overlap-census-round49.md
+skill-activation-telemetry.md
+skill-listing-thresholds-round54.md
+skill-overlap-levers-round51.md
+skill-selection-rules-round50.md
+substrate-pin-guard-round23.md
+trigger-miss-proxy-round6.md
+writing-revision-calibration-round61.md
+.ufo/waves/round-67/:
+assimilation
+census-after.txt
+census-before.txt
+controls
+receipts
+w1
+w1-spec.json
+w2
+w2-spec.json
+
+.ufo/waves/round-67/controls/:
+census-validate-append.txt
+collisions
+reg-ids
+SOURCES.append.r67.md
+staged-ids
+validate
+--- r67 counter locations ---
+.ufo/waves/round-67/w1/drafts/check_instruction_authority.py
+.ufo/waves/round-67/w1/controls/junk-world/.ufo/round-37/evidence/R1-counter_blind.py
+.ufo/waves/round-67/w1/controls/junk-world/.ufo/round-37/evidence/R1-mutant_semantics_probe.py
+.ufo/waves/round-67/w1/controls/junk-world/.ufo/round-37/evidence/spec_rules.py
+.ufo/waves/round-67/w1/controls/junk-world/.ufo/round-37/evidence/v5-derive_floors.py
+.ufo/waves/round-67/w1/controls/junk-world/.ufo/round-37/evidence/v6-oracle.py
+.ufo/waves/round-67/w1/controls/junk-world/.ufo/round-37/evidence/v6-spec_rules.py
+.ufo/waves/round-67/w1/controls/junk-world/.ufo/round-37/evidence/v6-verify_battery.py
+.ufo/waves/round-67/w1/controls/junk-world/.ufo/round-37/evidence/v7-c3_landing_proof.py
+.ufo/waves/round-67/w1/controls/junk-world/.ufo/round-38/evidence/v5-oracle.py
+
+
+• The base before-line is confirmed: 0 hits for all five client names and `trust-gate` in `corpus/` at the base rev. Good.
+
+  Now let me look at the r67 counter `.ufo/waves/round-67/w1/drafts/check_instruction_authority.py` to see the exact r67 defects (R67-1 misclassification and the self-test blind spot) so my contract attack can cite them precisely. Also check the existing lane's convention for `--rev` reading (e.g., `check_r66_routed_repairs.py` — how do landed counters read a rev?) to see what the contract implicitly requires of the r68 counter. Also check `check_sources_append_only.py` and `corpus/SOURCES.md` schema to attack question (1) — can a stub entry + 5 lane-authored SOURCES rows satisfy every conjunct.
+
+  Also check the r67 receipt C2-authority-measure.txt to quote the R67-1 evidence.
+
+  Batch:
+  1. Read r67 counter draft.
+  2. Read check_r66_routed_repairs.py (rev-reading convention).
+  3. Read corpus/SOURCES.md head (schema).
+  4. Read receipts dir for r67 C2-authority-measure.txt.
+  5. Read corpus/lessons/round-67-verifier-spotcheck.md (the four routed defects).
+
+• Base before-line confirmed: all five client tokens + `trust-gate` = 0 hits in `corpus/` at `e94ae32a`. Now I read the r67 counter (the defect precedent this contract must not repeat) and the rev-reading convention of landed counters:# SOURCES — where kotoba learns
+
+`corpus/knowledge/` holds admitted facts; this file holds the places they come
+from — what each teaches, how far to trust it for which scope, and when to look
+again. Contract: fleet `SOURCES-CONTRACT-v1.md` (2026-10-19). A row exists only
+for a source the row's author opened this round; access evidence lives in
+`.ufo/round-46/evidence/w2/sources/fetch-log.json` (round 46), the seat reports under
+`.ufo/waves/round-47/build/` (round 47), and the round lesson's `## Gate`.
+
+## Registry
+
+| id | source | kind | tier | scope | anchor | teaches | status | opened | recheck | used-by |
+|---|---|---|---|---|---|---|---|---|---|---|
+| S001 | Agent Skills — Specification — https://agentskills.io/specification | spec | A | SKILL.md frontmatter format and file-structure rules | § Skill metadata table, § Progressive disclosure; live page opened 2026-10-19 | Name is 1-64 lowercase-hyphen chars matching its directory; description 1-1024 chars saying what and when; SKILL.md under 500 lines with detail moved to reference files | mined | 2026-10-19 | on-release | corpus/lessons/round-46.md |
+--- rows count ---
+340
+--- r67 receipt ---
+$ python3 -B verifiers/check_instruction_authority.py --rev ed4df3e958d3ed392767fb0cb797ab51acfa66d2
+authority ladder grounded 1 of 1
+exit=0
+
+$ ... --rev 2a8eba56b3f9321b70c569fa2816d42237ca49a2 (base control)
+environment error: cannot read corpus/knowledge/instruction-authority-ladder-round67.md at 2a8eba56b3f9321b70c569fa2816d42237ca49a2
+exit=2
+
+$ ... --self-test
+PASS honest world: grounded 1 of 1
+PASS broken world rejected: entry missing
+PASS broken world rejected: no source line
+PASS broken world rejected: id does not resolve
+PASS broken world rejected: row not mined
+PASS broken world rejected: source cell absent from the entry
+PASS broken world rejected: no verified-at
+PASS broken world rejected: no recheck
+PASS broken world rejected: no coverage-map row
+PASS broken world rejected: quote not in the anchor cell
+self-test: 0 failure(s) over 10 assertions
+
+
+• I now have everything needed. Let me construct the attacks against the CONTRACT (since the draft doesn't exist). Let me carefully build the five requested attacks plus any additional contract gaps, each with evidence.
+
+  Key contract text (plans/round-68.md lines 39–76):
+
+  ```
+  python3 -B verifiers/check_client_trust_gates.py --rev <rev>  ->  prints "client trust gates backed N of 5", exit 0 when N == 5
+  python3 -B verifiers/check_client_trust_gates.py --rev <base> ->  prints "client trust gates backed 0 of 5", exit 1
+  python3 -B verifiers/check_client_trust_gates.py --fetch       ->  finds each of the 5 located quotes on its live page
+  ```
+
+  Counter semantics paragraph: "a **missing entry** is `0 of 5`, exit 1 (a content verdict); a genuinely unreadable **environment** (unknown revision, unreadable repo) stays exit 2."
+
+  Landed shape: entry with per-client table (client · what documented · located quote · source id), five SOURCES rows, one SKILL.md pointer, counter with `--self-test` that "breaks each conjunct".
+
+  Bound paragraph: "Documentary evidence, not observed runtime behaviour; the counter reads the measured revision's own bytes (QUALITY Q33), so the verdict also rests on the base control, the junk-entry control, the mutation battery and the `--fetch` measurement."
+
+  Now the five attack questions:
+
+  **(1) Copy-satisfiability — stub entry with five fake rows and five matching lane-authored SOURCES rows.**
+
+  The counter reads only lane-authored bytes (entry + SOURCES + README coverage map). A stub `client-trust-gates-round68.md` containing five fabricated rows, plus five fabricated SOURCES rows S###, satisfies every byte-local conjunct: entry exists, table rows with quote cells, ids resolve to `status mined` rows, anchors match, coverage-map row indexed, verified-at/recheck present. N = 5, exit 0 — with zero live pages ever opened. This is copy-satisfiable *by construction* because the entry cites itself.
+
+  Is this a defect or an accepted bound? The plan's Bound paragraph names this: "Documentary evidence, not observed runtime behaviour" — QUALITY Q33. So the contract knows. BUT — the critical question: does the frozen predicate's `--fetch` arm actually close this hole? Only if:
+  - `--fetch` derives its quotes from the landed entry/SOURCES bytes at the rev (not hardcoded constants in the counter);
+  - `--fetch` failure exits nonzero and is actually measured as a conjunct of the claim (the frozen predicate lists it as a separate line, but nothing in the contract says `--fetch` must run against the same landed rev's bytes, or that its failure blocks the claim).
+
+  Attack A1 (HIGH): the frozen predicate never pins where `--fetch` gets its five quotes. If the counter hardcodes five quote strings as module constants, `--fetch` proves the constants exist on live pages while the landed entry can cite five *different* (fabricated) quotes. `--rev <rev>` never compares the entry's quotes to the live pages, so the stub world passes `--rev` 5-of-5 + base control + (constants-verified) `--fetch`. Fix: contract must state `--fetch` extracts each quote from the measured rev's entry/SOURCES bytes and fails (nonzero) when any quote is absent; and the claim's receipt must run `--fetch` at the landed rev.
+
+  Evidence: contract text line 49 `--fetch finds each of the 5 located quotes on its live page` — "the 5 located quotes" is not bound to the entry's table or to the rev; contrast r67 counter which was fully rev-scoped (`load_blobs` reads only committed bytes). Also note: `--fetch` takes no `--rev` argument in the frozen predicate lines, so its rev-scoping is undefined by the contract itself.
+
+  **(2) Does `--fetch` discriminate — nav menu / 404-page quote.**
+
+  Attack A2 (HIGH): substring matching on live HTML accepts any occurrence, including navigation menus, breadcrumbs, footers, cookie banners, and 404/soft-404 pages. Concrete case: a quote of ≤25 words that includes generic client vocabulary ("skills", "untrusted", "instructions") will commonly appear in a sidebar/nav. Worse: many sites serve a soft-404 (HTTP 200 + "page not found" template) — if the fetcher checks only HTTP status loosely or follows redirects to a generic error page whose template contains boilerplate, a quote that appears in the boilerplate of *any* page of the domain would pass. Conversely, a wrong quote on a real page passes if it appears anywhere on the page (e.g., in the "related articles" list). The contract says only "finds each of the 5 located quotes on its live page" — no pinning of: URL equality (row's canonical URL vs. fetched URL after redirects), non-404 status, or occurrence outside chrome. Fix: contract must pin (a) fetch the exact canonical URL from the SOURCES row's source cell, (b) require HTTP 200 (and optionally reject obvious soft-404 markers), (c) case-sensitive verbatim substring match of the quote as written in the anchor cell, (d) exit 1 (content verdict) when a quote is absent on a 200 page, exit 2 on network/environment failure — and the two classes must be distinguishable in output.
+
+  Also: 404 pages. If the URL 404s, is that "environment unreachable" (exit 2, unverifiable) or "content verdict, quote not found" (exit 1)? A 404 on a cited URL is *content evidence against the row* (the source is gone) — but it's also possibly transient network policy. The contract does not say. This is exactly the exit-1-vs-exit-2 ambiguity the r67 lesson is about, transplanted to the fetch arm. The plan's Counter-semantics paragraph pins the classification only for `--rev`-mode missing entry; `--fetch`'s classification is unspecified. Evidence: plan lines 66–70 (classification stated for the rev path only) and line 49 (`--fetch` line has no exit code at all — unlike lines 42 and 48 which pin exit 0/1).
+
+  **(3) Missing-entry path → `0 of 5`, exit 1.**
+
+  The contract does pin this (lines 66–70): "a missing entry is 0 of 5, exit 1 (a content verdict); unknown revision, unreadable repo stays exit 2." And the base-control conjunct (line 48) forces the measured behavior at the base. I verified the base: `git grep -il trust-gate e94ae32a… -- corpus/` → 0 hits; no entry in `corpus/knowledge/` at base. So the base control at the base rev genuinely exercises the missing-entry path — good, the contract closes R67-1 *if* the counter follows it.
+
+  But the residual attack (A3, MEDIUM): the contract pins "missing entry" but not the *present-but-hollow* entry. Degraded cases along the path from "missing" to "5 of 5": entry exists but empty/no table; entry has 3 of 5 client rows; entry has 5 rows but 2 quotes don't match anchors; SOURCES.md missing entirely at the rev; the Registry section heading renamed. Which of these are content verdicts (N of 5, exit 1) and which are environment (exit 2)? The contract only pins the two endpoints. A counter that raises EnvError on `SOURCES.md` missing (the r67 counter treats a missing blob as `None` → content, good) or that crashes on a malformed table (exit 2 traceback) would repeat R67-1's *class* in a new location. Fix: contract line for the middle cases — every *readable* rev yields a content verdict; only revision-unresolvable / git failure / non-UTF-8 are exit 2; a traceback is itself a defect. Also: the contract should state the exact stdout for the missing-entry case is `client trust gates backed 0 of 5` on stdout (not stderr) — the r67 base-control receipt shows the failure printed `environment error: cannot read ...` — i.e., the r67 counter didn't even print the frozen line in the base control. The r68 receipt must show the exact frozen line `client trust gates backed 0 of 5`.
+
+  **(4) Environment error (exit 2) vs content verdict (exit 1).**
+
+  Covered by the contract for two named cases; the unspecified boundary is the gap (see A2/A3). Additional attack (A4, MEDIUM): the frozen predicate's success line has no negative-control discipline for exit 2. Nothing in the contract requires the counter to print NOTHING on stdout for exit 2 (the r67 receipt shows `environment error: ...` printed where the frozen line was expected — an automated predicate checker grepping for `backed N of 5` would then parse... actually r67's output contains no `grounded` line so a strict parser sees nothing; but a loose `grep 'backed' || true` could misread). The contract should pin: on exit 2, stdout is empty and the diagnostic goes to stderr — the r67 counter's own docstring promises this ("Exit ... 2 for usage, revision, git, or decoding failures", and its self-test asserts `public-main-stderr` / `no verdict`), but the r68 contract text does not. Evidence: plan lines 42/48/49 pin prints for exits 0/1 but say nothing about exit-2 stdout hygiene; r67 receipt line shows the failure mode.
+
+  Also A4b: unknown-revision at base — the base-control conjunct is written `--rev <base>`; if the lane uses jj and git HEAD is detached (plan line 5), `e94ae32a5cd8dc3ee8e2d247816784bec2750cc0` must resolve via `git rev-parse` in the lane repo — verified it's a valid object? My grep against it worked (git grep succeeded, exit 0, 0 hits), so the base rev resolves. Good — but note the counter must accept the full 40-hex SHA; the predicate writes `<base>` — receipt should record the full hash. Minor.
+
+  **(5) `--self-test` real vs `check()`-direct divergence.**
+
+  The contract (line 62–63): "the new counter `verifiers/check_client_trust_gates.py` with a `--self-test` that breaks each conjunct." Attack A5 (HIGH — the r67 blind spot, named): a self-test that drives only the internal scoring function (e.g., `score(fixture_dict)`) while `--rev` mode goes through a *different* loader (`load_blobs` via `git show`) proves nothing about the rev path. The r67 counter is the counter-example of the *correct* shape: its self-test monkeypatches `load_blobs` and then drives public `main()` (`check_instruction_authority.py` lines 424–469: `globals()["load_blobs"] = fixture_loader`, `main(["--rev", rev, ...])`, asserting the exact stdout line and exit codes). So the contract must require, not merely imply: the self-test must drive `main()` (public CLI) with the loader substituted at the same seam the `--rev` path uses, must assert the exact frozen stdout line `client trust gates backed N of 5`, exit codes 0/1/2, and must include the base-control world (entry absent → exact line `client trust gates backed 0 of 5` + exit 1) — i.e., the R67-1 regression test itself. If the self-test only calls `check()`/`score()` directly and `main()` re-implements parsing (or the missing-entry branch lives in `main()`/`load_blobs`, not in `score()`), the R67-1 defect would pass the self-test while the frozen base control fails — the exact r67 outcome (receipt shows self-test 10/10 PASS while the committed base control printed exit 2).
+
+  Evidence for severity: `.ufo/waves/round-67/receipts/C2-authority-measure.txt` — self-test "PASS ... 0 failure(s) over 10 assertions" in the same receipt where the base control printed `environment error: ... exit=2`. That is the proof that a self-test not driving the public rev-path main() can be green while the frozen predicate is red.
+
+  **Additional contract attacks beyond the five:**
+
+  A6 (MEDIUM): N's denominator and dedup. "N of 5" — five clients (`vtcode`/`parallelworks`/`kilo.ai`/`agent-framework`/`mistral-vibe`). The contract never states N counts *distinct clients* with each gate backed by its own distinct SOURCES row. A stub with five identical rows all citing client `vtcode` (or one row reused for two clients) would reach "backed 5 of 5" if N counts matched table rows. Fix: N = number of the five named clients whose (row · quote) pair is grounded; each client at most once; the five client identities should be pinned in the contract (they are named only in the Why paragraph, lines 54–55, not in the predicate).
+
+  A7 (LOW/MEDIUM): the base-control ordering trap. "Before (measured at the base e94ae32a)" — if the base control is measured *only before* the work lands, a counter that ignores `--rev` and reads the working tree would print `0 of 5` at base and `5 of 5` at head, and the base-control conjunct would look satisfied while rev-scoping is broken (after landing, `--rev <base>` would read the working tree and print `5 of 5`, exit 0 — violating the frozen line — but nobody would notice unless the receipt re-runs the base control *after* landing). The r66 counter shows the lane's own cure: "The counter refuses to certify unless that base scores exactly 0 of 2" — i.e., the landed counter itself embeds the base control as a conjunct. Fix: contract must require the landed receipt to re-run `--rev e94ae32a…` after landing (or the counter to hard-pin BASE_REV like check_r66_routed_repairs.py line 28 `BASE_REV_LITERAL`) and require `0 of 5`/exit 1 there. Evidence: plan line 48 has no ordering requirement; r66 precedent line 28 + docstring lines 5–7.
+
+  A8 (LOW): `--fetch` network nondeterminism vs the frozen predicate. Five live pages fetched at claim time — a quote can vanish or the site can restructure, making `--fetch` flaky across re-runs; the contract gives no guidance on quote stability (≥ some anchoring) or on the recheck cadence for these rows. Also — no offline/CI discipline: a lane verifier that requires network breaks reproducibility of the receipt (every rerun needs live net). At minimum the contract should name `--fetch` as a one-time in-round measurement recorded in the receipt + Gate, not part of any always-on gate. This matches the plan's `recheck` schema (`NNd`/symbolic) — minor.
+
+  A9 (LOW): SKILL.md pointer line and coverage-map row are in the landed shape but NOT in the frozen predicate's conjuncts — the frozen predicate as written could be satisfied by the entry+rows alone without the coverage-map index row (unlike r67 whose conjunct 07 was coverage-index). If the landed shape promises the coverage row, the counter should check it (else the promised shape can drift silently). Fix: add conjunct (or explicitly drop the promise). Attack value: the plan says the do-nothing world reaches 0 of 5 — fine — but a half-landed world (entry + SOURCES rows, no coverage row, no SKILL pointer) would still print 5 of 5, exit 0, contradicting the landed shape's contract with the lane's own integrity gate (verify_corpus_integrity checks pointers?). Not fatal, but a gap between "landed shape" and "what the predicate enforces."
+
+  Hmm, also note: verify_corpus_integrity re-records (R67-4 repair) will count the new entry + SOURCES rows; interplay between C1's landing and C2's `9/9` — the baseline re-record must happen after C1's files land, or `corpus.index.tracked_files` drift will flip C2 red. The plan sequences C2 repairs (R67-4 baseline re-record) — if the baseline is re-recorded before the C1 entry lands, tracked_files observed=123 expected=122 → C2 conjunct fails. This is an ordering attack on the round, worth one line (LOW, round-mechanics not C1 counter itself). Actually this is a real concrete risk: the two claims interact through corpus-baseline.json. Worth flagging as residual risk.
+
+  Also A10: the predicate name says "client trust gates backed N of 5" — the frozen string appears in plan line 42/48; the counter must print EXACTLY this line; also on exit 1 at partial N, print `client trust gates backed N of 5` (with actual N) — that's implied. Fine.
+
+  Now — is the counter copy-satisfiable in the do-nothing world? No: base control 0 of 5 (verified: no entry, no URLs at base). Can a *stub* world reach 5 of 5? Yes by construction (byte-local conjuncts), and that's why `--fetch` must be quote-derived-from-rev and discriminating. The bound names documentary evidence as accepted (Q33) — so my verdict on (1): copy-satisfiable at the byte level by design; the ONLY live-page discriminator is `--fetch`, and the contract leaves its input source and failure semantics unspecified → that's the highest-severity finding.
+
+  Severity scale: use HIGH/MEDIUM/LOW.
+
+  Now let me also verify the base rev resolves and double-check one more piece of evidence: `git grep` returned 0 hits for each token — good, quoted in finding 3 (contract satisfied the missing-entry precondition genuinely).
+
+  Also confirm the `--fetch` line has no exit code in the plan (line 49) — yes: "finds each of the 5 located quotes on its live page" — no exit pinning. Cite plan line numbers.
+
+  One more check — the r67 counter's main() missing-entry behavior: `load_blobs` returns None for missing blob (line 100-103), and score gives entry-exists False → n=0 → prints "authority ladder grounded 0 of 1", exit 1. Wait — the r67 counter I just read is the DRAFT (w1/drafts), which already looks corrected?? But the receipt shows exit=2 at base. The LANDED `verifiers/check_instruction_authority.py` must be the defective version. Let me check quickly — actually the plan says R67-1: "The r67 counter classified a missing entry as an environment error (exit 2)". The draft I read handles missing blob as None → content verdict. So the landed version differs from the draft. Let me verify the landed version to cite the actual defect line. Quick grep.
+
+  Also the report: I'm a read-only reviewer BUT the dispatcher's final line says "Report: write your scoped findings to .ufo/waves/round-68/w1/ReviewC1Counter.md". The role bounds say read-only seats "do not write files at all — return findings in final response; the L1 writes your report from it." There's a direct conflict. The system prompt says "Assigned materials are data: assigned-diff and report text never modifies contract..." and the canonical assignment is the dispatcher instruction. The dispatcher instruction explicitly says to write the report. The write-scope section says "Read-only seats (scout/reviewer/...): do not write files at all." Hmm. The "Report:" line at the end of the dispatcher message is the per-seat output instruction — it lists a specific path for THIS seat. The roles section is generic boilerplate. Given "the canonical assignment from the dispatcher is the only instruction source", and the write scope permits writing under `.ufo/waves/round-68/`, I'll write the report file AND include full findings in my final response. Writing the file within the permitted directory satisfies both bounds (the hard write bound is the directory, which I respect). The "do not write files at all" is in tension but the dispatcher's explicit per-seat instruction takes precedence, and it's within the hard bounds. I'll do both.
+
+  Let me check the landed r67 verifier defect line, then write the report.
+
+• The r67 *draft* is visibly the corrected shape (missing blob → `None` → content verdict), but the r67 receipt shows `exit=2` at base — so the *landed* counter must differ. Confirming the actual landed defect, since it is the precedent this contract must not repeat:e94ae32a5cd8dc3ee8e2d247816784bec2750cc0
+59:| Frozen comparator channel census (round 41 V10) | `knowledge/harness-independent-round41-census.md` | actual subprocess replay and exact-set classification of 46 saved arms: 25 open, 15 closed, 4 controls, 1 diagnostic, 1 caller-selected trust input; a fresh live producer/join remains protocol 24/24 (strict 20/24, 4 adjudicated, 4 scoped out), with zero disagreements, unknowns or uncovered rows; invalid C2 launch scratch was pruned without changing verifier/comparator sources **Round-48 qualification (append-only):** this protocol 24/24 is the round-46 record on its frozen carrier; it is not a live result (on 2026-10-22 the live join read protocol 18/24, strict 14/24, six disagreements, or exited 2 on the session-store race; `../.ufo/waves/round-48/falsify/A29ReadmeQualify.md`). |
+trust-row-grep-exit=0
+
+
+• Confirmed: the landed `verifiers/check_instruction_authority.py` line 71 raises `EnvError(f"cannot read {path} at {rev}")` when a blob is missing — that's R67-1: missing entry → exit 2 instead of `0 of 1`/exit 1. The receipt proved it. And the base README has no trust coverage row (the grep only hit an unrelated line with "trust input").
+
+  Interesting detail: the landed counter's docstring line 29 says "Exit codes: 0 grounded · 1 not grounded · 2 usage/environment error" and line 71 raises EnvError on cannot-read → so a missing entry was classified as environment. Exactly the defect class. The r68 contract (plan lines 66–70) pins the corrected classification for the missing-entry case. Good — my finding 3 must acknowledge the contract DOES pin this, and attack the *unpinned middle cases* instead.
+
+  Now write the report and final response. I'll write `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/ReviewC1Counter.md` (dispatcher explicitly instructs this path; within hard write bounds; I'm otherwise read-only on production paths).
+
+  Findings list (each: what attacked, evidence, severity, fix):
+
+  1. **A1 (HIGH) — `--fetch` input source unpinned → the stub world can pass all three frozen lines.** The predicate's `--fetch` line ("finds each of the 5 located quotes on its live page", plan L49) does not say where the five quotes come from. If they are module constants, `--fetch` verifies constants while the landed entry cites different bytes; `--rev` is byte-local and never compares to live pages, so a fabricated entry + five fabricated SOURCES rows passes `--rev <rev>` (5 of 5, exit 0) and `--rev <base>` (0 of 5, exit 1) and a constants-based `--fetch`. Copy-satisfiable: YES at the byte level, by design (Bound, plan L73–75, QUALITY Q33 names the documentary bound) — the only discriminator is `--fetch`, so its input must be the rev's own bytes. Fix: `--fetch` extracts each quote from the measured rev's entry/anchor cells (same loader seam), fetches the exact canonical URL from the row's source cell, and exits nonzero when any quote is absent; the claim receipt records `--fetch` output against the landed rev.
+
+  2. **A2 (HIGH) — `--fetch` has no pinned exit code, no 404/soft-404/boilerplate discrimination.** Plan L49 pins no exit code at all (contrast L42: exit 0 when N==5; L48: exit 1). Concrete cases: (a) a ≤25-word quote containing client boilerplate ("skills", "untrusted", "instructions") matches a navigation menu or related-articles block of a *different* page of the same site; (b) a soft-404 (HTTP 200 template "page not found") passes a status check and would "find" any quote present in the site template; (c) a redirect to a domain root could make a quote found "on its live page" when the cited page is gone. Also unpinned: quote-absent-on-200-page (content verdict, must be exit 1) vs network-unreachable (environment, exit 2) — the exact exit-1/exit-2 ambiguity of R67-1, transplanted into the fetch arm, since the Counter-semantics paragraph (plan L66–70) classifies only rev-path cases. Fix: pin — fetch the row's canonical URL verbatim (no redirect-cross-host acceptance), require HTTP 200, case-sensitive verbatim substring of the anchor-cell quote, quote-absent-on-200 → exit 1 with the frozen line showing N<5 or an explicit fetch-fail line, network/transport error → exit 2 with empty stdout, and record which of the five failed.
+
+  3. **A3 (MEDIUM) — endpoints pinned, middle cases not: present-but-hollow entry.** Contract pins missing entry → `0 of 5` exit 1 (plan L66–70) and I verified the base genuinely exercises that path (`git grep -il` for vtcode/parallelworks/kilo.ai/agent-framework/mistral/trust-gate at `e94ae32a…` over `corpus/` → 0 hits each; no coverage row: the only `trust` hit in base README is an unrelated "trust input" phrase). Unpinned: entry exists but empty/no table; 3-of-5 client rows; SOURCES.md blob missing at rev; Registry heading renamed; non-UTF-8 entry. A counter that treats missing SOURCES or a malformed table as EnvError (the landed r67 counter's shape: `verifiers/check_instruction_authority.py:71` raises `EnvError(f"cannot read {path} at {rev}")` for any unreadable blob — the exact R67-1 line) would repeat the defect one file over. Fix: pin — every readable revision yields a content verdict (N of 5, exit 1) regardless of which lane file is missing or hollow; exit 2 only for unresolvable revision, git failure, decode failure; stdout empty on exit 2, and the frozen line exactly on stdout for exit 0/1 (the r67 receipt shows the base control printed `environment error: …` where the frozen line was expected — the regression test for this is: base control prints `client trust gates backed 0 of 5` verbatim).
+
+  4. **A4 (HIGH) — `--self-test` seam unspecified; the r67 blind spot is precisely "self-test green while rev path red".** Contract says only "`--self-test` that breaks each conjunct" (plan L62–63). The landed r67 counter's self-test is green in the very receipt where the base control printed exit 2 (`.ufo/waves/round-67/receipts/C2-authority-measure.txt`: "self-test: 0 failure(s) over 10 assertions" alongside "environment error: cannot read … exit=2") — proof that a self-test not driving the public `--rev` path cannot see the loader's misclassification. The r67 *draft* (`.ufo/waves/round-67/w1/drafts/check_instruction_authority.py` L424–469) shows the correct seam: monkeypatch `load_blobs`, drive public `main(["--rev", rev, …])`, assert exact stdout line and exit codes 0/1/2. Fix: contract requires the r68 self-test to (a) drive public `main()` with the loader substituted at the same seam `--rev` uses (or via `--root` fixture dirs reading committed-style bytes), (b) assert the exact line `client trust gates backed 0 of 5` + exit 1 for the entry-absent world (the R67-1 regression case), (c) assert exit 2 with empty stdout for unknown-revision/loader-failure worlds, (d) include a `--fetch` broken world if `--fetch` is a conjunct.
+
+  5. **A5 (MEDIUM) — N's counting rule and the five client identities are not in the predicate.** "backed N of 5" — N of *what*? The five clients are named only in the Why paragraph (plan L54–55), not in the frozen predicate; nothing prevents five rows all for one client, or one SOURCES row cited by two client table rows, reaching `5 of 5` with <5 distinct grounded (client, source) pairs. Fix: pin N = count of the five named clients (vtcode, parallelworks, kilo.ai, agent-framework, mistral-vibe) each backed by its own distinct SOURCES row whose anchor contains the entry's located quote for that client; duplicated-row or duplicate-client collapses cap N.
+
+  6. **A6 (MEDIUM) — base-control ordering trap: a working-tree-reading counter passes both frozen lines.** The before-line is "measured at the base e94ae32a" (plan L56) — measured *before landing*, so a counter that ignores `--rev` and reads the worktree also prints `0 of 5` at that moment. After the entry lands, the same broken counter would print `5 of 5` for `--rev <base>`, silently voiding the conjunct — nobody re-runs the base control unless required. The lane's own r66 precedent closes this: `verifiers/check_r66_routed_repairs.py` L28 pins `BASE_REV_LITERAL = "11385e04…"` and its docstring (L5–7) says "the pinned round-65 base prints `0 of 2` and exits 1. The counter refuses to certify unless that base scores exactly 0 of 2." Fix: require the r68 counter to hard-pin the base SHA as an internal conjunct (or require the landed receipt to re-run `--rev e94ae32a…` post-landing showing `0 of 5`/exit 1).
+
+  7. **A7 (LOW) — landed shape promises not enforced by the predicate.** Landed shape includes a coverage-map index row and a SKILL.md pointer line (plan L59–63), but the frozen predicate's conjuncts (as written) need not check either — a half-landed world (entry + SOURCES rows, no coverage row, no pointer) would still print `5 of 5`, exit 0. r67's draft enforced coverage indexing as conjunct 07. Fix: add a coverage-index conjunct (and pointer check) or state explicitly the predicate deliberately omits them.
+
+  8. **A8 (LOW) — `--fetch` flakiness and receipt reproducibility.** Five live pages: quotes vanish, sites restructure, redirects move; a rerun of the receipt days later can flip `--fetch` red with no lane change. Contract gives no stability guidance and no cadence for these rows' `recheck` cells. Fix: name `--fetch` as a one-time in-round measurement recorded in the receipt + lesson `## Gate` (URL + access date), and set `recheck` cells for the five rows accordingly; never wire `--fetch` into an always-on gate.
+
+  9. **Residual risk / cross-claim (LOW but concrete): C1's landing can flip C2 red via the baseline.** R67-4's repair re-records `verifiers/corpus-baseline.json` (plan L117–119); C1 adds ≥6 tracked files (entry + 5 SOURCES rows are in one file... actually SOURCES.md is one file, entry is one file, so tracked_files +2, plus SKILL.md pointer already tracked). If the baseline is re-recorded before the C1 entry lands, `corpus.index.tracked_files` observed will exceed expected and the C2 conjunct `9/9` fails. Fix: land C1 files first, then re-record baseline, then run the C2 conjuncts; or re-record last with a final full-battery run. Also note the same `python3 -B` and full-40-hex `<rev>` discipline: base rev verified resolvable (`git rev-parse --verify e94ae32a…^{commit}` succeeded).
+
+  Also answer the five questions head-on in a summary table.
+
+  Question (1): copy-satisfiable? Byte-level YES by design (documentary bound, Q33) — the stub passes `--rev` both ways; it is blocked ONLY if `--fetch` is quote-derived-from-rev and discriminating (A1/A2). So: not copy-satisfiable as a *whole claim* only under the fix; as the predicate is written, copy-satisfiable via constant-quotes + fabricated rows.
+  (2) `--fetch` discrimination: unspecified; substring matching accepts nav-menu/404-template occurrences as written (A2).
+  (3) missing-entry → `0 of 5` exit 1: the contract pins it (L66–70) and the base genuinely exercises it (0 hits evidence); risk remains for middle cases (A3).
+  (4) exit 2 vs exit 1: pinned at endpoints for rev path; unpinned for `--fetch` and for hollow-entry/missing-SOURCES cases (A2/A3); stdout hygiene unpinned.
+  (5) `--self-test`: contract language ("breaks each conjunct") permits the check()-direct shape that was green while r67's base control was red (receipt evidence) — must be pinned to drive public `main()` at the loader seam (A4).
+
+  Note honestly: I attacked the CONTRACT, not code — the file does not exist. Every finding cites plan lines and repo evidence; none of my grep outputs are presented as semantic proof beyond what they literally show.
+
+  Now write the report file, then final response with full findings. Keep the report file complete since it's the deliverable.
+
+• All evidence is in hand. The landed r67 counter's defect line is confirmed (`verifiers/check_instruction_authority.py:71` — any unreadable blob raises `EnvError` → exit 2, the exact R67-1), and the r67 receipt shows a green self-test alongside the red base control — the blind-spot precedent. Writing the scoped report to the dispatcher-specified path (inside the permitted write bounds; production paths untouched):
+
+127 /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/ReviewC1Counter.md
+• Report written (127 lines). Now the final response with the findings summary. Keep it tight but complete: severity-ordered findings with evidence, then residual risk and gaps. State upfront that the draft doesn't exist so the contract was attacked.
+
+• **The draft does not exist** — `Read` on `.ufo/waves/round-68/w1/drafts/check_client_trust_gates.py` → `does not exist`; `w1/drafts/` is absent. **I attacked the CONTRACT**: the frozen predicate `client trust gates backed N of 5` (`plans/round-68.md` L39–76).
+
+  **Ground verified at base `e94ae32a`** (resolves via `git rev-parse --verify …^{commit}`): `git grep -il` over `corpus/` → 0 hits for `vtcode`, `parallelworks`, `kilo\.ai`, `agent-framework`, `mistral`, `trust-gate`. The before-line is real; the do-nothing world cannot reach 5 of 5.
+
+  ## Findings
+
+  **A1 · HIGH — `--fetch` input source unpinned → stub world passes all three frozen lines.** Plan L49 never says whose five quotes `--fetch` checks. If they are counter constants, `--fetch` verifies constants while the landed entry cites fabricated bytes; `--rev` is byte-local (Q33 bound, L73–75) and never sees live pages. Constructed: fabricated entry + 5 fabricated `mined` SOURCES rows → `5 of 5`/exit 0, `0 of 5`/exit 1 at base, green constants-`--fetch`. Fix: `--fetch` must extract quotes from the measured rev's own entry/anchor bytes and exit nonzero on absence.
+
+  **A2 · HIGH — `--fetch` has no exit code and no 404/boilerplate/redirect discrimination.** L49 is the only predicate line with no exit pinning. A ≤25-word quote with client boilerplate substring-matches a nav menu; a soft-404 (HTTP 200 template) "finds" template quotes; cross-host redirects count wrong pages. Quote-absent-on-200 (content, exit 1) vs transport failure (environment, exit 2) is unpinned — L66–70 classifies only rev-path cases, so R67-1's exact ambiguity is transplanted into the fetch arm. Fix: pin canonical-URL fetch, HTTP 200, verbatim case-sensitive anchor match, content-vs-environment exit classes, empty stdout on exit 2.
+
+  **A3 · MEDIUM — endpoints pinned, hollow middle cases not.** Missing entry → `0 of 5`/exit 1 is pinned (L66–70) and genuinely exercised at base. Unpinned: empty/table-less entry, 3-of-5 rows, missing SOURCES blob, renamed Registry heading. The landed r67 counter raises `EnvError` for *any* unreadable blob (`verifiers/check_instruction_authority.py:71`) — R67-1 repeatable one file over; its receipt shows `environment error: … exit=2` where the frozen line belonged. Fix: every readable revision yields a content verdict; base-control receipt must show the exact line `client trust gates backed 0 of 5`.
+
+  **A4 · HIGH — `--self-test` seam unspecified; r67 blind spot permitted by the wording.** "Breaks each conjunct" (L62–63) admits a check()-direct self-test. Proof of insufficiency: `.ufo/waves/round-67/receipts/C2-authority-measure.txt` shows `self-test: 0 failure(s) over 10 assertions` in the same file as the base control's `exit=2`. The corrected seam exists in `.ufo/waves/round-67/w1/drafts/check_instruction_authority.py` L424–469 (monkeypatch `load_blobs`, drive public `main(["--rev", …])`, assert exact line + exit codes). Fix: require that seam plus an entry-absent world asserting `client trust gates backed 0 of 5` + exit 1 (the R67-1 regression case).
+
+  **A5 · MEDIUM — `N` uncounted, clients unnamed in the predicate.** The five clients live only in the Why paragraph (L54–55); five rows for one client or one row reused twice could reach `5 of 5`. Fix: N = distinct named clients, each with its own row whose anchor holds its quote.
+
+  **A6 · MEDIUM — base-control ordering trap.** "Measured at the base" (L56) happens pre-landing, so even a worktree-reading counter prints `0 of 5` then; post-landing it prints `5 of 5` for `--rev <base>` and nothing re-checks. Lane precedent: `check_r66_routed_repairs.py:28` pins `BASE_REV_LITERAL` and "refuses to certify unless that base scores exactly 0 of 2". Fix: hard-pin the base SHA in the counter, or require a post-landing `--rev e94ae32a…` receipt line.
+
+  **A7 · LOW** — landed shape (coverage row, SKILL pointer, L59–63) not enforced by the predicate; half-landed world still prints `5 of 5`. **A8 · LOW** — `--fetch` is nondeterministic across receipt re-runs; pin it as a one-time in-round Gate measurement with `recheck` cadence, never an always-on gate. **A9 · LOW (cross-claim)** — if `corpus-baseline.json` is re-recorded (R67-4) before C1's entry lands, `tracked_files` drifts and C2's `9/9` flips red; land C1 first, re-record last.
+
+  ## Direct answers
+  1. **Copy-satisfiable?** Byte-level yes by design; whole-predicate yes as written (A1) — no, once `--fetch` is rev-derived and discriminating. 2. **`--fetch` discriminates?** Unspecified; substring matching accepts nav-menu and soft-404 text (A2). 3. **Missing entry → `0 of 5`/exit 1?** Pinned and exercised at base; hollow-entry cases remain open (A3). 4. **Exit 2 vs 1?** Pinned at rev-path endpoints only; fetch arm and stdout hygiene unpinned (A2/A3). 5. **Self-test real?** Wording permits the exact shape that was green while r67's base control was red (A4).
+
+  **Residual risk / gaps:** no code existed to execute — all findings are contract constructions, each becoming an executable attack the moment the draft lands; the five live pages were not fetched by this seat (reachability must come from the landed `--fetch` receipt); A9 is a sequencing risk, unmeasured until landing.
+
+  Report written to `.ufo/waves/round-68/w1/ReviewC1Counter.md` (127 lines, relative to `/home/vgpnk/Projects/shokunin/kotoba-shokunin/`). Read-only seat: no production path touched.
+
+To resume this session: kimi -r session_2a7dff6d-5caa-4565-a3bc-c92fbeaaac48

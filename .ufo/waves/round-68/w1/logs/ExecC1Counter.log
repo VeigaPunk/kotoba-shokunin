@@ -1,0 +1,1276 @@
+kimi version 2.3.1
+• Let me start by reading the plan file and the model counter in parallel, then draft the new counter.
+
+  Plan:
+  1. Read `/home/vgpnk/Projects/shokunin/kotoba-shokunin/plans/round-68.md`
+  2. Read `/home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/check_instruction_authority.py`
+  3. Look at `corpus/SOURCES.md` format and `corpus/README.md` coverage map format
+  4. Check if there's a `check_r67_routed_repairs.py` for reference on how the r67 counter works (R67-1 classification)
+  5. Draft the counter at the drafts path
+  6. Run `--self-test`
+
+  Let me do the first batch of reads in parallel. Also check the godspeed skill — the prompt says `/skill:godspeed` but I don't have a skill listing necessarily; the instruction content is embedded. I'll just follow the godspeed posture embedded in the prompt.
+
+  Working dir for tools: fleet root `/home/vgpnk/Projects/shokunin`. All paths absolute.
+
+  Let me fire parallel reads.Now I understand the plan and the model counter. Key facts:
+
+  1. The model counter `check_instruction_authority.py`:
+     - Reads `corpus/knowledge/instruction-authority-ladder-round67.md`, `corpus/SOURCES.md`, `corpus/README.md`
+     - `check()` returns (grounded_count, findings)
+     - Missing entry → returns 0 (content verdict, exit 1) — wait, but the plan says r67 counter classified a missing entry as environment error (exit 2). Hmm, but looking at the code: `check()` returns `0, ["entry missing: ..."]` — that's a content verdict. BUT `_materialize()` raises `EnvError(f"cannot read {path} at {rev}")` when `git show` fails — and at the base, the entry doesn't exist, so `git show base:corpus/knowledge/instruction-authority-ladder-round67.md` fails → `EnvError` → exit 2. That's the R67-1 defect: at `--rev <base>`, the missing entry is reported as environment error (exit 2) instead of `0 of 1` exit 1.
+
+     In the working-tree path (no `--rev`), a missing entry is a content verdict 0/1. So the defect only bites via `--rev` where the entry is missing at that rev.
+
+  2. For my counter (r68), I must fix this: when materializing a rev, if the ENTRY file doesn't exist at that revision, that's a CONTENT verdict (0 of 5, exit 1). Only genuinely unreadable environment errors (unknown revision — git show fails for the rev itself, unreadable repo, git not available) are exit 2.
+
+     How to distinguish: 
+     - First, verify the rev resolves at all: `git -C repo cat-file -e <rev>^{commit}` or `git rev-parse <rev>` — if that fails, EnvError (exit 2).
+     - Then for each file: if the entry is absent at the rev → content verdict (missing entry → 0 of 5, exit 1 with findings). If SOURCES.md or README.md are absent at the rev → hmm. The registry and coverage map are infrastructural. The plan says "unreadable repo" is environment. What about missing SOURCES.md at a rev? I'd treat missing SOURCES/README as environment error? Actually think: the classification in the plan says "a genuinely unreadable environment (unknown revision, unreadable repo) stays exit 2". SOURCES.md missing at a rev is weird — at the base it exists. For safety and honesty: SOURCES/README missing at a rev → that's a content problem too (the registry doesn't exist → cited ids can't resolve → 0 of 5, exit 1)? But it could also be argued environment. The r67 defect was specifically about the ENTRY. Let me decide: ENTRY missing → content verdict 0 of 5 exit 1. SOURCES.md or README.md missing at the rev → environment error (exit 2) because the counter cannot read the registers it is defined against — hmm, but that would make the base control... wait, at the base, SOURCES.md and README.md exist. The base control only needs the entry to be missing → 0 of 5 exit 1. Good.
+
+     Actually, let me think again about what's most defensible: The counter's claim semantics: "client trust gates backed N of 5". If SOURCES.md is missing entirely, we can't verify anything — that's arguably a broken environment/repo (the corpus registry is part of the repo's infrastructure). I'll classify: git infrastructure failures (rev doesn't resolve, git command errors, repo unreadable) → exit 2; SOURCES.md/README.md missing at a resolvable rev → content verdict... hmm, no wait.
+
+     Let me be careful and decide by the letter of the plan: "a missing entry is `0 of 5`, exit 1 (a content verdict); a genuinely unreadable environment (unknown revision, unreadable repo) stays exit 2." The frozen predicate says at the base it prints `0 of 5` and exits 1 — the base lacks the entry. So the required behavior: ENTRY missing at rev → content. For SOURCES/README: the plan doesn't pin it. I'll treat them as content too if missing at a resolvable rev? No — safest: if a resolvable rev lacks SOURCES.md or README.md, that is a repo-shape anomaly, environment error exit 2 with a clear message? Hmm.
+
+     Actually, I think content verdict is the more honest choice for any missing measured file that is part of the corpus: the entry missing → 0 of 5; the registry missing → ids cannot resolve → 0 of 5 with findings ("corpus/SOURCES.md is absent at <rev>"). The distinction that matters (per R67-1) is: don't hide a content failure behind exit 2. Missing corpus files are content facts about the revision, not environment failures. Environment errors are: repo path doesn't exist / isn't a git repo, git binary missing, revision doesn't resolve (unknown revision), git show fails for a reason other than "path not in rev".
+
+     How to distinguish "path not in rev" from other git errors: `git show rev:path` returns exit 128 with "fatal: path ... does not exist in 'rev'" for missing path, and exit 128 with "fatal: Invalid revision range" / "fatal: bad revision" for unknown rev. Simpler robust approach: first run `git rev-parse --verify <rev>^{commit}` (or `cat-file -e`). If it fails → EnvError "unknown revision". Then `git show rev:path` failing after rev verification → treat as "path absent at rev" → content verdict for ENTRY; for SOURCES/README — treat as content findings too (I'll make it: all three missing-file cases are content verdicts; that keeps base control exit 1 and never masks content as environment).
+
+     Wait, but there's a subtlety: `git show rev:path` can also fail because git isn't installed or repo is unreadable. To be careful:
+     - `git rev-parse --verify` fails → env error (unknown revision / not a git repo / git missing). Include stderr message.
+     - `git show rev:path` fails → check whether `git ls-tree rev -- path` says the path exists. Simpler: treat any `git show` failure after successful rev verification as "path absent at rev" (content), since rev is known-good and repo is known-readable at that point (rev-parse worked). That's clean.
+
+  3. Structure: TOTAL = 5, but the counting semantics: "client trust gates backed N of 5" where N counts per-client rows backed. The entry must carry a per-client table with one row per client. The five conjuncts listed in the contract:
+
+     (1) entry exists;
+     (2) entry opens with `source:` lines naming `S###` ids, one per client row (so exactly 5 ids? "one per client row" — at least 5 distinct ids, one for each of the 5 clients);
+     (3) every cited id resolves to a SOURCES.md row with status `mined`;
+     (4) each cited row's `source` cell occurs verbatim in that id's `source:` line;
+     (5) `verified-at: 2026-10-24` line and a `recheck:` line;
+     (6) for each cited id, a double-quoted located quote ≤25 words that occurs in that row's `anchor` cell;
+     (7) each client row's client name and its quoted behaviour occur in the entry's per-client table, and the entry is indexed in corpus/README.md's coverage map.
+
+     Counting N of 5: N = number of clients (of the 5) fully backed. The 5 clients are named in the plan: `vtcode` / `parallelworks` / `kilo.ai` / `agent-framework` / `mistral-vibe`. Hmm wait — those are the five client URLs: "corpus/SOURCES.md holds none of the five client URLs (vtcode/parallelworks/kilo.ai/agent-framework/mistral-vibe: 0 hits each)". 
+
+     But the counter is written BEFORE the entry exists (I'm drafting it in wave 1; the L1 installs it; the entry `corpus/knowledge/client-trust-gates-round68.md` will be authored by another seat). So how does the counter know the client names? The counter must derive them from the entry content (content, not names — Q25/Q26). But then how to count "N of 5" and how to enforce "one per client row"?
+
+     Design: the entry opens with `source:` lines, one per client row. Each `source:` line names an id. The clients backed = number of source lines that satisfy conjuncts (3),(4),(6) for their id, AND whose client name+quoted behaviour appear in the entry's per-client table (conjunct 7 first half). The total "of 5" is fixed at 5 per the frozen predicate. Also conjunct (2) says "one per client row" — the entry must have exactly 5 source lines? Or at least 5? The frozen predicate: N of 5, exit 0 when N==5. If the entry could have more than 5 source lines, then "one per client row" would mean the entry's table has one row per client and the source lines map 1:1. I'll enforce: exactly 5 distinct ids in source lines (the predicate is "backed 5 of 5"). Hmm, but being too rigid could make the counter break if the entry legitimately cites 6 sources for 5 clients. The contract says: "the entry opens with `source:` lines naming `S###` ids, one per client row" — one source line per client row, i.e., 5 client rows → 5 source lines. I'll require exactly 5 source: lines? Or "at least one per client row"? To be safe and match the contract literally: each client row in the table must have exactly one source id backing it; the number of source lines must equal the number of clients and equal 5 for a pass. I'll implement: count of distinct `source:` ids must be exactly 5 for N to be 5 (fewer ids → fewer clients can be backed → N < 5). Actually simplest honest approach:
+
+     - Parse source lines → list of (id, line-text). Must be exactly 5 for full credit? If the entry lists 6 ids, what then? The claim is "N of 5" — extra ids beyond 5 would mean the entry cites more sources than clients. The r67 model counter returns 0/1 only (binary). Mine must be N of 5 with per-client backing. I'll compute per-client backing and require the number of source lines == 5 (well — "one per client row"). If != 5, findings note it and N counts only fully-backed clients... but with 6 ids, could N reach 5? Yes if 5 of the 6 are backed. Is that acceptable? The claim says "backed N of 5" — it counts the five clients. An extra source line violates conjunct (2)'s "one per client row" only if there are 5 client rows. Since the counter reads content, it can't know client-row count except from the table. 
+
+     Pragmatic design decision (keep it simple and defensible):
+     - N = number of ids from the entry's `source:` lines that are fully backed (resolve to a mined row whose source cell is in that source line, and the entry carries a located quote ≤25 words present in the row's anchor cell, and the per-client table mentions the client name and the quote).
+     - Global findings for: entry missing (0 of 5, exit 1), no/duplicate source lines, missing verified-at/recheck, missing coverage-map row.
+     - Additional gating for exit 0 (N==5): exactly 5 source lines with distinct ids (conjunct 2, "one per client row"), no duplicate ids, global conjuncts (1)(5)(7b) hold. If any global conjunct fails, N is still printed but capped such that exit is nonzero — actually findings-based: if any findings exist → exit 1 even if N==5? The r67 counter: `if findings: return 0, findings` — any finding → 0. For per-client counting, a global finding (e.g., missing recheck line) shouldn't erase per-client credit in the count... but the frozen predicate only pins exit codes at the base (0 of 5 exit 1) and full pass (5 of 5 exit 0). Middle states just need "prints N of 5, nonzero otherwise". I'll print honest N and exit 0 only when N==5 AND no findings at all. Hmm, but then "backed 5 of 5" with exit 1 would be contradictory. Resolve: if N==5 but global findings exist → that's impossible if global findings include things like source-line count != 5... wait it's possible: 5 backed ids but missing recheck line. Then print `client trust gates backed 4 of 5`? That would be dishonest — the five clients ARE backed; the recheck conjunct is a global conjunct, not a client one. 
+
+     Cleaner: make conjunct (5) and (7-index) part of the verdict arithmetic: if any global conjunct fails, the printed N is min(N, 4)? That's hacky and dishonest.
+
+     Alternative clean semantics: N counts clients backed; exit 0 iff N==5 AND zero findings. Print line: `client trust gates backed N of 5` always honest; if N==5 but findings exist, print N of 5 and exit 1 with findings listed. Slight oddity but honest and matches "exits 0 when N == 5, nonzero otherwise" — wait, the contract says "prints `client trust gates backed N of 5` and exits 0 when N == 5, nonzero otherwise". Hmm, that reads as exit 0 ⟺ N==5. So if global findings exist, they must be reflected in N. 
+
+     OK so the honest way to fold global conjuncts into per-client counting: a client is "backed" only if the WHOLE chain holds: its source line exists, id resolves to a mined row, source cell in line, located quote in anchor cell, client name + quote in the entry's table, AND the entry is well-formed (verified-at, recheck, coverage-map row, source lines one per client row). Global malformations break every client's backing. That is defensible: the entry as a whole must carry the verification metadata; an entry without `verified-at: 2026-10-24` backs nothing. This mirrors the r67 counter (any finding → 0) but with per-client granularity for the per-client conjuncts. 
+
+     So:
+     - entry missing → N=0, print `client trust gates backed 0 of 5`, exit 1, finding "entry missing". (CONTENT verdict — the R67-1 fix.)
+     - global checks: no `source:` lines at all → N=0. duplicate ids → N=0? duplicate ids mean source lines aren't one-per-client → backs nothing (finding). verified-at missing → all clients unbacked (N=0). recheck missing → N=0. coverage-map row missing → N=0. number of distinct source ids != 5 → N=0? Hmm — "one per client row" with 5 clients: exactly 5 ids needed. If the entry has only 3 source lines but they're all perfectly backed... it backs 3 of 5 clients (2 clients have no source line → not backed). So N = count of fully-backed ids; exit 0 requires N==5 which requires 5 source lines anyway. With 6 source lines, N could reach 5 only if 5 of 6 backed — but then there are 6 source lines for 5 client rows → conjunct 2 violated ("one per client row"). Add finding if len(ids) != 5: "expected exactly 5 source: lines, one per client row; found K" and when len(ids) > 5 → cap N at... hmm. If len(ids) != 5, the entry doesn't match the claim's shape; N of 5 semantics: the 5 clients. If 6 ids all backed, five clients + one extra — the claim only covers 5. I'll make: if len(ids) > 5, finding "entry cites more source lines than clients (expected 5)" and treat the verdict as not-grounded by capping N = min(N, 4)? No...
+
+     Simplest defensible: N = number of fully-backed source ids, computed over the distinct id set. Exit 0 iff N == 5 and no findings. Add finding whenever len(distinct ids) != 5. With 6 distinct ids and all 6 backed: N would be 6 → print "backed 6 of 5"? Ugly. Cap display: print `min(N, ...)`? No — print N as counted but the "of 5" is fixed. `backed 6 of 5` is weird but honest; exit 1 (N != 5). Hmm, actually since exit 0 requires no findings and len!=5 is a finding, N==6 → findings nonempty → exit 1. The print would say "backed 6 of 5". Acceptable? I'd rather compute N over ids and if N > 5 print N (honest). Fine — but let me reconsider: does "one per client row" really demand exactly 5? The frozen contract text: "(2) the entry opens with `source:` lines naming `S###` ids, one per client row". Yes — one source line per client row, 5 clients → 5 lines. I'll enforce exactly 5 distinct ids as a global conjunct (finding otherwise, → N=0 for the pass gate... wait no, findings → exit 1; N still printed as counted).
+
+     Decision: N = count of fully-backed distinct ids. Global failures append findings. Exit 0 ⟺ N == 5 and findings empty. Since a global failure is a finding, N==5 + global failure → exit 1, printed honestly as `backed 5 of 5` with exit 1 and findings. Hmm, that contradicts "exits 0 when N == 5". 
+
+     Ugh. OK let me just make global conjunct failures zero out N entirely — mirroring r67's "any finding → 0" but keeping per-client credit only among per-client conjuncts:
+
+     Final semantics (clean, mirrors r67, honest):
+     1. If the entry is missing → N=0, exit 1, finding `entry missing: ...` — CONTENT verdict (the R67-1 correction: this happens at the base too).
+     2. Parse source lines. If none → N=0 exit 1.
+     3. If distinct ids != 5 (dup ids or wrong count) → global finding → N=0? Hmm, wrong count with 3 ids: N would be 3 if I count per-client. "backed 3 of 5" with exit 1 is informative and honest. Duplicate ids: the dup pair backs one client, count once → still count distinct ids.
+        So: N = number of distinct fully-backed ids. Plus findings for global shape issues (dup ids, count != 5, missing verified-at/recheck/coverage row). If findings nonempty → exit 1. If N==5 AND no findings → exit 0. Can N==5 with findings? Only via: 5 distinct backed ids but count-of-lines != 5 (dup line for an id → distinct set still 5, finding) or missing verified-at etc. Then print `backed 5 of 5` exit 1 with findings. 
+
+     I think that's actually fine and maximally honest: the line reports per-client backing; the exit reflects the full predicate; findings explain. The contract sentence "exits 0 when N == 5, nonzero otherwise" describes the normal path; the findings path is a stricter conjunction. Hmm, but a hostile reviewer could call the `5 of 5` + exit 1 a contract violation.
+
+     Let me just re-read the contract line: "`python3 -B check_client_trust_gates.py --rev <full-sha>` prints `client trust gates backed N of 5` and exits 0 when N == 5, nonzero otherwise". And the plan's counter semantics: "a missing entry is `0 of 5`, exit 1 (a content verdict)". The r67 shape: any finding → 0 of TOTAL. To keep exact consistency with the r67 precedent AND per-client granularity, I'll do: compute per-client backed set B. Global findings G. If G nonempty → N = 0? That erases honest per-client info... but the r67 counter did exactly that (any finding → 0). And the plan says "Model it on check_instruction_authority.py". Consistency with the frozen predicate's observable behavior matters most:
+     - base: `0 of 5`, exit 1 ✓ (entry missing → 0)
+     - landed: `5 of 5`, exit 0 ✓
+     - broken worlds (self-test): each conjunct break → nonzero. With N=0-on-global-failure, every broken world prints `0 of 5` exit 1 — exactly like r67's `0 of 1`. Clean, precedented, no weird `5 of 5`+exit 1 state. 
+
+     Hmm, but then per-client partial credit is invisible. Is that a problem? The predicate never requires partial states. The self-test only needs each broken conjunct to be rejected. Per-client partial: if one client's row is unmined, r67-style would print `4 of 5` if I do per-client counting without zeroing. What's more honest? `4 of 5` — one client's gate unbacked. And global shape failure → 0 of 5 (the entry as a whole fails verification metadata → backs nothing). I'll adopt:
+     - Global conjuncts (1,2-shape [exactly 5 source lines, distinct], 5, 7b [coverage map]): failure → finding → N=0, exit 1.
+     - Per-client conjuncts (3,4,6,7a): a client failing them drops from N. Exit 0 iff N==5 and no findings.
+     - With 3 valid source lines (not 5) → global shape finding → 0 of 5. Good — "one per client row" enforced.
+
+     This is consistent, precedented, and every self-test broken world lands at `0 of 5` exit 1 except per-client breaks which land at `4 of 5` exit 1. Wait — per-client break: N=4, findings has 1 entry, exit 1. Print `client trust gates backed 4 of 5` + finding line. 
+
+     Hmm wait, one more consideration: per-client conjunct (7a) — "each client row's client name and its quoted behaviour occur in the entry's per-client table". The counter must identify the per-client table and check the client name and the quoted behaviour (the located quote) appear in it. Implementation: the table is markdown with `|` rows. For each id, its backed quote Q must occur in at least one table row line, and the client's name must occur in that same table row. But the counter doesn't know client names independently... it knows them from... where? Content, not names. Hmm. The entry itself carries the client names. Q25/Q26 "read content, not names" means the counter shouldn't hardcode client-name strings; it derives what it checks from the entry+registry. But then "client name occurs in the table row" is vacuous — the name comes from the entry.
+
+     What can the counter actually check for (7a) without hardcoding names? The table row must contain: the located quote (shared with the anchor cell — that's the "quoted behaviour") and the source id. So per table row: contains id AND contains a quote that's in the row's anchor cell → the row is the client's table row. Then "client name" — the counter can check the table row is a proper table row (starts with `|`) and that it contains the id and the quote. The client name itself is checked by human review/self-test, not by the counter (the counter can't know the names without hardcoding — and the plan says the five clients ARE vtcode/parallelworks/kilo.ai/agent-framework/mistral-vibe...).
+
+     Hmm — could the counter check names against SOURCES.md? The SOURCES row's `source` cell contains the URL which contains the client identity (e.g., `https://.../vtcode/...`). The table row containing the id + the quote is the client's row; that's the checkable form. For robustness I'll check: there is a table row (line starting with `|`) that contains the id AND contains the located quote that also occurs in the anchor cell. That grounds "client name + quoted behaviour in the per-client table" as "id + located quote in one table row". The self-test will break it by removing the id from the table row.
+
+     Actually wait — I can do slightly better without hardcoding: for each id, extract the URL from the SOURCES row's `source` cell; the entry's table row must contain the URL's host segment... too fragile. The plan's landed shape says the table has columns "client · what the client documents about an untrusted skill body · the located quote · the source id". So the id IS in the table row. Checking id+quote in one table row is exactly what the shape promises. I'll implement that, and also require the table exists (≥1 pipe row with ≥4 cells? or just ≥2 pipe rows). Keep it simple: the backed check needs a pipe-row containing both the id and the quote.
+
+     Hmm, but also think: should the counter verify the URL from the source cell occurs in the entry's table row? Conjunct 4 already pins the URL (source cell) into the entry's `source:` line. Good enough.
+
+  4. --fetch mode: "re-opens each cited URL and confirms the located quote is present on the live page (print how many of 5 were found; network failures are reported, never silently counted)". Implementation: for each of the 5 ids (from the entry), take the URL from the SOURCES row's `source` cell (extract `https?://\S+` from the cell — note the cell may contain "OpenAI Model Spec (August 18, 2026) — https://model-spec.openai.com/2026-08-18" — URL extraction via regex `https?://[^\s|]+` and strip trailing punctuation), fetch with urllib (stdlib), normalize whitespace, and check the located quote (whitespace-normalized) occurs. Also many pages are HTML — quotes are prose; matching exact prose in HTML may fail due to tags/entities. r67 didn't implement --fetch (the plan's C1 third conjunct: `--fetch` finds each of the 5 located quotes on its live page — measured later by the L1). I'll implement: fetch URL, decode, strip HTML tags via a simple regex + unescape entities + collapse whitespace, then substring-match the normalized quote. Report `--fetch: quotes found on live pages: K of 5` plus per-id lines and explicit `unreachable` lines for network failures. Exit code for --fetch: report-only? The contract says --fetch "additionally re-opens each cited URL and confirms..." — it runs the --rev check too? "`--fetch` additionally re-opens each cited URL" — additionally to the normal run. Without --rev, run against the working tree. Exit code: keep the content verdict's exit (0/1), never let network failure flip exit to 2? Hmm — network failure is an environment issue... The plan: "network failures are reported, never silently counted" — meaning a quote not found due to fetch failure must not count as "not found" silently nor as found; it's reported as unreachable. I'll print per-id status lines `S### found|not found|unreachable (<reason>)`, print `--fetch: quotes located on live pages K of 5`, and exit: content verdict exit (independent of fetch). I'll add exit semantics: fetch result does not change the exit code (the fetch is a measurement, the verdict is the content). Document it in the docstring.
+
+     Also I should make --fetch work only when the entry is present and 5 ids resolve; if the content side fails (e.g., missing entry), --fetch has nothing to fetch → report that. Keep it graceful: fetch the URLs of ids that resolve to rows; ids that don't resolve are reported as `no row`.
+
+     Timeout for fetch: 20s, User-Agent set. Use urllib.request. HTML strip: remove `<script>...</script>`, `<style>`, then tags `<[^>]+>`, then `html.unescape`, collapse whitespace. Compare normalized quote in normalized page. Also try raw normalized page (in case it's markdown/text already) — the tag-strip only helps HTML; on markdown pages, tag-strip is harmless. Good.
+
+  5. --self-test: "a `--self-test` that breaks each conjunct". Model on r67: build scratch worlds from the working tree with one conjunct broken each, run check() on each, assert rejection. Conjuncts to break:
+     1. entry missing → 0 of 5 exit-1-class (assert n==0 and specifically this is a content verdict — the self-test should ALSO assert the classification: missing entry must NOT be an environment error. Since check() returns (n, findings) not exceptions, the classification lives in main()/_load. I'll structure: `load_world()` raises EnvError only for repo/rev issues; missing files produce content. Self-test can drive main() via subprocess? r67's selftest drives check() directly. For classification, I'll drive `main()` through `main([...])` with a scratch repo? The self-test needs to test: unknown rev → exit 2; missing entry at a valid rev → exit 1 `0 of 5`. I can create a scratch git repo in tempfile, commit fixtures, and run the public paths in-process (call main() with --repo scratch --rev sha). git is available (the lane uses it). That makes the self-test prove the R67-1 fix end-to-end: build a mini git repo WITHOUT the entry → --rev sha → expect exit 1, stdout `client trust gates backed 0 of 5`; with an unknown rev → exit 2 `environment error`. Plus the conjunct-break worlds on the working tree (if the entry exists there) or on the mini repo (fixtures). 
+
+        Better: build the fixture world entirely in the self-test (a synthetic entry + SOURCES rows + README row), commit it to a scratch git repo, and run all checks against revisions. Then the self-test is independent of whether the real entry has landed (important — I'm drafting BEFORE the entry exists; the working tree likely has NO entry yet, so an honest-world test against the working tree would fail). r67's selftest required the entry in the working tree ("selftest setup failed: the entry is not present in the working tree") — because the self-test ran after content landed. For r68 wave 1, the counter is drafted before the entry exists. So fixture-based self-test is strictly better: it must pass NOW, before the content lands. I'll build synthetic fixture content in tempfiles + a scratch git repo with two commits (base without entry, head with entry). Self-test worlds: honest world at head → 5 of 5; every broken conjunct → rejected; base (no entry) → 0 of 5 exit 1 (content, not env); unknown rev → exit 2 env error.
+
+        Fixture SOURCES rows: 5 synthetic rows S900-S904 with anchor cells containing the quotes. Entry: 5 source lines, 5 table rows with id+quote, verified-at, recheck. README row with `` `knowledge/<name>` `` in second cell.
+
+        For the git scratch repo: `git init`, config user, add, commit. That's writing to a temp dir — allowed (not the lane's git index; it's a fresh temp repo). The write-scope says never mutate the LANE's jj/git state; a tempfile scratch repo is fine (r67-era seats did similar; and my write scope is the drafts dir — but tempfile repos go to /tmp... hmm, write scope: "You may write ONLY under .ufo/waves/round-68/". tempfile.mkdtemp writes to /tmp. The r67 counter itself (running under the L1) uses TemporaryDirectory. For MY run of --self-test, the script writes temp dirs at runtime — that's the script's runtime behavior, not me hand-writing files. I think runtime tempdirs are acceptable — every verifier in this lane does exactly this (r67's _world uses tempfile.mkdtemp). The write-scope bound is about authored artifacts, and the self-test needs scratch; the alternative (scratch under .ufo/waves/round-68/w1/drafts/scratch/) is ALSO fine and even safer. But tempfile in /tmp is what the lane's own verifiers do at runtime. I'll set TMPDIR default but let tempfile choose; to be extra safe I'll have the self-test use tempfile.mkdtemp() — standard. Actually, hmm, to be maximally within my write scope, I could point tempfile at a scratch dir under drafts. But the L1 will run this same self-test later; the lane's verifiers convention (tempfile.mkdtemp) is established. I'll use tempfile.mkdtemp(prefix=...) — matches repo pattern, ephemeral, cleaned up. I'll note it in the report.
+
+        Also the self-test runs `git init` in the scratch dir — creating a NEW repo in /tmp, not touching the lane's. Fine.
+
+  6. Repo/rev plumbing: `--repo` defaults to lane root: `Path(__file__).resolve().parent.parent` — but the draft lives at `.ufo/waves/round-68/w1/drafts/`, so parent.parent would be `.ufo/waves/round-68/w1` — WRONG once installed? No wait: the L1 installs it at `verifiers/check_client_trust_gates.py`, where parent.parent = lane root. But I must run it NOW from drafts. The r67 pattern `parent.parent` works only at the installed location. For the draft, default repo should be robust: walk up from __file__ looking for a `.git`/`corpus` marker? Hmm — simpler: default to walking up from __file__ until a directory containing `corpus/SOURCES.md` is found; if none, use CWD. That makes the draft work in drafts/ AND installed. Also `--repo` overrides. Also without `--rev`, read the working tree at repo root (like r67).
+
+     Wait, also: `jj` — the lane is jj-managed; `git show` works on the colocated repo? The r67 counter uses `git -C repo show rev:path` and it worked at the base (the frozen C1 says the base control prints `0 of 5` exit 1 via --rev). The plan says "git HEAD is detached after the helper commits — the branch tip is the pinned base" and seats run git show fine. OK, git subprocess it is.
+
+  7. Exit code 2 cases: usage errors (argparse handles: bad args → argparse exits 2 — good), unknown revision (rev-parse fails), repo unreadable/not a git repo, git missing. `environment error: ...` on stderr, exit 2.
+
+  8. One more detail — conjunct (4): "each cited row's `source` cell occurs verbatim in that id's `source:` line". r67 checked `row_source in src_lines[sid]`. Keep.
+
+     Conjunct (2): "opens with source: lines" — r67 just required ≥1; mine requires the source lines to appear in the opening block. "opens with" — I'll check that the source lines appear before the first blank line? Or within the first N lines? Entries in this lane: let me look at an actual knowledge entry to see the convention (instruction-authority-ladder-round67.md exists in the working tree? It was landed in r67, so yes). Let me check its shape to mirror "opens with". I should read it — also useful to mirror entry structure for the fixture. Also read corpus/README.md coverage map shape (I have the _indexed() logic: row where cells[1] == "`knowledge/<name>`").
+
+     Let me define: source lines must occur in the entry's first 10 lines (the "opens with" block). Hmm — r67's _entry_source_lines scanned the whole file. The r68 contract says "opens with `source:` lines". I'll scan the first block: lines up to the first line that is neither a source: line, blank, nor a heading? Simplest robust: the source lines must appear within the first 10 non-empty lines... Let me look at the r67 entry to calibrate. I'll read it.
+
+     Also should check knowledge entry dir for how entries look. Let me read the r67 entry + README coverage map region + verify_corpus_independent.py (to know what "independent" gate expects, so my draft doesn't clash — actually not needed for C1 draft; skip unless cheap). Also look at check_r67_routed_repairs.py? It doesn't exist yet (C2 says "does not exist (0 of 4)" at base; another seat drafts it? My assignment is only the C1 counter. Stay in scope.)
+
+  9. `python3 -B` — no bytecode; fine, pure stdlib. `from __future__ import annotations` for `str | None` on older pythons — check python version on host; r67 uses it, so fine.
+
+  10. The report file: `.ufo/waves/round-68/w1/ExecC1Counter.md` — wait, write scope says writing seats write drafts under `.ufo/waves/round-68/w1/drafts/` only. But the task says "Report: write your scoped findings to .ufo/waves/round-68/w1/ExecC1Counter.md". The role section says "Report the path in your final response" for drafts; the Report line explicitly directs the report file at w1/ExecC1Counter.md (not under drafts/). The later, more specific instruction (the Report trailer) wins: write the report at `.ufo/waves/round-68/w1/ExecC1Counter.md`. The counter draft goes to `.ufo/waves/round-68/w1/drafts/check_client_trust_gates.py`.
+
+  Now, the godspeed protocol says: I'm the executor seat; do the assigned move only. The instruction says "Lane bounds: leaf member — no subagent dispatch except your single labrat." and the probe seat rule: "only when explicitly seated as the probeParent executor, spawn exactly one read-only ufo-labrat". I am NOT explicitly seated as probeParent — the task says "except your single labrat" which suggests I may have one. Hmm: system prompt: "Probe seat: only when explicitly seated as the probeParent executor, spawn exactly one read-only ufo-labrat". The user prompt says "no subagent dispatch except your single labrat". Is that an explicit probeParent seating? It permits a labrat. A cheap empirical probe could be: run the self-test / check the r67 counter behavior at base to confirm the R67-1 classification empirically. But I can do that myself directly with one bash command — cheaper and I need the output for my report anyway. Delegation would save context only for bulk dumps; here output is tiny. I'll do it myself, no subagent. Actually — wait, "except your single labrat" grants permission but doesn't require. Given the task is compact and I need direct command outputs as evidence, I'll skip the labrat. Hmm, but the godspeed posture: "iterate cheap, in parallel". I can run everything myself in parallel batches. Fine.
+
+  Also: READ the r67 entry + README coverage map to calibrate "opens with" and table shape. And empirically confirm R67-1 at the base (run the r67 counter at the base rev — read-only, no mutation). That's evidence for my report.
+
+  Let me now do the second parallel batch:
+  - Read corpus/knowledge/instruction-authority-ladder-round67.md (entry shape)
+  - Read corpus/README.md (coverage map shape) — could be long; read with offset? I'll read first 120 lines and grep for "coverage" separately. Actually Grep for `knowledge/` rows in README to see the map format. Read is fine.
+  - Bash: run r67 counter at base rev to capture R67-1 evidence: `python3 -B verifiers/check_instruction_authority.py --rev e94ae32a5cd8dc3ee8e2d247816784bec2750cc0` from lane root; echo exit code. Read-only. Also `git -C lane cat-file -e` to confirm base rev resolves. Also `git -C lane show base:corpus/knowledge/client-trust-gates-round68.md` should fail (entry absent at base) — the C1 before-state evidence; and grep SOURCES at base for the five client names (0 hits). These are my base-control evidence commands.
+  - Check python version.
+
+  Batch 2 (parallel):
+  1. Read r67 entry.
+  2. Read corpus/README.md (limit).
+  3. Bash r67 counter at base + exit code.
+  4. Bash: git show base:client-trust-gates entry (expect fail) + grep five names in base SOURCES.
+
+  Then write the draft, run --self-test, run base control via --repo pointing at lane with --rev base... wait, my draft reading the WORKING TREE (no --rev) — the working tree currently has no entry → `backed 0 of 5` exit 1. That's the before-measurement for my draft. And --rev base → 0 of 5 exit 1 too. --self-test → fixture-based, exit 0.
+
+  Also: QUALITY Q33 — the counter runs the measured revision's own bytes. Fine.
+
+  Let me also decide the URL extraction for --fetch: from row[1] (source cell), regex `https?://[^\s|]+` first match, strip trailing `.,;:)`'"]` chars. E.g. S123 source cell: `OpenAI Model Spec (August 18, 2026) — https://model-spec.openai.com/2026-08-18` → URL `https://model-spec.openai.com/2026-08-18`. Good.
+
+  Quote normalization for --fetch: `re.sub(r"\s+", " ", text)`, also maybe unify curly quotes? The anchor quotes in SOURCES use ASCII quotes. Keep simple: whitespace-normalize both; if not found, also try a version with typographic quotes/apostrophes folded (`’`→`'`, `“”`→`"`, `–`/`—`→`-`) — cheap and improves real-page hit rate. I'll fold both sides.
+
+  Now the per-client table check: find pipe-rows in the entry. For id sid with located quote q (the quote that occurs in the anchor cell), require a pipe-row line where `sid` occurs (as `S123` token) and `q` occurs (whitespace-normalized line contains q). Wait — quotes inside table cells: the entry's table has "the located quote" as a column. The quote in the table may be wrapped in quotes `"..."; whitespace-normalize the row for matching.
+
+  Also located quote selection per id: which quote? Conjunct (6): "for each cited id, the entry carries a double-quoted located quote of at most 25 words that also occurs in that row's anchor cell". Any quote from the entry (≥1 word, ≤25 words, double-quoted) that occurs in the anchor cell. r67 took all entry quotes (whitespace-normalized) and checked any(q in anchor). I'll do per-id: for the source-line block of that id? No — quotes live in the table row for that id, mostly. But the r67 entry had quotes in a dedicated section. Keep r67 semantics: global quote set from the whole entry (normalized), any quote occurring in that id's row's anchor cell backs that id. Plus conjunct (7a): that same quote (or some quote in the anchor) must also occur in a table row that contains the id.
+
+  Edge: anchor cells in SOURCES contain `quote "..."` fragments (see S123/S124: anchor cell carries `quote "Instructions with higher authority override those with lower authority."`). So quotes appear in anchor cells wrapped in double quotes — the entry's quoted quote (without the enclosing double quotes... the entry quote regex captures between double quotes) should appear in the anchor cell text. r67 checked `q in anchor` where q is the inner text without quotes. Matches.
+
+  Word cap: `0 < len(q.split()) <= 25`.
+
+  For the fixture, I'll craft anchors like: `§ The gates; quote "The client reviews every untrusted skill body before first load." (opened 2026-10-24)` and entry quotes matching.
+
+  Now "opens with" — let me define after reading the r67 entry. If the r67 entry opens with a heading then source lines, I'll require source lines within the first 8 lines. Let me read it first.
+
+  Coverage map (7b): mirror r67 `_indexed`: a pipe-row whose cell[1] equals `` `knowledge/client-trust-gates-round68.md` ``. I'll read README to confirm the row shape (cells[1] is the path column).
+
+  One more: conjunct (5) verified-at must be exactly `verified-at: 2026-10-24` (r67 compared stripped line equality). Keep.
+
+  And `recheck:` line: startswith `recheck:`. Keep.
+
+  Let me also confirm the five clients' identity to reference in the report (vtcode, parallelworks, kilo.ai, agent-framework, mistral-vibe) — from the plan; my counter doesn't hardcode them (content, not names). But wait — should the counter verify there are exactly 5 CLIENT rows in SOURCES for this theme? No — it counts the entry's source lines. OK.
+
+  Exit code from argparse for bad usage: argparse exits 2 by default. Contract: exit 2 for usage/environment error. 
+
+  Let me also handle: `--rev` with working tree absent corpus? _materialize fetches all three files; ENTRY absent at rev → content (raise a special ContentMissing exception? or return marker). Design:
+
+  ```python
+  class EnvError(Exception): ...      # exit 2
+  class ContentState:                  # what check() consumes
+      entry: str | None                # None = entry absent at rev/working tree
+      sources: str | None
+      readme: str | None
+  ```
+
+  check(state): if state.entry is None → return 0, ["entry missing: " + ENTRY]. If sources is None → hmm. Decision earlier: treat as content too? Let me finalize: sources/readme absent → I said content earlier, but is that right? If SOURCES.md is absent, the registry infrastructure is gone — that's not "the entry isn't grounded", it's "the repo is broken". But the exit-code contract only has 3 values. Honest choice: SOURCES/README absent at a resolvable rev is a content fact (the measured revision lacks the registry the claim cites) → 0 of 5 exit 1 with finding. It can never be exit 2 because exit 2 is reserved for measurement-environment failures (cannot run git / rev doesn't exist). At any real revision of this lane, SOURCES.md exists, so this path is theoretical. I'll classify: absent measured FILE → content verdict; git/rev/repo failures → environment. Clean rule, documented in docstring. (This is the R67-1 correction generalized: no content failure hides behind exit 2.)
+
+  Working-tree mode (no --rev): entry file missing → content 0 of 5. sources/readme missing in working tree → content findings too. EnvError only from repo/rev/git problems (rev mode: rev-parse fail; repo not a git repo → `git rev-parse` fails anyway → env; git binary missing → env).
+
+  git rev-parse: `git -C repo rev-parse --verify --quiet <rev>^{commit}` — returncode !=0 → EnvError(f"unknown revision {rev!r} (git rev-parse failed): {stderr}"). Also validate rev is a full sha? Contract says full sha but don't enforce (accept any resolvable rev).
+
+  Also guard: repo doesn't exist → `git -C` fails → env error. Good.
+
+  Now the self-test with scratch git repo — commands: `git init -q`, `git -C ... -c user.email=... -c user.name=... commit`. Also `git add -A`. This creates a scratch repo in tempfile — allowed (not the lane's index). I'll note it.
+
+  Self-test assertions:
+  1. honest world @ head rev → main(["--rev", head, "--repo", scratch]) returns 0 and printed line contains "backed 5 of 5". Since main() prints to stdout, I'll capture via contextlib.redirect_stdout. Check return 0.
+  2. base rev (no entry) → returns 1, stdout contains "backed 0 of 5" (THE R67-1 classification assertion: exit 1, not 2).
+  3. unknown rev ("0"*40 or "deadbeef") → returns 2, stderr contains "environment error".
+  4. working-tree mode? Skip — fixture-based is enough. Actually also test no-args mode with --repo scratch at head → 0. (main with no --rev reads working tree = fixture files present in scratch repo working dir → 5 of 5.) Include.
+  5. Broken worlds per conjunct (on scratch working tree copies):
+     - entry missing (delete file) → 0 of 5
+     - no source lines → 0
+     - only 4 source lines (count != 5) → 0
+     - duplicate id → 0
+     - id not resolving (rename S901→S999 in entry) → 0
+     - row not mined (flip S901's status to queued) → 0
+     - source cell not in source line (edit entry's source line for S902 to drop URL) → 0
+     - quote not in anchor (edit SOURCES S903 anchor) → 0
+     - quote/id not in table row (edit entry table row for S904: remove id and quote) → 0
+     - no verified-at → 0
+     - no recheck → 0
+     - no coverage-map row (edit README) → 0
+     That's 12 broken + honest + base + unknown-rev. 
+
+  Wait — worlds 5-12 operate on the scratch working tree via check(root) directly or via world-copy dirs (r67 `_world`). I'll copy r67's `_world` builder but generalized (it copies ENTRY/SOURCES/README and optionally drops/replaces). Fine — but worlds also need... check() reads only those three files. 
+
+  For the base-rev and unknown-rev tests I need main() to run against scratch repo with --rev. main's EnvError path prints to stderr — capture via redirect_stderr.
+
+  For fixture content, embed as module-level strings in the script (the fixture is synthetic — client names like "FixtureClient A" — content-derived, no real claims).
+
+  Now, one subtlety: check() must not be confused by the fixture's OWN file — the draft script lives in drafts/, fixture world in temp. OK.
+
+  The `--fetch` path: main(["--fetch"]) on working tree. I won't run --fetch in my final evidence (the entry doesn't exist yet; fetch would report nothing to fetch — actually I CAN run it to show it degrades gracefully: "entry missing" content verdict + fetch skipped/report). I'll run it to show behavior. No — wait, without the entry, --fetch prints content verdict 0 of 5 and fetch finds 0 of 5 with "no cited ids to fetch". Fine as a smoke test. Network calls: skip (nothing to fetch). Good, no network needed.
+
+  Let me now also confirm what "one per client row" means for the fixture table and the world where the entry has 6 source lines — global finding, N=0. Hmm wait, earlier I decided count != 5 → global → N=0. And distinct-but-4-lines → 0. So partial per-client credit only shows when...? With count==5 enforced globally, per-client failures drop N below 5 (4, 3...). E.g., two clients' rows unmined → backed 3 of 5. Good, meaningful partial states exist.
+
+  Alright — also the docstring must carry the frozen predicate and cite plan round-68.md.
+
+  Report file: ExecC1Counter.md under w1/ — with: what was built, classification fix evidence (r67 base run exit 2 vs mine exit 1 at base), self-test output, base control output, remaining risks (e.g., --fetch HTML matching fragility; coverage-map cell-shape dependency; "opens with" window choice), blockers (none).
+
+  Wait — the Report says `.ufo/waves/round-68/w1/ExecC1Counter.md` — relative to lane root. Absolute: /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/ExecC1Counter.md. The write-scope says drafts only under w1/drafts/ — but the explicit Report trailer overrides for the report file. I'll write both: draft script in drafts/, report at w1/ExecC1Counter.md as instructed.
+
+  Now batch 2 reads. Also I want to see corpus/README.md's coverage-map rows (grep). And the r67 entry. And check `python3 --version`. And run the r67 counter at base. Parallel batch:
+
+  1. Read /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/knowledge/instruction-authority-ladder-round67.md
+  2. Grep README for coverage rows: pattern `knowledge/` in corpus/README.md, content mode, head_limit ~40.
+  3. Bash: `cd lane && python3 -B verifiers/check_instruction_authority.py --rev e94ae32a5cd8dc3ee8e2d247816784bec2750cc0; echo "exit=$?"` 
+  4. Bash: `cd lane && git show e94ae32...:corpus/knowledge/client-trust-gates-round68.md; echo exit=$?; git show e94ae32...:corpus/SOURCES.md | grep -cE 'vtcode|parallelworks|kilo\.ai|agent-framework|mistral-vibe' ; python3 --version`
+
+  cwd must be fleet root for tools? "Your working directory for tools is the fleet root" — the Bash cwd param: use absolute paths or set cwd=/home/vgpnk/Projects/shokunin/kotoba-shokunin for lane commands. The instruction says tool CWD is fleet root — I'll pass explicit `cwd` per call. That's fine.
+
+  Let me fire batch 2.
+
+• Plan read. Model counter read. Registry shape clear. Now: calibrate entry/coverage-map shape, and capture the base-state evidence (including the R67-1 misclassification empirically).authority ladder grounded 1 of 1
+exit=0
+entry-at-base exit=128
+0
+Python 3.14.8
+
+
+• Interesting — the r67 counter at the BASE prints `authority ladder grounded 1 of 1` exit=0?? Wait — that's because the counter without... no, I passed `--rev e94ae32a...`. Hmm, it printed "authority ladder grounded 1 of 1" and exit 0. But the plan says at the base it should be `0 of 1` exit 1, and the committed receipt shows exit 2 `environment error: cannot read corpus/knowledge/instruction-authority-ladder-round67.md at 2a8eba56…`.
+
+  Wait — cwd for that Bash was the lane root. `python3 -B verifiers/check_instruction_authority.py --rev e94ae32a...`. The r67 counter materializes ENTRY/SOURCES/README at the rev. At the base, the ENTRY should be absent... unless the base rev CONTAINS the r67 entry. Wait — the base `e94ae32a` is the round-68 BASE = the lane tip AFTER round 67 landed. So the r67 entry EXISTS at e94ae32a (it landed in r67). The R67-1 defect was measured at the r67 BASE (`2a8eba56`), not at the r68 base. Right: r67's before-measurement was at ITS base (2a8eba56) where the entry didn't exist. At the r68 base, the r67 counter finds the entry → 1 of 1 exit 0. Makes sense.
+
+  So my evidence run above doesn't show the R67-1 behavior directly. Let me reproduce R67-1: run the r67 counter at the r67 base `2a8eba56` (the receipt names it). Let me check: plan line: `environment error: cannot read corpus/knowledge/instruction-authority-ladder-round67.md at 2a8eba56…`. So run `python3 -B verifiers/check_instruction_authority.py --rev 2a8eba56...` — need full sha. `git rev-parse 2a8eba56` → full. Then run. Expected: exit 2, `environment error: cannot read ...` — demonstrating the missing-entry-as-environment misclassification that my counter must fix.
+
+  And for MY counter: at the r68 base `e94ae32a` the C1 entry is absent → must print `client trust gates backed 0 of 5` exit 1 (content), NOT exit 2. Confirmed the entry is absent at base (git show exit=128) and the five client URLs are 0 hits at base. 
+
+  Python 3.14.8. Coverage-map shape confirmed: rows like `| Title | \`knowledge/name.md\` | ... |` — cells[1] is the path in backticks. Matches r67 `_indexed`.
+
+  Entry shape confirmed: opens with `source:` lines (lines 1-3), then `verified-at:` (line 4), `recheck:` (line 5), then prose with located-quote bullets `- located-quote: S123 — "..."` and a table? No table in r67 (TOTAL=1, no per-client table). My counter needs the per-client table for conjunct 7a. The r68 entry will carry one per the plan's landed shape: "a per-client table (client · what the client documents about an untrusted skill body · the located quote · the source id)".
+
+  "Opens with source: lines" — r67 entry lines 1–3 are the source lines, before everything. I'll require: the first non-blank lines of the entry contain exactly the source: lines — i.e., every `source:` line must appear within the first (len(ids) + small slack) lines? Simpler and faithful: the entry's first non-empty line block: source lines must all occur before the first `#` heading (the r67 entry's first heading is line 8). I'll implement: a source: line is honored only if it appears before the first heading line (line starting with `#`); if no heading exists, before the end of file... hmm, but if the entry has no heading, "opens with" is satisfied as long as they're near the top. Pragmatic: source lines must appear within the first 12 lines of the file. r67 entry: lines 1-3 ✓. That's simple, content-shaped, testable. But is 12 arbitrary? "opens with" — I'll define: within the first 10 lines. The r67 shape has source lines at 1–3 and the fixture I control. Hmm, what if the L1's entry has a title line first? The plan's landed shape doesn't specify; r67's entry had no title before source lines. I'll allow the first line to be anything (e.g., a title) and require the source lines to sit within the first 10 lines. I'll document the window.
+
+  Also note the r67 entry used `- located-quote: S123 — "..."` bullets. My conjunct 7a wants the quote in a TABLE row with the id. The r68 landed shape has the per-client table. To be tolerant, I'll check: the quote occurs in SOME pipe-table row that also contains the id — OR the quote is bound to the id via a `located-quote:` bullet line containing both the id and the quote (the r67 idiom). Hmm — that loosens conjunct 7a ("client name and its quoted behaviour occur in the entry's per-client table"). The contract explicitly says the per-client table. The plan's landed shape promises the table. I'll implement the table check strictly (id + quote in one pipe-row), since the landed shape guarantees it, and my fixture mirrors it. If the L1's entry uses bullets instead, the counter would report `4 of 5`-style failure → the L1 fixes the entry to carry the table. That's the counter being faithful to the frozen contract. OK strict.
+
+  Wait, actually, re-read conjunct (7): "each client row's client name and its quoted behaviour occur in the entry's per-client table". So the check: for each cited id, there exists a pipe-row containing (a) the id, (b) a located quote shared with that id's anchor cell. The "client name" — the counter can't independently know names (content-not-names); the id+quote-in-table-row is the machine-checkable form. The client NAME itself is validated by the self-test/mutation battery/L1 review, not hardcodeable in the counter. I'll state this bound explicitly in the docstring and report: conjunct 7 is checked as "id + located quote co-occur in one table row"; the client-name cell is prose the counter cannot verify without hardcoding names (QUALITY Q25/Q26 — content, not names), so the entry-side table column is enforced structurally (4 cells: client · behaviour · quote · id) — hmm, I could enforce the table row has ≥4 cells. Cheap and structural: table row with the id must have ≥4 cells (client | what | quote | id). I'll add that.
+
+  Also decide: where do quotes come from? The whole entry (normalized), any double-quoted span 1..25 words. Then:
+  - per id: quotes_in_anchor = [q for q in quotes if q in anchor_norm(sid)]; need non-empty (conjunct 6).
+  - conjunct 7a: exists pipe-row line L where sid token present AND len(cells)>=4 AND any q in quotes_in_anchor with q in norm(L).
+
+  Now write the counter. Structure modeled on r67 but:
+
+  ```python
+  ENTRY = "corpus/knowledge/client-trust-gates-round68.md"
+  TOTAL = 5
+  ENTRY_WINDOW = 10  # source: lines must open the entry (within first 10 lines)
+  ```
+
+  Functions:
+  - `_git(repo, *args) -> subprocess.CompletedProcess` raising EnvError on git failure? No — need fine control: `_git_cap(args)` returns (rc, out, err); raise EnvError if git itself can't run (FileNotFoundError → EnvError "git not available").
+  - `_resolve_rev(repo, rev)`: `git -C repo rev-parse --verify --quiet rev^{commit}` → rc!=0 → EnvError(f"unknown revision: {rev!r} — git rev-parse failed: {stderr.strip()}").
+  - `_read_at(repo, rev, path) -> str | None`: after rev verified, `git show rev:path` rc!=0 → None (content: path absent at rev). Distinguish binary? text fine.
+  - `_load(repo, rev|None) -> dict[str, str|None]`: no-rev → read working tree files (entry missing → None; sources/readme missing → None... content). rev → _read_at for each.
+  - `check(state) -> (n, findings)`:
+    - entry None → (0, ["entry missing: " + ENTRY])  ← the R67-1 fix: content verdict.
+    - read entry text.
+    - source lines within first ENTRY_WINDOW lines → ids+texts; none → (0, [finding]). duplicates → (0, ["duplicate id in the entry's source lines"]). len(ids)!=5 → (0, [f"expected exactly 5 source: lines, one per client row; found {len}"]).
+    - sources None → (0, [f"{SOURCES} is absent — no registry to resolve ids against"]).
+    - readme None → (0, [f"{README} is absent — no coverage map"]).
+    - per id: resolve row (11 cells, S-prefixed), status mined, source cell in line, anchor quotes; build quotes_in_anchor.
+    - verified-at / recheck lines → findings if missing.
+    - coverage map → finding if missing.
+    - if global_findings → (0, all).
+    - else per-id backed count n; findings for unbacked ids.
+    - return n (0..5), findings.
+
+  Wait — I need to be careful: global failures → N=0 per my earlier decision (mirroring r67's any-finding→0 for global shape). Per-client failures → drop that client. Let me implement exactly:
+
+  ```python
+  def check(root) -> tuple[int, list[str]]:
+      findings = []
+      entry = read(ENTRY); if missing → 0, ["entry missing: ..."]
+      parse ids (window). if no ids → 0, ["no `source:` line naming an S### id in the entry's first 10 lines"]
+      if dups → 0, [...]
+      if len(ids)!=TOTAL → 0, [f"...found {len(ids)} source: line(s), expected {TOTAL}, one per client row"]
+      sources/readme missing → 0, [..]
+      rows = parse SOURCES
+      quotes = quoted(normalized entry)
+      per_id_ok = {}
+      for sid in ids:
+          problems = []
+          row = rows.get(sid) ... status ... source cell ... anchor quotes
+          # conjunct 7a: table row
+          trow = table row containing sid and one of anchor quotes, ≥4 cells
+          if none: problems.append(...)
+          if problems: findings.extend; else per_id_ok[sid]=quote
+      if not verified_at: findings.append(...)   → then return 0
+      if not recheck: findings.append(...)
+      if not indexed: findings.append(...)
+      if findings: return 0, findings
+      return len(per_id_ok), []
+  ```
+
+  Hmm wait: if per_id has failures but global fine → findings has per-id entries → `if findings: return 0`?? No — then partial N never prints. Let me restructure: separate global vs per-id findings:
+
+  ```python
+  global_findings = []   # verified-at, recheck, coverage, shape
+  id_findings = []       # per-client problems
+  ...
+  if global_findings: return 0, global_findings + id_findings
+  n = TOTAL - number of ids with id_findings... 
+  ```
+
+  No: n = len(per_id_ok). Return n, id_findings. Exit: 0 iff n==TOTAL (and findings empty then automatically, since n==TOTAL means all ids ok and no global findings). If n<TOTAL → exit 1 with findings. If global findings → 0. So exit 0 ⟺ n==5 ⟺ no findings. And `backed 5 of 5` exit 1 impossible. The only oddity: base prints `backed 0 of 5` exit 1 ✓; a 1-client-broken world prints `backed 4 of 5` exit 1 with the finding ✓. Contract satisfied: exits 0 when N==5, nonzero otherwise; and N==5 ⇒ exit 0. 
+
+  - fetch mode:
+  ```python
+  def fetch(root) -> tuple[int, list[str]]:  # (found_count, report_lines)
+      # requires the entry + rows; ids from entry; url from row[1]
+  ```
+  Report lines like `S901 https://... found` / `not found` / `unreachable: <err>`. Print `--fetch: quotes located on live pages: K of {len(ids)}`. main(): run content check first (print verdict), then fetch block. Exit stays the content verdict's; docstring documents that --fetch is a measurement whose failures are reported, never counted as found nor silently dropped.
+
+  Network: urllib.request.urlopen(Request(url, headers={"User-Agent": "kotoba-lane-verify/1.0"}), timeout=20). Read ≤5MB, decode utf-8 errors=replace. HTML strip: re.sub(r"(?is)<(script|style)\b.*?</\1>", " ", page); re.sub(r"(?s)<[^>]+>", " ", page); html.unescape; normalize whitespace + fold typographic chars both sides:
+  ```python
+  def _norm(s): return re.sub(r"\s+", " ", s.replace("\u2019","'").replace("\u2018","'").replace("\u201c",'"').replace("\u201d",'"').replace("\u2013","-").replace("\u2014","-")).strip()
+  ```
+  Wait — em-dash folding: quotes contain "—" in r67 quotes ("Create 20 eval queries — a mix..."). Pages may render em-dash as —; folding both sides to "-" is safe. Also &amp; handled by unescape.
+
+  - self-test (fixture-based, no dependency on the real entry):
+    - build fixture files; git init scratch; commit base (no entry) → sha_base; write entry + sources(with 5 rows) + readme(with map row) → commit → sha_head.
+    - honest @ head via main(--rev) → 0, stdout "backed 5 of 5".
+    - working-tree mode @ scratch (no --rev) → 0.
+    - base rev → 1, "backed 0 of 5" — asserts the R67-1 classification (exit 1, content).
+    - unknown rev "ffffffffffffffffffffffffffffffffffffffff" → 2, stderr "environment error".
+    - broken worlds (copy scratch tree to temp world dirs, break one conjunct, call check(world)):
+      1. entry missing → 0
+      2. source lines stripped → 0
+      3. only 4 source lines → 0
+      4. duplicate id line → 0
+      5. id renamed to S999 (no row) → 0
+      6. row status queued → 0
+      7. source cell edited in entry's source line (URL dropped) → 0
+      8. anchor cell edited in SOURCES (quote gone) → 0
+      9. table row for one id stripped of id+quote → 0
+      10. verified-at wrong date → 0
+      11. recheck line removed → 0
+      12. coverage-map row renamed → 0
+    - also assert the base control exits CONTENT (1) not ENV (2) — covered by test above.
+    - print per-assertion PASS/FAIL and summary; return 1 on failure.
+
+  Fixture SOURCES row format: 11 cells:
+  `| S901 | FixtureGate A — https://fixture.example/a | docs | A | scope text | § Gate; quote "The client reviews the untrusted skill body before first load." (opened 2026-10-24) | teaches text | mined | 2026-10-24 | 90d | corpus/knowledge/client-trust-gates-round68.md |`
+
+  Wait — `used-by` cell: r67's check doesn't verify used-by; fine.
+
+  Entry fixture (mirror r67 shape + table):
+  ```
+  source: S901 — FixtureGate A — https://fixture.example/a — `# Gate`
+  source: S902 — FixtureGate B — https://fixture.example/b — `# Gate`
+  source: S903 — FixtureGate C — https://fixture.example/c — `# Gate`
+  source: S904 — FixtureGate D — https://fixture.example/d — `# Gate`
+  source: S905 — FixtureGate E — https://fixture.example/e — `# Gate`
+  verified-at: 2026-10-24
+  recheck: 90d — re-fetch each cited page and confirm the located quotes still read the same
+
+  # Client trust gates for untrusted skill bodies (fixture world)
+
+  | client | documented gate on an untrusted skill body | located quote | source |
+  |---|---|---|---|
+  | Gate A client | reviews the body before first load | "The client reviews the untrusted skill body before first load." | S901 |
+  ...
+  ```
+  Each quote distinct per id. Table row: 4 cells, contains id and the quote. Note the quote in the table is wrapped in double quotes: `"The client reviews..."` — my quote regex extracts inner text; table row normalized contains the inner text (with quotes around, substring match still works since q is inside). ✓.
+
+  URLs fixture.example — the self-test does NOT fetch, so no network.
+
+  Also the base commit: same SOURCES+README but NO entry? Wait — conjunct (1) is about the ENTRY. The base control = entry absent, sources+readme present (mirroring the real base). So commit 1: SOURCES + README. commit 2 (head): + entry. Base → 0 of 5 exit 1 (content verdict — exactly the classification fix, end-to-end through main()). ✓
+
+  For world builders: `_world(root, **overrides)` copying the three files from a source dir, applying edits. Since the scratch repo's working tree equals head content, copy from there.
+
+  git scratch repo setup helper:
+  ```python
+  def _git(cwd, *args): subprocess.run(["git","-C",str(cwd),*args], capture_output=True, text=True, check=True)
+  init: ["init","-q","-b","master"]; config via ["-c","user.email=t@t","-c","user.name=t","commit","-qm","..."] → but -C before -c: git -C dir -c user.email=... commit ... ✓
+  rev: ["rev-parse","HEAD"]
+  ```
+
+  Also `main()` structure: argparse with --rev, --repo, --fetch, --self-test. Default repo: walk up from __file__ for a dir containing corpus/SOURCES.md; fallback CWD. 
+
+  Exit codes: 0/1/2. argparse errors exit 2 natively. 
+
+  One more contract detail: "prints `client trust gates backed N of 5`" — exact string: `client trust gates backed {n} of 5`. With TOTAL=5 → f"client trust gates backed {n} of {TOTAL}".
+
+  Fetch print: how many of 5 were found — `--fetch: quotes located on live pages: {k} of 5`; per-id lines. When the content side fails (no entry/ids), fetch reports `--fetch: skipped — no cited ids to fetch (see verdict above)` and found=0 printed as `0 of 5`? Print the line always for grepability: if no ids → print `--fetch: quotes located on live pages: 0 of 5` + reason lines. OK.
+
+  Edge: --rev + --fetch together: allowed — fetch against ids from the materialized rev state. Fetch URLs come from the row cells at that rev. Implement fetch to consume the same loaded state.
+
+  Now — before writing, one more evidence item: reproduce R67-1 at the r67 base (2a8eba56…). Get full sha: git rev-parse 2a8eba56. Then run the r67 counter at it, capture exit 2 + stderr. That's my empirical contrast for the report. Also grab `git log -1 --format=%H` of the lane working tree? Not needed — plan pins base e94ae32a; my writes don't touch git.
+
+  Also confirm the drafts dir exists / create when writing (Write creates parents).
+
+  Let me now: (a) get full sha of 2a8eba56 and run r67 counter at it (evidence batch); (b) write the draft script. These are independent — parallel. The script is long; let me compose carefully.
+
+  Actually wait — one thing to double check on the "opens with" window: I'll set ENTRY_WINDOW = 10. r67 entry satisfies. Fixture satisfies. Good.
+
+  And `_source_rows` — r67 required exactly 11 cells with cells[0] S\d{3,}. Keep (mirror).
+
+  URL extraction from source cell: `re.search(r"https?://[^\s|]+", cell)` then `.rstrip(".,;:)\"]'")`. Note source cells contain em-dash before URL; regex fine. Some cells may contain multiple URLs (rare) — take first.
+
+  Anchor quotes: `_quoted` on normalized anchor cell; also quotes may exceed 300 chars cap in QUOTED_RE `{1,300}` — anchor quotes are short. But entry quotes >25 words are dropped by word filter. r67 kept both filters; keep. Wait, one risk: the quote regex `[^"\n]{1,300}` on the ENTRY — the entry's table row has `"The client reviews..."; ` — fine. But careful: a pair of apostrophes... ASCII only. The r67 regex uses plain `"`. The r68 entry may use typographic quotes? The SOURCES rows use ASCII. Fixture uses ASCII. The real entry should quote the anchor's ASCII quote. OK.
+
+  Another subtlety — `_quoted` on the normalized ENTRY: normalization collapses newlines, so a quote spanning a line break in the entry matches the anchor's single-line form. r67 did `entry_norm = re.sub(r"\s+"," ",entry)` then `_quoted(entry_norm)` — quotes can span lines after normalization. Keep.
+
+  Table row check: normalize the line (collapse whitespace), check `sid` in cells AND quote in normalized line. Cells via _split_row. Also require ≥4 cells. The header separator row `|---|---|` — no id, skipped naturally.
+
+  Wait, one more: the entry may ALSO mention ids in `located-quote:` bullets (r67 idiom). That doesn't satisfy 7a (needs pipe-row) — strict per contract. OK.
+
+  verified-at: `line.strip() == f"verified-at: {VERIFIED_AT}"`. recheck: `line.strip().startswith("recheck:")`. Coverage: mirror r67 `_indexed` with needle `` `knowledge/client-trust-gates-round68.md` ``.
+
+  EnvError message prefix: "environment error: ..." printed on stderr in main.
+
+  Now, also handle git absent: subprocess FileNotFoundError → EnvError("git is not available").
+
+  --rev given but repo not a git repo: rev-parse fails → EnvError("unknown revision ... / not a git repository: stderr"). I'll include stderr text.
+
+  Let me also double-check the classification decision for SOURCES/README absent at a VALID rev → content (0 of 5, exit 1, findings name the absent file). Documented in docstring: "any measured-file absence is a content verdict; only failures to run the measurement (git, repo, revision) are environment errors." Good — that's the R67-1 lesson generalized.
+
+  Self-test classification assertions:
+  - base rev run: expect rc==1 AND stdout line == "client trust gates backed 0 of 5". If rc==2 → FAIL loudly ("missing entry misclassified as environment error (R67-1 regression)").
+  - unknown rev: rc==2, stderr contains "environment error".
+
+  I'll drive main() in-process with redirect_stdout/redirect_stderr (io.StringIO). main returns int. For the fetch smoke — self-test should NOT hit network; skip fetch in self-test (note in docstring why: no network in gates; fetch is a live measurement).
+
+  Also worth an assertion: honest world table-row-idiom — done via conjunct 9 break.
+
+  Count assertions: honest-rev, honest-worktree, base-content, unknown-rev-env, 12 broken worlds = 16 assertions.
+
+  Now write the file. Path: /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/drafts/check_client_trust_gates.py
+
+  Let me write the code carefully. Python 3.14, `from __future__ import annotations` harmless.
+
+  ```python
+  #!/usr/bin/env python3
+  """check_client_trust_gates.py — C1 counter for kotoba round 68 (DRAFT, wave 1).
+
+  Contract
+  --------
+  `python3 -B check_client_trust_gates.py --rev <full-sha>` prints
+      client trust gates backed N of 5
+  and exits 0 when N == 5, nonzero otherwise.  Exit 2 is reserved for usage and
+  environment errors.  `--repo <path>` overrides the lane root (default: the
+  nearest ancestor of this file that holds `corpus/SOURCES.md`).  `--fetch`
+  additionally re-opens each cited URL and reports whether the located quote is
+  present on the live page — network failures are printed as `unreachable`, never
+  counted as found and never silently dropped; the fetch is a measurement and does
+  not move the exit code.
+
+  What the counter reads (content, not names — QUALITY Q25/Q26).  For
+  `corpus/knowledge/client-trust-gates-round68.md` at the measured revision:
+
+    1. the entry file exists;
+    2. the entry opens with `source:` lines naming `S###` ids — exactly one per
+       client row (five ids in the first 10 lines, no duplicates);
+    3. every cited id resolves to a row in `corpus/SOURCES.md` whose `status` is
+       `mined`;
+    4. each cited row's `source` cell occurs verbatim in that id's `source:` line;
+    5. the entry carries a `verified-at: 2026-10-24` line and a `recheck:` line;
+    6. for each cited id, the entry carries a double-quoted located quote of at
+       most 25 words that also occurs in that row's `anchor` cell;
+    7. each client's id and its located quote co-occur in one row of the entry's
+       per-client table (the table carries client · gate · located quote · source
+       id, so the row must have at least four cells), and the entry is indexed in
+       `corpus/README.md`'s coverage map.  The client *name* itself is prose the
+       counter deliberately does not hardcode (content, not names).
+
+  Classification (routed defect R67-1, fixed from the start): a MISSING ENTRY is
+  a CONTENT verdict — the counter prints `client trust gates backed 0 of 5` and
+  exits 1.  Only a measurement that cannot run at all is an environment error
+  (exit 2, `environment error: ...` on stderr): an unknown revision, an
+  unreadable/non-git repo, or git itself unavailable.  The same rule covers the
+  registry and coverage map: absence of a measured file is a content verdict;
+  failure to run the measurement is the only exit 2.
+
+  Trust boundary (QUALITY Q33): with `--rev` the counter reads the measured
+  revision's own bytes, so a revision that rewrites the instrument can change the
+  verdict.  The claim therefore also cites the controls outside this counter: the
+  base control (entry absent at the pinned base) must print `0 of 5` and exit 1,
+  the junk-entry control must be rejected, and the mutation battery in
+  `.ufo/waves/round-68/controls/` shows each conjunct is load-bearing.
+
+  `--self-test` builds a synthetic fixture world in a scratch git repository
+  (outside the lane; nothing in the lane's index or worktree is touched) and
+  drives the public paths on it: the honest world, the base control (entry
+  absent → content 0 of 5, exit 1 — the R67-1 regression guard), an unknown
+  revision → exit 2, and one broken world per conjunct.  It performs no network
+  access.
+
+  Exit codes: 0 grounded · 1 not grounded · 2 usage/environment error.
+  """
+  ```
+
+  Then code. Let me write it fully now.
+
+  Key functions:
+
+  ```python
+  from __future__ import annotations
+
+  import argparse
+  import html
+  import io
+  import re
+  import subprocess
+  import sys
+  import tempfile
+  import urllib.request
+  from contextlib import redirect_stderr, redirect_stdout
+  from pathlib import Path
+
+  ENTRY = "corpus/knowledge/client-trust-gates-round68.md"
+  SOURCES = "corpus/SOURCES.md"
+  README = "corpus/README.md"
+  VERIFIED_AT = "2026-10-24"
+  TOTAL = 5
+  ENTRY_WINDOW = 10
+  FETCH_TIMEOUT = 20
+
+  ID_RE = re.compile(r"\bS(\d{3,})\b")
+  SOURCE_LINE_RE = re.compile(r"^source:\s*(S\d{3,})\s*(.*)$")
+  QUOTED_RE = re.compile(r'"([^"\n]{1,300})"')
+  URL_RE = re.compile(r"https?://[^\s|]+")
+  FOLD = str.maketrans({
+      "\u2018": "'", "\u2019": "'", "\u201c": '"', "\u201d": '"',
+      "\u2013": "-", "\u2014": "-", "\u00a0": " ",
+  })
+
+
+  class EnvError(Exception):
+      """The measurement could not run: unknown revision, unreadable repo, no git."""
+
+
+  def _norm(text: str) -> str:
+      return re.sub(r"\s+", " ", text.translate(FOLD)).strip()
+
+
+  def _run_git(repo: Path, *args: str) -> subprocess.CompletedProcess:
+      try:
+          return subprocess.run(["git", "-C", str(repo), *args],
+                                capture_output=True, text=True)
+      except FileNotFoundError:
+          raise EnvError("git is not available on PATH") from None
+
+
+  def _resolve_rev(repo: Path, rev: str) -> None:
+      proc = _run_git(repo, "rev-parse", "--verify", "--quiet", f"{rev}^{{commit}}")
+      if proc.returncode != 0:
+          raise EnvError(
+              f"unknown revision {rev!r} (git rev-parse failed: "
+              f"{proc.stderr.strip() or proc.stdout.strip() or 'no output'})")
+
+
+  def _read_at(repo: Path, rev: str, path: str) -> str | None:
+      """File bytes at <rev>, or None when the file is absent there (content)."""
+      proc = _run_git(repo, "show", f"{rev}:{path}")
+      if proc.returncode != 0:
+          return None
+      return proc.stdout
+
+
+  def _load(repo: Path, rev: str | None) -> dict[str, str | None]:
+      if rev is None:
+          out: dict[str, str | None] = {}
+          for path in (ENTRY, SOURCES, README):
+              p = repo / path
+              out[path] = p.read_text(encoding="utf-8") if p.is_file() else None
+          return out
+      _resolve_rev(repo, rev)
+      return {path: _read_at(repo, rev, path) for path in (ENTRY, SOURCES, README)}
+  ```
+
+  Parsers (mirror r67):
+
+  ```python
+  def _split_row(body: str) -> list[str]:
+      cells = body.split("|")
+      if cells and cells[0].strip() == "":
+          cells = cells[1:]
+      if cells and cells[-1].strip() == "":
+          cells = cells[:-1]
+      return [c.strip() for c in cells]
+
+
+  def _source_rows(text: str) -> dict[str, list[str]]:
+      rows = {}
+      for line in text.splitlines():
+          if not line.startswith("|"):
+              continue
+          cells = [c.strip() for c in line[1:].split("|")]
+          if cells and cells[-1] == "":
+              cells.pop()
+          if len(cells) != 11 or not re.fullmatch(r"S\d{3,}", cells[0]):
+              continue
+          rows[cells[0]] = cells
+      return rows
+
+
+  def _entry_source_lines(text: str) -> dict[str, str]:
+      out = {}
+      for line in text.splitlines()[:ENTRY_WINDOW]:
+          m = SOURCE_LINE_RE.match(line.strip())
+          if m:
+              out[m.group(1)] = m.group(2)
+      return out
+
+
+  def _quoted(text: str) -> list[str]:
+      out = []
+      for q in QUOTED_RE.findall(text):
+          if 0 < len(q.split()) <= 25:
+              out.append(q)
+      return out
+
+
+  def _indexed(readme: str) -> bool:
+      needle = f"`knowledge/{Path(ENTRY).name}`"
+      for line in readme.splitlines():
+          if not line.startswith("|"):
+              continue
+          cells = _split_row(line[1:])
+          if len(cells) >= 2 and cells[1].strip() == needle:
+              return True
+      return False
+
+
+  def _table_row_for(entry_lines: list[str], sid: str, quotes: list[str]) -> bool:
+      for line in entry_lines:
+          if not line.lstrip().startswith("|") or sid not in line:
+              continue
+          cells = _split_row(line.strip().lstrip("|"))
+          if len(cells) < 4:
+              continue
+          norm = _norm(line)
+          if any(q in norm for q in quotes):
+              return True
+      return False
+  ```
+
+  Hmm — `_split_row(line.strip().lstrip("|"))`: r67's `_indexed` passed `line[1:]`. For a row `| a | b |`, line[1:] = ` a | b |` → split("|") → [' a ',' b ',''] → strip empties → ['a','b']. Good, reuse same call form.
+
+  check():
+
+  ```python
+  def check(state: dict[str, str | None]) -> tuple[int, list[str]]:
+      """Return (backed_count, findings). backed_count counts fully-backed clients."""
+      findings: list[str] = []
+      if state[ENTRY] is None:
+          # CONTENT verdict (R67-1 fixed): a missing entry is not an environment error.
+          return 0, ["entry missing: " + ENTRY]
+      entry = state[ENTRY]
+      src_lines = _entry_source_lines(entry)
+      if not src_lines:
+          return 0, [f"no `source:` line naming an S### id in the entry's first {ENTRY_WINDOW} lines"]
+      ids = list(src_lines)
+      if len(set(ids)) != len(ids):
+          return 0, ["duplicate id in the entry's source lines"]
+      if len(ids) != TOTAL:
+          return 0, [f"the entry cites {len(ids)} source line(s); expected {TOTAL}, one per client row"]
+
+      if state[SOURCES] is None:
+          return 0, [f"{SOURCES} is absent — no registry resolves the cited ids"]
+      if state[README] is None:
+          return 0, [f"{README} is absent — no coverage map"]
+
+      rows = _source_rows(state[SOURCES])
+      entry_lines = entry.splitlines()
+      entry_norm = _norm(entry)
+      quotes = _quoted(entry_norm)
+
+      backed = 0
+      id_findings: list[str] = []
+      for sid in ids:
+          problems: list[str] = []
+          row = rows.get(sid)
+          if row is None:
+              id_findings.append(f"{sid}: no row in {SOURCES}")
+          elif len(row) < 11:
+              id_findings.append(f"{sid}: row has {len(row)} cells, expected 11")
+          else:
+              if row[7] != "mined":
+                  problems.append(f"status is {row[7]!r}, expected 'mined'")
+              if row[1] not in src_lines[sid]:
+                  problems.append("the row's source cell does not occur in the entry's source line")
+              anchor = _norm(row[5])
+              anchor_quotes = [q for q in quotes if q in anchor]
+              if not anchor_quotes:
+                  problems.append("no located quote of the entry occurs in the row's anchor cell")
+              elif not _table_row_for(entry_lines, sid, anchor_quotes):
+                  problems.append("no per-client table row carries the id and its located quote")
+          if problems:
+              id_findings.append(f"{sid}: " + "; ".join(problems))
+          else:
+              backed += 1
+  ```
+
+  wait — the row-None / row<11 cases append to id_findings directly and don't add problems — careful with flow: if row is None → id_findings.append, continue (no problems list interplay). Let me restructure clean:
+
+  ```python
+      for sid in ids:
+          row = rows.get(sid)
+          if row is None:
+              id_findings.append(f"{sid}: no row in {SOURCES}")
+              continue
+          if len(row) < 11:
+              id_findings.append(f"{sid}: row has {len(row)} cells, expected 11")
+              continue
+          problems: list[str] = []
+          ...append into problems...
+          if problems:
+              id_findings.append(f"{sid}: " + "; ".join(problems))
+          else:
+              backed += 1
+  ```
+
+  Then global:
+
+  ```python
+      if not any(l.strip() == f"verified-at: {VERIFIED_AT}" for l in entry_lines):
+          findings.append(f"no `verified-at: {VERIFIED_AT}` line")
+      if not any(l.strip().startswith("recheck:") for l in entry_lines):
+          findings.append("no `recheck:` line")
+      if not _indexed(state[README]):
+          findings.append("the entry has no coverage-map index row in " + README)
+  ```
+
+  These are global — but should they zero N or coexist? Decision earlier: global failures → N=0 (entry without verification metadata backs nothing), mirroring r67. So:
+
+  ```python
+      all_findings = findings + id_findings
+      if findings:  # global malformation: the entry as a whole backs nothing
+          return 0, all_findings
+      return backed, id_findings
+  ```
+
+  Exit 0 ⟺ backed==5 ⟺ no findings at all (backed==5 ⇒ id_findings empty; findings empty by branch). `backed 5 of 5` + exit 1 impossible. 
+
+  fetch:
+
+  ```python
+  def _live_page(url: str) -> str:
+      req = urllib.request.Request(url, headers={"User-Agent": "kotoba-lane-counter/1.0"})
+      with urllib.request.urlopen(req, timeout=FETCH_TIMEOUT) as resp:
+          raw = resp.read(5_000_000)
+      page = raw.decode(resp.headers.get_content_charset() or "utf-8", errors="replace")
+      page = re.sub(r"(?is)<(script|style)\b.*?</\1>", " ", page)
+      page = re.sub(r"(?s)<[^>]+>", " ", page)
+      return html.unescape(page)
+
+
+  def fetch_report(state) -> tuple[int, list[str]]:
+      lines = []
+      if state.get(ENTRY) is None or state.get(SOURCES) is None:
+          return 0, ["--fetch: skipped — the entry or the registry is absent at the measured revision"]
+      src_lines = _entry_source_lines(state[ENTRY])
+      rows = _source_rows(state[SOURCES])
+      quotes = _quoted(_norm(state[ENTRY]))
+      if not src_lines:
+          return 0, ["--fetch: skipped — no `source:` ids to fetch"]
+      found = 0
+      for sid, line_text in src_lines.items():
+          row = rows.get(sid)
+          if row is None:
+              lines.append(f"--fetch {sid}: no row — url unknown, not fetched")
+              continue
+          m = URL_RE.search(row[1])
+          if not m:
+              lines.append(f"--fetch {sid}: the row's source cell carries no URL — not fetched")
+              continue
+          url = m.group(0).rstrip('.,;:)\]}"\'')
+          sid_quotes = [q for q in quotes if q in _norm(row[5])] or quotes
+          try:
+              page = _norm(_live_page(url))
+          except Exception as exc:  # network failure: reported, never counted
+              lines.append(f"--fetch {sid}: unreachable ({type(exc).__name__}: {exc}) <{url}>")
+              continue
+          if any(q in page for q in sid_quotes):
+              found += 1
+              lines.append(f"--fetch {sid}: quote found <{url}>")
+          else:
+              lines.append(f"--fetch {sid}: quote NOT found on the live page <{url}>")
+      lines.insert(0, f"--fetch: quotes located on live pages: {found} of {len(src_lines)}")
+      return found, lines
+  ```
+
+  `sid_quotes = [...] or quotes` — if the anchor match fails (content broken), fall back to any entry quote for that id? Hmm — that weakens "confirms the located quote". Actually for fetch, the located quote per id should be the one bound to the id. If no quote is in the anchor, use quotes found near the id? Simplest honest: use anchor-shared quotes; if none, report `quote NOT found`-adjacent ambiguity... I'll keep fallback `or quotes` but it only fires in already-broken content states (verdict exit 1 anyway). Actually cleaner: if no anchor-shared quote, report `--fetch {sid}: no anchor-bound quote to check — not fetched`. Honest, no fallback. Let me do that.
+
+  main:
+
+  ```python
+  def _default_repo() -> Path:
+      here = Path(__file__).resolve()
+      for cand in here.parents:
+          if (cand / "corpus" / "SOURCES.md").is_file():
+              return cand
+      return Path.cwd()
+
+
+  def main(argv=None) -> int:
+      ap = argparse.ArgumentParser(add_help=True)
+      ap.add_argument("--rev", default=None, help="measured revision (full sha)")
+      ap.add_argument("--repo", default=None, help="lane root (default: nearest ancestor holding corpus/SOURCES.md)")
+      ap.add_argument("--fetch", action="store_true", help="also re-open each cited URL and locate its quote on the live page")
+      ap.add_argument("--self-test", action="store_true")
+      args = ap.parse_args(argv)
+      repo = Path(args.repo) if args.repo else _default_repo()
+      if args.self_test:
+          return selftest(repo)
+      try:
+          state = _load(repo, args.rev)
+          n, findings = check(state)
+      except EnvError as exc:
+          print(f"environment error: {exc}", file=sys.stderr)
+          return 2
+      print(f"client trust gates backed {n} of {TOTAL}")
+      for f in findings:
+          print(f"  - {f}")
+      if args.fetch:
+          try:
+              _, lines = fetch_report(state)
+          except EnvError as exc:
+              print(f"environment error: {exc}", file=sys.stderr)
+              return 2
+          for line in lines:
+              print(line)
+      return 0 if n == TOTAL else 1
+  ```
+
+  Hmm — if --fetch and the content verdict already exited nonzero, still print fetch lines (measurement report) then exit content code. Yes as coded.
+
+  Self-test:
+
+  ```python
+  FIX_ROWS = [
+      ("S901", "FixtureGate A", "https://fixture.example/gate-a", "The client reviews the untrusted skill body before first load."),
+      ... 5 rows
+  ]
+  ```
+
+  Build entry:
+
+  ```python
+  def _fixture_entry() -> str:
+      lines = []
+      for sid, client, url, quote in FIX_ROWS:
+          lines.append(f"source: {sid} — {client} — {url} — `# Gate`")
+      lines += [
+          "verified-at: 2026-10-24",
+          "recheck: 90d — re-fetch each cited page and confirm the located quotes still read the same",
+          "",
+          "# Client trust gates for untrusted skill bodies (fixture world)",
+          "",
+          "| client | documented gate on an untrusted skill body | located quote | source |",
+          "|---|---|---|---|",
+      ]
+      for sid, client, url, quote in FIX_ROWS:
+          lines.append(f"| {client} client | reviews the body before first load | \"{quote}\" | {sid} |")
+      return "\n".join(lines) + "\n"
+  ```
+
+  SOURCES fixture: header + separator + 5 rows:
+
+  ```python
+  def _fixture_sources() -> str:
+      head = ("# SOURCES\n\n| id | source | kind | tier | scope | anchor | teaches | status | opened | recheck | used-by |\n"
+              "|---|---|---|---|---|---|---|---|---|---|---|\n")
+      rows = []
+      for sid, client, url, quote in FIX_ROWS:
+          anchor = f"§ Gate; quote \"{quote}\" (opened 2026-10-24)"
+          rows.append(f"| {sid} | {client} — {url} | docs | A | scope of {sid} | {anchor} | teaches {sid} | mined | 2026-10-24 | 90d | {ENTRY} |")
+      return head + "\n".join(rows) + "\n"
+  ```
+
+  README fixture: a table with the needle:
+
+  ```python
+  def _fixture_readme() -> str:
+      return ("# Coverage map\n\n| theme | file | note |\n|---|---|---|\n"
+              "| Client trust gates | `knowledge/client-trust-gates-round68.md` | fixture row |\n")
+  ```
+
+  Scratch repo:
+
+  ```python
+  def _scratch_repo() -> tuple[Path, str, str]:
+      dest = Path(tempfile.mkdtemp(prefix="k68-selftest-"))
+      def git(*a): 
+          p = subprocess.run(["git", "-C", str(dest), *a], capture_output=True, text=True)
+          if p.returncode != 0: raise RuntimeError(p.stderr)
+      git("init", "-q")
+      git("config", "user.email", "selftest@example.invalid")
+      git("config", "user.name", "selftest")
+      (dest / "corpus").mkdir(parents=True)
+      (dest / SOURCES).write_text(_fixture_sources(), encoding="utf-8")
+      (dest / README).write_text(_fixture_readme(), encoding="utf-8")
+      # git needs a top-level tracking dir; also add a README so corpus isn't empty-only? fine.
+      git("add", "-A"); git("commit", "-qm", "base: registry without the entry")
+      base = git_revparse → subprocess rev-parse HEAD
+      (dest / ENTRY).parent.mkdir(parents=True, exist_ok=True)
+      (dest / ENTRY).write_text(_fixture_entry(), encoding="utf-8")
+      git("add", "-A"); git("commit", "-qm", "head: entry lands")
+      head = rev-parse HEAD
+      return dest, base, head
+  ```
+
+  Wait — `git init -q` in 3.14-era git: default branch warning; `-q` fine. Also need `git add corpus`... `git add -A` works. rev-parse: run inside.
+
+  _world builder for broken worlds — operate on the head working tree:
+
+  ```python
+  def _world(src: Path, *, entry=None, sources=None, readme=None, drop_entry=False) -> Path:
+      dest = Path(tempfile.mkdtemp(prefix="k68-world-"))
+      for path in (ENTRY, SOURCES, README):
+          s = src / path
+          d = dest / path
+          d.parent.mkdir(parents=True, exist_ok=True)
+          if s.is_file():
+              d.write_text(s.read_text(encoding="utf-8"), encoding="utf-8")
+      if drop_entry: (dest / ENTRY).unlink()
+      if entry is not None: (dest / ENTRY).write_text(entry, encoding="utf-8")
+      if sources is not None: (dest / SOURCES).write_text(sources, encoding="utf-8")
+      if readme is not None: (dest / README).write_text(readme, encoding="utf-8")
+      return dest
+  ```
+
+  Broken-world constructors (entry_text, sources_text, readme_text from scratch tree):
+
+  1. drop_entry
+  2. entry without source lines: filter lines not startswith("source:")
+  3. only 4 source lines: drop the last source line → expect 0 (shape: 4≠5)
+  4. duplicate id: replace the S905 source line with a duplicate of the S901 source line → dup ids → 0
+  5. rename id in entry: replace "S902" → "S999" everywhere in entry (source line + table) → no row → 0. Wait, S902 appears in the table row too; replacing everywhere keeps consistency of the entry but the id no longer resolves → id_findings. → 0 of 5. ✓
+  6. flip status: sources line `| S903 |` replace "| mined |" → "| queued |" (first occurrence only — the replace with count=1 like r67)
+  7. source cell absent from source line: entry source line for S904: drop the URL: replace "— https://fixture.example/gate-d" with "" in the ENTRY. Then row[1] ("FixtureGate D — https://fixture.example/gate-d") not in line → conjunct 4 fails. But careful: conjunct 7a still holds (table row intact) but conjunct 4 fails → id unbacked → 4 of 5 → global? No global failures → returns (4, [...]) → rejected (n != 5). ✓
+  8. anchor edit: sources replace quote D with different sentence → anchor_quotes empty for S904 → 4 of 5.
+  9. table row break: entry replace the S904 table row's content: `| FixtureGate D client | reviews the body before first load | "<q>" | S904 |` → remove the id and quote → no table row with id+quote → 4 of 5. Implement: replace f'| {q}" | S904 |' hmm — construct the exact row string and replace with `| FixtureGate D client | reviews the body before first load | (quote elided) | — |`. Simplest: replace the full row line with `| FixtureGate D client | reviews the body before first load | (quote elided) | (no id) |`.
+  10. verified-at: replace "verified-at: 2026-10-24" → "verified-at: 2020-01-01" → global → 0.
+  11. recheck: replace the recheck line → "note: re-fetch" → global → 0.
+  12. coverage: readme replace "`knowledge/client-trust-gates-round68.md`" → "`knowledge/absent.md`" → global → 0.
+
+  Self-test body:
+
+  ```python
+  def selftest(repo: Path) -> int:
+      failures = 0
+      scratch, base_sha, head_sha = _scratch_repo()
+      try:
+          entry_text = (scratch / ENTRY).read_text(...)
+          sources_text = ...
+          readme_text = ...
+
+          def run_main(extra):
+              out, err = io.StringIO(), io.StringIO()
+              with redirect_stdout(out), redirect_stderr(err):
+                  rc = main(["--repo", str(scratch), *extra])
+              return rc, out.getvalue(), err.getvalue()
+
+          # honest @ head rev
+          rc, out, err = run_main(["--rev", head_sha])
+          ok = rc == 0 and f"client trust gates backed {TOTAL} of {TOTAL}" in out
+          ...print PASS/FAIL
+          # honest @ working tree
+          rc, out, err = run_main([])
+          expect rc==0 and "backed 5 of 5" in out
+          # base control: content, not environment (R67-1 regression guard)
+          rc, out, err = run_main(["--rev", base_sha])
+          ok = rc == 1 and "client trust gates backed 0 of 5" in out and "environment error" not in err
+          # unknown revision → environment
+          rc, out, err = run_main(["--rev", "f" * 40])
+          ok = rc == 2 and "environment error" in err
+          # broken worlds via check() directly
+          worlds = {...}
+          for name, world in worlds.items():
+              n, fs = check(_load_state_from(world))
+  ```
+
+  Hmm — check() takes `state` dict. For a world dir, state = read files (None if missing). Write small helper `_state_of(root)`:
+
+  ```python
+  def _state_of(root: Path) -> dict[str, str | None]:
+      out = {}
+      for path in (ENTRY, SOURCES, README):
+          p = root / path
+          out[path] = p.read_text(encoding="utf-8") if p.is_file() else None
+      return out
+  ```
+
+  And `_load` can reuse `_state_of` for the no-rev path. 
+
+  Assertion counts: 4 main-path + 12 worlds = 16. Summary print `self-test: 0 failure(s) over 16 assertions`. Return 1 if failures.
+
+  Cleanup: shutil.rmtree scratch + worlds. import shutil. Wrap in try/finally.
+
+  Edge — `_scratch_repo` git commit may fail if git identity global missing — set local config as above. Also `git init` default branch hint warning harmless.
+
+  One more: r67's selftest ran on `repo` (lane) — mine ignores the passed repo (fixture-built). Keep the parameter for signature compatibility; note it. Actually main(["--repo", str(scratch)]) — selftest(repo) arg unused except fallback? I'll use `repo` only if scratch setup fails? No — keep fixture-only, ignore repo. Document: "--self-test is fixture-built and does not read the lane tree". But hmm — is that a weakness? r67's selftest asserted the HONEST world = the lane working tree. Mine asserts honest on fixture — because at draft time the real entry doesn't exist. The after-measurement (`--rev` on the landed rev / working tree run) covers the real honest world. State this in docstring and report. Good.
+
+  Also `python3 -B` flag: fine.
+
+  Potential pitfall — SOURCE_LINE_RE `^source:\s*(S\d{3,})\s*(.*)$` matched against `line.strip()`; entry lines 1-5 in fixture start with "source:" ✓.
+
+  _table_row_for: entry_lines includes source lines etc. — starts with "|" filter ✓. The separator row "|---|---|---|---|" — no sid ✓.
+
+  Now the QUOTED_RE on entry_norm: fixture table rows carry `"The client reviews the untrusted skill body before first load."` — 10 words ✓ ≤25. Also the anchor cell carries the same quote wrapped in `quote "..."`. anchor_norm contains q ✓.
+
+  Also `id not in line` check for table row: `sid not in line` string containment — "S901" appears in its row ✓.
+
+  Wait, one more possible collision: the entry's `used-by`? No, that's SOURCES. In SOURCES fixture, used-by = ENTRY path — fine.
+
+  Another: `_source_rows` requires exactly 11 cells; fixture rows have 11 ✓.
+
+  For the "only 4 source lines" world: entry has 5 source lines; drop the last → 4 ids → finding → return (0, [...]) ✓.
+
+  Duplicate id world: replace line "source: S905 — FixtureGate E — ..." with "source: S901 — FixtureGate A — https://fixture.example/gate-a — `# Gate`" → ids [S901,S902,S903,S904,S901] dup → 0 ✓.
+
+  Also — subtle: the dup world's table still references S905 — irrelevant, dup check fires first ✓.
+
+  Unknown-rev test: rev "f"*40 — rev-parse --verify --quiet fails → EnvError → rc 2, stderr has "environment error" ✓. But careful: some git versions might... no, that sha doesn't exist. ✓
+
+  Also `--rev` with working-tree... fine.
+
+  Fetch: not exercised in self-test (no network). Note it.
+
+  Now the report file ExecC1Counter.md — after running, include:
+  - what the draft is, path
+  - classification fix + evidence: r67 counter at ITS base (2a8eba56) → exit 2 (empirical), vs r68 draft at r68 base → `backed 0 of 5` exit 1 (empirical)
+  - base before-state evidence: entry absent at base (git show rc 128), 5 client URLs 0 hits at base
+  - self-test output (paste)
+  - working-tree run output (0 of 5 exit 1 — expected pre-landing)
+  - risks: HTML quote matching on --fetch (tag-strip+fold heuristic; may miss quotes rendered oddly — reported not counted, so failure mode is honest `NOT found`/`unreachable`); ENTRY_WINDOW=10 choice; conjunct 7 structural form (id+quote+≥4 cells) since client names aren't hardcodable; `recheck:` prefix check is shallow (any value passes — mirrors r67)
+  - handoff notes to L1: install path, run commands, that `--self-test` needs no lane content, the fetch smoke requires network.
+
+  Need the full sha of 2a8eba56 for the r67 counter reproduction. Get it and run. Two commands chained: `rev=$(git rev-parse 2a8eba56); echo $rev; python3 -B verifiers/check_instruction_authority.py --rev $rev; echo exit=$?` — wait, does 2a8eba56 exist in the lane repo? It's the r67 base — should. If not found, report from the committed receipt instead (the plan quotes it). Try.
+
+  Run in parallel with writing the script? The Write is independent of the evidence run. I'll do Write + Bash in one batch. Then run self-test + base control in the next batch (depends on Write).
+
+  Let me also double check `git show rev:path` for the entry at base returns rc 128 — confirmed above (entry-at-base exit=128) → _read_at returns None → content 0 of 5 ✓.
+
+  One more design point — `_load` for rev mode: `_resolve_rev` first (env gate), then three `_read_at`. If `git show` fails due to repo corruption (not path-absence) we'd misreport as content... acceptable; rev-parse succeeded means repo readable; show failing then ≈ path absent. Documented.
+
+  Writing the script now. Also careful: `str.maketrans` dict form needs str:str ✓.
+
+  For `argparse` `--fetch` conflict with abbreviation? fine.
+
+  In `main`, when `--self-test`, ignore --rev. OK.
+
+  Let me also think about whether `check` should verify conjunct 2's "opens with" more strictly — e.g., the FIRST non-blank line must be a source: line? r67's entry line 1 is a source line. The r68 entry will presumably mirror. If I require first-non-blank == source:, the fixture satisfies. But if the L1 adds a title first, counter fails it → L1 adjusts entry. Hmm — "the entry opens with `source:` lines" — I'll check: among the first ENTRY_WINDOW lines, the first NON-BLANK line must be a `source:` line. That's a faithful "opens with". Add to _entry_source_lines usage: in check, `stripped_lines = [l for l in entry.splitlines()[:ENTRY_WINDOW]]`... simpler: find first non-blank line; if it doesn't match SOURCE_LINE_RE → finding "the entry does not open with a `source:` line". Implement in check:
+
+  ```python
+      first = next((l for l in entry_lines if l.strip()), "")
+      if not SOURCE_LINE_RE.match(first.strip()):
+          findings.append("the entry does not open with a `source:` line")
+  ```
+  → global → 0. And fixture/r67 shape pass. Good — but wait, this makes "no source lines" + "doesn't open with" double-report; the no-source-lines early return happens first, fine.
+
+  Order in check: entry missing → parse ids (early returns) → shape checks (count, dup — early returns) → THEN opens-with check as global finding → registry/readme absent early returns → per-id → global (verified-at, recheck, coverage, opens-with) → return. Hmm, opens-with needs entry_lines — fine.
+
+  Careful: early-return shape checks (count/dup/no-ids) are also "global" → 0. ✓
+
+  Now — write it. Also the fixture: 5 clients with distinct quotes; make quotes vary in wording.
+
+  FIX_ROWS:
+  ```python
+  FIX_ROWS = [
+      ("S901", "FixtureGate A", "https://fixture.example/gate-a",
+       "The client reviews the untrusted skill body before first load."),
+      ("S902", "FixtureGate B", "https://fixture.example/gate-b",
+       "Untrusted skill text is never executed without a recorded human approval."),
+      ("S903", "FixtureGate C", "https://fixture.example/gate-c",
+       "A skill from an unknown publisher loads only after the quarantine scan passes."),
+      ("S904", "FixtureGate D", "https://fixture.example/gate-d",
+       "The client re-verifies the body hash at every load and refuses drift."),
+      ("S905", "FixtureGate E", "https://fixture.example/gate-e",
+       "Permissions declared by an untrusted skill are dropped at load time."),
+  ]
+  ```
+
+  Table "documented gate" cell text per row: shorten distinct.
+
+  Word counts: quotes ≤25 words ✓ (all ≤ 12).
+
+  Table row for S901: `| FixtureGate A client | reviews the body before first load | "The client reviews the untrusted skill body before first load." | S901 |` — 4 cells ✓, contains sid ✓, normalized contains quote ✓.
+
+  Build the table programmatically: gate cell = f"gate {sid} applies" — fine.
+
+  Now write everything. Also the `#!/usr/bin/env python3` + executable-ish (no chmod needed; invoked via python3).
+
+  shutil import for rmtree cleanup.
+
+  Let me write the final code text. I'll be careful about f-string braces with `^{commit}` — use f"{rev}^{{commit}}" ✓.
+
+  Also in _fixture_sources the anchor: `§ Gate; quote "{q}" (opened 2026-10-24)` — em-dash not needed.
+
+  Potential trap: in `_fixture_entry`, table row quote is wrapped in ASCII double quotes inside an f-string with escaped `\"` — fine.
+
+  In broken world 9, I need the exact table row string. Since table rows are generated as f'| {client} client | gate {sid} applies | "{q}" | {sid} |', I can regenerate and replace with '| FixtureGate D client | gate S904 applies | (quote elided) | (id elided) |'. Actually regenerate row4 = table_row(S904...) then entry.replace(row4, row4_broken). Good — build helper `_table_row(sid, client, quote)`.
+
+  Let me now also prepare the second evidence command:
+
+  ```
+  rev=$(git rev-parse 2a8eba56 2>/dev/null); echo "r67-base=$rev"; python3 -B verifiers/check_instruction_authority.py --rev "$rev"; echo "exit=$?"
+  ```
+  This should print `environment error: cannot read corpus/knowledge/instruction-authority-ladder-round67.md at <rev>` exit 2 — R67-1 empirically. If 2a8eba56 missing → report from receipt (plan quote).
+
+  OK — batch: Write(script) + Bash(r67 R67-1 repro). Then batch: Bash(self-test), Bash(base control w/ draft), Bash(working-tree run + --fetch smoke).
+
+• Base evidence captured: the r68 base lacks the C1 entry (`git show` → 128) and holds **0 hits** for the five client URLs. The coverage-map shape matches the r67 `_indexed` needle form. Now: reproduce R67-1 empirically at the r67 base, and write the draft counter (fixture-based `--self-test` so it passes *before* the entry lands).r67-base=2a8eba56b3f9321b70c569fa2816d42237ca49a2
+environment error: cannot read corpus/knowledge/instruction-authority-ladder-round67.md at 2a8eba56b3f9321b70c569fa2816d42237ca49a2
+exit=2
+
+
+• R67-1 reproduced empirically: the r67 counter at its own base prints `environment error: cannot read ...` exit 2 for a missing entry — exactly the defect my counter corrects.
+
+  Now run the draft's checks in parallel:
+  1. `--self-test`
+  2. `--rev <r68 base>` → expect `client trust gates backed 0 of 5`, exit 1
+  3. working-tree run (no --rev) → expect 0 of 5 exit 1 (entry not yet landed)
+  4. `--fetch` smoke (no network needed since entry missing → skipped line) — combine with 3.
+
+• R67-1 reproduced live: the r67 counter at its own base exits **2** (`environment error: cannot read ...`) for a missing entry — the exact classification defect this draft fixes. Now run the draft's three paths:PASS honest world at head rev
+PASS honest world, working tree
+PASS base control: missing entry is content (exit 1), not environment
+PASS unknown revision is environment (exit 2)
+PASS broken world rejected: entry missing
+PASS broken world rejected: no source lines
+PASS broken world rejected: only 4 source lines
+PASS broken world rejected: duplicate id in source lines
+PASS broken world rejected: id does not resolve
+PASS broken world rejected: row not mined
+PASS broken world rejected: source cell absent from the entry's source line
+PASS broken world rejected: quote not in the anchor cell
+PASS broken world rejected: id and quote not in a per-client table row
+PASS broken world rejected: no verified-at
+PASS broken world rejected: no recheck
+PASS broken world rejected: no coverage-map row
+self-test: 0 failure(s) over 16 assertions
+self-test exit=0
+client trust gates backed 0 of 5
+  - entry missing: corpus/knowledge/client-trust-gates-round68.md
+base exit=1
+client trust gates backed 5 of 5
+--fetch: quotes located on live pages: 5 of 5
+--fetch S198: quote found <https://raw.githubusercontent.com/vinhnx/vtcode/main/docs/skills/SKILLS_GUIDE.md>
+--fetch S199: quote found <https://parallelworks.com/docs/ai/code/skills>
+--fetch S200: quote found <https://kilo.ai/docs/customize/skills>
+--fetch S201: quote found <https://learn.microsoft.com/en-us/agent-framework/agents/skills>
+--fetch S202: quote found <https://raw.githubusercontent.com/mistralai/mistral-vibe/main/README.md>
+worktree+fetch exit=0
+environment error: unknown revision 'deadbeefdeadbeefdeadbeefdeadbeefdeadbeef' (git rev-parse failed: no output)
+unknown-rev exit=2
+
+
+• Very interesting — the working-tree run (no `--rev`) returned **5 of 5 exit 0** with fetch 5/5, and ids S198–S202 (vtcode, parallelworks, kilo.ai, agent-framework, mistral-vibe). That means the entry `corpus/knowledge/client-trust-gates-round68.md` AND its SOURCES rows S198–S202 and the coverage-map row ALREADY EXIST in the lane working tree — another seat (or the L1) has landed the content in the working tree already (uncommitted working-tree state, since the base rev lacks it). Wait — but my earlier grep showed 0 hits at the BASE rev. The working tree has moved past the base? Let me verify: is the working tree at the base, or has someone added files? The plan said the working tree carries one untracked path (junk-world) and nothing else inherited. But wave 1 is running concurrently — a scribe seat may have written the entry + SOURCES rows + README row into the working tree already (write scope: writing seats write drafts... but the L1 owns production edits; maybe the L1 already applied them mid-wave).
+
+  Either way — this is a measurement of fact: the working tree currently contains the full C1 content, and my counter validates it: 5 of 5, fetch 5 of 5 live (network worked!). That's actually a bonus: the --fetch path is now empirically exercised — all 5 live pages opened, all 5 quotes found.
+
+  Let me confirm what's in the working tree (read the entry quickly + check git status to see these files are uncommitted). This matters for my report: the honest-world working-tree measurement at this moment.
+
+  Also note: `--fetch` fetched from raw.githubusercontent/parallelworks/kilo.ai/learn.microsoft.com — network available. 
+
+  Let me check:
+  1. `git status --porcelain` on the lane (read-only) to see what's uncommitted.
+  2. Read the entry head (first ~40 lines) to confirm shape.
+
+  Then write the report ExecC1Counter.md.
+
+  One caution: my write scope — reading is fine. Let me do those two, then write the report.
+
+• All three paths behave per contract — and a bonus measurement: the working tree **already carries the C1 content** (rows S198–S202, the five client URLs), so the honest-world and `--fetch` paths were exercised live: `backed 5 of 5`, 5/5 quotes located on the live pages. Confirm what that working-tree state is: M verifiers/check_r67_routed_repairs.py
+?? .ufo/waves/round-68/controls/
+?? .ufo/waves/round-68/receipts/C1-fetch.txt
+?? .ufo/waves/round-68/receipts/C1-measure.txt
+?? .ufo/waves/round-68/receipts/C2-routed-measure.txt
+?? .ufo/waves/round-68/receipts/noharm-at-tip.txt
+?? .ufo/waves/round-68/w1-spec.json
+?? .ufo/waves/round-68/w1/
+---
+-rw-r--r-- 1 vgpnk vgpnk 6213 Oct 24 23:00 corpus/knowledge/client-trust-gates-round68.md
+
+
+• The working tree already carries the L1's landed C1 content (entry dated 23:00 today, SOURCES rows S198–S202, coverage map). The counter validates it: 5 of 5, fetch 5/5 live. `git status` shows other wave-1 activity too (`verifiers/check_r67_routed_repairs.py` modified — the C2 counter draft/landed by another seat; receipts already exist under `.ufo/waves/round-68/receipts/`, including `C1-fetch.txt` and `C1-measure.txt` — the L1 is already measuring).
+
+  My job is done: the draft exists, self-test 0 failures over 16 assertions, base control `0 of 5` exit 1, unknown-rev exit 2, R67-1 contrast captured. Now write the report at `.ufo/waves/round-68/w1/ExecC1Counter.md` (the Report trailer names this exact path), then final response with paths + self-test output.
+
+  The report should include:
+  - What was built (path, contract conformance, classification fix)
+  - Evidence: commands + outputs
+    - R67-1 reproduced: r67 counter at 2a8eba56b3f9321b70c569fa2816d42237ca49a2 → exit 2 environment error
+    - Draft at r68 base → `client trust gates backed 0 of 5` exit 1
+    - Unknown rev → exit 2
+    - Self-test: 16 assertions, 0 failures
+    - Working-tree honest world: 5 of 5 exit 0; --fetch 5 of 5 live quotes found (S198–S202, URLs)
+    - Base before-state: entry absent at base (git show rc=128), 5 client URLs 0 grep hits at base
+  - Design decisions/remaining risks:
+    - Conjunct 7 implemented structurally (id + located quote co-occur in one ≥4-cell table row) — client names not hardcoded (Q25/Q26); name-cell correctness is a review/scrutiny matter, not a counter matter
+    - ENTRY_WINDOW=10 for "opens with"; first non-blank line must be a source: line
+    - --fetch HTML handling: strip script/style/tags, unescape, whitespace-fold + typographic punctuation fold; misses would print NOT found (never counted, never silent)
+    - --fetch never moves exit code (measurement, not verdict) — L1 should record it as a separate control receipt (one already exists: C1-fetch.txt)
+    - Absent SOURCES/README at a resolvable rev = content (0 of 5), not env — generalization of R67-1; documented in docstring
+    - Partial credit: per-client failures → N of 5 honest partial (e.g. 4 of 5); global failures → 0 of 5 (r67 rule). `backed 5 of 5` implies exit 0.
+  - Handoff to L1: install as verifiers/check_client_trust_gates.py; default repo resolution works from both locations; `python3 -B verifiers/check_client_trust_gates.py --rev <rev>`; self-test needs no lane content and no network.
+  - Note on the working tree: the entry + S198–S202 + coverage row already present (landed by the L1 at 23:00); my working-tree/fetch runs measured that state, not the base.
+
+  Also mention: no writes outside the two allowed files (draft + this report); no git/jj mutations; no pacman; no subagents dispatched (leaf member; task was compact — did it directly).
+
+  Keep the report tight but complete. Then final response summarizing: files changed (2), behavior, evidence, risks, blockers (none).
+
+• The working tree already carries the L1's landed C1 content (entry + rows S198–S202 + coverage row, written 23:00 today) — so the honest-world and `--fetch` runs above measured real landed content, live. All evidence is in. Writing the scoped report:
+
+• Done. Final response: files changed, behavior, exact evidence, remaining risks, blockers. Keep it tight.
+
+• **Done.** Files changed (both under my write scope; nothing else touched — no git/jj mutations, no installs, no subagents):
+
+  1. `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/drafts/check_client_trust_gates.py` — the C1 counter draft (stdlib only, modeled on `check_instruction_authority.py`, NOT installed; `verifiers/` is the L1's).
+  2. `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/ExecC1Counter.md` — scoped report.
+
+  **Behavior.** `--rev <sha>` → prints `client trust gates backed N of 5`, exit 0 ⟺ N==5, exit 1 otherwise, exit 2 + `environment error:` on stderr only for unknown revision / unreadable repo / no git. `--repo` override with a default that resolves from `drafts/` now and `verifiers/` after install (no edit at install). `--fetch` re-opens each cited URL and locates each id's anchor-bound quote; network failures print `unreachable (...)`, never counted, never silent, never moving the exit. All 7 conjuncts read CONTENT, not names (client names deliberately not hardcoded; conjunct 7 enforced structurally: id + anchor-bound quote co-occurring in one ≥4-cell table row). **R67-1 fixed from the start:** missing entry/registry/coverage-map at a resolvable rev = content verdict (`0 of 5`, exit 1); only unrunnable measurement = exit 2.
+
+  **Exact evidence.**
+  - R67-1 reproduced live: r67 counter at `2a8eba56b3f9…` → `environment error: cannot read …` **exit 2** (the defect, unmodified).
+  - Draft at the pinned base `e94ae32a…` → `client trust gates backed 0 of 5` **exit 1**; unknown rev → **exit 2**.
+  - `--self-test` → **`self-test: 0 failure(s) over 16 assertions`**, exit 0 (fixture-built in a throwaway temp git repo; needs no lane content and no network; asserts the base classification end-to-end).
+  - Base before-state: entry absent at base (`git show` → 128); five client URLs in base SOURCES → **0 hits**; counter absent.
+  - Bonus: the L1's C1 content is already in the working tree (S198–S202) — the draft measured it live: `client trust gates backed 5 of 5` and `--fetch: quotes located on live pages: 5 of 5` (all five URLs listed in the report).
+
+  **Remaining risks (named in the report):** conjunct-7's structural form (name cell is review's matter); "opens with" window (first non-blank line must be `source:`, ids in first 10 lines); `--fetch` matching is a heuristic whose misses print honest `NOT found`; `recheck:` is a prefix check mirroring r67. **Blockers: none.**
+
+To resume this session: kimi -r session_0cb2d946-228f-4a46-a0e3-49b371d769bd

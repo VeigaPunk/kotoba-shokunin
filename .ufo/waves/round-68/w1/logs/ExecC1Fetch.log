@@ -1,0 +1,764 @@
+kimi version 2.3.1
+• Let me start by understanding the task. I'm an executor seat in round 68 of a "kotoba lane" campaign. My job:
+
+  Build the `--fetch` arm for the C1 counter at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/drafts/check_client_trust_gates.py`.
+
+  The task says: for each of the five cited rows, read the row's `source` cell, extract the URL, fetch it with `curl -sSL --max-time 30` (or `urllib`), and check whether the entry's located quote (normalized whitespace) occurs in the fetched text. Print one line per client: `S### <client>: found` / `NOT FOUND` / `FETCH FAILED <error>`, then `live quotes found N of 5`. A fetch failure must NOT be counted as a found quote, and must not crash the counter (exit 2 only for a usage/environment error of the counter itself). Add `--fetch` to the parser. Report the file path and the printed output of a dry run against the lane's current `corpus/SOURCES.md` (which holds none of the five URLs yet, so the dry run may report 0 of 5 — that is fine and expected).
+
+  The system prompt also says to read the frozen plan first: `/home/vgpnk/Projects/shokunin/kotoba-shokunin/plans/round-68.md`.
+
+  There's also a `/skill:godspeed` invocation mentioned — I should invoke the Skill tool with "godspeed". Actually the prompt says `/skill:godspeed` in the message. The instruction says when a skill matches, I MUST call the Skill tool. Let me do that first.
+
+  Let me plan my parallel batch:
+  1. Read the plan file `/home/vgpnk/Projects/shokunin/kotoba-shokunin/plans/round-68.md`
+  2. Check if the draft file already exists: `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/drafts/check_client_trust_gates.py`
+  3. Read `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md`
+  4. Invoke Skill godspeed.
+
+  Let me do these in parallel.
+
+  Note: The task mentions "the five cited rows" and "the entry's located quote" — presumably the draft script already exists (built by a previous seat in this round) with the five rows embedded. The C1 claim says at base the counter prints `client trust gates backed 0 of 5`. The draft likely contains a list of 5 entries with client names, URLs, and quotes. I need to add the `--fetch` arm.
+
+  Let me read everything first.
+
+  Also I should check RULES.md if I need to install tools — I probably don't need any new tools (curl and python3 should exist).
+
+  Let me start.ls: cannot access '/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/drafts/': No such file or directory
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/:
+total 48
+drwxr-xr-x 1 vgpnk vgpnk    60 Oct 24 22:59 .
+drwxr-xr-x 1 vgpnk vgpnk   352 Oct 24 22:56 ..
+drwxr-xr-x 1 vgpnk vgpnk    90 Oct 24 22:56 controls
+drwxr-xr-x 1 vgpnk vgpnk     0 Oct 24 22:56 receipts
+drwxr-xr-x 1 vgpnk vgpnk    46 Oct 24 22:59 w1
+-rw-r--r-- 1 vgpnk vgpnk 46029 Oct 24 22:58 w1-spec.json
+
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/:
+total 12
+drwxr-xr-x 1 vgpnk vgpnk    46 Oct 24 22:59 .
+drwxr-xr-x 1 vgpnk vgpnk    60 Oct 24 22:59 ..
+drwxr-xr-x 1 vgpnk vgpnk  1136 Oct 24 22:59 logs
+-rw------- 1 vgpnk vgpnk 12213 Oct 24 22:59 swarm-registry.json
+I need to read the directive.md from the skill directory. Let me do that, and also look at the w1-spec.json which likely contains the five cited rows (client trust gates spec) — actually, the draft `check_client_trust_gates.py` doesn't exist yet. Wait — the task says "Build the `--fetch` arm for the C1 counter at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/drafts/check_client_trust_gates.py`". The drafts directory doesn't exist. So I need to check whether the counter itself already exists elsewhere (maybe a previous seat built it), or whether I need to build the whole counter plus the `--fetch` arm.
+
+  Let me look:
+  1. Read `/home/vgpnk/.kimi-code/skills/godspeed/directive.md`
+  2. Look for existing `check_client_trust_gates.py` anywhere in the lane: Glob `**/check_client_trust_gates.py`
+  3. Read w1-spec.json (46KB — might contain the spec with the 5 rows)
+  4. Read `corpus/SOURCES.md`
+
+  Let me do these in parallel./home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/controls/:
+C2-base-independent.json
+C2-base-integrity.txt
+
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/logs/:
+ConnectorCensus.log
+CriticC1Predicate.log
+CriticC2Predicate.log
+ExecC1Counter.log
+ExecC1CounterTest.log
+ExecC1Fetch.log
+ExecC2Baseline.log
+ExecCollision.log
+ExecR67Repairs.log
+ExecTransform.log
+MutC1Counter.log
+MutR67Repairs.log
+RevC1Scope.log
+RevC2Honesty.log
+ReviewC1Counter.log
+ReviewC1Entry.log
+ScoutConsiderthese.log
+ScoutKilo.log
+ScoutMistral.log
+ScoutMsAgentFramework.log
+ScoutParallel.log
+ScoutPlanWalk.log
+ScoutQuarantine1.log
+ScoutQuarantine2.log
+ScoutQuarantine3.log
+ScoutVtcode.log
+ScribeC1Entry.log
+ScribeC1Sources.log
+ScribeC2Erratum.log
+ScribeC2Index.log
+ScribeGate.log
+SentinelC1.log
+{
+ "wave": "kotoba-r68-w1",
+ "milestone": "Round-68 wave 1 (build): two frozen claims \u2014 C1 depth (client trust gates, sourced) and C2 consistency (the routed r67 repairs) \u2014 plus the frontier step and the item-10 assimilation.",
+ "axes": [
+  "depth",
+  "consistency",
+  "freshness",
+  "calibration"
+ ],
+ "reportDir": ".ufo/waves/round-68/w1",
+ "context": "You are a Godspeed-enabled subagent.\n\n1. **Name the axes.**\n2. **Iterate cheap, in parallel.**\n3. **Keep moves that improve any axis and harm none.**\n4. **Don't aim \u2014 let the frontier walk itself.**\n\n## IMMEDIATELY STOP ASKING CLARIFYING QUESTIONS. Execute tool calls concurrently in large batches. Do not serialize what can run in parallel. Do not output philosophical reasoning or verbose plans. Act directly via tool calls.\n\n# Goal\nRound 68 of the kotoba lane (hyaku campaign, attempt 1). Base lane tip (branch `master`):\n`e94ae32a5cd8dc3ee8e2d247816784bec2750cc0`. The frozen plan is\n`/home/vgpnk/Projects/shokunin/kotoba-shokunin/plans/round-68.md` \u2014 READ IT FIRST. Two claims,\nfrozen before any seat scored anything:\n\n- **C1 \u2014 depth (the lane's lowest owned axis) \u2014 client trust gates.** What a client documents\n  about an UNTRUSTED skill body (the half the round-67 authority ladder does not cover).\n  Frozen predicate: `python3 -B verifiers/check_client_trust_gates.py --rev <rev>` prints\n  `client trust gates backed N of 5` and exits 0 when N == 5; at the base it prints\n  `client trust gates backed 0 of 5` and exits 1; `--fetch` finds each of the 5 located quotes on\n  its live page. Before: the instrument does not exist and the lane holds no trust-gate ground\n  (no entry, no coverage-map row, none of the five client URLs in `corpus/SOURCES.md`).\n- **C2 \u2014 consistency (this lane's calibration sub-axis) \u2014 the routed r67 repairs.** Frozen\n  predicate: `python3 -B verifiers/verify_corpus_integrity.py` prints `9/9 checks pass` and exits 0,\n  AND `python3 -B verifiers/verify_corpus_independent.py --json` exits 0, AND\n  `python3 -B verifiers/check_r67_routed_repairs.py --rev <rev>` prints\n  `r67 routed defects closed 4 of 4` and exits 0. Before (measured at the base): primary\n  `6/9 checks pass`, exit 1, `unindexed: corpus/lessons/round-67-verifier-spotcheck.md`;\n  the independent gate exits 1.\n\n# Absolute paths \u2014 every seat's tools start at the FLEET root\nYour working directory for tools is the fleet root `/home/vgpnk/Projects/shokunin`. Every path you\nwrite or read MUST be absolute and MUST live under the lane repo\n`/home/vgpnk/Projects/shokunin/kotoba-shokunin`. A relative path such as `.ufo/waves/...` lands in\nthe FLEET repo \u2014 never do that.\n\n**Every `Report:` trailer path is relative to /home/vgpnk/Projects/shokunin/kotoba-shokunin \u2014\nwrite it at /home/vgpnk/Projects/shokunin/kotoba-shokunin/<that path>.**\n\n# Write scope (hard bounds)\n- You may write ONLY under `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/wa
+There's an `ExecC1Fetch.log` in the logs directory — this is my log from a previous attempt? Actually, the logs directory contains logs of all seats. My seat is "ExecC1Fetch". Let me check my own log to see if a previous attempt exists, and importantly — the drafts directory doesn't exist, so no prior counter draft exists. Wait, but `ExecC1Counter.log` exists too — maybe another seat (or a previous run of my seat) built the counter. Let me check:
+
+  1. `ExecC1Counter.log` — the counter-building seat's log
+  2. `ExecC1CounterTest.log`
+  3. `ExecC1Fetch.log` — my own log (maybe empty or from previous run)
+
+  The Glob found no `check_client_trust_gates.py` anywhere in the lane. So the counter doesn't exist yet. Hmm — but my task says "Build the `--fetch` arm for the C1 counter at .../drafts/check_client_trust_gates.py". Since the counter doesn't exist, I need to build the counter (with the base `--rev` arm, semantics per plan) AND the `--fetch` arm. Actually, maybe the ExecC1Counter seat runs in parallel and will write its own draft; but I'm told to build the `--fetch` arm at that path — meaning I own that file. Since the drafts dir doesn't exist and no file exists, I must create the full counter with both arms (`--rev` and `--fetch`), with the five rows embedded.
+
+  Where do the five rows come from? The plan mentions five clients: `vtcode`, `parallelworks`, `kilo.ai`, `agent-framework`, `mistral-vibe`. The scout logs (ScoutVtcode.log, ScoutParallel.log, ScoutKilo.log, ScoutMsAgentFramework.log, ScoutMistral.log) likely contain the located quotes and URLs. Also the ScribeC1Sources.log and ScribeC1Entry.log. Let me read those logs to extract the five (client, URL, quote) triples.
+
+  Let me read the logs in parallel:
+  - ExecC1Counter.log
+  - ExecC1CounterTest.log
+  - ExecC1Fetch.log
+  - ScoutVtcode.log
+  - ScoutParallel.log
+  - ScoutKilo.log
+  - ScoutMsAgentFramework.log
+  - ScoutMistral.log
+  - ScribeC1Sources.log
+
+  Also corpus/SOURCES.md to know the current schema (11-column schema per plan).
+
+  Let me batch these reads.   19 ConnectorCensus.log
+   19 CriticC2Predicate.log
+   19 ExecC1CounterTest.log
+   19 ExecCollision.log
+   19 ExecTransform.log
+   19 MutC1Counter.log
+   19 RevC1Scope.log
+   19 RevC2Honesty.log
+   19 ReviewC1Entry.log
+   19 ScoutConsiderthese.log
+   19 ScoutKilo.log
+   19 ScoutMistral.log
+   19 ScoutMsAgentFramework.log
+   19 ScoutPlanWalk.log
+   19 ScoutQuarantine1.log
+   19 ScoutQuarantine2.log
+   19 ScoutVtcode.log
+   19 ScribeC1Entry.log
+   19 ScribeC1Sources.log
+   19 ScribeC2Erratum.log
+   19 ScribeC2Index.log
+   19 ScribeGate.log
+ 1508 ScoutQuarantine3.log
+ 2132 MutR67Repairs.log
+ 2416 ExecC2Baseline.log
+ 2504 ExecR67Repairs.log
+ 6004 ExecC1Counter.log
+ 8173 ScoutParallel.log
+10054 ExecC1Fetch.log
+15300 ReviewC1Counter.log
+17942 SentinelC1.log
+25779 CriticC1Predicate.log
+92230 total
+Interesting: the `ExecC1Fetch.log` is just a transcript of my own current turn (a live log being written). The other logs: many are 19 bytes (probably "dispatched, running" placeholders or error stubs). The scout logs for the 5 clients (Vtcode, Parallel, Kilo, MsAgentFramework, Mistral) are all 19 bytes — meaning those scouts likely died (weekly quota L0 mentioned in the plan killed 14 seats). So the located quotes for the five clients may not exist yet from scout logs.
+
+  ExecC1Counter.log is 6004 bytes and contains a real transcript — the counter-building seat started and reasoned about the model counter, but the log ends mid-thought at line 37 (cut at "path absent at rev"). It may still be running, or it died (quota). The drafts directory does not exist, so it hasn't written its draft yet.
+
+  My assignment: build the `--fetch` arm for the C1 counter at `.ufo/waves/round-68/w1/drafts/check_client_trust_gates.py`. The counter file doesn't exist. So I must write the full counter draft at that path (including the base `--rev` arm per plan semantics) and the `--fetch` arm — that's the sensible interpretation: the file at that path is MY draft (executor seat, writing seat). The task says "Build the `--fetch` arm for the C1 counter at <path>" — i.e., the counter with the `--fetch` arm lives at that path. Since no counter exists, I build the counter with both arms. I need the five (client, URL, quote) rows embedded.
+
+  Where do I get the five rows? The plan names the five clients: vtcode, parallelworks, kilo.ai, agent-framework, mistral-vibe. The knowledge entry and SOURCES rows don't exist yet (they're L1-owned production edits). The scout logs are dead (19 bytes). Let me check what the 19-byte logs contain, read the rest of ExecC1Counter.log, CriticC1Predicate.log, SentinelC1.log, ReviewC1Counter.log (15KB — real content), and ScoutParallel.log (8KB — real content) which may hold the actual URL and quote for parallelworks. Also check the swarm-registry.json for seat specs — it might contain the per-seat prompts including quotes/URLs for my seat.
+
+  Actually — critically — w1-spec.json (46KB) probably contains all seat prompts, including mine and possibly the scribe/scout prompts with the five URLs and quotes. Let me grep it for "vtcode", "parallelworks", "kilo", "agent-framework", "mistral".
+
+  Also `corpus/SOURCES.md` — I need the current schema to write the dry run. And I should look at the model counter `verifiers/check_instruction_authority.py` for patterns.
+
+  The C1 counter's five rows with quotes: since scouts died, maybe no quotes exist yet anywhere. But the CriticC1Predicate.log is 25KB and SentinelC1.log 17KB and ReviewC1Counter.log 15KB — these have real content and may contain the five URLs/quotes (critics reviewing the predicate might list them). Let me grep the logs dir for URLs.
+
+  Plan of action:
+  1. Read w1-spec.json fully (46KB — fine).
+  2. Grep logs for `http` URLs.
+  3. Read corpus/SOURCES.md (head) + verifiers/check_instruction_authority.py.
+  4. Read rest of ExecC1Counter.log (lines 36-37 continue; the file was cut off mid-line at "path absent at rev" — that was the full content, 37 lines. It ended abruptly. So ExecC1Counter seat died mid-turn — quota).
+
+  So the counter draft doesn't exist and likely won't. My job explicitly: build `--fetch` arm at that path. I'll build the complete counter (both arms) — the `--rev` arm semantics from the plan (I have enough detail from ExecC1Counter.log's reasoning + model counter), embedding the five rows. The five rows need URLs and located quotes. If the scouts died, I must source the five (client, URL, quote) triples myself — as the executor building the instrument, the quotes are "the entry's located quote" which the entry (L1's) will carry. Since no entry exists yet, I need to locate quotes myself: fetch the five client docs pages live (that's exactly what `--fetch` does) and pick a ≤25-word located quote per client about what the client documents about an untrusted skill body.
+
+  That is within my lane bounds: I'm a writing seat, I can fetch pages (read-only network), and write my draft + report under w1. Fetching sources is the round's own frontier step requirement anyway ("Rows are written only after the source is opened this round").
+
+  Let me now batch:
+  1. Read w1-spec.json (full).
+  2. Grep logs dir for "http" to find any recorded URLs.
+  3. Read corpus/SOURCES.md first 60 lines.
+  4. Read verifiers/check_instruction_authority.py.
+  5. Read CriticC1Predicate.log, SentinelC1.log, ReviewC1Counter.log, ScoutParallel.log — for URLs/quotes context.
+
+  That's a lot of content; let me do the greps and key reads in parallel.# SOURCES — where kotoba learns
+
+`corpus/knowledge/` holds admitted facts; this file holds the places they come
+from — what each teaches, how far to trust it for which scope, and when to look
+again. Contract: fleet `SOURCES-CONTRACT-v1.md` (2026-10-19). A row exists only
+for a source the row's author opened this round; access evidence lives in
+`.ufo/round-46/evidence/w2/sources/fetch-log.json` (round 46), the seat reports under
+`.ufo/waves/round-47/build/` (round 47), and the round lesson's `## Gate`.
+
+## Registry
+
+| id | source | kind | tier | scope | anchor | teaches | status | opened | recheck | used-by |
+|---|---|---|---|---|---|---|---|---|---|---|
+| S001 | Agent Skills — Specification — https://agentskills.io/specification | spec | A | SKILL.md frontmatter format and file-structure rules | § Skill metadata table, § Progressive disclosure; live page opened 2026-10-19 | Name is 1-64 lowercase-hyphen chars matching its directory; description 1-1024 chars saying what and when; SKILL.md under 500 lines with detail moved to reference files | mined | 2026-10-19 | on-release | corpus/lessons/round-46.md |
+| S002 | Agent Skills — How to add skills support to your agent — https://agentskills.io/client-implementation/adding-skills-support | docs | A | Client-side loading and validation policy for SKILL.md | § Handling malformed YAML, § Lenient validation; live page opened 2026-10-19 | Unquoted values containing colons are technically invalid YAML; lenient clients warn and load anyway on name mismatch, so a strict local gate is stricter than the client contract | mined | 2026-10-19 | 90d | SKILL.md |
+| S003 | Claude Docs — Agent Skills best practices — https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices | docs | A | Anthropic authoring rules for name and description | § Skill structure field list; live page opened 2026-10-19 | The description cannot contain XML tags, must be third person, and states what the skill does and when; body under 500 lines; an Anthropic-only rule the open spec lacks | mined | 2026-10-19 | 90d | corpus/lessons/round-46.md, corpus/lessons/round-47.md |
+| S004 | AGENTS.md — open format site — https://agents.md/ | spec | A | Always-on context-file precedence convention | § FAQ "What if instructions conflict?"; live page opened 2026-10-19 | Conflict rule for always-on files: the closest AGENTS.md to the edited file wins and explicit user chat prompts override everything | mined | 2026-10-19 | 90d | corpus/knowledge/alwayson-rule-files-round53.md |
+| S005 | CommonMark Spec 0.31.2 — https://spec.commonmark.org/0.31.2/ | spec | A | Fenced code block syntax the lane's box/quote extraction implements | § Fenced code blocks; version 0.31.2 | A code fence is at least three backticks or tildes preceded by up to three spaces of indentation; a backtick fence's info string may not contain a backtick | queued | 2026-10-19 | on-release | — |
+| S006 | RFC 8259 — The JavaScript Object Notation (JSON) Data Interchange Format — https://www.rfc-editor.org/rfc/rfc8259.txt | spec | A | Duplicate-name semantics in JSON objects (round-46 C2 door) | §4 Objects | Object names SHOULD be unique; when they are not, receiver behavior is unpredictable — the normative basis for the comparator's duplicate-member detection | queued | 2026-10-19 | on-release | — |
+| S007 | Python docs — json: JSON encoder and decoder — https://docs.python.org/3/library/json.html | docs | A | This host's actual duplicate-name decode behavior | § Standard Compliance and Interoperability | Python's decoder accepts repeated names and keeps only the last pair, so a last-wins silent read is the implementation default the comparator must not inherit uncritically | queued | 2026-10-19 | 365d | — |
+| S008 | YAML Specification 1.2.2 — https://yaml.org/spec/1.2.2/ | spec | A | Plain-scalar restrictions behind the frontmatter strictness lead | §7.3.3 Plain Style | Plain scalars must never contain the colon-space or space-hash combinations, since both are ambiguous with key/value pairs and comments | mined | 2026-10-19 | on-release | SKILL.md |
+| S009 | kotoba own work — verifiers/compare_harness_independent.py --self-test — run 2026-10-19, exit 0 | own-work | A | The comparator's own self-model at the round-46 landing commit | Final line "self-test: 0 failure(s) over 328 assertions"; commit 78ee57e | The join driver's channel-agreement model, including cross-channel divergence classes, is exercisable on committed fixtures without either live instrument | queued | 2026-10-19 | on-commit | — |
+| S010 | kotoba own work — verifiers/verify_skill_checklist.py — --self-test exit 0 and --json exit 1 (9 PASS / 1 FAIL governance.citation_resolves at LOG.md:2111) runs 2026-10-19 | own-work | A | The lane's executed-box gate and frontmatter parse coverage | Final line "0 failure(s) over 1597 assertions"; --json "checklist.box_map_complete ... 41 boxes mapped" | All 41 prose boxes are accounted for as executed, delegated, or unexecuted under a sha256-pinned normalization; the frontmatter check is a lenient structural parse with no XML-tag rule | queued | 2026-10-19 | on-commit | — |
+| S011 | Agentman — How Do You Build Your First Agent Skill? — https://agentman.ai/blog/build-your-first-agent-skill-skillmd-anatomy | community | C | SKILL.md authoring claims for beginners | Field-table paragraph and "safety note" paragraph; opened 2026-10-19 | REJECTED: claims a name/folder mismatch means the skill "will not load" where the client guide (S002) says warn and load; credits an angle-bracket ban to the agentskills.io spec which has none (0 mentions); quantitative claims cite unnamed analyses; flip: re-check if the spec gains the rule or the client guide tightens to refuse mismatched names | rejected | 2026-10-19 | 180d | — |
+| S012 | anthropics/skills — skill-creator reference skill (quick_validate.py) — https://github.com/anthropics/skills/tree/dbd4588f9e1033efb41dad4bef2f7947c8993d44/skills/skill-creator | code | A | SKILL.md `description` validation in Anthropic's own reference packaging tooling | `skills/skill-creator/scripts/quick_validate.py:79-81` "Check for angle brackets"; tree `dbd4588` (2026-10-09); opened 2026-10-21 | Anthropic's packager refuses any `<` or `>` in `description`, not only well-formed XML tags — stricter than the S003 prose rule; the open spec states neither | mined | 2026-10-21 | 90d | SKILL.md, corpus/knowledge/frontmatter-rule-authorities-round48.md |
+| S013 | OpenAI — Build skills (ChatGPT and Codex) — https://learn.chatgpt.com/docs/build-skills | docs | A | Codex client skill routing: initial-list budget, description shortening, implicit invocation | § How ChatGPT and Codex use skills; page Last-Modified 2026-10-21T15:05:00Z; opened 2026-10-21 (308 from developers.openai.com/codex/skills) | Codex caps its initial skill list at 2% of context (8,000 characters when unknown), shortens descriptions first, and gates implicit invocation on the description | queued | 2026-10-21 | 90d | — |
+| S014 | Anthropic Engineering — Equipping agents for the real world with Agent Skills — https://www.anthropic.com/research/equipping-agents-for-the-real-world-with-agent-skills | docs | A | Anthropic's three-level progressive-disclosure loading model for skills | § The anatomy of a skill, "At startup" paragraph; published 2025-10-16, modified 2026-10-18; opened 2026-10-21 | Name and description are preloaded for every installed skill as disclosure level one; the SKILL.md body loads only when the skill is judged relevant | queued | 2026-10-21 | 90d | — |
+| S015 | kotoba own work — `sha256sum -c SHA256SUMS` in /fast/scratch/kotoba-r47/shared (frozen omp 18.12.5 and opencode 1.19.3 snapshot) — run 2026-10-21, exit 0 | own-work | A | Identity of the substrate bytes the round-47 instruction-surface re-derivation and re-pin measure | SHA256SUMS lines `bin/omp-18.12.5` fdbc8136… and `bin/opencode-1.19.3` 179ca421…; live `~/.local/bin/omp` and the npx-cache ELF hash equal | A substrate pin is the binary's sha256, not its version string or path: the opencode path moved channel (2.0.26 → npm 1.19.3) while the version string went down | mined | 2026-10-21 | on-release | corpus/knowledge/instruction-surface-census-round13.md |
+| S016 | anomalyco/opencode — skill discovery, tag v1.19.3 — https://github.com/anomalyco/opencode/blob/v1.19.3/packages/opencode/src/skill/index.ts#L24 | code | A | Which directories under an opencode config directory are scanned for SKILL.md, and at what depth | `packages/opencode/src/skill/index.ts:24` `const OPENCODE_SKILL_PATTERN = "{skill,skills}/**/SKILL.md"`; `:205-207`; `config/paths.ts:23-40`; tag v1.19.3 = upstream commit e3c4eb242585dcd77be1a867391b7c25fd47ce52; opened 2026-10-22 | Both `skill/` and `skills/` under every configured directory are scanned recursively, and `**` also matches zero segments, so a `SKILL.md` directly in either dir loads; identity is the frontmatter name, not the directory name | mined | 2026-10-22 | on-release | corpus/lessons/round-48.md |
+| S017 | agentskills/agentskills — skills-ref reference validator v0.1.0 — https://github.com/agentskills/agentskills/tree/69ef37e9424c0a7ea9dd2293b559e43ec8176379/skills-ref | code | A | What the open spec's own reference validator enforces for SKILL.md frontmatter (name, description, compatibility, unknown fields) | `skills-ref/src/skills_ref/validator.py:10-113` and `parser.py:36-73` at upstream commit 69ef37e9424c0a7ea9dd2293b559e43ec8176379 (main tip, 2026-08-09); `pyproject.toml` version 0.1.0, `strictyaml>=1.7.3`; opened 2026-10-22 | The spec's own validator has no description character rule at all (non-empty plus a 1024-character cap) and tests the name charset with the Unicode-aware `str.isalnum()` after NFKC folding, so it accepts what an ASCII-only regex rejects; its README marks the library demonstration-only | mined | 2026-10-22 | on-commit | corpus/knowledge/frontmatter-rule-authorities-round48.md |
+---
+340 /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md
+---
+kimi version 2.3.1
+kimi version 2.3.1
+kimi version 2.3.1
+kimi version 2.3.1
+Excellent. Now I have the full picture:
+
+  1. **The five rows already exist as a draft append block** at `.ufo/waves/round-68/w1/assimilation/sources-append-block.md` — written by ScribeC1Sources (ExecTransform presumably also produced it). The rows S198–S202:
+
+  - **S198** vtcode — URL `https://raw.githubusercontent.com/vinhnx/vtcode/main/docs/skills/SKILLS_GUIDE.md` — anchor quote: `Skill content is untrusted resource data; host tool and sandbox policy remains authoritative.` (13 words)
+  - **S199** parallelworks — URL `https://parallelworks.com/docs/ai/code/skills` — anchor quote: `Project skills are repository-controlled instructions, so they clear two independent gates.` (12 words)
+  - **S200** kilo — URL `https://kilo.ai/docs/customize/skills` — anchor quote: `Project skills (.kilo/skills/ in a repository) and skills fetched from remote URLs never execute commands` (16 words)
+  - **S201** agent-framework — URL `https://learn.microsoft.com/en-us/agent-framework/agents/skills` — anchor quote: `Agent Skills should be treated like any third-party code you bring into your project.` (13 words)
+  - **S202** mistral-vibe — URL `https://raw.githubusercontent.com/mistralai/mistral-vibe/main/README.md` — anchor quote: `Standard Agent Skills path (project root, trusted folders only)` (9 words)
+
+  2. The counter `check_client_trust_gates.py` does not exist at the drafts path — the ExecC1Counter seat died (its log ends mid-sentence). My assignment says "Build the `--fetch` arm for the C1 counter at .../drafts/check_client_trust_gates.py". Since the file doesn't exist, I must build the full counter including `--fetch`. But wait — the ExecC1Counter seat might still be running (it's a separate background subagent?). The logs are transcripts of kimi sessions. ExecC1Counter.log ends mid-reasoning without a conclusion — likely dead from the weekly quota. ExecC1CounterTest.log is 19 bytes = just "kimi version 2.3.1" — dead immediately.
+
+  Let me check whether the file appeared just now (maybe the counter seat finished after my Glob). Also I should check the swarm-registry.json to see seat states. Actually the registry is 12KB; let me grep it for ExecC1Counter status.
+
+  My job: build the `--fetch` arm at the drafts path. To avoid colliding with the (possibly still-running) ExecC1Counter seat writing the same file... The instruction to ME is explicit: build at that path. The counter seat died mid-turn (log ends abruptly, no draft file). I'll build the complete counter with the `--rev` arm (needed for `--fetch` to have quotes to check), the `--fetch` arm, and the classification semantics (missing entry → 0 of 5 exit 1; unknown rev → exit 2). But careful: my assignment is the `--fetch` arm specifically. The ExecC1CounterTest seat owns `--self-test`. To not trample on other seats' assignments, I'll build the full file with `--rev` + `--fetch` and structure it so `--self-test` could be added later (or include a minimal passthrough?). Hmm.
+
+  Actually, re-read my task: "Build the `--fetch` arm for the C1 counter at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/drafts/check_client_trust_gates.py`: ... Add `--fetch` to the parser." — the task assumes the counter exists. It doesn't. The pragmatic Godspeed move: create the counter file implementing the contract from the wave spec (ExecC1Counter's prompt defines the contract in detail — it's in w1-spec.json line 19), then add the `--fetch` arm as specified by MY prompt. I'll note in my report that the counter draft was absent (the ExecC1Counter seat died mid-turn — evidence: its log ends mid-sentence, no drafts/ dir), so I built the counter skeleton (the `--rev` arm per the contract) to host the `--fetch` arm.
+
+  Wait — but maybe I should check again if the file now exists (the other seat might have completed in the last minute). Let me re-check the drafts dir. Also check swarm-registry.json for statuses.
+
+  Design of the counter (modeled on `verifiers/check_instruction_authority.py` — I should read it):
+
+  Contract (from ExecC1Counter prompt, which is the counter's spec — my seat must be compatible):
+  - `python3 -B check_client_trust_gates.py --rev <full-sha>` prints `client trust gates backed N of 5` and exits 0 when N == 5, nonzero otherwise; exit 2 for usage/environment error.
+  - `--repo <path>` defaults to the lane root.
+  - `--fetch` additionally re-opens each cited URL and confirms the located quote is present on the live page (print how many of 5 found; network failures reported, never silently counted).
+  - Reads (CONTENT not names) from `corpus/knowledge/client-trust-gates-round68.md` at the measured revision:
+    1. entry file exists (missing → CONTENT verdict 0 of 5, exit 1 — the R67-1 fix)
+    2. entry opens with `source:` lines naming `S###` ids, one per client row
+    3. every cited id resolves to a row in `corpus/SOURCES.md` whose `status` is `mined`
+    4. each cited row's `source` cell occurs verbatim in that id's `source:` line
+    5. entry carries `verified-at: 2026-10-24` line and a `recheck:` line
+    6. for each cited id, entry carries a double-quoted located quote ≤25 words that also occurs in that row's `anchor` cell
+    7. each client row's client name and quoted behaviour occur in the entry's per-client table, and the entry is indexed in `corpus/README.md`'s coverage map
+  - Classification: missing entry → `client trust gates backed 0 of 5`, exit 1. Unknown revision/unreadable repo → `environment error: ...` on stderr, exit 2.
+
+  My `--fetch` arm spec (from MY prompt):
+  - For each of the five cited rows, read the row's `source` cell, extract the URL, fetch with `curl -sSL --max-time 30` (or urllib), check whether the entry's located quote (normalized whitespace) occurs in the fetched text.
+  - Print one line per client: `S### <client>: found` / `NOT FOUND` / `FETCH FAILED <error>`, then `live quotes found N of 5`.
+  - Fetch failure must NOT be counted as found, must not crash the counter (exit 2 only for usage/environment error of the counter itself).
+  - Add `--fetch` to the parser.
+  - Dry run against the lane's CURRENT `corpus/SOURCES.md` (no five URLs yet → 0 of 5 is expected). Note: "Print one line per client: `S### <client>: ...`" — in the dry run, the ids can't resolve from the current SOURCES.md... Hmm. What does the dry run print when the cited ids don't resolve? The clients are the five named clients (vtcode, parallelworks, kilo, agent-framework, mistral-vibe). The counter knows the five client names as its fixed set (the claim is "5 of 5" — a fixed set of five clients). The `--fetch` arm resolves each client's row via the entry's `source:` lines → SOURCES rows. If the entry is missing (current tree), there are no cited rows at all → 0 of 5, and the fetch arm has nothing to fetch — prints `live quotes found 0 of 5`.
+
+  Hmm, but "Print one line per client" — if the entry is missing, there are no clients to print lines for. The counter's fixed client set: how does the counter know the five client names? From the entry's per-client table (content-driven) or hardcoded? The claim "N of 5" pins the count at 5. If everything is content-driven, then N = number of cited clients found grounded, and the "5" is just the expected count. For the dry run at the current tree: entry missing → 0 of 5, exit 1; `--fetch` → `live quotes found 0 of 5`, and no per-client lines (nothing cited).
+
+  But wait — my prompt says "for each of the five cited rows" — cited by the entry. And "the entry's located quote". In the dry run against current SOURCES.md, the entry `corpus/knowledge/client-trust-gates-round68.md` doesn't exist → the counter must not crash; it reports 0 of 5 for both arms. "the dry run may report 0 of 5 — that is fine and expected."
+
+  Alternatively, should `--fetch` work standalone against SOURCES.md rows S198–S202 (which don't exist yet in the current registry either)? The current SOURCES.md has 340 lines; ids go up to... the coverage map needs S198–S202; current max id is probably S197 or lower. Let me check the max id in current SOURCES.md. Either way — the entry is missing in the current tree, so the fetch arm has no cited rows → 0 of 5.
+
+  But hold on — can `--fetch` even print per-client lines in a useful way for the dry run? Maybe the fetch arm should work off the fixed five client names (the counter's own claim defines the five clients), and resolve each client's URL+quote from (entry + registry) content. In the dry run, entry missing → each client unresolvable. What to print? Options: `S??? vtcode: FETCH FAILED no cited row (entry missing)` — that would be misleading (not a fetch failure). Better: when the entry is missing, print `client trust gates backed 0 of 5` (content verdict) and for `--fetch`: `live quotes found 0 of 5` with a note that no cited rows exist to fetch. That is honest: no fetches performed, none found.
+
+  Hmm, but the task says "Print one line per client: `S### <client>: found` / `NOT FOUND` / `FETCH FAILED <error>`". The design must have the counter carrying the five client names as its fixed expected set. Where from? The entry's per-client table lists clients; but if the entry is missing... The counter could carry the five client names as CONSTANTS (the claim's fixed set: vtcode, parallelworks, kilo, agent-framework, mistral-vibe — hmm, exact display names?). Actually from the append block: "VT Code", "Parallel Works", "Kilo Code", "Microsoft Agent Framework", "Mistral AI Vibe". The entry's source: lines name S198–S202 in order.
+
+  Reasonable design: the counter has a frozen EXPECTED_CLIENTS list of five ids? No — the counter reads content. The "5" is the frozen predicate. The most defensible: the counter treats the entry's cited `source:` ids as the claim set; N = grounded count; predicate exit 0 when N == 5. The `--fetch` arm iterates the cited rows that RESOLVED (id → row with source cell). For the dry run, none resolve (entry missing) → no lines, `live quotes found 0 of 5`.
+
+  But then "print one line per client" is satisfiable only when the entry exists. That's fine — the dry run "may report 0 of 5 — that is fine and expected".
+
+  Hmm, wait. Let me reconsider: maybe the fetch arm should be driven by the REGISTRY rows S198–S202 if present (cited rows = rows whose `used-by` names the entry?) — no, overcomplicating. Content-driven via the entry's `source:` block is the counter's own contract ((2) "the entry opens with `source:` lines naming `S###` ids, one per client row"). Fetch arm: for each cited id (up to five), resolve row → source cell → URL; extract quote from the entry's source line for that id (the double-quoted located quote, conjunct 6 says it must also occur in the row's anchor cell); fetch; normalize whitespace both sides; search.
+
+  Normalization: the entry's located quote is double-quoted inside the source line / anchor cell. E.g. anchor cell: `the "Trust" section; quote "Project skills are repository-controlled instructions, so they clear two independent gates." (12 words)`. So the located quote = text between double quotes following `quote `. Robust extraction: find all double-quoted spans in the source line for that id; the quote is the longest? Or the span after the word `quote`? In the scribe's format: `source: S199 — URL — the "Trust" section — located quote "..."`. Hmm — the scribe line format from the entry-shape: `source: S198 — <url> — the "Prompting Behavior" paragraph — located quote "<=25 words>"`. Note "the \"Trust\" section" also has a double-quoted span (the section name!). So extraction must prefer the span following the literal `located quote` marker, else the LAST double-quoted span. Actually conjunct (6) says "the entry carries a double-quoted located quote of at most 25 words that also occurs in that row's `anchor` cell" — the anchor cell has the section name AND the quote: `the "Shell commands in skills" section; quote "Project skills ... never execute commands" (16 words)`. The shared double-quoted span between source-line and anchor-cell: the section name `Shell commands in skills` also appears quoted in both! So "occurs in anchor cell" is ambiguous for the checker; but the anchor cell has `quote "..."` marker. For MY fetch arm, the practical approach: prefer the span introduced by `quote "` (or `located quote "`), else the last double-quoted span on the line. That gets the located quote right for the staged format.
+
+  For fetch text normalization: fetched text (markdown or HTML) — normalize whitespace: collapse all whitespace runs to a single space, strip. Also maybe strip HTML tags? The raw.githubusercontent URLs return plain markdown; parallelworks.com and learn.microsoft.com and kilo.ai return HTML. In HTML, the quote text may be broken by tags. Normalization for the fetch arm: collapse whitespace; optionally also remove HTML tags before matching. To keep it honest but robust: fetch text, if it looks like HTML (contains `<html` or `<!DOCTYPE`), strip script/style blocks and tags, then unescape basic entities? Careful about overreach — `html.unescape` is stdlib and harmless. Tag-stripping could create false "found" (words concatenated across tags) — mitigate by replacing tags with a space before collapsing whitespace. A quote that then matches genuinely occurs in the visible text. Good enough for a documentary freshness check.
+
+  Client display name: from the row's `source` cell prefix? The row source cell is like `VT Code — SKILLS_GUIDE.md — https://...`. The first `—`-separated field is the client name: `VT Code`. In the dry run with the scribe's draft rows... wait, the dry run is against the LANE's current SOURCES.md which lacks these rows, and the entry is missing entirely. So per-client lines: none. Output:
+
+  ```
+  client trust gates backed 0 of 5
+  ```
+  plus findings? Let me structure output: the counter prints the verdict line; `--fetch` adds the fetch section. In dry run: `live quotes found 0 of 5 (no cited rows to fetch: entry missing)`. Hmm, the format: "then `live quotes found N of 5`". I'll print exactly that line, and precede it with a note line about zero cited rows — notes to stderr? Keep stdout clean-ish: print `live quotes found 0 of 5` and a parenthetical reason on stderr... Simpler: when no cited rows exist, print `live quotes found 0 of 5` and (to stderr) a note. The per-client lines only for resolved cited rows.
+
+  Exit code for `--fetch` arm: it's a measurement, not the predicate; exit code should still follow the main verdict (0 of 5 → exit 1). Fetch failures must not crash: exit stays the content verdict's code. Exit 2 only for usage/environment error of the counter itself (argparse error, repo unreadable, unknown rev when --rev given).
+
+  Now the plan's semantics for classification:
+  - `--rev <rev>` where rev doesn't resolve → exit 2 environment error.
+  - Entry file absent at rev → content verdict: `0 of 5`, exit 1.
+  - Working tree mode (no --rev): read files directly; entry absent → 0 of 5 exit 1.
+  - Unreadable repo (--repo points nowhere) → exit 2.
+
+  How to distinguish "path absent at rev" vs "unknown revision": first `git rev-parse --verify <rev>^{commit}` — fail → EnvError. Then `git show <rev>:<path>`; fail after rev verified → path absent → content (missing entry → 0 of 5). For SOURCES.md/README.md absent at a resolvable rev → also content-side; hmm, conjunct 3 (ids resolve) can't be evaluated without the registry. Safest per the ExecC1Counter seat's own reasoning (from its log): missing corpus files at a resolvable rev are content facts → the cited ids can't resolve → grounded count 0, exit 1, with findings. I'll follow that: at a resolvable rev, absence of SOURCES.md/README.md is a content verdict (0 of 5), not exit 2. Environment errors: repo dir missing/not a git repo, git binary missing, rev unresolvable, git show failing with something other than path-absence (e.g. permissions) — hmm, distinguishing is fiddly; treat git-show failure after successful rev-verify as path-absent (content). Object-read errors would be rare; acceptable.
+
+  Wait — but careful with scope: my seat is the `--fetch` arm. The counter core (`--rev` semantics, 7 conjuncts, `--self-test`) belongs to ExecC1Counter and ExecC1CounterTest seats — both dead. If I build the whole thing, I must be careful: the L1 will merge seat drafts. But my report must state exactly what I built. The safest: build the complete counter (core + `--fetch`), leave `--self-test` OUT (not my seat; ExecC1CounterTest owns it), and note that in the report. Actually, hmm — a counter without `--self-test`... the L1 can have the test seat's arm added later. But both those seats are dead (quota). The wave needs the counter functional for C1's predicate. I'll build the complete counter with core + `--fetch`, and mention that `--self-test` was left to its assigned seat (ExecC1CounterTest) whose log shows it never started (19-byte log).
+
+  Hmm, actually wait. Let me re-read my exact goal text: "Build the `--fetch` arm for the C1 counter at `...drafts/check_client_trust_gates.py`". And: "Add `--fetch` to the parser." — parser = argparse parser of the counter. If the counter doesn't exist, I can't add to its parser — I create the parser including `--fetch`. The system prompt also says: "Implement only the move assigned by the L1 dispatcher" — the assigned move is the `--fetch` arm at that path. Building the minimal host for that arm (the counter core per the frozen contract) is necessary and in-scope; I'll keep the core faithful to the spec in w1-spec.json (which is the dispatcher's own contract for this file) and clearly report the boundary.
+
+  One more consideration: is the ExecC1Counter seat possibly STILL RUNNING and about to write the same file? Check the registry for statuses. If it's running, writing the same file would collide. The log ended mid-sentence which suggests death, but the log might just be trailing. Let me check swarm-registry.json quickly. Also re-glob for the drafts dir NOW.
+
+  Also — the "lane's current corpus/SOURCES.md" for the dry run — the current working tree. Let me check max S id and confirm S198–S202 absent, and entry file absent.
+
+  Also read `verifiers/check_instruction_authority.py` to model conventions (repo/rev materialization, exit codes, output style).
+
+  And I need to look at the entry draft if ScribeC1Entry wrote one (`drafts/client-trust-gates-round68.md`) — for the fetch arm's expected source-line format. The drafts dir doesn't exist at all, so no. But the append block exists under `assimilation/` — written by ExecTransform or ScribeC1Sources? The grep found `.ufo/waves/round-68/w1/assimilation/sources-append-block.md`. Let me look at that directory to understand what exists.
+
+  Batch now:
+  1. Bash: `ls` the w1 dir again (drafts? assimilation contents), grep registry for statuses of ExecC1Counter/ExecC1CounterTest/ExecC1Fetch, max id in SOURCES.md, test for entry file.
+  2. Read `verifiers/check_instruction_authority.py`.
+  3. Read `.ufo/waves/round-68/w1/assimilation/sources-append-block.md` (full).
+
+  Then write the counter, run dry run, write report./home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/:
+total 12
+drwxr-xr-x 1 vgpnk vgpnk    70 Oct 24 23:00 .
+drwxr-xr-x 1 vgpnk vgpnk    84 Oct 24 23:01 ..
+drwxr-xr-x 1 vgpnk vgpnk    46 Oct 24 23:00 assimilation
+drwxr-xr-x 1 vgpnk vgpnk  1136 Oct 24 22:59 logs
+-rw------- 1 vgpnk vgpnk 12213 Oct 24 22:59 swarm-registry.json
+
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/assimilation/:
+total 4
+drwxr-xr-x 1 vgpnk vgpnk   46 Oct 24 23:00 .
+drwxr-xr-x 1 vgpnk vgpnk   70 Oct 24 23:00 ..
+-rw-r--r-- 1 vgpnk vgpnk 3916 Oct 24 23:00 sources-append-block.md
+---REGISTRY---
+---IDS---
+| S200 
+| S201 
+| S202 
+5
+---ENTRY---
+client-trust-gates-round68.md
+entry-grep-exit:0
+Wait — surprising findings:
+
+  1. `grep -c 'S198\|...' corpus/SOURCES.md` returned **5** and the tail shows `| S200 `, `| S201 `, `| S202 ` — so **the five rows ARE already in the lane's working-tree `corpus/SOURCES.md`**! The L1 must have appended them already (between my earlier head -30 read and now, or the rows are at the bottom). Let me verify: earlier `head -30` showed only up to S017 (first 30 lines). The file is 340 lines. The `ls` of corpus/knowledge shows `client-trust-gates-round68.md` **exists** — the L1 has already installed the entry!
+
+  Hold on — `ls $L/corpus/knowledge/ | grep -i trust` printed `client-trust-gates-round68.md`. So the working tree NOW has the entry and the five rows. The wave is progressing concurrently — the L1 is installing content as seats deliver. So the dry run will NOT be 0-of-5 in the interesting sense; the task says "the dry run may report 0 of 5 — that is fine and expected" but if the L1 has already landed content, the fetch arm might actually find quotes live.
+
+  Let me re-check the actual current state of:
+  - `corpus/SOURCES.md` rows S198–S202 (tail of file)
+  - `corpus/knowledge/client-trust-gates-round68.md` (the entry — its source: lines carry the located quotes)
+  - whether the coverage map row exists in corpus/README.md
+  - whether `verifiers/check_client_trust_gates.py` exists now (maybe ExecC1Counter's L1 install happened)
+
+  2. The registry parse printed nothing — my python one-liner didn't match its structure (maybe dict of seats). Not important.
+
+  Also note: the ls output of w1 shows NO drafts dir yet, and w1 dir mtime 23:00, and the parent round-68 dir mtime 23:01 — things are moving.
+
+  So the fetch arm dry run: entry exists (with five `source:` lines presumably), rows exist in SOURCES.md, so the fetch arm will fetch the five live URLs and search for the located quotes. That's the REAL measurement. My prompt's "dry run may report 0 of 5" anticipated the entry/rows not being installed yet, but the instruction is to dry-run against the lane's current corpus — whatever it holds now.
+
+  Now, does the counter exist yet? Glob found none earlier. Let me re-check for `verifiers/check_client_trust_gates.py` and drafts. If still absent, I build it.
+
+  Plan for the counter build (modeled on check_instruction_authority.py, TOTAL=5, with my `--fetch` arm):
+
+  Constants: ENTRY=corpus/knowledge/client-trust-gates-round68.md, SOURCES, README, VERIFIED_AT=2026-10-24, TOTAL=5.
+
+  Core check(): same 7 conjuncts as the model, extended to 5 rows (the model's check is already per-id, so TOTAL=5 works). Plus conjunct (7) in the ExecC1Counter spec: "each client row's client name and its quoted behaviour occur in the entry's per-client table" — the model counter lacks that. Hmm, my seat is the fetch arm; the counter core is ExecC1Counter's. If I write the core, do I include conjunct 7's client-name-in-table check? The spec for the file (w1-spec line 19) includes it: "(7) each client row's client name and its quoted behaviour occur in the entry's per-client table, and the entry is indexed in corpus/README.md's coverage map." To make the file contract-complete I'll implement both halves of (7): client name in table + coverage map row. "client name" = first field of the row's source cell (e.g. `VT Code`); "its quoted behaviour" = the row's `teaches` cell? "each client row's client name and its quoted behaviour occur in the entry's per-client table" — the per-client table has columns `client | what the client documents... | located quote | source`. The client name (e.g. "VT Code") must occur in the table's client column (or anywhere in the table?), and the "quoted behaviour" — the located quote occurs in the table (it should, as the quote column). I'll implement: for each cited id, its client name (source-cell first segment before " — ") occurs in some table row cell 1... hmm, but being too strict could false-negative on name variants. Let me keep the model counter's permissiveness: client name occurring anywhere in the entry's table region. And the located quote occurring in the table region. Actually the located quote already must occur in the entry (conjunct 6 checks the whole normalized entry). The table-specific addition: client name in table. Keep it simple and content-based:
+
+  - table region = lines starting with `|` after the entry's first markdown table header (or any `|`-lines beyond the source block). Simpler: rows = lines starting with `|` that aren't the header/separator. For each cited id: client name (first ` — `-separated field of the row's source cell) must occur in at least one `|` line; and the row's anchor-cell quote must occur in at least one `|` line (the quoted behaviour...). Hmm — "its quoted behaviour" might mean the teaches-cell paraphrase. Over-engineering risk. 
+
+  Decision: conjunct (7) implementation = for each cited id: (a) the client name from the row's source cell occurs in the entry's table region; (b) the entry is indexed in the coverage map (whole-entry check, as in the model). I'll note the "quoted behaviour" half as covered by conjunct (6) (the quote occurs in the entry) — no wait, I shouldn't water down the spec silently. Let me implement (b) as: the located quote for that id occurs in the entry's table region too. That's cheap and strict-where-content.
+
+  Hmm, wait. Careful — my primary assignment is `--fetch`. The counter core is another seat's contract. Risk: if ExecC1Counter is actually still alive and writes the file later, my write collides. The registry would tell me statuses. Let me check the registry structure properly this time and look for ExecC1Counter status. Also re-glob for the file.
+
+  Actually — decisive consideration: the L1 already installed the production content (entry, SOURCES rows, maybe more) at 23:00–23:01, while drafts/ still doesn't exist and the counter seat's log ended mid-sentence at 22:59. The wave's counter seat is dead; the L1 needs a working counter draft. My assignment builds the file at the drafts path. I'll build the full counter (core per the file's contract in w1-spec + `--fetch` arm per my prompt) and report precisely: counter core rebuilt from the frozen contract because the assigned counter seat died (evidence: log), `--fetch` arm = my assigned move.
+
+  Hmm — but hold on, "Keep moves that improve any axis and harm none." Writing the full counter: improves depth (the C1 instrument exists) and harms none (drafts path only, no collision if the other seat is dead — verify first). If the other seat were alive, writing the same path could clobber. Check registry status for ExecC1Counter before writing.
+
+  The fetch arm design (my actual assignment), carefully:
+
+  ```python
+  def fetch_and_check(cited: list[tuple[sid, client, url, quote]]) -> tuple[int, list[str-lines]]
+  ```
+
+  - For each cited row (resolved from entry source: lines → registry rows), extract URL from row's source cell: first `https?://\S+` match. Strip trailing punctuation `).,;"'` — URLs in cells end before ` |` so a regex `https?://[^\s|]+` is enough; also strip trailing `)` if unbalanced? Keep simple: `re.search(r"https?://[^\s|]+", cell)` then rstrip of `).,;` chars... The staged cells have URL as last segment before ` |`, so `[^\s|]+` works. For markdown raw URLs no closing paren issue (parens appear INSIDE the kilo URL? No — kilo URL is clean; the paren quote is the anchor, not the URL). OK.
+
+  - Located quote: from the entry's source line for that sid — the double-quoted span following `quote ` (or `located quote `), else the last double-quoted span on the line. Then ALSO the row's anchor cell has the quote (conjunct 6 ensures a shared quote). For fetching, use the quote text from the entry source line (preferred) — normalize: collapse whitespace.
+
+  - Fetch: prefer `curl -sSL --max-time 30` (subprocess), fallback `urllib.request` if curl missing. The prompt says "fetch it with `curl -sSL --max-time 30` (or `urllib`)". I'll try curl first, fall back to urllib on FileNotFoundError/exit-127-ish. On failure: `FETCH FAILED <error>` where error = stderr tail / exception message, single line, truncated to reasonable length.
+
+  - Match: normalize fetched text: if it looks like HTML (`<html` or `<!doctype` or long tag density), strip `<script>...</script>`, `<style>...</style>`, replace tags with spaces, `html.unescape`; then collapse whitespace on both quote and text; found = normalized_quote in normalized_text. Also compare casefold? No — verbatim-ish; keep case-sensitive but whitespace-collapsed. Hmm, being slightly lenient on surrounding punctuation is not requested; keep exact-after-normalization. One nuance: the quotes end with `.` inside the quotes in the append block ("...remains authoritative." including period). Whitespace-collapse keeps the period; the live page has the period. Fine.
+
+  - Output per client: `S### <client>: found` / `S### <client>: NOT FOUND` / `S### <client>: FETCH FAILED <error>`. Client name from the row's source cell first ` — ` field (`VT Code`, `Parallel Works`, `Kilo Code`, `Microsoft Agent Framework`, `Mistral AI Vibe`).
+
+  - Then `live quotes found N of 5`.
+
+  - N counts only `found`. FETCH FAILED and NOT FOUND count as not found. No crash on fetch failure.
+
+  - Exit code: main verdict semantics — the run still prints `client trust gates backed N of 5` first (the content verdict), then the fetch section. Exit 0 iff content verdict grounded (N==5)? And fetch failures must not "crash the counter (exit 2 only for a usage/environment error of the counter itself)". So exit code = content verdict code (0/1), NOT influenced by fetch results; exit 2 only for argparse/usage/repo/rev errors. Hmm — should `--fetch` results affect exit? The frozen predicate for `--fetch` is "finds each of the 5 located quotes on its live page" — a separate conjunct of the claim, measured by reading the output. The task says fetch failures must not crash the counter; exit 2 reserved for counter-usage/environment errors. It doesn't say exit must be 0 when fetch finds all. Safest, most informative: keep exit = content verdict (0/1); the fetch block is a printed measurement. I'll document that in the docstring. Hmm, alternatively exit 1 also when any live quote is missing? That conflates two measurements; the round reads the printed `live quotes found N of 5` line as the freshness measurement. But an operator running `--fetch` in CI would want nonzero on not-found... The instruction: "A fetch failure must NOT be counted as a found quote, and must not crash the counter (exit 2 only for a usage/environment error of the counter itself)." This only constrains exit 2 vs crash. I'll make exit: 0 iff content verdict grounded AND (if --fetch) all five live quotes found; 1 otherwise; 2 usage/env. Wait — but then in the dry run (0 of 5 content), exit is 1 regardless. And if content 5/5 but one fetch failed → exit 1 with the FETCH FAILED line printed. That is honest and non-crashing. Hmm, but does that violate "exit 0 when N == 5" frozen predicate for the content line? The frozen predicate is about `--rev <rev>` invocation. For `--fetch` the plan's conjunct: "`--fetch` finds each of the 5 located quotes on its live page" — the measurement is the printed N. Making exit reflect it is defensible and useful. Decision: exit 0 iff content grounded AND (no --fetch OR all fetched quotes found AND no fetch errors). Document clearly.
+
+  Hmm, wait — careful again. Over-strictness risk: reviewer/critic seats attack the counter for the dry run contract "the dry run may report 0 of 5 — that is fine and expected". With my exit rule, dry run exits 1 — expected (content not grounded in the current tree pre-landing... though the entry NOW EXISTS in the working tree!). Let me actually verify the current working-tree state before writing the report. The dry run target = "the lane's current corpus/SOURCES.md". Current state: entry exists, 5 rows exist (verified by grep), so the content counter may already reach 5 of 5 in the working tree — IF the coverage map row and everything else is in place. And then `--fetch` will fetch the five live URLs.
+
+  So my dry run may actually perform REAL fetches. That's the honest measurement — do it, and quote output verbatim. If a fetch fails (network), report FETCH FAILED lines — fine, not counted.
+
+  Now — the entry: read it to confirm the source: lines format (the located quotes) so the fetch arm's quote extraction matches. Read corpus/knowledge/client-trust-gates-round68.md now. Also check corpus/README.md coverage row, and re-glob for the counter file (production + drafts). And check the registry for seat statuses.
+
+  Also: scripts/hyaku — not needed. RULES.md — no tool installs needed (curl available? check `which curl`).
+
+  Batch:
+  1. Read corpus/knowledge/client-trust-gates-round68.md
+  2. Bash: tail -12 corpus/SOURCES.md; grep coverage row in corpus/README.md; which curl; re-glob counter paths; python registry status parse with generic walk.  at full inclusion of the one qualifying source; every other screened work grounds a different
+  claim, is secondary, or was not opened, and ScoutS120Alt's three fallbacks (a Google engineering
+  blog post, a university mutation-testing chapter, PIT's equivalent-mutant docs) stay unscreened
+  because the title match succeeded — recorded there, not counted here.
+
+- **2026-10-24 — round-64 S049 live-context re-probe (appended; the S049 row and the 2026-10-23 errata are not rewritten).** Question: does the request-profile split on `https://cursor.com/docs/rules.md` still hold, and does either profile reproduce a held receipt? Where: that URL under curl 8.23.0 default `Accept` (sent `Accept: */*`, no `-H`) and under `Accept: text/markdown`, plus one control fetch of `https://cursor.com/docs/rules` (no `.md`, default Accept). Probed 2026-10-24T03:35:37Z. Default `Accept`: HTTP 200, `content-length` absent, body 17,252 B, sha256 `dae9d3ecd7e389fc94ee57d87911fe8d54bae1f00ce451d44303616648247ce0` (`text/markdown; charset=utf-8`; `vary: Accept`; Vercel cache HIT, age 1254, `Date: Sat, 24 Oct 2026 03:14:43 GMT`). `Accept: text/markdown`: HTTP 404, `content-length` absent, body 389 B, sha256 `4f98eb063d1914a3100f2c7e6bab3a449877d33da375eb3c05edc3a61e78afb1` (body headed `# Page not found`; Vercel cache MISS, age 0, `Date: Sat, 24 Oct 2026 03:35:37 GMT`). The 2026-10-22 receipt (17,403 B, sha256 `884c67ca…`, fetched 2026-10-22T20:09:33Z) does not reproduce under either profile. The 2026-10-23 default-Accept receipt (17,252 B, sha256 `dae9d3ec…`) reproduces byte-for-byte, and the request-profile-dependent 404 still reproduces. Control `https://cursor.com/docs/rules`: HTTP 200, `content-length: 540892`, body 540,892 B, `text/html; charset=utf-8`, sha256 `35ff98b0fca637195a670ca8907d32b52642cb311d5455717aedfbc2d91e6ee2` (0 redirects; same byte count as the 2026-10-23 extensionless HTML fetch, which recorded no digest). No S049 field is rewritten.
+- **2026-10-24 — round-66 S122 source opening.** Question: what primary citation principle bounds a commit hash used to identify a specific software version? Where: FORCE11's published Software Citation Principles page, opened at https://force11.org/info/software-citation-principles-published-2016/ and read at §6.7, Unique identification. Identified 1 candidate; screened 1; included 1 (S122); excluded 0. Stop rationale: the original paper directly discusses commit references and repository URLs as version context, matching the narrow C2 knowledge note; no broader citation-practice sweep was needed.
+- **Round-66 search-query clarification (append-only; same bounded search, no new candidates).** On 2026-10-24 the exact web query was `site:force11.org software citation principles Smith citation software 2016 persistent identifier`; where searched: web search, then the FORCE11 primary page opened at the URL in S122. The result set contained one candidate, screened one, included S122, excluded zero; this note supplies the exact query for the summary above, with no change to its stop rationale.
+---COVERAGE---
+128:| Client trust gates (round 68) | `knowledge/client-trust-gates-round68.md` | the other half of the skill-authority boundary: what five clients document about an UNTRUSTED skill body — VT Code subordinating the body to the host's own tool and sandbox policy (S198), Parallel Works' two independent trust gates (S199), Kilo Code's trusted-location rule for embedded commands (S200), the Agent Framework's approval-by-default skill tools (S201) and Mistral Vibe's trusted-folder discovery (S202), each re-opened 2026-10-24 with a located quote; counted by `verifiers/check_client_trust_gates.py --rev <rev>` |
+---COUNTER---
+ls: cannot access '/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/drafts/'
+: No such file or directory
+-rw-r--r-- 1 vgpnk vgpnk 15767 Oct 24 23:04 /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/check_client_trust_gates.py
+---CURL---
+/usr/bin/curl
+/usr/bin/python3
+---REG---
+Critical development: **the L1 has already installed the production counter** at `verifiers/check_client_trust_gates.py` (15767 bytes, mtime 23:04 — written 3 minutes ago). The drafts dir still doesn't exist. The coverage map row exists, SOURCES rows S198–S202 exist, the entry exists.
+
+  So the situation changed: the production counter now EXISTS. My assignment: "Build the `--fetch` arm for the C1 counter at `...w1/drafts/check_client_trust_gates.py`". The drafts path is still where MY seat's work goes (write scope: only under `.ufo/waves/round-68/`). The production counter at `verifiers/` may or may not already include a `--fetch` arm — the ExecC1Counter seat died mid-turn, but the L1 (integrator) wrote 15KB there at 23:04. Let me READ the production counter to see if `--fetch` exists in it. My deliverable is the `--fetch` arm as a DRAFT at the drafts path — which the L1 can merge into the production counter. Even if the production counter has some fetch support, my seat's assignment stands: deliver the `--fetch` arm draft at the drafts path with the exact output contract my prompt specifies.
+
+  Let me read the production counter now — it's the reference implementation of the core. My draft should:
+  1. Carry the same core (so the draft is a complete runnable counter — needed for the dry run to work), OR
+  2. Be a patch/delta?
+
+  My prompt says "Add `--fetch` to the parser" and "Report the file path and the printed output of a dry run" — implying the drafts file is a complete runnable script. Best deliverable: a complete counter at the drafts path = the production counter's core (kept faithful) + my `--fetch` arm. But first read the production file to see what's there — maybe the L1 already implemented `--fetch` (15KB is large; the model counter is ~9KB).
+
+  Read verifiers/check_client_trust_gates.py fully.
+
+• The L1 has already installed a production counter at `verifiers/` (mtime 23:04). Reading it before building my draft:
+
+• The production counter at `verifiers/check_client_trust_gates.py` ALREADY has:
+  - the full 8-conjunct `check()` core
+  - a `fetch()` arm (urllib-based)
+  - `--fetch` in the parser
+  - `--self-test`
+
+  So the L1 has already integrated a complete counter. My seat's assignment — build the `--fetch` arm at the DRAFTS path — is still mine to execute, but the frontier moved: the production counter already carries a fetch arm. What's the right Godspeed move now?
+
+  My assigned move: "Build the `--fetch` arm for the C1 counter at `<drafts>/check_client_trust_gates.py`: ... Print one line per client: `S### <client>: found` / `NOT FOUND` / `FETCH FAILED <error>`, then `live quotes found N of 5`."
+
+  Compare with the production fetch arm:
+  - Production prints `  fetch S198: found` — NOT `S198 <client>: found`. It lacks the client name. My contract says `S### <client>: found`.
+  - Production uses urllib only, not `curl -sSL --max-time 30` (or urllib) — mine allows curl first.
+  - Production: a fetch failure prints `FETCH FAILED {exc}` — good. Not counted as found — good.
+  - Production exit: `return 0 if n == TOTAL else 1` — fetch results don't affect exit. Fine.
+  - Production fetch quote resolution: `next((_norm(q) for q in quotes if _norm(q) in anchor), None)` — first matching quote, not longest. OK.
+  - Production fetch: no HTML tag-stripping — `_norm(body)` just collapses whitespace. For raw markdown URLs (S198, S202) fine. For HTML pages (S199 parallelworks, S200 kilo, S201 learn.microsoft), the quote may still be found in HTML if it's in a plain text node without inline tags interrupting; whitespace collapsing helps when tags introduce newlines. Might work; might NOT FOUND if tags interrupt.
+
+  My deliverable remains: the `--fetch` arm draft at the drafts path, with the exact per-client line format, curl-first fetching, HTML-aware normalization, fetch failures never counted, no crash. The dry run runs against the lane's current corpus — which now HAS the entry and rows, so the fetch arm will do five LIVE fetches. My prompt anticipated 0 of 5 ("holds none of the five URLs yet") — that was frozen before the L1 landed the content. The honest move: run it against the current tree and report whatever it prints (the task says report the printed output of a dry run; the 0-of-5 outcome was permitted, not required).
+
+  Also the godspeed posture: iterate cheap, keep moves that improve any axis and harm none. Building my draft with the per-client format + curl + HTML normalization improves freshness/depth and harms none (drafts path only). Then the L1 can diff my fetch arm vs production.
+
+  Design of my draft at `.ufo/waves/round-68/w1/drafts/check_client_trust_gates.py`:
+
+  I'll write a complete, runnable counter (core identical in semantics to production check() so the dry run works against the current tree) PLUS my fetch arm. Actually — better: since the production counter exists and the L1 installed it, the highest-value draft is a complete script whose `--fetch` arm is mine and whose core I keep byte-compatible with the frozen contract. But duplicating 300 lines of core into the draft creates drift risk between drafts and production.
+
+  Alternative: the draft could import from the production counter? No — the draft must be self-contained (L1 installs drafts standalone; and importing from verifiers/ couples the draft to production layout).
+
+  Decision: self-contained complete script. Core = the same semantics as production (I'll adapt the production core, which itself is the installed evolution of the model counter — my report will state the core is the L1's installed core, unchanged in semantics, and my work is the `fetch()` arm + its output contract + curl-first transport + HTML-aware normalization).
+
+  Wait — actually, should I really copy the core? Let me think about what the L1 needs from my seat: the `--fetch` arm as a drop-in function + main wiring. A full standalone file is the deliverable form the wave expects ("Report the file path and the printed output of a dry run" — a dry run requires a runnable file). I'll build the complete file: core copied from the installed production counter (faithful; it satisfies the frozen contract and was reviewed by ReviewC1Counter/SentinelC1 presumably), and MY fetch arm replacing the production one, with:
+
+  1. `--fetch` in the parser (already in production; mine too).
+  2. Per-client output lines: `S198 VT Code: found` / `S199 Parallel Works: NOT FOUND` / `S200 Kilo Code: FETCH FAILED <error>` — exactly `S### <client>: <verdict>`.
+     - Client name: first field of the row's `source` cell before ` — ` (em-dash separator). Row source cell: `VT Code — SKILLS_GUIDE.md — https://...`. So `cell.split(" — ")[0].strip()`. Fallback: if no em-dash, use the whole cell? Keep fallback `?` — no, fallback to the cell's first 40 chars? Simpler: fallback = "(unnamed client)". Hmm — for honesty just use the split; if empty, "(client cell empty)". Wait, what about "Parallel Works (pw code)" in the table vs "Parallel Works" in the source cell — I use the SOURCE CELL's first field (`Parallel Works`), which is the row's own client naming. Good.
+  3. Fetch transport: `curl -sSL --max-time 30` via subprocess; if curl is missing (FileNotFoundError) or returns non-zero with empty stdout... Actually curl with `-sS` prints errors on stderr and non-zero exit on HTTP failure (`-f`? no — `-S` shows errors, but without `-f` an HTTP 404 still returns body with exit 0!). Careful: `curl -sSL` does NOT fail on HTTP error status (no `-f`). A 404 page would then be searched for the quote → NOT FOUND (honest: page fetched, quote not on it). That's acceptable — a 404 body won't contain the quote. But better measurement: use `-f` so HTTP errors become fetch failures? The frozen prompt says exactly `curl -sSL --max-time 30`. I'll use exactly that flag set (plus `--proto` no; keep exactly as specified) and treat curl exit≠0 as FETCH FAILED with stderr tail; exit 0 with body → search. Redirects followed via `-L`. 
+     - Fallback to urllib when curl is unavailable (FileNotFoundError): mirrors "(or urllib)".
+  4. HTML-aware normalization: if body looks like HTML (`re.search(r"<(!doctype|html|body|div|p|script)\b", body[:4096], re.I)`), strip `<script>…</script>` and `<style>…</style>` blocks, replace remaining tags with a space, `html.unescape`, then `_norm`. Markdown/plain: `_norm` only. This is a measurement-fidelity improvement, not leniency: it finds quotes in visible text that tag-interleaving would hide, and never fabricates (the words must still appear in order in the visible text).
+  5. Quote resolution (per cited id): from the entry's source line for that id — prefer the double-quoted span following `located quote ` (or `quote `); else the longest entry quote that occurs in the row's anchor cell (mirroring check()'s matched-max-len logic). This avoids the section-name-quoted-span trap (`the "Trust" section`).
+  6. FETCH FAILED error text: single-line, stderr tail of curl truncated to ~160 chars, or the exception.
+  7. Failures never counted as found; never crash: try/except around each fetch; continue.
+  8. Exit codes: content verdict governs (`0 if n == TOTAL else 1`), exit 2 only for argparse/usage/environment (EnvError: unreadable repo at --rev, missing SOURCES/README at rev, unknown rev). Wait — production `_materialize` raises EnvError when SOURCES/README missing at rev but continues when ENTRY missing. And unknown rev → `_git_show` returns None for ALL paths → first path (ENTRY) is skipped-continue... wait no: production `_materialize` iterates (ENTRY, SOURCES, README); ENTRY is None → `continue` (treated as missing-entry content!); then SOURCES is None → EnvError. So an unknown rev → exit 2 via SOURCES. Hmm — but the self-test in production pins "unknown revision exits 2"? The w1-spec for ExecC1CounterTest says (b) an unknown revision exits 2 with `environment error`. Production achieves it accidentally via SOURCES. But what if a rev has SOURCES.md but the git repo is fine and rev unknown — same thing, SOURCES read fails → EnvError. OK so unknown rev → exit 2. But subtle: a rev where SOURCES.md exists but ENTRY missing → content 0 of 5. Good.
+     - For MY draft keep the same classification. Also validate `--rev` explicitly first? Production doesn't; the classify-via-SOURCES behavior yields exit 2 for unknown rev anyway (error message would be "cannot read corpus/SOURCES.md at <rev>" — a bit misleading for an unknown rev, but the ExecC1Counter seat's own log discussed first verifying the rev with `git rev-parse --verify`. Improvement: in `_materialize`, first `git rev-parse --verify <rev>` → fail = EnvError "unknown revision <rev>"; that's the honest message. That's a core tweak though — is it in my scope? It's the counter's classification contract (my prompt: "exit 2 only for a usage/environment error of the counter itself"; an unknown rev IS an environment error and the message should say so). Small, faithful improvement, harms none, improves honesty (calibration). I'll include it and disclose it in the report.
+     
+     Hmm wait — careful. "Implement only the move assigned by the L1 dispatcher." The assigned move is the fetch arm. Core changes beyond hosting the arm should be minimal. The `rev-parse --verify` pre-check changes only the ERROR MESSAGE fidelity of exit-2 paths, not any verdict path. I'll include it (one small function) and disclose; the L1 can drop it. Actually... let me reconsider: does the production counter's unknown-rev path print a misleading message? `environment error: cannot read corpus/SOURCES.md at deadbeef` — for an unknown rev this is wrong-ish ("cannot read X at rev" when actually rev doesn't exist). The r67 lesson was about honest classification; message fidelity is the same spirit. Keep it. Disclose.
+
+  9. Keep `--self-test` arm? The production counter has one; my draft should keep it (self-contained file with same selftest, which now also exercises... the fetch arm? The self-test drives check() on scratch worlds — offline. Adding a fetch self-test would need a local HTTP server — overreach. Keep selftest as-is (it's the counter-test seat's contract anyway), and my fetch arm adds one OFFLINE assertion? Hmm — the fetch arm's crash-safety (fetch failure must not crash) could be self-tested with a `file://`... urllib supports file:// but curl doesn't. I could add an offline unit assertion for `_locate_quote` extraction and `_visible_text` normalization — cheap, valuable, no network. I'll add a tiny `fetchselftest`... no — keep scope tight: the file's `--self-test` stays the core self-test; I'll add two pure-function assertions inside it (quote extraction, HTML normalization) — hmm, that modifies the self-test seat's contract...
+
+     Decision: DON'T touch selftest() — not my seat. My report will name that the `--fetch` arm is covered by the live dry run I provide, not by --self-test, and that's a remaining gap for the L1 to route (MutC1Counter could add a local-server mutant).
+
+  10. main(): wire `--fetch` exactly like production (fetch section printed after the verdict line), but with my line format: `  fetch S198 VT Code: found`. Hmm — my prompt's exact line format: `S### <client>: found`. The production prints `  fetch {r}` with two-space indent. My prompt says "Print one line per client: `S### <client>: found` / `NOT FOUND` / `FETCH FAILED <error>`, then `live quotes found N of 5`." I'll print exactly `S198 VT Code: found` etc. (no extra prefix — the "then `live quotes found N of 5`" has no prefix either). Follow MY prompt exactly: bare lines.
+
+  Also: per cited row — five. If entry has more/fewer ids, fetch iterates the ids present (mirrors production).
+
+  Another fidelity point: production `fetch()` reads `root/ENTRY` without checking existence → FileNotFoundError crash if entry missing and `--fetch` given! In the dry run at the CURRENT tree the entry exists, but at a tree without the entry, `--fetch` would crash with a traceback (unhandled) — violating "must not crash the counter". My draft must handle it: if entry missing → fetch prints `live quotes found 0 of 5` with a stderr note (content verdict already says entry missing). Also if SOURCES missing → same. I'll make fetch() defensive: read what exists; per-id NO ROW lines only when registry exists but id missing; if the entry or registry file is absent entirely → print `live quotes found 0 of 5` + note line to stderr. This is squarely my seat's contract ("must not crash the counter").
+
+  Now, quoting the exact per-client verdict strings:
+  - found: `f"{sid} {client}: found"`
+  - not found: `f"{sid} {client}: NOT FOUND"`
+  - fetch failed: `f"{sid} {client}: FETCH FAILED {err}"` — err single line, truncated.
+  - degenerate: `f"{sid}: NO LOCATED QUOTE"` / `f"{sid}: NO URL"` / `f"{sid}: NO ROW"` — no client name available in NO ROW case (client comes from the row). Keep those without client (can't know it), preceded by nothing. Fine — the format spec covers the normal five-row case.
+
+  curl invocation: `["curl", "-sSL", "--max-time", "30", url]`, capture_output=True, text=True, timeout=40 (allow curl's 30s + margin). On returncode != 0: FETCH FAILED with `curl exit N: <stderr tail>`. On FileNotFoundError → urllib fallback. urllib errors → FETCH FAILED str(exc) truncated.
+
+  Client name extraction: `row[1].split(" — ")[0].strip()` — em-dash with spaces. If that yields empty → fall back to `row[1][:24]`? If the source cell had no em-dash, the split returns the whole cell — that would make the "client" the whole cell (ugly but honest). Cap at, say, 48 chars with ellipsis? Keep it simple: take the split; if len > 40 chars, truncate to 40+"…". Fine.
+
+  URL extraction: reuse URL_RE from the source line first, else row[1].
+
+  HTML detection & visible text:
+  ```python
+  def _visible(text: str) -> str:
+      if not re.search(r"<[a-z!/]|\bhtml\b", text[:4096], re.I):  # hmm too loose
+  ```
+  Better: `re.search(r"<!doctype html|<html[\s>]|<body[\s>]|<div[\s>]|<p[\s>]|<script[\s>]", text[:8192], re.I)`. Then:
+  ```python
+  t = re.sub(r"(?is)<(script|style)\b.*?</\1>", " ", text)
+  t = re.sub(r"(?s)<[^>]*>", " ", t)
+  t = html.unescape(t)
+  ```
+  Then `_norm`. Import `html` module.
+
+  Quote extraction from source line:
+  ```python
+  def _located_quote(line: str, quotes: list[str], anchor: str) -> str | None:
+      m = re.search(r'located quote\s+"([^"\n]+)"', line) or re.search(r'quote\s+"([^"\n]+)"', line)
+      if m: return _norm(m.group(1))
+      matched = [q for q in quotes if _norm(q) in anchor]
+      return _norm(max(matched, key=len)) if matched else None
+  ```
+  Wait — the generic `quote\s+"` would also match `the "Trust" section — located quote "..."`? `re.search(r'quote\s+"')` scans for first occurrence of `quote "` — in `the "Trust" section — located quote "Project skills..."` the first `quote "` is in `located quote "Project` — good. But `the "Trust" section` has no `quote` word before it. OK. But careful with S200's line: `— the "Shell commands in skills" section — located quote "Project skills (.kilo/skills/ in a repository) and skills fetched from remote URLs never execute commands"` — the regex `located quote\s+"([^"\n]+)"` captures through `commands` (no internal quotes). Good. Prefer `located quote` marker strictly first.
+
+  Word cap: ≤25 words per conjunct 6 — the located quote; extraction doesn't need to re-verify (check() already did); but for safety truncate? No — use as-is.
+
+  Now the core: copy production's check() etc. verbatim? I said keep semantics identical. I'll write the file fresh, importing the same helpers (same regexes/logic), plus:
+  - `_verify_rev` pre-check in the `--rev` path (rev-parse --verify).
+  - my `fetch()` replacing production's.
+  - everything else same.
+
+  Also the docstring: document the fetch arm contract precisely (my prompt's contract), the curl→urllib fallback, HTML handling, exit-code rule, and the "fetch failure is never a found quote" rule. Note at top: which parts are the installed core vs this seat's arm? The draft file is standalone; I'll note in the docstring: "fetch arm: round-68 w1 seat ExecC1Fetch (this draft); core: semantics of the installed verifiers/check_client_trust_gates.py". That's honest provenance.
+
+  Then:
+  1. Run the dry run: `python3 -B <draft> --repo /home/vgpnk/Projects/shokunin/kotoba-shokunin --fetch` — wait, `--repo` default in production is `Path(__file__).resolve().parent.parent` — for the DRAFT at `.ufo/waves/round-68/w1/drafts/`, parent.parent = `.../round-68` — WRONG default. The draft must default `--repo` to the lane root. Options: keep default = parents[4]? Fragile. The contract says "`--repo <path>` defaults to the lane root". For the draft I'll compute the lane root by walking up from __file__ until a dir containing `corpus/SOURCES.md`... deterministic: `Path(__file__).resolve()` → drafts/…; lane root = the first ancestor containing `corpus/SOURCES.md`. That's honest and works after the L1 installs the file at verifiers/ (parent.parent). Implement `_default_repo()`: walk up from file location; first ancestor with `corpus/SOURCES.md` wins; else fall back to CWD. Disclose this draft-specific default.
+
+  2. Also run the dry run the task literally asked: "a dry run against the lane's current corpus/SOURCES.md" — that's the working-tree run above. Also demonstrate the no-entry case (crash-safety): run the draft with `--repo` pointing at a scratch world without the entry + `--fetch` → must print `0 of 5` and `live quotes found 0 of 5`, exit 1, no traceback. Cheap scratch under /tmp. Good evidence for "must not crash".
+
+  3. Also maybe demonstrate a FETCH FAILED not crashing + not counted: scratch world with entry whose quote/URL points at an unreachable localhost URL → line `FETCH FAILED`, `live quotes found 0 of 5`, exit 1, no traceback. That proves the contract. Do it in the same /tmp fixture run. 
+
+  Exit-code check of dry run: content check on current tree should be 5 of 5 (entry + rows + coverage row all landed). The five live fetches: unknown until run. Possible outcomes: found / NOT FOUND / FETCH FAILED. Quote periods: S198 quote ends `authoritative.` — raw markdown contains it. S202: `Standard Agent Skills path (project root, trusted folders only)` — raw README. S199/S200/S201 HTML pages — visible-text normalization helps.
+
+  One risk: `curl -sSL` on parallelworks.com — TLS/redirect fine. learn.microsoft.com huge page — fine.
+
+  Timeouts: five sequential fetches, each ≤30s worst case → run with generous foreground timeout (up to 300s allowed; set 200s).
+
+  Also the report file: `.ufo/waves/round-68/w1/ExecC1Fetch.md` (the Report trailer says: write scoped findings to `.ufo/waves/round-68/w1/ExecC1Fetch.md`). Writing seat → I write it.
+
+  Write batch now:
+  1. Write the draft file.
+  2. Then run: syntax check + self-test? (selftest needs entry in working tree — present). Actually --self-test runs offline check() worlds — cheap, run it as evidence the draft's core still passes. Plus dry run with --fetch. Plus the two /tmp fixtures. Do sequentially-ish: write file first, then parallel Bash runs.
+
+  Let me now compose the draft file carefully.
+
+  Key pieces (adapting production core verbatim where possible — I must not silently weaken it):
+
+  ```python
+  #!/usr/bin/env python3
+  """check_client_trust_gates.py -- C1 counter for kotoba round 68 (draft: --fetch arm).
+  ...
+  """
+  from __future__ import annotations
+
+  import argparse
+  import html as html_mod
+  import re
+  import subprocess
+  import sys
+  import tempfile
+  import urllib.error
+  import urllib.request
+  from pathlib import Path
+
+  ENTRY = "corpus/knowledge/client-trust-gates-round68.md"
+  SOURCES = "corpus/SOURCES.md"
+  README = "corpus/README.md"
+  VERIFIED_AT = "2026-10-24"
+  TOTAL = 5
+  CURL = ["curl", "-sSL", "--max-time", "30"]
+
+  ROW_RE = re.compile(r"^\|(.*)$")
+  SOURCE_LINE_RE = re.compile(r"^source:\s*(S\d{3,})\s*(.*)$")
+  QUOTED_RE = re.compile(r'"([^"\n]{1,300})"')
+  URL_RE = re.compile(r"https?://[^\s,;)\]]+")
+  LOCATED_RE = re.compile(r'located quote\s+"([^"\n]+)"')
+  HTML_RE = re.compile(r"<!doctype html|<html[\s>]|<body[\s>]|<div[\s>]|<p[\s>]|<script[\s>]|<table[\s>]", re.I)
+
+
+  class EnvError(Exception):
+      pass
+  ```
+
+  Then _git_show, _materialize (with rev pre-check), _norm, _split_row, _source_rows, _entry_source_lines, _quoted, _table_rows, _indexed, check() — same as production.
+
+  _fetch helpers:
+
+  ```python
+  def _http_get(url: str) -> str:
+      """Fetch <url> with `curl -sSL --max-time 30`; fall back to urllib. Raise OSError/URLError on failure."""
+      try:
+          proc = subprocess.run(CURL + [url], capture_output=True, text=True, timeout=40)
+      except FileNotFoundError:
+          req = urllib.request.Request(url, headers={"User-Agent": "kotoba-lane-check/1.0"})
+          with urllib.request.urlopen(req, timeout=30) as resp:
+              return resp.read().decode("utf-8", errors="replace")
+      if proc.returncode != 0:
+          raise FetchError(f"curl exit {proc.returncode}: {_tail(proc.stderr)}")
+      return proc.stdout
+  ```
+
+  Hmm — define FetchError vs reuse exceptions. Simpler: fetch loop catches `(subprocess.TimeoutExpired, urllib.error.URLError, OSError, ValueError, FetchError)`. Define `class FetchError(Exception)`. TimeoutExpired is a subclass of OSError? No — subprocess.TimeoutExpired subclasses SubprocessError, not OSError. Catch it explicitly.
+
+  ```python
+  def _tail(text: str, limit: int = 160) -> str:
+      t = _norm(text or "no output")
+      return t[:limit]
+  ```
+
+  ```python
+  def _visible(body: str) -> str:
+      """Whitespace-normalized searchable text: HTML is reduced to its visible text."""
+      if HTML_RE.search(body[:8192]):
+          t = re.sub(r"(?is)<(script|style)\b.*?</\1\s*>", " ", body)
+          t = re.sub(r"(?s)<[^>]*>", " ", t)
+          t = html_mod.unescape(t)
+          return _norm(t)
+      return _norm(body)
+  ```
+
+  ```python
+  def _client_name(row: list[str]) -> str:
+      name = row[1].split(" — ")[0].strip() if len(row) > 1 else ""
+      if not name:
+          name = "(no client cell)"
+      return name if len(name) <= 48 else name[:47] + "…"
+  ```
+
+  ```python
+  def _located(line: str, quotes: list[str], anchor: str) -> str | None:
+      m = LOCATED_RE.search(line)
+      if m:
+          return _norm(m.group(1))
+      matched = [q for q in quotes if _norm(q) in anchor]
+      if matched:
+          return _norm(max(matched, key=len))
+      m = QUOTED_RE.findall(line)  # last quoted span fallback? 
+      ...
+  ```
+  Hmm — keep two-stage only: LOCATED_RE, else anchor-matched longest, else None. The production fetch used anchor-matched-first; mine prefers the explicit `located quote` marker then falls back to anchor matching. Good.
+
+  ```python
+  def fetch(root: Path) -> tuple[int, list[str]]:
+      """Re-open each cited URL and confirm its located quote is on the live page.
+
+      One line per cited client: `S### <client>: found` / `NOT FOUND` / `FETCH FAILED <error>`.
+      A fetch failure is never counted as a found quote and never crashes the counter.
+      """
+      results: list[str] = []
+      entry_path = root / ENTRY
+      sources_path = root / SOURCES
+      if not entry_path.is_file():
+          print(f"fetch: entry absent, nothing cited to fetch ({ENTRY})", file=sys.stderr)
+          return 0, results
+      if not sources_path.is_file():
+          print(f"fetch: registry absent, cited ids cannot resolve ({SOURCES})", file=sys.stderr)
+          return 0, results
+      entry = entry_path.read_text(encoding="utf-8")
+      rows = _source_rows(sources_path.read_text(encoding="utf-8"))
+      src_lines = _entry_source_lines(entry)
+      quotes = _quoted(_norm(entry))
+      found = 0
+      for sid, line in src_lines.items():
+          row = rows.get(sid)
+          if row is None:
+              results.append(f"{sid}: NO ROW")
+              continue
+          client = _client_name(row)
+          anchor = _norm(row[5]) if len(row) > 5 else ""
+          quote = _located(line, quotes, anchor)
+          if quote is None:
+              results.append(f"{sid} {client}: NO LOCATED QUOTE")
+              continue
+          m = URL_RE.search(line) or (URL_RE.search(row[1]) if len(row) > 1 else None)
+          if not m:
+              results.append(f"{sid} {client}: NO URL")
+              continue
+          url = m.group(0)
+          try:
+              body = _http_get(url)
+          except (FetchError, subprocess.TimeoutExpired, urllib.error.URLError, OSError, ValueError) as exc:
+              results.append(f"{sid} {client}: FETCH FAILED {_tail(str(exc) or type(exc).__name__)}")
+              continue
+          if quote in _visible(body):
+              found += 1
+              results.append(f"{sid} {client}: found")
+          else:
+              results.append(f"{sid} {client}: NOT FOUND")
+      return found, results
+  ```
+
+  Note: quote found via `_visible(body)` — but wait, should the found-check use `_visible` for plain text too? `_visible` returns `_norm(body)` for non-HTML. Yes.
+
+  NO ROW line lacks client — unavoidable (the client name lives in the missing row). Acceptable; disclose.
+
+  main(): like production + rev pre-check inside _materialize; fetch section printed bare:
+
+  ```python
+      if args.fetch:
+          for r in results:
+              print(r)
+          print(f"live quotes found {found} of {TOTAL}")
+  ```
+
+  Exit: `return 0 if n == TOTAL else 1` — and document: fetch results are a printed measurement; the exit mirrors the content verdict; exit 2 reserved for usage/environment errors. Hmm — wait, reconsider once more whether exit should reflect fetch results. My prompt: "A fetch failure must NOT be counted as a found quote, and must not crash the counter (exit 2 only for a usage/environment error of the counter itself)." — It constrains only exit 2. The plan's conjunct: "`--fetch` finds each of the 5 located quotes on its live page" — measured by the printed line. Mirroring the content verdict for exit keeps `--fetch` composable with the frozen `--rev` predicate semantics (`exit 0 when N == 5`). Keep exit = content verdict. Disclose clearly.
+
+  Also `_default_repo()`:
+
+  ```python
+  def _default_repo() -> str:
+      here = Path(__file__).resolve()
+      for anc in here.parents:
+          if (anc / "corpus" / "SOURCES.md").is_file():
+              return str(anc)
+      return str(Path.cwd())
+  ```
+
+  Use in argparse default. For the installed location verifiers/ → parent = lane root. Draft location → walks up to lane root (drafts is inside lane). 
+
+  And `_verify_rev`:
+
+  ```python
+  def _verify_rev(repo: Path, rev: str) -> None:
+      proc = subprocess.run(["git", "-C", str(repo), "rev-parse", "--verify", f"{rev}^{{commit}}"],
+                            capture_output=True, text=True)
+      if proc.returncode != 0:
+          raise EnvError(f"unknown revision {rev}: {_tail(proc.stderr, 120)}")
+  ```
+
+  Call at top of the `--rev` branch. This keeps unknown-rev → exit 2 with an honest message (production achieves exit 2 only incidentally via SOURCES with a misleading message).
+
+  Keep selftest() as production's (same worlds) — it exercises check(), not fetch. Fine.
+
+  Also keep `_world` helper for selftest.
+
+  One more check() detail — production check() raises EnvError when SOURCES/README missing in WORKING TREE mode too (`cannot read ... at the measured revision` — message says "at the measured revision" even in working-tree mode; minor). Keep as-is.
+
+  Now the dry run command. My prompt: "Report the file path and the printed output of a dry run against the lane's current corpus/SOURCES.md". Run:
+
+  ```
+  cd /home/vgpnk/Projects/shokunin && python3 -B /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/drafts/check_client_trust_gates.py --fetch; echo "exit=$?"
+  ```
+
+  Default repo resolution walks up from drafts → finds kotoba-shokunin (has corpus/SOURCES.md). Good.
+
+  Fixtures in /tmp:
+  - F1 no-entry world: mkdir /tmp/k68f1/corpus; copy SOURCES.md + README.md; no entry → run with --fetch → expect: stdout `client trust gates backed 0 of 5` + `live quotes found 0 of 5`, stderr note, exit 1, no traceback.
+  - F2 unreachable-URL world: copy the real entry + a SOURCES.md where S198's URL → `https://127.0.0.1:9/x` (curl fails fast: connection refused) — but careful: check() would still ground 5 of 5 (fetch doesn't affect content) — fine; expect S198 line FETCH FAILED, live quotes found 0..4 of 5 depending on the other four live fetches, exit... content 5/5 → exit 0. Shows fetch failure not counted, no crash, exit 2 NOT used. To keep it fast, in F2 use ONLY... hmm, the entry has five ids; F2 would fetch all five live (slow-ish but fine, ~seconds each). Simpler: build F2's entry with just ONE source line (S198, unreachable URL) — but check() requires 5 ids for full backing (findings, still returns backed count of matched ids... production check() appends finding "names 1 ids, expected 

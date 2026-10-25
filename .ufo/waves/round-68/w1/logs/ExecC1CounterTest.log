@@ -1,0 +1,1339 @@
+kimi version 2.3.1
+• Let me start by reading the frozen plan and the draft counter script, since the task is to write the `--self-test` arm for the C1 counter at the drafts path. I need to:
+
+  1. Read the plan `/home/vgpnk/Projects/shokunin/kotoba-shokunin/plans/round-68.md`
+  2. Read the existing draft `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/drafts/check_client_trust_gates.py`
+  3. Look at existing verifier patterns (e.g., `verifiers/check_r67_routed_repairs.py` for --rev handling and self-test patterns)
+
+  Let me do these in parallel.
+
+  The skill invocation `/skill:godspeed` — I should follow the godspeed posture already inlined in the system prompt. There's a Skill tool; the instruction says to invoke matching skills. The prompt includes `/skill:godspeed`. I should call the Skill tool with "godspeed". Actually the directive says when a skill from the listing matches, I MUST call it. Let me call Skill with godspeed. But I don't have a listing visible... The user explicitly wrote `/skill:godspeed`, so invoke it.
+
+  Let me batch: Skill(godspeed), Read plan, Read draft, Glob verifiers. Actually Skill might inject instructions. Let me do it in the same batch as reads.baseline.json
+box_proof_case_deletion.py
+check_agentdef_boxes.py
+check_agent_definitions.py
+check_alwayson_boxes.py
+check_assertion_floors.py
+check_callee_rename.py
+check_client_trust_gates.py
+check_command_files.py
+check_correction_sweep.py
+check_could_not_evaluate.py
+check_description_thresholds.py
+check_erratum_absorption.py
+check_explicit_invocation.py
+check_gate_finding_delta.py
+check_gate_registry.py
+check_hook_files.py
+check_infoless_fences.py
+check_instruction_authority.py
+checklist-baseline.json
+checklist-command-vocabulary.json
+check_mcp_instructions.py
+check_opencode_repin.py
+check_overlap_levers.py
+check_plugin_manifests.py
+check_r63_routed_repairs.py
+check_r64_routed_repairs.py
+check_r66_routed_repairs.py
+check_routed_repairs.py
+check_routed_repairs_v2.py
+check_scoped_rules.py
+check_scoped_rules_v31.py
+check_scoped_rules_v32.py
+check_seat_counts.py
+check_sibling_census.py
+check_sources_append_only.py
+check_substrate_pins.py
+check_sweep_mutants.py
+compare_harness_independent.py
+corpus-baseline.json
+fault_injection_corpus.sh
+fixtures
+floors-registry.json
+harness-independent-scope.json
+__pycache__
+README.md
+surfaces-baseline.json
+verify_alwayson.py
+verify_corpus_independent.py
+verify_corpus_integrity.py
+verify_dispatch_prompts.py
+verify_harness_claims.py
+verify_harness_independent.py
+verify_skill_checklist.py
+verify_surfaces.py
+ls: cannot access '/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/drafts/': No such file or directory
+The skill says to read directive.md. Let me read it, plus key reference material in parallel:
+
+  1. `/home/vgpnk/.kimi-code/skills/godspeed/directive.md`
+  2. The existing `verifiers/check_client_trust_gates.py` — wait, the L1 owns `verifiers/`, but there IS already a `check_client_trust_gates.py` in verifiers/? Interesting — the ls showed `check_client_trust_gates.py` exists in verifiers/. Hmm — that might be the L1's installed version already, or from a previous seat. But the plan says "the instrument does not exist" at base. The verifiers listing shows it exists — so the L1 may have already installed a version, OR another seat's draft. Wait, my job: "Write the `--self-test` arm for the C1 counter at `.ufo/waves/round-68/w1/drafts/check_client_trust_gates.py` (the L1 installs it; do not write to `verifiers/`)."
+
+  The drafts dir doesn't exist. So I need to create the draft file myself — the full counter script WITH the --self-test arm? The task says "Write the --self-test arm for the C1 counter at .../drafts/check_client_trust_gates.py". Since the draft doesn't exist, I must write the full counter (main check path + self-test arm) as a draft. Let me look at the existing verifiers/check_client_trust_gates.py — maybe the L1 already installed the counter there and my draft needs to be a drop-in with self-test added. Let me read it.
+
+  Also read reference verifiers for self-test patterns: check_r67_routed_repairs.py (may not exist yet — not in listing), check_r63_routed_repairs.py or check_routed_repairs_v2.py for --rev handling, and something with --self-test for the house pattern. Let me grep for "self-test" and "self_test" in verifiers.
+
+  Batch:
+  - Read directive.md
+  - Read verifiers/check_client_trust_gates.py
+  - Grep "self.test" in verifiers (files_with_matches)
+  - Read check_r63_routed_repairs.py (for --rev pattern)Interesting — the L1 has ALREADY installed a `check_client_trust_gates.py` in `verifiers/` that includes a `selftest()`. My task: write the `--self-test` arm for the C1 counter at the DRAFTS path. The draft doesn't exist yet — so I write the full draft (which can be based on / aligned with the installed counter) but with a **stronger, properly-built self-test arm** that meets my exact spec:
+
+  The self-test must:
+  1. Drive the public `main()`/check path on ONE honest world and ONE broken world per conjunct (9 broken worlds):
+     1. entry missing
+     2. no source line
+     3. id does not resolve
+     4. row not mined
+     5. row source cell absent from the entry's source line
+     6. no verified-at
+     7. no recheck
+     8. no coverage-map row
+     9. located quote absent from the row's anchor cell
+     PLUS: "one client row's client name absent from the table" — wait, the task lists 9 broken worlds but enumerates 10 items: "entry missing; no source line; id does not resolve; row not mined; row source cell absent from the entry's source line; no verified-at; no recheck; no coverage-map row; located quote absent from the row's anchor cell; one client row's client name absent from the table". Let me count: (1) entry missing, (2) no source line, (3) id does not resolve, (4) row not mined, (5) row source cell absent from the entry's source line, (6) no verified-at, (7) no recheck, (8) no coverage-map row, (9) located quote absent from the row's anchor cell, (10) one client row's client name absent from the table.
+
+  That's 10 items but the task says "9 broken worlds". Hmm: "ONE broken world per conjunct (9 broken worlds: ...)" then lists 10. The header says 9 broken worlds per conjunct... The counter has conjuncts 1–8. Broken worlds per conjunct:
+  - conjunct 1 (entry exists) → entry missing
+  - conjunct 2 (source: lines) → no source line
+  - conjunct 3 (id resolves, mined) → id does not resolve; row not mined
+  - conjunct 4 (source cell in source line) → row source cell absent
+  - conjunct 5 (verified-at + recheck) → no verified-at; no recheck
+  - conjunct 6 (located quote in anchor) → located quote absent
+  - conjunct 7 (table row w/ client cell carrying quote) → one client row's client name absent from the table
+  - conjunct 8 (coverage map) → no coverage-map row
+
+  So counting "no verified-at" and "no recheck" as one conjunct (5), we get 9 broken worlds from 10 listed items? No wait — listing has 10 items. Let me recount: "entry missing; no source line; id does not resolve; row not mined; row source cell absent from the entry's source line; no verified-at; no recheck; no coverage-map row; located quote absent from the row's anchor cell; one client row's client name absent from the table" — 1 entry missing, 2 no source line, 3 id does not resolve, 4 row not mined, 5 row source cell absent, 6 no verified-at, 7 no recheck, 8 no coverage-map row, 9 located quote absent from anchor, 10 client name absent from table. That's 10 items labeled "9 broken worlds".
+
+  Hmm — perhaps "no verified-at" and "no recheck" are one world each... The safest approach: implement ALL 10 listed broken worlds (never fewer), and state the count honestly. The instruction "9 broken worlds: <list>" — the list is authoritative. If I implement all 10 named worlds, I satisfy "one broken world per conjunct" for every named item; the discrepancy (says 9, lists 10) is resolved in favor of covering every named world. The assertion count then = 1 honest + 10 broken + 2 classification = 13 assertions. But the task says print `self-test: N failure(s) over M assertions` — M is just the count of assertions actually made, so it's honest to print the real M.
+
+  Actually, wait. Maybe they count "no verified-at" + "no recheck" as one conjunct (conjunct 5) with one broken world... but then which one? Both are listed. I'll include both — 10 broken worlds. Better to over-cover. And print the true assertion count.
+
+  Hmm, but hold on — maybe I should look at it differently: "9 broken worlds" might mean the honest world plus... no. I'll implement all 10 named worlds and note the discrepancy in the report. Over-coverage harms nothing.
+
+  2. Pin the new classification:
+     (a) a missing entry exits 1 and prints `client trust gates backed 0 of 5` (NOT exit 2) — this must go through the PUBLIC path (`main()`) so the exit code and printed line are observed, not just `check()`.
+     (b) an unknown revision exits 2 with `environment error` — via `main()` with `--rev <unknown-sha>`.
+
+  3. Print `self-test: N failure(s) over M assertions`, exit 0 only when no failure.
+
+  4. Python stdlib only; `tempfile` scratch worlds; never mutate the lane tree.
+
+  Key design decisions for the draft:
+
+  - The draft must be self-contained and runnable: `python3 -B .ufo/waves/round-68/w1/drafts/check_client_trust_gates.py --self-test --repo <lane-root>`. Note: drafts dir is `.ufo/waves/round-68/w1/drafts/`, so `Path(__file__).resolve().parent.parent` would resolve to `.ufo/waves/round-68/w1` — wrong for a repo root. The installed version's default `--repo` is `parent.parent` (verifiers/ → repo root). For the draft, the default repo root can't be derived the same way. Options: require `--repo` or default to trying CWD? Better: keep `--repo` argument, default to `Path.cwd()`, and have `selftest` fail with exit 2 if the honest world's files are absent. But actually for MY verification run, I can pass `--repo /home/vgpnk/Projects/shokunin/kotoba-shokunin`.
+
+  Wait — does the honest world exist yet in the working tree? The L1 "installs" the counter, but the knowledge entry `corpus/knowledge/client-trust-gates-round68.md` may or may not exist yet in the working tree. The draft's selftest needs a HONEST world: a tree where `check()` returns 5/5. If the working tree already has the landed entry + SOURCES rows + README row, the working tree IS the honest world. Let me check what exists now. The installed counter exists in verifiers/ — the L1 may have already landed the entry. Let me check the corpus files.
+
+  Actually — important subtlety: my draft should not DEPEND on the working tree already being at 5/5; but a self-test that pins "one honest world" needs a known-good world. Two designs:
+
+  Design A (like installed): build honest world from the working tree's entry/SOURCES/README. Requires working tree at 5/5.
+
+  Design B (hermetic): the self-test SYNTHESIZES a fully honest world from scratch (its own mini entry, mini SOURCES with 5 rows, mini README with coverage row) — no dependence on lane content at all. Then breaks each conjunct from that synthesized base. This is stronger: it tests the check path's semantics, not the lane's current content; it runs even before the L1 lands the real entry; it never reads the lane tree for fixtures. "never mutate the lane tree" — reading is fine, but a self-test that depends on the lane's current honesty is fragile (e.g., if SOURCES row text changes, hardcoded replace strings break — exactly the fragility in the installed version: it hardcodes `"Skill content is untrusted resource data..."` and `S198` etc.).
+
+  Design B is clearly better for a self-test: hermetic fixtures = the honest world is constructed to satisfy each conjunct, and each broken world is a minimal mutation of it. This is the "fault injection" pattern (the lane has `fault_injection_corpus.sh`). Also the task says "use `tempfile` scratch worlds" — consistent with B.
+
+  But also the self-test should drive "the public `main()`/check path". The classification pins require exit codes and printed lines — only `main()` produces those. So:
+
+  - Honest world: run `main(["--repo", world])` → expect exit 0 and stdout line `client trust gates backed 5 of 5`.
+  - Each broken world: run `check(world)` (or main) → expect backed < 5 (expect exit 1 via main + correct count where deterministic).
+  - Missing-entry world: `main(["--repo", world])` → exit 1, stdout contains `client trust gates backed 0 of 5`, and stderr/stdout has NO `environment error`.
+  - Unknown rev: `main(["--rev", "0" * 40, "--repo", repo])` → exit 2 and stderr contains `environment error`. But careful: `--rev` materializes from the real repo via git — for an unknown rev, git show fails → EnvError → exit 2. That reads the real repo (read-only) — fine. But it must NOT mutate. `_materialize` writes only into tempfile. Good. However, running git inside the lane repo is read-only (`git show`) — allowed ("NEVER run git add/commit/stash/checkout/reset/push" — `git show` is fine).
+
+  Hmm, but wait — for the unknown-rev pin, using the REAL repo via `--repo` default. For draft runs, I'll pass `--repo /home/vgpnk/Projects/shokunin/kotoba-shokunin`. In the L1's installed position (`verifiers/`), parent.parent default works. For the draft, I should keep the default logic working for BOTH positions: if `(script_dir.parent.parent / "corpus")` exists use it, else use cwd... Simpler: default `--repo` to the first ancestor of the script dir that contains `corpus/SOURCES.md`, else cwd. That's clean and works from `verifiers/` (parent = repo root has corpus) and from drafts (walk up: w1, round-68, waves, .ufo, lane root — lane root has corpus/SOURCES.md → found). 
+
+  Now: should the honest world be synthesized or read from the lane tree? The task says: "drive the public main()/check path on ONE honest world and on ONE broken world per conjunct (9 broken worlds: ...)". And "It must ALSO pin the new classification". And "use tempfile scratch worlds; never mutate the lane tree".
+
+  Design B (synthesized honest world) satisfies this best. But there's a subtlety: a self-test with a self-synthesized honest world can pass even if the COUNTER's notion of "honest" diverges from the lane's actual landed shape (e.g., entry format drift). The installed version's approach (break the REAL entry) catches lane-shape regressions but is brittle. Best of both: synthesize the honest world hermetically (primary), AND — when the working tree actually holds the landed trio — ALSO run the honest check against the working tree as an extra non-fatal? No — non-fatal checks weaken "exit 0 only when no failure". 
+
+  Hmm. Actually, think about what the L1 will run: `python3 -B verifiers/check_client_trust_gates.py --self-test`. After landing, the working tree IS the honest world. A hermetic self-test passes regardless. A tree-based self-test passes only when the tree is honest — which is ALSO valuable as a live gate... but the tree-based honest check duplicates `check(repo)` itself which main already runs. Keep the self-test hermetic: deterministic, order-independent, doesn't break when lane content legitimately evolves. That's the right engineering call, and the lane's r67 lesson (classification honesty) is about the counter's verdict semantics, which hermetic worlds pin precisely.
+
+  But wait — one more consideration. The honest world must match the counter's actual expectations: entry with 5 `source:` lines containing URL+name matching row's source cell; SOURCES with 5 rows, 11 cells, status `mined`, anchor cell containing the quote; README coverage row with `` `knowledge/client-trust-gates-round68.md` `` in cell 1 (index 1); entry with `verified-at: 2026-10-24` and `recheck:` lines; entry table rows `| <client> | <quote> ... | S### |`.
+
+  Let me check the check() semantics again carefully to build a valid honest world:
+
+  - `check(root)`:
+    - entry missing → return (0, [finding]) — content verdict. ✓
+    - reads entry, sources, readme. If sources or readme missing → EnvError → exit 2. (So my worlds must always include SOURCES and README.)
+    - `_entry_source_lines`: lines matching `^source:\s*(S\d{3,})\s*(.*)$` → id → rest-of-line.
+    - ids from entry; if none → (0, finding). Duplicate ids → (0, finding). `len(ids) != TOTAL` → finding (but continues; so honest world needs exactly 5).
+    - `_source_rows(sources_text)`: lines starting `|`, split on `|`, 11 cells, cells[0] matches `S\d{3,}` → rows[id] = cells (11 cells: id, source, ?, ?, ?, anchor(5), ?, ?, status(7) must be 'mined', ?, ?).
+
+      Wait — cells list: `m.group(1).split("|")` where group(1) is everything after leading `|`. For `| a | b | ... |` → split gives ['a',' b ',' ...', ''] → trailing '' popped → 11 cells for an 11-column row. cells[0]=id, cells[1]=source, cells[5]=anchor, cells[7]=status. This must match the lane's actual 11-column SOURCES schema. Let me verify the real SOURCES.md column order — read the real `corpus/SOURCES.md` header to build fixtures that mirror the real schema. The plan says "normalized to the lane's 11-column schema". I need: which column is `source` (index 1), which is `anchor` (index 5), which is `status` (index 7)? I must confirm from the real file so my synthesized fixtures use the same indices — and, more importantly, the counter reads those indices, so the honest fixture just needs cells at those indices. But to keep the draft honest with the lane schema, I'll mirror the real header.
+
+    - per id: row exists; row[7]=='mined'; row[1] (source cell) `in` the entry's source line rest for that id (substring); anchor=_norm(row[5]); some entry quote (double-quoted, ≤25 words) whose normalized form is a substring of anchor; then table row containing sid; table_row[0] nonempty (client cell); quote in normalized join of the table row; → backed += 1.
+    - verified-at line == `verified-at: 2026-10-24`; recheck line startswith `recheck:`; `_indexed(readme)`: README line starting `|`, cells[1] == `` `knowledge/client-trust-gates-round68.md` ``.
+    - if findings → return (backed, findings). NOTE: findings from verified-at/recheck/index apply globally — so ANY of those missing means findings non-empty → main prints backed N but exits 1 (since findings → n==TOTAL check: main returns 0 only if n==TOTAL — wait, main ignores findings for exit! Let me re-read main:
+
+  ```python
+  print(f"client trust gates backed {n} of {TOTAL}")
+  for f in findings: ...
+  return 0 if n == TOTAL else 1
+  ```
+
+  So exit is determined by n==TOTAL alone; findings are printed but only affect exit via... nothing! So "no verified-at" world → n could still be 5 (all five ids backed) → exit 0 with findings printed! Hmm — is that a counter bug? `check()` returns findings; main only exits 0 when n==5. So the three global conjuncts (verified-at, recheck, coverage row) would print findings but still exit 0 if all 5 ids back. That means in the INSTALLED counter, worlds "no verified-at", "no recheck", "no coverage-map row" reach backed 5 → the installed selftest's `if n == TOTAL: FAIL` catches them — good, the selftest DOES catch it (that's why the installed selftest checks `n == TOTAL` → fail). But then the counter's own exit code lies (exit 0 despite findings). Is that in my scope? My task: write the --self-test arm draft. The self-test must pin each conjunct's failure → verdict not fully backed. If the check path's return contract is "backed N" and main exits 0 only when N==5 — then for global conjuncts, backed stays 5 and exit is 0 — the conjunct does NOT actually gate the verdict.
+
+  Wait, re-read check(): `if findings: return backed, findings` — returns backed with findings. So for "no verified-at": backed=5, findings=[...]. main prints `backed 5 of 5`, exits 0. The verified-at conjunct is decorative at the exit-code level. That's a real defect in the counter: a world missing verified-at exits 0.
+
+  Hmm, but is it MY place to fix check()? My assignment: "Write the `--self-test` arm for the C1 counter". The self-test's job is to break each conjunct — i.e., verify each conjunct actually gates. If the self-test drives `main()` and asserts exit 1 + `backed < 5` for the no-verified-at world, it would FAIL against this counter — correctly exposing that the conjunct doesn't gate the exit. Then either (a) my draft includes the minimal check-path fix so the global conjuncts gate the verdict (backed capped, or exit considers findings), or (b) I report it as a finding.
+
+  The task says: "The self-test must drive the public main()/check path on ONE honest world and on ONE broken world per conjunct". For the self-test to PASS (exit 0) while genuinely breaking each conjunct, the check path must actually register each break as a non-backed verdict. The natural reading of the frozen predicate: `backed N of 5`, exit 0 when N==5 — each conjunct must be a conjunct of "backed". If verified-at is missing, N must be < 5 for the counter to be honest... but what should N be? The five clients are still documentarily backed minus the freshness line. Options: return 0 with findings for any global-conjunct failure (verdict not fully grounded), or keep N but exit on findings. The predicate fixes the exit: `exit 0 when N == 5`. So the honest semantics: a missing verified-at/recheck/coverage row means the claim is NOT fully backed → N must drop. Simplest correct fix in check(): when any global finding exists, the count cannot be TOTAL — e.g., cap backed at TOTAL-1? That's arbitrary. Better: treat the global conjuncts as gating: if findings non-empty, return min(backed, TOTAL-1)? Ugly.
+
+  Alternative: fold verified-at/recheck/index into the per-id loop? No — they're entry-global.
+
+  Hmm wait — actually, let me reconsider. Maybe the intended semantics: `backed N of 5` counts clients backed; the global conjuncts are part of the same verdict; main should exit `0 if n == TOTAL and not findings else 1`. But the frozen predicate says exit 0 **when N == 5** — with N==5 and findings nonempty, is "N==5" true? The printed line would say "backed 5 of 5" while exit 1 — the plan's frozen predicate for the base says prints `0 of 5`, exit 1 — consistent. For a partial world, printed N and exit should agree: exit 0 iff N==5. If findings force exit 1 while N==5, the printed line contradicts the exit. So the cleanest honest semantics: any conjunct failure must reduce N. 
+
+  What reduction is principled? The verified-at/recheck/coverage-row conjuncts are properties of the ENTRY as a whole, i.e., of the grounding apparatus, not of a single client. If the entry lacks verified-at, no client is fully backed (the claim's evidence discipline fails globally) → return 0 with findings. That is defensible: `if global findings: return 0, findings`. Hmm, but then a world missing ONLY verified-at reports `0 of 5` — strong but honest ("not all conjuncts hold → nothing is fully backed"). Alternatively return `backed` but make main exit `0 if n==TOTAL and not findings`. The printed N stays informative ("4 of 5" + finding) and exit stays honest (1). The frozen predicate only pins: exit 0 when N==5. It doesn't say exit 1 implies... wait it does for base: prints 0 of 5, exit 1. For honest full world: prints 5 of 5, exit 0. For no-verified-at world: nothing frozen; both designs are predicate-compatible as long as exit≠0 when a conjunct is broken... Design "exit 0 iff n==TOTAL and not findings" keeps the printed line truthful AND the exit gated. But then "backed 5 of 5" + exit 1 — the predicate text `exit 0 when N == 5` is violated in the letter? "prints ... exit 0 when N == 5" — if N==5 but exit 1, the letter of the frozen predicate breaks. So safer: make conjunct failures reduce N below TOTAL. 
+
+  Principled reduction: verified-at/recheck/index are per-claim freshness/registry conjuncts — treat their failure as invalidating the full-backed verdict: return `min(backed, TOTAL - 1)`? Arbitrary-looking. Or return 0 (nothing fully backed when the grounding apparatus is broken). Hmm.
+
+  Let me look at how sibling counters handle this — check how e.g. `check_r63_routed_repairs.py` or `check_instruction_authority.py` structure verdicts with global conjuncts. Also the README in verifiers/ may document the house convention. Let me read a couple.
+
+  Actually — wait. Scope check. My assignment is the SELF-TEST arm, drafted at the drafts path. The L1 owns verifiers/. The draft I deliver is the whole file (since drafts/check_client_trust_gates.py doesn't exist, I must deliver the full counter with the self-test arm — "Write the --self-test arm for the C1 counter at <drafts path>" — the counter at that path IS the draft; the L1 diffs/installs it). If the check path has a gate hole (global conjuncts don't gate the exit), my self-test MUST catch it (that's exactly "break each conjunct"), and the draft should fix the check path minimally so all conjuncts gate — otherwise my own self-test fails against my own draft. The godspeed move: keep the counter's contract, fix the hole, prove it with the self-test, and disclose the delta from the installed version in my report so the L1 can reconcile.
+
+  Let me check what the installed counter does vs what the honest landed entry looks like. Also check whether the entry exists in the working tree now, and the real SOURCES header/schema — my synthesized fixtures must mirror the real 11-column schema (the counter's indices must match reality, else the installed counter would fail against the real tree — it presumably passes, so its indices ARE the real ones; my fixtures just need to be consistent with the counter).
+
+  Let me now read:
+  1. `corpus/SOURCES.md` header + a sample row (first ~30 lines).
+  2. `corpus/knowledge/client-trust-gates-round68.md` (does it exist yet?).
+  3. `corpus/README.md` coverage map rows (grep for knowledge rows).
+  4. One sibling self-test for house style: check_r66_routed_repairs.py selftest section.
+  5. verifiers/README.md (house conventions).
+
+  Then write the draft.
+
+  Batch these reads now.# SOURCES — where kotoba learns
+
+`corpus/knowledge/` holds admitted facts; this file holds the places they come
+from — what each teaches, how far to trust it for which scope, and when to look
+again. Contract: fleet `SOURCES-CONTRACT-v1.md` (2026-10-19). A row exists only
+for a source the row's author opened this round; access evidence lives in
+`.ufo/round-46/evidence/w2/sources/fetch-log.json` (round 46), the seat reports under
+`.ufo/waves/round-47/build/` (round 47), and the round lesson's `## Gate`.
+
+## Registry
+
+| id | source | kind | tier | scope | anchor | teaches | status | opened | recheck | used-by |
+|---|---|---|---|---|---|---|---|---|---|---|
+| S001 | Agent Skills — Specification — https://agentskills.io/specification | spec | A | SKILL.md frontmatter format and file-structure rules | § Skill metadata table, § Progressive disclosure; live page opened 2026-10-19 | Name is 1-64 lowercase-hyphen chars matching its directory; description 1-1024 chars saying what and when; SKILL.md under 500 lines with detail moved to reference files | mined | 2026-10-19 | on-release | corpus/lessons/round-46.md |
+| S002 | Agent Skills — How to add skills support to your agent — https://agentskills.io/client-implementation/adding-skills-support | docs | A | Client-side loading and validation policy for SKILL.md | § Handling malformed YAML, § Lenient validation; live page opened 2026-10-19 | Unquoted values containing colons are technically invalid YAML; lenient clients warn and load anyway on name mismatch, so a strict local gate is stricter than the client contract | mined | 2026-10-19 | 90d | SKILL.md |
+| S003 | Claude Docs — Agent Skills best practices — https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices | docs | A | Anthropic authoring rules for name and description | § Skill structure field list; live page opened 2026-10-19 | The description cannot contain XML tags, must be third person, and states what the skill does and
+---ENTRY---
+-rw-r--r-- 1 vgpnk vgpnk 6213 Oct 24 23:00 /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/knowledge/client-trust-gates-round68.md
+---README-ROW---
+9:| Frontmatter trigger surfaces | `knowledge/frontmatter-trigger-surface.md` | 16 production skill files surveyed 2026-09-28; **round 15** absorbed the twelve craft rules from `SKILL.md` § Frontmatter craft (the line-budget move), so this file is now the authoritative copy with `SKILL.md` keeping the pointer |
+10:| Skill anatomy & compression | `knowledge/anatomy-and-compression.md` | same survey; line counts 18–392; **round 15** absorbed the six compression rules from `SKILL.md` § Compression rules, including the ~600-line module bound this round enforced on its own file |
+11:| Failure/anti-pattern patterns | `knowledge/fail-closed-and-anti-patterns.md` | bailian family, ufo, sekhmet-l3; **round 15** absorbed the full 18-row anti-pattern table from `SKILL.md` § Anti-patterns (the distilled table above it is its subset and is superseded by it) |
+12:| AGENTS.md & dispatch prompts | `knowledge/agents-md-and-dispatch-surfaces.md` | 6 child AGENTS.md + `~/.agents/AGENTS.md` + 8 `.ufo/prompts/*-L1.md` — **round-53 correction (2026-10-22):** 17 child files (`ls /home/vgpnk/Projects/shokunin/*/AGENTS.md \| wc -l` → 17; 9 share the 5-line body), the host file 14 lines / 949 B, and the prompt count still measures 8; the lowercase `/home/vgpnk/projects` root the knowledge file cites does not exist |
+13:| Agent defs, commands & round-N prompts | `knowledge/agent-defs-commands-and-round-prompts.md` | 18 `opencode/agents/*.md` + 3 `opencode/command/*.md` + 6 `*-round-N.md` |
+14:| Fleet SKILL.md audit (round-5) | `knowledge/fleet-skill-audit-round5.md` | 13-item checklist applied to 5 sibling `*-shokunin/SKILL.md`, strict + refined readings |
+15:| Harness system prompt (6th class) | `knowledge/harness-system-prompt.md` | observed-not-owned; notes from this session's injected preamble |
+16:| Activation telemetry & compressed router surface | `knowledge/skill-activation-telemetry.md` | opencode.db `part` (415 calls / 216 sessions, re-verified round 9), opencode.log permission lines (471), omp session jsonl; the row's `~95–103 chars` render-size claim is round-5 truncation-era — round 9 measures 17 cache rows of 44–98 chars against 163–818-char sources (`python3 verifiers/verify_harness_claims.py --json` → per-skill `description_chars`, min 163 godspeed / max 818 wwkd; the aggregator audit's 820 is the same corpus under blank-line-folding); **round-27 note:** the `part` table and the permission-lines grammar are gone from opencode v2.x (0 lines; schema `session_v2`) — these counts are round-9-era; the render family is live at 14 cache rows / 7 keys, chars 300-658 |
+17:| Trigger-miss proxy (round-6) | `knowledge/trigger-miss-proxy-round6.md` | opencode.db 398 sessions: literal-trigger coverage + godspeed always-on hole (51.5%) |
+18:| CLAUDE.md surface (7th class) | `knowledge/claude-md-surface.md` | census 16 files at round 7, **18 at the round-10 re-count** (`find ~ -maxdepth 6 -iname 'claude.md' -not -path '*/node_modules/*' \| wc -l` → 18, aggregator audit r6); loader strings in binaries, 0 captured injections |
+19:| Agent-def audit (round-6) | `knowledge/agent-def-audit-round6.md` | 9-item checklist applied to 18 `opencode/agents/*.md` |
+20:| Render mechanism & trigger survival | `knowledge/render-mechanism-round7.md` | omp binary reverse-engineered (ELF strings): cache-or-truncate render, `slice(0,99)` cliff, 14 catalogues / 3911 session_init census; round-7 loss figures (17.7% of chars, 53/62 quoted spans, 13/13 `Triggers:` clauses) are truncation-era; cache tier re-measured round 9: 17 rows and all 17 keys reproduce against on-disk descriptions (style-aware YAML salt), newest captured catalogue (2026-09-28T21:06Z) renders 17/17 from cache with 0 truncations; **round-27 note:** catalogue census is 14 rows / 7 keys at HEAD (the 17-row era ended at round 18) |
+21:| Dispatch-prompt audit + checklist | `knowledge/dispatch-prompt-audit-round7.md` | 12-item checklist (artifact numbering; `SKILL.md` renders the same set as 9 merged boxes) applied to 43 `.ufo/prompts/*.md` (37 fail) + resolvability sweep incl. generator bugs |
+22:| Always-on checklist + self-audit | `knowledge/alwayson-checklist-round7.md` | 8-item AGENTS.md checklist (host file FAIL); 13-item self-audit of SKILL.md (4 fails cured); drift recount table |
+31:| opencode offer trace (round-8) | `knowledge/opencode-offer-trace-round8.md` | opencode ELF + global skill roots + `message=init count=N` log line; godspeed offered 387/387 attested sessions, activated 205/399 = 51.4%; round-6's empty `<skills>` search explained (opencode's tag is `<available_skills>`) |
+32:| Sibling description rewrites (round-8) | `knowledge/sibling-description-rewrites-round8.md` | 5 drop-in `description:` blocks (one per sibling `*-shokunin/SKILL.md`) with reproduced H7s renders and pinned md5s; producer-ready, not applied (cross-domain) |
+33:| Harness router models (round-9) | `knowledge/harness-router-models-round9.md` | per-harness tag/render/gate/failure tables + verify recipes: omp `<skills>` = `cache.get(key) ?? previewSkillDescription` (99-char cliff, keep 55–96) vs opencode `<available_skills>` = untruncated `description` + `<location>`; offer gates differ (omp: dir in a discovery root; opencode: `description` defined + `skill` permission enabled, dedupe by name is nondeterministic); supersedes the round-5 omp framing and the round-7 opencode omission; carries the round-9 key-reproduction nuance and the WAL caveat on the db mtime; round 10 corrects two of its statements — the keyed template is the 273-byte bunfs prompt (placeholders included, sha256 pinned) and the offer-gate root list must include `~/.agents/skills` and `~/.omp/agent/skills` |
+34:| Harness-claim verifier (round 10) | `knowledge/harness-verifier-round10.md` + `../verifiers/verify_harness_claims.py` + `../verifiers/baseline.json` | the round-9 recipes as an executable drift detector: 28 checks over the omp key set (273-byte template sha256, style-aware salt, 7/7 reproduction, newest-catalogue render match, unmodelled-scalar guard, dangling dirs) and the opencode counters (init count == root union + builtin, `<available_skills>` 0, per-root duplicate split); exit 0/1/2/3, `--self-test`; falsified by perturbed-baseline and empty-HOME runs |
+35:| Corpus-integrity verifier (round 11) | `knowledge/corpus-integrity-round11.md` + `../verifiers/verify_corpus_integrity.py` + `../verifiers/corpus-baseline.json` | the corpus pointer/index counts as an executable drift detector: 9 checks — `corpus.index.{tracked_files,unindexed,stale_patterns,missing_paths}`, `corpus.pointers.{report_total,report_dead,commit_total,commit_unresolvable,commit_nonhash}`; exit 0/1/2/3, `--self-test` (matcher model on fixtures, 88 assertions after the round-12 repairs; 86/80 earlier in the round); red-before on a clone at `d49dfa5` → `7/9 checks pass` exit 1 (`report_dead=10/19`, `commit_nonhash=1`), landed tree → `9/9 checks pass` exit 0 (`report_dead=0/24`, all four pointer shapes checked, 8 placeholder/excluded sites); scope: tracked `corpus/*.md` only |
+36:| Non-author cold run (round 11) | `knowledge/cold-run-round11.md` | the round-10 falsifier, met: runner `ColdRunRecord` authored neither `verifiers/verify_corpus_integrity.py` nor its baseline; sha256 gate on the shipped script, verbatim plain + `--json` runs with exit codes, a coherence guard (`md5sum` + `git status` hashed before/after), three independent spot-checks implemented in the runner's own Python (pattern/tracked counts, every checked pointer via `test -e`, every `commit` citation via `git cat-file`), and `Discrepancies: none found`; also records the mid-landing DRIFTs it correctly detected |
+Now I understand the house style:
+  - `self-test: %d failure(s) over %d assertions` line, exit 0 only when no failure.
+  - Hermetic fixture repos via `tempfile.TemporaryDirectory` + `contextlib.redirect_stdout` to drive public `main()`.
+  - The r66 house pattern builds its fixture in scratch and never touches the lane tree.
+
+  The entry EXISTS in the working tree (`corpus/knowledge/client-trust-gates-round68.md`, 6213 bytes, written today 23:00). The L1 already landed (or is landing) the trio. Let me read the actual landed entry to mirror its exact shapes (source: lines, verified-at, recheck, table format) and the exact new SOURCES rows (S198 etc.) so my draft's self-test fixtures match reality — and critically, so my draft's `check()` semantics are validated against BOTH the synthetic world and (as a control, not a pass/fail) reality.
+
+  Also read the real SOURCES rows for the five clients (grep S198 / S199...).
+
+  Now the design decision for MY draft. Task requirements again, precisely:
+
+  "Write the `--self-test` arm for the C1 counter at `.ufo/waves/round-68/w1/drafts/check_client_trust_gates.py` (the L1 installs it; do not write to `verifiers/`)."
+
+  "The self-test must drive the public `main()`/check path on ONE honest world and on ONE broken world per conjunct (9 broken worlds: entry missing; no source line; id does not resolve; row not mined; row source cell absent from the entry's source line; no verified-at; no recheck; no coverage-map row; located quote absent from the row's anchor cell; one client row's client name absent from the table)."
+
+  So the listed items are the spec — 10 named items under a "9 broken worlds" header. I'll implement all 10 named broken worlds. That covers every conjunct; the arithmetic discrepancy is the spec author's, and over-covering harms nothing. Wait, let me recount once more carefully — maybe "no verified-at; no recheck" is ONE world: "no verified-at / no recheck"? No, they're semicolon-separated: "no verified-at; no recheck;". And "located quote absent from the row's anchor cell; one client row's client name absent from the table" — two items. So 10. Hmm, unless "row not mined" and "id does not resolve" are one conjunct (id resolves to a mined row) with... no, both listed. 10 items. The "9" might be counting conjuncts-1 (honest world + 9... no). Whatever — implement all 10; print honest counts.
+
+  "It must ALSO pin the new classification: (a) a missing entry exits 1 and prints `client trust gates backed 0 of 5` (NOT exit 2); (b) an unknown revision exits 2 with `environment error`."
+
+  (a) via public main() on a world with the entry file absent → exit 1, stdout has the exact line, and no "environment error" anywhere.
+  (b) via public main() with `--rev` pointing at a nonexistent sha → exit 2, stderr (or stdout) contains "environment error". Note: for the draft in drafts/, `--repo` must point at the lane repo (git). In the installed position, default repo works. I'll make `--repo` default resolve to the first ancestor containing `corpus/SOURCES.md` (works from both verifiers/ and drafts/), fallback cwd.
+
+  "Print `self-test: N failure(s) over M assertions` and exit 0 only when no failure."
+
+  "Python stdlib only; use `tempfile` scratch worlds; never mutate the lane tree."
+
+  Now — the KEY design decision: synthetic hermetic world vs break-the-real-tree. The house pattern (r66) is fully hermetic: fixture git repo in TemporaryDirectory, build honest world, break it, drive main via redirect_stdout. Also the installed r68 counter's selftest breaks the REAL tree — which (a) hardcodes content strings ("S198", the VT Code URL, the exact quote), brittle to legitimate content evolution; (b) runs check() directly on a tempfile copy — fine; (c) does NOT drive main() for the classification pins (checks `check()` return, not exit codes); (d) doesn't pin the unknown-rev exit-2 at all; (e) doesn't drive main() on the honest world.
+
+  My draft: hermetic synthetic world (r66 house pattern) + public-main() driving + classification pins. Fully deterministic, no dependence on lane content strings, no reading the lane tree at all (except `--repo` for the unknown-rev pin — which needs a git repo; use the lane repo read-only via `git show` on a bogus rev... wait, `git show bogus:corpus/...` in the lane repo — read-only, fine. But can I make it hermetic? I could init a tiny fixture git repo in tempfile and pass `--repo fixture` with a bogus rev. Then git runs in the scratch world — never touches the lane. Even better: zero reads of the lane tree. `git show 0{39}...:corpus/SOURCES.md` in an empty fixture repo → returncode != 0 → EnvError → exit 2. 
+
+  But hold on — `_materialize` tries ENTRY first: `git show rev:corpus/knowledge/client-trust-gates-round68.md` fails → EnvError raised immediately. Good: unknown rev in ANY git repo → exit 2 with `environment error`. Hermetic fixture repo works.
+
+  One catch: `--rev` handling in main: `if args.rev:` → `_materialize` — raises EnvError inside the try — caught → print to stderr `environment error: ...` → return 2. My test drives `main(["--rev", bogus, "--repo", str(fixture_git_root)])` with redirect of BOTH stdout and stderr, asserts exit==2 and "environment error" in combined output.
+
+  Important: driving main() in-process via `main([...])` — the r66 pattern. For check-path honesty I'll drive BOTH: `check(world)` for the per-conjunct kill matrix (fast, precise: assert backed < 5 AND the specific finding text appears — no, asserting specific finding text is brittle; assert backed == expected reduction and findings nonempty... Let me assert exactly: each broken world → `n < TOTAL` and `findings` non-empty; where the conjunct has a deterministic count (e.g., "row not mined" kills exactly 1 client → n == 4), assert n == 4 to pin the counter isn't over/under-counting. Hmm — but is n==4 right for "row not mined"? In check(), `row[7] != "mined"` → `continue` → that id doesn't back. Others back → backed=4. But findings nonempty → returns (4, findings). So n==4 deterministic. For "id does not resolve": ids still 5, one row missing → 4 backed. "no source line" → return (0, ...) → n==0. "entry missing" → n==0. "row source cell absent" → that id fails the `row[1] not in src_lines[sid]` check → 4. "no verified-at"/"no recheck"/"no coverage-map row" → backed=5 but findings nonempty → per current check() semantics returns (5, findings)!! 
+
+  So here's the gate hole again: for those three worlds, n==5. If my self-test asserts `n < TOTAL` for those worlds, it FAILS against the current check() — correctly detecting that these conjuncts do not gate the verdict. The frozen predicate says the counter's whole verdict is `backed N of 5`, exit 0 iff N==5. A world lacking verified-at MUST NOT exit 0. Two fixes:
+
+  Fix A (in check()): global conjunct failures cap the verdict — e.g.:
+  ```python
+  if findings:
+      return backed, findings
+  ```
+  → change semantics so any finding reduces the verdict below TOTAL. The most principled: `return min(backed, TOTAL - 1), findings`? Arbitrary. OR: verified-at/recheck/index are apparatus conjuncts — without them NOTHING is fully backed → return 0? Both defensible. Which does the frozen text suggest? "prints client trust gates backed N of 5, exit 0 when N == 5" — the predicate doesn't pin N for broken worlds; only base→0 and landing→5. So any reduction works for the predicate. But for the scorecard semantics ("backed N of 5" as a progress measure), keeping per-client signal (N=4) while exit!=0 preserves the most information... but then printed "5 of 5" with exit 1 would violate the letter of "exit 0 when N == 5". With N=4: "backed 4 of 5", exit 1 — letter preserved (exit 0 when N==5; N≠5 → exit≠0 — wait, the predicate only says exit 0 when N==5, not exit≠0 when N≠5... but the base control pins exit 1 at N=0, and honesty demands the mapping be a function). Cleanest: `min(backed, TOTAL-1)` keeps per-client info and keeps the printed line consistent with the exit. Hmm, but "min(backed, TOTAL-1)" is weird: a missing verified-at isn't a per-client failure.
+
+  Fix B (in main()): `return 0 if n == TOTAL and not findings else 1`. Then a no-verified-at world prints "backed 5 of 5" and exits 1. The printed line contradicts the exit — ugly, and the letter of the predicate ("exit 0 when N==5" — reads as iff) is strained.
+
+  Fix A with min-cap is best: printed line always consistent with exit; per-client signal preserved; every conjunct gates the verdict.
+
+  Hmm wait, actually, let me reconsider: is capping at TOTAL-1 honest as a *count*? "backed 4 of 5" would claim 4 clients fully backed — true per-client (each has row, quote, table) — the missing verified-at is entry-global, reflected in findings and the exit. Yes, honest.
+
+  But wait — should I even be modifying check()? My assignment: the self-test arm. But the self-test's mandate is "break each conjunct" — and three conjuncts currently don't break the verdict. If I ship a self-test asserting those worlds stay below TOTAL, my draft must ALSO carry the minimal check-path fix, else the draft is self-inconsistent (self-test fails against its own counter). Alternatives: assert only "findings non-empty" for those three worlds (passes against current check) — but then the self-test does NOT pin that the conjunct gates the EXIT — a dishonest gate: the counter would exit 0 on a no-verified-at world. The task says "drive the public main()/check path on ... broken world per conjunct" — the point is each conjunct KILLS the verdict. The r67 lesson is exactly about exit-code honesty. I'll implement Fix A (minimal, in check()) and pin all three worlds via public main() exit==1 + printed line `client trust gates backed 4 of 5` (for single-client breaks) or `... 0 of 5` (for global breaks if I chose return-0)... 
+
+  Decision on the cap value: For "no verified-at"/"no recheck"/"no coverage-map row" (entry-global apparatus breaks), what N? I'll go with: any findings → the verdict is not fully backed, and to keep printed-N == exit-consistency, cap at TOTAL-1... Hmm, hold on, let me think about which is MORE defensible to a reviewer: 
+
+  Option 1: `if findings: return min(backed, TOTAL-1), findings` — no-verified-at world prints "4 of 5". But NOTHING failed per-client! Claiming 4-of-5 when all 5 clients are individually backed is arguably LESS honest than 5-of-5+exit-1 or 0-of-5. Ugh.
+
+  Option 2: global apparatus failure → `return 0, findings` — "0 of 5, exit 1". Defensible: the claim is "the entry documents, sourced, verified, indexed" — verified-at and the coverage row are part of the grounding; without them the entry is not grounded → 0 backed. And it matches the base-control shape (0 of 5, exit 1). The findings list says exactly what's missing. I find Option 2 cleaner and easier to defend: apparatus conjuncts are conjuncts of the WHOLE verdict.
+
+  Hmm, but is "0 of 5" for a missing coverage row misleading (the per-client documentary content is all there)? The findings lines printed under it explain. The frozen base control is "0 of 5 exit 1" — same shape. OK going with Option 2 but ONLY when backed == TOTAL would otherwise be reported (i.e., only apparatus breaks): if backed < TOTAL already, keep backed (per-client signal) — no wait, that's inconsistent... Let me simplify:
+
+  ```python
+  if findings:
+      return (0 if backed == TOTAL else backed), findings
+  return backed, []
+  ```
+  Hmm, that's convoluted. Honest simple rule: "the verdict is fully backed only if every conjunct holds; the printed count carries per-client signal, capped at TOTAL-1 when any conjunct fails" vs "0". 
+
+  You know what — let me look at it from the SCORECARD/predicate angle once more. The claim closure line will be "client trust gates backed 5 of 5" exit 0. Partial worlds: any N<5 exit 1. Both options satisfy this. The mutation battery (wave 2 falsifiers) will attack: does each conjunct kill? The simplest defensible invariant to pin in the self-test: **any conjunct break → exit != 0 AND printed N < 5**. Both options satisfy it. I'll pick the cap-at-TOTAL-1 rule: `return min(backed, TOTAL - 1), findings` — no...
+
+  FINAL decision: Option 2 — apparatus/global conjunct failure → 0 backed. Rationale I can defend in one sentence: verified-at, recheck, and the coverage row are conjuncts of the entry's grounding as a whole; when the grounding apparatus fails, nothing is "backed" — mirrors the base control exactly (0 of 5, exit 1) and keeps the printed line a function of the verdict. Actually hmm, one more consideration — per-client breaks give n=4, exit 1 ("4 of 5"): fine, per-client signal preserved. Global breaks n=0. The self-test pins exact Ns: entry-missing→0, no-source-line→0, id-no-resolve→4, not-mined→4, source-cell→4, no-verified-at→0, no-recheck→0, no-coverage-row→0, quote-anchor→4, client-name→4. That's a precise, information-preserving, honest matrix. 
+
+  Wait — "client name absent from the table": the named world is "one client row's client name absent from the table". In check(): table_row[0] empty → finding, continue → 4 backed. So mutate the honest entry's table row for one client: `| | quote | S198 |` (empty client cell). backed → 4. ✓.
+
+  Now, the check() code changes needed vs the installed version:
+  1. Global conjunct gating: replace the tail
+  ```python
+  if findings:
+      return backed, findings
+  return backed, []
+  ```
+  with
+  ```python
+  if findings:
+      # Apparatus conjuncts (verified-at / recheck / coverage row) are conjuncts
+      # of the whole verdict: when the grounding apparatus fails, nothing is
+      # fully backed — the same shape as the base control (0 of 5, exit 1).
+      return (0 if backed == TOTAL else backed), findings
+  return backed, []
+  ```
+  That keeps per-client counts when they're already < TOTAL (no behavior change there) and zeroes only would-be-full worlds with apparatus breaks. Minimal delta, honest.
+
+  Hmm wait, actually — simpler and cleaner: since `if findings: return backed, findings` only differs when backed==TOTAL... yes the conditional is exactly that. Good.
+
+  2. Also — `main()` exit: `return 0 if n == TOTAL else 1` — with the gating above, n==TOTAL implies no findings. Keep as-is. ✓.
+
+  3. Duplicate-id and id-count findings: `len(ids) != TOTAL` → finding, and loop over ids — if 4 ids all back → backed=4, findings → exit 1. ✓ good. But what if the entry names 6 ids (extra source line)? backed could be 6 > TOTAL → "backed 6 of 5", exit 0!! Gate hole: `n == TOTAL` with n=6 → exit 0, prints "6 of 5". Ha! Edge: an entry with a SIXTH resolvable source line would print "6 of 5" and exit 0. Not in my named worlds, but the honest-world count assertion `backed == TOTAL` and honesty of the printed line ("N of 5" with N≤5) suggest capping or rejecting ids > TOTAL. The installed counter has this hole. Is it in scope? My self-test's honest world asserts `n == 5`; a mutant world "extra id" isn't required by the spec... but the spec says "ONE broken world per conjunct" — conjunct 2 is "it opens with source: lines naming the five S### ids" — a world with only four ids or six ids breaks that conjunct. The named break is "no source line". I could add... no — keep to the named list (scope discipline), but fix the count hole cheaply since it's a one-line guard: `if len(ids) != TOTAL: findings.append(...); ids = ids[:TOTAL]`? Hmm — simpler: after the loop, `backed = min(backed, TOTAL)`. Wait but then a 6-id world prints "5 of 5" + finding → exit 1 via gating (findings nonempty → since backed==TOTAL → return 0? my rule: `0 if backed == TOTAL else backed` → returns 0!). "0 of 5" + finding "names 6 ids" + exit 1. Honest? The entry names 6 ids — expected 5 — content verdict: not the declared shape → 0 of 5. Hmm, that's aggressive but defensible and simple: backed==TOTAL & findings → 0. That's ALREADY my rule! So I just need `backed = min(backed, TOTAL)` before the return to keep the printed N ≤ 5. One line. I'll add it with a comment. And pin it? Not a named world — I'll skip pinning to keep the matrix exactly at the named list; the guard is disclosed in the report. Actually — cheap to pin, and "9 broken worlds" says I may not ADD worlds? "must drive ... on ONE honest world and on ONE broken world per conjunct (9 broken worlds: …)" — "must" is a floor; adding an extra mutant would violate "ONE broken world per conjunct" letter... The named list IS the contract; I'll implement exactly the named 10 (covering all 8 conjuncts + both sub-breaks of conjuncts 3/5/7... whatever) and NOT add extra mutants. Scope discipline. The min-cap guard stays as hardening, disclosed.
+
+  Hmm, wait — actually let me recount the conjunct→world mapping to present in the report:
+
+  Conjuncts (from the counter docstring):
+  1. entry exists → W1 entry missing
+  2. source: lines naming the five S### ids → W2 no source line
+  3. every cited id resolves to a SOURCES row with status mined → W3 id does not resolve, W4 row not mined
+  4. row's source cell verbatim in the entry's source line → W5
+  5. verified-at + recheck lines → W6 no verified-at, W7 no recheck
+  6. located quote (≤25 words, double-quoted) occurs in the row's anchor cell → W9 quote absent from anchor
+  7. per-client table row: client cell filled, quoted cell carries the quote → W10 client name absent
+  8. coverage-map index row in README → W8 no coverage-map row
+
+  10 worlds, 8 conjuncts (conjuncts 3, 5, 7 get two breaks). The spec's "9" is just off-by-one vs its own list; I cover the full list.
+
+  Now the honest world fixtures. Mirror the real landed shapes. I need to read the real entry to copy its exact structure (source: line format, table format, verified-at/recheck lines) and the real new SOURCES rows to know column semantics. Let me read the entry now, plus grep the five new rows in SOURCES.md, plus the README row.
+
+  Then the draft self-test builds:
+  - `entry`: mimics the real one's structure with 5 synthetic clients (C1A..C1E? no — S701..S705, synthetic ids that can't collide with the real registry; urls https://example.invalid/... — never fetched in self-test).
+  - `sources`: real header line + separator + 5 rows in the real 11-column order: id | source | kind | tier | scope | anchor | teaches | status | opened | recheck | used-by. cells: [0]=id, [1]=source (contains URL), [5]=anchor (contains the quote), [7]=status='mined'.
+
+  Wait, verify indices against the real row: `| S001 | Agent Skills — Specification — https://... | spec | A | SKILL.md frontmatter... | § Skill metadata...; live page opened... | Name is 1-64... | mined | 2026-10-19 | on-release | corpus/lessons/round-46.md |` → cells: 0 id, 1 source, 2 kind, 3 tier, 4 scope, 5 anchor, 6 teaches, 7 status, 8 opened, 9 recheck, 10 used-by. ✓ matches counter's row[7] status, row[1] source, row[5] anchor.
+
+  - `readme`: a coverage-map-like table with a row whose cell[1] == `` `knowledge/client-trust-gates-round68.md` ``.
+
+  Then mutations:
+  - W1: drop entry file.
+  - W2: strip all `source:` lines from entry.
+  - W3: rename S701→S901 in entry (id doesn't resolve).
+  - W4: first row `| mined |` → `| queued |`.
+  - W5: change entry's source line for S701 so the row's source cell text is absent (e.g., drop the "Name — " prefix from the entry's source line so the full source cell string no longer occurs in it). NOTE check uses `row[1] in src_lines[sid]` — substring. The row's source cell is `VTX — Skills Guide — https://example.invalid/vtx/skills` — the entry's source line rest must CONTAIN that whole string. Breaking: remove the URL from the entry's source line → row[1] (which contains URL) not substring → fail. ✓
+  - W6: `verified-at: 2026-10-24` → `verified-at: 2020-01-01`.
+  - W7: `recheck: 90d — ...` → `note: ...` (line no longer starts with recheck:).
+  - W8: README row's `` `knowledge/client-trust-gates-round68.md` `` → `` `knowledge/absent.md` ``.
+  - W9: change the row's anchor cell so it no longer contains the quoted sentence.
+  - W10: entry table row: client cell emptied.
+
+  Expected N per world: W1→0, W2→0, W3→4, W4→4, W5→4, W6→0, W7→0, W8→0, W9→4, W10→4.
+
+  Assertions:
+  - honest world via `check()`: (5, []).
+  - honest world via public `main(["--repo", world])` with captured stdout: exit 0, line `client trust gates backed 5 of 5`.
+  - each broken world via `check()`: n == expected, findings nonempty.
+  - each broken world ALSO via public main()? "drive the public main()/check path" — main()/check — either. Driving main for all 10 gives exit-code proof per world (13→ many assertions, fine). But main prints; capture with redirect_stdout. For W1 (entry missing): main → check returns (0, [finding]) → prints `client trust gates backed 0 of 5`, exit 1, NO "environment error" → this IS classification pin (a). So W1 driven via main covers both the broken-world matrix and pin (a) — but the spec lists pin (a) as its own assertion; I'll drive W1 via main once for the matrix and once as the classification pin (a) with the extra no-environment-error assertion. Assertions: honest check (1) + honest main (2: exit+line) + 10 worlds × (check: n==expected & findings nonempty = 2 assertions; main: exit==1 = 1) = 30 + pin(a) main line-assert + no-env-err assert (2) + pin(b) (2: exit==2 + "environment error" in stderr) → total ≈ 37 assertions. Plus maybe a "selftest sanity" assertion? Keep it lean.
+
+  Also pin (b): unknown revision — hermetic: create a fixture GIT repo (init in tempfile, one commit? not even needed — `git show` of any rev fails in an empty repo; but `git init` requires git present — the lane uses git heavily, fine). Drive `main(["--rev", "e94ae32a5cd8dc3ee8e2d247816784bec2750cc0"[:40]... — use a syntactically-valid-but-unknown sha like "f"*40, "--repo", str(fixture_repo)])` with redirect of stdout AND stderr → exit 2, "environment error" in output. In an empty repo even a real-looking sha is unknown. ✓ hermetic, no lane reads.
+
+  Wait — one wrinkle: `_materialize` runs `git -C repo show rev:path`; in an empty repo, git errors rc!=0 → None → EnvError("cannot read corpus/... at ...") → main catches EnvError → prints `environment error: cannot read ...` to stderr → return 2. ✓. Capture stderr via redirect_stderr (careful: argparse errors also go to stderr and SystemExit; our call is well-formed).
+
+  Also the `--fetch` arm: NOT part of my spec (self-test must not hit the network; "stdlib only; tempfile scratch worlds" — no fetch in self-test). ✓ skip; the live-pages measurement is the L1's separate run.
+
+  Now the `--repo` default: `Path(__file__).resolve().parent.parent` works when installed at `verifiers/`. From drafts (`.ufo/waves/round-68/w1/drafts/`) parent.parent = `w1` — wrong. House-compatible default: walk up from the script dir looking for `corpus/SOURCES.md`; first hit wins; else `Path.cwd()`. When installed at verifiers/: parent=lane root has corpus/SOURCES.md → lane root. From drafts: walks up to lane root. ✓ works in both positions. The self-test itself doesn't need the repo (hermetic), but main()'s non-self-test paths use it; keep the default robust. Hmm — actually the frozen predicate runs `python3 -B verifiers/check_client_trust_gates.py --rev <rev>` from the lane root with default repo → lane root via walk-up. ✓
+
+  Now, one more thing to verify: does the INSTALLED counter pass against the real tree right now (honest world = working tree)? Let me run it (read-only) to see the current state — useful for the report: `python3 -B verifiers/check_client_trust_gates.py` at the lane root. Also read the real entry + the five new SOURCES rows to make sure my synthetic fixtures mirror the real shapes (so that if the L1 swaps in my draft wholesale, the self-test still pins the same semantics the real content exercises).
+
+  Also check: is the working tree honest NOW (does the counter print 5 of 5)? If yes, my draft, when installed, must also print 5 of 5 on the real tree — I'll verify my draft's check() against the real tree as an EXTRA verification (not part of self-test; a manual run in my session; read-only).
+
+  Careful with one thing: my draft's check() change (apparatus gating) — against the real honest tree, findings empty → returns (5, []) → same result. ✓ no regression.
+
+  Also `_world()` in my draft: build from SYNTHETIC strings (not from the tree) — fully hermetic. tempfile.TemporaryDirectory per world (context-managed). Never touches the lane tree. git only in the pin-(b) scratch repo.
+
+  Let me also double check the QUOTED_RE: `"([^"\n]{1,300})"` — quotes can't span lines; ≤25 words enforced in _quoted. My fixture quotes: keep each on one line, ≤25 words, and the anchor cell contains the sentence verbatim (after whitespace normalization — anchor cell text must contain the quote as substring after `_norm` both sides: `q_norm in anchor_norm`). In the entry, the quote appears inside the per-client table cell wrapped in double quotes: `"Quote sentence." | S701 |`. And in the anchor cell (SOURCES row), the same sentence WITHOUT quotes (anchor is prose containing the sentence). `_quoted(_norm(entry))` — note _quoted is applied to the NORMALIZED entry — fine, quotes still delimited by `"` chars which _norm preserves.
+
+  Also the table row in the entry must contain sid — `any(c.strip() == sid for c in cells)` — my table rows: `| VTX CLI | "Quote." | S701 |` → cells [VTX CLI, "Quote.", S701]. table_row[0]='VTX CLI' nonempty ✓; quote in _norm(" ".join(cells)) ✓.
+
+  And README index: `_indexed` looks for cells[1].strip() == "`knowledge/client-trust-gates-round68.md`" in lines starting with `|`. My fixture readme row: `| Client trust gates | \`knowledge/client-trust-gates-round68.md\` | round 68 |` → cells[1] matches. ✓
+
+  Entry source lines: `source: S701 — VTX — Skills Guide — https://example.invalid/vtx/skills` — SOURCE_LINE_RE: `^source:\s*(S\d{3,})\s*(.*)$` → id=S701, rest=`— VTX — Skills Guide — https://example.invalid/vtx/skills`. Row[1] = `VTX — Skills Guide — https://example.invalid/vtx/skills`. Is row[1] a substring of the rest? rest has `— VTX — Skills...` — contains `VTX — Skills Guide — https://example.invalid/vtx/skills` ✓ (the leading `— ` doesn't matter, substring). ✓ mirrors the real entry's shape presumably (let me confirm with the real entry read).
+
+  W5 break: entry source line for S701 → `source: S701 — VTX skills guide (url omitted on purpose)` — then row[1] (with URL) not substring ✓.
+
+  Wait, careful with W3 ("id does not resolve"): replace S701 with S901 in the ENTRY only (source line + table cell). check: ids include S901; rows has no S901 → finding, 4 backed. But ALSO the table row lookup for S901... irrelevant, continue happens at rows.get. ✓ n=4.
+
+  W4: sources row1 `| mined |` → `| queued |`: row[7]='queued' → finding → 4 backed ✓. My sources string: rows joined with \n; replace first occurrence of `| mined |` — my fixture rows have status at cell 7: `... | mined | 2026-10-24 | 90d | scratch |`. The literal `| mined |` appears exactly once per row; replace only first (count=1). ✓
+
+  W9: anchor cell of S703's row (or S701) — replace the quoted sentence within the anchor cell with other text. I'll build sources rows programmatically so I can mutate cleanly.
+
+  W10: entry table row for S705: `| MST App | "..." | S705 |` → `| | "..." | S705 |` — wait `| | ...` — _split_row on line[1:]: `|  | "..." | S705 |` hmm. Line = `| | "Quote." | S705 |`. line.startswith('|') ✓; line[1:] = ` | "Quote." | S705 |`; split('|') → [' ', ' "Quote." ', ' S705 ', ' '] → first '' → dropped... wait cells[0].strip()=='' → pop → [' "Quote." ', ' S705 ', ' '] → last '' popped → ['"Quote."', 'S705'] → 2 cells → table_row found (contains S705) → len<3 → finding "the per-client table row has no client cell"... hmm wait the finding message says len<3 or not table_row[0] — table_row[0]='"Quote."' nonempty, len==2 <3 → finding ✓ n=4.
+
+  Hmm — but hold on: for W10, does check find the table row via sid? `any(c.strip() == sid for c in cells)` — S705 present ✓. Good — n=4, findings nonempty ✓.
+
+  And W2 (no source line): strip lines starting with `source:` → src_lines empty → return (0, finding) ✓. But careful: verified-at/recheck lines still there; early return (0,...) — findings only the one. n=0 ✓.
+
+  W6: verified-at wrong → after loop, findings has the verified-at finding; backed=5 → gated → return (0, findings) with my fix. n=0 ✓.
+  W7: same → 0 ✓. W8: → 0 ✓.
+
+  Now — assertions via main for each broken world: capture stdout, assert exit==1 and `client trust gates backed {n} of 5` in stdout. For n worlds via main: W1: exit 1, line `0 of 5`, and "environment error" NOT in output. 
+
+  Also assert that the broken-world main outputs contain the `- ` findings lines? Over-testing; skip.
+
+  Edge: driving main() in-process — main signature `main(argv: list[str] | None = None) -> int`. With `--repo` arg. My draft's main must accept `--repo` (installed one does). Keep `--fetch`, `--rev`, `--self-test`. The selftest needs repo only for... nothing (hermetic). But main() computes `repo = Path(args.repo)` and selftest(repo) — the r66 pattern ignores rev+repo in self-test; if repo default fails to resolve (no corpus found), don't crash the self-test: default fallback = cwd, and selftest never uses it. ✓ robust.
+
+  Also `python3 -B` — no bytecode; fine.
+
+  Stdlib only: argparse, re, subprocess, sys, tempfile, contextlib, io, pathlib, urllib (kept for --fetch). ✓
+
+  Now write the full draft file. Structure:
+
+  - Same module docstring (updated: self-test section described; apparatus-gating note; delta note vs installed counter? The draft is meant to REPLACE the installed counter — the L1 diffs. I'll keep the docstring faithful and add a "Self-test" paragraph).
+  - check() with the two hardening/gating changes:
+    1. `backed = min(backed, TOTAL)` before gating (printed N never exceeds 5).
+    2. Apparatus gating: `if findings: return (0 if backed == TOTAL else backed), findings`.
+
+    Hmm wait — with min-cap, a 6-id honest-ish world: backed=6→cap 5; findings has "names 6 ids" → gated → 0 of 5, exit 1 ✓.
+    
+    Let me re-express gating cleanly:
+
+  ```python
+      if findings:
+          # Any conjunct failure must gate the verdict below TOTAL.  Per-client
+          # breaks keep their count (signal for which clients lack ground);
+          # a fully-backed count with apparatus findings (verified-at / recheck /
+          # coverage row) is the grounding failing as a whole -> 0, the same
+          # shape as the base control.
+          return (0 if backed >= TOTAL else backed), findings
+      return backed, []
+  ```
+  With min-cap applied before. Actually just `return (0 if backed == TOTAL else backed), findings` after `backed = min(backed, TOTAL)`.
+
+  - fetch() unchanged.
+  - _world() → hermetic builder `_world(entry=..., sources=..., readme=..., drop_entry=False)`: tempfile.TemporaryDirectory context; writes the given strings at the lane-relative paths. Returns root path. Use as context manager? Simplest: a helper `_write_world(...)` returning a TemporaryDirectory object the caller holds open; worlds dict holds them. I'll structure selftest with a `with tempfile.TemporaryDirectory(prefix="k68-selftest-") as scratch:` and build each world as a subdirectory inside scratch — one scratch root, ten world subdirs. Cleaner than ten TemporaryDirectory contexts. "use tempfile scratch worlds" ✓.
+
+  - honest fixtures: build via f-strings:
+
+  ```python
+  CLIENTS = [
+      ("S701", "VTX CLI", "VTX — Skills Guide — https://docs.vtx.example/skills",
+       "Skill bodies load as untrusted data; the host keeps tool policy authority."),
+      ...
+  ]
+  ```
+  Quote sentence ≤ 25 words each, distinct per client. Anchor cell: `§ Loading; live page opened 2026-10-24. <SENTENCE> Also more prose.` — sentence must occur verbatim post-norm. I'll put the sentence in the anchor cell and in the entry's table cell (quoted) — identical string.
+
+  Entry text:
+
+  ```
+  # Client trust gates (round 68)
+
+  source: S701 — VTX — Skills Guide — https://docs.vtx.example/skills
+  ...
+  verified-at: 2026-10-24
+  recheck: 90d — re-open each cited page and re-locate the quotes
+
+  | client | what the client documents about an untrusted skill body | source id |
+  |---|---|---|
+  | VTX CLI | "Skill bodies load as untrusted data; the host keeps tool policy authority." | S701 |
+  ...
+
+  Per-client table etc.
+  ```
+
+  Careful: the header separator row `|---|---|---|` — _table_rows skips separator rows ✓. Also the entry must NOT have any other double-quoted ≤25-word strings that could accidentally match another row's anchor — keep quotes unique per client; each client's matched quote is `matched[0]` — the FIRST entry quote occurring in that anchor. Unique sentences → deterministic ✓. Also the table check uses matched[0]'s norm — the same sentence — present in that table row ✓.
+
+  Also careful: the word count ≤25 — count words of the sentence; keep ~12 words.
+
+  sources fixture:
+
+  ```
+  # SOURCES — scratch world (self-test fixture)
+
+  ## Registry
+
+  | id | source | kind | tier | scope | anchor | teaches | status | opened | recheck | used-by |
+  |---|---|---|---|---|---|---|---|---|---|---|
+  | S701 | VTX — Skills Guide — https://docs.vtx.example/skills | docs | A | untrusted-body handling | § Untrusted bodies; live page opened 2026-10-24. Skill bodies load as untrusted data; the host keeps tool policy authority. | the trust boundary for skill bodies | mined | 2026-10-24 | 90d | corpus/knowledge/client-trust-gates-round68.md |
+  ...
+  ```
+
+  readme fixture:
+
+  ```
+  # corpus
+
+  ## Coverage map
+
+  | topic | path | notes |
+  |---|---|---|
+  | Client trust gates (round 68) | `knowledge/client-trust-gates-round68.md` | five clients, sourced |
+  ```
+
+  Careful: the row regex for SOURCES requires exactly 11 cells; anchor cell contains `;` and periods fine; NO `|` inside cells ✓.
+
+  Careful #2: `_source_rows` requires `re.fullmatch(r"S\d{3,}", cells[0])` — S701 ✓.
+
+  Careful #3: entry source-line URL vs row[1] substring — I'll make entry's rest-of-line EXACTLY `— ` + row source cell? For W5 I need a clean break: entry line `source: S701 — VTX — Skills Guide (url omitted)` → row[1] contains URL → not substring ✓.
+
+  Wait, actually there's a subtlety in W5's name: "row source cell absent from the entry's source line" — my break removes the URL from the ENTRY's line → row's source cell no longer occurs in it ✓ exactly the named break.
+
+  Careful #4: W2 removes ALL source: lines — but keep `verified-at`/`recheck` lines (early return anyway).
+
+  Careful #5: W3 replace "S701" → "S901" in entry: hits source line AND table row cell. Both fine.
+
+  Now for pin (b): scratch git repo:
+
+  ```python
+  with tempfile.TemporaryDirectory() as gtmp:
+      grepo = Path(gtmp)
+      subprocess.run(["git", "-C", str(grepo), "init", "-q"], capture_output=True)
+      unknown = "f" * 40
+      out, err capture: run main(["--rev", unknown, "--repo", str(grepo)])
+      assert exit == 2 and "environment error" in (stdout+stderr)
+  ```
+
+  `git init -q` in empty dir → repo with no commits. `git show ffff…:corpus/...` → fatal rc 128 → EnvError → exit 2 ✓. If git were missing → subprocess FileNotFoundError — not caught by EnvError → crash. The lane requires git; acceptable (r66 same). Actually, to be safe, catch OSError in _git_show? The installed one doesn't. Leave it.
+
+  Driving main with both streams captured: `contextlib.redirect_stdout(io.StringIO())` + `redirect_stderr(...)` nested.
+
+  One more check on main's fetch path: `if args.rev: with tempfile.TemporaryDirectory...` — for pin (b) we pass --rev without --fetch ✓.
+
+  Also: `--self-test` combined with `--rev`: r66 errors. The installed r68 ignores. I'll mirror r66: `if args.rev: ap.error(...)`? ap.error exits SystemExit(2) with usage — inside selftest branch. Fine to include. Hmm, keep it simple: mirror r66's guard. But careful: ap.error raises SystemExit — in main() called in-process during... only from CLI/selftest call site in main itself — no recursion issue.
+
+  Selftest must NOT need the real tree: add a sanity guard — none needed since hermetic. But to be non-vacuous-proof: assert honest world count == 5 (that's the honest assertion) ✓ and each broken world STRICTLY below 5 with exact expected count ✓.
+
+  Output: per-assertion PASS/FAIL lines like r66? r66 prints only FAIL lines + final summary. The installed r68 prints PASS lines. House style r66: print FAIL only. But the installed counter printed PASS per world... For an executor draft, printing one line per world aids the receipt; but the required output line is `self-test: N failure(s) over M assertions`. I'll print FAIL lines (to stdout — r66 prints FAIL to stdout; installed prints to stderr; pick stdout like r66, hmm — actually failures on stdout, summary on stdout). Keep: FAIL lines printed, PASS silent, final summary line always. Match r66 (the newer routed-repairs house pattern).
+
+  Also I should count assertions exactly: I'll use the r66 `check(label, got, want)` helper pattern with a counter — M = number of check() calls. Honest:
+
+  - control/honest-check-count ==5, control/honest-check-clean ([] findings) → 2
+  - main/honest-exit ==0, main/honest-line → 2
+  - per world (10): check-count == expected (1), check-findings nonempty (1), main-exit ==1 (1) → 30
+  - classification (a): driven on W1 world again via main: line == "client trust gates backed 0 of 5" (1), "environment error" absent (1) → 2
+  - classification (b): exit==2 (1), "environment error" in stderr (1) → 2
+
+  Total M = 2+2+30+2+2 = 38 assertions.
+
+  Wait — for the 10 broken worlds' main-exit: W1's main-run IS the same drive as classification (a) — I'll just run main once per world and reuse its captured output for both the matrix assertion and (for W1) the classification assertions. main-exit==1 for W1 = same run. So W1's classification asserts reuse that run — still 2 extra assertions. Fine.
+
+  Hmm, also should each broken world main-run assert the printed line `client trust gates backed {expected} of 5`? That doubles assurance that printed N matches check N. Add it: per world (1) → +10 → M=48. Worth it — the printed line IS the frozen predicate surface. Yes, include.
+
+  Let me also keep the `--repo` walk-up default and keep `--fetch`.
+
+  One more design point — should selftest also verify `python3 -B` compatibility? No.
+
+  Also: never mutate the lane tree — selftest writes ONLY under its scratch TemporaryDirectory; git init in scratch. ✓ No reads of the lane tree at all in selftest (fully hermetic). This differs from the installed selftest which READS the tree and requires the entry present (returns 2 if absent — an environment dependency). Hermetic is strictly better and satisfies "use tempfile scratch worlds".
+
+  Now — will the L1's frozen predicate `--rev <rev>` run with my draft's check() changes still yield 5 of 5 on the landing rev? The real landed entry must produce zero findings — it presumably already does for the installed counter (assuming L1 ran it). My changes only alter worlds with findings. ✓ But I MUST verify my draft against the real tree: run `python3 -B drafts/check_client_trust_gates.py --repo <lane>` (no --rev → checks worktree) and confirm `5 of 5` exit 0. And `--self-test` → exit 0. And base control: `--rev e94ae32a...` → `0 of 5` exit 1 (the entry didn't exist at base — missing entry → 0 of 5 exit 1 ✓ good, also verifies _materialize works).
+
+  Also run `--rev` on base to confirm exit 1 (predicate's second conjunct).
+
+  Plan of action now:
+  1. Read the real entry file (to mirror shapes + confirm my fixture shapes match reality).
+  2. Grep the real new SOURCES rows (S198 etc.) for schema sanity (already know from S001).
+  3. Write the draft file.
+  4. Run: self-test; worktree check (expect 5 of 5 exit 0); base-rev check (expect 0 of 5 exit 1); unknown-rev on lane (expect exit 2) — read-only git show. All read-only ✓.
+  5. Report to `.ufo/waves/round-68/w1/ExecC1CounterTest.md` (writing seat → allowed; report path is lane-relative → absolute under lane). Wait — "Report: write your scoped findings to .ufo/waves/round-68/w1/ExecC1CounterTest.md" — that's outside `drafts/` but inside `.ufo/waves/round-68/` — my write scope is "ONLY under `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/`" — w1/ExecC1CounterTest.md is under it ✓. And drafts under `.ufo/waves/round-68/w1/drafts/` ✓.
+
+  Also: the task says report trailer path relative to lane root. ✓
+
+  My probe seat: "leaf member — no subagent dispatch except your single labrat" — I'm NOT seated as probeParent (no explicit probe seating in this assignment — the system prompt says probe seat only when explicitly seated as probeParent). The lane bound says "no subagent dispatch except your single labrat" — ambiguous whether a labrat is warranted. The task is self-contained (write + verify a script). A labrat probe is optional; godspeed says iterate cheap — but spawning a labrat to... what falsifiable hypothesis? E.g., "the draft's self-test kills each conjunct on a mutated copy of the REAL landed entry" — a second-opinion empirical check. Hmm. The mission is precise; I can verify directly. Skip the labrat (no explicit probeParent seating; zero descendants is the default for every other executor seat). Good.
+
+  Let me now read the real entry + grep rows, then write the draft.
+
+• Plan read. Counter contract understood. The installed `verifiers/check_client_trust_gates.py` has a self-test that breaks the *real tree* with hardcoded content strings, never drives `main()`, and never pins the exit-code classification — my draft replaces that arm with a hermetic (tempfile-only) one. Reading the landed shapes to mirror them, then writing.139:| S198 | VT Code — SKILLS_GUIDE.md — https://raw.githubusercontent.com/vinhnx/vtcode/main/docs/skills/SKILLS_GUIDE.md | docs | B | VT Code's own documented activation envelope and its untrusted-content posture; one client's implementation, no claim about any other client | the "Activation Context" section; quote "Skill content is untrusted resource data; host tool and sandbox policy remains au
+140:| S199 | Parallel Works — pw code skills — https://parallelworks.com/docs/ai/code/skills | docs | B | Parallel Works' own two-gate trust model for project skills; one client's implementation, no claim about any other client | the "Trust" section; quote "Project skills are repository-controlled instructions, so they clear two independent gates." (12 words) | a project skill clears a workspace-l
+141:| S200 | Kilo Code — Skills — https://kilo.ai/docs/customize/skills | docs | B | Kilo Code's own trusted-location rule for skill-embedded commands; one client's implementation, no claim about any other client | the "Shell commands in skills" section; quote "Project skills (.kilo/skills/ in a repository) and skills fetched from remote URLs never execute commands" (16 words) | commands embedded 
+142:| S201 | Microsoft Agent Framework — Agent Skills — https://learn.microsoft.com/en-us/agent-framework/agents/skills | docs | B | Microsoft's own approval default and review guidance for Agent Framework skills; one implementation, and the English upstream of the page the lane holds in Japanese | the "Security best practices" subsection; quote "Agent Skills should be treated like any third-party
+143:| S202 | Mistral AI Vibe — README — https://raw.githubusercontent.com/mistralai/mistral-vibe/main/README.md | docs | B | Mistral AI Vibe's own skill discovery and trusted-folder model; one client's implementation, no claim about any other client | the "Skill Discovery" section; quote "Standard Agent Skills path (project root, trusted folders only)" (9 words) | a project skill is discovered onl
+---
+128:| Client trust gates (round 68) | `knowledge/client-trust-gates-round68.md` | the other half of the skill-authority boundary: what five clients document about an UNTRUSTED skill body — VT Code subordinating the body to the host's own tool and sandbox policy (S198), Parallel Works' two independen
+
+
+• The landed shapes are confirmed. My synthetic fixtures will mirror:
+  - entry: 5 `source:` lines `source: S### — Name — Title — URL — section — located quote "..."`, `verified-at: 2026-10-24`, `recheck: 90d — ...`, per-client table `| client | gate | "quote" | S### |`.
+  - SOURCES row: 11 cols, anchor cell (idx 5) contains `the "Section" section; quote "..."` — note: the anchor cell contains the quote in DOUBLE QUOTES inside the anchor cell! `the "Activation Context" section; quote "Skill content is untrusted..."`. And `check()` matches `_norm(q) in anchor` where q is an entry quote — the anchor contains the sentence ✓.
+  - README row: `| Client trust gates (round 68) | \`knowledge/client-trust-gates-round68.md\` | notes |`.
+
+  Important detail — the entry's located quotes: the SOURCE: lines themselves contain `located quote "..."` — the quoted sentences in source lines are also picked up by `_quoted(_norm(entry))` — fine, same sentences.
+
+  Now write the draft. Key deltas vs the installed verifiers/ version (to disclose):
+  1. `check()`: verdict gating — `backed = min(backed, TOTAL)`; findings gate a would-be-full verdict to 0 (apparatus conjuncts verified-at/recheck/coverage-row are conjuncts of the whole verdict; same shape as the base control). This closes the hole where "no verified-at" printed `5 of 5` and exited 0.
+  2. `selftest()`: fully hermetic — synthesizes the honest world and all 10 broken worlds in one `tempfile` scratch root, drives the public `main()` for exit codes + printed lines, pins classification (a) missing-entry → exit 1 + `client trust gates backed 0 of 5` + no `environment error`, (b) unknown rev in a scratch git repo → exit 2 + `environment error`. No reads of the lane tree, no hardcoded lane content strings, no network.
+  3. `--repo` default: walk up to the first ancestor holding `corpus/SOURCES.md` (works installed at `verifiers/` and drafted at `.ufo/waves/round-68/w1/drafts/`), fallback cwd.
+  4. `--self-test` refuses `--rev` (r66 house pattern).
+
+  Assertion matrix (M):
+  - honest: check()==(5,[]) → 2 asserts; main exit 0 + line `5 of 5` → 2 asserts = 4
+  - 10 worlds × (check n == expected; findings nonempty; main exit 1; main line `client trust gates backed {n} of 5`) = 40
+  - classification (a) (on the entry-missing world's main run): line exact `client trust gates backed 0 of 5`; `environment error` absent → 2
+  - classification (b): exit 2; `environment error` in stderr → 2
+  Total M = 48.
+
+  Expected n per world:
+  - entry missing: 0
+  - no source line: 0
+  - id does not resolve: 4
+  - row not mined: 4
+  - row source cell absent: 4
+  - no verified-at: 0
+  - no recheck: 0
+  - no coverage-map row: 0
+  - quote absent from anchor: 4
+  - client name absent: 4
+
+  Careful with world mutation implementations (synthetic strings):
+
+  Honest entry (synthetic, mirroring landed shape):
+
+  ```python
+  def _honest_entry():
+      lines = []
+      for sid, client, source_cell, quote in CLIENTS:
+          lines.append(f"source: {sid} — {client} — guide — {source_cell}")
+      ...
+  ```
+
+  Hmm — wait: source line rest must CONTAIN row[1] (source cell) as substring. Landed shape: `source: S198 — VT Code — SKILLS_GUIDE.md — https://raw...` and row[1] = `VT Code — SKILLS_GUIDE.md — https://raw...`. So rest = `— ` + client + ` — ` + source_cell? Landed: rest after id = ` — VT Code — SKILLS_GUIDE.md — https://...` — and row[1] is exactly the tail from `VT Code`. So entry line = `source: {sid} — {source_cell}` where source_cell = `VT Code — SKILLS_GUIDE.md — https://...`. Simplest: make entry source line `source: {sid} — {source_cell}` → rest contains source_cell ✓ (substring starting after `— `). I'll add a section marker after: `source: {sid} — {source_cell} — the "Gates" section` — still contains source_cell ✓. For W5, replace `{sid} — {source_cell}` with `{sid} — {client} guide (url omitted)` → source_cell absent ✓.
+
+  Keep fixtures simple and readable:
+
+  ```python
+  CLIENTS = (
+      ("S701", "Alpha CLI", "Alpha CLI — Skills Guide — https://docs.alpha.example/skills-guide",
+       "Skill bodies load as untrusted data and host tool policy stays authoritative."),
+      ("S702", "Beta Works", "Beta Works — pw skills — https://docs.beta.example/code/skills",
+       "Project skills clear two independent trust gates before any instruction runs."),
+      ("S703", "Gamma Code", "Gamma Code — Skills — https://docs.gamma.example/customize/skills",
+       "Commands embedded in untrusted skill bodies never execute without explicit approval."),
+      ("S704", "Delta Framework", "Delta Framework — Agent Skills — https://docs.delta.example/agents/skills",
+       "Treat every installed skill like third-party code that a human reviews first."),
+      ("S705", "Epsilon Vibe", "Epsilon Vibe — README — https://docs.epsilon.example/vibe-readme",
+       "Skill discovery reads only project roots inside trusted folders."),
+  )
+  ```
+
+  Word counts: quotes must be ≤25 words and >0. All are 10–12 words ✓.
+
+  Anchor cell: `the "Gates" section; quote "{quote}" (N words)` — mirrors landed shape. Wait — careful: the anchor cell contains `"{quote}"` WITH surrounding double-quotes in the cell text. `check()` does `_norm(q) in _norm(row[5])` where q is the unquoted sentence → sentence in anchor ✓. But ALSO: `_quoted` on the SOURCES file? No — quotes are only harvested from the ENTRY. ✓
+
+  But careful #2: the entry table cell `"..."` and the source: line `located quote "..."`? In my synthetic entry I'll put quotes ONLY in the table cells (like the landed entry, whose source lines say `located quote "..."` too — either way). I'll mirror landed: source lines end with `— located quote "{quote}"`. Hmm — that duplicates the quote in entry twice (source line + table cell) — `matched[0]` is the first occurrence in the quotes list — order from `_quoted(_norm(entry))` — normalized entry: source lines come before table. matched[0] = the sentence regardless (same string). ✓ fine, mirror landed shape.
+
+  Entry text:
+
+  ```
+  # Client trust gates (scratch world)
+
+  source: S701 — Alpha CLI — Skills Guide — https://docs.alpha.example/skills-guide — the "Gates" section — located quote "Skill bodies load as untrusted data and host tool policy stays authoritative."
+  ...
+  verified-at: 2026-10-24
+  recheck: 90d — re-open each cited page and confirm each located quote is unchanged
+
+  ## The per-client map
+
+  | client | the gate the client documents | located quote | source |
+  |---|---|---|---|
+  | Alpha CLI | body is data; host policy authoritative | "Skill bodies load as untrusted data and host tool policy stays authoritative." | S701 |
+  ...
+  ```
+
+  Wait — one trap: the entry's gate-description cell for Alpha contains no quotes ✓. And table quote cell: `"{quote}"` — the quoted regex grabs the sentence ✓. table_row = [client, gate, "\"...\"", sid]; quote in join ✓; table_row[0] nonempty ✓.
+
+  W10 client-name-absent: `| | "quote" | S705 |` → table row cells after split: drop leading empty → ['"quote"', 'S705'] → len 2 < 3 → finding ✓. Hmm wait — cells = _split_row(line[1:]): line `| | "..." | S705 |` → line[1:] = ` | "..." | S705 |` → split('|') → [' ', ' "..." ', ' S705 ', ' '] → first ' ' strip=='' → pop → [' "..." ', ' S705 ', ' '] → last '' → pop → ['"..."', 'S705'] → yes len 2 → finding ✓ backed 4.
+
+  W7 no-recheck: landed break: `recheck: 90d — re-fetch...` → `note: 90d — re-fetch...`. My world: replace `recheck: 90d —` with `note: 90d —` → no line starts with `recheck:` ✓ finding; backed==5 → gated → 0 ✓.
+
+  W6: `verified-at: 2026-10-24` → `verified-at: 2020-01-01` ✓.
+
+  W8: readme cell `\`knowledge/client-trust-gates-round68.md\`` → `\`knowledge/absent-entry.md\`` ✓.
+
+  W4 row not mined: replace `\| mined \|` first occurrence → `\| queued \|` ✓.
+
+  W9 quote absent from anchor: rebuild sources with S703's anchor cell having a different sentence → the entry's S703 quote no longer occurs in anchor → finding ✓ backed 4.
+
+  W3: entry.replace("S701", "S901") — replaces source line id AND table cell ✓ → S901 unresolvable → 4.
+
+  W2: drop lines starting with `source:` ✓ → 0.
+
+  W1: don't write entry file ✓ → 0. main: check→(0,[finding]) → prints `client trust gates backed 0 of 5` exit 1, no env error ✓.
+
+  Now the world builder:
+
+  ```python
+  def _world(scratch: Path, name: str, *, entry: str | None, sources: str | None, readme: str | None, drop_entry: bool = False) -> Path:
+      root = scratch / name
+      for rel, text in ((ENTRY, entry), (SOURCES, sources), (README, readme)):
+          if text is None and rel == ENTRY and drop_entry:
+              continue
+          ...
+  ```
+
+  Simpler:
+
+  ```python
+  def _world(root: Path, entry: str | None, sources: str | None, readme: str | None) -> Path:
+      for rel, text in ((ENTRY, entry), (SOURCES, sources), (README, readme)):
+          if text is None:
+              continue
+          path = root / rel
+          path.parent.mkdir(parents=True, exist_ok=True)
+          path.write_text(text, encoding="utf-8")
+      return root
+  ```
+  entry=None → file absent (W1). For honest world all three written.
+
+  main-driving helper:
+
+  ```python
+  def _drive(argv):
+      out, err = io.StringIO(), io.StringIO()
+      with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+          code = main(argv)
+      return code, out.getvalue(), err.getvalue()
+  ```
+
+  classification (b): scratch git repo:
+
+  ```python
+  with tempfile.TemporaryDirectory(prefix="k68-git-") as gtmp:
+      grepo = Path(gtmp)
+      subprocess.run(["git", "-C", str(grepo), "init", "-q"], capture_output=True, text=True)
+      code, out, err = _drive(["--rev", "f" * 40, "--repo", str(grepo)])
+  ```
+  assert code == 2; "environment error" in err (or out+err). Use `err + out` containment for robustness but ALSO the spec says "exits 2 with `environment error`" — assert in err+out.
+
+  Hmm — one gotcha: `git init` in a directory — harmless. If git missing → FileNotFoundError → selftest raises → nonzero exit via traceback. Acceptable (git is a lane hard dep), but I can guard: if init fails, mark a failure with message. I'll wrap and on exception record failure. Cheap.
+
+  Another gotcha: `_git_show` uses `capture_output=True, text=True` — on unknown rev rc!=0 → None → EnvError ✓.
+
+  Also — hmm, `main(["--rev", ..., "--repo", str(grepo)])` — `_materialize` writes into a fresh TemporaryDirectory ✓ scratch only.
+
+  Now check() hardening diff vs installed:
+
+  ```python
+      if findings:
+          return backed, findings
+      return backed, []
+  ```
+  →
+  ```python
+      backed = min(backed, TOTAL)  # the verdict surface is "N of 5"; never print N > 5
+      if findings:
+          # Any conjunct failure must gate the verdict (the r67 lesson: the printed
+          # count and the exit must agree).  Per-client breaks keep their count as
+          # signal; a count that would be full while an apparatus conjunct
+          # (verified-at / recheck / coverage row) fails is the grounding failing
+          # as a whole -> 0, the same shape as the pinned base control.
+          return (0 if backed == TOTAL else backed), findings
+      return backed, []
+  ```
+
+  Also in the loop, `if len(ids) != TOTAL: findings.append(...)` — fine as is.
+
+  Docstring: add self-test paragraph + classification note already present. Update the docstring's conjunct list — keep 1..8 as is, add:
+
+  ```
+  `--self-test` synthesizes one honest world and ten broken worlds (one per named
+  conjunct break) in `tempfile` scratch, drives the public `main()` on each, and
+  pins the classification: a missing entry exits 1 printing
+  `client trust gates backed 0 of 5` (never exit 2); an unknown revision exits 2
+  with `environment error`.  Prints `self-test: N failure(s) over M assertions`
+  and exits 0 only when no failure.  The scratch worlds never touch the lane
+  tree and the self-test never opens the network.
+  ```
+
+  --repo default:
+
+  ```python
+  def _default_repo() -> Path:
+      here = Path(__file__).resolve()
+      for cand in (here.parent, *here.parents):
+          if (cand / "corpus" / "SOURCES.md").is_file():
+              return cand
+      return Path.cwd()
+  ```
+  Careful: `here.parents` includes parent already; iterate `here.parents` alone (includes verifiers/ dir itself? parents = [verifiers, lane, Projects, ...]) — verifiers/ doesn't hold corpus/SOURCES.md; lane does ✓. From drafts: parents = [drafts, w1, round-68, waves, .ufo, lane, ...] → lane ✓.
+
+  Wait — subtle: from drafts position, `.ufo/...` — hmm lane root has corpus/SOURCES.md ✓.
+
+  argparse: `ap.add_argument("--repo", default=str(_default_repo()))`.
+
+  --self-test + --rev guard:
+
+  ```python
+      if args.self_test:
+          if args.rev:
+              ap.error("--self-test cannot be combined with --rev")
+          return selftest()
+  ```
+
+  selftest() needs no repo (hermetic).
+
+  Selftest body:
+
+  ```python
+  def selftest() -> int:
+      assertions = 0
+      failures = 0
+
+      def check(label: str, got, want) -> None:
+          nonlocal assertions, failures
+          assertions += 1
+          if got != want:
+              failures += 1
+              print(f"FAIL {label}: got {got!r} want {want!r}")
+
+      expected = {
+          "entry-missing": 0,
+          "no-source-line": 0,
+          "id-does-not-resolve": 4,
+          "row-not-mined": 4,
+          "source-cell-absent": 4,
+          "no-verified-at": 0,
+          "no-recheck": 0,
+          "no-coverage-row": 0,
+          "quote-absent-from-anchor": 4,
+          "client-name-absent": 4,
+      }
+      with tempfile.TemporaryDirectory(prefix="k68-selftest-") as tmp:
+          scratch = Path(tmp)
+          honest = _world(scratch / "honest", _honest_entry(), _honest_sources(), _honest_readme())
+          n, findings = check(honest)
+          check("honest/count", n, TOTAL)
+          check("honest/findings-empty", findings, [])
+          code, out, _ = _drive(["--repo", str(honest)])
+          check("honest/main-exit", code, 0)
+          check("honest/main-line", f"client trust gates backed {TOTAL} of {TOTAL}" in out, True)
+
+          worlds = _broken_worlds(scratch, _honest_entry(), _honest_sources(), _honest_readme())
+          for name, root in worlds.items():
+              n, findings = check(root)
+              check(f"{name}/count", n, expected[name])
+              check(f"{name}/findings-nonempty", bool(findings), True)
+              code, out, _ = _drive(["--repo", str(root)])
+              check(f"{name}/main-exit", code, 1)
+              check(f"{name}/main-line",
+                    f"client trust gates backed {expected[name]} of {TOTAL}" in out, True)
+
+          # (a) missing entry: a CONTENT verdict — exit 1, `0 of 5`, never exit 2.
+          code, out, err = _drive(["--repo", str(worlds["entry-missing"])])
+          check("class/missing-entry-exit", code, 1)
+          check("class/missing-entry-line",
+                f"client trust gates backed 0 of {TOTAL}" in out, True)
+          check("class/missing-entry-no-env-error",
+                "environment error" in out + err, False)
+
+          # (b) unknown revision: an ENVIRONMENT error — exit 2, in a scratch repo.
+          ...
+      print(f"self-test: {failures} failure(s) over {assertions} assertions")
+      return 1 if failures else 0
+  ```
+
+  Wait — check() name collides with the module's `check()` function! The module-level checker is `check(root)`. Inside selftest I define a local `check(label, got, want)` — it would SHADOW... no, it shadows only within selftest's scope; the module-level `check` is called in selftest as `check(root)` — COLLISION! Must rename the assertion helper: `assert_eq` or `expect`. Rename to `expect(label, got, want)`. And calls to the module checker stay `check(root)`. ✓ careful.
+
+  The (a) classification reuses the entry-missing world's drive — but I already drove it in the loop (captured out only). Re-driving is fine and keeps the classification block self-contained. Assertions recount:
+
+  - honest: 4
+  - 10 worlds × 4 = 40
+  - class a: 3 (exit, line, no-env-error)
+  - class b: 2 (exit, env-error-in-output)
+
+  M = 49.
+
+  Now `_broken_worlds` builds each world dir with mutated strings:
+
+  ```python
+  def _broken_worlds(scratch, entry, sources, readme):
+      worlds = {}
+      worlds["entry-missing"] = _world(scratch / "entry-missing", None, sources, readme)
+      worlds["no-source-line"] = _world(
+          scratch / "no-source-line",
+          "\n".join(l for l in entry.splitlines() if not l.startswith("source:")) + "\n",
+          sources, readme)
+      worlds["id-does-not-resolve"] = _world(
+          scratch / "id-does-not-resolve", entry.replace("S701", "S901"), sources, readme)
+      worlds["row-not-mined"] = _world(
+          scratch / "row-not-mined", entry,
+          sources.replace("| mined |", "| queued |", 1), readme)
+      worlds["source-cell-absent"] = _world(
+          scratch / "source-cell-absent",
+          entry.replace(" — Alpha CLI — Skills Guide — https://docs.alpha.example/skills-guide",
+                        " — Alpha CLI guide (url omitted)"),
+          sources, readme)
+  ```
+
+  Careful W5: the entry source line for S701 is `source: S701 — Alpha CLI — Skills Guide — https://docs.alpha.example/skills-guide — the "Gates" section — located quote "..."`. The row[1] = `Alpha CLI — Skills Guide — https://docs.alpha.example/skills-guide`. Replace that exact substring in the entry with `Alpha CLI guide (url omitted)` → row[1] no longer substring ✓. And the table row still has S701 ✓. Other ids untouched ✓. So entry.replace(SOURCE_CELL_OF_S701, "Alpha CLI guide (url omitted)").
+
+  Wait — source_cell string appears in entry source line ONLY (table cell has quote not source cell; actually the entry table's source column has the SID not the URL ✓).
+
+      worlds["no-verified-at"] = entry.replace(f"verified-at: {VERIFIED_AT}", "verified-at: 2020-01-01")
+      worlds["no-recheck"] = entry.replace("recheck: 90d", "note: 90d") — hmm my recheck line: `recheck: 90d — re-open each cited page and confirm each located quote is unchanged`. Replace "recheck: 90d —" with "note: 90d —" ✓.
+      worlds["no-coverage-row"] = _world(..., readme=readme.replace("`knowledge/client-trust-gates-round68.md`", "`knowledge/absent-entry.md`"))
+      worlds["quote-absent-from-anchor"] = sources with S703's anchor sentence replaced: sources.replace(QUOTE_S703, "A different sentence lives here instead.") — QUOTE_S703 appears in anchor cell AND... in sources row only once (anchor cell). Entry keeps it — but wait, `matched` = entry quotes occurring in anchor → none → finding ✓.
+
+  Hmm wait, careful: QUOTE_S703 in the SOURCES string appears ONLY in the S703 row's anchor cell ✓ (sources rows don't have quotes elsewhere... my fixture rows' `teaches` cell — keep it quote-free).
+
+      worlds["client-name-absent"] = entry.replace("| Epsilon Vibe |", "| |", 1) — careful: "| Epsilon Vibe |" appears in table row only? The entry prose... my synthetic entry: keep prose minimal so "Epsilon Vibe" appears only in its table row (client cell) and maybe source line? Source line: `source: S705 — Epsilon Vibe — README — https://...` — contains "Epsilon Vibe" but not `| Epsilon Vibe |`. The replace targets `| Epsilon Vibe | ` (with pipes) → only the table row ✓. Result: `| | "quote" | S705 |` ✓ → len-2 cells → finding ✓.
+
+  Return dict — insertion order preserved (py3.7+) → deterministic run order.
+
+  The honest fixtures:
+
+  ```python
+  VERIFIED_AT is module const "2026-10-24"
+  ENTRY = "corpus/knowledge/client-trust-gates-round68.md"
+  ```
+  Already module consts — reuse.
+
+  ```python
+  CLIENTS = (
+      ("S701", "Alpha CLI", "Alpha CLI — Skills Guide — https://docs.alpha.example/skills-guide",
+       "Skill bodies load as untrusted data and the host tool policy stays authoritative."),
+      ("S702", "Beta Works", "Beta Works — pw skills — https://docs.beta.example/code/skills",
+       "Project skills clear two independent trust gates before any instruction runs."),
+      ("S703", "Gamma Code", "Gamma Code — Skills — https://docs.gamma.example/customize/skills",
+       "Commands embedded in an untrusted skill body never execute without explicit approval."),
+      ("S704", "Delta Framework", "Delta Framework — Agent Skills — https://docs.delta.example/agents/skills",
+       "Treat every installed skill like third-party code that a human reviews first."),
+      ("S705", "Epsilon Vibe", "Epsilon Vibe — README — https://docs.epsilon.example/vibe-readme",
+       "Skill discovery reads only project roots that sit inside trusted folders."),
+  )
+
+  def _honest_entry() -> str:
+      lines = ["# Client trust gates (scratch world)", ""]
+      for sid, _client, source_cell, quote in CLIENTS:
+          lines.append(f'source: {sid} — {source_cell} — the "Gates" section — located quote "{quote}"')
+      lines += [
+          "",
+          f"verified-at: {VERIFIED_AT}",
+          "recheck: 90d — re-open each cited page and confirm each located quote is unchanged",
+          "",
+          "## The per-client map",
+          "",
+          "| client | the gate the client documents | located quote | source |",
+          "|---|---|---|---|",
+      ]
+      for sid, client, _cell, quote in CLIENTS:
+          lines.append(f'| {client} | the documented trust gate | "{quote}" | {sid} |')
+      lines.append("")
+      return "\n".join(lines)
+
+  def _honest_sources() -> str:
+      lines = [
+          "# SOURCES — scratch fixture",
+          "",
+          "## Registry",
+          "",
+          "| id | source | kind | tier | scope | anchor | teaches | status | opened | recheck | used-by |",
+          "|---|---|---|---|---|---|---|---|---|---|---|",
+      ]
+      for sid, _client, source_cell, quote in CLIENTS:
+          anchor = f'the "Gates" section; quote "{quote}"'
+          lines.append(
+              f"| {sid} | {source_cell} | docs | B | one client's documented trust gate | {anchor} "
+              f"| the client's documented gate for an untrusted skill body | mined | {VERIFIED_AT} | 90d "
+              f"| corpus/knowledge/client-trust-gates-round68.md |")
+      lines.append("")
+      return "\n".join(lines)
+
+  def _honest_readme() -> str:
+      return "\n".join([
+          "# corpus — scratch fixture",
+          "",
+          "## Coverage map",
+          "",
+          "| topic | path | notes |",
+          "|---|---|---|",
+          "| Client trust gates (round 68) | `knowledge/client-trust-gates-round68.md` | five clients, sourced |",
+          "",
+      ])
+  ```
+
+  Check `_source_rows` on my sources rows: line starts with `|`, ROW_RE `^\|(.*)$` → group = rest; split("|"): e.g. ` S701 | Alpha CLI — Skills Guide — https://... | docs | B | one client's documented trust gate | the "Gates" section; quote "..." | the client's... | mined | 2026-10-24 | 90d | corpus/knowledge/...md ` → split gives 11 fields + trailing '' → pop → 11 ✓. cells[0]='S701' fullmatch ✓. cells[1] = source_cell ✓ (stripped). cells[5] = anchor ✓ — wait count: 0 id, 1 source, 2 kind, 3 tier, 4 scope, 5 anchor, 6 teaches, 7 status, 8 opened, 9 recheck, 10 used-by ✓ status at 7 ✓.
+
+  Hmm — careful: scope cell "one client's documented trust gate" contains an apostrophe — fine.
+
+  Anchor contains the quote within double quotes — `check` matches entry quote in anchor ✓.
+
+  Careful: anchor cell `the "Gates" section; quote "Skill bodies..."` — the QUOTED_RE on the ENTRY only. ✓.
+
+  Now — subtle check-path detail in `check()`: `quotes = _quoted(_norm(entry))`. The entry contains each quote TWICE (source line + table cell). _quoted returns duplicates — fine. matched[0] = first in list order — the source-line occurrence (comes first) — same sentence ✓.
+
+  Word counts (must be 1..25):
+  - "Skill bodies load as untrusted data and the host tool policy stays authoritative." → 13 ✓
+  - "Project skills clear two independent trust gates before any instruction runs." → 11 ✓
+  - "Commands embedded in an untrusted skill body never execute without explicit approval." → 12 ✓
+  - "Treat every installed skill like third-party code that a human reviews first." → 12 ✓
+  - "Skill discovery reads only project roots that sit inside trusted folders." → 11 ✓
+
+  QUOTED_RE char cap 300 — all well under ✓.
+
+  Duplicate-quote hazard: quotes distinct ✓.
+
+  One more: the entry source line contains `located quote "{quote}"` — the DOUBLE QUOTES inside the line; the entry line ALSO contains `the "Gates" section` — `"Gates"` is a 1-word quoted string (≤25 words) → harvested as a quote too! Could `"Gates"` accidentally occur in some row's anchor? Anchor cells contain `the "Gates" section; quote "..."` → `"Gates"` IS in the anchor (with quotes? `_norm("Gates")` = `Gates`; anchor norm contains `the "Gates" section` → substring `Gates` present ✓!). So matched[0] for each sid would be `Gates` (first harvested quote that matches)! Then the table check: `quote = "Gates"`, `quote in _norm(" ".join(table_row))` — table row contains `"Gates"`? No — table row = client | gate description | "real quote" | sid — no "Gates" string... wait the gate description cell — I wrote "the documented trust gate" — no "Gates". So `"Gates" in join(table_row)` → FALSE → finding "the per-client table row does not carry the located quote" → HONEST WORLD FAILS. 
+
+  Danger confirmed. Fix: don't use a quoted section word in source lines. Landed entry has `the "Activation Context" section` — and the landed anchor cell contains `the "Activation Context" section; quote "..."` — so for the REAL entry, matched[0] for S198 = `Activation Context`?! Then table check `"Activation Context" in table row` — the real table row: `| VT Code | the body is data... | "Skill content is untrusted..." | S198 |` — does NOT contain "Activation Context" → finding → backed 0?? But the L1 presumably ran the counter and got 5 of 5... unless they didn't run it yet! Wait — order of _quoted on normalized entry: quotes harvested in order of appearance: line 1 source S198: `the "Activation Context" section — located quote "Skill content..."` → harvests `Activation Context` FIRST, then `Skill content...`. For S198: matched = [q for q in quotes if norm(q) in anchor(S198)] → anchor contains both `Activation Context` and the sentence → matched[0] = `Activation Context` → table check fails → S198 not backed!
+
+  Hold on — unless... `_quoted` filters `0 < len(q.split()) <= 25` — `Activation Context` is 2 words ✓ passes. Hmm. So the REAL honest world may FAIL the installed counter?! Let me TEST the installed counter against the real tree right now — `python3 -B verifiers/check_client_trust_gates.py` at lane root. That settles whether the landed trio actually passes and whether my reading of the trap is right.
+
+  Wait wait — actually let me re-read `_quoted(_norm(entry))` — QUOTED_RE `"([^"\n]{1,300})"` on the NORMALIZED entry. Normalization collapses whitespace but the quotes remain. Entry line 1: `source: S198 — VT Code — SKILLS_GUIDE.md — https://... — the "Activation Context" section — located quote "Skill content is untrusted resource data; host tool and sandbox policy remains authoritative."` → quoted spans: `Activation Context` and `Skill content ... authoritative.` — yes both harvested.
+
+  Then `matched = [q for q in quotes if _norm(q) in anchor]` — anchor = norm of row[5] = `the "Activation Context" section; quote "Skill content is untrusted resource data; host tool and sandbox policy remains authoritative." (12 words)` — hmm wait, I saw the S198 row got cut at 400 chars in my grep: `...remains au` — truncated display, but presumably `(N words)` follows. `_norm("Activation Context")` = `Activation Context` — in anchor ✓. So matched[0] = `Activation Context`.
+
+  Then `quote = _norm(matched[0])` = `Activation Context`; table row search: the row with cell == 'S198' → `| VT Code | ... | "Skill content..." | S198 |` → `quote in _norm(" ".join(cells))` → `Activation Context` in that string? The table row cells: `VT Code`, `the body is data, not instruction: the host's own tool and sandbox policy stays authoritative over the skill`, `"Skill content is untrusted resource data; host tool and sandbox policy remains authoritative."`, `S198` → no `Activation Context` → FAIL → finding "the per-client table row does not carry the located quote" → backed 0!
+
+  So the honest world currently FAILS?! Unless the counter was never run, or... hmm wait — maybe I misread _quoted order: `QUOTED_RE.findall(text)` — order of appearance ✓. So matched[0] is `Activation Context` for every sid whose source line names a section in quotes! ALL five would fail → the honest world → backed 0, findings 5×table + verified-at ok... → the installed counter on the real tree prints `0 of 5`!
+
+  Whoa. That's a REAL bug in the installed counter (or the landed entry+counter were never co-run). Let me verify empirically RIGHT NOW: run `python3 -B verifiers/check_client_trust_gates.py --repo /home/vgpnk/Projects/shokunin/kotoba-shokunin`... the installed counter's `--repo` default = parent.parent = lane root ✓ just run `python3 -B verifiers/check_client_trust_gates.py` from lane root.
+
+  If it prints 0 of 5 → my draft MUST fix this too (the matched-quote selection: prefer the LONGEST matching quote, or the quote that also appears in a table row, or require matched quote to be the one paired with the sid...). Principled fix: select the matched quote that the per-client table row carries — i.e., pick `matched` = quotes in anchor AND present in that sid's table row; or deterministic: longest match. The counter's intent: "the entry carries a double-quoted located quote ... that also occurs in that row's anchor cell" + "whose quoted cell carries that located quote" — the SAME quote in both. So the correct selection: a quote that occurs in BOTH the anchor cell and the table row for that sid. Rewrite:
+
+  ```python
+          anchor = _norm(row[5])
+          table_row = next((cells for cells in table if any(c.strip() == sid for c in cells)), None)
+          if table_row is None:
+              findings.append(...); continue
+          if len(table_row) < 3 or not table_row[0].strip():
+              findings.append(...); continue
+          row_norm = _norm(" ".join(table_row))
+          matched = [q for q in quotes if _norm(q) in anchor and _norm(q) in row_norm]
+          if not matched:
+              findings.append(f"{sid}: no located quote of the entry occurs in both the row's anchor cell and the per-client table row")
+              continue
+  ```
+
+  Hmm — but this reorders the conjunct checks: the finding granularity changes (no-table-row reported before quote-anchor-miss). My world matrix expectations change: W9 (quote absent from anchor) → finding via the combined no-match ✓ n=4 ✓. W10 (client name absent) → the len<3/no-client finding fires before quote matching ✓ n=4 ✓. Order swap is fine — but the named break "located quote absent from the row's anchor cell" should still produce a finding even when the table row exists and carries the quote — with the combined predicate: quote absent from anchor → not (in anchor AND in row_norm) → finding ✓.
+
+  But — hmm, does the combined predicate WEAKEN the conjunct? Original: quote must occur in anchor (anchoring), then table must carry it. Combined: some quote occurs in both. A world where quote A is in anchor but NOT in table, and quote B (unrelated) in table but NOT in anchor: original → fail at table check; combined → fail (no quote in both) ✓ same verdict. A world where the table row carries quote B and anchor carries quote A only: combined fails ✓. Equivalent gating, better selection. Also keeps "source line section names in quotes" harmless (section name in anchor but not in table row → not selected; sentence in both → selected ✓).
+
+  Longest-match alternative (pick max by len) also fixes it, but "in both" is the honest reading of the counter's own contract (conjuncts 6+7 are about ONE located quote). I'll implement the both-cells selection, keeping per-step findings for the table-row structural checks.
+
+  Wait, one more ordering subtlety: with the both-cells selection, the finding messages for W9/W10 stay distinguishable:
+  - W9 (anchor lost the sentence): no quote in both → finding mentions anchor+row — fine, it IS the anchor break.
+  - W10: structural client-cell finding fires first ✓.
+
+  Now — the empirical check will also tell me whether the L1 has co-run the counter. If installed prints `0 of 5` on the honest tree, that's a CRITICAL finding for my report: the C1 predicate conjunct 1 (5 of 5 at landing) currently FAILS at the working tree with the installed counter — my draft fixes it and I must verify `5 of 5` with my draft. Actually hmm, wait — let me also double check the fetch-arm + `--rev` predicate... no, first measure.
+
+  Also — one more potential trap in the real entry: `_entry_source_lines` SOURCE_LINE_RE `^source:\s*(S\d{3,})\s*(.*)$` on line.strip() — real lines match ✓. The real entry table: 4 columns; check `len(table_row) < 3` ✓ 4 ok.
+
+  And `_indexed(readme)` — real README row cells: `| Client trust gates (round 68) | \`knowledge/client-trust-gates-round68.md\` | ...` → cells[1] == needle ✓.
+
+  Run the installed counter now (read-only), and also grep what `--fetch` state is (not needed for me).
+
+  Also note: the task's spec says the self-test drives "the public main()/check path" — with my draft's check() fixes, main on the real tree should print 5 of 5 exit 0. I'll verify with my draft after writing (worktree run + base-rev run + selftest).
+
+  Let me run the installed counter first (one quick command), then write the draft informed by the result.
+
+• The landed shapes confirm my fixtures — but reading `check()` against the real entry exposes a selection trap: each real `source:` line contains `the "Activation Context" section` **and** `located quote "…"`, so `_quoted()` harvests the section name first, `matched[0]` picks it (it occurs in the anchor cell), and the table-row check then fails → the honest world may score 0. Measuring the installed counter against the real tree before writing:client trust gates backed 5 of 5
+exit=0
+
+
+• Interesting — 5 of 5! So my trap analysis was wrong somewhere. Let me recheck: `matched = [q for q in quotes if _norm(q) in anchor]` and `matched[0]`... For S198, quotes include `Activation Context`... wait — `_quoted` filters `0 < len(q.split()) <= 25` — `Activation Context` = 2 words ✓ included. `_norm("Activation Context")` = "Activation Context". Is it in anchor? Anchor = `the "Activation Context" section; quote "Skill content..."` → normalized contains `the "Activation Context" section; quote "Skill content ... authoritative." (12 words)` — `Activation Context` as substring ✓. So matched[0] = "Activation Context", quote = "Activation Context", then table check `quote in _norm(" ".join(table_row))` — the S198 table row... the table row cells joined: `VT Code | the body is data, not instruction: the host's own tool and sandbox policy stays authoritative over the skill | "Skill content is untrusted resource data; host tool and sandbox policy remains authoritative." | S198` — hmm "Activation Context" not in there... unless — wait, actually let me recheck `_quoted`: `QUOTED_RE = re.compile(r'"([^"\n]{1,300})"')` — on the NORMALIZED entry. Hmm — but the em-dashes... irrelevant.
+
+  Hmm wait — actually, is the section name in the source line quoted? Real line 1: `source: S198 — VT Code — SKILLS_GUIDE.md — https://raw.githubusercontent.com/vinhnx/vtcode/main/docs/skills/SKILLS_GUIDE.md — the "Activation Context" section — located quote "Skill content is untrusted resource data; host tool and sandbox policy remains authoritative."` — yes, `"Activation Context"`.
+
+  So why 5 of 5? Let me re-trace `check()`:
+
+  ```python
+  matched = [q for q in quotes if _norm(q) in anchor]
+  if not matched: finding; continue
+  quote = _norm(matched[0])
+  table_row = ... find row containing sid
+  if quote not in _norm(" ".join(table_row)): finding; continue
+  backed += 1
+  ```
+
+  Hmm — unless `matched[0]` is NOT "Activation Context" — quotes list order: `_quoted(_norm(entry))` — findall over the whole normalized entry: order of appearance: S198's `Activation Context` appears BEFORE S198's sentence... So matched[0]="Activation Context" → table check fails → S198 gets finding → backed<5 → but it printed 5 of 5!
+
+  So my trace is wrong somewhere. Possibilities:
+  1. The anchor cell actually contains `located quote "…"` — the S198 row's anchor cell: `the "Activation Context" section; quote "Skill content is untrusted resource data; host tool and sandbox policy remains au..."` (truncated in my grep display). Both substrings in anchor.
+  2. Wait — `quotes = _quoted(_norm(entry))` — does the ENTRY (normalized) contain `"Activation Context"`? Yes, line 1.
+
+  Hmm, wait — did I misread the table check? 
+
+  ```python
+          if quote not in _norm(" ".join(table_row)):
+  ```
+
+  Hmm — hold on, actually let me re-read the REAL check code... lines 205-223:
+
+  ```python
+          anchor = _norm(row[5])
+          matched = [q for q in quotes if _norm(q) in anchor]
+          if not matched:
+              findings.append(...)
+              continue
+          quote = _norm(matched[0])
+          table_row = None
+          for cells in table:
+              if any(c.strip() == sid for c in cells):
+                  table_row = cells
+                  break
+          if table_row is None: ...
+          if len(table_row) < 3 or not table_row[0].strip(): ...
+          if quote not in _norm(" ".join(table_row)):
+              findings.append(...)
+              continue
+          backed += 1
+  ```
+
+  So for backed=5, `matched[0]` must be the full sentence for every sid... OR "Activation Context" IS in the table row join! The table row for VT Code: `| VT Code | the body is data, not instruction: the host's own tool and sandbox policy stays authoritative over the skill | "Skill content is untrusted resource data; host tool and sandbox policy remains authoritative." | S198 |` — no "Activation Context".
+
+  Hmm wait — maybe quotes order: `_quoted` gets `_norm(entry)` — the normalized WHOLE entry text. `findall` scans left to right. First quoted span in the entry: line 1 `the "Activation Context" section` → `Activation Context` is quotes[0]. For sid S198 matched[0] = first q in quotes with q in anchor(S198) → "Activation Context" ∈ anchor ✓ → matched[0] = "Activation Context".
+
+  Unless — AH WAIT. `_norm(q)` for q="Activation Context" → "Activation Context". Is that in `_norm(row[5])`? row[5] for S198: from my grep output line 139: `| S198 | VT Code — SKILLS_GUIDE.md — https://... | docs | B | VT Code's own documented activation envelope... | the "Activation Context" section; quote "Skill content is untrusted resource data; host tool and sandbox policy remains au` [truncated at 400 chars]. So yes, anchor contains `the "Activation Context" section; quote "..."`.
+
+  So "Activation Context" in anchor ✓. matched[0]="Activation Context". Table check: "Activation Context" in table row join → FALSE → finding → NOT backed. But the counter printed 5 of 5!!
+
+  Contradiction → my mental model of some function is wrong. Let me actually test quickly in python: replicate. Possibilities:
+  - `q.split()` — "Activation Context".split() = 2 words, 0 < 2 <= 25 ✓ included.
+  - Hmm — `_norm(entry)`: `re.sub(r"\s+", " ", text).strip()` — no quote removal.
+  - QUOTED_RE `"([^"\n]{1,300})"` — on normalized text (no newlines) — matches both spans ✓.
+
+  Wait — maybe I misread which is `matched[0]`... `matched = [q for q in quotes if _norm(q) in anchor]` — quotes[0] = "Activation Context" — in anchor → matched = ["Activation Context", "Skill content ..."] → matched[0] = "Activation Context"...
+
+  Let me just empirically introspect instead of re-tracing. Quick python snippet reproducing the functions on the real files.
+
+• 5 of 5 — my section-name trap analysis must be wrong somewhere. Introspecting the real data directly before designing the selection logic:quotes[:6]: ['Activation Context', 'Skill content is untrusted resource data; host tool and sandbox policy remains authoritative.', 'Trust', 'Project skills are repository-controlled instructions, so they clear two independent gates.', 'Shell commands in skills', 'Project skills (.kilo/skills/ in a repository) and skills fetched from remote URLs never execute commands']
+anchor S198: the "Activation Context" section; quote "Skill content is untrusted resource data; host tool and sandbox policy remains authoritative." (13 words)
+in anchor: ['Activation Context', 'Skill content is untrusted resource data; host tool and sandbox policy remains authoritative.', 'Skill content is untrusted resource data; host tool and sandbox policy remains authoritative.']
+table S198 join: VT Code the body is data, not instruction: the host's own tool and sandbox policy stays authoritative over the skill "Skill content is untrusted resource data; host tool and sandbox policy remains aut
+
+
+• So `matched[0]` = "Activation Context", and the table row join starts `VT Code the body is data...` — "Activation Context" is NOT in it. Yet the counter printed 5 of 5?! Let me look at the table check again:
+
+  ```python
+          if quote not in _norm(" ".join(table_row)):
+  ```
+
+  Hmm wait — maybe `table_row` found for S198 is NOT the VT Code row... `any(c.strip() == sid for c in cells)` — the S198 table row: `| VT Code | ... | "Skill content..." | S198 |` → cells[3]='S198' ✓. So join doesn't contain "Activation Context" → should fail...
+
+  Unless the quote used is NOT matched[0]. Re-read lines 205-224 of the installed file verbatim... Actually from my earlier Read:
+
+  ```python
+          matched = [q for q in quotes if _norm(q) in anchor]
+          if not matched:
+              findings.append(f"{sid}: no located quote of the entry occurs in the row's anchor cell")
+              continue
+          quote = _norm(matched[0])
+          table_row = None
+          for cells in table:
+              if any(c.strip() == sid for c in cells):
+                  table_row = cells
+                  break
+          if table_row is None:
+              findings.append(f"{sid}: no per-client table row names this id")
+              continue
+          if len(table_row) < 3 or not table_row[0].strip():
+              findings.append(f"{sid}: the per-client table row has no client cell")
+              continue
+          if quote not in _norm(" ".join(table_row)):
+              findings.append(f"{sid}: the per-client table row does not carry the located quote")
+              continue
+          backed += 1
+  ```
+
+  matched[0] = 'Activation Context' → quote = 'Activation Context' → `'Activation Context' not in join` → True → finding → continue. Backed should be 0. But main printed 5 of 5!!
+
+  Unless... `check()` in main isn't reading the working tree? `main()` without --rev: `n, findings = check(repo)` with repo = Path(args.repo) default `Path(__file__).resolve().parent.parent` = lane root ✓ reads the same files I read.
+
+  OR — wait. Is the quotes list I introspected the same as check's? `quotes = _quoted(_norm(entry))` — yes. matched[0]='Activation Context'...
+
+  Hmm — let me look again at the introspection output: `in anchor: ['Activation Context', 'Skill content...', 'Skill content...']` — the sentence appears TWICE in quotes (source line + table cell) ✓. matched[0] = 'Activation Context'.
+
+  So per my trace S198 should FAIL. But main says 5 of 5. There must be a code path difference — maybe I misread; let me diff my memory against the actual file bytes for that block. Actually — wait. Let me recheck `_table_rows`: it returns rows for lines starting with `|`. The ENTRY table rows include... the row `| client | the gate the client documents | located quote | source |` header, separator skipped, and the 5 client rows. Also OTHER `|`-starting lines elsewhere in the entry? The entry body — sections use bullets, not tables. OK.
+
+  Hmm, actually — hold on. Maybe I misread the anchor INDEX: `anchor = _norm(row[5])` — row[5] for S198 per my introspection = the anchor cell ✓ printed.
+
+  Let me just directly re-run check on the real tree and print findings + per-step trace. If findings is empty and backed=5, then quote must equal the sentence — meaning matched[0] is the sentence — meaning 'Activation Context' is NOT first in matched — meaning quotes order... OR `_norm(q) in anchor` is False for 'Activation Context' — but my introspection says True.
+
+  ?! Unless check() uses a DIFFERENT quotes variable... Let me grep the exact bytes of check() once more — maybe there's a `matched = [q for q in quotes if ...]` with a length sort, or `quote = _norm(matched[-1])`, or the table check inverted. My Read output earlier showed `quote = _norm(matched[0])`. And `if quote not in ...: findings.append(...); continue`.
+
+  Wait — could stdout have been from a stale .pyc? `python3 -B` prevents writing but CACHING: `__pycache__` exists in verifiers/ (I saw it in ls). With -B, python doesn't WRITE bytecode but it may still READ existing __pycache__? For a SCRIPT run directly (not imported), no bytecode is used — scripts are compiled fresh each run. And I ran the file directly. So no stale cache.
+
+  Hmm — let me look at the REAL current bytes of check() again... maybe the file CHANGED between my Read (23:0x) and now — the L1 is actively landing! My Read was minutes ago. Re-read the file section + re-run. Actually the simplest explanation: the file was updated by the L1 between my `ls`/Read and my run — no wait, my Read came AFTER the ls, and the run came after the Read. Timeline: ls (23:00 entry mtime) → Read counter → read entry/rows → run counter → 5 of 5. The counter I read HAS the matched[0] logic...
+
+  Let me re-verify by executing check() directly with prints, and grep the exact lines. Something's off in my trace — resolve empirically.
+
+• `matched[0]` should be `'Activation Context'` — yet the counter scored 5. My trace contradicts observed behavior; resolving empirically:    if not src_lines:
+        return 0, ["no `source:` line naming an S### id"]
+    ids = list(src_lines)
+    if len(set(ids)) != len(ids):
+        return 0, ["duplicate id in the entry's source lines"]
+    if len(ids) != TOTAL:
+        findings.append(f"the entry names {len(ids)} ids, expected {TOTAL}")
+
+    rows = _source_rows(sources_text)
+    quotes = _quoted(_norm(entry))
+    table = _table_rows(entry)
+
+    backed = 0
+    for sid in ids:
+        row = rows.get(sid)
+        if row is None:
+            findings.append(f"{sid}: no row in {SOURCES}")
+            continue
+        if len(row) < 11:
+            findings.append(f"{sid}: row has {len(row)} cells, expected 11")
+            continue
+        if row[7] != "mined":
+            findings.append(f"{sid}: status is {row[7]!r}, expected 'mined'")
+            continue
+        if row[1] not in src_lines[sid]:
+            findings.append(f"{sid}: the row's source cell is not in the entry's source line")
+            continue
+        anchor = _norm(row[5])
+        matched = [q for q in quotes if _norm(q) in anchor]
+        if not matched:
+            findings.append(f"{sid}: no located quote of the entry occurs in the row's anchor cell")
+            continue
+        quote = _norm(max(matched, key=len))
+        table_row = None
+        for cells in table:
+            if any(c.strip() == sid for c in cells):
+                table_row = cells
+                break
+        if table_row is None:
+            findings.append(f"{sid}: no per-client table row names this id")
+            continue
+        if len(table_row) < 3 or not table_row[0].strip():
+            findings.append(f"{sid}: the per-client table row has no client cell")
+            continue
+        if quote not in _norm(" ".join(table_row)):
+            findings.append(f"{sid}: the per-client table row does not carry the located quote")
+            continue
+        backed += 1
+
+    global_findings: list[str] = []
+    if not any(line.strip() == f"verified-at: {VERIFIED_AT}" for line in entry.splitlines()):
+check(): 5 []
+
+
+• The file on disk says `quote = _norm(max(matched, key=len))` — NOT `matched[0]` as in my earlier Read. The file CHANGED between my Read and now — the L1 (or a parallel seat) is actively editing `verifiers/check_client_trust_gates.py` mid-round (or my Read hit an earlier revision). The current version already handles the longest-match selection. So the installed counter is newer than my first Read. Let me re-read the CURRENT full file to draft against the real current state — my draft must align with the current check() semantics (max-by-len selection) while adding the required self-test arm + the classification/exit gating.
+
+  Let me re-read the whole current file now.
+
+• The file changed under me — current `check()` uses `max(matched, key=len)` (longest-match selection), not the `matched[0]` I read minutes ago. The L1 is landing in parallel. Re-reading the current file in full so my draft aligns with the real current semantics:
+
+• Current installed state:
+  - `check()` now: quote = `max(matched, key=len)` (longest match — fixes the section-name trap); global conjuncts (verified-at/recheck/coverage) now gate FULLY: `if global_findings or findings: return 0, global_findings + findings` — ANY finding → return 0! So partial worlds ALSO report 0, not per-client counts. E.g., "row not mined" → findings → return (0, ...). So expected counts for ALL broken worlds are 0 in the CURRENT semantics. Interesting — the L1 chose the stronger gating: any conjunct failure → 0 of 5. (Not my earlier min-cap idea — cleaner: `backed N of 5` is only ever 5 or a rejection-shaped 0... wait no — return 0 on ANY finding, so partial counts never print. Hmm, but "row not mined" → (0, findings) → prints "0 of 5" — the per-client signal is lost, but the verdict line/exit pairing is perfectly honest and matches the frozen predicate shape (base: 0 of 5 exit 1). OK — that's the L1's landed semantics; my draft must MATCH it, since the L1 installs drafts that reconcile with what they landed. My self-test expectations: every broken world → n == 0, findings nonempty.
+
+  Hmm wait — actually let me re-check: per-id findings accumulate in `findings`; global in `global_findings`; final: `if global_findings or findings: return 0, ...`. So yes: any break → 0. All 10 worlds expect n==0, exit 1.
+
+  - `_materialize` now treats a missing ENTRY at a rev as materialize-without-entry → content verdict ✓ (so `--rev <base>` → entry absent → 0 of 5 exit 1 ✓; unknown rev → SOURCES missing → EnvError exit 2 ✓).
+  - `selftest()` — still the OLD tree-based arm (now stale in three ways): (1) its per-world PASS criterion is `n != TOTAL` — with the new all-findings→0 semantics that still works (n==0 != 5 ✓); (2) it doesn't drive main(); (3) it doesn't pin unknown-rev exit 2; (4) missing-entry classification asserts only via check(), not main()'s exit codes; (5) it hardcodes lane content strings; (6) assertion count claims `len(worlds) + 2` = 12 but really it makes ~13 checks (honest has 2 conditions in one if) — sloppy.
+
+  So my job stands: deliver the draft at the drafts path — the full counter with MY self-test arm. My draft should carry the L1's CURRENT check()/fetch()/_materialize semantics EXACTLY (they landed while I worked — continuity!), and replace the selftest arm with the required hermetic main()-driving one, plus small main() adjustments:
+  - `--repo` default walk-up (so the draft runs from drafts/ AND installs cleanly at verifiers/),
+  - `--self-test` + `--rev` mutual-exclusion guard (r66 house pattern),
+  - keep everything else byte-compatible with the current check/fetch.
+
+  Now the expected n for broken worlds under CURRENT semantics: ALL → 0 (any finding → return 0). Exit 1 for each. Printed line: `client trust gates backed 0 of 5` for every broken world. That makes the matrix assertions uniform: n==0, findings nonempty, main exit 1, main line `backed 0 of 5`.
+
+  Hmm — but wait: does that make the per-world count assertions weak (everything 0)? The DISTINCT behavior is in findings. Should I assert specific finding text per world? That pins the diagnosis, not just the verdict. It couples the self-test to finding message strings — brittle but valuable (the finding IS the counter's diagnostic surface). Middle ground: assert per world that findings nonempty (gate proof) + n==0 + exit/line via main. Plus, for the classification pins, exact line matching. I'll add ONE exact-finding assertion per world? Hmm — task says nothing about findings text; over-pinning creates false failures on harmless message edits. Keep: n==0 + nonempty + main exit 1 + line. 49 assertions as computed (now all expecting 0).
+
+  Recount M with the uniform expectations:
+  - honest: check (count 5, findings []) = 2; main exit 0 = 1; main line `5 of 5` = 1 → 4
+  - 10 worlds × (count==0; findings nonempty; main exit 1; main line `0 of 5`) = 40
+  - class (a) missing entry: exit 1 (1); exact line `client trust gates backed 0 of 5` in out (1); `environment error` absent from out+err (1) → 3
+  - class (b) unknown rev: exit 2 (1); `environment error` in err+out (1) → 2
+  M = 49.
+
+  Also — the honest world via main: no --rev → check(repo) on the world dir. And also worth pinning: `--rev` honest? That needs a git repo with commits — hermetic fixture repo with one commit containing the honest trio! That would drive the FULL public path (materialize+check) on the honest world. Nice-to-have; adds robustness proof that _materialize round-trips. Cost: git init + commit in scratch (the r66 self-test does exactly this — house-sanctioned). Add a fixture git repo: honest trio committed → `main(["--rev", tip, "--repo", fixture])` → exit 0, line 5 of 5 (2 assertions); base-world commit WITHOUT the entry → `main(["--rev", base, "--repo", fixture])` → exit 1, line `0 of 5` (2 assertions) — that's ALSO the frozen predicate's base control shape, proven on scratch. Plus unknown rev → exit 2 (already counted). New total: +4 → M = 53.
+
+  Wait — careful about git identity for scratch commits: use `-c user.name=... -c user.email=...` like r66 ✓. And `git init` default branch warning — `-q` and init.defaultBranch irrelevant (no branch ops). Commit needs `git add -A` — INSIDE THE SCRATCH REPO ONLY. Is `git add` forbidden? The rules say "NEVER run `git add`, `git commit`..." — in context: "NEVER mutate ... the lane's jj state or the lane's Git index. NEVER run git add, git commit, git stash, git checkout, git reset, git push" — the prohibition targets the LANE repo. But the letter says "never run git add/commit" unqualified... The r66 counter's own self-test (LANDED, house pattern) runs git add/commit INSIDE a scratch TemporaryDirectory fixture. The intent is clearly lane-tree protection; scratch repos are not the lane's git state. However, the letter of MY write-scope instruction is absolute: "NEVER run `git add`, `git commit`...". Hmm. Risk assessment: an auditor greps my draft for `git add`/`git commit` — finding them in scratch-fixture code could be flagged as a violation of the letter. The r66 precedent says scratch commits are house-legal (that landed code RUNS `git add` in its self-test). The predicate pins `--rev <rev>` — my self-test SHOULD exercise the --rev path to pin classification (b) (unknown rev → exit 2). For (b) I don't need any commit — an EMPTY `git init` repo suffices (`git show` of any rev fails → EnvError). So: skip scratch commits entirely; use the empty scratch repo for (b). The honest-rev and base-rev rev-paths: NOT required by my spec (spec asks main()/check on honest+broken worlds + two classification pins). Drop the fixture-commit idea; keep `git init` (not a forbidden op; creates no commits; scratch-only). M stays 49.
+
+  Hmm — one more: does `git -C <empty-scratch-repo> show ffff...:corpus/SOURCES.md` exit nonzero? Yes: "fatal: bad object" / not a repo object → rc 128 ✓ EnvError. And _materialize for ENTRY-missing-at-rev: `git show rev:ENTRY` fails → continue; then SOURCES fails → EnvError ✓ exit 2 BEFORE the entry-continuation matters. Good: unknown rev → exit 2 regardless of entry handling ✓.
+
+  Edge: `Path(args.repo)` — the empty scratch repo has no `corpus/` — main never touches it outside _materialize ✓.
+
+  Now, honest-world main line: `client trust gates backed 5 of 5` — main prints findings AFTER the line; findings empty ✓.
+
+  Now — assertions about stdout line containment: main prints the line exactly `client trust gates backed 0 of 5`. I assert `f"client trust gates backed {expected} of {TOTAL}" in out` — with expected==0 for all broken worlds. Fine. And a STRICTER classification (a): the out line... also matches the same string; to make (a) non-redundant, assert in (a): the line appears AND no findings line `entry missing` printed? No — findings DO print (`  - entry missing: corpus/...`) — that's fine, keep line + exit + no-env-error.
+
+  Assertion labels — r66 style dotted labels.
+
+  One subtlety on `_drive` + `main(["--repo", str(world)])`: `main` without --rev calls `check(Path(repo))` — reads the world dir directly ✓.
+
+  Wait, one more potential gotcha: `check()` on the honest world — `findings` empty AND `global_findings` empty → returns (5, []) ✓ — the current code: `if global_findings or findings: return 0, ...; return backed, []`. So partial backed counts NEVER surface — per-id loop counts `backed` but it's discarded on any finding. All broken worlds → (0, findings) ✓.
+
+  Careful — my sources fixture: `status` must be `mined` for all 5 (W4 flips one). verified-at line EXACTLY `verified-at: 2026-10-24` (line.strip() equality) ✓ my entry has it as its own line ✓.
+
+  recheck line: `line.strip().startswith("recheck:")` ✓.
+
+  _indexed(readme): cells[1] == '`knowledge/client-trust-gates-round68.md`' ✓.
+
+  W2 (no source line): strip ALL lines starting `source:` — entry then has NO source: lines → src_lines {} → return (0, [...]) ✓ — NOTE: this early-returns BEFORE global checks; findings = ["no `source:` line naming an S### id"] ✓ nonempty ✓.
+
+  W3: entry.replace("S701","S901") — source line id becomes S901; src_lines has S901; rows lacks S901 → finding ✓. (Table cell also S901 — irrelevant.) Also — the OTHER ids unaffected → but final gate: findings nonempty → 0 ✓.
+
+  W4: sources.replace("| mined |", "| queued |", 1) — my sources rows each contain `| mined |` exactly once; first occurrence = S701's row ✓ → S701 row status 'queued' → finding ✓.
+
+  W5: entry.replace(source_cell_S701, "Alpha CLI guide (url omitted)") — the source cell string appears in entry ONLY in the S701 source line ✓ (entry table cells contain quotes and sids, not URLs). After: row[1] not in src_lines["S701"] ✓ finding.
+
+  W6: entry.replace("verified-at: 2026-10-24", "verified-at: 2020-01-01") → global finding ✓ → 0.
+
+  W7: entry.replace("recheck: 90d —", "note: 90d —") ✓.
+
+  W8: readme.replace("`knowledge/client-trust-gates-round68.md`", "`knowledge/absent-entry.md`") ✓.
+
+  W9: sources.replace(quote_S703, "A different sentence lives in this anchor now.") — quote_S703 appears in sources ONLY in S703's anchor cell ✓ → no entry quote in that anchor → finding ✓. (The ENTRY still carries the quote in its table cell — table check unreachable since matched empty → continue first ✓.)
+
+  W10: entry.replace('| Epsilon Vibe |', '| |', 1) — appears once (table row) → row becomes `| | "quote" | S705 |` → _split_row → ['"quote"', 'S705'] len 2 <3 → finding ✓.
+
+  Now — one more inspection of `_world` in the current installed file: it COPIES from root then overlays — mine builds purely from strings; simpler, hermetic. My draft's `_world(root, entry, sources, readme)` writes only provided texts; entry=None → file absent.
+
+  Also the honest world assertion `findings == []` — exact list equality ✓.
+
+  Assertion helper `expect(label, got, want)` printing FAIL to stdout (r66 prints FAIL to stdout — actually r66: `print("FAIL %s: ...")` no file= → stdout ✓).
+
+  Output style: I'll also print a PASS line per world group for receipt readability — hmm, r66 prints only FAILs. The REQUIRED line is the summary. The L1's current selftest prints PASS per world. For a wave-1 receipt, PASS lines help the L1 quote evidence

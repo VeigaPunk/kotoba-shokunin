@@ -1,0 +1,368 @@
+kimi version 2.3.1
+• Let me start by understanding the task. I'm an executor seat for Round 68 of the kotoba lane, hyaku campaign, attempt 1. My assignment is C2's corpus-baseline re-record (draft only).
+
+  Key tasks:
+  1. Read the frozen plan at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/plans/round-68.md`
+  2. Run `python3 -B /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/verify_corpus_integrity.py --no-baseline --json` and quote output
+  3. Build scratch copies under `/tmp` to test:
+     - BEFORE state at base revision `e94ae32a5cd8dc3ee8e2d247816784bec2750cc0`
+     - K2: coverage-map index row for `corpus/lessons/round-67-verifier-spotcheck.md` added to `corpus/README.md` (alone — must stay red)
+     - K3: baseline re-record (alone — must stay red)
+     - Both applied: gate must go green (9/9, exit 0)
+  4. Write candidate values to `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/drafts/corpus-baseline-candidate.json`
+  5. Report to `.ufo/waves/round-68/w1/ExecC2Baseline.md` (wait — that's outside `w1/drafts/`? Let me re-read: "Writing seats (executor/scribe/mutation-tester): write your draft under `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/drafts/` only" — but the Report says "Report: write your scoped findings to .ufo/waves/round-68/w1/ExecC2Baseline.md". Hmm, the write scope says I may write ONLY under `.ufo/waves/round-68/`. The report path `.ufo/waves/round-68/w1/ExecC2Baseline.md` is under `.ufo/waves/round-68/`, so it's allowed. The drafts dir constraint says drafts go under `w1/drafts/`. The candidate JSON goes to `w1/drafts/corpus-baseline-candidate.json`. The report goes to `w1/ExecC2Baseline.md`. Both are under `.ufo/waves/round-68/`, so both are within the allowed write scope. I'll do both.
+
+  Also there's a `/skill:godspeed` invocation — I should follow the godspeed posture: name axes, iterate cheap in parallel, etc. But there's no actual Skill tool call needed since the skill content is inlined in the prompt (the instruction says call Skill tool when a skill matches... but the prompt already contains "/skill:godspeed" as text. Hmm, the instructions say "BLOCKING REQUIREMENT: when a skill from the listing matches the user's request, you MUST call this tool". The user wrote `/skill:godspeed` in their message. I don't have visibility of a skill listing, but the safest interpretation: the godspeed instructions are already inlined in the prompt (the first section). I should just follow them. Actually, let me try invoking the skill to be safe? The instructions say "Do not re-invoke a skill to repeat work already done: if a `<skill-loaded>` block for it with the same `args` is already present in the conversation". There's no skill-loaded block. But I also can't see the listing. Given the prompt already spells out the godspeed posture inline, calling Skill("godspeed") might fail if not in listing. The message body says "/skill:godspeed" followed by the actual instructions, which suggests the skill content was already expanded inline. I'll proceed without calling the Skill tool — the posture is fully specified inline. Actually, to be safe and compliant with the blocking requirement, maybe I should try it. If it errors, no harm. But it could waste a turn. Let me just try it in parallel with the first reads — no, Skill calls might need to be alone. I'll skip it: the godspeed content is already provided verbatim in the message (the "## IMMEDIATELY STOP ASKING CLARIFYING QUESTIONS" section IS the godspeed directive). Following it directly.
+
+  Also: "Lane bounds: leaf member — no subagent dispatch except your single labrat." I'm not seated as probeParent, so I spawn zero subagents. Good — do everything myself.
+
+  Plan of action:
+
+  Batch 1 (parallel):
+  - Read the frozen plan `/home/vgpnk/Projects/shokunin/kotoba-shokunin/plans/round-68.md`
+  - Read `/home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/verify_corpus_integrity.py`
+  - Run the measurement command `python3 -B .../verify_corpus_integrity.py --no-baseline --json`
+  - Check git state: `git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin rev-parse HEAD` and status (read-only)
+
+  Then:
+  - Understand how the baseline is stored (probably a JSON file in the repo, maybe `corpus/baseline.json` or inside the verifier script, or `.corpus-baseline`).
+  - Get the BEFORE state at base revision: I must NOT mutate git index or checkout. To get the base revision state, I can use `git show e94ae32...:corpus/README.md` etc. to extract files into /tmp. Building a full scratch copy: `git worktree`? That's mutating (creates worktrees in .git). Better: `git archive e94ae32a... | tar -x -C /tmp/k68-before`? `git archive` is read-only. That's clean. Or `git -C lane archive <rev> > /tmp/base.tar`. Let me check if archive works in a jj-managed repo — it's colocated maybe. `git archive` should be fine.
+
+  Wait — is the current working tree at the base revision already? The goal says "Base lane tip (branch `master`): `e94ae32a5cd8dc3ee8e2d247816784bec2750cc0`." So the current master tip is likely at that commit already. But other seats may be working; the working tree may have uncommitted changes. For scratch copies, I should build from the base revision via `git archive` to be exact.
+
+  Plan for scratch states:
+  1. `/tmp/k68-before` — full tree from `git archive e94ae32...`. Run gate → expect primary 6/9 pass, exit 1, unindexed: corpus/lessons/round-67-verifier-spotcheck.md.
+  2. `/tmp/k68-k2` — before + edit `corpus/README.md` adding the coverage-map index row for round-67-verifier-spotcheck.md. Run gate → expect still red (some other check fails, e.g. baseline mismatch or report/commit totals).
+  3. `/tmp/k68-k3` — before + re-record baseline with measured values (no index row). Run gate → expect still red (unindexed check fails).
+  4. `/tmp/k68-both` — before + index row + re-recorded baseline. Run gate → expect 9/9 pass, exit 0.
+
+  Also run `verify_corpus_independent.py --json` on the both state? The C2 predicate includes independent gate exits 0. The independent gate at base exits 1. My assignment is the corpus-baseline re-record primarily, but verifying the both-state green against the full C2 predicate (integrity 9/9 + independent exit 0) would strengthen evidence. The independent verifier might check different things. Let me look at it too.
+
+  The candidate JSON: "Report: the exact values the re-recorded baseline needs (tracked_files, unindexed, report_total, commit_total — whatever the gate's own measurement yields)". So the baseline file format is determined by the verifier. I need to read the verifier to see what the baseline contains and how to regenerate it. Maybe there's a `--record` flag or the verifier prints the values. `--no-baseline --json` presumably measures and prints what would be needed.
+
+  Let me also check `git rev-parse HEAD` to confirm the lane tip and whether the working tree is clean (read-only git commands are fine: status, rev-parse, show, archive are read-only; `git status` doesn't mutate).
+
+  Note the constraint: NEVER run `git add/commit/stash/checkout/reset/push`. `git archive` and `git show` are fine.
+
+  Also `/home/vgpnk/Projects/shokuknow` READ-ONLY — I won't touch it.
+
+  Let me start. First batch (parallel):
+  - Read plans/round-68.md
+  - Read verifiers/verify_corpus_integrity.py
+  - Bash: run the --no-baseline --json command
+  - Bash: git rev-parse HEAD + git status --porcelain (read-only)
+
+  Actually I can combine the git checks into one command.
+
+  Let me fire batch 1.
+
+• Axes for this seat: **consistency** (C2 calibration — routed r67 repairs; corpus-baseline re-record). Leaf member, no subagent dispatch. Batch 1: read the frozen plan, read the gate, run the measurement, check lane state.{
+  "observed": {
+    "corpus": {
+      "tracked_files": 122,
+      "index_patterns": 139,
+      "index_tokens_total": 139,
+      "index_tokens_fenced": 0,
+      "index_tokens_fenced_detail": [],
+      "index_tokens_excluded": 0,
+      "index_tokens_excluded_detail": [],
+      "index_tokens_classified": {
+        "directory": 2
+      },
+      "unindexed": 1,
+      "unindexed_detail": [
+        "corpus/lessons/round-67-verifier-spotcheck.md"
+      ],
+      "stale_patterns": 0,
+      "stale_patterns_detail": [],
+      "missing_paths": 0,
+      "missing_paths_detail": [],
+      "report_total": 85,
+      "report_pointers_excluded": 8,
+      "report_pointers_quoted": 2,
+      "report_dead": 0,
+      "commit_total": 38,
+      "commit_unresolvable": 0,
+      "commit_nonhash": 0,
+      "commit_quoted_excluded": 6,
+      "report_pointer_shapes": {
+        "relative": 1,
+        "absolute": 44,
+        "tilde": 1,
+        "bare": 39
+      },
+      "report_dead_detail": [],
+      "report_pointers_excluded_detail": [
+        "corpus/knowledge/cold-run-round11.md:100: .ufo/reports/round-1/<lane>.md",
+        "corpus/knowledge/cold-run-round11.md:142: .ufo/reports/round-1/<lane>.md",
+        "corpus/knowledge/cold-run-round11.md:148: <repo>/.ufo/reports/round-11/kotoba.md",
+        "corpus/knowledge/cold-run-round11.md:280: .ufo/reports/round-1/<lane>.md",
+        "corpus/knowledge/cold-run-round11.md:66: .ufo/reports/round-1/<lane>.md",
+        "corpus/knowledge/corpus-integrity-round11.md:116: .ufo/reports/round-1/<lane>.md",
+        "corpus/knowledge/corpus-integrity-round11.md:218: .ufo/reports/round-1/<lane>.md",
+        "corpus/knowledge/dispatch-prompt-audit-round7.md:42: .ufo/reports/round-1/<lane>.md"
+      ],
+      "report_pointers_quoted_detail": [
+        "corpus/README.md:68: .ufo/reports/round-48/kotoba.md",
+        "corpus/lessons/round-57.md:86: /home/vgpnk/Projects/shokunin/.ufo/reports/round-56/kotoba.md"
+      ],
+      "commit_unresolvable_detail": [],
+      "commit_nonhash_detail": [],
+      "commit_quoted_detail": [
+        "corpus/knowledge/claim-census-round12.md:95: 4dd7753 (quoted meta-finding)",
+        "corpus/lessons/round-53.md:44: cfb894a5 (quoted meta-finding)",
+        "corpus/lessons/round-53.md:45: <hex> (quoted meta-finding)",
+        "corpus/lessons/round-54-verifier-spotcheck.md:147: 451a02ff (quoted meta-finding)",
+        "corpus/lessons/round-54.md:13: cfb894a5 (quoted meta-finding)",
+        "corpus/lessons/round-6-aggregator-audit.md:45: round-N (quoted meta-finding)"
+      ],
+      "corpus_md_files": 121
+    }
+  },
+  "results": [
+    {
+      "check": "corpus.index.tracked_files",
+      "mode": "equal",
+      "observed": 122,
+      "expected": "baseline",
+      "verdict": "OBSERVE"
+    },
+    {
+      "check": "corpus.index.unindexed",
+      "mode": "zero",
+      "observed": 1,
+      "expected": "0 / empty",
+      "verdict": "DRIFT"
+    },
+    {
+      "check": "corpus.index.stale_patterns",
+      "mode": "zero",
+      "observed": 0,
+      "expected": "0 / empty",
+      "verdict": "PASS"
+    },
+    {
+      "check": "corpus.index.missing_paths",
+      "mode": "zero",
+      "observed": 0,
+      "expected": "0 / empty",
+      "verdict": "PASS"
+    },
+    {
+      "check": "corpus.pointers.report_total",
+      "mode": "equal",
+      "observed": 85,
+      "expected": "baseline",
+      "verdict": "OBSERVE"
+    },
+    {
+      "check": "corpus.pointers.report_dead",
+      "mode": "zero",
+      "observed": 0,
+      "expected": "0 / empty",
+      "verdict": "PASS"
+    },
+    {
+      "check": "corpus.pointers.commit_total",
+      "mode": "equal",
+      "observed": 38,
+      "expected": "baseline",
+      "verdict": "OBSERVE"
+    },
+    {
+      "check": "corpus.pointers.commit_unresolvable",
+      "mode": "zero",
+      "observed": 0,
+      "expected": "0 / empty",
+      "verdict": "PASS"
+    },
+    {
+      "check": "corpus.pointers.commit_nonhash",
+      "mode": "zero",
+      "observed": 0,
+      "expected": "0 / empty",
+      "verdict": "PASS"
+    }
+  ]
+}
+EXIT=1
+0b082b4369e875f5838a3ba181b9130a2c955115
+0b082b4 round-68: plan (frozen pre-data) — C1 depth client trust gates, C2 consistency routed r67 repairs
+e94ae32 round-67 verifier spot-check (integrator, hyaku): post-land integrity correction
+fe194f6 round-67 verifier spot-check (integrator, hyaku): non-author admit/reject
+?? .ufo/waves/round-67/w1/controls/junk-world/
+?? .ufo/waves/round-68/
+?? corpus/knowledge/client-trust-gates-round68.md
+---jj---
+160f259dbf97affc4be6ea80bfcf01edfec845cc 
+
+
+• Important discovery: the current git HEAD is `0b082b4369e875f5838a3ba181b9130a2c955115` (round-68 plan commit), NOT the base `e94ae32a5cd8dc3ee8e2d247816784bec2750cc0`. The plan says: "Base lane tip (branch `master`): `e94ae32a…` (read with `jj-lane.sh state`; git HEAD is detached after the helper commits — the branch tip is the pinned base)."
+
+  So the frozen base for the BEFORE measurement is `e94ae32a`. The working tree currently has:
+  - tracked at HEAD `0b082b4` (plan commit — which likely only added plans/round-68.md, which is outside corpus/)
+  - untracked: `.ufo/...` (outside corpus), `corpus/knowledge/client-trust-gates-round68.md` (C1 work in progress by another seat — untracked, so `git ls-files corpus/` won't count it)
+
+  Wait — does `git ls-files` count files committed at HEAD? HEAD is `0b082b4` whose parent is `e94ae32`. The plan commit likely only added `plans/round-68.md` (not in corpus/). So `git ls-files corpus/` should give the same set at HEAD as at e94ae32 → tracked_files 122. And the measurement I just ran gave tracked_files=122, unindexed=1 (round-67-verifier-spotcheck.md), report_total=85, commit_total=38.
+
+  But wait — the plan's "Before (measured at the base e94ae32a, receipt controls/C2-base-integrity.txt)" says: primary `6/9 checks pass`, exit 1 — `DRIFT corpus.index.tracked_files: observed=122 expected=121`, `DRIFT corpus.index.unindexed: observed=1 expected=0`, `DRIFT corpus.pointers.report_total: observed=85 expected=82`. So the baseline JSON at the base has tracked_files=121, unindexed=0, report_total=82, commit_total presumably 38.
+
+  Hmm interesting: tracked_files expected 121 but observed 122 — because round-67's spot-check file `corpus/lessons/round-67-verifier-spotcheck.md` was added by commit `e94ae32` itself (the round-67 verifier spot-check integrity correction commit) without re-recording the baseline. And report_total observed 85 vs expected 82 — the spot-check lesson added 3 report pointers (85-82=3).
+
+  Also commit_total: observed 38; baseline expects? The plan doesn't mention commit_total drift, so baseline commit_total must equal observed 38 (PASS). Let me verify by reading `verifiers/corpus-baseline.json`.
+
+  Now the frozen predicate C2: `python3 -B verifiers/verify_corpus_integrity.py` prints `9/9 checks pass`, exit 0 at the round-68 landing revision. For that, the baseline must be re-recorded to the values after K2 (index row) is applied:
+  - tracked_files: 122 (unchanged — K2 only edits corpus/README.md which is already tracked)
+  - unindexed: 0 (after K2 the row covers round-67-verifier-spotcheck.md)
+  - report_total: after K2, does report_total change? K2 adds an index row in corpus/README.md. The row itself: does the Basis column contain a `.ufo/reports/` pointer or a commit citation? Need to check what row shape is planned. The verifier counts report pointers and commit citations across ALL tracked corpus md files including README.md. So the row text matters! If the K2 row's Basis cites a report path or a commit hash, report_total/commit_total move.
+
+  The plan says report_total drift at base: observed=85 expected=82. So baseline needs re-record. If K2 adds a row with no new pointer/commit, report_total stays 85 and the new baseline needs report_total=85. commit_total stays 38.
+
+  But careful: my job is to compute the candidate values from the gate's own measurement on the BOTH state (K2+K3), i.e. measure with `--no-baseline --json` on a scratch copy that has K2 applied, and record the equal-mode values: tracked_files, report_total, commit_total. The zero-mode checks must be 0: unindexed, stale_patterns, missing_paths, report_dead, commit_unresolvable, commit_nonhash.
+
+  Also `report_dead` etc. must be 0 in the both state — currently 0. Good.
+
+  But there's a subtlety: the K2 row is authored by the L1, not by me. The plan says "one coverage-map index row for `corpus/lessons/round-67-verifier-spotcheck.md` in `corpus/README.md`". I need to draft a candidate row shape in scratch to measure. The exact wording of the row (Area, File, Basis) is mine to propose as draft. I must be careful:
+  - The row must live in the `## Coverage map` section of corpus/README.md (column 2 = File cell with the backticked path).
+  - The Basis column text must NOT contain a `.ufo/reports/round-N/*.md` pointer token (would bump report_total; that's fine as long as baseline is re-recorded, but adding a pointer that resolves is okay; still better to keep the row minimal and avoid moving report_total — actually wait, report_total is an `equal` check, so any value works once baseline is re-recorded; but the frozen C2 predicate only requires 9/9 pass. However the plan's repair says "re-record of verifiers/corpus-baseline.json to the values re-derived by the gate's own measurement". So whatever the K2 state measures is what the baseline needs.
+  - Basis must not contain `commit `<hex>`` non-hex or unresolvable hex citations.
+  - Area naming convention: look at existing rows to mirror style.
+
+  Let me read corpus/README.md's coverage map section to see row format and where the r67 spotcheck row should go (probably near other `lessons/round-6x` rows). Also read `verifiers/corpus-baseline.json` to see its exact schema (needed for the K3 draft and the candidate JSON).
+
+  Also — the "Before" state must be measured at base revision e94ae32a, not at HEAD. Corpus tracked set is identical (plan commit only touched plans/ presumably). But to be exact and honest, I'll build the scratch BEFORE copy from `git archive e94ae32a` — that gives the exact base tree. Let me confirm `git diff --stat e94ae32a..HEAD` (read-only) to see what changed between base and HEAD.
+
+  Plan of work:
+
+  Batch 2 (parallel):
+  1. `git -C lane diff --stat e94ae32a..0b082b4` — confirm only plans/ changed.
+  2. Read `verifiers/corpus-baseline.json`.
+  3. Grep the coverage map section of corpus/README.md around lessons rows — read the README (it might be long; grep for round-67 and the coverage map heading with context).
+  4. `git -C lane show e94ae32a --stat` — see what the base commit itself changed (the spotcheck file addition).
+
+  Then batch 3:
+  - Create /tmp/k68-before via `git archive e94ae32a | tar -x -C /tmp/k68-before`.
+  - Run gate on it (with baseline, plain mode) → expect `6/9 checks pass`, exit 1, and DRIFT lines.
+  - Build /tmp/k68-k2 = before + index row edit in corpus/README.md.
+  - Run gate on k2 → expect red (baseline mismatch on report_total etc., and maybe unindexed 0 → but tracked_files expected 121 vs observed 122 drift; unindexed would PASS after row added; report_total 85 vs 82 drift) → "3/9"? Let's see: checks: tracked_files DRIFT(122 vs 121), unindexed PASS(0), stale PASS, missing PASS, report_total DRIFT(85 vs 82), report_dead PASS, commit_total PASS (38 vs 38), unresolvable PASS, nonhash PASS → 7/9 pass, exit 1. Red. Good.
+  - Build /tmp/k68-k3 = before + baseline re-record (tracked=122, unindexed=0, report_total=85, commit_total=38) WITHOUT the index row → unindexed=1 (zero-mode) → DRIFT → 8/9, exit 1. Red. Good.
+  - Build /tmp/k68-both = before + row + re-recorded baseline → expect 9/9 pass exit 0.
+
+  Also run the independent gate `verify_corpus_independent.py --json` on the both state to check it exits 0 (it's part of the C2 predicate). But wait: the independent gate is part of C2's predicate; does it depend on the baseline file? Let me read it. It might have its own baseline or expectations. The plan says at base it exits 1 (because unindexed file presumably). Let me read verify_corpus_independent.py too.
+
+  Also check `check_r67_routed_repairs.py` doesn't exist yet (0 of 4) — it's another seat's job (C2 instrument). My scope is just the baseline re-record draft. But the K2/K3 controls are in my assignment ("show the BEFORE state at the base revision and the state after the two halves are applied"). The check_r67 counter is not mine.
+
+  One more consideration: the working tree currently has untracked `corpus/knowledge/client-trust-gates-round68.md` (C1 seat's draft, not yet added to index). In my scratch copies from `git archive e94ae32a`, that file won't exist — correct, since the BEFORE state is the base. The K3-only state (baseline re-record alone) must still be red — with unindexed=1 it stays red regardless.
+
+  Also need to double check: does the gate read tracked files via `git ls-files` inside the scratch copy? The scratch copy at /tmp — is it a git repo? `git archive` produces a plain tarball without `.git`. Then `git -C /tmp/k68-before ls-files corpus/` would fail → Inconclusive exit 2! That breaks everything.
+
+  So plain archive extraction won't work — the gate requires a git repo (`git rev-parse --git-dir` and `git ls-files`). Options:
+  1. Clone: `git clone --shared --no-hardlinks /home/vgpnk/Projects/shokunin/kotoba-shokunin /tmp/k68-before` then `git -C /tmp/k68-before checkout e94ae32a`? — "NEVER run git checkout" applies to the lane repo ("the lane's Git index"). The constraint: "NEVER mutate ... the lane's jj state or the lane's Git index. NEVER run `git add`, `git commit`, `git stash`, `git checkout`, `git reset`, `git push`". This reads as scoped to the lane repo (protecting lane state). Cloning to /tmp creates a separate repo; checkout inside /tmp clone doesn't touch the lane. But to be maximally safe, avoid `checkout` even in scratch: use `git clone` then... hmm, clone then `git -C /tmp/x checkout <sha>` is the natural way. Alternatively:
+  2. `git -C lane worktree add /tmp/k68-before e94ae32a` — but that writes into the lane's .git dir (worktree metadata) → mutates lane git state. Forbidden.
+  3. `git clone --no-local --shared`? Clone is read-only wrt source. Then in the clone, HEAD is at master → 0b082b4? Actually lane branch master tip: plan says branch master = e94ae32a, but git log shows HEAD detached at 0b082b4 which is a child of e94ae32 ("round-68: plan (frozen pre-data)"). Hmm, "git HEAD is detached after the helper commits — the branch tip is the pinned base" — so branch master points at e94ae32a while HEAD is detached at 0b082b4. Let me check `git branch --contains` / `git rev-parse master`. If master = e94ae32a, then `git clone` would give me master at e94ae32a by default (clones the branch tip).
+
+  Wait, but does 0b082b4 (detached HEAD, plan commit) contain corpus changes? Plan file only, presumably. Need to confirm with diff.
+
+  4. Alternative without git repo in scratch: the verifier only needs `git ls-files` and `git cat-file`. Could I instead copy the full lane dir including .git? The lane .git might be large; jj colocated? There's a `.jj` dir too (jj log worked). Copying 254MB junk-world? That's in .ufo, I could exclude. But copying .git of the lane is heavy and fragile.
+
+  5. Simplest robust approach: `git clone --quiet --no-hardlinks /path/lane /tmp/k68-scratch` (clones branch master → tip e94ae32a), then apply modifications in the clone's working tree WITHOUT git index mutation? But the verifier reads `git ls-files` (the index/HEAD) — after clone, ls-files reflects the checked-out commit e94ae32a. My K2 edit to corpus/README.md in the working tree: `git ls-files corpus/` still lists corpus/README.md (it's tracked at e94ae32a). Editing the file's *content* doesn't change ls-files output. The gate reads working-tree content and the tracked set from ls-files — exactly what we want. No git add needed. 
+
+  But careful: does the clone's ls-files output depend on the index? After clone, index matches the commit; ls-files lists tracked files from the index — same set. Good. And `git cat-file -e <hex>^{commit}` works in the clone (has all lane objects). Note: commit_resolves falls back to fleet root /home/vgpnk/Projects/shokunin — fine.
+
+  One wrinkle: `git clone` on a repo where HEAD is detached — clone clones the default branch (master). Need to verify master == e94ae32a. Check with `git rev-parse master`.
+
+  Also the clone contains `plans/`, `verifiers/`, etc. — full tree at e94ae32a. The baseline file at e94ae32a is `verifiers/corpus-baseline.json` with the stale values (121/82/…). 
+
+  Alternatively avoid cloning entirely: create scratch dir with the working tree files copied + a tiny fake git? No — the gate shells out to real git; a scratch `git init` + index build would require `git add` in scratch... "NEVER run git add" — again scoped to lane, but I'd rather not. Clone is cleanest and clearly outside the lane repo.
+
+  Hmm, one more subtlety: cloning the lane — is that "mutating the lane"? No, clone is read-only on the source. The forbidden list is about mutating git/jj state. Clone reads objects. Fine. And junk-world (254MB untracked) won't be cloned (untracked files aren't in git). 
+
+  Also: `--no-hardlinks` vs local clone uses hardlinks by default; hardlinks share object files — read-only anyway, but a hardlinked object could in theory be modified in scratch and corrupt the lane objects! Git objects are immutable in practice, but to be extra safe use `--no-hardlinks` so scratch gets real copies. Or `--shared` uses alternates — no, alternates point back at the lane's object store; even safer against duplication but if scratch gc ran it could... I won't gc. Use `--no-hardlinks` (real copies, no write to lane at all).
+
+  Then:
+  - /tmp/k68-before: clone at e94ae32a → run gate → expect 6/9 exit 1 with the three DRIFT lines.
+  - /tmp/k68-k2: second clone (or `cp -a` of before) + append index row → run gate → expect red with unindexed PASS but tracked/report_total DRIFT → "7/9 checks pass", exit 1.
+  - /tmp/k68-k3: copy of before + write re-recorded baseline → expect "8/9 checks pass", exit 1 (unindexed DRIFT).
+  - /tmp/k68-both: copy of before + row + baseline → expect "9/9 checks pass", exit 0.
+
+  Then also run `verify_corpus_independent.py --json` on k68-both → expect exit 0 (predicate part). And on k68-before for the record (expect exit 1). Let me read that script first to know what it checks — if it depends on the baseline too, my candidate JSON may need more values. Actually the assignment says the candidate values are "tracked_files, unindexed, report_total, commit_total — whatever the gate's own measurement yields". The baseline file presumably stores checks with expect values for the three equal ids. Let me read the current baseline to mirror schema exactly.
+
+  Also should the new baseline re-record include `git status` note? The docstring says "an uncommitted corpus edit is a legitimate observation (record `git status` in the baseline)". Let me look at the existing baseline JSON schema — probably has metadata fields.
+
+  Now the K2 row: I need the exact coverage-map row format. Read corpus/README.md coverage map. Let me grep for `round-66` rows and the section heading, and check how rows for `corpus/lessons/round-67-verifier-spotcheck.md` should look. Also find where lessons rows are (maybe a glob row `lessons/round-{...}` covers many). Interesting: tracked includes many lessons files; the coverage map has 139 patterns over 121 md files. unindexed=1 only for the r67 spotcheck. So the row must match exactly that path. If there's a brace row `lessons/round-{1,...,67}.md`-ish that I could extend... Let me look at actual rows.
+
+  Also: after adding the row, `index_patterns` becomes 140 (not a checked id — just observation). Fine.
+
+  What about the row's Area/Basis text: keep Basis free of pointers/commits to minimize movement; but honesty: the row's Basis typically cites the basis (e.g. "lesson, r67"). Let me look at neighboring rows for style.
+
+  Additionally the round-68 lesson/erratum files (round-68.md lesson etc.) are other seats' scope; my scratch both-state only includes K2+K3, matching the assignment ("the state after the two halves are applied"). The report_total in the final landing tree might move again due to other corpus edits (round-68 lesson etc.) — but the L1 will re-run the gate's own measurement at landing; my draft documents the mechanism and the current values. My candidate JSON should record values for the K2-applied corpus state as measured, with an explicit note that any further corpus additions shift report_total/tracked_files and the re-record must be re-derived from the gate at landing (the established mechanism). That's the honest scope.
+
+  Wait — actually there's a real risk: corpus/lessons/round-68.md and round-68 knowledge entries will be added in this round, changing tracked_files to 124+ and report_total up. The L1's final baseline must be derived from the full landed state. My draft: provide the candidate values for the K2+K3-only state AND note the re-derivation rule. The assignment says "Compute the corpus-baseline re-record for C2 (draft only; the L1 installs it)" and "Report: the exact values the re-recorded baseline needs (tracked_files, unindexed, report_total, commit_total — whatever the gate's own measurement yields)". Hmm — "whatever the gate's own measurement yields" — on which state? The state after the two halves applied (K2+K3) is what I can measure. The candidate JSON should carry those four values plus the zero-mode expectations (all 0). I'll note the re-derive-at-landing rule prominently.
+
+  Also — should the baseline file contain expects for zero-mode ids too? Look at the current baseline schema. evaluate() reads baseline["checks"][cid]["expect"] for every equal id; zero ids ignore baseline. The file may still carry all nine.
+
+  Now, batch 2 (parallel):
+  1. Bash: `git -C lane rev-parse master && git diff --stat e94ae32a 0b082b4 -- corpus/ verifiers/` (see if corpus/verifiers changed between base and HEAD) — actually simpler: `git diff --stat e94ae32a 0b082b4` full.
+  2. Read verifiers/corpus-baseline.json.
+  3. Grep corpus/README.md for the coverage map rows around round-6x lessons (pattern `round-6[0-9]` with context, or read the coverage map section).
+  4. Read verify_corpus_independent.py (at least skim) — maybe just its size first; read with max_chars.
+
+  Let me fire these in parallel.
+
+• Plan read; gate read. Key observations: HEAD is detached at `0b082b4` (plan commit) while the pinned base is `e94ae32a` (branch master); the working tree already shows the C2 before-shape (`unindexed: 1`, spotcheck file) and an untracked C1 draft. The gate needs a real git repo (it shells `git ls-files`), so scratch states will be `git clone --no-hardlinks` copies outside the lane tree. Next batch: confirm base→HEAD touched nothing in corpus/verifiers, read the current baseline schema, find the coverage-map row shape, and check the independent gate.0b082b4369e875f5838a3ba181b9130a2c955115
+ plans/round-68.md | 169 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 169 insertions(+)
+---base commit stat---
+e94ae32 round-67 verifier spot-check (integrator, hyaku): post-land integrity correction
+ corpus/lessons/round-67-verifier-spotcheck.md | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+1140 verifiers/verify_corpus_independent.py
+INDEP_EXIT=1
+{
+  "head": "0b082b4",
+  "observed": {
+    "commits": {
+      "commit_candidates": 44,
+      "commit_hex_total": 38,
+      "commit_nonhash": 0,
+      "commit_nonhash_detail": [],
+      "commit_quoted": 6,
+      "commit_quoted_detail": [
+        "corpus/knowledge/claim-census-round12.md:95: 4dd7753",
+        "corpus/lessons/round-53.md:44: cfb894a5",
+        "corpus/lessons/round-53.md:45: <hex>",
+        "corpus/lessons/round-54-verifier-spotcheck.md:147: 451a02ff",
+        "corpus/lessons/round-54.md:13: cfb894a5",
+        "corpus/lessons/round-6-aggregator-audit.md:45: round-N"
+      ],
+      "commit_total": 38,
+      "commit_unresolvable": 0,
+      "commit_unresolvable_detail": []
+    },
+    "index": {
+      "index_tokens": 142,
+      "index_tokens_outside_coverage_map": 18,
+      "md_files": 121,
+      "missing_paths": 0,
+      "missing_paths_detail": [],
+      "stale_tokens": 2,
+      "stale_tokens_detail": [
+        "corpus/README.md:128: knowledge/client-trust-gates-round68.md",
+        "corpus/README.md:129: lessons/round-68.md"
+      ],
+      "tracked_files": 122,
+      "unindexed": 0,
+      "unindexed_detail": []
+    },
+    "pointers": {
+      "report_candidates": 95,
+      "report_dead": 0,
+      "report_dead_detail": [],
+      "report_excluded": 8,
+      "report_excluded_detail": [
+        "corpus/knowledge/cold-run-round11.md:100: .ufo/reports/round-1/<lane>.md [angle-bracket]",
+        "corpus/knowledge/cold-run-round11.md:142: .ufo/reports/round-1/<lane>.md [an
+
+
+error: failed to run prompt: provider.rate_limit: 429 Rate limit reached for requests
+See log: /home/vgpnk/.kimi-code/logs/kimi-code.log

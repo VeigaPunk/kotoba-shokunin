@@ -1,0 +1,465 @@
+kimi version 2.3.1
+• Let me start by reading the plan file and the draft verifier. I'm the mutation-tester seat. My job:
+
+  1. Read the plan `/home/vgpnk/Projects/shokunin/kotoba-shokunin/plans/round-68.md` first.
+  2. Read the draft `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/drafts/check_r67_routed_repairs.py`.
+  3. Construct mutants in /tmp (one per routed defect D1-D4), check the counter rejects each.
+  4. Report expected verdict, observed verdict, PASS/FAIL, printed message.
+  5. Also check whether `--self-test` kills the same mutants.
+  6. Write report to `.ufo/waves/round-68/w1/MutR67Repairs.md` — wait, I'm a read-only-with-respect-to-lane-tree seat except the mutation-tester is a writing seat: "Writing seats (executor/scribe/mutation-tester): write your draft under `.ufo/waves/round-68/w1/drafts/` only". But the task says "Report: write your scoped findings to .ufo/waves/round-68/w1/MutR67Repairs.md" and "Read-only with respect to the lane tree" — the report path is explicitly given in the task, so writing the report file at that path is allowed (the task instruction supersedes; the task says write scoped findings there). Actually there's a conflict: write scope says writing seats write drafts under drafts/ only, but the task explicitly says write report to `.ufo/waves/round-68/w1/MutR67Repairs.md`. The task's Report trailer is the per-seat report location, which the fleet-wide instructions say "Every Report: trailer path is relative to /home/vgpnk/Projects/shokunin/kotoba-shokunin — write it at ...". So I should write the report file there. The "read-only with respect to the lane tree" refers to not mutating production files (corpus/, verifiers/, etc.) and not mutating the draft itself. Scratch copies in /tmp are fine.
+
+  Let me act. First batch: read plan, read draft (check exists), check the base lane state.
+
+  Let me start with parallel reads: plan file, draft file, and ls of the drafts dir.ls: cannot access '/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/drafts/': No such file or directory
+---
+controls
+receipts
+w1
+w1-spec.json
+The drafts directory doesn't exist yet. Let me check what's in w1 and check whether the draft file exists anywhere. Maybe the executor hasn't written it yet. Per my task: "read it; if it is not there yet, say so and state which mutants you would run". But before giving up, let me check thoroughly — maybe it's in a different location.total 24
+drwxr-xr-x 1 vgpnk vgpnk   106 Oct 24 23:04 .
+drwxr-xr-x 1 vgpnk vgpnk    84 Oct 24 23:01 ..
+drwxr-xr-x 1 vgpnk vgpnk   138 Oct 24 23:08 assimilation
+drwxr-xr-x 1 vgpnk vgpnk  1136 Oct 24 22:59 logs
+-rw-r--r-- 1 vgpnk vgpnk 11678 Oct 24 23:04 ReviewC1Counter.md
+-rw------- 1 vgpnk vgpnk 12213 Oct 24 22:59 swarm-registry.json
+---
+---
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/check_r67_routed_repairs.py
+The draft `.ufo/waves/round-68/w1/drafts/check_r67_routed_repairs.py` does NOT exist. But interesting — there IS a `verifiers/check_r67_routed_repairs.py` in the lane tree. Wait — that could mean the executor already landed it into verifiers/ (L1 owns production edits). But the plan says the counter doesn't exist at base. Let me check: is `verifiers/check_r67_routed_repairs.py` tracked in git? The base tip is e94ae32a. Let me check the git state of the file (read-only git commands are fine: `git status`, `git log` are read-only; but instructions say never run `git add/commit/stash/checkout/reset/push`. `git show`, `git status`, `git diff` are fine).
+
+  The task says: mutation-test the DRAFT at `.ufo/waves/round-68/w1/drafts/check_r67_routed_repairs.py`. It's not there. But the landed/production version exists at `verifiers/check_r67_routed_repairs.py`. The task says "read it; if it is not there yet, say so and state which mutants you would run".
+
+  Hmm, but the task also says the goal is to mutation-test the counter. The most useful thing: state the draft is absent, and run the mutants against the production copy `verifiers/check_r67_routed_repairs.py` in scratch copies under /tmp (read-only with respect to the lane tree — never modify the lane's copy). That satisfies the spirit. Actually the instruction says "if it is not there yet, say so and state which mutants you would run" — so the fallback is to state which mutants I would run. But given a production copy exists, I can go further: run the same mutant battery against the verifiers/ copy in /tmp scratch. That's strictly more informative and still within bounds (scratch copies under /tmp, never modifying lane bytes).
+
+  Let me first check git status of the lane to see whether verifiers/check_r67_routed_repairs.py is tracked/committed or an untracked new file. Read-only git ops only.
+
+• The draft at `.ufo/waves/round-68/w1/drafts/check_r67_routed_repairs.py` does **not** exist yet — but a production `verifiers/check_r67_routed_repairs.py` does. Let me establish provenance before mutating anything. M verifiers/check_r67_routed_repairs.py
+?? .ufo/waves/round-68/controls/
+?? .ufo/waves/round-68/receipts/C1-fetch.txt
+?? .ufo/waves/round-68/receipts/C1-measure.txt
+?? .ufo/waves/round-68/receipts/C2-routed-measure.txt
+?? .ufo/waves/round-68/receipts/noharm-at-tip.txt
+?? .ufo/waves/round-68/w1-spec.json
+?? .ufo/waves/round-68/w1/
+---tracked?
+verifiers/check_r67_routed_repairs.py
+---in base commit?
+fatal: path 'verifiers/check_r67_routed_repairs.py' exists on disk, but not in 'e94ae32a5cd8dc3ee8e2d247816784bec2750cc0'
+---HEAD
+cafa29d0adb489b9b6b146445ee8bb9eef074e6e
+
+
+• Status:
+  - The draft `.ufo/waves/round-68/w1/drafts/check_r67_routed_repairs.py` does NOT exist.
+  - The production `verifiers/check_r67_routed_repairs.py` EXISTS as a tracked file with local modifications (` M` — modified relative to HEAD cafa29d0). It was not in base e94ae32a. So it was committed at some point after base and then modified locally (the L1/executor is iterating on it in the working tree).
+
+  My task says: mutation-test the DRAFT; if not there, say so and state which mutants I would run. But the counter exists at `verifiers/` (production). The lane tree is read-only for me — I must copy it to /tmp and mutate scratch copies there. That is exactly within my bounds: "Construct, in scratch copies under /tmp, one mutant per routed defect and check the counter REJECTS each."
+
+  I must be careful: the counter has `--repo` argument defaulting to its parent.parent. For scratch copies, I need `--repo` to point at the lane repo. But wait — D3 checks `(repo / JUNK).exists()` in the working tree, and D4's `_baseline_values` runs `git -C repo checkout rev -- corpus verifiers` — DANGER! `_baseline_values` runs `git checkout <rev> -- corpus verifiers` inside the repo — that's a MUTATING git command (it overwrites working-tree paths from the rev). I must NOT run that against the lane repo, because it would mutate the lane working tree (forbidden: "NEVER run ... git checkout ...").
+
+  Hmm. The counter itself, when run as `--rev`, calls `_baseline_values(repo, rev)` which runs `git -C repo checkout rev -- corpus verifiers`. If I run the pristine counter against the lane repo, it would perform `git checkout` in the lane — mutating the working tree. That's forbidden for me.
+
+  How to handle? Options:
+  1. Clone the lane repo into /tmp (a fresh clone is a copy; `git clone` is not in the forbidden list — forbidden are add/commit/stash/checkout/reset/push, and mutating jj. A clone creates a NEW repo in /tmp, doesn't touch the lane. Reading from the lane is fine.) Then run all mutants (and pristine) against the /tmp clone with `--repo /tmp/...`. `git checkout` inside the /tmp clone mutates only my scratch clone. That's safe.
+
+  But wait: the D3 check `(repo / JUNK).exists()` — in a fresh clone, `.ufo/.../junk-world` is untracked and would NOT be cloned, so D3's "path no longer exists" holds in the clone. Good — mirrors the repaired state (the repair removes junk-world).
+
+  Also `_baseline_values` materializes corpus+verifiers at rev into a temp dir and runs verify_corpus_integrity.py --no-baseline --json with cwd=tmp root. Let me check that the integrity verifier supports `--no-baseline --json` and works when run with cwd=tmp root... Actually it runs `python3 -B str(repo/"verifiers"/"verify_corpus_integrity.py") --no-baseline --json` with cwd=root (the tmp dir), but the script path is under `repo/verifiers` — wait no: it uses `str(repo / "verifiers" / "verify_corpus_integrity.py")` where repo is the repo passed in. But it materialized corpus and verifiers into `root` via git checkout — then runs the verifier from `repo/verifiers`? That looks like a bug: it materializes into `root` (cwd) but runs the script from `repo`. Hmm wait, re-read:
+
+  ```python
+  def _baseline_values(repo: Path, rev: str) -> dict[str, int]:
+      with tempfile.TemporaryDirectory(prefix="k68-baseline-") as tmp:
+          root = Path(tmp)
+          for path in ("corpus", "verifiers"):
+              proc = subprocess.run(["git", "-C", str(repo), "checkout", rev, "--", path], ...)
+  ```
+
+  `git -C repo checkout rev -- corpus verifiers` checks out INTO THE REPO's working tree — not into root! That's a working-tree mutation of the repo itself. Then it runs the verifier with cwd=root... but root is empty except... no wait, the checkout puts files into repo's working tree, and root stays empty. Then `python3 -B repo/verifiers/verify_corpus_integrity.py --no-baseline --json` with cwd=root — the verifier presumably resolves paths relative to cwd or its own location. This is suspicious — both a lane-mutation hazard and possibly a logic bug (running against the repo working tree rather than the rev's bytes).
+
+  This is exactly the kind of defect a mutation-tester should flag: `_baseline_values` mutates the host repo's working tree via `git checkout` (QUALITY/safety violation for any seat that runs the counter against the lane) and measures the working tree, not `rev`'s bytes (contradicting the docstring "reads the COMMITTED bytes at --rev (never the working tree)").
+
+  Hold on — actually wait. Let me re-read. `git -C str(repo) checkout rev -- path` — yes, that checks out into repo's working tree at repo/path. So the counter, when run normally with `--repo <lane>`, would overwrite the lane's working-tree `corpus/` and `verifiers/` with the rev's bytes. If rev == current commit, that's mostly a no-op for tracked files, BUT it would delete untracked... no, `git checkout rev -- path` only overwrites tracked paths present in rev; untracked files survive. Still, it's a mutating git command inside the lane, and the plan/round rules say seats never mutate the lane's Git index — `git checkout <rev> -- <path>` updates the index too! That's a hard violation: it STAGES the checked-out content into the index. So running this counter as-is against the lane repo would mutate the lane's Git index. Forbidden for me to do.
+
+  So my plan:
+  1. Clone the lane to /tmp (git clone of a local path — the lane has jj colocated working copy? Let me check. `jj` colocated repos: git clone of the directory works but may include the .jj dir — fine for scratch).
+     Actually simpler and safer: `git clone /home/vgpnk/Projects/shokunin/kotoba-shokunin /tmp/mut-lane` — clones committed state only (untracked files not copied; modified working tree files not copied). The counter at HEAD... wait, is `verifiers/check_r67_routed_repairs.py` committed at HEAD cafa29d0? `git ls-files --error-unmatch` says tracked, and status says ` M` (modified vs index/HEAD), so HEAD has a version. The working tree has a modified version. Which is the one to test? The task says test the DRAFT — which doesn't exist. The closest live artifact is the working-tree version (the L1's current iteration). I'll test the WORKING-TREE bytes (copy the file content directly, since a clone would give me HEAD's version).
+
+     Plan: create /tmp/mut68/ with:
+     - a full clone of the lane (committed state) to serve as the repo for git reads: /tmp/mut68/repo
+     - copy of working-tree counter variants: pristine.py, m1..m4.py
+     - Also copy the working-tree `verifiers/` support files? The counter materializes README and BASELINE from `git show rev:...` — from the repo. If the latest commit has the repaired README/baseline, good. But if the repairs (index row, baseline re-record) are uncommitted in the working tree, then `git show rev:` at HEAD won't have them. Let me check what's in the working tree vs HEAD: status showed only ` M verifiers/check_r67_routed_repairs.py` as modified — corpus/README.md and verifiers/corpus-baseline.json are NOT modified, so if they contain the repairs, the repairs are committed. Let me check git log for recent commits and whether corpus/README.md has the spotcheck row at HEAD.
+
+  2. Check what commits exist: `git log --oneline -5`, and `git show HEAD --stat`. Also confirm base e94ae32a is an ancestor.
+
+  3. Verify the working-tree counter differs from HEAD's version (`git diff verifiers/check_r67_routed_repairs.py`) — read-only.
+
+  4. Build mutants in /tmp:
+     - M1 (D1): delete the appended erratum naming the observed line — i.e., make the counter FAIL to reject a world where the erratum is absent. Wait — careful about what "mutant" means here. "Construct, in scratch copies under /tmp, one mutant per routed defect and check the counter REJECTS each: (D1) delete the appended erratum naming the observed `environment error: cannot read …` line" — the mutants are mutations of the WORLD (the lane records at rev), not of the counter. I.e., simulate a repair-world with defect Di still present, and check the counter rejects it (doesn't print 4 of 4 / doesn't exit 0). So each mutant is a scratch repo state where defect Di is present in the records, and the counter must NOT say "4 of 4".
+
+     So I need, in /tmp, a "repaired world" git repo (clone with a commit carrying the repaired records), and then four mutants of that world:
+     - M1/D1: remove the erratum line `environment error: cannot read corpus/knowledge/instruction-authority-ladder-round67.md` from LOG.md (and/or wherever it appears in the records at rev). The counter must report ≤3 of 4 with the D1 finding.
+     - M2/D2: replace the real receipt path with the wrong path `w1/controls/census-validate-append.txt` (restore the wrong path as the asserted location) — remove REAL_RECEIPT occurrences / replace with WRONG_RECEIPT. Counter must reject with D2 finding.
+     - M3/D3: remove the `junk-world` disclosure from records. Also D3 has two conjuncts — disclosure present AND path gone. I can test both: (a) disclosure removed (path gone) → reject; (b) disclosure present but junk-world dir EXISTS in repo working tree → reject. The task's D3 is "remove the junk-world disclosure from the records" — I'll do that, and additionally probe the second conjunct (path still exists) as a bonus.
+     - M4/D4: drop the coverage-map index row, and/or keep a stale baseline. Two sub-mutants per task: "(D4) drop the coverage-map index row, or keep a stale baseline whose numbers do not match the gate's own measurement at that revision." I'll do both M4a and M4b.
+
+     Also run the pristine counter on the repaired world (expect 4 of 4, exit 0) and on the base world (expect 0 of 4, exit nonzero) — the C2 predicate's before/after.
+
+  5. Run `--self-test` of pristine and of each mutant copy? Task: "Also report whether the counter's `--self-test` kills the same mutants." — i.e., run the counter's --self-test; does its built-in broken worlds cover the same mutants? The self-test has broken worlds for D1-absent, D2-absent, D3-absent, D4-index-absent, D4-stale-baseline. Does --self-test kill "my" mutants? My mutants are world-mutations; the self-test tests the counter against synthetic broken worlds. The question: if I mutate the counter (not the world), does --self-test catch a broken counter? Hmm. Two readings:
+     (a) Run each mutant WORLD through the counter's --self-test? Doesn't apply — self-test is synthetic.
+     (b) Interpret as: does the counter's --self-test, run on the counter, verify rejection of the same five broken worlds (which correspond to my D1–D4 mutants)? I.e., report that --self-test includes a broken world per mutant and each is rejected. Also, a stronger check: mutate the COUNTER (e.g., neuter the D1 check) and see whether --self-test detects it. That's meta-mutation-testing. The task says "check the counter REJECTS each" for world mutants, then "whether the counter's --self-test kills the same mutants". I think the intended reading: the self-test's broken worlds are the same mutations (D1..D4) — confirm --self-test kills each (i.e., reports PASS broken world rejected for each, 0 failures). And optionally: does --self-test detect a counter mutant (e.g., if someone breaks the D1 branch, does self-test go red)? I can do both cheaply: run pristine --self-test, and run 2-3 counter-mutants (neuter D1/D2/D4 branches) through --self-test to see if it goes red. That's a genuinely stronger claim and cheap. I'll do it as a bonus but keep it bounded.
+
+  6. IMPORTANT hazard to flag: `_baseline_values` runs `git -C repo checkout rev -- corpus verifiers` — a mutating git command that also touches the index. Running the counter against the LANE repo would mutate the lane working tree/index (forbidden). I will run everything against a /tmp clone with --repo /tmp/..., and flag this as a defect finding for the L1. Also check: does the materialized root get used? The checkout puts files in repo, not root; the verifier runs with cwd=root — does verify_corpus_integrity.py resolve relative to cwd? Let me read verify_corpus_integrity.py to understand --no-baseline/--json and path resolution. This matters for whether _baseline_values measures anything real.
+
+  Also note the `for...else` bug candidate in check(): 
+
+  ```python
+          for key, value in mapping.items():
+              if expect.get(key) != value:
+                  findings.append(...)
+          else:
+              if not findings:
+                  closed += 1
+  ```
+
+  In Python, `for...else` runs the else block when the loop completes WITHOUT break — which always happens here (no break). So else always runs: `if not findings: closed += 1`. If the index row was found and baseline mismatches, findings appended → closed not incremented. OK. But subtle: if indexed and baseline matches and no other findings → closed += 1 → 4. Fine. If indexed but findings from D1..D3 exist, no increment — correct-ish. The else is harmless but misleading. Not a defect per se.
+
+  Another candidate bug: in the D4 branch, `readme = (root / README).read_text()` — root is the materialized temp dir from `_materialize`, which only materializes RECORDS + README + BASELINE. Fine.
+
+  Also `if OBSERVED in joined` — substring match over the three records; a "restored wrong path" mutant for D2 replaces REAL with WRONG; the counter checks `REAL_RECEIPT in joined` → fails → D2 finding. Good.
+
+  Now, does the current lane working tree at HEAD actually contain the repaired records? For the "repaired world", I'll commit nothing — instead I'll build my own scratch repo:
+
+  Simplest robust approach: make a scratch git repo at /tmp/mut68/repo by cloning the lane (gets committed state incl. corpus, verifiers, LOG, SCORECARD), then check what the committed state contains. If the committed records already carry the erratum/paths/disclosure + index row + baseline (i.e., repairs committed), then rev=HEAD (clone default branch) is the repaired world and I can create mutants by amending... no — no rewriting needed: I can create child commits (mutating MY scratch clone is fine; the ban is on the lane's git index/state). In the scratch clone I can freely `git commit` — wait, the ban says "NEVER run git add, git commit..." — hmm, is that absolute or lane-scoped? "NEVER mutate the fleet repo (outside the lane dir), any sibling lane repo, the lane's jj state or the lane's Git index. NEVER run git add, git commit, git stash, git checkout, git reset, git push or any mutating jj command." The sentence context: it's about the lane/fleet. But it literally says never run git commit. To stay clean, I can avoid `git commit` entirely: use plumbing to build tree objects? That's still mutating the scratch repo's object db... The spirit: never touch the LANE's git state. Scratch clones under /tmp are mine. But to be maximally safe I can construct the mutant worlds WITHOUT git commits:
+
+  Alternative: build a fully synthetic scratch repo from scratch with `git init` + `git add` + `git commit` in /tmp. Still uses git commit but on a /tmp scratch repo I created — clearly outside the lane. The rule's intent is the lane's index/state. The task itself says "Construct, in scratch copies under /tmp" — constructing scratch worlds with commits is the natural reading, and the instruction "Read-only with respect to the lane tree" confirms the read-only bound is the LANE tree. I'll proceed with git init/commit in /tmp only, and document that no lane git state was touched.
+
+  Plan for worlds:
+  - W-good: repaired world. Base it on the actual lane committed state (clone), so records are real. Check whether committed records carry repairs. The working tree has uncommitted changes only to the counter itself; corpus/README.md unmodified. Let me inspect HEAD's LOG.md/SCORECARD.md/round-68.md for OBSERVED/REAL_RECEIPT/JUNK strings, README for the spotcheck row, baseline values.
+
+  If HEAD (clone) already is the repaired world, then:
+  - pristine counter --rev HEAD --repo /tmp/clone → expect 4 of 4 exit 0.
+  - Mutants: in each mutant copy of the clone, create a new commit (scratch only) with the defect reintroduced, then run counter --rev <mutant-sha>. The D3 second conjunct: junk-world existence is checked in repo working tree (not at rev) — so for the "path still exists" probe, mkdir the junk dir in the mutant clone's working tree.
+  - Base control: counter --rev e94ae32a on the clone (the clone has full history) → expect 0 of 4 exit nonzero.
+
+  For M4b (stale baseline), the counter compares baseline expects vs `_baseline_values(repo, rev)` which runs the corpus gate. This is where `git checkout rev -- corpus verifiers` happens — in my scratch clone it's harmless. But cwd=root empty temp dir — need to check the verifier's path resolution: if the verifier resolves corpus relative to cwd (root, empty), the measurement might fail → EnvError → exit 2. That would be a REAL BUG to report (counter breaks). If it resolves relative to script location (repo/verifiers), it measures repo's working tree corpus (after checkout = rev bytes). Let me read verify_corpus_integrity.py.
+
+  Let me now gather in parallel:
+  - Read verify_corpus_integrity.py
+  - git log --oneline -8 in lane
+  - git diff of the counter (HEAD vs worktree)
+  - grep HEAD records for the markers: use git show HEAD:LOG.md | grep etc.
+  - Check the clone approach: `git -C lane rev-parse --is-inside-work-tree` and whether jj colocated (presence of .jj).
+
+  Then build everything in /tmp.
+
+  Batch 2 (parallel):
+  1. Read /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/verify_corpus_integrity.py
+  2. Bash: git log, git diff counter, and grep the committed records for markers.
+  3. Bash: check .jj presence, du of corpus.
+
+  Let me write the commands.
+
+• The draft isn't there, but a production copy exists at `verifiers/check_r67_routed_repairs.py` (tracked, with uncommitted local modifications — the live iteration). I'll mutation-test those working-tree bytes **in /tmp scratch only**. First, provenance and the gate it depends on:cafa29d round-68: C1 counter — a revision without the entry is a content verdict (0 of 5, exit 1), not an environment error
+59ac5c6 round-68: C1 counter fix (located-quote selection, global-check classification) and the C2 census baseline re-record
+605b84b round-68: C1 depth client trust gates (entry, S198-S202, counter) and C2 consistency routed r67 repairs (index row, errata, counter)
+0b082b4 round-68: plan (frozen pre-data) — C1 depth client trust gates, C2 consistency routed r67 repairs
+e94ae32 round-67 verifier spot-check (integrator, hyaku): post-land integrity correction
+fe194f6 round-67 verifier spot-check (integrator, hyaku): non-author admit/reject
+532cda0 round-67: LOG citation repair, seat scope-breach record, stray seat file removed
+89ca03a round-67: measurements, receipts and wave-2 evidence
+---diff-counter-vs-HEAD:
+ verifiers/check_r67_routed_repairs.py | 83 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 83 insertions(+)
+---jj?
+.jj
+---HEAD records markers:
+== LOG.md
+2641:- **Assimilation (item 10).** One theme (the instruction-authority ladder) from the read-only package `/home/vgpnk/Projects/shokuknow/merge/kotoba/`: 1 entry and 3 source rows admitted, each re-opened this round; 1 part of a staged row refused (the staged S123's `2026/08/18` version string is not on the page) with a flip condition; the staged rows were transformed to the fleet schema before the append, and the scratch mirror passed `sources-census.sh validate --file` exit 0 before the first append (`.ufo/waves/round-67/controls/census-validate-append.txt`). Id collision: 120 registry ids, 164 staged ids, **0 collisions**, guard proved non-vacuous on an indented-row fixture. `considerthese/2026-10-23.md` proposal 2 (audit the skill's own description against the committed per-client threshold table) mined and measured: 1,019 characters stripped / 1,020 parsed against a 1,024 cap — 4–5 characters of headroom for the clients that document a 1,024 cut, and no documented per-entry cut fires at that length.
+2670:  `environment error: cannot read corpus/knowledge/instruction-authority-ladder-round67.md at 2a8eba56b3f9321b70c569fa2816d42237ca49a2`
+2676:  `.ufo/waves/round-67/w1/controls/census-validate-append.txt`; the file that exists is
+2677:  `.ufo/waves/round-67/controls/census-validate-append.txt`. The r67 report is not edited.
+2678:- **Routed defect R67-3 (disclosure).** `.ufo/waves/round-67/w1/controls/junk-world/` — a 254 MB
+== SCORECARD.md
+426:  `environment error: cannot read corpus/knowledge/instruction-authority-ladder-round67.md` and
+428:  r67 census receipt path in that round's report is `.ufo/waves/round-67/controls/census-validate-append.txt`,
+== corpus/lessons/round-68.md
+137:  prints on stderr `environment error: cannot read corpus/knowledge/instruction-authority-ladder-round67.md at 2a8eba56b3f9321b70c569fa2816d42237ca49a2` and exits **2** — stdout carries nothing. The lane's own committed receipt
+149:  census receipt `.ufo/waves/round-67/w1/controls/census-validate-append.txt`; the file that
+150:  exists is `.ufo/waves/round-67/controls/census-validate-append.txt` (the `w1/` segment was
+155:  `.ufo/waves/round-67/w1/controls/junk-world/` — a 254 MB junk-world control mirror, untracked,
+---README row:
+127:| Round-67 non-author spot-check (closure) | `lessons/round-67-verifier-spotcheck.md` | written by the hyaku closure, not the lane (outside review; never edited here): it re-ran the r67 C1 and C2 instruments at the base and the tip, agreed with the three source admits and refused the staged version-string claim, and routed four defects to round 68 — the base line the r67 report asserted but did not observe, the wrong census receipt path, the undisclosed 254 MB `junk-world` control mirror, and this file's own unindexed state, which turned `verify_corpus_integrity.py` red at `532cda09` (6/9, exit 1); indexed round 68 |
+---baseline:
+{
+ "as_of": "2026-10-24T23:59:00-03:00",
+ "host": "vgpnk",
+ "measured_against": {
+  "repo": "kotoba-shokunin",
+  "head": "605b84ba",
+  "head_subject": "round-68: C1 depth client trust gates (entry, S198-S202, counter) and C2 consistency routed r67 repairs (index row, errata, counter)",
+  "git_status": "round-68 content commit; the census re-record is committed separately",
+  "command": "python3 -B verifiers/verify_corpus_integrity.py --no-baseline --json",
+  "note": "Re-recorded at the round-68 content commit 605b84ba. tracked_files 121 -> 124 because corpus/knowledge/client-trust-gates-round68.md and corpus/lessons/round-68.md are new tracked corpus files, both indexed in corpus/README.md; unindexed 1 -> 0 because the hyaku closure's round-67 verifier spot-check (corpus/lessons/round-67-verifier-spotcheck.md) now has a coverage-map index row; report_total 82 -> 85 and commit_total 38 are the counts the gate's own measurement derives from the corpus files this round added; every value is taken from the gate's --no-baseline --json output at that commit, not hand-set."
+ },
+ "checks": {
+  "corpus.index.tracked_files": {
+   "mode": "equal",
+   "expect": 124
+  },
+  "corpus.index.unindexed": {
+   "mode": "zero",
+   "expect": 0
+  },
+  "corpus.index.stale_patterns": {
+   "mode": "zero",
+   "expect": 0
+  },
+  "corpus.index.missing_paths": {
+   "mode": "zero",
+   "expect": 0
+  },
+  "corpus.pointers.report_total": {
+   "mode": "equal",
+   "expect": 85
+  },
+  "corpus.pointers.report_dead": {
+   "mode": "zero",
+   "expect": 0
+  },
+  "corpus.pointers.commit_total": {
+   "mode": "equal",
+   "expect": 38
+  },
+  "corpus.pointers.commit_unresolvable": {
+   "mode": "zero",
+   "expect": 0
+  },
+  "corpus.pointers.commit_nonhash": {
+   "mode": "zero",
+   "expect": 0
+  }
+ },
+ "notes": {
+  "round19_recensus": "corpus.index.tracked_files 47 -> 48: the round landed corpus/lessons/round-19-recensus.md, a real new tracked corpus file, indexed in the coverage map. Expectation refresh, not a fitted denominator.",
+  "round16_redispatch": "Measured with python3 verifiers/verify_corpus_integrity.py --no-baseline --json against the staged continuation of 581e2932850db9cb917844662651f533bfd98519. tracked_files 48 -> 51: corpus/knowledge/sibling-citation-routing-round16.md, its companion .json, and corpus/lessons/round-16.md; all three are indexed in corpus/README.md. Observed report_total 32 and commit_total 27 stay unchanged. All zero-defect expectations stay zero; unindexed, stale_patterns, missing_paths, report_dead, commit_unresolvable and commit_nonhash observed zero. Historical measured_against metadata above is retained as the earlier baseline record.",
+  "round21_refresh": "Measured with python3 verifiers/verify_corpus_integrity.py --no-baseline --json against the staged round-21 tree at HEAD 4e92f36 + the round-21 working changes. tracked_files 51 -> 52 (corpus/knowledge/sibling-citation-routing-round21.md, indexed in corpus/README.md); report_total 32 -> 34 (the new file and the new README row each cite the round-21 report, host-absolute form per the round-13 convention). commit_total 27 unchanged; every zero-defect expectation observed zero; both corpus instruments exit 0 at the landed tree.",
+  "round23_capability": "Measured with python3 verifiers/verify_corpus_integrity.py --no-baseline --json against the staged round-23 tree. tracked_files 52 -> 53 (corpus/knowledge/substrate-pin-guard-round23.md, indexed in corpus/README.md); report_total 34 -> 36 (the new README row and the new corpus doc each cite the round-23 report, host-absolute form). commit_total 27 unchanged; all zero-defect expectations observed zero. The first landing had one repo-relative report pointer (dead, corpus-instrument file-relative base); corrected to host-absolute before this record.",
+  "round37_harness_independent": "Measured with python3 verifiers/verify_corpus_integrity.py --no-baseline --json against a staged copy of the round-38 tree (the corpus doc landed this round; the round-37 record it owes was written at r38). tracked_files 53 -> 54 (corpus/knowledge/harness-independent-round37.md, indexed in corpus/README.md); report_total 36 -> 38 (the new README row and the new corpus doc each cite the round-37 report, host-absolute form). index_tokens 69 -> 72 (the new README row's three backticked column-2 tokens). commit_total 27 unchanged; every zero-defect expectation observed zero; both corpus instruments exit 0 at the staged tree.",
+  "round41_v10_census": "Measured with python3 verifiers/verify_corpus_integrity.py --no-baseline --json against a temporary Git index seeded from HEAD plus corpus/README.md and corpus/knowledge/harness-independent-round41-census.md. tracked_files 54 -> 55 (the new census note, indexed in corpus/README.md); index_tokens 72 -> 73 (the new README row); corpus Markdown files 53 -> 54. report_total 38 and commit_total 27 unchanged; all zero-defect expectations observed zero, and both corpus instruments exit 0 on the temporary-index tree. The real Git index was not changed.",
+  "round46_landing": "Measured with python3 -B verifiers/verify_corpus_integrity.py --repo <overlay> on a /tmp shared clone of 78ee57e overlaid with the round-46 landing tree and committed there (the lane's real index untouched). tracked_files 55 -> 58: corpus/QUALITY.md, corpus/SOURCES.md and corpus/lessons/round-46.md, each indexed in corpus/README.md (index rows 73 -> 76). report_total 38 -> 40: the round-46 lesson's two pointers to the lane's round-45 report, written host-absolute because that report exists only in the lane repo (bare .ufo/reports/round-45/kotoba.md read report_dead=2 against the fleet root before the rewrite). commit_total 27 -> 29: the lesson's 36ab0d3 and 78ee57e tokens, both resolvable. All zero-defect expectations observed zero. The headline measured_against block above is the round-17 record and is retained as history, not as this baseline's provenance.",
+  "round47": "corpus.index.tracked_files 58 -> 60: corpus/lessons/round-46-verifier-spotcheck.md (landed by the integrator at c61a973 without an index row, the round-47 M21 class) and corpus/lessons/round-47.md, both indexed in corpus/README.md. Measured with python3 -B verifiers/verify_corpus_integrity.py --json and verify_corpus_independent.py --json on the round-47 integration tree: report_total 40 and commit_total 29 unchanged; unindexed, stale_patterns, missing_paths, report_dead, commit_unresolvable, commit_nonhash stay 0. Expectation refresh for two real indexed files, not a fitted denominator.",
+  "round47_closure_index": "Parent-owned verifier corpus/lessons/round-47-verifier-spotcheck.md (9973 bytes, sha256 fbd5a1fb861c3e99a25422d7079931efd41d969da3f936d7c8ea4e06aad532dc) is indexed: active tracked_files 60 -> 61, local commit citations 29 -> 30, report_total 40 unchanged. Its parent-fleet report revision is explicitly qualified to /home/vgpnk/Projects/shokunin, not claimed as a lane-repository revision; no foreign-object fetch or zero-mode masking. Prior notes, source pins, frozen inputs and zero expectations are unchanged. Counts were independently re-derived over inert data, not by running a lane gate. The original round47 60-file result stays bound to producer 92aa937, not re-scored at this metadata landing.",
+  "round48": "corpus.index.tracked_files 61 -> 63: corpus/knowledge/frontmatter-rule-authorities-round48.md and corpus/lessons/round-48.md, both indexed in corpus/README.md. report_total 40 and commit_total 30 unchanged (upstream commit hashes in the new SOURCES rows are written without the backticked commit-token form, since they are not lane revisions). Measured with python3 -B verifiers/verify_corpus_integrity.py --json and verify_corpus_independent.py on the round-48 landed tree. Expectation refresh for two real indexed files, not a fitted denominator.",
+  "round48_report_pointer": "corpus.pointers.report_total 40 -> 41: corpus/lessons/round-48.md M28 cites the round-47 fleet report host-absolute (/home/vgpnk/Projects/shokunin/.ufo/reports/round-47/kotoba.md); a first, repo-relative form read report_dead=1 and was corrected before this record. Measured with python3 -B verifiers/verify_corpus_integrity.py --json on the round-48 tree.",
+  "round49": "corpus.index.tracked_files 63 -> 66: corpus/lessons/round-48-verifier-spotcheck.md (closure-owned, landed at a5adc146 without an index row; indexed in corpus/README.md this round, never edited here), corpus/knowledge/sibling-overlap-census-round49.md and corpus/lessons/round-49.md, all three indexed. corpus.pointers.report_total 41 -> 43: the two pointers come from the closure-owned spot-check, written repo-relative (.ufo/reports/round-48/kotoba.md); they are the two report_dead=2 entries, which stay red in zero mode and are not masked (the file is not lane-owned; the report exists in the fleet repository). At base a5adc146 the gate read 4 DRIFT (tracked 64, unindexed 1, report_total 43, report_dead 2); after this record it reads 1 DRIFT (report_dead 2). Measured with python3 -B verifiers/verify_corpus_integrity.py at f054b8e and in a base clone, 2026-10-22.",
+  "round50": "corpus.index.tracked_files 66 -> 68: corpus/lessons/round-49-verifier-spotcheck.md (closure-owned, landed at f3046466 without an index row; indexed in corpus/README.md this round, never edited here) and corpus/lessons/round-50.md, both indexed. corpus.pointers.report_total 43 -> 44: the one new pointer is in the closure-owned round-49 spot-check (its fleet report path); report_dead stays 2 (the round-48 spot-check's repo-relative pointers), red in zero mode and not masked. At base f3046466 the gate read 4 DRIFT (tracked 67, unindexed 1, report_total 44, report_dead 2). Measured with python3 -B verifiers/verify_corpus_integrity.py on the round-50 tree. Expectation refresh for two real indexed files, not a fitted denominator.",
+  "round50_entry": "corpus.index.tracked_files 68 -> 69: corpus/knowledge/skill-selection-rules-round50.md, a new admitted entry indexed in corpus/README.md (falsify-wave addition). report_total unchanged at 44. Measured with python3 -B verifiers/verify_corpus_integrity.py on the round-50 tree after the lane commit.",
+  "round53_rerecord": "Measured 2026-10-22 with python3 verifiers/verify_corpus_integrity.py --json on the round-53 tree after every round file landed (routed defect 2 of the round-52 spot-check; lesson M41). tracked_files 72 -> 78 (round-52 and round-53 lessons, the round-52 spot-check, alwayson-rule-files-round53.md and two others since the round-50 record, all indexed); report_total 46 -> 49 (fleet report pointers in closure-authored spot-checks now resolve against the fleet root); commit_total 30 -> 32 (round-52 and round-53 commit pointers, all resolve). Every zero-defect expectation observed zero.",
+  "round54_rerecord": "Measured 2026-10-22 with python3 -B verifiers/verify_corpus_integrity.py --no-baseline on the round-54 tree after every round file landed (lesson M41 practice). tracked_files 78 -> 81 (round-53 spot-check, round-54 entry skill-listing-thresholds-round54.md and round-54 lesson, all indexed); report_total 49 -> 51 (fleet report pointers in the round-53 spot-check); commit_total 32 unchanged (the entry's upstream pin is written google-gemini/gemini-cli@`451a02ff`, not as a lane commit). Every zero-defect expectation observed zero.",
+  "round66_rerecord": "Measured at core revision daedcdf992c17cbc0b8a6ece204e1c7ce2b45fce with python3 -B verifiers/verify_corpus_integrity.py --no-baseline --json before this baseline update. tracked_files 116 -> 118 (the round-66 lesson and C2 knowledge entry, both indexed); unindexed 4 -> 0 (r62-r65 closure spot-checks and the round-66 lesson indexed); report_total 79 unchanged; commit_total 38 -> 37 (the nested code-span meta-finding is context); commit_unresolvable 3 -> 0 (lane-first then fleet-root resolution); report_dead, stale_patterns, missing_paths and commit_nonhash remain 0. Expected counts are re-recorded to the observed committed bytes, not fitted to a denominator."
+ }
+}
+
+
+• Now I understand the full picture. Key facts:
+
+  1. The draft `.ufo/waves/round-68/w1/drafts/check_r67_routed_repairs.py` does not exist. The live iteration is `verifiers/check_r67_routed_repairs.py` (tracked, HEAD version + 83 lines of uncommitted additions — the `--self-test` block is likely part of the uncommitted addition; `git diff --stat` says 83 insertions. The self-test function is ~78 lines — matches).
+
+  2. The counter's `_baseline_values` runs `git -C repo checkout rev -- corpus verifiers` — a MUTATING git command against the repo it's pointed at. If the L1 runs this counter against the lane repo (`--rev <rev>`), it will overwrite the lane's working-tree `corpus/` and `verifiers/` from `rev` and update the lane's Git index. That's a serious defect (lane mutation from a verifier; violates the round's own "no verifier writes" posture and the wave rules). Also it then runs `verify_corpus_integrity.py --no-baseline --json` with `cwd=root` where root is an EMPTY temp dir — but `--repo` defaults to `Path(__file__).resolve().parent.parent` — the script is invoked as `str(repo / "verifiers" / "verify_corpus_integrity.py")`, i.e., the script in the repo, so DEFAULT_REPO = repo. So the measurement runs against the REPO's working tree (after the checkout — which now holds rev's bytes for corpus/verifiers). So the measurement reads the working tree, not the committed rev bytes — contradicting the docstring "reads the COMMITTED bytes at --rev (never the working tree)". Also `cwd=root` is pointless. And `--baseline` default: baseline_path = repo/verifiers/corpus-baseline.json but --no-baseline suppresses. Fine.
+
+     Also note: the measurement of tracked_files counts `git ls-files corpus/` — the INDEX — after `git checkout rev -- corpus` updated the index to rev's corpus. So the measurement is a mix of index+worktree at rev's corpus/verifiers but the repo's HEAD unchanged. In my scratch clone this is fine.
+
+     Also critical: `git checkout rev -- corpus verifiers` when the lane has uncommitted modifications to verifiers/check_r67_routed_repairs.py would DESTROY the uncommitted changes. That's a data-loss hazard. Must flag.
+
+  3. For my mutation battery, I must run everything against a /tmp clone, never the lane. Note `git clone` of the lane: the lane is jj-colocated (.jj present). `git clone /path/to/lane /tmp/x` uses the git objects — fine, read-only on the lane.
+
+     But WAIT: the working-tree counter has uncommitted changes (83 insertions — the self-test). A clone gives me HEAD's counter. I need the WORKING-TREE counter bytes. I'll copy the working-tree counter to /tmp separately with `cp` (read-only on lane) and run it with `--repo /tmp/clone`. The counter's `--repo` default is its grandparent, but I'll pass `--repo` explicitly. But careful: `main()` computes `repo = Path(args.repo)` — I'll pass `--repo /tmp/mut68/lane`.
+
+     For the self-test, `--self-test` doesn't touch the repo. Fine.
+
+  4. The repaired world: HEAD (cafa29d0) carries the repaired records (LOG/SCORECARD/round-68.md with OBSERVED, REAL_RECEIPT, JUNK; README index row; baseline re-record with tracked=124, unindexed=0, report_total=85, commit_total=38). The clone will have these committed.
+
+     Wait — baseline note says measured at 605b84ba with tracked 124. But the C2-base receipt said "observed=122 expected=121" at base... whatever, at HEAD the baseline says 124/0/85/38. The clone at HEAD: `git ls-files corpus/` in the clone → 124 tracked corpus files (committed). unindexed 0 (the index row is there). report_total 85, commit_total 38 — the gate measures the working tree; after the counter's `git checkout HEAD -- corpus verifiers`, the working tree = committed bytes. Should read exactly 124/0/85/38 → D4 passes.
+
+     One wrinkle: the gate's `tracked_corpus_files` uses `git ls-files corpus/` — reads the INDEX. After `git checkout cafa29d0 -- corpus verifiers`, the index matches HEAD for those paths → 124. Good.
+
+     Another wrinkle: `report_pointer_exists` resolves report pointers against the citing dir and FLEET_ROOT (hardcoded /home/vgpnk/Projects/shokunin) — fine, host paths exist; report_dead should be 0. `commit_resolves` falls back to fleet root — fine.
+
+     So: pristine counter on clone at rev=cafa29d0 should print "r67 routed defects closed 4 of 4", exit 0. That's the honest-world control.
+
+  5. Base control: `--rev e94ae32a...` on the clone → records at base lack all markers → D1, D2 findings; D3: JUNK not in records (finding); also junk-world path doesn't exist in clone → but the disclosure is missing anyway → D3 finding; D4: no index row at base → finding. Expect "closed 0 of 4", exit 1. (This also matches the C2 "before" claim: 0 of 4, and the counter "does not exist at base" — but the frozen predicate says at base the counter prints... the C2 predicate says the counter doesn't exist at base; the counter's own docstring claims at base it prints `0 of 4` and exits nonzero — I can verify that too.)
+
+  6. Mutants (world mutants — reintroduce each routed defect into the repaired world, in scratch commits in my /tmp clone):
+     - M1 (D1): remove the appended erratum naming the OBSERVED line from all three records. I'll strip lines containing the OBSERVED string from LOG.md, SCORECARD.md, corpus/lessons/round-68.md. Expect: closed 3 of 4, finding "D1: no record carries the appended correction...". Exit 1.
+     - M2 (D2): restore the wrong receipt path — replace occurrences of REAL_RECEIPT with WRONG_RECEIPT (`w1/controls/census-validate-append.txt`) in the records. Careful: LOG.md line 2641 mentions the REAL path as "the file that exists is..." context. Simplest surgical mutant: replace all occurrences of the real path string `.ufo/waves/round-67/controls/census-validate-append.txt` with the wrong one across the three records. But that would also change the sentence "the file that exists is <real>" → makes it claim the wrong path exists — that's exactly "restore the wrong receipt path as the asserted location". Expect D2 finding, closed 3 of 4.
+     - M3 (D3): remove junk-world disclosure lines from the three records (lines containing "junk-world"). But careful: D1/D2 markers might live on the same line? They're different lines. LOG.md:2678 has junk-world; round-68.md:155 has junk-world. Also SCORECARD may mention junk-world elsewhere. I'll filter lines containing `.ufo/waves/round-67/w1/controls/junk-world` (the JUNK constant without trailing slash; JUNK = ".ufo/waves/round-67/w1/controls/junk-world"). Expect D3 finding, closed 3 of 4. Bonus M3b: keep disclosure but recreate the junk dir in the clone's working tree → D3 finding "or the path still exists". I'll do that as M3b.
+     - M4a (D4): drop the coverage-map index row (remove the README row for round-67-verifier-spotcheck). Expect D4 finding "has no coverage-map index row", closed 3 of 4.
+     - M4b (D4 stale baseline): keep the row, mutate corpus-baseline.json expect values to stale numbers (e.g., tracked_files 121 — the pre-round value, as if stale from base). Expect D4 finding "baseline corpus.index.tracked_files expects 121, the gate's own measurement yields 124", closed 3 of 4.
+
+     Also the do-nothing controls from the plan: index row alone / baseline re-record alone — those are world-mutants of the BASE; not strictly required for me. The task defines 4 mutants + optionally M4b. Keep bounded: M1, M2, M3, M3b, M4a, M4b.
+
+  7. Self-test question: "whether the counter's `--self-test` kills the same mutants". The counter's --self-test builds synthetic broken worlds: D1 correction absent, D2 receipt path absent, D3 disclosure absent, D4 index row absent, D4 stale baseline — exactly the same five classes (M3b "path still exists" is NOT covered by self-test worlds — the self-test's run_world only removes the disclosure; junk_exists param exists but no broken world uses junk_exists=True! Note: `run_world` always creates the junk dir under `root` (the temp root, not repo) and check() tests `(repo / JUNK).exists()` where repo=Path("/nonexistent") — so repo/JUNK never exists in self-test → D3's second conjunct is always satisfied in self-test; the "path still exists" leg is never exercised. So --self-test does NOT kill M3b (the still-exists mutant). Also note: in self-test, `check(Path("/nonexistent"), ...)` — D3 checks disclosure AND not exists → exists() False → passes conjunct 2. So a counter whose D3 check ignored the "gone from working tree" leg would still pass self-test. That's a finding: self-test covers disclosure-absence but not path-still-exists.
+
+     Meta-mutation: to answer "does --self-test kill the same mutants" more strongly, I can create counter-mutants (neuter D1 branch, etc.) and run --self-test on them: self-test should go red ("FAIL broken world survived"). I'll do a couple: neuter D1 (make the check always pass), neuter D3 (drop the exists() conjunct — self-test should NOT catch it, demonstrating the gap), neuter D4 baseline comparison. Keep bounded: 3 counter-mutants.
+
+  8. How to build world mutants in the clone without `git commit`? The rules ban git add/commit... The ban context is the lane. The task says "Construct, in scratch copies under /tmp". Building scratch worlds requires commits in MY scratch repo. I'll use `git -C /tmp/... add/commit` strictly inside /tmp/mut68. This does not touch the lane's jj state or Git index. I'll state this explicitly in the report. Alternative: use GIT_INDEX_FILE trickery/plumbing — overkill. The lane is untouched; scratch commits are the mechanism the task asks for. Also note the counter itself runs `git checkout` in the repo — only safe in scratch.
+
+     IMPORTANT: the clone must NOT be a jj workspace issue — cloning a colocated repo copies only git objects; .jj is untracked from git's perspective? Actually .jj is part of the working dir; clone creates a fresh dir without .jj. Good — no jj in scratch.
+
+     Also: cloning with `git clone --no-hardlinks` to be extra safe? Local clone may use hardlinks for objects — hardlinks to the lane's object store... a hardlink shared with the lane's .git/objects — if scratch gc rewrote... git only adds objects; hardlinked files could in theory be modified in place? Git doesn't modify existing pack files in place; it creates new ones. But repack/gc in scratch deletes its hardlinks and writes new files — safe. Still, to be paranoid, use `--no-hardlinks`. Also `git clone` on a non-bare repo with uncommitted changes clones COMMITTED state only. Perfect.
+
+  9. The `git checkout` inside `_baseline_values` uses `git -C repo checkout rev -- corpus verifiers` — in the scratch clone, fine. It also needs the corpus gate script at repo/verifiers/verify_corpus_integrity.py — after checkout of verifiers at rev, it's there. Note: it runs `python3 -B str(repo/"verifiers"/"verify_corpus_integrity.py") --no-baseline --json` with cwd=root(empty temp). DEFAULT_REPO = script's grandparent = repo → measures repo. Good.
+
+     One more hazard: FLEET_ROOT hardcoded to /home/vgpnk/Projects/shokunin — the gate's report_dead/commit_resolves fall back to the REAL fleet root even in my scratch clone. That's fine for measurement fidelity (report pointers resolve against the real fleet). It does mean the measurement touches the fleet repo read-only (cat-file -e). Acceptable — read-only.
+
+  10. Where to run counter from: I'll run `python3 -B /tmp/mut68/counter-variants/pristine.py --repo /tmp/mut68/lane --rev <sha>`. But wait — `_materialize` reads RECORDS+README+BASELINE via git show — committed bytes at rev. Good.
+
+  Note: the counter run mutates the scratch clone's working tree (checkout corpus+verifiers at rev). For subsequent mutants, I create new commits on top; the working tree may be dirty from the checkout — when I commit a mutant, I'll use `git checkout <base-sha> -- .`? Hmm, careful sequencing: for each mutant world, I'll do: reset scratch worktree? I can't "reset"... in scratch I can do anything. Plan per mutant:
+     - `git -C lane git checkout -- .`? The working tree starts as HEAD (cafa29d0). After a counter run, corpus/ and verifiers/ are re-checked-out from the measured rev (same content for same rev → no-op).
+     - To create mutant Mi: `git -C lane checkout <parent-sha> -- <files>`? That's git checkout in scratch — allowed (scratch only). Or simpler: python-edit the files in the worktree, `git add <files> && git commit -m Mi`. The previous counter run leaves the worktree = rev content = HEAD content (for same rev) → clean enough. For base-rev runs, the checkout would set corpus/verifiers to BASE content, making the worktree dirty vs HEAD — subsequent commits would capture base content! Must re-sync: after any `--rev base` run, restore with `git -C lane checkout HEAD -- corpus verifiers` (scratch). I'll sequence base-run LAST, or always re-sync after each run. I'll write a driver script that, per case: (a) sync worktree to WGood sha, (b) apply mutation via python edits, (c) commit, (d) run counter, (e) record output. Simplest: keep one scratch lane per case? 6 cases → 6 clones is wasteful (repo size? lane has .ufo junk-world 254MB untracked — NOT cloned; committed repo size is probably tens of MB). Let me just use sequential commits on one clone, re-syncing worktree before each edit via `git checkout <good-sha> -- .` then edit+commit. Fine.
+
+  11. Exit codes and printed messages must be recorded verbatim.
+
+  12. Also the task's C2 frozen predicate asks the counter to print `r67 routed defects closed 4 of 4` and exit 0 at the repaired rev, and base prints 0 of 4 + exit nonzero. My honest-world run validates the first; base run validates the second (bonus fidelity to C2).
+
+  13. Restoration evidence: I'm not modifying the lane at all. Evidence: `git status --porcelain` before/after on the lane + sha256 of the counter + `jj` untouched (I won't run jj at all). Record hashes before/after: sha256 of verifiers/check_r67_routed_repairs.py, corpus/README.md, verifiers/corpus-baseline.json, LOG.md, SCORECARD.md, corpus/lessons/round-68.md; plus `git status --porcelain` identical before/after. 
+
+  Also hashes: "before/after hashes" per the UFO posture — for the mutated artifact: the working-tree counter bytes (I'm not mutating the lane copy; my mutants live in /tmp). I'll give sha256 of pristine working-tree counter and each /tmp mutant.
+
+  Now — write the driver. Steps:
+
+  A. Setup batch (parallel where independent):
+     - mkdir /tmp/mut68; clone: `git clone --no-hardlinks --quiet /home/vgpnk/Projects/shokunin/kotoba-shokunin /tmp/mut68/lane`
+     - sha256 hashes of lane files (before)
+     - `git -C lane status --porcelain > /tmp/mut68/lane-status-before.txt` (run in LANE, read-only)
+     - cp working-tree counter to /tmp/mut68/pristine.py
+
+  B. Sanity runs:
+     - pristine --self-test (no repo touch)
+     - honest world: pristine --repo /tmp/mut68/lane --rev HEAD-sha
+     - base control: pristine --repo /tmp/mut68/lane --rev e94ae32a...; then re-sync worktree.
+
+  C. Build mutants via python edits + scratch commits; run counter per mutant; record.
+
+  D. Counter-mutants for self-test coverage: m-neuter-D1.py, m-neuter-D3-exists.py, m-neuter-D4-baseline.py → run --self-test on each.
+
+  E. After: hashes + lane status after; compare.
+
+  Let me also double check the D4 check parsing of the README row: cells[1] must equal "`lessons/round-67-verifier-spotcheck.md`" — README row at HEAD:127 has second cell `lessons/round-67-verifier-spotcheck.md` — line starts with "|", split("|") → cells[0]='', cells[1]=' Round-67 non-author spot-check (closure) ', cells[2]=' `lessons/round-67-verifier-spotcheck.md` '... wait cells[1] is the AREA cell, not the file cell! Look: `cells = [c.strip() for c in line[1:].split("|")]`; line = "| Area | File | Basis |"; line[1:] drops the leading "|"; split("|") → [" Area ", " File ", " Basis "]; cells[0]=Area, cells[1]=File. So cells[1] is the FILE column — correct (cells[0] is Area). README row: "| Round-67 non-author spot-check (closure) | `lessons/round-67-verifier-spotcheck.md` | ..." → cells[1] = "`lessons/round-67-verifier-spotcheck.md`" — matches the expected literal. 
+
+  But NOTE: the counter's row-matcher requires the row to start with "|" and be a table row ANYWHERE in README (not just the Coverage map section). The gate's own census only reads the Coverage map section. If the row were placed in another section, the counter would pass while the gate reads unindexed=1 → the baseline comparison would catch it (unindexed expect 0 vs observed 1). Defense in depth holds via D4's baseline leg. OK.
+
+  Also the baseline JSON keys: counter maps baseline checks corpus.index.tracked_files etc. — matches.
+
+  Now the exit path bug candidate in check(): when indexed and all baseline values match but findings is nonempty from D1-D3 → else branch: `if not findings: closed += 1` → not incremented; closed stays 3 → returns (3, findings) → prints "3 of 4" + findings. Good.
+
+  Another subtle bug: `_baseline_values` returns dict with keys from obs["corpus"]: tracked_files, unindexed, report_total, commit_total. Wait — `data["observed"]["corpus"]` — verify_corpus_integrity's JSON: {"observed": {"corpus": {...all obs...}}, "results": ...}. So obs includes unindexed (int), tracked_files, report_total, commit_total. Good.
+
+  Potential real defect in `_baseline_values`: `git checkout rev -- corpus verifiers` on rev where corpus/verifiers paths don't exist at that rev → checkout fails? At base e94ae32a both exist. Fine. For a rev lacking verifiers/ → error → EnvError. OK.
+
+  Now — the honest-world run on my clone: will the gate measure exactly 124/0/85/38? The clone lacks untracked files (e.g., untracked .ufo stuff doesn't matter). tracked corpus files: `git ls-files corpus/` = committed = 124 at HEAD. README row present → unindexed 0 (the spotcheck is covered). report_total: pointers inside tracked corpus md — the count depends on file bytes = committed → 85 (assuming the baseline was measured on clean committed tree — note says measured at 605b84ba with "git_status" noting the census re-record committed separately; at 605b84ba the tree = HEAD content for corpus? 59ac5c6 was the baseline re-record commit; 605b84ba's corpus bytes vs cafa29d0's: cafa29d0 (HEAD) only changed the C1 counter? Its subject says C1 counter revision. corpus files identical between 605b84b..HEAD presumably. So 124/0/85/38 should hold. We'll see the actual output.
+
+  If the honest world does NOT read 4 of 4 on the committed clone, that's a major finding (counter fails its own honest control / baseline measured against a dirty tree). Let's run and see.
+
+  One more thing: `--rev` must be full sha per help; I'll use full 40-char shas.
+
+  Edge: `main()` prints f"r67 routed defects closed {n} of {TOTAL}" — n from check. In EnvError cases exits 2.
+
+  Also note: counter's `check` uses `root` (materialized) for README/BASELINE reads — from rev bytes. Good.
+
+  Now let me also prepare the "stale baseline" mutant numbers: change tracked_files expect 124→121 and report_total 85→82 (the base's stale values, matching "keep a stale baseline whose numbers do not match the gate's own measurement"). Expected message: "D4: baseline corpus.index.tracked_files expects 121, the gate's own measurement yields 124" (and the report_total line).
+
+  Write the driver as a bash script? I'll do it in a few Bash calls with python for edits. Let me be careful to capture outputs to files under /tmp/mut68/results/ AND print them.
+
+  Batch 2 (now, parallel):
+  Call A: setup dirs, clone, copy pristine counter, hashes before, lane status before.
+  Call B: (after A — dependent) run self-test + honest world + base control.
+
+  Since B depends on A, I'll do A first alone... Actually I can do A as one call; then B. Let me also compute lane file hashes in A.
+
+  Let me write Call A.
+
+• The draft is absent, but the live counter exists (`verifiers/check_r67_routed_repairs.py`, HEAD + 83 uncommitted insertions — the `--self-test` block). Critical observation before running anything: the counter's `_baseline_values` executes `git -C <repo> checkout <rev> -- corpus verifiers` — a **mutating git command**. I will therefore never point it at the lane; everything runs against a `/tmp` clone. Setting up scratch now:5
+194017b28ccfda05aaa8647eab3bd1ad0112ae604a1b29abe25342456a057a22  /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/check_r67_routed_repairs.py
+d3f8acd44d65786bead302812035e7288c4760e7a169df53964f8917be2d488d  /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/corpus-baseline.json
+febfa57e64896a37cea740ee080ccd1ea0f994980ade0856fc2dc080c1386534  /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/verify_corpus_integrity.py
+09bfd0c1e4fc9b16925f24a974f2feab9321619f357d1d9aab4c1d52e8b60c2d  /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/README.md
+e36f7629361efbd594cddbcc1eeac5cd20efd43dcac6f9a70be4d29c7d3f9b0d  /home/vgpnk/Projects/shokunin/kotoba-shokunin/LOG.md
+3a1c9def93f663fbf51c792a571be89cd3e501eef9fa16740b3a0caa8b783ccb  /home/vgpnk/Projects/shokunin/kotoba-shokunin/SCORECARD.md
+db02c03809b3bfe419cf7d43ff500450e3a7d8177d6ebbcf139fa557ba884e36  /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/lessons/round-68.md
+91470247eeed85ae768ea716ce7fb1d58b3cdd3a238b0fba0ec9d39bbad45f83  /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/lessons/round-67-verifier-spotcheck.md
+3cd73836d81420961105b6a4c46a1f3a771ac8b3
+194017b28ccfda05aaa8647eab3bd1ad0112ae604a1b29abe25342456a057a22  /tmp/mut68/variants/pristine.py
+. .. AGENTS.md considerthese corpus .git .gitignore LOG.md plans PROVINCE.md README.md SCORECARD.md SHONEN.md SKILL.md .ufo verifiers 
+
+
+
+• The reminder says AGENTS.md applies to /tmp/mut68/lane — that's the clone of the lane repo, and its AGENTS.md is a copy of the lane's AGENTS.md. Let me read it quickly (it's the lane's rules — relevant since my mutations touch this scratch copy, and the lane AGENTS.md presumably governs the lane's own conventions). It's scratch, but reading it is cheap and might contain constraints I should respect (e.g., "never commit in the lane"). My scratch commits are in /tmp, not the lane — but let me check to be safe.Fine — scratch commits in /tmp are throwaway measurement fixtures, not lane changes; the lane itself stays untouched. Now run the baseline battery:
+
+  1. `pristine.py --self-test` (no repo touched)
+  2. Honest world: `pristine.py --repo /tmp/mut68/lane --rev <HEAD full sha>` → expect "4 of 4", exit 0
+  3. Base control: `--rev e94ae32a...` → expect "0 of 4", exit 1; then re-sync worktree.
+
+  Note the honest-world run will `git checkout HEAD -- corpus verifiers` in the scratch clone (no-op content-wise). The base run will set worktree corpus/verifiers to base bytes — after it, I re-sync with `git checkout HEAD -- corpus verifiers` and confirm `git status --porcelain` empty in the clone.
+
+  Run these sequentially in one call (dependent), capture outputs to files and echo exit codes.
+
+• AGENTS.md noted — lane rules don't apply to throwaway /tmp fixtures; the lane itself stays byte-untouched. Now the behavioral baseline: `--self-test`, the honest world (repaired rev), and the base control:=== [S0] pristine --self-test (synthetic worlds, no repo reads)
+exit=1
+Traceback (most recent call last):
+  File "/tmp/mut68/variants/pristine.py", line 207, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "/tmp/mut68/variants/pristine.py", line 190, in main
+    return selftest(repo)
+           ^^^^^^^^
+NameError: name 'selftest' is not defined
+=== [S1] honest world: --repo lane --rev 3cd73836d81420961105b6a4c46a1f3a771ac8b3
+exit=0
+r67 routed defects closed 4 of 4
+=== [S2] base control: --rev e94ae32a5cd8dc3ee8e2d247816784bec2750cc0
+exit=2
+environment error: cannot read corpus/lessons/round-68.md at e94ae32a5cd8dc3ee8e2d247816784bec2750cc0
+clone-worktree-clean-if-empty
+
+
+• Three immediate findings:
+
+  1. **S0: `--self-test` is BROKEN in the working-tree bytes** — `NameError: name 'selftest' is not defined`. Looking at the file: `def selftest(repo)` is defined at line 182 in my Read... wait, the Read showed `def selftest(repo: Path) -> int:` at line 182 and `main` calls `selftest(repo)` at line 270. But the traceback says line 190 `return selftest(repo)` and NameError. Hmm — the Read I did earlier was of the LANE working-tree file (287 lines), which HAS `def selftest`. But the copy is identical (same sha 194017b2...). Line numbers in traceback: line 207 `sys.exit(main())`, line 190 `return selftest(repo)`. In the Read, line 287 was `sys.exit(main())` and line 270 `return selftest(repo)`. MISMATCH — the file on disk must have CHANGED between my Read and my cp? The Read showed 287 lines; traceback references line 207/190. So the file changed (the L1/executor is actively editing it — it was ` M` with 83 insertions earlier; maybe now further changed).
+
+     Wait, actually — cp happened in the same batch after my Read. The hash I computed matches what cp'd. But the traceback line numbers don't match the 287-line Read. Unless... the file has since been REPLACED by a shorter version (the executor iterating). Let me check the current lane file: line count, hash, and diff vs /tmp copy.
+
+     Actually hold on — alternative: Python bytecode cache? I ran with -B (no bytecode). NameError at runtime means at the time main() ran, the module global `selftest` didn't exist. In the 287-line version, selftest is defined at module level. If the CURRENT file (what I cp'd) is a DIFFERENT version where the self-test function is defined differently... The traceback says line 190 is `return selftest(repo)` — in the 287-line Read, line 270 was `return selftest(repo)`. So the cp'd file is ~80 lines shorter — i.e., the HEAD version WITHOUT the 83-line self-test addition! But the sha256 of pristine.py equals the sha256 I computed of the LANE file in the same command (194017b2...). So the LANE working-tree file itself CHANGED between my earlier `git diff --stat` (83 insertions) and my hash — the L1 must have committed or reverted meanwhile? git status still showed ` M`... Let me just re-check: line count and hash of the lane file NOW, and `git diff --stat` again.
+
+     Actually more likely: between my first Read and the cp, the executor/L1 modified the working tree (reverted the self-test, moving it elsewhere or still iterating). The NameError suggests the current version CALLS selftest but doesn't define it (or defines it under `if __name__` guard differently). Wait, line 190 `return selftest(repo)` — so main still references selftest, but no def selftest exists in the current bytes. That means the working-tree file is now a REDUCED version: main references selftest but the definition was cut — possibly mid-edit by the L1 (dangerous to reason). Let me look at the current lane file.
+
+     IMPORTANT for me: my mutants and battery should test a coherent counter version. The honest world (S1) PASSED 4 of 4 and base control gave exit 2 (EnvError: round-68.md doesn't exist at base — the counter treats "records file absent at rev" as environment error exit 2, not 0-of-4!). Note the counter docstring claims "At the pinned base it must print `r67 routed defects closed 0 of 4` and exit nonzero" — but at the base, `corpus/lessons/round-68.md` doesn't exist → EnvError → exit 2 with "environment error: cannot read corpus/lessons/round-68.md at e94ae32a...". Exit nonzero ✓, but the printed line is an environment error, NOT "0 of 4" — the counter's own contract line ("at the base it must print 0 of 4") is violated by its code path (echoes R67-1's very defect class: environment-vs-content misclassification!). That's a strong finding — the same defect the plan says was "corrected from the start" for C1's counter is present in the C2 counter's base conjunct.
+
+     Hmm, but is it? The plan's C2 frozen predicate only requires: at rev → 4 of 4 exit 0. The "before" row says "check_r67_routed_repairs.py does not exist (0 of 4)". The counter's own docstring promises base prints "0 of 4" and exits nonzero. Actual: exit 2, prints environment error. Nonzero ✓ but docstring-vs-behavior mismatch, and it re-creates the R67-1 classification defect (a missing record at the measured rev is a content verdict — "nothing closed" — not an environment error; the plan explicitly calls this class out: "a missing entry is 0 of 5, exit 1 (a content verdict); a genuinely unreadable environment (unknown revision, unreadable repo) stays exit 2"). Here the RECORD file missing at rev = the round's records absent = nothing closed → should be 0 of 4, not exit 2. At minimum it contradicts the counter's own docstring. Flag it.
+
+  2. **S1 honest world: PASS** — "r67 routed defects closed 4 of 4", exit 0. The C2 predicate's after-shape holds at HEAD (well, at the scratch clone's HEAD=cafa29d0).
+
+  3. The working-tree counter changed under me. Resolve now: read the current lane counter, hash it, and decide which bytes to test. My mandate: mutation-test the draft (absent) → fall back to the live counter. The live counter bytes are a moving target (L1 editing concurrently). I froze a copy at sha 194017b2 (which is what S1/S2 ran). But 194017b2's bytes contain a broken --self-test (NameError). Hmm wait — actually let me verify: does 194017b2 have `def selftest`? The traceback proves not (NameError). And earlier Read (287 lines) was an EARLIER byte state. So between my Read (23:0x) and my cp, the file changed from the 287-line self-test version to a shorter version that calls an undefined selftest — possibly the L1 is mid-edit RIGHT NOW.
+
+     Let me check the lane file's current state: hash now vs 194017b2, line count, and grep for "def selftest" / "selftest(". If the file is being actively edited, I should pin to a coherent frozen snapshot for the battery. Best: test the LATEST coherent state. If current lane bytes still NameError, I have two options: (a) report the counter broken as-is and run the mutant battery against the last coherent version (the 287-line one I read — I have its full text in my Read; I can reconstruct it exactly? I have the full text with line numbers — I could reconstruct, but reconstruction risk of transcription error is high: 287 lines... I actually have the entire content in the Read result. I could write it to /tmp exactly. But any transcription slip makes it "my" counter, not theirs).
+
+     Better: check whether git has the 287-line version — `git stash`? No. The 287-line version was the WORKING TREE at Read time; HEAD's version = working-tree minus 83 lines (the diff --stat said 83 insertions vs HEAD). So HEAD's counter (cafa29d0:verifiers/check_r67_routed_repairs.py) = 287-83 = ~204 lines WITHOUT self-test but presumably WITH `--self-test` argument? The 287-line Read had selftest def at 182-259 (78 lines) + maybe 5 more inserted lines elsewhere = 83. So HEAD's version likely lacks selftest def but... does HEAD's main call selftest? If HEAD's main doesn't reference selftest, then the NameError version = HEAD + partial edit. Wait but cp'd bytes (194017b2) DID call selftest from main (traceback line 190). So 194017b2 is neither HEAD (no selftest call?) nor the 287-line version (has def). It's a MID-EDIT state: main calls selftest, definition absent. The L1 is literally mid-save.
+
+     Decision: pin the battery to the CURRENT lane bytes snapshot (whatever sha now), but ALSO record the incoherence. Actually — my assignment: "MUTATION-TEST the C2 routed-repairs counter draft ... (read it; if it is not there yet, say so and state which mutants you would run)". The draft absent; the production copy exists and is under active concurrent edit. The Godspeed move: snapshot the CURRENT bytes once, run the full battery against that pinned snapshot, report pinned sha, and note the concurrent-edit hazard (including that --self-test was observed NameError at 194017b2, and re-check --self-test on the pinned snapshot).
+
+     Let me now: hash+read current lane counter; if changed vs 194017b2, re-snapshot and re-run S0/S1/S2 against the new pinned copy. If unchanged (still 194017b2 with NameError self-test), then: the counter's --self-test is definitively broken in the live bytes; I reconstruct? No — I report it. But then my per-defect battery can still run (main path works: S1/S2 prove it), and I additionally test whether --self-test WOULD kill the mutants — it can't even run. I could also take HEAD's committed counter (git show cafa29d0:verifiers/...) and check whether THAT one has a working --self-test. The uncommitted 83-line diff was ADDING selftest; if current bytes lost the def but keep the call, maybe the L1 reverted to HEAD+something. Let me look.
+
+• The live counter changed under me mid-battery (my earlier Read showed a 287-line version with `def selftest`; the bytes I snapshotted call `selftest` but no longer define it → `NameError`, exit 1). The L1 is concurrently editing. Let me pin down the current state:276 /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/check_r67_routed_repairs.py
+a3b91848618b9efa3478176e2b891298248d61b1ca2cdfdaea20236cc24d7660  /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/check_r67_routed_repairs.py
+---grep selftest in worktree bytes:
+184:def selftest(repo: Path) -> int:
+205:        with tempfile.TemporaryDirectory(prefix="k68-selftest-") as tmp:
+255:    ap.add_argument("--self-test", action="store_true")
+258:    if args.self_test:
+259:        return selftest(repo)
+---HEAD version: same grep
+---HEAD version line count:
+204
+
+
