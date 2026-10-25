@@ -2722,3 +2722,28 @@ Core rows) — but filed no entry here. This entry is that record, appended, nev
 - **Governance corrections (K69-11; appended notices, round-65 form — the cited lines are not edited):**
   - LOG.md:2676 token ".ufo/waves/round-67/w1/controls/census-validate-append.txt" -> ".ufo/waves/round-67/controls/census-validate-append.txt" (the r67 census receipt sits directly under controls/, as the R67-2 erratum on that line says).
   - LOG.md:2678 token ".ufo/waves/round-67/w1/controls/junk-world/" -> "corpus/lessons/round-68.md" (the 254 MB control mirror was removed from the working tree in round 68 and never tracked; its record is M109 in the round-68 lesson).
+
+## 2026-10-25 Round 70 — C1 consistency (the routed r69 repairs) and C2 depth (skill evaluation artefacts)
+
+- **Trigger:** the round-70 steer (hyaku run 6, attempt 1, launched 2026-10-25T08:32:57-03:00) and
+  the eleven defects the r69 closure routed in `corpus/lessons/round-69-verifier-spotcheck.md`.
+- **Action:** plan and two counters frozen at `53de0ac` (base `7d51253`); pre-data controls at
+  `a647fa7`; content at `8edeb49`; baseline re-record at `aa9c9ad`; M116 and the F2 bound at
+  `ac3c0f1`; K69-11 in-place receipt at `16b212a`; one v1 wave of 36 seats against `16b212a`;
+  wave-1 integration at `4dba3bc`. Inherited: the two late r69 seat reports committed at pinned
+  blobs (K69-5). Assimilation: one theme from `shokuknow/merge/kotoba/` (staged S234/S231 → S209/
+  S210 by document; S211 lane-opened; S065 `used-by` extended); refusals in the lesson § Gate.
+- **Outcome:** C1 `python3 -B verifiers/check_r69_routed_repairs.py --rev <rev>` → `0 of 10` exit 1
+  at `7d51253`, `9 of 10` exit 1 at `8edeb49` and at `4dba3bc` — a **miss as declared**: the K69-11
+  item cannot pass in a `/tmp` sandbox (M116, Q63). C2 `python3 -B verifiers/check_skill_evals.py
+  --rev <rev>` → `0 of 8` exit 1 at `7d51253`, `8 of 8` exit 0 (`--fetch` 8 of 8) at `4dba3bc` —
+  **met on a hollow counter**: a wave-1 seat reached 8 of 8 from `a647fa7` with 13 junk lines
+  (M119). Corpus gates 6/9 → 9/9; gate registry 49/49 → 51/51; checklist 10/1 at base and at tip,
+  its red narrowed from LOG.md:2676 and :2678 to :2678 alone; census exit 0 before and after
+  (134 → 137 rows, W04 18 → 18).
+- **Pointer:** `plans/round-70.md`, `corpus/lessons/round-70.md`, `.ufo/waves/round-70/receipts/`,
+  `.ufo/waves/round-70/controls/`, `.ufo/waves/round-70/w1/`.
+- **Withdrawn notice (M118, Q64; the line is not edited):** the second K69-11 notice above,
+  LOG.md:2724 (LOG.md:2678 → `corpus/lessons/round-68.md`), is withdrawn. No `GOVERNANCE_CORRECTIONS`
+  row uses it after `4dba3bc`: the directory it names was removed and never tracked, so it has no
+  replacement address; LOG.md:2678 stays red as an inherited recorded absence.

@@ -434,3 +434,25 @@ things stand.
 - **Consistency / calibration sub-axis (C2, score held 10, delta 0; closure verdict: improved).** `python3 -B verifiers/check_r68_routed_repairs.py --rev <rev>` → `r68 routed defects closed 0 of 8` at `a5f7459f99bb27bf697e9438362e75ac5833eca8` → `8 of 8`, exit 0 at `9ce102b9e3f8896d5ed3f050ee896ca90d693a38` (same receipt, self-test 25 assertions).
 - **Coverage (C3, advisory, score held 8.5, delta 0; closure verdict: improved).** `python3 -B verifiers/check_province_core.py --rev <rev>` → `province core rows 0 of 2` at `a5f7459f99bb27bf697e9438362e75ac5833eca8` → `2 of 2`, exit 0 at `9ce102b9e3f8896d5ed3f050ee896ca90d693a38` (same receipt, self-test 10 assertions); `## Frontier`/`## Adjacent` byte-identical.
 - **No axis harmed (closure).** `SCORECARD.md` unchanged in r69 (sha `41c07e39…` at both revisions); every other axis unchanged.
+
+**Round 70 axis annotations (append-only; verdicts belong to the non-author closure).**
+
+- **Consistency / calibration sub-axis (C1, score held 10, delta 0; verdict: miss as declared).**
+  `python3 -B verifiers/check_r69_routed_repairs.py --rev <rev>` (frozen at `53de0ac`, sha256
+  `bdabd71c…`) → `r69 routed defects closed 0 of 10`, exit 1 at `7d51253f99906b8551b6a0a108761eedac00de74`
+  → `9 of 10`, exit 1 at `4dba3bc9d0ce194da22b18c4d115d6c8b7b0358b` (`.ufo/waves/round-70/receipts/C1-measure-tip.txt`).
+  K69-11 is unsatisfiable in the counter's `/tmp` sandbox (lesson M116, QUALITY Q63); in the lane
+  checkout it is half closed (`receipts/K69-11-after-withdrawal.txt`). Wave-1 attacks show the
+  counter is a presence floor (a token-dump world reads 10 of 10; 30 of 50 mutants survive).
+- **Depth (C2, score held 9, delta 0; verdict: met on a hollow counter — not a verified measurement).**
+  `python3 -B verifiers/check_skill_evals.py --rev <rev>` (frozen at `53de0ac`, sha256 `fc768197…`)
+  → `skill eval facts backed 0 of 8`, exit 1 at `7d51253f99906b8551b6a0a108761eedac00de74` → `8 of 8`,
+  exit 0, `live quotes found 8 of 8` at `4dba3bc9d0ce194da22b18c4d115d6c8b7b0358b`
+  (`receipts/C2-measure-tip.txt`). A skip-the-work world reaches 8 of 8 (`w1/CritC2Control.md` W12;
+  lesson M119), so the depth gain — `corpus/knowledge/skill-eval-artefacts-round70.md`, S209-S211, one
+  reader-facing `SKILL.md` line — rests on the non-author spot-check, not on this number.
+- **Lowest-axis obligation.** Owned axes depth (9) and consistency (10): C2 works depth. The
+  all-axes reading stays the lane's open L0 question.
+- **No axis harmed** (`receipts/noharm-at-tip.txt`): corpus gates 6/9 → 9/9, gate registry 49/49 →
+  51/51, floors PASS, checklist 10/1 at base and tip (red narrowed to LOG.md:2678), SKILL.md 600 of
+  600, census exit 0 before and after.
