@@ -2642,3 +2642,55 @@ Full round detail: `corpus/lessons/round-19-recensus.md`. Advisory inventories:
 - **Mistakes.** M104 (the closure spot-check left unindexed by the corpus gate — the routed defect), M105 (an identifier asserted about a source that does not carry it — the staged version string), M106 (a read-only seat's findings produced but not written: the scout profile denies the write tool, so the findings live in the committed session logs) — all in `corpus/lessons/round-67.md` ## Mistakes.
 - **Frontier.** SOURCES 120 -> 123 rows (S123 tier A `mined`, S124 tier A `mined`, S129 tier A `mined`); no prior row's `status`, `recheck` or `used-by` changed. Census before 16 W04 exit 0 (`.ufo/waves/round-67/census-before.txt`) -> after (`.ufo/waves/round-67/census-after.txt`).
 - **Round shape.** Wave 1 `kotoba-r67-w1` (policy v1, band 32-64, 32 spawn lanes, one batched dispatch): executor 7, scout 7, scribe 5, reviewer 5, critic 3, connector 1, mutation-tester 2, sentinel 1, revenger 1 — attack roles 11 of 32 (34%). Wave 2 `kotoba-r67-w2` (policy v1, band 32-64, 35 spawn lanes, one batched dispatch): reviewer 12, critic 11, scout 5, mutation-tester 4, revenger 1, sentinel 1, connector 1 — attack roles 35 of 35 (100%). Both waves validated under `scripts/hyaku/ufo-wave-policy.json` and dispatched as one batched launch each; grants `r67-w1 seats=32` and `r67-w2 seats=35`, cap 256.
+
+## 2026-10-24 Round 68 — C1 depth (client trust gates) and C2 consistency (the routed r67 repairs)
+
+- **C1 — depth (the lane's lowest owned axis; the owned reading of the lowest-axis duty).** The
+  lane's depth surface gained the half the round-67 authority ladder does not cover: **what a
+  client documents about an UNTRUSTED skill body**. One knowledge entry
+  `corpus/knowledge/client-trust-gates-round68.md`, five `corpus/SOURCES.md` rows
+  (S198-S202, all `mined`, tier B, `opened 2026-10-24`), each source re-opened in-round with a
+  ≤25-word located quote, and the new counter `verifiers/check_client_trust_gates.py` (which
+  classifies a MISSING ENTRY as a content verdict — `0 of 5`, exit 1 — and keeps a genuinely
+  unreadable environment at exit 2; the classification the round-67 counter got wrong, routed
+  defect R67-1). The five rows were transformed in scratch to the lane's 11-column schema and
+  gated by `sources-census.sh validate --file` (exit 0) BEFORE the first registry append; the
+  id-collision check ran in scratch with the census parser's 0–3-space pattern (123 registry ids,
+  174 staged ids, **0 collisions**) and the guard was proved non-vacuous on a scratch fixture.
+  Evidence: `corpus/lessons/round-68.md` § Gate, `.ufo/waves/round-68/assimilation/`.
+- **C2 — consistency (this lane's calibration sub-axis).** The four routed r67 defects were
+  worked: the r67 closure's spot-check is indexed in the coverage map and the census baseline is
+  re-recorded from the gate's own measurement; the two record corrections are appended (never
+  rewrites); the 254 MB control mirror is disclosed and removed. The new counter
+  `verifiers/check_r67_routed_repairs.py` prints `r67 routed defects closed N of 4`.
+  Evidence: `corpus/lessons/round-68.md` § Mistakes M107-M110.
+- **Erratum (append-only; routed defect R67-1).** The round-67 report's before-line for the r67
+  C2 claim states that the base printed `authority ladder grounded 0 of 1`. It did not: at the
+  r67 base revision `2a8eba56b3f9321b70c569fa2816d42237ca49a2` the counter prints on stderr
+  `environment error: cannot read corpus/knowledge/instruction-authority-ladder-round67.md at 2a8eba56b3f9321b70c569fa2816d42237ca49a2`
+  and exits **2**, with nothing on stdout — the lane's own committed receipt
+  (`.ufo/waves/round-67/receipts/C2-authority-measure.txt`) says the same. **The r67 claim stands
+  a miss as declared.** The r67 report is not edited; this entry, the SCORECARD annotation and
+  `corpus/lessons/round-68.md` M107 carry the correction.
+- **Erratum (append-only; routed defect R67-2).** The round-67 report cites the census receipt
+  `.ufo/waves/round-67/w1/controls/census-validate-append.txt`; the file that exists is
+  `.ufo/waves/round-67/controls/census-validate-append.txt`. The r67 report is not edited.
+- **Routed defect R67-3 (disclosure).** `.ufo/waves/round-67/w1/controls/junk-world/` — a 254 MB
+  untracked control mirror — was left in the lane working tree by round 67 and named nowhere in
+  the r67 report, `LOG.md` or lesson (the r67 lesson asserted that `git status --porcelain`
+  "lists nothing after it"). Round 68 discloses it here and in the lesson, and removes it from
+  the working tree; it was control scratch, never claim evidence.
+- **Routed defect R67-4 (repair).** `corpus/lessons/round-67-verifier-spotcheck.md` now carries a
+  coverage-map index row and the census baseline is re-recorded from
+  `verify_corpus_integrity.py --no-baseline --json` at the measured commit; the index row alone
+  and the re-record alone each leave the gate red.
+- **Frontier (§2b).** SOURCES rows 123 → 128 (5 added, 0 prior rows changed); the fleet source
+  census run before and after (exit 0 both); one mistake class mined per defect (M107-M110); the
+  round's claim rests on rows opened this round. The campaign's absent-defect register slice for
+  kotoba (13 rows) was hand-checked: 7 `payload-absent` rows refused, 6 `unreachable` rows marked
+  unverifiable — nothing adopted from the register.
+- **Swarm.** One v1 wave of 32 seats (executor 7, scout 10, scribe 5, reviewer 2, critic 2,
+  mutation-tester 2, revenger 2, sentinel 1, connector 1; attack roles 9 of 32 = 28%), dispatched
+  as one batched launch after `wave-slot.sh acquire kotoba r68-w1 32` printed
+  `granted lane=kotoba wave=r68-w1 seats=32 live=58 pending=0 cap=256`; the validator reported
+  `counts {spawn: 32, resume: 0, total: 32}`. No wave 2 was dispatched — see the report.

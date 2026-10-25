@@ -473,6 +473,8 @@ reads as could-not-evaluate. `python3 -B verifiers/check_gate_registry.py --rev 
 | `verifiers/check_agentdef_boxes.py` | gate | `python3 -B verifiers/check_agentdef_boxes.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate — claim withdrawn r56 before data; not a claim gate until redesigned and re-controlled | `--self-test` | in-file | temp archives and per-case dirs under `$TMPDIR` (removed) | kotoba |
 | `verifiers/check_alwayson_boxes.py` | gate | `python3 -B verifiers/check_alwayson_boxes.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file | temp archives and self-test repos (removed) | kotoba |
 | `verifiers/check_assertion_floors.py` | gate | `python3 -B verifiers/check_assertion_floors.py` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | `verifiers/floors-registry.json` | temp fixtures under `$TMPDIR`; removable temp dirs under `verifiers/fixtures/compare-harness-independent` (nested self-test) | kotoba |
+| `verifiers/check_client_trust_gates.py` | gate | `python3 -B verifiers/check_client_trust_gates.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file | none; `--fetch` reads the network | kotoba |
+| `verifiers/check_r67_routed_repairs.py` | gate | `python3 -B verifiers/check_r67_routed_repairs.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate | none (the four checks are presence floors over the lane's own records) | in-file | temp checkout of `corpus/` and `verifiers/` under `$TMPDIR` | kotoba |
 | `verifiers/check_callee_rename.py` | gate | `python3 -B verifiers/check_callee_rename.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file | temp dirs under `$TMPDIR` (removed) | kotoba |
 | `verifiers/check_command_files.py` | gate | `python3 -B verifiers/check_command_files.py --rev <rev> --fetch` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file | self-test repos under `$TMPDIR` (removed); `--fetch` reads the network | kotoba |
 | `verifiers/check_correction_sweep.py` | gate | `python3 -B verifiers/check_correction_sweep.py --root .` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file | none; self-test fixtures under `$TMPDIR` | kotoba |
@@ -574,16 +576,14 @@ reads as could-not-evaluate. `python3 -B verifiers/check_gate_registry.py --rev 
   `~/.omp/agent/skill-descriptions.db` (17 rows at round 9, up from 5; all 17
   keys reproduce, newest catalogue 17/17 cache, 0 truncations — round 10
   re-verified by `verifiers/verify_harness_claims.py`, 27/27 checks).
-- `corpus/knowledge/harness-router-models-round9.md` — the two-harness router
-  model (tag, render, offer gate, failure mode, verify recipe) with the
-  round-9 key-reproduction and freeze evidence.
+- `corpus/knowledge/harness-router-models-round9.md` — the two-harness router model
+  (tag, render, offer gate, failure mode, verify recipe) with the round-9 key-reproduction and freeze evidence.
 - `verifiers/README.md` — what each lane verifier checks (the round-10 to round-23
   verifier bullets, moved there verbatim in round 54); registry rows: § Gate registry.
 - `corpus/knowledge/harness-verifier-round10.md` — what the verifier checks and
   the facts behind each check (key prefix bytes + sha256, style-aware salt,
   offer-gate roots, opencode counter checks) plus its open gaps.
-- `corpus/knowledge/claim-scope-audit-round9.md` — the round-9 consistency
-  measurement: harness-claim scope before (31 claim units, 9 UNSCOPED) and after.
+- `corpus/knowledge/claim-scope-audit-round9.md` — round-9 consistency measurement: harness-claim scope before (31 claim units, 9 UNSCOPED) and after.
 - `corpus/knowledge/render-mechanism-round7.md` — mechanism + survival
   measurement: cliff = offset 99, keep 55–96; the char-survival figure (17.7% of
   description chars reaching the router) is logged in `LOG.md` round 7 and

@@ -392,3 +392,38 @@ things stand.
 - **Consistency / calibration sub-axis (C2 claim in this round's numbering is C1; score held 10, delta 0).** The routed r66 defect is closed: `python3 -B verifiers/verify_corpus_integrity.py` prints `9/9 checks pass` and exits 0, and `python3 -B verifiers/verify_corpus_independent.py --json` exits 0, after the coverage-map index row for the closure's r66 spot-check and a baseline re-record derived from the gate's own `--no-baseline --json` measurement. Before: `5/9 checks pass`, exit 1, `unindexed: corpus/lessons/round-66-verifier-spotcheck.md`. The two half-repair controls (index row only; baseline only) each leave the gate red. The claim's bound (Q21): the repair moves the CAUSE (the unindexed corpus file) and not only the symptom (the stale expectation); a rubber-stamp re-record was not accepted because the values are derived by the gate's own measurement command.
 - **Lowest-axis obligation.** The owned axes are depth (9) and consistency (10), so the lowest owned axis is depth and C2 works it. The all-axes reading (freshness 8.0 / adjacency 8.0 advisory) remains the lane's open L0 question and is not settled by this round; the round states both readings, as rounds 47-66 did.
 - **No axis harmed.** The checklist gate stays 11/11 with SKILL.md at 600 of 600 lines (one wrapped-paragraph line was compressed to make room for the new gate-registry row), the gate registry stays conformant, the floors guard stays green, and the fleet source census is exit 0 before and after.
+
+**Round 68 axis annotations (append-only; verdicts belong to the non-author closure).**
+
+- **Depth (C1, score held 9, delta 0; verdict: measured).** The lane's depth surface gained the
+  untrusted-skill-body half of the authority boundary: `corpus/knowledge/client-trust-gates-round68.md`
+  with five rows re-opened this round (S198-S202) and the counter
+  `python3 -B verifiers/check_client_trust_gates.py --rev <rev>` → `client trust gates backed 5 of 5`,
+  exit 0 at the measured tip; at the pinned base `e94ae32a5cd8dc3ee8e2d247816784bec2750cc0` the
+  same counter reads `client trust gates backed 0 of 5`, exit 1 (the instrument and the ground did
+  not exist at the base). The counter classifies a missing entry as a content verdict (exit 1),
+  not an environment error (exit 2) — the classification the round-67 counter got wrong
+  (routed defect R67-1). Depth holds 9; the band move is the closure's to rule.
+- **Consistency / calibration sub-axis (C2, score held 10, delta 0; verdict: measured).** The four
+  routed r67 defects are closed at the measured bytes: `python3 -B verifiers/verify_corpus_integrity.py`
+  prints `9/9 checks pass` and exits 0 (before: `6/9 checks pass`, exit 1,
+  `unindexed: corpus/lessons/round-67-verifier-spotcheck.md`), and
+  `python3 -B verifiers/verify_corpus_independent.py --json` exits 0 (before: exit 1); the new
+  counter `python3 -B verifiers/check_r67_routed_repairs.py --rev <rev>` prints
+  `r67 routed defects closed 4 of 4`, exit 0 (before: the instrument did not exist). The two
+  record corrections are appended, never rewritten, and the 254 MB control mirror is disclosed
+  and removed. Consistency holds 10.
+- **Lowest-axis obligation.** The owned axes are depth (9) and consistency (10); the lowest owned
+  axis is depth and C1 works it. The all-axes reading (freshness 8.0 / adjacency 8.0, advisory)
+  remains the lane's open L0 question and is not settled by this round.
+- **No axis harmed.** The corpus gate is 9/9 exit 0, the independent gate exit 0, `SKILL.md` stays
+  at 600 of 600 lines (two bullet lines were compressed to make room for the two new gate-registry
+  rows), the gate registry and the floors guard stay green, and the fleet source census is exit 0
+  before and after.
+- **Erratum to the round-67 depth annotation above (append-only; routed defects R67-1 and R67-2).**
+  That annotation states that the r67 C2 base "prints `authority ladder grounded 0 of 1`". The
+  committed receipt and a re-run at the r67 base revision show exit 2 with
+  `environment error: cannot read corpus/knowledge/instruction-authority-ladder-round67.md` and
+  nothing on stdout; the r67 claim stands a **miss as declared** and is not re-scored here. The
+  r67 census receipt path in that round's report is `.ufo/waves/round-67/controls/census-validate-append.txt`,
+  not the `w1/controls/` form the report cites. The r67 report itself is not edited.
