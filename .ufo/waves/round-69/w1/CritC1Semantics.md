@@ -67,8 +67,15 @@ The retitle landed 38 s after the entry edit and the two are not atomic.
 
 Evidence that this is a one-string propagation miss, not a deeper break: replacing only
 `(served docs page)` → `(served V1 docs page)` in the entry returns `(5, [])` under **both** counter
-versions. So the claim's headline number is, at this instant, false while every structural conjunct
-is satisfiable.
+versions. So the claim's headline number was, at that instant, false while every structural conjunct
+was satisfiable.
+
+**Post-measurement status (so the red is not chased now).** The L1 fixed it and committed the round
+while this report was being written: `a02ba7e` / `54f4b6c`, entry `:5` now reads
+`(served V1 docs page)` (entry sha256 `0ef15faf…`), and the counter prints `skill precedence backed
+5 of 5`, exit 0, at 07:29Z. **The defect class survives the fix**: the row title and the entry's
+source-line tail are duplicated by hand and compared verbatim (`row[1] in tail`), so every future
+retitle re-opens the red until one is derived from the other or the comparison is by URL.
 
 ## P2 — "backed 5 of 5" is citation plumbing, not entailment (counterexample battery)
 
@@ -149,6 +156,16 @@ Consequences for the claim's meaning:
   5/5 under both. The drift is invisible to every receipt the round holds.
 - SKILL.md's gate row states the weaker predicate, so the lane's own gate registry now under-describes
   the gate that ran.
+
+**Post-measurement status.** Commit `54f4b6c` landed version B as `HEAD`
+(`git show HEAD:verifiers/check_skill_precedence.py` = `dc9f1507…`, self-test 22 assertions vs the
+frozen 18) while `controls/freeze-receipt.txt` still records `9c796574…` and `SKILL.md:517` still says
+"located quotes (≤25 words)" — verified after the commit. `RevFreezeReceipt.md` independently reaches
+the "the receipt is true of `a238989` and describes nothing the lane will run" half; the A/B
+behavioural matrix above and the control-blindness result are this seat's addition. So the remaining
+defect is not "the drift exists" — it is that **the predicate's description, its receipt and its
+control set did not move with it**. A gate whose sha, prose and mutation set disagree is a gate whose
+green cannot be cited.
 
 ## P4 — the four page-level questions
 
@@ -299,11 +316,14 @@ Ordered, each independently verifiable:
 1. **Make the S207 title atomic** (one string, entry `:5`): `opencode — Agent skills (served docs
    page)` → `opencode — Agent skills (served V1 docs page)`. Verified: restores `(5, [])` under both
    counter versions. Do it in the same commit as the `SOURCES.md` retitle, or neither.
-2. **Resolve the freeze drift explicitly**, do not bury it: either revert the counter to `9c796574…`
-   (then the 5-word/6-word/quote-cell hardening is a new round's proposal), or land the working tree
-   as the measured predicate and re-issue `controls/freeze-receipt.txt` + `SKILL.md:517` + the plan's
-   "Counter semantics" sentence with the new sha256 and the new conjunct text. A control that
-   distinguishes A from B (a 2-word heading world) belongs in `--self-test` either way.
+2. **Re-freeze rather than revert** (the same remedy `RevFreezeReceipt` reaches from the receipt
+   side): keep `controls/freeze-receipt.txt` as the historical `a238989` record, and add a post-freeze
+   receipt naming `dc9f1507…`, the 5–25-word floor, the ≥6-word rule cell, the quote-cell constraint,
+   the `## Coverage map` heading requirement and the first-row dedupe; amend the plan by *appended
+   amendment* (plans are frozen) rather than editing the frozen sentence; rewrite `SKILL.md:517`'s
+   "(≤25 words)" to the hardened conjuncts. Add an A/B-discriminating world to `--self-test` (a
+   5-word heading and a 2-word heading) so the two predicates can never again both call the same
+   bytes green in silence.
 3. **Fix the V2 citation** in `:26`/`:47-48`: cite the fact to the page read today
    (`https://opencode.ai/v2/docs/skills`, § Precedence, "the source registered later supplies the
    skill that OpenCode loads", 34,294 B / `786c87e6…`) and either append a new registry row for

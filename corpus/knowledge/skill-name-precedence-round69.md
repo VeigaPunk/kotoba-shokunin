@@ -20,16 +20,16 @@ hold** (Roo Code, Amp, Deep Code, Junie) plus the cross-client synthesis below.
 | client | collision rule the client documents | located quote | source |
 |---|---|---|---|
 | Roo Code | scope order, with the root above the mode split: a project-scope skill beats a global-scope skill; within one scope the native `.roo/skills/` root outranks the shared `.agents/skills/` root, and the page's own precedence ladder orders locations before it orders mode-specific against generic — the quote's two clauses are therefore not independent | "Project skills override global skills, mode-specific override generic" | S203 |
-| Amp | source order: a fixed ordered source list in which a local skill masks a repository skill of the same name, a personal-repository skill masks a workspace skill, and both mask official Amp skills | "Local skills mask repository skills with the same name." | S204 |
+| Amp | source order over eleven sources, and the order inverts by tree: `~/.agents/skills/` (item 2) precedes project `.agents/skills/` (item 4), while project `.claude/skills/` (item 5) precedes `~/.claude/skills/` (item 6); a personal-repository skill masks a workspace one, and both mask official Amp skills | "Local skills mask repository skills with the same name." | S204 |
 | Deep Code | root order: roots are scanned in a numbered priority order (project roots before user roots), and one winner is kept per name | "only the highest-priority one is kept" | S205 |
-| Junie | scope order: project-level beats user-level, and the loser is ignored | "the project-level skill takes precedence and the user-level skill is ignored." | S206 |
-| opencode (V1 route) | no precedence stated: the troubleshooting guidance asks only that names be unique across every location it loads. The same client's V2 docs route does document an order (registry row S064, § Precedence); this entry counts the V1 route and does not claim the V2 ladder | "Ensure skill names are unique across all locations" | S207 |
+| Junie | scope order for the `.junie/skills/` pair only: a project-level skill beats a user-level one of the same name, and the loser is ignored. The page loads `.agents/skills/`, extension, custom-folder and built-in skills too and states no order among them | "the project-level skill takes precedence and the user-level skill is ignored." | S206 |
+| opencode (V1 route) | no precedence stated: the troubleshooting guidance asks only that names be unique across every location it loads. The same client's V2 docs route documents an order (observed by this round's ScoutOpencode seat, not mined into a row); this entry counts the V1 route and claims nothing about the V2 ladder | "Ensure skill names are unique across all locations" | S207 |
 
 ## What a skill author does with this
 
 - **Four of the five cited routes resolve a collision by order, not by merging.** One body wins and
   the other is not shown. A skill author cannot rely on two same-named skills being combined.
-- **The orders are not three different kinds.** Roo Code and Deep Code both order scope first
+- **The orders are not three different kinds, and one of them reverses.** Roo Code and Deep Code both order scope first
   (project before global/user) and the native root before the shared one; Junie states only the
   project/user pair; Amp is the one flat source list. The same pair of skills can still resolve
   differently on two clients, because the orders name different keys.
@@ -45,7 +45,10 @@ hold** (Roo Code, Amp, Deep Code, Junie) plus the cross-client synthesis below.
   markup-bearing (`<strong>`, `<code>`) and the "Roo-specific (higher priority)" labels are code-
   fence comment lines inside its `Choose a location` blocks (QUALITY Q42 shaping, disclosed).
 - opencode is one of the lane's pinned clients; four of the five are not. The V2 route's ladder is
-  named but not adopted — its row (S064) was mined in round 54 for a different question.
+  named but not adopted — the V2 route was read this round only to bound the claim, and its row (S064) was mined in round 54 for a different question and no longer matches the page's bytes.
+- Junie's rule universe is the `.junie/skills/` pair only; the page states no order among the
+  other roots it loads. Roo's collision surface is stated in plain 16-word prose in the same
+  section, which the quote above does not carry.
 - Five clients, all English pages, read 2026-10-25. A pinned sibling's Kimi-scope rule
   (kumitate `corpus/knowledge/kimi-skills-plugins.md`) is deliberately outside this entry.
 
