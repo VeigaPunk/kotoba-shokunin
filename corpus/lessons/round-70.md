@@ -276,3 +276,12 @@ lesson before the report (named here), never in a filed record.
   edited after data. The seat's W12 world is the committed red evidence a successor counter must
   reject before it is frozen. Consequence: C2's `8 of 8` is reported as **met on a hollow
   counter**, not as a verified measurement; the depth content rests on the non-author spot-check.
+- **M120 — class: landing (a round-69 seat report misrooted into the fleet repo).** Evidence: the
+  pre-report misroot sweep (`git -C /home/vgpnk/Projects/shokunin status --porcelain`) listed
+  `.ufo/waves/round-69/w1/ScoutAmp.md` untracked at the fleet root (mtime 2026-10-25 07:16:36 -03,
+  10 163 B) — a kotoba r69 seat's re-open of row S204 that resolved its relative `Report:` path
+  from the fleet root. Captured by: the prompt's seat-paths-are-absolute rule and its misroot sweep,
+  which round 69 did not run. **Fix (shown able to fail):** copied byte-exact to the same relative
+  path in the lane (`cmp` identical, sha256 `d83b22df…`), fleet copy deleted; the red-before is the
+  sweep's own listing, and the same sweep after the move lists no kotoba path. The round-24 file
+  beside it (`.ufo/waves/round-24/w2/RevUnlandedResolution.md`) is tabi's and was not touched.
