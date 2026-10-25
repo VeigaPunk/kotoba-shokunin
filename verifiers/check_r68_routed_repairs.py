@@ -95,6 +95,9 @@ UNTRACKED = [f"{W}/{n}.md" for n in (
     f"{W}/drafts/fetch-arm-execC1Fetch.py", f"{W}/drafts/r68-mistakes-M108-M110.md",
     f"{W}/seat-results.json"]
 R68_PATHS = MODIFIED + UNTRACKED
+# The landed form of the 24 round-68 wave paths, measured at R69_BASE: 4081 insertions,
+# 251 deletions. A landing that touches every path but carries a truncated body fails.
+R68_INS, R68_DEL = 4081, 251
 
 SHA_RE = re.compile(r"^measured-rev:\s*([0-9a-f]{40})\s*$", re.M)
 EXIT_RE = re.compile(r"^exit=(\d+)\s*$", re.M)
@@ -128,6 +131,18 @@ class Repo:
 
     def is_ancestor(self, sha: str) -> bool:
         return self.git("merge-base", "--is-ancestor", sha, self.rev).returncode == 0
+
+    def numstat(self, base: str, paths: list[str]) -> tuple[int, int]:
+        """Insertions and deletions from <base> to the measured revision over <paths>."""
+        proc = self.git("diff", "--numstat", base, self.rev, "--", *paths)
+        ins = dels = 0
+        for line in proc.stdout.splitlines():
+            cols = line.split("\t")
+            if len(cols) < 2:
+                continue
+            ins += int(cols[0]) if cols[0].isdigit() else 0
+            dels += int(cols[1]) if cols[1].isdigit() else 0
+        return ins, dels
 
     def run_r67_counter(self, at: str) -> tuple[int, str]:
         """Run --rev's r67 counter from a sandbox clone against revision <at>."""
@@ -258,20 +273,24 @@ def d5_supersede(repo: Repo) -> list[str]:
         if cells[6].startswith("supersedes S201 —") and APPROVAL in cells[5] \
                 and cells[7] == "mined" and cells[8] == "2026-10-25":
             entry = repo.show(R68_ENTRY) or ""
-            if re.search(rf"\b{cells[0]}\b", entry):
-                return []
-            return [f"D5: {cells[0]} supersedes S201 but {R68_ENTRY} does not name it"]
+            if not re.search(rf"(?m)^source: {cells[0]}\b", entry):
+                return [f"D5: {cells[0]} supersedes S201 but {R68_ENTRY} carries no `source: {cells[0]}` line"]
+            if APPROVAL not in entry:
+                return [f"D5: {R68_ENTRY} does not carry the approval sentence the row supersedes"]
+            return []
     return ["D5: no mined row opened 2026-10-25 supersedes S201 with the approval sentence in its anchor"]
 
 
 def d6_mistake(repo: Repo) -> list[str]:
     mistakes = _section(repo.show(LESSON) or "", "Mistakes")
-    row = any("R68-6" in l and "S201" in l for l in mistakes.splitlines())
+    blocks = re.split(r"\n(?=- )", mistakes)
+    row = any(all(t in b for t in ("R68-6", "S201", "verbatim")) for b in blocks)
     quality = repo.show(QUALITY) or ""
     crit = any(re.match(r"^\| Q\d+ \|", l) and "round-69.md" in l for l in quality.splitlines())
     out = []
     if not row:
-        out.append(f"D6: {LESSON} § Mistakes has no row naming R68-6 and S201")
+        out.append(f"D6: {LESSON} § Mistakes has no row naming R68-6, S201 and the observed "
+                   "`verbatim` fact")
     if not crit:
         out.append(f"D6: {QUALITY} has no criterion row citing round-69.md")
     return out
@@ -292,6 +311,10 @@ def d7_wave_paths(repo: Repo) -> list[str]:
             continue
         if path in MODIFIED and repo.blob(path, repo.rev) == repo.blob(path, R69_BASE):
             out.append(f"D7: {path} carries the base blob; its uncommitted modification never landed")
+    ins, dels = repo.numstat(R69_BASE, R68_PATHS)
+    if (ins, dels) != (R68_INS, R68_DEL):
+        out.append(f"D7: the r68 wave diff from {R69_BASE[:7]} is +{ins}/-{dels}, "
+                   f"expected +{R68_INS}/-{R68_DEL} — a truncated landing passes the path test")
     return out
 
 
@@ -336,9 +359,11 @@ class FakeRepo(Repo):
     """Dict-backed committed bytes for the self-test; no git, no subprocess."""
 
     def __init__(self, files: dict[str, str], tracked: set[str], base_blobs: dict[str, str],
-                 r67: dict[str, tuple[int, str]], gate: dict):
+                 r67: dict[str, tuple[int, str]], gate: dict,
+                 numstat: tuple[int, int] = (R68_INS, R68_DEL)):
         super().__init__(Path("/nonexistent"), "f" * 40)
         self.files, self.tracked_set, self.base_blobs, self.r67, self.gate = files, tracked, base_blobs, r67, gate
+        self.numstat_value = numstat
 
     def show(self, path, rev=None):
         return self.files.get(path)
@@ -352,6 +377,9 @@ class FakeRepo(Repo):
 
     def is_ancestor(self, sha):
         return sha != "0" * 40
+
+    def numstat(self, base, paths):
+        return self.numstat_value
 
     def run_r67_counter(self, at):
         return self.r67[at]
@@ -372,12 +400,14 @@ def _honest() -> dict:
     files[R67_BASE_RECEIPT] = f"measured-rev: {R68_BASE}\nr67 routed defects closed 0 of 4\nexit=1\n"
     files[R67_COUNTER] = "proc = subprocess.run(['git', 'clone', '--shared'])\n"
     files[LESSON] = ("## Gate\n- S200: the quote drops `<code>` tags.\n- S202: the quote drops `**` bold.\n"
-                     "## Mistakes\n- M111 R68-6: the S201 refusal reason was wrong.\n"
+                     "## Mistakes\n- M111 R68-6: the S201 refusal reason was wrong; the sentence is\n"
+                     "  verbatim on the page.\n"
                      f"disposition: removed `{W}/controls/c2falsify-clone/`\n")
     files[QUALITY] = "| Q62 | rule | scope | M111 (`corpus/lessons/round-69.md`) | — |\n"
     files[SOURCES] = (f"| S208 | MS | docs | B | scope | quote \"{APPROVAL}\" | supersedes S201 — x | mined | "
                       "2026-10-25 | 90d | corpus/knowledge/client-trust-gates-round68.md |\n")
-    files[R68_ENTRY] = "Amendment: the approval clause rests on S208.\n"
+    files[R68_ENTRY] = (f"source: S208 — MS — approval sentence\n{APPROVAL}\n"
+                        "Amendment: the approval clause rests on S208.\n")
     files[README] = f"| Round-68 spot-check | {SPOTCHECK_TOKEN} | x |\n"
     files[BASELINE] = json.dumps({"checks": {
         "corpus.index.tracked_files": {"expect": 7}, "corpus.index.unindexed": {"expect": 0},
@@ -437,6 +467,8 @@ def selftest() -> int:
         "D7 untracked path left": lambda w: w["tracked"].discard(f"{W}/seat-results.json"),
         "D7 modified log kept its base blob": lambda w: w["base_blobs"].__setitem__(MODIFIED[1], "new-" + MODIFIED[1]),
         "D7 removed path still tracked": lambda w: w["tracked"].add(f"{W}/controls/c2falsify-clone/x"),
+        "D7 truncated landing": lambda w: w.__setitem__("numstat", (1, 1)),
+        "D5 entry has no source line": edit(R68_ENTRY, "source: S208", "note S208"),
         "D8 index row absent": edit(README, SPOTCHECK_TOKEN, "`lessons/absent.md`"),
         "D8 stale baseline": lambda w: w["gate"].__setitem__("tracked_files", 8),
     }

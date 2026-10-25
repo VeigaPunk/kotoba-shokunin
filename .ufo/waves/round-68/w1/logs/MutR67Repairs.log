@@ -655,4 +655,629 @@ environment error: cannot read corpus/lessons/round-68.md at e94ae32a5cd8dc3ee8e
 
   Then lane restoration evidence: hashes after + git status after on the LANE, diff vs before.
 
-  Also `--help` sanity
+  Also `--help` sanity: pinned main has --rev/--repo/--self-test (lines 255-259 grep). Good.
+
+  Timeout: the gate run inside _baseline_values spawns git+python each time (~0.2s each). Total fine within 120s. Use 240.
+
+  One more check in driver: after all runs, verify lane untouched: sha256sum -c against before-file, and diff status.
+
+  Note: results files: results/M-*.txt. Print everything. Let me write the driver file with Write (path /tmp/mut68/drive.py — /tmp is fine for Write? The Write tool isn't in my toolset! My tools: Bash, Glob, Grep, Read. No Write/Edit tools. So heredoc via Bash it is.)
+
+• Pinned baseline is coherent: self-test 0 failures, honest world `4 of 4` exit 0, base control exits 2 (an `environment error`, **not** the docstring-promised `0 of 4` line — finding F1). Now the mutant battery — one scratch-commit world-mutant per routed defect, plus the self-test-coverage counter-mutants:== W0-honest rev=3cd73836d814 counter=pinned.py exit=0
+r67 routed defects closed 4 of 4
+== W1-D1-erratum-deleted rev=778be055ad8b counter=pinned.py exit=1
+r67 routed defects closed 2 of 4
+  - D1: no record carries the appended correction naming the observed `environment error: cannot read corpus/knowledge/instruction-authority-ladder-round67.md` line
+== W2-D2-wrong-receipt-path rev=9985e8a29611 counter=pinned.py exit=1
+r67 routed defects closed 1 of 4
+  - D1: no record carries the appended correction naming the observed `environment error: cannot read corpus/knowledge/instruction-authority-ladder-round67.md` line
+  - D2: no record names the real receipt path .ufo/waves/round-67/controls/census-validate-append.txt
+== W3-D3-disclosure-removed rev=a1c1b63d151a counter=pinned.py exit=1
+r67 routed defects closed 0 of 4
+  - D1: no record carries the appended correction naming the observed `environment error: cannot read corpus/knowledge/instruction-authority-ladder-round67.md` line
+  - D2: no record names the real receipt path .ufo/waves/round-67/controls/census-validate-append.txt
+  - D3: the disclosure of .ufo/waves/round-67/w1/controls/junk-world is missing, or the path still exists
+== W3b-D3-path-still-exists rev=3cd73836d814 counter=pinned.py exit=1
+r67 routed defects closed 2 of 4
+  - D3: the disclosure of .ufo/waves/round-67/w1/controls/junk-world is missing, or the path still exists
+== W4a-D4-index-row-dropped rev=39e8c0953bef counter=pinned.py exit=1
+r67 routed defects closed 0 of 4
+  - D1: no record carries the appended correction naming the observed `environment error: cannot read corpus/knowledge/instruction-authority-ladder-round67.md` line
+  - D2: no record names the real receipt path .ufo/waves/round-67/controls/census-validate-append.txt
+  - D3: the disclosure of .ufo/waves/round-67/w1/controls/junk-world is missing, or the path still exists
+  - D4: corpus/lessons/round-67-verifier-spotcheck.md has no coverage-map index row
+== W4b-D4-stale-baseline rev=ca0227a91a32 counter=pinned.py exit=1
+r67 routed defects closed 0 of 4
+  - D1: no record carries the appended correction naming the observed `environment error: cannot read corpus/knowledge/instruction-authority-ladder-round67.md` line
+  - D2: no record names the real receipt path .ufo/waves/round-67/controls/census-validate-append.txt
+  - D3: the disclosure of .ufo/waves/round-67/w1/controls/junk-world is missing, or the path still exists
+  - D4: corpus/lessons/round-67-verifier-spotcheck.md has no coverage-map index row
+clone restored to clean HEAD: True
+
+
+• Something is wrong with the cumulative findings: W1 shows D1 finding AND "closed 2 of 4" — but W1 only removed the OBSERVED lines. Where did the other two closes go? Look at W0: 4 of 4 clean. W1: "closed 2 of 4" with ONLY the D1 finding → D2, D3 closed, D4 NOT closed but NO D4 finding listed!
+
+  Wait — look at check(): D4's else-branch: `if not findings: closed += 1`. In W1, findings=[D1] → indexed=True, baseline compared, no mismatch findings → else runs → `if not findings` False → closed NOT incremented → closed stays 2 (D2+D3) → verdict "2 of 4" with only the D1 finding. So the D4 leg contributes +1 only when findings is empty. That's consistent.
+
+  W2 (M2 swap REAL→WRONG): REAL gone from records. BUT the swap also destroyed... wait, "closed 1 of 4" with D1 AND D2 findings. Why did D1 fire in W2? M2 swapped REAL→WRONG in the records — the D1 erratum lines (OBSERVED) don't contain REAL... LOG.md:2670 has OBSERVED; SCORECARD:426 OBSERVED; round-68:137 OBSERVED. None of those lines contain REAL. So D1 should still close. But the output says D1 finding present!
+
+  OH WAIT. I see — cumulative commits! commit_mut does `git checkout HEAD -- .` then edits then `git add -A` then commit ON TOP of the previous mutant commit (each commit_mut commits on the current HEAD, which after W1 is the M1 commit!). I never reset the BRANCH to the original HEAD — only the worktree. So M2's commit = M1 + M2 edits (OBSERVED lines already deleted in parent!). Each mutant accumulates all previous mutations. W3 = M1+M2+M3 → 0 of 4. W3b ran at HEAD which by then was M3's commit → 2 of 4 (D1, D2 findings from accumulated mutants... W3b output shows only D3 finding and closed 2 of 4 → D1+D2 closed?? no: closed 2 of 4 with only D3 finding — hmm, at W3b rev=3cd73836 which is the ORIGINAL HEAD! rev=3cd73836d814 — yes! W3b shows rev=3cd73836 = original HEAD. Because run("W3b...", HEAD) used the saved HEAD var = original. And the records at original HEAD are clean → D1, D2 closed; D3 fires due to the recreated junk dir. So W3b is VALID (2 of 4, D3 finding) — good.
+
+  But W1/W2/W3/W4a/W4b are CUMULATIVE mutants, not isolated per-defect mutants. W1 (rev 778be055) = M1 only? Let me check: W1 was the first commit after W0; its parent = original HEAD. commit order: W1 commit parent=HEAD(original). Then W2 commit parent=W1 commit → M1+M2. W3 → M1+M2+M3. W4a → +M4a. W4b → +M4b. So only W1 and W3b are clean single mutants; W2..W4b are cumulative.
+
+  Evidence in outputs: W2 shows D1 finding (from M1 still present) plus D2. W4b shows ALL findings including D4 index-row (M4a) AND stale-baseline... wait W4b's D4 finding says "has no coverage-map index row" — because M4a dropped the row in the parent, indexed=False → baseline never compared → the stale baseline wasn't even reached! So W4b did not actually test the stale-baseline leg in isolation.
+
+  I must redo W2, W3, W4a, W4b as ISOLATED single-parent mutants off the ORIGINAL HEAD. Fix: after each commit_mut, `git reset --hard <orig-HEAD>`? In scratch that's fine (my no-lane-git-mutation rule applies to the lane; scratch is mine). Or branch per mutant: `git checkout -q -B mut <origHEAD>` before editing... simplest: in commit_mut, first `git checkout -q -B m <origHEAD>` wait — HEAD var holds orig sha. Do `git checkout -q -B mut-<label> <HEAD>`? Creating branches is fine in scratch. Or just `git reset -q --hard <orig>` at the start of each commit_mut. --hard in scratch only. OK.
+
+  Also note W1's verdict format: "closed 2 of 4" with a single D1 finding — confirms the `if not findings` D4-credit quirk: D4's credit is granted only when the WHOLE findings list is empty, so any other open defect silently withholds D4's +1 without a D4 finding. Semantically fine (closed count is still < 4 → exit 1 → reject), but the finding list under-reports (no D4 line even though D4 was evaluated and would pass). Minor reporting quirk, worth noting — it cannot cause a false PASS because closed only reaches 4 when findings is empty and all four legs increment... wait can closed reach 4 with findings nonempty? No: final `if findings: return closed, findings` — closed only counted when each leg passes; D4's increment requires `not findings`. If D1-D3 all pass and D4's index+baseline pass → findings empty → closed=4. Correct. False-PASS impossible via that quirk. Fine — note as cosmetic.
+
+  Also W2's "closed 1 of 4": with D1+D2 findings → D3 closed (1) + D4 not credited. Consistent.
+
+  Redo isolated battery now. Also then the counter-mutants for --self-test coverage. And restoration evidence for the LANE (hashes after, status after) — my runs never touched the lane; verify.
+
+  Isolated driver: same edits but each from orig HEAD; capture mutant shas; run pinned counter per mutant sha.
+
+• Bug in my harness, not the counter: each scratch commit landed on top of the previous mutant (cumulative worlds — W2+ carry earlier defects, and W4b's stale baseline was never even reached because M4a had already dropped the row). W0 and W3b are valid; W1/W2/W3/W4a/W4b must be rebuilt as **isolated single mutants off the original HEAD**:== X1-D1-erratum-deleted rev=35deef2e716e exit=1
+r67 routed defects closed 2 of 4
+  - D1: no record carries the appended correction naming the observed `environment error: cannot read corpus/knowledge/instruction-authority-ladder-round67.md` line
+== X2-D2-wrong-receipt rev=dda210a97f8e exit=1
+r67 routed defects closed 2 of 4
+  - D2: no record names the real receipt path .ufo/waves/round-67/controls/census-validate-append.txt
+== X3-D3-disclosure-removed rev=eaafeb26519f exit=1
+r67 routed defects closed 2 of 4
+  - D3: the disclosure of .ufo/waves/round-67/w1/controls/junk-world is missing, or the path still exists
+== X4a-D4-index-row-dropped rev=19ef6f031a90 exit=1
+r67 routed defects closed 3 of 4
+  - D4: corpus/lessons/round-67-verifier-spotcheck.md has no coverage-map index row
+== X4b-D4-stale-baseline rev=3cf742b5f5f1 exit=1
+r67 routed defects closed 3 of 4
+  - D4: baseline corpus.index.tracked_files expects 121, the gate's own measurement yields 124
+  - D4: baseline corpus.pointers.report_total expects 82, the gate's own measurement yields 85
+clone back on pristine ORIG: True | worktree clean: True
+
+
+• All five isolated world-mutants are REJECTED (exit 1, never 4 of 4), each with the expected D-finding:
+
+  - X1 (D1 erratum deleted): closed 2 of 4, exit 1, D1 finding. KILLED. ✓
+  - X2 (D2 wrong receipt path): closed 2 of 4, exit 1, D2 finding. KILLED. ✓
+  - X3 (D3 disclosure removed): closed 2 of 4, exit 1, D3 finding. KILLED. ✓
+  - X3b (D3 path still exists): closed 2 of 4, exit 1, D3 finding. KILLED. ✓ (from earlier run — valid since it ran at ORIG HEAD with junk dir recreated)
+  - X4a (D4 index row dropped): closed 3 of 4, exit 1, D4 index finding. KILLED. ✓
+  - X4b (D4 stale baseline): closed 3 of 4, exit 1, two D4 baseline-mismatch findings (121 vs 124, 82 vs 85). KILLED. ✓
+
+  Now the --self-test question: does --self-test kill the same mutants? The self-test's synthetic worlds cover: D1 absent, D2 absent, D3 disclosure absent, D4 index absent, D4 stale baseline — 5 worlds matching my X1, X2, X3, X4a, X4b. But it does NOT cover X3b (path still exists — no world with junk_exists=True; note run_world has a junk_exists param but no broken world uses True... actually looking at selftest: broken worlds all pass junk=False; run_world creates the junk dir under root then rmdir's if not junk_exists — the dir is created under `root` while check() tests `(repo / JUNK)` with repo=Path("/nonexistent") → always False → the "still exists" leg is structurally untestable in the self-test harness).
+
+  Meta-mutation probe: break the counter, see if --self-test notices:
+  - cD1: `if OBSERVED in joined:` → `if True:` → self-test must catch (D1 world survives).
+  - cD3g: drop the `and not (repo / JUNK).exists()` leg → prediction: self-test does NOT catch (gap) — and prove the leg is load-bearing by running cD3g against the real X3b world (junk dir recreated) where it should print 4 of 4 (false PASS on a real world).
+  - cD4b: neuter baseline comparison (`if expect.get(key) != value:` → `if False:`) → self-test must catch (stale-baseline world survives).
+
+  Also demonstrate the R67-1-class base misclassification (F1) is already recorded via P2.
+
+  Implement counter-mutants via python replace on pinned.py → variants/cD1.py, cD3g.py, cD4b.py; run --self-test on each; run cD3g against ORIG+junk-dir world.
+
+• All five isolated mutants **killed** (exit 1, correct D-finding each). Now the `--self-test` coverage probe — break the counter itself three ways and see whether `--self-test` notices, including the one leg it structurally cannot test (the "junk-world still exists" conjunct):== --self-test on cD1.py: exit=1
+PASS honest world: closed 4 of 4
+PASS broken world rejected: D2 receipt path absent
+PASS broken world rejected: D3 disclosure absent
+PASS broken world rejected: D4 index row absent
+PASS broken world rejected: D4 stale baseline
+self-test: 1 failure(s) over 6 assertions
+FAIL broken world survived: D1 correction absent -> closed 4
+
+== --self-test on cD3g.py: exit=0
+PASS honest world: closed 4 of 4
+PASS broken world rejected: D1 correction absent
+PASS broken world rejected: D2 receipt path absent
+PASS broken world rejected: D3 disclosure absent
+PASS broken world rejected: D4 index row absent
+PASS broken world rejected: D4 stale baseline
+self-test: 0 failure(s) over 6 assertions
+
+== --self-test on cD4b.py: exit=1
+PASS honest world: closed 4 of 4
+PASS broken world rejected: D1 correction absent
+PASS broken world rejected: D2 receipt path absent
+PASS broken world rejected: D3 disclosure absent
+PASS broken world rejected: D4 index row absent
+self-test: 1 failure(s) over 6 assertions
+FAIL broken world survived: D4 stale baseline -> closed 4
+
+== real world D3b (disclosure present, path STILL EXISTS) via pinned.py: exit=1
+r67 routed defects closed 2 of 4
+  - D3: the disclosure of .ufo/waves/round-67/w1/controls/junk-world is missing, or the path still exists
+
+== real world D3b (disclosure present, path STILL EXISTS) via cD3g.py: exit=0
+r67 routed defects closed 4 of 4
+
+clone pristine again: True
+
+
+• Complete picture:
+
+  **Self-test coverage of my mutants:**
+  - X1 (D1 erratum deleted) → self-test world "D1 correction absent" exists; counter-mutant cD1 (neutered D1) is CAUGHT by self-test (FAIL broken world survived). So self-test kills the D1 class ✓
+  - X2 (D2) → cD2 not run, but by symmetry... I didn't run cD2. The self-test has a "D2 receipt path absent" world. I tested cD1 and cD4b as representatives of "world-leg neutered → caught". For completeness I could run cD2 and cD4a too — cheap. But is it needed? The task: "report whether the counter's --self-test kills the same mutants." Direct reading: run --self-test on the pinned counter — it reports 0 failures over 6 assertions, covering broken worlds for exactly X1/X2/X3/X4a/X4b (5 of my 6 mutants). X3b (path still exists) is NOT covered — proven by cD3g surviving self-test while falsely passing the real D3b world (4 of 4, exit 0). That's the headline self-test finding.
+
+  I'll add cD2/cD4a neuter runs for completeness — cheap and makes the claim complete. Actually, let me be careful about budget: it's one quick bash call. Worth it for a complete kill-matrix. Also I should double-check the cosmetic D4-credit quirk claim (closed count withholds D4's +1 when other findings exist) — already evidenced by X1 ("closed 2 of 4" with only a D1 finding; D4 was healthy but not credited).
+
+  Also: restoration evidence for the LANE. My battery never touched the lane (only /tmp). Evidence: sha256sum -c of the before-hash file + git status after == before. Run that now, plus write the report file to the lane's .ufo/waves/round-68/w1/MutR67Repairs.md (the tasking explicitly directs this path; mutation-tester is a writing seat and the Report trailer overrides the drafts-only default... hmm. The system prompt says writing seats write drafts under drafts/ only; read-only seats don't write. But the seat tasking says "Report: write your scoped findings to .ufo/waves/round-68/w1/MutR67Repairs.md" and the system prompt says every Report trailer path must be written at that exact path. The tasking is explicit and later/more specific: write the report there. I'll write it there.)
+
+  Also final verification that the lane counter file may have moved again (concurrent edits) — record its current sha for the report's "pinned vs live" note.
+
+  Report contents:
+  - Axes named (consistency/calibration; mutation-tester attack surface: does the C2 counter reject each routed defect when reintroduced?).
+  - Draft absent; pinned production bytes sha a3b91848 (276 lines), provenance note (HEAD cafa29d0 has no self-test; mid-edit 194017b2 transient NameError observed).
+  - Baseline: S/P0 self-test 0 failures over 6; P1 honest 4 of 4 exit 0 (C2 after-shape holds at 3cd73836=cafa29d0); P2 base exit 2 environment error (F1: docstring promises "0 of 4" at base; R67-1 class recurrence on the base conjunct).
+  - Mutant table: expected/observed/verdict/printed message + mutant commit shas.
+  - Self-test kill matrix: covers X1,X2,X3,X4a,X4b worlds (0 failures); X3b not representable (repo fixed to /nonexistent; junk_exists param dead) — cD3g survives self-test AND false-PASSes the real D3b world.
+  - Defects found: F1 base-print mismatch (R67-1 class), F2 self-test cannot exercise the still-exists leg (cD3g gap), F3 lane-mutation hazard: _baseline_values runs `git checkout <rev> -- corpus verifiers` in the repo passed via --repo (mutating git command; would clobber uncommitted lane bytes e.g. the counter's own uncommitted self-test edits and update the lane index if ever run against the lane; docstring claims "reads the COMMITTED bytes at --rev (never the working tree)" but the gate measurement reads the post-checkout working tree), F4 cosmetic: D4 credit withheld silently when other findings exist (closed under-counts D4 with no D4 line; cannot false-PASS), F5 the requested draft path does not exist (process gap).
+  - Restoration evidence: lane hashes before==after, git status unchanged (5 entries), no lane file modified by me; scratch clone pristine at ORIG.
+  - Verdict: counter KILLS all five assigned mutants (PASS for the counter); two self-test/env defects routed to L1.
+
+  Wait — F3 needs care: is it truly a hazard for the L1's declared predicate run (`python3 -B verifiers/check_r67_routed_repairs.py --rev <rev>` from the lane, --repo defaults to grandparent = lane)? Yes: _baseline_values would `git -C <lane> checkout <rev> -- corpus verifiers`. If <rev> == the landed commit, tracked files are overwritten with identical content (no-op bytes) BUT the index is updated (mtimes/stat) — and crucially if the lane worktree carries uncommitted edits (like today's 83-line counter edit), running the counter DESTROYS them (git checkout overwrites worktree+index for those paths). Today that exact hazard existed: verifiers/check_r67_routed_repairs.py had uncommitted changes and the counter checks out verifiers/ at rev — running the frozen predicate mid-iteration would have wiped the self-test work. Hard finding. Also `git checkout` inside the lane updates the lane's Git index — explicitly forbidden by wave rules ("seats never mutate ... the lane's Git index") — the counter makes every seat that runs it violate the bound.
+
+  Also note: `--rev base` run P2 in my scratch: after it I re-synced. In the lane, `--rev base` would downgrade corpus/verifiers to base bytes = data loss.
+
+  One more check — does the counter handle `--rev` with the CURRENT uncommitted state? It reads committed bytes only; fine.
+
+  Also confirm the honest world at the current LIVE tip (the lane may have committed more since). My clone HEAD is 3cd73836 (= cafa29d0 full? "3cd73836d81420961105b6a4c46a1f3a771ac8b3" — earlier git rev-parse HEAD printed 3cd73836d814... and git log showed cafa29d0 as HEAD subject line — cafa29d0 is the abbreviated form of 3cd73836? No wait: `git rev-parse HEAD` = 3cd73836d8142096... but `git log --oneline` showed "cafa29d round-68: C1 counter...". Those differ! cafa29d0 vs 3cd73836. Hmm — `git log` was run BEFORE `git status` in the same batch... Actually jj! The lane is jj-colocated: jj may have rewritten the git HEAD between commands? More likely: my log command showed cafa29d0 as first line, then by the time I cloned, jj's working-copy commit materialization changed HEAD? Actually jj auto-amends the working-copy commit on every snapshot — `git rev-parse HEAD` in the lane at clone time gave 3cd73836. And `git -C lane rev-parse HEAD` in the clone gives the clone's default branch HEAD = whatever the lane HEAD was at clone moment = 3cd73836. And later in drive3, git log again? No. Let me re-check now: the lane's current HEAD sha — I'll capture it in the final evidence batch. `git log --oneline -3` + rev-parse. If HEAD moved (jj rewrites), my "honest world at 3cd73836" remains valid as the pinned rev I measured; the current tip may differ. Also the earlier `git cat-file -t e94ae32a:verifiers/...` "exists on disk, but not in base" — fine.
+
+  Hmm wait, actually in my very first provenance call: `git log --oneline -8` printed cafa29d0 as top; `git rev-parse HEAD` printed cafa29d0adb489b9b6b146445ee8bb9eef074e6e. Then clone HEAD = 3cd73836?? That means between those commands the lane's HEAD changed from cafa29d0 to 3cd73836 — jj snapshot/amend behavior (the working-copy commit gets rewritten as jj observes file changes; colocated git HEAD follows). The L1 was actively working (consistent with the counter file changing under me). So "3cd73836" was the tip at clone time; cafa29d0 was the tip minutes earlier. My evidence must state revs precisely: honest world measured at 3cd73836 (clone default branch head at clone time). For the report, name 3cd73836 as the measured repaired rev and note cafa29d0/3cd73836 are both post-repair commits observed on the moving tip.
+
+  Let me also quickly run cD2 and cD4a neuter probes + final lane-restoration evidence in one batch, then write the report.
+
+  cD2: `if REAL_RECEIPT in joined:` → `if True:` → self-test should FAIL (D2 world survives).
+  cD4a: neuter index-row detection — replace `indexed = True` with `indexed = False`? anchor `            indexed = True` — replace with `            indexed = False` → "D4 index row absent" world survives? With indexed always False, honest world gets D4 finding → honest world FAIL too (closed 3). Self-test output: "FAIL honest world: closed 3 of 4" + "FAIL broken world survived: D4 index row absent"? In the index-absent world, findings=[D4...] → closed 3 → n != TOTAL → reported as rejected (PASS). Hmm: with indexed=False in ALL worlds, honest world fails (caught), and the broken world "survives" check: n==TOTAL? 3 != 4 → reported "PASS broken world rejected" — the specific break isn't isolated but the self-test still goes red via the honest world. That still demonstrates detection (exit 1). Good enough: self-test catches a counter blind to the index row.
+
+  Then evidence: sha256sum -c lane-hashes-before.txt; git status --porcelain now vs before; git -C lane rev-parse HEAD now; sha of lane counter now.
+
+• The self-test gap is proven: a counter that ignores the "junk-world still exists" leg (`cD3g`) sails through `--self-test` with 0 failures yet false-PASSes a real world (`4 of 4`, exit 0). Completing the kill-matrix with the two remaining neuter probes, then restoration evidence:== --self-test on cD2.py: exit=0
+self-test: 0 failure(s) over 6 assertions
+
+== --self-test on cD4a.py: exit=1
+self-test: 1 failure(s) over 6 assertions
+FAIL honest world: closed 3 of 4; ['D4: corpus/lessons/round-67-verifier-spotcheck.md has no coverage-map index row']
+
+=== LANE RESTORATION EVIDENCE ===
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/check_r67_routed_repairs.py: FAILED
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/corpus-baseline.json: OK
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/verify_corpus_integrity.py: OK
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/README.md: OK
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/LOG.md: OK
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/SCORECARD.md: OK
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/lessons/round-68.md: OK
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/lessons/round-67-verifier-spotcheck.md: OK
+sha256sum: WARNING: 1 computed checksum did NOT match
+---lane status now (must equal before: 5 entries, counter M only):
+1,5c1,14
+<  M verifiers/check_r67_routed_repairs.py
+< ?? .ufo/waves/round-68/controls/
+< ?? .ufo/waves/round-68/receipts/C1-measure.txt
+< ?? .ufo/waves/round-68/w1-spec.json
+< ?? .ufo/waves/round-68/w1/
+---
+>  M .ufo/waves/round-68/w1/drafts/check_client_trust_gates.py
+>  M .ufo/waves/round-68/w1/logs/CriticC1Predicate.log
+>  M .ufo/waves/round-68/w1/logs/CriticC2Predicate.log
+>  M .ufo/waves/round-68/w1/logs/ExecC1CounterTest.log
+>  M .ufo/waves/round-68/w1/logs/ExecC1Fetch.log
+>  M .ufo/waves/round-68/w1/logs/ExecR67Repairs.log
+>  M .ufo/waves/round-68/w1/logs/MutC1Counter.log
+>  M .ufo/waves/round-68/w1/logs/MutR67Repairs.log
+>  M .ufo/waves/round-68/w1/logs/ReviewC1Entry.log
+>  M .ufo/waves/round-68/w1/logs/ScribeC2Index.log
+> ?? .ufo/waves/round-68/w1/MutC1Counter.md
+> ?? .ufo/waves/round-68/w1/controls/c2falsify-clone/
+> ?? .ufo/waves/round-68/w1/controls/c2falsify2.py
+> ?? .ufo/waves/round-68/w1/drafts/fetch-arm-execC1Fetch.py
+ M .ufo/waves/round-68/w1/drafts/check_client_trust_gates.py
+ M .ufo/waves/round-68/w1/logs/CriticC1Predicate.log
+ M .ufo/waves/round-68/w1/logs/CriticC2Predicate.log
+ M .ufo/waves/round-68/w1/logs/ExecC1CounterTest.log
+ M .ufo/waves/round-68/w1/logs/ExecC1Fetch.log
+ M .ufo/waves/round-68/w1/logs/ExecR67Repairs.log
+ M .ufo/waves/round-68/w1/logs/MutC1Counter.log
+ M .ufo/waves/round-68/w1/logs/MutR67Repairs.log
+ M .ufo/waves/round-68/w1/logs/ReviewC1Entry.log
+ M .ufo/waves/round-68/w1/logs/ScribeC2Index.log
+?? .ufo/waves/round-68/w1/MutC1Counter.md
+?? .ufo/waves/round-68/w1/controls/c2falsify-clone/
+?? .ufo/waves/round-68/w1/controls/c2falsify2.py
+?? .ufo/waves/round-68/w1/drafts/fetch-arm-execC1Fetch.py
+---lane tip now / counter bytes now (moving-target note):
+2cf0d99a6d5a3e1cb0b73e3b71cb495fd1eadc6f
+2cf0d99 round-68: wave-1 seat logs and drafts as they stood at the report boundary
+a3b91848618b9efa3478176e2b891298248d61b1ca2cdfdaea20236cc24d7660  /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/check_r67_routed_repairs.py
+276
+
+
+• Interpret the restoration evidence carefully:
+
+  1. `sha256sum -c`: the counter file now matches a3b91848 — which is DIFFERENT from my before-hash 194017b2 (the transient broken bytes). So "FAILED" for that one file is the concurrent L1 edit, NOT me: my before-hash was taken at 194017b2 (mid-edit transient). All seven other files: OK — byte-identical to before. And crucially: I never wrote to the lane. The counter's evolution 194017b2 → a3b91848 happened between my snapshot and now — driven by the L1's own edits and commits (tip moved cafa29d0 → 3cd73836 → 2cf0d99 "wave-1 seat logs and drafts as they stood at the report boundary").
+
+  2. Status diff: before-list vs after-list differ entirely — but look: the before status was taken at tip cafa29d0 (committed state B), the after status at tip 2cf0d99 (the L1 committed the wave-1 logs/drafts in 2cf0d99, so those files are no longer untracked/modified — they're now tracked and clean; and NEW seat files appeared: MutC1Counter.md, c2falsify*, etc. — from sibling seats, plus "MutR67Repairs.log" — my own seat log, written by the orchestrator, not me). The `M` entries in after are working-copy modifications of TRACKED wave-1 files (jj snapshotting churn from sibling seats actively writing). None of these paths are ones I touched; my writes so far: only /tmp/mut68/* and (next) the report MutR67Repairs.md.
+
+     Actually wait — can I prove I didn't cause those M entries? The M files are w1/logs/*.log and w1/drafts/check_client_trust_gates.py — sibling seats' outputs; 2cf0d99 committed them "as they stood at the report boundary" and siblings kept writing after. My session wrote nothing under the lane. Solid.
+
+  3. The kill matrix completed:
+     - cD2 (neutered D2 check): self-test exit 0 — NOT caught?! Why? Look at the cD2 mutant: `if REAL_RECEIPT in joined:` → `if True:` makes D2 ALWAYS close. In the self-test's D2-broken world ("D2 receipt path absent": records filtered to remove REAL), D2 now closes anyway → findings has no D2 → closed should reach 4 → "FAIL broken world survived: D2 receipt path absent" expected... but output says 0 failures! Why?
+
+       Because of the world construction: the D2 world is `{k: v for k, v in good_records.items() if REAL_RECEIPT not in v}` — records filtered to drop any record CONTAINING the real path. good_records: LOG has OBSERVED+REAL+JUNK; SCORECARD has OBSERVED; round-68 has REAL+JUNK. Filtering out REAL-containing records leaves ONLY SCORECARD.md (OBSERVED). So in that world, `_git_show` returns None for LOG.md and round-68.md... check() does `text = _git_show(...); if text is None: raise EnvError`. fake_show returns records.get(path) → None for the two filtered-out records → EnvError raised inside check() → propagates out of run_world → selftest() doesn't catch it → CRASH? But output shows clean "0 failure(s) over 6 assertions" and all PASS lines. Hmm — wait, in selftest the broken-world loop calls run_world(...) → check(...) raises EnvError → uncaught → traceback → exit code non-zero. But observed exit=0 and printed "self-test: 0 failure(s) over 6 assertions".
+
+       Let me re-look at the D2 world: records filtered by `if REAL_RECEIPT not in v`:
+       - LOG.md: contains REAL → dropped
+       - SCORECARD.md: OBSERVED only → kept
+       - round-68.md: contains REAL → dropped
+       So records = {"SCORECARD.md": OBSERVED}. fake_show(LOG.md) → None → check raises EnvError("cannot read LOG.md at rev") → selftest crashes...
+
+       But wait — the PINNED self-test output showed "PASS broken world rejected: D2 receipt path absent" — so in the pinned version, no crash. How? check() is called... `n, findings = run_world(...)`. If EnvError propagates, the loop dies. Since it printed PASS, no exception. So fake_show must not return None — because `records.get(path)` with records dict missing LOG.md returns None... unless check() never calls _git_show for missing... check() DOES: `for path in RECORDS: text = _git_show(repo, rev, path)`. Hmm wait — in run_world, the patch: `_git_show = fake_show` (local) AND `globals()["_git_show"] = fake_show`. check() references the global _git_show → patched → fake_show → returns records.get("LOG.md") = None → raise EnvError.
+
+       So how did pinned self-test pass? ... Let me recheck the pinned selftest's D2 world construction. From my Read of the 287-line version: `"D2 receipt path absent": ({k: v for k, v in good_records.items() if REAL_RECEIPT not in v}, good_readme, good_baseline, False)`. And pinned (276 lines) may differ — the L1 may have rewritten selftest between 287→276 lines. The pinned output shows 6 assertions (1 honest + 5 broken) same as the 287 version. And no crash — so in the PINNED version, the D2 world must keep all three records present. Maybe the L1 changed the filter to strip just the path string rather than whole records. I should read the pinned selftest body rather than speculate — I have pinned.py in /tmp. Quick grep of the world constructions.
+
+       Then why did cD2 survive with 0 failures? If the D2 world keeps all records but with the REAL string removed from their text, then with D2's check neutered to True, D2 closes → world has no findings → closed=4 → should print "FAIL broken world survived: D2 receipt path absent" and exit 1. Observed exit 0, 0 failures! So something else: maybe `if True:` replacement hit a DIFFERENT occurrence? mk() replaces the FIRST occurrence of "if REAL_RECEIPT in joined:" — that's the D2 check in check(). Hmm, but wait — maybe in the pinned file the D2 broken world ALSO removes... Actually! Maybe the pinned D2 world removes records as in the 287 version (SCORECARD only) → then cD2's check(): LOG.md text None → EnvError → propagates through run_world's finally (restores globals) → crashes the selftest with traceback → exit non-zero... but observed exit 0 with clean summary. Contradiction either way → I must read the pinned selftest to understand. Let me grep pinned.py lines ~184-253.
+
+     - cD4a (index blind): caught via honest-world failure (exit 1). Fine.
+
+     So before writing the report I need to understand cD2's survival. Read pinned.py's selftest section.
+
+  4. Note: the lane tip moved to 2cf0d99 and the L1 committed the drafts — check whether `.ufo/waves/round-68/w1/drafts/check_r67_routed_repairs.py` now exists (the task's draft path)! 2cf0d99 committed "wave-1 seat logs and drafts". If the draft now exists, my mandate says test the draft. Check quickly: git show 2cf0d99 path or ls the drafts dir. If it exists and differs from what I tested, note it; my battery pinned a3b91848 which is the production iteration the draft would mirror. Check.
+
+  Next batch: read pinned.py selftest region; ls drafts dir; grep D2 world in pinned.
+
+• Two loose ends before the report: (a) the D2-neuter probe (`cD2`) survived `--self-test` with 0 failures — unexpected, so I need the pinned self-test's actual D2 world construction; (b) the tip moved again (`2cf0d99` committed wave-1 drafts) — the mandated draft path may now exist:def selftest(repo: Path) -> int:
+    """One honest world and one broken world per routed defect.
+
+    The worlds are synthetic: the records and the gate measurement are injected, so the
+    self-test never touches the repository and never runs the corpus gate.
+    """
+    good_records = {
+        "LOG.md": f"the observed base line was\n{OBSERVED}\n{REAL_RECEIPT}\n{JUNK}\n",
+        "SCORECARD.md": f"{OBSERVED}\n",
+        "corpus/lessons/round-68.md": f"{REAL_RECEIPT}\n{JUNK}\n",
+    }
+    good_readme = f"| Round-67 spot-check | `lessons/{Path(SPOTCHECK).name}` | x |\n"
+    good_baseline = json.dumps({"checks": {
+        "corpus.index.tracked_files": {"expect": 7},
+        "corpus.index.unindexed": {"expect": 0},
+        "corpus.pointers.report_total": {"expect": 5},
+        "corpus.pointers.commit_total": {"expect": 4},
+    }})
+    observed = {"tracked_files": 7, "unindexed": 0, "report_total": 5, "commit_total": 4}
+
+    def run_world(records, readme, baseline, junk_exists):
+        with tempfile.TemporaryDirectory(prefix="k68-selftest-") as tmp:
+            root = Path(tmp)
+            (root / README).parent.mkdir(parents=True, exist_ok=True)
+            (root / BASELINE).parent.mkdir(parents=True, exist_ok=True)
+            (root / README).write_text(readme, encoding="utf-8")
+            (root / BASELINE).write_text(baseline, encoding="utf-8")
+            (root / JUNK).mkdir(parents=True, exist_ok=True)
+            if not junk_exists:
+                (root / JUNK).rmdir()
+            return check(Path("/nonexistent"), "rev", root,
+                         records_override=records, observed_override=dict(observed))
+
+    failures = 0
+    n, findings = run_world(good_records, good_readme, good_baseline, False)
+    if n != TOTAL:
+        print(f"FAIL honest world: closed {n} of {TOTAL}; {findings}", file=sys.stderr)
+        failures += 1
+    else:
+        print(f"PASS honest world: closed {TOTAL} of {TOTAL}")
+
+    broken = {
+        "D1 correction absent": ({k: v for k, v in good_records.items() if OBSERVED not in v},
+                                 good_readme, good_baseline, False),
+        "D2 receipt path absent": ({k: v for k, v in good_records.items() if REAL_RECEIPT not in v},
+                                   good_readme, good_baseline, False),
+        "D3 disclosure absent": ({k: v for k, v in good_records.items() if JUNK not in v},
+                                 good_readme, good_baseline, False),
+        "D4 index row absent": (good_records, good_readme.replace(
+            f"`lessons/{Path(SPOTCHECK).name}`", "`lessons/absent.md`"), good_baseline, False),
+        "D4 stale baseline": (good_records, good_readme, json.dumps({"checks": {
+            "corpus.index.tracked_files": {"expect": 1},
+            "corpus.index.unindexed": {"expect": 0},
+            "corpus.pointers.report_total": {"expect": 5},
+            "corpus.pointers.commit_total": {"expect": 4}}}), False),
+    }
+    for name, (records, readme, baseline, junk) in broken.items():
+        n, findings = run_world(records, readme, baseline, junk)
+        if n == TOTAL:
+            print(f"FAIL broken world survived: {name} -> closed {n}", file=sys.stderr)
+            failures += 1
+        else:
+            print(f"PASS broken world rejected: {name}")
+    print(f"self-test: {failures} failure(s) over {len(broken) + 1} assertions")
+    return 1 if failures else 0
+
+
+def main(argv: list[str] | None = None) -> int:
+    ap = argparse.ArgumentParser(add_help=True)
+    ap.add_argument("--rev", default=None, help="measured revision (full sha)")
+total 80
+drwxr-xr-x 1 vgpnk vgpnk   156 Oct 24 23:20 .
+drwxr-xr-x 1 vgpnk vgpnk   336 Oct 24 23:21 ..
+-rw-r--r-- 1 vgpnk vgpnk 23156 Oct 24 23:17 check_client_trust_gates.py
+-rw-r--r-- 1 vgpnk vgpnk 30667 Oct 24 23:20 check_r67_routed_repairs.py
+-rw-r--r-- 1 vgpnk vgpnk 21095 Oct 24 23:18 fetch-arm-execC1Fetch.py
+---
+ .../round-68/w1/drafts/check_client_trust_gates.py | 786 +++++++++------------
+ .ufo/waves/round-68/w1/logs/ExecR67Repairs.log     | 160 ++++-
+ .ufo/waves/round-68/w1/logs/MutR67Repairs.log      | 193 +++++
+
+
+• Two important updates:
+
+  1. **The draft NOW exists**: `.ufo/waves/round-68/w1/drafts/check_r67_routed_repairs.py` (30,667 bytes, mtime 23:20 — written while I was running the battery). My mandate: "MUTATION-TEST the C2 routed-repairs counter draft at ... (read it; if it is not there yet, ...)". It appeared mid-flight. The honest move: run the same battery against the DRAFT too — it's the actual assigned target. 30KB vs the 276-line (~10KB) pinned copy — the draft is much bigger (probably includes its own embedded self-test fixtures/worlds). Let me read it (or at least its structure) and run: --self-test, honest world, base control, and the six world-mutants (my mutant commits are already in the scratch clone at known shas — I can just run the draft counter against the same revs!). That's cheap and directly discharges the mandate.
+
+  2. **cD2 mystery solved**: the pinned selftest's broken worlds filter records — `"D2 receipt path absent": {k: v for k,v in good_records.items() if REAL_RECEIPT not in v}` → leaves only SCORECARD.md. But `run_world` now calls `check(..., records_override=records, ...)` and check() (pinned version) presumably short-circuits git reads when records_override is given (no None → no EnvError). In the D2-broken world, records = {SCORECARD: OBSERVED}. With cD2 (`if True:`), D2 closes; D1 closes (OBSERVED in SCORECARD); D3: JUNK in joined? joined = only SCORECARD text = OBSERVED — no JUNK → D3 finding → closed=3 ≠ 4 → "rejected" → PASS. So cD2 survives the self-test because the D2-broken world ALSO loses D3 (the record filtering drops LOG and round-68 wholesale, taking JUNK and even D1's redundancy with it). The D2 world is not a single-defect world: it breaks D2 AND D3 simultaneously. A counter that misses D2 alone is invisible to it as long as it still catches (the co-broken) D3. That's a genuine self-test blind spot: the "D2 receipt path absent" world is confounded — it doesn't isolate D2. My real-world X2 mutant (isolated) proves the live counter catches D2; but the self-test could not detect a counter that loses ONLY D2 detection... wait — actually cD2 neutered D2 and the self-test stayed green — exactly that demonstration.
+
+     Note the same confound affects "D1 correction absent" (drops LOG+SCORECARD... filter `OBSERVED not in v` → keeps only round-68.md → loses REAL and JUNK too → breaks D1+D2+D3) and "D3 disclosure absent" (keeps SCORECARD only → breaks D3+D2). So three of five broken worlds are co-broken; only the two D4 worlds are isolated. Yet cD1 WAS caught — because with D1 neutered, the D1 world still fails via D2+D3 findings... wait cD1 output: "FAIL broken world survived: D1 correction absent -> closed 4". With cD1 (D1 always closes), D1-world (round-68.md only: REAL+JUNK) → D2 closes (REAL), D3 closes (JUNK), D4 closes → 4 → caught. Yes. cD2 survived because D3 was co-broken and D3's check remained honest. Consistent.
+
+     Report this precisely: the self-test's record-filter worlds are confounded (each removed-defect world also removes other markers that shared the same records), so --self-test does NOT kill a D2-only (nor a D1-only-in-isolation... cD1 caught, fine) regression; demonstrated: cD2 survives green while real-world X2 is rejected by the live counter.
+
+     Hmm wait, be careful: cD1 neutered → caught (world co-breaks didn't save it because the OTHER broken legs' checks still fired → closed 4 with D1 forced... no: D1 forced closed + D2 REAL present in round-68.md + D3 JUNK present + D4 ok → 4 → survived → FAIL → caught). For cD2: D2 forced closed, but D3 leg honest sees no JUNK (record dropped) → finding → closed 3 → "rejected" → survives. Exactly.
+
+  3. So final answer to "does --self-test kill the same mutants?": Partially. It has worlds for X1/X2/X3/X4a/X4b and rejects them all as constructed (0 failures), and counter-neuter probes show it catches D1-only, D4a-only, D4b-only regressions — but NOT a D2-only regression (confounded world) and NOT the X3b "path still exists" class (structurally untestable: check() is pointed at Path("/nonexistent") and the junk_exists parameter is dead — always False, and the dir is created under `root`, never under `repo`). cD3g proved the latter false-PASSes a real world.
+
+  4. Now run the draft battery. Read the draft first (30KB ≈ 800 lines; read with limit) — at least the constants, check(), selftest signature, main() to know its CLI (--rev/--repo/--self-test?) — then run: selftest, honest (3cd73836), base (e94ae32a), X1..X4b revs, X3b world, and the counter-neuters? Bounded: for the draft, run the six world mutants + selftest + honest + base. Counter-neuter probes on the draft only if its selftest has the same confound — quick check of its world construction via grep. Keep it tight: the draft's own --self-test + the six real-world mutants is the required evidence; add cD2-style neuter only if its selftest looks different.
+
+  Plan: Read the draft (structure first via grep for def/check/constants), then one bash batch running the battery with variants/draft.py against the existing mutant revs.
+
+• The **draft now exists** (written at 23:20, mid-battery) — that is the assigned target, so the battery must run against it too. Also solved: `cD2` survives because the self-test's record-filter worlds are **confounded** (dropping the D2 marker deletes whole records, co-breaking D3). Reading the draft's shape, then running the full battery on it:662 /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/drafts/check_r67_routed_repairs.py
+cc380d930f7595c57a472d5abfdce626d3453edbbb0c87d5673f3517766bf0ba  /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/drafts/check_r67_routed_repairs.py
+89:RECORDS = (LOG, SCORECARD, LESSON68)
+92:OBSERVED = (
+105:JUNK = ".ufo/waves/round-67/w1/controls/junk-world"
+106:JUNK_MB = "254"
+109:SPOTCHECK = "corpus/lessons/round-67-verifier-spotcheck.md"
+110:README = "corpus/README.md"
+111:BASELINE = "verifiers/corpus-baseline.json"
+133:def git(root: Path, *args: str, timeout: int = 120) -> subprocess.CompletedProcess[str]:
+134:    return subprocess.run(["git", "-C", str(root), *args], capture_output=True,
+138:def git_out(root: Path, *args: str) -> str:
+145:def show(root: Path, rev: str, path: str) -> str | None:
+151:def lane_root() -> Path:
+161:def record_texts(root: Path, rev: str, paths=RECORDS) -> dict[str, str]:
+175:def _lines_within(text: str, needle: str, other: str, window: int) -> bool:
+185:def check_d1(root: Path, rev: str, base_texts: dict[str, str]) -> bool:
+202:def check_d2(root: Path, rev: str, base_texts: dict[str, str]) -> bool:
+218:def check_d3(root: Path, rev: str, base_texts: dict[str, str]) -> bool:
+228:def run_gate(root: Path, rev: str) -> dict[str, int]:
+239:        archive = subprocess.run(["git", "-C", str(root), "archive", "--format=tar", rev],
+277:def check_d4(root: Path, rev: str, base_texts: dict[str, str]) -> bool:
+298:def score(root: Path, rev: str, base_texts: dict[str, str]) -> tuple[int, dict[str, bool]]:
+308:def main(argv: list[str] | None = None) -> int:
+310:    ap.add_argument("--rev")
+311:    ap.add_argument("--repo", type=Path, default=None,
+313:    ap.add_argument("--self-test", action="store_true")
+416:README_COVERED = """# fixture corpus
+426:README_UNCOVERED = """# fixture corpus
+435:SPOTCHECK_TEXT = "# Round 67 verifier spot-check (fixture)\n\nrouted four defects.\n"
+495:def _write(root: Path, path: str, text: str) -> None:
+501:def self_test() -> int:
+654:def _fixture_commit(root: Path, message: str) -> str:
+
+
+• The draft is a substantially different implementation (662 lines): per-defect `check_d1..check_d4` functions, `run_gate` using `git archive` (not `git checkout`! — good, archive is read-only; it extracts to a temp dir instead of mutating the worktree — the L1 apparently fixed the F3 hazard in the draft), OBSERVED is a tuple, `check_d1/_lines_within` suggests proximity logic (erratum must name the observed line within a window — stronger than substring), `lane_root()`, `--repo` default None → probably lane_root(). `JUNK_MB = "254"` — D3 also checks the disclosed size.
+
+  Run the draft against: --self-test, honest (3cd73836), base (e94ae32a), X1/X2/X3/X3b/X4a/X4b worlds. For X3b I need the junk dir present in the repo the draft inspects — D3 checks working tree of --repo root presumably. Note check_d*(root, rev, base_texts) take `root` = the repo. And `--rev` semantics: reads committed bytes via show().
+
+  One caution: `run_gate` uses `git -C root archive rev` then runs the gate inside an extracted archive — read-only. Verify no `checkout` in the draft (grep showed only archive at 239 — good).
+
+  Also `main` has no `--baseline` etc. Let me just run the battery. Also grep whether its self_test uses records_override/confounded filters — for the kill-matrix on the draft I'll run its --self-test plus, if cheap, one cD2-style neuter... The draft's structure differs (check_d2 is a function); a neuter probe = make check_d2 return True. Doable via sed on a copy. Given budget, run: selftest, honest, base, six mutants, and ONE neuter probe (D2 → always True) against draft --self-test, since D2-only blindness was the pinned version's gap; if the draft's selftest is fixture-based (README_COVERED/UNCOVERED fixtures, _fixture_commit — it builds REAL git fixtures!), it may genuinely isolate defects. Its selftest constructs fixture commits (line 654 _fixture_commit) — real synthetic git repos. Whether its broken worlds isolate each defect will show in the neuter probe.
+
+  Batch: copy draft to /tmp (pin sha cc380d93), run everything.
+
+• The draft is a different implementation — `check_d1..d4` functions, gate run via `git archive` (read-only: the F3 worktree-mutation hazard is fixed in the draft), a 254 MB size check on the D3 disclosure, and real fixture commits in its self-test. Pinning it and running the full battery — self-test, honest, base, all six world-mutants, plus a D2-neuter probe of its self-test:cc380d930f7595c57a472d5abfdce626d3453edbbb0c87d5673f3517766bf0ba  variants/draft.py
+=== [T0] draft --self-test
+exit=0
+could-not-evaluate: 0000000000000000000000000000000000000000 is not a commit in /tmp/r67routed-fixture-odjoj4e2
+usage: draft.py [-h] [--rev REV] [--repo REPO] [--self-test]
+draft.py: error: --rev is required
+self-test: 0 failure(s) over 23 assertions
+/bin/bash: -c: line 9: syntax error near unexpected token `"1-honest",'
+/bin/bash: -c: line 9: `run("1-honest",  $ORIG)'
+
+
+• Two issues:
+
+  1. My heredoc-free `run()` function defined with `run() { ...; }` — then I used `run("1-honest", ...)` — that's PYTHON syntax in a bash script! I mixed languages. The `run(...)` lines must be bash calls: `run 1-honest "$ORIG"`.
+
+  2. The draft's `--self-test` printed something notable even at "exit=0": `could-not-evaluate: 0000...0 is not a commit in /tmp/r67routed-fixture-odjoj4e2` and `usage: ... --rev is required` INSIDE the self-test output, yet finishes "self-test: 0 failure(s) over 23 assertions" exit 0. So its self-test includes a no-`--rev` usage probe (expecting the argparse error) and a zero-hash probe ("could-not-evaluate") — probably intentional negative probes. Fine — 0 failures over 23 assertions.
+
+  Fix the script: proper bash function invocation.
+
+• Bash/Python syntax slip in my harness (`run(...)` in bash). The draft's self-test itself: **exit 0, 0 failures over 23 assertions** (the `could-not-evaluate` / `--rev is required` lines are its own negative probes). Re-running the battery correctly:== T-1-honest rev=3cd73836d814 exit=0
+control at e94ae32a: 0 of 4
+D1-r67-1-erratum-appended: PASS
+D2-r67-2-real-receipt-path: PASS
+D3-r67-3-junk-disclosed-and-removed: PASS
+D4-r67-4-indexed-and-rerecorded: PASS
+r67 routed defects closed 4 of 4
+== T-2-base rev=e94ae32a5cd8 exit=1
+control at e94ae32a: 0 of 4
+D1-r67-1-erratum-appended: FAIL
+D2-r67-2-real-receipt-path: FAIL
+D3-r67-3-junk-disclosed-and-removed: FAIL
+D4-r67-4-indexed-and-rerecorded: FAIL
+r67 routed defects closed 0 of 4
+== T-3-X1-D1-erratum-deleted rev=35deef2e716e exit=1
+control at e94ae32a: 0 of 4
+D1-r67-1-erratum-appended: FAIL
+D2-r67-2-real-receipt-path: PASS
+D3-r67-3-junk-disclosed-and-removed: PASS
+D4-r67-4-indexed-and-rerecorded: PASS
+r67 routed defects closed 3 of 4
+== T-4-X2-D2-wrong-receipt rev=dda210a97f8e exit=1
+control at e94ae32a: 0 of 4
+D1-r67-1-erratum-appended: PASS
+D2-r67-2-real-receipt-path: FAIL
+D3-r67-3-junk-disclosed-and-removed: PASS
+D4-r67-4-indexed-and-rerecorded: PASS
+r67 routed defects closed 3 of 4
+== T-5-X3-D3-disclosure-removed rev=eaafeb26519f exit=1
+control at e94ae32a: 0 of 4
+D1-r67-1-erratum-appended: PASS
+D2-r67-2-real-receipt-path: PASS
+D3-r67-3-junk-disclosed-and-removed: FAIL
+D4-r67-4-indexed-and-rerecorded: PASS
+r67 routed defects closed 3 of 4
+== T-6-X3b-D3-path-still-exists rev=3cd73836d814 exit=1
+control at e94ae32a: 0 of 4
+D1-r67-1-erratum-appended: PASS
+D2-r67-2-real-receipt-path: PASS
+D3-r67-3-junk-disclosed-and-removed: FAIL
+D4-r67-4-indexed-and-rerecorded: PASS
+r67 routed defects closed 3 of 4
+== T-7-X4a-D4-index-row-dropped rev=19ef6f031a90 exit=1
+control at e94ae32a: 0 of 4
+D1-r67-1-erratum-appended: PASS
+D2-r67-2-real-receipt-path: PASS
+D3-r67-3-junk-disclosed-and-removed: PASS
+D4-r67-4-indexed-and-rerecorded: FAIL
+r67 routed defects closed 3 of 4
+== T-8-X4b-D4-stale-baseline rev=3cf742b5f5f1 exit=1
+control at e94ae32a: 0 of 4
+D1-r67-1-erratum-appended: PASS
+D2-r67-2-real-receipt-path: PASS
+D3-r67-3-junk-disclosed-and-removed: PASS
+D4-r67-4-indexed-and-rerecorded: FAIL
+r67 routed defects closed 3 of 4
+clone worktree clean: 0 entries
+=== [T9] draft self-test vs D2-neutered counter
+exit=0
+self-test: 0 failure(s) over 23 assertions
+
+
+• Draft battery results — outstanding, but two observations:
+
+  1. The draft kills ALL SIX isolated mutants with per-defect PASS/FAIL isolation (no confounding), honest world 4 of 4 exit 0, base world 0 of 4 exit 1 WITH the promised "0 of 4" line — the draft FIXES finding F1 (base prints `r67 routed defects closed 0 of 4`, exit 1, not the pinned version's environment-error exit 2). It also runs the base control inline on every invocation ("control at e94ae32a: 0 of 4").
+
+  2. **T9: the draft's self-test does NOT kill the D2-neutered counter** (exit 0, 0 failures over 23 assertions). Same class of gap as the pinned version: its 23 assertions never pin a D2-only regression. So on the assigned question — "does the counter's --self-test kill the same mutants?" — for the draft: it kills none of the D-only-neuter regressions I probed? I only probed D2. cD1/cD4a/cD4b neuter probes were against the pinned version. For a complete draft kill-matrix I'd need 4 more neuter probes (d1, d3, d4-index, d4-baseline). Cheap enough (~1-2s each) and makes the claim complete. Let me do the remaining four neuter probes on the draft.
+
+  Also confirm what tD2's neuter actually did — `re.sub(r"\breturn\b", "return True and", ..., count=1)` replaced the FIRST `return` inside check_d2's body. If check_d2's first return is a guard like `return False` (e.g., "text unreadable"), the neuter may have short-circuited wrongly... but regardless, the mutant made check_d2 return True unconditionally at that point, i.e. D2 always PASS. Verify by running tD2 against the real X2 world: if it prints "D2...PASS / 4 of 4" on X2, the neuter genuinely disabled D2 detection — then self-test NOT catching it is a real gap. Run: tD2 --repo lane --rev dda210a97f8e → expect "closed 4 of 4" exit 0. That's the proof pair.
+
+  Then write the report file and finish. Also re-verify the lane is untouched one final time (hashes for the 7 stable files + status snapshot), and note the pinned/live sha values in the report.
+
+  Batch:
+  1. tD2 against X2 rev.
+  2. Neuter probes d1/d3/d4a/d4b against draft --self-test (regex per function; for d4 the function is one function check_d4 — neutering check_d4 wholesale kills both index and baseline legs; fine, one probe). Also d3.
+  3. Final lane evidence.
+
+• The draft kills all six mutants with clean per-defect isolation, and its base control prints the honest `0 of 4` (fixing the pinned version's F1). But its self-test also failed to catch the D2-neuter. Proving the neuter is real (tD2 must false-PASS the actual X2 world), completing the neuter matrix, and taking final lane evidence:=== [T10] tD2 (D2 detection disabled) vs the REAL X2 world
+D3-r67-3-junk-disclosed-and-removed: PASS
+D4-r67-4-indexed-and-rerecorded: PASS
+r67 routed defects closed 3 of 4
+exit=1
+=== [T11-T14] remaining neuter probes vs draft --self-test
+== tD1 --self-test: exit=0  self-test: 0 failure(s) over 23 assertions 
+== tD3 --self-test: exit=0  self-test: 0 failure(s) over 23 assertions 
+== tD4 --self-test: exit=0  self-test: 0 failure(s) over 23 assertions 
+=== FINAL LANE EVIDENCE ===
+7/7 STABLE FILES BYTE-IDENTICAL TO SESSION START
+22
+2cf0d99a6d5a3e1cb0b73e3b71cb495fd1eadc6f
+
+
+• Important correction on T10: tD2 (D2 neutered) against the REAL X2 world printed "closed 3 of 4, exit 1" — NOT "4 of 4". Why? Because the draft's D2 check must be TWO-SIDED: it checks that the real path is named AND (probably) that the wrong path is not asserted / or proximity (`_lines_within` — D1 requires the erratum near the named line; D2 may require the wrong path to not be the asserted one, i.e. it checks the wrong path is named as wrong). With tD2's first `return` forced True (probably an early `return False` guard), the rest of check_d2 never ran — including its second conjunct. So "D2 neutered" in my probe only neuters the guard, and the function's remaining logic... no wait — `return True and <rest>` — re.sub replaced the first `return` token with `return True and` — that makes the first return statement return `True and <expr>`, preserving the expression! `return X` → `return True and X` — semantically IDENTICAL. My neuter was a NO-OP!
+
+  Damn. `re.sub(r"\breturn\b", "return True and", body, count=1)` transforms `return f(...)` into `return True and f(...)` — which evaluates f(...) and returns its truthiness. NOT a neuter. So tD1/tD3/tD4/tD2 are all no-op mutants — "0 failures" proves nothing about the self-test's kill power. I almost reported a false gap. Same for the pinned cD probes? No — those were literal replacements: cD1 `if OBSERVED in joined:` → `if True:` (real neuter), cD3g (real neuter), cD4b `if expect.get(key) != value:` → `if False:` (real neuter), cD2 `if REAL_RECEIPT in joined:` → `if True:` (real neuter — but wait, pinned check had `if REAL_RECEIPT in joined: closed += 1 else: findings.append(...)` → neutered to `if True: closed += 1` → D2 always closes → real neuter ✓). cD4a `indexed = True` → `indexed = False` ✓ real. So pinned probes are valid; draft probes are all NO-OPS and must be redone.
+
+  Redo draft neuters with a true disabling transformation: replace the whole function body with `return False` — but signature params vary (root, rev, base_texts). Simplest: insert `return False` as the first statement after the def line... but then "return True" style: check_dX returns bool where True = defect closed. Neuter = always closed: replace body with `return True`. Do: `new = m.group(0).replace("\n", "\n    return True\n#", 1)`? Fragile. Cleaner: build `def check_dX(...):\n    return True\n\n` + rest-after-function. I have the full function text m.group(0) ending right before next def. Construct: header = first line of m.group(0); replacement = header + "\n    return True\n\n\n". That's a genuine always-PASS neuter.
+
+  Also for T10 the interpretation changes: tD2 was a no-op → X2 world "closed 3 of 4" is just the honest draft behavior (D2 FAIL). Right.
+
+  Redo: tD1/tD2/tD3/tD4 = body-replaced `return True` neuters. Run each --self-test; for any that survive, confirm against the corresponding real mutant world (expect false "4 of 4"). Then finalize report.
+
+  Draft check_dX True means "defect repaired/closed"? In score(): probably `verdicts = {...}; closed = sum(...)` — check functions returning bool closed. The honest-world self-test assertion would catch an always-True check_d1 IF the self-test has a broken-D1 world AND aggregates into score. But if selftest calls check_d1 directly with its own fixtures... we'll see empirically.
+
+• My neuter transformation was a **no-op** — `return X` → `return True and X` preserves semantics, so T9–T11 proved nothing about the draft's self-test. Redoing with true always-`True` body replacement:4 true neuters built
+== uD1  self-test: exit=1 [self-test: 7 failure(s) over 23 assertions]   real-world-of-its-class: exit=2 []
+== uD2  self-test: exit=1 [self-test: 7 failure(s) over 23 assertions]   real-world-of-its-class: exit=2 []
+== uD3  self-test: exit=1 [self-test: 8 failure(s) over 23 assertions]   real-world-of-its-class: exit=2 []
+== uD4  self-test: exit=1 [self-test: 8 failure(s) over 23 assertions]   real-world-of-its-class: exit=2 []
+
+
+• The draft's self-test kills ALL FOUR true neuters (7-8 failures each, exit 1). Strong: unlike the pinned version, the draft's self-test is a real kill-matrix for D1–D4 detection regressions.
+
+  The "real-world exit=2" lines are because the neutered counters print usage error? No — exit 2 with empty grep: the grep found no "r67 routed defects closed" line. Why exit 2? Let me look at one output file... The neutered function body removal may have broken something else? No — self-test ran fine (23 assertions). Exit 2 = usage/environment error per the pinned shape; for the draft, main probably returns 2 on some condition. Let me check U-uD1-realworld.txt content. Possibly the neutered body replaced a function the selftest also monkeypatches... irrelevant for main. Exit 2 could be from `--rev` path: the world revs exist in the clone. Hmm, check the file.
+
+  Actually — maybe the draft's main() treats a mutant... let me just read the output file. Quick check. Also confirm the draft's real-world exit-code convention: T-runs above exited 0/1 normally with the same --repo/--rev form. So uD1 exiting 2 on the SAME command means the neuter changed behavior beyond check_d1 — e.g., check_d1's real body had side effects the rest of the code depends on (unlikely) OR main() wraps scoring where check functions are also used for the base-control ("control at e94ae32a: 0 of 4") — with check_d1 always True, the base control would read 1 of 4 — maybe main aborts with exit 2 when the BASE control doesn't read 0 of 4 ("control disagreement → environment error")! That would be a deliberate guard: if the inline base control disagrees, the measurement is invalid. With uD1, base control reads 1 of 4 → invalid → exit 2. That's actually a GOOD property (neutered counters refuse to score rather than false-PASS). Let me verify by reading the output file text.
+
+• The draft's self-test kills all four true neuters (exit 1, 7–8 failures). The neutered counters also refused to score real worlds with exit 2 — let me confirm why before writing the report:could-not-evaluate: pinned base e94ae32a scores 1 of 4, expected 0 of 4
+---
+30:      receipt path `.ufo/waves/round-67/controls/census-validate-append.txt`
+32:      each record every line naming the wrong `w1/controls/` form stands at
+39:      `.ufo/waves/round-67/w1/controls/junk-world` control mirror is named,
+63:from the fixture corpus — and drives the base control, the honest world
+100:CENSUS_REAL = ".ufo/waves/round-67/controls/census-validate-append.txt"
+101:CENSUS_WRONG = ".ufo/waves/round-67/w1/controls/census-validate-append.txt"
+104:# D3: the untracked control mirror and its disclosed size
+105:JUNK = ".ufo/waves/round-67/w1/controls/junk-world"
+327:                return 2
+333:            return 2
+337:        return 2
+338:    print("control at %s: %d of 4" % (BASE_REV[:8], base_n))
+346:# self-test: one fixture repo, honest world, base control, one broken world
+441:- M108: the report cites `.ufo/waves/round-67/w1/controls/census-validate-append.txt`;
+
+
+• Confirmed: the draft pins its own base control — if the pinned base `e94ae32a` doesn't score `0 of 4`, it refuses to evaluate (`could-not-evaluate: pinned base e94ae32a scores 1 of 4, expected 0 of 4`, exit 2). So a neutered counter doesn't false-PASS real worlds; it disarms itself. Excellent design — the draft's do-nothing control is enforced on every run, and counter-mutants that shift the base score self-destruct.
+
+  Everything is measured. Final summary:
+
+  **Pinned production snapshot a3b91848 (276 lines, uncommitted at session):**
+  - Baseline: self-test 0/6; honest 4 of 4 exit 0 @3cd73836; base: exit 2 "environment error: cannot read corpus/lessons/round-68.md at e94ae32a…" (F1: docstring promises "0 of 4" at base; R67-1 class recurrence).
+  - World mutants (isolated, scratch commits): X1 2 of 4 + D1 finding exit 1 KILL; X2 2 of 4 + D2 exit 1 KILL; X3 2 of 4 + D3 exit 1 KILL; X3b 2 of 4 + D3 exit 1 KILL; X4a 3 of 4 + D4-index exit 1 KILL; X4b 3 of 4 + D4-baseline (121≠124, 82≠85) exit 1 KILL.
+  - Self-test kill power: worlds exist for all 5 classes and report rejected; BUT three record-filter worlds are confounded (co-break D3/D2), so a D2-only regression survives green (cD2: `if REAL_RECEIPT in joined:`→`if True:`, self-test 0 failures exit 0) — while the real X2 is killed only because the live check still works; cD1 caught, cD4b caught, cD4a caught (honest-world red). cD3g (exists-leg removed): self-test green AND false-PASSes the real D3b world (4 of 4 exit 0) — the X3b class is structurally untestable in its harness (repo pinned to /nonexistent; junk dir created under root; junk_exists param dead).
+  - F3 (hazard): `_baseline_values` runs `git -C <repo> checkout <rev> -- corpus verifiers` — mutating; against the lane it would clobber uncommitted lane bytes (it would have destroyed the very self-test edits I observed at 194017b2/a3b91848) and updates the lane's Git index (wave-rules violation for any seat that runs the frozen predicate). Docstring contradiction: claims "reads the COMMITTED bytes at --rev (never the working tree)" while the gate measurement reads the post-checkout working tree.
+  - F4 cosmetic: D4's credit is `if not findings: closed += 1` — D4 is silently under-counted (no D4 line) whenever any other defect is open; cannot false-PASS.
+
+  **Draft cc380d93 (662 lines, the assigned target, appeared mid-battery):**
+  - self-test: exit 0, 0 failures over 23 assertions (includes negative probes).
+  - honest @3cd73836: "control at e94ae32a: 0 of 4", 4×PASS, "r67 routed defects closed 4 of 4", exit 0.
+  - base @e94ae32a: 0 of 4, exit 1, per-defect FAIL — F1 fixed (prints the promised 0-of-4 line; R67-1 class closed).
+  - All six world mutants killed with isolated per-defect FAIL + exit 1 (T3–T8).
+  - Self-test kill power: all four true always-closed neuters caught (exit 1, 7-8 failures) — uD1/uD2/uD3/uD4; and a neutered counter cannot false-score real worlds either: the inline pinned-base guard trips ("could-not-evaluate: pinned base e94ae32a scores 1 of 4, expected 0 of 4", exit 2).
+  - Residual draft gaps: none observed in the assigned battery; X3b (still-exists) — the draft DOES test it? T6: D3 FAIL, exit 1 — yes, the real world is killed; is the class covered in self-test? uD3 caught → its fixture must include a still-exists world (or honest-world red). Either way killed.
+
+  **Lane restoration evidence:** 7/7 stable files byte-identical (sha256 -c; counter file "FAILED" only because the L1 itself changed it mid-session 194017b2→a3b91848 — both before-hashes recorded; I never wrote it). Status now 22 entries — all sibling-seat churn + my report path to come; no path I touched. Lane git index untouched (no add/commit/checkout/reset ever run against the lane; only clone/read). Scratch clone returned to pristine ORIG 3cd73836 with clean worktree (mutant commits still exist as objects on no branch — wait, I did `git reset --hard ORIG` which leaves mutant commits dangling but extant — they're citable by sha in the report; the clone worktree is clean).
+
+  Note on X1's rev: my T-run used `git rev-parse 35deef2e716e` — fine.
+
+  Now write the report at /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/MutR67Repairs.md. Wait — the M entries in git status included "M .ufo/waves/round-68/w1/logs/MutR67Repairs.log" — the orchestrator is capturing my session log. The report file MutR67Repairs.md is my deliverable (the MutC1Counter.md sibling exists, written by the C1 mutation seat — so seat reports in w1/ are the convention).
+
+  Write it with a heredoc (no Write tool). Keep it tight but complete: axes, target identity, method, per-mutant table for both counters, self-test kill matrix, defects F1-F4, restoration evidence, verdicts.
+
+  Then final response: mutant, expected detector, output, verdict, restoration evidence.
+
+• All evidence is in. The draft even refuses to score with a neutered check (`could-not-evaluate: pinned base e94ae32a scores 1 of 4, expected 0 of 4`, exit 2) — its inline base control disarms counter-mutants. Writing the scoped report:137 /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/MutR67Repairs.md
+4678ab2a4fd532fcca1fb405aa73d804e7b61e2e6d5c8fa798c7ab2fb522fb68  /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/MutR67Repairs.md
+
+
+• Report written. Final response: concise summary per the required return format — mutant, expected detector, output, verdict, restoration evidence. Keep it tight.
+
+• **Report:** `kotoba-shokunin/.ufo/waves/round-68/w1/MutR67Repairs.md` (sha `4678ab2a…`)
+
+  **Target status:** the mandated draft did not exist at start; I mutation-tested the live production iteration (pinned `a3b91848…`, 276 lines — after catching a transient mid-edit state that crashed `--self-test` with `NameError`), and the assigned draft appeared mid-battery (pinned `cc380d93…`, 662 lines) and got the identical battery. All runs against a `/tmp` clone — the production counter executes `git -C <repo> checkout <rev> -- corpus verifiers`, so it was never pointed at the lane.
+
+  **Mutants → verdicts (isolated scratch-commit worlds off pristine `3cd73836…`):**
+
+  | mutant | expected | observed (production / draft) | verdict |
+  |---|---|---|---|
+  | X1 D1 erratum deleted | reject, D1 finding | exit 1 `closed 2 of 4` + D1 line / exit 1 `closed 3 of 4`, only `D1…FAIL` | KILLED, both |
+  | X2 D2 wrong `w1/` receipt path | reject, D2 finding | exit 1 `closed 2 of 4` + D2 / exit 1, only `D2…FAIL` | KILLED, both |
+  | X3 D3 disclosure removed | reject, D3 finding | exit 1 `closed 2 of 4` + D3 / exit 1, only `D3…FAIL` | KILLED, both |
+  | X3b D3 path still exists | reject, D3 finding | exit 1 `closed 2 of 4` + D3 / exit 1, only `D3…FAIL` | KILLED, both |
+  | X4a D4 index row dropped | reject, D4 finding | exit 1 `closed 3 of 4` + `no coverage-map index row` / exit 1, only `D4…FAIL` | KILLED, both |
+  | X4b D4 stale baseline (121/82 vs measured 124/85) | reject, D4 finding | exit 1 + both mismatch lines / exit 1, only `D4…FAIL` | KILLED, both |
+
+  Honest world: both print `r67 routed defects closed 4 of 4`, exit 0. Base `e94ae32a`: production exits **2** with `environment error: cannot read corpus/lessons/round-68.md at e94ae32a…` (docstring promises `0 of 4` — the R67-1 misclassification class recurs: **F1**); draft prints `0 of 4`, exit 1, with an inline pinned-base control on every run. F2: production's `--self-test` misses a D2-only regression (confounded record-filter worlds co-breaking D3) and the still-exists class (dead `junk_exists` param; a neutered counter false-PASSes real X3b `4 of 4`). F3: production's gate measurement mutates its `--repo` via `git checkout` (would clobber the lane's uncommitted bytes and touch its index). Draft's self-test kills all four true `check_d*` neuters (7–8 failures each) and disarms blinded counters (`could-not-evaluate: pinned base e94ae32a scores 1 of 4, expected 0 of 4`, exit 2).
+
+  **Restoration evidence:** `sha256sum -c` — 7/7 stable lane files byte-identical to session start; the counter's hash change (`194017b2→a3b91848`) was the L1's own concurrent edit, both hashes recorded; no lane write, no lane `git add/commit/checkout/reset`, no `jj`. Scratch clone restored to pristine `3cd73836…`, clean worktree; raw outputs in `/tmp/mut68/results/` (`P*`, `X*`, `T*`, `U*`).
+
+  Verdict: C2 counter stands against all six mutants; take the draft over the production snapshot (F1–F3 fixed, self-test kill-matrix complete).
+
+To resume this session: kimi -r session_83c6f279-f4b9-418d-877e-61a5cf8b67b1

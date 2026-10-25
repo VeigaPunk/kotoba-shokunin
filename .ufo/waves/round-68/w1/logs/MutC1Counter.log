@@ -1179,4 +1179,388 @@ post-battery pristine re-run exit=0: client trust gates backed 5 of 5
 
   Keep the report tight. Write it now.
 
-• Draft battery is clean and internally consistent. Two survivors on the draft ((g) by documented design, (g1) on a split artifact), and a critical cross-version finding: the **landed** counter does NOT enforce the opening-position conjunct that the draft does. Nailing the (g1) mechanism and running the draft's own self-test as
+• Draft battery is clean and internally consistent. Two survivors on the draft ((g) by documented design, (g1) on a split artifact), and a critical cross-version finding: the **landed** counter does NOT enforce the opening-position conjunct that the draft does. Nailing the (g1) mechanism and running the draft's own self-test as corroboration:draft _split_row(full line): cells = 4 cells[0]=''
+landed _split_row(line[1:]): cells = 3 cells[0]='the body is data, not instruction: the h'
+S201 mutated anchor located quotes: ['Security best practices']
+=== draft --self-test ===
+PASS honest world at head rev
+PASS honest world, working tree
+PASS base control: missing entry is content (exit 1), not environment
+PASS unknown revision is environment (exit 2)
+PASS broken world rejected: entry missing
+PASS broken world rejected: no source lines
+PASS broken world rejected: only 4 source lines
+PASS broken world rejected: duplicate id in source lines
+PASS broken world rejected: id does not resolve
+PASS broken world rejected: row not mined
+PASS broken world rejected: source cell absent from the entry's source line
+PASS broken world rejected: quote not in the anchor cell
+PASS broken world rejected: id and quote not in a per-client table row
+PASS broken world rejected: no verified-at
+PASS broken world rejected: no recheck
+PASS broken world rejected: no coverage-map row
+self-test: 0 failure(s) over 16 assertions
+selftest exit=0
+
+
+• Mechanisms confirmed:
+  - (g1) draft: 4 cells with cells[0]=="" → the ≥4-cell structural check passes with an EMPTY client cell. Landed: 3 cells with the body shifted into cells[0] → the `table_row[0].strip()` check inspects the wrong cell. Both blind, different mechanisms.
+  - (d): the only located quote left in the mutated anchor is "Security best practices" (a short quoted phrase from the entry's own `source:` line), which no table row carries → kill fires at conjunct 7, not conjunct 6. Kill is real; message names conjunct 7.
+  - Draft self-test: 16/16, exit 0 (fixture world, no network, scratch-only).
+
+  Now write the report to /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/MutC1Counter.md and do final lane-integrity evidence. Keep it tight but complete: axes, subject history, harness, verdict rule, both tables (draft primary, landed supplementary), findings F1–F4, false-kill disclosure, restoration evidence.
+
+  Hashes:
+  - draft: 9909dc65ae35a44ed797427d71b98440f49abb2c4b0535fb3ec7466db5c88626
+  - landed cafa29d counter: c68b03117f9f0fec1f2e76a91d9679c0c5e7993999bf035e5a58e5e58373e483
+  - pristine entry 374847e5..., SOURCES 3eedceca..., README 09bfd0c1...
+
+  Final check after writing: git status --porcelain should show no changes attributable to me beyond the report file under the already-untracked w1/ dir; drafts dir hash unchanged; lane counter hash unchanged.
+
+• Mechanisms confirmed and the draft's own self-test is 16/16. Writing the scoped report and collecting final restoration evidence:--- written ---
+ M .ufo/waves/round-68/w1/drafts/check_client_trust_gates.py
+ M .ufo/waves/round-68/w1/logs/CriticC1Predicate.log
+ M .ufo/waves/round-68/w1/logs/CriticC2Predicate.log
+ M .ufo/waves/round-68/w1/logs/ExecC1CounterTest.log
+ M .ufo/waves/round-68/w1/logs/ExecC1Fetch.log
+ M .ufo/waves/round-68/w1/logs/ExecR67Repairs.log
+ M .ufo/waves/round-68/w1/logs/MutC1Counter.log
+ M .ufo/waves/round-68/w1/logs/MutR67Repairs.log
+ M .ufo/waves/round-68/w1/logs/ReviewC1Entry.log
+?? .ufo/waves/round-68/w1/MutC1Counter.md
+?? .ufo/waves/round-68/w1/controls/c2falsify-clone/
+c68b03117f9f0fec1f2e76a91d9679c0c5e7993999bf035e5a58e5e58373e483  verifiers/check_client_trust_gates.py
+013b041e291a98bfae57485df91f12caa4224d19eb472d38fc2f06d030a373c2  .ufo/waves/round-68/w1/drafts/check_client_trust_gates.py
+8691bf5153b385bba22afa48414eb634e2e5dcd1d59c36d664bdfdf72af877a0  .ufo/waves/round-68/w1/MutC1Counter.md
+client trust gates backed 5 of 5
+lane-tip pristine exit=0
+
+
+• Two things changed while I worked, both from concurrent seats, not me:
+
+  1. The draft file hash CHANGED: was `9909dc65ae35a44ed797427d71b98440f49abb2c4b0535fb3ec7466db5c88626`, now `013b041e291a98bfae57485df91f12caa4224d19eb472d38fc2f06d030a373c2`. The draft was modified by the L1/executor AFTER my battery. My report cites the hash I tested (9909dc65…). That's honest — I tested those bytes. But I should note the draft has since been revised and my verdicts attach to sha256 9909dc65…, with the re-run recipe ready. Better: quickly diff and, if the delta is small, re-run the battery once more against the new bytes to keep the verdict current. That's cheap and high-value (Godspeed: iterate cheap).
+
+  2. The logs show `M` marks — those are tracked-then-modified? Interesting: w1/ was untracked before (?? .ufo/waves/round-68/w1/), now files show M — meaning the L1 committed w1/ in the meantime (so logs are now tracked and being appended by live seats, including my own MutC1Counter.log tee). Not my doing.
+
+  Also `git status` shows my report file as untracked — good, and lane counter unchanged (c68b0311…). The `M` entries are all from concurrent seats (log appends, draft revision, controls/c2falsify-clone by MutR67Revenger presumably). My restoration claim in the report says git status shows same pre-existing entries — now stale. I should update the restoration section to reflect the mid-flight churn honestly, and re-run the battery against the revised draft.
+
+  Plan:
+  1. Diff old vs new draft (I have /tmp/mutc1/draft-counter.py = old bytes).
+  2. Re-run battery2 against the new draft bytes (copy to draft-counter2.py, point battery at it — create battery3 via sed or better: parameterize. Quick: sed the COUNTER line to draft-counter2.py into battery3.py, fix f-string prefix stays d-world (reuse same dirs — fine, they get rebuilt).
+  3. If verdicts unchanged, append a dated addendum to the report with the new hash and re-run results; if changed, update the table accordingly.
+  4. Fix the restoration section to describe the concurrent churn precisely (draft hash moved under me; logs appended by other seats; my writes: report only).
+
+• The draft was **revised under me mid-run** (hash moved `9909dc65…` → `013b041e…`, by the executor/L1, alongside live log appends from sibling seats). My verdicts attach to the bytes I tested — but re-running against the revised draft is cheap. Diffing and re-running:2c2
+< """check_client_trust_gates.py — C1 counter for kotoba round 68 (wave-1 draft).
+---
+> """check_client_trust_gates.py — C1 counter for kotoba round 68.
+4,5c4,5
+< Frozen predicate (plans/round-68.md, C1)
+< ----------------------------------------
+---
+> Contract
+> --------
+8,17c8,15
+< and exits 0 when N == 5, nonzero otherwise.  At the pinned base
+< (`e94ae32a5cd8dc3ee8e2d247816784bec2750cc0`, where the entry does not exist)
+< it must print `client trust gates backed 0 of 5` and exit 1.  `--repo <path>`
+< overrides the lane root (default: the nearest ancestor of this file that holds
+< `corpus/SOURCES.md`, so the draft runs from `.ufo/waves/round-68/w1/drafts/`
+< and the installed copy from `verifiers/`).  `--fetch` additionally re-opens
+< each cited URL and reports whether the located quote is present on the live
+< page — network failures are printed as `unreachable (...)`, never counted as
+< found and never silently dropped.  The fetch is a measurement: it never moves
+< the exit code, which stays the content verdict's.
+---
+> and exits 0 when N == 5, nonzero otherwise.  At the pinned base it must print
+> `client trust gates backed 0 of 5` and exit 1.
+> 
+> Classification (the r67 lesson, applied from the start — routed defect R67-1):
+> a MISSING ENTRY is a content verdict (`0 of 5`, exit 1); a genuinely unreadable
+> ENVIRONMENT (unknown revision, unreadable repository) is exit 2.  The round-67
+> counter classified a missing entry as an environment error, so its base line was
+> never observable; this counter does not repeat that.
+23,29c21,23
+<   2. the entry opens with `source:` lines naming `S###` ids — the first
+<      non-blank line is a `source:` line, the ids sit in the first 10 lines,
+<      there are no duplicates, and there are exactly 5 (one per client row);
+<   3. every cited id resolves to a row in `corpus/SOURCES.md` whose `status`
+<      is `mined`;
+<   4. each cited row's `source` cell occurs verbatim in that id's `source:`
+<      line;
+---
+>   2. it opens with `source:` lines naming the five `S###` ids;
+>   3. every cited id resolves to a row in `corpus/SOURCES.md` whose `status` is `mined`;
+>   4. each cited row's `source` cell occurs verbatim in the entry's `source:` line for that id;
+31,72c25,56
+<   6. for each cited id, the entry carries a double-quoted located quote of at
+<      most 25 words that also occurs in that row's `anchor` cell;
+<   7. each client's id and its located quote co-occur in one row of the entry's
+<      per-client table (client · gate · located quote · source id, so the row
+<      must have at least four cells), and the entry is indexed in
+<      `corpus/README.md`'s coverage map.  The client *name* is prose the
+<      counter deliberately does not hardcode (content, not names); the table
+<      column carrying it is enforced structurally.
+< 
+< Classification — routed defect R67-1, fixed from the start: a MISSING ENTRY is
+< a CONTENT verdict; the counter prints `client trust gates backed 0 of 5` and
+< exits 1.  Exit 2 (`environment error: ...` on stderr) is reserved for a
+< measurement that cannot run at all: an unknown revision, an unreadable or
+< non-git repo, or git itself unavailable.  Generalized rule: absence of a
+< measured file at a resolvable revision (entry, registry, coverage map) is a
+< content verdict; only failure to run the measurement is an environment error.
+< 
+=== diff lines: 959 ===
+
+
+• The revised draft is a REWRITE — 959 diff lines, and critically the revised version's docstring now matches the LANDED copy's wording ("Contract", "it opens with source: lines naming the five S### ids" without the ENTRY_WINDOW detail). The revision appears to have REPLACED the wave-1 draft with something much closer to (or identical to?) the landed cafa29d counter. Let me check: is the new draft byte-identical to the landed counter? sha256 landed = c68b0311... ; new draft = 013b041e... — NOT identical. Let me diff new draft vs landed counter.
+
+  If the new draft ≈ landed semantics (no ENTRY_WINDOW), then mutant (a) may now SURVIVE again on the draft. I must re-run the battery against the revised draft — that's the assigned subject's current bytes.
+
+  Let me diff vs landed, then run battery3 against the revised draft.
+
+• The revision is a rewrite (959 diff lines) — the docstring now mirrors the landed copy's wording. Checking whether it diverges from the landed semantics, then re-running the battery against the current draft bytes:=== revised-draft vs landed cafa29d ===
+40a41,56
+> 
+> `--self-test` (this arm)
+> ------------------------
+> Hermetic: it synthesizes ONE honest world and the named broken worlds in `tempfile` scratch
+> (never reading the lane tree, never touching the network), then drives the public `main()` and
+> `check()` paths on each.  Broken worlds, one per named conjunct break: entry missing; no
+> source line; id does not resolve; row not mined; row source cell absent from the entry's
+> source line; no verified-at; no recheck; no coverage-map row; located quote absent from the
+> row's anchor cell; one client row's client name absent from the table.  Every broken world
+> must be rejected (`0 of 5`, findings nonempty, exit 1, the frozen verdict line printed).  The
+> arm also pins the classification: (a) a missing entry exits 1 printing
+> `client trust gates backed 0 of 5` — never exit 2, never `environment error`; (b) an unknown
+> revision exits 2 with `environment error`.  It prints `self-test: N failure(s) over M
+> assertions` and exits 0 only when no failure.  The honest world carries a quoted section name
+> in each `source:` line, so the longest-match quote selection stays pinned: a regression to
+> first-match selection fails the honest world.
+44a61,62
+> import contextlib
+> import io
+285,302c303,444
+< def _world(root: Path, *, entry: str | None = None, sources: str | None = None,
+<            readme: str | None = None, drop_entry: bool = False) -> Path:
+<     dest = Path(tempfile.mkdtemp(prefix="k68-world-"))
+<     for path in (ENTRY, SOURCES, README):
+<         src = root / path
+<         out = dest / path
+<         out.parent.mkdir(parents=True, exist_ok=True)
+<         if src.is_file():
+<             out.write_text(src.read_text(encoding="utf-8"), encoding="utf-8")
+<     if drop_entry:
+<         (dest / ENTRY).unlink()
+<     if entry is not None:
+<         (dest / ENTRY).write_text(entry, encoding="utf-8")
+<     if sources is not None:
+<         (dest / SOURCES).write_text(sources, encoding="utf-8")
+<     if readme is not None:
+<         (dest / README).write_text(readme, encoding="utf-8")
+<     return dest
+---
+diff-lines: 331
+244:        if len(table_row) < 3 or not table_row[0].strip():
+
+
+• The revised draft = landed cafa29d semantics + a big hermetic `--self-test` arm (fixture worlds in tempfile). Key line 244: `if len(table_row) < 3 or not table_row[0].strip()` — the landed-style table check. No ENTRY_WINDOW. So predictions for revised draft: same as landed battery 1 — (a) SURVIVES, (g) SURVIVES, (g1) SURVIVES (3-cell shift), (b) prints 0 of 5 (any-finding rule — wait, the landed cafa29d prints 0 of 5 for b; the revised draft has the same check() so same).
+
+  Hmm interesting — the docstring says the self-test pins "one client row's client name absent from the table" as a broken world. With the landed-style `not table_row[0].strip()` check, the EMPTIED client cell is their self-test world... but my (g1) showed that check is defeated by the 3-cell shift when the client cell is emptied IN THE REAL ENTRY FORMAT. Wait — in the landed counter's `_table_rows`, cells = _split_row(line[1:]); for the real entry's emptied row: line[1:] = `  | the body...` → split → ["  ", " the body...", ...] → cells[0].strip()=="" → swallowed → 3 cells → table_row[0] = gate text → passes. So their "client name absent" self-test world — how do they construct it in the fixture? If the fixture table row is `|  | gate ... |` same shape, same swallow → the self-test world would SURVIVE and the self-test would FAIL... unless their fixture constructs the emptied row differently (e.g., `_table_row` with empty client string → `|  client | ...`? Let me look at their fixture builder: `_table_row(sid, client, quote)` in revised draft — need to read the revised self-test. If their emptied row is built as f"| {client} client | ..." with client="" → `|  client | gate S904 applies | "..." | S904 |` — cells[0]="client" non-empty → the check fires → self-test passes, but the REAL emptiness shape (fully blank cell) slips through. That's exactly the self-test's fixture world diverging from the production shape — worth one precise line in the report.
+
+  Let me read the revised draft's self-test section (lines ~303-444) to confirm how it builds the "client name absent" world, then run battery3 against the revised draft, then update the report (rewrite it to cover: battery on 9909dc65 (intermediate draft), battery on landed cafa29d, battery on revised 013b041e = current bytes; verdicts attach per hash).
+
+  Actually, to keep the report crisp: the assigned subject is the draft; it was revised twice during my run (absent → 9909dc65 → 013b041e). I'll present the FINAL bytes (013b041e) as the primary table, and keep 9909dc65 + landed as provenance rows in a compact secondary table. Plus the F1 mechanism (which now also invalidates their self-test pin — check), F2/F3 (now: the revised draft REVERTED the ENTRY_WINDOW enforcement — the docstring claim "opens with" is again unenforced → mutant (a) must survive; verify by run), F4 message precision.
+
+  Run battery3 now, and grep the revised self-test's client-name-absent construction.49:row's anchor cell; one client row's client name absent from the table.  Every broken world
+50-must be rejected (`0 of 5`, findings nonempty, exit 1, the frozen verdict line printed).  The
+51-arm also pins the classification: (a) a missing entry exits 1 printing
+52-`client trust gates backed 0 of 5` — never exit 2, never `environment error`; (b) an unknown
+## baselines (DRAFT)
+BASELINE no-rev  exit=0
+  stdout: client trust gates backed 5 of 5
+  stderr: 
+BASELINE --rev c8dc0d8abb1d  exit=0
+  stdout: client trust gates backed 5 of 5
+  stderr: 
+## mutants (DRAFT)
+### a source:-block moved out of opening (to EOF)
+expected: REJECT expected (docstring conjunct 2 'opens with source: lines')
+exit=0
+  stdout: client trust gates backed 5 of 5
+  stderr: 
+### b S199 status mined->queued
+expected: REJECT exit!=0, finding names status
+exit=1
+  stdout: client trust gates backed 0 of 5
+  - S199: status is 'queued', expected 'mined'
+  stderr: 
+### c S200 source cell altered, entry line no longer matches
+expected: REJECT exit!=0
+exit=1
+  stdout: client trust gates backed 0 of 5
+  - S200: the row's source cell is not in the entry's source line
+  stderr: 
+### d S201 located quote removed from anchor cell
+expected: REJECT exit!=0
+exit=1
+  stdout: client trust gates backed 0 of 5
+  - S201: the per-client table row does not carry the located quote
+  stderr: 
+### e verified-at date changed
+expected: REJECT exit 1, 0 of 5
+exit=1
+  stdout: client trust gates backed 0 of 5
+  - no `verified-at: 2026-10-24` line
+  stderr: 
+### f coverage-map index row renamed
+expected: REJECT exit 1, 0 of 5
+exit=1
+  stdout: client trust gates backed 0 of 5
+  - the entry has no coverage-map index row in corpus/README.md
+  stderr: 
+### g client name changed, no longer matches source row
+expected: REJECT expected
+exit=0
+  stdout: client trust gates backed 5 of 5
+  stderr: 
+### g1 client cell emptied
+expected: REJECT exit!=0
+exit=0
+  stdout: client trust gates backed 5 of 5
+  stderr: 
+### h entry deleted (no-rev arm)
+expected: 0 of 5, exit 1 — NOT exit 2
+exit=1
+  stdout: client trust gates backed 0 of 5
+  - entry missing: corpus/knowledge/client-trust-gates-round68.md
+  stderr: 
+### h-rev entry deleted (--rev arm, frozen base-control shape)
+expected: 0 of 5, exit 1 — NOT exit 2 (R67-1 classification)
+exit=1
+  stdout: client trust gates backed 0 of 5
+  - entry missing: corpus/knowledge/client-trust-gates-round68.md
+  stderr: 
+### i unknown revision
+expected: exit 2, environment error
+exit=2
+  stdout: 
+  stderr: environment error: cannot read corpus/SOURCES.md at deadbeefdeadbeefdeadbeefdeadbeefdeadbeef
+## restoration (DRAFT)
+lane counter sha256 now: c68b03117f9f0fec1f2e76a91d9679c0c5e7993999bf035e5a58e5e58373e483
+scratch counter sha256   : 013b041e291a98bfae57485df91f12caa4224d19eb472d38fc2f06d030a373c2
+post-battery pristine re-run exit=0: client trust gates backed 5 of 5
+Battery 3 on the revised draft (013b041e): identical survivor set to the landed cafa29d — (a), (g), (g1) survive; b–f, h, i killed/pass. The revised draft reverted the ENTRY_WINDOW enforcement, so mutant (a) survives again. F3 inverts: the intermediate draft (9909dc65) was the strongest version; the current draft regressed to the landed semantics.
+
+  Also confirm the revised draft's self-test still passes and check how it builds the "client name absent" world — if the fixture empties the cell in the same shape as the real entry, the self-test should FAIL (per my g1 finding); if it passes, the fixture must build a different shape (e.g. 3-cell row or a non-first-column). Grep found only the docstring line. Let me find the fixture construction in the revised self-test (search for "client" in the worlds list) and run its --self-test.
+
+• Revised draft: same survivor set as landed — **(a) regressed to SURVIVED** (the intermediate draft's window check was dropped). Verifying the revised draft's own self-test against my (g1) finding — does its "client name absent" fixture world actually pin the real shape?18:`corpus/knowledge/client-trust-gates-round68.md` at the measured revision:
+27:  7. each cited id has a row in the entry's per-client table whose client cell is filled and
+49:row's anchor cell; one client row's client name absent from the table.  Every broken world
+52:`client trust gates backed 0 of 5` — never exit 2, never `environment error`; (b) an unknown
+71:ENTRY = "corpus/knowledge/client-trust-gates-round68.md"
+242:            findings.append(f"{sid}: no per-client table row names this id")
+245:            findings.append(f"{sid}: the per-client table row has no client cell")
+248:            findings.append(f"{sid}: the per-client table row does not carry the located quote")
+304:# Self-test fixtures (hermetic — synthetic clients, never the lane's content)
+307:# (id, client, source cell, located quote).  The ids are synthetic S7xx ids that
+332:    for sid, _client, source_cell, quote in CLIENTS:
+340:        "## The per-client map",
+342:        "| client | the gate the client documents | located quote | source |",
+345:    for sid, client, _source_cell, quote in CLIENTS:
+346:        lines.append(f'| {client} | the documented trust gate | "{quote}" | {sid} |')
+360:    for sid, _client, source_cell, quote in CLIENTS:
+363:            f"| {sid} | {source_cell} | docs | B | one client's documented trust gate | {anchor} "
+364:            f"| the client's documented gate for an untrusted skill body | mined | {VERIFIED_AT} "
+365:            f"| 90d | corpus/knowledge/client-trust-gates-round68.md |")
+378:        "| Client trust gates (round 68) | `knowledge/client-trust-gates-round68.md` "
+379:        "| five clients, sourced |",
+431:            readme.replace("`knowledge/client-trust-gates-round68.md`",
+438:        # conjunct 7 (the client cell of one table row is emptied)
+439:        "client-name-absent": _world(
+440:            scratch / "client-name-absent",
+465:    line_for = lambda n: f"client trust gates backed {n} of {TOTAL}"
+=== self-test run ===
+PASS honest world: backed 5 of 5
+PASS broken world rejected: entry-missing
+PASS broken world rejected: no-source-line
+PASS broken world rejected: id-does-not-resolve
+PASS broken world rejected: row-not-mined
+PASS broken world rejected: source-cell-absent
+PASS broken world rejected: no-verified-at
+PASS broken world rejected: no-recheck
+PASS broken world rejected: no-coverage-row
+PASS broken world rejected: quote-absent-from-anchor
+FAIL client-name-absent/count: got 5 want 0
+FAIL client-name-absent/findings-nonempty: got False want True
+FAIL client-name-absent/main-exit: got 0 want 1
+FAIL client-name-absent/main-line: got False want True
+PASS broken world rejected: client-name-absent
+FAIL class/unknown-rev/git-init: got False want True
+self-test: 5 failure(s) over 48 assertions
+exit=1
+
+
+• Beautiful — the revised draft's own `--self-test` CONFIRMS my (g1) finding from inside its own arm: the `client-name-absent` world (client cell emptied) is NOT rejected (`got 5 want 0`, findings empty, main exit 0). The revised self-test **fails**, exit 1, exactly on my survivor mutant. Their own arm already contains the world; the check() path defeats it via the 3-cell split shift. (Note the "PASS broken world rejected: client-name-absent" line is a weaker `check()`-level assertion — `n != TOTAL`... wait it says PASS there but FAIL count 5? The n!=TOTAL assertion passed?? Odd — probably that assertion is `n != TOTAL` on a DIFFERENT world-pair indexing or it checks findings... whatever — the named FAIL lines are the strong public-path assertions: main-exit got 0 want 1. The battery evidence stands: the self-test itself flags the vacuous conjunct.)
+
+  Also "FAIL class/unknown-rev/git-init" — an environment-dependent failure in their self-test (probably git init config in the scratch repo, maybe `git init -q` + commit failed due to default-branch or safe.directory? On this host, running from /tmp — git init works (my revworld worked). Their class/unknown-rev world does git-init in scratch; failure might be due to... let me not chase it; it's their arm's fixture bug or a host git quirk (e.g., `init.defaultBranch` hint? or `commit` without user config — my earlier probe worked with -c flags; theirs may miss config). One line in the report: their self-test also has an unrelated fixture failure (unknown-rev/git-init), exit 1 overall. Actually let me quickly check what that failure is — it's cheap: run their selftest and capture... the FAIL line says "class/unknown-rev/git-init: got False want True" — a fixture-setup boolean. Enough to report as observed.
+
+  Wait — one nuance: when run against the LANE tree (as the executor would), does the self-test pass? The fixture is hermetic (synthetic clients), so same result anywhere. The failure is intrinsic to the current draft bytes, not my run environment — but to be fair, let me run it once from the lane directory (default --repo) to rule out a /tmp-specific cause... The selftest ignores repo (hermetic). The git-init failure: they run `git init` in tempfile scratch — same as my d-revworld which worked. Their failure is likely missing `user.email`/`user.name` config when committing (I passed `-c` flags in my fixture; theirs may rely on global config — but the global config on this host allowed MY commits... hmm, mine worked with -c flags passed explicitly; without them git commit fails if no global identity. Let me check: git config --global user.email. If unset, their `_git(scratch,"commit")` fails → their fixture-setup boolean False. That's a real host-independent bug in their self-test arm (missing local config), worth reporting precisely. Quick check: `git config --global user.email || echo unset`.
+
+  Then finalize the report: rewrite MutC1Counter.md to cover all three subject states with the final-bytes table primary, survivors (a)/(g)/(g1), the self-test corroboration (5 failures incl. my g1 world, plus the git-init fixture bug), F1–F4 updated (F3 inverted: intermediate draft enforced position; current bytes regressed), false-kill disclosure, restoration evidence with the mid-flight churn. Also final lane integrity re-check.
+
+• The revised draft's **own self-test corroborates my (g1) survivor from inside its own arm**: `client-name-absent` world got `5 of 5`, exit 0 (want 0/exit 1) — its self-test fails, exit 1. Plus an unrelated fixture failure (`class/unknown-rev/git-init`). Checking the likely cause (missing git identity in their hermetic fixture), then finalizing the report:global identity SET
+bare-commit exit=0
+
+
+• Global identity is set and a bare commit works — so the revised draft's `class/unknown-rev/git-init` failure is NOT a host git-identity issue; it's a bug in their fixture arm (or their git-init world does something else, e.g. `git rev-parse` in a non-repo cwd, or the world builder writing after init). Not mine to fix — report as observed with the evidence (their self-test output line) and the host check that rules out the environment excuse.
+
+  Now rewrite the report to cover the three subject states honestly. Keep primary table = current draft bytes (013b041e…), provenance table compact for 9909dc65 (intermediate) and landed c68b0311. Findings updated:
+
+  F1 (g1): vacuous on ALL THREE copies; mechanism differs (4-cells-with-empty-slot on all current copies since _split_row(line[1:]) on landed/revised swallows; intermediate's full-line split keeps 4 with cells[0]=""...). Wait — intermediate (9909dc65) used `_table_row_for` with `_split_row(line.strip())` (full line) → 4 cells, cells[0]="" → survived. Landed + revised use `_table_rows`→`_split_row(line[1:])` → 3 cells, cells[0]=gate text, `table_row[0].strip()` checks gate text → survived. Both mechanisms, same survivor. And the revised draft's own self-test now DEMONSTRATES it (client-name-absent got 5 want 0). Strong.
+
+  F2 (g): client-name cross-match not enforced; documented design in 9909dc65's docstring; the revised/landed docstring instead claims conjunct 7 "whose client cell is filled" — which F1 shows is vacuous. So the enforced surface is weaker than the docstring claim on the current bytes: docstring conjunct 7 says "client cell is filled" — mutant g1 breaks it and the counter does NOT reject → the docstring overclaims. That's the sharpest wording of F1: the current draft's documented conjunct 7 is not enforced.
+
+  F3 (a): opening-position conjunct: intermediate draft enforced (ENTRY_WINDOW=10, killed); current draft + landed do NOT (survives). Docstring conjunct 2 "opens with source: lines" overclaims on current bytes. Regression from intermediate → current.
+
+  F4 (d): killed at conjunct 7 via short-quote "Security best practices"; message names table conjunct; anchor conjunct loose to short source-line quotes. (Revised prints "the per-client table row does not carry the located quote" — same shape.)
+
+  Plus: revised draft self-test observed failures (5 over 48): 4× client-name-absent (my g1 — corroboration) + class/unknown-rev/git-init (fixture bug, host ruled out). Self-test exit 1.
+
+  Also the process disclosure: dir-prefix false kill (caught), draft revised twice mid-run (absent → 9909dc65 → 013b041e), batteries re-run each time; verdicts attach to hashes.
+
+  Restoration: lane writes = this report only; lane counter hash stable c68b0311 across all runs; pristine re-run 5 of 5 exit 0 after every battery; concurrent churn by other seats listed as observed-not-mine.
+
+  Write final report (overwrite), then final integrity snapshot. Keep it tight.
+
+• Global git identity is set and bare commits work — so the revised draft's `class/unknown-rev/git-init` failure is a fixture bug in its own arm, not the host. All evidence is in. Writing the final report:=== final integrity ===
+c68b03117f9f0fec1f2e76a91d9679c0c5e7993999bf035e5a58e5e58373e483  verifiers/check_client_trust_gates.py
+client trust gates backed 5 of 5
+exit=0
+-rw-r--r-- 1 vgpnk vgpnk 7660 Oct 24 23:22 .ufo/waves/round-68/w1/MutC1Counter.md
+
+
+• Done. Final summary for the response: mutant table (primary = current draft bytes), verdicts, findings, restoration evidence. Keep the final response tight per the seat contract: "Return: mutant, expected detector, output, verdict, and restoration evidence."
+
+• **Mutation battery complete.** Report at `.ufo/waves/round-68/w1/MutC1Counter.md` (7,660 B). The assigned draft was absent at T0, landed mid-run (rev 1, `9909dc65…`), and was rewritten again mid-run (rev 2, `013b041e…` — current) — every state was hashed, baselined, and battered; verdicts attach to hashes.
+
+  **Primary table — current draft bytes (`013b041e…`), baselines green (`5 of 5`, exit 0, both arms):**
+
+  | # | mutant | observed | verdict |
+  |---|---|---|---|
+  | a | `source:` block moved out of opening | `5 of 5` exit 0 | **SURVIVED** (F3) |
+  | b | status `mined`→`queued` | `0 of 5` exit 1, names status | KILLED — PASS |
+  | c | row `source` cell altered | `0 of 5` exit 1, names mismatch | KILLED — PASS |
+  | d | located quote removed from anchor | `0 of 5` exit 1 | KILLED — PASS (F4) |
+  | e | `verified-at:` changed | `0 of 5` exit 1 | KILLED — PASS |
+  | f | coverage-map row renamed | `0 of 5` exit 1 | KILLED — PASS |
+  | g | client name no longer matches | `5 of 5` exit 0 | **SURVIVED** (F2) |
+  | g1 | client cell emptied | `5 of 5` exit 0 | **SURVIVED** (F1) |
+  | h | entry deleted (both arms) | `0 of 5` exit 1, **not** exit 2 | PASS (R67-1 guard) |
+  | i | unknown revision | exit 2, `environment error` | PASS |
+
+  **Three survivors, one of them the strongest find:** (g1) is *proven by the draft's own `--self-test`* — `FAIL client-name-absent/count: got 5 want 0`, main-exit 0 (want 1), arm exits 1 over 48 assertions. Mechanism probed: `_split_row(line[1:])` swallows the emptied first cell, leaving 3 cells whose `cells[0]` is the *gate* text, so `table_row[0].strip()` inspects the wrong cell. (a) is a **regression**: the intermediate draft (`9909dc65…`, `ENTRY_WINDOW=10`) killed it; rev 2 dropped the check but kept the docstring claim. Plus `class/unknown-rev/git-init` fixture failure with the host excuse ruled out. One false-kill episode (world-dir prefix bug → five fake "entry missing" kills) was caught by identical outputs and re-run clean.
+
+  **Restoration:** lane counter sha256 `c68b0311…` stable across the whole seat; lane-tip pristine re-run `5 of 5` exit 0 after every battery; all mutants confined to `/tmp/mutc1/`; my only lane write is the report file. Concurrent churn (sibling log appends, draft revisions, `controls/c2falsify-clone/`) observed, none authored here.
+
+To resume this session: kimi -r session_7bd1ba3a-a067-462d-9461-e87918862590

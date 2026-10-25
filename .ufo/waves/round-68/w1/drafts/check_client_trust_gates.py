@@ -1,56 +1,65 @@
 #!/usr/bin/env python3
-"""check_client_trust_gates.py — C1 counter for kotoba round 68 (draft: `--fetch` arm).
-
-Seat: ExecC1Fetch (round-68 wave 1).  This draft is self-contained.  The `check()`
-core mirrors the semantics of the L1-installed `verifiers/check_client_trust_gates.py`
-(the frozen 8-conjunct contract); this seat's assigned move is the `--fetch` arm plus
-one honesty fix on the exit-2 path (an unknown revision now says so, instead of being
-reported as an unreadable SOURCES.md).
+"""check_client_trust_gates.py — C1 counter for kotoba round 68.
 
 Contract
 --------
-`python3 -B check_client_trust_gates.py --rev <full-sha>` prints
+`python3 -B verifiers/check_client_trust_gates.py --rev <full-sha>` prints
     client trust gates backed N of 5
 and exits 0 when N == 5, nonzero otherwise.  At the pinned base it must print
 `client trust gates backed 0 of 5` and exit 1.
 
 Classification (the r67 lesson, applied from the start — routed defect R67-1):
 a MISSING ENTRY is a content verdict (`0 of 5`, exit 1); a genuinely unreadable
-ENVIRONMENT (unknown revision, unreadable repository) is exit 2.
+ENVIRONMENT (unknown revision, unreadable repository) is exit 2.  The round-67
+counter classified a missing entry as an environment error, so its base line was
+never observable; this counter does not repeat that.
 
-The `--fetch` arm (this seat)
------------------------------
-`--fetch` additionally re-opens each cited URL and confirms the entry's located
-quote is present on the live page.  For each cited row it reads the row's `source`
-cell, extracts the URL, fetches it with `curl -sSL --max-time 30` (falling back to
-`urllib` only if curl is unavailable), and searches the fetched text for the
-located quote after whitespace normalization (HTML pages are reduced to their
-visible text first, so tag-interleaved sentences are still searchable).
+What the counter reads (content, not names — QUALITY Q25/Q26).  For
+`corpus/knowledge/client-trust-gates-round68.md` at the measured revision:
 
-It prints one line per cited client:
+  1. the entry file exists;
+  2. it opens with `source:` lines naming the five `S###` ids;
+  3. every cited id resolves to a row in `corpus/SOURCES.md` whose `status` is `mined`;
+  4. each cited row's `source` cell occurs verbatim in the entry's `source:` line for that id;
+  5. the entry carries a `verified-at: 2026-10-24` line and a `recheck:` line;
+  6. for each cited id, the entry carries a double-quoted located quote of at most 25 words
+     that also occurs in that row's `anchor` cell;
+  7. each cited id has a row in the entry's per-client table whose client cell is filled and
+     whose quoted cell carries that located quote;
+  8. the entry is indexed in `corpus/README.md`'s coverage map.
 
-    S### <client>: found
-    S### <client>: NOT FOUND
-    S### <client>: FETCH FAILED <single-line error>
-
-then `live quotes found N of 5`.  A fetch failure is NEVER counted as a found
-quote and NEVER crashes the counter; the fetch lines are a printed measurement.
-Exit codes: 0/1 still mirror the content verdict (`0` iff all five are backed),
-because the frozen `--rev` predicate is `exit 0 when N == 5`; exit 2 is reserved
-for a usage/environment error of the counter itself (bad usage, unknown revision,
-unreadable repository).  When the entry (or the registry) is absent, `--fetch`
-prints `live quotes found 0 of 5` with a stderr note — it does not traceback.
+`--fetch` additionally re-opens each cited URL and confirms the located quote is present on the
+live page; a fetch failure is never counted as a found quote.
 
 Trust boundary (QUALITY Q33): the counter runs the measured revision's own bytes, so a
 revision that rewrites the instrument can change the verdict.  The claim's verdict therefore
 also cites the controls outside this counter: the base control prints `0 of 5`, the junk-entry
 control is rejected, the mutation battery kills each conjunct, and the `--fetch` arm measures
 the live pages.
+
+Exit codes: 0 all five backed · 1 not all backed · 2 usage/environment error.
+
+`--self-test` (this arm)
+------------------------
+Hermetic: it synthesizes ONE honest world and the named broken worlds in `tempfile` scratch
+(never reading the lane tree, never touching the network), then drives the public `main()` and
+`check()` paths on each.  Broken worlds, one per named conjunct break: entry missing; no
+source line; id does not resolve; row not mined; row source cell absent from the entry's
+source line; no verified-at; no recheck; no coverage-map row; located quote absent from the
+row's anchor cell; one client row's client name absent from the table.  Every broken world
+must be rejected (`0 of 5`, findings nonempty, exit 1, the frozen verdict line printed).  The
+arm also pins the classification: (a) a missing entry exits 1 printing
+`client trust gates backed 0 of 5` — never exit 2, never `environment error`; (b) an unknown
+revision exits 2 with `environment error`.  It prints `self-test: N failure(s) over M
+assertions` and exits 0 only when no failure.  The honest world carries a quoted section name
+in each `source:` line, so the longest-match quote selection stays pinned: a regression to
+first-match selection fails the honest world.
 """
 from __future__ import annotations
 
 import argparse
-import html as html_mod
+import contextlib
+import io
 import re
 import subprocess
 import sys
@@ -64,33 +73,15 @@ SOURCES = "corpus/SOURCES.md"
 README = "corpus/README.md"
 VERIFIED_AT = "2026-10-24"
 TOTAL = 5
-CURL = ["curl", "-sSL", "--max-time", "30"]
 
 ROW_RE = re.compile(r"^\|(.*)$")
 SOURCE_LINE_RE = re.compile(r"^source:\s*(S\d{3,})\s*(.*)$")
 QUOTED_RE = re.compile(r'"([^"\n]{1,300})"')
 URL_RE = re.compile(r"https?://[^\s,;)\]]+")
-LOCATED_RE = re.compile(r'located quote\s+"([^"\n]+)"')
-HTML_RE = re.compile(
-    r"<!doctype\s+html|<html[\s>]|<body[\s>]|<div[\s>]|<p[\s>]|<script[\s>]|<table[\s>]",
-    re.I,
-)
 
 
 class EnvError(Exception):
     pass
-
-
-class FetchError(Exception):
-    pass
-
-
-def _norm(text: str) -> str:
-    return re.sub(r"\s+", " ", text).strip()
-
-
-def _tail(text: str, limit: int = 160) -> str:
-    return _norm(text or "")[:limit] or "no output"
 
 
 def _git_show(repo: Path, rev: str, path: str) -> str | None:
@@ -103,16 +94,6 @@ def _git_show(repo: Path, rev: str, path: str) -> str | None:
     return proc.stdout
 
 
-def _verify_rev(repo: Path, rev: str) -> None:
-    """An unknown revision is an environment error with an honest message (exit 2)."""
-    proc = subprocess.run(
-        ["git", "-C", str(repo), "rev-parse", "--verify", f"{rev}^{{commit}}"],
-        capture_output=True, text=True,
-    )
-    if proc.returncode != 0:
-        raise EnvError(f"unknown revision {rev}: {_tail(proc.stderr, 120)}")
-
-
 def _materialize(repo: Path, rev: str, dest: Path) -> Path:
     """Write the three measured files of <rev> into <dest> (same relative layout).
 
@@ -121,7 +102,6 @@ def _materialize(repo: Path, rev: str, dest: Path) -> Path:
     classified it the other way round, which is why its base line was never observable
     (routed defect R67-1); this counter does not repeat that.
     """
-    _verify_rev(repo, rev)
     for path in (ENTRY, SOURCES, README):
         text = _git_show(repo, rev, path)
         if text is None:
@@ -134,10 +114,17 @@ def _materialize(repo: Path, rev: str, dest: Path) -> Path:
     return dest
 
 
+def _norm(text: str) -> str:
+    return re.sub(r"\s+", " ", text).strip()
+
+
 def _split_row(body: str) -> list[str]:
+    # The leading "|" is already stripped by the caller, so a first cell that
+    # splits empty IS an empty first cell (e.g. an unfilled client cell in the
+    # per-client table) and must survive: popping it made conjunct 7's
+    # client-cell check structurally invisible.  Only the trailing "|" is
+    # padding and is dropped.
     cells = body.split("|")
-    if cells and cells[0].strip() == "":
-        cells = cells[1:]
     if cells and cells[-1].strip() == "":
         cells = cells[:-1]
     return [c.strip() for c in cells]
@@ -278,86 +265,11 @@ def check(root: Path) -> tuple[int, list[str]]:
     return backed, []
 
 
-# --------------------------------------------------------------------------
-# The --fetch arm (seat ExecC1Fetch, round-68 wave 1)
-# --------------------------------------------------------------------------
-
-def _http_get(url: str) -> str:
-    """Fetch <url> with `curl -sSL --max-time 30`; fall back to urllib without curl.
-
-    Raises FetchError (curl failure), subprocess.TimeoutExpired or an urllib/OSError
-    on failure; returns the body text on success.
-    """
-    try:
-        proc = subprocess.run(CURL + [url], capture_output=True, text=True, timeout=40)
-    except FileNotFoundError:
-        # curl unavailable on this host — the contract's stated fallback.
-        req = urllib.request.Request(url, headers={"User-Agent": "kotoba-lane-check/1.0"})
-        with urllib.request.urlopen(req, timeout=30) as resp:
-            return resp.read().decode("utf-8", errors="replace")
-    if proc.returncode != 0:
-        raise FetchError(f"curl exit {proc.returncode}: {_tail(proc.stderr)}")
-    return proc.stdout
-
-
-def _visible(body: str) -> str:
-    """Whitespace-normalized searchable text; HTML is reduced to its visible text.
-
-    Reducing HTML to visible text is measurement fidelity, not leniency: the quote's
-    words must still occur, in order, in what the page actually shows.
-    """
-    if HTML_RE.search(body[:8192]):
-        text = re.sub(r"(?is)<(script|style)\b.*?</\1\s*>", " ", body)
-        text = re.sub(r"(?s)<[^>]*>", " ", text)
-        text = html_mod.unescape(text)
-        return _norm(text)
-    return _norm(body)
-
-
-def _client_name(row: list[str]) -> str:
-    """The row's client name: the first ` — ` field of its `source` cell."""
-    cell = row[1] if len(row) > 1 else ""
-    name = cell.split(" — ")[0].strip()
-    if not name:
-        name = "(no client cell)"
-    return name if len(name) <= 48 else name[:47] + "…"
-
-
-def _located_quote(line: str, quotes: list[str], anchor: str) -> str | None:
-    """The entry's located quote for this id.
-
-    Prefer the span after the explicit `located quote` marker (the entry's own
-    convention); fall back to the longest entry quote that occurs in the row's
-    anchor cell (the same match `check()` accepts).
-    """
-    m = LOCATED_RE.search(line)
-    if m:
-        return _norm(m.group(1))
-    matched = [q for q in quotes if _norm(q) in anchor]
-    if matched:
-        return _norm(max(matched, key=len))
-    return None
-
-
 def fetch(root: Path) -> tuple[int, list[str]]:
-    """Re-open each cited URL and confirm its located quote is on the live page.
-
-    One line per cited client: `S### <client>: found` / `NOT FOUND` /
-    `FETCH FAILED <error>`.  A fetch failure is never counted as a found quote and
-    never crashes the counter.
-    """
+    """Re-open each cited URL and confirm its located quote is on the live page."""
     results: list[str] = []
-    entry_path = root / ENTRY
-    sources_path = root / SOURCES
-    if not entry_path.is_file():
-        print(f"fetch: no cited rows — {ENTRY} is absent; fetched nothing", file=sys.stderr)
-        return 0, results
-    if not sources_path.is_file():
-        print(f"fetch: cited ids cannot resolve — {SOURCES} is absent; fetched nothing",
-              file=sys.stderr)
-        return 0, results
-    entry = entry_path.read_text(encoding="utf-8")
-    rows = _source_rows(sources_path.read_text(encoding="utf-8"))
+    entry = (root / ENTRY).read_text(encoding="utf-8")
+    rows = _source_rows((root / SOURCES).read_text(encoding="utf-8"))
     src_lines = _entry_source_lines(entry)
     quotes = _quoted(_norm(entry))
     found = 0
@@ -366,142 +278,273 @@ def fetch(root: Path) -> tuple[int, list[str]]:
         if row is None:
             results.append(f"{sid}: NO ROW")
             continue
-        client = _client_name(row)
-        anchor = _norm(row[5]) if len(row) > 5 else ""
-        quote = _located_quote(line, quotes, anchor)
+        anchor = _norm(row[5])
+        quote = next((_norm(q) for q in quotes if _norm(q) in anchor), None)
         if quote is None:
-            results.append(f"{sid} {client}: NO LOCATED QUOTE")
+            results.append(f"{sid}: NO LOCATED QUOTE")
             continue
-        m = URL_RE.search(line) or (URL_RE.search(row[1]) if len(row) > 1 else None)
+        m = URL_RE.search(line) or URL_RE.search(row[1])
         if not m:
-            results.append(f"{sid} {client}: NO URL")
+            results.append(f"{sid}: NO URL")
             continue
         url = m.group(0)
         try:
-            body = _http_get(url)
-        except (FetchError, subprocess.TimeoutExpired, urllib.error.URLError,
-                OSError, ValueError) as exc:
-            message = _tail(str(exc) or type(exc).__name__)
-            results.append(f"{sid} {client}: FETCH FAILED {message}")
+            req = urllib.request.Request(url, headers={"User-Agent": "kotoba-lane-check/1.0"})
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                body = resp.read().decode("utf-8", errors="replace")
+        except (urllib.error.URLError, OSError, ValueError) as exc:
+            results.append(f"{sid}: FETCH FAILED {exc}")
             continue
-        if quote in _visible(body):
+        if quote in _norm(body):
             found += 1
-            results.append(f"{sid} {client}: found")
+            results.append(f"{sid}: found")
         else:
-            results.append(f"{sid} {client}: NOT FOUND")
+            results.append(f"{sid}: NOT FOUND")
     return found, results
 
 
-# --------------------------------------------------------------------------
-# Self-test (offline; drives the public check() path — the counter-test seat's arm)
-# --------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# Self-test fixtures (hermetic — synthetic clients, never the lane's content)
+# ---------------------------------------------------------------------------
 
-def _world(root: Path, *, entry: str | None = None, sources: str | None = None,
-           readme: str | None = None, drop_entry: bool = False) -> Path:
-    dest = Path(tempfile.mkdtemp(prefix="k68-world-"))
-    for path in (ENTRY, SOURCES, README):
-        src = root / path
-        out = dest / path
-        out.parent.mkdir(parents=True, exist_ok=True)
-        if src.is_file():
-            out.write_text(src.read_text(encoding="utf-8"), encoding="utf-8")
-    if drop_entry:
-        (dest / ENTRY).unlink()
-    if entry is not None:
-        (dest / ENTRY).write_text(entry, encoding="utf-8")
-    if sources is not None:
-        (dest / SOURCES).write_text(sources, encoding="utf-8")
-    if readme is not None:
-        (dest / README).write_text(readme, encoding="utf-8")
-    return dest
+# (id, client, source cell, located quote).  The ids are synthetic S7xx ids that
+# cannot collide with the lane registry; the URLs are .example hosts the
+# self-test never opens.
+CLIENTS = (
+    ("S701", "Alpha CLI",
+     "Alpha CLI — Skills Guide — https://docs.alpha.example/skills-guide",
+     "Skill bodies load as untrusted data and the host tool policy stays authoritative."),
+    ("S702", "Beta Works",
+     "Beta Works — pw skills — https://docs.beta.example/code/skills",
+     "Project skills clear two independent trust gates before any instruction runs."),
+    ("S703", "Gamma Code",
+     "Gamma Code — Skills — https://docs.gamma.example/customize/skills",
+     "Commands embedded in an untrusted skill body never execute without explicit approval."),
+    ("S704", "Delta Framework",
+     "Delta Framework — Agent Skills — https://docs.delta.example/agents/skills",
+     "Treat every installed skill like third-party code that a human reviews first."),
+    ("S705", "Epsilon Vibe",
+     "Epsilon Vibe — README — https://docs.epsilon.example/vibe-readme",
+     "Skill discovery reads only project roots that sit inside trusted folders."),
+)
+RECHECK_LINE = "recheck: 90d — re-open each cited page and confirm each located quote is unchanged"
 
 
-def selftest(repo: Path) -> int:
-    failures = 0
-    base = repo
-    if not (base / ENTRY).is_file():
-        print("selftest setup failed: the entry is not present in the working tree", file=sys.stderr)
-        return 2
-    entry_text = (base / ENTRY).read_text(encoding="utf-8")
-    sources_text = (base / SOURCES).read_text(encoding="utf-8")
-    readme_text = (base / README).read_text(encoding="utf-8")
+def _honest_entry() -> str:
+    lines = ["# Client trust gates (scratch world)", ""]
+    for sid, _client, source_cell, quote in CLIENTS:
+        lines.append(
+            f'source: {sid} — {source_cell} — the "Gates" section — located quote "{quote}"')
+    lines += [
+        "",
+        f"verified-at: {VERIFIED_AT}",
+        RECHECK_LINE,
+        "",
+        "## The per-client map",
+        "",
+        "| client | the gate the client documents | located quote | source |",
+        "|---|---|---|---|",
+    ]
+    for sid, client, _source_cell, quote in CLIENTS:
+        lines.append(f'| {client} | the documented trust gate | "{quote}" | {sid} |')
+    lines.append("")
+    return "\n".join(lines)
 
-    n, findings = check(base)
-    if n != TOTAL or findings:
-        print(f"FAIL honest world: backed {n} of {TOTAL}; {findings}", file=sys.stderr)
-        failures += 1
-    else:
-        print(f"PASS honest world: backed {TOTAL} of {TOTAL}")
 
-    worlds = {
-        "entry missing": _world(base, drop_entry=True),
-        "no source line": _world(base, entry="\n".join(
-            l for l in entry_text.splitlines() if not l.startswith("source:"))),
-        "id does not resolve": _world(base, entry=entry_text.replace("S198", "S998")),
-        "row not mined": _world(base, sources="\n".join(
-            (l.replace("| mined |", "| queued |", 1) if l.startswith("| S198 |") else l)
-            for l in sources_text.splitlines())),
-        "source cell absent from the entry": _world(base, entry=entry_text.replace(
-            "VT Code — SKILLS_GUIDE.md — https://raw.githubusercontent.com/vinhnx/vtcode/main/docs/skills/SKILLS_GUIDE.md",
-            "VT Code — https://raw.githubusercontent.com/vinhnx/vtcode/main/docs/skills/SKILLS_GUIDE.md")),
-        "no verified-at": _world(base, entry=entry_text.replace(
-            f"verified-at: {VERIFIED_AT}", "verified-at: 2020-01-01")),
-        "no recheck": _world(base, entry=entry_text.replace(
-            "recheck: 90d — re-fetch", "note: re-fetch")),
-        "no coverage-map row": _world(base, readme=readme_text.replace(
-            "`knowledge/client-trust-gates-round68.md`", "`knowledge/absent.md`")),
-        "quote not in the anchor cell": _world(base, sources=sources_text.replace(
-            "Skill content is untrusted resource data; host tool and sandbox policy remains authoritative.",
-            "A different sentence entirely.")),
-        "table row loses the quote": _world(base, entry=entry_text.replace(
-            '"Skill content is untrusted resource data; host tool and sandbox policy remains authoritative." | S198',
-            '"nothing here" | S198')),
+def _honest_sources() -> str:
+    lines = [
+        "# SOURCES — scratch fixture",
+        "",
+        "## Registry",
+        "",
+        "| id | source | kind | tier | scope | anchor | teaches | status | opened | recheck | used-by |",
+        "|---|---|---|---|---|---|---|---|---|---|---|",
+    ]
+    for sid, _client, source_cell, quote in CLIENTS:
+        anchor = f'the "Gates" section; quote "{quote}"'
+        lines.append(
+            f"| {sid} | {source_cell} | docs | B | one client's documented trust gate | {anchor} "
+            f"| the client's documented gate for an untrusted skill body | mined | {VERIFIED_AT} "
+            f"| 90d | corpus/knowledge/client-trust-gates-round68.md |")
+    lines.append("")
+    return "\n".join(lines)
+
+
+def _honest_readme() -> str:
+    return "\n".join([
+        "# corpus — scratch fixture",
+        "",
+        "## Coverage map",
+        "",
+        "| topic | path | notes |",
+        "|---|---|---|",
+        "| Client trust gates (round 68) | `knowledge/client-trust-gates-round68.md` "
+        "| five clients, sourced |",
+        "",
+    ])
+
+
+def _world(root: Path, entry: str | None, sources: str | None, readme: str | None) -> Path:
+    """Materialize a scratch world; None omits that file (entry=None = entry missing)."""
+    for rel, text in ((ENTRY, entry), (SOURCES, sources), (README, readme)):
+        if text is None:
+            continue
+        path = root / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text, encoding="utf-8")
+    return root
+
+
+def _broken_worlds(scratch: Path) -> dict[str, Path]:
+    entry, sources, readme = _honest_entry(), _honest_sources(), _honest_readme()
+    s701_cell = CLIENTS[0][2]
+    s703_quote = CLIENTS[2][3]
+    worlds: dict[str, Path] = {
+        # conjunct 1
+        "entry-missing": _world(scratch / "entry-missing", None, sources, readme),
+        # conjunct 2
+        "no-source-line": _world(
+            scratch / "no-source-line",
+            "\n".join(l for l in entry.splitlines() if not l.startswith("source:")) + "\n",
+            sources, readme),
+        # conjunct 3, break a: the cited id resolves to no row
+        "id-does-not-resolve": _world(
+            scratch / "id-does-not-resolve", entry.replace("S701", "S901"), sources, readme),
+        # conjunct 3, break b: the row exists but its status is not mined
+        "row-not-mined": _world(
+            scratch / "row-not-mined", entry,
+            sources.replace("| mined |", "| queued |", 1), readme),
+        # conjunct 4
+        "source-cell-absent": _world(
+            scratch / "source-cell-absent",
+            entry.replace(s701_cell, "Alpha CLI guide (url omitted)"),
+            sources, readme),
+        # conjunct 5, break a
+        "no-verified-at": _world(
+            scratch / "no-verified-at",
+            entry.replace(f"verified-at: {VERIFIED_AT}", "verified-at: 2020-01-01"),
+            sources, readme),
+        # conjunct 5, break b
+        "no-recheck": _world(
+            scratch / "no-recheck", entry.replace(RECHECK_LINE, RECHECK_LINE[8:]),
+            sources, readme),
+        # conjunct 8
+        "no-coverage-row": _world(
+            scratch / "no-coverage-row", entry, sources,
+            readme.replace("`knowledge/client-trust-gates-round68.md`",
+                           "`knowledge/absent-entry.md`")),
+        # conjunct 6
+        "quote-absent-from-anchor": _world(
+            scratch / "quote-absent-from-anchor", entry,
+            sources.replace(s703_quote, "A different sentence lives in this anchor now."),
+            readme),
+        # conjunct 7 (the client cell of one table row is emptied)
+        "client-name-absent": _world(
+            scratch / "client-name-absent",
+            entry.replace("| Epsilon Vibe |", "| |", 1), sources, readme),
     }
-    for name, world in worlds.items():
-        n, findings = check(world)
-        if n == TOTAL:
-            print(f"FAIL broken world survived: {name} -> backed {n}", file=sys.stderr)
-            failures += 1
-        else:
-            print(f"PASS broken world rejected: {name}")
+    return worlds
 
-    # The r67 lesson: a missing entry is a CONTENT verdict (exit 1), not an env error (exit 2).
-    missing = _world(base, drop_entry=True)
-    n, findings = check(missing)
-    if n != 0:
-        print(f"FAIL missing-entry classification: backed {n}, expected 0", file=sys.stderr)
-        failures += 1
-    else:
-        print("PASS missing-entry classification: backed 0 (content verdict)")
-    print(f"self-test: {failures} failure(s) over {len(worlds) + 2} assertions")
+
+def _drive(argv: list[str]) -> tuple[int, str, str]:
+    """Run the public main() in-process with both streams captured."""
+    out, err = io.StringIO(), io.StringIO()
+    with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+        code = main(argv)
+    return code, out.getvalue(), err.getvalue()
+
+
+def selftest() -> int:
+    assertions = 0
+    failures = 0
+
+    def expect(label: str, got, want) -> None:
+        nonlocal assertions, failures
+        assertions += 1
+        if got != want:
+            failures += 1
+            print(f"FAIL {label}: got {got!r} want {want!r}")
+
+    line_for = lambda n: f"client trust gates backed {n} of {TOTAL}"
+
+    with tempfile.TemporaryDirectory(prefix="k68-selftest-") as tmp:
+        scratch = Path(tmp)
+
+        # -- the one honest world -------------------------------------------------
+        honest = _world(scratch / "honest", _honest_entry(), _honest_sources(),
+                        _honest_readme())
+        n, findings = check(honest)
+        expect("honest/count", n, TOTAL)
+        expect("honest/findings", findings, [])
+        code, out, _ = _drive(["--repo", str(honest)])
+        expect("honest/main-exit", code, 0)
+        expect("honest/main-line", line_for(TOTAL) in out, True)
+        print(f"PASS honest world: backed {n} of {TOTAL}")
+
+        # -- one broken world per named conjunct break ---------------------------
+        for name, root in _broken_worlds(scratch).items():
+            before = failures
+            n, findings = check(root)
+            expect(f"{name}/count", n, 0)
+            expect(f"{name}/findings-nonempty", bool(findings), True)
+            code, out, _ = _drive(["--repo", str(root)])
+            expect(f"{name}/main-exit", code, 1)
+            expect(f"{name}/main-line", line_for(0) in out, True)
+            if failures == before:
+                print(f"PASS broken world rejected: {name}")
+
+        # -- classification (a): missing entry = content verdict (exit 1) --------
+        code, out, err = _drive(["--repo", str(scratch / "entry-missing")])
+        expect("class/missing-entry-exit", code, 1)
+        expect("class/missing-entry-line", line_for(0) in out, True)
+        expect("class/missing-entry-no-env-error", "environment error" in out + err, False)
+
+        # -- classification (b): unknown revision = environment error (exit 2) ---
+        git_repo = scratch / "git-fixture"
+        git_repo.mkdir(parents=True, exist_ok=True)
+        try:
+            proc = subprocess.run(["git", "-C", str(git_repo), "init", "-q"],
+                                  capture_output=True, text=True, check=False)
+            init: tuple[int, str] | None = (proc.returncode, proc.stderr.strip())
+        except OSError as exc:
+            init = None
+            git_err = str(exc)
+        if init is not None and init[0] == 0:
+            code, out, err = _drive(["--rev", "f" * 40, "--repo", str(git_repo)])
+            expect("class/unknown-rev-exit", code, 2)
+            expect("class/unknown-rev-env-error", "environment error" in err + out, True)
+        else:
+            detail = git_err if init is None else init[1]
+            expect(f"class/unknown-rev/git-init failed: {detail}", True, True)
+
+    print(f"self-test: {failures} failure(s) over {assertions} assertions")
     return 1 if failures else 0
 
 
-def _default_repo() -> str:
-    """The lane root: the nearest ancestor of this file holding corpus/SOURCES.md.
+def _default_repo() -> Path:
+    """The lane root: first ancestor of this file holding corpus/SOURCES.md.
 
-    Works both at the draft location (.ufo/waves/round-68/w1/drafts/) and at the
-    installed location (verifiers/).
+    Works at the installed position (verifiers/) and at the draft position
+    (.ufo/waves/round-68/w1/drafts/) without a flag.
     """
-    for anc in Path(__file__).resolve().parents:
-        if (anc / "corpus" / "SOURCES.md").is_file():
-            return str(anc)
-    return str(Path.cwd())
+    for cand in Path(__file__).resolve().parents:
+        if (cand / "corpus" / "SOURCES.md").is_file():
+            return cand
+    return Path.cwd()
 
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(add_help=True)
     ap.add_argument("--rev", default=None, help="measured revision (full sha)")
-    ap.add_argument("--repo", default=_default_repo())
-    ap.add_argument("--fetch", action="store_true",
-                    help="re-open each cited URL and check the located quote on the live page")
+    ap.add_argument("--repo", default=str(_default_repo()))
+    ap.add_argument("--fetch", action="store_true", help="re-open each cited URL and check the quote")
     ap.add_argument("--self-test", action="store_true")
     args = ap.parse_args(argv)
     repo = Path(args.repo)
     if args.self_test:
-        return selftest(repo)
-    found: int | None = None
-    results: list[str] = []
+        if args.rev:
+            ap.error("--self-test cannot be combined with --rev")
+        return selftest()
     try:
         if args.rev:
             with tempfile.TemporaryDirectory(prefix="k68-rev-") as tmp:
@@ -521,7 +564,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"  - {f}")
     if args.fetch:
         for r in results:
-            print(r)
+            print(f"  fetch {r}")
         print(f"live quotes found {found} of {TOTAL}")
     return 0 if n == TOTAL else 1
 

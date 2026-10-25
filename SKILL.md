@@ -514,24 +514,21 @@ reads as could-not-evaluate. `python3 -B verifiers/check_gate_registry.py --rev 
 | `verifiers/verify_harness_independent.py` | gate | `python3 -B verifiers/verify_harness_independent.py --freeze <file>` (bare `--json` only derives) | 0=clean, 1=failed, 2=could-not-evaluate, 3=could-not-evaluate | `--self-test` | in-file | `--out`/`--write-freeze` paths; temp dirs | kotoba |
 | `verifiers/verify_skill_checklist.py` | gate | `python3 -B verifiers/verify_skill_checklist.py` | 0=clean, 1=failed, 2=could-not-evaluate, 3=failed | `--self-test` | `verifiers/checklist-baseline.json`, `verifiers/checklist-command-vocabulary.json` | self-test trees under `$TMPDIR` | kotoba |
 | `verifiers/verify_surfaces.py` | gate | `python3 -B verifiers/verify_surfaces.py` | 0=clean, 1=failed, 2=could-not-evaluate, 3=could-not-evaluate | `--self-test` | `verifiers/surfaces-baseline.json` | self-test temp files | kotoba |
+| `verifiers/check_skill_precedence.py` | gate | `python3 -B verifiers/check_skill_precedence.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate — round-69 C1 counter: the skill name-collision precedence entry is admitted — its five cited S### ids resolve to `mined` rows opened 2026-10-25 whose source cells and located quotes (≤25 words) appear in the entry, each id has one per-client table row, the five clients are distinct, and the entry has a coverage-map index row; `skill precedence backed 5 of 5` at the measured rev and `0 of 5` at the pinned base | `--self-test` | in-file | none; `--fetch` reads the network | kotoba |
+| `verifiers/check_r68_routed_repairs.py` | gate | `python3 -B verifiers/check_r68_routed_repairs.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate — round-69 C2 counter: the eight round-68 routed defects close (re-captured revision-pinned receipts; re-captured self-test; the r67 counter runs no git write and classifies missing records as content; Gate shaping notes; S208 supersede row; mistake + criterion; the 24 round-68 wave paths committed or dispositioned; the index row and baseline re-record) | `--self-test` | in-file | temporary sandbox clones under `$TMPDIR` (removed) | kotoba |
+| `verifiers/check_province_core.py` | gate | `python3 -B verifiers/check_province_core.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate — round-69 C3 counter: the round-67 instruction-authority and round-68 client-trust-gate areas are held in `PROVINCE.md` § Core (entry, counter and round named in one bullet) with the entry indexed and `## Frontier`/`## Adjacent` byte-identical to the base; `province core rows 2 of 2` at the measured rev and `0 of 2` at the pinned base | `--self-test` | in-file | none (read-only) | kotoba |
 
 ## Sources
 
-- `corpus/SOURCES.md` — where this lane learns: opened, scope-tiered source rows,
-  study paths and search log; admission bar in `corpus/QUALITY.md`.
+- `corpus/SOURCES.md` — where this lane learns: opened, scope-tiered source rows, study paths and search log; admission bar in `corpus/QUALITY.md`.
 - Production skill files and what each demonstrates (wwkd, godspeed, sekhmet-l3,
   xbrd-ask, the bailian family, omarchy, ufo) moved verbatim to
   `corpus/knowledge/anatomy-and-compression.md` § Moved from SKILL.md § Sources —
   production skill files (round 59).
-- `/home/vgpnk/Projects/shokunin/*/AGENTS.md` (17 files on 2026-10-22; 9 share
-  the 5-line template body) + `~/.agents/AGENTS.md` (14 lines / 949 B) —
-  always-on constraint files; no frontmatter, terse imperatives.
+- `/home/vgpnk/Projects/shokunin/*/AGENTS.md` (17 files on 2026-10-22; 9 share the 5-line template body) + `~/.agents/AGENTS.md` (14 lines / 949 B) — always-on constraint files; no frontmatter, terse imperatives.
 - `/home/vgpnk/Projects/shokunin/.ufo/prompts/*-L1.md` (8 files, 9–12 lines) —
   spawn dispatch-prompt stanza order and `| godspeed` terminator.
-- `/home/vgpnk/Projects/shokunin/.ufo/prompts/*-round-*.md` (50 files, 3–11
-  lines at round-9 recount; round-7 audit: 30 restate the L2 map with stale
-  aliases) — round
-  self-iteration mode; template variance is name+path only.
+- `/home/vgpnk/Projects/shokunin/.ufo/prompts/*-round-*.md` (50 files, 3–11 lines at round-9 recount; round-7 audit: 30 restate the L2 map with stale aliases) — round self-iteration mode; template variance is name+path only.
 - Host surfaces studied (opencode agent and command files, CLAUDE.md files) moved verbatim to
   `corpus/knowledge/anatomy-and-compression.md` § Moved from SKILL.md § Sources — host surfaces (round 60).
 - `~/.local/share/opencode/opencode.db` — literal-trigger miss proxy over 398

@@ -980,4 +980,904 @@ Facts locked:
 
   Note lesson M108 lines: 149 = "  census receipt `.ufo/waves/round-67/w1/controls/census-validate-append.txt`; the file that" (wrong), 150 = "  exists is `.ufo/waves/round-67/controls/census-validate-append.txt` (the `w1/` segment was" (real). Δ1 ✓.
 
-  4. **SCORECARD junk-world count = 0** → D3 disclosure must NOT require SCORECARD. Rule: junk named (path + "254") in BOTH LOG.md and corpus/lessons/round-68.md. Landed ✓. Also "and removes it from the working tree" — work
+  4. **SCORECARD junk-world count = 0** → D3 disclosure must NOT require SCORECARD. Rule: junk named (path + "254") in BOTH LOG.md and corpus/lessons/round-68.md. Landed ✓. Also "and removes it from the working tree" — worktree check.
+
+  5. **6042 tracked symlinks!** The lane tracks 6042 symlinks (the junk-world control mirror's git structures? No wait — the junk mirror is UNTRACKED. What are 6042 symlinks? Probably `.ufo/waves/*/controls/**` control mirrors committed (validate mirrors etc.) or snapshot trees. IMPORTANT for extraction: git archive stores symlinks; extraction with filter="data" REJECTS or restricts symlinks → breakage. Use filter="tar" (allows symlinks pointing anywhere — trusted self-archive, fine). Also `git add -A` on extracted tree with symlinks: fine (index stores link mode).
+
+     Wait, actually — hmm, 6042 symlinks tracked... do any point OUTSIDE the tree (absolute targets)? For alternates+add+ls-files this doesn't matter (no dereference). tarfile filter="tar" preserves symlinks without dereferencing. OK.
+
+     Also gate measurement reads only corpus/*.md — none of the symlink concerns affect the measured values. But tracked_files=124 counts `git ls-files corpus/` — symlinks under corpus/? If corpus/ has symlinks, ls-files counts them the same in extracted (add -A preserves link mode → ls-files lists). Consistent either way.
+
+  6. No .gitattributes → archive exports everything.
+
+  7. The lesson's Gate section (lines 1-12 shown) — fine.
+
+  8. D1 "0 of 1" occurrence sets at tip: LOG 2639 (old, file-level superseded by 2670 ✓), SCORECARD 391 (old; file has observed at 426 ✓), lesson 135 (observed at 137 ✓). All pass file-level rule. At base: LOG 2639 has `0 of 1`, no observed → D1 False ✓; SCORECARD 391 same → False ✓ (and even files without `0 of 1` still need the erratum: all three must contain OBSERVED fragment at rev regardless).
+
+     Wait — subtle: what about the possibility that a record at rev contains NO `0 of 1` AND no erratum? My rule requires OBSERVED fragment in ALL THREE records unconditionally (the appended correction), so still fails. Good.
+
+     Also LOG@tip line 2665-2666 mention `r67 routed defects closed N of 4` — the frozen predicate line in LOG. Harmless.
+
+  9. Corpus lesson round-68.md has `## Mistakes` M107-M110. LOG mentions "Evidence: corpus/lessons/round-68.md § Mistakes M107-M110".
+
+  Now write the counter. Design summary:
+
+  ```
+  Constants:
+  BASE_REV = "e94ae32a5cd8dc3ee8e2d247816784bec2750cc0"
+  LOG = "LOG.md"; SCORECARD = "SCORECARD.md"; LESSON68 = "corpus/lessons/round-68.md"
+  RECORDS = (LOG, SCORECARD, LESSON68)
+  OBSERVED = "environment error: cannot read corpus/knowledge/instruction-authority-ladder-round67.md"
+  BASE_HASH_PREFIX = "2a8eba56"
+  UNOBSERVED_CLAIM = "0 of 1"   # file-level supersede rule
+  CENSUS_WRONG = ".ufo/waves/round-67/w1/controls/census-validate-append.txt"
+  CENSUS_REAL = ".ufo/waves/round-67/controls/census-validate-append.txt"
+  CENSUS_WINDOW = 2
+  JUNK = ".ufo/waves/round-67/w1/controls/junk-world"
+  SPOTCHECK = "corpus/lessons/round-67-verifier-spotcheck.md"
+  README = "corpus/README.md"
+  BASELINE = "verifiers/corpus-baseline.json"
+  GATE = "verifiers/verify_corpus_integrity.py"
+  ZERO_IDS = (unindexed, stale_patterns, missing_paths, report_dead, commit_unresolvable, commit_nonhash)
+  EQUAL_IDS = (tracked_files, report_total, commit_total)
+  ```
+
+  check_d1(root, rev, blobs) → for each record: text exists; OBSERVED in text and BASE_HASH_PREFIX in text; and if UNOBSERVED_CLAIM in text → OBSERVED in text (same condition — merge: OBSERVED in all three + hash prefix in all three... wait SCORECARD: BASE_HASH_PREFIX at 391 pre-existing — fine, requirement is weak but harmless).
+
+  Hmm — actually let me reconsider requiring BASE_HASH_PREFIX in EVERY record: SCORECARD has it (391). Lesson has it (137, full hash). LOG has it (2670 full + 2639? 2639 doesn't; 2670 does). All three ✓ at tip. At base: LOG has `2a8eba56`? BASE LOG 2639: no hash. SCORECARD@base 391: HAS full hash! So hash requirement alone wouldn't discriminate SCORECARD — but OBSERVED does. Rule: OBSERVED in text AND BASE_HASH_PREFIX in text, for each of the three; OBSERVED absent at base everywhere → discriminates. Keep both conjuncts.
+
+  check_d2: per record: CENSUS_REAL in text; and for each line index containing CENSUS_WRONG, exists a line index containing CENSUS_REAL within ±2. (Record must contain REAL unconditionally.) 
+
+  check_d3: (CENSUS—no—JUNK path in LOG text and JUNK in LESSON text and "254" in LOG and "254" in lesson... landed LOG: "a 254 MB untracked control mirror" ✓ lesson: "254 MB junk-world control mirror" ✓) AND worktree: not exists(root/JUNK) — use os.path.lexists (catch symlink too). Note: junk named in BOTH LOG and lesson required. "254" required in both? Landed yes. Require `254` in each of the two (binds the size disclosure). Hmm — risk: future honest rewording "254 MB" stays. Fine.
+
+  check_d4(root, rev): 
+    - spotcheck blob exists at rev (git cat-file -e rev:path) → else False.
+    - baseline_text = show(rev, BASELINE); parse; must have checks dict with all 9 ids.
+    - measured = run_gate(root, rev) — archive-extract + alternates + add -A + run committed gate --repo tmp --no-baseline --json; parse results rows {check: observed}; missing ids → environment error.
+    - return all(measured[z] == 0 for z in ZERO_IDS) and all(measured[e] == baseline.expect[e] for e in ALL_IDS)
+    - gate exit 2 / timeout / bad json / git failure → raise EnvironmentError → main exit 2.
+
+  run_gate implementation:
+  ```
+  def run_gate(root, rev):
+      with tempfile.TemporaryDirectory() as td:
+          tmp = Path(td)
+          archive = git_bytes(root, "archive", "--format=tar", rev)  # returncode!=0 -> env error
+          with tarfile.open(fileobj=io.BytesIO(archive), mode="r:") as tf:
+              tf.extractall(tmp, filter="tar")
+          git_dir = _run(root, "rev-parse", "--absolute-git-dir").strip()  # lane objects source
+          init: run(tmp, "-c", "init.defaultBranch=main", "init", "-q") with cwd tmp? use git("-C", tmp,...)
+          write alternates: (tmp/".git"/"objects"/"info"/"alternates").write_text(git_dir + "/objects\n")
+          run add -A in tmp
+          proc = subprocess.run([sys.executable, "-B", GATE, "--repo", str(tmp), "--no-baseline", "--json"], cwd=tmp, capture_output=True, text=True, timeout=300)
+          if proc.returncode == 2 or proc.returncode < 0: raise EnvError  (gate inconclusive)
+          parse json stdout → results rows
+  ```
+  Wait — alternates path: `--absolute-git-dir` of the LANE gives e.g. /home/.../kotoba-shokunin/.git (colocated). objects = that + "/objects". If lane git-dir were elsewhere, still correct. Write alternates file with that path + "/objects".
+
+  Hmm — `git add -A` needs `-C tmp`. And needs nothing else. But: `git add` warns "adding embedded git repository"? The archive shouldn't contain nested .git dirs (git archive never exports .git). ✓.
+
+  Also: tar pax_global_header — git archive includes a pax header entry `pax_global_header` only in GNU-tar -style? git archive format=tar uses pax format with a global extended header; Python tarfile consumes it as the tarfile's pax_headers (not a member) — with mode="r:" it auto-detects. extractall fine.
+
+  Extraction filter: Python 3.14 — extractall(path=tmp, filter="tar") explicit (avoids DeprecationWarning; 'data' would break symlinks).
+
+  Alternative to `git add -A` (12k files each run ×2 runs... ~1-2s each, fine).
+
+  score(root, rev, cache) → (n, dict of 4 bools). Base control: score at BASE_REV must be 0 → else exit 2 "could-not-evaluate".
+
+  main: 
+  ```
+  ap: --rev, --repo (default _lane_root()), --self-test
+  self-test: no --rev allowed
+  resolve rev: git cat-file -e rev^{commit} else exit 2
+  base control → exit 2 if base_n != 0
+  after = score(rev)
+  print control line, per-defect lines, "r67 routed defects closed N of 4"
+  exit 0 iff N==4
+  ```
+
+  Print exact frozen line: `r67 routed defects closed {n} of 4`.
+
+  _lane_root(): walk parents of __file__ for dir with corpus/README.md and verifiers/verify_corpus_integrity.py; fallback: first parent... if none found, error exit 2 with message. (In drafts, lane root found at parents[5]. Installed at verifiers/, parents[1]. Walk covers both.)
+
+  Also gate run requires sys.executable — self-test runs under python3; fine. Use ["python3"?] — sys.executable is the honest choice; document.
+
+  Timeouts: git subprocesses 120s; gate 300s.
+
+  Self-test fixture — write it carefully:
+
+  ```
+  FIXTURE_GATE = '''#!/usr/bin/env python3
+  """fixture stand-in for verify_corpus_integrity.py (self-test only)."""
+  import json, fnmatch, re, sys
+  from pathlib import Path
+
+  repo = Path(__file__).resolve().parent.parent
+  corpus = repo / "corpus"
+  files = sorted(p.relative_to(corpus).as_posix() for p in corpus.rglob("*") if p.is_file() or p.is_symlink())
+  readme = (corpus / "README.md").read_text(encoding="utf-8")
+  inside = False
+  rows = []
+  for line in readme.splitlines():
+      if line.startswith("## "):
+          inside = line.strip() == "## Coverage map"
+          continue
+      if inside and line.startswith("|"):
+          cells = line.split("|")
+          if len(cells) >= 3 and set(cells[1].strip()) - set("-: "):
+              rows.append(cells[2])
+  covered = set()
+  for cell in rows:
+      for tok in re.findall(r"`([^`]+)`", cell):
+          tok = tok.strip()
+          if any(c in tok for c in "*?["):
+              covered.update(f for f in files if fnmatch.fnmatchcase(f, tok))
+          else:
+              covered.add(tok)  # exact form: may promise an absent path
+  unindexed = [f for f in files if f != "README.md" and f not in covered]
+  stale = [t for cell in rows for t in re.findall(r"`([^`]+)`", cell)
+           if not t.startswith(("../", "/", "~")) and not any(c in t for c in "*?[")
+           and t not in files]
+  missing = [t for cell in rows for t in re.findall(r"`([^`]+)`", cell)
+             if not any(c in t for c in "*?[") and not t.startswith(("../", "~"))
+             and not (corpus / t).exists() and not t.startswith("/")]
+  ...
+  ```
+
+  Hmm, careful: covered.add(tok) for exact tokens adds the token as "covered" even if absent — that's how real gate works too (a stale exact row doesn't make tracked files unindexed; it's its own stale finding). For the fixture, rows reference real files only. missing check: for exact internal tokens not existing → but covered includes them... real gate: stale = internal token with no hits; missing = variant not exists. In fixture: no stale/missing rows → 0.
+
+  Pointers: 
+  ```
+  ptr = re.compile(r"(?<![\w.\-/])((?:/|~|(?:\.\.?/)*)[^\s`\"|]*?\.ufo/reports/round-\d+/[^\s`\"|]*\.md)")
+  ```
+  Simplify: fixture uses only `../../.ufo/reports/round-68/kotoba.md` from corpus/lessons/. Stub:
+  ```
+  report_total = 0; report_dead = 0
+  for f in [f for f in files if f.endswith(".md")]:
+      text = (corpus / f).read_text()
+      for m in re.finditer(r"`(\.{1,2}/[^`\s]*\.ufo/reports/round-\d+/[^`\s]*\.md|\.ufo/reports/round-\d+/[^`\s]*\.md)`", text):
+          tok = m.group(1); report_total += 1
+          target = (corpus / f).parent / tok
+          if not target.is_file():
+              report_dead += 1
+  ```
+  commit_total: fixture corpus carries NO commit citations → 0/0/0. Stub counts:
+  ```
+  commit_total = len(re.findall(r"commit `([0-9a-fA-F]{7,40})`", all_text))
+  ```
+  → 0 in fixture (no such pattern — make sure fixture lesson doesn't include "commit `xxx`"; my fixture lesson text: avoid backticked hex after "commit ".)
+
+  Results rows + observed dict:
+  ```
+  ids = {"corpus.index.tracked_files": ("equal", len(files)),
+         "corpus.index.unindexed": ("zero", len(unindexed)),
+         "corpus.index.stale_patterns": ("zero", len(stale)),
+         "corpus.index.missing_paths": ("zero", len(missing)),
+         "corpus.pointers.report_total": ("equal", report_total),
+         "corpus.pointers.report_dead": ("zero", report_dead),
+         "corpus.pointers.commit_total": ("equal", commit_total),
+         "corpus.pointers.commit_unresolvable": ("zero", 0),
+         "corpus.pointers.commit_nonhash": ("zero", 0)}
+  print(json.dumps({"observed": {}, "results": [{"check": k, "mode": m, "observed": v, "verdict": "PASS"} for k, (m, v) in ids.items()}]))
+  ```
+  Wait — tracked files: real gate counts `git ls-files corpus/` — the fixture stub counts rglob files. Extracted corpus == committed corpus — same set. ✓. But careful — corpus/lessons/round-68.md contains the report pointer `../../.ufo/reports/round-68/kotoba.md` — resolved from corpus/lessons → repo/.ufo/reports/round-68/kotoba.md — fixture writes that file. ✓ report_dead=0.
+
+  Hmm, one snag: the stub resolves `target.is_file()` — relative pointer with ../ from corpus/lessons: (corpus/lessons/../../.ufo/reports/round-68/kotoba.md) = repo/.ufo/reports/round-68/kotoba.md ✓.
+
+  Fixture honest world files:
+  - README: "## Coverage map\n| Area | File | Basis |\n|---|---|---|\n| Spot-check | `lessons/round-67-verifier-spotcheck.md` | closure |\n| Round 68 | `lessons/round-68.md` | round |\n" + something before it (a "## Intro").
+  - lessons/round-67-verifier-spotcheck.md: minimal text (no pointers, no commit cites).
+  - lessons/round-68.md: 
+    ```
+    # Round 68 lesson
+    
+    M107: the r67 record said the base "prints `0 of 1`"; observed:
+    `environment error: cannot read corpus/knowledge/instruction-authority-ladder-round67.md at 2a8eba56b3f9321b70c569fa2816d42237ca49a2`.
+    M108: the report cited `.ufo/waves/round-67/w1/controls/census-validate-append.txt`;
+    the receipt is `.ufo/waves/round-67/controls/census-validate-append.txt`.
+    M109: `.ufo/waves/round-67/w1/controls/junk-world/` — a 254 MB control mirror — removed.
+    Report: `../../.ufo/reports/round-68/kotoba.md`
+    ```
+    Careful — unindexed check: README covers both lessons ✓. The spotcheck lesson: any pointer? Keep zero pointers. report_total=1 (lesson only).
+  - LOG.md fixture (honest): legacy line "at the pinned base it prints `0 of 1` and exits nonzero" + blocks mirroring landed shapes:
+    ```
+    - Erratum (append-only; routed defect R67-1). At the r67 base `2a8eba56b3f9321b70c569fa2816d42237ca49a2` the counter prints
+      `environment error: cannot read corpus/knowledge/instruction-authority-ladder-round67.md at 2a8eba56b3f9321b70c569fa2816d42237ca49a2`
+      and exits 2.
+    - Erratum (append-only; routed defect R67-2). The report cites `.ufo/waves/round-67/w1/controls/census-validate-append.txt`;
+      the file that exists is `.ufo/waves/round-67/controls/census-validate-append.txt`.
+    - Routed defect R67-3 (disclosure). `.ufo/waves/round-67/w1/controls/junk-world/` — a 254 MB untracked control mirror — removed.
+    ```
+    Wrong line 1 apart from real ✓.
+  - SCORECARD.md fixture (honest): old depth line with `0 of 1` + combined erratum (observed line; real census path; no full wrong path — mirrors landed).
+  - .ufo/reports/round-68/kotoba.md: "report\n".
+  - verifiers/verify_corpus_integrity.py: FIXTURE_GATE stub.
+  - verifiers/corpus-baseline.json: honest expects computed from stub semantics: tracked=3 (README + 2 lessons)… wait corpus files: README.md, lessons/round-67-verifier-spotcheck.md, lessons/round-68.md → tracked=3, unindexed=0, stale=0, missing=0, report_total=1, report_dead=0, commit_total=0, others 0.
+
+  Base world = README without spotcheck row? Careful — base must be 0 of 4 across ALL FOUR defects. Base world:
+  - README: covers only... let's make README cover NOTHING (empty coverage map) and corpus has README + spotcheck lesson → unindexed=1 (spotcheck tracked, uncovered). Baseline: stale values tracked=2? tracked files at base = 2 (README + spotcheck) — set base baseline tracked=2, report_total=0 (no pointers at base — the r68 lesson doesn't exist), commit_total=0, zero-modes 0. Gate at base measures tracked=2 ✓ equal; unindexed=1 → zero-mode nonzero → D4 False ✓ (also fine if equal drifts — either kills).
+  - LOG base: legacy `0 of 1` line only (no erratum) → D1 False ✓ (OBSERVED absent).
+  - D2 at base: LOG base contains REAL census path (mirror landed 2641 legacy line) but no wrong/real contrast → D2 False ✓ (contrast required). Wait — my d2 rule: real must be present (✓ legacy) AND every wrong-line within 2 of real-line (no wrong lines → vacuous ✓) → D2 would PASS at base!! BAD. Base must score 0 of 4 — D2 must be False at base!
+
+    Need the append-proof discriminator for D2. Options: require the CONTRAST (wrong+real within window) present — i.e., the erratum signature = at least one wrong-line within window of a real-line. At landed tip: LOG ✓ (2676/2677), lesson ✓ (149/150), SCORECARD ✗ (no full wrong path!). So contrast-in-every-record fails SCORECARD at tip → 3 of 4. Divergence.
+
+    Alternative: per-file append-proof via diff-to-base: the record's census-erratum property = (real present at rev) AND (wrong present at rev implies within-window) AND (real-count at rev > real-count at base OR contrast present at rev). I.e., the record either gained a real-path occurrence (SCORECARD: base 0 → tip 1 ✓; lesson: base file absent → count from 0 → ✓; LOG: base 1 (legacy 2641) → tip 2 (2641 + 2677) ✓ gained one) or carries the contrast (LOG also has contrast ✓). Since I HAVE the base blobs (pinned base control already reads them), implement: gained = text_rev.count(CENSUS_REAL) > text_base.count(CENSUS_REAL) (base missing file → count 0). For files that DON'T exist at base (lesson) → count 0. So:
+
+    d2 = for each record: real in rev_text AND wrong-lines all within window AND rev_count(REAL) > base_count(REAL).
+
+    At base rev itself (base control run): rev==base → counts equal → d2 False ✓. Honest tip: all gained ✓. Mutant "restore wrong receipt path": add bare wrong line far from real → window rule fails ✓. Mutant: what if someone adds junk "real path" occurrence somewhere random to fake the gain? Then window rule still requires wrong-lines paired; a fake extra real occurrence without wrong-contrast passes the count gain... but the D2 disclosure substance (the correction naming the real path) — an appended sentence with the real path IS the correction per contract ("the R67-2 correction names the real census receipt path"). So count-gain = the correction was appended. Honest. OK.
+
+    Hmm wait, one more: contract for D2 also says "the wrong `w1/controls/` path is not asserted anywhere as the receipt's location" — my window rule enforces within the three records. Documented scope.
+
+  - D1 at base with the same append-proof question: OBSERVED fragment count at rev > count at base (or base lacks file)? Landed: LOG 0→1 ✓, SCORECARD 0→1 ✓, lesson 0→1 ✓. Base run: 0>0 false → D1 False ✓. Add gained-requirement to D1: it IS the "appended" property. d1 = per record: OBSERVED in rev_text AND BASE_HASH_PREFIX in rev_text AND rev_count(OBSERVED) > base_count(OBSERVED) AND (if UNOBSERVED_CLAIM in rev_text → OBSERVED in rev_text — subsumed). ✓.
+
+  - D3 at base: disclosure absent → False ✓ (also junk exists in worktree at base — but disclosure half suffices).
+
+  Also for d1's gained check at the BASE run, I need base blobs when scoring the base — score(base) uses base blobs for both rev and base — count equal → False ✓.
+
+  So score(root, rev, base_root_same) — signature: check functions take (root, rev, base_texts precomputed once). Precompute base record texts once in main/self-test: base_blobs = {path: show(BASE_REV, path) or ""}.
+
+  Edge: record file missing at rev → that check False (d1/d2/d3 each need their records; missing lesson68 at base → all three False there).
+
+  Now — IMPORTANT: does the L1's already-installed counter (605b84b..cafa29d) satisfy MY rules at cafa29d? Predicted: d1 ✓ (all three have OBSERVED + hash + gain), d2 ✓ (all gained; windows Δ1 LOG/lesson; SCORECARD no full wrong path), d3 ✓ (LOG+lesson junk+254; worktree junk absent), d4 ✓ (row at 127; baseline re-recorded 59ac5c6 to {124,0,0,0,85,0,38,0,0}; gate at cafa29d measures... SKILL.md modified in worktree doesn't affect corpus; archive at cafa29d → gate measures the committed corpus = {124,85,38, zeros} — MUST VERIFY empirically). Then my counter prints 4 of 4 at cafa29d, exit 0. And at base 0 of 4, exit 1. 
+
+  Also — will the gate run inside extracted tree produce report_dead=0? corpus pointers: host-absolute → live lane tree (exists); bare → fleet root (exists); relative → within extracted tree... corpus files' relative pointers like `../../.ufo/reports/round-68/kotoba.md`?? Corpus pointers are host-absolute per convention (round-13). But do any corpus md files use LANE-relative pointers? The gate measured report_dead=0 in the LANE at the tip (the L1's receipt C2-routed-measure says the primary gate...). In the extracted tree, lane-relative pointers would resolve from extracted tmp/corpus/... → tmp/.ufo/reports/... — archive includes lane-tracked .ufo/reports (rounds 20-22 etc. lane-side). If corpus cites a lane-side report relatively → resolves inside tmp iff that report is tracked at that rev ✓ (archive = whole tree). Host-absolute → live tree (identical). Bare → fleet root (identical). So extracted ≈ in-place measurement. And measured tracked_files = `git ls-files corpus/` in tmp after add -A = committed corpus = 124 ✓ (worktree-vs-HEAD drift impossible — we index the archive).
+
+  One risk: `git add -A` respects .gitignore of the extracted tree! If lane .gitignore ignores some tracked files (it can't — tracked files aren't affected by gitignore for add? `git add -A` DOES add tracked-modified and untracked-not-ignored; extracted tree has NO index → all files are "untracked" → ignored ones would be SKIPPED → tracked_files drift!! Lane .gitignore: what does it ignore? Probably `.ufo/state/`, `__pycache__`, `*.pyc`, maybe `junk-world`. Are any IGNORED files TRACKED? Normally no (you can't track ignored files without -f... you CAN force-add). Tracked-but-ignored files would be missed by add -A. Safer: `git add -A --force`? Hmm — force adds everything including intended-ignored. Since the archive contains exactly the tracked-at-rev files, force-add reconstructs the tracked set faithfully. Use `git add -A -f`. Also add ignores... `-f` covers. 
+
+  Also `core.excludesFile` global/user gitignore could interfere — `-f` overrides ignore entirely for add? `git add -f -A .` adds ignored files too. ✓.
+
+  Also `git ls-files corpus/` after add -A -f → exactly archive contents under corpus/. ✓.
+
+  One more: git add -A writes index in tmp/.git — tmp repo — allowed (not the lane's index). ✓.
+
+  And `git init` may complain about ownership ("detected dubious ownership")? tmp under /tmp owned by same user — fine. Also `safe.directory` not needed.
+
+  subprocess env: pass env=os.environ default; set GIT_CONFIG_NOSYSTEM? Not needed; but user config could set weird defaults (e.g., core.autocrlf). Lane host is Linux; fine. Alternates file: path with spaces? No spaces in /home/vgpnk/... path. Write raw.
+
+  Timeout: gate subprocess 300s.
+
+  Right — also self-test MUST NOT touch the network or the real lane: all inside TemporaryDirectory. ✓. And self-test overrides BASE_REV global (r66 pattern) — but my check functions receive base_texts param, so main flow: _score(root, rev, base_texts) where base_texts computed from BASE_REV at call time. In self-test, set module BASE_REV to fixture base before calling main? r66 mutated global BASE_REV then called main(). I'll do the same: global BASE_REV saved/restored; fixture base committed → BASE_REV = base_hex; main(["--rev", tip, "--repo", root]). Also the base_texts for scoring computed inside main from BASE_REV. ✓.
+
+  Also `--self-test cannot be combined with --rev` (r66) — keep.
+
+  Usage error exit: argparse ap.error exits 2 ✓ (contract: exit 2 usage). Missing --rev → ap.error → 2 ✓.
+
+  Now — write the file. Also headers per AGENTS.md: docstring with contract + exit codes. Style: match r66 (compact % formatting, type hints `from __future__ import annotations`).
+
+  Length ~330 lines. Let me draft carefully.
+
+  ```python
+  #!/usr/bin/env python3
+  """check_r67_routed_repairs.py — C2 counter for kotoba round 68 (independent seat draft).
+
+  Contract
+  --------
+  `python3 -B check_r67_routed_repairs.py --rev <full-sha>` prints
+      r67 routed defects closed N of 4
+  and exits 0 when N == 4, 1 when N < 4, 2 for a usage/environment error
+  (unknown --rev, unreadable repo, gate could not run, or the pinned base does
+  not score 0 of 4).  `--repo <path>` defaults to the lane root found by walking
+  up from this file (works from verifiers/ and from the wave drafts directory).
+
+  The four routed defects are the round-67 closure's routed list
+  (corpus/lessons/round-67-verifier-spotcheck.md "Routed defects", read at the
+  pinned base `e94ae32a5cd8dc3ee8e2d247816784bec2750cc0`):
+
+    D1/R67-1  an appended correction names the observed base line
+              `environment error: cannot read
+              corpus/knowledge/instruction-authority-ladder-round67.md …`
+              in LOG.md, SCORECARD.md and corpus/lessons/round-68.md (the
+              append is proved by a count gain against the pinned base), and a
+              record that still carries the unobserved `0 of 1` claim is
+              accepted only because the correction supersedes it in the same
+              record (the records are append-only, so the claim text itself
+              is never rewritten);
+    D2/R67-2  the correction naming the real census receipt path
+              `.ufo/waves/round-67/controls/census-validate-append.txt` is
+              appended (count gain), and within the records every line naming
+              the wrong `w1/controls/` form stands at most two lines from a
+              line naming the real path (the erratum names both; a bare wrong
+              path would assert the wrong location);
+    D3/R67-3  the 254 MB `.ufo/waves/round-67/w1/controls/junk-world` control
+              mirror is disclosed in LOG.md and in the round-68 lesson, and
+              the path no longer exists in the working tree of --repo (this
+              conjunct is worktree-state by nature: the defect is an untracked
+              leftover no revision carries);
+    D4/R67-4  the spot-check file is tracked at --rev, and every expect in the
+              committed verifiers/corpus-baseline.json equals the value the
+              gate's own measurement yields at that revision — the gate is run
+              (never the stored numbers), against a throwaway extraction of
+              the committed bytes: `git archive --rev` into a temporary repo
+              whose objects fall back to this repo's, then
+              `verify_corpus_integrity.py --repo <tmp> --no-baseline --json`.
+              The six zero-mode checks must measure 0 (this is the coverage-map
+              index row, read through the gate's own fence-aware extractor,
+              not a substring); the three equal-mode checks must match the
+              stored expects.
+
+  Out of scope, by the repair's own terms: the round-67 report and the r67
+  lesson are frozen evidence the lane never edits, so the wrong census path and
+  the unobserved line survive there; D1/D2 read only the three living records.
+  The round-68 report lands in the fleet repository, outside this repo's
+  committable bytes, so the counter pins the lane-side records only.
+
+  Self-test: `--self-test` builds a fixture repository (a stub gate measuring
+  the same nine ids) and drives one honest world, the base control and one
+  broken world per defect: drop the LOG erratum, restore a bare wrong receipt
+  path, drop the disclosure (plus the worktree conjunct with the directory
+  present), drop the index row, keep a stale baseline.  Prints
+  `self-test: N failure(s) over M assertions`.
+  """
+  ```
+
+  Hmm — the docstring should mention "judged" line. OK.
+
+  Then code. Let me write it now. Also careful: `--self-test` while the lane counter file exists in worktree — independent.
+
+  One more design point for check_d4 gate invocation: use GATE path inside tmp: tmp/GATE. Run [sys.executable, "-B", str(tmp/GATE), "--repo", str(tmp), "--no-baseline", "--json"].
+
+  If gate stdout has extra lines (INCONCLUSIVE prints to stderr; json to stdout) → parse json.loads(stdout) — gate prints ONLY json in --json mode ✓ (non-json prints go through args.json guard — with --json it prints only the json line). ✓
+
+  results rows: row["check"], row["observed"]. Verify all 9 ids present; else EnvError.
+
+  Let me also double check zero list from the real gate CHECKS: zero = unindexed, stale_patterns, missing_paths, report_dead, commit_unresolvable, commit_nonhash (6); equal = tracked_files, report_total, commit_total (3). ✓
+
+  Now write.
+
+• All landed shapes pinned. Writing the independent draft now — contract-exact, self-contained fixture, stdlib only:
+
+• Now run the narrow behavioral checks in parallel:
+  1. `python3 -B drafts/check_r67_routed_repairs.py --self-test` → expect `self-test: 0 failure(s) over N assertions`.
+  2. `python3 -B drafts/check_r67_routed_repairs.py --rev e94ae32...` → expect `0 of 4`, exit 1.
+  3. `python3 -B drafts/check_r67_routed_repairs.py --rev cafa29d...` → expect `4 of 4`, exit 0.
+
+  Careful on #2: at base, D3's worktree conjunct — junk-world absent now → disclosure half fails → D3 False anyway. Base = 0 of 4 regardless. But WAIT: one risk at base: `git archive e94ae32` extracts full tree; `git add -A -f .` on 12k files; gate run — the BASELINE at base expects {121, 0..., 82, 0, 37...} but measured at base = {122, 1, ..., 85, ..., 38} → D4 False ✓. Also zero-mode measured report_dead at base: 0? The spotcheck lesson at base has pointers `.ufo/reports/round-67/kotoba.md` (bare) → fleet-root fallback — fleet has round-67/kotoba.md ✓ resolves. Fine either way (D4 already False via unindexed=1).
+
+  Also run timing: two gate runs per invocation (base + rev) — each archive+add ~2-5s. OK.
+
+  Run all three in parallel (independent).could-not-evaluate: 0000000000000000000000000000000000000000 is not a commit in /tmp/r67routed-fixture-e7ltuske
+usage: check_r67_routed_repairs.py [-h] [--rev REV] [--repo REPO]
+                                   [--self-test]
+check_r67_routed_repairs.py: error: --rev is required
+FAIL kill/D2-bare-wrong-path: got True want False
+selftest-exit=2
+control at e94ae32a: 0 of 4
+D1-r67-1-erratum-appended: FAIL
+D2-r67-2-real-receipt-path: FAIL
+D3-r67-3-junk-disclosed-and-removed: FAIL
+D4-r67-4-indexed-and-rerecorded: FAIL
+r67 routed defects closed 0 of 4
+base-exit=1
+control at e94ae32a: 0 of 4
+D1-r67-1-erratum-appended: PASS
+D2-r67-2-real-receipt-path: PASS
+D3-r67-3-junk-disclosed-and-removed: PASS
+D4-r67-4-indexed-and-rerecorded: PASS
+r67 routed defects closed 4 of 4
+tip-exit=0
+Excellent progress! Base control: `0 of 4`, exit 1 ✓. Tip: `4 of 4`, exit 0 ✓ — my independent counter AGREES with the L1's landing at cafa29d.
+
+  Self-test failure analysis:
+  1. `FAIL kill/D2-bare-wrong-path: got True want False` — the D2 mutant survived. Why? My `LOG_WRONG_PATH_BARE` replace: the string to find is `"  `.ufo/waves/round-67/controls/census-validate-append.txt`.\n- Routed defect R67-3"` — LOG_HONEST has:
+  ```
+  - Erratum (append-only; routed defect R67-2). The report cites
+    `.ufo/waves/round-67/w1/controls/census-validate-append.txt`; the file that exists is
+    `.ufo/waves/round-67/controls/census-validate-append.txt`.
+  - Routed defect R67-3 (disclosure). ...
+  ```
+  The replace target `"  `.ufo/waves/round-67/controls/census-validate-append.txt`.\n- Routed defect R67-3"` — LOG_HONEST line: "  `.ufo/waves/round-67/controls/census-validate-append.txt`.\n- Routed defect R67-3 (disclosure)..." — wait, does LOG_HONEST have exactly "`.\n- Routed defect R67-3"? Yes: "  `.ufo/waves/round-67/controls/census-validate-append.txt`.\n- Routed defect R67-3 (disclosure)". Hmm, but the replace apparently... did it apply? If str.replace didn't match, the mutant text == honest text → check_d2 True → "got True want False". Let me check: the inserted mutant line in LOG_WRONG_PATH_BARE:
+  ```
+  - The census receipt lives at `.ufo/waves/round-67/w1/controls/census-validate-append.txt`.
+  ```
+  This line contains the wrong path and NO real path within 2 lines? Lines after it: "- Routed defect R67-3 (disclosure). `.ufo/waves/round-67/w1/controls/junk-world/` —" — junk path, not census real. Lines before: "  `.ufo/waves/round-67/controls/census-validate-append.txt`." (real) — that's 1 line above! |i-j| = 1 ≤ 2 → within window → D2 still True!! My mutant is too weak — the bare wrong line is adjacent to the honest erratum's real path. Fix: put the bare wrong line FAR from any real-path line — e.g., append at the end of LOG (after the R67-3 disclosure block, no census real within 2 lines). Rebuild mutant: LOG_WRONG_PATH_BARE = LOG_HONEST + "- The census receipt lives at `<wrong>`.\n"? Wait the disclosure block: "...a 254 MB untracked control mirror — was removed from the working tree." — the last real census occurrence is 3+ lines above the appended line? LOG_HONEST ends with the R67-3 block (2 lines). The appended bare line would be line N; real census path at line N-3 (the erratum's real line)... let me count LOG_HONEST lines:
+  1. # fixture LOG
+  2. (blank)
+  3. - r67 C2 claim... `0 of 1`...
+  4. - Legacy note: ... census REAL ...
+  5. (blank)
+  6. - Erratum R67-1...
+  7.   `2a8eba56...` the counter prints
+  8.   `environment error...`
+  9.   and exits 2.
+  10. - Erratum R67-2. The report cites
+  11.   `...w1/controls/census...` (wrong)
+  12.   `...controls/census...` (real)
+  13. - Routed defect R67-3 (disclosure). `...junk-world/` —
+  14.   a 254 MB untracked control mirror — was removed from the working tree.
+
+  Append line 15: "- The census receipt lives at `<wrong>`." → wrong at 15, real at 12 → |15-12| = 3 > 2 → fails window → D2 False ✓. But careful: also line 14 — no census path. OK — 3 away kills it. Hmm, but the window boundary case: exactly 3 → good, tests the strict inequality. 
+
+  Actually, let me place it as a cleaner "restored wrong assertion" — after line 14. Good.
+
+  2. `could-not-evaluate: 0000... is not a commit in /tmp/r67routed-fixture-...` printed but the check `public-main/unknown-rev-exit-2` PASSED?? No — wait, output order: the FAIL line for D2 printed, then... Actually look: stdout shows "could-not-evaluate: 000..." (from the unknown-rev main call — printed to stderr but shown merged), then usage error from `main([])` (ap.error writes to stderr + SystemExit(2)) — WAIT: `main([])` with missing --rev calls ap.error → argparse raises SystemExit(2) — which PROPAGATES out of my check() wrapper! In self_test, `exit_code = main([])` → SystemExit(2) raised → the finally restores BASE_REV → self_test itself exits with code 2 (the SystemExit bubbles through self_test's return...). Indeed `selftest-exit=2` — the SystemExit(2) from argparse killed the self-test mid-way, so subsequent assertions never ran and failures=1 got reported... no wait, the summary line never printed! Output shows no "self-test: N failure(s)" line — because SystemExit propagated before the final print. Right.
+
+  Fix: wrap the missing-rev call to capture SystemExit:
+  ```python
+  try:
+      exit_code = main([])
+  except SystemExit as exc:
+      exit_code = int(exc.code or 0)
+  check("public-main/missing-rev-exit-2", exit_code, 2)
+  ```
+  Same for unknown-rev? main(["--rev", zeros]) returns 2 normally (no argparse error) ✓ it returned fine (the "could-not-evaluate" line printed, check passed silently). Only the ap.error path raises.
+
+  Also note: check() for unknown-rev passed (not in FAIL list) ✓.
+
+  3. Also I notice the two "could-not-evaluate"/usage stderr lines appearing in output — fine.
+
+  Additionally — after fixing, self-test must run all assertions: total = 4 control + 5 honest + 2 D1/D2 kills + 3 D3 + 2 D4 + 6 public-main = 22 assertions.
+
+  Also fix LOG_WRONG_PATH_BARE definition. Let me edit both spots.
+
+• Base control and tip both correct (`0 of 4` / `4 of 4` — the independent counter agrees with the L1's landing at `cafa29d`). Two self-test harness bugs to fix: the D2 mutant was placed adjacent to the erratum's real-path line (window ≤2 absorbed it), and `main([])` raises `SystemExit(2)` through argparse, killing the assertion loop:
+
+could-not-evaluate: 0000000000000000000000000000000000000000 is not a commit in /tmp/r67routed-fixture-0jaw1n91
+usage: check_r67_routed_repairs.py [-h] [--rev REV] [--repo REPO]
+                                   [--self-test]
+check_r67_routed_repairs.py: error: --rev is required
+self-test: 0 failure(s) over 23 assertions
+selftest-exit=0
+• `self-test: 0 failure(s) over 23 assertions`, exit 0 ✓. (The two stderr lines are the expected stderr of the exit-2 usage/environment worlds.)
+
+  Now the residual checks:
+  1. Re-run at tip (master may have moved — the L1 is committing fast). Re-check current master, re-run at whatever tip is now. Also verify exit codes are exactly right (already saw 1 and 0).
+  2. Read the L1's installed counter (committed at cafa29d, plus the +83-line worktree iteration) to compare semantics — the lane records agreement/divergence between the independent implementation and the landed one (r67 precedent). This is recon for my report; it doesn't change my draft.
+  3. Confirm master hasn't moved and my counter still prints 4 of 4 at the newest tip; if the L1 landed more (e.g. the worktree counter + SKILL.md), re-run.
+  4. Write the report at .ufo/waves/round-68/w1/ExecR67Repairs.md.
+
+  Batch: git log -1; re-run at current master; read committed L1 counter (git show master:verifiers/check_r67_routed_repairs.py | head -100 or so) and worktree diff summary.
+
+• Self-test green: `0 failure(s) over 23 assertions`. Now checking whether master moved again, re-verifying at the newest tip, and reading the L1's installed counter for the agreement record:2cf0d99 round-68: wave-1 seat logs and drafts as they stood at the report boundary
+2dd3567 round-68: wave-1 evidence (spec, registry, seat logs, drafts, receipts, assimilation scratch)
+TIP=2cf0d99a6d5a3e1cb0b73e3b71cb495fd1eadc6f
+control at e94ae32a: 0 of 4
+D1-r67-1-erratum-appended: PASS
+D2-r67-2-real-receipt-path: PASS
+D3-r67-3-junk-disclosed-and-removed: PASS
+D4-r67-4-indexed-and-rerecorded: PASS
+r67 routed defects closed 4 of 4
+tip-exit=0
+#!/usr/bin/env python3
+"""check_r67_routed_repairs.py — C2 counter for kotoba round 68.
+
+Contract
+--------
+`python3 -B verifiers/check_r67_routed_repairs.py --rev <full-sha>` prints
+    r67 routed defects closed N of 4
+and exits 0 when N == 4, nonzero otherwise.  At the pinned base (the round-67 tip
+`e94ae32a5cd8dc3ee8e2d247816784bec2750cc0`) it must print `r67 routed defects closed 0 of 4`
+and exit nonzero.
+
+The four routed defects come from the round-67 closure's spot-check
+(`corpus/lessons/round-67-verifier-spotcheck.md`, written by the hyaku closure, never edited by
+the lane):
+
+  R67-1  the r67 report asserted a base line the committed receipt does not show
+         (the counter printed nothing and exited 2; the report says it printed
+         `authority ladder grounded 0 of 1`);
+  R67-2  the r67 report cites a census receipt path that does not exist
+         (`.ufo/waves/round-67/w1/controls/census-validate-append.txt`; the bytes are at
+         `.ufo/waves/round-67/controls/census-validate-append.txt`);
+  R67-3  a 254 MB untracked control mirror (`.ufo/waves/round-67/w1/controls/junk-world/`)
+         was left in the lane working tree and never disclosed;
+  R67-4  the closure's own spot-check file was left unindexed, which turned the corpus gate
+         red (6/9, exit 1) at the round-67 tip.
+
+The counter reads the COMMITTED bytes at `--rev` (never the working tree) and checks:
+
+  D1  the round's records carry the appended correction that names the observed
+      `environment error: cannot read corpus/knowledge/instruction-authority-ladder-round67.md`
+      line (the append-only erratum; the r67 report itself is never rewritten);
+  D2  the records name the real receipt path `.ufo/waves/round-67/controls/census-validate-append.txt`;
+  D3  the records name the disclosed `junk-world` control mirror AND that path no longer exists
+      in the working tree;
+  D4  `corpus/README.md` carries a coverage-map index row for
+      `corpus/lessons/round-67-verifier-spotcheck.md` AND `verifiers/corpus-baseline.json`'s
+      re-recorded values equal what the gate's own measurement yields at that revision.
+
+Trust boundary (QUALITY Q33): D1–D3 are presence floors over the lane's own records — a
+counter that counts names, not substance.  They are disclosed as such; the substantive
+verification of R67-1 is the re-run of the r67 counter at the r67 base revision, and of R67-4
+the corpus gate's own exit code.
+
+Exit codes: 0 all four closed · 1 not all closed · 2 usage/environment error.
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import re
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+
+RECORDS = ("LOG.md", "SCORECARD.md", "corpus/lessons/round-68.md")
+README = "corpus/README.md"
+BASELINE = "verifiers/corpus-baseline.json"
+SPOTCHECK = "corpus/lessons/round-67-verifier-spotcheck.md"
+JUNK = ".ufo/waves/round-67/w1/controls/junk-world"
+REAL_RECEIPT = ".ufo/waves/round-67/controls/census-validate-append.txt"
+WRONG_RECEIPT = ".ufo/waves/round-67/w1/controls/census-validate-append.txt"
+OBSERVED = "environment error: cannot read corpus/knowledge/instruction-authority-ladder-round67.md"
+TOTAL = 4
+
+
+class EnvError(Exception):
+    pass
+
+
+def _git_show(repo: Path, rev: str, path: str) -> str | None:
+    proc = subprocess.run(["git", "-C", str(repo), "show", f"{rev}:{path}"],
+                          capture_output=True, text=True)
+    if proc.returncode != 0:
+        return None
+    return proc.stdout
+
+
+def _materialize(repo: Path, rev: str, dest: Path) -> Path:
+    for path in RECORDS + (README, BASELINE):
+        text = _git_show(repo, rev, path)
+        if text is None:
+            raise EnvError(f"cannot read {path} at {rev}")
+        out = dest / path
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(text, encoding="utf-8")
+    return dest
+
+
+def _baseline_values(repo: Path, rev: str) -> dict[str, int]:
+    """Re-derive the census values with the gate's own measurement at <rev>."""
+    with tempfile.TemporaryDirectory(prefix="k68-baseline-") as tmp:
+        root = Path(tmp)
+        for path in ("corpus", "verifiers"):
+            proc = subprocess.run(["git", "-C", str(repo), "checkout", rev, "--", path],
+                                  capture_output=True, text=True)
+            if proc.returncode != 0:
+                raise EnvError(f"cannot materialize {path} at {rev}")
+        proc = subprocess.run(
+            ["python3", "-B", str(repo / "verifiers" / "verify_corpus_integrity.py"),
+             "--no-baseline", "--json"],
+            capture_output=True, text=True, cwd=str(root))
+        if proc.returncode not in (0, 1):
+            raise EnvError("the corpus gate could not be run at the measured revision")
+        data = json.loads(proc.stdout)
+        obs = data["observed"]["corpus"]
+        return {
+            "tracked_files": obs["tracked_files"],
+            "unindexed": obs["unindexed"],
+            "report_total": obs["report_total"],
+            "commit_total": obs["commit_total"],
+        }
+
+
+def check(repo: Path, rev: str, root: Path, records_override: dict[str, str] | None = None,
+          observed_override: dict[str, int] | None = None) -> tuple[int, list[str]]:
+    findings: list[str] = []
+    records = dict(records_override or {})
+    if not records_override:
+        for path in RECORDS:
+
+
+• Interesting — the L1's committed counter (at master 2cf0d99; the counter content unchanged since cafa29d presumably) uses a DIFFERENT D4 approach: `git checkout rev -- corpus verifiers` — wait, that MUTATES the lane worktree/index?! `git -C repo checkout rev -- path` updates index AND worktree of the LANE repo — that's the L1's business (their tool, their authority), but note: their `_materialize`/`_baseline_values` actually runs `git checkout <rev> -- corpus verifiers` in the REAL lane repo (mutating worktree+index!), then runs the gate with `--no-baseline --json` and cwd=root (the temp dir? no — cwd=tmp but script path = repo/verifiers/... and --repo defaults to script grandparent = the LANE repo!). Hmm wait: `proc = subprocess.run(["python3", "-B", str(repo / "verifiers" / "verify_corpus_integrity.py"), "--no-baseline", "--json"], cwd=str(root))` — the gate's DEFAULT_REPO = script's grandparent = the LANE repo. So it measures the LANE repo after checking out corpus+verifiers from rev into the lane worktree. And it reads only 4 ids (tracked_files, unindexed, report_total, commit_total), ignoring stale/missing/report_dead/commit_unresolvable/nonhash. And it leaves the lane worktree checked out at the rev's corpus/verifiers — relying on jj to restore?? That's the L1's choice — not mine to judge (out of my scope; my job is my draft). But worth NOTING in my report as a divergence observation (mutating the worktree from inside a counter; jj snapshot restores it — the lane is jj-colocated so the working copy is jj-managed and gets restored on next jj op... actually `git checkout rev -- path` changes the worktree files; jj auto-snapshots that as working-copy changes; the L1 presumably re-checkouts master after. Not my scope, but I'll note it neutrally as a semantic difference: their measurement reads the live worktree after a checkout of rev paths (index mutation), mine extracts committed bytes read-only).
+
+  Also they read only 4 of the 9 ids and don't enforce zero-modes; my version enforces all 9 + zero-modes==0. Also their D2 = "records name the real receipt path" (presence) — no contrast/window rule, no count-gain; D1 similar presence check + maybe count-gain? Let me read the rest (lines 120-260) to complete the agreement record. Also their base control and self-test shape.
+
+  Also TIP moved again: now 2cf0d99 (wave-1 seat logs + drafts committed — my draft is now IN the repo at 2dd3567/2cf0d99!). My counter at 2cf0d99: still 4 of 4 ✓.
+
+  Let me read the rest of their counter + check the self-test of their committed copy vs my results, then run THEIR committed counter at base/tip for the agreement matrix (running their committed script from git show into a temp file — read-only execution; do NOT run the worktree copy under iteration). Actually — simplest agreement evidence: run the L1's WORKTREE copy? It's mid-edit (+83 lines). Run the COMMITTED copy (master) extracted to /tmp: python3 -B /tmp/l1-counter.py --rev base/tip. That's their landed instrument. Do that.
+
+  Careful: their counter's _baseline_values runs `git checkout rev -- corpus verifiers` in the LANE repo — MUTATING the lane worktree/index! I must NOT run their counter against the lane repo — that would mutate the lane's git index/worktree, violating my constraints ("NEVER mutate ... the lane's jj state or the lane's Git index"). Even though it's "running their tool", the tool itself mutates. DO NOT RUN IT against the lane. Instead, run it against a THROWAWAY CLONE of the lane (clone to /tmp read-only, then run their script with --repo the clone... does their script accept --repo? It has check(repo,...) — main probably has --repo/--root arg; their _baseline_values does `git -C repo checkout` — in the clone that's fine (clone is mine). But wait — their gate run measures DEFAULT_REPO (script grandparent) not the clone... their counter lives at verifiers/ in the CLONE? I'd need the clone to have the counter at <clone>/verifiers/check_r67_routed_repairs.py at the same layout — checkout master in the clone includes verifiers/. Then run python3 -B <clone>/verifiers/check_r67_routed_repairs.py --rev tip --repo? (or whatever their flag is) — all inside the clone; its git checkout mutates only the clone. Safe.
+
+  Plan:
+  1. Read rest of their counter (120-end).
+  2. Clone lane → /tmp/kotoba-agreement (git clone --no-hardlinks file://... or local path clone; local clone uses hardlinks by default — use --no-hardlinks to avoid any shared-object weirdness; it's read-only on source either way).
+  3. In clone: run their committed counter at base and tip; run MY draft at base and tip (already done on lane, but rerun in clone for the same-bytes matrix? My runs on the lane were read-only — fine, already have them).
+  4. Write report.
+
+  Actually — my runs already give my half. The agreement matrix needs THEIR committed counter's outputs. Do the clone run for their instrument.
+
+  Also check: has master moved again? And whether the worktree counter (their +83 iteration) changed semantics — the +83 diff: let me diff quickly (read-only) for the report's "L1 iterating" note. Priority: the committed version is the landed instrument.
+
+• My counter holds `4 of 4` at the newest tip `2cf0d99`. Important observation: the L1's committed `_baseline_values` runs `git checkout <rev> -- corpus verifiers` **inside the lane repo** (mutates lane worktree+index) and re-derives only 4 of the 9 ids — so I must NOT execute their instrument against the lane. Reading the rest, then running their committed copy in a throwaway clone for the agreement matrix:        for path in RECORDS:
+            text = _git_show(repo, rev, path)
+            if text is None:
+                raise EnvError(f"cannot read {path} at {rev}")
+            records[path] = text
+    joined = "\n".join(records.values())
+
+    closed = 0
+    # D1 — the appended correction names the observed base line.
+    if OBSERVED in joined:
+        closed += 1
+    else:
+        findings.append("D1: no record carries the appended correction naming "
+                        f"the observed `{OBSERVED}` line")
+    # D2 — the real receipt path is named.
+    if REAL_RECEIPT in joined:
+        closed += 1
+    else:
+        findings.append(f"D2: no record names the real receipt path {REAL_RECEIPT}")
+    # D3 — the control mirror is disclosed and gone from the working tree.
+    if JUNK in joined and not (repo / JUNK).exists():
+        closed += 1
+    else:
+        findings.append(f"D3: the disclosure of {JUNK} is missing, or the path still exists")
+    # D4 — the spot-check is indexed and the baseline matches the gate's own measurement.
+    readme = (root / README).read_text(encoding="utf-8")
+    indexed = False
+    for line in readme.splitlines():
+        if not line.startswith("|"):
+            continue
+        cells = [c.strip() for c in line[1:].split("|")]
+        if len(cells) >= 2 and cells[1].strip() == f"`lessons/{Path(SPOTCHECK).name}`":
+            indexed = True
+            break
+    if not indexed:
+        findings.append(f"D4: {SPOTCHECK} has no coverage-map index row")
+    else:
+        baseline = json.loads((root / BASELINE).read_text(encoding="utf-8"))
+        checks = baseline.get("checks", {})
+        expect = {
+            "corpus.index.tracked_files": checks.get("corpus.index.tracked_files", {}).get("expect"),
+            "corpus.index.unindexed": checks.get("corpus.index.unindexed", {}).get("expect"),
+            "corpus.pointers.report_total": checks.get("corpus.pointers.report_total", {}).get("expect"),
+            "corpus.pointers.commit_total": checks.get("corpus.pointers.commit_total", {}).get("expect"),
+        }
+        observed = observed_override if observed_override is not None else _baseline_values(repo, rev)
+        mapping = {
+            "corpus.index.tracked_files": observed["tracked_files"],
+            "corpus.index.unindexed": observed["unindexed"],
+            "corpus.pointers.report_total": observed["report_total"],
+            "corpus.pointers.commit_total": observed["commit_total"],
+        }
+        for key, value in mapping.items():
+            if expect.get(key) != value:
+                findings.append(f"D4: baseline {key} expects {expect.get(key)!r}, "
+                                f"the gate's own measurement yields {value!r}")
+        else:
+            if not findings:
+                closed += 1
+    if findings:
+        return closed, findings
+    return closed, []
+
+
+def selftest(repo: Path) -> int:
+    """One honest world and one broken world per routed defect.
+
+    The worlds are synthetic: the records and the gate measurement are injected, so the
+    self-test never touches the repository and never runs the corpus gate.
+    """
+    good_records = {
+        "LOG.md": f"the observed base line was\n{OBSERVED}\n{REAL_RECEIPT}\n{JUNK}\n",
+        "SCORECARD.md": f"{OBSERVED}\n",
+        "corpus/lessons/round-68.md": f"{REAL_RECEIPT}\n{JUNK}\n",
+    }
+    good_readme = f"| Round-67 spot-check | `lessons/{Path(SPOTCHECK).name}` | x |\n"
+    good_baseline = json.dumps({"checks": {
+        "corpus.index.tracked_files": {"expect": 7},
+        "corpus.index.unindexed": {"expect": 0},
+        "corpus.pointers.report_total": {"expect": 5},
+        "corpus.pointers.commit_total": {"expect": 4},
+    }})
+    observed = {"tracked_files": 7, "unindexed": 0, "report_total": 5, "commit_total": 4}
+
+    def run_world(records, readme, baseline, junk_exists):
+        with tempfile.TemporaryDirectory(prefix="k68-selftest-") as tmp:
+            root = Path(tmp)
+            (root / README).parent.mkdir(parents=True, exist_ok=True)
+            (root / BASELINE).parent.mkdir(parents=True, exist_ok=True)
+            (root / README).write_text(readme, encoding="utf-8")
+            (root / BASELINE).write_text(baseline, encoding="utf-8")
+            (root / JUNK).mkdir(parents=True, exist_ok=True)
+            if not junk_exists:
+                (root / JUNK).rmdir()
+            return check(Path("/nonexistent"), "rev", root,
+                         records_override=records, observed_override=dict(observed))
+
+    failures = 0
+    n, findings = run_world(good_records, good_readme, good_baseline, False)
+    if n != TOTAL:
+        print(f"FAIL honest world: closed {n} of {TOTAL}; {findings}", file=sys.stderr)
+        failures += 1
+    else:
+        print(f"PASS honest world: closed {TOTAL} of {TOTAL}")
+
+    broken = {
+        "D1 correction absent": ({k: v for k, v in good_records.items() if OBSERVED not in v},
+                                 good_readme, good_baseline, False),
+        "D2 receipt path absent": ({k: v for k, v in good_records.items() if REAL_RECEIPT not in v},
+                                   good_readme, good_baseline, False),
+        "D3 disclosure absent": ({k: v for k, v in good_records.items() if JUNK not in v},
+                                 good_readme, good_baseline, False),
+        "D4 index row absent": (good_records, good_readme.replace(
+            f"`lessons/{Path(SPOTCHECK).name}`", "`lessons/absent.md`"), good_baseline, False),
+        "D4 stale baseline": (good_records, good_readme, json.dumps({"checks": {
+            "corpus.index.tracked_files": {"expect": 1},
+            "corpus.index.unindexed": {"expect": 0},
+            "corpus.pointers.report_total": {"expect": 5},
+            "corpus.pointers.commit_total": {"expect": 4}}}), False),
+    }
+    for name, (records, readme, baseline, junk) in broken.items():
+        n, findings = run_world(records, readme, baseline, junk)
+        if n == TOTAL:
+            print(f"FAIL broken world survived: {name} -> closed {n}", file=sys.stderr)
+            failures += 1
+        else:
+            print(f"PASS broken world rejected: {name}")
+    print(f"self-test: {failures} failure(s) over {len(broken) + 1} assertions")
+    return 1 if failures else 0
+
+
+def main(argv: list[str] | None = None) -> int:
+    ap = argparse.ArgumentParser(add_help=True)
+    ap.add_argument("--rev", default=None, help="measured revision (full sha)")
+    ap.add_argument("--repo", default=str(Path(__file__).resolve().parent.parent))
+    ap.add_argument("--self-test", action="store_true")
+    args = ap.parse_args(argv)
+    repo = Path(args.repo)
+    if args.self_test:
+        return selftest(repo)
+    try:
+        if not args.rev:
+            raise EnvError("--rev <full-sha> is required")
+        with tempfile.TemporaryDirectory(prefix="k68-repairs-") as tmp:
+            root = _materialize(repo, args.rev, Path(tmp))
+            n, findings = check(repo, args.rev, root)
+    except EnvError as exc:
+        print(f"environment error: {exc}", file=sys.stderr)
+        return 2
+    print(f"r67 routed defects closed {n} of {TOTAL}")
+    for f in findings:
+
+
+• Now I have the full picture of the L1's committed counter. Semantic differences between my independent draft and their landed instrument:
+
+  **Agreements (both counters):**
+  - Same frozen line `r67 routed defects closed N of 4`, exit 0 iff N==4, exit 2 usage/env.
+  - Same record set (LOG.md, SCORECARD.md, corpus/lessons/round-68.md), same OBSERVED constant, same real/wrong census paths, same JUNK path + worktree-absence conjunct, same pinned practice of committed bytes at --rev for records.
+  - Both require D4 index row + baseline-vs-gate comparison; both run the gate rather than trusting stored numbers.
+  - Verdict at base (0 of 4 / exit 1) and tip (4 of 4 / exit 0) agree.
+
+  **Divergences (mine stricter/different on):**
+  1. **D4 measurement substrate.** Theirs: `git checkout <rev> -- corpus verifiers` INTO THE LANE REPO (mutates lane worktree + git index), then runs the gate with default repo = lane (worktree). Mine: `git archive rev` → throwaway repo with alternates to lane objects → force-add → run the gate there; zero lane mutation. (Their approach also races any concurrent writer and relies on jj snapshot restore; mine is read-only on the lane by construction.)
+  2. **D4 coverage.** Theirs compares only 4 ids (tracked_files, unindexed, report_total, commit_total) — equal-modes plus unindexed; ignores stale_patterns, missing_paths, report_dead, commit_unresolvable, commit_nonhash (5 zero-modes unchecked → a dead pointer or unresolvable commit citation at the measured rev would pass their D4 if the baseline expects... wait baseline expects them 0 but they don't compare). Mine: all 9 ids + explicit zero-modes==0.
+  3. **D4 index-row check.** Theirs: scans materialized README lines for a table row whose 2nd cell is exactly `` `lessons/round-67-verifier-spotcheck.md` `` — any table in the README (not fence-aware — a quoted row inside a fence or a non-coverage table would satisfy it; CriticC2 B1 class). Mine: no substring — the row is proven by the gate's own fence-aware `unindexed==0` zero-mode (stronger against the B1 class).
+  4. **D1 append proof.** Theirs: OBSERVED present in the joined records (presence floor; they disclose this as "presence floors... counts names, not substance"). Mine: OBSERVED must be a COUNT GAIN vs the pinned base in EACH record + hash prefix present + file-level supersede of the `0 of 1` claim. Their honest-world self-test fixture even puts all three markers in ONE record for D1 (their D1 passes if ANY record has it); mine requires each of the three.
+  5. **D2.** Theirs: real path present anywhere in joined records (LOG already had it at base — so their D2 is vacuous-able at base? At base their D2: joined base records contain REAL (LOG 2641) → their D2 would be TRUE at base!! Wait — their base score: D1 False (no OBSERVED at base), D2 True?? Then base scores 1 of 4, not 0 of 4! Hmm — but their main doesn't run a base control at all (no pinned-base check in their main — the docstring says the base "must print 0 of 4" but there's no enforcement! Actually let me re-check their main: no base control — they just score --rev). So their counter would print "1 of 4" at the base (D2 true via the legacy real-path line), vs mine 0 of 4. THEIR instrument scores the base 1 of 4 — the docstring's stated control doesn't hold for their code. My count-gain design fixes exactly this. Worth reporting (factual, not judgment: their docstring claims base prints 0 of 4; the presence-only D2 makes the legacy LOG line satisfy D2 → base scores ≥1; no base-control enforcement in main either).
+     Hmm wait — let me be careful: is that TRUE? At base, records joined = LOG@e94ae32 + SCORECARD@base + (lesson68 absent → EnvError "cannot read corpus/lessons/round-68.md" → exit 2!). Their _materialize raises EnvError if any record is missing → at base, corpus/lessons/round-68.md doesn't exist → their counter exits 2 "environment error: cannot read corpus/lessons/round-68.md at base". So their base behavior = exit 2 (environment), NOT "0 of 4" (exit 1) — their own docstring's stated base control ("must print r67 routed defects closed 0 of 4 and exit nonzero") does not hold: it exits 2 without printing the line. THAT IS EXACTLY R67-1's CLASS (a missing record classified as environment instead of content) — the r67 defect they were repairing! Notable finding for the report. Their counter at base: `environment error: cannot read corpus/lessons/round-68.md at <base>`, exit 2. Mine: prints 0 of 4, exit 1 (missing record = content verdict per the C1 erratum lesson, mirrored for C2).
+     
+     Hmm, but careful — is "missing record at base → 0 of 4" the right semantics per MY contract? My dispatcher's contract: "`--rev <full-sha>` prints `r67 routed defects closed N of 4` and exits 0 when N == 4, nonzero otherwise; exit 2 for a usage/environment error." Nonzero otherwise includes 1 for N<4. At the base the repairs don't exist → 0 of 4 exit 1 — and the plan's C2 Before says "`check_r67_routed_repairs.py` does not exist (0 of 4)" — the base expectation is 0 of 4. My base control also REQUIRES the pinned base to score 0 of 4 (r66 pattern). ✓ Mine matches the plan's frozen Before. Theirs deviates (exit 2 at base). This is a genuine cross-check finding — the r67 precedent (LOG:2640) is exactly that an independent implementation catching a classification error is the round's outside-direction check. Report it.
+
+  6. **Self-test.** Theirs: synthetic injected worlds, never runs the gate, no public-main() drive, no base control, no exit-code assertions ("over 6 assertions"). Mine: full fixture repo, real git, real stub gate, public main() honest/base/unknown/missing-rev, 23 assertions, worktree conjunct tested. The r67 w1/ReviewCounter.md precedent demanded exactly the public-main drive ("run a committed satisfying fixture through public main(), assert exit 0 and exactly <line> on stdout... helper-only tests do not cover the measurement path") — mine follows it.
+
+  7. Their D3: `JUNK in joined and not (repo / JUNK).exists()` — note their worktree check uses `repo` (the --repo lane) ✓ same as mine. Their D3 requires JUNK in the JOINED records (any one); mine requires LOG AND lesson + "254" size in each. Mine stricter.
+
+  8. Their D4 `else` bug: `for key...: if mismatch: findings.append(...) else: if not findings: closed += 1` — the else binds to the FOR loop (runs when no break... there's no break; for-else runs after loop completes — which is always!). Actually for-else: else runs after the loop finishes without break — always runs here. So `if not findings: closed += 1` runs whenever the indexed branch was taken... wait it's inside `else:` of `if not indexed:`. Sequence: indexed → parse baseline → for-loop compare → for-else (always) → if not findings: closed += 1. Since findings could contain D1/D2/D3 findings appended earlier, `closed += 1` only if findings empty... but D1/D2/D3 increments happened independently. The `if not findings` guard means: if any earlier defect failed, D4 is NOT counted even when D4's own comparisons pass?? No wait — closed increments for D1/D2/D3 happen before; findings non-empty → D4 not counted → undercount (cosmetic; the verdict "not 4 of 4" is still correct since findings nonempty → exit 1 anyway). Minor logic wart; worth one line in the report.
+
+     Hmm wait, actually there's a subtlety: findings from D4's own mismatch appends ALSO make `if not findings` False — consistent. The wart: a D1 failure suppresses the D4 PASS count — cosmetic only.
+
+  9. Their worktree counter is +83 lines vs committed (mid-iteration; likely adding the base control or fixing the classification — I saw " M verifiers/check_r67_routed_repairs.py"). I should diff the worktree copy to report what the L1 is changing (read-only diff). Let me look at the worktree diff quickly — actually the diff earlier showed +83 insertions vs HEAD (2cf0d99's parent? no — vs HEAD which is now 2cf0d99... the status was from before those commits; the worktree copy may equal some newer state). Let me just diff worktree vs HEAD now.
+
+  Also: their committed self-test line "over 6 assertions" vs mine 23 — factual.
+
+  One more check to run: their committed counter IN A THROWAWAY CLONE at base and tip (agreement matrix; clone-isolated so their `git checkout` mutation hits the clone only). Clone: `git clone --no-hardlinks --quiet <lane> /tmp/kotoba-agree` then in clone checkout master (clone defaults to master HEAD). Run their counter: python3 -B /tmp/kotoba-agree/verifiers/check_r67_routed_repairs.py --rev <base> (expect: environment error exit 2) and --rev <tip> (expect 4 of 4 exit 0). Note their gate measurement in the clone: `git checkout rev -- corpus verifiers` in the CLONE then gate measures the clone worktree — same bytes → same numbers. ✓.
+
+  Also confirm MY draft at the base scores D2 False specifically because count-gain — already evidenced.
+
+  Also — master may move again; use tip 2cf0d99 (current) + note. Also the worktree diff of their counter for the report. And then write the report file ExecR67Repairs.md.
+
+  Report content (scoped findings for the L1):
+  - What I built, contract mapping, files changed (one draft path).
+  - Behavior: exact commands + outputs (self-test line, base run, tip run at 2cf0d99).
+  - Evidence of the four defects' landed state + the counter's verdicts.
+  - Agreement/divergence matrix vs the L1's committed instrument (the r67 LOG:2640-style outside-direction check):
+    1. Their base behavior = exit 2 (missing record → environment) — the R67-1 class reappears in their C2 counter; their docstring's stated base control (prints 0 of 4, exit nonzero) does not hold on their own code; no base-control enforcement in main. Mine prints 0 of 4 exit 1 (missing = content verdict).
+    2. Their D4 mutates the lane worktree/index (`git checkout rev -- corpus verifiers` in --repo); mine is read-only (archive + alternates). Their instrument, run by any seat/reviewer on the lane, rewrites the working copy as a side effect.
+    3. Their D4 compares 4 of 9 ids; 5 zero-modes (stale_patterns, missing_paths, report_dead, commit_unresolvable, commit_nonhash) unverified; mine enforces all 9 + zero-modes==0.
+    4. Their D4 index-row scan is a per-line table-cell match (not fence-aware, not section-scoped — the CriticC2 B1 class); mine proves the row via the gate's own unindexed==0.
+    5. Their D1/D2/D3 are presence floors over the JOINED records (their own docstring discloses this); consequence: D2 is satisfied by the base's legacy real-path line (vacuous at base if the record existed), D1 passes with the correction in only ONE record. Mine: per-record count-gain vs pinned base + hash prefix + window rule for the wrong path (a bare wrong-path line fails D2).
+    6. Cosmetic: their for-else suppresses the D4 count when an earlier defect failed (verdict unaffected).
+  - Their committed self-test: injected worlds, no gate run, no public-main drive, no exit-code assertions (6 assertions); the r67 review precedent (w1/ReviewCounter.md) asked for the public-main measurement path; mine drives public main() with 23 assertions incl. exit codes 0/1/2.
+  - Remaining risks: (a) my D2 window rule (±2 lines) is a textual convention — if a future erratum moves the two paths >2 lines apart, D2 flips red (documented, intentionally strict); (b) my D4 depends on the gate's CLI surface (--no-baseline --json, results rows) — a gate CLI change re-sides as environment error exit 2, fail-safe; (c) master is moving (L1 mid-flight) — my runs pin 2cf0d99; (d) D3 worktree conjunct observes the live tree at run time (unavoidable, by nature of the defect).
+  - No blockers.
+
+  Before writing: run their committed counter in the clone (base + tip), and diff their worktree counter vs HEAD. Also verify my draft didn't get committed by the L1 in 2dd3567 (they committed wave-1 drafts — check if MY file is there and identical: git show 2cf0d99:.ufo/waves/round-68/w1/drafts/check_r67_routed_repairs.py | diff - my file — they committed the drafts "as they stood at the report boundary" — my file may be committed already in their snapshot; confirm hash equality for the report).=== L1 counter at BASE (in throwaway clone) ===
+environment error: cannot read corpus/lessons/round-68.md at e94ae32a5cd8dc3ee8e2d247816784bec2750cc0
+l1-base-exit=2
+=== L1 counter at TIP 2cf0d99 ===
+r67 routed defects closed 4 of 4
+l1-tip-exit=0
+=== worktree-vs-HEAD counter diff ===
+=== my draft committed in 2cf0d99? ===
+Files - and .ufo/waves/round-68/w1/drafts/check_r67_routed_repairs.py differ
+differs-or-absent
+=== master now ===
+2cf0d99 round-68: wave-1 seat logs and drafts as they stood at the report boundary
+Confirmed:
+
+  1. **The L1's committed counter at the base prints `environment error: cannot read corpus/lessons/round-68.md at e94ae32…` and exits 2** — NOT "0 of 4" as its own docstring's control line states. That is the R67-1 classification class re-appearing in their C2 counter (missing record → environment verdict instead of content verdict). Mine: `0 of 4`, exit 1. Genuine outside-direction finding.
+
+  2. Their counter at tip: `4 of 4`, exit 0 — **agrees with mine at the tip**.
+
+  3. Worktree counter diff is now EMPTY — the L1 committed their +83 iteration (it's in 2dd3567/2cf0d99; worktree == HEAD now). So the committed master counter I read IS the current landed instrument.
+
+  4. My draft "differs" from what's committed at 2cf0d99 — the L1 snapshotted drafts "as they stood at the report boundary" — they committed an EARLIER state of my draft (I wrote it after their snapshot commit 2dd3567? No wait — 2cf0d99 committed wave-1 drafts; my file existed by then (I wrote it before their commit? timeline: my Write happened before their 2dd3567/2cf0d99 commits appeared — they committed a copy of my first version (pre-fix, the one with the D2 mutant bug). Let me check what differs: the committed copy is my pre-fix version (LOG_WRONG_PATH_BARE old + SystemExit issue). I should note in the report that the committed snapshot is the pre-fix draft and my final draft is the worktree file (which they can re-snapshot or the diff shows the two Edit fixes). Quick check: diff the two to confirm it's just my two fixes.
+
+  Let me verify quickly what the diff is (should be the two edits), then clean up /tmp/kotoba-agree, then write the report.
+
+  Also one more evidence point for the report: verify the exact self-test line and exits once more in final state, and the committed-copy diff. Then write ExecR67Repairs.md with full evidence, and clean up the clone.
+
+• The L1's counter at the base exits **2 with an environment error** (missing record) — the exact R67-1 classification class their own instrument was meant to leave behind — while mine prints the content verdict `0 of 4`. At the tip both agree (`4 of 4`). The committed draft snapshot differs from my final file — confirming it's just my two post-snapshot fixes, then writing the report:fatal: path '.ufo/waves/round-68/w1/drafts/check_r67_routed_repairs.py' exists on disk, but not in '2cf0d99'
+0a1,662
+> #!/usr/bin/env python3
+> """check_r67_routed_repairs.py — C2 counter for kotoba round 68 (wave-1 seat draft).
+> 
+> Contract
+> --------
+> `python3 -B check_r67_routed_repairs.py --rev <full-sha>` prints
+> 
+>     r67 routed defects closed N of 4
+> 
+> and exits 0 when N == 4, 1 when N < 4 (a content verdict), 2 for a
+> usage/environment error: unknown --rev, unreadable repo, the corpus gate
+> could not be run, or the pinned base does not score 0 of 4.  `--repo <path>`
+> defaults to the lane root, found by walking up from this file (so the script
+> works both from the wave drafts directory and installed under verifiers/).
+> 
+> The four routed defects are the round-67 closure's routed list
+> (`corpus/lessons/round-67-verifier-spotcheck.md`, § Routed defects), checked
+> from the COMMITTED bytes at --rev unless stated otherwise:
+> 
+>   D1 (R67-1, dishonest before-line).  Each living record — `LOG.md`,
+>       `SCORECARD.md`, `corpus/lessons/round-68.md` — carries an appended
+>       correction naming the observed base line
+>       `environment error: cannot read corpus/knowledge/instruction-authority-ladder-round67.md …`
+>       (with the r67 base hash prefix `2a8eba56`), the append proved by a
+>       count gain of that line against the pinned base.  A record that still
+>       carries the unobserved `0 of 1` claim is accepted only because the
+>       appended correction supersedes it in the same record: the records are
+>       append-only, so the wrong claim text itself is never rewritten.
+>   D2 (R67-2, wrong receipt path).  The correction naming the real census
+=== cleanup ===
+removed
+=== final self-test + base + tip ===
+self-test: 0 failure(s) over 23 assertions
+st-exit=0
+
+
+• My draft is NOT in 2cf0d99 at all ("exists on disk, but not in '2cf0d99'") — the L1's draft snapshot committed OTHER seats' drafts (or mine landed in a later uncommitted... whatever). My worktree file is the only copy. Fine — report the path; the L1 installs.
+
+  All evidence gathered:
+  - self-test: `self-test: 0 failure(s) over 23 assertions`, exit 0
+  - base e94ae32: `r67 routed defects closed 0 of 4`, exit 1 (all four FAIL lines)
+  - tip cafa29d: `4 of 4`, exit 0
+  - tip 2cf0d99 (current master): `4 of 4`, exit 0
+  - L1 committed counter at base: `environment error: cannot read corpus/lessons/round-68.md at e94ae32…`, exit 2; at tip: `4 of 4`, exit 0 (in throwaway clone)
+
+  Now write the report at .ufo/waves/round-68/w1/ExecR67Repairs.md — scoped findings: what I built, behavior, exact evidence, remaining risks, blockers (none), plus the agreement/divergence findings vs the landed instrument (outside-direction check), which is the lane's recorded practice for independent implementations.
+
+• All evidence in hand. Writing the scoped report:
+
+• Done. Final response: files changed, behavior, exact evidence, remaining risks, blockers. Concise, per my role contract ("Return: files changed, behavior, exact evidence, remaining risks, blockers. Stop after the assigned implementation.").
+
+• **Files changed** (both under the lane repo, write scope respected):
+  - `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/drafts/check_r67_routed_repairs.py` — the C2 counter draft (662 lines, stdlib only; not installed to `verifiers/`)
+  - `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/ExecR67Repairs.md` — scoped report
+
+  **Behavior:** `--rev <full-sha>` prints `r67 routed defects closed N of 4`, exit 0 iff N==4, 1 for content shortfall, 2 usage/environment; `--repo` defaults to the lane root via upward marker walk; `--self-test` builds a fixture repo (stub gate, honest world, base control, one broken world per defect) and drives public `main()`. D1–D3 read committed bytes at `--rev` (records: LOG.md, SCORECARD.md, corpus/lessons/round-68.md; corrections proved as count-gains vs pinned base `e94ae32a…`; wrong-census-path lines must sit ≤2 lines from the real path); D3 adds the worktree-absence conjunct for `junk-world`; D4 runs the revision's own gate on a `git archive` extraction with object alternates — read-only on the lane, all nine ids enforced, zero-modes must measure 0, stored numbers never trusted.
+
+  **Exact evidence:**
+  - `--self-test` → `self-test: 0 failure(s) over 23 assertions`, exit 0
+  - base `e94ae32a5cd8dc3ee8e2d247816784bec2750cc0` → `control at e94ae32a: 0 of 4`, four FAIL lines, `r67 routed defects closed 0 of 4`, exit 1
+  - `cafa29d0…` and current master `2cf0d99a…` → all PASS, `r67 routed defects closed 4 of 4`, exit 0
+
+  **Cross-check finding (for the L1):** the landed instrument (`verifiers/check_r67_routed_repairs.py` at `2cf0d99`) agrees at the tip (`4 of 4`, run in a throwaway clone) but at the base prints `environment error: cannot read corpus/lessons/round-68.md at e94ae32…` and exits 2 — the R67-1 misclassification class — while its docstring promises `0 of 4` there; it also mutates the lane worktree/index during D4 (`git checkout <rev> -- corpus verifiers`), verifies only 4 of 9 ids, and its D2 is satisfied by the base's pre-existing legacy path line. Details and the full matrix are in the report.
+
+  **Remaining risks:** ±2-line erratum window is deliberately strict; D4 depends on the gate's `--no-baseline --json` surface (CLI drift re-sides as exit 2, fail-safe); master moved three times mid-seat — receipts pin exact revs; my draft is not yet in any commit.
+
+  **Blockers:** none.
+
+To resume this session: kimi -r session_d0bee4ed-52fb-4459-8c45-8d9fc29cad25

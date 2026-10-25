@@ -79,27 +79,46 @@ def _git_show(repo: Path, rev: str, path: str) -> str | None:
 def _materialize(repo: Path, rev: str, dest: Path) -> Path:
     for path in RECORDS + (README, BASELINE):
         text = _git_show(repo, rev, path)
-        if text is None:
-            raise EnvError(f"cannot read {path} at {rev}")
         out = dest / path
         out.parent.mkdir(parents=True, exist_ok=True)
+        if text is None:
+            # A missing records file is a content state (the round has not recorded yet),
+            # not an environment error: write empty bytes so check() can score it.
+            out.write_text("", encoding="utf-8")
+            continue
         out.write_text(text, encoding="utf-8")
     return dest
 
 
+def _require_commit(repo: Path, rev: str) -> None:
+    proc = subprocess.run(["git", "-C", str(repo), "cat-file", "-e", f"{rev}^{{commit}}"],
+                          capture_output=True, text=True)
+    if proc.returncode != 0:
+        raise EnvError(f"{rev} is not a commit in {repo}")
+
+
 def _baseline_values(repo: Path, rev: str) -> dict[str, int]:
-    """Re-derive the census values with the gate's own measurement at <rev>."""
+    """Re-derive the census values with the gate's own measurement at <rev>.
+
+    The revision is materialized in a throwaway shared clone. Nothing outside that
+    clone is written: the lane's worktree, index and HEAD are never touched, which is
+    what the round-67 routed defect (a revision move inside the lane repo) was about.
+    """
+    _require_commit(repo, rev)
     with tempfile.TemporaryDirectory(prefix="k68-baseline-") as tmp:
-        root = Path(tmp)
-        for path in ("corpus", "verifiers"):
-            proc = subprocess.run(["git", "-C", str(repo), "checkout", rev, "--", path],
-                                  capture_output=True, text=True)
-            if proc.returncode != 0:
-                raise EnvError(f"cannot materialize {path} at {rev}")
+        clone = Path(tmp) / "clone"
+        proc = subprocess.run(["git", "clone", "--shared", "-q", str(repo), str(clone)],
+                              capture_output=True, text=True)
+        if proc.returncode != 0:
+            raise EnvError("cannot create the sandbox clone")
+        proc = subprocess.run(["git", "-C", str(clone), "reset", "-q", "--hard", rev],
+                              capture_output=True, text=True)
+        if proc.returncode != 0:
+            raise EnvError(f"cannot move the sandbox to {rev}")
         proc = subprocess.run(
-            ["python3", "-B", str(repo / "verifiers" / "verify_corpus_integrity.py"),
-             "--no-baseline", "--json"],
-            capture_output=True, text=True, cwd=str(root))
+            ["python3", "-B", str(clone / "verifiers" / "verify_corpus_integrity.py"),
+             "--repo", str(clone), "--no-baseline", "--json"],
+            capture_output=True, text=True, timeout=600)
         if proc.returncode not in (0, 1):
             raise EnvError("the corpus gate could not be run at the measured revision")
         data = json.loads(proc.stdout)
@@ -116,14 +135,20 @@ def check(repo: Path, rev: str, root: Path, records_override: dict[str, str] | N
           observed_override: dict[str, int] | None = None) -> tuple[int, list[str]]:
     findings: list[str] = []
     records = dict(records_override or {})
+    missing_records = False
     if not records_override:
         for path in RECORDS:
             text = _git_show(repo, rev, path)
             if text is None:
-                raise EnvError(f"cannot read {path} at {rev}")
+                missing_records = True
+                findings.append("D1: cannot read the round-68 records at this revision "
+                                f"— a missing records file is a content verdict, not an environment error ({path})")
+                continue
             records[path] = text
+    if missing_records:
+        # Missing records are a content verdict: the round has not recorded yet.
+        return 0, findings
     joined = "\n".join(records.values())
-
     closed = 0
     # D1 — the appended correction names the observed base line.
     if OBSERVED in joined:

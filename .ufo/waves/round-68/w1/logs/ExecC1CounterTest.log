@@ -1412,4 +1412,241 @@ check(): 5 []
 
   Compose now.
 
-• Current state fully mapped. The L1 landed, mid-round: `check()` now selects the longest matching quote (`max(matched, key=len)`) — killing the section-name trap — and gates **any** finding to a `0 of 5` verdict; `_materialize` treats a rev-missing entry as a content world. My draft keeps `check`/`fetch`/`_materialize` byte-identical to that landed state and replaces only the self-test arm (hermetic tempfile worlds, public `main()` drives, both classification pins)
+• Current state fully mapped. The L1 landed, mid-round: `check()` now selects the longest matching quote (`max(matched, key=len)`) — killing the section-name trap — and gates **any** finding to a `0 of 5` verdict; `_materialize` treats a rev-missing entry as a content world. My draft keeps `check`/`fetch`/`_materialize` byte-identical to that landed state and replaces only the self-test arm (hermetic tempfile worlds, public `main()` drives, both classification pins) plus two `main()` touches (`--repo` walk-up default so the draft runs from `drafts/` and installs unchanged at `verifiers/`; `--self-test`/`--rev` guard, r66 house pattern).
+
+• Now verify — one parallel batch:
+  1. `--self-test` → expect exit 0, `self-test: 0 failure(s) over 49 assertions`.
+  2. Worktree run → expect `5 of 5`, exit 0.
+  3. Base rev → expect `0 of 5`, exit 1.
+  4. Guard: `--self-test --rev x` → argparse error exit 2.
+
+  Also confirm the draft's check/fetch/_materialize are byte-identical to the installed file (diff excluding selftest/main-default regions) — quick `diff` of the two files to enumerate the true delta for the report.PASS honest world: backed 5 of 5
+PASS broken world rejected: entry-missing
+PASS broken world rejected: no-source-line
+PASS broken world rejected: id-does-not-resolve
+PASS broken world rejected: row-not-mined
+PASS broken world rejected: source-cell-absent
+PASS broken world rejected: no-verified-at
+PASS broken world rejected: no-recheck
+PASS broken world rejected: no-coverage-row
+PASS broken world rejected: quote-absent-from-anchor
+FAIL client-name-absent/count: got 5 want 0
+FAIL client-name-absent/findings-nonempty: got False want True
+FAIL client-name-absent/main-exit: got 0 want 1
+FAIL client-name-absent/main-line: got False want True
+PASS broken world rejected: client-name-absent
+FAIL class/unknown-rev/git-init: got False want True
+self-test: 5 failure(s) over 48 assertions
+selftest-exit=1
+client trust gates backed 5 of 5
+worktree-exit=0
+client trust gates backed 0 of 5
+  - entry missing: corpus/knowledge/client-trust-gates-round68.md
+base-exit=1
+The self-test caught two real problems — exactly what it's for:
+
+  1. **`client-name-absent` world SURVIVES (backed 5 of 5)** — the conjunct-7 break did not break anything. Why? My mutation: `entry.replace("| Epsilon Vibe |", "| |", 1)`. The honest entry table row: `| Epsilon Vibe | the documented trust gate | "Skill discovery reads only project roots that sit inside trusted folders." | S705 |`. Replacing `| Epsilon Vibe |` with `| |` yields `| | the documented trust gate | "..." | S705 |`. `_split_row`: line[1:] = ` | the documented trust gate | "..." | S705 |` → split('|') → [' ', ' the documented trust gate ', ' "..." ', ' S705 ', ' '] → first '' → popped → last '' popped → ['the documented trust gate', '"..."', 'S705'] → 3 cells → table_row[0] = 'the documented trust gate' (nonempty!) → quote in join ✓ → S705 still backed! The empty client cell just SHIFTS the row — the counter's structural check (`len < 3 or not cells[0]`) can't see it because dropping the leading cell keeps 3 cells. So my "break" didn't actually break the conjunct — the counter's client-cell check is positional and the mutation preserved shape (3 cells, first filled). This is a GENUINE hole the spec's named world targets: "one client row's client name absent from the table" — with my mutation the name is absent from the table, yet the verdict stays 5 of 5. Two readings:
+     a. My mutation is wrong-shaped — a better break: remove the client NAME but keep the cell present as whitespace? `| Epsilon Vibe |` → `|  |`... same collapse problem? `|  | the documented...` → line[1:] = `  | the documented...` → split('|') → ['  ', ' the documented...'] wait — cells[0]='  ' strip=='' → popped → same shift. The cell CONTENT is empty but the parser pops empty leading cells. Hmm — actually `_split_row` pops a leading empty cell ALWAYS (assuming a leading `|` produced it). In `| | x | y |`: after the leading `|`, body ` | x | y |` → split → [' ', ' x ', ' y ', ''] → pop first ' ' → pop last '' → ['x','y']. The empty client cell is indistinguishable from the row-leading pipe. So an emptied FIRST cell is structurally invisible to this parser. To make "client name absent" produce a visible break, the mutation must leave the row with <3 cells or empty first cell — e.g. replace `| Epsilon Vibe | the documented trust gate |` with `|  | the documented trust gate |`? Same thing. OK the parser-side reality: the named break must mutate to `| (empty) | ...` such that _split_row sees len<3 or cells[0]=='' — impossible when the client cell is first (leading empties always collapse).
+     
+     So under the CURRENT check() semantics, "client name absent from the table" (emptied first cell) is NOT detectable — the named broken world survives → the self-test correctly reports the conjunct as NOT GATED. This is a real finding against the counter: conjunct 7's client-cell half is vacuous for the first column. Fix options:
+     - check-side: `_table_rows` should NOT pop the leading empty (the leading `|` is already stripped by `line[1:]`, so a first-cell-empty row yields cells[0]==''). Wait — why does `_split_row` pop the first empty? For `| a | b |`: line[1:] = ` a | b |` → split → [' a ', ' b ', ''] → last '' popped by the second if; first cell is ' a ' not ''. The first-pop only fires when the row STARTS with `| |` (empty first cell) — i.e., the pop DESTROYS the empty-first-cell signal. In SOURCES parsing (`_source_rows`) the pop is harmless (they use full `|...|` rows with 11 cells and would break count if emptied). For the table rows, popping makes emptied-first-cell invisible.
+     - Minimal check-side fix: in `_table_rows` (used for the entry's per-client table), don't pop the leading empty — or in the client-cell check, reconstruct. Careful: `_split_row` is shared by `_indexed` (README cells[1] — a leading-empty pop would shift index) and `_table_rows`. Changing `_split_row` globally could shift README parsing for rows with empty first cells — README coverage rows have nonempty first cells, so no practical change; but SOURCES doesn't use `_split_row`. Hmm — but the merge-gate honesty: my draft must reconcile with the L1's landed check(). The landed check CANNOT detect the named world. The self-test exists to expose exactly this. My options:
+       (i) Fix `_split_row` (stop popping the leading empty) — then `| | x | y |` → cells ['', 'x', 'y'] → cells[0]=='' → finding ✓. But re-check all users: `_table_rows` skips separator rows (`all(set(c) <= set("-: ")`) — '' not in {'-',':',' '} → fine, separator rows still skipped (they contain '---' cells). Honest table rows unaffected (first cell nonempty). README `_indexed` — cells[1] indexing: honest rows `| topic | path | notes |` → cells [topic, path, notes] — unchanged (no leading empty). A README row with an EMPTY first cell `| | path |` → now cells ['', path, ...] → cells[1]=path — previously cells[0]=path → cells[1]=notes — behavior change for malformed README rows only; the honest shape is unaffected. `_source_rows` doesn't use `_split_row` (it has its own split) ✓ unaffected.
+       So fix (i) is contained: only rows with an empty first cell change behavior — exactly the named break. 
+       Wait — one more user: `_split_row(line[1:])` in `_table_rows` — the line-leading `|` is stripped, so a NORMAL row's first cell is nonempty-leading... For `| a | b |`: after strip, split gives [' a ', ' b ', ''] — the first-pop condition `cells[0].strip() == ""` is False → no pop ✓. Only `| | ...` rows pop today. After my fix, they won't → cells[0] == '' → client-cell finding ✓. 
+     - So: remove the leading-pop from `_split_row`. Keep trailing-pop (real trailing `|`). Re-verify honest world + all worlds.
+
+     Hold on — but should I fix check() at all, or is the self-test supposed to just FAIL on this world (reporting the counter hole to the L1)? The task: "The self-test must ... break each conjunct ... exit 0 only when no failure." If the counter can't detect the named break, my self-test exits 1 — honest but the L1 then gets a red self-test to reconcile. The executor's job (build seat): deliver a counter+self-test where all named breaks ARE killed. The r67 lesson: verdict honesty. The named break is IN the spec — the spec authors expect it detectable. The minimal check-side fix (stop popping the leading empty cell) makes conjunct 7's client-cell half real. I'll fix it, disclose prominently, and re-run everything.
+
+  2. **`class/unknown-rev/git-init: got False`** — `git init -q` failed in scratch. Why? Let me check the error: possibly `git init` in a dir under /tmp works fine normally... rc != 0 — need stderr. Possibly safe.directory / ownership? Or `git` not finding... Actually — plausible cause: `subprocess.run(["git", "-C", str(git_repo), "init", "-q"])` — the dir doesn't exist yet! `tempfile.TemporaryDirectory` creates `scratch`, and `git_repo = scratch / "git-fixture"` — git init DOES create the directory... wait, `git -C <nonexistent> init` → "fatal: cannot change to '...': No such file or directory" — YES, that's it: `-C` requires the dir to EXIST; unlike plain `git init <dir>` which creates it. Fix: `git_repo.mkdir()` first, or `git init -q str(git_repo)` without -C. I'll mkdir(parents=True, exist_ok=True) then init. Also print init stderr on failure for diagnosability: change expect to compare a tuple? Keep label + record failure with stderr in the FAIL line — simplest: pre-assert `init.returncode == 0` (already the shape) but include stderr in the message via a custom print. I'll capture stderr into the expect label line — minor; keep simple: if init fails, print stderr to stdout in the FAIL (expect prints got/want — got would be False; add an extra print). Actually simpler: make the git-init its own expect with got=(rc, stderr-trimmed)? `expect("class/unknown-rev/git-init", (proc.returncode, proc.stderr.strip()), (0, ""))` — the FAIL line then shows stderr ✓ nice.
+
+  Also note the misleading "PASS broken world rejected: client-name-absent" print AFTER FAIL lines — my print happens unconditionally after the expects; it printed PASS while failures were recorded. Fix: print PASS only when no failures for that world — track per-world failure delta.
+
+  3. Also honest-world/main etc all pass ✓. And base control `0 of 5` + entry-missing finding ✓ exit 1 ✓; worktree `5 of 5` exit 0 ✓ — and that's with the DRAFT (walk-up --repo default works from drafts/) ✓.
+
+  Now implement:
+  - `_split_row`: remove the leading-empty pop. Wait — reconsider `_source_rows`: it does its own split, unaffected ✓. But CAREFUL: `_table_rows` separator skip: separator cells like '---' → `all(set(c) <= set("-: ") for c in cells)` — a row `|---|---|---|` → cells ['---','---','---'] ✓ skipped. Honest header row `| client | ... |` first cell 'client' ✓. 
+    BUT — one more caller subtlety: `_split_row` is also used in `_indexed` with README rows; and the real README rows — could any real coverage row have an empty first cell where cells[1] currently (post-pop) lands on the path cell? Real rows: `| Frontmatter trigger surfaces | \`knowledge/...\` | ...` — first cell nonempty → unchanged ✓. My draft must keep the REAL tree at 5 of 5 — will re-verify after the change.
+    And `_table_rows` on the REAL entry — all table rows have nonempty first cells ✓ unchanged.
+    So the only behavioral delta: empty-first-cell rows now surface cells[0]=='' — precisely the named break. 
+
+  - W10 expectation stays 0/findings — after the fix, S705's table row → cells[0]=='' → finding ✓ → gate → 0 of 5 ✓.
+
+  Wait — actually also check `client-name-absent` post-fix flow: table row for S705: `['', 'the documented trust gate', '"..."', 'S705']` → found by sid ✓ → len 4 ≥3 → cells[0].strip()=='' → finding "the per-client table row has no client cell" ✓ → gate → 0 ✓.
+
+  - Per-world PASS print: only when no new failures.
+
+  - git-init fix + stderr in expect.
+
+  Also — one more hardening thought on the leading-pop removal: the SOURCES-parser `_source_rows` pops a trailing '' only when `cells[-1] == ""` — untouched.
+
+  Edge on `_world` client-name-absent mutation: `entry.replace("| Epsilon Vibe |", "| |", 1)` — fine post-fix.
+
+  Then re-run the full battery + worktree + base control again, and ALSO re-run the INSTALLED counter worktree check to make sure my draft still agrees with landed semantics on the honest tree (it will — honest rows unaffected).
+
+  Also diff draft vs installed to enumerate the delta for the report (excluding the selftest region). Let me apply the edits now.
+
+• The self-test caught two real defects on its first run — exactly its job:
+
+  1. **`client-name-absent` world SURVIVES (5 of 5)** — `_split_row` pops the leading empty cell, so an emptied client cell is structurally invisible (`| | x | y |` → `['x','y']`… then re-shifted). Conjunct 7's client-cell half is vacuous under the landed parser. Minimal contained fix: stop popping the leading empty (only rows with an empty first cell change behavior — precisely the named break; honest rows, README index rows, and `_source_rows` are unaffected).
+  2. **`git init -q` via `-C` failed** — `-C` requires the directory to exist; scratch subdir was never created.
+
+  Fixing both, plus the misleading unconditional PASS print:
+
+• The `detail` variable: in the `except OSError` branch I set `git_err = str(exc)` but `init = None` — then in else branch `detail = git_err if init is None else init[1]` — `git_err` is only bound in the except path ✓ consistent. But if init succeeded with rc != 0, `detail = init[1]` ✓. Edge: `init == (0, "")` — git init -q with empty stderr ✓. But some git versions print hints to stderr on init (e.g., default-branch advice)? `init -q` normally silent; advice could make stderr nonempty → we'd fall to the failure branch although init worked. Robustness: treat rc==0 as success regardless of stderr, but still surface stderr in the failure label for rc!=0. Change condition to `init is not None and init[0] == 0`. Let me refine that — if stderr nonempty but rc==0, proceed. Quick edit.
+
+  Then re-run the full battery: selftest + worktree + base. Also re-verify the honest world against the real tree post-`_split_row` change (README `_indexed` — real rows fine; but ALSO: real entry table rows — all nonempty first cells ✓; REAL SOURCES doesn't use _split_row ✓). Also the base-rev control again.
+
+  Also verify draft-vs-installed delta for the report with a diff.PASS honest world: backed 5 of 5
+PASS broken world rejected: entry-missing
+PASS broken world rejected: no-source-line
+PASS broken world rejected: id-does-not-resolve
+PASS broken world rejected: row-not-mined
+PASS broken world rejected: source-cell-absent
+PASS broken world rejected: no-verified-at
+PASS broken world rejected: no-recheck
+PASS broken world rejected: no-coverage-row
+PASS broken world rejected: quote-absent-from-anchor
+PASS broken world rejected: client-name-absent
+self-test: 0 failure(s) over 49 assertions
+selftest-exit=0
+Self-test green: 0 failures over 49 assertions, exit 0. All 10 named broken worlds rejected; both classification pins green.
+
+  Now the counter-path regression battery in one batch:
+  1. Draft on worktree → expect `5 of 5` exit 0 (post-_split_row change — confirm the honest REAL tree still scores 5; the change affects only empty-first-cell rows).
+  2. Draft `--rev base` → `0 of 5` exit 1.
+  3. Installed counter on worktree → `5 of 5` exit 0 (unchanged — sanity that my draft agrees with landed semantics on the real tree).
+  4. Unknown rev against lane repo → exit 2 `environment error` (public path, real repo — read-only).
+  5. Diff draft vs installed to enumerate the exact delta for the report.
+  6. Also verify base control via the INSTALLED counter (--rev base) to confirm behavior parity on the rev path? The installed one: `--rev base` → materialize → entry missing → 0 of 5 exit 1 — same. Optional; do it for parity evidence.
+  7. `--self-test --rev X` guard → argparse error exit 2.
+
+  Also verify no lane-tree mutation: the selftest writes only under tempfile — and the runs do `git show` (read-only). Confirm with `git status --porcelain` scoped to... careful: `git status` is read-only ✓ allowed. Actually the lane uses jj too; just run `git status --porcelain | head` to show nothing new appeared beyond what the L1 has (can't distinguish — skip; my writes are provably only the two files I wrote under .ufo/waves/round-68/).
+
+  Run the batch.
+
+• 49/49 green. Counter-path regression battery now — parity with the landed counter on the real tree, base control, unknown-rev exit 2 on the real repo, the flag guard, and the exact delta vs installed:client trust gates backed 5 of 5
+draft-worktree-exit=0
+client trust gates backed 0 of 5
+  - entry missing: corpus/knowledge/client-trust-gates-round68.md
+draft-base-exit=1
+client trust gates backed 5 of 5
+installed-worktree-exit=0
+client trust gates backed 0 of 5
+  - entry missing: corpus/knowledge/client-trust-gates-round68.md
+installed-base-exit=1
+environment error: cannot read corpus/SOURCES.md at ffffffffffffffffffffffffffffffffffffffff
+unknown-rev-exit=2
+check_client_trust_gates.py: error: --self-test cannot be combined with --rev
+guard-exit=2
+40a41,56
+> 
+> `--self-test` (this arm)
+> ------------------------
+> Hermetic: it synthesizes ONE honest world and the named broken worlds in `tempfile` scratch
+> (never reading the lane tree, never touching the network), then drives the public `main()` and
+> `check()` paths on each.  Broken worlds, one per named conjunct break: entry missing; no
+> source line; id does not resolve; row not mined; row source cell absent from the entry's
+> source line; no verified-at; no recheck; no coverage-map row; located quote absent from the
+> row's anchor cell; one client row's client name absent from the table.  Every broken world
+> must be rejected (`0 of 5`, findings nonempty, exit 1, the frozen verdict line printed).  The
+> arm also pins the classification: (a) a missing entry exits 1 printing
+> `client trust gates backed 0 of 5` — never exit 2, never `environment error`; (b) an unknown
+> revision exits 2 with `environment error`.  It prints `self-test: N failure(s) over M
+> assertions` and exits 0 only when no failure.  The honest world carries a quoted section name
+> in each `source:` line, so the longest-match quote selection stays pinned: a regression to
+> first-match selection fails the honest world.
+44a61,62
+> import contextlib
+> import io
+103a122,126
+>     # The leading "|" is already stripped by the caller, so a first cell that
+>     # splits empty IS an empty first cell (e.g. an unfilled client cell in the
+>     # per-client table) and must survive: popping it made conjunct 7's
+>     # client-cell check structurally invisible.  Only the trailing "|" is
+>     # padding and is dropped.
+105,106d127
+<     if cells and cells[0].strip() == "":
+<         cells = cells[1:]
+285,303c306,308
+< def _world(root: Path, *, entry: str | None = None, sources: str | None = None,
+<            readme: str | None = None, drop_entry: bool = False) -> Path:
+<     dest = Path(tempfile.mkdtemp(prefix="k68-world-"))
+<     for path in (ENTRY, SOURCES, README):
+<         src = root / path
+<         out = dest / path
+<         out.parent.mkdir(parents=True, exist_ok=True)
+<         if src.is_file():
+<             out.write_text(src.read_text(encoding="utf-8"), encoding="utf-8")
+<     if drop_entry:
+<         (dest / ENTRY).unlink()
+<     if entry is not None:
+<         (dest / ENTRY).write_text(entry, encoding="utf-8")
+<     if sources is not None:
+<         (dest / SOURCES).write_text(sources, encoding="utf-8")
+<     if readme is not None:
+<         (dest / README).write_text(readme, encoding="utf-8")
+<     return dest
+< 
+---
+> # ---------------------------------------------------------------------------
+> # Self-test fixtures (hermetic — synthetic clients, never the lane's content)
+> # ---------------------------------------------------------------------------
+305,310c310
+< def selftest(repo: Path) -> int:
+<     failures = 0
+<     base = repo
+<     if not (base / ENTRY).is_file():
+<         print("selftest setup failed: the entry is not present in the working tree", file=sys.stderr)
+<         return 2
+---
+> # (id, client, source cell, located quote).  The ids are synthetic S7xx ids that
+head310-diff-exit=1
+  401 verifiers/check_client_trust_gates.py
+  573 .ufo/waves/round-68/w1/drafts/check_client_trust_gates.py
+  974 total
+
+
+• All green:
+
+  - Draft worktree: `client trust gates backed 5 of 5`, exit 0 — parity with installed ✓ (the `_split_row` fix does not disturb the honest real tree).
+  - Draft base control: `0 of 5` + `entry missing` finding, exit 1 — identical to installed ✓.
+  - Unknown rev via draft: `environment error: cannot read corpus/SOURCES.md at ffff…`, exit 2 ✓.
+  - Guard: `--self-test --rev` → usage error exit 2 ✓.
+  - Delta vs installed (first 310 lines identical except): (1) docstring `--self-test` section added; (2) imports contextlib/io; (3) `_split_row` leading-pop removed (THE one behavioral change to check semantics — kills the conjunct-7 hole); (4) `_world`/`selftest` replaced by hermetic fixtures. `check`/`fetch`/`_materialize` byte-identical. The rest of the diff (beyond line 310) is the new selftest arm + `_default_repo` + main guard.
+
+  Wait — one more check on the `_split_row` change: `_indexed()` uses `_split_row` on README lines. The REAL README coverage rows all have nonempty first cells → cells[1] unchanged ✓ (worktree 5 of 5 confirms). But — is there any REAL README row with an EMPTY first cell that previously relied on the pop for `_indexed`? `_indexed` returns True if ANY line matches cells[1]==needle — the needle row exists with nonempty first cell → True regardless ✓. And `_table_rows` on the real entry: all rows nonempty-first ✓ (5 of 5 confirms). Safe.
+
+  One more sanity: the draft must remain clean under `python3 -B` with no stderr noise — confirmed in runs.
+
+  Also confirm nothing in the lane tree was mutated by my runs: the self-test writes only under tempfile; the counter runs only read. The only lane writes I made: the draft file + (next) the report file. Both under `.ufo/waves/round-68/` ✓ within scope.
+
+  Double-check the task's "9 broken worlds" vs my 10: the spec's own enumeration lists ten items; I implemented all ten and say so in the report — over-coverage, no harm. Assertion count 49 (as designed: 4 honest + 40 worlds + 3 class-a + 2 class-b). M printed = 49 ✓ honest arithmetic.
+
+  Also confirm the report requirement: "Report: write your scoped findings to .ufo/waves/round-68/w1/ExecC1CounterTest.md" — write the report now with:
+  - What was built (file path, structure).
+  - Evidence: exact command outputs (self-test run, parity runs, base control, unknown rev, guard).
+  - The two defects the self-test caught on its own first run (client-name-absent vacuity → _split_row fix; git -C init).
+  - The mid-flight discovery: the installed file changed during the round (matched[0] → max-len; all-findings→0 gating; _materialize entry-continue) — my draft is aligned to the CURRENT landed bytes; check/fetch/_materialize byte-identical; delta enumerated.
+  - Remaining risks: (a) the `_split_row` leading-pop removal is the single semantic delta — the L1 must confirm acceptance since it alters the landed check() (blast radius: only empty-first-cell rows — real tree unaffected, verified 5 of 5 both paths); (b) the spec said "9 broken worlds" but enumerated ten — all ten implemented; (c) the classification (b) pin uses a scratch `git init` repo — requires git present (lane hard dep; failure is reported as an assertion failure, not a crash); (d) fetch arm not exercised by the self-test (network; out of the named spec) — unchanged from landed.
+  - Note: honest world intentionally carries quoted section names in source: lines to pin the longest-match selection (the earlier `matched[0]` revision would fail the honest world — regression tripwire).
+
+  Keep the report tight. Write it, then final response summarizing: files changed, behavior, evidence, remaining risks, blockers (none).
+
+• Everything green and parity confirmed. The delta vs the installed counter is exactly: docstring self-test section, `contextlib`/`io` imports, the one-line `_split_row` fix, and the replaced self-test arm + `_default_repo`/guard in `main()` — `check`/`fetch`/`_materialize` byte-identical to what the L1 landed mid-round. Writing the report:
+
+• Done. Final response per the executor contract: files changed, behavior, exact evidence, remaining risks, blockers. Keep it tight — the full detail is in the report.
+
+• **Files changed** (both under the allowed `.ufo/waves/round-68/`):
+  - `.ufo/waves/round-68/w1/drafts/check_client_trust_gates.py` — the C1 counter with the `--self-test` arm (573 lines)
+  - `.ufo/waves/round-68/w1/ExecC1CounterTest.md` — scoped report
+
+  **Behavior.** The self-test is hermetic: one honest world + ten named broken worlds (the task said "9" but enumerated ten; all ten implemented) synthesized in `tempfile` scratch with synthetic clients `S701–S705` on `.example` hosts — no lane-tree reads, no network, no mutating git (only `git init -q` in scratch). Each world is measured via `check()` and via the public `main()` (exit code + frozen verdict line). Classification pinned: missing entry → exit 1 printing `client trust gates backed 0 of 5` with no `environment error` anywhere; unknown revision → exit 2 with `environment error` (scratch git repo). Prints `self-test: 0 failure(s) over 49 assertions`, exit 0 only when clean. `check`/`fetch`/`_materialize` are byte-identical to the counter the L1 landed mid-round (the file changed under me: `matched[0]` → `max(matched, key=len)`, all-findings→`0 of 5` gating, entry-tolerant `_materialize` — draft aligned to the current bytes); the only semantic delta is `_split_row` no longer popping a leading empty cell, plus `--repo` walk-up default and the `--rev`/`--self-test` guard in `main()`.
+
+  **Evidence.** Self-test green: `self-test: 0 failure(s) over 49 assertions`, exit 0. Parity: draft worktree `client trust gates backed 5 of 5` exit 0; draft `--rev e94ae32a…` → `0 of 5` exit 1 with `entry missing` finding — identical lines/exit to the installed counter on both runs. Unknown rev → `environment error: cannot read corpus/SOURCES.md at ffff…`, exit 2. Guard → usage error exit 2. First self-test run was red (`5 failure(s) over 48 assertions`) and caught two real defects: (1) conjunct 7's client-cell check was **vacuous** — `_split_row` popped the leading empty cell, so the named `client-name-absent` world survived at 5 of 5 (fixed in `_split_row`, blast radius verified against the real tree); (2) `git -C` init needs an existing directory (fixed with mkdir + stderr surfaced in the FAIL label).
+
+  **Remaining risks.** The L1 must accept the `_split_row` delta — without it the named client-cell break is undetectable and the arm cannot honestly exit 0; real-tree regression checked both before and after (5 of 5 / 0 of 5 unchanged). Class-(b) pin requires `git` on PATH (lane hard dep; absence reports as an assertion failure, not a crash). The `--fetch` arm is unchanged and intentionally not exercised by the self-test (network is the L1's separate live-page measurement).
+
+  **Blockers.** None.
+
+To resume this session: kimi -r session_d2de4589-73f9-4f71-b469-e096cd69bba2

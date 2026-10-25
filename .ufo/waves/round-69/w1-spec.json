@@ -1,0 +1,289 @@
+{
+ "wave": "kotoba-r69-w1",
+ "milestone": "Round-69 wave 1 (build+attack): C1 depth (skill precedence, sourced), C2 consistency (r68 repairs), C3 coverage (PROVINCE Core), frontier + assimilation verification.",
+ "axes": [
+  "depth",
+  "consistency",
+  "coverage",
+  "calibration",
+  "freshness",
+  "operability",
+  "adjacency"
+ ],
+ "reportDir": ".ufo/waves/round-69/w1",
+ "context": "You are a Godspeed-enabled subagent.\n\n1. **Name the axes.**\n2. **Iterate cheap, in parallel.**\n3. **Keep moves that improve any axis and harm none.**\n4. **Don't aim \u2014 let the frontier walk itself.**\n\n## IMMEDIATELY STOP ASKING CLARIFYING QUESTIONS. Execute tool calls concurrently in large batches. Do not serialize what can run in parallel. Do not output philosophical reasoning or verbose plans. Act directly via tool calls.\n\n# Goal\nRound 69 of the kotoba lane (hyaku run 6, attempt 2). Base lane tip `a5f7459f99bb27bf697e9438362e75ac5833eca8`; the frozen plan is `/home/vgpnk/Projects/shokunin/kotoba-shokunin/plans/round-69.md` \u2014 READ IT FIRST. Three claims, frozen before any seat scored anything: C1 depth (skill name-collision precedence, sourced, `verifiers/check_skill_precedence.py`), C2 consistency (the eight routed r68 repairs, `verifiers/check_r68_routed_repairs.py`), C3 coverage (`verifiers/check_province_core.py`). The L1's content draft lands in the working tree of /home/vgpnk/Projects/shokunin/kotoba-shokunin; seats verify, attack and falsify it \u2014 they never modify SKILL.md, corpus/, verifiers/, PROVINCE.md, plans/ or any committed file. Everything a seat needs is in the lane repo; run the counters from a `git clone --shared` sandbox under /tmp when a check executes code, never in the lane.\n\nBounds (every seat):\n- Seats never mutate the fleet repo (/home/vgpnk/Projects/shokunin), sibling lanes, the lane's jj state or the lane Git index. Read-only git (log/show/diff/ls-tree/rev-parse) is fine; `git checkout`/`git write` in the lane is forbidden.\n- Kill only by the PIDs you started; contention cap 4 processes, 120 s.\n- All pacman transactions are paused host-wide; install via uv tool/npx/official binary in ~/.local/bin only.\n- Every `Report:` trailer path is relative to /home/vgpnk/Projects/shokunin/kotoba-shokunin \u2014 write it at /home/vgpnk/Projects/shokunin/kotoba-shokunin/<that path>. Your report is your full final response, and you may also drop a markdown seat report at the named path.\n- Never accept one seat's claim; re-run or re-open it yourself.",
+ "items": [
+  {
+   "name": "RevC1Counter",
+   "role": "reviewer",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Attack the C1 counter `/home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/check_skill_precedence.py` against its stated contract (docstring + plans/round-69.md C1). It is a committed frozen counter; do NOT edit it. In a sandbox clone, run `python3 -B verifiers/check_skill_precedence.py --self-test` and `--rev <branch-tip>` (the lane's branch tip hash from `git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin rev-parse master`). Find real logic flaws: could a malformed entry still score 5/5? Does a quote match that should not? Does the per-client table test check the right cells? Verify the base control `0 of 5` still holds at a5f7459. Report every concrete failing hypothesis with the exact command and observed output; verdict: the counter is sound, or a defect with reproduction."
+  },
+  {
+   "name": "CritC1Semantics",
+   "role": "critic",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Attack the C1 CLAIM semantically: does `skill precedence backed 5 of 5` actually mean what the claim says? Re-open the five pages (https://docs.roocode.com/features/skills, https://ampcode.com/docs/customize/skills, https://deepcode.vegamo.cn/en/docs/configuration/agent-skills, https://junie.jetbrains.com/docs/agent-skills.html, https://opencode.ai/docs/skills/) with curl and check: (1) each source row quote is verbatim on the page; (2) the entry's per-client rule cell is a fair reading of the page; (3) the \"four of five resolve by order\" and \"orders differ in kind\" claims in the entry are supported by the five pages; (4) nothing in the five pages contradicts the entry's Limits. Cite every mismatch with the page line."
+  },
+  {
+   "name": "ScoutRoo",
+   "role": "scout",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Re-open https://docs.roocode.com/features/skills (curl -sSL). Verify the S203 row quote \"Project skills override global skills, mode-specific override generic\" is verbatim and in the Override Control section; verify the \"Roo-specific (higher priority)\" label in the Choose-a-location lists; note any markup shaping (this quote is the unshaped bullet \u2014 confirm the words are contiguous) and any sentence that qualifies the order. Report access date 2026-10-25, the exact quote, the heading, and a one-line verdict FOUND/NOT FOUND."
+  },
+  {
+   "name": "ScoutAmp",
+   "role": "scout",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Re-open https://ampcode.com/docs/customize/skills (curl -sSL). Verify the S204 row quote \"Local skills mask repository skills with the same name.\" is verbatim in the Skill Sources and Precedence section; capture the full ordered source list (the page says personal skills mask workspace skills, both mask official Amp skills). Report access date 2026-10-25, the exact quote, the heading, and FOUND/NOT FOUND."
+  },
+  {
+   "name": "ScoutDeepCode",
+   "role": "scout",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Re-open https://deepcode.vegamo.cn/en/docs/configuration/agent-skills (curl -sSL). Verify the S205 row quote \"only the highest-priority one is kept\" is verbatim in the Scan Locations section and that the priority table actually orders the roots (Project ./.deepcode/skills/ then ./.agents/skills/ ...). Report access date 2026-10-25, the exact quote, the heading, and FOUND/NOT FOUND."
+  },
+  {
+   "name": "ScoutJunie",
+   "role": "scout",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Re-open https://junie.jetbrains.com/docs/agent-skills.html (curl -sSL). Verify the S206 row quote \"the project-level skill takes precedence and the user-level skill is ignored.\" is verbatim in the Skill location section. Report access date 2026-10-25, the exact quote, the heading, and FOUND/NOT FOUND."
+  },
+  {
+   "name": "ScoutOpencode",
+   "role": "scout",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Re-open https://opencode.ai/docs/skills/ (curl -sSL). Verify the S207 row quote \"Ensure skill names are unique across all locations\" is verbatim in the Troubleshoot loading section (it is one of the troubleshooting checks). Report access date 2026-10-25, the exact quote, the heading, and FOUND/NOT FOUND."
+  },
+  {
+   "name": "MutC1Counter",
+   "role": "mutation-tester",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Mutation-test the C1 counter `/home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/check_skill_precedence.py` in a sandbox: clone the lane (/home/vgpnk/Projects/shokunin/kotoba-shokunin) with --shared to /tmp, check out the branch tip, and run the counter's `--self-test` on the honest working tree (it must PASS). Then mutate the counter in the sandbox copy (e.g. swap `!=` for `==`, drop a conjunct, return `backed` without checking, weaken the quote match) and confirm the self-test FAILS on each mutant you kill; also run `--rev <tip>` on the honest sandbox to confirm `skill precedence backed 5 of 5` exit 0 and `--fetch` (needs network) finds 5 of 5. Report each mutant, the before/after statement, and whether the self-test caught it. Do NOT touch the lane's committed counter."
+  },
+  {
+   "name": "ExecR68Receipts",
+   "role": "executor",
+   "axes": [
+    "consistency"
+   ],
+   "prompt": "Verify the C2 receipt repair (D1) for `/home/vgpnk/Projects/shokunin/kotoba-shokunin`: the nine re-captured receipts under `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-69/recapture/` must each carry a `measured-rev:` line (40-hex, an ancestor of the branch tip), an `exit=<n>` line, and the expected verdict line named by `verifiers/check_r68_routed_repairs.py` (RECEIPTS dict). Re-run each command yourself in a /tmp sandbox at the receipt's measured-rev and confirm the receipt text matches what you observe. For C1-base.txt the measured rev must be the r68 base `e94ae32a5cd8dc3ee8e2d247816784bec2750cc0`. Report per-receipt: expected vs observed exit code and verdict line, and any receipt that lies."
+  },
+  {
+   "name": "ExecR67Counter",
+   "role": "executor",
+   "axes": [
+    "consistency"
+   ],
+   "prompt": "Verify the D3 repair: `/home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/check_r67_routed_repairs.py` must (1) contain no `git checkout` invocation (grep the source), and (2) classify a missing records file as a content verdict. In a sandbox clone of /home/vgpnk/Projects/shokunin/kotoba-shokunin, run the counter at the r68 base `e94ae32a5cd8dc3ee8e2d247816784bec2750cc0` (expect `r67 routed defects closed 0 of 4`, exit 1, NOT exit 2) and at the r68 tip `2cf0d99a6d5a3e1cb0b73e3b71cb495fd1eadc6f` (expect `4 of 4`, exit 0). Also run its `--self-test`. Report the observed outputs and exit codes."
+  },
+  {
+   "name": "ExecIntegrityBaseline",
+   "role": "executor",
+   "axes": [
+    "consistency"
+   ],
+   "prompt": "Verify D8: run `python3 -B /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/verify_corpus_integrity.py --no-baseline --json` in a sandbox clone of /home/vgpnk/Projects/shokunin/kotoba-shokunin at the branch tip. Read `/home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/corpus-baseline.json` and check the four `expect` values (corpus.index.tracked_files, unindexed, report_total, commit_total) equal the gate's own observed values. Report the two sets; if they differ, name the drift. Do not edit the baseline."
+  },
+  {
+   "name": "ReviewGateRegistry",
+   "role": "reviewer",
+   "axes": [
+    "consistency"
+   ],
+   "prompt": "Run `python3 -B /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/check_gate_registry.py --rev <branch-tip>` in a sandbox clone of /home/vgpnk/Projects/shokunin/kotoba-shokunin. It must print `gate registry rows conformant 49 of 49 lane verifiers; phantom 0` and exit 0. Verify the three new rows (check_skill_precedence.py, check_r68_routed_repairs.py, check_province_core.py) exist in `/home/vgpnk/Projects/shokunin/kotoba-shokunin/SKILL.md` \u00a7 Gate registry and that each row's flags (--rev/--self-test/--fetch) match what each script's argparse actually accepts. Report the count and any mismatch."
+  },
+  {
+   "name": "ExecSourcesAppendOnly",
+   "role": "executor",
+   "axes": [
+    "consistency"
+   ],
+   "prompt": "Verify SOURCES append-only: run `python3 -B /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/check_sources_append_only.py --base 422ffd1082b3f4ae3ebda6060eb1a8d779f6dfd4 --rev <branch-tip>` in a sandbox clone of /home/vgpnk/Projects/shokunin/kotoba-shokunin; it must exit 0. Also run the frozen census from the lane root: `grep -cE '^\\|[[:space:]]*S[0-9]{3,}[[:space:]]*\\|' /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md` (expect 134), the malformed-row count (expect 0), and `/home/vgpnk/Projects/shokunin/scripts/sources-census.sh validate --root /home/vgpnk/Projects/shokunin kotoba` (expect exit 0). Report all three numbers and outputs."
+  },
+  {
+   "name": "ReviewLessonGate",
+   "role": "reviewer",
+   "axes": [
+    "discernment"
+   ],
+   "prompt": "Review `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/lessons/round-69.md` \u00a7 Gate against the round contract and the S203-S208 source rows in `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md`. Each admitted row must have its URL, access date 2026-10-25 and a \u226425-word located quote in the Gate; each new row's anchor must carry a quote that is verbatim on the cited page (re-open one or two with curl to spot-check); the refusal section must state a flip condition; the shaping notes must name exactly which bytes were removed (S200 `<code>`, S202 `**`). Report missing/defective items; do not edit."
+  },
+  {
+   "name": "CritC2Repairs",
+   "role": "critic",
+   "axes": [
+    "consistency"
+   ],
+   "prompt": "Attack the C2 claim: does `r68 routed defects closed 8 of 8` fully close the eight routed defects R68-1\u2026R68-8 as the hyaku closure phrased them (read `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/lessons/round-68-verifier-spotcheck.md` \u00a7 Routed defects)? For each: the closure's wording vs the counter's check (D1-D8) \u2014 any check that is weaker than the routed defect it claims to close is a finding. Also verify the counter's own `--self-test` passes at the branch tip. Report per-defect verdicts."
+  },
+  {
+   "name": "ScoutQuarantine",
+   "role": "scout",
+   "axes": [
+    "freshness"
+   ],
+   "prompt": "Hand-check the quarantine rows that this round's theme touches: rows S185 (Roo Code) and S172 (Junie) from the campaign's absent-defect register (`/home/vgpnk/Projects/shokuknow/.ufo/waves/corpus-expansion-1/absent-defect-register.md`, read-only) claim `payload-absent` verdicts. Fetch https://docs.roocode.com/features/skills and https://junie.jetbrains.com/docs/agent-skills.html and locate the quoted spans named by the register rows; the lane's S203/S206 rows now carry quotes from these pages. Report whether each register row's cited span is present or absent today and the exact quote."
+  },
+  {
+   "name": "ConnectorSiblingScan",
+   "role": "connector",
+   "axes": [
+    "adjacency"
+   ],
+   "prompt": "Scan the sibling lanes for anything that touches this round's ground: same-named skill precedence, per-client rule-file/trust maps, or a sibling claiming part of this round's surface (read `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/knowledge/sibling-overlap-census-round49.md` for the census rows and their pinned commits). If a sibling lane's corpus or SKILL.md documents skill-name precedence or alleges a boundary that crosses kotoba's, name the sibling, the file, the line and the finding. Report only; never edit a sibling."
+  },
+  {
+   "name": "CritC3Province",
+   "role": "critic",
+   "axes": [
+    "coverage"
+   ],
+   "prompt": "Attack the C3 claim: run `python3 -B /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/check_province_core.py --rev <branch-tip>` in a sandbox clone (expect `province core rows 2 of 2`, exit 0) and `--self-test`. Then read `/home/vgpnk/Projects/shokunin/kotoba-shokunin/PROVINCE.md` \u00a7 Core: do the two new bullets (instruction-authority ladder round 67; client trust gates round 68) name the entry, the counter and the round, and do they belong in Core per the round's own definition? Also run `git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin show a5f7459f99bb27bf697e9438362e75ac5833eca8:PROVINCE.md > /tmp/base-pv.md` and diff the ## Frontier and ## Adjacent sections against the current file \u2014 they must be byte-identical. Report the counter output and any section diff."
+  },
+  {
+   "name": "ScoutSiblingRuleMaps",
+   "role": "scout",
+   "axes": [
+    "coverage"
+   ],
+   "prompt": "Survey whether any of the five clients in this round's entry (Roo Code, Amp, Deep Code, Junie, opencode) is already covered by another kotoba entry (grep `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/knowledge/` for their names), and whether opencode's own docs contain a precedence statement beyond the troubleshooting uniqueness check (search https://opencode.ai/docs/skills/ and related pages). Report what you find \u2014 this is coverage-map reconnaissance, not an edit."
+  },
+  {
+   "name": "RevSkillMarkdown",
+   "role": "reviewer",
+   "axes": [
+    "consistency"
+   ],
+   "prompt": "Review the round-69 diffs of `/home/vgpnk/Projects/shokunin/kotoba-shokunin/SKILL.md` (three new Gate registry rows) and `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/README.md` (two new coverage-map rows) for contract compliance: each registry row must be in the \u00a7 Gate registry table with an entry command that the script's own argparse accepts; each coverage-map row's File cell must resolve to a real tracked corpus file. Also confirm no other SKILL.md content changed (the round should only add the three rows). Report findings with line numbers."
+  },
+  {
+   "name": "ScribeFactsAudit",
+   "role": "scribe",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "The round's report will claim specific facts. Verify the countable ones now against the lane alone: (1) `git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin status --porcelain` lists the round-68 wave paths (24) and the round-69 paths; (2) `wc -l /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md` and the census counts above; (3) `/home/vgpnk/Projects/shokunin/scripts/hyaku/jj-lane.sh state /home/vgpnk/Projects/shokunin/kotoba-shokunin` shows the branch and ahead/behind; (4) the freeze receipt `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-69/controls/freeze-receipt.txt` lists the three counter sha256s \u2014 confirm they match `sha256sum` of the three committed counter files at the branch tip. Report each measured value with its command."
+  },
+  {
+   "name": "ExecCollisionGuard",
+   "role": "executor",
+   "axes": [
+    "consistency"
+   ],
+   "prompt": "Re-run the id-collision guard in scratch: with `S=/home/vgpnk/Projects/shokuknow` and `A=/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-69/assimilation`, run the frozen grep/comm pipeline (reg-ids from /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md, staged-ids from $S/merge/kotoba/SOURCES.append.md, collisions = comm -12). Verify `wc -l` prints 128/188/0. Then prove the guard non-vacuous on the scratch fixture `  | S203 |` (indented): the 0-3-space pattern must catch it, the column-zero-only pattern must miss it. Report the numbers and the proof output."
+  },
+  {
+   "name": "ExecFetchArm",
+   "role": "executor",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Run the C1 counter's `--fetch` arm from the lane root with `--rev <branch-tip>` (it needs network): `python3 -B /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/check_skill_precedence.py --rev <tip> --fetch`. It must print `skill precedence backed 5 of 5` and `live quotes found 5 of 5`, exit 0. Report the full output. If any fetch fails, report the exact error and URL."
+  },
+  {
+   "name": "ScribeQuotes",
+   "role": "scribe",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Verify the twelve quotes this round carries against the fetched pages: the five C1 quotes (S203-S207) and the S208 approval sentence. The pages are cached under /tmp/k69-fetch/ (roo.html, amp.html, deep.html, junie.html, opencode.html) if they still exist, else curl them again. For each quote print: page, verbatim status, word count (`wc -w`), and the exact context line. Flag any quote whose normalized form is not on the page."
+  },
+  {
+   "name": "RevMistakes",
+   "role": "reviewer",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Review `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/lessons/round-69.md` \u00a7 Mistakes: each row must name a class, an evidence pointer, a captured-by (or `none`) and a fix shown able to fail. The R68-6 row (M111) must name R68-6 and S201; the R68-7 row (M112) must name the disposition of the clone. Verify the evidence pointers resolve (files exist at the branch tip). Report missing/defective rows."
+  },
+  {
+   "name": "ScoutStaleLane",
+   "role": "scout",
+   "axes": [
+    "freshness"
+   ],
+   "prompt": "Check the stale-lane actuator facts for this round's report: (1) `grep -n 'lane-dead-no-report kotoba round=69' /home/vgpnk/Projects/shokunin/.ufo/watchdog.log` \u2014 the earlier-attempt line (attempt 1 died 13 minutes in on a provider error); (2) `grep -n 'kotoba' /home/vgpnk/Projects/shokunin/.ufo/l0-questions.md | tail -5` \u2014 the lane's open L0 lines; (3) verify this round's launch line(s) exist. Report the exact lines and timestamps."
+  },
+  {
+   "name": "ExecOmpSkills",
+   "role": "executor",
+   "axes": [
+    "operability"
+   ],
+   "prompt": "Verify the omp and opencode skill surfaces this round touches: `ls /home/vgpnk/.agents/skills/ 2>/dev/null | wc -l` (skill dirs) and confirm the five client URLs this round cites are reachable today (`curl -I -s -o /dev/null -w '%{http_code}'` each). Also verify `/home/vgpnk/Projects/shokunin/kotoba-shokunin/SKILL.md` is exactly 600 lines at the branch tip (`wc -l`) and the description frontmatter parses (inspect manually). Report the numbers."
+  },
+  {
+   "name": "CritMistakeSweep",
+   "role": "critic",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Falsify the round's own mistake mining: sweep `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/lessons/` for any round-68 lesson that already mined the R68-6 class (wrong refusal reason) or the R68-7 class (uncommitted wave paths) \u2014 if the class was already captured, the new row must say so. Also sweep the round-69 lesson for ungrounded numbers: every count must carry a command or a resolvable pointer. Report findings."
+  },
+  {
+   "name": "ReviewC1Entry",
+   "role": "reviewer",
+   "axes": [
+    "depth"
+   ],
+   "prompt": "Review `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/knowledge/skill-name-precedence-round69.md` against QUALITY Q12/Q25/Q26: it opens with five `source:` lines naming S203-S207 then `verified-at: 2026-10-25` then `recheck:`; each source line's tail contains the row's source cell; the per-client table has five rows each carrying the located quote and a distinct client; the entry is indexed in `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/README.md`. Run `python3 -B /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/check_skill_precedence.py --rev <branch-tip>` in a sandbox clone to confirm `5 of 5` exit 0. Report defects, if any."
+  },
+  {
+   "name": "ExecGateAll",
+   "role": "executor",
+   "axes": [
+    "operability"
+   ],
+   "prompt": "Run the full gate battery at the branch tip in a sandbox clone of /home/vgpnk/Projects/shokunin/kotoba-shokunin: `verify_corpus_integrity.py --json` (expect 9/9 exit 0), `verify_corpus_independent.py --json` (exit 0), `verify_skill_checklist.py --json` (exit 0), `check_gate_registry.py --rev <tip>` (49 of 49), `check_r68_routed_repairs.py --rev <tip>` (8 of 8), `check_skill_precedence.py --rev <tip>` (5 of 5), `check_province_core.py --rev <tip>` (2 of 2). Print each command, exit code and the verdict line. Report any gate that is not green."
+  },
+  {
+   "name": "ScribeBaseline",
+   "role": "scribe",
+   "axes": [
+    "consistency"
+   ],
+   "prompt": "Read `/home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/corpus-baseline.json` and confirm its `note` field documents the round-69 re-record (tracked_files 127, unindexed 0, report_total 89, commit_total 38 \u2014 or the exact values the gate measures at the tip). Flag any note that references an older record without a round-69 entry."
+  },
+  {
+   "name": "RevSourcesRows",
+   "role": "reviewer",
+   "axes": [
+    "consistency"
+   ],
+   "prompt": "Review the six appended rows S203\u2013S208 in `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md`: each must be an 11-cell row (id | source | kind | tier | scope | anchor | teaches | status | opened | recheck | used-by), no cell may contain a literal or escaped `|`, the `opened` cell must be 2026-10-25, `status` mined, `recheck` a bare cadence, and `used-by` exactly the entry path that cites it. Re-run `scripts/sources-census.sh validate --root /home/vgpnk/Projects/shokunin kotoba` (expect exit 0, W04 notices only). Report any schema defect with the row id."
+  },
+  {
+   "name": "RevFreezeReceipt",
+   "role": "reviewer",
+   "axes": [
+    "calibration"
+   ],
+   "prompt": "Read the freeze receipt `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-69/controls/freeze-receipt.txt`: it records `check_skill_precedence --self-test` exit 2 (`selftest setup failed: the entry is not present in the working tree`) at freeze time, because the self-test builds its honest world from the entry, which only exists after C1 lands. Verify the round-69 lesson or plan explains this freeze-time exit-2 (it is a setup artifact, not a counter defect), and that at the branch tip the self-test now exits 0. Report whether the explanation exists."
+  },
+  {
+   "name": "ExecChecklistR69",
+   "role": "executor",
+   "axes": [
+    "operability"
+   ],
+   "prompt": "Run the skill-checklist gate at the branch tip: `python3 -B /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/verify_skill_checklist.py --json` in a sandbox clone (expect exit 0, 10+ PASS). Also run `python3 -B /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/verify_corpus_independent.py --json` (expect exit 0). Print outputs and exit codes; report any red."
+  }
+ ]
+}

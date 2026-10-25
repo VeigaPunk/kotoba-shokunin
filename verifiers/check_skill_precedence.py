@@ -26,10 +26,12 @@ What the counter reads (content, not names — QUALITY Q25/Q26).  For
   3. every cited id resolves to an 11-cell row in `corpus/SOURCES.md` whose `status` is `mined`,
      whose `opened` cell is `2026-10-25`, and whose `used-by` cell names the entry;
   4. each cited row's `source` cell occurs verbatim in the entry's `source:` line for that id;
-  5. for each cited id, the entry carries a double-quoted located quote of at most 25 words that
-     also occurs in that row's `anchor` cell (the longest such quote is the row's quote);
+  5. for each cited id, the entry carries a double-quoted located quote of 5 to 25 words that
+     also occurs in that row's `anchor` cell (the longest such quote is the row's quote); a
+     shorter span of five words or more is never satisfied by a section title;
   6. each cited id has exactly one row in the entry's per-client table whose client cell is
-     filled, whose rule cell is filled, and which carries that located quote;
+     filled and is not the id itself, whose rule cell is a sentence of at least six words,
+     and whose quote cell carries that located quote;
   7. the five table rows name five distinct clients;
   8. the entry is indexed in `corpus/README.md`'s coverage map.
 
@@ -51,6 +53,7 @@ from __future__ import annotations
 import argparse
 import html
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -117,7 +120,7 @@ def _source_rows(text: str) -> dict[str, list[str]]:
         if not re.match(r"^ {0,3}\|", line):
             continue
         cells = _cells(line)
-        if len(cells) == 11 and re.fullmatch(r"S\d{3,}", cells[0]):
+        if len(cells) == 11 and re.fullmatch(r"S\d{3,}", cells[0]) and cells[0] not in rows:
             rows[cells[0]] = cells
     return rows
 
@@ -153,7 +156,7 @@ def _provenance(entry: str) -> tuple[dict[str, str], list[str]]:
 
 
 def _quoted(text: str) -> list[str]:
-    return [q for q in QUOTED_RE.findall(text) if 0 < len(q.split()) <= 25]
+    return [q for q in QUOTED_RE.findall(text) if 5 <= len(q.split()) <= 25]
 
 
 def _table_rows(entry: str) -> list[list[str]]:
@@ -168,7 +171,13 @@ def _table_rows(entry: str) -> list[list[str]]:
 
 def _indexed(readme: str) -> bool:
     needle = f"`knowledge/{Path(ENTRY).name}`"
+    in_map = False
     for line in readme.splitlines():
+        if line.startswith("## "):
+            in_map = line.strip() == "## Coverage map"
+            continue
+        if not in_map:
+            continue
         cells = _cells(line)
         if len(cells) >= 2 and cells[1] == needle:
             return True
@@ -211,7 +220,7 @@ def check(root: Path) -> tuple[int, list[str]]:
         if ENTRY not in [p.strip() for p in re.split(r"[,;]", row[10])]:
             findings.append(f"{sid}: used-by does not name {ENTRY}")
             continue
-        if row[1] not in tail:
+        if len(_norm(tail)) < 20 or row[1] not in tail:
             findings.append(f"{sid}: the row's source cell is not in the entry's source line")
             continue
         quote = _row_quote(row, quotes)
@@ -226,10 +235,13 @@ def check(root: Path) -> tuple[int, list[str]]:
         if len(cells) < 4 or not cells[0] or not cells[1]:
             findings.append(f"{sid}: the per-client table row lacks a client or rule cell")
             continue
-        if quote not in _norm(" ".join(cells)):
+        if re.fullmatch(r"S\d{3,}", cells[0]) or len(_norm(cells[1]).split()) < 6:
+            findings.append(f"{sid}: the per-client table row's client or rule cell is a stub")
+            continue
+        if quote not in _norm(cells[2]):
             findings.append(f"{sid}: the per-client table row does not carry the located quote")
             continue
-        clients.append(cells[0].lower())
+        clients.append(_norm(cells[0]).lower())
         backed += 1
     if len(set(clients)) != len(clients):
         global_findings.append("two table rows name the same client")
@@ -312,10 +324,18 @@ def selftest(repo: Path) -> int:
     src, _ = _provenance(entry)
     first = next(iter(src))
     rows = _source_rows(sources)
-    row = rows[first]
-    row_line = next(l for l in sources.splitlines() if _cells(l)[:1] == [first])
+    row = rows.get(first)
+    row_line = next((l for l in sources.splitlines() if _cells(l)[:1] == [first]), None)
+    if row is None or row_line is None:
+        print("selftest setup failed: the first cited id has no registry row in the working tree",
+              file=sys.stderr)
+        return 2
     quote = _row_quote(row, _quoted(_norm(entry)))
-    table_line = next(l for l in entry.splitlines() if _cells(l) and first in _cells(l))
+    table_line = next((l for l in entry.splitlines() if _cells(l) and first in _cells(l)), None)
+    if table_line is None or quote is None:
+        print("selftest setup failed: the first cited id has no per-client table row, or its "
+              "anchor carries no located quote in the working tree", file=sys.stderr)
+        return 2
     tcells = _cells(table_line)
     second = list(src)[1]
     other_line = next(l for l in entry.splitlines() if _cells(l) and second in _cells(l))
@@ -347,6 +367,15 @@ def selftest(repo: Path) -> int:
         "table row loses the quote": _world(repo, entry=entry.replace(
             table_line, "| " + " | ".join("elided" if quote in _norm(c) else c for c in tcells) + " |")),
         "table row duplicated": _world(repo, entry=entry.replace(table_line, table_line + "\n" + table_line)),
+        "table row client is the id": _world(repo, entry=entry.replace(
+            table_line, "| " + " | ".join([first] + tcells[1:]) + " |")),
+        "table row rule cell empty": _world(repo, entry=entry.replace(
+            table_line, "| " + " | ".join(tcells[:1] + [""] + tcells[2:]) + " |")),
+        "table quote cell loses the quote": _world(repo, entry=entry.replace(
+            table_line, "| " + " | ".join(tcells[:2] + ["elided quote"] + tcells[3:]) + " |")),
+        "coverage row under a junk heading": _world(repo, readme=readme.replace(
+            f"`knowledge/{Path(ENTRY).name}`", "`knowledge/absent.md`") + "\n## Removed entries\n\n"
+            f"| stale | `knowledge/{Path(ENTRY).name}` | x |\n"),
         "two rows name one client": _world(repo, entry=entry.replace(
             other_line, "| " + " | ".join([tcells[0]] + _cells(other_line)[1:]) + " |")),
         "no coverage-map row": _world(repo, readme=readme.replace(
@@ -359,7 +388,10 @@ def selftest(repo: Path) -> int:
             failures += 1
         else:
             print(f"PASS broken world rejected: {name}")
-    n, _ = check(_world(repo, drop_entry=True))
+        shutil.rmtree(world, ignore_errors=True)
+    missing = _world(repo, drop_entry=True)
+    n, _ = check(missing)
+    shutil.rmtree(missing, ignore_errors=True)
     if n != 0:
         print(f"FAIL missing-entry classification: backed {n}, expected 0", file=sys.stderr)
         failures += 1
@@ -377,6 +409,9 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--self-test", action="store_true")
     args = ap.parse_args(argv)
     repo = Path(args.repo)
+    if not repo.is_dir():
+        print(f"environment error: {repo} is not a directory", file=sys.stderr)
+        return 2
     if args.self_test:
         return selftest(repo)
     try:

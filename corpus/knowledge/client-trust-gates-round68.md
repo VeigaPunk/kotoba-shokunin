@@ -3,8 +3,9 @@ source: S199 — Parallel Works — pw code skills — https://parallelworks.com
 source: S200 — Kilo Code — Skills — https://kilo.ai/docs/customize/skills — the "Shell commands in skills" section — located quote "Project skills (.kilo/skills/ in a repository) and skills fetched from remote URLs never execute commands"
 source: S201 — Microsoft Agent Framework — Agent Skills — https://learn.microsoft.com/en-us/agent-framework/agents/skills — the "Security best practices" subsection — located quote "Agent Skills should be treated like any third-party code you bring into your project."
 source: S202 — Mistral AI Vibe — README — https://raw.githubusercontent.com/mistralai/mistral-vibe/main/README.md — the "Skill Discovery" section — located quote "Standard Agent Skills path (project root, trusted folders only)"
+source: S208 — Microsoft Agent Framework — Agent Skills — https://learn.microsoft.com/en-us/agent-framework/agents/skills — the tool-approval prose under "Use Agent Skills with Harness Agent" — located quote "All three skill tools require approval by default."
 verified-at: 2026-10-24
-recheck: 90d — re-fetch each of the five URLs and confirm the five located quotes are unchanged
+recheck: 90d — re-fetch each of the five URLs and confirm the six located quotes are unchanged
 
 # Client trust gates — what a client documents about an untrusted skill body
 
@@ -33,9 +34,9 @@ each re-opened on 2026-10-24 with a located quote (the Gate block of
    a workspace-level grant (S199), a per-skill execution grant (S199), a trusted-location rule
    for embedded commands (S200), a trusted-folder rule for discovery (S202). S199 states the
    bound in one sentence: *Model invocation can never grant either gate.*
-3. **Approval and review (S201).** The gate is on the tool calls, not on the load: the three
-   skill tools require approval by default, and the guidance treats a skill as third-party code
-   with the review discipline of an open-source dependency.
+3. **Approval and review (S208, superseding S201's anchor).** The gate is on the tool calls, not
+   on the load: the three skill tools require approval by default, and the guidance treats a
+   skill as third-party code with the review discipline of an open-source dependency.
 
 ## What this changes for a skill author
 
@@ -44,11 +45,13 @@ each re-opened on 2026-10-24 with a located quote (the Gate block of
 - Where the client's gate is trust (S199, S200, S202), the author's *installation path* is part
   of the skill's behaviour: the same `SKILL.md` discovered from a trusted folder and from a
   repository root are not the same capability.
-- Where the gate is approval (S201), the failure mode is a prompt, not a refusal: the skill
+- Where the gate is approval (S208), the failure mode is a prompt, not a refusal: the skill
   loads, and every tool call it triggers is separately approved.
 
 ## Limits
 
+- Six source rows for five clients: S208 is a correction row on the same page as S201, added in
+  round 69 to supersede S201's anchor (the payload was present all along; the anchor was wrong).
 - Documentary evidence only. This entry records what five clients' own pages say; no runtime
   behaviour of any client was observed or measured by this lane.
 - Five clients, not a census: these are the five that document a trust boundary in prose this
@@ -73,3 +76,10 @@ five clients against the lane's own sibling census.
 - `corpus/knowledge/instruction-authority-ladder-round67.md` — the authority ladder (who
   outranks whom), the other half of this boundary.
 - `corpus/knowledge/alwayson-rule-files-round53.md` — which always-on file each client reads.
+
+## Amendment (round 69, routed defect R68-5)
+
+The S201 row's anchor quotes the `Security best practices` sentence. The approval-by-default
+sentence — "All three skill tools require approval by default." — is verbatim on the same page in
+the tool-approval section; row S208 supersedes the S201 anchor's claim with that sentence, and
+this entry's approval claim (section "Approval and review", S201) therefore cites S208.

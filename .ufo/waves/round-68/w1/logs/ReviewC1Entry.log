@@ -596,4 +596,415 @@ round-68.md
 
   E. **What the L1 must not copy blindly from the package entry** (per dispatch):
      1. The package's headline and ground say FOUR clients and explicitly exclude VT Code ("a posture rather than a mechanism... the lane should not count it as one"); the r68 entry counts FIVE with VT Code as a first-class shape. The departure must be stated (the landed entry does re-classify but does NOT acknowledge that the inherited package record refuses VT Code as a gate — a reader diffing the two records sees a silent contradiction). The landed entry's "three shapes" taxonomy silently overrides the package's "four shapes, VT Code doesn't count". Medium finding on the landed entry: add one sentence acknowledging the r7/package verdict and why r68 counts VT Code (the surface changed from "who implements a gate" to "what a client documents about an untrusted body" — which VT Code does document).
-     2. The package's S198 anchor "the 'Prompting Behavior' paragraph" is WRONG — the quote lives in "Activation Context" (vt.md lines 87-95). The landed row corrected this; do not copy the package's anchor
+     2. The package's S198 anchor "the 'Prompting Behavior' paragraph" is WRONG — the quote lives in "Activation Context" (vt.md lines 87-95). The landed row corrected this; do not copy the package's anchor.
+     3. The package's S200 paragraph "the skill body is replaced in place by a marker saying it is untrusted" — live text says "their placeholders are replaced with a marker noting the skill is untrusted" — it's the placeholders (command placeholders), not the skill body. The landed entry correctly omits it; keep it omitted.
+     4. The package's S202 claim "the only client of the four whose trust boundary is not about skills at all" — the r68 entry admits Mistral as a trust-gate row; the package's own qualifier must be carried or the difference stated.
+     5. The package's ground cell ("round-6 item 2") and its spec-dependency ("The specification's trust gate") must not be imported: the r68 claim is per-client documentation only. Landed entry complies ✓.
+     6. Package quotes for S199 "clear two independent gates" with `/skills trust <name>` and "can never grant either gate" — the second IS verbatim on-page ("Model invocation can never grant either gate." — I verified). Fine.
+
+  F. **`--rev <base> --fetch` crashes** (uncaught FileNotFoundError on missing entry in materialized root). Not part of the frozen predicate; robustness nit. Low.
+
+  G. Also check: does the entry's `source:` line quote-selection issue affect check() conjunct 6? check() takes max-length match — the located quote is longer than the section name → right selection ✓. So the repo-state verdict (5 of 5) is honest; only the fetch arm is broken.
+
+  H. One more check on the fetch URL extraction: S199's URL — the entry source line: `S199 — Parallel Works — pw code skills — https://parallelworks.com/docs/ai/code/skills — the "Trust" section — located quote "..."`. URL_RE stops at whitespace ✓ → correct URL. But wait: URL_RE = `https?://[^\s,;)\]]+` — for S198, URL is raw.githubusercontent...SKILLS_GUIDE.md — no trailing paren issue. For S201: learn.microsoft.com/en-us/agent-framework/agents/skills ✓. OK.
+
+  I. Now — prove the vacuous-fetch claim with a replication snippet. Also verify "Shell commands in skills" is in my kilo.html (yes, 3 occurrences confirmed earlier) and "Skill Discovery" in vibe.md (heading line 750 ✓). Also verify the section names appear as quoted spans BEFORE the located quote in each entry source line (they do — source lines: `— the "X" section — located quote "Y"` — X first). And quotes list order: `_quoted(_norm(entry))` preserves entry order (line 1..5). For each sid loop in fetch, `next(q for q in quotes if q in anchor)` — quotes is the GLOBAL list (all rows' quotes + section names + other quoted spans in the entry like "re-fetch"?). For S198's anchor, the first global quote occurring in S198's anchor: iterate quotes in order — the first quotes are from line 1: "Activation Context" (occurs in S198 anchor ✓) → selected. Yes.
+
+  Let me write the replication snippet carefully, reading from the lane repo, no writes to the lane (only stdout; snippet via heredoc into python3 — no file writes needed; python3 - <<'EOF' works. Actually `python3 - <<'EOF'` reads the script from stdin — no file created. It reads lane files read-only. Good.
+
+  Also double check the exact behavior for S199: anchor = `the "Trust" section; quote "Project skills are repository-controlled instructions, so they clear two independent gates." (12 words)`. Quotes from entry in order: line1: "Activation Context", "Skill content is..."; line2: "Trust", "Project skills are..."; ... For sid S199, does "Activation Context" occur in S199's anchor? No. "Skill content is..." in S199 anchor? No. "Trust" ✓ → selected quote = "Trust". "Trust" in pw.html body → yes trivially. FOUND (vacuous). For S201: quotes before it: "Activation Context", quote1, "Trust", quote2, "Shell commands in skills", quote3, "Security best practices", quote4... For S201's anchor: "Security best practices" occurs in anchor ✓ → selected = "Security best practices" → found (the real quote also on page, so no harm here, but still wrong string measured). So ALL FIVE fetch verdicts measured section names, not quotes. Only S200/S202 flip the verdict if fixed (their real quotes aren't contiguous in served bytes); S198/S199/S201 real quotes are contiguous, so fixed selection → 3 of 5, exit 1.
+
+  That's the demonstration to present: with correct selection, --fetch prints "live quotes found 3 of 5" and the conjunct FAILS as frozen. Let me run the replication to have it as executed evidence.
+
+  J. Also confirm the claim in plan/counter docstring: "--fetch additionally re-opens each cited URL and confirms the located quote is present on the live page" — the docstring says LOCATED QUOTE; the code does not. Docstring vs code mismatch — the instrument contradicts its own contract. Strengthens the finding.
+
+  K. Check the lessons Gate block (lines 10-93) for what it claims about the fetch — read lessons/round-68.md lines 1-100 to see whether it claims "quotes verified verbatim on the live pages". If the lesson claims verbatim verification for S200/S202, that's a false measurement record. Let me read it.
+
+  Also quickly: the entry line 15-16 says "(the Gate block of corpus/lessons/round-68.md carries the access record and the refusal)" — "the refusal" — check what refusals are recorded there (staged claims refused with flips — per the plan's frontier step). Read lines 1-110 of lessons/round-68.md.
+
+  Let me also run the counter --self-test to confirm it passes (evidence for the report) — cheap. And run my python replication. And read the lesson. Batch all.
+
+• `--fetch` printed **5 of 5 found** — but that contradicts my literal greps (S200/S202 = 0 contiguous hits in served bytes). I see a candidate mechanism: `fetch()` uses `next()` — the **first** quoted span in entry order that occurs in the row's anchor cell — and every entry source line quotes the *section name* ("Activation Context", "Trust", "Shell commands in skills", "Security best practices", "Skill Discovery") **before** the located quote. So the fetch arm may be verifying section headings, not quotes. Proving it by replication, running the self-test, and reading the lesson's Gate block:Traceback (most recent call last):
+  File "<stdin>", line 17, in <module>
+KeyError: 'S198'
+PASS broken world rejected: no recheck
+PASS broken world rejected: no coverage-map row
+PASS broken world rejected: quote not in the anchor cell
+PASS broken world rejected: table row loses the quote
+PASS missing-entry classification: backed 0 (content verdict)
+self-test: 0 failure(s) over 12 assertions
+exit=0
+
+
+• My replication snippet failed with KeyError: 'S198' — because my `rows()` used `line[1:].split("|")` which yields a leading empty cell? Let me redo: line starts with "|", line[1:] strips the first pipe, split("|") → first element "" (before the next pipe? no...). For `| S198 | ... |`, line[1:] = " S198 | ... | " → split("|") → [" S198 ", ..., " "] — 12 elements (trailing empty). len != 11 → skipped. The counter's `_source_rows` uses ROW_RE match on `^\|(.*)$` then splits group(1) and pops trailing empty. I need the same. Let me redo the replication correctly. Also handle the anchor cell index (row[5]).
+
+  Also important new facts from the lesson:
+  - The lesson's Gate block DOES record rejections with flips ✓ (S198 anchor re-point; S201 staged quote "All three skill tools require approval by default" REFUSED as a paraphrase because the page says "load_skill, read_skill_resource, run_skill_script require approval by default"). 
+
+  Wait — that changes my MS finding: the lesson says the page states "load_skill, read_skill_resource, run_skill_script require approval by default" — verbatim? My grep of ms.html showed "All three skill tools require approval by default. The harness tool-approval" — hmm! The page ALSO contains the literal phrase "All three skill tools require approval by default." So the lesson's refusal claim ("The page states the rule as a tool list ... not with the staged words 'All three skill tools'") is contradicted by my fetch: grep found "All three skill tools require approval by default." verbatim on the live page (my earlier grep -io output line 1: "All three skill tools require approval by default. The harness tool-approval"). So:
+  1. The refusal's factual basis is wrong TODAY (the page does contain the exact staged words — maybe the page changed since the scout fetched, or the scout grepped a section-variant page — the page may have multiple tabs/variants; my grep found it once).
+  2. The flip condition ("a fetch that renders the literal phrase ... would clear it") has ALREADY FIRED per my measurement.
+  3. BUT: caution — maybe my ms.html contains that phrase in a different locale/variant section, or in a heading "# All skill tools require approval by default." — note my grep also showed "# All skill tools require approval by default." (a code comment/heading without "three"). The first match "All three skill tools require approval by default. The harness tool-approval" — is that inside the Security best practices subsection? Need context. Let me pull context around those matches.
+
+  Also the S201 approval claim in the entry/row: the SOURCES row's ground cell asserts "the skill tools require approval by default" — with the lesson refusing the staged approval quote and the row carrying only the third-party-code quote, the approval clause in the row/entry is backed by... the lesson's OWN quote "load_skill, read_skill_resource, run_skill_script require approval by default" — is THAT verbatim on the page? Need to check ms.html for "load_skill, read_skill_resource, run_skill_script require approval by default" or the list form. My grep showed ") require approval by default. When a tool call requires approval..." twice — suggesting a list like "(load_skill, read_skill_resource, run_skill_script) require approval by default." Let me get full context.
+
+  So the MS story: the lane refused the staged quote for being a paraphrase, but my fetch shows the literal staged words ARE on the page (at least in the served body today). The refusal's flip has fired; per the lane's own rules the refusal must be revisited or the measurement explained. This is a real finding (Medium): either the scout measured a different page state (page changed within the day — possible), or the refusal is a wrong measurement. Evidence: quote what grep printed. I'll give path /tmp/ms.html evidence... but /tmp is my scratch, not citable lane evidence. Better: cite the command + output (the rules say "a command plus its output" is evidence). I'll give the exact curl+grep command so anyone can re-run.
+
+  Let me now:
+  1. Re-run the corrected replication (fetch-selection vs check-selection per row).
+  2. Pull ms.html context around "All three skill tools" and "require approval by default" and "load_skill".
+  3. Also verify S202 contiguousness question fully: is there ANY occurrence of "trusted folders only" outside the bold markers... doesn't matter; the staged quote as a whole is what must be found.
+  4. Check the kilo page: maybe urllib receives an SSR variant where the text is contiguous (that would explain "found" for S200 — but per my replication hypothesis, the fetch selected the section name "Shell commands in skills" which IS in the JSON payload; the located quote was never tested). The replication will show exactly which string each fetch verdict used. If fetch-selected for S200 = "Shell commands in skills", then found is vacuous REGARDLESS of body variant.
+
+  Also note the lesson's S200 recheck cell: "confirm the trusted-skills-only rule and the approval-prompt wording are unchanged" — fine.
+
+  One more check on the lesson Gate block S198: "The same section records that an activated skill renders as a bounded `<untrusted_skill_instructions>` block." — verify in vt.md: grep untrusted_skill_instructions. Let me check — vt.md line ~95 area. Quick grep.
+
+  And S199's second quote in the lesson: "Model invocation can never grant either gate." (7 words) — verified on-page ✓ (grep found it).
+
+  Also the entry's Limits: "S199's trust decision is bound to a hash of the bundle" — verified ✓ ("hash of the complete bundle, including scripts, references, and assets").
+
+  Also lesson line 41: "The same page states that the three skill tools 'require approval by default'." — the quoted fragment "require approval by default" IS on the page ✓ (multiple hits). OK.
+
+  Now the corrected replication + MS context + vt marker check. Also I want to confirm whether "Shell commands in skills" appears in the kilo body BEFORE/independent — yes 3 hits confirmed earlier. And "Skill Discovery" in vibe.md — heading at 750 ✓.
+
+  After that, compose the report. Also consider: does the S200 quote exist in an SSR variant? If urllib gets the same Next.js JSON, then even max-length selection would fail for S200 → live quotes 3 of 5 (S198,S199,S201), and S202 fails on `**`. But wait — my curl kilo.html: the JSON payload contains `"Project skills (",...` — the rendered text within ONE JSON string is "Project skills (" then a Tag object then " in a repository) and skills fetched from remote URLs never execute commands". Hmm — actually is " in a repository) and skills fetched..." within the same JSON string as never execute commands? From the grep output: `" in a repository) and skills fetched from remote URLs never execute commands"` — the tail after the Tag is one contiguous string: " in a repository) and skills fetched from remote URLs never execute commands". So a literal-safe shorter quote exists: "skills fetched from remote URLs never execute commands" (8 words) — contiguous. Good flip material.
+
+  For S202: literal-safe fragment "(project root, trusted folders only)" — 6 words contiguous (line 755). Or "Local project skills (project root, trusted folders only)" — not contiguous due to **. "(project root, trusted folders only)" is contiguous. Good flip.
+
+  Now, also confirm my claim that fetch() would pick section names: entry source line 3 (S200): `— the "Shell commands in skills" section — located quote "Project skills..."` — "Shell commands in skills" (4 words ≤25 ✓) quoted in entry → in quotes list, and it's a substring of S200's anchor cell (`the "Shell commands in skills" section; quote "..." (16 words)`) ✓. And it comes before the located quote in entry order (same line, earlier position; findall preserves order) ✓. So fetch-selected = "Shell commands in skills". Same pattern all five rows. Replication will confirm.
+
+  Also — one subtlety: quotes list is global across the whole entry, ordered by occurrence: line 1 gives ["Activation Context", "Skill content..."], line 2 gives ["Trust", "Project skills are..."], line 3 ["Shell commands in skills", "Project skills (...."], line 4 ["Security best practices", "Agent Skills should..."], line 5 ["Skill Discovery", "Standard Agent Skills path..."], then body quotes (e.g., "`<untrusted_skill_instructions>`"? not quoted; the table cells' quotes — already counted? The table repeats the quotes in double quotes — they'd appear again in the list; also "who outranks whom" etc. in prose are backtick-quoted not double-quoted; prose line 15-16: (the Gate block...) no quotes. § Limits: "S199's trust decision..." no double quotes; "the lane's pinned seven (Claude Code, Codex, ...)" — no quotes. OK.
+
+  For each sid, fetch iterates quotes in order and takes the FIRST that is a substring of that sid's anchor. For S198: first quote "Activation Context" — in S198's anchor ✓ → selected. For S199: "Activation Context" not in S199 anchor; "Skill content is..." not; "Trust" ✓ → selected. Etc. So all five selected = section names. The fetch arm measured headings. Prove by replication.
+
+  Let me also double-check that `_norm(q) in anchor` for "Trust": anchor for S199 = `the "Trust" section; quote "Project skills are repository-controlled instructions, so they clear two independent gates." (12 words)`. norm(anchor) contains `"Trust"` with quotes — the quote string "Trust" (without quote marks) — `norm(q) in anchor` → "Trust" in '...the "Trust" section;...' → YES (substring across the quote marks? "Trust" as a plain string appears inside the quoted span — yes, the characters T-r-u-s-t appear). ✓.
+
+  Run corrected replication + context greps now. Also `grep -c "untrusted_skill_instructions" vt.md`.
+
+• The self-test passes (12 assertions) — but it contains **no broken world for the `--fetch` arm**, which is exactly where the defect lives. My replication snippet had a parsing bug (trailing pipe cell); fixing it and pulling MS-page context for the refused S201 quote, which my fetch shows **verbatim on the live page** — contradicting the lesson's refusal basis:S198: fetch next() -> 'Activation Context'   | check max() -> 'Skill content is untrusted resource data; host tool and sandbox policy remains authoritative.'
+S199: fetch next() -> 'Trust'   | check max() -> 'Project skills are repository-controlled instructions, so they clear two independent gates.'
+S200: fetch next() -> 'Shell commands in skills'   | check max() -> 'Project skills (.kilo/skills/ in a repository) and skills fetched from remote URLs never execute commands'
+S201: fetch next() -> 'Security best practices'   | check max() -> 'Agent Skills should be treated like any third-party code you bring into your project.'
+S202: fetch next() -> 'Skill Discovery'   | check max() -> 'Standard Agent Skills path (project root, trusted folders only)'
+=== list form:
+load_skill
+load_skill
+load_skill and read_skill_resource, but not run_skill_script.
+load_skill and read_skill_resource, but not run_skill_script.
+=== count:
+2
+89:Activated skills render as bounded `<untrusted_skill_instructions>` with:
+=== S202 contiguity double-check:
+2. **Standard Agent Skills path** (project root, trusted folders only): `.agents/skills/` M-bM-^@M-^T [Agent Skills](https://agentskills.io) standard$
+
+
+• **PROVEN.** The replication shows: for all five rows, `fetch()`'s `next()` selects the **section name**, not the located quote:
+
+  - S198: fetch-measured "Activation Context" (a heading)
+  - S199: "Trust" (a heading)
+  - S200: "Shell commands in skills" (a heading)
+  - S201: "Security best practices" (a heading)
+  - S202: "Skill Discovery" (a heading)
+
+  So `--fetch`'s "live quotes found 5 of 5" measured five headings, zero located quotes. The frozen predicate's third conjunct — "--fetch finds each of the 5 located quotes on its live page" — is NOT satisfied; the counter merely prints as if it were. And the counter's own docstring (lines 31-32: "`--fetch` additionally re-opens each cited URL and confirms the located quote is present on the live page") contradicts the code.
+
+  Now the deeper question: if selection were fixed (max-length like check()), what would --fetch actually find?
+  - S198: quote contiguous in served bytes (grep -cF = 1) → found.
+  - S199: contiguous (1) → found.
+  - S201: contiguous (1) → found.
+  - S200: NOT contiguous in the Next.js JSON payload (0) → NOT FOUND (unless urllib gets a different body than curl; unverified — mark it).
+  - S202: NOT contiguous due to `**` markers (0) → NOT FOUND.
+
+  So an honest --fetch would print at most 3 of 5 (assuming urllib bodies match my curl bodies; for raw.githubusercontent URLs the body is identical modulo nothing; for kilo.ai, UA-dependent SSR could differ — I should verify with a urllib fetch of kilo and vibe to be rigorous. Actually vibe is raw.githubusercontent markdown — same body guaranteed? curl got it; urllib should too, same URL, GitHub raw doesn't vary body by UA. kilo.ai might. Let me quickly run the counter's own fetch code path against the real quotes with urllib to be exact — replicate fetch() but selecting max-length, fetching via urllib. That's the honest-counter simulation. Cheap and decisive.
+
+  **S201 MS page finding refined:** "All three skill tools require approval by default" appears **2 times** verbatim in the served page (count=2). The lesson's refusal says: "The page states the rule as a tool list — 'load_skill, read_skill_resource, run_skill_script require approval by default' — not with the staged words 'All three skill tools'." But my grep shows the literal staged words ARE on the page, twice. Also interesting: the list form on the page per grep is "load_skill and read_skill_resource, but not run_skill_script" (a different sentence about what the harness installs/pre-approves?) — the lesson's quoted "load_skill, read_skill_resource, run_skill_script require approval by default" with comma-separated list — did I find that exact sentence? My grep of "load_skill[^<]{0,160}" returned: "load_skill", "load_skill", "load_skill and read_skill_resource, but not run_skill_script." ×2. No comma-list sentence surfaced in the first 4 matches. The actual approval-default sentence on the page (from my earlier context grep): "All three skill tools require approval by default. The harness tool-approval..." — so the page's own wording IS "All three skill tools". The lesson's refusal basis appears to be a **mis-measurement** (perhaps the scout read a rendering where the sentence lives in a tab/accordion that didn't render, or grepped a localized variant). Either way, TODAY the flip condition the lesson itself names has fired: "Flip: a fetch that renders the literal phrase 'All three skill tools require approval by default' would clear it." My measurement renders it — twice.
+
+  Caveat honesty: my grep context for the first occurrence got cut ("The harness tool-approval") — both occurrences at count=2. It's plausibly one occurrence in the visible body + one in a JSON/SSO duplicate (Next-style pages often duplicate). Regardless: the phrase is in the served bytes.
+
+  But ALSO note: the refusal had a second leg — the scout said the page states the rule as a tool list. The page does have "load_skill and read_skill_resource, but not run_skill_script" sentences. So the scout wasn't hallucinating the tool names; they just missed (or a variant lacked) the "All three skill tools" sentence. Since I can only measure today's page, the finding is: the refusal's factual predicate no longer (or never did) hold; the flip has fired; per the lane's own refusal protocol the row must be re-measured and, if confirmed, the staged quote admitted as a second located quote — which would ALSO fix finding C (the compound-clause backing for the approval-by-default claim in the SOURCES ground cell and entry table).
+
+  Now the word-count annotations. Let me compute len(q.split()) for the five quotes (the counter's convention):
+  - S198: "Skill content is untrusted resource data; host tool and sandbox policy remains authoritative." → 13 ✓ (row says 13)
+  - S199: "Project skills are repository-controlled instructions, so they clear two independent gates." → 11 (row says 12)
+  - S200: "Project skills (.kilo/skills/ in a repository) and skills fetched from remote URLs never execute commands" → let me count: Project skills (.kilo/skills/ in a repository) and skills fetched from remote URLs never execute commands → 15 (row says 16)
+  - S201: "Agent Skills should be treated like any third-party code you bring into your project." → 14 (row says 13)
+  - S202: "Standard Agent Skills path (project root, trusted folders only)" → 9 ✓
+
+  Let me verify with python quickly (len(split())). S199: [Project, skills, are, repository-controlled, instructions,, so, they, clear, two, independent, gates.] = 11. S201: [Agent, Skills, should, be, treated, like, any, third-party, code, you, bring, into, your, project.] = 14. So rows S199 (12≠11), S200 (16≠15), S201 (13≠14) — inconsistent with the counter's own convention. And the convention itself is inconsistent ACROSS rows (if hyphen-split: S199=12 ✓ but S201=15≠13; no single convention matches all). All ≤25 either way, so no predicate impact — Low severity, but this is the consistency lane: the annotations disagree with the instrument's own word counter on 3 of 5 rows.
+
+  Hmm wait, actually let me be careful with S200: row says 16. len(split()) — "Project skills (.kilo/skills/ in a repository) and skills fetched from remote URLs never execute commands" → tokens: Project(1) skills(2) (.kilo/skills/(3) in(4) a(5) repository)(6) and(7) skills(8) fetched(9) from(10) remote(11) URLs(12) never(13) execute(14) commands(15) → 15. Row says 16. Under hyphen-splitting, nothing hyphenated here; ".kilo/skills/" is one token. 16 would require counting ".kilo/skills/" as two (".kilo" and "skills/")? Odd convention. Any convention: 15 or 16; ≤25 ✓.
+
+  I'll compute precisely in the honest-fetch simulation snippet and print len(split()) per quote for the record.
+
+  Also the S198 lesson claim "The same section records that an activated skill renders as a bounded `<untrusted_skill_instructions>` block." — verified: vt.md line 89 ✓ (inside Activation Context section, lines 87–96 ✓).
+
+  Now run the honest-fetch simulation: urllib-fetch each of the five URLs (same UA as the counter), select max-length candidate (the located quote), report found/not-found. This tells us what a corrected fetch arm would print TODAY. Expect: S198 ✓, S199 ✓, S201 ✓, S200 ✗ (JSON interruption) — unless urllib body differs, S202 ✗ (** interruption).
+
+  One risk: kilo.ai might block urllib UA → FETCH FAILED. Handle and report honestly.
+
+  Also confirm which URL the counter extracts for each (already reasoned: correct).
+
+  Then finalize the report. Remaining checks I should also do quickly:
+  - PROVINCE § Core/Adjacent: five clients are none of the 19 sibling lanes; the pinned-seven exclusion claim in the entry § Limits ✓ (VT Code, Parallel Works, Kilo, Agent Framework, Mistral Vibe — none in {Claude Code, Codex, VS Code, Copilot CLI, Gemini CLI, opencode, Cursor}).
+  - The entry's scope note references "the round's `RevC1Scope` seat checked the five clients against the lane's own sibling census" — I can't verify that seat ran; it's a forward reference to a seat report. As reviewer I note: verify that seat's log exists at landing. Check .ufo/waves/round-68/w1/logs/ for RevC1Scope.log — quick ls. The logs dir exists (from earlier ls: logs/ with 1136 bytes → several files). Let me ls it.
+  - Base control ✓ measured: "client trust gates backed 0 of 5" + "entry missing", exit 1 ✓ matches the frozen base line.
+  - One more predicate check: the frozen predicate line says exit 0 when N == 5 — measured ✓ exit=0.
+
+  For the report I also need per-row ADMIT/REFUSE verdicts on the FIVE staged claims per the dispatch's four questions. My verdicts (on the staged/package claims as they stand, and on the landed rows):
+
+  1. S198 VT Code — ADMIT. On-theme (untrusted body → host policy authoritative); quote verbatim contiguous (grep -cF=1); 13 words ≤25; anchor corrected from package's wrong "Prompting Behavior" to "Activation Context" (the lesson records the refusal of the staged anchor with flip ✓); not sibling ground. Package-entry warning: don't copy the package's anchor or its "four clients / VT Code doesn't count" framing.
+  2. S199 Parallel Works — ADMIT. On-theme (two-gate trust on repository-controlled skill); quote verbatim contiguous (1); 11–12 words; "Model invocation can never grant either gate." verified on-page; hash-of-bundle limit verified on-page. Not sibling ground.
+  3. S200 Kilo — ADMIT as claim, but the located quote is NOT literal-safe in served bytes (0 contiguous hits; Next.js JSON tag objects interrupt it). This is the exact defect class the package's own gate-quote-defect-round9/10 entries name (their remedy: replace with a literal-safe fragment). The staged package quote "every command in the file is listed in a single permission prompt before anything runs" — check contiguity: from my kilo grep: "every command in the file is listed in a single permission prompt before anything runs." appeared inside one JSON string → contiguous ✓. Interesting: the package's S200 quote IS contiguous while the lane's staged quote is NOT. Flip: re-anchor the located quote to a contiguous served-bytes fragment (e.g., "skills fetched from remote URLs never execute commands" — verify) or disclose a stripped-text normalization in the counter AND in the row. Until then the --fetch conjunct is false as declared.
+  4. S201 MS — ADMIT the third-party-code quote (verbatim contiguous, 13–14 words, on-theme). Two defects: (a) the row's/entry's approval-by-default clause rides on a quote that doesn't carry it (r63 compound-clause rule); the lesson refuses the exact staged approval quote claiming the page lacks those words — my fetch shows "All three skill tools require approval by default" occurs verbatim twice in today's served page, so the refusal's flip has FIRED and must be re-measured; if confirmed, admit the approval sentence as a second located quote, which also repairs (a). (b) The lesson's quoted tool-list sentence "load_skill, read_skill_resource, run_skill_script require approval by default" — I could not locate that comma-form sentence on today's page (page shows "load_skill and read_skill_resource, but not run_skill_script"); if that quote is recorded as a located quote anywhere it must be re-checked (I did not find it; mark unverifiable-as-located). Actually careful — the lesson uses it as an inline description, not a located quote admission. Keep as a note: the description doesn't match today's bytes either. Report as Medium with the evidence.
+  5. S202 Mistral — ADMIT with scope qualifier: the trust boundary is folder-level discovery, shared with non-skill instruction files (line 756 shows the same annotation on "Local project skills"; the package notes the same annotation on ordinary instruction files). On-theme? The dispatch's caution list names "discovery" as a possibly off-topic risk — but the row IS a trust gate (trusted folders only), so ADMIT; require the entry to keep the folder-level (not body-level) framing — the landed entry does say "discovery itself is gated" ✓ and § What-this-changes says the install path is part of behaviour ✓. The quote is NOT contiguous in raw bytes (0 hits; `**` breaks it). Flip: re-anchor to the contiguous fragment "(project root, trusted folders only)" (verify) or disclose normalization.
+
+  So the pattern: the located quotes for S200/S202 don't survive the very literal-check the lane's inherited package standard demands, and the instrument hid this by measuring headings.
+
+  Also the package-entry "don't copy blindly" list (the dispatch asks for it explicitly):
+  1. Package headline/ground: "four clients... four different shapes"; VT Code explicitly "should not count". Landed entry counts five and makes VT Code shape #1 — a silent override of the inherited record; must be acknowledged in the entry (currently it isn't).
+  2. Package S198 anchor "the Prompting Behavior paragraph" is wrong (quote lives in Activation Context) — already caught and refused by the lesson ✓; don't restore it.
+  3. Package S200 "the skill body is replaced in place by a marker saying it is untrusted" — page says the PLACEHOLDERS are replaced; body isn't. Landed entry omits it ✓; keep omitted.
+  4. Package S201 quote "All three skill tools require approval by default" — the lesson refused it as a paraphrase; today's page contains it verbatim (2 hits) — the refusal needs re-measurement rather than blind copy in either direction.
+  5. Package ground "round-6 item 2" and spec-dependency framing — not lane ground; landed entry correctly re-grounded ✓.
+  6. Package S202 "the only client of the four whose trust boundary is not about skills at all" — carried qualifier must survive any copy (folder-level, shared with instruction files).
+
+  Residual risks / verification gaps:
+  - I could not confirm what body urllib receives for kilo.ai (UA-dependent SSR variance) — my not-found evidence is curl-based; but the vacuous-selection proof stands regardless of body (the fetch arm never searched for the quote at all).
+  - The RevC1Scope seat report existence — check logs dir.
+  - --rev base --fetch crashes with FileNotFoundError traceback (uncaught; only EnvError is caught in main; fetch does (root/ENTRY).read_text() on a root where _materialize skipped ENTRY). Low.
+  - Self-test has no fetch-arm broken world; add one (fixture where section name present but quote absent must FAIL fetch).
+  - Word-count annotations on S199/S200/S201 disagree with the counter's own len(split()) convention (and with each other's convention). Low.
+  - Sources row anchor says S202 "the 'Skill Discovery' section" — heading is actually `### Skill Discovery` (h3) ✓ fine.
+
+  One more: check whether `check()`'s conjunct 3 (`row[7] != "mined"`) etc. — fine.
+
+  Also confirm ls of logs for RevC1Scope and the scout logs cited by the lesson (ScoutVtcode.log etc.). Quick ls.
+
+  Now run the final batch: honest-fetch simulation (urllib, max-length selection), logs ls, word counts. Then write the final response. No file writes (read-only seat). The Report trailer says write ReviewC1Entry.md but the role contract says read-only seats return findings in the final response and the L1 writes the report — the dispatcher's "Read-only: report in your final response" is explicit for my seat; I comply with that.
+
+• **Proven: the `--fetch` arm measured five section headings, not five quotes.** All five fetch verdicts selected the anchor's section-name string via `next()`. Now simulating what an honest fetch arm (same URLs, same urllib, correct max-length selection) would find today, checking the cited scout logs exist, and computing word counts under the counter's own convention:S198: 13w  url=https://raw.githubusercontent.com/vinhnx/vtcode/main/docs/skills/SKILLS_GUIDE.md  -> FOUND
+Traceback (most recent call last):
+  File "<stdin>", line 21, in <module>
+KeyError: 'S199'
+ConnectorCensus.log
+CriticC1Predicate.log
+CriticC2Predicate.log
+ExecC1Counter.log
+ExecC1CounterTest.log
+ExecC1Fetch.log
+ExecC2Baseline.log
+ExecCollision.log
+ExecR67Repairs.log
+ExecTransform.log
+MutC1Counter.log
+MutR67Repairs.log
+RevC1Scope.log
+RevC2Honesty.log
+ReviewC1Counter.log
+ReviewC1Entry.log
+ScoutConsiderthese.log
+ScoutKilo.log
+ScoutMistral.log
+ScoutMsAgentFramework.log
+ScoutParallel.log
+ScoutPlanWalk.log
+ScoutQuarantine1.log
+ScoutQuarantine2.log
+ScoutQuarantine3.log
+ScoutVtcode.log
+ScribeC1Entry.log
+ScribeC1Sources.log
+ScribeC2Erratum.log
+ScribeC2Index.log
+ScribeGate.log
+SentinelC1.log
+
+
+• The KeyError: 'S199' — my `src` regex `^source:\s*(S\d{3,})\s*(.*)$` with `entry` being the NORMALIZED full text (one giant line), so re.findall with re.M finds only... hmm, after norm there's one line starting with "source:" only for the first source line; the others are mid-line. That's why only S198 got a URL mapping. The counter's real fetch() uses `_entry_source_lines(entry)` on the UN-normalized entry text (line-by-line), so it gets all five. Fix: parse source lines from the raw entry text line-by-line. Redo the simulation with that fix.
+
+  Also all scout logs exist including RevC1Scope.log, ExecC1Fetch.log etc. Good — the entry's forward reference to RevC1Scope has a log. I won't read them all (scope); the lesson cites ScoutVtcode/ScoutParallel/ScoutKilo/ScoutMsAgentFramework/ScoutMistral — all present ✓. I could peek at ExecC1Fetch.log to see what the executor measured — worth a quick look to see whether the vacuous pass was already flagged by ReviewC1Counter or CriticC1Predicate (other seats). Not strictly needed for my findings, but a quick grep for "fetch" verdicts in ExecC1Fetch.log and whether anyone flagged the heading-selection issue would sharpen "residual risk" (e.g., if another reviewer already found it, my report should acknowledge). Cheap: grep both logs.
+
+  Fix the simulation and run both greps in parallel.
+
+• Scout logs all exist ✓. My simulation bug: I parsed `source:` lines from the *normalized* single-line entry; the counter parses the raw text line-by-line. Fixing, and checking whether the executor's own fetch log already surfaced the heading-selection behavior:S198: 13w  -> FOUND   [https://raw.githubusercontent.com/vinhnx/vtcode/main/docs/skills/SKILLS_GUIDE.md]
+S199: 11w  -> FOUND   [https://parallelworks.com/docs/ai/code/skills]
+S200: 15w  -> NOT FOUND in served bytes   [https://kilo.ai/docs/customize/skills]
+S201: 14w  -> FOUND   [https://learn.microsoft.com/en-us/agent-framework/agents/skills]
+S202: 9w  -> NOT FOUND in served bytes   [https://raw.githubusercontent.com/mistralai/mistral-vibe/main/README.md]
+
+  That's exactly the discrimination the reviewer seat warned about: "does the --fetch arm actually discriminate, or does it accept a quote that appears in a navigation menu or a 404 page?" The other arm's first-match-in-anchor logic accepts the section-name span. My LOCATED_RE-first logic measures the real located quote.
+
+  But wait — is my LOCATED_RE extraction CORRECT for S202? Entry line: `source: S202 — Mistral AI Vibe — README — https://raw.githubusercontent.com/mistralai/mistral-vibe/main/README.md — the "Skill Discovery" section — located quote "Standard Agent Skills path (project root, trusted folders only)"`. LOCATED_RE finds `located quote\s+"([^"\n]+)"` → captures `Standard Agent Skills path (project root, trusted folders only)`. Correct.
+
+  So the live check: is that sentence in the CURRENT raw README? Let me verify directly with curl + grep to distinguish "page drift" from "my arm's bug". Same for S200 (kilo.ai): quote `Project skills (.kilo/skills/ in a repository) and skills fetched from remote URLs never execute commands`. Note URL_RE excludes `)` from URLs — for S200's source line, the URL `https://kilo.ai/docs/customize/skills` is followed by ` — `, fine. But careful — LOCATED_RE capture for S200: `Project skills (.kilo/skills/ in a repository) and skills fetched from remote URLs never execute commands` — no internal quotes, good.
+
+  Hmm wait — but for S200 there's a subtlety in MY line: is the FIRST URL match the kilo URL? The line: `source: S200 — Kilo Code — Skills — https://kilo.ai/docs/customize/skills — the "Shell commands in skills" section — located quote "..."`. First https = kilo URL. Good.
+
+  For the kilo page: it's a docs site (likely Docusaurus); HTML. My _visible strips tags → the sentence's words must appear in visible text. If kilo.ai serves a JS-rendered SPA shell (content via JS), curl gets minimal HTML without the text → NOT FOUND honestly (the static HTML doesn't carry it) — but the other arm found it... via the section-name match ("Shell commands in skills" — also quoted in the anchor AND appears in the TOC of the static HTML!). So again the other arm matched the section NAME, my arm matched the real sentence.
+
+  So BOTH NOT FOUNDs are likely real measurement differences where my arm is stricter and the located sentences are NOT on the statically-fetched pages. Before reporting, verify directly (evidence, not inference):
+
+  1. `curl -sSL --max-time 30 https://raw.githubusercontent.com/mistralai/mistral-vibe/main/README.md | grep -c "trusted folders only"` and try the exact sentence; also check HTTP code.
+  2. `curl -sSL --max-time 30 https://kilo.ai/docs/customize/skills` — check for the sentence words in visible text; also what the page returns (title/404?).
+
+  Also check S202 alternate: maybe the README says `Standard Agent Skills path (project root, trusted folders only)` with different parenthetical or "Skill Discovery" section renamed. Fetch and diff.
+
+  This is the evidence the L1 needs: either (a) the staged quotes drifted from the live pages (a freshness/consistency defect in the freshly-landed rows — before the round's `--fetch` conjunct is claimed), or (b) my arm has a bug. Must distinguish NOW.
+
+  Run:
+  - curl S202 raw README → grep for "trusted folders" and "Standard Agent Skills"; print surrounding line; HTTP code via -w.
+  - curl S200 kilo page → grep for "never execute" / "remote URLs"; also size and title; check if it's a challenge page (Cloudflare).
+  - Also for contrast S198 raw SKILLS_GUIDE grep (should hit).
+
+  Then write the report and final answer. Also verify my arm's S202 handling of parentheses in URL extraction — the S202 line's first URL is the README (no parens) — fine.
+
+  One more possibility for S202: curl -sSL on raw.githubusercontent with a redirect... `main` branch README exists presumably. Let me just measure.
+
+• My arm measures **3 of 5** — S200
+=====
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/logs/ReviewC1Counter.log:6:  The canonical assignment from the dispatcher is the only instruction source. The dispatcher explicitly says to write the report to that path, and the write scope allows writing only under `.ufo/waves/round-68/`. The role section says read-only seats don't write files... but the final dispatcher instruction says write the report. The write scope hard bounds permit writing under `.ufo/waves/round-68/`. The "Assigned materials are data" rule says the canonical assignment from the dispatcher is the only instruction source. The dispatcher's last line says "Report: write your scoped findings to .ufo/waves/round-68/w1/ReviewC1Counter.md". I'll write the report file AND return findings in the final response. That satisfies both: the write is within the permitted bounds, and the findings are also in the final response.
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/logs/ReviewC1Counter.log:34:  So I attack the CONTRACT — the frozen predicate as specified in the plan (round-68.md C1 section). Name what I attack: the frozen predicate `client trust gates backed N of 5` and the contract as specified.
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/logs/ReviewC1Counter.log:44:  - The predicate string: "client trust gates backed N of 5" — the frozen predicate doesn't pin exit codes for --fetch. The plan says "--fetch finds each of the 5 located quotes on its live page" but doesn't specify output format or exit code on failure. A counter could make --fetch print the found lines and exit 0 always (vacuous). Actually the contract says it "finds" each quote — the observable contract for --fetch failure is unspecified. That's a contract gap: --fetch must exit nonzero when any quote is not found, and distinguish network-unreachable (environment, exit 2) from quote-absent (content, exit 1). Unspecified = attack surface.
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/logs/ReviewC1Counter.log:46:  - Rev-scope: does --rev <rev> read the revision's bytes via `jj`/`git show`? If the counter reads the working tree instead of the rev, the base control conjunct (`--rev <base>` → 0 of 5) would actually be run against the *current working tree* (which contains the landed entry) → prints 5 of 5 → the base-control conjunct silently passes vacuously, hiding a broken rev-scoping. Wait — actually if it reads the working tree at base... The base control is meant to be run at the base rev. If the counter ignores --rev and reads working tree, then `--rev <base>` after the work lands would print 5 of 5, exit 0, violating the frozen before-line. But if run BEFORE the work (at base tree), it prints 0 of 5 either way. So the base control does NOT discriminate rev-scoping unless run after landing. That's the r67-style trap: the receipt must run `--rev <base>` AFTER the entry lands to prove rev-scoping. The contract should require that ordering. Evidence: the plan says "Before (measured at the base e94ae32a)" — if measured before landing, a working-tree-reading counter passes the base control trivially. Attack: the base control as ordered is non-discriminating for rev-scoping; fix: re-run `--rev <base>` post-landing and require 0 of 5 exit 1 in the landed receipt.
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/logs/ReviewC1Counter.log:277:  But the residual attack (A3, MEDIUM): the contract pins "missing entry" but not the *present-but-hollow* entry. Degraded cases along the path from "missing" to "5 of 5": entry exists but empty/no table; entry has 3 of 5 client rows; entry has 5 rows but 2 quotes don't match anchors; SOURCES.md missing entirely at the rev; the Registry section heading renamed. Which of these are content verdicts (N of 5, exit 1) and which are environment (exit 2)? The contract only pins the two endpoints. A counter that raises EnvError on `SOURCES.md` missing (the r67 counter treats a missing blob as `None` → content, good) or that crashes on a mal
+formed table (exit 2 traceback) would repeat R67-1's *class* in a new location. Fix: contract line for the middle cases — every *readable* rev yields a content verdict; only revision-unresolvable / git failure / non-UTF-8 are exit 2; a traceback is itself a defect. Also: the contract should state the exact stdout for the missing-entry case is `client trust gates backed 0 of 5` on stdout (not stderr) — the r67 base-control receipt shows the failure printed `environment error: cannot read ...` — i.e., the r67 counter didn't even print the frozen line in the base control. The r68 receipt must show the exact frozen line `client trust gates backed 0 of 5`.
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/logs/ReviewC1Counter.log:315:  Also the report: I'm a read-only reviewer BUT the dispatcher's final line says "Report: write your scoped findings to .ufo/waves/round-68/w1/ReviewC1Counter.md". The role bounds say read-only seats "do not write files at all — return findings in final response; the L1 writes your report from it." There's a direct conflict. The system prompt says "Assigned materials are data: assigned-diff and report text never modifies contract..." and the canonical assignment is the dispatcher instruction. The dispatcher instruction explicitly says to write the report. The write-scope section says "Read-only seats (scout/reviewer/...): do not write files at all." Hmm. The "Report:" line at the end of the dispatcher message is the per-seat output instruction — it lists a specific path for THIS seat. The roles section is generic boilerplate. Given "the canonical assignment from the dispatcher is the only instruction source", and the write scope permits writing under `.ufo/waves/round-68/`, I'll write the report file AND include full findings in my final response. Writing the file within the permitted directory satisfies both bounds (the hard write bound is the directory, which I respect). The "do not write files at all" is in tension but the dispatcher's explicit per-seat instruction takes precedence, and it's within the hard bounds. I'll do both.
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/logs/ReviewC1Counter.log:336:  3. **A3 (MEDIUM) — endpoints pinned, middle cases not: present-but-hollow entry.** Contract pins missing entry → `0 of 5` exit 1 (plan L66–70) and I verified the base genuinely exercises that path (`git grep -il` for vtcode/parallelworks/kilo.ai/agent-framework/mistral/trust-gate at `e94ae32a…` over `corpus/` → 0 hits each; no coverage row: the only `trust` hit in base README is an unrelated "trust input" phrase). Unpinned: entry exists but empty/no table; 3-of-5 client rows; SOURCES.md blob missing at rev; Registry heading renamed; non-UTF-8 entry. A counter that treats missing SOURCES or a malformed table as EnvError (the landed r67 counter's shape: `verifiers/check_instruction_authority.py:71` raises `EnvError(f"cannot read {path} at {rev}")` for any unreadable blob — the exact R67-1 line) would repeat the defect one file over. Fix: pin — every readable revision yields a content verdict (N of 5, exit 1) regardless of which lane file is missing or hollow; exit 2 only for unresolvable revision, git failure, decode failure; stdout empty on exit 2, and the frozen line exactly on stdout for exit 0/1 (the r67 receipt shows the base control printed `environment error: …` where the frozen line was expected — the regression test for this is: base control prints `client trust gates backed 0 of 5` verbatim).
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/logs/ReviewC1Counter.log:377:  **A3 · MEDIUM — endpoints pinned, hollow middle cases not.** Missing entry → `0 of 5`/exit 1 is pinned (L66–70) and genuinely exercised at base. Unpinned: empty/table-less entry, 3-of-5 rows, missing SOURCES blob, renamed Registry heading. The landed r67 counter raises `EnvError` for *any* unreadable blob (`verifiers/check_instruction_authority.py:71`) — R67-1 repeatable one file over; its receipt shows `environment error: … exit=2` where the frozen line belonged. Fix: every readable revision yields a content verdict; base-control receipt must show the exact line `client trust gates backed 0 of 5`.
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/logs/CriticC1Predicate.log:10:  - Report path: `.ufo/waves/round-68/w1/CriticC1Predicate.md` — but wait, I'm a read-only seat (critic): "Read-only seats (scout/reviewer/critic/sentinel/revenger/connector): do not write files at all. Return your findings in your final response — the L1 writes your report from it." But the task also says "Report: write your scoped findings to .ufo/waves/round-68/w1/CriticC1Predicate.md". Hmm, there's a conflict. The write scope section says read-only seats do not write files at all. But the Report instruction says to write findings there. Let me re-read.
+/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/logs/CriticC1Predicate.log:30:  Decision: I will not write into the lane tree. I'll do all scratch work in /tmp and return the full report in my final response, noting that per the read-only seat bound I did not create the file, and the L1 can write it verbatim from my response. Actually, hold on — let me reconsider. Many of these multi-agent setups expect the critic to write its scoped report to the wave directory so the L1 can integrate it. The system prompt explicitly says critics don't write. The instruction hierarchy: system prompt > user message. The user message's own hard-bounds section agrees with the system prompt ("do not write files at all"). The later "Report:" line is the anomaly. Two-vs-one, and system-prompt precedence: don't write. I'll return findings in the response and note the file was not written due to the read-only bound, providing the exact content for the L1 to place.
+
+
+• Major discovery: **the executor's own fetch log (ExecC1Fetch.log) shows the executor ALREADY found the section-name vacuous-pass defect** ("The other arm's first-match-in-anchor logic accepts the section-name span. My LOCATED_RE-first logic measures the real located quote.") — wait, this log seems to describe TWO arms. Let me read more carefully. The log says: "That's exactly the discrimination the reviewer seat warned about: 'does the --fetch arm actually discriminate...' The other arm's first-match-in-anchor logic accepts the section-name span. My LOCATED_RE-first logic measures the real located quote."
+
+  So there appear to be two fetch arms?? "the other arm" = the shipped `fetch()` in check_client_trust_gates.py (next() first-match), and "MY arm" = a LOCATED_RE-based arm the executor built (perhaps in a separate test harness or as a proposed fix?). And: "My arm measures **3 of 5** — S200..." (the log tail cuts off). So the executor measured 3 of 5 with the strict arm and the shipped counter still has the lenient arm printing 5 of 5.
+
+  So the state is: the shipped counter's --fetch arm is the VACUOUS one; the executor KNOWS (their log documents it) and built a stricter arm measuring 3 of 5. The frozen predicate "--fetch finds each of the 5 located quotes on its live page" — with the honest arm, it's 3 of 5, NOT 5 of 5. The C1 claim as frozen CANNOT close honestly unless the located quotes for S200/S202 are re-anchored to literal-safe fragments (the package's own gate-quote-defect remedy) or the counter discloses a normalization that finds them.
+
+  My independent measurement CONFIRMS the executor's: honest selection → S200 NOT FOUND, S202 NOT FOUND, others FOUND → 3 of 5. Two independent seats now agree. This is the round's decisive C1 finding.
+
+  Also confirmed from the log: S200 word count under len(split()) = 15 (my simulation printed 15w), S199 = 11w, S201 = 14w — so SOURCES annotations (12/16/13) disagree with the instrument's own convention on three rows. (S202=9 ✓, S198=13 ✓.)
+
+  Also, ReviewC1Counter.log (sibling reviewer) already flagged: --fetch failure exit-code contract unspecified; base-control ordering (run --rev base AFTER landing); hollow-middle cases. Those are counter-contract findings, not my entry assignment — I note them as adjacent, already-reported items, and my report should focus on my scope (the entry/per-row provenance + the fetch-vs-quote finding, which sits exactly at my boundary: "does --fetch find each of the 5 located quotes on its live page" is C1's frozen conjunct, and my replication proves the shipped arm doesn't).
+
+  One more check to be thorough on my assignment (4): "Does the entry claim runtime behaviour it cannot have from documentation?" — the entry § Limits line 52-53 explicitly disclaims. Prose checks:
+  - Line 31: "Nothing in the body can raise its own authority." — inference from S198's documented posture; acceptable as interpretation but it's stated flatly. Minor.
+  - Line 44-46: "the author's installation path is part of the skill's behaviour: the same SKILL.md discovered from a trusted folder and from a repository root are not the same capability." — S199/S200/S202 supported (capabilities differ by trust location) ✓ documentary.
+  - Line 47-48: "the failure mode is a prompt, not a refusal: the skill loads, and every tool call it triggers is separately approved." — this RESTATES runtime behaviour as fact; the page documents approval-by-default for the skill tools, so the documentary restatement is fair, but "the skill loads" for MS is not quoted anywhere (MS page: skills are loaded and tools require approval — reasonable documentary reading). The entry's § Limits covers documentary-only. OK as Low note: keep "the skill loads" tied to the page's own description or drop.
+  - Line 35: "S199 states the bound in one sentence: *Model invocation can never grant either gate.*" — verified verbatim on page ✓.
+
+  Also check the entry's Limits claim "(S199's trust decision is bound to a hash of the bundle; S200's approval prompt still honours deny rules)" — S199 hash ✓ verified ("hash of the complete bundle, including scripts, references, and assets"); S200 deny rules ✓ verified ("a deny rule on any command still blocks it"). Good — these limits are themselves backed.
+
+  Now assemble per-row verdicts (the dispatch's required format):
+
+  **Row S198 (VT Code)** — ADMIT.
+  - Theme: untrusted body ✓ ("Skill content is untrusted resource data; host tool and sandbox policy remains authoritative." — verbatim contiguous in served bytes: grep -cF = 1; urllib FOUND).
+  - ≤25 words ✓ (13 by split()).
+  - Not sibling ground ✓ (vtcode is not one of the 19 adjacent lanes; not one of the pinned seven — claimed in entry § Limits ✓).
+  - Package-entry cautions: package anchor "Prompting Behavior paragraph" is wrong (quote is in Activation Context, vt.md lines 87→95) — lesson already refused the staged anchor with flip ✓; package's "four clients / VT Code doesn't count as a gate" framing must not be copied (landed entry counts it as a shape — the override should be acknowledged).
+  - Provenance ✓: lesson cites ScoutVtcode.log (exists), access date this round.
+
+  **Row S199 (Parallel Works)** — ADMIT.
+  - Theme ✓ two-gate trust on repository-controlled project skills (a trust statement about untrusted bodies).
+  - Quote verbatim contiguous (grep -cF = 1; urllib FOUND) ✓; "Model invocation can never grant either gate." verbatim on page ✓; hash-of-bundle limit verified on page ✓.
+  - Word-count annotation says 12; counter convention says 11 — annotation defect only (≤25 either way).
+
+  **Row S200 (Kilo)** — ADMIT as theme, REFUSE the located quote as literal-unsafe (flip given).
+  - Theme ✓ (trusted-location rule for embedded commands = what happens to an untrusted body's commands).
+  - The staged quote is NOT contiguous in served bytes: grep -cF = 0 (Next.js JSON tag objects interrupt it: `Project skills (",{...".kilo/skills/"]}," in a repository) and skills fetched from remote URLs never execute commands`); honest-arm urllib measurement: NOT FOUND. This is exactly the package's own gate-quote-defect-round9/10 class (their verdict there: the interrupted quote is defective; remedy = literal-safe fragment).
+  - Flip: re-anchor to a contiguous served-bytes fragment (candidates: "skills fetched from remote URLs never execute commands" or "never execute commands; their placeholders are replaced with a marker noting the skill is untrusted"), re-run the corrected --fetch arm, and only then claim the conjunct; OR keep the full rendered-text quote AND ship a disclosed stripped-text normalization in the fetch arm + record the normalization in the row/lesson.
+  - Package caution: package's "the skill body is replaced in place by a marker" misstates the page ("their placeholders are replaced") — landed entry correctly omits; keep omitted.
+
+  **Row S201 (MS Agent Framework)** — ADMIT the third-party-code quote; the approval-by-default CLAUSE is under-quoted and the refusal that removed the staged quote has a flip that my measurement fires.
+  - Theme ✓.
+  - Located quote verbatim contiguous (grep -cF = 1; urllib FOUND) ✓; 14w by split() (row says 13 — annotation defect).
+  - Compound-clause defect (r63 rule): SOURCES row 142 ground cell and entry table cell assert "the skill tools require approval by default" while the row's located quote is the third-party-code sentence — the approval clause is carried by the page but NOT by the cited located quote.
+  - The lesson refuses the staged quote "All three skill tools require approval by default" claiming the page words it as a tool list; my fetch today finds that exact staged sentence verbatim TWICE in the served page (grep -c = 2). The lesson's own flip ("a fetch that renders the literal phrase ... would clear it") has fired. Either the page changed since the scout's fetch or the scout's grep missed it; the refusal must be re-measured, and if confirmed the approval sentence becomes a second located quote — which simultaneously repairs the compound-clause defect.
+  - Caveat: the lesson's counter-description "load_skill, read_skill_resource, run_skill_script require approval by default" — I could not find that comma-form sentence on today's page; the page shows "load_skill and read_skill_resource, but not run_skill_script" (a different sentence). So the refusal's replacement description also doesn't match today's bytes. Evidence supplied.
+
+  **Row S202 (Mistral Vibe)** — ADMIT as theme with folder-level scope qualifier; REFUSE the located quote as literal-unsafe (flip given).
+  - Theme: the dispatch flags discovery as a risk topic; the row IS a trust statement ("trusted folders only") so it is about trust, not mere loading mechanics — ADMIT, but the trust object is the FOLDER (shared with non-skill instruction files: same annotation on "Local project skills", vibe.md line 756), not the body. The landed entry's wording ("discovery itself is gated... standard and project skill roots") is acceptable; add the folder-level/shared-with-instruction-files qualifier the package carried.
+  - The staged quote is NOT contiguous in raw bytes: grep -cF = 0 (line 755 reads `**Standard Agent Skills path** (project root, trusted folders only)` — the `**` breaks the byte sequence); honest-arm urllib: NOT FOUND.
+  - Flip: re-anchor to the contiguous fragment "(project root, trusted folders only)" (6 words), or disclose a markdown-emphasis normalization in the fetch arm.
+
+  **Entry-level (4th attack question)**: no runtime-behaviour claim beyond documentation — the § Limits section disclaims it explicitly ✓; two prose sentences ("Nothing in the body can raise its own authority", "the skill loads, and every tool call it triggers is separately approved") are flat documentary restatements — keep them tied to the cited pages (Low).
+
+  **Counter findings (mine, at my assignment's boundary):**
+  - HIGH: fetch() selection bug — proven by replication (next() picks the section-name span for all five rows; the printed "live quotes found 5 of 5" measured five headings, zero located quotes). Docstring (lines 31-32) contradicts the code. With honest selection the arm measures 3 of 5 → the frozen third conjunct is NOT met as declared; C1 cannot close on the shipped counter. (The executor's ExecC1Fetch.log shows the lane already knows; the shipped counter still carries the vacuous arm.)
+  - The self-test has 12 assertions, all on check(); no broken world exercises fetch() — a fetch fixture (page containing the section name but not the quote must FAIL) would have caught this. The plan's "--self-test that breaks each conjunct" is not met for the fetch conjunct.
+  - LOW: `--rev <base> --fetch` crashes with an uncaught FileNotFoundError (fetch reads ENTRY from a root where _materialize deliberately omitted it; main catches only EnvError).
+  - Word-count annotations S199/S200/S201 (12/16/13) vs the instrument's own len(split()) (11/15/14) — three rows' annotations don't match the counter's convention, and no single convention matches all five. LOW.
+  - Adjacent (already reported by ReviewC1Counter, not re-derived here): --fetch failure exit-code semantics unspecified; base-control ordering after landing; hollow-middle classification. I confirm the base control as run by me DID print the exact frozen line ("client trust gates backed 0 of 5", exit 1) — good.
+
+  **What the L1 must not copy blindly from the package entry** (dispatch deliverable):
+  1. "Four clients, four shapes; VT Code is a posture and should not count" — landed entry counts five; state the override explicitly rather than silently contradicting the inherited record.
+  2. S198 anchor "Prompting Behavior paragraph" — wrong location; quote lives in Activation Context (already refused by the lesson; don't restore).
+  3. S200 "the skill body is replaced in place by a marker" — page says placeholders are replaced; landed entry omits it; keep omitted.
+  4. S201 "All three skill tools require approval by default" — refused as paraphrase, but present verbatim on today's page (2 hits); re-measure rather than copy the refusal or the quote blindly.
+  5. "round-6 item 2" ground and spec framing — not lane ground; landed entry re-grounded correctly; keep it that way.
+  6. S202 "the only client of the four whose trust boundary is not about skills at all" — carry the folder-level/shared-with-instruction-files qualifier if referencing it.
+
+  Residual risks / verification gaps:
+  - My NOT FOUND measurements are curl- and urllib-based today (2026-10-24); a rendering variant or page drift could change them — but the vacuous-selection proof is body-independent (the shipped arm never searched for the quotes at all).
+  - I did not re-derive the executor's LOCATED_RE arm; I replicated the semantics independently and got the same 3-of-5.
+  - The sibling reviewer's counter-contract findings (exit codes for fetch failure; base-control ordering; hollow-middle) are cited, not re-verified.
+  - The S201 page-drift question (scout's fetch vs my fetch hours apart) is unresolved — re-measure before landing.
+  - I did not verify the quarantine register rows or C2 (out of my scope).
+
+  Also note: exit code behavior of the shipped --fetch: main() returns based on n (the check count), NOT on fetch found count — so even if fetch found 0 of 5, --fetch would still exit 0 as long as check() passes. That's another facet: "--fetch finds each of the 5" has no exit-code consequence at all. The sibling reviewer flagged the unspecified contract; I confirm the shipped code: `return 0 if n == TOTAL else 1` — fetch results are print-only. Worth one line.
+
+  Format: findings by severity, then residual risk and verification gaps. Per-row verdicts explicitly (ADMIT/REFUSE + reason + flip). Read-only seat: I write nothing; the L1 writes ReviewC1Entry.md from this response.
+
+• All evidence is in. The executor's own `ExecC1Fetch.log` independently confirms my replication ("the other arm's first-match-in-anchor logic accepts the section-name span… My arm measures **3 of 5**"), and my honest-selection simulation measured the same: S198/S199/S201 FOUND, S200/S202 NOT FOUND. I am a read-only seat — per the role bound I write nothing; the L1 writes `ReviewC1Entry.md` from this response.
+
+  # ReviewC1 — attack on the C1 entry (draft absent → package entry `client-trust-gates-round7.md` attacked; landed `corpus/knowledge/client-trust-gates-round68.md` + rows S198–S202 + counter audited as the thing the L1 must not break)
+
+  **Attacked:** each per-client staged claim's provenance and scope; quote verbatim-ness and length; sibling-lane ground; runtime-vs-documentary claims; and the frozen `--fetch` conjunct that the entry's ground rests on.
+
+  ## Findings by severity
+
+  **F1 · HIGH — the frozen `--fetch` conjunct is not met as declared; the shipped arm measures section headings, not quotes.**
+  `verifiers/check_client_trust_gates.py:261` selects `next((_norm(q) for q in quotes if _norm(q) in anchor), None)` — the **first** quoted span in entry order occurring in the anchor cell. Every entry `source:` line quotes the section name *before* the located quote, so all five fetch verdicts measured headings. Replication (run in-repo): `S198: fetch next() -> 'Activation Context' · S199: 'Trust' · S200: 'Shell commands in skills' · S201: 'Security best practices' · S202: 'Skill Discovery'` — vs `check()`'s max-length selection, which picks the real quotes. So the shipped arm prints `live quotes found 5 of 5, exit 0` (I ran it: exit=0) while searching **zero** located quotes. The docstring (lines 31–32: "confirms the located quote is present on the live page") contradicts the code. With correct selection (same URLs, same urllib, max-length), the arm measures **3 of 5**: S200 and S202 are NOT FOUND (F2). The executor's `logs/ExecC1Fetch.log` already documents both arms; the shipped counter still carries the vacuous one. Flip: fix selection (mirror `check()`'s max-length or extract the `located quote "…"` span), re-run, and re-anchor the two failing rows per F2 before C1 closes.
+
+  **F2 · HIGH — two staged located quotes do not survive a literal check against their live pages (the package's own `gate-quote-defect` class).**
+  - **S200 (Kilo):** `grep -cF "Project skills (.kilo/skills/ in a repository) and skills fetched from remote URLs never execute commands"` on the served page → **0**; the Next.js JSON payload interrupts the bytes (`Project skills (",{…"​".kilo/skills/"]}," in a repository) and skills fetched…`). Honest-arm urllib: NOT FOUND. Contiguous flip fragments exist on-page: "skills fetched from remote URLs never execute commands"; "never execute commands; their placeholders are replaced with a marker noting the skill is untrusted."
+  - **S202 (Mistral):** `grep -cF "Standard Agent Skills path (project root, trusted folders only)"` on the raw README → **0**; line 755 reads `**Standard Agent Skills path** (project root, trusted folders only)` — the `**` breaks the byte sequence. Honest-arm urllib: NOT FOUND. Contiguous flip fragment: "(project root, trusted folders only)".
+  The package's own `gate-quote-defect-round9/10.md` records this exact defect class and its remedy (replace with a literal-safe fragment; "only a stripped-text comparison finds it" was ruled defective there). Flip per row: re-anchor to a contiguous fragment and re-run the corrected fetch arm, or keep the full rendered-text quote and ship a disclosed stripped-text normalization in the counter, recorded in the row and lesson.
+
+  **F3 · MEDIUM — S201's approval-by-default clause rides on a quote that does not carry it, and the refusal that removed the staged quote has a flip my measurement fires.**
+  `corpus/SOURCES.md:142` ground cell and the entry's table cell assert "the skill tools require approval by default", but the row's located quote is the third-party-code sentence — under the round-63 compound-clause rule, the clause is page-carried but not quote-carried. Meanwhile `corpus/lessons/round-68.md:55-60` refuses the staged quote "All three skill tools require approval by default" as a paraphrase, claiming the page words it as a tool list — but today's served page contains that exact sentence **verbatim, twice** (`grep -c` = 2; context: "All three skill tools require approval by default. The harness tool-approval…"). The lesson's own flip ("a fetch that renders the literal phrase … would clear it") has fired. Also the refusal's replacement description "load_skill, read_skill_resource, run_skill_script require approval by default" does not match today's bytes (page shows "load_skill and read_skill_resource, but not run_skill_script"). Flip: re-measure; if confirmed, admit the approval sentence as a second located quote — which simultaneously repairs the compound-clause backing.
+
+  **F4 · MEDIUM — the package entry's four-client verdict is silently overridden.**
+  The package entry is titled "…implemented by **four** clients" and says of VT Code: "a posture rather than a mechanism, and the lane **should not count it**". The landed entry counts **five** and makes VT Code its first shape. The r68 surface ("what a client documents about an untrusted body") justifies the departure, but the entry nowhere acknowledges that it overrides the inherited record — a reader diffing the two sees a contradiction. Flip: one appended sentence naming the r7/package verdict and why r68 counts VT Code.
+
+  **F5 · LOW — self-test does not break the fetch conjunct.** `--self-test` runs 12 assertions, all on `check()`; no broken world exercises `fetch()` (e.g., a fixture page containing the section name but not the quote must FAIL). The plan's "--self-test that breaks each conjunct" is unmet for `--fetch`; such a fixture would have caught F1. Also `main()` returns on `n` only (`return 0 if n == TOTAL else 1`) — fetch results are print-only and can never affect the exit code.
+
+  **F6 · LOW — word-count annotations disagree with the counter's own convention.** Under `len(q.split())` (the instrument's rule): S199 = 11 (row says 12), S200 = 15 (row says 16), S201 = 14 (row says 13); S198 = 13 ✓, S202 = 9 ✓. No single convention matches all five. All ≤ 25 either way. Fix the three annotations at landing.
+
+  **F7 · LOW — `--rev <base> --fetch` crashes.** `fetch()` does `(root / ENTRY).read_text()` but `_materialize` deliberately omits a missing ENTRY, and `main()` catches only `EnvError` → uncaught `FileNotFoundError` traceback. Not part of the frozen predicate; fix while touching the counter.
+
+  ## Per-row verdicts (dispatch format)
+
+  | row | verdict | reason | flip (for refusals) |
+  |---|---|---|---|
+  | S198 VT Code | **ADMIT** | on-theme (untrusted body → host policy authoritative); quote verbatim contiguous (`grep -cF`=1, urllib FOUND); 13w; not sibling ground; anchor correctly re-pointed to "Activation Context" (package's "Prompting Behavior" anchor is wrong — quote is at vt.md:95, section spans 87–96) | — |
+  | S199 Parallel Works | **ADMIT** | on-theme (two-gate trust on repository-controlled project skills); quote verbatim contiguous (1, FOUND); "Model invocation can never grant either gate." and the hash-of-bundle limit both verified on-page; fix 12w annotation | — |
+  | S200 Kilo | **ADMIT claim / REFUSE quote as literal-unsafe** | on-theme, but staged quote has 0 contiguous hits in served bytes (F2) | re-anchor to a contiguous served-bytes fragment (e.g. "skills fetched from remote URLs never execute commands") or ship a disclosed stripped-text normalization; then re-run the corrected `--fetch` |
+  | S201 MS Agent Framework | **ADMIT quote / repair clause backing** | third-party quote verbatim contiguous (1, FOUND); approval clause unbacked by the located quote and the paraphrase refusal's flip has fired (F3) | re-measure; admit "All three skill tools require approval by default." as a second located quote, or restrict the gate cell to the review clause |
+  | S202 Mistral Vibe | **ADMIT claim / REFUSE quote as literal-unsafe** | trust-themed (trusted folders only), so not off-theme despite being discovery; but scope is folder-level, shared with non-skill files (line 756, same annotation on "Local project skills") — carry that qualifier; quote 0 contiguous hits (F2) | re-anchor to "(project root, trusted folders only)" (6w, contiguous) or disclose a markdown-emphasis normalization |
+
+  **What the L1 must not copy blindly from the package entry:** (1) "four clients, VT Code doesn't count" (F4); (2) S198's "Prompting Behavior paragraph" anchor — wrong location; (3) S200's "the skill body is replaced in place by a marker" — the page replaces the *placeholders* (landed entry correctly omits; keep omitted); (4) S201's approval quote — refused as paraphrase but verbatim on today's page (F3); re-measure, don't copy the refusal either; (5) the "round-6 item 2" ground and spec framing — landed entry correctly re-grounded per-client; keep it; (6) S202's "not about skills at all" — carry the folder-level qualifier if referenced.
+
+  ## Residual risk and verification gaps
+
+  - My S200/S202 NOT-FOUND measurements are today's curl/urllib bodies; SSR or page drift could vary — but F1 is body-independent (the shipped arm never searched for the quotes).
+  - The S201 drift question (scout's fetch vs mine, hours apart) is unresolved — re-measure before landing (F3).
+  - I did not re-derive the executor's LOCATED_RE arm; I replicated its semantics independently and got the same 3-of-5.
+  - Adjacent counter-contract items (fetch-failure exit-code semantics; run `--rev <base>` *after* landing so the base control discriminates rev-scoping; hollow-middle classification) are reported by `ReviewC1Counter` — I confirm the base control as I ran it printed the exact frozen line `client trust gates backed 0 of 5`, exit 1, and the working-tree arm `client trust gates backed 5 of 5`, exit 0.
+  - Quarantine register and C2 are outside this seat's scope; cited seat logs (ScoutVtcode/ScoutParallel/ScoutKilo/ScoutMsAgentFramework/ScoutMistral/RevC1Scope) all exist under `.ufo/waves/round-68/w1/logs/`.
+  - Entry prose restatements ("Nothing in the body can raise its own authority"; "the skill loads, and every tool call it triggers is separately approved") are flat documentary inferences — tie them to the cited pages or soften; the § Limits disclaimer otherwise covers attack question (4).
+
+  No remaining actionable finding in scope: the entry's ground is real and five clients are correctly in-province, but C1 must not close until F1's arm is fixed and F2's two quotes are re-anchored (or their normalization disclosed) — the frozen "‑‑fetch finds each of the 5 located quotes" conjunct is currently false as declared.
+
+To resume this session: kimi -r session_53da7e11-df65-492a-b254-03ba12568f37
