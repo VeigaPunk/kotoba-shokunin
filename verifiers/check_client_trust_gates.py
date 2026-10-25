@@ -77,10 +77,18 @@ def _git_show(repo: Path, rev: str, path: str) -> str | None:
 
 
 def _materialize(repo: Path, rev: str, dest: Path) -> Path:
-    """Write the three measured files of <rev> into <dest> (same relative layout)."""
+    """Write the three measured files of <rev> into <dest> (same relative layout).
+
+    A revision that does not carry the ENTRY is materialized WITHOUT it: a missing entry is a
+    content verdict (`0 of 5`, exit 1), not an environment error (exit 2).  The r67 counter
+    classified it the other way round, which is why its base line was never observable
+    (routed defect R67-1); this counter does not repeat that.
+    """
     for path in (ENTRY, SOURCES, README):
         text = _git_show(repo, rev, path)
         if text is None:
+            if path == ENTRY:
+                continue
             raise EnvError(f"cannot read {path} at {rev}")
         out = dest / path
         out.parent.mkdir(parents=True, exist_ok=True)
