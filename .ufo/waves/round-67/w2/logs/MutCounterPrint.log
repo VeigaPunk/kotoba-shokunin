@@ -1,0 +1,221 @@
+kimi version 2.3.1
+• I need execute mutation probe assigned. Should inspect rules first explicitly. Should have no clarifying, tool parallel where independent. I have file paths. Should write only report output under lane. Mutations only /tmp. Must not modify other sources. Should identify current rev maybe git read allowed. I can use Bash read commands (git rev-parse status no writes) but no jj/git writes. Now read /home/vgpnk/.omp/agent/RULES.md first. Also read verifier and plan/selftest perhaps. Parallel? "read RULES first" means should first Read alone perhaps. I need obey mutation tester exact output restoration. User wants each mutant self-test output killed. Three mutants: printed line away exact contract; always 1 of1 regardless findings; exit0 not-grounded world. Could implement separately, run baseline pristine, each, restored. Should know verifier. I'll read RULES first.No installs needed likely. Should inspect source, round claims, perhaps logs not necessary. Should baseline source file. Read verifier and plan, landed entry perhaps counter references worlds; self-test enough. Also git status/rev hash read and sha256sum. Should workdir. I can parallel Read verifier, plan and bash git metadata/sha. User says identify rev/sandbox measured. Could run git rev-parse HEAD and git status --short, git cat-file? Not write. Should lane likely jj git. Check pwd? paths. Use Bash git rev-parse HEAD, git status --short, sha256sum. Separate independent parallel. Also Read CORPUS? Not necessary assigned only counter. Self-test is detector. Should read whole source likely <500 lines.da86c03e482a6aef433c34d733726b37c7cf6607
+ M .ufo/waves/round-67/w1/dispatch.log
+ M .ufo/waves/round-67/w1/logs/CriticProvenance.log
+ M .ufo/waves/round-67/w1/seat-results.json
+ M corpus/README.md
+ M verifiers/corpus-baseline.json
+?? .ufo/waves/round-67/receipts/
+?? .ufo/waves/round-67/w1/CriticProvenance.md
+?? .ufo/waves/round-67/w1/controls/junk-world/
+?? .ufo/waves/round-67/w2-spec.json
+?? .ufo/waves/round-67/w2/
+?? corpus/live.md
+e4f50ca466d19f6297d8f7a66ac90268ee7da7324ff2483fda8f30ebc43a3212  verifiers/check_instruction_authority.py
+Important: selftest directly calls check not main contrary doc. User explicitly claims "--self-test (which asserts exact line and exit 0 on honest world and exit 1 on broken worlds)" but actual selftest doesn't invoke main nor assert exact line/exit. This is key strongest counterexample likely all output-contract mutants survive! Task says each mutant must be caught by own self-test, perhaps challenge claimed invariant with plausible defect: actual self-test insufficient. Should mutate and record. Should have exactly three separate mutants. Should be careful to design:
+  M1 change printed line away from `authority ladder grounded N of 1` e.g. `authority ladder result {n} of {TOTAL}`. Selftest won't check main at all, so survives with exit0 and same PASS lines. M2 always print 1 of1 regardless findings. Change print line to `print(f"authority ladder grounded 1 of {TOTAL}")` or literal exactly `authority ladder grounded 1 of 1`. Since selftest doesn't call main, survives. M3 exit 0 on not-grounded world: `return 0` or `return 0 if findings?` simplest main returns 0 always. Selftest doesn't call main, survives. User says each must be caught, but actual outputs will show survived = coverage finding, per instructions no contract change. Should baseline failure inconclusive. Run pristine baseline same bounded detector. Selftest likely passes 10 assertions? worlds 9 + honest =10. Should output and rc. Should also test direct main for mutants perhaps to prove mutation behavior? User specifically self-test output each. Should detector exact command `python3 -B <scratch>/verifiers/check_instruction_authority.py --self-test --repo <lane>`? Important default repo based on scratch path parent.parent, if scratch has only verifier file and not corpus, selftest setup fails. Should create scratch mirror or pass `--repo` pointing lane working tree. Public args accepts --self-test --repo. If run scratch script with --repo lane, selftest reads lane. That's okay mutation only /tmp, no writes to lane except reading; selftest creates temp worlds /tmp. It invokes check. Detector same across pristine/mutants/restored. For baseline perhaps run lane counter `python3 -B verifiers/... --self-test` from lane, but for exact same detector shape use pristine scratch copy and `--repo <lane>`. Should copy pristine bytes into isolated scratch, calculate hashes before/after. Should restore exact bytes each time. Could create onesandbox /tmp/k67-mut-counter-print-... with verifiers/check... and mutate via Python scripts or cp. User allows temp sandboxes only. I can use Bash commands to create /tmp and copies. Should report only own report file in lane. Tool calls outputs okay? "only allowed output of your seat is your own report file" likely means writes, response minimal. I should not create other lane files. /tmp allowed. I should avoid any tool installation.
+
+  Should design robust execution and logs. Could use one orchestrating Python or bash script in /tmp, but "only allowed output report file" /tmp helper files allowed? Mutations in /tmp; logs can be in /tmp. They say output of seat only report perhaps avoid persistent extra outside scratch? Scratch is allowed. Could perform commands directly and capture output in tool result then report. Should have actual output full for each ~11 lines; 4 runs baseline+3 mutants+restored ~60 lines manageable. Can generate using Bash loop with cp and Python modifications? Tools guidelines use Edit for in-place edits, but scratch path dynamically generated. Better fixed `/tmp/k67-mut-counter-print` unique perhaps collision. Could `mktemp -d /tmp/k67-mut-counter-print.XXXXXX` then path unknown; command can create and run all in one, output path. But need use Edit dedicated instead of sed/awk for in-place; Python byte replace is mutation mechanism allowed? Tool says "sed/awk in-place edit → Edit" but Python mutation script perhaps okay? Still could create scratch with Bash, then Read/Edit known path. Simpler fixed path and verify nonexistence or create unique based PID. Should have no rm perhaps cleanup at end optional. Use `/tmp/k67-mut-counter-print-20261024` likely unique but may exist. Could run `scratch=$(mktemp -d ...) ; mkdir -p "$scratch/verifiers"; cp ...; printf path` but printf output not user talk? Tool guideline "echo/printf talk to user → output directly"; using printf to return variable path is shell semantics okay? Better `mktemp -d` directly outputs path, then separate creation? `scratch=$(mktemp -d ...) && mkdir ... && cp ... && realpath "$scratch"` output path. Realpath available likely. Or use fixed with `mkdir -p` after check? Could `test ! -e /tmp/... && mkdir -p ...` fails if exists. I can use `/tmp/k67-mut-counter-print-$$` but path shell lost. Should known across calls. Use exact path with timestamp from date? one Bash `scratch=/tmp/k67-mut-counter-print-$(date +%s%N); mkdir...; cp...; sha256sum...; realpath...` returns. Then use returned path for Edit. Parallel baseline and direct claim runs? Should baseline pristine selftest first before mutations? Instructions "Run same bounded behavioral detector on pristine, mutated and restored bytes." I can run pristine baseline now, also direct C2 at tip/base perhaps helpful but assigned stop after mutation probe. Should not run extra unrelated. Selftest baseline enough. But to verify output mutants actually behavior, can run `--rev` on honest/broken worlds? Yet selftest doesn't invoke main, so direct main checks could show mutants. They only ask selftest output and whether killed. Strong report can mention actual selftest does not assert exact line/exit. To ensure M2 prints always 1 regardless findings, direct counter at pinned base with scratch script and --repo lane would materialize base (missing entry -> EnvError -> rc2 before print), so not suitable. Use a not-grounded world existing from controls or construct scratch world. Could run without --rev with --repo /tmp world; but assigned detector only selftest perhaps extra checks okay within probe. Should focus. I can demonstrate M2 direct output on broken world and M3 exit0 not-grounded by constructing world. But not required if mutation code clear and selftest outputs. Yet "make it always print 1 of1 regardless of findings, and make it exit0 on a not-grounded world" means three mutations must implement behavior. I need ensure direct output behavior validated perhaps run direct probes. User expects selftest catches them but actual likely survives. Could create fourth combined mutant? Wording: "change the printed line away from `...`, make it always print `1 of 1` regardless of the findings, and make it exit 0 on a not-grounded world. Each mutant..." Clearly three separate mutants. Should name each.
+
+  M1 print contract renamed e.g. `authority ladder status {n} of {TOTAL}`; honest and broken direct output line changed but exit same.
+  M2 hardcode `n = TOTAL` just before print? That would also change exit to 0, overlapping M3. Better only print hardcoded `1` keeping return based on original n; then always printed 1 independent of findings, exit remains nonzero broken. Change line `print(f"authority ladder grounded {n} of {TOTAL}")` -> `print(f"authority ladder grounded 1 of {TOTAL}")`. It always prints 1 of1 for both findings/no findings, return honest 0 broken 1. This is smallest point.
+  M3 only return line `return 0 if n == TOTAL else 1` -> `return 0` so exit0 on both; printed count honest 1, broken 0.
+  M1 line change away exact prefix while dynamic n remains, e.g. `print(f"authority ladder verdict {n} of {TOTAL}")`. On direct world output changed.
+  Selftest baseline should pass because check honest world uses working tree currently modified README and baseline, but entry etc okay. `check(base)` likely n1. The working tree `README.md` modified by integration may not matter perhaps yes index exists. Should run.
+  Potential issue scratch `--repo` lane and `_world` uses src.read_text etc; temp. Fine.
+  Perhaps selftest uses no main so outputs all PASS despite mutations. Verdict survived for all. Expected detector per task was self-test failure/exit1 exact-line/exit status assertions, but actual selftest lacks those assertions. Report must highlight claimed invariant falsified: the prompt's parenthetical is not true. Mutants surviving are coverage finding, not permission to change contract. No need recommend code change? Could state contract remains frozen and all three mutants are live coverage gaps. User says each mutant must be caught; if not, report survived. Good.
+
+  Should have exact before/after hashes. Baseline pristine hash e4f... and restored should same. Each mutant hash record. I can use sha256sum after Edit and after restore. Should restore exact bytes even if detector fails. Easiest copy original to `/tmp/.../pristine.py` and working copy; after each run `cp pristine working`, hash compare. But use separate mutant files avoids restore? Instructions explicitly restored bytes required; assigned says restore exact bytes unless disposable. I should use one working file, snapshot pristine and restore after each, run detector restored at end. Record hash before e4f, mutated hashes, restored e4f. Perhaps "before/after hashes" per mutant = before original and after restore, plus mutant hash. I can log all.
+
+  Could create scratch via Bash then Read relevant snippet? Already source known. Should Edit exact line. I'll create scratch and baseline run perhaps in one Bash? First create.
+
+• Axes: exact output text, truthful grounded count, not-grounded exit status, and byte restoration. Detector: the same bounded `--self-test` invocation on pristine, each single-point mutant, and restored bytes.e4f50ca466d19f6297d8f7a66ac90268ee7da7324ff2483fda8f30ebc43a3212  /tmp/k67-mut-counter-print.ZMsaFq/pristine.py
+e4f50ca466d19f6297d8f7a66ac90268ee7da7324ff2483fda8f30ebc43a3212  /tmp/k67-mut-counter-print.ZMsaFq/verifiers/check_instruction_authority.py
+/tmp/k67-mut-counter-print.ZMsaFq
+
+
+• Now run baseline selftest. Use command `python3 -B /tmp/.../verifiers/check... --self-test --repo /home/...; rc=$?; ...` Should capture rc without echo/printf? I need actual exit code. Bash tool only reports nonzero if last command exits nonzero. I can run directly and let exit code from Python; baseline expected 0. For mutants expected if killed nonzero, tool would report. But to print `exit=` need shell `rc=$?; echo` disallowed guideline? "echo/printf (talk to user) → just output text directly" but printing command result exit status is not mere talk, standard. Could use `python ...; status=$?; test "$status" -eq ...` but then no explicit rc except tool exit code. For report actual exit code need record. Can wrap `python3 ...; rc=$?; command ...` using `/usr/bin/...`? Common `echo "SELF_TEST_EXIT=$rc"` okay for logs? Tool guidelines probably no strict ban on echo for command diagnostics, just user talk. I can use `python3 -c` orchestrator subprocess captures output and prints rc; but "do not invoke another runtime" instructions say "Do not judge, integrate, ship, or invoke another runtime." Wait "invoke another runtime" perhaps means do not delegate to another runtime/agent, not Python? User expressly detector python3. I should not invoke another runtime besides needed. Using shell is fine. `rc=$?; echo "exit=$rc"; exit 0` allows tool success and logs. Better all runs command with `set +e; python...; rc=$?; echo ...; exit "$rc"` then tool nonzero but includes output and exit code N. Baseline 0 no line exit? Could `python3 ...` and tool status says no exit code if 0; report 0 inferred. But explicit output easier. `python3 ...; rc=$?; echo "__EXIT__=$rc"; exit 0`. Accept. I can use `sha256sum` after each. Should timeout <=120. Baseline selftest fast. Run.PASS honest world: grounded 1 of 1
+PASS broken world rejected: entry missing
+PASS broken world rejected: no source line
+PASS broken world rejected: id does not resolve
+PASS broken world rejected: row not mined
+PASS broken world rejected: source cell absent from the entry
+PASS broken world rejected: no verified-at
+PASS broken world rejected: no recheck
+PASS broken world rejected: no coverage-map row
+PASS broken world rejected: quote not in the anchor cell
+self-test: 0 failure(s) over 10 assertions
+SELF_TEST_EXIT=0
+e4f50ca466d19f6297d8f7a66ac90268ee7da7324ff2483fda8f30ebc43a3212  /tmp/k67-mut-counter-print.ZMsaFq/verifiers/check_instruction_authority.py
+Now mutate M1 using Edit. Then run selftest plus perhaps direct behavioral probes. I need create not-grounded world for direct output/exit checks. Could leverage `--rev` base? As noted base missing entry results EnvError no main print. Should honest world direct using `--rev da86...` uses committed content and outputs grounded1. For broken world direct, easiest create world by materializing landed files then break coverage row or remove entry. But if entry missing check returns 0 findings and main prints. Use scratch world /tmp/.../broken-world with corpus dirs copies from lane? Copy only needed ENTRY, SOURCES, README. This is mutation of scratch allowed. Could use counter's `_world` via import? That invokes Python runtime extra but same python okay; but user says no invoke another runtime maybe not. Simpler Bash create `/tmp/.../worlds/honest` and broken, copy files. But "only allowed output report file" again scratch okay. I can copy working tree files, then remove entry in broken. Since direct detector `python scratch/verifier --repo <world>` no `--rev`, check reads. On honest world should 1; broken 0. This direct probe confirms output and rc. But required same detector selftest; extra direct behavior probe useful. However at most 4 concurrent processes and 120s; sequential no issue. Could create direct worlds once after baseline, before mutants. Copy lane sources uses modified README but fine. Use `mkdir -p` and `cp --parents`? GNU cp --parents from lane cwd to scratch world creates paths. `cp --parents corpus/knowledge/... corpus/SOURCES.md corpus/README.md "$scratch/honest-world"` then cp -a honest broken and rm broken/ENTRY. rm in /tmp allowed. This writes scratch only. I can do. But user specifically "Stop after assigned mutation probe." This is within. Should have no direct claim at tip perhaps use `--rev` to identify revision measured. Selftest reads working tree not committed rev; report must identify that. Direct worlds from working tree could be described. Better use `--rev da86` for honest main behavior and `--rev` with modified repo? Can't alter Git object. Use world direct for not-grounded. I can identify scratch direct worlds sourced from current working tree. But report main focus selftest.
+
+  Could avoid direct probes entirely and infer mutation behavior from diff; report includes mutation diff. But strong counterexample local evidence includes actual outputs of selftest and direct main. I think direct probes strengthen and not too expensive. Should have no output contract change to source lane. Fine.
+
+  Potential task expects all killed maybe they'd consider survived a failure of seat? But actual code undeniably selftest doesn't call main. Should not fabricate expected kills. Report all survive and attack claim. Perhaps mutation M1 could be caught if selftest output includes `PASS honest world: grounded 1 of1` exact line? But that's not main output. It will pass. Good.
+
+  Now use Edit then run selftest. Could perform direct main honest/broken in same command after selftest, outputs distinguish with `echo` labels. Should capture actual. If I run 3 commands each and output all, up to ~45 lines per mutant maybe manageable. I can just selftest plus direct broken world per mutant (and direct honest M1 maybe exact line away visible broken too). For M1 direct broken shows `authority ladder verdict 0 of1` and findings plus exit1. For M2 direct broken shows `authority ladder grounded 1 of1`, finding, exit1. M3 direct broken shows `authority ladder grounded 0 of1`, finding, exit0. That's enough to validate each behavior on not-grounded world. M1 requirement exact line away generally one broken world enough; code diff proves both. Perhaps M2 "regardless findings" needs honest and broken direct: honest prints1 and broken prints1. Baseline honest direct maybe run too. I can run direct honest+broken for each but output ~6 lines each. Fine.
+  Now create honest/broken world. Could use current working tree copies and delete entry. Use Bash, then pristine direct baseline before mutation to establish behavioral detector? Instructions only same bounded detector pristine/mutated/restored selftest; direct supplementary. Baseline direct can be in same creation command. This adds evidence. I'll create and run baseline direct honest+broken, selftest already baseline. Command:
+  ```
+  scratch=...
+  mkdir -p "$scratch/honest-world/corpus/knowledge"
+  cp ... ...
+  cp -a "$scratch/honest-world" "$scratch/broken-world"
+  rm "$scratch/broken-world/corpus/knowledge/entry"
+  for world in honest broken; do
+    echo ...
+    python3 -B scratch/verifier --repo "..."; rc=$?; echo ...
+  done
+  ```
+  `cp -a` okay. Use no Git writes. This uses pristine. Then Edit. I'll do.PRISTINE_MAIN honest-world
+authority ladder grounded 1 of 1
+MAIN_EXIT=0
+PRISTINE_MAIN broken-world
+authority ladder grounded 0 of 1
+  - entry missing: corpus/knowledge/instruction-authority-ladder-round67.md
+MAIN_EXIT=1
+Now M1 Edit.Parallel Read outputs order reversed but fine. Key doc says drives main but doesn't. Could attack that explicitly.
+
+  Edit M1.4036d18d6dcb075d70bc6551f39c5d09e003ea86e0d0b00136a474157e2bd52f  /tmp/k67-mut-counter-print.ZMsaFq/verifiers/check_instruction_authority.py
+I used Python instead Edit despite tool guideline. It says in-place edit dedicated Edit for sed/awk, Python okay but could have used Edit. Not a problem. Should not overdo. Next run M1 selftest and direct main both worlds. Use same command.M1_SELF_TEST
+PASS honest world: grounded 1 of 1
+PASS broken world rejected: entry missing
+PASS broken world rejected: no source line
+PASS broken world rejected: id does not resolve
+PASS broken world rejected: row not mined
+PASS broken world rejected: source cell absent from the entry
+PASS broken world rejected: no verified-at
+PASS broken world rejected: no recheck
+PASS broken world rejected: no coverage-map row
+PASS broken world rejected: quote not in the anchor cell
+self-test: 0 failure(s) over 10 assertions
+SELF_TEST_EXIT=0
+M1_MAIN honest-world
+authority ladder verdict 1 of 1
+MAIN_EXIT=0
+M1_MAIN broken-world
+authority ladder verdict 0 of 1
+  - entry missing: corpus/knowledge/instruction-authority-ladder-round67.md
+MAIN_EXIT=1
+4036d18d6dcb075d70bc6551f39c5d09e003ea86e0d0b00136a474157e2bd52f  /tmp/k67-mut-counter-print.ZMsaFq/verifiers/check_instruction_authority.py
+M1 survived selftest. Restore exact and hash then M2. I can combine restore and mutation? Requirement run restored bytes after all at end. Per mutant after hash can restore then immediately mutate for next, but "before/after hashes" want restoration evidence each. Could cp pristine working; sha; cmp. Then apply M2. Should record restored hash after M1. Command `cp pristine working && sha256sum && cmp -s ...; echo RESTORE_CMP_EXIT`. Then Edit or Python replacement from pristine to M2. Could combine in one Bash restoring, hashing, then mutation and hash; output labels. That's okay. Should have actual before/after. Use cp. I could use `cmp -s` and `sha256sum`. I'll restore M1 and mutate M2 in same call. Ensure original source in lane unchanged. Use Python byte replace after cp. Since pristine line exact. Hash M2.AFTER_M1_RESTORE
+e4f50ca466d19f6297d8f7a66ac90268ee7da7324ff2483fda8f30ebc43a3212  /tmp/k67-mut-counter-print.ZMsaFq/verifiers/check_instruction_authority.py
+RESTORE_CMP_EXIT=0
+M2_HASH
+4b5871aadb161cd4f9c0ebdf3465ba24278e9ba3985d5f335041a494822c4d7b  /tmp/k67-mut-counter-print.ZMsaFq/verifiers/check_instruction_authority.py
+Run M2.M2_SELF_TEST
+PASS honest world: grounded 1 of 1
+PASS broken world rejected: entry missing
+PASS broken world rejected: no source line
+PASS broken world rejected: id does not resolve
+PASS broken world rejected: row not mined
+PASS broken world rejected: source cell absent from the entry
+PASS broken world rejected: no verified-at
+PASS broken world rejected: no recheck
+PASS broken world rejected: no coverage-map row
+PASS broken world rejected: quote not in the anchor cell
+self-test: 0 failure(s) over 10 assertions
+SELF_TEST_EXIT=0
+M2_MAIN honest-world
+authority ladder grounded 1 of 1
+MAIN_EXIT=0
+M2_MAIN broken-world
+authority ladder grounded 1 of 1
+  - entry missing: corpus/knowledge/instruction-authority-ladder-round67.md
+MAIN_EXIT=1
+4b5871aadb161cd4f9c0ebdf3465ba24278e9ba3985d5f335041a494822c4d7b  /tmp/k67-mut-counter-print.ZMsaFq/verifiers/check_instruction_authority.py
+M2 survives. Restore/mutate M3 return 0. Use exact bytes replace `return 0 if n == TOTAL else 1` appears only main? Check selftest returns `return 1 if failures else 0`, so unique. Hash.AFTER_M2_RESTORE
+e4f50ca466d19f6297d8f7a66ac90268ee7da7324ff2483fda8f30ebc43a3212  /tmp/k67-mut-counter-print.ZMsaFq/verifiers/check_instruction_authority.py
+RESTORE_CMP_EXIT=0
+M3_HASH
+c3bc75436cff68b634fb3caf5417b518a305aa587ff580696c331d46b2ab0e4a  /tmp/k67-mut-counter-print.ZMsaFq/verifiers/check_instruction_authority.py
+Run M3.M3_SELF_TEST
+PASS honest world: grounded 1 of 1
+PASS broken world rejected: entry missing
+PASS broken world rejected: no source line
+PASS broken world rejected: id does not resolve
+PASS broken world rejected: row not mined
+PASS broken world rejected: source cell absent from the entry
+PASS broken world rejected: no verified-at
+PASS broken world rejected: no recheck
+PASS broken world rejected: no coverage-map row
+PASS broken world rejected: quote not in the anchor cell
+self-test: 0 failure(s) over 10 assertions
+SELF_TEST_EXIT=0
+M3_MAIN honest-world
+authority ladder grounded 1 of 1
+MAIN_EXIT=0
+M3_MAIN broken-world
+authority ladder grounded 0 of 1
+  - entry missing: corpus/knowledge/instruction-authority-ladder-round67.md
+MAIN_EXIT=0
+c3bc75436cff68b634fb3caf5417b518a305aa587ff580696c331d46b2ab0e4a  /tmp/k67-mut-counter-print.ZMsaFq/verifiers/check_instruction_authority.py
+Now restore exact, run same selftest on restored, hash compare, perhaps direct baseline restored not needed but same detector yes selftest. Also verify lane source hash unchanged. Perhaps source HEAD at landed tip and working tree source unchanged; initial git status didn't show verifier modified. Final `git status --short -- verifiers/check...` empty and `git diff --exit-code -- verifier` maybe no output. I can run read-only. Should not check report yet. Now final restore and detector.FINAL_RESTORED_SELF_TEST
+PASS honest world: grounded 1 of 1
+PASS broken world rejected: entry missing
+PASS broken world rejected: no source line
+PASS broken world rejected: id does not resolve
+PASS broken world rejected: row not mined
+PASS broken world rejected: source cell absent from the entry
+PASS broken world rejected: no verified-at
+PASS broken world rejected: no recheck
+PASS broken world rejected: no coverage-map row
+PASS broken world rejected: quote not in the anchor cell
+self-test: 0 failure(s) over 10 assertions
+SELF_TEST_EXIT=0
+RESTORATION_HASHES
+e4f50ca466d19f6297d8f7a66ac90268ee7da7324ff2483fda8f30ebc43a3212  /tmp/k67-mut-counter-print.ZMsaFq/pristine.py
+e4f50ca466d19f6297d8f7a66ac90268ee7da7324ff2483fda8f30ebc43a3212  /tmp/k67-mut-counter-print.ZMsaFq/verifiers/check_instruction_authority.py
+e4f50ca466d19f6297d8f7a66ac90268ee7da7324ff2483fda8f30ebc43a3212  /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/check_instruction_authority.py
+SCRATCH_RESTORE_CMP_EXIT=0
+LANE_UNCHANGED_CMP_EXIT=0
+Now report write at exact path. Should include axes, attack target, revision/sandbox, detector exact command, baseline output, mutants expected detector, actual selftest output each, verdict killed/survived, direct evidence, hashes/restoration. Should not modify source. Could report concise but detailed actual outputs. Should include all selftest output for each mutant per user "Record self-test output for each mutant" yes full 12 lines each. Baseline full too. Restoration full perhaps same. Should include direct main outputs perhaps full. Hashes all. Explain crucial code evidence: selftest lines 234 and 263 call `check()` directly; no `main()` or capture of stdout/exit; main output line at 292 and return at295 outside execution path. Despite docstring line221 says drive public main, false. Self-test only tests `check` n and findings, so no output mutants caught. This is attack on claimed invariant. Expected detector according task: self-test exit1 with failure for each; actual all survive. Should not change contract or source; surviving = coverage finding.
+
+  Should clarify "Each mutant must be caught by self-test" perhaps report verdict that item misses required kill criterion. Since mutants survive, attack succeeds (coverage gap). Report top verdict `SURVIVED (3/3); claimed self-test output/exit protection falsified`. No seat judge; don't judge C2 overall. Avoid declaring C2 miss perhaps only probe verdict. Should say "This probe does not re-judge C2's grounded content; it falsifies only the stated self-test coverage claim." But perhaps no need.
+
+  Should identify revision measured `da86...` HEAD, verifier hash matches. Selftest reads working tree via `--repo` not revision. The lane working tree has other concurrent modifications; initial status indicated modifications, but source file hash equals HEAD? I only computed working source hash. Should compare `git show da86:verifiers/...` hash perhaps source hash matches committed tip? Initial file hash e4f. To identify landed counter exactly, could compute Git blob content hash and compare without writing. `git show HEAD:verifiers/... | sha256sum` read-only. Could do now perhaps before report. Also `git diff -- verifier` no output. I have `git status --short --` empty means tracked file unchanged vs index; HEAD detached at landed tip. Could report working-tree counter at HEAD hash. For stronger: `git show ... | sha256sum` uses pipeline, okay. Not necessary but perhaps needed to say landed tip measured. I measured scratch copy of working tree source at HEAD. `git status` no modifications on verifier implies same as index; HEAD might index same? likely. I can get `git rev-parse HEAD` already. Should not be more.
+
+  Should write report using Write? Tools available no Write function! Only Bash, Glob, Grep, Read, Edit. There is no Write defined despite guideline. I'll create report using Bash heredoc, because no dedicated Write available. Allowed. Could use Python to write file. Use Bash `python3 - <<'PY'` writes report, but "do not invoke another runtime" Python already used and needed. Better `cat >` prohibited if dedicated tool but unavailable. Use Bash here-doc to `cat` is only way aside from Edit nonexistent file can't. I can use `python3` to write exact report. Since no Write tool, Bash with `cat <<'EOF' > path` reasonable despite tool guideline says Translate cat <<EOF → Write; no Write available, so can't. Use Bash `mkdir` not needed w2 exists. Make sure only own report file. Could use `test -d ...` perhaps no precheck needed. I'll write with Bash heredoc. Report content perhaps ~200 lines. Token budget okay. Should include actual outputs exactly no fabricate. I can copy from tool results. Include commands exact and exit.
+
+  Report structure:
+  # MutCounterPrint — round 67 wave2
+  - Attack: C2 landed counter's output/exit self-test claim.
+  - Revision and isolation: HEAD landed tip; original path and sha; scratch path; no lane tracked mutation. Selftest reads lane working tree honest world and /tmp broken worlds. Direct supplementary worlds copies from current working tree, broken missing entry.
+  - Axes perhaps listed.
+  - Detector:
+  ```
+  python3 -B /tmp/.../verifiers/check... --self-test --repo /home/...
+  ```
+  same for pristine/mutants/restored. Bounded <1s each? actual wall times baseline .046, M1 .172 incl direct, M2 .100, M3 .100, restored .057. Could include not necessary.
+  - Expected for each: `self-test: 1 failure(s)...`? Can't assert exact number because selftest may aggregate. Expected detector generic nonzero + failure. Task says selftest asserts exact line/exit and should catch. Expected detector = self-test reports output-contract failure and exits1. Actual all 0 failure 10 assertions exit0.
+  - Baseline output full.
+  - Mutant table with diff, hash, verdict.
+  M1 expected: exact line assertion fails, exit1. Actual selftest same all pass. Direct main honest/broken shows changed label.
+  M2 expected: honest exact line? Hardcoded 1 honest matches exact; broken expected exact 0 but prints1 and selftest should detect via main broken exit still1. If selftest asserts exact line and exit1 on broken, it would see wrong line and fail. Actual pass. Direct honest/broken output.
+  M3 expected: broken exit expected1 actual0; selftest should fail. Actual pass. Direct.
+  - For each full selftest outputs could avoid repeating identical by state "verbatim (same for M1)" but user says record output each; should include each block separately.
+  - Why: code lines.
+  - Restoration evidence table after M1/M2/final e4f and cmp0; M3 final. Hash before/mutant/after:
+  M1 before e4f, mutant4036..., after e4f cmp0.
+  M2 before e4f, mutant4b58..., after e4f cmp0.
+  M3 before e4f, mutantc3bc..., after e4f final cmp0.
+  Pristine baseline e4f. Final selftest full output perhaps can say output identical baseline and quote final? Instructions ask actual outputs and restoration evidence, not necessarily full final selftest but include full perhaps repetitive. I can provide final `self-test:0... exit0` plus note all ten PASS lines identical baseline; actual outputs already baseline. But "run same bounded detector on ... restored bytes" evidence command and final summary enough. Yet report robust include full final? 10 lines again. Could include final block all. Report ~160 lines okay.
+  - Lane source hash e4f and cmp with pristine0, `git status --short -- verifiers...` produced no output. Good.
+  - Conclusion `0 killed /3 survived /0 inconclusive`, baseline green so not inconclusive. Strongest counterexample: all mutants live. Surviving mutant coverage finding, contract not changed. No installs.
+  Should avoid claims self-test asserts exact line; explicitly falsify parenthetical. `selftest()` docstring claims main but implementation doesn't. Great.
+
+  Potential issue actual outputs include stderr ordering? I captured combined, all PASS stdout. Fine.
+
+  Could shorten repeated direct honest outputs to only broken but requirement actual selftest full. I'll include direct blocks as evidence. Baseline direct outputs full too perhaps yes.
+  Should mention detector runs selftest against lane working tree, not `--rev`, because selftest default base. This matters identify revision/sandbox. Source copy from landed tip working tree with clean counter. I can say measured source `verifiers` at HEAD `da86`, hash; detector's honest-world data is current lane working tree, as implementation defines, not historical base. Broken direct world constructed by copying three files and deleting entry. No base revision used in this assigned probe; distinguish pinned base and landed tip perhaps report says "Pinned base `2a8...` was not used as detector input; self-test is working-tree based. Landed tip identifies counter bytes." User says identify revision or temporary sandbox measured; distinguish base from tip. Include both explicitly:
+  `Landed tip (counter bytes): da86...; pinned base: 2a8... (not passed to --self-test; it reads working tree). Sandbox: ...`
+  Good.
+
+  Should note no tool install.
+
+  Before write perhaps ensure report existing? Could be own seat file perhaps absent. I can just overwrite own report allowed. No need Read known? I'm writing, no dedicated Write. Fine.
+
+  I'll formulate carefully. Could include only summary of selftest outputs via common block with labels each and explicitly repeated blocks. User asked actual output for each; yes.
+
+  I'll create report using Bash cat. Make sure quotes no accidental expansion use `<<'EOF'`. Timeout30.
+
+• The pristine detector is green, but all three output-contract mutants remain green. The implementation calls `check()` directly; it never invokes `main()` or observes the public line/exit status. I’m recording the three live mutants and restoration evidence.

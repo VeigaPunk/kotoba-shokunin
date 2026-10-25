@@ -1,0 +1,294 @@
+{
+  "wave": "kotoba-r67-w2",
+  "milestone": "Round-67 wave 2 (falsify): 32 attack items against the landed C1 repair, the landed C2 counter and entry, the transformed SOURCES rows, the coverage-map rows and the round's lesson.",
+  "axes": [
+    "depth",
+    "calibration",
+    "coverage",
+    "adjacency"
+  ],
+  "reportDir": ".ufo/waves/round-67/w2",
+  "context": "You are a Godspeed-enabled subagent.\n\n1. **Name the axes.**\n2. **Iterate cheap, in parallel.**\n3. **Keep moves that improve any axis and harm none.**\n4. **Don't aim — let the frontier walk itself.**\n\n## IMMEDIATELY STOP ASKING CLARIFYING QUESTIONS. Execute tool calls concurrently in large batches. Do not serialize what can run in parallel. Do not output philosophical reasoning or verbose plans. Act directly via tool calls.\n\n# Goal\nRound 67 of the kotoba lane — WAVE 2, the falsify wave. Wave 1 (build, 32 seats) and the L1's\nintegration have landed. The lane content commit is `da86c03e482a6aef433c34d733726b37c7cf6607`.\nTwo frozen claims live in `/home/vgpnk/Projects/shokunin/kotoba-shokunin/plans/round-67.md`:\n- **C1 consistency (calibration sub-axis)** — the routed r66 repair (the hyaku closure's\n  `corpus/lessons/round-66-verifier-spotcheck.md` was an unindexed corpus file, so the corpus\n  integrity gate was red at the base). The L1 reports `9/9 checks pass` exit 0 on the primary gate\n  and exit 0 on the independent one after an index row and a re-recorded baseline.\n- **C2 depth (lowest owned axis, sourced)** — the instruction-authority ladder:\n  `python3 -B verifiers/check_instruction_authority.py --rev <rev>` prints\n  `authority ladder grounded 1 of 1` and exits 0; at the base `2a8eba56b3f9321b70c569fa2816d42237ca49a2`\n  it prints `0 of 1` and exits nonzero.\n\nYour seat ATTACKS. Name exactly what it attacks, attack it with the strongest counterexample the\nlocal evidence supports, and report the verdict. No seat is a judge. Never fabricate a command\noutput, a quote, a commit hash or a source you did not open.\n\n# Write and report scope\nThe only allowed output of your seat is your own report file at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w2/<YourSeatName>.md`.\nEvery `Report:` trailer path is relative to `/home/vgpnk/Projects/shokunin/kotoba-shokunin` — write it at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/<that path>`.\nNever write to the fleet root outside the lane, to another lane, to `/home/vgpnk/Projects/shokuknow`\n(read-only), to domain source trees, to the lane's jj state, or to the lane's Git index. Do not run\ngit or jj write commands. Use only temporary sandboxes under `/tmp` for mutations: never mutate the\nlane's own tracked files, the landed counter, or the corpus.\n\n# First-line rules\nEvery seat prompt begins with `/skill:goddspeed` followed by the verbatim directive above. No model\nalias may be specified by you. Tooling authorization: you may install or upgrade tools that help\nthe task — read `/home/vgpnk/.omp/agent/RULES.md` first (official channels, update-safety gate,\nrecord tool/version/channel/reason). Pacman transactions are PAUSED host-wide until the operator\nresolves the host-recovery L0 question; install via `uv tool`/`npx`/an official binary in\n`~/.local/bin`, or file an L0 question. When the pause lifts, before any `pacman -S`, run\n`pacman -Sp --print-format '%n %v' <pkgs>` and proceed only if every listed package is not\ninstalled yet; never run `-Sy`, `-Syu`, `-U`, `-R`, a downgrade, or restart a host service.\n\n# Planner mapping and evidence\nThe L1 holds the canonical planner seat. No seat is a judge. Identify the revision or the\ntemporary sandbox you measured; distinguish the pinned base `2a8eba56b3f9321b70c569fa2816d42237ca49a2`\nfrom the landed tip `da86c03e482a6aef433c34d733726b37c7cf6607`.\n\n# Host bounds — process discipline\nKill only by the PIDs you started. Never use a bare `pkill`/`killall` pattern that can reach a\nsibling seat or another lane's process. Contention cap: at most 4 concurrent processes and 120 s\nwall time for any batch you start.\n\n# Round facts you need\n- Wave-1 seat logs (the scouts' findings, verbatim): `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/logs/`.\n- Wave-1 seat reports and drafts: `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/`.\n- Controls and receipts: `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/controls/` and `.../receipts/`.\n- The landed entry: `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/knowledge/instruction-authority-ladder-round67.md`; the lesson\n  `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/lessons/round-67.md`; the registry `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md`; the coverage map\n  `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/README.md`; the counter `/home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/check_instruction_authority.py`.\n- Lane bar: `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/QUALITY.md`; contract `/home/vgpnk/Projects/shokunin/CORPUS.md`.\n- The assimilation package is READ-ONLY: `/home/vgpnk/Projects/shokuknow/merge/kotoba/`.\n",
+  "items": [
+    {
+      "name": "RevEntryAuthority",
+      "role": "reviewer",
+      "axes": [
+        "depth"
+      ],
+      "prompt": "ATTACK the landed entry's authority claims. Read `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/knowledge/instruction-authority-ladder-round67.md` and the wave-1 scout logs `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/logs/ScoutModelSpec.log`, `ScoutSkillCreator.log`, `ScoutArxiv.log`. For every factual sentence in the entry, name whether the re-opened source supports it. Report each sentence the cited source does NOT support, with the file:line and the source text that contradicts it. Pay attention to: the five-level vs six-level reading (Root, System, Developer, User, Guideline, and the chain-of-command ordering's No Authority); whether the entry's \"the chain-of-command ordering adds No Authority\" is what the page actually renders; and the arXiv figures (12 levels, 853 tasks, 427/426 split, 46 agents, ~40%). Report at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w2/RevEntryAuthority.md`."
+    },
+    {
+      "name": "RevEntryQuote",
+      "role": "reviewer",
+      "axes": [
+        "depth"
+      ],
+      "prompt": "ATTACK every located quote in the landed entry byte-for-byte. Read `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/knowledge/instruction-authority-ladder-round67.md` and the three scout logs under `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/logs/`. For each double-quoted phrase in the entry (there are at least three), locate the corresponding line in the scout's log and report whether the entry's quote is verbatim, whether it is at most 25 words, and whether it is the quote the source carries. Report any shaping (dropped words, changed punctuation, a substituted dash) as a defect with file:line. Report at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w2/RevEntryQuote.md`."
+    },
+    {
+      "name": "RevEntryVersion",
+      "role": "reviewer",
+      "axes": [
+        "depth"
+      ],
+      "prompt": "ATTACK the round-67 refusal of the staged version-string claim. The lesson refuses the staged S123 row's \"document version 2026/08/18\" because the re-opened page renders \"August 18, 2026\". Read `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/lessons/round-67.md` (## Gate) and `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/logs/ScoutModelSpec.log`. Independently fetch or read the evidence for whether the literal string `2026/08/18` appears anywhere in the page's fetched text. Report: does the refusal hold, and is the flip condition as written checkable by a later round? Report at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w2/RevEntryVersion.md`."
+    },
+    {
+      "name": "CritSourcesSchema",
+      "role": "critic",
+      "axes": [
+        "calibration"
+      ],
+      "prompt": "ATTACK the three new SOURCES rows for schema. Read the rows S123, S124 and S129 in `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md` and the header plus three existing rows. Check: exactly 11 columns; no literal or escaped `|` in any cell; `id` is the next free id; `kind` and `tier` values are ones the registry already uses; `status` is `mined`; `opened` is 2026-10-24; `recheck` is a bare cadence with no prose. Report every defect with file:line and the fix. Report at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w2/CritSourcesSchema.md`."
+    },
+    {
+      "name": "CritSourcesScope",
+      "role": "critic",
+      "axes": [
+        "depth"
+      ],
+      "prompt": "ATTACK the scope and teaches cells of S123, S124 and S129 for overclaim (QUALITY Q20/Q23). Read them in `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md` and compare against the re-opened sources in `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/logs/`. Does any `scope` or `teaches` cell claim more than the source states? Does any row assert a client behaviour, a measurement or a universal? Report each overclaim with the row id, the offending clause and the narrower wording you would accept. Report at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w2/CritSourcesScope.md`."
+    },
+    {
+      "name": "CritSourcesUsedby",
+      "role": "critic",
+      "axes": [
+        "calibration"
+      ],
+      "prompt": "ATTACK the `used-by` cells of S123, S124 and S129. The contract says `used-by` lists exactly the admitted entries citing the row. Read the rows in `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md`, then grep the whole lane for each S-id to find every file that cites it. Report: the complete set of citing files, whether the row's `used-by` is exactly that set, and any citing file that is missing from the cell. Report at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w2/CritSourcesUsedby.md`."
+    },
+    {
+      "name": "CritSourcesRecheck",
+      "role": "critic",
+      "axes": [
+        "calibration"
+      ],
+      "prompt": "ATTACK the transformed `recheck` cells. The staged rows carried prose cells such as \"90d - re-fetch ... (ran 2026-10-23)\". Read the adopted rows in `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md` and the round-67 lesson's ## Gate. Check: each `recheck` cell holds a bare cadence with no prose; the stripped condition is recorded in the Gate block; the recorded condition matches the staged row's condition in substance (no condition silently dropped or invented). Report each mismatch with file:line. Report at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w2/CritSourcesRecheck.md`."
+    },
+    {
+      "name": "CritCollision",
+      "role": "critic",
+      "axes": [
+        "calibration"
+      ],
+      "prompt": "ATTACK the id-collision check. Read `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/controls/reg-ids`, `staged-ids`, `collisions` and the lesson's ## Gate. Then re-derive the collision independently with the census parser's 0-3 leading-space rule over `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md` and `/home/vgpnk/Projects/shokuknow/merge/kotoba/SOURCES.append.md`, and confirm the guard is not vacuous on an indented-row fixture. Report: does the collision count of 0 hold, is the guard non-vacuous, and what would happen if a staged id collided with a registry id (is the renumber rule \"re-point by document, never arithmetic\" actually followed)? Report at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w2/CritCollision.md`."
+    },
+    {
+      "name": "CritTransform",
+      "role": "critic",
+      "axes": [
+        "calibration"
+      ],
+      "prompt": "ATTACK the staged-to-fleet transformation. Compare the staged rows S123/S124/S129 in `/home/vgpnk/Projects/shokuknow/merge/kotoba/SOURCES.append.md` with the adopted rows in `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md`. Check: every field that was changed is either a required schema normalisation (recheck cadence, opened date, used-by, status) or a substantive narrowing; nothing substantive was silently dropped; the entry's claims are not stronger than the staged row's. Report each changed field and whether the change is a normalisation or an unannounced edit. Report at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w2/CritTransform.md`."
+    },
+    {
+      "name": "CritC1Repair",
+      "role": "critic",
+      "axes": [
+        "calibration"
+      ],
+      "prompt": "ATTACK the C1 repair: does it move the CAUSE or only the SYMPTOM (QUALITY Q21)? The routed cause is in `/home/vgpnk/Projects/shokunin/.ufo/waves/hyaku/inline-run-20261023.md:181-185`: the r66 closure spot-check is an unindexed corpus file. Read the repair: the coverage-map index row in `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/README.md` and the re-recorded `/home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/corpus-baseline.json`. Answer: is the unindexed file now indexed (the cause) or was the baseline simply taught to expect it (the symptom)? Would exempting the file have been an equally valid repair? Report a verdict and the reason. Report at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w2/CritC1Repair.md`."
+    },
+    {
+      "name": "CritC1Baseline",
+      "role": "critic",
+      "axes": [
+        "calibration"
+      ],
+      "prompt": "ATTACK the baseline re-record for rubber-stamping. Read `/home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/corpus-baseline.json` (the `measured_against` block and the `checks` values) and re-derive every value with `python3 -B verifiers/verify_corpus_integrity.py --no-baseline --json` at `da86c03e482a6aef433c34d733726b37c7cf6607`. Report each baseline value against the gate's own measurement: does every one match, and is any of them hand-set to make the gate green rather than derived? Report at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w2/CritC1Baseline.md`."
+    },
+    {
+      "name": "CritC1Unindexed",
+      "role": "critic",
+      "axes": [
+        "calibration"
+      ],
+      "prompt": "ATTACK the C1 index row's shape. Read the new coverage-map row for the r66 closure spot-check in `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/README.md` and compare it with the existing rows for the r60/r61/r62/r63/r64/r65 closure spot-checks. Report: does the new row carry the same column count and the same note shape (written by the hyaku closure, not the lane; the round it reviews); does it name the run-card route; and does the gate's index census now count it as covered (`unindexed 0`)? Report at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w2/CritC1Unindexed.md`."
+    },
+    {
+      "name": "MutCounterConj12",
+      "role": "mutation-tester",
+      "axes": [
+        "depth"
+      ],
+      "prompt": "MUTATE the landed counter `/home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/check_instruction_authority.py` in a scratch copy under /tmp: break conjunct 1 (the entry must exist) and conjunct 2 (the entry must carry a `source:` line naming an S### id), one mutant at a time. Each mutant must make the counter refuse to print `authority ladder grounded 1 of 1`. Run each with `--rev da86c03e482a6aef433c34d733726b37c7cf6607` against the committed tree and record the exit code and the first failing line. The honest bytes must stay green. Report at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w2/MutCounterConj12.md`."
+    },
+    {
+      "name": "MutCounterConj34",
+      "role": "mutation-tester",
+      "axes": [
+        "depth"
+      ],
+      "prompt": "MUTATE the landed counter in a scratch copy: break conjunct 3 (every cited id must resolve to a `mined` row) and conjunct 4 (the row's source cell must occur verbatim in the entry's source line) — one mutant at a time, each breaking exactly one conjunct. Record the exit code and the first failing line for each, and confirm the honest bytes stay green. Report at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w2/MutCounterConj34.md`."
+    },
+    {
+      "name": "MutCounterConj567",
+      "role": "mutation-tester",
+      "axes": [
+        "depth"
+      ],
+      "prompt": "MUTATE the landed counter in a scratch copy: break conjunct 5 (verified-at/recheck), conjunct 6 (the located quote must occur in the row's anchor cell) and conjunct 7 (the coverage-map index row) — one mutant at a time. Record the exit code and the first failing line for each and confirm the honest bytes stay green. Report at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w2/MutCounterConj567.md`."
+    },
+    {
+      "name": "MutCounterPrint",
+      "role": "mutation-tester",
+      "axes": [
+        "depth"
+      ],
+      "prompt": "MUTATE the landed counter's OUTPUT contract in a scratch copy: change the printed line away from `authority ladder grounded N of 1`, make it always print `1 of 1` regardless of the findings, and make it exit 0 on a not-grounded world. Each mutant must be caught by the counter's own `--self-test` (which asserts the exact line and exit 0 on the honest world and exit 1 on broken worlds). Record the self-test output for each mutant and whether it was killed. Report at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w2/MutCounterPrint.md`."
+    },
+    {
+      "name": "RevCounterBound",
+      "role": "reviewer",
+      "axes": [
+        "depth"
+      ],
+      "prompt": "ATTACK the landed counter's trust boundary (QUALITY Q33). The counter runs the measured revision's own bytes, so a revision that rewrites the counter changes the verdict. Read `/home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/check_instruction_authority.py` and `/home/vgpnk/Projects/shokunin/kotoba-shokunin/plans/round-67.md`. Report: which guards OUTSIDE the counter the claim's verdict rests on (the base control, the junk-entry control, the mutation battery, the independent corpus gate); whether any of them is itself a revision-rewritable artifact; and what a reviewer must re-run to verify the claim without trusting the counter. Report at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w2/RevCounterBound.md`."
+    },
+    {
+      "name": "RevPlanPredicate",
+      "role": "reviewer",
+      "axes": [
+        "calibration"
+      ],
+      "prompt": "ATTACK the frozen predicates (QUALITY Q28). Read `/home/vgpnk/Projects/shokunin/kotoba-shokunin/plans/round-67.md` (the C1 and C2 predicate sentences) and the landed counter `/home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/check_instruction_authority.py` and the corpus gate. For each claim, report whether the predicate sentence in the plan is the SAME condition the counter's code implements and the SAME label the receipts print — quote both. Report any drift. Report at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w2/RevPlanPredicate.md`."
+    },
+    {
+      "name": "RevControlK2",
+      "role": "reviewer",
+      "axes": [
+        "calibration"
+      ],
+      "prompt": "ATTACK the C1 half-repair controls K2 and K3. Read `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/controls/C1-half-controls.txt` and `/home/vgpnk/Projects/shokunin/kotoba-shokunin/plans/round-67.md`. Verify by re-running them yourself in /tmp: (K2) the index row alone leaves the gate red on the census cells; (K3) the baseline re-record alone leaves the gate red on `corpus.index.unindexed`. Report each world, its exit code and the failing DRIFT line, and whether either half alone could reach `9/9`. Report at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w2/RevControlK2.md`."
+    },
+    {
+      "name": "RevControlJunk",
+      "role": "reviewer",
+      "axes": [
+        "depth"
+      ],
+      "prompt": "ATTACK the C2 junk-entry control. Read `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/controls/junk-world/` and the control receipt. Rebuild the junk world yourself in /tmp (real bytes, no resolvable S### id, no `verified-at:` line, no coverage-map index row) and run the landed counter against it. Report: does the counter refuse it, and which conjunct rejects it first? Report at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w2/RevControlJunk.md`."
+    },
+    {
+      "name": "ScoutSeatAccounting",
+      "role": "scout",
+      "axes": [
+        "calibration"
+      ],
+      "prompt": "RE-DERIVE the round's seat accounting (QUALITY Q06/Q27/Q40). Count in `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/`: the declared seats in `w1-spec.json`, the seat reports written (`*.md`), the session logs carrying a findings section (`logs/*.log`), the drafts and controls produced, and the dispatcher's `seat-results.json` if present. Report the three numbers separately, with the command that produced each, and state which is the honest denominator. Also check for any seat report written outside `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/`. Report at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w2/ScoutSeatAccounting.md`."
+    },
+    {
+      "name": "ScoutMisroot",
+      "role": "scout",
+      "axes": [
+        "calibration"
+      ],
+      "prompt": "SWEEP for misrooted seat writes. Run `git -C /home/vgpnk/Projects/shokunin status --porcelain` and report every untracked path OUTSIDE `/home/vgpnk/Projects/shokunin/kotoba-shokunin` that names kotoba or round-67 (ignore `.ufo/state/*` and `.ufo/watchdog.log`). Also run `find /home/vgpnk/Projects/shokuknow -newermt '-120 minutes' -type f` and report every hit. Report at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w2/ScoutMisroot.md`. Move or delete nothing."
+    },
+    {
+      "name": "ScoutConsiderthese",
+      "role": "scout",
+      "axes": [
+        "calibration"
+      ],
+      "prompt": "RE-DERIVE the considerthese measurement. The round mined the `considerthese/2026-10-23.md` proposal about auditing the skill's own description against the committed per-client threshold table. Read `/home/vgpnk/Projects/shokunin/kotoba-shokunin/considerthese/2026-10-23.md` (never edit it), `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/knowledge/skill-listing-thresholds-round54.md` and `/home/vgpnk/Projects/shokunin/kotoba-shokunin/SKILL.md`'s frontmatter `description`. Measure the description's exact character count yourself, and report against each of the seven clients' documented limits which ones would truncate it and where. Report the commands you ran. Report at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w2/ScoutConsiderthese.md`."
+    },
+    {
+      "name": "ScoutLesson",
+      "role": "scout",
+      "axes": [
+        "calibration"
+      ],
+      "prompt": "ATTACK the round-67 lesson against the observed evidence. Read `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/lessons/round-67.md` and check its ## Gate and ## Mistakes against the wave-1 logs and controls: is every claimed access date, quote and file path real; is each mistake's \"shown able to fail\" claim backed by an actual control; is the admit/reject pair both present with a flip condition; is the id-collision count right? Report each unsupported statement with file:line. Report at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w2/ScoutLesson.md`."
+    },
+    {
+      "name": "ScoutReadme",
+      "role": "scout",
+      "axes": [
+        "calibration"
+      ],
+      "prompt": "ATTACK the three new coverage-map rows in `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/README.md` (the r66 closure spot-check, the round-67 knowledge entry, the round-67 lesson). Read the index rule in `/home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/verify_corpus_integrity.py` and confirm each row's column-2 token is harvested, resolves, and is inside the `## Coverage map` section; confirm the gate reports `unindexed 0`. Report any token that is stale, missing or outside the section. Report at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w2/ScoutReadme.md`."
+    },
+    {
+      "name": "RevSkillGate",
+      "role": "reviewer",
+      "axes": [
+        "operability"
+      ],
+      "prompt": "ATTACK the SKILL.md change. The round added a `## Gate registry` row for `verifiers/check_instruction_authority.py` and compressed one wrapped paragraph line to stay inside the 600-line budget. Read `/home/vgpnk/Projects/shokunin/kotoba-shokunin/SKILL.md` and the diff of the landed commit. Report: does the registry row have the shape the other rows have (path, kind, command, exit codes, self-test flag, fixture scope, owner); is the compressed paragraph still one grammatical unit with no meaning lost; does `python3 -B verifiers/verify_skill_checklist.py` still exit 0 with 11/11; and does `python3 -B verifiers/check_gate_registry.py --rev da86c03e482a6aef433c34d733726b37c7cf6607` now read 44 of 44? Report at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w2/RevSkillGate.md`."
+    },
+    {
+      "name": "RevSourcesAppendOnly",
+      "role": "reviewer",
+      "axes": [
+        "calibration"
+      ],
+      "prompt": "ATTACK the append-only claim on `corpus/SOURCES.md` (QUALITY Q34). Run `python3 -B verifiers/check_sources_append_only.py --base 2a8eba56b3f9321b70c569fa2816d42237ca49a2 --tip da86c03e482a6aef433c34d733726b37c7cf6607` and report the exit code and every finding. Independently diff the registry between the base and the tip and confirm that no pre-existing row's `status`, `recheck`, `used-by` or any other cell was edited in place — only three new rows were inserted. Report at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w2/RevSourcesAppendOnly.md`."
+    },
+    {
+      "name": "RevQualityBar",
+      "role": "reviewer",
+      "axes": [
+        "calibration"
+      ],
+      "prompt": "ATTACK the round's claims against the lane's bar. Read `/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/QUALITY.md` (Q19, Q25, Q26, Q31, Q48, Q56, Q59, Q60) and the round's plan `/home/vgpnk/Projects/shokunin/kotoba-shokunin/plans/round-67.md` plus the landed entry and lesson. Report any clause of a claim headline that its counter does not measure, any asserted number without its command, any quote description stronger than \"quote-equal after documented shaping\", and any citation that names a revision no committed receipt names. Report at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w2/RevQualityBar.md`."
+    },
+    {
+      "name": "RevReportContract",
+      "role": "reviewer",
+      "axes": [
+        "calibration"
+      ],
+      "prompt": "ATTACK the draft round report against the canonical contract. Read `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w1/drafts/round-67-report.md` and the contract in `/home/vgpnk/Projects/shokunin/.ufo/prompts/kotoba-round-67.md` (section 4). Report: which required sections are present, in order, and which are missing; whether any value is left as an unfilled `TBD` placeholder; whether every work item carries an evidence pointer; whether the SHONEN lines follow the `[x]`/`[~]`/`[ ]` rule; and whether the Trend verdicts carry one verdict each for expansion, quality and discernment with evidence. Report at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w2/RevReportContract.md`."
+    },
+    {
+      "name": "RevSibling",
+      "role": "revenger",
+      "axes": [
+        "adjacency"
+      ],
+      "prompt": "RE-SCAN the sibling lanes for the new entry's scope. Read the sibling repos' `SKILL.md` and `PROVINCE.md` under `/home/vgpnk/Projects/shokunin/` READ-ONLY. Report any sibling that claims instruction-authority, instruction-hierarchy or skill-body-authority craft, and whether the landed entry's content (the Model Spec ladder, Anthropic's trigger-eval loop, the ManyIH measurement) overlaps that ground. Report at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w2/RevSibling.md`. Write to no sibling repo."
+    },
+    {
+      "name": "RevGuardRegistry",
+      "role": "reviewer",
+      "axes": [
+        "operability"
+      ],
+      "prompt": "ATTACK the lane's gate registry and floors at the landed tip. Run `python3 -B verifiers/check_gate_registry.py --rev da86c03e482a6aef433c34d733726b37c7cf6607`, `python3 -B verifiers/check_assertion_floors.py`, and `python3 -B verifiers/verify_corpus_integrity.py --self-test` and `python3 -B verifiers/verify_corpus_independent.py --self-test`. Report each exit code and any failure, and whether the new counter needs a floors-registry row (and what floor its self-test's assertion count sets). Report at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w2/RevGuardRegistry.md`."
+    },
+    {
+      "name": "CritNoHarm",
+      "role": "critic",
+      "axes": [
+        "calibration"
+      ],
+      "prompt": "RUN the no-harm comparison base vs tip. Compare the lane's gate results at `2a8eba56b3f9321b70c569fa2816d42237ca49a2` and at `da86c03e482a6aef433c34d733726b37c7cf6607`: `verify_corpus_integrity.py`, `verify_corpus_independent.py`, `verify_skill_checklist.py`, `check_gate_registry.py`, `check_assertion_floors.py`, and the fleet source census `scripts/sources-census.sh validate --root /home/vgpnk/Projects/shokunin kotoba`. Report every cell that changed, with its before and after value, and flag any change that is not an intended improvement (a new red, a lost check, a weakened assertion count). Report at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w2/CritNoHarm.md`."
+    },
+    {
+      "name": "CritSweepRemaining",
+      "role": "critic",
+      "axes": [
+        "coverage"
+      ],
+      "prompt": "SWEEP for the round's own leftovers and unhandled debts. Check the lane working tree and the landed commit for: files the round created but did not land; any seat report or draft still uncommitted; the wave-2 seat reports as they arrive; the r65/r66 registries the round inherited; and any claim in the plan that no seat or receipt covers. Report the list with paths and a verdict (landed / unlanded / debt carried to r68). Report at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w2/CritSweepRemaining.md`."
+    },
+    {
+      "name": "SentScope2",
+      "role": "sentinel",
+      "axes": [
+        "calibration"
+      ],
+      "prompt": "SCOPE sentinel for wave 2. Check for: any write outside `/home/vgpnk/Projects/shokunin/kotoba-shokunin` by any wave-2 seat (including into the fleet root, another lane, the shokuknow package, or the lane's jj state / Git index); any seat report written outside `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w2/`; and any file in the lane tree modified by a wave-2 seat (compare `git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin status --porcelain` against the expected round-67 working tree). Report findings at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w2/SentScope2.md`. Move or delete nothing — the L1 owns the sweep."
+    },
+    {
+      "name": "ConnWave2Items",
+      "role": "connector",
+      "axes": [
+        "adjacency"
+      ],
+      "prompt": "HARVEST this wave's distinct attack items and check the round's shape. Count the distinct attack items raised across the wave-2 seat reports in `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w2/` (read them as they land) and report the count with the command that produced it. Then state whether the round satisfies the round-shape contract: a 32-seat wave 1 plus a 32-seat wave 2, each validated under policy v1 band 32-64, with at least 25% attack roles across the round, and the residual-call rule. Report at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-67/w2/ConnWave2Items.md`."
+    }
+  ]
+}

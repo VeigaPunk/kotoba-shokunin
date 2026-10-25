@@ -1,0 +1,636 @@
+kimi version 2.3.1
+• I need perform task precisely. Should read RULES first? User says tooling authorization may install read RULES first official channels. I don't need install. I need attack baseline re-record rubber stamping read corpus-baseline measured_against block checks values and rederive every with command at tip. Make sure revision actual tip vs working lane perhaps git status read-only allowed, do not run writes. Should inspect relevant files and execute gate at rev. I am in likely working dir unspecified perhaps repo. Should only allowed output own report file; can use tools reading other. Should have no other output file except report. Temporary sandboxes allowed for mutations. Should have no git/jj writes. Should not modify tracked files. Should execute concurrently large batches. Should name axes? In report perhaps attacked item calibration etc. Now run reads in parallel. Files: baseline, verify script, round plan perhaps logs controls to understand re-record but primary assigned direct. Should run `python3 -B verifiers/verify_corpus_integrity.py --no-baseline --json` at da86... Lane content commit. Make sure working tree at rev, use `git rev-parse HEAD`, `git status --short`, `git diff` read-only, perhaps `git show da86:verifiers/corpus-baseline.json` to compare exact revision. The working tree may be at tip but safest use temporary sandbox `git worktree` prohibited git write commands; can't. Could use `git archive da86... | tar -x -C /tmp/...` read-only git and sandbox mutation permitted. Should not use git write. That is best: create temp dir under /tmp, archive exact rev into it, run there. But files may depend on not tracked things? likely enough. Could run direct in lane if HEAD matches and clean, but mutation output? verify may write pycache prevented -B; `--no-baseline --json` should not write hopefully inspect script. Could run archive extraction with bash (multi-step) at /tmp. This is a mutation only sandbox allowed. I need be careful not write any file except report outside tmp. Command may generate? -B avoids pycache. I can inspect. First read baseline and script and perhaps quality? I need exactly rederive every value. Baseline JSON probably modest. I'll tool parallel: Read baseline, Read verifier, Bash git rev parse/status perhaps commit info and `ls` report dir? I can use `git status --short` and `git rev-parse HEAD` separately parallel as independent. Also Read round67 plan perhaps baseline context. I must not output philosophical reasoning. Call the tool directly.da86c03e482a6aef433c34d733726b37c7cf6607
+ M .ufo/waves/round-67/w1/dispatch.log
+ M .ufo/waves/round-67/w1/logs/CriticProvenance.log
+ M .ufo/waves/round-67/w1/seat-results.json
+ M corpus/README.md
+ M verifiers/corpus-baseline.json
+?? .ufo/waves/round-67/receipts/
+?? .ufo/waves/round-67/w1/CriticProvenance.md
+?? .ufo/waves/round-67/w1/controls/junk-world/
+?? .ufo/waves/round-67/w2-spec.json
+?? .ufo/waves/round-67/w2/
+?? corpus/live.md
+commit
+Interesting HEAD tip but tracked README and baseline modified in working tree. I must measure committed rev exactly, sandbox via git archive. Read working baseline not necessarily commit version! User explicitly read path and at rev. Should compare baseline at HEAD to working; cannot assume same. `Read` shows baseline with re-record; git status modified means may be changes after commit by integrator? Should inspect `git diff -- verifiers/corpus-baseline.json corpus/README.md`, and `git show da86:verifiers/corpus-baseline.json` read-only. This is important strongest counterexample maybe measured_against head claims da86c03e but baseline file modified working tree? Commit may itself include baseline, and working modifications by wave? Should see. `git show` output could be long. I can use Bash with `git diff --` (read only) and `git show da86:...` raw. But tools output raw; allowed. Better archive exact revision to /tmp and run. Should not compare working unless helpful to detect mismatch. Assigned baseline re-record likely working version corresponds tip plus wave logs? Why status M baseline? Could be file mode? `git diff` reveals. I should use git diff no ext. Should make sandbox with `mktemp -d /tmp/crit-c1-baseline.XXXXXX`, `git archive rev | tar -x -C`, then run exact command from extracted folder. But verifier invokes git ls-files and commit object resolution. Archive extraction has no .git, so fails. Should create a temporary sandbox that is a git repo at rev without git write commands in lane; user says "Do not run git or jj write commands." Does that apply even /tmp? Probably yes broadly. Avoid git clone/init/checkout (writes). Alternative use temporary index + `git --work-tree=/tmp/archive -C lane` with environment GIT_INDEX_FILE=/tmp/index `git read-tree` is git write command (to temp index) arguably forbidden "Do not run git or jj write commands." I should not. Could use existing lane `.git` and temporary worktree via environment but `git ls-files` reads lane index, which at HEAD may be same committed files? Status M means working modifications not index, and `git ls-files` uses index whose tracked list likely equals HEAD unless staged changes. `git diff --cached --name-status` can check. I can set `GIT_WORK_TREE=/tmp/extracted` and use `git -C lane` or `git --git-dir lane/.git --work-tree /tmp` commands read-only; `git ls-files` reads lane index. If index matches rev tracked files, good. `verify_corpus_integrity.py` calls `git -C repo` where repo sandbox. Should sandbox have `.git` file pointing to lane gitdir? Writing `.git` file in tmp allowed, then `git -C sandbox` uses original object db and index (lane index) and work tree sandbox. I can create `.git` file with `gitdir: /home/.../.git` in sandbox using Write, not git write. But this may affect Git behavior? `git -C sandbox rev-parse --git-dir` okay; `git ls-files` reads lane index; commit cat-file works object DB; working tree reads sandbox. HEAD is at rev. Index might include staged? `git status` shows " M" not "M " so no staged. Should confirm `git diff --cached --quiet` exit; `git ls-files` at HEAD vs index list compare via read-only `git diff --cached`. If no staged, exact tracked set from index = HEAD, and archived files exact. However .git file points actual lane and git status? I won't run status in sandbox, verifier only reads. Fine. This avoids git writes and measures exact committed bytes with index exact HEAD. Yet potential `.git` file is not in archive, creating only tmp. Should have `git archive` reads commit. `tar` extract. Should capture path ac
+
+  ross fresh shells; shell state not preserved. Could use fixed unique `/tmp/crit-c1-baseline-da86c03e-<pid>` but then know path returned. Simpler create `/tmp/kotoba-r67-crit-c1-baseline-da86c03e` deterministic; remove existing? `rm -rf` allowed tmp but maybe sibling collision? Use mktemp and command chain to archive and run all in single call, output includes path. I then might need rerun / inspect output. I can write `.git` using shell `printf >` discouraged dedicated Write but dynamic temp path cannot use Write until created; instructions say echo > file -> Write. Better separate calls: Bash `mktemp -d` returns path, then Bash archive extract, Write .git, Bash run. Serialization necessary due dependency. But "execute parallel large batches" only independent. Could also avoid `.git` file by copy/symlink `.git`? `ln -s /home/.../.git /tmp/sandbox/.git` via Bash (filesystem management allowed) avoids Write. A symlink to lane .git means Git uses actual index and work tree? When .git is symlink to dir, Git resolves, worktree is sandbox. Good. No writing via shell redirection. Create tmp dir, archive into it, symlink .git. This uses read-only git archive, and verifier's git commands read-only. Should archive might include `.git`? no.
+
+  Could simply execute with `repo=/tmp/...` after setup and redirect JSON output to /tmp for parsing, allowed bash redirection for command output? Tool says `echo > file` / cat EOF → Write; redirections command output legitimate shell semantics. I need not preserve output? For detailed rederive every value, output probably <500 lines. Tool result could capture full JSON ~20KB. I can run exact and get output. Should exit code; chain `rc=$?; ...` but echo to user discouraged. I can rely tool says failed if exit nonzero; expect 0. Should capture command output and exit maybe Bash output includes all. To analyze values automatically vs baseline, can use Python script reading baseline and subprocess command, output concise comparison, but user explicitly wants run exact command. I can run exact first, then separately parse. I could use Python `subprocess.run([...], cwd=sandbox)` to capture and compare, but that's still executing command semantically not literal? They requested `python3 -B ...`; run exact via Bash. Could redirect to tmp JSON then use Read; command output then no direct evidence except file, fine. Better run exact output in tool and use result.
+
+  First need examine diffs to ensure exact baseline file at rev. Also list controls/receipts maybe independent re-record receipt. Since task attacks rubber-stamping, need strongest counterexample local evidence. Main measurement enough. But potential issue baseline metadata false: `head_subject` matches? `git show -s --format=...`; `as_of` future? current same date. `git_status`: "round-17 staged working tree; new corpus file is tracked in index" appears stale from round17 and contradicts note re-recorded at da86. Could be false provenance even if values match. Attack item specifically baseline re-record rubber-stamping. Should report each value vs measurement and any hand-set. If values all match, no numerical counterexample. But measured_against.git_status is stale ("round-17 staged working tree; new corpus file is tracked in index") not actual status at committed revision. It may be explicitly historical retained? measured_against note updated but git_status stale; notes round46 says headline measured_against block above is round-17 record retained history, but now headline changed head/as_of and note. Could report metadata stale not evidence values hand-set. Should check committed baseline at rev may differ from working (maybe report being written in w2 causes baseline modifications? Why modified?). I'll inspect diff. Also independent gate maybe not required, but measured values can be faked due working tree? Should exactly at rev with committed bytes. Use sandbox. I'll call parallel:
+  - `git diff -- verifiers/corpus-baseline.json`
+  - `git diff --cached --name-status` and maybe `git diff --cached --exit-code` output no.
+  - `git show da86:verifiers/corpus-baseline.json` perhaps compare with working via `git diff` enough.
+  - `git show -s --format='%H%n%s%n%ci' rev`
+  - Read receipts likely known paths? Glob controls/receipts for baseline. Use Glob pattern `.ufo/waves/round-67/{controls,receipts}/**/*` maybe files. Could inspect wave1 relevant baseline logs with Grep "corpus-baseline|no-baseline|121|82|38" but huge. Assignment says local evidence strongest. Direct gate enough. Perhaps find record to see if baseline re-recorded before or after. Use Grep restricted `.ufo/waves/round-67` pattern "corpus-baseline|--no-baseline" files_with_matches. But not necessary unless metadata contradiction. I can gather. I'll do setup temp dir concurrently with read-only commands? `mktemp -d` independent. I'll get path.diff --git i/verifiers/corpus-baseline.json w/verifiers/corpus-baseline.json
+index c067994..8a71d65 100644
+--- i/verifiers/corpus-baseline.json
++++ w/verifiers/corpus-baseline.json
+@@ -1,69 +1,69 @@
+ {
+-  "as_of": "2026-09-29T01:30:35-03:00",
+-  "host": "vgpnk",
+-  "measured_against": {
+-    "repo": "kotoba-shokunin",
+-    "head": "d85982d",
+-    "head_subject": "round-16: planner rank-1 discharged, M36 fixture refutation recorded, round-17 plan adopted",
+-    "git_status": "round-17 staged working tree; new corpus file is tracked in the index",
+-    "command": "python3 verifiers/verify_corpus_integrity.py --no-baseline --json",
+-    "note": "Re-recorded against the staged round-17 tree. tracked_files moves 46 -> 47 because corpus/knowledge/checklist-execution-round17.md is indexed in corpus/README.md. report_total remains 32 and commit_total remains 27. The pre-record observation found report_dead=32 because all host-absolute pointers used the now-absent /home/vgpnk/projects base; the observed host root is /home/vgpnk/Projects. The 32 in-repo report pointers were case-corrected without changing their targets, then the same command measured report_dead=0, unindexed=0, stale_patterns=0, missing_paths=0, commit_unresolvable=0, commit_nonhash=0."
++ "as_of": "2026-10-24T21:41:00-03:00",
++ "host": "vgpnk",
++ "measured_against": {
++  "repo": "kotoba-shokunin",
++  "head": "da86c03e",
++  "head_subject": "round-67: instruction-authority ladder (C2) and the r66 corpus-index repair (C1)",
++  "git_status": "round-17 staged working tree; new corpus file is tracked in the index",
++  "command": "python3 -B verifiers/verify_corpus_integrity.py --no-baseline --json",
++  "note": "Re-recorded at the round-67 content commit da86c03e. tracked_files 118 -> 121 because corpus/knowledge/instruction-authority-ladder-round67.md and corpus/lessons/round-67.md are new tracked corpus files, both indexed in corpus/README.md; unindexed 1 -> 0 (the round-67 lesson row added at the coverage map) because the hyaku closure's round-66 verifier spot-check (corpus/lessons/round-66-verifier-spotcheck.md) now has a coverage-map index row; report_total 79 -> 82 and commit_total 37 -> 38 are the counts the gate's own measurement derives from the corpus files the round-66 closure added; every value is taken from the gate's --no-baseline --json output at that commit, not hand-set."
++ },
++ "checks": {
++  "corpus.index.tracked_files": {
++   "mode": "equal",
++   "expect": 121
+   },
+-  "checks": {
+-    "corpus.index.tracked_files": {
+-      "mode": "equal",
+-      "expect": 118
+-    },
+-    "corpus.index.unindexed": {
+-      "mode": "zero",
+-      "expect": 0
+-    },
+-    "corpus.index.stale_patterns": {
+-      "mode": "zero",
+-      "expect": 0
+-    },
+-    "corpus.index.missing_paths": {
+-      "mode": "zero",
+-      "expect": 0
+-    },
+-    "corpus.pointers.report_total": {
+-      "mode": "equal",
+-      "expect": 79
+-    },
+-    "corpus.pointers.report_dead": {
+-      "mode": "zero",
+-      "expect": 0
+-    },
+-    "corpus.pointers.commit_total": {
+-      "mode": "equal",
+-      "expect": 37
+-    },
+-    "corpus.pointers.commit_unresolvable": {
+-      "mode": "zero",
+-      "expect": 0
+-    },
+-    "corpus.pointers.commit_nonhash": {
+-      "mode": "zero",
+-      "expect": 0
+-    }
++  "corpus.index.unindexed": {
++   "mode": "zero",
++   "expect": 0
+   },
+-  "notes": {
+-    "round19_recensus": "corpus.index.tracked_files 47 -> 48: the round landed corpus/lessons/round-19-recensus.md, a real new tracked corpus file, indexed in the coverage map. Expectation refresh, not a fitted denominator.",
+-    "round16_redispatch": "Measured with python3 verifiers/verify_corpus_integrity.py --no-baseline --json against the staged continuation of 581e2932850db9cb917844662651f533bfd98519. tracked_files 48 -> 51: corpus/knowledge/sibling-citation-routing-round16.md, its companion .json, and corpus/lessons/round-16.md; all three are indexed in corpus/README.md. Observed report_total 32 and commit_total 27 stay unchanged. All zero-defect expectations stay zero; unindexed, stale_patterns, missing_paths, report_dead, commit_unresolvable and commit_nonhash observed zero. Historical measured_against metadata above is retained as the earlier baseline record.",
+-    "round21_refresh": "Measured with python3 verifiers/verify_corpus_integrity.py --no-baseline --json against the staged round-21 tree at HEAD 4e92f36 + the round-21 working changes. tracked_files 51 -> 52 (corpus/knowledge/sibling-citation-routing-round21.md, indexed in corpus/README.md); report_total 32 -> 34 (the new file and the new README row each cite the round-21 report, host-absolute form per the round-13 convention). commit_total 27 unchanged; every zero-defect expectation observed zero; both corpus instruments exit 0 at the landed tree.",
+-    "round23_capability": "Measured with python3 verifiers/verify_corpus_integrity.py --no-baseline --json against the staged round-23 tree. tracked_files 52 -> 53 (corpus/knowledge/substrate-pin-guard-round23.md, indexed in corpus/README.md); report_total 34 -> 36 (the new README row and the new corpus doc each cite the round-23 report, host-absolute form). commit_total 27 unchanged; all zero-defect expectations observed zero. The first landing had one repo-relative report pointer (dead, corpus-instrument file-relative base); corrected to host-absolute before this record.",
+-    "round37_harness_independent": "Measured with python3 verifiers/verify_corpus_integrity.py --no-baseline --json against a staged copy of the round-38 tree (the corpus doc landed this round; the round-37 record it owes was written at r38). tracked_files 53 -> 54 (corpus/knowledge/harness-independent-round37.md, indexed in corpus/README.md); report_total 36 -> 38 (the new README row and the new corpus doc each cite the round-37 report, host-absolute form). index_tokens 69 -> 72 (the new README row's three backticked column-2 tokens). commit_total 27 unchanged; every zero-defect expectation observed zero; both corpus instruments exit 0 at the staged tree.",
+-    "round41_v10_census": "Measured with python3 verifiers/verify_corpus_integrity.py --no-baseline --json against a temporary Git index seeded from HEAD plus corpus/README.md and corpus/knowledge/harness-independent-round41-census.md. tracked_files 54 -> 55 (the new census note, indexed in corpus/README.md); index_tokens 72 -> 73 (the new README row); corpus Markdown files 53 -> 54. report_total 38 and commit_total 27 unchanged; all zero-defect expectations observed zero, and both corpus instruments exit 0 on the temporary-index tree. The real Git index was not changed.",
+-    "round46_landing": "Measured with python3 -B verifiers/verify_corpus_integrity.py --repo <overlay> on a /tmp shared clone of 78ee57e overlaid with the round-46 landing tree and committed there (the lane's real index untouched). tracked_files 55 -> 58: corpus/QUALITY.md, corpus/SOURCES.md and corpus/lessons/round-46.md, each indexed in corpus/README.md (index rows 73 -> 76). report_total 38 -> 40: the round-46 lesson's two pointers to the lane's round-45 report, written host-absolute because that report exists only in the lane repo (bare .ufo/reports/round-45/kotoba.md read report_dead=2 against the fleet root before the rewrite). commit_total 27 -> 29: the lesson's 36ab0d3 and 78ee57e tokens, both resolvable. All zero-defect expectations observed zero. The headline measured_against block above is the round-17 record and is retained as history, not as this baseline's provenance.",
+-    "round47": "corpus.index.tracked_files 58 -> 60: corpus/lessons/round-46-verifier-spotcheck.md (landed by the integrator at c61a973 without an index row, the round-47 M21 class) and corpus/lessons/round-47.md, both indexed in corpus/README.md. Measured with python3 -B verifiers/verify_corpus_integrity.py --json and verify_corpus_independent.py --json on the round-47 integration tree: report_total 40 and commit_total 29 unchanged; unindexed, stale_patterns, missing_paths, report_dead, commit_unresolvable, commit_nonhash stay 0. Expectation refresh for two real indexed files, not a fitted denominator.",
+-    "round47_closure_index": "Parent-owned verifier corpus/lessons/round-47-verifier-spotcheck.md (9973 bytes, sha256 fbd5a1fb861c3e99a25422d7079931efd41d969da3f936d7c8ea4e06aad532dc) is indexed: active tracked_files 60 -> 61, local commit citations 29 -> 30, report_total 40 unchanged. Its parent-fleet report revision is explicitly qualified to /home/vgpnk/Projects/shokunin, not claimed as a lane-repository revision; no foreign-object fetch or zero-mode masking. Prior notes, source pins, frozen inputs and zero expectations are unchanged. Counts were independently re-derived over inert data, not by running a lane gate. The original round47 60-file result stays bound to producer 92aa937, not re-scored at this metadata landing.",
+-    "round48": "corpus.index.tracked_files 61 -> 63: corpus/knowledge/frontmatter-rule-authorities-round48.md and corpus/lessons/round-48.md, both indexed in corpus/README.md. report_total 40 and commit_total 30 unchanged (upstream commit hashes in the new SOURCES rows are written without the backticked commit-token form, since they are not lane revisions). Measured with python3 -B verifiers/verify_corpus_integrity.py --json and verify_corpus_independent.py on the round-48 landed tree. Expectation refresh for two real indexed files, not a fitted denominator.",
+-    "round48_report_pointer": "corpus.pointers.report_total 40 -> 41: corpus/lessons/round-48.md M28 cites the round-47 fleet report host-absolute (/home/vgpnk/Projects/shokunin/.ufo/reports/round-47/kotoba.md); a first, repo-relative form read report_dead=1 and was corrected before this record. Measured with python3 -B verifiers/verify_corpus_integrity.py --json on the round-48 tree.",
+-    "round49": "corpus.index.tracked_files 63 -> 66: corpus/lessons/round-48-verifier-spotcheck.md (closure-owned, landed at a5adc146 without an index row; indexed in corpus/README.md this round, never edited here), corpus/knowledge/sibling-overlap-census-round49.md and corpus/lessons/round-49.md, all three indexed. corpus.pointers.report_total 41 -> 43: the two pointers come from the closure-owned spot-check, written repo-relative (.ufo/reports/round-48/kotoba.md); they are the two report_dead=2 entries, which stay red in zero mode and are not masked (the file is not lane-owned; the report exists in the fleet repository). At base a5adc146 the gate read 4 DRIFT (tracked 64, unindexed 1, report_total 43, report_dead 2); after this record it reads 1 DRIFT (report_dead 2). Measured with python3 -B verifiers/verify_corpus_integrity.py at f054b8e and in a base clone, 2026-10-22.",
+-    "round50": "corpus.index.tracked_files 66 -> 68: corpus/lessons/round-49-verifier-spotcheck.md (closure-owned, landed at f3046466 without an index row; indexed in corpus/README.md this round, never edited here) and corpus/lessons/round-50.md, both indexed. corpus.pointers.report_total 43 -> 44: the one new pointer is in the closure-owned round-49 spot-check (its fleet report path); report_dead stays 2 (the round-48 spot-check's repo-relative pointers), red in zero mode and not masked. At base f3046466 the gate read 4 DRIFT (tracked 67, unindexed 1, report_total 44, report_dead 2). Measured with python3 -B verifiers/verify_corpus_integrity.py on the round-50 tree. Expectation refresh for two real indexed files, not a fitted denominator.",
+-    "round50_entry": "corpus.index.tracked_files 68 -> 69: corpus/knowledge/skill-selection-rules-round50.md, a new admitted entry indexed in corpus/README.md (falsify-wave addition). report_total unchanged at 44. Measured with python3 -B verifiers/verify_corpus_integrity.py on the round-50 tree after the lane commit.",
+-    "round53_rerecord": "Measured 2026-10-22 with python3 verifiers/verify_corpus_integrity.py --json on the round-53 tree after every round file landed (routed defect 2 of the round-52 spot-check; lesson M41). tracked_files 72 -> 78 (round-52 and round-53 lessons, the round-52 spot-check, alwayson-rule-files-round53.md and two others since the round-50 record, all indexed); report_total 46 -> 49 (fleet report pointers in closure-authored spot-checks now resolve against the fleet root); commit_total 30 -> 32 (round-52 and round-53 commit pointers, all resolve). Every zero-defect expectation observed zero.",
+-    "round54_rerecord": "Measured 2026-10-22 with python3 -B verifiers/verify_corpus_integrity.py --no-baseline on the round-54 tree after every round file landed (lesson M41 practice). tracked_files 78 -> 81 (round-53 spot-check, round-54 entry skill-listing-thresholds-round54.md and round-54 lesson, all indexed); report_total 49 -> 51 (fleet report pointers in the round-53 spot-check); commit_total 32 unchanged (the entry's upstream pin is written google-gemini/gemini-cli@`451a02ff`, not as a lane commit). Every zero-defect expectation observed zero.",
+-    "round66_rerecord": "Measured at core revision daedcdf992c17cbc0b8a6ece204e1c7ce2b45fce with python3 -B verifiers/verify_corpus_integrity.py --no-baseline --json before this baseline update. tracked_files 116 -> 118 (the round-66 lesson and C2 knowledge entry, both indexed); unindexed 4 -> 0 (r62-r65 closure spot-checks and the round-66 lesson indexed); report_total 79 unchanged; commit_total 38 -> 37 (the nested code-span meta-finding is context); commit_unresolvable 3 -> 0 (lane-first then fleet-root resolution); report_dead, stale_patterns, missing_paths and commit_nonhash remain 0. Expected counts are re-recorded to the observed committed bytes, not fitted to a denominator."
++  "corpus.index.stale_patterns": {
++   "mode": "zero",
++   "expect": 0
++  },
++  "corpus.index.missing_paths": {
++   "mode": "zero",
++   "expect": 0
++  },
++  "corpus.pointers.report_total": {
++   "mode": "equal",
++   "expect": 82
++  },
++  "corpus.pointers.report_dead": {
++   "mode": "zero",
++   "expect": 0
++  },
++  "corpus.pointers.commit_total": {
++   "mode": "equal",
++   "expect": 38
++  },
++  "corpus.pointers.commit_unresolvable": {
++   "mode": "zero",
++   "expect": 0
++  },
++  "corpus.pointers.commit_nonhash": {
++   "mode": "zero",
++   "expect": 0
+   }
++ },
++ "notes": {
++  "round19_recensus": "corpus.index.tracked_files 47 -> 48: the round landed corpus/lessons/round-19-recensus.md, a real new tracked corpus file, indexed in the coverage map. Expectation refresh, not a fitted denominator.",
++  "round16_redispatch": "Measured with python3 verifiers/verify_corpus_integrity.py --no-baseline --json against the staged continuation of 581e2932850db9cb917844662651f533bfd98519. tracked_files 48 -> 51: corpus/knowledge/sibling-citation-routing-round16.md, its companion .json, and corpus/lessons/round-16.md; all three are indexed in corpus/README.md. Observed report_total 32 and commit_total 27 stay unchanged. All zero-defect expectations stay zero; unindexed, stale_patterns, missing_paths, report_dead, commit_unresolvable and commit_nonhash observed zero. Historical measured_against metadata above is retained as the earlier baseline record.",
++  "round21_refresh": "Measured with python3 verifiers/verify_corpus_integrity.py --no-baseline --json against the staged round-21 tree at HEAD 4e92f36 + the round-21 working changes. tracked_files 51 -> 52 (corpus/knowledge/sibling-citation-routing-round21.md, indexed in corpus/README.md); report_total 32 -> 34 (the new file and the new README row each cite the round-21 report, host-absolute form per the round-13 convention). commit_total 27 unchanged; every zero-defect expectation observed zero; both corpus instruments exit 0 at the landed tree.",
++  "round23_capability": "Measured with python3 verifiers/verify_corpus_integrity.py --no-baseline --json against the staged round-23 tree. tracked_files 52 -> 53 (corpus/knowledge/substrate-pin-guard-round23.md, indexed in corpus/README.md); report_total 34 -> 36 (the new README row and the new corpus doc each cite the round-23 report, host-absolute form). commit_total 27 unchanged; all zero-defect expectations observed zero. The first landing had one repo-relative report pointer (dead, corpus-instrument file-relative base); corrected to host-absolute before this record.",
++  "round37_harness_independent": "Measured with python3 verifiers/verify_corpus_integrity.py --no-baseline --json against a staged copy of the round-38 tree (the corpus doc landed this round; the round-37 record it owes was written at r38). tracked_files 53 -> 54 (corpus/knowledge/harness-independent-round37.md, indexed in corpus/README.md); report_total 36 -> 38 (the new README row and the new corpus doc each cite the round-37 report, host-absolute form). index_tokens 69 -> 72 (the new README row's three backticked column-2 tokens). commit_total 27 unchanged; every zero-defect expectation observed zero; both corpus instruments exit 0 at the staged tree.",
++  "round41_v10_census": "Measured with python3 verifiers/verify_corpus_integrity.py --no-baseline --json against a temporary Git index seeded from HEAD plus corpus/README.md and corpus/knowledge/harness-independent-round41-census.md. tracked_files 54 -> 55 (the new census note, indexed in corpus/README.md); index_tokens 72 -> 73 (the new README row); corpus Markdown files 53 -> 54. report_total 38 and commit_total 27 unchanged; all zero-defect expectations observed zero, and both corpus instruments exit 0 on the temporary-index tree. The real Git index was not changed.",
++  "round46_landing": "Measured with python3 -B verifiers/verify_corpus_integrity.py --repo <overlay> on a /tmp shared clone of 78ee57e overlaid with the round-46 landing tree and committed there (the lane's real index untouched). tracked_files 55 -> 58: corpus/QUALITY.md, corpus/SOURCES.md and corpus/lessons/round-46.md, each indexed in corpus/README.md (index rows 73 -> 76). report_total 38 -> 40: the round-46 lesson's two pointers to the lane's round-45 report, written host-absolute because that report exists only in the lane repo (bare .ufo/reports/round-45/kotoba.md read report_dead=2 against the fleet root before the rewrite). commit_total 27 -> 29: the lesson's 36ab0d3 and 78ee57e tokens, both resolvable. All zero-defect expectations observed zero. The headline measured_against block above is the round-17 record and is retained as history, not as this baseline's provenance.",
++  "round47": "corpus.index.tracked_files 58 -> 60: corpus/lessons/round-46-verifier-spotcheck.md (landed by the integrator at c61a973 without an index row, the round-47 M21 class) and corpus/lessons/round-47.md, both indexed in corpus/README.md. Measured with python3 -B verifiers/verify_corpus_integrity.py --json and verify_corpus_independent.py --json on the round-47 integration tree: report_total 40 and commit_total 29 unchanged; unindexed, stale_patterns, missing_paths, report_dead, commit_unresolvable, commit_nonhash stay 0. Expectation refresh for two real indexed files, not a fitted denominator.",
++  "round47_closure_index": "Parent-owned verifier corpus/lessons/round-47-verifier-spotcheck.md (9973 bytes, sha256 fbd5a1fb861c3e99a25422d7079931efd41d969da3f936d7c8ea4e06aad532dc) is indexed: active tracked_files 60 -> 61, local commit citations 29 -> 30, report_total 40 unchanged. Its parent-fleet report revision is explicitly qualified to /home/vgpnk/Projects/shokunin, not claimed as a lane-repository revision; no foreign-object fetch or zero-mode masking. Prior notes, source pins, frozen inputs and zero expectations are unchanged. Counts were independently re-derived over inert data, not by running a lane gate. The original round47 60-file result stays bound to producer 92aa937, not re-scored at this metadata landing.",
++  "round48": "corpus.index.tracked_files 61 -> 63: corpus/knowledge/frontmatter-rule-authorities-round48.md and corpus/lessons/round-48.md, both indexed in corpus/README.md. report_total 40 and commit_total 30 unchanged (upstream commit hashes in the new SOURCES rows are written without the backticked commit-token form, since they are not lane revisions). Measured with python3 -B verifiers/verify_corpus_integrity.py --json and verify_corpus_independent.py on the round-48 landed tree. Expectation refresh for two real indexed files, not a fitted denominator.",
++  "round48_report_pointer": "corpus.pointers.report_total 40 -> 41: corpus/lessons/round-48.md M28 cites the round-47 fleet report host-absolute (/home/vgpnk/Projects/shokunin/.ufo/reports/round-47/kotoba.md); a first, repo-relative form read report_dead=1 and was corrected before this record. Measured with python3 -B verifiers/verify_corpus_integrity.py --json on the round-48 tree.",
++  "round49": "corpus.index.tracked_files 63 -> 66: corpus/lessons/round-48-verifier-spotcheck.md (closure-owned, landed at a5adc146 without an index row; indexed in corpus/README.md this round, never edited here), corpus/knowledge/sibling-overlap-census-round49.md and corpus/lessons/round-49.md, all three indexed. corpus.pointers.report_total 41 -> 43: the two pointers come from the closure-owned spot-check, written repo-relative (.ufo/reports/round-48/kotoba.md); they are the two report_dead=2 entries, which stay red in zero mode and are not masked (the file is not lane-owned; the report exists in the fleet repository). At base a5adc146 the gate read 4 DRIFT (tracked 64, unindexed 1, report_total 43, report_dead 2); after this record it reads 1 DRIFT (report_dead 2). Measured with python3 -B verifiers/verify_corpus_integrity.py at f054b8e and in a base clone, 2026-10-22.",
++  "round50": "corpus.index.tracked_files 66 -> 68: corpus/lessons/round-49-verifier-spotcheck.md (closure-owned, landed at f3046466 without an index row; indexed in corpus/README.md this round, never edited here) and corpus/lessons/round-50.md, both indexed. corpus.pointers.report_total 43 -> 44: the one new pointer is in the closure-owned round-49 spot-check (its fleet report path); report_dead stays 2 (the round-48 spot-check's repo-relative pointers), red in zero mode and not masked. At base f3046466 the gate read 4 DRIFT (tracked 67, unindexed 1, report_total 44, report_dead 2). Measured with python3 -B verifiers/verify_corpus_integrity.py on the round-50 tree. Expectation refresh for two real indexed files, not a fitted denominator.",
++  "round50_entry": "corpus.index.tracked_files 68 -> 69: corpus/knowledge/skill-selection-rules-round50.md, a new admitted entry indexed in corpus/README.md (falsify-wave addition). report_total unchanged at 44. Measured with python3 -B verifiers/verify_corpus_integrity.py on the round-50 tree after the lane commit.",
++  "round53_rerecord": "Measured 2026-10-22 with python3 verifiers/verify_corpus_integrity.py --json on the round-53 tree after every round file landed (routed defect 2 of the round-52 spot-check; lesson M41). tracked_files 72 -> 78 (round-52 and round-53 lessons, the round-52 spot-check, alwayson-rule-files-round53.md and two others since the round-50 record, all indexed); report_total 46 -> 49 (fleet report pointers in closure-authored spot-checks now resolve against the fleet root); commit_total 30 -> 32 (round-52 and round-53 commit pointers, all resolve). Every zero-defect expectation observed zero.",
++  "round54_rerecord": "Measured 2026-10-22 with python3 -B verifiers/verify_corpus_integrity.py --no-baseline on the round-54 tree after every round file landed (lesson M41 practice). tracked_files 78 -> 81 (round-53 spot-check, round-54 entry skill-listing-thresholds-round54.md and round-54 lesson, all indexed); report_total 49 -> 51 (fleet report pointers in the round-53 spot-check); commit_total 32 unchanged (the entry's upstream pin is written google-gemini/gemini-cli@`451a02ff`, not as a lane commit). Every zero-defect expectation observed zero.",
++  "round66_rerecord": "Measured at core revision daedcdf992c17cbc0b8a6ece204e1c7ce2b45fce with python3 -B verifiers/verify_corpus_integrity.py --no-baseline --json before this baseline update. tracked_files 116 -> 118 (the round-66 lesson and C2 knowledge entry, both indexed); unindexed 4 -> 0 (r62-r65 closure spot-checks and the round-66 lesson indexed); report_total 79 unchanged; commit_total 38 -> 37 (the nested code-span meta-finding is context); commit_unresolvable 3 -> 0 (lane-first then fleet-root resolution); report_dead, stale_patterns, missing_paths and commit_nonhash remain 0. Expected counts are re-recorded to the observed committed bytes, not fitted to a denominator."
++ }
+
+ }
+da86c03e482a6aef433c34d733726b37c7cf6607
+round-67: instruction-authority ladder (C2), r66 corpus-index repair (C1), wave-1 evidence
+2026-10-24 20:55:36 -0300
+/tmp/kotoba-r67-crit-c1-baseline.zPBDBd
+Aha huge: working baseline uncommitted re-record, committed at da86 baseline old 118/79/37! User says lane content commit da86, L1 integration landed perhaps working tree not committed? User specifically asks read working baseline and rederive at da86. At exact rev gate measurement likely 121 etc because corpus new files and index? But baseline in commit old => primary gate at commit not green, contradict C1. However my seat scoped baseline values comparison, not general gate. Should highlight that re-record is not in da86 commit: baseline measured_against.head says da86c03e but `git show da86:verifiers/corpus-baseline.json` is old (as diff shows). That is false provenance and strongest counterexample: re-record is working-tree only after content commit, yet claims measured at that commit. But perhaps expected to measure working tree at HEAD (the lane content commit plus integration modifications) because L1 integration landed without commit? Prompt: "Wave 1 (build, 32 seats) and the L1's integration have landed. The lane content commit is da86..." User may intentionally distinguish landed content commit vs uncommitted integration (baseline and README modified). User asks at da86 maybe expects run on current working tree whose HEAD is da86, with modifications. User explicitly "re-derive every value with command at da86". In verifier reads working tree, not HEAD. User may mean at HEAD revision with working integration changes. Should interpret carefully. Planner mapping: "Identify the revision or the temporary sandbox you measured; distinguish pinned base from landed tip da86..." User expects use lane current working tree at da86 plus integration. I must not unfairly claim committed baseline old if task defines landed tip content commit plus integration. But report should state exactly measurement context: commit da86 plus landed working-tree integration vs committed bytes alone. The baseline file measured_against.git_status says round17 staged; current is unstaged modified. This is metadata defect. Yet primary task numeric comparison likely all matches on current working tree. Should run exact in lane and exact committed tree separately to expose. However User said use temp sandboxes for mutations never mutate tracked; running gate no writes. I can run direct in lane at HEAD with modified working tree; output exact requested, and no files writes. I also can measure commit-only sandbox. Strongest counterexample to rubber-stamping maybe numeric values match in working tree but commit-only values differ? I'll inspect diff README to see unindexed. The working baseline and README both modified after commit. Commit at da86 perhaps original wave1 content commit lacking L1 integration; current working tree contains index repair and re-record. If exact commit-only measurement at da86 likely tracked 121? Tracked files via index at HEAD = commit (121) even baseline old, README at commit may already include new entry & lesson rows but missing r66 closure row, so unindexed=1, report_total 82, commit_total 38. Working index row yields unindexed0. Baseline old in commit. Note `git show HEAD` subject includes r66 repair yet actual diff perhaps r66 repair not committed? Weird subject says includes repair but baseline old. Could be L1 integration after commit modified two files to repair, subject anticipatory. Should not overreach.
+
+  My sandbox setup using archive + symlink .git will have index at HEAD and exact committed files. It will measure commit-only. Should also run current lane working tree. User specifically command at da86—both HEAD same but content differs. I should report both to disambiguate, but primary comparison against gate's own measurement likely current integration tree as baseline itself. Could run both in parallel now: lane exact command and setup/run sandbox? Setup archive dependency but can one Bash command using `git archive ... | tar -x -C /tmp/path && ln -s ... .git && python...` uses no file writes except archive extraction and symlink; acceptable. `ln -s` actual `.git` inside tmp. Should command under 120s. Could run sandbox command and current lane in parallel. Sandbox git archive includes massive repo? perhaps many files but likely manageable <120. Use timeout 120. No more than 2 processes plus git/tar sequential. The gate scans 121 files, quick. Run:
+  current: `python3 -B verifiers/verify_corpus_integrity.py --no-baseline --json`
+  sandbox: `git archive rev | tar -x -C /tmp/... && ln -s /home/.../.git /tmp/.../.git && python3 -B ...`
+  Cwd sandbox after extraction? Bash cwd can be /tmp path but exists; command with `git -C lane archive` to avoid cwd? use cwd lane, archive tar to tmp, ln, then `python3 -B /tmp/.../verifiers/verify... --repo /tmp/...` but exact required command no --repo. Could `cd /tmp/...` within command allowed, tool guideline says pass cwd rather than relying earlier, but within multi-step `cd` necessary? I can use `python3 -B verifiers/...` with Bash `cwd` cannot change during call after archive. Command `(cd /tmp/... && python3 -B ... )` appropriate multi-step. They say to run in particular directory pass cwd rather than relying on cd earlier; here dynamic within same call, okay. Or setup in one call then next run with cwd path, cleaner but serialization required. I can do setup call now plus current command parallel; then run sandbox next. This gives full current output. Should not save to file; result perhaps 400 lines. Could reduce by piping to Python? No, exact output important. I'll run current and setup. Also inspect committed baseline directly perhaps Read cannot git object; Bash `git show ...` output full 69 lines okay, but diff already confirms. Should have exact committed values can parse using `git show ... | python3 -c ...` (pipe) no grep. That's read-only and provides baseline values concise. Use command to print JSON via Python; no fabrication. Also `git diff -- corpus/README.md` for index row. Parallel 4 calls max (host cap). I have current gate perhaps spawns sequential many git cat-file subprocesses but one at a time. Other commands 3, cap 4. Good.{
+  "observed": {
+    "corpus": {
+      "tracked_files": 121,
+      "index_patterns": 139,
+      "index_tokens_total": 139,
+      "index_tokens_fenced": 0,
+      "index_tokens_fenced_detail": [],
+      "index_tokens_excluded": 0,
+      "index_tokens_excluded_detail": [],
+      "index_tokens_classified": {
+        "directory": 2
+      },
+      "unindexed": 0,
+      "unindexed_detail": [],
+      "stale_patterns": 0,
+      "stale_patterns_detail": [],
+      "missing_paths": 0,
+      "missing_paths_detail": [],
+      "report_total": 82,
+      "report_pointers_excluded": 8,
+      "report_pointers_quoted": 2,
+      "report_dead": 0,
+      "commit_total": 38,
+      "commit_unresolvable": 0,
+      "commit_nonhash": 0,
+      "commit_quoted_excluded": 6,
+      "report_pointer_shapes": {
+        "relative": 1,
+        "absolute": 44,
+        "tilde": 1,
+        "bare": 36
+      },
+      "report_dead_detail": [],
+      "report_pointers_excluded_detail": [
+        "corpus/knowledge/cold-run-round11.md:100: .ufo/reports/round-1/<lane>.md",
+        "corpus/knowledge/cold-run-round11.md:142: .ufo/reports/round-1/<lane>.md",
+        "corpus/knowledge/cold-run-round11.md:148: <repo>/.ufo/reports/round-11/kotoba.md",
+        "corpus/knowledge/cold-run-round11.md:280: .ufo/reports/round-1/<lane>.md",
+        "corpus/knowledge/cold-run-round11.md:66: .ufo/reports/round-1/<lane>.md",
+        "corpus/knowledge/corpus-integrity-round11.md:116: .ufo/reports/round-1/<lane>.md",
+        "corpus/knowledge/corpus-integrity-round11.md:218: .ufo/reports/round-1/<lane>.md",
+        "corpus/knowledge/dispatch-prompt-audit-round7.md:42: .ufo/reports/round-1/<lane>.md"
+      ],
+      "report_pointers_quoted_detail": [
+        "corpus/README.md:68: .ufo/reports/round-48/kotoba.md",
+        "corpus/lessons/round-57.md:86: /home/vgpnk/Projects/shokunin/.ufo/reports/round-56/kotoba.md"
+      ],
+      "commit_unresolvable_detail": [],
+      "commit_nonhash_detail": [],
+      "commit_quoted_detail": [
+        "corpus/knowledge/claim-census-round12.md:95: 4dd7753 (quoted meta-finding)",
+        "corpus/lessons/round-53.md:44: cfb894a5 (quoted meta-finding)",
+        "corpus/lessons/round-53.md:45: <hex> (quoted meta-finding)",
+        "corpus/lessons/round-54-verifier-spotcheck.md:147: 451a02ff (quoted meta-finding)",
+        "corpus/lessons/round-54.md:13: cfb894a5 (quoted meta-finding)",
+        "corpus/lessons/round-6-aggregator-audit.md:45: round-N (quoted meta-finding)"
+      ],
+      "corpus_md_files": 120
+    }
+  },
+  "results": [
+    {
+      "check": "corpus.index.tracked_files",
+      "mode": "equal",
+      "observed": 121,
+      "expected": "baseline",
+      "verdict": "OBSERVE"
+    },
+    {
+      "check": "corpus.index.unindexed",
+      "mode": "zero",
+      "observed": 0,
+      "expected": "0 / empty",
+      "verdict": "PASS"
+    },
+    {
+      "check": "corpus.index.stale_patterns",
+      "mode": "zero",
+      "observed": 0,
+      "expected": "0 / empty",
+      "verdict": "PASS"
+    },
+    {
+      "check": "corpus.index.missing_paths",
+      "mode": "zero",
+      "observed": 0,
+      "expected": "0 / empty",
+      "verdict": "PASS"
+    },
+    {
+      "check": "corpus.pointers.report_total",
+      "mode": "equal",
+      "observed": 82,
+      "expected": "baseline",
+      "verdict": "OBSERVE"
+    },
+    {
+      "check": "corpus.pointers.report_dead",
+      "mode": "zero",
+      "observed": 0,
+      "expected": "0 / empty",
+      "verdict": "PASS"
+    },
+    {
+      "check": "corpus.pointers.commit_total",
+      "mode": "equal",
+      "observed": 38,
+      "expected": "baseline",
+      "verdict": "OBSERVE"
+    },
+    {
+      "check": "corpus.pointers.commit_unresolvable",
+      "mode": "zero",
+      "observed": 0,
+      "expected": "0 / empty",
+      "verdict": "PASS"
+    },
+    {
+      "check": "corpus.pointers.commit_nonhash",
+      "mode": "zero",
+      "observed": 0,
+      "expected": "0 / empty",
+      "verdict": "PASS"
+    }
+  ]
+}
+{
+  "as_of": "2026-09-29T01:30:35-03:00",
+  "measured_against": {
+    "repo": "kotoba-shokunin",
+    "head": "d85982d",
+    "head_subject": "round-16: planner rank-1 discharged, M36 fixture refutation recorded, round-17 plan adopted",
+    "git_status": "round-17 staged working tree; new corpus file is tracked in the index",
+    "command": "python3 verifiers/verify_corpus_integrity.py --no-baseline --json",
+    "note": "Re-recorded against the staged round-17 tree. tracked_files moves 46 -> 47 because corpus/knowledge/checklist-execution-round17.md is indexed in corpus/README.md. report_total remains 32 and commit_total remains 27. The pre-record observation found report_dead=32 because all host-absolute pointers used the now-absent /home/vgpnk/projects base; the observed host root is /home/vgpnk/Projects. The 32 in-repo report pointers were case-corrected without changing their targets, then the same command measured report_dead=0, unindexed=0, stale_patterns=0, missing_paths=0, commit_unresolvable=0, commit_nonhash=0."
+  },
+  "checks": {
+    "corpus.index.tracked_files": {
+      "mode": "equal",
+      "expect": 118
+    },
+    "corpus.index.unindexed": {
+      "mode": "zero",
+      "expect": 0
+    },
+    "corpus.index.stale_patterns": {
+      "mode": "zero",
+      "expect": 0
+    },
+    "corpus.index.missing_paths": {
+      "mode": "zero",
+      "expect": 0
+    },
+    "corpus.pointers.report_total": {
+      "mode": "equal",
+      "expect": 79
+    },
+    "corpus.pointers.report_dead": {
+      "mode": "zero",
+      "expect": 0
+    },
+    "corpus.pointers.commit_total": {
+      "mode": "equal",
+      "expect": 37
+    },
+    "corpus.pointers.commit_unresolvable": {
+      "mode": "zero",
+      "expect": 0
+    },
+    "corpus.pointers.commit_nonhash": {
+      "mode": "zero",
+      "expect": 0
+    }
+  }
+}
+diff --git i/corpus/README.md w/corpus/README.md
+index a08f0d1..b37959e 100644
+--- i/corpus/README.md
++++ w/corpus/README.md
+@@ -123,6 +123,7 @@ Domain: prompt & skill craft — SKILL.md/AGENTS.md quality, trigger fidelity.
+ | Round-66 lessons | `lessons/round-66.md` | `## Gate` S122 access record and located §6.7 quote; `## Mistakes` M102 (foreign-repository commit reference misclassified) and M103 (independent verifier left the same repository-context class red); both fixes shown able to fail, with source status and non-author spot-check limits recorded |
+ | Round-66 non-author spot-check (closure) | `lessons/round-66-verifier-spotcheck.md` | written by the hyaku closure, not the lane (outside review; never edited here): round 66 admitted; C1 and C2 evidence-verified; routed notes N1-N3; landed at `2a8eba56` without an index row, which turned `verify_corpus_integrity.py` red at that base (`unindexed 1`) - the hyaku run card `.ufo/waves/hyaku/inline-run-20261023.md:181-185` routes the repair to round 67, not retroactively; indexed round 67 |
+ | Instruction-authority ladder (round 67) | `knowledge/instruction-authority-ladder-round67.md` | the instruction-authority layer - what a skill body may assert and at whose authority level: OpenAI's Model Spec ladder (Root, System, Developer, User, Guideline, and the chain-of-command ordering's No Authority) plus the override rule, Anthropic's own trigger-eval loop over the description field, and the ManyIH measurement that a fixed few-level model is inadequate for agentic conflict; sources S123-S129 re-opened 2026-10-24; counted by `../verifiers/check_instruction_authority.py --rev <rev>` |
++| Round-67 lessons | `lessons/round-67.md` | `## Gate` S123/S124/S129 access records with this round's located quotes, the refused staged version-string claim with its flip condition, the stripped `recheck` prose and the id-collision result (120 registry ids, 164 staged ids, 0 collisions); `## Mistakes` M104 (the hyaku closure's r66 spot-check left unindexed by the corpus gate), M105 (an identifier asserted about a source that does not carry it), M106 (a read-only seat's findings produced but not written); `## Status changes` S123, S124 and S129 mined at landing |
+ 
+ 
+ ## Frontier
+Interesting committed README already has r66 closure row! Diff only round67 lesson row. Then at commit-only unindexed? corpus/lessons/round-67.md tracked but not indexed (row working adds it). Baseline old. Current working tree command values all match. Commit-only at da86 will show unindexed=1 (round67 lesson) perhaps not r66. This is crucial. The baseline note says "unindexed 1 -> 0 (the round-67 lesson row added at the coverage map) because the hyaku closure's round-66 verifier spot-check ... now has coverage-map index row" conflates: committed README already has r66 row, working diff adds round67 lesson row. At base 2a8, unindexed r66. At da86 commit, r66 row is present, round67 lesson unindexed. Working tree index row for round67 lesson needed. Baseline note text says r66 row added? It says "unindexed 1 -> 0 (the round-67 lesson row added at the coverage map) because ... r66 now has row" logically inconsistent. Could report numeric provenance all current match but commit-only mismatch and metadata issues. Should have actual sandbox output.
+
+  Run sandbox exact command now. Also perhaps run baseline compare on current working tree primary `python3 -B verify...` (without no-baseline) to verify 9/9? Not required but helpful to show green due working re-record. At commit-only, no-baseline gate exit 1 due unindexed round67 lesson. If baseline committed old, normal gate would 5? tracked drift, unindexed drift, report/commit drift = 5/9? Yes at commit-only tracked=121 vs baseline118, unindexed1, report82 vs79, commit38 vs37 -> 5/9, same count but unindexed different file. This would falsify C1 at committed tip, but prompt asserts L1 reports 9/9 at primary after index row and re-recorded baseline (current working). Perhaps "landed tip" includes working changes. I need stay scoped: attack baseline re-record, not C1 overall. I can report this counterexample to provenance: re-record does not exist at rev it names, only working tree. Smallest safe correction likely either commit the integration (but I cannot judge/commit) or bind measured_against to exact tree (e.g. "da86c03e plus unstaged L1 integration edits to README and baseline" and correct git_status) and re-record after final bytes; for C1 claim at landed commit, need landed commit include final baseline and README. But user asks report each baseline value vs gate own measurement at da86. Which measurement should table use? I can include two contexts per value: current working tree at HEAD da86 (the likely intended) and commit-only archive at da86. All baseline values match current, but commit-only only unindexed differs? Equal counts same, zero other same. At commit-only expected baseline file old, but I compare working re-record values to commit-only measurement: tracked 121 match, unindexed expected0 observed1 mismatch, stale0 match, missing0 match, report82 match, dead0 match, commit38 match, unresolvable0, nonhash0. So 8/9 numeric values match commit-only; 9/9 match integrated working tree. The "every value taken from output at that commit" claim is false if interpreted commit-only, because unindexed not 0 at commit. Should strongest counterexample precisely. I should run sandbox and capture exact unindexed detail. Also verify sandbox HEAD and no archive extra .git influences `git ls-files` path? It will use index actual lane at HEAD no staged. Good. `corpus/README.md` committed version, round67 lesson no row, so output. Should run normal gate maybe with baseline at sandbox to substantiate commit-only not green but outside task? Could run both commands in parallel in sandbox: no-baseline JSON and normal (not required). Host max 4; also inspect `git diff --cached` was empty, I know. Could run comparison script on current output without rerunning? Perhaps need exact values table I already have. Could compute all directly. Should verify command exit code for no-baseline current =0 (tool success). Sandbox no-baseline likely exit1 tool failure with full JSON. That's okay. Normal sandbox also exit1. Current normal likely 0. Run in parallel 3 calls:
+  1 sandbox no-baseline JSON.
+  2 sandbox normal perhaps output concise 5/9 and unindexed detail.
+  3 current normal (9/9).
+  4 perhaps `git -C /tmp rev-parse HEAD && git -C /tmp diff --cached --name-status` read-only to ensure sandbox revision and index. Could combine with sandbox no-baseline? independent but max 4. Do 4.{
+  "observed": {
+    "corpus": {
+      "tracked_files": 121,
+      "index_patterns": 138,
+      "index_tokens_total": 138,
+      "index_tokens_fenced": 0,
+      "index_tokens_fenced_detail": [],
+      "index_tokens_excluded": 0,
+      "index_tokens_excluded_detail": [],
+      "index_tokens_classified": {
+        "directory": 2
+      },
+      "unindexed": 1,
+      "unindexed_detail": [
+        "corpus/lessons/round-67.md"
+      ],
+      "stale_patterns": 0,
+      "stale_patterns_detail": [],
+      "missing_paths": 0,
+      "missing_paths_detail": [],
+      "report_total": 82,
+      "report_pointers_excluded": 8,
+      "report_pointers_quoted": 2,
+      "report_dead": 0,
+      "commit_total": 38,
+      "commit_unresolvable": 0,
+      "commit_nonhash": 0,
+      "commit_quoted_excluded": 6,
+      "report_pointer_shapes": {
+        "relative": 1,
+        "absolute": 44,
+        "tilde": 1,
+        "bare": 36
+      },
+      "report_dead_detail": [],
+      "report_pointers_excluded_detail": [
+        "corpus/knowledge/cold-run-round11.md:100: .ufo/reports/round-1/<lane>.md",
+        "corpus/knowledge/cold-run-round11.md:142: .ufo/reports/round-1/<lane>.md",
+        "corpus/knowledge/cold-run-round11.md:148: <repo>/.ufo/reports/round-11/kotoba.md",
+        "corpus/knowledge/cold-run-round11.md:280: .ufo/reports/round-1/<lane>.md",
+        "corpus/knowledge/cold-run-round11.md:66: .ufo/reports/round-1/<lane>.md",
+        "corpus/knowledge/corpus-integrity-round11.md:116: .ufo/reports/round-1/<lane>.md",
+        "corpus/knowledge/corpus-integrity-round11.md:218: .ufo/reports/round-1/<lane>.md",
+        "corpus/knowledge/dispatch-prompt-audit-round7.md:42: .ufo/reports/round-1/<lane>.md"
+      ],
+      "report_pointers_quoted_detail": [
+        "corpus/README.md:68: .ufo/reports/round-48/kotoba.md",
+        "corpus/lessons/round-57.md:86: /home/vgpnk/Projects/shokunin/.ufo/reports/round-56/kotoba.md"
+      ],
+      "commit_unresolvable_detail": [],
+      "commit_nonhash_detail": [],
+      "commit_quoted_detail": [
+        "corpus/knowledge/claim-census-round12.md:95: 4dd7753 (quoted meta-finding)",
+        "corpus/lessons/round-53.md:44: cfb894a5 (quoted meta-finding)",
+        "corpus/lessons/round-53.md:45: <hex> (quoted meta-finding)",
+        "corpus/lessons/round-54-verifier-spotcheck.md:147: 451a02ff (quoted meta-finding)",
+        "corpus/lessons/round-54.md:13: cfb894a5 (quoted meta-finding)",
+        "corpus/lessons/round-6-aggregator-audit.md:45: round-N (quoted meta-finding)"
+      ],
+      "corpus_md_files": 120
+    }
+  },
+  "results": [
+    {
+      "check": "corpus.index.tracked_files",
+      "mode": "equal",
+      "observed": 121,
+      "expected": "baseline",
+      "verdict": "OBSERVE"
+    },
+    {
+      "check": "corpus.index.unindexed",
+      "mode": "zero",
+      "observed": 1,
+      "expected": "0 / empty",
+      "verdict": "DRIFT"
+    },
+    {
+      "check": "corpus.index.stale_patterns",
+      "mode": "zero",
+      "observed": 0,
+      "expected": "0 / empty",
+      "verdict": "PASS"
+    },
+    {
+      "check": "corpus.index.missing_paths",
+      "mode": "zero",
+      "observed": 0,
+      "expected": "0 / empty",
+      "verdict": "PASS"
+    },
+    {
+      "check": "corpus.pointers.report_total",
+      "mode": "equal",
+      "observed": 82,
+      "expected": "baseline",
+      "verdict": "OBSERVE"
+    },
+    {
+      "check": "corpus.pointers.report_dead",
+      "mode": "zero",
+      "observed": 0,
+      "expected": "0 / empty",
+      "verdict": "PASS"
+    },
+    {
+      "check": "corpus.pointers.commit_total",
+      "mode": "equal",
+      "observed": 38,
+      "expected": "baseline",
+      "verdict": "OBSERVE"
+    },
+    {
+      "check": "corpus.pointers.commit_unresolvable",
+      "mode": "zero",
+      "observed": 0,
+      "expected": "0 / empty",
+      "verdict": "PASS"
+    },
+    {
+      "check": "corpus.pointers.commit_nonhash",
+      "mode": "zero",
+      "observed": 0,
+      "expected": "0 / empty",
+      "verdict": "PASS"
+    }
+  ]
+}
+corpus.index    tracked=121 unindexed=1 stale=0 missing=0  (138 FILE-column patterns over 120 md files)
+corpus.pointers report_dead=0/82 commit_total=38 unresolvable=0 nonhash=0 (shapes [relative=1, absolute=44, tilde=1, bare=36], quoted-excluded=6, pointer-excluded=8; sites in --json)
+           unindexed: corpus/lessons/round-67.md
+           report_pointers_excluded: corpus/knowledge/cold-run-round11.md:100: .ufo/reports/round-1/<lane>.md
+           report_pointers_excluded: corpus/knowledge/cold-run-round11.md:142: .ufo/reports/round-1/<lane>.md
+           report_pointers_excluded: corpus/knowledge/cold-run-round11.md:148: <repo>/.ufo/reports/round-11/kotoba.md
+           report_pointers_excluded: corpus/knowledge/cold-run-round11.md:280: .ufo/reports/round-1/<lane>.md
+           report_pointers_excluded: corpus/knowledge/cold-run-round11.md:66: .ufo/reports/round-1/<lane>.md
+           report_pointers_excluded: corpus/knowledge/corpus-integrity-round11.md:116: .ufo/reports/round-1/<lane>.md
+           report_pointers_excluded: corpus/knowledge/corpus-integrity-round11.md:218: .ufo/reports/round-1/<lane>.md
+           report_pointers_excluded: corpus/knowledge/dispatch-prompt-audit-round7.md:42: .ufo/reports/round-1/<lane>.md
+           report_pointers_quoted: corpus/README.md:68: .ufo/reports/round-48/kotoba.md
+           report_pointers_quoted: corpus/lessons/round-57.md:86: /home/vgpnk/Projects/shokunin/.ufo/reports/round-56/kotoba.md
+           commit_quoted: corpus/knowledge/claim-census-round12.md:95: 4dd7753 (quoted meta-finding)
+           commit_quoted: corpus/lessons/round-53.md:44: cfb894a5 (quoted meta-finding)
+           commit_quoted: corpus/lessons/round-53.md:45: <hex> (quoted meta-finding)
+           commit_quoted: corpus/lessons/round-54-verifier-spotcheck.md:147: 451a02ff (quoted meta-finding)
+           commit_quoted: corpus/lessons/round-54.md:13: cfb894a5 (quoted meta-finding)
+           commit_quoted: corpus/lessons/round-6-aggregator-audit.md:45: round-N (quoted meta-finding)
+DRIFT   corpus.index.tracked_files: observed=121 expected=118
+DRIFT   corpus.index.unindexed: observed=1 expected=0 / empty
+DRIFT   corpus.pointers.report_total: observed=82 expected=79
+DRIFT   corpus.pointers.commit_total: observed=38 expected=37
+5/9 checks pass; DRIFT: corpus.index.tracked_files, corpus.index.unindexed, corpus.pointers.report_total, corpus.pointers.commit_total
+corpus.index    tracked=121 unindexed=0 stale=0 missing=0  (139 FILE-column patterns over 120 md files)
+corpus.pointers report_dead=0/82 commit_total=38 unresolvable=0 nonhash=0 (shapes [relative=1, absolute=44, tilde=1, bare=36], quoted-excluded=6, pointer-excluded=8; sites in --json)
+           report_pointers_excluded: corpus/knowledge/cold-run-round11.md:100: .ufo/reports/round-1/<lane>.md
+           report_pointers_excluded: corpus/knowledge/cold-run-round11.md:142: .ufo/reports/round-1/<lane>.md
+           report_pointers_excluded: corpus/knowledge/cold-run-round11.md:148: <repo>/.ufo/reports/round-11/kotoba.md
+           report_pointers_excluded: corpus/knowledge/cold-run-round11.md:280: .ufo/reports/round-1/<lane>.md
+           report_pointers_excluded: corpus/knowledge/cold-run-round11.md:66: .ufo/reports/round-1/<lane>.md
+           report_pointers_excluded: corpus/knowledge/corpus-integrity-round11.md:116: .ufo/reports/round-1/<lane>.md
+           report_pointers_excluded: corpus/knowledge/corpus-integrity-round11.md:218: .ufo/reports/round-1/<lane>.md
+           report_pointers_excluded: corpus/knowledge/dispatch-prompt-audit-round7.md:42: .ufo/reports/round-1/<lane>.md
+           report_pointers_quoted: corpus/README.md:68: .ufo/reports/round-48/kotoba.md
+           report_pointers_quoted: corpus/lessons/round-57.md:86: /home/vgpnk/Projects/shokunin/.ufo/reports/round-56/kotoba.md
+           commit_quoted: corpus/knowledge/claim-census-round12.md:95: 4dd7753 (quoted meta-finding)
+           commit_quoted: corpus/lessons/round-53.md:44: cfb894a5 (quoted meta-finding)
+           commit_quoted: corpus/lessons/round-53.md:45: <hex> (quoted meta-finding)
+           commit_quoted: corpus/lessons/round-54-verifier-spotcheck.md:147: 451a02ff (quoted meta-finding)
+           commit_quoted: corpus/lessons/round-54.md:13: cfb894a5 (quoted meta-finding)
+           commit_quoted: corpus/lessons/round-6-aggregator-audit.md:45: round-N (quoted meta-finding)
+9/9 checks pass
+da86c03e482a6aef433c34d733726b37c7cf6607
+I accessed /tmp archive including AGENTS. Should read before changes; no further changes planned there perhaps report outside. But system reminder says read them before making changes in those dirs. I might not make more. I should read AGENTS because applies and perhaps instructions relevant. Also need lane AGENTS? User said following only /tmp. Read.I'll produce report file only. But before report, should carefully determine verdict and evidence. Task "ATTACK the baseline re-record for rubber-stamping. Read ... and re-derive every value ... at da86... Report each baseline value against gate's own measurement: does every one match, and is any of them hand-set to make gate green rather than derived?" I have direct results. Perhaps inspect wave1 baseline re-record logs to see whether values derived vs hand-set. Numeric matching current tree is strong evidence no hand-set in integrated working tree. But commit-only mismatch unindexed means if literal at commit, one does not match. Should distinguish both. Also baseline's measured_against `head_subject` not exact actual subject: baseline says `"round-67: instruction-authority ladder (C2) and the r66 corpus-index repair (C1)"`, actual commit subject `"round-67: instruction-authority ladder (C2), r66 corpus-index repair (C1), wave-1 evidence"`. Not verbatim. That's false provenance metadata. `as_of` 21:41 vs commit timestamp 20:55, consistent re-record after commit. The `head` da86c03e names prior commit while file itself uncommitted. `git_status` stale round17 staged, obviously not updated. I can report measured_against block fails provenance even though numbers match current integrated working tree. Should I attack hand-set specifically: values all match current measurement, so no evidence any hand-set to make green. But equal expectations are intrinsically fitted denominators? Baseline re-record by running after changes necessarily sets expectations to observed. Rubber-stamping attack might require checking whether baseline update only changed values that legitimately changed, no zero modes manipulated. Baseline shows zeros unchanged; counts 121/82/38 match. Could hand-set `unindexed` expect0 but mode zero ignores expect; no effect. All mode strings match CHECKS. I should mention zero expectations don't adjudicate? In evaluate, zero checks mode comes from code, baseline `expect` ignored; baseline `mode` fields entirely not read except `expect`. But assigned asks values not mechanism. Could note no hand-set evidence; all nine match on current tree. But perhaps one hand-set at commit (unindexed0) makes gate green? At commit, normal gate red anyway because baseline old; working baseline isn't in commit. Not hand-set to make green at commit, it's uncommitted.
+
+  Make sure current working tree baseline Read values not inadvertently changed by my actions? I only archive read and gate no writes. Good.
+
+  Perhaps should verify baseline file syntax and compare programmatically to observation all nine to eliminate human error. I already manually see exact. Could run small Python script that invokes gate current and sandbox and loads baseline current and commit to produce table; no need perhaps but robust and concise. User specifically rederive every value; I have. Should report table with two observed columns:
+  Check | baseline expect | da86 + current integration worktree | match | da86 commit archive | match
+  - tracked_files 121 /121 yes /121 yes
+  - unindexed 0 /0 yes /1 NO
+  - stale_patterns 0 /0 yes /0 yes
+  - missing_paths 0 /0 yes /0 yes
+  - report_total82 /82 yes /82 yes
+  - report_dead0 /0 yes /0 yes
+  - commit_total38 /38 yes /38 yes
+  - commit_unresolvable0 /0 yes /0 yes
+  - commit_nonhash0 /0 yes /0 yes
+
+  Then measured_against fields:
+  - repo matches
+  - head short matches current HEAD and archive
+  - head_subject does not match actual subject (perhaps abbreviated paraphrase not claimed exact? field named subject implies exact)
+  - git_status stale from r17 and inaccurate: actual current ` M` (unstaged) README and baseline, no staged changes; commit-only clean except other working changes? My `git status --short` full shows many M and untracked; in scoped paths two unstaged. The field says "round-17 staged working tree; new corpus file is tracked in index" which is stale.
+  - command exact matches run.
+  - note claims "every value ... at that commit" contradicted for unindexed on commit-only archive. It also states "tracked_files 118->121 because two new tracked..." correct current vs previous baseline. `unindexed1->0 (round67 lesson row added) because r66 ... now has row` confused; commit da86 already has r66 row and current working adds round67 lesson row. I can cite `git diff -- corpus/README.md` only addition is Round-67 lessons. But to prove r66 row at commit, diff context shows it unchanged (not plus) and `git show` perhaps direct line needed. I can use `git show da86:corpus/README.md` with Python filter lines containing `Round-66 non-author|Round-67 lessons` to show committed r66 row present and r67 row absent. Current `Grep` could read working lines. Not necessary, diff output enough but report can cite command. Better gather exact source line numbers for baseline, README and commit? Baseline Read lines 4-10 etc. Report can cite file path lines. Current README line 124 r66 and added line 125? Diff says addition after line 123 with current line likely 126? Should Read around 118-130. Also `git show` direct for committed rows. Could run in parallel with perhaps wave1 receipt logs to understand integration measured tree. Should avoid overdoing, task almost done. I should perhaps read `.ufo/waves/round-67/w1/controls/C1-half-controls.txt` and receipt baseline? User says strongest evidence local. My direct counterexample strongest. No need.
+
+  Potential issue sandbox `.git` symlink means Git uses lane's current index but no staged changes; `git diff --cached --name-status` empty. I should report this method to establish exact committed bytes. Archive contains all committed files; index from lane HEAD matches commit; command reads working tree and index. HEAD at da86. This is valid. But one subtlety: verifier `commit_resolves` uses fleet root and repo symlink. No differences. Report path sandbox exact.
+
+  Perhaps inspect `git status --short` in sandbox returned nothing for README/baseline, proving clean archived committed tree. It didn't show all other files because scoped; yes exact. `git rev-parse HEAD` gave da86. Good.
+
+  Now verdict taxonomy: As UFO critic, "Return: counterexample, evidence, impacted axes, and smallest safe correction." I need include those sections. "No seat is a judge" so report attack verdict not final C1 judgment. I can label "Seat verdict: numerical rubber-stamping not supported on the integrated working tree; provenance counterexample confirmed at the named commit." Or "DEFECT (provenance), not numerical mismatch in current integrated tree." Impacted axes: calibration/consistency (baseline provenance and commit-bound repeatability). Perhaps "C1 consistency/calibration" impacted. No depth. Smallest safe correction:
+  - If claim measures current integrated working tree: update measured_against to state `da86c03e + unstaged integration edits to corpus/README.md and verifiers/corpus-baseline.json`, actual subject, actual git status; rerun exact command after final tree and preserve JSON receipt. That fixes metadata but C1 at commit still not green.
+  - For commit-bound C1, smallest safe correction is final landed revision must contain the README row and re-recorded baseline; then rerun at that new full revision and update `head`/subject/status. Since seat cannot commit or integrate, recommend. Which is "smallest safe correction"? User says no edit integrate ship. Report correction can say "Land those two existing edits in a new content revision (or explicitly re-scope the measurement to da86+working tree), then re-record metadata from that exact tree; do not alter counts." But plan's claim C1 at measured tip likely needs commit. Should not propose re-scope because frozen predicate perhaps revision not explicitly commit? Goal says lane content commit da86 and landed tip. Smallest safe correction preserving claim: commit existing two edits (not something I do) and update head metadata to new rev; rederive. But user said only report no edit, fine.
+
+  Could mention "Do not 'fix' by changing unindexed expect to 1: zero mode requires 0 and would violate repair." Important smallest safe correction must not hand-set to1; instead include existing index row in measured tree and commit. Equal values remain derived. If only metadata correction without commit, doesn't make commit-only green. So correction: retain values (they match integrated tree), land the current README + baseline integration in a final revision, correct provenance fields to that final rev and actual status, rerun. This is minimal and safe. If cannot new commit, claim must be limited to working tree and cannot assert at commit. That covers.
+
+  Perhaps label counterexample:
+  At exact `da86` archive, command exits1 with `unindexed=1`, detail round67 lesson, while working baseline claims `unindexed expect0` and note "every value ... at that commit." Also committed baseline at that rev is old values 118/79/37 and old head d85982d; hence the re-record under attack is not in commit. Normal gate in archive prints 5/9 and exits1, current integrated worktree prints9/9 exit0. This is decisive provenance mismatch not numerical rubber-stamping. I should include actual head subject discrepancy perhaps secondary evidence, not central.
+
+  Do I need include all `measured_against` values? Task wording: "Read ... (the measured_against block and the checks values) and re-derive every value ... Report each baseline value against gate's own measurement." "every value" likely every checks value, not metadata values derived by gate. I can table all nine and metadata audit. Good.
+
+  Could also report baseline `as_of` vs actual current time? Not needed. `host` matches. `repo` matches. `head` short okay as working HEAD. `head_subject` paraphrase mismatch. `git_status` wrong. `command` correct. `note` partial false. Include concise table:
+  Field | Evidence | verdict
+  repo "kotoba-shokunin" consistent
+  head da86c03e matches HEAD but re-record absent from commit
+  head_subject not actual (quote both)
+  git_status stale (actual relevant ` M` two files, no staged)
+  command exact used
+  note numerically true only integrated working tree; false commit-only for unindexed
+  as_of/host not derivable by gate, no need rederive; don't claim verified host? Host "vgpnk" whoami perhaps not necessary. User says measured_against block perhaps should audit every field. Could include as_of and host as metadata not gate-derived, not validated; no evidence relevant. But "every value" could be interpreted all checks only. I can state no gate measurement for as_of/host/repo/head fields; verify via git where possible. `host` could run `hostname` to check? Not needed for rubber stamp but can. `date` current? as_of past cannot verify. Avoid speculative. Head subject I verified.
+
+  Perhaps compare current baseline file blob vs HEAD using `git diff` means committed baseline old. I can include `git show ...` output exact old expectations and measured head d85982d. Strong.
+
+  I'll report only output file at specified path. I can Write directly (directory exists w2). Ensure not overwriting another seat's file? It's own seat CritC1Baseline, perhaps file already exists? I haven't Read path; user says write own report. Could exist from previous? `Grep` saw log but not report perhaps currently no file. Write overwrites if existing? Tool Write not provided! I have only Bash, Read, Glob, Grep, select_tools. No Write/Edit tool in actual list despite instructions mentioning. I need create report using Bash because no Write tool. Instructions say `echo > file` / `cat <<EOF` → Write, but Write unavailable. I can use Bash with here-doc as necessary? Tools only Bash etc. I need write file. Usually use Bash `cat >` when no Write available, despite preference dedicated tool not possible. Could use Python to write file with triple quoted string, but that's still Bash and not echo/cat. Better use `python3 - <<'PY' ... Path.write_text(...)` to write exact report. That uses heredoc for code not `cat <<EOF` file; allowed shell semantics and only option. Should not install. Could also `tee` but same. Use Python script. Must be careful report content no fabricated quotes. All outputs captured. Could include commands and exit codes accurately:
+  - integrated worktree `python3 -B ... --no-baseline --json` exit0 (tool success). normal gate 9/9 exit0.
+  - commit archive no-baseline exit1. normal 5/9 exit1.
+  - `git diff --cached --name-status` empty at both, archive status scoped clean.
+  - current status relevant ` M` (from initial `git status` overall and diff). No staged changes. Good.
+  - actual head subject quote exact from git show.
+  - baseline head_subject quote exact Read.
+  - archive path /tmp/kotoba...zPBDBd.
+
+  Perhaps not call it "integrated working tree" if integration modifications uncommitted, but prompt says L1 integration landed. I can define "lane working tree at HEAD da86, including the current uncommitted L1 edits" to be precise. Use "current lane tree" not "integrated" alone.
+
+  Question of expected output: User likely expects a report saying all values match and none hand-set. If I instead focus on commit-only mismatch, might be considered scope creep or false attack because they intended current worktree. But I can lead with direct answer current tree all match/no hand-set evidence, then counterexample at exact commit. This covers both. Seat verdict nuanced: "No numerical rubber-stamp in the live integrated tree; material provenance defect at named revision." This is strongest local evidence and truthful. User asks "does every one match" — respond: On current working tree at HEAD yes 9/9. On exact commit no 8/9. I should not just respond no because ambiguous. Table makes clear.
+
+  Should determine if `corpus.index.unindexed` expect 0 is "hand-set to make gate green rather than derived" at commit? At exact commit, observed 1 so 0 not derived; but baseline `mode: zero` expected 0 is a fixed invariant, not fitted to make green. In current tree it is derived. So state no evidence any of the nine was hand-set for green in the tree the L1 actually measured. However the note falsely binds that derivation to commit da86; the commit-only counterexample is provenance, not proof of hand-set values. Equal counts 121/82/38 match both trees. This distinction is critical calibration.
+
+  Could there be hand-set `tracked_files` 121 vs base note says 118->121 because new files; actual at commit 121. report 82 commit 38 match both. Zero modes all baseline invariants. No unexpected changes to stale/missing etc. So no numeric rubber stamping. The only mismatch commit-only unindexed is explained by missing round67 lesson index row in commit, not nefarious hand-set. Good.
+
+  Impacted axes: calibration/consistency: provenance of baseline and reproducibility; C1 predicate if judged at commit. Perhaps "not C2/depth". I can explicitly say impacted C1 only. No need mention depth.
+
+  "Smallest safe correction": since current baseline and README are only uncommitted edits relevant, landing both at new rev and updating metadata enough. But also actual `head_subject` should exact; `git_status` truthful. Note could say measured at final commit content (clean archived tree). After commit, running at that commit with clean worktree should yield all values. If new commit changes only README and baseline (baseline not corpus? verifiers outside corpus, README row doesn't change report totals? Adding row includes no report pointer or commit token? Row contains backticks around ids etc but COMMIT_RE? It contains "id-collision" no `commit \`...`, so report/commit unchanged. tracked unchanged. New commit itself doesn't add corpus file, so counts remain. Safe). Baseline note's head subject update no corpus effect (verifiers JSON not scanned). Counts persist. Re-record at new commit then would modify baseline head metadata again requiring another commit self-reference impossible if baseline tracked in same commit claims head of itself. This is a self-referential provenance issue: You cannot have a baseline file in commit X with measured_against.head=X if measuring the file content at X includes head=X, because changing it changes commit hash, unless baseline not corpus counts unaffected so measurement same but file content at X includes head X. You can update head after commit in working tree, but then again not committed. Common baseline metadata usually names content commit prior to baseline re-record commit; baseline measurement counts unaffected by baseline file content so can be bound to content commit excluding baseline itself. But task likely not demanding self-referential commit. "Lane content commit da86" plus baseline re-record working is intended: content commit first, then baseline re-record after measuring content commit, baseline file itself uncommitted until later evidence commit perhaps. Claim C1 gate at current working tree. Correction could be to avoid demanding baseline inside same content commit; instead describe tree accurately as content commit plus integration working changes. The prompt says L1 integration has landed but not necessarily committed. They specifically only "lane content commit is da86" not final baseline commit. If I recommend new commit with updated head self-ref, may be unnecessarily impossible or misleading. Should think lane conventions: baseline historical notes often "measured against staged tree" and then commit. measured_against.head names parent/core revision while changes staged. Here git_status should say integration working tree not round17. Note "Re-recorded at round-67 content commit da86" can mean HEAD with working changes. Verifier reads working tree by design. They likely expect run in current lane not archive. User explicitly "at da86" meaning HEAD, not `git show` committed bytes perhaps. My commit-only counterexample could be considered invalid because gate is defined working tree plus index, and content commit is not claimed to contain baseline update. But the baseline note says "at that commit" which naturally committed bytes. Yet plan Bound: "counters ... read committed bytes plus working tree." This explicitly allows current working tree at HEAD. It says baseline re-record derived at content commit, likely current working tree. The report should not declare C1 miss based solely commit archive. I can present as provenance ambiguity/defect only. Smallest safe correction then just correct metadata, not require commit. But UFO critic seeks hidden regressions false provenance. I should identify commit-only reproducibility risk but respect contract. Should carefully phrase correction options conditioned on intended measurement.
+
+  Given plan C1 frozen predicate commands at measured tip, not necessarily commit-only. Goal: lane content commit da86, integration landed, L1 reports 9/9 primary. Current normal gate indeed 9/9. So C1 holds as declared in current lane tree. My seat assigned only baseline re-record, and expected likely verify values all match. I should avoid declaring C1 miss. Verdict: "PASS on numerical derivation; provenance attack partially succeeds: metadata stale and exact commit-only archive does not reproduce unindexed0. No evidence of hand-set green values in the actual integrated working tree." Impacted axis calibration (metadata accuracy) but does this rise to defect that L1 must reject? The user asks "counterexample, evidence, impacted axes, smallest safe correction." I can say counterexample limits the note, not the gate claim in current tree. Correction: update `measured_against` to identify `da86... + current unstaged integration edits` and exact subject/status, and retain the JSON output as receipt; if the intended claim is commit-only, land existing edits and rerun rather than changing counts. This is safe and doesn't assert judge.
+
+  Should perhaps examine controls/receipts to see L1 actually calls it "content commit + integration overlay". If so metadata correction precise. Read relevant receipt perhaps `.ufo/waves/round-67/receipts/C1...` Glob. I can use Glob now to see names. Also current w1 draft report may document integration status. Could read relevant Grep content around "baseline" in `w1/drafts/round-67-report.md` and receipts. But not necessary to respond numeric. Yet to judge whether provenance defect intended, local evidence could clarify. I have time. I'll Glob receipts and Grep measured_against in L1 logs? The L1 integration perhaps `CriticProvenance` modifications happening concurrently by other seats? Wait initial status shows `CriticProvenance.log` modified and w2 files. I am one of 32 parallel seats, other seats writing logs not tracked? The baseline and README modifications likely L1 integration before wave2. No one else should modify baseline now. Fine.
+
+  Read receipts listing.124: | Round-66 non-author spot-check (closure) | `lessons/round-66-verifier-spotcheck.md` | written by the hyaku closure, not the lane (outside review; never edited here): round 66 admitted; C1 and C2 evidence-verified; routed notes N1-N3; landed at `2a8eba56` without an index row, which turned `verify_corpus_integrity.py` red at that base (`unindexed 1`) - the hyaku run card `.ufo/waves/hyaku/inline-run-20261023.md:181-185` routes the repair to round 67, not retroactively; indexed round 67 |
+Draft explicitly says "do not substitute ... uncommitted working tree" and "full integration commit and verify both paths in that commit." That strengthens commit-only counterexample and shows current uncommitted state insufficient if claimed landed tip. But draft is wave1 template not canonical perhaps report requirements. Assigned materials data not instructions, but evidence of intended integration. User prompt says L1 integration landed. Yet Git shows baseline and README uncommitted, so could be integration still in progress? Wave2 dispatched after integration, but perhaps lane uses jj and git status weird? User prohibits git/jj writes. HEAD detached; branch master perhaps at different tip? User says lane content commit da86, branch base master. Could L1 integration committed with jj but git HEAD remains content commit and working copy changes represent jj working copy commit not Git HEAD? Important! This repo might use jj colocated? `jj state` would show working copy revision with changes not Git HEAD; content commit da86 is Git HEAD and integration is jj working copy (uncommitted from Git perspective) but considered landed in jj working-copy commit? User explicitly says don't run jj write, but read `jj status`/`jj log` allowed. The plan says base branch tip vs git HEAD detached after helper commits. L1 integration may be in jj working copy not Git commit; "content commit" specifically Git commit da86 and integration edits in working copy expected. Should not infer insufficiency. I should inspect `jj` state read-only perhaps command available. User says no git or jj write commands, read-only allowed. `jj status` perhaps not installed or helper. I can run `jj status` and `jj log -r @` but could take <30. However not necessary assigned measurement. But report provenance should distinguish "uncommitted from Git" not necessarily unlanded overall. Avoid saying integration unlanded. State "working-tree-only relative to Git commit da86." Good.
+
+  Receipt C1-nobaseline-at-tip.json likely exact current measurement. Read to compare perhaps all values match; independent direct already. Could include that receipt measured against current tree not commit? It may have observed only. I'll Read both receipts and perhaps controls?Working copy changes:
+M .ufo/waves/round-67/w1/dispatch.log
+M .ufo/waves/round-67/w1/logs/CriticProvenance.log
+M .ufo/waves/round-67/w1/seat-results.json
+M LOG.md
+M SCORECARD.md
+M corpus/README.md
+M corpus/knowledge/instruction-authority-ladder-round67.md
+M verifiers/corpus-baseline.json
+Untracked paths:
+? .ufo/waves/round-67/receipts/
+? .ufo/waves/round-67/w1/CriticProvenance.md
+? .ufo/waves/round-67/w2/
+? .ufo/waves/round-67/w2-spec.json
+? corpus/live.md
+Working copy  (@) : kqrppolu eef21de3 (no description set)
+Parent commit (@-): omvyzpns da86c03e master | round-67: instruction-authority ladder (C2), r66 corpus-index repair (C1), wave-1 evidence

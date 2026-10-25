@@ -1,11 +1,18 @@
-# Instruction authority ladder and the boundary it draws around skill bodies
-
 source: S123 — OpenAI Model Spec (August 18, 2026) — https://model-spec.openai.com/2026-08-18 — `# Instructions and levels of authority` → `# The chain of command`
 source: S124 — anthropics/skills — skill-creator/SKILL.md — https://github.com/anthropics/skills/blob/dbd4588f9e1033efb41dad4bef2f7947c8993d44/skills/skill-creator/SKILL.md — tree `dbd4588` — `# Description Optimization` → `# Step 1: Generate trigger eval queries`
 source: S129 — Many-Tier Instruction Hierarchy in LLM Agents — arXiv:2604.09443 — https://arxiv.org/abs/2604.09443 — `# abstract`
 verified-at: 2026-10-24
 recheck: 90d — re-fetch the Model Spec page, the pinned skill-creator tree and the arXiv record; confirm the override sentence, the trigger-eval numbers and the abstract's level/task/agent counts still read the same
 ground: the lane's open item on what an instruction may assert and at whose authority level — the layer above the skill format, previously unheld.
+
+# Instruction authority ladder and the boundary it draws around skill bodies
+
+
+**Located quotes** (each bound to the id of the source it was read from; the access date for all three is 2026-10-24):
+
+- located-quote: S123 — "Instructions with higher authority override those with lower authority."
+- located-quote: S124 — "Create 20 eval queries — a mix of should-trigger and should-not-trigger."
+- located-quote: S129 — "assumes a fixed, small set of privilege levels (typically fewer than five) defined by rigid role labels"
 
 **The ladder.** OpenAI's Model Spec assigns every instruction a level of authority and states
 the override rule: "Instructions with higher authority override those with lower authority."
