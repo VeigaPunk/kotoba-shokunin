@@ -822,4 +822,162 @@ Now I have the landed shapes:
 
   Now D3 disclosure rule per record: which records require disclosure? Contract: "the 254 MB junk-world control mirror is named in the round's records". Landed: LOG 2678 (path + 254 MB), lesson 155 (path + 254 MB). SCORECARD — unknown, check. Rule candidate: require JUNK path AND "254" in BOTH LOG.md and the lesson; SCORECARD not required (avoid over-constraining beyond landed reality; the plan says "report and lesson" — LOG is the ledger replacing the report on the lane side). Hmm, but then a future loss of the LOG disclosure with lesson intact → still passes (lesson covers). Is requiring lesson-only weaker than contract? "named in the round's records" (plural-ish). I'll require: lesson AND (LOG OR SCORECARD) name it with 254. Landed satisfies. Self-test: drop from lesson → fail; that's the named mutant.
 
-  Let me now also double-check: at tip, does the worktree still have junk-world? Earlier ls said absent → D3 worktree half passes at tip. And at BASE (e94ae32), junk-world existed in worktree (it was the inherited leftover) — but D3 fails at base via disclosure absence anyway. Note: my counter's base control doesn't depend on worktree junk state (D3 already False). But CAREFUL: at the L1's LANDING rev run, the base control ALSO runs — D3 at base is False regardless of work
+  Let me now also double-check: at tip, does the worktree still have junk-world? Earlier ls said absent → D3 worktree half passes at tip. And at BASE (e94ae32), junk-world existed in worktree (it was the inherited leftover) — but D3 fails at base via disclosure absence anyway. Note: my counter's base control doesn't depend on worktree junk state (D3 already False). But CAREFUL: at the L1's LANDING rev run, the base control ALSO runs — D3 at base is False regardless of worktree → 0 of 4 holds → good.
+
+  Also the C2-base receipt exists at .ufo/waves/round-68/receipts/C2-routed-measure.txt (untracked, L1's). Fine.
+
+  Edge — could the L1 remove the junk dir BETWEEN my counter's D3 check and... irrelevant.
+
+  Now, exit-code taxonomy: 0 = 4 of 4; 1 = fewer (content verdict); 2 = usage/environment: missing --rev, unknown rev, base not 0-of-4, gate subprocess failure/timeout/unparseable, archive failure. argparse errors exit 2 by default — good (contract says exit 2 usage).
+
+  Wait, one more contract line: "`--repo <path>` defaults to the lane root." — implement --repo, default _lane_root() via upward marker walk from __file__ (works in drafts/ and installed at verifiers/).
+
+  Also AGENTS.md style: "Every new script starts with a header comment stating what it is, its contract, and its exit codes." — docstring covers. Python: stdlib only; argparse. AGENTS says "argparse with exit 64 for usage errors" — hmm, fleet-wide convention: 64 usage for jj-lane.sh specifically; "Exit codes are contract: 0 clean, 1 failure, 2 usage/env". For MY counter the dispatcher's contract explicitly: "exit 2 for a usage/environment error". Contract wins: 2. (The AGENTS line about 64 is in the Bash bullet — for bash scripts; jj-lane. r66 uses ap.error → exit 2. Match r66/contract: 2.)
+
+  Now the D4 gate run — IMPORTANT correctness detail: in the fixture, the committed stub gate runs `git` inside the extracted repo. The extraction of the fixture rev includes the whole fixture tree (README, lessons, verifiers, LOG, SCORECARD, .ufo/reports/round-68/kotoba.md). `git ls-files corpus/` in extracted repo — the extracted dir has NO .git! My stub gate: does it need git? My stub measures tracked files via rglob (filesystem) — no git needed. commit_total resolution via git cat-file — needs a repo. Hmm — extracted dir has no .git → cat-file fails → in the real gate that raises Inconclusive exit 2; in my stub I control semantics: fixture commit citations — simplest: fixture corpus has NO commit citations (commit_total=0, commit_unresolvable=0, commit_nonhash=0 always) and the stub doesn't run git at all. Stub stays pure-filesystem. The REAL gate in production WILL run git cat-file inside the extracted (non-git) tree → wait, PROBLEM: the real verify_corpus_integrity.py calls tracked_corpus_files(repo) → `git -C repo ls-files corpus/` — repo = extracted dir WITHOUT .git → git ls-files fails?? Actually `git ls-files` outside a repo errors "not a git repository" → Inconclusive → exit 2 → my counter exit 2. THAT BREAKS D4 at the landing rev!
+
+  Let me check: git ls-files in a non-repo dir → "fatal: not a git repository (or any of the parent directories): .git" exit 128. The gate wraps git() raising Inconclusive → "INCONCLUSIVE" exit 2. So archive-extract alone can't feed the real gate. Solutions:
+  (a) After extraction, `git init` + `git add -A` + (config) in the TEMP dir — creates a temp repo with the committed bytes as the tracked set. git add -A in a /tmp fixture dir is NOT the lane's index — allowed. Then git ls-files works, cat-file -e fails for every hash (no objects) → commit_unresolvable = commit_total → zero-mode DRIFT → D4 fail at landing!? The corpus cites commits (commit_total=38 at tip) that resolve in the LANE repo. In the extracted repo without objects, they're unresolvable → measured commit_unresolvable=38 ≠ expect 0 → D4 False. BROKEN.
+  (b) Extract + set GIT_DIR alternatives: create temp repo as a CLONE of the lane: `git clone --no-hardlinks --shared --no-checkout <root> tmp && git -C tmp checkout --detach <rev>`. Shared clone: objects accessible via alternates → cat-file resolves lane objects (commits from corpus citations are lane commits — ancestor objects present in the clone's alternate store). ls-files works. Pointer host-absolute resolutions hit live trees — same as in-place. Fleet-root fallback hardcoded — same. This reproduces the in-place measurement faithfully. Clone reads the lane repo only (read-only). 
+
+  But hmm — does `git clone --shared` write anything to the SOURCE? No (only reads objects/refs). Safe per constraints. 
+
+  (c) Extract archive into a subdir of a temp REPO initialized with alternates pointing at the lane's objects: git init tmp; echo "<lane>/.git/objects" > tmp/.git/objects/info/alternates; tar extract; git add -A? `git add -A` builds an index in tmp (temp repo index — allowed, it's not the lane's). Then ls-files lists the archive content; cat-file resolves via alternates (lane objects). This avoids clone-ref overhead. But `git add -A` could be slow-ish (12k files) — fine, and no clone lock contention. Hmm, but wait: clone --shared --no-checkout + checkout rev is simpler and battle-tested; git clone does include ALL refs? `git clone` clones the default branch only?? For our purpose: alternates give access to ALL objects; checkout --detach <rev> works for any rev present in the fetched refs. `git clone --no-checkout` fetches the default refspec only (all branches by default for local? default refspec +refs/heads/*:refs/remotes/origin/* — clones ALL branches). master included. rev e94ae32 and cafa29d are on master → checkout works. 
+
+  Actually simplest robust: (c) with alternates + `git -C tmp add -A` after extraction — no network/clone semantics, works for any rev, single code path. `git add -A` needs user config? No, add doesn't need identity (commit would; we don't commit). Also need `git -C tmp init` first. The archive contains .gitattributes? If lane has .gitattributes with export-ignore, archive might omit files — check lane root for .gitattributes. Also `git archive` respects export-ignore — quick check needed.
+
+  Wait, even simpler (d): SKIP extraction for git-object needs — set GIT_OBJECT_DIRECTORY? No. Or run the gate with repo = extracted dir and env GIT_ALTERNATE_OBJECT_DIRECTORIES=<lane>/.git/objects + GIT_DIR=<tmp>/.git after init. Same as (c). Go with (c).
+
+  Detail: after `git init` + alternates + extract + `git add -A`, `git ls-files corpus/` lists extracted corpus. `git cat-file -e <hex>^{commit}` resolves via alternates (lane objects) — citations resolve as in the lane. Note: the lane is jj-colocated — lane objects live in <lane>/.git/objects (colocated git dir is .git). Alternates path: str(root/.git/objects) — but root is the LANE repo (git-dir .git exists — colocated). If jj uses a separate git dir? Colocated = .git is the git dir. OK. Use `git -C root rev-parse --git-dir` to resolve the actual objects dir instead of assuming .git (robust: git-dir could be absolute). objects path = git_dir + "/objects".
+
+  One more: `git add -A` in tmp also INDEXES .git? No, .git excluded. Index writes to tmp/.git/index — tmp repo, allowed.
+
+  Hidden caveat: archive of rev includes files like `.gitignore`? extraction fine.
+
+  In the FIXTURE self-test, same code path: fixture root is a real git repo; archive its rev; init tmp; alternates → fixture objects; add -A; run committed stub gate. The stub doesn't need git — but the counter's harness does init/add regardless — harmless. 
+
+  Now also verify: `git archive` at e94ae32 — 5.5M — fast.
+
+  And `git add -A` with 12918 files ≈ a second. OK.
+
+  Also `git archive` output could include a `pax_global_header` entry — tarfile handles it (it appears as a file named pax_global_header with GNU tar? Python tarfile handles pax headers natively; git archive --format=tar produces pax headers only for long names/etc. extractall handles). Use `tarfile.open(fileobj=BytesIO, mode="r:")` + extractall(filter="data")? Python 3.12+ warns about extraction filter; 3.14: extractall default filter is 'data'? In 3.14, default extraction filter is 'data' (changed in 3.12 to warn, 3.14 default?). To be explicit: extractall(path, filter="data"). "data" filter strips setuid etc. but KEEPS regular files/dirs — good. Actually 'data' filter refuses absolute paths/traversal — safe. But does 'data' filter strip symlinks? It allows symlinks only if they point inside the archive? Lane tree may contain symlinks? git archive stores symlinks as-is. 'data' filter: "symlinks are rejected"? Let me recall: tarfile extraction filters — 'data': blocks absolute paths, traversal, devices; symlinks: allowed if target is inside dest? Actually 'data' filter "Refuses special files (devices, pipes), absolute paths, links outside dest"... git archive of a lane repo — does the lane track symlinks? Possibly not. To avoid a landmine, use filter="tar"? "tar" = original behavior minus the worst known issues... 'tar' filter refuses absolute/traversal but allows devices? For a trusted self-archive this is fine. Use filter="tar" — adequate and permissive for git archive output. Hmm, Python docs recommend 'data' for untrusted. git archive of our own repo is trusted; use "tar".
+
+  Edge: lane tracks a file named like an absolute path? No.
+
+  OK. Now also decide: measure gate ONCE per score() call (both base control and rev control run score → 2 gate runs per counter invocation ≈ 2×(archive+add+gate) — each maybe 2-4s → fine. Could skip gate for base (base D4 is False via... no — base D4 needs measurement: baseline at base expects 121/82/38; gate at base measures 122/85/38 → mismatch → False. Either way False; but run honestly — the base control MUST NOT fake. Keep full honest scoring at both revs.)
+
+  Hmm wait — at base e94ae32: D4 requires zero-modes 0 at base: measured unindexed at base = 1 → D4 False. Also equal-mismatch tracked 122≠121. False. Good, base=0 of 4 confirmed by measurement.
+
+  Timeout for gate subprocess: 120s; whole counter fine.
+
+  Now — self-test independence: the self-test builds its own fixture repo and OVERRIDES BASE_REV global (r66 pattern) — but ALSO must not depend on the lane repo at all. My score() calls gate-run harness on the fixture root — works. main() base control: BASE_REV override → fixture base. Good. Also the alternates path in fixture: git-dir is <fixture>/.git — fine.
+
+  Also `git init` default branch warning on stderr — harmless; use `-q` and `-b main`? `git init -q -b main` needs git ≥2.28 — host git is modern (jj host). Use init -q plus config to silence hints: `git -c init.defaultBranch=main init -q`? r66 did `git(root, "-c", "init.defaultBranch=main", "init", "-q")` — but that's for the fixture root; my temp measurement repo: `git -C tmp -c init.defaultBranch=main init -q`. Wait, ordering: git -C tmp -c k=v init -q works.
+
+  Env for git in tmp: need GIT_AUTHOR? Not committing. add needs nothing.
+
+  Let me also double-check the wrong-path window rule against the landed LOG block: 
+  2675: "- **Erratum (append-only; routed defect R67-2).** The round-67 report cites the census receipt"
+  2676: "  `.ufo/waves/round-67/w1/controls/census-validate-append.txt`; the file that exists is"
+  2677: "  `.ufo/waves/round-67/controls/census-validate-append.txt`. The r67 report is not edited."
+  Wrong at 2676, real at 2677: |2676-2677|=1 ≤ 2 ✓.
+
+  Lesson 149-150: adjacent ✓.
+
+  SCORECARD: 428 real; wrong path? Unknown — if SCORECARD contains wrong path somewhere WITHOUT real within 2 lines → D2 fails → my counter says 3 of 4 at tip → divergence report. Let me pull the exact SCORECARD block + LOG block + lesson block text now to lock rules. Also check whether SCORECARD@tip mentions junk-world/254.
+
+  Also check `.gitattributes` existence for export-ignore, and lane tracked symlinks: `git ls-files -s | awk '$1==120000'` count.
+
+  Then WRITE the draft. Then run: --self-test; then against base and tip; then READ the L1's installed counter and diff semantics for the report; then write ExecR67Repairs.md.
+
+  Batch now: 
+  1. sed SCORECARD@tip 420-435, LOG@tip 2665-2690, lesson@tip 130-160.
+  2. ls .gitattributes; symlink count; grep junk-world SCORECARD@tip | wc.=== SCORECARD@tip 420-434 ===
+  at 600 of 600 lines (two bullet lines were compressed to make room for the two new gate-registry
+  rows), the gate registry and the floors guard stay green, and the fleet source census is exit 0
+  before and after.
+- **Erratum to the round-67 depth annotation above (append-only; routed defects R67-1 and R67-2).**
+  That annotation states that the r67 C2 base "prints `authority ladder grounded 0 of 1`". The
+  committed receipt and a re-run at the r67 base revision show exit 2 with
+  `environment error: cannot read corpus/knowledge/instruction-authority-ladder-round67.md` and
+  nothing on stdout; the r67 claim stands a **miss as declared** and is not re-scored here. The
+  r67 census receipt path in that round's report is `.ufo/waves/round-67/controls/census-validate-append.txt`,
+  not the `w1/controls/` form the report cites. The r67 report itself is not edited.
+=== SCORECARD junk-world count ===
+0
+=== LOG@tip 2665-2690 ===
+  `verifiers/check_r67_routed_repairs.py` prints `r67 routed defects closed N of 4`.
+  Evidence: `corpus/lessons/round-68.md` § Mistakes M107-M110.
+- **Erratum (append-only; routed defect R67-1).** The round-67 report's before-line for the r67
+  C2 claim states that the base printed `authority ladder grounded 0 of 1`. It did not: at the
+  r67 base revision `2a8eba56b3f9321b70c569fa2816d42237ca49a2` the counter prints on stderr
+  `environment error: cannot read corpus/knowledge/instruction-authority-ladder-round67.md at 2a8eba56b3f9321b70c569fa2816d42237ca49a2`
+  and exits **2**, with nothing on stdout — the lane's own committed receipt
+  (`.ufo/waves/round-67/receipts/C2-authority-measure.txt`) says the same. **The r67 claim stands
+  a miss as declared.** The r67 report is not edited; this entry, the SCORECARD annotation and
+  `corpus/lessons/round-68.md` M107 carry the correction.
+- **Erratum (append-only; routed defect R67-2).** The round-67 report cites the census receipt
+  `.ufo/waves/round-67/w1/controls/census-validate-append.txt`; the file that exists is
+  `.ufo/waves/round-67/controls/census-validate-append.txt`. The r67 report is not edited.
+- **Routed defect R67-3 (disclosure).** `.ufo/waves/round-67/w1/controls/junk-world/` — a 254 MB
+  untracked control mirror — was left in the lane working tree by round 67 and named nowhere in
+  the r67 report, `LOG.md` or lesson (the r67 lesson asserted that `git status --porcelain`
+  "lists nothing after it"). Round 68 discloses it here and in the lesson, and removes it from
+  the working tree; it was control scratch, never claim evidence.
+- **Routed defect R67-4 (repair).** `corpus/lessons/round-67-verifier-spotcheck.md` now carries a
+  coverage-map index row and the census baseline is re-recorded from
+  `verify_corpus_integrity.py --no-baseline --json` at the measured commit; the index row alone
+  and the re-record alone each leave the gate red.
+- **Frontier (§2b).** SOURCES rows 123 → 128 (5 added, 0 prior rows changed); the fleet source
+  census run before and after (exit 0 both); one mistake class mined per defect (M107-M110); the
+  round's claim rests on rows opened this round. The campaign's absent-defect register slice for
+  kotoba (13 rows) was hand-checked: 7 `payload-absent` rows refused, 6 `unreachable` rows marked
+=== lesson@tip 130-160 ===
+
+## Mistakes
+
+- **M107 — class: an unobserved line asserted as observed.** Evidence: the round-67 report's
+  *Before → after measurements* section states that the r67 C2 base "prints `authority ladder
+  grounded 0 of 1`, **exit nonzero**", and the r67 `LOG.md`/`SCORECARD.md` entries repeat it.
+  Re-running the counter at the r67 base revision `2a8eba56b3f9321b70c569fa2816d42237ca49a2`
+  prints on stderr `environment error: cannot read corpus/knowledge/instruction-authority-ladder-round67.md at 2a8eba56b3f9321b70c569fa2816d42237ca49a2` and exits **2** — stdout carries nothing. The lane's own committed receipt
+  (`.ufo/waves/round-67/receipts/C2-authority-measure.txt`) records that exit-2 line, so the
+  report contradicted the lane's own evidence. Captured by: the round-67 plan's kill rule ("if the
+  base control does not print `0 of 1`, C2 is a miss as declared") — the rule was declared and
+  the data disagreed, but nothing forced the *report* to be checked against the receipt before it
+  was written. **Fix (shown able to fail):** the r67 report is append-only and is never
+  rewritten; round 68 appends the correction to `LOG.md`, `SCORECARD.md` and this lesson, and the
+  round-68 counter `verifiers/check_client_trust_gates.py` is built with the corrected
+  classification from the start — a missing entry is a content verdict (`0 of 5`, exit 1), not an
+  environment error (exit 2) — and its self-test pins that classification as an assertion, so a
+  future counter that re-introduces the r67 classification fails its own self-test.
+- **M108 — class: a path cited that does not exist.** Evidence: the round-67 report cites the
+  census receipt `.ufo/waves/round-67/w1/controls/census-validate-append.txt`; the file that
+  exists is `.ufo/waves/round-67/controls/census-validate-append.txt` (the `w1/` segment was
+  added). Captured by: the round-67 plan's evidence-pointer rule (every pointer is a path that
+  must resolve). **Fix:** the correction is appended here and in the r68 report; the r67 report
+  is not edited.
+- **M109 — class: an untracked working-tree artefact left undisclosed.** Evidence:
+  `.ufo/waves/round-67/w1/controls/junk-world/` — a 254 MB junk-world control mirror, untracked,
+  and named nowhere in the r67 report, `LOG.md` or lesson although the r67 lesson asserted that
+  `git status --porcelain` "lists nothing after it". Captured by: the round prompt's inherited-state
+  rule and the r67 lesson's own sentence. **Fix:** round 68 discloses it (here and in the r68
+  report) and removes it from the working tree; it was control scratch, never claim evidence.
+- **M110 — class: a closure artefact left unindexed.** Evidence:
+=== gitattributes? ===
+ls: cannot access '.gitattributes'
+: No such file or directory
+=== tracked symlinks ===
+6042
+=== lesson R67-2 marker? ===
+Facts locked:
+
+  1. **SCORECARD@tip erratum block** (lines ~423-431): contains observed fragment (line 426, NO hash on that line — but line 391 has `2a8eba56b3f...` full hash elsewhere in file — so file-level "2a8eba56 present" passes SCORECARD), quotes `authority ladder grounded 0 of 1` (line 424), real census path at 428, and line 429: "not the `w1/controls/` form the report cites" — WRONG path is named only as `w1/controls/` (NOT the full wrong census path!). So SCORECARD contains NO full wrong census path. My D2 rule (every FULL-wrong-path line within 2 lines of a real-path line) → SCORECARD vacuous ✓ (real present at 428).
+
+  2. **LOG@tip**: R67-1 block 2667-2674 (observed w/ full hash at 2670), R67-2 block 2675-2677 (wrong 2676, real 2677), R67-3 disclosure 2678-2682 (junk path + 254 MB), R67-4 2683-2686.
+
+  3. **Lesson@tip**: M107 (observed w/ hash at 137), M108 (wrong 149, real 150 — adjacent), M109 (junk + 254 MB at 155). Also lesson has NO literal "R67-2" markers (grep empty) — markers are M107-M110. So marker-based block rule would fail the lesson. Use the WINDOW rule (wrong-line within ±2 lines of real-line), which fits LOG (Δ1), lesson (Δ1), SCORECARD (no full wrong path). 
+
+  Note lesson M108 lines: 149 = "  census receipt `.ufo/waves/round-67/w1/controls/census-validate-append.txt`; the file that" (wrong), 150 = "  exists is `.ufo/waves/round-67/controls/census-validate-append.txt` (the `w1/` segment was" (real). Δ1 ✓.
+
+  4. **SCORECARD junk-world count = 0** → D3 disclosure must NOT require SCORECARD. Rule: junk named (path + "254") in BOTH LOG.md and corpus/lessons/round-68.md. Landed ✓. Also "and removes it from the working tree" — work

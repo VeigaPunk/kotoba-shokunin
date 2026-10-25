@@ -906,3 +906,277 @@ Traceback (most recent call last):
 FileNotFoundError: [Errno 2] No such file or directory: PosixPath('/tmp/mutc1/d-world-a')
 
 
+• Two sed issues: `rmtree(d)` without ignore_errors on a fresh path, and double-prefix `d-d-world-pristine` (harmless but inconsistent — actually fine since it's just a name). Fix: use rmtree(..., ignore_errors=True) for world-a. Patch that one line.## baselines (DRAFT)
+BASELINE no-rev  exit=0
+  stdout: client trust gates backed 5 of 5
+  stderr: 
+BASELINE --rev 0dd709912474  exit=0
+  stdout: client trust gates backed 5 of 5
+  stderr: 
+## mutants (DRAFT)
+### a source:-block moved out of opening (to EOF)
+expected: REJECT expected (docstring conjunct 2 'opens with source: lines')
+exit=1
+  stdout: client trust gates backed 0 of 5
+  - no `source:` line naming an S### id in the entry's first 10 lines
+  stderr: 
+### b S199 status mined->queued
+expected: REJECT exit!=0, finding names status
+exit=1
+  stdout: client trust gates backed 4 of 5
+  - S199: status is 'queued', expected 'mined'
+  stderr: 
+### c S200 source cell altered, entry line no longer matches
+expected: REJECT exit!=0
+exit=1
+  stdout: client trust gates backed 0 of 5
+  - entry missing: corpus/knowledge/client-trust-gates-round68.md
+  stderr: 
+### d S201 located quote removed from anchor cell
+expected: REJECT exit!=0
+exit=1
+  stdout: client trust gates backed 0 of 5
+  - entry missing: corpus/knowledge/client-trust-gates-round68.md
+  stderr: 
+### e verified-at date changed
+expected: REJECT exit 1, 0 of 5
+exit=1
+  stdout: client trust gates backed 0 of 5
+  - entry missing: corpus/knowledge/client-trust-gates-round68.md
+  stderr: 
+### f coverage-map index row renamed
+expected: REJECT exit 1, 0 of 5
+exit=1
+  stdout: client trust gates backed 0 of 5
+  - entry missing: corpus/knowledge/client-trust-gates-round68.md
+  stderr: 
+### g client name changed, no longer matches source row
+expected: REJECT expected
+exit=1
+  stdout: client trust gates backed 0 of 5
+  - entry missing: corpus/knowledge/client-trust-gates-round68.md
+  stderr: 
+### g1 client cell emptied
+expected: REJECT exit!=0
+exit=1
+  stdout: client trust gates backed 0 of 5
+  - entry missing: corpus/knowledge/client-trust-gates-round68.md
+  stderr: 
+### h entry deleted (no-rev arm)
+expected: 0 of 5, exit 1 — NOT exit 2
+exit=1
+  stdout: client trust gates backed 0 of 5
+  - entry missing: corpus/knowledge/client-trust-gates-round68.md
+  stderr: 
+### h-rev entry deleted (--rev arm, frozen base-control shape)
+expected: 0 of 5, exit 1 — NOT exit 2 (R67-1 classification)
+exit=1
+  stdout: client trust gates backed 0 of 5
+  - entry missing: corpus/knowledge/client-trust-gates-round68.md
+  stderr: 
+### i unknown revision
+expected: exit 2, environment error
+exit=2
+  stdout: 
+  stderr: environment error: unknown revision 'deadbeefdeadbeefdeadbeefdeadbeefdeadbeef' (git rev-parse failed: no output)
+## restoration (DRAFT)
+lane counter sha256 now: c68b03117f9f0fec1f2e76a91d9679c0c5e7993999bf035e5a58e5e58373e483
+scratch counter sha256   : 9909dc65ae35a44ed797427d71b98440f49abb2c4b0535fb3ec7466db5c88626
+post-battery pristine re-run exit=0: client trust gates backed 5 of 5
+Something is wrong: mutants (c)–(h) all report "entry missing" — the world builders in battery2 must have failed to write the entry for those worlds. Why? Look at battery.py's structure: worlds c–g1 are built via `build(name, edits, drop=())`, which writes ALL files in `texts`. That worked in battery.py. In battery2... (b) worked (4 of 5 — the entry was present there since world-b is built manually). Hmm wait, (b) worked and printed 4 of 5. But (c) says entry missing.
+
+  Oh! I see it. In battery2, `build()` writes to `S / f"world-{name}"` — my sed replaced `S / "world-` with `S / "d-world-`, but `build()` uses an f-string: `d = S / f"world-{name}"` — the sed pattern `S / "world-` does NOT match `S / f"world-` (there's an `f` between quote... actually the f-string is `S / f"world-{name}"` — sed looked for `S / "world-` literally, which doesn't appear because of the `f`. So `build()` wrote worlds to `world-c`, `world-d`, etc. — the SAME directories battery.py created — but battery.py's worlds contain the MUTATED counter results? No wait — the world contents are the same files (entry/sources/readme with mutations). Battery.py's world-c etc. already exist with correct mutated contents!
+
+  Hmm, but then battery2's run of world-c should have found the entry... unless `build()` DID run and wrote to `world-c` — wait no. Let me re-trace: in battery2, `build("c", ...)` → `d = S / f"world-c"` (f-string unmatched by sed) → rmtree ignore → writes entry+sources+readme with the (c) mutation → returns d. Then WORLDS["c-source-cell"] = d → run(world-c). That world DOES have the entry... but the observed output says "entry missing"!
+
+  Unless... battery2's `build` is writing PRISTINE-ish? No. Hmm, wait — actually look again at the sed for build(): the function is
+
+  def build(name, edits, drop=()):
+      d = S / f"world-{name}"
+
+  sed `s|S / "world-|S / "d-world-|g` — no match (f" vs "). So d = world-c. Writes files. Then `run(d)`. The counter reads `--repo /tmp/mutc1/world-c`. Files exist... unless the LATER manual constructions in battery2 clobbered them. Order in battery.py:
+
+  1. (a) special: d = S/"world-a" manual → world-a has entry (mutated a).
+  2. (b): d = S/"world-b" manual → entry present.
+  3. WORLDS["c-..."] = build("c", ...) — writes world-c with entry.
+  ... f, g, g1 same.
+  4. (h): dh = S/"world-h" manual — NO entry (intended).
+  5. baseline dp pristine.
+  6. revworld.
+
+  That's battery.py and it worked (c printed the S200 finding). In battery2 the same code... but (c)–(g1) report entry missing. The difference: battery2's manual constructions use `d-world-a`, `d-world-b`, `d-world-h`, `d-d-world-pristine`, `d-revworld` (sed hit `S / "world-` in manual code), while build() used `world-c` etc. — wait, that shouldn't cause entry-missing for world-c.
+
+  OH WAIT. I see it now! The manual (b) block in battery2: `d = S / "d-world-b"` — fine. But the build() worlds... hold on, actually let me look at the (a) special block again:
+
+  d = S / "d-world-a"; rmtree; (d / ENTRY).parent.mkdir; write entry (mutated); (d / SOURCES).parent.mkdir... writes SRC; (d / README)... RD. Fine.
+
+  Hmm so why would world-c lack the entry? Let me actually check: maybe build() in battery2 CRASHED before writing the entry? No — it ran to completion (no exception; output continued).
+
+  Wait, actually — maybe the sed `s|S / "world-|S / "d-world-|g` DID hit inside build()? The line is `d = S / f"world-{name}"`. The sed pattern `S / "world-` requires a double-quote immediately after `S / ` — in the source it's `S / f"world-`. No match. Correct.
+
+  Alternatively `run()` uses `str(world)` — fine.
+
+  Hmm, let me look at what (c) actually ran: `rec("c ...", S / "world-c")`? No — the rec calls use `S / "world-b"` etc.? Let me check battery.py's rec calls: `rec("b ...", S / "world-b")`, `rec("c ...", S / "world-c")` — WAIT, in battery.py the rec calls reference `S / "world-c"` directly?? Let me recall... battery.py's mutant runs:
+
+  rec("a ...", S / "world-a")? — no, I wrote `rec("a ...", S / "world-a")`? Looking at my original battery.py: `rec("a source:-block moved out of opening (to EOF)", "...", S / "world-a")` — hmm no, I wrote `S / "world-a"`. Let me check: the original had `rec("a ...", S / "world-a")`? In my heredoc I wrote:
+
+  rec("a source:-block moved out of opening (to EOF)",
+      "REJECT expected ...", S / "world-a")
+  rec("b S199 status mined->queued", "...", S / "world-b")
+  rec("c S200 source cell altered, entry line no longer matches", "REJECT exit!=0", S / "world-c")
+
+  Hmm wait, no — I wrote `S / "world-c"`? Looking at the original heredoc text I submitted: `rec("c S200 source cell altered, entry line no longer matches", "REJECT exit!=0", S / "world-c")` — yes I used S / "world-c" in rec for b,c,d,e,f,g,g1,h — those got sed'd to `d-world-c` etc.! So battery2 ran rec on `d-world-c` — a directory that build() never created (build wrote to `world-c`) → run() on a nonexistent dir → _state_of finds no files → all None → check → state[ENTRY] None → "entry missing" 0 of 5 exit 1.
+
+  But (a) and (b) worked because their manual construction DID create `d-world-a`/`d-world-b` (sed matched the manual `S / "world-a"` literals) AND rec referenced `d-world-a`/`d-world-b`. And (h): `dh = S / "d-world-h"` created; rec used `S / "d-world-h"` ✓ worked.
+
+  And (h)-rev: rg = d-revworld created ✓. (i) used rg ✓.
+
+  So battery2's (c)–(g1) runs were run against NONEXISTENT directories → "entry missing" — that's a FALSE kill (the detector defaulted to the missing-entry path, not actually testing the mutants). This is exactly the "inconclusive/baseline" trap — good thing the outputs smelled wrong (all five identical "entry missing").
+
+  Fix battery2 properly: make build() use d-world- prefix too. Patch battery2.py: replace `f"world-{name}"` with `f"d-world-{name}"`. Rerun. Also fix `d-d-world-pristine` (harmless). Rerun.
+
+  Also this means my battery.py run (landed counter) WAS correct: rec referenced world-c etc., build wrote world-c. ✓. And its outputs were distinct per mutant (S200 finding etc.), consistent.
+
+  Rerun battery2 with the fix.
+
+• The draft battery had a sed-miss: `build()`'s f-string `f"world-{name}"` didn't get the `d-` prefix, so mutants (c)–(g1) ran against **nonexistent dirs** — those "kills" are false (defaulted to the missing-entry path). Patching and re-running:18:    d = S / f"d-world-{name}"
+53:d = S / "d-world-a"; shutil.rmtree(d, ignore_errors=True); (d / ENTRY).parent.mkdir(parents=True, exist_ok=True)
+66:d = S / "d-world-b"; shutil.rmtree(d, ignore_errors=True)
+99:dh = S / "d-world-h"; shutil.rmtree(dh, ignore_errors=True)
+106:dp = S / "d-d-world-pristine"; shutil.rmtree(dp, ignore_errors=True)
+138:    "REJECT expected (docstring conjunct 2 'opens with source: lines')", S / "d-world-a")
+139:rec("b S199 status mined->queued", "REJECT exit!=0, finding names status", S / "d-world-b")
+140:rec("c S200 source cell altered, entry line no longer matches", "REJECT exit!=0", S / "d-world-c")
+141:rec("d S201 located quote removed from anchor cell", "REJECT exit!=0", S / "d-world-d")
+142:rec("e verified-at date changed", "REJECT exit 1, 0 of 5", S / "d-world-e")
+143:rec("f coverage-map index row renamed", "REJECT exit 1, 0 of 5", S / "d-world-f")
+144:rec("g client name changed, no longer matches source row", "REJECT expected", S / "d-world-g")
+145:rec("g1 client cell emptied", "REJECT exit!=0", S / "d-world-g1")
+146:rec("h entry deleted (no-rev arm)", "0 of 5, exit 1 — NOT exit 2", S / "d-world-h")
+## baselines (DRAFT)
+BASELINE no-rev  exit=0
+  stdout: client trust gates backed 5 of 5
+  stderr: 
+BASELINE --rev 1413fb7c1f70  exit=0
+  stdout: client trust gates backed 5 of 5
+  stderr: 
+## mutants (DRAFT)
+### a source:-block moved out of opening (to EOF)
+expected: REJECT expected (docstring conjunct 2 'opens with source: lines')
+exit=1
+  stdout: client trust gates backed 0 of 5
+  - no `source:` line naming an S### id in the entry's first 10 lines
+  stderr: 
+### b S199 status mined->queued
+expected: REJECT exit!=0, finding names status
+exit=1
+  stdout: client trust gates backed 4 of 5
+  - S199: status is 'queued', expected 'mined'
+  stderr: 
+### c S200 source cell altered, entry line no longer matches
+expected: REJECT exit!=0
+exit=1
+  stdout: client trust gates backed 4 of 5
+  - S200: the row's source cell does not occur in the entry's source line
+  stderr: 
+### d S201 located quote removed from anchor cell
+expected: REJECT exit!=0
+exit=1
+  stdout: client trust gates backed 4 of 5
+  - S201: no per-client table row carries the id and its located quote
+  stderr: 
+### e verified-at date changed
+expected: REJECT exit 1, 0 of 5
+exit=1
+  stdout: client trust gates backed 0 of 5
+  - no `verified-at: 2026-10-24` line
+  stderr: 
+### f coverage-map index row renamed
+expected: REJECT exit 1, 0 of 5
+exit=1
+  stdout: client trust gates backed 0 of 5
+  - the entry has no coverage-map index row in corpus/README.md
+  stderr: 
+### g client name changed, no longer matches source row
+expected: REJECT expected
+exit=0
+  stdout: client trust gates backed 5 of 5
+  stderr: 
+### g1 client cell emptied
+expected: REJECT exit!=0
+exit=0
+  stdout: client trust gates backed 5 of 5
+  stderr: 
+### h entry deleted (no-rev arm)
+expected: 0 of 5, exit 1 — NOT exit 2
+exit=1
+  stdout: client trust gates backed 0 of 5
+  - entry missing: corpus/knowledge/client-trust-gates-round68.md
+  stderr: 
+### h-rev entry deleted (--rev arm, frozen base-control shape)
+expected: 0 of 5, exit 1 — NOT exit 2 (R67-1 classification)
+exit=1
+  stdout: client trust gates backed 0 of 5
+  - entry missing: corpus/knowledge/client-trust-gates-round68.md
+  stderr: 
+### i unknown revision
+expected: exit 2, environment error
+exit=2
+  stdout: 
+  stderr: environment error: unknown revision 'deadbeefdeadbeefdeadbeefdeadbeefdeadbeef' (git rev-parse failed: no output)
+## restoration (DRAFT)
+lane counter sha256 now: c68b03117f9f0fec1f2e76a91d9679c0c5e7993999bf035e5a58e5e58373e483
+scratch counter sha256   : 9909dc65ae35a44ed797427d71b98440f49abb2c4b0535fb3ec7466db5c88626
+post-battery pristine re-run exit=0: client trust gates backed 5 of 5
+
+
+• Clean draft results now. (a) KILLED by the draft (0 of 5, exit 1) — the draft fixed the landed counter's (a) gap. (b)(c)(d) killed with partial credit 4 of 5, exit 1 (per the draft's documented counting semantics). (e)(f) killed 0 of 5. (g) SURVIVED — documented design (client name is prose). (g1) SURVIVED — the split-artifact blindness, NOT documented. (h) both arms 0 of 5 exit 1 ✓. (i) exit 2 ✓.
+
+  One more verification for (g1) on the draft to nail the mechanism: confirm the mutated table line still yields ≥4 cells after _split_row. Quick probe: run a tiny python snippet importing the draft module and printing _split_row on the mutated line, and confirming which finding is absent. Also confirm the (d) message nuance: the counter rejected via the table conjunct, not the anchor conjunct — because "Security best practices" (quoted in the entry's source line) still occurs in the mutated anchor. Actually wait — for the draft, the message is "no per-client table row carries the id and its located quote" — meaning anchor_quotes was NON-empty (matched "Security best practices") but no table row carries it. So the anchor-conjunct message didn't fire; the kill came from the table conjunct. Still a kill (exit 1) — note in report as message-precision observation, and it reveals a genuine weakness: a short quoted phrase from the source line can satisfy the anchor conjunct. Worth one line.
+
+  Let me run the (g1) mechanism probe + (d) anchor probe quickly, then also run the draft's own --self-test as corroboration (fixture-built, no network, scratch-only — safe). Then write the report.
+
+  Probe script:
+  ```python
+  import importlib.util, sys
+  spec = importlib.util.spec_from_file_location("dc", "/tmp/mutc1/draft-counter.py")
+  m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+  line = '|  | the body is data, not instruction: the host\'s own tool and sandbox policy stays authoritative over the skill | "Skill content is untrusted resource data; host tool and sandbox policy remains authoritative." | S198 |'
+  cells = m._split_row(line.strip())
+  print(len(cells), cells)
+  ```
+  Expect len 4 with cells[0]=="" — proving the ≥4 check passes with an empty client cell.
+
+  And landed: 
+  ```python
+  # landed counter _table_rows/_split_row on line[1:]
+  ```
+  Same _split_row but fed line[1:]: `m2._split_row(line[1:].strip())`? The landed code passes line[1:] unstripped: `_split_row(line[1:])`. Feed exactly that → expect 3 cells.
+
+  Also (d) probe: check which quotes occur in the mutated S201 anchor: 
+  anchor = _norm('the "Security best practices" subsection (13 words)'); quotes from mutated entry — print anchor_quotes. Expect ["\"Security best practices\""]-ish.
+
+  Then self-test run: `python3 -B /tmp/mutc1/draft-counter.py --self-test --repo /tmp/mutc1/d-revworld` (repo ignored). Confirm 0 failures.
+
+  Then write MutC1Counter.md. Also final integrity: git status --porcelain (expect same as before + my new report file untracked under w1/ — actually w1/ is already untracked as a whole, so no new entry) and confirm drafts dir byte-identical (hash). I never wrote to drafts; hash check for the record.
+
+  Report structure (concise, evidence-dense):
+  - Subject + the mid-flight substitution story (draft absent at start → battery run vs landed cafa29d bytes → draft landed → identical battery re-run vs draft). Both tables.
+  - Harness paths, hashes, baseline (both arms), verdict rule (killed = exit≠0 with naming message; baseline green so conclusive).
+  - Table 1: draft (the assigned subject) — 10 rows + i.
+  - Table 2: landed cafa29d (supplementary) — same mutants.
+  - Findings: 
+    F1 (g1) vacuous client-cell conjunct on BOTH versions; mechanism (split artifacts); the draft's ≥4-cell structural claim doesn't catch emptiness; suggestion-range: a survivors-are-findings note, NOT a contract change; one-line fix hint (check cells[0] non-empty after split / strip pipes consistently).
+    F2 (g) by-design survive — documented in draft docstring ("client name is prose the counter deliberately does not hardcode"); the landed counter docstring does NOT document it → if the landed copy is what ships, port the sentence or tighten.
+    F3 (a) landed counter does NOT enforce opening position (docstring claims it); draft DOES (ENTRY_WINDOW=10). Since the draft is the subject: fixed in draft; ensure the landed copy is the draft's descendant (it is NOT — landed cafa29d has no window check! The landed verifiers/check_client_trust_gates.py scans ALL lines — so if the L1 ships the landed bytes, conjunct 2's position half is unenforced). Flag for L1: the landed verifiers/ copy and the draft have diverged; the draft enforces more.
+    F4 (d) message-precision: kill comes from the table conjunct via short-quote match ("Security best practices"); anchor conjunct itself is loose to short quotes also present in source lines. Still killed; note.
+    F5 (b/c) print 4 of 5 (partial credit) on draft vs 0 of 5 on landed — both exit 1; predicate-compatible; draft documents the semantics.
+  - False-kill disclosure: first draft battery run had the dir-prefix bug (c–g1 ran on empty dirs → fake "entry missing" kills); caught, fixed, re-run — final numbers above. Honest record.
+  - Restoration evidence: lane tree untouched (git status before/after identical + my only lane write is this report), hashes (lane counter, draft, pristine bytes), pristine re-run 5 of 5 exit 0 after battery, scratch-only worlds under /tmp/mutc1.
+  - Draft-still-absent contingency is moot (it landed), but "mutants I would run" = exactly this battery.
+
+  Also mention (h) is the R67-1 regression guard and it passes on both, and (i) exit 2 both.
+
+  Keep the report tight. Write it now.
+
+• Draft battery is clean and internally consistent. Two survivors on the draft ((g) by documented design, (g1) on a split artifact), and a critical cross-version finding: the **landed** counter does NOT enforce the opening-position conjunct that the draft does. Nailing the (g1) mechanism and running the draft's own self-test as

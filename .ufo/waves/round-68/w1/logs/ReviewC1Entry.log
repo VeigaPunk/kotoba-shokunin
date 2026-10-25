@@ -499,4 +499,101 @@ Project skills are repository-controlled instructions, so they clear two indepen
 
   Run all four now, plus read lessons/round-68.md, plus confirm vibe.md heading.
 
-• The counter's `--fetch` matching is `_norm` = **whitespace collapse only** — no tag stripping. My literal greps show S200 and S202 quotes are **not** contiguous in the served bytes (0 hits each; S198/S199/S201 = 1 hit
+• The counter's `--fetch` matching is `_norm` = **whitespace collapse only** — no tag stripping. My literal greps show S200 and S202 quotes are **not** contiguous in the served bytes (0 hits each; S198/S199/S201 = 1 hit). If that holds for urllib too, the frozen `--fetch` conjunct cannot reach 5 of 5 as declared. Running the predicate arms exactly as frozen, plus reading the lesson Gate block:client trust gates backed 5 of 5
+exit=0
+client trust gates backed 5 of 5
+  fetch S198: found
+  fetch S199: found
+  fetch S200: found
+  fetch S201: found
+  fetch S202: found
+live quotes found 5 of 5
+exit=0
+client trust gates backed 0 of 5
+  - entry missing: corpus/knowledge/client-trust-gates-round68.md
+exit=1
+681:### Custom Slash Commands via Skills
+709:### Creating Skills
+750:### Skill Discovery
+763:### Managing Skills
+784:### Configuration File Location
+750:### Skill Discovery
+round-68.md
+---
+10:## Gate
+32:- **S200 — Kilo Code, Skills**, https://kilo.ai/docs/customize/skills — opened 2026-10-24 by the
+42:- **S202 — Mistral AI Vibe, README**,
+73:adopted ids continue the lane's registry as staged (S198–S202); no renumbering was needed and no
+91:- S200 — "re-fetch the page and confirm the trusted-skills-only rule and the approval-prompt wording are unchanged (ran 2026-10-24)"
+93:- S202 — "re-fetch the raw README and confirm the discovery list and the trusted-folders-only annotation are unchanged (ran 2026-10-24)"
+127:value is 1,019 characters stripped and 1,020 parsed, i.e. 4–5 characters of headroom against the
+171:- S198, S199, S200, S201, S202 — `mined` at landing (2026-10-24), tier B, kind `docs`, recheck
+
+
+• Surprise: `--fetch` reports **5 of 5 found**, exit 0 — but my literal `grep -cF` on my own curl-fetched bodies found S200 and S202 at 0. Contradiction to resolve. Possible explanations:
+
+  1. urllib (Python) receives a DIFFERENT body than curl (different UA / Accept headers → SSR vs JSON-embedded page, or a redirect to a different variant).
+  2. The counter fetches the URL from the ENTRY's source line — S200's URL: https://kilo.ai/docs/customize/skills — same as mine.
+  3. `_norm` collapses whitespace; but that wouldn't bridge the JSON tags in the Next.js payload... UNLESS urllib gets a server-rendered HTML where the text is contiguous.
+
+  The resolution matters for honesty: if the counter's fetch gets a DIFFERENT rendering than what a human or curl sees, the "found" verdict may be an artifact of the fetch path. But the frozen predicate is "--fetch finds each of the 5 located quotes on its live page" — the counter IS the instrument; it found them via urllib. Still, I must check what body urllib actually got for kilo and vibe. Let me replicate the fetch with python urllib and grep. For vibe (raw.githubusercontent README) — raw markdown, no SSR variance; line 755 shows `**Standard Agent Skills path** (project root, trusted folders only)` — wait, how could the counter find "Standard Agent Skills path (project root, trusted folders only)" in THAT? `**` intervenes... unless there's ANOTHER occurrence elsewhere in the README without the bold markers! The README has a Table of Contents and maybe repeated lists (VSCode/CLI variants). Line 755-756 are two list items under Skill Discovery. But maybe the quote also appears in a plain-text context elsewhere (e.g., the docs/ folder README vs code comment). grep -cF returned 0 for the exact string "Standard Agent Skills path (project root, trusted folders only)" in my vibe.md... but wait, my curl -sL followed redirects; the counter's urllib might have gotten a different bytes (e.g., GitHub serving a different branch? URL is /main/README.md, same). Hmm, but maybe there are MULTIPLE README variants: the counter fetched and found the quote per its output. Let me replicate exactly: run python urllib with the same UA header and check.
+
+  Actually — hold on. `fetch()` extracts the URL with `URL_RE.search(line)` where `line` is the entry's source line text. For S202 the source line is: `S202 — Mistral AI Vibe — README — https://raw.githubusercontent.com/mistralai/mistral-vibe/main/README.md — the "Skill Discovery" section — located quote "Standard Agent Skills path (project root, trusted folders only)"`. URL_RE = `https?://[^\s,;)\]]+` — matches up to whitespace: `https://raw.githubusercontent.com/mistralai/mistral-vibe/main/README.md` ✓ (stops at space before "—"). OK.
+
+  Then `quote in _norm(body)`: quote = "Standard Agent Skills path (project root, trusted folders only)". For this to be in the body, the body must contain that byte sequence modulo whitespace. My curl body has `**Standard Agent Skills path** (project root, trusted folders only)` — with `**` between. UNLESS the counter's body differs. GitHub raw doesn't content-negotiate by UA... but it might differ by branch state? No.
+
+  Wait — maybe I mis-grepped. My grep: `grep -cF "Standard Agent Skills path (project root, trusted folders only)" /tmp/vibe.md` → 0. Let me double check by looking at line 755 exactly: `755:2. **Standard Agent Skills path** (project root, trusted folders only): \`.agents/skills/\` — [Agent Skills](https://agentskills.io) standard`. Indeed `**` after "path". So the quote as staged does NOT occur verbatim in the raw README. Yet --fetch says found. There must be another fetch variant... OR the counter found a DIFFERENT quote: `quote = next((_norm(q) for q in quotes if _norm(q) in anchor), None)` — quotes = ALL quoted spans in the entry (not just the table quote!) that occur in the row's ANCHOR cell. The anchor cell for S202: `the "Skill Discovery" section; quote "Standard Agent Skills path (project root, trusted folders only)" (9 words)`. Quoted spans in the ENTRY (the whole normalized entry!) that occur in the anchor... The quotes list comes from the ENTRY's double-quoted spans. Candidate matches for S202: any quoted span in the entry that is a substring of the anchor cell text. The anchor contains "Skill Discovery" (quoted in the anchor!). Is "Skill Discovery" a quoted span in the ENTRY? The entry's line 5: `— the "Skill Discovery" section — located quote "Standard Agent Skills path..."` — YES! The entry's own source line quotes "Skill Discovery"! So quotes contains `"Skill Discovery"` (2 words, ≤25 ✓), and `quote = next(...)` takes the FIRST quoted span in entry order that occurs in the anchor — and "Skill Discovery" comes FIRST in the source line, BEFORE the located quote!
+
+  So for S202, fetch checked `"Skill Discovery" in _norm(body)` — a 2-word section heading — which IS on the live page. FOUND — but it verified the SECTION NAME, not the located quote!! Same for every row whose anchor cell quotes the section name: the anchor cells all have the pattern `the "Section Name" section; quote "..."`. And the entry's source lines all quote the section name first. So for ALL FIVE rows, the first candidate quoted span occurring in the anchor is the SECTION NAME ("Activation Context", "Trust", "Shell commands in skills", "Security best practices", "Skill Discovery"), not the located quote!
+
+  Check: does "Shell commands in skills" appear as a quoted span in the entry? Entry line 3: `— the "Shell commands in skills" section — located quote "Project skills..."`. YES. So fetch S200 checked `"Shell commands in skills" in _norm(kilo body)` — the section heading IS in the page (I confirmed 3 occurrences of "Shell commands in skills"). FOUND — but again the section name, not the quote.
+
+  Similarly S198: "Activation Context" is on the page ✓ (heading). S199: "Trust" — the anchor is `the "Trust" section; quote "..."` — quoted span "Trust" occurs in entry line 2 ✓, and "Trust" trivially occurs in the body. S201: "Security best practices" ✓ on page.
+
+  So `--fetch`'s "5 of 5 found" is a **vacuous pass**: it verifies the section-heading names, not the located quotes. The printed line "live quotes found 5 of 5" is FALSE as a measurement of the located quotes: the staged quotes for S200 and S202 do NOT occur verbatim in the served bytes (my curl shows 0 literal hits), and the counter's "found" verdicts for those rows (and likely all five, since section names match first) rest on the wrong string.
+
+  This is the attack finding of the round: the C1 frozen predicate's third conjunct ("`--fetch` finds each of the 5 located quotes on its live page") does NOT hold as declared. The counter returns exit 0 and prints 5 of 5, but the measurement is not of the quotes — it's `next()` first-match ordering selecting the anchor's section-name quote over the located quote. This is precisely the class of defect the lane has named before (M36: the counter widened after the plan; the r63 compound-clause lesson). Severity: HIGH — a frozen predicate conjunct is dishonest as implemented.
+
+  Let me PROVE it rather than assert: replicate fetch() selection in python quickly:
+
+  ```python
+  import re
+  norm = lambda t: re.sub(r"\s+"," ",t).strip()
+  entry = open entry; quotes = re.findall(r'"([^"\n]{1,300})"', norm(entry))
+  anchor_S202 = the row[5] cell from SOURCES
+  print([q for q in quotes if norm(q) in norm(anchor_S202)][:3])
+  ```
+
+  And test which string the counter searched: for S202, quote = "Skill Discovery". Then confirm "Skill Discovery" is in vibe.md (it is, heading line 750) → "found" printed. And confirm the real located quote is not: grep -cF = 0. Also for S200: quote = "Shell commands in skills"; in kilo body ✓ → found; real quote literal 0.
+
+  Also check S198/S199/S201: their located quotes DO occur verbatim (grep = 1 each), so even if the right string were checked they'd be found. The breakage is S200 and S202 only. So: 3 of 5 located quotes verify verbatim on live pages; 2 of 5 do not survive a literal check against the served bytes (markup interruption: Kilo's JSON-embedded text; Vibe's bold markers).
+
+  Is a "stripped-text" reading legitimate? The package's own gate-quote-defect lesson says for the Deep Code page: "only a stripped-text comparison finds it" and treated the full phrase as DEFECTIVE and replaced it with a literal-safe fragment. So the lane's inherited standard (from the package corpus, and likely the fleet's quote-lint) demands literal-safe quotes. The r68 entry's S200/S202 staged quotes are NOT literal-safe:
+  - S200: interrupted by markup in the served body.
+  - S202: interrupted by `**` markers (the rendered text is fine; the RAW bytes are not).
+
+  Hmm wait — for S202, the raw README is markdown; the `**` is part of the source document itself. A human reading the README sees "Standard Agent Skills path (project root, trusted folders only)" rendered. Is a quote of rendered text with markers stripped acceptable? The frozen predicate says "finds each of the 5 located quotes on its live page" — the counter's job is to find them; with correct first-match ordering it would NOT find S202's quote in raw bytes (the `**` breaks it). The lane could either pick a literal-safe fragment (e.g., "(project root, trusted folders only)" — check: is that contiguous? line 755: `(project root, trusted folders only)` — yes contiguous, 6 words) or the counter must define a normalization (strip markdown emphasis/HTML tags) and DISCLOSE it. As shipped, the counter neither finds the quotes nor discloses the normalization; it accidentally passes on section names.
+
+  For S200, the honest fix is harder: the served page is a JS-rendered Next.js app; the text exists only inside a JSON payload with tag objects interspersed. No contiguous literal fragment of the staged quote exists in served bytes except fragments like "never execute commands" (grep found "never execute commands; their placeholders are replaced with a marker noting the skill is untrusted." — contiguous!). Actually from my earlier grep: `never execute commands; their placeholders are replaced with a marker noting the skill is untrusted.` — that IS a contiguous served-bytes string. A literal-safe quote could be "skills fetched from remote URLs never execute commands" — is THAT contiguous? The body: `" in a repository) and skills fetched from remote URLs never execute commands"` — yes! From my first kilo grep: `Project skills (",...[".kilo/skills/"]}," in a repository) and skills fetched from remote URLs never execute commands` — the tail "and skills fetched from remote URLs never execute commands" is contiguous within one JSON string. So a flip exists: re-anchor S200's located quote to a contiguous fragment (e.g., "and skills fetched from remote URLs never execute commands" — 10 words) or the rendered-text fragment with a disclosed normalization rule. Same for S202: "(project root, trusted folders only)" — 6 words, contiguous.
+
+  Wait — I should double-check whether "Standard Agent Skills path" + the parenthetical really is interrupted — yes: `**Standard Agent Skills path** (project root...`. The `**` are literal bytes. Confirmed by grep -cF = 0.
+
+  Now, the second big finding: **the fetch arm never tested what the entry's table quotes claim.** Actually more precisely — even if ordering were fixed (prefer the longest match, as check() does with `max(matched, key=len)`), fetch uses `next()` (FIRST match). Note check() uses max-length → picks the located quote; fetch uses first → picks the section name. The counter's two arms disagree in selection semantics — the fetch arm's selection is the defect. Flip: use the same max-length (or same-selection) logic in fetch as in check.
+
+  Let me now also verify the base-control arm prints exactly the frozen line: YES — "client trust gates backed 0 of 5" + findings line, exit 1 ✓. And working-tree arm: "client trust gates backed 5 of 5" exit 0 ✓. So conjuncts 1 and 2 of the predicate hold; conjunct 3 (--fetch) passes vacuously.
+
+  Also verify my replication of quote selection with a quick python snippet reading the actual files — proof, not assertion.
+
+  Additional smaller findings to nail down:
+
+  A. **The self-test's fetch arm is absent**: `--self-test` breaks 10 conjuncts of check() but has NO broken world for fetch() selection — the vacuous fetch pass is exactly the kind of defect a self-test should kill. The plan says "--self-test that breaks each conjunct" — the fetch conjunct has no breaking arm. Confirmed by reading selftest(): worlds only target check(). Finding: the self-test does not cover the --fetch conjunct; if it did (e.g., assert the quote searched equals the located quote, or a fixture page where the section name appears but the quote doesn't), the vacuous pass would have been caught. Medium/High.
+
+  B. **Word-count annotations in SOURCES rows are inconsistent** (S199 "12 words" vs wc-w 11 splitting hyphen; S201 "13 words" vs 14; S200 "16 words" vs 15). Let me compute wc -w on each to be exact. Actually let me just count with python to be precise. If the lane's convention is `len(q.split())` (the counter's own `_quoted` uses `q.split()`), then: S199 "repository-controlled".split() → 1 token → 11 words ≠ 12. S200: "(.kilo/skills/" etc → let me compute. S201 "third-party" → 1 → 14 ≠ 13. So by the counter's own convention, S199/S200/S201 word-count annotations are off by one. Low severity (annotations, not the predicate; the ≤25 bound holds either way), but it's a consistency defect in committed rows — and this lane is the consistency lane's calibration sub-axis this round. Worth reporting with exact numbers.
+
+  C. **The MS row's compound claim**: gate cell says "the skill tools require approval by default, and a skill is reviewed as third-party code before it is deployed". The located quote backs only clause 2. Clause 1 is on-page ("All three skill tools require approval by default." — confirmed contiguous) but no located quote in the lane's r68 record carries it (need to check lessons/round-68.md Gate block — grep showed lines about S200/S202 recheck; let me read the Gate block fully to see if the approval sentence is quoted there). Per r63's compound-clause rule, the unbacked clause in a sourced claim cell is a defect. Also note the entry's prose (line 36-37) asserts "the three skill tools require approval by default" — "three" matches the page's "All three skill tools" ✓ in substance, but the lane's record has no located quote of it. Medium. Flip: add a second located quote ("All three skill tools require approval by default." — 8 words, contiguous — need literal check on ms.html; my grep -o output showed "All three skill tools require approval by default. The harness tool-approval" — contiguous ✓) or reword the cell to the review clause only.
+
+  D. **Mistral row scope**: the trust annotation is folder-level and shared with ordinary instruction files (line 756 same annotation on "Local project skills"; also package said the same annotation appears on ordinary instruction files). The r68 entry's gate cell "discovery itself is gated: the standard and project skill roots are read only inside trusted folders" is accurate but doesn't carry the "same rule governs non-skill files" qualifier the package entry had — a minor scope under-disclosure; the "What this changes" section says "the author's installation path is part of the skill's behaviour" — fine. Low/note.
+
+  E. **What the L1 must not copy blindly from the package entry** (per dispatch):
+     1. The package's headline and ground say FOUR clients and explicitly exclude VT Code ("a posture rather than a mechanism... the lane should not count it as one"); the r68 entry counts FIVE with VT Code as a first-class shape. The departure must be stated (the landed entry does re-classify but does NOT acknowledge that the inherited package record refuses VT Code as a gate — a reader diffing the two records sees a silent contradiction). The landed entry's "three shapes" taxonomy silently overrides the package's "four shapes, VT Code doesn't count". Medium finding on the landed entry: add one sentence acknowledging the r7/package verdict and why r68 counts VT Code (the surface changed from "who implements a gate" to "what a client documents about an untrusted body" — which VT Code does document).
+     2. The package's S198 anchor "the 'Prompting Behavior' paragraph" is WRONG — the quote lives in "Activation Context" (vt.md lines 87-95). The landed row corrected this; do not copy the package's anchor

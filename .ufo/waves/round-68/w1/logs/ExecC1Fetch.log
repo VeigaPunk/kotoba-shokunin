@@ -761,4 +761,69 @@ Critical development: **the L1 has already installed the production counter** at
 
   Fixtures in /tmp:
   - F1 no-entry world: mkdir /tmp/k68f1/corpus; copy SOURCES.md + README.md; no entry → run with --fetch → expect: stdout `client trust gates backed 0 of 5` + `live quotes found 0 of 5`, stderr note, exit 1, no traceback.
-  - F2 unreachable-URL world: copy the real entry + a SOURCES.md where S198's URL → `https://127.0.0.1:9/x` (curl fails fast: connection refused) — but careful: check() would still ground 5 of 5 (fetch doesn't affect content) — fine; expect S198 line FETCH FAILED, live quotes found 0..4 of 5 depending on the other four live fetches, exit... content 5/5 → exit 0. Shows fetch failure not counted, no crash, exit 2 NOT used. To keep it fast, in F2 use ONLY... hmm, the entry has five ids; F2 would fetch all five live (slow-ish but fine, ~seconds each). Simpler: build F2's entry with just ONE source line (S198, unreachable URL) — but check() requires 5 ids for full backing (findings, still returns backed count of matched ids... production check() appends finding "names 1 ids, expected 
+  - F2 unreachable-URL world: copy the real entry + a SOURCES.md where S198's URL → `https://127.0.0.1:9/x` (curl fails fast: connection refused) — but careful: check() would still ground 5 of 5 (fetch doesn't affect content) — fine; expect S198 line FETCH FAILED, live quotes found 0..4 of 5 depending on the other four live fetches, exit... content 5/5 → exit 0. Shows fetch failure not counted, no crash, exit 2 NOT used. To keep it fast, in F2 use ONLY... hmm, the entry has five ids; F2 would fetch all five live (slow-ish but fine, ~seconds each). Simpler: build F2's entry with just ONE source line (S198, unreachable URL) — but check() requires 5 ids for full backing (findings, still returns backed count of matched ids... production check() appends finding "names 1 ids, expected 5" → returns 0). Whatever — F2's point is fetch-arm behavior, not content. Actually even simpler: F2 entry = one line `source: S198 — <client> — <unreachable-url> — located quote "x"` + SOURCES with matching row. fetch prints `S### client: FETCH FAILED ...`, `live quotes found 0 of 5`, exit 1 (content 0/5). 
+
+  Then write `.ufo/waves/round-68/w1/ExecC1Fetch.md` with: what was built, evidence (commands + outputs), risks/gaps.
+
+  Order: Write file → parallel Bash (dry run; fixtures; self-test). Self-test needs the file, so second batch.
+
+  One concern: `curl -sSL https://learn.microsoft.com/...` — could take a few seconds; total well under 200s.
+
+  Also careful about em-dash in `_client_name` split: the source cells use " — " (space em-dash space). S201 cell: `Microsoft Agent Framework — Agent Skills — https://...` → client `Microsoft Agent Framework`. Good.
+
+  Also: the LOCATED_RE `located quote\s+"` — entry lines use `located quote "..."`. Good.
+
+  S202's source line: `source: S202 — Mistral AI Vibe — README — https://raw.githubusercontent.com/mistralai/mistral-vibe/main/README.md — the "Skill Discovery" section — located quote "Standard Agent Skills path (project root, trusted folders only)"`. LOCATED_RE captures `Standard Agent Skills path (project root, trusted folders only)`. URL_RE on the line: first https match = the raw README URL. Good — `https?://[^\s,;)\]]+` stops at whitespace; the URL is followed by ` — `; fine.
+
+  S200 URL: `https://kilo.ai/docs/customize/skills` fine.
+
+  Now `URL_RE` on S198 line — the URL `https://raw.githubusercontent.com/vinhnx/vtcode/main/docs/skills/SKILLS_GUIDE.md` — fine.
+
+  Potential pitfall: URL_RE excludes `)` — S202 quote has parens but URL is clean. OK.
+
+  Writing the file now. I'll adapt production code faithfully. Also include the `global` findings structure of check() — copy exactly.
+
+  Docstring provenance note: core mirrors the L1-installed verifiers/check_client_trust_gates.py (this draft adds the rev pre-check + the fetch arm per the ExecC1Fetch seat contract). Good.
+
+  Let me write it.
+
+• The frontier moved: the L1 has already installed a production counter (with a urllib-only fetch arm) at `verifiers/`, and the entry + five rows + coverage row are landed. My seat's move stands — build the `--fetch` arm draft at the drafts path with the exact per-client output contract, curl-first transport, HTML-aware normalization, and crash-proof fetch-failure handling. Writing the draft now:
+
+• Now run in parallel:
+  1. The dry run with `--fetch` against the lane's current tree (timeout generous — five live fetches).
+  2. `--self-test` (offline core check).
+  3. Fixture F1: no-entry world + `--fetch` → must not crash.
+  4. Fixture F2: unreachable-URL world + `--fetch` → FETCH FAILED not counted, no crash.
+
+  Build fixtures with bash. F2: scratch world with an entry with one source line pointing at an unreachable URL and a matching 11-column row in SOURCES.md. Let me construct:
+
+  F2 entry:
+  ```
+  source: S198 — VT Code — SKILLS_GUIDE.md — https://127.0.0.1:9/x — the "Activation Context" section — located quote "Skill content is untrusted resource data; host tool and sandbox policy remains authoritative."
+  verified-at: 2026-10-24
+  recheck: 90d — re-fetch
+  ```
+  F2 SOURCES.md: header + one row S198 with status mined and anchor containing the quote:
+  ```
+  | id | source | kind | tier | scope | anchor | teaches | status | opened | recheck | used-by |
+  |---|---|---|---|---|---|---|---|---|---|---|
+  | S198 | VT Code — SKILLS_GUIDE.md — https://127.0.0.1:9/x | docs | B | scope | the "Activation Context" section; quote "Skill content is untrusted resource data; host tool and sandbox policy remains authoritative." | teaches | mined | 2026-10-24 | 90d | corpus/knowledge/client-trust-gates-round68.md |
+  ```
+  README.md can be absent → check() raises EnvError "cannot read SOURCES or README"... wait check() raises EnvError if SOURCES or README missing → exit 2, and fetch would never run since check() runs first and raises. So F2 needs a README.md too (can be empty — _indexed returns False → finding → backed 0). Fine.
+
+  Wait — port 9 (discard) on 127.0.0.1 → connection refused fast. curl exit 7. Good.
+
+  For F1: copy SOURCES.md + README.md from lane, no entry.
+
+  Commands:
+
+  ```
+  D=/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/drafts/check_client_trust_gates.py
+  python3 -B "$D" --fetch; echo "EXIT=$?"
+  ```
+
+  Working dir: fleet root; the draft resolves repo by walking up from its own path → kotoba-shokunin. Good.
+
+  Timeout: five curls, each ≤30s + overhead; set 240s foreground.
+
+  Run all four in parallel (separate Bash calls): dry run (240s), self-test (60s), F1, F

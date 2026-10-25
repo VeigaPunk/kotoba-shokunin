@@ -970,4 +970,128 @@ done
 
 • The server died again — connection refused. The `python3 -m http.server ... &` inside the Bash tool: background processes appear to be killed when... "Background execution is disabled for this agent." The tool seems to reap background children once the foreground portion... actually curl worked in the junk2 rerun (control 2 succeeded with nohup + sleep 2 + curl). In that run I used `nohup ... &` inside the command and it SURVIVED (curl printed the j1 content and fetch got found). In this run I used plain `&` without nohup → killed. Use nohup again.
 
-  Wait — in control-2-rerun the sequence was: pkill (killed the previous server?), then `nohup python3 -m http.server 8077 --directory "$R/junk2/www" &`, sleep 2, curl OK, fetch OK. So nohup works within the call. But NOTE: in that same call, control 3 later got 404s — meaning the junk2/www-rooted server was STILL ALIVE during
+  Wait — in control-2-rerun the sequence was: pkill (killed the previous server?), then `nohup python3 -m http.server 8077 --directory "$R/junk2/www" &`, sleep 2, curl OK, fetch OK. So nohup works within the call. But NOTE: in that same call, control 3 later got 404s — meaning the junk2/www-rooted server was STILL ALIVE during control 3 (404 = server answered, wrong docroot), then the final `pkill -f "http.server 8077"` killed both the server AND my own shell (exit -1). Then this last call: pkill wasn't run (I removed it), started plain `&` server → died immediately/reaped (connection refused) — because WITHOUT nohup the child gets killed when... whatever. Use nohup + PID.
+
+  Also there might still be a stale server on 8077 rooted at junk2/www? This last call showed CONNECTION REFUSED — so no listener (the previous pkill got it). Good. Rerun with nohup.
+
+• The plain `&` child got reaped (connection refused). `nohup` worked before — using it with a PID file:=== CONTROL 3 (honest world bytes; served pages carry ONLY section names) ===
+client trust gates backed 5 of 5
+  fetch S198: FETCH FAILED <urlopen error [Errno 111] Connection refused>
+  fetch S199: FETCH FAILED <urlopen error [Errno 111] Connection refused>
+  fetch S200: FETCH FAILED <urlopen error [Errno 111] Connection refused>
+  fetch S201: FETCH FAILED <urlopen error [Errno 111] Connection refused>
+  fetch S202: FETCH FAILED <urlopen error [Errno 111] Connection refused>
+live quotes found 0 of 5
+fetch exit=0
+done
+
+
+• Connection refused again even with nohup, and curl printed nothing (the curl output is missing — the first line after `sleep 2` should be "Trust" from s199; it's absent). So the server isn't surviving. In the successful control-2 rerun, curl DID print and fetch worked. What was different? In that call, before nohup there was `pkill -f "http.server 8077"` … then `nohup python3 -m http.server 8077 --directory "$R/junk2/www" >/dev/null 2>&1 &` then `sleep 2` then `curl -s .../j1` → printed. It worked.
+
+  This time identical shape but... no output from curl at all, and fetch got refused. Maybe the server failed to BIND because a lingering TIME_WAIT? No — refused means nothing listening; bind failure would also give refused. Why would bind fail now? Possibly a leftover process from the previous call still holds 8077 in a weird state? Last call's server died (refused). Hmm — OR the sandbox kills new listeners on 8077 intermittently? Or the previous `kill $SRV` raced... this is a fresh call.
+
+  Alternative: instead of fighting the server, I already have the decisive evidence: CONTROL 2 succeeded and proves the mechanism (decoy substring found while table quote absent). CONTROL 3 would only confirm WHICH string the honest world's fetch tests — and I can prove that from the honest fetch output combined with code semantics plus a simpler offline replication: run `fetch()` directly? I can replicate the quote-selection logic offline against the honest world copy — but that's just code-reading again.
+
+  Better offline proof without server: import the counter module in a python one-liner against the honest world copy and print, for each sid, WHICH quote fetch() would test:
+  ```python
+  import importlib.util, pathlib
+  spec = importlib.util.spec_from_file_location("c", "/home/.../check_client_trust_gates.py")
+  m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+  root = pathlib.Path("/tmp/c1-critic/honest")
+  entry = (root/m.ENTRY).read_text()
+  rows = m._source_rows((root/m.SOURCES).read_text())
+  quotes = m._quoted(m._norm(entry))
+  for sid, line in m._entry_source_lines(entry).items():
+      anchor = m._norm(rows[sid][5])
+      q = next((m._norm(x) for x in quotes if m._norm(x) in anchor), None)
+      print(sid, "->", repr(q))
+  ```
+  Using --repo $H (URLs rewritten to 127.0.0.1 — irrelevant for this probe; I could equally use the real worktree without copying — module import + function calls, read-only). Use the REAL worktree files directly (no URLs fetched). That prints the exact tested strings — deterministic, no network, no server. If it prints "Activation Context"/"Trust"/etc., the honest-world fetch-tested strings are proven. Combined with the real honest --fetch run (5×found on live pages), this proves the honest receipt certified section names (assuming the section names are on the pages, which "found" implies for the tested string... wait — if the tested string is "Trust" and the page has "Trust", found. The live run said found for all five, so the tested strings ARE on the live pages; the located quotes' presence is NOT established by that run at all).
+
+  Actually even simpler: is `check`/`fetch` importable without side effects? Module-level code is just constants + `if __name__ == "__main__"`. Safe. And importing doesn't write (python -B for no pyc... use `python3 -B -c`). Good.
+
+  Then, ALSO: to nail the "found means the section name, not the quote" point empirically on LIVE pages, I can check whether the located quotes actually appear on the live pages myself — e.g., fetch the VT Code raw page and grep for BOTH "Activation Context" and the located quote. One curl per URL (5 fetches, read-only GETs). If, say, the located quote is present too, the honest run is "right answer, wrong reason" — still a falsification of the conjunct AS IMPLEMENTED (the instrument didn't test the quote), but weaker harm. If some located quote is ABSENT while fetch said found, that's a live false positive — maximal severity: the third conjunct's honest-world receipt line would be affirmatively false. Worth doing: 5 curls + greps. Let me do that: for each of the 5 URLs, curl and test both strings.
+
+  Careful with tool-output size: pages may be large; just grep counts.
+
+  Let me run:
+  1. The offline which-quote probe (deterministic).
+  2. Live verification: for each URL: `curl -sL <url> | grep -cF "Activation Context"` and `grep -cF "Skill content is untrusted resource data; host tool and sandbox policy remains authoritative."` etc.
+
+  Note: URLs from the entry; fetch used them directly (urllib, no -L). curl -sL follows redirects — a mismatch with urllib behavior could confuse; use plain `curl -s` (no redirect follow) to mirror urllib's no-follow? urllib.request.urlopen FOLLOWS redirects by default (it handles 301/302). So curl -sL matches better. Fine.
+
+  Then write the final report. After that, done — stop (assigned review complete).
+
+  Let me also prepare exact quote strings from the entry (line 1–5) for greps:
+  - S198: "Skill content is untrusted resource data; host tool and sandbox policy remains authoritative." / section "Activation Context"
+  - S199: "Project skills are repository-controlled instructions, so they clear two independent gates." / "Trust"
+  - S200: "Project skills (.kilo/skills/ in a repository) and skills fetched from remote URLs never execute commands" / "Shell commands in skills"
+  - S201: "Agent Skills should be treated like any third-party code you bring into your project." / "Security best practices"
+  - S202: "Standard Agent Skills path (project root, trusted folders only)" / "Skill Discovery"
+
+  Bash loop with paired arrays.
+
+• The local server won't stay up in this environment — but I don't need it: Control 2 already proved the laundering mechanism, and I can prove *which string the honest fetch tests* deterministically by importing the counter's own functions read-only, then checking the live pages for section-name vs located-quote directly:quote strings in entry order:
+  [0] 'Activation Context'
+  [1] 'Skill content is untrusted resource data; host tool and sandbox policy'
+  [2] 'Trust'
+  [3] 'Project skills are repository-controlled instructions, so they clear t'
+  [4] 'Shell commands in skills'
+  [5] 'Project skills (.kilo/skills/ in a repository) and skills fetched from'
+  [6] 'Security best practices'
+  [7] 'Agent Skills should be treated like any third-party code you bring int'
+  [8] 'Skill Discovery'
+  [9] 'Standard Agent Skills path (project root, trusted folders only)'
+  [10] 'Skill content is untrusted resource data; host tool and sandbox policy'
+  [11] 'Project skills are repository-controlled instructions, so they clear t'
+  [12] 'Project skills (.kilo/skills/ in a repository) and skills fetched from'
+  [13] 'Agent Skills should be treated like any third-party code you bring int'
+  [14] 'Standard Agent Skills path (project root, trusted folders only)'
+
+string fetch() actually tests per sid (first entry-order quote found in the anchor):
+  S198: tests 'Activation Context'
+  S199: tests 'Trust'
+  S200: tests 'Shell commands in skills'
+  S201: tests 'Security best practices'
+  S202: tests 'Skill Discovery'
+section 'Activation Context' hits=1 | located-quote hits=1
+section 'Trust' hits=4 | located-quote hits=1
+section 'Shell commands in skills' hits=2 | located-quote hits=2
+section 'Security best practices' hits=1 | located-quote hits=1
+section 'Skill Discovery' hits=2 | located-quote hits=0
+
+
+• DECISIVE. The probe proves:
+
+  1. `fetch()` on the honest world tests the SECTION NAMES, not the located quotes: S198→'Activation Context', S199→'Trust', S200→'Shell commands in skills', S201→'Security best practices', S202→'Skill Discovery'.
+
+  2. Live-page check: **S202 (Mistral Vibe): section name 'Skill Discovery' hits=2, located-quote hits=0.** The located quote "Standard Agent Skills path (project root, trusted folders only)" is NOT on the live README page (curl today), yet the honest `--fetch` run reported `fetch S202: found` and `live quotes found 5 of 5`, exit 0. **A live false positive, right now, on the honest world.** The frozen third conjunct — "--fetch finds each of the 5 located quotes on its live page" — is affirmatively FALSIFIED by the instrument's own run: it said 5 of 5 when at least one located quote is not on its page.
+
+  Caveats to state honestly: my curl used `-L` (follow redirects) and `grep -cF` on decoded text; urllib fetches the same raw README (raw.githubusercontent serves text/plain; no redirect in play for raw URLs — the fetch got 200 since it said found for the tested string). The S202 page: README.md raw — the located quote may exist in a different section or with different whitespace? My grep -cF is exact-substring on the exact string from the SOURCES anchor: "Standard Agent Skills path (project root, trusted folders only)". hits=0. Could the README have the sentence with a line break inside (grep is line-based!)? If the sentence spans two lines in the raw markdown, grep -F on a single line fails while the counter's `_norm(body)` (whitespace-collapsed) would find it. Counter's fetch tests 'Skill Discovery' anyway, so its "found" is about the section name regardless. But my hits=0 claim needs the multiline caveat: the quote could span lines. Let me be careful — either re-grep with tr newlines to spaces, or soften. Do the tr check: `curl -s URL | tr '\n' ' ' | grep -cF 'Standard Agent Skills path (project root, trusted folders only)'`. Quick verification to keep my evidence honest. If still 0 → confirmed absent modulo encoding.
+
+  Also note quotes[1] etc. show truncated repr at 70 chars — fine.
+
+  Also interesting: quotes list has duplicates ([10]-[14] repeat the located quotes from the table). Order: source lines first (5×2=10 quotes), then table (5 more). Confirms selection.
+
+  Let me run the tr-based recheck for S202 (and maybe S199 whose "Trust" hits=4 — generic word, irrelevant). Then write the report.
+
+  Report content plan (final response; NO file writes — read-only seat; provide the full markdown body for the L1 to place at .ufo/waves/round-68/w1/CriticC1Predicate.md):
+
+  **Verdict**: The frozen C1 predicate does NOT stand as frozen. The letter of conjunct 1 holds (line format + exit codes observed at base and honest world), but conjunct 1 alone is hollow (fabrication control → 5 of 5 exit 0), conjunct 3 is falsified as implemented (tests section names; ignores results in the exit code; live false positive on S202), and `<base>` is an unstable token (master moved off e94ae32). Plus a taxonomy regression: `--rev <base> --fetch` tracebacks exit 1 — re-creating the R67-1 class.
+
+  **Q1 (do-nothing control)**: Built /tmp/c1-critic/junk — fully fabricated entry + 5 SOURCES rows + README row, zero sources opened. Real counter: `client trust gates backed 5 of 5`, exit 0. → counter's offline arm accepts fabricated ground; the plan's own rule ("if that control reaches 5 of 5, the counter or the target is WRONG and must be fixed before data") fires. Data has already been written (entry+SOURCES rows exist in the worktree), so the fix is already "after data" — flag it.
+  Also control 1b: same world, all fetches refused → `live quotes found 0 of 5`, **exit 0** — the fetch conjunct has no machine gate.
+  Control 2: laundering — page with decoy "golf hotel" (2-word substring) → `fetch S901: found`, 5 of 5 live, exit 0, table quote on no page.
+  Control 3 (probe): the honest world's fetch tests section names; live check shows S202's located quote absent (pending multiline recheck) while the instrument printed found.
+
+  **Q2 (is 5 right?)**: 5 = the adopted shokuknow package's client count (merge/kotoba client-trust-gates-round7.md, S198–S202). That package's own title says FOUR clients implement the gate and explicitly declines to count VT Code ("a posture rather than a mechanism, and the lane should not count it as one"); the r68 entry counts five under a widened rule, disclosed in its Limits — but the counter pins only TOTAL=5, not WHICH five; client identity lives in the entry's own bytes; a swap keeps 5 of 5 true. Also base README's single 'trust' hit is incidental round-41 prose — before-state claims verified (0 hits in base SOURCES for all five names, no trust entry, no coverage row).
+
+  **Q3 (hollow via entry's own bytes?)**: Yes for the offline arm — every input to check() is lane-authored (entry, SOURCES, README); the only out-of-bytes gate is --fetch, which (a) doesn't gate the exit, (b) tests the wrong string, (c) doesn't echo what it tested. So as frozen, the receipt sentence is one honest-prose assertion away from hollow. N is also binary in practice (any finding → 0).
+
+  **Q4 (base → 0 of 5 or exit 2?)**: At the literal hash e94ae32: prints `client trust gates backed 0 of 5` + `- entry missing: …`, exit 1 — holds (R67-1 fixed in _materialize/check). BUT master/HEAD has already moved to 0b082b4 (plan commit), the C1 work sits uncommitted in the worktree, and once it lands, `--rev master` prints 5 of 5 — any branch-name resolution of `<base>` in the frozen sentence is unstable; the predicate must pin the literal hash. AND the base conjunct holds only without --fetch: `--rev e94ae32 --fetch` → uncaught FileNotFoundError traceback, exit 1 (collides with "not grounded"; violates the counter's own documented taxonomy "2 usage/environment").
+
+  **Re-freeze (smallest safe corrections BEFORE scoring)**:
+  1. Pin `<base>` := e94ae32a5cd8dc3ee8e2d247816784bec2750cc0 literally in the predicate sentence (all three conjuncts' receipts cite the literal hash).
+  2. Machine-gate the fetch arm: exit 0 iff n==5 AND found==5; fetch() must test the exact located quote the table row carries (the longest anchor match check() backs), not the first; echo the tested string per sid in the receipt.
+  3. Fix the uncaught FileNotFoundError paths in fetch() (missing ENTRY/SOURCES at a materialized rev) — classify missing entry as content verdict (0 of 5 live, exit 1); never let a traceback exit collide with the taxonomy.
+  4. Pin the five canonical clients/ids in the counter (bijection between entry table clients and the frozen five), and record the inclusion rule in the receipt ("documents, in prose, any posture or mechanism applied to an un

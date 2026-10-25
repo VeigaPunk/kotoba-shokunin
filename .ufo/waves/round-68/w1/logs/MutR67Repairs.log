@@ -463,3 +463,196 @@ a3b91848618b9efa3478176e2b891298248d61b1ca2cdfdaea20236cc24d7660  /home/vgpnk/Pr
 204
 
 
+• The lane worktree counter has moved again: now 276 lines, sha a3b91848..., WITH `def selftest` at line 184 and the call at 259. HEAD (cafa29d0) = 204 lines with NO self-test at all. So the timeline:
+
+  - My first Read: 287-line version (sha unknown, had def selftest).
+  - My cp snapshot: 194017b2 (276? no — NameError version, selftest call but no def — a transient mid-edit state).
+  - Now: a3b91848 (276 lines, def selftest present at :184).
+
+  The L1 is actively iterating. The right move: pin to the CURRENT bytes (a3b91848) as the mutation target — it's the live iteration and coherent (def + call). Re-snapshot, re-run S0/S1/S2 on it. All future runs use this pinned copy; lane bytes may keep moving but my battery is pinned. Record both shas (194017b2 transient broken, a3b91848 pinned).
+
+  Also note HEAD's committed counter has NO --self-test flag — argparse at HEAD: check if HEAD has --self-test... grep showed no match in HEAD version. So --self-test is new, uncommitted work.
+
+  Re-snapshot and rerun baseline (S0/S1/S2) with the pinned copy.
+
+• HEAD (204 lines) has no self-test at all — the whole `--self-test` block is uncommitted, in-flight work that transiently passed through a broken state. Pinning to the current coherent bytes (`a3b91848…`, 276 lines) and re-running the baseline:a3b91848618b9efa3478176e2b891298248d61b1ca2cdfdaea20236cc24d7660  variants/pinned.py
+=== [P0] pinned --self-test
+exit=0
+PASS honest world: closed 4 of 4
+PASS broken world rejected: D1 correction absent
+PASS broken world rejected: D2 receipt path absent
+PASS broken world rejected: D3 disclosure absent
+PASS broken world rejected: D4 index row absent
+PASS broken world rejected: D4 stale baseline
+self-test: 0 failure(s) over 6 assertions
+=== [P1] honest world rev=3cd73836d81420961105b6a4c46a1f3a771ac8b3
+exit=0
+r67 routed defects closed 4 of 4
+=== [P2] base control rev=e94ae32a5cd8dc3ee8e2d247816784bec2750cc0
+exit=2
+environment error: cannot read corpus/lessons/round-68.md at e94ae32a5cd8dc3ee8e2d247816784bec2750cc0
+0
+
+
+• Pinned snapshot is coherent:
+  - P0 self-test: 0 failures over 6 assertions (synthetic worlds only).
+  - P1 honest world: 4 of 4, exit 0. ✓ C2 after-shape.
+  - P2 base: exit 2, "environment error: cannot read corpus/lessons/round-68.md at e94ae32a…" — NOT the docstring-promised "r67 routed defects closed 0 of 4". Docstring line 8-10: "At the pinned base ... it must print `r67 routed defects closed 0 of 4` and exit nonzero." Behavior violates the printed-line half (exit is nonzero ✓). This re-creates R67-1's class (environment vs content misclassification) on the base conjunct — exactly what the plan says was corrected "from the start" for the r68 C1 counter. Defect finding F1.
+
+  Now build the world mutants. Per the task:
+  - M1 (D1): delete the appended erratum naming the observed line.
+  - M2 (D2): restore wrong receipt path w1/controls/census-validate-append.txt as asserted location.
+  - M3 (D3): remove junk-world disclosure from records. (+M3b: disclosure kept, path still exists in worktree.)
+  - M4a (D4): drop the coverage-map index row.
+  - M4b (D4): keep stale baseline (numbers ≠ gate measurement).
+
+  Build each as a scratch commit in /tmp/mut68/lane on top of HEAD. Method: from HEAD worktree, python-edit the relevant files, git add+commit in scratch, run pinned counter --rev <mutant sha>, capture. Between mutants, reset worktree to HEAD (`git checkout HEAD -- .`) — scratch only.
+
+  Edits (surgical, line-filter based on the marker strings):
+  - M1: remove every line containing `cannot read corpus/knowledge/instruction-authority-ladder-round67.md` from LOG.md, SCORECARD.md, corpus/lessons/round-68.md. (Also lines that wrap the continuation? The OBSERVED constant is a single line substring; removing lines containing the substring kills the substring presence. Wrapped continuation lines like "`environment error: cannot read ...` at 2a8eba56…" — the OBSERVED substring is on one line in all three (grep showed 2670, 426, 137). Just drop lines containing the substring.)
+  - M2: replace `.ufo/waves/round-67/controls/census-validate-append.txt` → `.ufo/waves/round-67/w1/controls/census-validate-append.txt` in the three records. This removes REAL and inserts WRONG — "restore the wrong receipt path as the asserted location".
+  - M3: remove lines containing `.ufo/waves/round-67/w1/controls/junk-world` from the three records.
+  - M3b: no record edit; create the junk dir in the CLONE WORKTREE: mkdir -p .ufo/waves/round-67/w1/controls/junk-world. D3 checks `(repo / JUNK).exists()` on the repo passed via --repo = /tmp/mut68/lane. No commit needed; run counter at HEAD rev.
+  - M4a: in corpus/README.md, remove the coverage row line containing `lessons/round-67-verifier-spotcheck.md`. NOTE: this also makes the file unindexed → the gate measurement's `unindexed` becomes 1 ≠ baseline expect 0 → D4 ALSO reports a baseline mismatch finding. Fine — the index finding is what the task asks; extra findings listed. Wait — order: indexed=False → findings.append(no coverage-map index row) → else branch skipped → baseline not even compared → only the index finding. closed=3.
+  - M4b: in verifiers/corpus-baseline.json, set tracked_files expect 121 and report_total expect 82 (the base/stale values). indexed=True → baseline compared → mismatches on both → findings. closed=3.
+
+  Also worth one bonus per the plan's do-nothing controls? The plan's K2/K3 controls (index row alone / baseline re-record alone) are world-mutants of the BASE, not of the repaired world — out of my assigned scope (my four mutants). Skip; keep bounded.
+
+  Counter-mutants for the self-test-kills question:
+  - C-D1: neuter D1 (make the OBSERVED check a tautology: `if True:`). Self-test's "D1 correction absent" world must then survive → self-test FAILs. Expect self-test exit 1 with "FAIL broken world survived: D1 correction absent".
+  - C-D2: neuter D2 similarly → self-test catches.
+  - C-D3exists: neuter only the `and not (repo / JUNK).exists()` leg (disclosure presence alone closes D3). Self-test has NO world with junk_exists=True (the run_world junk path is under root, and check tests repo=/nonexistent → always nonexistent). Prediction: self-test still passes (0 failures) — i.e., --self-test does NOT kill the M3b mutant class. This is the gap finding.
+  - C-D4base: neuter the baseline comparison (skip mismatch findings) → self-test's "D4 stale baseline" world must catch it... wait if I neuter the comparison, the stale-baseline world has indexed=True and no findings → closed 4 → self-test FAIL catches it. Expect caught.
+
+  Implement counter-mutants via sed/python edits on pinned.py in variants/.
+
+  Let me write one big driver script that does everything and prints a compact table. Use python3 for edits. Careful with sed and special chars — use python.
+
+  Sequence per world-mutant (fresh from HEAD each time):
+  ```
+  git -C lane checkout HEAD -- .            # scratch reset worktree
+  python3 - <<PY (apply edit)
+  git -C lane add -A && git -C lane -c user -c email commit -qm "mutant"
+  python3 -B variants/pinned.py --repo /tmp/mut68/lane --rev <new sha> ; echo exit=$?
+  ```
+  For M3b: after `git checkout HEAD -- .`, mkdir junk dir, run at HEAD sha, then rm -rf junk dir.
+
+  Committing: need -c user.name/email. Fine in scratch.
+
+  One subtlety: after commit, worktree == new HEAD; counter run does `git checkout <mutsha> -- corpus verifiers` — no-op. Good.
+
+  For determinism record: capture sha of each mutant commit.
+
+  Write the driver as a single bash call with an embedded python for each edit — or write a python driver file first via Write? I can't Write outside lane... /tmp is allowed? Write tool writes files anywhere permitted; the write-scope bound is about the lane/fleet repos; /tmp scratch is my mandated workshop ("Construct, in scratch copies under /tmp"). The Write tool guidance says echo > file → Write; but heredocs in bash are also fine. To keep auditability, I'll create the driver via a bash heredoc (it's /tmp scratch, not a deliverable). Actually simpler: individual small python -c edits per mutant inline in the bash script. Use python3 with open/replace, asserting the replacement count >0 so a silent no-op mutant fails loudly.
+
+  Driver plan (single call, ~timeout 300):
+
+  ```bash
+  cd /tmp/mut68
+  LANE=/home/vgpnk/Projects/shokunin/kotoba-shokunin
+  HEAD=$(git -C lane rev-parse HEAD)
+  run() { # $1=label $2=rev
+    python3 -B variants/pinned.py --repo /tmp/mut68/lane --rev "$2" > "results/M-$1.txt" 2>&1
+    ec=$?
+    echo "== $1 rev=$2 exit=$ec"; cat "results/M-$1.txt"
+  }
+  mut() { # $1=label, then python filter via env
+    git -C lane checkout -q HEAD -- .
+    python3 - "$1" <<'PY'
+  ...
+  PY
+  }
+  ```
+
+  Getting complex; simpler to write one python driver script that shells out. Let me write /tmp/mut68/drive.py via heredoc, then run it. The python driver:
+
+  ```python
+  import subprocess, json, hashlib, sys, os
+  from pathlib import Path
+  lane = Path("/tmp/mut68/lane")
+  res = Path("/tmp/mut68/results")
+  def sh(*a, **k): return subprocess.run(a, capture_output=True, text=True, **k)
+  def git(*a): 
+      p = sh("git","-C",str(lane),*a)
+      assert p.returncode==0, (a, p.stderr)
+      return p.stdout.strip()
+  HEAD = git("rev-parse","HEAD")
+  def run(label, rev):
+      p = subprocess.run(["python3","-B","/tmp/mut68/variants/pinned.py","--repo",str(lane),"--rev",rev], capture_output=True, text=True)
+      out = (p.stdout+p.stderr).strip()
+      (res/f"M-{label}.txt").write_text(out)
+      print(f"== M-{label} rev={rev[:12]} exit={p.returncode}")
+      print(out)
+      return p.returncode, out
+  def commit_mut(label, edits):  # edits: {relpath: fn(text)->text}
+      git("checkout","HEAD","--",".")
+      for rel, fn in edits.items():
+          p = lane/rel
+          t = p.read_text()
+          t2 = fn(t)
+          assert t2 != t, f"no-op edit on {rel}"
+          p.write_text(t2)
+      git("add","-A")
+      git("-c","user.name=mut","-c","user.email=mut@scratch","commit","-qm",label)
+      return git("rev-parse","HEAD")
+
+  OBS="cannot read corpus/knowledge/instruction-authority-ladder-round67.md"
+  REAL=".ufo/waves/round-67/controls/census-validate-append.txt"
+  WRONG=".ufo/waves/round-67/w1/controls/census-validate-append.txt"
+  JUNK=".ufo/waves/round-67/w1/controls/junk-world"
+  RECORDS=["LOG.md","SCORECARD.md","corpus/lessons/round-68.md"]
+  def drop_lines(sub):
+      def f(t): return "\n".join(l for l in t.splitlines() if sub not in l)+"\n"
+      return f
+  def swap(a,b):
+      def f(t): return t.replace(a,b)
+      return f
+
+  m1 = commit_mut("M1 drop D1 erratum", {r: drop_lines(OBS) for r in RECORDS})
+  run("D1-erratum-deleted", m1)
+  m2 = commit_mut("M2 wrong receipt path", {r: swap(REAL, WRONG) for r in RECORDS})
+  run("D2-wrong-receipt-path", m2)
+  m3 = commit_mut("M3 drop junk-world disclosure", {r: drop_lines(JUNK) for r in RECORDS})
+  run("D3-disclosure-removed", m3)
+  # M3b: disclosure kept, path still exists in worktree
+  git("checkout","HEAD","--",".")
+  jd = lane/JUNK; jd.mkdir(parents=True, exist_ok=True)
+  (jd/"marker.txt").write_text("scratch control mirror stand-in\n")
+  run("D3b-path-still-exists", HEAD)
+  import shutil; shutil.rmtree(jd)
+  m4a = commit_mut("M4a drop index row", {"corpus/README.md": drop_lines("lessons/round-67-verifier-spotcheck.md")})
+  run("D4-index-row-dropped", m4a)
+  def m4b_edit(t):
+      d = json.loads(t)
+      d["checks"]["corpus.index.tracked_files"]["expect"] = 121
+      d["checks"]["corpus.pointers.report_total"]["expect"] = 82
+      return json.dumps(d, indent=1)+"\n"
+  m4b = commit_mut("M4b stale baseline", {"verifiers/corpus-baseline.json": m4b_edit})
+  run("D4-stale-baseline", m4b)
+  git("checkout","HEAD","--",".")
+  print("HEAD restored:", git("status","--porcelain")=="" )
+  ```
+
+  Wait: M1's drop_lines removes the OBSERVED substring lines — but the line in round-68.md:137 contains the OBSERVED string and also is where D2's REAL path might be nearby (line 149-150 separate). Fine. But careful — M2's REAL string also appears at LOG.md line 2641 (the r67 assimilation context, legitimate mention of the real path) and line 2676-2677. Replacing REAL→WRONG across whole records: line 2641 "…census-validate-append.txt`)" — the legitimate mention also becomes WRONG — that's fine for the mutant (it asserts the wrong location).
+
+  Also potential subtlety: M3's drop_lines(JUNK) removes lines containing junk-world — LOG 2678, round-68 155. SCORECARD may also have one (grep earlier showed SCORECARD only lines 426,428 — OBSERVED and REAL; no junk-world hit in the head-limited grep. Actually the grep for SCORECARD showed only two lines; junk-world grep pattern was included and didn't match SCORECARD in the first 8 hits; head -8 may have truncated. drop_lines is global anyway.)
+
+  assert t2 != t: for SCORECARD if JUNK absent → assertion error. Make drop tolerant: return t unchanged if no line contains sub? No — I want loud failure per record only if ALL records lack it. Better: apply per file; if a file lacks the substring, keep unchanged (fine — the marker just needs absence from the JOINED records). For M1/OBS: every record has it. For M3/JUNK: maybe not SCORECARD. I'll make the edit fn tolerant but assert that at least one file changed (the commit itself will be empty if nothing changed → git commit fails loudly; commit -q with nothing staged returns 1 → my assert catches).
+
+  git("add","-A") then commit: if no changes, commit fails → assert triggers → I'd see it.
+
+  M4b: json indent=1 — the original file uses 1-space indent; fine, content equality not required, only the two expect values changed. Note: this also rewrites formatting of the whole file (json.dumps) — irrelevant, it's scratch.
+
+  Also for M4a: drop_lines on README row — the README row contains `lessons/round-67-verifier-spotcheck.md` (backticked). The counter's row matcher needs cells[1] == "`lessons/round-67-verifier-spotcheck.md`". Dropping the line → not indexed. But does `lessons/round-67-verifier-spotcheck.md` appear elsewhere in README (e.g., prose)? Possibly in "Known gaps" or history notes. Safer: drop only TABLE ROWS: lines starting with "|" containing the name. Use a targeted fn: keep line only if not (l.startswith("|") and "round-67-verifier-spotcheck" in l).
+
+  For the counter-mutants (self-test coverage probe), after the world battery:
+  - cD1: replace `if OBSERVED in joined:` with `if True:` → self-test must FAIL (survived D1 world).
+  - cD2: replace `if REAL_RECEIPT in joined:` with `if True:` → self-test must FAIL.
+  - cD3g: replace `if JUNK in joined and not (repo / JUNK).exists():` with `if JUNK in joined:` → prediction: self-test still 0 failures (gap).
+  - cD4b: neuter baseline comparison: replace `for key, value in mapping.items():` loop... simpler: replace `if expect.get(key) != value:` with `if False:` → stale-baseline world survives → self-test FAIL... wait but then `for...else: if not findings: closed+=1` still gates. In the stale-baseline world, findings empty → closed=4 → survived → self-test catches. Good.
+
+  Also verify cD3g prediction directly against the REAL M3b world? The counter-mutant cD3g is itself the model of "a counter that ignores the still-exists leg"; M3b is the world. --self-test can't see M3b (synthetic worlds fixed). I'll also run cD3g against the M3b world to show it PASSES 4-of-4 (i.e., M3b is killed ONLY by the exists() leg, and self-test never exercises that leg). That's the complete gap demonstration. Run: variants/cD3g.py --repo lane (with junk dir recreated) --rev HEAD → expect "4 of 4" exit 0 → proves the leg is load-bearing against the real world AND invisible to --self-test.
+
+  Then lane restoration evidence: hashes after + git status after on the LANE, diff vs before.
+
+  Also `--help` sanity

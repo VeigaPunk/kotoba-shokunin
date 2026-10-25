@@ -767,4 +767,93 @@ CLONE_OK
 
   Time to run. One big script, then a second batch if needed.
 
-• Gate registry receipt shows a side-defect already (`check_r67_routed_repairs.py — no self-test cell…; 45 of 46; exit=1`), and `tracked_files` counts `git ls-files` (the **index**), which makes the counter's `git checkout` load-bearing. Now I build all falsification controls inside the
+• Gate registry receipt shows a side-defect already (`check_r67_routed_repairs.py — no self-test cell…; 45 of 46; exit=1`), and `tracked_files` counts `git ls-files` (the **index**), which makes the counter's `git checkout` load-bearing. Now I build all falsification controls inside the throwaway clone — the lane repo is never touched.Traceback (most recent call last):
+  File "/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/controls/c2falsify.py", line 34, in <module>
+    git("checkout", "-fq", BASE)
+    ~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/controls/c2falsify.py", line 9, in git
+    r = sh("git", *a)
+  File "/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/controls/c2falsify.py", line 7, in sh
+    return subprocess.run(a, cwd=C, capture_output=True, text=True)
+           ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/subprocess.py", line 555, in run
+    with Popen(*popenargs, **kwargs) as process:
+         ~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/subprocess.py", line 1039, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                        pass_fds, cwd, env,
+                        ^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+                        gid, gids, uid, umask,
+                        ^^^^^^^^^^^^^^^^^^^^^^
+                        start_new_session, process_group)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/subprocess.py", line 1990, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+FileNotFoundError: [Errno 2] No such file or directory: '/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/controls/c2falsify-clone'
+DRIVER_EXIT=1
+
+
+• The clone directory doesn't exist — it seems my earlier clone command... it printed CLONE_OK. Maybe the heredoc `cat > ...` before the python driver clobbered something? No — the clone was created at `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-68/w1/controls/c2falsify-clone`. Let me check if it exists. Possibly the first bash call created it but... "CLONE_OK" printed and `git log` showed cafa29d. Strange. Maybe `mkdir -p` of controls happened again and clone went somewhere else? No, same path. Let me check the filesystem.total 8
+drwxr-xr-x 1 vgpnk vgpnk   24 Oct 24 23:14 .
+drwxr-xr-x 1 vgpnk vgpnk  198 Oct 24 23:11 ..
+-rw-r--r-- 1 vgpnk vgpnk 6520 Oct 24 23:14 c2falsify.py
+assimilation
+controls
+drafts
+ExecC1Counter.md
+ExecCollision.md
+logs
+ReviewC1Counter.md
+swarm-registry.json
+The clone is gone — only c2falsify.py exists in controls/. Something removed the clone between calls. Possibly another seat (L1 or a cleanup process) wiped scratch, or the earlier bash call's clone was cleaned by a wave harness. Also `drafts/` now exists. The wave is live; a reaper may clean `controls/`. I'll re-clone and run the driver immediately in the SAME bash invocation to avoid the window. Also maybe name the clone inside a deeper unique path. Let me re-create and run driver in one call.
+
+• The clone vanished between calls (likely wave-scratch hygiene). I'll re-clone and run the driver in a single invocation so nothing intervenes.== C0 base-rev counter (contract: 0 of 4, exit!=0)
+   counter: ('', 2)
+   status_after: (clean)
+== K2 row-alone-at-base
+   primary: ('4/9 checks pass; DRIFT: corpus.index.tracked_files, corpus.index.unindexed, corpus.index.stale_patterns, corpus.index.missing_paths, corpus.pointers.report_total', 1)
+   counter: ('', 2)
+   rev: 4140ba66
+== K3 baseline-alone-at-base
+   primary: ('8/9 checks pass; DRIFT: corpus.index.unindexed', 1)
+   counter: ('', 2)
+   rev: 2b68ef3a
+   obs: {'tracked_files': 122, 'unindexed': 1, 'report_total': 85, 'commit_total': 38}
+== E rubber-stamp-row at HEAD
+   primary: ('6/9 checks pass; DRIFT: corpus.index.unindexed, corpus.index.stale_patterns, corpus.index.missing_paths', 1)
+   independent: ('exit1', 1)
+   counter: ('r67 routed defects closed 3 of 4', 1)
+   rev: 487bf961
+== D disclosure-deleted
+   counter: ('r67 routed defects closed 2 of 4', 1)
+   rev: 93a66284
+== F denial-text mutant
+   counter: ('r67 routed defects closed 4 of 4', 0)
+   rev: 0da8cb4e
+== G destructive-measurement
+   counter_line: r67 routed defects closed 4 of 4
+   counter_exit: 0
+   status_before: (clean)
+   status_after: M  corpus/README.md
+   head: c71f79ba
+   measured_rev: cafa29d0
+== B junk-world-recreated
+   counter: ('r67 routed defects closed 2 of 4', 1)
+== Z clone restored
+   status: (clean)
+DRIVER_EXIT=0
+
+
+• Rich results, but several need interpretation and a couple surprised me:
+
+  1. **C0**: counter at BASE printed `('', 2)` — empty stdout, exit 2 = environment error! The contract says at base it must print `r67 routed defects closed 0 of 4` and exit nonzero. It exits 2 with stderr (my helper didn't capture stderr into the tuple; the `line` fallback was r.stdout.strip() → empty). So the base run is an ENVIRONMENT ERROR, not the frozen `0 of 4` content verdict. Why? `_materialize` reads RECORDS + README + BASELINE at base: `verifiers/corpus-baseline.json` exists at base (it does — baseline.json existed before? The file listing earlier showed `corpus-baseline.json` modified Oct 24 23:04 (r68). At base e94ae32a, does `verifiers/corpus-baseline.json` exist? The plan's before says the gate measured 6/9 with DRIFT expected values — so a baseline existed at base. README exists. LOG/SCORECARD exist. round-68.md does NOT exist at base! `corpus/lessons/round-68.md` is new in r68 → `_git_show` returns None → EnvError "cannot read corpus/lessons/round-68.md at e94ae32a" → exit 2. So the counter CANNOT produce the contract's `0 of 4` at the pinned base — it exits 2, the r67 R67-1 defect class (dishonest before-line: the same mistake r67 made — the plan itself routed R67-1 as "a missing entry is a content verdict, not an environment error" for the C1 counter, and the C2 counter repeats the class error on its own base check!). Wait — but the plan's C2 "Before" says: "`check_r67_routed_repairs.py` does not exist (0 of 4)" at base — i.e., the plan's before-line is about the instrument not existing, not about running the new counter at the base. And the counter's own docstring contract says "At the pinned base it must print `r67 routed defects closed 0 of 4` and exit nonzero." Exit 2 IS nonzero... but the docstring says "prints 0 of 4", and it prints NOTHING (empty stdout, error on stderr). So the base control as documented does NOT hold. Also the round-67 lesson (spotcheck line 59) precisely routed this class: "a missing file is usage/environment (exit 2), not the 'not grounded' print". The C2 counter has the SAME defect on its own before-line. Is there a self-test that hides this? The registry said the counter has NO self-test at all ("no self-test cell names no backticked flag"). And noharm-at-tip.txt records `check_r67_routed_repairs.py  no self-test cell names no backticked flag ... 45 of 46 ... exit=1` — the L1's own no-harm receipt caught the missing self-test and the registry gate is RED. That contradicts "no owned-axis harm" (consistency axis owns gate-registry conformance).
+
+     Let me get the exact stderr text of C0: rerun counter at base and capture stderr.
+
+  2. **K2**: primary `4/9` — my stub row insertion produced unindexed + stale_patterns + missing_paths drifts: my inserted row's cell 2 was `` `lessons/round-67-verifier-spotcheck.md` `` — wait, I inserted `| (critic stub) | `{SPOT}` |  |  |` where SPOT = "round-67-verifier-spotcheck.md" — NO `lessons/` prefix! So the token was the bare filename → not matching the tracked path `lessons/round-67-verifier-spotcheck.md` → unindexed 1, stale (token doesn't resolve → stale_pattern? missing_paths 1). So K2 as run is a WRONG-ROW control, not a row-alone control. The counter at K2 rev: ('', 2) — environment error! Why? At base-derived rev, `corpus/lessons/round-68.md` doesn't exist → EnvError exit 2. Of course — any rev based on BASE lacks round-68.md, so the counter ALWAYS exits 2 there. So my K2/K3 reconstructions "at the base" cannot exercise the counter at all — the instrument cannot score pre-r68 revisions. That itself is a finding: **the counter only ever scores revisions that already contain the r68 records; there is no revision at which it prints the contract's `0 of 4`.** The frozen "before" line in the plan — "`check_r67_routed_repairs.py` does not exist (0 of 4)" — is honest as written (instrument absent), but the counter's own docstring contract ("at the pinned base it must print 0 of 4 and exit nonzero") is FALSE: it prints nothing and exits 2. Same dishonest-before-line class as R67-1... well, the plan never claims the counter prints 0 of 4 at base; the DOCSTRING does. And no receipt proves a base run. C1's counter fixed exactly this class for C1 (commit cafa29d "a revision without the entry is a content verdict (0 of 5, exit 1), not an environment error") — but the C2 counter kept the class defect: a revision without `corpus/lessons/round-68.md` → exit 2, prints nothing. If the claim's before-control were run per the docstring, it would fail to print the frozen before-line. For C2's plan though, the before is the three-conjunct measurement: primary 6/9 ✓ (matches), independent exit 1 ✓ (need to verify — receipt C2-base-independent.json exists; and my clone can measure), counter "does not exist" ✓ (true at base). So the PLAN's before is fine; the DOCSTRING's base contract is false. Distinct but same family (stale/dishonest before-line). Worth reporting as defect with exact stderr.
+
+  3. **K3**: baseline-alone at base: primary 8/9 DRIFT unindexed → red ✓ (do-nothing half holds for the gate). Counter exit 2 (can't score base-family revs) — so "the counter reaches neither 9/9 nor 4 of 4" holds trivially (it can't reach anything there — it errors). Plan's do-nothing claim says "the counter reaches neither `9/9` nor `4 of 4`" — technically true.
+
+  4. **E — the big one**: rubber-stamp row at HEAD: primary **6/9 exit 1**, independent exit 1, counter **3 of 4**! My stub row had empty trailing cells — why did the gate go red? DRIFT: unindexed, stale_patterns, missing_paths. So the gate did NOT count my stub's cell-2 token as covering the file. Why? Hmm — maybe the gate's coverage token extraction requires the cell to be in a FILE column and... my row `| (critic stub: names the file, carries no content) | `lessons/round-67-verifier-spotcheck.md` |  |  |` — cells[1] = backticked path. But the gate reported unindexed=1 → the token wasn't harvested. Possible reasons: (a) the gate requires ≥N non-empty cells (row shape validation); (b) the gate only harvests tokens from specific columns (e.g., column 2 must be the ENTRY path per the lane's table shape `| Round | Entry | ...`); (c) backtick handling needs the token in a `FILE` column per header. The landed row's shape: `| Round-67 non-author spot-check (closure) | `lessons/round-67-verifier-spotcheck.md` | <long description> | ...` — hmm same column position. Difference:
