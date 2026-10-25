@@ -1,0 +1,30 @@
+# M127 cause, L1 reproduction (instrumented scratch copy of verifiers/check_tip_battery.py only saving each gate's stdout; rev 3da11a547ecc7a48a4c35386dbef10a6aef9ef3a)
+# date: 2026-10-25T20:02:18-03:00
+
+## run A: --repo .   (the documented/r72-report invocation)
+$ python3 -B check_tip_battery_instr.py --rev 3da11a5… --repo .   (cwd = the lane)
+gate verifiers/check_gate_registry.py exit 0 wall 0.3s
+gate verifiers/check_assertion_floors.py exit 1 wall 43.6s
+gate verifiers/verify_skill_checklist.py exit 1 wall 1.4s
+gate verifiers/verify_corpus_integrity.py exit 1 wall 0.4s
+gate verifiers/verify_corpus_independent.py exit 1 wall 0.5s
+gate verifiers/check_correction_sweep.py exit 0 wall 0.0s
+wall 47.0s
+tip battery exit 0: 2 of 6
+exit=1
+
+first failing lines (saved gate output, sandbox cwd /tmp/k72-tip-…/kotoba-shokunin):
+  verify_skill_checklist.py: FAIL trigger.citation_resolves: line 558: '../.ufo/reports/round-7/kotoba.md' does not resolve from /tmp/k72-tip-4uezkznu/kotoba-shokunin
+  check_assertion_floors.py: FAIL checklist observed=1863 floor=1863 self_test_failures=2
+
+## run B: --repo <absolute lane path>
+$ python3 -B check_tip_battery_instr.py --rev 3da11a5… --repo /home/vgpnk/Projects/shokunin/kotoba-shokunin
+gate verifiers/check_gate_registry.py exit 0 wall 0.3s
+gate verifiers/check_assertion_floors.py exit 0 wall 43.9s
+gate verifiers/verify_skill_checklist.py exit 0 wall 1.4s
+gate verifiers/verify_corpus_integrity.py exit 1 wall 0.2s
+gate verifiers/verify_corpus_independent.py exit 1 wall 0.5s
+gate verifiers/check_correction_sweep.py exit 0 wall 0.0s
+tip battery exit 0: 4 of 6
+
+## cause (source): verifiers/check_tip_battery.py line 610: `fleet = Path(args.fleet) if args.fleet else repo.parent` — with --repo . the value Path(".").parent is Path("."), so the sandbox symlinks the lane's own entries, not the fleet root; every ../ citation (../.ufo/reports/…, ../.ufo/watchdog.log) is then unresolvable
