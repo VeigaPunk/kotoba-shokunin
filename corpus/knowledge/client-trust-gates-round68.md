@@ -80,6 +80,6 @@ five clients against the lane's own sibling census.
 ## Amendment (round 69, routed defect R68-5)
 
 The S201 row's anchor quotes the `Security best practices` sentence. The approval-by-default
-sentence — "All three skill tools require approval by default." — is verbatim on the same page in
-the tool-approval section; row S208 supersedes the S201 anchor's claim with that sentence, and
+sentence — "All three skill tools require approval by default." — is verbatim on the same page
+twice, under `Use Agent Skills with Harness Agent` (not in the separate `Tool approval` heading); row S208 supersedes the S201 anchor's claim with that sentence, and
 this entry's approval claim (section "Approval and review", S201) therefore cites S208.

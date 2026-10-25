@@ -64,10 +64,14 @@ tier B (S199-S202) is not re-litigated here.
   L1. Located under `Troubleshoot loading`; the located quote is: "Ensure skill names are unique
   across all locations" (8 words).
 
-**Admit (1 correction row).** **S208** supersedes the S201 row's anchor: the approval sentence
-"All three skill tools require approval by default." is verbatim on the Microsoft page (twice),
-in the tool-approval sections; the S201 row keeps the `Security best practices` sentence as its
-anchor. The r68 entry names S208 in an appended amendment.
+**Admit (1 correction row).** **S208 — Microsoft Agent Framework — Agent Skills**,
+https://learn.microsoft.com/en-us/agent-framework/agents/skills — opened 2026-10-25 by the L1.
+Located under `Use Agent Skills with Harness Agent`, at both occurrences of the approval
+sentence (the page's separate `Tool approval` heading carries a different sentence about the
+provider's tool names); the located quote is: "All three skill tools require approval by
+default." (8 words). S208 supersedes the S201 row's anchor; S201 keeps the
+`Security best practices` sentence as its anchor. The r68 entry names S208 in an appended
+amendment and carries a `source: S208` line.
 
 **Reject (1 staged claim, kept as a refusal with a flip condition).**
 
@@ -76,8 +80,9 @@ anchor. The r68 entry names S208 in an appended amendment.
   staged wording is a paraphrase", `corpus/lessons/round-68.md:52-58`), not by claiming absence.
   That judgement was **wrong**: the sentence is verbatim on the page (twice), and the true defect
   was the anchor (it sits in the tool-approval prose, not under `Security best practices`).
-  The refusal is corrected by S208 and mined as mistake R68-6 below. Flip for the old refusal:
-  none — the paragraph is superseded by S208.
+  The refusal is corrected by S208 and mined as mistake R68-6 below. Flip: the correction would
+  be withdrawn only if the sentence stopped being verbatim on the page at the section named
+  above — i.e. a re-fetch of that section finds different wording.
 
 **Shaping notes (QUALITY Q42, routed defect R68-4).** S200's located quote drops `<code>` tags
 around `.kilo/skills/` (the words are contiguous on the fetched page; the tags are a later

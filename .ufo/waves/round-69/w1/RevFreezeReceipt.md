@@ -68,12 +68,12 @@ receipt nor added a C1 self-test receipt (F5).
 | **current tip `54f4b6c`** ("baseline re-record … hardened counters"), entry repaired | `--self-test` | `0 failure(s) over 22 assertions`, **exit 0** |
 | current tip `54f4b6c` | `--rev 54f4b6c` | `skill precedence backed 5 of 5`, **exit 0** |
 
-The round then committed entry, lesson and counters at `a02ba7e` (10:27:15Z), so they are no longer
-working-tree drafts; the only uncommitted content is the later S207 fix and a third C2 edit. **Counter
-bytes matched the receipt at 10:17Z and no longer do**: at 10:21:28Z the C1 counter became `dc9f1507…`
-(receipt: `9c796574…`), at 10:22:44Z the C2 counter became `9cf97497…` (receipt: `3202549…`), and after
-the commit it became `53ea6956…` (10:28:40Z); only `check_province_core.py` still matches
-(`c85f9d7…`) — F5.
+The round then committed entry, lesson and counters at `a02ba7e` (10:27:15Z) and repaired the entry at
+`54f4b6c`, so they are no longer working-tree drafts. **Counter bytes matched the receipt at 10:17Z and
+no longer do**: at 10:21:28Z the C1 counter became `dc9f1507…` (receipt: `9c796574…`), at 10:22:44Z the
+C2 counter became `9cf97497…` (receipt: `3202549…`), and at 10:28:40Z it became `53ea6956…`; only
+`check_province_core.py` still matches (`c85f9d7…`). `54f4b6c` changed neither the freeze receipt nor
+added a C1 self-test receipt — F5.
 
 ## Findings
 
@@ -89,12 +89,8 @@ counter's 18 arms and the round then committed the strengthened counter. The les
 unchanged at `a02ba7e` and not corrected in `54f4b6c`, so the shipped lesson carries a number its
 shipped instrument contradicts — pin the sentence to a hash or write 22.
 
-The parenthetical is stale too: `18` is the frozen counter's arm count; the live counter
-(`dc9f1507…`, edited 10:21:28Z) reports `0 failure(s) over 22 assertions`. The lesson was edited
-against the frozen bytes and its number no longer describes the instrument it names — pin the sentence
-to a hash or update it to 22 when the counter is re-frozen (F5). Both defects persist in the latest
-lesson revision (md5 `1194709a…`, re-checked 10:26Z) and the lesson's § Mistakes discloses neither the
-drift nor a re-freeze.
+Re-checked at the current tip `54f4b6c`: the lesson still reads `(18 assertions)` (line 24) while the
+committed counter prints 22, and its § Mistakes discloses neither the drift nor a re-freeze.
 
 ### F2 — MEDIUM (evidence substitution): the round's only receipt named `C1-selftest` is the r68 counter's, it is green, and no receipt covers `check_skill_precedence`
 
@@ -170,16 +166,18 @@ classified setup exit — the same unclassified-environment seam as F2b, one fil
 The receipt's first three lines are the freeze pin (`sha256 of the frozen counters as committed with
 plans/round-69.md`). As of this review:
 
-| counter | receipt (`a238989`) | committed content tip (`a02ba7e`) | working tree now |
+| counter | receipt (`a238989`) | shipped tip (`54f4b6c`) | working tree |
 |---|---|---|---|
-| `check_skill_precedence.py` | `9c796574…da48` | `dc9f150764431ec6…c246` (10:21:28Z edit, committed) | `dc9f1507…c246` |
-| `check_r68_routed_repairs.py` | `3202549…dcf2` | `9cf9749713d2725a…8279` (10:22:44Z edit, committed) | `53ea6956cf92050f…cc09` (10:28:40Z edit, uncommitted) |
+| `check_skill_precedence.py` | `9c796574…da48` | `dc9f150764431ec6…c246` (edited 10:21:28Z, committed at `a02ba7e`) | `dc9f1507…c246` |
+| `check_r68_routed_repairs.py` | `3202549…dcf2` | `53ea6956cf92050f…cc09` (edited 10:22:44Z then 10:28:40Z, committed at `54f4b6c`) | `53ea6956…cc09` |
 | `check_province_core.py` | `c85f9d7…6c5a` | `c85f9d7533fbc4b9…6c5a` | `c85f9d75…6c5a` |
 
-Three states exist for two of the three counters, and the plan's freeze sentence
-(`plans/round-69.md:42`) describes only the first. `git show a02ba7e:verifiers/… | sha256sum` confirms
-the committed tip ships `dc9f1507…` / `9cf97497…`, i.e. the strengthened instruments, not the receipted
-ones.
+Two independent states exist for two of the three counters, and `plans/round-69.md:42` describes only
+the first. `git show 54f4b6c:verifiers/… | sha256sum` confirms the shipped tip carries `dc9f1507…` /
+`53ea6956…`, i.e. the strengthened instruments, not the receipted ones. `git diff a02ba7e 54f4b6c --
+.ufo/waves/round-69/controls .ufo/waves/round-69/recapture` touches only
+`recapture/C2-integrity-after.txt` and `recapture/noharm-at-tip.txt`: **no re-freeze and no C1 receipt**
+were added by either commit.
 
 `git status --porcelain` corroborates this from the other side: at 10:17Z the only modified verifier was
 `check_r67_routed_repairs.py`; the 10:27Z listing also carries `M verifiers/check_skill_precedence.py`
@@ -335,21 +333,19 @@ clone exit 2; entry overlaid exit 0). Four sharpenings after two exchanges:
 
 ## Residual risk
 
-Entry, lesson and counters were committed at `a02ba7e` and edited again afterwards, so every line below
-is clouded by further edits before the round closes. F1 closes with a
-wording fix ("working tree" for "committed tip") and the count updated to the live 22; F2 closes with a
+Entry, lesson and counters were committed at `a02ba7e`, the entry repaired at `54f4b6c`, and the
+counters edited again after the freeze (F5), so every line below is pinned to the tip present at
+10:33Z. **F1 is now a one-number fix** (write 22, or pin to the shipped hash). F2 closes with a
 re-capture of `check_skill_precedence --self-test` under an instrument-naming filename (or a rename of
 the r68 `C1-*` receipts); F2b with a docstring carve-out or an erratum; F3/F4 persist unless the
-counter is amended at landing. F5 needs a re-freeze receipt (new sha256 lines, a note naming the seat
-findings that drove each change, re-captured controls) before any claim cites the shipped instrument —
-the current receipt is true of `a238989` and describes nothing the lane will run. F6's three shortcut
-controls must be re-captured on lane-present revisions inside that same re-freeze, and F7 needs a
-receipt naming the `--numstat` command and revision behind `4081`/`251`, with the floor the critic
-asked for instead of equality. **F8 is the urgent one**: the round's committed revision scores 0 of 5
-on its own C1 counter, and the only green state is an uncommitted entry edit — commit that fix, re-run
-`--rev` at the new commit, and cite that receipt; the working-tree self-test cannot stand in for a tip
-result. Until the entry fix is committed, every `--rev` measurement at the lane tip still prints
-`0 of 5`, exit 1.
+counter is amended. F5 needs a re-freeze receipt (new sha256 lines, a note naming the seat findings
+that drove each change, re-captured controls) before any claim cites the shipped instrument — the
+current receipt is true of `a238989` and describes nothing the lane ships. F6's three shortcut controls
+must be re-captured on lane-present revisions inside that same re-freeze; F7 needs a receipt naming the
+`--numstat` command and revision behind `4081`/`251`, with the floor the critic asked for instead of
+equality. **F8 is closed** — `54f4b6c` measures `5 of 5`, exit 0 — but its episode stands: the round's
+first shipped revision measured 0 of 5 against its own counter, so a closure check pinned to
+`a02ba7e` reproduces the failure, and only a `--rev` measurement at `54f4b6c` or later is tip evidence.
 
 ## Verification gaps
 

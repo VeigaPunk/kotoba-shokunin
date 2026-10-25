@@ -236,7 +236,10 @@ control exercises. At the committed round-69 tip, with the entry present, `--sel
   on the tip (not a committed state)". **The assertion count is stale too:** at 07:22 the live
   counter (md5 `57db6f8e…`, see §5b) reports `self-test: 0 failure(s) over 22 assertions`, exit 0,
   measured in the sandbox with the live counter + live entry + `SOURCES.md` + `README.md` — the
-  lesson's "18 assertions" was true only for the counter bytes of ~07:08–07:17.
+  lesson's "18 assertions" was true only for the counter bytes of ~07:08–07:17. **Truth-value is
+  revision-dependent:** at `a02ba7e` the sentence fails in both limbs (§5f: `FAIL honest world:
+  backed 0 of 5`, 1 failure over 22, exit 1); at the next commit `54f4b6c` the exit-0 limb is true
+  (`0 failure(s) over 22 assertions`) while the count still reads 18.
 - **Line 21's `(QUALITY Q48)` mis-cites the criterion.** `corpus/QUALITY.md:59` defines Q48 as: a
   counter's self-test **drives its public `main()`** on a satisfying fixture and asserts **exit 0
   with the exact printed line**, beside one **broken-conjunct world asserting exit 1**; "helper-only
@@ -307,15 +310,20 @@ only the r68-era revisions (`e94ae32`, `2cf0d99`) are present. So no later seat 
 re-open the junk/cheap controls: their receipts are assertions, not reproducible measurements, and
 a re-capture on lane-present revisions is required before those controls can be cited again.
 
-**A live constant that also contradicts its routed specification.** The C2 counter edit adds
-`R68_INS, R68_DEL = 4081, 251` (`:100`) and `d7_wave_paths` fails when the `--numstat` diff over the
-24 r68 paths is **not exactly** that pair (`:315`, `!=`). The requirement it implements asks for a
-**floor**: "sum `git diff --numstat R69_BASE..rev` over the ten `MODIFIED` paths and require
-`insertions ≥ 4081` and `deletions ≥ 251` (growth from later seat appends passes; a trimmed commit
-fails)" — `CritC2Repairs.md:180-183`. The shipped arm is therefore *stricter than its own spec*: a
-legitimate later append to any of the 24 paths fails D7 as a non-defect (and the 24 include seat
-logs the round itself is still writing). Its only provenance is prose (`CritC2Repairs.md:175-176`);
-no receipt names the numstat command or the revision it was taken at.
+**A constant that moved twice inside the round, and contradicts its routed specification.** The C2
+counter edit introduced `R68_INS, R68_DEL = 4081, 251`; the hardening commit `54f4b6c` re-derived it
+to **`6379, 251`** (`:101`, with the derivation in a code comment: "4081 in the ten tracked modified
+paths plus 2298 in the fourteen untracked ones"). `d7_wave_paths` still compares with `!=`
+(`:316`), i.e. **exact equality**, and the lesson's Gate line moved with it (`+4081/−251` →
+`+6379/−251` at `corpus/lessons/round-69.md:153`). The routed requirement asked for a **floor**:
+"sum `git diff --numstat R69_BASE..rev` over the ten `MODIFIED` paths and require `insertions ≥ 4081`
+and `deletions ≥ 251` (growth from later seat appends passes; a trimmed commit fails)" —
+`CritC2Repairs.md:180-183`. The shipped arm is stricter than that spec and, though the lesson now
+documents equality as intentional truncation detection, it still fails D7 as a non-defect on any
+legitimate later edit to one of those r68 paths. No receipt names the `--numstat` command or the
+revision either constant was taken at. Also: at `54f4b6c` the **shipped C2 counter's hash
+(`53ea6956…`) appears nowhere** in the tree (`git grep` → no match, not even a seat report), so no
+receipt in the round identifies the instrument that will measure C2.
 
 ## 6. Current-currency summary a seat can cite
 
