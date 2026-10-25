@@ -456,3 +456,5 @@ things stand.
 - **No axis harmed** (`receipts/noharm-at-tip.txt`): corpus gates 6/9 → 9/9, gate registry 49/49 →
   51/51, floors PASS, checklist 10/1 at base and tip (red narrowed to LOG.md:2678), SKILL.md 600 of
   600, census exit 0 before and after.
+
+**Round 71 axis annotations (append-only; verdicts belong to the non-author closure).** *Consistency (C1):* `python3 -B verifiers/check_r69_routed_repairs_v2.py --rev <rev>` → `r69 routed defects closed 9 of 10` exit 1 @ `2b79115` → `10 of 10` exit 0 @ `bf98d28`; junk world 5 of 10. *Depth (C2):* `python3 -B verifiers/check_skill_evals_v2.py --rev <rev>` → `skill eval artefacts verified 1 of 10` exit 1 @ `2b79115` → `10 of 10` exit 0 @ `bf98d28`; junk world 0 of 10. Revisions: `2b79115` `bf98d28` `3677b2e`; counters `check_r69_routed_repairs_v2.py` `check_skill_evals_v2.py`.

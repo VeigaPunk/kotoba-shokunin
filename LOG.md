@@ -2747,3 +2747,22 @@ Core rows) — but filed no entry here. This entry is that record, appended, nev
   LOG.md:2724 (LOG.md:2678 → `corpus/lessons/round-68.md`), is withdrawn. No `GOVERNANCE_CORRECTIONS`
   row uses it after `4dba3bc`: the directory it names was removed and never tracked, so it has no
   replacement address; LOG.md:2678 stays red as an inherited recorded absence.
+
+## Round 71 — C1 consistency (the successor r69 routed-repairs counter) and C2 depth (the successor skill-evals counter + S212/S213 upstream anchors)
+
+- **Trigger:** the round-71 steer (hyaku run 6, attempt 1) and the round-70 closure's routed
+  defects in `corpus/lessons/round-70-verifier-spotcheck.md` — a C2 counter that rejects the W12
+  junk world, C1 presence-floor holes, the K69-11 / LOG.md:2678 disposition, S209/S210
+  upstream-revision anchors, and control worlds as committed bundles.
+- **Action:** plan and both counters frozen at `3677b2e`; junk-world receipts committed red
+  (`c1-junk-world.txt` 5 of 10, `c2-junk-world.txt` 0 of 10) before data; the K69-11
+  recorded-absence errata row (horizon 2315 → 2678), the S212/S213 superseding rows on
+  `agentskills/agentskills@69ef37e`, the entry `source:` re-pointing, and the SKILL citation line
+  at `bf98d28`; tip receipts and the baseline re-record follow.
+- **Outcome:** `python3 -B verifiers/check_r69_routed_repairs_v2.py --rev bf98d28` →
+  `r69 routed defects closed 10 of 10`, exit 0 (base `2b79115` → `9 of 10` exit 1, K69-11 alone
+  open); `python3 -B verifiers/check_skill_evals_v2.py --rev bf98d28` →
+  `skill eval artefacts verified 10 of 10`, exit 0 (base → `1 of 10` exit 1). Both committed
+  junk worlds are rejected by the real-git self-test arms (5/10 and 0/10).
+- **Pointer:** `plans/round-71.md`, `corpus/lessons/round-71.md`,
+  `.ufo/waves/round-71/receipts/`, `.ufo/waves/round-71/controls/`.
