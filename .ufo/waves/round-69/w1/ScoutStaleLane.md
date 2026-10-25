@@ -296,12 +296,19 @@ Measured 07:24–07:26 with `sha256sum` + `stat` against `controls/freeze-receip
 receipt is **still true of the committed tip** — the divergence is working-tree only, and the
 receipt has become a description of bytes the lane is no longer shipping. The plan's own sentence
 ("Counter semantics (frozen with this plan; sha256 recorded in the plan commit's receipt)") is
-therefore stale from 07:21:28 as of 07:24, with no re-freeze artifact anywhere in
-`.ufo/waves/round-69/`. Practical consequences: cite the receipt only as *frozen bytes at
-`a238989`*; a receipt that cites it for the live counters fails QUALITY Q24 ("a receipt's recorded
-instrument hash is checked against the committed instrument bytes before the receipt is cited");
-and the round's final claim measurement will run whichever counter is committed at the tip, so the
-frozen semantics text and the judging instrument have to be reconciled before the gate.
+therefore stale from 07:21:28 **as a description of the shipped instrument**. One disclosure
+artifact appeared afterwards: `controls/postfreeze-receipt.txt` (added at `278b9dc`, 07:32:23)
+records `measured-rev: 54f4b6c`, the four shipped sha256s (`dc9f1507…` C1, `53ea6956…` C2,
+`c85f9d75…` C3, `e4d535a9…` for `check_r67_routed_repairs.py`) and each `--self-test` line, with the
+note "controls/freeze-receipt.txt records the pre-attack counters; this file records what the
+counters are at landing". That settles the *disclosure* question but not the receipt question: it
+carries **0 `command:` lines and 0 `exit=` lines**, no `--rev` verdict, and its `measured-rev`
+predates `278b9dc`/`9ce102b` — a landing receipt, not a tip receipt, and not reproducible from its
+own bytes. Practical consequences: cite `freeze-receipt.txt` only as *frozen bytes at `a238989`*
+and `postfreeze-receipt.txt` only as *landing bytes at `54f4b6c`*; a receipt that cites either for the
+tip fails QUALITY Q24 (hash vs the bytes it is cited for) and Q50 (a tip result needs a receipt
+naming that exact tip), and the round's final claim measurement runs whichever counter is committed
+at the tip, so the frozen semantics text and the judging instrument still have to be reconciled.
 
 **Controls cannot be re-measured.** The cheapest controls' `measured-rev:` values are sandbox-only
 commits that do not exist in the lane object database — `git cat-file -e` → **ABSENT** for
@@ -315,38 +322,86 @@ counter edit introduced `R68_INS, R68_DEL = 4081, 251`; the hardening commit `54
 to **`6379, 251`** (`:101`, with the derivation in a code comment: "4081 in the ten tracked modified
 paths plus 2298 in the fourteen untracked ones"). `d7_wave_paths` still compares with `!=`
 (`:316`), i.e. **exact equality**, and the lesson's Gate line moved with it (`+4081/−251` →
-`+6379/−251` at `corpus/lessons/round-69.md:153`). The routed requirement asked for a **floor**:
+`+6379/−251` at `corpus/lessons/round-69.md:158`). The routed requirement asked for a **floor**:
 "sum `git diff --numstat R69_BASE..rev` over the ten `MODIFIED` paths and require `insertions ≥ 4081`
 and `deletions ≥ 251` (growth from later seat appends passes; a trimmed commit fails)" —
 `CritC2Repairs.md:180-183`. The shipped arm is stricter than that spec and, though the lesson now
 documents equality as intentional truncation detection, it still fails D7 as a non-defect on any
 legitimate later edit to one of those r68 paths. No receipt names the `--numstat` command or the
-revision either constant was taken at. Also: at `54f4b6c` the **shipped C2 counter's hash
-(`53ea6956…`) appears nowhere** in the tree (`git grep` → no match, not even a seat report), so no
-receipt in the round identifies the instrument that will measure C2.
+revision either constant was taken at. `git grep 53ea6956` finds **no match at `54f4b6c`** — the
+commit that shipped that counter — and a match only from `278b9dc` on
+(`controls/postfreeze-receipt.txt`); so through `54f4b6c` no receipt identified the shipped C2
+instrument, and from `278b9dc` the identification exists but still without a command or exit line.
+
+### 5f. The claim-bearing commit `a02ba7e` fails its own C1 counter; the next commit is green
+
+Verified end to end in a fresh `git clone --shared` (`/tmp/scout69-c2`), detached at `a02ba7e`
+(07:27:15, parent `a238989`, message "round 69: skill name-collision precedence; close
+R68-1..R68-8"):
+
+```
+$ python3 -B verifiers/check_skill_precedence.py --self-test
+FAIL honest world: backed 0 of 5; ["S207: the row's source cell is not in the entry's source line"]
+self-test: 1 failure(s) over 22 assertions        exit=1
+$ python3 -B verifiers/check_skill_precedence.py --rev a02ba7e
+measured-rev: a02ba7e42e230bf6bb4de902e91d6346aee93bfe
+skill precedence backed 0 of 5
+  - S207: the row's source cell is not in the entry's source line        exit=1
+```
+
+Byte-level cause: committed `corpus/SOURCES.md:148` S207 source cell reads
+"opencode — Agent skills (served **V1** docs page) — https://opencode.ai/docs/skills/", while the
+committed entry's `source: S207 …` line reads "… (served docs page) …"; conjunct 4 requires the
+row's source cell verbatim in the entry's source line. At the next commit **`54f4b6c` (07:29:34,
+2m19s later**, "baseline re-record (127/0/87/39), honest receipts, hardened counters") the entry
+gains the word "V1" — a one-word diff — and the same commands give
+`self-test: 0 failure(s) over 22 assertions`, exit 0, and `--rev 54f4b6c` → **`skill precedence
+backed 5 of 5`**, exit 0.
+
+Classification: a **process/attribution defect in history, not an open claim failure**. A commit
+whose message carries the claim (and "close R68-1..R68-8") was landed while its own counter read
+`0 of 5`; the claim holds at the shipped tip only because the next commit fixed the source-cell
+string. Two further commits followed (`278b9dc` 07:32:23, `9ce102b` 07:32:49) and the tip stays
+green: re-measured at `9ce102b` after those — `--self-test` 0 failures over 22, exit 0, and
+`--rev 9ce102b` → `backed 5 of 5`, exit 0, with the counter hashes unchanged since `54f4b6c`.
+
+Nothing in `recapture/` records either measurement — `git grep check_skill_precedence` at
+`54f4b6c` over `.ufo/waves/round-69` returns only `controls/C1-base.txt`,
+`controls/freeze-receipt.txt` and the wave spec/dispatch/seat files, so the green tip has no
+committed receipt for its own C1 self-test or `--rev` run.
 
 ## 6. Current-currency summary a seat can cite
 
 - Round: kotoba 69, **attempt 2 of ≤3**; launched **2026-10-25T07:00:36-03:00**; attempt 1 launched
   06:46:36 and was declared dead 06:59:59 on a provider error; no completion line yet.
-- Lane tip at read: **`a238989a96cb0d2b939679126b832d75b861ca6e`** ("round-69: frozen plan, three
-  counters …"), a single-parent child of the plan's declared base
-  **`a5f7459f99bb27bf697e9438362e75ac5833eca8`** (`git merge-base --is-ancestor` = yes; `a5f7459..HEAD`
-  is exactly that one commit). The plan's base statement is accurate; a reader who runs
-  `git rev-parse HEAD` and expects `a5f7459` is reading the parent, not the base.
+- Lane tip at read (07:34): **`9ce102b`** ("round 69: Gate records S208's URL, date and true section;
+  refusal gets a real flip condition"), 07:32:49; verified in `/tmp/scout69-c2`: `--self-test` 0
+  failures over 22, exit 0, `--rev 9ce102b` → **`backed 5 of 5`**, exit 0. History since freeze:
+  `a238989` (06:57:22 plan) → `a02ba7e` (07:27:15, C1 **red**, §5f) → `54f4b6c` (07:29:34, green) →
+  `278b9dc` (07:32:23) → `9ce102b` (07:32:49). The lane is committing every ~2 minutes, so any tip
+  hash in this report is a timestamped observation, not a durable fact. The plan's declared base
+  **`a5f7459f…`** is `a238989`'s parent (`merge-base --is-ancestor` = yes); worktree dirty at 07:33:
+  `RevFreezeReceipt.md`, `ScoutStaleLane.md` (this file).
+- **Ship counters at the tip (unchanged since `54f4b6c`):** C1 `dc9f1507…`, C2 `53ea6956…`, C3 `c85f9d75…`
+  (plus `check_r67_routed_repairs.py` `e4d535a9…`); the freeze receipt still lists
+  `9c796574…`/`3202549…`/`c85f9d75…`, and the divergence is disclosed only by
+  `controls/postfreeze-receipt.txt` — a landing receipt at `54f4b6c` with 0 command/exit lines,
+  not a tip receipt (§5e). `recapture/` is still the r68 set: no receipt runs
+  `check_skill_precedence.py`.
 - Content draft landed on attempt 2's clock: entry 07:08:07, SOURCES/README/PROVINCE/SKILL/QUALITY
   07:08:11–07:08:42, lesson 07:08:50, verifier edit 07:14:12.
 - Wave 1: registry `createdAt`/`updatedAt` `2026-10-25T10:10:56.516Z` (= 07:10:56 -03:00).
 - L0: five tail lines quoted above (rounds 49, 50, 55, 61, 67), all open, none appended this round.
 - Fleet report `.ufo/reports/round-69/kotoba.md`: **absent** (dir holds audio.md, game-dev-2d.md,
   kotodama.md only) — the round is in flight.
-- **The working tree is moving under the seats.** Between 07:16 and 07:26: `git status` went 42 →
-  44 collapsed paths (`-uall` shows 10+ files under `w1/`), `corpus/lessons/round-69.md` changed
-  (md5 `dbd37742…`), and two of the three counters moved off the freeze receipt — C1
-  `9c796574…`→`dc9f1507…` at 07:21:28, C2 `3202549…`→`9cf97497…` at 07:22:44 (§5e). Any receipt a
-  seat writes must name the **revision and the file sha256/md5** it measured; "the working tree" is
-  not a measurement target this round. My sandbox results in §5b are pinned to committed `a238989`
-  (counter md5 `00bd800a…`) except where marked live.
+- **The working tree is moving under the seats.** Between 07:16 and 07:32: `git status` went 42 →
+  4 paths (the round committed most of it), `corpus/lessons/round-69.md` changed, two of three
+  counters moved off the freeze receipt (C1 `9c796574…`→`dc9f1507…` 07:21:28; C2
+  `3202549…`→`9cf97497…` 07:22:44, then →`53ea6956…` by 07:29), and the lane landed two commits —
+  `a02ba7e` (C1 red) and `54f4b6c` (C1 green, §5f). Any receipt a seat writes must name the
+  **revision and the file sha256/md5** it measured; "the working tree" is not a measurement target
+  this round. My §5b sandbox rows are pinned to committed `a238989` (counter md5 `00bd800a…`)
+  except where marked live.
 
 ## 7. Unknowns (not resolvable from lane or fleet bytes)
 
@@ -438,3 +493,33 @@ the floor requirement the shipped equality arm diverges from is at `CritC2Repair
 ("require `insertions ≥ 4081` and `deletions ≥ 251` (growth from later seat appends passes; a
 trimmed commit fails)"), not merely at the prose line `:175-176`; §5e now quotes it, which makes the
 arm's over-strictness a spec divergence rather than only an unreceipted constant.
+
+Fifth IRC message (RevFreezeReceipt, ~07:31) reported F8: commit `a02ba7e` fails its own C1. Verified
+in a **fresh** `git clone --shared` at `/tmp/scout69-c2`, detached at the commit (§5f), and extended
+one step the peer had not yet seen:
+
+- **Confirmed.** `a02ba7e` (07:27:15) gives `--self-test` → `FAIL honest world: backed 0 of 5`
+  (S207), 1 failure over 22, exit 1; `--rev a02ba7e` → `skill precedence backed 0 of 5`, S207, exit
+  1. Cause is the committed S207 source cell's "V1" missing from the committed entry line.
+- **Correction — the tip moved and is green.** Two minutes later the lane committed `54f4b6c`
+  (07:29:34), whose entry carries "V1": `--self-test` → 0 failures over 22, exit 0; `--rev 54f4b6c`
+  → `backed 5 of 5`, exit 0. So F8 is a history/attribution defect (a claim-bearing commit landed
+  red), not "the round's C1 claim is 0 of 5 at its own revision" as of the tip. The lesson's line 23
+  is false at `a02ba7e` and true (exit code) at `54f4b6c`, while still saying 18 assertions.
+- **Still open at the tip (as measured then):** no tip receipt; at `54f4b6c` no file named the
+  shipped C2 counter (superseded by the sixth-message correction below — `278b9dc` added
+  `postfreeze-receipt.txt`); `recapture/` still contains no `check_skill_precedence` receipt; the C2
+  constant moved 4081 → 6379 with the lesson Gate edited in lockstep (§5e).
+
+Sixth IRC message (RevFreezeReceipt, ~07:35) corrected two datums; both verified at HEAD `9ce102b`:
+
+- **`postfreeze-receipt.txt` exists** (added at `278b9dc`, 07:32:23): `measured-rev: 54f4b6c`, the
+  four shipped sha256s including `53ea6956…` and `e4d535a9…` (r67 counter), per-counter self-test
+  lines. My "appears nowhere" was true **at `54f4b6c` only**; §5e now states the scope and adds
+  what the receipt lacks (0 `command:`, 0 `exit=`, no `--rev` verdict, `measured-rev` predates the
+  two later commits → landing, not tip, receipt). That is a disclosure, and it lowers the
+  disclosure defect, not the receipt defect.
+- **Lesson Gate line is `:158`** in the current lesson (my `:153` was pre-growth) and still reads
+  `+6379/−251`; line 24 still says `(18 assertions)`. Corrected in §5e.
+
+The controls-ABSENT finding and the absent C1 receipt were re-confirmed unchanged by the peer.

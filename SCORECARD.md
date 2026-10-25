@@ -427,3 +427,10 @@ things stand.
   nothing on stdout; the r67 claim stands a **miss as declared** and is not re-scored here. The
   r67 census receipt path in that round's report is `.ufo/waves/round-67/controls/census-validate-append.txt`,
   not the `w1/controls/` form the report cites. The r67 report itself is not edited.
+
+**Round 69 axis annotations (append-only; appended in round 70 as routed defect K69-1 — round 69 left this file byte-identical; verdicts are the r69 non-author closure's, `corpus/lessons/round-69-verifier-spotcheck.md`).**
+
+- **Depth (C1, score held 9, delta 0; closure verdict: improved).** `python3 -B verifiers/check_skill_precedence.py --rev <rev>` → `skill precedence backed 0 of 5`, exit 1 at the r69 base `a5f7459f99bb27bf697e9438362e75ac5833eca8` → `skill precedence backed 5 of 5`, exit 0 at the r69 measured tip `9ce102b9e3f8896d5ed3f050ee896ca90d693a38` (receipt `.ufo/waves/round-70/receipts/r69-tip-defense.txt`, self-test 22 assertions). Evidence: `corpus/knowledge/skill-name-precedence-round69.md`, rows S203-S207.
+- **Consistency / calibration sub-axis (C2, score held 10, delta 0; closure verdict: improved).** `python3 -B verifiers/check_r68_routed_repairs.py --rev <rev>` → `r68 routed defects closed 0 of 8` at `a5f7459f99bb27bf697e9438362e75ac5833eca8` → `8 of 8`, exit 0 at `9ce102b9e3f8896d5ed3f050ee896ca90d693a38` (same receipt, self-test 25 assertions).
+- **Coverage (C3, advisory, score held 8.5, delta 0; closure verdict: improved).** `python3 -B verifiers/check_province_core.py --rev <rev>` → `province core rows 0 of 2` at `a5f7459f99bb27bf697e9438362e75ac5833eca8` → `2 of 2`, exit 0 at `9ce102b9e3f8896d5ed3f050ee896ca90d693a38` (same receipt, self-test 10 assertions); `## Frontier`/`## Adjacent` byte-identical.
+- **No axis harmed (closure).** `SCORECARD.md` unchanged in r69 (sha `41c07e39…` at both revisions); every other axis unchanged.

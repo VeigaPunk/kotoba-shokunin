@@ -2694,3 +2694,31 @@ Full round detail: `corpus/lessons/round-19-recensus.md`. Advisory inventories:
   as one batched launch after `wave-slot.sh acquire kotoba r68-w1 32` printed
   `granted lane=kotoba wave=r68-w1 seats=32 live=58 pending=0 cap=256`; the validator reported
   `counts {spawn: 32, resume: 0, total: 32}`. No wave 2 was dispatched — see the report.
+
+## Round 69 — appended correction entry (written in round 70, 2026-10-25; routed defect K69-6)
+
+Round 69 (hyaku run 6, attempt 2) landed three claims — C1 depth (skill name-collision
+precedence, S203-S207), C2 consistency (the eight routed r68 defects), C3 coverage (two `PROVINCE.md`
+Core rows) — but filed no entry here. This entry is that record, appended, never a rewrite.
+
+- **Trigger:** the round-69 steer (attempt 1 died on a provider error; attempt 2 launched
+  2026-10-25T07:00:36-03:00) and the eight routed r68 defects in
+  `corpus/lessons/round-68-verifier-spotcheck.md`.
+- **Action:** plan and counters frozen at `a238989`; content and the r68 closures at `a02ba7e`;
+  baseline re-record and the entry repair at `54f4b6c`; critic corrections and the post-freeze
+  receipt at `278b9dc`; Gate corrections at `9ce102b`. The four round commits were made on a
+  detached HEAD and the branch bookmark never moved: the **orchestrator** fast-forwarded `master`
+  to `9ce102b` and pushed it through `jj-lane.sh` after the report was filed (routed defect K69-2;
+  history not rewritten). The fleet report was committed with plain git as
+  `probe <probe@example.invalid>` in `4844216b` and `9d9f181e`; only the SHONEN erratum `0a1199a0`
+  carries the lane identity (routed defect K69-3; history is never rewritten to fix attribution).
+- **Outcome:** the non-author closure verified C1 (5 of 5), C2 (8 of 8) and C3 (2 of 2), status
+  `ok`, with eleven routed defects K69-1 … K69-11. Two numbers in the r69 report are corrected here
+  (K69-7): the recapture tree holds 10 receipts, not nine (`git ls-tree -r --name-only 9ce102b --
+  .ufo/waves/round-69/recapture/`), and of the 24 r68 wave paths, 23 landed in `a02ba7e` and
+  1 dispositioned as removed (the 269 MB clone), not "all 24 land".
+- **Pointer:** `corpus/lessons/round-69.md`, `corpus/lessons/round-69-verifier-spotcheck.md`,
+  `plans/round-69.md`; lane commits `a238989`, `a02ba7e`, `54f4b6c`, `278b9dc`, `9ce102b`.
+- **Governance corrections (K69-11; appended notices, round-65 form — the cited lines are not edited):**
+  - LOG.md:2676 token ".ufo/waves/round-67/w1/controls/census-validate-append.txt" -> ".ufo/waves/round-67/controls/census-validate-append.txt" (the r67 census receipt sits directly under controls/, as the R67-2 erratum on that line says).
+  - LOG.md:2678 token ".ufo/waves/round-67/w1/controls/junk-world/" -> "corpus/lessons/round-68.md" (the 254 MB control mirror was removed from the working tree in round 68 and never tracked; its record is M109 in the round-68 lesson).

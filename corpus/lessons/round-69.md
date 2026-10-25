@@ -166,3 +166,8 @@ parsed characters against the documented 1,024 cap — the proposal stays open.
   corpus/knowledge/client-trust-gates-round68.md`; `teaches` opens `supersedes S201 —`.
 - No prior row's `status`, `recheck` or `used-by` was changed: `corpus/SOURCES.md` gained six rows
   and lost none.
+
+## Errata (appended in round 70; the text above is not edited)
+
+- Erratum (K69-10): the § Gate preamble's "`--self-test` exits 0 (18 assertions)" is stale — the shipped counter `verifiers/check_skill_precedence.py` prints `self-test: 0 failure(s) over 22 assertions` at the r69 tip `9ce102b9e3f8896d5ed3f050ee896ca90d693a38`, as `controls/postfreeze-receipt.txt` and `.ufo/waves/round-70/receipts/r69-tip-defense.txt` record; "(18 assertions)" above reads 22 assertions.
+- Erratum (K69-9): the § Status changes line "No prior row's `status`, `recheck` or `used-by` was changed" is true of those three cells but omits an in-place edit outside them: S201's anchor cell changed from `(13 words)` to `(14 words)` in `a02ba7e` (`git diff a5f7459 9ce102b -- corpus/SOURCES.md`). The new count is the true one; the old→new log the SOURCES contract requires is in `corpus/lessons/round-70.md` § Status changes.
