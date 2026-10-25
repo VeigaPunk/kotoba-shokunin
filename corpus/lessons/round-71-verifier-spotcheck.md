@@ -1,0 +1,185 @@
+---
+author: hyaku closure (non-author integrator, @m_kfc)
+date: 2026-10-25
+round: 71
+lane: kotoba
+---
+
+# Round 71 — verifier spot-check (hyaku closure, non-author integrator)
+
+Non-author closure of kotoba round 71. Report `.ufo/reports/round-71/kotoba.md`
+(fleet revisions: filed `c8a6c88a` by `kotoba-shokunin <kotoba@shokunin.local>`,
+erratum `41700b6c` appending `## SHONEN` + `## Sources & frontier`, +34 lines purely
+additive). Lane base `2b79115cccdbe37b760e7f59b081bcfa62cfb94e` → pushed tip
+`f55f2d24fae1b4938f8f15dd75072ad0602e4fd5` (branch `master`).
+
+Per PROTOCOL §Gate standard (Closure consequence) this closure did **not** execute the
+lane's instruments (`check_r69_routed_repairs_v2.py`, `check_skill_evals_v2.py`,
+`verify_skill_checklist.py`, `verify_corpus_integrity.py`). Claim content was re-derived
+with plain measurements over committed bytes (`git show`/`git diff`/`grep`/`wc`/`sha256sum`,
+`git ls-remote`, `curl` fetches of the upstream files at the pinned commit), and every
+counter verdict was verified from the lane's committed evidence: receipts, control bundles,
+self-test tallies, and the revision each receipt names. Which half each claim rests on is
+stated per claim.
+
+## Step-1 conformance
+
+| Check | Result |
+|---|---|
+| Report committed by the lane identity | `git log --format='%an %H' -- .ufo/reports/round-71/kotoba.md` → `kotoba-shokunin c8a6c88a`, `kotoba-shokunin 41700b6c` — OK |
+| `SHONEN` heading, one line per box | Present (erratum `41700b6c`); four boxes all `[~]` with resolvable pointers; no `[x]` — OK as a report, not a promotion |
+| Every cited lane commit is an ancestor of the branch | `git merge-base --is-ancestor <h> master` for `2b79115`, `3677b2e`, `bf98d28`, `eb394f5`, `53d7019`, `a647fa7` — all ANCESTOR-OK |
+| Pushed, nothing ahead | `jj-lane.sh state` → `branch=master local=f55f2d2… remote=f55f2d2… ahead=0 behind=0 head=detached tracked=0 untracked=0` — OK |
+| No uncommitted round work | `git status --porcelain` prints nothing — OK |
+| Prompt carries the template contract | `.ufo/prompts/kotoba-round-71.md` embeds report path/filename (§4), commit-before-report ordering ("lands last… cites the pushed lane hash"), the `SHONEN` heading requirement, commit-hash citation rule ("Cite ONLY the helper's final `landed <hash>`"), lane write scope (§3) plus hyaku addendum §6 — OK |
+| Driver digest | `2026-10-25T10:42:42-03:00 launch kotoba round=71 pgid=2529848 driver=hyaku-inline attempt=1`; `2026-10-25T11:19:08-03:00 complete kotoba round=71; hyaku-inline attempt=1` — matches the dispatched closure prompt digest |
+| Marker vs report | Real work with evidence pointers and cited commits — not a marker. Status `ok` |
+
+Conformance defects (status-neutral, routed below): the report as first filed at
+`c8a6c88a` omitted `## SHONEN` and `## Sources & frontier` (same defect class as
+round-69; fixed by additive erratum `41700b6c` before closure). The report has no
+canonical `Trend verdicts` section and no `Work performed`/`Before → after
+measurements` headings (the `Claims` section carries the before→after commands and
+values). The report does not record round shape, wave seat counts, role mix, dead
+seats, or round total, and no wave spec/registry/seat reports are committed under
+`.ufo/waves/round-71/` (only `receipts/` and `controls/`). The claimed
+`verify_corpus_integrity.py` 9/9 pass has no committed receipt (committed no-harm
+evidence is `checklist-tip.json` 11/11 exit 0 and `census-after.txt` exit 0). The
+report's Landed list cites tip `53d7019` but the actual lane HEAD (and the closure's
+after-hash) is `f55f2d2` ("census-before receipt"), omitted from the list.
+
+## Junk-world receipts predate the real-data receipts (assignment headline)
+
+`git log --format='%h %ci %s' --reverse 2b79115..master`:
+
+1. `3677b2e` 11:13:23 — freeze: plan, both counters, committed control bundles, junk receipts red
+2. `bf98d28` 11:13:29 — claim data (K69-11 errata row; S212/S213 anchors)
+3. `eb394f5` 11:16:39 — tip receipts, LOG/SCORECARD entries, lesson
+4. `53d7019` 11:16:52 — baseline re-record
+5. `f55f2d2` 11:18:41 — census-before receipt
+
+`git log --diff-filter=A` per receipt: `c1-junk-world.txt` and `c2-junk-world.txt`
+added in `3677b2e` (with the control bundles under
+`.ufo/waves/round-71/controls/{c1,c2}-junk-world/` and the frozen plan); the
+real-data receipts `c1/c2-{base,tip}.txt` and both selftest receipts added in
+`eb394f5`. Junk receipts (11:13:23) predate the data commit `bf98d28` (11:13:29) and
+the real-data receipts (11:16:39) in commit order. ✔
+
+## Per-claim re-check
+
+### C1 — consistency (calibration sub-axis), successor r69 routed-repairs counter
+
+Reported: base `2b79115` 9/10 exit 1 (K69-11 alone open); junk world 5/10 exit 1;
+tip `bf98d28` 10/10 exit 0; selftest 0 failures.
+
+- Re-measured (plain bytes): at `f55f2d2`, `LOG.md:2678` is the inherited
+  `- **Routed defect R67-3 (disclosure).** .ufo/waves/round-67/w1/controls/junk-world/ — a 254 MB`
+  line; its gate-style hash `sha256(splitlines()[2677])` =
+  `d7f442ed89197de3c66d1ffbaad22f349ececb5630ee7b4d73b2a114beb3c510` matches the pin in
+  `verifiers/verify_skill_checklist.py:413` at `2b79115`, `bf98d28`, `eb394f5`, `53d7019`,
+  and `f55f2d2` (line unchanged all round). `GOVERNANCE_ERRATA_HORIZON = 2678`
+  (`verify_skill_checklist.py:400`, raised from 2315). The successor counter pins both
+  checklist blobs `508512daf255…` (pre-edit) and `8d44c063e3d4…` (post-edit) at
+  `verifiers/check_r69_routed_repairs_v2.py:102-103` with the fake world pinning
+  `508512da…` (line 548). At base `2b79115` `grep -c GOVERNANCE_ERRATA LOG.md` = 2 (only
+  the two pre-existing rows); the errata disposition row is round-71 work.
+- Evidence-verified (not executed): `receipts/c1-base.txt` names
+  `measured-rev: 2b79115…`, `r69 routed defects closed 9 of 10`, `exit=1` (K69-11
+  `governance.citation_resolves FAIL`); `receipts/c1-tip.txt` names
+  `measured-rev: bf98d28…`, `10 of 10`, `exit=0`; `receipts/c1-junk-world.txt` names the
+  committed bundle, the scratch junk commit `955ffd5d…`, the frozen command, and
+  `5 of 10` / `exit 1`; `receipts/c1-selftest.txt` tallies 24 PASS arms incl. the
+  rev-controlled-stub gate arm, the wrong-round heading, mid-word probes and in-place
+  edit arms, and ends `self-test: 0 failure(s)` with the committed junk world re-run
+  at 5/10. Every receipt names the revision it was measured against.
+- Verdict: **improved — claim verifies** (disposition bytes re-measured; counter
+  verdicts evidence-verified per Gate standard).
+
+### C2 — depth (lowest owned axis), successor skill-evals counter + upstream anchors
+
+Reported: base 1/10 exit 1; junk world 0/10 exit 1; tip `bf98d28` 10/10 exit 0; selftest
+0 failures; rows 137 → 139; S212/S213 superseding rows on
+`agentskills/agentskills@69ef37e…`.
+
+- Re-measured (plain bytes): `git show <rev>:corpus/SOURCES.md | grep -cE '^\s*\|\s*S[0-9]{3,}\s*\|'` →
+  `2b79115` = **137**, `bf98d28` = **139**, `f55f2d2` = **139** (matches report).
+  S212/S213 rows present at tip, each carrying `upstream commit
+  69ef37e9424c0a7ea9dd2293b559e43ec8176379` and a quote of 9 / 17 words (≤25 ✔);
+  S209/S210 rows keep `mined` status and gained the upstream-commit anchor cell.
+  `SKILL.md` at tip is 600 lines with exactly one rendered citation line naming the
+  entry + S211/S212/S213 (line 241); base also had exactly one (naming S209–S211) — the
+  before/after difference is the row pinning, and the C2 base receipt shows the old
+  line failing the new counter (`0 rendered lines name the entry + S211/S212/S213`).
+  `git ls-remote https://github.com/agentskills/agentskills.git refs/heads/main` →
+  `69ef37e9424c0a7ea9dd2293b559e43ec8176379` — the pinned upstream commit is current
+  main. `curl` of both `docs/skill-creation/*.mdx` at the pinned commit succeeded
+  (16 755 B / 13 151 B).
+- Evidence-verified (not executed): `receipts/c2-base.txt` (`measured-rev: 2b79115…`,
+  `1 of 10`, `exit=1`, F1–F7 unpinned S209, A9 anchor lacks upstream commit);
+  `receipts/c2-tip.txt` (`measured-rev: bf98d28…`, `10 of 10`, `exit=0`);
+  `receipts/c2-junk-world.txt` (W12 bundle, scratch junk commit `fb6a28ee…`, `0 of 10`,
+  `exit 1`); `receipts/c2-selftest.txt` — 15 PASS arms incl. W12 bare entry, HTML
+  comment, fence, mid-word, shadow-row, negated-SKILL, unanchored-anchor,
+  unpinned-citation and snapshot-tamper EnvError arms, `self-test: 0 failure(s)`.
+- Verdict: **improved — claim verifies** (rows/anchors/quotes re-measured; counter
+  verdicts evidence-verified per Gate standard).
+
+## No-harm check
+
+`git diff --numstat 2b79115 f55f2d2` over owned surfaces: `LOG.md` 19+/0− (pure append,
+`## Round 71` entry at line 2751 with trigger → action → outcome → pointer);
+`SCORECARD.md` 2+/0− (append-only round-71 annotation); `SKILL.md` 1+/1− (the citation
+line only); `corpus/SOURCES.md` 4+/2− (two rows added, two anchor cells touched);
+`corpus/lessons/round-71.md` 49+/0− (new lesson); `PROVINCE.md` unchanged (0 diff);
+`SHONEN.md` untouched. Committed no-harm evidence: `receipts/checklist-tip.json`
+`pass: 11, fail: 0, exit_code: 0`; `receipts/census-after.txt` exit=0; closure-rerun of
+`/home/vgpnk/Projects/shokunin/scripts/sources-census.sh validate --root /home/vgpnk/Projects/shokunin kotoba`
+→ `kotoba ok …/corpus/SOURCES.md`, exit 0 (W04 duplicate-URL warnings only, incl. the
+expected S212/S209 and S213/S210 pairs). No owned axis harmed.
+
+## Discernment spot-check (LEARNING.md — checked from outside)
+
+From `corpus/lessons/round-71.md` `## Gate` (and the round's one negative disposition as
+the reject-side sample, since the block records "none refused this round"):
+
+| Item | Lane decision | Re-opened source | Agree? | Reason |
+|---|---|---|---|---|
+| S212 admit (evaluating-skills guide, superseding S209 for citation) | admit | `https://raw.githubusercontent.com/agentskills/agentskills/69ef37e…/docs/skill-creation/evaluating-skills.mdx` (fetched 2026-10-25) | **agree** | Quote located at upstream line 84 ("The main file you author by hand is `evals/evals.json`."); the row's 9-word quote strips the source's markdown backticks — acceptable normalization since the row cites the rendered page; anchor section "Running evals" present. ≤25 words ✔ |
+| S213 admit (optimizing-descriptions guide, superseding S210) | admit | `…/docs/skill-creation/optimizing-descriptions.mdx` at the same commit (fetched 2026-10-25) | **agree** | 17-word quote matches the upstream file byte-for-byte (verbatim, incl. "(0.5 is a reasonable default)"); located in the "Running multiple times" subsection as claimed. ≤25 words ✔ |
+| K69-11 disposition (reject the `GOVERNANCE_CORRECTIONS` mechanism; record absence via a pinned `GOVERNANCE_ERRATA` row instead) | reject mechanism / record absence | `LOG.md:2678` at `2b79115…f55f2d2`; `verifiers/verify_skill_checklist.py:400-421`; `receipts/c1-junk-world.txt` | **agree** | The subject `.ufo/waves/round-67/w1/controls/junk-world/` is genuinely dead (254 MB mirror removed untracked — the c1 junk receipt reproduces a resolving replacement absent), so a corrections row's "corrected token must resolve" arm is mechanism-invalid; the errata row pins line+sha+subject+quote at horizon 2678 and the r70 laundering ruling (M118/Q64) stands. The judgment call is sound and matches the gate's fail-closed design |
+
+Newly written `SOURCES.md` rows re-opened: S212 and S213 (above) — both quotes ≤25
+words and located on the sources they cite.
+
+## Trend verdicts (closure-derived; the report omits the canonical section)
+
+- **expansion: improved** — rows 137 → 139 (closure-counted at `2b79115`/`bf98d28`);
+  the skill-eval-artefacts knowledge entry now carries five pinned source lines
+  (S209–S213) with upstream-revision anchors where the base held unpinned citations.
+- **quality: improved** — both successor counters close the routed presence-floor
+  holes with committed self-test receipts (M121 committed control bundles, M122
+  gate-pin membership, M123 word-boundary fix — each "shown able to fail" in the
+  receipts); junk worlds are committed re-runnable bundles with red receipts before
+  data.
+- **discernment: unchanged** — both admits verify (2/2 agree) and the one negative
+  disposition is agreed, but the round recorded zero source rejections in its Gate
+  block, so no improved rejection evidence exists this round; the S212 backtick
+  normalization is a minor located-quote wrinkle to watch.
+
+## Routed defects for the lane's next round
+
+1. Report completeness: file `## SHONEN` and `## Sources & frontier` at first filing
+   (erratum needed for the second time — r69, r71); add the canonical `Trend verdicts`
+   section and the `Work performed` / `Before → after measurements` headings.
+2. Record the round shape per §2: wave seat count, role mix, dead seats, residual call,
+   round total — and commit wave specs/registries/seat reports under
+   `.ufo/waves/round-71/`-style paths as wave evidence (none committed this round).
+3. Commit a receipt for every no-harm battery item claimed (the `verify_corpus_integrity.py`
+   9/9 pass has no committed receipt).
+4. Gate block: record at least one rejected candidate source per round (or the sweep
+   that found none), so the non-author closure has a reject sample to re-open.
+5. Landed list: cite the actual lane HEAD (this round `f55f2d2`, not `53d7019`).
+6. State `Assimilation: none` (or do the assimilation) and record the considerthese
+   mining result per the §10 contract — neither appears in the r71 report or lesson.
+7. S212-row quote style: keep located quotes verbatim from the cited surface, or note
+   the normalization (backticks stripped) in the row/lesson.
