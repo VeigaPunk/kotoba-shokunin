@@ -397,12 +397,22 @@ SCHEMATIC_CITATION_RE = re.compile(r"(?:^|/)round-N(?:/|\.|$)")
 # same-line quote convention.  Only lines at or below the horizon qualify; each
 # row must match its line byte-for-byte, carry its absence wording, name a
 # subject on that line, and stay dead.  Rows: (line, line sha256, token, quote).
-GOVERNANCE_ERRATA_HORIZON = 2315
+GOVERNANCE_ERRATA_HORIZON = 2678
 GOVERNANCE_ERRATA = (
     (2111,
      "7dcbf123313d46c469cab9f5dac2daa7567e54ac1ddf7cffdd1fd38c74200135",
      ".ufo/round-45/drafts/v10/post-r44-hunt.py",
      "each exited 2 because the referenced runners are absent"),
+    # Round 71 (routed defect K69-11, round-70 closure): LOG.md:2678 records
+    # R67-3's disclosure -- the 254 MB `.ufo/waves/round-67/w1/controls/junk-world/`
+    # control mirror was removed from the working tree and never tracked, so
+    # the cited directory has no resolving replacement; the absence is the
+    # record (r70 report "inherited recorded absence"; the round-70 correction
+    # notice was withdrawn as laundering, M118/Q64).
+    (2678,
+     "d7f442ed89197de3c66d1ffbaad22f349ececb5630ee7b4d73b2a114beb3c510",
+     ".ufo/waves/round-67/w1/controls/junk-world/",
+     "Routed defect R67-3 (disclosure)"),
 )
 # Round 65 (claim C2): append-only corrections.  A stale citation cell in an
 # append-only governance file (LOG.md/SCORECARD.md) is fixed by an appended
