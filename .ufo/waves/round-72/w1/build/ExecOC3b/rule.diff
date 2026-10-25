@@ -1,0 +1,120 @@
+--- /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/verify_surfaces.py	2026-10-22 17:44:55.522510107 -0300
++++ /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-72/w1/build/ExecOC3b/verify_surfaces.py	2026-10-25 18:43:09.589165510 -0300
+@@ -593,24 +593,92 @@
+     r'\s*"([A-Za-z0-9_.-]+\.md)"'
+ )
+ 
+-# OC-3: the declared ``instructions`` list and its remote half (dump 443993).
++# OC-3: the declared ``instructions`` list and its remote half.
+ #   a: `Instruction.systemPaths` consumes it —
+ #      for(let O of T.instructions){if(O.startsWith("https://")||…)continue;…glob…}
+-#   b: `Instruction.system` fetches the remote entries and renders them —
+-#      (T.instructions??[]).filter((q)=>q.startsWith("https://")||q.startsWith("http://"))
+-#      `Instructions from: ${q}`
++#   b: the remote half.  v2.1.4 (round 72) dropped the two ``.startsWith``
++#      literals: a URL predicate decides which declared entries are remote,
++#      those are fetched into the ``{path,content}`` object the ``Instructions
++#      from:`` renderer consumes, and ``configuredSource`` resolves them back
++#      through ``.remote.get`` (dump 708687):
++#        function E1(e){return URL.canParse(e)&&/^https?:$/.test(new URL(e).protocol)}
++#        Ae=Array.from(new Set(…Re.info.instructions??[]…)),ye=yield*Q(Ae.filter(E1),
++#          (Re)=>Xf(Re).pipe(…L((Ve)=>new p2({path:Re,content:Ve})),
++#          Ee((Ve)=>Ge("failed to fetch instruction url",{url:Re,cause:Ve}))),{concurrency:4})
++#        if(E1(ye)){let Re=H.remote.get(ye);if(Re)we.push(Re);continue}
++#        `Instructions from: ${e.path}<LF>${e.content}`
++#      Every identifier there is a minifier name, so the rule binds the predicate
++#      by backreference, the list by the semantic ``instructions??[]`` read, the
++#      fetch by its ``{path,content}`` shape plus its error label, the resolve by
++#      ``.remote.get``, and the render by its path/content interpolation — the
++#      bare ``Instructions from: `` string-table entry is not the renderer.
+ # Round 47 tightened b to require the ``.filter(`` call: the round-14 pattern also
+ # matched a's loop (2 hits on 1.19.3), so a dropped filter still passed.
+ OC_DECLARED_RE = re.compile(
+     r"for\s*\(\s*let\s+[A-Za-z_$][A-Za-z0-9_$]*\s+of\s+"
+     r"[A-Za-z_$][A-Za-z0-9_$]*\.instructions\s*\)"
+ )
++# The 1.19.x lineage's literal test, retained as the committed fixture
++# generation (`strings-opencode-clean.txt`, `strings-opencode-1.19.4-anchors.txt`)
++# that the self-test arms pin; it occurs 0 times on the v2.1.4 dump.
+ OC_REMOTE_FILTER_RE = re.compile(
+     r'\.instructions[^;]{0,20}?\.filter\(\s*\(?\s*([A-Za-z_$][A-Za-z0-9_$]*)\s*\)?\s*=>\s*'
+     r'\1\.startsWith\("https://"\)\s*\|\|\s*\1\.startsWith\("http://"\)'
+ )
+ OC_REMOTE_RENDER = "Instructions from: "
++OC_REMOTE_LIST_RE = re.compile(r'\.instructions\s*\?\?\s*\[\]')
++OC_REMOTE_PRED_CALL_RE = re.compile(
++    r'\.filter\(\s*(?P<pred>[A-Za-z_$][A-Za-z0-9_$]*)\s*\)'
++)
++OC_REMOTE_URL_PRED_RE = re.compile(
++    r'function\s+(?P<pred>[A-Za-z_$][A-Za-z0-9_$]*)\s*\(\s*(?P<v>[A-Za-z_$][A-Za-z0-9_$]*)\s*\)'
++    r'\s*\{\s*return\s+URL\.canParse\(\s*(?P=v)\s*\)\s*&&\s*'
++    r'/\^https\?:\$/[a-z]*\.test\(\s*new\s+URL\(\s*(?P=v)\s*\)\.protocol\s*\)\s*\}'
++)
++OC_REMOTE_FETCH_RE = re.compile(
++    r'new\s+[A-Za-z_$][A-Za-z0-9_$]*\(\{\s*path:\s*[A-Za-z_$][A-Za-z0-9_$]*\s*,'
++    r'\s*content:'
++)
++OC_REMOTE_FETCH_LABEL = "failed to fetch instruction url"
++OC_REMOTE_RESOLVE_RE = re.compile(
++    r'if\(\s*(?P<pred>[A-Za-z_$][A-Za-z0-9_$]*)\s*\(\s*(?P<src>[A-Za-z_$][A-Za-z0-9_$]*)\s*\)\s*\)'
++    r'\s*\{\s*let\s+[A-Za-z_$][A-Za-z0-9_$]*\s*=\s*[A-Za-z_$][A-Za-z0-9_$]*\.remote\.get\(\s*'
++    r'(?P=src)\s*\)'
++)
++OC_REMOTE_RENDER_RE = re.compile(
++    r'`Instructions from: \$\{\s*(?P<item>[A-Za-z_$][A-Za-z0-9_$]*)\.[A-Za-z_$][A-Za-z0-9_$]*\s*\}'
++    r'\n\$\{\s*(?P=item)\.'
++)
++OC_REMOTE_WINDOW = 400
++
+ 
++def opencode_remote_instructions_matches(dump: str) -> bool:
++    """Witness the remote half of the declared ``instructions`` list.
++
++    v2.1.4 branch: a URL predicate exists, one branch resolves a source through
++    ``.remote.get`` under that predicate, the renderer interpolates one item's
++    ``path``/``content``, and the declared list is filtered by that same
++    predicate into a fetch that materialises the rendered object.
++    Retained 1.19.x branch: the committed fixture generation's literal test
++    plus the bare render token (0 occurrences on the v2.1.4 dump)."""
++    predicates = {m.group("pred") for m in OC_REMOTE_URL_PRED_RE.finditer(dump)}
++    if predicates:
++        resolved = any(m.group("pred") in predicates
++                       for m in OC_REMOTE_RESOLVE_RE.finditer(dump))
++        if resolved and OC_REMOTE_RENDER_RE.search(dump) is not None:
++            for declared in OC_REMOTE_LIST_RE.finditer(dump):
++                window = dump[declared.start():declared.start() + OC_REMOTE_WINDOW]
++                for call in OC_REMOTE_PRED_CALL_RE.finditer(window):
++                    if call.group("pred") not in predicates:
++                        continue
++                    if OC_REMOTE_FETCH_RE.search(window, call.end()) is None:
++                        continue
++                    if OC_REMOTE_FETCH_LABEL in window[call.end():]:
++                        return True
++    return (OC_REMOTE_FILTER_RE.search(dump) is not None
++            and OC_REMOTE_RENDER in dump)
++
++
+ # OC-5: the resolution switch that decides *where* OC-1's names are read from —
+ # project walk-up versus config-only (dump 443993):
+ #   if(!Jr.OPENCODE_DISABLE_PROJECT_CONFIG)return yield*e.globUp(T,d.directory,d.worktree)
+@@ -792,15 +860,15 @@
+          ['X.join(<v>.config,"AGENTS.md")',
+           'X.join(<v>.home,".claude","CLAUDE.md")'])
+ 
+-    # OC-3 — declared list + remote filter/render (two ids, two anchor pairs)
++    # OC-3 — declared list + remote predicate/fetch/resolve/render (two ids)
+     declared = OC_DECLARED_RE.search(dump) is not None
+     rule("OC-3a", ["opencode:config/instructions"], declared,
+          ["for(let <v> of <v>.instructions)"])
+-    remote = (OC_REMOTE_FILTER_RE.search(dump) is not None
+-              and OC_REMOTE_RENDER in dump)
++    remote = opencode_remote_instructions_matches(dump)
+     rule("OC-3b", ["opencode:config/instructions-remote"], remote,
+-         ['.instructions….filter((q)=>q.startsWith("https://")||q.startsWith("http://"))',
+-          OC_REMOTE_RENDER])
++         ['<v>.instructions??[] filtered by a URL predicate into a {path,content} fetch',
++          'configuredSource resolves the URL source through .remote.get',
++          '`Instructions from: ${<v>.path}<LF>${<v>.content}`'])
+ 
+     # OC-4 — resolver service export, ReadTool call edge, and same-result reminder.
+     read_hook = opencode_read_hook_matches(dump)

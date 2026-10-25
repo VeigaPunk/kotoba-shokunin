@@ -1,0 +1,62 @@
+class DownloadUtils {
+  static hashUrl(url) {
+    let hash = 0;
+    for (let i2 = 0;i2 < url.length; i2++) {
+      const char = url.charCodeAt(i2);
+      hash = (hash << 5) - hash + char;
+      hash = hash & hash;
+    }
+    return Math.abs(hash).toString(16);
+  static async downloadOrLoad(source, cacheDir, cacheSubdir, fileExtension, useHashForCache = true, filetype) {
+    const isUrl = source.startsWith("http://") || source.startsWith("https://");
+    if (isUrl) {
+      let cacheFileName;
+      if (useHashForCache) {
+        const hash = this.hashUrl(source);
+        cacheFileName = filetype ? `${filetype}-${hash}${fileExtension}` : `${hash}${fileExtension}`;
+      } else {
+        cacheFileName = path.basename(source);
+      }
+      const cacheFile = path.join(cacheDir, cacheSubdir, cacheFileName);
+      await mkdir(path.dirname(cacheFile), { recursive: true });
+      try {
+        const cachedContent = await readFile(cacheFile);
+        if (cachedContent.byteLength > 0) {
+          console.log(`Loaded from cache: ${cacheFile} (${source})`);
+          return { content: cachedContent, filePath: cacheFile };
+        }
+      } catch (error) {}
+      try {
+        console.log(`Downloading from URL: ${source}`);
+        const response = await fetch(source);
+        if (!response.ok) {
+          return { error: `Failed to fetch from ${source}: ${response.statusText}` };
+        }
+        const content = Buffer.from(await response.arrayBuffer());
+        try {
+          await writeFile(cacheFile, Buffer.from(content));
+          console.log(`Cached: ${source}`);
+        } catch (cacheError) {
+          console.warn(`Failed to cache: ${cacheError}`);
+        }
+        return { content, filePath: cacheFile };
+      } catch (error) {
+        return { error: `Error downloading from ${source}: ${error}` };
+      }
+    } else {
+      try {
+        console.log(`Loading from local path: ${source}`);
+        const content = await readFile(source);
+        return { content, filePath: source };
+      } catch (error) {
+        return { error: `Error loading from local path ${source}: ${error}` };
+      }
+    }
+  static async downloadToPath(source, targetPath) {
+    const isUrl = source.startsWith("http://") || source.startsWith("https://");
+    await mkdir(path.dirname(targetPath), { recursive: true });
+`)};class cI extends U()("@opencode/McpInstructions"){}var tS=z(cI,s(function*(){let H=yield*Wc;return cI.of({load:c("McpInstructions.load")(function*(e){let A=(_)=>GA({key:sA.make("core/mcp-guidance"),codec:po(E(YB)),read:u(_),render:{initial:vD,changed:HS,removed:()=>"MCP server instructions are no longer available."}}),[r,i]=yield*WH([H.instructions(),H.tools()],{concurrency:"unbounded"}),a=gP("execute","*",e).effect!=="deny",D=r.flatMap((_)=>{let h=i.filter((l)=>l.server===_.server),S=h[0]?.codemode!==!1;if(S&&!a)return[];if(!h.some((l)=>gP(Xo(l.server,l.name),"*",e).effect!=="deny"))return[];return[S?{server:_.server,instructions:_.instructions}:{server:_.server,instructions:_.instructions,codemode:!1}]}).toSorted((_,h)=>_.server.localeCompare(h.server));return A(D.length===0?bA:D)})})})),eS=Ct({service:cI,layer:tS,deps:[xP]});import bD from"path";import{fileURLToPath as LS}from"url";class wD extends ne()("RepositoryInvalidReferenceError",{repository:t,message:t}){}class GD extends ne()("RepositoryUnsupportedLocalRepositoryError",{repository:t,message:t}){}class ND extends ne()("RepositoryInvalidBranchError",{branch:t,message:t}){}function G$(H){let e=oS(H);if(!e)return;let A=e.match(/^github:([^/\s]+)\/([^/\s]+)$/);if(A)return MI({host:"github.com",segments:[A[1],A[2]]});if(!e.includes("://")){let r=e.match(/^(?:[^@/\s]+@)?([^:/\s]+):(.+)$/);if(r)return MI({host:r[1],segments:Zo(r[2]),remote:e});let i=Zo(e);if(i.length>=2&&ES(i[0]))return MI({host:i[0],segments:i.slice(1)});if(i.length===2)return MI({host:"github.com",segments:i})}try{let r=new URL(e);if(r.protocol==="file:")return sS({url:r,remote:e});let i=Zo(r.pathname);return MI({host:r.host,segments:i,remote:r.host==="github.com"?RD(i.join("/")):e,protocol:r.protocol})}catch{return}}function $S(H){let e=G$(H);if(!e)throw new wD({repository:H,message:"Repository must be a git URL, host/path reference, or GitHub owner/repo shorthand"});if(!kD(e))throw new GD({repository:H,message:"Local file repositories are not supported"});return e}function XD(H){if(/^[A-Za-z0-9/_.-]+$/.test(H)&&!H.startsWith("-")&&!H.includes(".."))return;throw new ND({branch:H,message:"Branch must contain only alphanumeric characters, /, _, ., and -, and cannot start with - or contain .."})}function fS(H){return H.protocol==="file:"}function kD(H){return!fS(H)}function OD(H,e,A){let r=bD.join(H,...e.host.split(":"),...e.segments);return A?`${r}@${encodeURIComponent(A)}`:r}function FD(H){return`${H.host}/${H.path}`}function rS(H,e){return FD(H)===FD(e)}function oS(H){return H.trim().replace(/^git\+/,"").replace(/#.*$/,"").replace(/\/+$/,"")}function Qo(H){return H.replace(/\.git$/,"")}function Zo(H){return H.split("/").map((e)=>Qo(e.trim())).filter(Boolean)}function nS(H){return Boolean(H)&&!H.startsWith("-")&&H.split(":").every(KD)}function KD(H){return H!=="."&&H!==".."&&!H.includes(":")&&!/[\s/\\]/.test(H)}function ES(H){return H.includes(".")||H.includes(":")||H==="localhost"}function iS(H){return H.endsWith("/")?H:`${H}/`}function RD(H){let e=process.env.OPENCODE_REPO_CLONE_GITHUB_BASE_URL;if(!e)return`https://github.com/${H}.git`;return new URL(`${H}.git`,iS(e)).href}function MI(H){let e=H.segments.map(Qo).filter(Boolean);if(!nS(H.host)||!e.length||e.some((i)=>!KD(i)))return;let A=e.join("/"),r=H.host.toLowerCase();return{host:r,path:A,segments:e,owner:e.length===2?e[0]:void 0,repo:e[e.length-1],remote:H.remote??(r==="github.com"?RD(A):`https://${r}/${A}.git`),label:r==="github.com"&&e.length===2?A:`${r}/${A}`,protocol:H.protocol}}function sS(H){let e=bD.normalize(LS(H.url)),A=e.split(/[\\/]+/).filter(Boolean);if(!A.length)return;return{host:"file",path:e,segments:A.map((r)=>r.replace(/:$/,"")),owner:void 0,repo:Qo(A[A.length-1]),remote:H.remote,label:e,protocol:"file:"}}import uS from"path";var aS=o({attemptedAt:P}),DS=_t(hm(1));class tn extends ne()("RepositoryCacheInvalidBranchError",{branch:t,message:t}){}class An extends ne()("RepositoryCacheCloneFailedError",{repository:t,message:t}){}class dI extends ne()("RepositoryCacheFetchFailedError",{repository:t,message:t}){}class Ln extends ne()("RepositoryCacheCheckoutFailedError",{repository:t,branch:t,message:t}){}class $n extends ne()("RepositoryCacheResetFailedError",{repository:t,message:t}){}class rn extends ne()("RepositoryCacheLockFailedError",{localPath:t,message:t}){}class nn extends ne()("RepositoryCacheOperationError",{operation:t,path:t,message:t}){}class pI extends U()("@opencode/RepositoryCache"){}function cS(H){return H instanceof tn||H instanceof An||H instanceof dI||H instanceof Ln||H instanceof $n||H instanceof rn||H instanceof nn}var MS=c("RepositoryCache.validateBranch")(function*(H){return yield*Ht({try:()=>XD(H),catch:(e)=>new tn({branch:H,message:un(e)})})}),dS=z(pI,s(function*(){let H=yield*Ce.Service,e=yield*m1,A=yield*Qm.Service,r=yield*Fn,i=yield*m0;return pI.of({ensure:c("RepositoryCache.ensure")(function*(a){if(a.branch)yield*MS(a.branch);let D=a.reference.label,_=OD(r.repos,a.reference,a.branch),h=`repository-cache:${_}`,S=G$(a.reference.remote)??a.reference;return yield*A.withLock(s(function*(){yield*zD(H.ensureDir(uS.dirname(_)),"ensure cache directory",_);let l=yield*e.repo.discover(ke.make(_)),F=l?yield*e.remote.get(l):void 0,C=F?G$(F):void 0,T=l?yield*H.resolve(_):void 0,J=Boolean(l&&l.worktree===T&&C&&rS(C,S));if(!J&&(yield*H.existsSafe(_)))yield*zD(H.remove(_,{recursive:!0}),"remove stale cache",_);let HH=yield*sn,uH=se(Wt(aS)(yield*i.get(h))),N=a.refresh==="daily"?!uH||HH-uH.attemptedAt>=DS:a.refresh,eH=!J?"cloned":N?"refreshed":"cached";if(eH!=="cached"){if(yield*i.set(h,{attemptedAt:HH}),eH==="cloned")yield*e.repo.clone({remote:a.reference.remote,directory:ke.make(_),branch:a.branch}).pipe(M((AH)=>new An({repository:D,message:AH.message})));if(eH==="refreshed"){if(!l)return yield*new dI({repository:D,message:"Repository is unavailable"});if(yield*e.sync.fetchRemotes(l).pipe(M((O)=>new dI({repository:D,message:O.message}))),a.branch)yield*e.sync.fetchBranch(l,{branch:a.branch}).pipe(M((O)=>new dI({repository:D,message:O.message})));let AH=a.branch??(yield*e.history.defaultRemoteBranch(l));if(AH)yield*e.sync.checkoutRemoteBranch(l,{branch:AH}).pipe(M((O)=>new Ln({repository:D,branch:AH,message:O.message})));let V=AH??(yield*e.history.branch(l));yield*e.sync.resetHard(l,V?`origin/${V}`:"HEAD").pipe(M((O)=>new $n({repository:D,message:O.message})))}}let q=yield*e.repo.discover(ke.make(_));return{repository:D,host:a.reference.host,remote:a.reference.remote,localPath:_,status:eH,head:q?yield*e.history.head(q):void 0,branch:q?yield*e.history.branch(q):void 0}}),h).pipe(M((l)=>cS(l)?l:new rn({localPath:_,message:un(l)})))})})})),pS=Nt({service:pI,layer:dS,deps:[Qm.node,Ce.node,JP,ls,FT]});function un(H){return H instanceof globalThis.Error?H.message:String(H)}function zD(H,e,A){return H.pipe(M((r)=>new nn({operation:e,path:A,message:un(r)})))}var f0e=pj,u0e=Lj,mS=CZ,ZD=KG;class h2 extends U()("@opencode/Reference"){}var _S=z(h2,s(function*(){let H=yield*Fn,e=yield*yn,A=yield*pI,r=yield*Bt,i=()=>Array.from(D.get().sources).flatMap(([_,h])=>{let S={name:_,source:h,...h.description===void 0?{}:{description:h.description},...h.hidden===void 0?{}:{hidden:h.hidden}};if(h.type==="local")return[ZD.make({...S,path:h.path})];let l=G$(h.repository);if(!l||!kD(l))return[];if(h.branch)try{XD(h.branch)}catch{return[]}return[ZD.make({...S,path:ke.make(OD(H.repos,l,h.branch))})]}),a=c("Reference.refresh")(function*(){yield*Q(i(),(_)=>s(function*(){if(_.source.type!=="git")return;yield*A.ensure({reference:$S(_.source.repository),branch:_.source.branch,refresh:"daily"})}).pipe(Ee((h)=>Ge("failed to materialize reference",{name:_.name,cause:h}))),{concurrency:4,discard:!0})}),D=Sl({name:"reference",initial:()=>({sources:new Map}),editor:(_)=>({add:(h,S)=>_.sources.set(h,S),remove:(h)=>_.sources.delete(h),list:()=>Array.from(_.sources),get:(h)=>_.sources.get(h)}),notify:()=>s(function*(){yield*a().pipe(kt(r)),yield*e.publish(dj.Updated,{})})});return yield*fn("1 hour").pipe(Z(a()),lo,Me),h2.of({transform:D.transform,reload:D.reload,list:c("Reference.list")(function*(){return i()})})})),hR=Ct({service:h2,layer:_S,deps:[ls,ti,pS]});var hS=o({name:t,path:t,description:t.pipe(n)}),Dn=(H)=>H.flatMap((e)=>["  <reference>",`    <name>${e.name}</name>`,`    <path>${e.path}</path>`,...e.description===void 0?[]:[`    <description>${e.description}</description>`],"  </reference>"]),jD=(H)=>["Project references provide additional directories that can be accessed when relevant.","<available_references>",...Dn(H),"</available_references>"].join(`
+FileSystem.globUp
+writeJson
+findUp
+globUp

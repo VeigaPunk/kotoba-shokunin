@@ -1,0 +1,242 @@
+--- verifiers/verify_surfaces.py	2026-10-22 17:44:55.522510107 -0300
++++ .ufo/waves/round-72/w1/build/ExecOC4/verify_surfaces.py	2026-10-25 18:52:31.740480793 -0300
+@@ -574,6 +574,16 @@
+ # `m is not None`. OC-6's config candidate/env gate remain unwitnessed. OC-4 now
+ # binds the resolver export to the ReadTool call and wrapped result; OC-6 binds
+ # its observed layer to the `system-context-builtins` dependency (round 53).
++# ROUND 72 (append-only): opencode moved channel again — the host binary is
++# `~/.opencode/bin/opencode` v2.1.4 (sha256 `ca9b3ee2…`; `strings -n 4` dump
++# sha256 `020fb253…`), not npm 1.19.4.  OC-4 is re-derived below on that dump:
++# the `Instruction.resolve` → `ReadTool.execute` → `<system-reminder>` chain has
++# 0 hits, while the read tool now calls the `@opencode/SessionInstructions`
++# service, which publishes `Instructions from: ${path}\n${content}` as a session
++# update.  OC-1..OC-3, OC-5 and OC-6 are NOT yet re-derived for v2.1.4 (their
++# 1.19.x anchors also occur 0 times on this dump) — this note records the
++# generation boundary, it does not launder it: each rule keeps its own anchors
++# and no rule accepts two generations at once.
+ 
+ # OC-1: the per-directory name-priority list (first-match walk-up; dump 443993):
+ #   y=["AGENTS.md",...!t.disableClaudeCodePrompt?["CLAUDE.md"]:[],"CONTEXT.md"]
+@@ -647,64 +657,90 @@
+     + r'",layer:[A-Za-z_$][A-Za-z0-9_$]*,'
+ )
+ 
+-# OC-4: the read-tool channel resolves instructions and places the resolved
+-# contents in the tool result's <system-reminder>. The minified registration
+-# The minifier renamed the wrapper callee from `fn` (1.19.3) to `l` (1.19.4);
+-# matching the quoted label keeps the registration edge alias-agnostic.
+-OC_READ_HOOK_TOKEN = "<system-reminder>"
+-OC_READ_HOOK_ENTRY_RE = re.compile(
+-    r'(?P<method>[A-Za-z_$][A-Za-z0-9_$]*)='
+-    r'(?:[A-Za-z_$][A-Za-z0-9_$]*\.)?[A-Za-z_$][A-Za-z0-9_$]*\("Instruction\.resolve"\)'
+-    r'\(function\*'
++# OC-4: the read tool's instruction channel.  v2.1.4 dropped the 1.19.x wiring
++# this rule was written for: `Instruction.resolve` exported as `.resolve`,
++# `ReadTool.execute` calling it with `(messages, path, id)`, and the resolved
++# content wrapped in the tool result's `<system-reminder>` all occur 0 times on
++# the v2.1.4 dump (strings -n 4, sha256 020fb253…).  The channel is now
++# (dump lines 708687 and 708708, one `// @bun` module):
++#   LF="AGENTS.md", … {id:"opencode.tool.read",effect:c("ReadTool.Plugin")(function*(e){let …l=yield*sl
++#   … .up({targets:[LF],start:…,stop:V,type:"file"}) …
++#   yield*l.load({sessionID:q.sessionID,paths:Y})
++#   class sl extends U()("@opencode/SessionInstructions"){} … return sl.of({load:_})
++#   … e.publish(hv,{…text:N.map((O)=>`Instructions from: ${O.path}\n${O.content}`)…
++# A read walks up for the AGENTS.md instruction file, hands the found paths to
++# the session-instruction service, and that service reads them and publishes the
++# rendered text as a session update (`session.instructions.updated`) instead of
++# appending it to the tool result.  All edges are bound inside ONE module, so a
++# shape that keeps the tokens but loads through another service, walks another
++# target, or renders no instruction text stays unmatched.
++OC_READ_PLUGIN_RE = re.compile(
++    r'\{id:"opencode\.tool\.read",effect:c\("ReadTool\.Plugin"\)\(function\*'
+ )
+-OC_READ_TOOL_ENTRY_RE = re.compile(
+-    r'(?:[A-Za-z_$][A-Za-z0-9_$]*=)?'
+-    r'(?:[A-Za-z_$][A-Za-z0-9_$]*\.)?[A-Za-z_$][A-Za-z0-9_$]*\("ReadTool\.execute"\)'
+-    r'\(function\*'
++OC_INSTR_SERVICE_RE = re.compile(
++    r'class\s+(?P<svc>[A-Za-z_$][A-Za-z0-9_$]*)\s+extends\s+'
++    r'U\(\)\("@opencode/SessionInstructions"\)'
+ )
+-OC_READ_CALL_RE = re.compile(
+-    r'(?P<result>[A-Za-z_$][A-Za-z0-9_$]*)=yield\*'
+-    r'[A-Za-z_$][A-Za-z0-9_$]*\.resolve\('
+-    r'[A-Za-z_$][A-Za-z0-9_$]*\.messages,'
+-    r'[A-Za-z_$][A-Za-z0-9_$]*,[A-Za-z_$][A-Za-z0-9_$]*(?:\.[A-Za-z_$][A-Za-z0-9_$]*)*\)'
++# the render template carries the newline as a dump byte (`${p}\n${c}`) or as the
++# escaped pair, depending on how the chunk survived `strings`; both are the same
++# template, so both forms are accepted here (the shape, not the escape, is what
++# the rule binds).
++OC_INSTR_RENDER_RE = re.compile(
++    r'Instructions from: \$\{(?P<item>[A-Za-z_$][A-Za-z0-9_$]*)\.path\}'
++    r'(?:\\n|\n)\$\{(?P=item)\.content\}'
+ )
++OC_READ_WALK_RE = re.compile(
++    r'\.up\(\{targets:\[(?P<target>[A-Za-z_$][A-Za-z0-9_$]*)\],[^{}]{0,200}?'
++    r'type:"file"\}\)'
++)
++OC_READ_INSTR_LOAD_RE = re.compile(
++    r'(?P<callee>[A-Za-z_$][A-Za-z0-9_$]*)\.load\(\{sessionID:'
++    r'[A-Za-z_$][A-Za-z0-9_$]*\.sessionID,paths:[A-Za-z_$][A-Za-z0-9_$]*\}\)'
++)
++OC_INSTR_TARGET = "AGENTS.md"
++# v2.1.4 separators carry `@bytecode`/`@bun-cjs` suffixes the 1.19.x form did not
++# (581 `// @bun @bytecode` lines on the dump); matching the prefix keeps the
++# module scope real instead of silently degrading to the whole dump.
++OC_MODULE_SEP_RE = re.compile(r"\n// @bun[^\n]*")
++
++
++def opencode_module(dump: str, pos: int) -> str:
++    """The `// @bun` chunk that contains ``pos``."""
++    start = 0
++    for sep in OC_MODULE_SEP_RE.finditer(dump, 0, pos):
++        start = sep.end()
++    nxt = OC_MODULE_SEP_RE.search(dump, pos)
++    return dump[start:nxt.start() if nxt else len(dump)]
+ 
+ 
+ def opencode_read_hook_matches(dump: str) -> bool:
+-    """Require the resolver service export, its read-tool call, and its output."""
+-    for tool in OC_READ_TOOL_ENTRY_RE.finditer(dump):
+-        module_start = dump.rfind("\n// @bun\n", 0, tool.start())
+-        module_start = module_start + 1 if module_start >= 0 else 0
+-        module_end = dump.find("\n// @bun\n", tool.end())
+-        if module_end < 0:
+-            module_end = len(dump)
+-        module = dump[module_start:module_end]
+-        tool_pos = tool.start() - module_start
+-
+-        for entry in OC_READ_HOOK_ENTRY_RE.finditer(module, 0, tool_pos):
+-            export_re = re.compile(
+-                r'\}\);\s*return\s+[A-Za-z_$][A-Za-z0-9_$]*\.of\(\{'
+-                r'[^}]{0,1000}\bresolve:'
+-                + re.escape(entry.group("method")) + r'\b'
+-            )
+-            if export_re.search(module, entry.end(), tool_pos) is None:
++    """Require the read tool's walk-up, its load into the instruction service,
++    and that service publishing the rendered instruction text — one module."""
++    for svc in OC_INSTR_SERVICE_RE.finditer(dump):
++        name = re.escape(svc.group("svc"))
++        module = opencode_module(dump, svc.start())
++        if re.search(r'\b' + name + r'\.of\(\{load:', module) is None:
++            continue
++        render = OC_INSTR_RENDER_RE.search(module)
++        if render is None:
++            continue
++        # the rendered text must be the published payload (`…publish(<event>,
++        # {sessionID:…,text:…`), not a renderer used somewhere else in the module.
++        if ".publish(" not in module[max(0, render.start() - 300):render.start()]:
++            continue
++        for plugin in OC_READ_PLUGIN_RE.finditer(module):
++            body = module[plugin.start():plugin.start() + 50000]
++            walk = OC_READ_WALK_RE.search(body)
++            if walk is None:
+                 continue
+-
+-            tool_window = module[tool_pos:tool_pos + 50000]
+-            call = OC_READ_CALL_RE.search(tool_window)
+-            if call is None:
++            target = walk.group("target")
++            if re.search(r'\b' + re.escape(target) + r'="'
++                         + re.escape(OC_INSTR_TARGET) + r'"', module) is None:
+                 continue
+-            result = re.escape(call.group("result"))
+-            delivery_re = re.compile(
+-                r'[\s\S]{0,10000}\b' + result + r'\.length>0\)[A-Za-z_$][A-Za-z0-9_$]*\+='
+-                r'[\s\S]{0,100}' + re.escape(OC_READ_HOOK_TOKEN)
+-                + r'[\s\S]{0,100}\$\{\s*' + result
+-                + r'\.map\(\(\s*(?P<item>[A-Za-z_$][A-Za-z0-9_$]*)\s*\)'
+-                + r'=>\s*(?P=item)\.content\)\.join\('
+-                + r'[\s\S]{0,100}</system-reminder>'
+-            )
+-            if delivery_re.search(tool_window[call.end():call.end() + 10000]):
+-                return True
++            for call in OC_READ_INSTR_LOAD_RE.finditer(body):
++                if re.search(r'\b' + re.escape(call.group("callee"))
++                             + r'=yield\*' + name + r'\b', module) is not None:
++                    return True
+     return False
+ 
+ 
+@@ -802,12 +838,14 @@
+          ['.instructions….filter((q)=>q.startsWith("https://")||q.startsWith("http://"))',
+           OC_REMOTE_RENDER])
+ 
+-    # OC-4 — resolver service export, ReadTool call edge, and same-result reminder.
++    # OC-4 — read tool walks up for AGENTS.md, loads the found paths into the
++    # session-instruction service, and that service renders `Instructions from: …`
++    # for the model (v2.1.4; the 1.19.x resolve/<system-reminder> edges are gone).
+     read_hook = opencode_read_hook_matches(dump)
+     rule("OC-4", ["opencode:read-hook/instructions"], read_hook,
+-         ["Instruction.resolve exported as .resolve",
+-          "ReadTool.execute calls .resolve(messages, path, id)",
+-          "<system-reminder> wraps the resolved content"])
++         ['ReadTool.Plugin execute walks .up({targets:[<v>],…,type:"file"}) with <v>="AGENTS.md"',
++          "the read plugin calls <session-instructions>.load({sessionID,paths})",
++          "the service publishes `Instructions from: ${path}\\n${content}`"])
+ 
+     # OC-5 — resolution switch (owns no class id; witnesses the path the ids are
+     # read through, so losing it is a drift FAIL rather than a silent re-scope)
+@@ -1608,11 +1646,49 @@
+             "FAIL surfaces.opencode_extract:" in out, out)
+         rec("%s: names %s" % (fixture, named), named in out, out)
+ 
+-    # (oc-1194) re-derived shapes pass, while literal-preserving edge decoys fail.
++    # (oc-1194) round 72: the 1.19.4 fixture is the PREVIOUS generation for OC-4
++    # (the resolve → ReadTool.execute → <system-reminder> chain has 0 hits on the
++    # v2.1.4 dump, and no rule accepts two generations at once), so OC-4 alone is
++    # expected unmatched here until the v2.1.4 fixture set replaces this one.
+     code, out = run(oc_dump=fx + "/strings-opencode-1.19.4-anchors.txt")
+-    rec("oc-1.19.4 anchors: exit 0", code == 0, code)
+-    rec("oc-1.19.4 anchors: PASS opencode_extract",
+-        "PASS surfaces.opencode_extract:" in out, out)
++    rec("oc-1.19.4 anchors: exit 1 (OC-4 re-derived on v2.1.4)", code == 1, code)
++    rec("oc-1.19.4 anchors: only OC-4 unmatched",
++        "OC-4 (owns opencode:read-hook/instructions" in out
++        and "OC-6 (owns " not in out, out)
++
++    # (oc4-214) round 72: OC-4 re-derived on the v2.1.4 read-tool channel.  The
++    # positive fixture is verbatim dump bytes (module lines 708687/708708 joined
++    # by a `// @bun @bytecode` separator); each decoy changes ONE token so the
++    # same tokens remain but the instruction-loading role is gone.
++    for fixture, expect in (
++            ("strings-opencode-v2.1.4-oc4.txt", True),
++            ("strings-opencode-v2.1.4-oc4-decoy-load.txt", False),
++            ("strings-opencode-v2.1.4-oc4-decoy-target.txt", False),
++            ("strings-opencode-v2.1.4-oc4-decoy-walk.txt", False),
++            ("strings-opencode-v2.1.4-oc4-decoy-render.txt", False),
++            ("strings-opencode-v2.1.4-oc4-decoy-publish.txt", False),
++            ("strings-opencode-1.19.4-anchors.txt", False),
++            ("strings-opencode-v2.0.26.txt", False),
++            ("strings-empty.txt", False)):
++        text = read_text(FIXTURES / fixture, "opencode fixture")
++        rec("%s: OC-4 %s" % (fixture, "matches" if expect else "rejected"),
++            opencode_read_hook_matches(text) is expect, expect)
++    # the decoys keep every other token: same read plugin, same load call, same
++    # walk call, same `Instructions from:` wording elsewhere in the dump.
++    pos_text = read_text(FIXTURES / "strings-opencode-v2.1.4-oc4.txt",
++                         "oc4 positive fixture")
++    for fixture in ("strings-opencode-v2.1.4-oc4-decoy-load.txt",
++                    "strings-opencode-v2.1.4-oc4-decoy-target.txt",
++                    "strings-opencode-v2.1.4-oc4-decoy-walk.txt"):
++        text = read_text(FIXTURES / fixture, "oc4 decoy fixture")
++        rec("%s keeps the read plugin registration" % fixture,
++            OC_READ_PLUGIN_RE.search(text) is not None, text[:0])
++        rec("%s keeps the load call shape" % fixture,
++            OC_READ_INSTR_LOAD_RE.search(text) is not None, text[:0])
++        rec("%s keeps the render template" % fixture,
++            OC_INSTR_RENDER_RE.search(text) is not None, text[:0])
++        rec("%s differs from the positive fixture" % fixture,
++            text != pos_text, "identical")
+ 
+     oc_literals = ("Instruction.resolve", "ReadTool.execute", "<system-reminder>",
+                    "core/instructions", 'targets:["AGENTS.md"]',
+@@ -1639,7 +1715,7 @@
+             "FAIL surfaces.opencode_extract:" in out, out)
+         rec("%s: only %s unmatched" % (fixture, target_rule),
+             ("%s (owns %s" % (target_rule, target_id)) in out
+-            and ("%s (owns " % other_rule) not in out, out)
++            and (("%s (owns " % other_rule) not in out or other_rule == "OC-4"), out)
+ 
+     # (oc+) anchor-adjacent shapes that are NOT rule anchors must extract
+     # nothing extra — the drop-one matrix stays green, so exit 0 here proves

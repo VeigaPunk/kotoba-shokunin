@@ -1,0 +1,133 @@
+# ExecRepinCounter — C2 receipt: check_substrate_repin_v2.py, observed runs
+# Lane: /home/vgpnk/Projects/shokunin/kotoba-shokunin (commands run from the lane root)
+# Observed 2026-10-25 by seat ExecRepinCounter. Draft at
+# .ufo/waves/round-72/w1/build/ExecRepinCounter/check_substrate_repin_v2.py
+
+## 1. self-test (isolated git worlds, no host binary read)
+
+$ python3 -B .ufo/waves/round-72/w1/build/ExecRepinCounter/check_substrate_repin_v2.py --self-test
+world 'satisfying': exit 0 :: host substrate re-derived: pins OK 3/3; surfaces pass 7 of 7; removal ledger 1 of 1 verified
+world 'satisfying, omp class dropped': exit 0 :: host substrate re-derived: pins OK 3/3; surfaces pass 7 of 7; removal ledger 1 of 1 verified
+world 'stale mtime': exit 1 :: host substrate re-derived: pins OK 2/3; surfaces pass 7 of 7; removal ledger 1 of 1 verified
+world 'surfaces red': exit 1 :: host substrate re-derived: pins OK 3/3; surfaces pass 1 of 7; removal ledger 1 of 1 verified
+world 'present literal ledgered': exit 1 :: host substrate re-derived: pins OK 3/3; surfaces pass 7 of 7; removal ledger 1 of 2 verified
+world 'absent class unledgered': exit 1 :: host substrate re-derived: pins OK 3/3; surfaces pass 7 of 7; removal ledger 0 of 1 verified
+world 're-verdicted base class': exit 1 :: host substrate re-derived: pins OK 3/3; surfaces pass 7 of 7; removal ledger 1 of 1 verified
+world 'extra pin row': exit 1 :: host substrate re-derived: pins OK 3/3; surfaces pass 7 of 7; removal ledger 1 of 1 verified
+world 'extra check': exit 1 :: host substrate re-derived: pins OK 3/3; surfaces pass 7 of 7; removal ledger 1 of 1 verified
+world 'bad ledger': exit 2 :: cannot evaluate: verifiers/census-removals.json unreadable/unparseable: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+world 'no surfaces script': exit 2 :: cannot evaluate: gate or pin script missing at the revision
+world 'satisfying again': exit 0 :: host substrate re-derived: pins OK 3/3; surfaces pass 7 of 7; removal ledger 1 of 1 verified
+world 'pinned bytes are not the live bytes': exit 1 :: host substrate re-derived: pins OK 2/3; surfaces pass 7 of 7; removal ledger 1 of 1 verified
+world 'empty surfaces report': exit 2 :: cannot evaluate: verify_surfaces.py reported 0 row(s) (exit_code 2: fixture: no opencode dump); pins 3/3 row(s) PASS, surfaces 0/0 check(s) PASS
+0 failure(s) over 16 assertions
+exit=0
+
+## 2. the base rev — the counter cannot evaluate it (see §3 note)
+
+$ python3 -B .ufo/waves/round-72/w1/build/ExecRepinCounter/check_substrate_repin_v2.py \
+    --rev c69711ee08279609374d895bb0f3c8c18ccf15c9
+cannot evaluate: verify_surfaces.py reported 0 row(s) (exit_code 2: opencode binary not found: /home/vgpnk/.npm/_npx/e2094862b59aac7b/node_modules/opencode-ai/bin/opencode.exe); pins 0/3 row(s) PASS, surfaces 0/0 check(s) PASS
+exit=2
+# The base tree's verify_surfaces.py answers `{"checks": [], "exit_code": 2}` because its default
+# opencode path is the deleted npx opencode.exe (matches receipts/base-outputs/verify_surfaces.out).
+# An empty report is not a measurement, so the counter says so instead of printing `0 of 7`.
+
+## 3. the five shortcut-control worlds, replayed through this counter
+# Sandboxes are mine, built the controls seat's way (fresh --shared clone of c69711e inside a
+# fleet-shaped /tmp parent, overlay copied, __CLONE__ substituted, commit inside the clone), so
+# their bundles under .ufo/waves/round-72/w1/build/ExecRepinControls/ stay untouched. Each sandbox
+# was deleted after its run.
+#
+#   P=$(mktemp -d /tmp/k72w1-ExecRepinCounter.XXXX)
+#   for e in /home/vgpnk/Projects/shokunin/*; do n=$(basename "$e")
+#     [ "$n" = kotoba-shokunin ] && continue; ln -s "$e" "$P/$n"; done
+#   git clone --shared -q <lane> "$P/kotoba-shokunin"; C=$P/kotoba-shokunin
+#   git -C "$C" checkout -q --detach c69711ee08279609374d895bb0f3c8c18ccf15c9
+#   git -C "$C" config user.name "k72w1 counter replay"; git -C "$C" config user.email k72w1-replay@example.invalid
+#   cp -R <bundle>/overlay/. "$C/"
+#   sed -i "s|__CLONE__|$C|g" "$C/verifiers/check_substrate_pins.py" "$C/verifiers/verify_surfaces.py"
+#   git -C "$C" add -A && git -C "$C" -c core.hooksPath=/dev/null commit -q -m "<world> overlay"
+#   python3 -B <counter> --repo "$C" --rev "$(git -C "$C" rev-parse HEAD)"
+
+=== [w1-repin-only] rev=f83f63d622c6e3029a6798620d7fc669f3f68208
+host substrate re-derived: pins OK 3/3; surfaces pass 5 of 7; removal ledger 0 of 1 verified
+substrate opencode: /home/vgpnk/.opencode/bin/opencode sha256 ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7 bytes 240416944 strings 1237844
+FAIL surfaces: 5 of 7 check(s) PASS, 7 check(s) reported, 7 expected
+FAIL removal ledger: 1 absent class(es) not ledgered: opencode:instructions/CONTEXT.md
+[w1-repin-only] counter exit=1
+
+=== [w2-ledger-all] rev=18ecab1aecbf064330e4bc194fac17730855b026
+host substrate re-derived: pins OK 3/3; surfaces pass 5 of 7; removal ledger 1 of 9 verified
+substrate opencode: /home/vgpnk/.opencode/bin/opencode sha256 ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7 bytes 240416944 strings 1237844
+FAIL surfaces: 5 of 7 check(s) PASS, 7 check(s) reported, 7 expected
+FAIL removal ledger: 8 ledgered class(es) whose literal is present in the dump: opencode:claude-home/CLAUDE.md, opencode:config/AGENTS.md, opencode:config/instructions, opencode:config/instructions-remote, opencode:instruction-context/AGENTS.md, opencode:instructions/AGENTS.md, opencode:instructions/CLAUDE.md, opencode:read-hook/instructions
+[w2-ledger-all] counter exit=1
+
+=== [w3-stub-pinned] rev=8a33eba7d38f1f3bbd89ad5291247d74e07cbd29
+host substrate re-derived: pins OK 2/3; surfaces pass 5 of 7; removal ledger 0 of 1 verified
+substrate opencode: /home/vgpnk/.opencode/bin/opencode sha256 ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7 bytes 240416944 strings 1237844
+FAIL substrate identity: pin(s) opencode_binary_sha256 PASS on bytes that are not the live opencode the counter dumped (sha256 ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7)
+FAIL pins: 2 of 3 row(s) hold, 3 row(s) reported, 3 expected
+FAIL surfaces: 5 of 7 check(s) PASS, 7 check(s) reported, 7 expected
+FAIL removal ledger: 1 absent class(es) not ledgered: opencode:instructions/CONTEXT.md
+[w3-stub-pinned] counter exit=1
+
+=== [w3b-stub-full-ledger] rev=8484ceb3eae732ae491f3177b18a15472cec0f5d
+host substrate re-derived: pins OK 2/3; surfaces pass 5 of 7; removal ledger 1 of 9 verified
+substrate opencode: /home/vgpnk/.opencode/bin/opencode sha256 ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7 bytes 240416944 strings 1237844
+FAIL substrate identity: pin(s) opencode_binary_sha256 PASS on bytes that are not the live opencode the counter dumped (sha256 ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7)
+FAIL pins: 2 of 3 row(s) hold, 3 row(s) reported, 3 expected
+FAIL surfaces: 5 of 7 check(s) PASS, 7 check(s) reported, 7 expected
+FAIL removal ledger: 8 ledgered class(es) whose literal is present in the dump: opencode:claude-home/CLAUDE.md, opencode:config/AGENTS.md, opencode:config/instructions, opencode:config/instructions-remote, opencode:instruction-context/AGENTS.md, opencode:instructions/AGENTS.md, opencode:instructions/CLAUDE.md, opencode:read-hook/instructions
+[w3b-stub-full-ledger] counter exit=1
+
+=== [w4-omp-mtime-stale] rev=51da3715632dd15e54c420b541a664e8c29343a4
+host substrate re-derived: pins OK 2/3; surfaces pass 5 of 7; removal ledger 0 of 1 verified
+substrate opencode: /home/vgpnk/.opencode/bin/opencode sha256 ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7 bytes 240416944 strings 1237844
+FAIL pins: 2 of 3 row(s) hold, 3 row(s) reported, 3 expected
+FAIL surfaces: 5 of 7 check(s) PASS, 7 check(s) reported, 7 expected
+FAIL removal ledger: 1 absent class(es) not ledgered: opencode:instructions/CONTEXT.md
+[w4-omp-mtime-stale] counter exit=1
+
+# Every one of the five reads exit 1. w3 and w3b now fail on TWO independent conjuncts
+# (pins 2/3 by substrate identity, and the ledger for w3b), so lowering the surface target
+# cannot turn either green.
+
+## 4. live-substrate literal census (independent of the counter's own pass)
+$ for lit in 'AGENTS.md' 'CLAUDE.md' 'CONTEXT.md' 'instructions' 'https://' '<system-reminder>'; do
+    printf '%-20s ' "$lit"; grep -cF -- "$lit" /tmp/k72-oc-strings.txt; done
+AGENTS.md            13
+CLAUDE.md            3
+CONTEXT.md           0
+instructions         145
+https://             827
+<system-reminder>    14
+# dump sha256 020fb25393e5ce881ac2da70222acedebc5cef2d3810d07e4625b2cde885b089 (28,835,401 bytes)
+# -> exactly one base opencode class must be ledgered: opencode:instructions/CONTEXT.md
+# The counter's own strings pass on ~/.opencode/bin/opencode agrees (w1/w2/w3/w4 read
+# `removal ledger 0 of 1 verified` naming that one class as the unledgered absent class).
+
+## 5. w5 (repin-only + honest ledger) at the frozen target and at a lowered target
+# World built from ExecRepinControls' w5 overlay in my own fleet-shaped sandbox (same replay steps as
+# §3; the world commit differs from theirs, 18a14dd9 vs 7527645, because the overlay's __CLONE__
+# placeholder is substituted with each sandbox's own path). Sandbox deleted after the run.
+
+=== [w5] rev=18a14dd9d53d6a72d950ef18862a2455c82c7acc
+--- unmodified counter, frozen target 7
+host substrate re-derived: pins OK 3/3; surfaces pass 5 of 7; removal ledger 1 of 1 verified
+substrate opencode: /home/vgpnk/.opencode/bin/opencode sha256 ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7 bytes 240416944 strings 1237844
+FAIL surfaces: 5 of 7 check(s) PASS, 7 check(s) reported, 7 expected
+[w5] exit=1
+
+--- throwaway copy /tmp/k72w1-counter-target5.py with CHECKS_TOTAL 7 -> 5 (lane file untouched)
+host substrate re-derived: pins OK 3/3; surfaces pass 5 of 5; removal ledger 1 of 1 verified
+substrate opencode: /home/vgpnk/.opencode/bin/opencode sha256 ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7 bytes 240416944 strings 1237844
+FAIL surfaces: 5 of 7 check(s) PASS, 7 check(s) reported, 5 expected
+[w5@5] exit=1
+
+# Editing the target alone does NOT turn w5 green: the guard requiring the instrument to report exactly
+# CHECKS_TOTAL checks catches it. A real lowering must also retire two checks from verify_surfaces.py's
+# CHECK_IDS, which moves that verifier's self-test assertion count and therefore its
+# floors-registry.json floor -- a visible instrument retirement, not a bookkeeping change here.
+

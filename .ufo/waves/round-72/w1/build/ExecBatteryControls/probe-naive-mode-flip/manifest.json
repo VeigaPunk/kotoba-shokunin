@@ -1,0 +1,78 @@
+{
+  "world": "probe-naive-mode-flip",
+  "kind": "derived probe: the flip alone, nothing else",
+  "base": "c69711ee08279609374d895bb0f3c8c18ccf15c9",
+  "world_rev": "167b098976e68c2e9d2c02ed36ac66b0472a51f0",
+  "world_tree": "b63c4ba6bb392ab83b3d321defe312f91358b5da",
+  "moves": [
+    "flip corpus.index.unindexed and corpus.pointers.commit_nonhash from 'zero' to 'equal' in verifiers/verify_corpus_integrity.py (2 lines)",
+    "drop unindexed and commit_nonhash from violations() in verifiers/verify_corpus_independent.py (2 lines)"
+  ],
+  "battery": [
+    {
+      "gate": "check_gate_registry",
+      "exit": 1,
+      "wall_s": 0,
+      "command": "python3 -B verifiers/check_gate_registry.py --rev <rev>"
+    },
+    {
+      "gate": "check_assertion_floors",
+      "exit": 1,
+      "wall_s": 38,
+      "command": "python3 -B verifiers/check_assertion_floors.py"
+    },
+    {
+      "gate": "verify_skill_checklist",
+      "exit": 0,
+      "wall_s": 2,
+      "command": "python3 -B verifiers/verify_skill_checklist.py"
+    },
+    {
+      "gate": "verify_corpus_integrity",
+      "exit": 1,
+      "wall_s": 0,
+      "command": "python3 -B verifiers/verify_corpus_integrity.py"
+    },
+    {
+      "gate": "verify_corpus_independent",
+      "exit": 0,
+      "wall_s": 0,
+      "command": "python3 -B verifiers/verify_corpus_independent.py"
+    },
+    {
+      "gate": "check_correction_sweep",
+      "exit": 0,
+      "wall_s": 0,
+      "command": "python3 -B verifiers/check_correction_sweep.py --root ."
+    }
+  ],
+  "N": 3,
+  "guards": {
+    "base": "c69711ee08279609374d895bb0f3c8c18ccf15c9",
+    "rev": "167b098976e68c2e9d2c02ed36ac66b0472a51f0",
+    "G1_deleted": [],
+    "G1_fires": false,
+    "G2_lowered": [],
+    "G2_fires": false,
+    "G3_added_total": 4,
+    "G3_removed_total": 4,
+    "G3_per_script": {
+      "verifiers/verify_corpus_independent.py": {
+        "added": 2,
+        "removed": 2
+      },
+      "verifiers/verify_corpus_integrity.py": {
+        "added": 2,
+        "removed": 2
+      }
+    },
+    "G3_plan_added_only_fires": false,
+    "G3_counter_two_direction_fires": false,
+    "G4_spotcheck_total": 26,
+    "G4_changed": [],
+    "G4_fires": false,
+    "guards_all_pass_plan_reading": true,
+    "guards_all_pass_counter_reading": true
+  },
+  "guard_that_catches": "floors (corpus_integrity self-test); the integrity gate itself stays red"
+}

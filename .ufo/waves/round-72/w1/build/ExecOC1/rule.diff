@@ -1,0 +1,84 @@
+--- a/verifiers/verify_surfaces.py
++++ b/.ufo/waves/round-72/w1/build/ExecOC1/verify_surfaces.py
+@@ -570,18 +570,43 @@
+ # must-fail generation fixture `fixtures/surfaces/strings-opencode-v2.0.26.txt`
+ # (upstream, npm `@opencode/cli` 2.x still ships it — host-scoped retirement).
+ # LIMITS found by the round-47 falsify wave and still carried: whole-dump anchors
+-# remain for OC-1..OC-3 and OC-5, including OC-1's `gated` term reducing to
+-# `m is not None`. OC-6's config candidate/env gate remain unwitnessed. OC-4 now
+-# binds the resolver export to the ReadTool call and wrapped result; OC-6 binds
+-# its observed layer to the `system-context-builtins` dependency (round 53).
++# remain for OC-1..OC-3 and OC-5. Round 72 dropped OC-1's vacuous `gated` term
++# with the gate it named: on 2.1.4 `disableClaudeCodePrompt` occurs 0 times, so
++# the term had already reduced to `m is not None`; the loader wrapper plus the
++# config join replace it (see OC-1). OC-6's config candidate/env gate remain
++# unwitnessed. OC-4 now binds the resolver export to the ReadTool call and wrapped
++# result; OC-6 binds its observed layer to the `system-context-builtins`
++# dependency (round 53).
+ 
+-# OC-1: the per-directory name-priority list (first-match walk-up; dump 443993):
+-#   y=["AGENTS.md",...!t.disableClaudeCodePrompt?["CLAUDE.md"]:[],"CONTEXT.md"]
+-# Every *.md literal inside the array DERIVES a class id, so a name planted into
+-# or dropped from the array changes the extracted set (never a witness-only pass).
+-OC_PRIORITY_RE = re.compile(r'\["AGENTS\.md".{0,400}?"CONTEXT\.md"[^\]]{0,200}\]')
++# OC-1: the per-directory instruction name set the legacy loader walks.
++# 1.19.x built a name-PRIORITY array -- `["AGENTS.md", …!t.disableClaudeCodePrompt?
++# ["CLAUDE.md"]:[], "CONTEXT.md"]` -- and gated CLAUDE.md on that config flag.
++# opencode 2.1.4 (sha256 ca9b3ee2…) collapsed it to a single-name target list
++# inside `ConfigInstructionPlugin.projectSource` and dropped the gate:
++#   D=yield*l.resolve(j1(r.config,"AGENTS.md"))
++#   let we=yield*Q(yield*l.up({targets:["AGENTS.md"],start:T,stop:V,type:"file"}),l.resolve)
++# Every *.md literal inside the target array DERIVES a class id, so a name planted
++# into or dropped from the list changes the extracted set (never a witness-only
++# pass).  The loader wrapper and the config join of a derived name must both sit
++# in the same plugin region: a bare `up({targets:[…]})`, the ReadTool default name
++# (`LF="AGENTS.md"`, dump line 708708) or prompt prose carries the same tokens
++# with no instruction-loading role and matches nothing.
++# GENERATION NOTE (round 72): on the 2.1.4 dump `CONTEXT.md` and
++# `disableClaudeCodePrompt` occur 0 times and `CLAUDE.md` survives only in prompt
++# prose, so the two ids the old array derived are gone from this lineage and are
++# ledger removals (`verifiers/census-removals.json`), not rule outputs.  The rule
++# is re-derived to the surviving walk, not loosened to it: the array must still
++# sit inside the loader wrapper and still derives every name it carries.
++OC_LOADER_SOURCE_RE = re.compile(
++    r'c\("ConfigInstructionPlugin\.projectSource"\)'
++    r'\(function\*\(\)\{[^{}]{0,300}?\.up\(\{targets:\['
++    r'(?P<targets>"[A-Za-z0-9_.-]+\.md"(?:,"[A-Za-z0-9_.-]+\.md")*)\]'
++)
++OC_LOADER_CONFIG_JOIN_RE = re.compile(
++    r'j1\(\s*[A-Za-z_$][A-Za-z0-9_$]*\.config\s*,\s*"(?P<file>[A-Za-z0-9_.-]+\.md)"\s*\)'
++)
++OC_LOADER_REGION = 4000
+ OC_MD_NAME_RE = re.compile(r'"([A-Za-z0-9_.-]+\.md)"')
+-OC_GATE = "disableClaudeCodePrompt"
+ 
+ # OC-2: the config/home candidate list (`Instruction.systemPaths`; dump 443993):
+ #   X.join(r.config,"AGENTS.md")   X.join(r.home,".claude","CLAUDE.md")
+@@ -770,15 +795,19 @@
+         if matched:
+             ids.update(owns)
+ 
+-    # OC-1 — name-priority list (derives every *.md literal in the array)
+-    m = OC_PRIORITY_RE.search(dump)
+-    names = sorted(set(OC_MD_NAME_RE.findall(m.group(0)))) if m else []
+-    gated = m is not None and (OC_GATE not in m.group(0) or OC_GATE in dump)
++    # OC-1 — per-directory instruction name set (derives every *.md literal in
++    # the loader's target list, tied to the loader's config join)
++    walk = OC_LOADER_SOURCE_RE.search(dump)
++    names = sorted(set(OC_MD_NAME_RE.findall(walk.group("targets")))) if walk else []
++    region = (dump[max(0, walk.start() - OC_LOADER_REGION):walk.end()]
++              if walk is not None else "")
++    joined = set(OC_LOADER_CONFIG_JOIN_RE.findall(region))
+     owns = (["opencode:instructions/%s" % n for n in names] if names else
+-            ["opencode:instructions/AGENTS.md", "opencode:instructions/CLAUDE.md",
+-             "opencode:instructions/CONTEXT.md"])
+-    rule("OC-1", owns, m is not None and bool(names) and gated,
+-         ['["AGENTS.md" … "CONTEXT.md"]', OC_GATE])
++            ["opencode:instructions/AGENTS.md"])
++    rule("OC-1", owns,
++         walk is not None and bool(names) and bool(joined & set(names)),
++         ['ConfigInstructionPlugin.projectSource -> up({targets:["*.md"],…})',
++          'j1(<v>.config,"*.md") in the same plugin region'])
+ 
+     # OC-2 — config/home candidates (derives group + file from the join path)
+     cfg = sorted(set(OC_CONFIG_JOIN_RE.findall(dump)))

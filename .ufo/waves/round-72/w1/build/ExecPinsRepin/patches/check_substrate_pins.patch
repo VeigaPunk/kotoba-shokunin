@@ -1,0 +1,35 @@
+diff --git i/verifiers/check_substrate_pins.py w/verifiers/check_substrate_pins.py
+index c231415..7925b48 100644
+--- i/verifiers/check_substrate_pins.py
++++ w/verifiers/check_substrate_pins.py
+@@ -39,11 +39,14 @@ Stdlib only (Python >= 3.11).
+ 
+ Host-anchored: the default binary paths are this host's installs (same values
+ as verify_harness_claims.py OMP_BIN/OC_BIN and verify_surfaces.py
+-DEFAULT_BINARIES; round 47 moved opencode to the npm `opencode-ai` bytes the
+-`~/.local/bin/opencode` npx wrapper executes — the wrapper itself is never the
+-pinned file, its sha says nothing about the ELF that runs), so a clone's green is a statement about that
+-installation, not about the clone; --omp-binary/--opencode-binary override both
+-for fixture runs.
++DEFAULT_BINARIES). Round 72 moved omp onto `~/.local/bin/omp.real`: the
++`~/.local/bin/omp` file installed 2026-10-23 is a crash-restart shell wrapper,
++and a wrapper is never the pinned file — its sha says nothing about the ELF
++that runs. The opencode default moved to `~/.opencode/bin/opencode` (v2.1.4)
++while the pin still names the npm 1.19.4 bytes the surfaces were derived on, so
++the opencode pin reads DRIFT by design until OC-1..OC-6 are re-derived on
++v2.1.4. A clone's green is a statement about that installation, not about the
++clone; --omp-binary/--opencode-binary override both for fixture runs.
+ """
+ 
+ from __future__ import annotations
+@@ -62,8 +65,8 @@ from pathlib import Path
+ 
+ DEFAULT_REPO = Path(__file__).resolve().parent.parent
+ BINARIES = {
+-    "omp": "/home/vgpnk/.local/bin/omp",
+-    "opencode": "/home/vgpnk/.npm/_npx/e2094862b59aac7b/node_modules/opencode-ai/bin/opencode.exe",
++    "omp": "/home/vgpnk/.local/bin/omp.real",
++    "opencode": "/home/vgpnk/.opencode/bin/opencode",
+ }
+ # The pin set the guard's contract requires. Discovery additionally checks any
+ # other measured_against key shaped like `<substrate>_binary_<kind>`: a pin the

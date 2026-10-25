@@ -1,0 +1,38 @@
+diff --git i/verifiers/verify_harness_claims.py w/verifiers/verify_harness_claims.py
+index 48030f9..a8c5e01 100755
+--- i/verifiers/verify_harness_claims.py
++++ w/verifiers/verify_harness_claims.py
+@@ -11,13 +11,16 @@ Authority for every mechanism below is the shipped source, read from the
+ binaries themselves (both harnesses are single-file executables with embedded
+ readable JS — no disassembly needed):
+ 
+-  omp      `~/.local/bin/omp`        functions A8n (cache key), H7s (truncator),
++  omp      `~/.local/bin/omp.real`   functions A8n (cache key), H7s (truncator),
+                                      ldl (compressor acceptance), nV.render
+                                      (cache-or-truncate), module comment
+                                      `// packages/coding-agent/src/extensibility/
+-                                     skill-descriptions.ts`
+-  opencode `~/.npm/_npx/e2094862b59aac7b/node_modules/opencode-ai/bin/opencode.exe`
+-                                     (npm opencode-ai, round 47) string `available_skills`,
++                                     skill-descriptions.ts` (round 72: the
++                                     `~/.local/bin/omp` wrapper is not the ELF)
++  opencode `~/.opencode/bin/opencode`
++                                     (v2.1.4, round 72; the npm opencode-ai
++                                     1.19.4 npx path is gone) string
++                                     `available_skills`,
+                                      `EmbeddedSource.make({skill:…})`
+ 
+ Usage:
+@@ -50,10 +53,10 @@ import sys
+ from pathlib import Path
+ 
+ HOME = Path.home()
+-OMP_BIN = HOME / ".local/bin/omp"
++OMP_BIN = HOME / ".local/bin/omp.real"
+ OMP_DB = HOME / ".omp/agent/skill-descriptions.db"
+ OC_LOG = HOME / ".local/share/opencode/log/opencode.log"
+-OC_BIN = HOME / ".npm/_npx/e2094862b59aac7b/node_modules/opencode-ai/bin/opencode.exe"
++OC_BIN = HOME / ".opencode/bin/opencode"
+ OMP_SESSIONS = HOME / ".omp/agent/sessions"
+ BASELINE = Path(__file__).resolve().parent / "baseline.json"
+ 

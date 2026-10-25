@@ -1,0 +1,94 @@
+--- verifiers/verify_surfaces.py	2026-10-22 17:44:55.522510107 -0300
++++ /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-72/w1/build/ExecOC2/verify_surfaces.py	2026-10-25 18:53:56.533053032 -0300
+@@ -583,16 +583,58 @@
+ OC_MD_NAME_RE = re.compile(r'"([A-Za-z0-9_.-]+\.md)"')
+ OC_GATE = "disableClaudeCodePrompt"
+ 
+-# OC-2: the config/home candidate list (`Instruction.systemPaths`; dump 443993):
++# OC-2: the config candidate list (`Instruction.systemPaths` in the 1.19.x
++# lineage; dump 443993):
+ #   X.join(r.config,"AGENTS.md")   X.join(r.home,".claude","CLAUDE.md")
++# v2.1.4 (dump sha256 020fb253…) moved the loader into the
++# `opencode.config.instruction` plugin and the minifier aliases `path.join` to a
++# bare callee — `import td,{dirname as RM,join as j1}from"path"` and then
++# `D=yield*l.resolve(j1(r.config,"AGENTS.md"))` — all three on dump line 708687
++# at 0-based offsets 3232, 3286 and 3646.  The round-14 method-call shape
++# matches 0x and is RETIRED, not OR-ed with the new one (round 47's generation
++# rule: a rule set that accepts two generations launders the re-derive).
++# The rule binds three things inside one plugin: the plugin id, the
++# `path`-join alias, and the `globalSource` arm that reads the config
++# candidate. A join of `<v>.config,"<name>.md"` under a non-join callee, or
++# outside this plugin, derives nothing.
++# The 1.19.x HOME candidate is GONE from v2.1.4: `CLAUDE.md` occurs 3x in the
++# dump (a symbol-table entry, a template-list blob, prompt prose) and none is a
++# loader; `.claude` survives only as a CONFIG-DIRECTORY root
++# (`_=ke.make(ze.join(A.home,".claude"))`, dump line 708352, two-arg join with no
++# `.md`) and its compatibility probe
++# (`compatibility:()=>WH({claude:D$(V.claude,e.isDir),…})`, dump line 708355),
++# neither of which loads an instruction file. Its class id is removed by the census ledger
++# (verifiers/census-removals.json) — never derived by a loosened rule.
++OC2_PLUGIN = 'id:"opencode.config.instruction"'
++OC2_PLUGIN_END_RE = re.compile(r'\(\{id:"opencode\.')
++OC2_SOURCE_MARKER = 'c("ConfigInstructionPlugin.globalSource")'
++OC2_JOIN_ALIAS_RE = re.compile(
++    r'import\s+[^;]{0,200}?\{[^}]{0,200}?\bjoin\s+as\s+([A-Za-z_$][A-Za-z0-9_$]*)'
++    r'[^}]{0,200}?\}\s*from\s*"path"'
++)
+ OC_CONFIG_JOIN_RE = re.compile(
+-    r'\.join\(\s*[A-Za-z_$][A-Za-z0-9_$]*\.config\s*,\s*"([A-Za-z0-9_.-]+\.md)"'
++    r'(?P<join>[A-Za-z_$][A-Za-z0-9_$]*)\(\s*'
++    r'(?P<var>[A-Za-z_$][A-Za-z0-9_$]*)\.config\s*,\s*'
++    r'"(?P<file>[A-Za-z0-9_.-]+\.md)"\s*\)'
+ )
+-OC_HOME_DIR_JOIN_RE = re.compile(
+-    r'\.join\(\s*[A-Za-z_$][A-Za-z0-9_$]*\.home\s*,\s*"\.([A-Za-z0-9_-]+)"\s*,'
+-    r'\s*"([A-Za-z0-9_.-]+\.md)"'
+-)
+ 
++
++def opencode_config_candidates(dump: str) -> list[str]:
++    """The `.md` names the v2.1.4 config-instruction plugin joins onto
++    `<v>.config`, or [] when the plugin id, its globalSource arm, or the `path`
++    join alias it calls is absent (fail-closed; the caller names the anchors)."""
++    aliases = set(OC2_JOIN_ALIAS_RE.findall(dump))
++    names: set[str] = set()
++    for anchor in re.finditer(re.escape(OC2_PLUGIN), dump):
++        end = OC2_PLUGIN_END_RE.search(dump, anchor.end())
++        window = dump[anchor.start():end.start() if end else len(dump)]
++        if OC2_SOURCE_MARKER not in window:
++            continue
++        for m in OC_CONFIG_JOIN_RE.finditer(window):
++            if m.group("join") in aliases:
++                names.add(m.group("file"))
++    return sorted(names)
++
+ # OC-3: the declared ``instructions`` list and its remote half (dump 443993).
+ #   a: `Instruction.systemPaths` consumes it —
+ #      for(let O of T.instructions){if(O.startsWith("https://")||…)continue;…glob…}
+@@ -780,17 +822,15 @@
+     rule("OC-1", owns, m is not None and bool(names) and gated,
+          ['["AGENTS.md" … "CONTEXT.md"]', OC_GATE])
+ 
+-    # OC-2 — config/home candidates (derives group + file from the join path)
+-    cfg = sorted(set(OC_CONFIG_JOIN_RE.findall(dump)))
+-    home = sorted(set(OC_HOME_DIR_JOIN_RE.findall(dump)))
+-    # home candidates are named `<dir>-home` after the dot-directory the join
+-    # walks (`.claude` -> `opencode:claude-home/CLAUDE.md`), the census's id shape.
+-    owns2 = (["opencode:config/%s" % f for f in cfg] +
+-             ["opencode:%s-home/%s" % (d, f) for d, f in home])
+-    rule("OC-2", owns2 or ["opencode:config/AGENTS.md", "opencode:claude-home/CLAUDE.md"],
+-         bool(cfg) and bool(home),
+-         ['X.join(<v>.config,"AGENTS.md")',
+-          'X.join(<v>.home,".claude","CLAUDE.md")'])
++    # OC-2 — config candidate (derives the file from the aliased join inside the
++    # v2.1.4 config-instruction plugin; the 1.19.x home candidate is ledgered
++    # removed, so it is not a fallback `owns` id here).
++    cfg = opencode_config_candidates(dump)
++    rule("OC-2", ["opencode:config/%s" % f for f in cfg] or ["opencode:config/AGENTS.md"],
++         bool(cfg),
++         ['id:"opencode.config.instruction"',
++          OC2_SOURCE_MARKER,
++          'X(<v>.config,"AGENTS.md") where X is imported as join from "path"'])
+ 
+     # OC-3 — declared list + remote filter/render (two ids, two anchor pairs)
+     declared = OC_DECLARED_RE.search(dump) is not None

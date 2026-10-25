@@ -1,0 +1,151 @@
+--- a/verifiers/verify_surfaces.py
++++ b/verifiers/verify_surfaces.py
+@@ -593,9 +593,30 @@
+     r'\s*"([A-Za-z0-9_.-]+\.md)"'
+ )
+ 
+-# OC-3: the declared ``instructions`` list and its remote half (dump 443993).
+-#   a: `Instruction.systemPaths` consumes it —
+-#      for(let O of T.instructions){if(O.startsWith("https://")||…)continue;…glob…}
++# OC-3: the declared ``instructions`` list and its remote half.
++#   a: the config loader consumes the declared list.  Two generations are
++#      witnessed; the 1.19.x arm is the committed fixture generation
++#      (`fixtures/surfaces/strings-opencode-clean.txt` line 13, which the
++#      self-test and check_opencode_repin.py still run), the v2.1.4 arm is
++#      re-derived this round on the live dump.
++#      1.19.x (dump 443993): `Instruction.systemPaths` —
++#        for(let O of T.instructions){if(O.startsWith("https://")||…)continue;…glob…}
++#      v2.1.4 (dump sha 020fb253…, dump line 708687, plugin
++#      `id:"opencode.config.instruction"`): the declared list is read out of the
++#      config documents, split by URL-ness with a named predicate, and every
++#      non-URL entry is handed to the plugin's file-walk helper —
++#        .flatMap((Re)=>Re.type==="document"?Re.info.instructions??[]:[])
++#        function E1(e){return URL.canParse(e)&&/^https?:$/.test(new URL(e).protocol)}
++#        for(let ye of H.sources){if(E1(ye)){…remote…continue}
++#          for(let Re of(yield*ee(ye)).toSorted()){…read…}}
++#        ee=c("ConfigInstructionPlugin.match")(… l.globUp(Ae,T,N) …)
++#      The v2.1.4 arm binds five conjuncts inside the plugin's own body: the
++#      declared-list read, the URL predicate definition, that predicate applied
++#      as the list filter, the consumer loop that skips URLs and passes the
++#      remainder to the labelled `match` helper, and the `globUp` walk.  A
++#      shape carrying the same tokens without the loading role (a URL test, an
++#      `info.instructions` read, or a glob outside this plugin) fails a
++#      conjunct; nothing here is satisfied by a bare token.
+ #   b: `Instruction.system` fetches the remote entries and renders them —
+ #      (T.instructions??[]).filter((q)=>q.startsWith("https://")||q.startsWith("http://"))
+ #      `Instructions from: ${q}`
+@@ -605,6 +626,33 @@
+     r"for\s*\(\s*let\s+[A-Za-z_$][A-Za-z0-9_$]*\s+of\s+"
+     r"[A-Za-z_$][A-Za-z0-9_$]*\.instructions\s*\)"
+ )
++OC_DECLARED_PLUGIN_ID = 'id:"opencode.config.instruction"'
++OC_DECLARED_PLUGIN_ID_RE = re.compile(re.escape(OC_DECLARED_PLUGIN_ID))
++# the plugin body ends at the next plugin declaration (`var X=tt({id:"…"`)
++OC_PLUGIN_BOUNDARY_RE = re.compile(r'var\s+[A-Za-z_$][A-Za-z0-9_$]*\s*=\s*tt\(\{id:"')
++OC_DECLARED_LIST_RE = re.compile(
++    r'\.flatMap\(\s*\(\s*(?P<doc>[A-Za-z_$][A-Za-z0-9_$]*)\s*\)\s*=>\s*'
++    r'(?P=doc)\.type==="document"\s*\?\s*(?P=doc)\.info\.instructions\s*\?\?\s*\[\]'
++    r'\s*:\s*\[\]\s*\)'
++)
++OC_DECLARED_URL_PRED_RE = re.compile(
++    r'function\s+(?P<fn>[A-Za-z_$][A-Za-z0-9_$]*)\s*\(\s*(?P<v>[A-Za-z_$][A-Za-z0-9_$]*)\s*\)'
++    r'\s*\{\s*return\s+URL\.canParse\(\s*(?P=v)\s*\)\s*&&\s*/\^https\?:\$/\s*'
++    r'\.test\(\s*new\s+URL\(\s*(?P=v)\s*\)\.protocol\s*\)'
++)
++OC_DECLARED_SPLIT_RE = re.compile(
++    r'for\(\s*let\s+(?P<s>[A-Za-z_$][A-Za-z0-9_$]*)\s+of\s+'
++    r'[A-Za-z_$][A-Za-z0-9_$]*\.sources\s*\)\s*\{\s*if\(\s*'
++    r'(?P<fn>[A-Za-z_$][A-Za-z0-9_$]*)\s*\(\s*(?P=s)\s*\)\s*\)[\s\S]{0,240}?'
++    r'for\(\s*let\s+[A-Za-z_$][A-Za-z0-9_$]*\s+of\s*\(?\s*yield\*'
++    r'(?P<match>[A-Za-z_$][A-Za-z0-9_$]*)\s*\(\s*(?P=s)\s*\)'
++)
++OC_DECLARED_MATCH_LABEL = "ConfigInstructionPlugin.match"
++OC_DECLARED_GLOB_RE = re.compile(
++    r'globUp\(\s*[A-Za-z_$][A-Za-z0-9_$]*\s*,\s*[A-Za-z_$][A-Za-z0-9_$]*\s*,'
++    r'\s*[A-Za-z_$][A-Za-z0-9_$]*\s*\)'
++)
++OC_DECLARED_WINDOW = 6000
+ OC_REMOTE_FILTER_RE = re.compile(
+     r'\.instructions[^;]{0,20}?\.filter\(\s*\(?\s*([A-Za-z_$][A-Za-z0-9_$]*)\s*\)?\s*=>\s*'
+     r'\1\.startsWith\("https://"\)\s*\|\|\s*\1\.startsWith\("http://"\)'
+@@ -755,6 +803,37 @@
+     )
+ 
+ 
++def opencode_declared_list_matches(dump: str) -> bool:
++    """v2.1.4: the declared `instructions` list reaches the plugin's file walk.
++
++    Every conjunct is read inside the `opencode.config.instruction` plugin body,
++    so a URL test or a `globUp` living in another module cannot satisfy it."""
++    for plugin in OC_DECLARED_PLUGIN_ID_RE.finditer(dump):
++        boundary = OC_PLUGIN_BOUNDARY_RE.search(dump, plugin.end())
++        end = boundary.start() if boundary else plugin.start() + OC_DECLARED_WINDOW
++        window = dump[plugin.start():end]
++
++        if OC_DECLARED_LIST_RE.search(window) is None:
++            continue
++        predicate = OC_DECLARED_URL_PRED_RE.search(window)
++        if predicate is None:
++            continue
++        fn = predicate.group("fn")
++        if re.search(r"\.filter\(\s*" + re.escape(fn) + r"\s*\)", window) is None:
++            continue
++        split = OC_DECLARED_SPLIT_RE.search(window)
++        if split is None or split.group("fn") != fn:
++            continue
++        helper = re.escape(split.group("match"))
++        if re.search(helper + r'=c\("' + re.escape(OC_DECLARED_MATCH_LABEL) + r'"\)',
++                     window) is None:
++            continue
++        if OC_DECLARED_GLOB_RE.search(window) is None:
++            continue
++        return True
++    return False
++
++
+ def extract_opencode_classes(dump: str) -> tuple[set[str], list[dict]]:
+     """(class ids, per-rule report) for the opencode dump.
+ 
+@@ -793,9 +872,12 @@
+           'X.join(<v>.home,".claude","CLAUDE.md")'])
+ 
+     # OC-3 — declared list + remote filter/render (two ids, two anchor pairs)
+-    declared = OC_DECLARED_RE.search(dump) is not None
++    declared = (OC_DECLARED_RE.search(dump) is not None
++                or opencode_declared_list_matches(dump))
+     rule("OC-3a", ["opencode:config/instructions"], declared,
+-         ["for(let <v> of <v>.instructions)"])
++         ["for(let <v> of <v>.instructions) [1.19.x fixture generation]",
++          'id:"opencode.config.instruction" + info.instructions??[] + URL predicate'
++          " filter + .sources split into ConfigInstructionPlugin.match + globUp [v2.1.4]"])
+     remote = (OC_REMOTE_FILTER_RE.search(dump) is not None
+               and OC_REMOTE_RENDER in dump)
+     rule("OC-3b", ["opencode:config/instructions-remote"], remote,
+@@ -1614,6 +1696,27 @@
+     rec("oc-1.19.4 anchors: PASS opencode_extract",
+         "PASS surfaces.opencode_extract:" in out, out)
+ 
++    # (oc-214) round 72: OC-3a re-derived on the live opencode v2.1.4 bundle
++    # (dump sha 020fb253…, dump line 708687).  The fixture is the
++    # `opencode.config.instruction` plugin body lifted verbatim; the decoy keeps
++    # every chain token (list read, URL predicate, filter, .sources split,
++    # ConfigInstructionPlugin.match, globUp) but the chain belongs to a skills
++    # plugin and the instruction id is a no-op stub — the window binding is what
++    # rejects it, so the arm fails if the rule ever reduces to a bare token.
++    v214 = read_text(FIXTURES / "strings-opencode-v2.1.4.txt",
++                     "opencode v2.1.4 fixture")
++    v214_decoy = read_text(FIXTURES / "strings-opencode-v2.1.4-decoy.txt",
++                           "opencode v2.1.4 decoy fixture")
++    for token in ('info.instructions??[]', "URL.canParse", ".sources",
++                  OC_DECLARED_MATCH_LABEL, "globUp(", OC_DECLARED_PLUGIN_ID):
++        rec("v2.1.4 decoy retains %r" % token, token in v214_decoy, token)
++    _, rep214 = extract_opencode_classes(v214)
++    rec("oc-2.1.4: OC-3a matches the config instruction plugin",
++        any(r["rule_id"] == "OC-3a" and r["matched"] for r in rep214), rep214)
++    _, rep214d = extract_opencode_classes(v214_decoy)
++    rec("oc-2.1.4 decoy: OC-3a rejects the same-token skills body",
++        not any(r["rule_id"] == "OC-3a" and r["matched"] for r in rep214d), rep214d)
++
+     oc_literals = ("Instruction.resolve", "ReadTool.execute", "<system-reminder>",
+                    "core/instructions", 'targets:["AGENTS.md"]',
+                    "InstructionContext.observe", "system-context-builtins")

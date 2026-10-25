@@ -1,0 +1,46 @@
+--- /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/verify_surfaces.py	2026-10-22 17:44:55.522510107 -0300
++++ verify_surfaces.py	2026-10-25 18:38:08.805053892 -0300
+@@ -612,12 +612,22 @@
+ OC_REMOTE_RENDER = "Instructions from: "
+ 
+ # OC-5: the resolution switch that decides *where* OC-1's names are read from —
+-# project walk-up versus config-only (dump 443993):
+-#   if(!Jr.OPENCODE_DISABLE_PROJECT_CONFIG)return yield*e.globUp(T,d.directory,d.worktree)
+-#   return yield*e.globUp(T,r.config,r.config)
+-OC_ENV_PROJECT_CONFIG = "OPENCODE_DISABLE_PROJECT_CONFIG"
+-OC_GLOBUP_PROJECT_RE = re.compile(r"globUp\([^)]*\.directory[^)]*\.worktree\)")
+-OC_GLOBUP_CONFIG_RE = re.compile(r"globUp\([^)]*\.config\s*,\s*[^)]*\.config\)")
++# project walk-up versus config-only.  v2.1.4 re-derived (dump lines 702021,
++# 708687): the env gate folds `process.env.OPENCODE_CONFIG_PROJECT_DISABLE??process.env.OPENCODE_DISABLE_PROJECT_CONFIG`
++# into a `.project` flag, and `ConfigInstructionPlugin.match` switches on it:
++#   if(C)return yield*l.globUp(Ae,T,N);if(!a.global)return[];
++#   return yield*l.scan(Ae,{...ye,cwd:r.config})
++OC_ENV_PROJECT_CONFIG = "OPENCODE_CONFIG_PROJECT_DISABLE"
++OC_SWITCH_RE = re.compile(
++    r'"ConfigInstructionPlugin\.match"\)\(function\*'
++    r'\([A-Za-z_$][A-Za-z0-9_$]*\)\{'
++    r'[\s\S]{0,2000}?'
++    r'if\([A-Za-z_$][A-Za-z0-9_$]*\)return yield\*'
++    r'[A-Za-z_$][A-Za-z0-9_$]*\.globUp\([^)]*\)[^;]*;'
++    r'if\(![A-Za-z_$][A-Za-z0-9_$]*\.global\)return\[\];return yield\*'
++    r'[A-Za-z_$][A-Za-z0-9_$]*\.scan\([^)]*cwd:'
++    r'[A-Za-z_$][A-Za-z0-9_$]*\.config'
++)
+ 
+ # OC-6: opencode's second instruction subsystem uses the `core/instructions`
+ # key, an all-match AGENTS.md walk, and its own registered layer, composed into
+@@ -812,11 +822,10 @@
+     # OC-5 — resolution switch (owns no class id; witnesses the path the ids are
+     # read through, so losing it is a drift FAIL rather than a silent re-scope)
+     resolve_switch = (OC_ENV_PROJECT_CONFIG in dump
+-                      and OC_GLOBUP_PROJECT_RE.search(dump) is not None
+-                      and OC_GLOBUP_CONFIG_RE.search(dump) is not None)
++                      and OC_SWITCH_RE.search(dump) is not None)
+     rule("OC-5", [], resolve_switch,
+-         [OC_ENV_PROJECT_CONFIG, "globUp(<v>.directory,<v>.worktree)",
+-          "globUp(<v>.config,<v>.config)"])
++         [OC_ENV_PROJECT_CONFIG,
++          "ConfigInstructionPlugin.match: globUp walk-up vs scan(cwd:config)"])
+ 
+     # OC-6 — observe+walk belongs to the registered instruction-context layer.
+     v2 = opencode_context_layer_matches(dump)

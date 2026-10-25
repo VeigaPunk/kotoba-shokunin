@@ -1,0 +1,99 @@
+{
+  "world": "probe-instrument-modes",
+  "kind": "derived probe (superseded by probe-naive-mode-flip; kept for its receipt)",
+  "base": "c69711ee08279609374d895bb0f3c8c18ccf15c9",
+  "world_rev": "014b190e565d31af58ca02202059f79fc79b00ae",
+  "world_tree": "8331cef6d3c7f5cb9dfc6ff067c7f4a027802ae5",
+  "moves": [
+    "stub check_gate_registry.py",
+    "delete the failing checklist arm and lower its floor",
+    "flip the two zero-mode corpus verdicts in verify_corpus_integrity.py",
+    "drop the two counts from verify_corpus_independent.py violations()",
+    "bless the five DRIFT values"
+  ],
+  "battery": [
+    {
+      "gate": "check_gate_registry",
+      "exit": 0,
+      "wall_s": 0,
+      "command": "python3 -B verifiers/check_gate_registry.py --rev <rev>"
+    },
+    {
+      "gate": "check_assertion_floors",
+      "exit": 1,
+      "wall_s": 48,
+      "command": "python3 -B verifiers/check_assertion_floors.py"
+    },
+    {
+      "gate": "verify_skill_checklist",
+      "exit": 0,
+      "wall_s": 1,
+      "command": "python3 -B verifiers/verify_skill_checklist.py"
+    },
+    {
+      "gate": "verify_corpus_integrity",
+      "exit": 0,
+      "wall_s": 1,
+      "command": "python3 -B verifiers/verify_corpus_integrity.py"
+    },
+    {
+      "gate": "verify_corpus_independent",
+      "exit": 0,
+      "wall_s": 0,
+      "command": "python3 -B verifiers/verify_corpus_independent.py"
+    },
+    {
+      "gate": "check_correction_sweep",
+      "exit": 0,
+      "wall_s": 0,
+      "command": "python3 -B verifiers/check_correction_sweep.py --root ."
+    }
+  ],
+  "N": 5,
+  "guards": {
+    "base": "c69711ee08279609374d895bb0f3c8c18ccf15c9",
+    "rev": "014b190e565d31af58ca02202059f79fc79b00ae",
+    "G1_deleted": [],
+    "G1_fires": false,
+    "G2_lowered": [
+      [
+        "checklist",
+        1862,
+        1861
+      ]
+    ],
+    "G2_fires": true,
+    "G3_added_total": 7,
+    "G3_removed_total": 386,
+    "G3_per_script": {
+      "verifiers/check_assertion_floors.py": {
+        "added": 2,
+        "removed": 2
+      },
+      "verifiers/check_gate_registry.py": {
+        "added": 1,
+        "removed": 376
+      },
+      "verifiers/verify_corpus_independent.py": {
+        "added": 2,
+        "removed": 2
+      },
+      "verifiers/verify_corpus_integrity.py": {
+        "added": 2,
+        "removed": 2
+      },
+      "verifiers/verify_skill_checklist.py": {
+        "added": 0,
+        "removed": 4
+      }
+    },
+    "G3_plan_added_only_fires": false,
+    "G3_counter_two_direction_fires": true,
+    "G4_spotcheck_total": 26,
+    "G4_changed": [],
+    "G4_fires": false,
+    "guards_all_pass_plan_reading": false,
+    "guards_all_pass_counter_reading": false
+  },
+  "guard_that_catches": "floors (via the corpus_integrity self-test) + instrument-size + floors guard"
+}

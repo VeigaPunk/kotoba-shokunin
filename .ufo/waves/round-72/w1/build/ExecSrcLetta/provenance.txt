@@ -1,0 +1,64 @@
+# S261 fetch provenance — ExecSrcLetta, round 72 wave 1
+
+Access date (UTC): 2026-10-25
+Scratch: a fresh `mktemp -d /tmp/k72w1-ExecSrcLetta.XXXX` (deleted before the seat returned)
+
+## Commands, verbatim
+
+    curl -fsSL -A 'Mozilla/5.0' -w 'HTTP=%{http_code} FINAL=%{url_effective} SIZE=%{size_download}\n' \
+      'https://docs.letta.com/letta-code/skills/' -o letta-skills.html
+    HTTP=200 FINAL=https://docs.letta.com/configuration/skills SIZE=92885
+
+    curl -sS -A 'Mozilla/5.0' -o /dev/null -D - -L --max-redirs 5 'https://docs.letta.com/letta-code/skills/'
+    HTTP/2 308   location: /letta-code/skills        server: Vercel
+    HTTP/2 308   location: /configuration/skills     server: Vercel
+    HTTP/2 200   content-type: text/html; charset=utf-8  content-length: 92885
+
+    curl -sSL -A 'Mozilla/5.0' 'https://docs.letta.com/configuration/skills.md'
+    HTTP=200 FINAL=https://docs.letta.com/configuration/skills.md SIZE=8023 TYPE=text/markdown; charset=utf-8
+    etag: "25f4bbfaba2c7ccd77f3959c28b1d568"
+    last-modified: Sun, 25 Oct 2026 21:37:10 GMT
+    cache-control: public, max-age=0, must-revalidate
+
+    curl -sSL -A 'Mozilla/5.0' 'https://docs.letta.com/configuration/skills/index.md'
+    HTTP=200 SIZE=8023  -> sha256 identical to skills.md (`cmp` silent, "IDENTICAL to skills.md")
+
+    curl -sSL -A 'Mozilla/5.0' 'https://docs.letta.com/letta-code/skills.md'
+    HTTP=404 SIZE=135308 TYPE=text/html
+
+    curl -sSL -A 'Mozilla/5.0' 'https://docs.letta.com/llms.txt'        -> HTTP=200 SIZE=28059
+    curl -sSL -A 'Mozilla/5.0' 'https://docs.letta.com/llms-full.txt'   -> HTTP=200 SIZE=28059
+    sha256 9815ce9c8712b1ad949d5a2ec6faf7f2dbd3b5a222047b2eba5ab2ffb8b2af12  (both files, byte-identical)
+
+Second fetch of both forms (byte-stability check, same minute):
+
+    20cda226c847d639f642a8d21583d49f2603c3ae07a56844bfc4164214617fbe  md2
+    20cda226c847d639f642a8d21583d49f2603c3ae07a56844bfc4164214617fbe  letta-skills.md
+    37d17d389fad15eb242c841870f337b4ed04ad9fe8f5f0aee1f505e1cae9556b  html2
+    37d17d389fad15eb242c841870f337b4ed04ad9fe8f5f0aee1f505e1cae9556b  letta-skills.html
+    html headers on refetch: etag "d13b4c1fbfe8b7cf1015ca1bfac31ea7", last-modified Tue, 20 Oct 2026 02:34:27 GMT
+
+## Snapshot of record
+
+    .ufo/waves/round-72/snapshots/S261-letta-skills.md            8023 bytes  sha256 20cda226c847d639f642a8d21583d49f2603c3ae07a56844bfc4164214617fbe
+    .ufo/waves/round-72/snapshots/S261-letta-skills.html         92885 bytes  sha256 37d17d389fad15eb242c841870f337b4ed04ad9fe8f5f0aee1f505e1cae9556b
+    .ufo/waves/round-72/snapshots/S261-letta-skills.rendered.txt  9428 bytes  sha256 a570d39b49d7b0628472d77162506c066cb212220e7e29cc599ed86dd0cc6164
+    .ufo/waves/round-72/snapshots/S261.sha256                     (sha256sum-style manifest, same shape as the sibling S262.sha256)
+
+The `.rendered.txt` form is DERIVED, not fetched: `python3 -B w1/build/ExecSrcLetta/render_text.py --write`
+(strip `<script>`/`<style>`, strip tags, unescape entities; no whitespace rewriting). Re-running it
+reproduces sha256 a570d39b… byte for byte. It exists only so the row's own first quote — which the
+page splits with an anchor element — can be located word-bounded in a committed snapshot. The raw
+`.md` and `.html` remain the snapshots of record.
+
+## Observations for the re-pin
+
+- The staged URL is a redirect: `/letta-code/skills/` -> 308 -> `/letta-code/skills` -> 308 ->
+  `/configuration/skills`. Canonical host+path: `docs.letta.com` + `/configuration/skills`.
+- The `.md` export is live-generated: `last-modified` on it (21:37:10Z) postdates the HTML build
+  (2026-10-20T02:34:27Z) and does not move on refetch. It is not a content-change signal; the etag
+  and the sha256 are.
+- `llms-full.txt` is byte-identical to `llms.txt` on this host (same sha256): do not treat it as a
+  superset crawl source.
+- `/letta-code/skills.md` is 404 while `/configuration/skills.md` and `/configuration/skills/index.md`
+  are 200 and byte-identical — the `.md` suffix only works on the canonical path.

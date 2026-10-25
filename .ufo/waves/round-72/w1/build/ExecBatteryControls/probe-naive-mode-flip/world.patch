@@ -1,0 +1,36 @@
+diff --git a/verifiers/verify_corpus_independent.py b/verifiers/verify_corpus_independent.py
+index 176abae..f2a4944 100755
+--- a/verifiers/verify_corpus_independent.py
++++ b/verifiers/verify_corpus_independent.py
+@@ -559,8 +559,8 @@ def _v(n):
+ 
+ def violations(observed):
+     idx, ptr, com = observed["index"], observed["pointers"], observed["commits"]
+-    return (idx["unindexed"] + idx["stale_tokens"] + idx["missing_paths"] +
+-            ptr["report_dead"] + com["commit_unresolvable"] + com["commit_nonhash"])
++    return (idx["stale_tokens"] + idx["missing_paths"] +
++            ptr["report_dead"] + com["commit_unresolvable"])
+ 
+ 
+ def exit_code(observed):
+diff --git a/verifiers/verify_corpus_integrity.py b/verifiers/verify_corpus_integrity.py
+index 71cb273..3b2cd87 100755
+--- a/verifiers/verify_corpus_integrity.py
++++ b/verifiers/verify_corpus_integrity.py
+@@ -685,14 +685,14 @@ def corpus_observations(repo: Path) -> dict:
+ # id -> (mode, extractor). mode: equal (baseline-compared) | zero (baseline-free)
+ CHECKS: dict[str, tuple[str, str]] = {
+     "corpus.index.tracked_files": ("equal", "tracked_files"),
+-    "corpus.index.unindexed": ("zero", "unindexed"),
++    "corpus.index.unindexed": ("equal", "unindexed"),
+     "corpus.index.stale_patterns": ("zero", "stale_patterns"),
+     "corpus.index.missing_paths": ("zero", "missing_paths"),
+     "corpus.pointers.report_total": ("equal", "report_total"),
+     "corpus.pointers.report_dead": ("zero", "report_dead"),
+     "corpus.pointers.commit_total": ("equal", "commit_total"),
+     "corpus.pointers.commit_unresolvable": ("zero", "commit_unresolvable"),
+-    "corpus.pointers.commit_nonhash": ("zero", "commit_nonhash"),
++    "corpus.pointers.commit_nonhash": ("equal", "commit_nonhash"),
+ }
+ EXTRACT_KEYS = {key for _, key in CHECKS.values()}
+ DETAIL_KEYS = (

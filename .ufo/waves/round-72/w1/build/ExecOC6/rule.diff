@@ -1,0 +1,216 @@
+--- verifiers/verify_surfaces.py	2026-10-22 17:44:55.522510107 -0300
++++ .ufo/waves/round-72/w1/build/ExecOC6/verify_surfaces.py	2026-10-25 18:48:36.976901817 -0300
+@@ -623,6 +623,25 @@
+ # key, an all-match AGENTS.md walk, and its own registered layer, composed into
+ # `system-context-builtins`. 1.19.4 renamed the key factory from `Key.make` to
+ # `Wr.make` and made the layer/dependency relation visible in the bundle.
++#
++# GENERATION NOTE (round 72, opencode v2.1.4, dump sha256 020fb253…, 1237844
++# dump lines).  The subsystem was renamed: `InstructionContext` ->
++# `InstructionDiscovery`, its layer `instruction-context` ->
++# `instruction-discovery`, and the composition point `system-context-builtins`
++# is GONE (0 occurrences).  On v2.1.4 the layer that carries BOTH the builtins
++# layer and the instruction layer is the `@opencode/SessionContext` layer
++# (dump line 708343), and the all-match AGENTS.md walk moved into the
++# `opencode.config.instruction` plugin, which pushes `InstructionDiscovery.File`
++# values into the discovery state (dump line 708687).  The v2.1.4 branch
++# requires that whole chain (key -> instruction layer render -> service class ->
++# file class in the editor -> own registered layer -> SessionContext deps ->
++# config-plugin feed), so a dump that keeps the tokens without an
++# instruction-loading role does NOT match: the `core/codemode` key layer, a
++# walk with no discovery service, a composition that drops the discovery layer,
++# and a plugin that never pushes into the service are all rejected.  The 1.19.4
++# branch and the 1.19.3 fixture fallback are retained as generation fixtures
++# (committed under `verifiers/fixtures/surfaces/`), the way the retired v2.0.26
++# set is retained as a must-fail fixture.
+ OC_V2_KEY = 'Key.make("core/instructions")'  # 1.19.3 fixture generation
+ OC_V2_TARGETS = 'targets:["AGENTS.md"]'
+ OC_V2_OBSERVE = "InstructionContext.observe"
+@@ -647,6 +666,63 @@
+     + r'",layer:[A-Za-z_$][A-Za-z0-9_$]*,'
+ )
+ 
++# v2.1.4 generation (round 72).  Anchors, dump lines: key + service class +
++# editor add + load label + wrapped registration line 708288; builtins class
++# 708294; builtins registration 708297; SessionContext class + composed
++# registration 708343; config-plugin walk, feed wrap, instanceof filter and
++# push 708687.
++OC_V214_FILE = "InstructionDiscovery.File"
++OC_V214_SERVICE = "@opencode/InstructionDiscovery"
++OC_V214_BUILTINS = "@opencode/InstructionBuiltIns"
++OC_V214_SESSION_CONTEXT = "@opencode/SessionContext"
++OC_V214_REMOVED = "Previously loaded instructions no longer apply."
++OC_V214_CONFIG_PLUGIN = 'id:"opencode.config.instruction"'
++OC_V214_KEY_RE = re.compile(
++    r'(?P<key>[A-Za-z_$][A-Za-z0-9_$]*)='
++    r'(?:[A-Za-z_$][A-Za-z0-9_$]*\.){0,2}make\("core/instructions"\)'
++)
++# the key variable rendered as an instruction layer: the `removed` message is
++# the instruction one, which is what separates this layer from `core/codemode`'s
++# (`Code Mode tools are no longer available. …`) on the same `GA({key:…})` shape.
++OC_V214_LAYER_RE = re.compile(
++    r'GA\(\{key:(?P<key>[A-Za-z_$][A-Za-z0-9_$]*),codec:'
++    r'[A-Za-z_$][A-Za-z0-9_$]*\([A-Za-z_$][A-Za-z0-9_$]*\),read:'
++    r'[A-Za-z_$][A-Za-z0-9_$]*\([A-Za-z_$][A-Za-z0-9_$]*\),render:\{initial:'
++    r'[A-Za-z_$][A-Za-z0-9_$]*,changed:[A-Za-z_$][A-Za-z0-9_$]*,removed:\(\)=>"'
++    + re.escape(OC_V214_REMOVED) + r'"'
++)
++OC_V214_ADD_RE = re.compile(
++    r'add:\((?P<p>[A-Za-z_$][A-Za-z0-9_$]*)\)=>'
++    r'[A-Za-z_$][A-Za-z0-9_$]*\.files\.set\((?P=p)\.path,new\s+'
++    r'(?P<fc>[A-Za-z_$][A-Za-z0-9_$]*)\((?P=p)\)\)'
++)
++OC_V214_LABELLED = ('c("InstructionDiscovery.list")',
++                    'c("InstructionDiscovery.load")')
++OC_V214_WALK_RE = re.compile(
++    r'up\(\{targets:\["AGENTS\.md"\],start:[^,]{1,40},stop:[^,]{1,40},'
++    r'type:"file"\}\)'
++)
++OC_V214_PUSH_RE = re.compile(
++    r'\.transform\(\((?P<v>[A-Za-z_$][A-Za-z0-9_$]*)\)=>\{[\s\S]{0,300}?'
++    r'(?P=v)\.add\('
++)
++OC_V214_DIRECT_REG_RE = re.compile(
++    r'(?P<layer>[A-Za-z_$][A-Za-z0-9_$]*)=Ct\(\{service:'
++    r'(?P<svc>[A-Za-z_$][A-Za-z0-9_$]*),layer:'
++    r'(?P<inner>[A-Za-z_$][A-Za-z0-9_$]*)(?:\([^)]*\))?,'
++    r'deps:\[(?P<deps>[^\]]*)\]\}\)'
++)
++OC_V214_WRAPPED_REG_RE = re.compile(
++    r'function\s+(?P<factory>[A-Za-z_$][A-Za-z0-9_$]*)\([^)]*\)\{return\s+'
++    r'Ct\(\{service:(?P<svc>[A-Za-z_$][A-Za-z0-9_$]*),layer:'
++    r'(?P<inner>[A-Za-z_$][A-Za-z0-9_$]*)(?:\([^)]*\))?,'
++    r'deps:\[(?P<deps>[^\]]*)\]\}\)'
++)
++OC_V214_BOUND_RE = re.compile(
++    r'\}[\s\S]{0,40}?var\s+(?P<layer>[A-Za-z_$][A-Za-z0-9_$]*)='
++    r'(?P<fn>[A-Za-z_$][A-Za-z0-9_$]*)\(\)'
++)
++
+ # OC-4: the read-tool channel resolves instructions and places the resolved
+ # contents in the tool result's <system-reminder>. The minified registration
+ # The minifier renamed the wrapper callee from `fn` (1.19.3) to `l` (1.19.4);
+@@ -708,8 +784,104 @@
+     return False
+ 
+ 
++def _oc_class_re(label: str) -> re.Pattern:
++    """`class V extends C("label")` or `class V extends C()("label")` — the two
++    class-tag shapes the bundle uses (`xe("InstructionDiscovery.File")`,
++    `U()("@opencode/InstructionDiscovery")`)."""
++    return re.compile(
++        r'class\s+(?P<svc>[A-Za-z_$][A-Za-z0-9_$]*)\s+extends\s+'
++        r'[A-Za-z_$][A-Za-z0-9_$]*\((?:\s*\)\s*\()?\s*"'
++        + re.escape(label) + r'"\s*\)'
++    )
++
++
++def _oc_v214_registrations(dump: str) -> list[tuple[str, str, list[str]]]:
++    """(service var, layer var, deps tokens) for the two `Ct({service:…})`
++    registration shapes v2.1.4 uses: the direct binding
++    `V=Ct({service:S,layer:L,deps:[…]})` and the wrapped
++    `function F(…){return Ct({service:S,layer:G(…),deps:[…]})}var V=F()`."""
++    out: list[tuple[str, str, list[str]]] = []
++    for m in OC_V214_DIRECT_REG_RE.finditer(dump):
++        out.append((m.group("svc"), m.group("layer"),
++                    [t.strip() for t in m.group("deps").split(",") if t.strip()]))
++    for m in OC_V214_WRAPPED_REG_RE.finditer(dump):
++        bound = OC_V214_BOUND_RE.match(dump, m.end())
++        if bound is not None and bound.group("fn") == m.group("factory"):
++            out.append((m.group("svc"), bound.group("layer"),
++                        [t.strip() for t in m.group("deps").split(",") if t.strip()]))
++    return out
++
++
++def _oc_v214_feed_matches(dump: str, file_class: str, service: str) -> bool:
++    """The `opencode.config.instruction` plugin consumes the discovery service
++    and pushes the all-match AGENTS.md walk's hits into it as `file_class`
++    values: `yield*<service>`, the walk, `new <file_class>({path:…`,
++    `instanceof <file_class>`, and `<state>.add(` inside a `transform`."""
++    for plugin in re.finditer(re.escape(OC_V214_CONFIG_PLUGIN), dump):
++        window = dump[plugin.start():plugin.start() + 40000]
++        if ("yield*" + service) not in window:
++            continue
++        if OC_V214_WALK_RE.search(window) is None:
++            continue
++        if re.search(r"new\s+" + re.escape(file_class) + r"\(\{path:", window) is None:
++            continue
++        if re.search(r"instanceof\s+" + re.escape(file_class) + r"\b",
++                     window) is None:
++            continue
++        if OC_V214_PUSH_RE.search(window) is None:
++            continue
++        return True
++    return False
++
++
++def opencode_context_layer_v214_matches(dump: str) -> bool:
++    """v2.1.4: the `core/instructions` key rendered as an instruction layer, its
++    `@opencode/InstructionDiscovery` service storing `InstructionDiscovery.File`
++    values in its own registered layer, that layer carried by the
++    `@opencode/SessionContext` layer together with the
++    `@opencode/InstructionBuiltIns` layer, and the config-instruction plugin
++    feeding it from the all-match AGENTS.md walk.  Every conjunct is a byte
++    anchor: dropping any one (including swapping the key for `core/codemode`,
++    which shares the `GA({key:…})` shape) leaves the rule unmatched."""
++    file_m = _oc_class_re(OC_V214_FILE).search(dump)
++    service_m = _oc_class_re(OC_V214_SERVICE).search(dump)
++    builtins_m = _oc_class_re(OC_V214_BUILTINS).search(dump)
++    context_m = _oc_class_re(OC_V214_SESSION_CONTEXT).search(dump)
++    if not (file_m and service_m and builtins_m and context_m):
++        return False
++    file_class = file_m.group("svc")
++    service = service_m.group("svc")
++    registrations = _oc_v214_registrations(dump)
++    builtins_layers = {l for s, l, _ in registrations if s == builtins_m.group("svc")}
++    discovery_layers = {l for s, l, _ in registrations if s == service}
++    if not builtins_layers or not discovery_layers:
++        return False
++    composed = [deps for s, _, deps in registrations
++                if s == context_m.group("svc")
++                and any(l in deps for l in builtins_layers)
++                and any(l in deps for l in discovery_layers)]
++    if not composed:
++        return False
++    if not _oc_v214_feed_matches(dump, file_class, service):
++        return False
++    for key_match in OC_V214_KEY_RE.finditer(dump):
++        window = dump[key_match.start():key_match.start() + 60000]
++        layer = OC_V214_LAYER_RE.search(window)
++        if layer is None or layer.group("key") != key_match.group("key"):
++            continue
++        add = OC_V214_ADD_RE.search(window)
++        if add is None or add.group("fc") != file_class:
++            continue
++        if any(token not in window for token in OC_V214_LABELLED):
++            continue
++        return True
++    return False
++
++
+ def opencode_context_layer_matches(dump: str) -> bool:
+     """Tie the current instruction key and walk to the registered layer graph."""
++    if opencode_context_layer_v214_matches(dump):
++        return True
+     for key_match in OC_V2_KEY_RE.finditer(dump):
+         window = dump[key_match.start():key_match.start() + 50000]
+         layer_match = OC_V2_LAYER_DEF_RE.search(window)
+@@ -818,11 +990,15 @@
+          [OC_ENV_PROJECT_CONFIG, "globUp(<v>.directory,<v>.worktree)",
+           "globUp(<v>.config,<v>.config)"])
+ 
+-    # OC-6 — observe+walk belongs to the registered instruction-context layer.
++    # OC-6 — the second instruction subsystem: its key rendered as an
++    # instruction layer, its own registered layer, and the layer composition
++    # that carries it (v2.1.4: SessionContext deps + config-plugin feed).
+     v2 = opencode_context_layer_matches(dump)
+     rule("OC-6", ["opencode:instruction-context/AGENTS.md"], v2,
+-         ["core/instructions key + InstructionContext.observe AGENTS.md walk",
+-          "instruction-context layer registered under system-context-builtins"])
++         ["core/instructions key rendered as the instruction layer",
++          "InstructionDiscovery service/layer registered via Ct({service,layer,deps})",
++          "discovery layer carried by the SessionContext layer with the builtins layer",
++          "opencode.config.instruction AGENTS.md walk pushes InstructionDiscovery.File values"])
+ 
+     return ids, report
+ 

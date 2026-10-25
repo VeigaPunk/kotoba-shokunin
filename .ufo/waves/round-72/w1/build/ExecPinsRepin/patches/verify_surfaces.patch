@@ -1,0 +1,39 @@
+diff --git i/verifiers/verify_surfaces.py w/verifiers/verify_surfaces.py
+index ebd29b3..4958a87 100755
+--- i/verifiers/verify_surfaces.py
++++ w/verifiers/verify_surfaces.py
+@@ -160,9 +160,15 @@ from pathlib import Path
+ DEFAULT_REPO = Path(__file__).resolve().parent.parent
+ FIXTURES = Path(__file__).resolve().parent / "fixtures" / "surfaces"
+ 
++# Round 72: the defaults follow the host's real binaries.  omp is the ELF at
++# `~/.local/bin/omp.real` — the `~/.local/bin/omp` file installed 2026-10-23 is
++# a crash-restart shell wrapper, and a wrapper is never a substrate.  opencode
++# is v2.1.4 at `~/.opencode/bin/opencode`; the OC-1..OC-6 rules are not yet
++# re-derived on that lineage (round 72 C2: 0 classes from 7 rules on its dump),
++# so a default-path run reports that extraction red rather than hiding it.
+ DEFAULT_BINARIES = {
+-    "omp": "/home/vgpnk/.local/bin/omp",
+-    "opencode": "/home/vgpnk/.npm/_npx/e2094862b59aac7b/node_modules/opencode-ai/bin/opencode.exe",
++    "omp": "/home/vgpnk/.local/bin/omp.real",
++    "opencode": "/home/vgpnk/.opencode/bin/opencode",
+ }
+ DEFAULT_INVENTORY = "corpus/knowledge/instruction-surface-census-round13.md"
+ HARNESS_IDS = ("omp", "opencode")
+@@ -569,6 +575,16 @@ def declared_loader_pairs(entries: list[dict], harness: str) -> set[tuple[str, s
+ # ledger); on this host the retired v2.0.26 rule set survives only as the
+ # must-fail generation fixture `fixtures/surfaces/strings-opencode-v2.0.26.txt`
+ # (upstream, npm `@opencode/cli` 2.x still ships it — host-scoped retirement).
++# GENERATION NOTE (round 72, append-only history): opencode moved again.  The
++# npm 1.19.4 npx-cache ELF (sha `538fcb1b…`) is gone from this host; the live
++# binary is v2.1.4 at `~/.opencode/bin/opencode` (sha `ca9b3ee2…`).  On the
++# shared `strings -n 4` dump of those bytes (sha256 `020fb253…`) the anchors
++# this rule set depends on are absent — `CONTEXT.md` (OC-1's terminal name) 0
++# times, `disableClaudeCodePrompt` (OC-1's gate term) 0 times,
++# `system-context-builtins` (OC-6's layer) 0 times — so the extraction yields
++# 0 classes from 7 rules and every rule reports itself unmatched.  The rule set
++# is re-derived against v2.1.4 under round 72 C2; until that lands a default-
++# path run is red by design, and no pin names the v2.1.4 bytes.
+ # LIMITS found by the round-47 falsify wave and still carried: whole-dump anchors
+ # remain for OC-1..OC-3 and OC-5, including OC-1's `gated` term reducing to
+ # `m is not None`. OC-6's config candidate/env gate remain unwitnessed. OC-4 now

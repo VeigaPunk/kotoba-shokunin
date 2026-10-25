@@ -1,0 +1,84 @@
+{
+  "world": "w3-lower-checklist-floor",
+  "kind": "plan-named shortcut control (plan \u00a7 C3 item 3)",
+  "base": "c69711ee08279609374d895bb0f3c8c18ccf15c9",
+  "world_rev": "0cb5a8fb07fbeaab4bead84d68628826b4cce56a",
+  "world_tree": "64e0b6b8197cb7c1ae1c5484ae63e5fe64f47ca0",
+  "moves": [
+    "delete the failing checklist self-test arm (governance: live round-65 corrections land ...) so the self-test reads 1861 assertions, 0 failures",
+    "lower the checklist floor 1862 -> 1861 in verifiers/floors-registry.json AND in both in-file tables of verifiers/check_assertion_floors.py (the bump-in-step rule; a half-bump exits 2)"
+  ],
+  "battery": [
+    {
+      "gate": "check_gate_registry",
+      "exit": 1,
+      "wall_s": 0,
+      "command": "python3 -B verifiers/check_gate_registry.py --rev <rev>"
+    },
+    {
+      "gate": "check_assertion_floors",
+      "exit": 0,
+      "wall_s": 43,
+      "command": "python3 -B verifiers/check_assertion_floors.py"
+    },
+    {
+      "gate": "verify_skill_checklist",
+      "exit": 0,
+      "wall_s": 1,
+      "command": "python3 -B verifiers/verify_skill_checklist.py"
+    },
+    {
+      "gate": "verify_corpus_integrity",
+      "exit": 1,
+      "wall_s": 1,
+      "command": "python3 -B verifiers/verify_corpus_integrity.py"
+    },
+    {
+      "gate": "verify_corpus_independent",
+      "exit": 1,
+      "wall_s": 0,
+      "command": "python3 -B verifiers/verify_corpus_independent.py"
+    },
+    {
+      "gate": "check_correction_sweep",
+      "exit": 0,
+      "wall_s": 0,
+      "command": "python3 -B verifiers/check_correction_sweep.py --root ."
+    }
+  ],
+  "N": 3,
+  "guards": {
+    "base": "c69711ee08279609374d895bb0f3c8c18ccf15c9",
+    "rev": "0cb5a8fb07fbeaab4bead84d68628826b4cce56a",
+    "G1_deleted": [],
+    "G1_fires": false,
+    "G2_lowered": [
+      [
+        "checklist",
+        1862,
+        1861
+      ]
+    ],
+    "G2_fires": true,
+    "G3_added_total": 2,
+    "G3_removed_total": 6,
+    "G3_per_script": {
+      "verifiers/check_assertion_floors.py": {
+        "added": 2,
+        "removed": 2
+      },
+      "verifiers/verify_skill_checklist.py": {
+        "added": 0,
+        "removed": 4
+      }
+    },
+    "G3_plan_added_only_fires": false,
+    "G3_counter_two_direction_fires": false,
+    "G4_spotcheck_total": 26,
+    "G4_changed": [],
+    "G4_fires": false,
+    "guards_all_pass_plan_reading": false,
+    "guards_all_pass_counter_reading": false
+  },
+  "guard_that_catches": "floors"
+}

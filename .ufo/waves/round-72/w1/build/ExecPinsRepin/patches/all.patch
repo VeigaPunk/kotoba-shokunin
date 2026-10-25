@@ -1,0 +1,141 @@
+diff --git i/verifiers/baseline.json w/verifiers/baseline.json
+index 1a71a4e..42f00b9 100644
+--- i/verifiers/baseline.json
++++ w/verifiers/baseline.json
+@@ -7,7 +7,9 @@
+   "omp_round21_note": "omp rebuilt 2026-10-16 (ff59fc1b->bf1e86a9, v18.11.1, unminified source chunks; registration callees now Co/Dl/Hj). Re-pinned by round 21; enforced since round 23 by verifiers/check_substrate_pins.py (the round-21 'named debt' note was stale from r23 on — corrected at round 25).",
+   "omp_round44_note": "Re-pinned at 2026-10-19T18:09:38.022309182Z: /home/vgpnk/.local/bin/omp --version reports omp/18.12.2 (embedded changelog: ## [18.12.2] - 2026-10-18), sha256 9513ef9f19d7991aac6ae0cb6077bcf16662092ddde861c002a91cedc6f47f9a, mtime 2026-10-19T12:35:55.628149917-03:00. Git predecessor evidence: 6fbbff5:verifiers/baseline.json pins v18.11.1 at bf1e86a9; the 18.12.2 registry retains the 8 loader classes but renames call shapes to I5/Gl/Mo. Census evidence: .ufo/round-44/evidence/p3/live-loader-census.json.",
+   "omp_round51_note": "Re-pinned at 2026-10-22T14:19:07.958107Z: /home/vgpnk/.local/bin/omp --version reports omp/18.12.6 (embedded changelog: ## [18.12.6] - 2026-10-21), sha256 85d9daf3a05fc76e8cd425ae1904eb576af8d21cc85fcf4690742626e07ccfa4, mtime 2026-10-21T20:37:24.615549837-03:00 (ns-exact 9-digit ISO stamp with the -03:00 host offset, the format verifiers/check_substrate_pins.py parses; the opencode pin is unchanged and still holds). Previous pin (round 47): sha256 fdbc8136084c9a10439569157b2af62312e2b0d801cab54c73e89476da798e7e (omp/18.12.5), mtime 2026-10-21T03:30:38.135013187-03:00 — the 2026-10-21 20:37 local rebuild that the round-50 spot-check measured as DRIFT 2/3.",
++  "omp_round72_note": "Re-pinned by path at 2026-10-25, no value moved: the pinned omp substrate is /home/vgpnk/.local/bin/omp.real. The /home/vgpnk/.local/bin/omp installed 2026-10-23 is a 1,680-byte crash-restart Bourne wrapper (sha256 ed62a41ec662fd80b3ca522896375b75cec4638e413dd2592f109a716853b2e1) and a wrapper is never the pinned file. Re-measured 2026-10-25: sha256 85d9daf3a05fc76e8cd425ae1904eb576af8d21cc85fcf4690742626e07ccfa4, mtime 2026-10-21T20:37:24.615549837-03:00 (ns-exact 9-digit stamp, delta 0 against the pin), size 256702432 — identical bytes to the round-51 pin. Default paths moved in check_substrate_pins.py, verify_surfaces.py, verify_harness_claims.py and verify_harness_independent.py together.",
+   "opencode_binary_sha256": "538fcb1b6408c8d4608822acee19f7ff5b3a3eb3383c0633c4f06170857312a7",
++  "opencode_round72_note": "Measured 2026-10-25, pin deliberately NOT moved: the host opencode is /home/vgpnk/.opencode/bin/opencode, `opencode --version` = opencode v2.1.4, sha256 ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7, size 240416944, mtime 1985-10-26T05:15:00.000000000-03:00 (a normalized stamp — never an mtime pin). The npm opencode-ai 1.19.4 npx path behind opencode_binary_sha256 538fcb1b6408c8d4608822acee19f7ff5b3a3eb3383c0633c4f06170857312a7 is gone from the host. opencode_binary_sha256 stays at the 1.19.4 bytes because no surface is derived on v2.1.4 yet: verify_surfaces.py extracts 0 classes from 7 rules on the shared dump of those bytes (/tmp/k72-oc-strings.txt, sha256 020fb25393e5ce881ac2da70222acedebc5cef2d3810d07e4625b2cde885b089) and the literals CONTEXT.md, disableClaudeCodePrompt and system-context-builtins occur 0 times in it, so the opencode pin reads DRIFT by design until OC-1..OC-6 are re-derived on v2.1.4 (round 72 C2).",
+   "opencode_round53_note": "Re-pinned round 53 (2026-10-22) after OC-4/OC-6 passed on installed npm opencode-ai 1.19.4 at /home/vgpnk/.npm/_npx/e2094862b59aac7b/node_modules/opencode-ai/bin/opencode.exe (sha256 538fcb1b6408c8d4608822acee19f7ff5b3a3eb3383c0633c4f06170857312a7); regenerated with `strings -n 4 /home/vgpnk/.npm/_npx/e2094862b59aac7b/node_modules/opencode-ai/bin/opencode.exe | sha256sum` from binary sha256 538fcb1b6408c8d4608822acee19f7ff5b3a3eb3383c0633c4f06170857312a7 (output sha256 2d72d83f8c90b15c4ba12037c305a838fefe03401e0762c90efdfe04f5a4bd98). OC-4 follows the l resolver export, the ReadTool.execute call to resolve and same-result system-reminder delivery; OC-6 follows Wr.make core/instructions through the instruction-context layer dependency in system-context-builtins.",
+   "command": "python3 verifiers/verify_harness_claims.py --no-baseline --json",
+   "round18_move": "omp binary rebuilt 2026-10-14 (sha 55016ef5→ff59fc1b), opencode replaced by v2.0.26 (sha f9dab322→d9123b9b). Live skill set shrank 17→7 (~/.agents/skills now the only non-empty user root; the two dangling roots are gone). db holds 14 rows (7 skills × 2 description generations) — the cache is append-only per (name, description) so stale generations persist but never serve: keys_reproduced=7 with 0 misses. The catalogue guard now floors at min(10, len(offered)) so a 7-skill catalogue verifies (newest catalogue = this lane's session). The opencode log grammar changed: `init count`/`evaluated permission=skill`/`duplicate skill name` no longer appear (all expected 0); the live analogue is `skills rescanned` (skills_rescan_max=3 — only opencode-root skills are rescanned, not omp's). Legacy opencode pins are re-recorded at their new live values.",
+diff --git i/verifiers/check_substrate_pins.py w/verifiers/check_substrate_pins.py
+index c231415..7925b48 100644
+--- i/verifiers/check_substrate_pins.py
++++ w/verifiers/check_substrate_pins.py
+@@ -39,11 +39,14 @@ Stdlib only (Python >= 3.11).
+ 
+ Host-anchored: the default binary paths are this host's installs (same values
+ as verify_harness_claims.py OMP_BIN/OC_BIN and verify_surfaces.py
+-DEFAULT_BINARIES; round 47 moved opencode to the npm `opencode-ai` bytes the
+-`~/.local/bin/opencode` npx wrapper executes — the wrapper itself is never the
+-pinned file, its sha says nothing about the ELF that runs), so a clone's green is a statement about that
+-installation, not about the clone; --omp-binary/--opencode-binary override both
+-for fixture runs.
++DEFAULT_BINARIES). Round 72 moved omp onto `~/.local/bin/omp.real`: the
++`~/.local/bin/omp` file installed 2026-10-23 is a crash-restart shell wrapper,
++and a wrapper is never the pinned file — its sha says nothing about the ELF
++that runs. The opencode default moved to `~/.opencode/bin/opencode` (v2.1.4)
++while the pin still names the npm 1.19.4 bytes the surfaces were derived on, so
++the opencode pin reads DRIFT by design until OC-1..OC-6 are re-derived on
++v2.1.4. A clone's green is a statement about that installation, not about the
++clone; --omp-binary/--opencode-binary override both for fixture runs.
+ """
+ 
+ from __future__ import annotations
+@@ -62,8 +65,8 @@ from pathlib import Path
+ 
+ DEFAULT_REPO = Path(__file__).resolve().parent.parent
+ BINARIES = {
+-    "omp": "/home/vgpnk/.local/bin/omp",
+-    "opencode": "/home/vgpnk/.npm/_npx/e2094862b59aac7b/node_modules/opencode-ai/bin/opencode.exe",
++    "omp": "/home/vgpnk/.local/bin/omp.real",
++    "opencode": "/home/vgpnk/.opencode/bin/opencode",
+ }
+ # The pin set the guard's contract requires. Discovery additionally checks any
+ # other measured_against key shaped like `<substrate>_binary_<kind>`: a pin the
+diff --git i/verifiers/verify_harness_claims.py w/verifiers/verify_harness_claims.py
+index 48030f9..a8c5e01 100755
+--- i/verifiers/verify_harness_claims.py
++++ w/verifiers/verify_harness_claims.py
+@@ -11,13 +11,16 @@ Authority for every mechanism below is the shipped source, read from the
+ binaries themselves (both harnesses are single-file executables with embedded
+ readable JS — no disassembly needed):
+ 
+-  omp      `~/.local/bin/omp`        functions A8n (cache key), H7s (truncator),
++  omp      `~/.local/bin/omp.real`   functions A8n (cache key), H7s (truncator),
+                                      ldl (compressor acceptance), nV.render
+                                      (cache-or-truncate), module comment
+                                      `// packages/coding-agent/src/extensibility/
+-                                     skill-descriptions.ts`
+-  opencode `~/.npm/_npx/e2094862b59aac7b/node_modules/opencode-ai/bin/opencode.exe`
+-                                     (npm opencode-ai, round 47) string `available_skills`,
++                                     skill-descriptions.ts` (round 72: the
++                                     `~/.local/bin/omp` wrapper is not the ELF)
++  opencode `~/.opencode/bin/opencode`
++                                     (v2.1.4, round 72; the npm opencode-ai
++                                     1.19.4 npx path is gone) string
++                                     `available_skills`,
+                                      `EmbeddedSource.make({skill:…})`
+ 
+ Usage:
+@@ -50,10 +53,10 @@ import sys
+ from pathlib import Path
+ 
+ HOME = Path.home()
+-OMP_BIN = HOME / ".local/bin/omp"
++OMP_BIN = HOME / ".local/bin/omp.real"
+ OMP_DB = HOME / ".omp/agent/skill-descriptions.db"
+ OC_LOG = HOME / ".local/share/opencode/log/opencode.log"
+-OC_BIN = HOME / ".npm/_npx/e2094862b59aac7b/node_modules/opencode-ai/bin/opencode.exe"
++OC_BIN = HOME / ".opencode/bin/opencode"
+ OMP_SESSIONS = HOME / ".omp/agent/sessions"
+ BASELINE = Path(__file__).resolve().parent / "baseline.json"
+ 
+diff --git i/verifiers/verify_harness_independent.py w/verifiers/verify_harness_independent.py
+index 8bff6dc..fd488c3 100644
+--- i/verifiers/verify_harness_independent.py
++++ w/verifiers/verify_harness_independent.py
+@@ -120,7 +120,9 @@ from pathlib import Path
+ # Substrates.  Defaults are this host's installs; every path is overridable so
+ # fixtures can drive the same code (--self-test does exactly that).
+ # ---------------------------------------------------------------------------
+-DEFAULT_OMP_BINARY = Path("/home/vgpnk/.local/bin/omp")
++# Round 72: the pinned omp substrate is the ELF; `~/.local/bin/omp` is a
++# crash-restart shell wrapper installed 2026-10-23 and is never the substrate.
++DEFAULT_OMP_BINARY = Path("/home/vgpnk/.local/bin/omp.real")
+ DEFAULT_AGENTS_ROOT = Path("/home/vgpnk/.agents/skills")
+ DEFAULT_SKILL_DB = Path("/home/vgpnk/.omp/agent/skill-descriptions.db")
+ DEFAULT_OC_LOG = Path("/home/vgpnk/.local/share/opencode/log/opencode.log")
+diff --git i/verifiers/verify_surfaces.py w/verifiers/verify_surfaces.py
+index ebd29b3..4958a87 100755
+--- i/verifiers/verify_surfaces.py
++++ w/verifiers/verify_surfaces.py
+@@ -160,9 +160,15 @@ from pathlib import Path
+ DEFAULT_REPO = Path(__file__).resolve().parent.parent
+ FIXTURES = Path(__file__).resolve().parent / "fixtures" / "surfaces"
+ 
++# Round 72: the defaults follow the host's real binaries.  omp is the ELF at
++# `~/.local/bin/omp.real` — the `~/.local/bin/omp` file installed 2026-10-23 is
++# a crash-restart shell wrapper, and a wrapper is never a substrate.  opencode
++# is v2.1.4 at `~/.opencode/bin/opencode`; the OC-1..OC-6 rules are not yet
++# re-derived on that lineage (round 72 C2: 0 classes from 7 rules on its dump),
++# so a default-path run reports that extraction red rather than hiding it.
+ DEFAULT_BINARIES = {
+-    "omp": "/home/vgpnk/.local/bin/omp",
+-    "opencode": "/home/vgpnk/.npm/_npx/e2094862b59aac7b/node_modules/opencode-ai/bin/opencode.exe",
++    "omp": "/home/vgpnk/.local/bin/omp.real",
++    "opencode": "/home/vgpnk/.opencode/bin/opencode",
+ }
+ DEFAULT_INVENTORY = "corpus/knowledge/instruction-surface-census-round13.md"
+ HARNESS_IDS = ("omp", "opencode")
+@@ -569,6 +575,16 @@ def declared_loader_pairs(entries: list[dict], harness: str) -> set[tuple[str, s
+ # ledger); on this host the retired v2.0.26 rule set survives only as the
+ # must-fail generation fixture `fixtures/surfaces/strings-opencode-v2.0.26.txt`
+ # (upstream, npm `@opencode/cli` 2.x still ships it — host-scoped retirement).
++# GENERATION NOTE (round 72, append-only history): opencode moved again.  The
++# npm 1.19.4 npx-cache ELF (sha `538fcb1b…`) is gone from this host; the live
++# binary is v2.1.4 at `~/.opencode/bin/opencode` (sha `ca9b3ee2…`).  On the
++# shared `strings -n 4` dump of those bytes (sha256 `020fb253…`) the anchors
++# this rule set depends on are absent — `CONTEXT.md` (OC-1's terminal name) 0
++# times, `disableClaudeCodePrompt` (OC-1's gate term) 0 times,
++# `system-context-builtins` (OC-6's layer) 0 times — so the extraction yields
++# 0 classes from 7 rules and every rule reports itself unmatched.  The rule set
++# is re-derived against v2.1.4 under round 72 C2; until that lands a default-
++# path run is red by design, and no pin names the v2.1.4 bytes.
+ # LIMITS found by the round-47 falsify wave and still carried: whole-dump anchors
+ # remain for OC-1..OC-3 and OC-5, including OC-1's `gated` term reducing to
+ # `m is not None`. OC-6's config candidate/env gate remain unwitnessed. OC-4 now
