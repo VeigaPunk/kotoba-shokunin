@@ -206,7 +206,7 @@ def check(root: Path) -> tuple[int, list[str]]:
         if not matched:
             findings.append(f"{sid}: no located quote of the entry occurs in the row's anchor cell")
             continue
-        quote = _norm(matched[0])
+        quote = _norm(max(matched, key=len))
         table_row = None
         for cells in table:
             if any(c.strip() == sid for c in cells):
@@ -223,15 +223,16 @@ def check(root: Path) -> tuple[int, list[str]]:
             continue
         backed += 1
 
+    global_findings: list[str] = []
     if not any(line.strip() == f"verified-at: {VERIFIED_AT}" for line in entry.splitlines()):
-        findings.append(f"no `verified-at: {VERIFIED_AT}` line")
+        global_findings.append(f"no `verified-at: {VERIFIED_AT}` line")
     if not any(line.strip().startswith("recheck:") for line in entry.splitlines()):
-        findings.append("no `recheck:` line")
+        global_findings.append("no `recheck:` line")
     if not _indexed(readme_text):
-        findings.append("the entry has no coverage-map index row in " + README)
+        global_findings.append("the entry has no coverage-map index row in " + README)
 
-    if findings:
-        return backed, findings
+    if global_findings or findings:
+        return 0, global_findings + findings
     return backed, []
 
 
