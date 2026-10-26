@@ -1,0 +1,83 @@
+# ExecSrcTrae — raw fetch evidence, TRAE (C1), round 73 wave 1
+
+access date: 2026-10-25   (`date -I`)
+user agent: `Mozilla/5.0`   timeout: 60 s   redirects followed: `curl -sL`
+
+## 1. HTML route
+
+$ curl -sL --max-time 60 -A 'Mozilla/5.0' -o trae.html -w 'HTTP=%{http_code}\nFINAL_URL=%{url_effective}\nBYTES=%{size_download}\nCT=%{content_type}\n' 'https://docs.trae.cn/ide_skills'
+HTTP=200
+FINAL_URL=https://docs.trae.cn/ide_skills
+BYTES=112444
+CT=text/html; charset=UTF-8
+
+$ sha256sum trae.html
+62cacecddd30a8016ea693baebc4600c79955487174c377e47760ebd5813f3f3  trae.html
+
+rendered server-side (not a JS shell): the document body is
+`<div class="topic-markdown" data-topic-doc-content="true">` at char offset 37397;
+title `<title data-react-helmet="true">技能（Skill）</title>`.
+
+## 2. Real text source — the same site's own markdown export
+
+probe:
+$ curl -sL --max-time 40 -A 'Mozilla/5.0' -o /dev/null -w 'HTTP=%{http_code} BYTES=%{size_download} CT=%{content_type} FINAL=%{url_effective}\n' 'https://docs.trae.cn/ide_skills.md'
+HTTP=200 BYTES=13351 CT=text/markdown; charset=utf-8 FINAL=https://docs.trae.cn/ide_skills.md
+
+$ curl -sL --max-time 60 -A 'Mozilla/5.0' -o trae.md -w ... 'https://docs.trae.cn/ide_skills.md'
+HTTP=200 / FINAL_URL=https://docs.trae.cn/ide_skills.md / BYTES=13351 / CT=text/markdown; charset=utf-8
+
+$ sha256sum trae.md
+3126996917f9e14f81beec94c98f4fc19c6f52819a94776a1b3912ac314aa28b  trae.md
+$ wc -lc trae.md
+233 13351
+
+`/ide_skills/index.md` returns the same 13,351 B (HTTP 200). `?format=md` does not
+(HTTP 200, 112,475 B, text/html — the HTML route again). The markdown export opens with
+the site's own line: `> Fetch the complete documentation index at: https://docs.trae.cn/llms.txt`.
+
+## 3. Snapshot
+
+$ cp trae.md snapshot.md && sha256sum snapshot.md > snapshot.sha256
+$ cmp trae.md snapshot.md   -> identical (verbatim copy, no added header)
+snapshot.md = 233 lines, 13,351 B (< 300 KB)
+snapshot.sha256:
+3126996917f9e14f81beec94c98f4fc19c6f52819a94776a1b3912ac314aa28b  snapshot.md
+
+fidelity HTML-vs-markdown: 118 of 127 non-table markdown lines are found verbatim
+(whitespace-collapsed) in the stripped HTML body; the 9 exceptions are markdown image
+syntax (4), `:::tip` container markers (2) and inline links (3) — markup, not text.
+
+## 4. International sibling domain
+
+$ curl ... 'https://docs.trae.ai/ide_skills'      -> HTTP=200 BYTES=1913042 FINAL=https://docs.trae.ai/ide/traework-to-traecode-data-migration?_lang=en
+$ curl ... 'https://docs.trae.ai/ide_skills.md'   -> HTTP=200 BYTES=1913042 FINAL=(same)
+$ curl ... 'https://docs.trae.ai/llms.txt'        -> HTTP=200 BYTES=1913042 FINAL=(same)
+
+all three are the same 1,913,042 B document (md5 816c16198a0c473726ef509e8d725036),
+title "Important update: TraeCode and TraeWork is merged into the all-new TRAE -
+Documentation - TRAE": a soft redirect, not the skills page. `~/.trae/skills` and
+`~/.trae-cn` occur 0 times in it.
+
+## 5. Token audit (grep -c -F against snapshot.md)
+
+.trae/skills/                                       count=3 lines=76,158,214
+~/.trae-cn/skills/                                  count=0 ABSENT
+~/.trae-cn/skills                                   count=1 lines=78
+~/.trae/skills/                                     count=0 ABSENT
+~/.trae/skills                                      count=0 ABSENT
+%userprofile%/.trae-cn/skills                       count=1 lines=79
+.agents/skills/                                     count=7 lines=210,214,216,218,222,224,228
+.agents                                             count=9 lines=208,210,214,216,218,222,224,226,228
+启用 .agents 技能目录                                count=1 lines=226
+动态按需加载                                        count=1 lines=15
+智能体不会在任务开始时一次性读取所有技能的完整内容  count=1 lines=16
+SKILL.md                                            count=9 lines=5,14,58,62,81,83,123,154,158
+`name`                                              count=0 ABSENT
+`description`                                       count=0 ABSENT
+name:                                               count=1 lines=87
+description:                                        count=1 lines=88
+ByteDance                                           count=0 ABSENT
+字节跳动                                            count=0 ABSENT
+allowed-tools                                       count=0 ABSENT
+whenToUse                                           count=0 ABSENT

@@ -1,0 +1,291 @@
+{
+ "pristine_sha": "2f9d8a88b1d3dd8562455006d5ea89ec02546a1ecb9d023f327d88e5502eedc7",
+ "mutants": [
+  {
+   "name": "M01-no-ownership-marker",
+   "point": "marker_in: final `return False` -> `return True` (G1 clause binding neutered: every clause counts as carrying an ownership/routing marker)",
+   "sha256": "94305bf1f83e1d4781e4e3a127edb891819a7cd63340d13c4cc44bece8f1996a",
+   "rc": 1,
+   "verdict": "KILLED",
+   "seconds": 0.92,
+   "stdout": "self-test: 3 failure(s) over 68 assertions",
+   "n_fail_lines": 3,
+   "fail_lines": [
+    "FAIL skill m1: a bare list does not bind the lanes: got (9, [])",
+    "FAIL skill m1: the bare-list lanes are named in the failures: got []",
+    "FAIL skill m5: a negated mention does not bind the lanes: got (9, [])"
+   ]
+  },
+  {
+   "name": "M02-cap-dropped",
+   "point": "skill_description_failures: the 1024 ceiling is dropped from the G4 length check",
+   "sha256": "217e66aae0431eb43c5ce920f6df84021ff1a3b18587952406e934f9c4322f30",
+   "rc": 1,
+   "verdict": "KILLED",
+   "seconds": 0.96,
+   "stdout": "self-test: 1 failure(s) over 68 assertions",
+   "n_fail_lines": 1,
+   "fail_lines": [
+    "FAIL skill: an over-length description fails: got []"
+   ]
+  },
+  {
+   "name": "M03-cap-off-by-one",
+   "point": "G4 cap boundary `>` -> `>=`: a description of exactly 1024 characters is now rejected",
+   "sha256": "f4201f638be99c852055cd526cc80c51ae4d2ccb2c8383a3cc20ed45f4d6924c",
+   "rc": 0,
+   "verdict": "SURVIVED",
+   "seconds": 0.73,
+   "stdout": "self-test: 0 failure(s) over 68 assertions",
+   "n_fail_lines": 0,
+   "fail_lines": []
+  },
+  {
+   "name": "M04-column0-comment-swallowed",
+   "point": "description_of: lookahead `(?=^\\S|\\Z)` -> `(?=^\\S*:|\\Z)`; the value no longer ends at a bare column-0 line (round-50 m8 regression: a column-0 comment is swallowed into the description)",
+   "sha256": "6dc8746eb9447b6ce4368e1426a28232037a2d2cee028128bc08db9f5a4f22b2",
+   "rc": 1,
+   "verdict": "KILLED",
+   "seconds": 0.72,
+   "stdout": "self-test: 1 failure(s) over 68 assertions",
+   "n_fail_lines": 1,
+   "fail_lines": [
+    "FAIL skill m8: a column-0 comment is not swallowed into the description: got 'Prompt and skill craft. Sibling boundary: the five sibling lanes kagi, kake, kas'"
+   ]
+  },
+  {
+   "name": "M05-clauses-from-whole-file",
+   "point": "skill_description_failures: clause source `description` -> `text` (a lane named only in the frontmatter Triggers list, or anywhere else in the file, now binds)",
+   "sha256": "f385bab66afced5f27bd57567aa1b7044ce58704d08abd6425a6628757cf163f",
+   "rc": 0,
+   "verdict": "SURVIVED",
+   "seconds": 0.77,
+   "stdout": "self-test: 0 failure(s) over 68 assertions",
+   "n_fail_lines": 0,
+   "fail_lines": []
+  },
+  {
+   "name": "M06-unreadable-description-pass",
+   "point": "skill_description_failures: one inserted early return -- an unreadable/empty description yields an all-pass verdict (no length check, no missing-lane failures)",
+   "sha256": "701e1f8902062a352c7951bb1d309a2e7ad7dd9fdd9c575bc1b5ecba9c8a9bc3",
+   "rc": 1,
+   "verdict": "KILLED",
+   "seconds": 0.79,
+   "stdout": "self-test: 1 failure(s) over 68 assertions",
+   "n_fail_lines": 1,
+   "fail_lines": [
+    "FAIL skill: an empty description fails: got []"
+   ]
+  },
+  {
+   "name": "M07-empty-description-floor-dropped",
+   "point": "G4 floor dropped (`length < SKILL_DESCRIPTION_MIN or` removed): an empty description no longer fails the length check (missing-lane checks still run)",
+   "sha256": "e8ccb7805329123522adbe1c0e8b78b9b2792acb6001fdb017827a55aad02195",
+   "rc": 1,
+   "verdict": "KILLED",
+   "seconds": 0.9,
+   "stdout": "self-test: 1 failure(s) over 68 assertions",
+   "n_fail_lines": 1,
+   "fail_lines": [
+    "FAIL skill: an empty description fails: got ['skill description does not name the non-none census lane chousa', 'skill description does not name the non-none census lane kagi', 'skill description does not name the non-none census lane kake', 'skill description does not name the non-none census lane kama', 'skill description does not name the non-none census lane kasegi', 'skill description does not name the non-none census lane kengaku', 'skill description does not name the non-none census lane kotodama', 'skill description does not name the non-none census lane kumitate', 'skill description does not name the non-none census lane tameshi']"
+   ]
+  },
+  {
+   "name": "M08-missing-lane-ignored",
+   "point": "skill_description_failures: the does-not-name failure is never appended (a missing adjacent lane is ignored)",
+   "sha256": "7b997f1c967951fa57bc6c24cb0f55fc1dbb181503d1ee72ef5cdbfe8e0ab9db",
+   "rc": 1,
+   "verdict": "KILLED",
+   "seconds": 0.85,
+   "stdout": "self-test: 4 failure(s) over 68 assertions",
+   "n_fail_lines": 4,
+   "fail_lines": [
+    "FAIL skill: the missing lanes are named in the failures: got []",
+    "FAIL skill m7: the two unbound lanes are named: got []",
+    "FAIL cli --skill: a missing lane exits 1: got (0, 'rows 2 verified 2\\nskill description names 1 of 2 non-none lanes\\nskill description length 29 of 1024\\n')",
+    "FAIL cli --skill: the missing lane is named: got 'rows 2 verified 2\\nskill description names 1 of 2 non-none lanes\\nskill description length 29 of 1024\\n'"
+   ]
+  },
+  {
+   "name": "M09-token-substring-match",
+   "point": "token_in: word-boundary guards `(?<![a-z0-9-])` / `(?![a-z0-9])` dropped -- `kake` matches inside `kakegawa`",
+   "sha256": "b1624ce521507c45008135b6fddf5dd25691fe21a9d11054b31a72ec01219f68",
+   "rc": 0,
+   "verdict": "SURVIVED",
+   "seconds": 0.8,
+   "stdout": "self-test: 0 failure(s) over 68 assertions",
+   "n_fail_lines": 0,
+   "fail_lines": []
+  },
+  {
+   "name": "M10-first-256-chars-only",
+   "point": "skill_description_failures: the parsed description is truncated to its first 256 characters before every check",
+   "sha256": "198d053ea25daf56003584de64447a22d0d5b654eac7f4a19ea7c97867614481",
+   "rc": 1,
+   "verdict": "KILLED",
+   "seconds": 0.76,
+   "stdout": "self-test: 3 failure(s) over 68 assertions",
+   "n_fail_lines": 3,
+   "fail_lines": [
+    "FAIL skill: a routed description names every non-none lane: got (7, 9, ['skill description does not name the non-none census lane kumitate', 'skill description does not name the non-none census lane tameshi'])",
+    "FAIL skill: an over-length description fails: got ['skill description does not name the non-none census lane kumitate', 'skill description does not name the non-none census lane tameshi']",
+    "FAIL skill: an over-length description is over the cap: got 256"
+   ]
+  },
+  {
+   "name": "M11-duplicate-lane-accepted",
+   "point": "duplicate_lane_failures: the more-than-one-row test is disabled (a repeated census/province lane is accepted)",
+   "sha256": "c6b833d6758a58f933a71c2a1d9845ce1000e8cde3295899162c20f797fedef3",
+   "rc": 1,
+   "verdict": "KILLED",
+   "seconds": 0.74,
+   "stdout": "self-test: 6 failure(s) over 68 assertions",
+   "n_fail_lines": 6,
+   "fail_lines": [
+    "FAIL census duplicate row: fails: got []",
+    "FAIL census duplicate row: names the lane and the rows: got []",
+    "FAIL census case-variant duplicate row: fails: got ['row 2 (census line 6) (lane alpha): no sibling repo at /tmp/census-selftest-uzqyv6_9/fleet-d/Alpha-shokunin']",
+    "FAIL province duplicate row: fails: got []",
+    "FAIL province duplicate row: names the lane and the rows: got []",
+    "FAIL consistent duplicate rows: fail in both tables: got []"
+   ]
+  },
+  {
+   "name": "M12-count-hardcoded-9",
+   "point": "skill_description_failures return: `total` hard-coded to 9 (tuned to the live nine-lane census; any other census is misreported)",
+   "sha256": "bae7d9b7ddb5d6369b61d22885a5dde2b8d643f982b7605710025af39546dadf",
+   "rc": 1,
+   "verdict": "KILLED",
+   "seconds": 0.69,
+   "stdout": "self-test: 2 failure(s) over 68 assertions",
+   "n_fail_lines": 2,
+   "fail_lines": [
+    "FAIL cli --skill: the count line is printed: got 'rows 2 verified 2\\nskill description names 2 of 9 non-none lanes\\nskill description length 57 of 1024\\n'",
+    "FAIL cli --skill: the count line is printed on failure too: got 'FAIL skill description does not name the non-none census lane beta\\nrows 2 verified 2\\nskill description names 1 of 9 non-none lanes\\nskill description length 29 of 1024\\n'"
+   ]
+  }
+ ],
+ "probes": {
+  "M03_boundary": [
+   {
+    "target": 1023,
+    "len": 1023,
+    "pristine_failures": 0,
+    "pristine_named": 9,
+    "mutant_failures": 0,
+    "mutant_named": 9,
+    "mutant_first": null
+   },
+   {
+    "target": 1024,
+    "len": 1024,
+    "pristine_failures": 0,
+    "pristine_named": 9,
+    "mutant_failures": 1,
+    "mutant_named": 9,
+    "mutant_first": "skill description length 1024 is outside 1-1024 characters (S018: the description field mu"
+   },
+   {
+    "target": 1025,
+    "len": 1025,
+    "pristine_failures": 1,
+    "pristine_named": 9,
+    "mutant_failures": 1,
+    "mutant_named": 9,
+    "mutant_first": "skill description length 1025 is outside 1-1024 characters (S018: the description field mu"
+   }
+  ],
+  "M05_triggers": {
+   "parsed_description_head": "Prompt and skill craft. Sibling boundary: the five sibling l",
+   "pristine": {
+    "named": 5,
+    "failures": [
+     "skill description does not name the non-none census lane chousa",
+     "skill description does not name the non-none census lane kama",
+     "skill description does not name the non-none census lane kotodama",
+     "skill description does not name the non-none census lane tameshi"
+    ]
+   },
+   "mutant": {
+    "named": 9,
+    "failures": []
+   }
+  },
+  "M09_kakegawa": {
+   "pristine": {
+    "named": 8,
+    "failures": [
+     "skill description does not name the non-none census lane kake"
+    ]
+   },
+   "mutant": {
+    "named": 9,
+    "failures": []
+   }
+  },
+  "fixture_geometry": {
+   "len_SKILL_DESC_ALL": 456,
+   "first_index_per_lane": {
+    "chousa": 42,
+    "kagi": 80,
+    "kake": 113,
+    "kama": 139,
+    "kasegi": 170,
+    "kengaku": 212,
+    "kotodama": 243,
+    "kumitate": 283,
+    "tameshi": 337
+   },
+   "len_SKILL_DESC_FIVE": 200
+  },
+  "live_skill_mode": {
+   "pristine": {
+    "rc": 0,
+    "tail": [
+     "province rows 20 matched 20",
+     "skill description names 9 of 9 non-none lanes",
+     "skill description length 1019 of 1024"
+    ],
+    "seconds": 0.2
+   },
+   "M03": {
+    "rc": 0,
+    "tail": [
+     "province rows 20 matched 20",
+     "skill description names 9 of 9 non-none lanes",
+     "skill description length 1019 of 1024"
+    ],
+    "seconds": 0.2
+   },
+   "M05": {
+    "rc": 0,
+    "tail": [
+     "province rows 20 matched 20",
+     "skill description names 9 of 9 non-none lanes",
+     "skill description length 1019 of 1024"
+    ],
+    "seconds": 0.2
+   },
+   "M09": {
+    "rc": 0,
+    "tail": [
+     "province rows 20 matched 20",
+     "skill description names 9 of 9 non-none lanes",
+     "skill description length 1019 of 1024"
+    ],
+    "seconds": 0.2
+   }
+  }
+ },
+ "pristine": {
+  "rc": 0,
+  "stdout": "self-test: 0 failure(s) over 68 assertions",
+  "seconds": 1.38
+ },
+ "restored_sha": "2f9d8a88b1d3dd8562455006d5ea89ec02546a1ecb9d023f327d88e5502eedc7",
+ "restored": {
+  "rc": 0,
+  "stdout": "self-test: 0 failure(s) over 68 assertions",
+  "seconds": 0.71
+ }
+}

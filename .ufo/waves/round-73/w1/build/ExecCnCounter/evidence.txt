@@ -1,0 +1,65 @@
+# ExecCnCounter — draft counter evidence (round 73, wave 1)
+# date: 2026-10-25  host: Linux 7.2.11-arch1-1
+# draft: check_cn_vendor_surfaces.py  sha256 051d3e2dca9ef34c44f27d1f8e11f2ca264814e641430fb6ba96baa346df22ce
+
+$ python3 -B check_cn_vendor_surfaces.py --self-test
+PASS honest world scores 4 of 4: exit 0
+PASS base world (entry absent) is the do-nothing control: exit 1
+PASS vendor hosts already in the base registry read held 4: exit 0
+PASS base registry with one TRAE host reads held at base: 1: exit 1
+PASS (d) quote wrapped across a line break is still found: exit 0
+PASS (a) vendor row hidden in an HTML comment: exit 1
+PASS (a) vendor row hidden in a fenced block: exit 1
+PASS (a) two rows name the same vendor: exit 1
+PASS (a) entry without verified-at:: exit 1
+PASS (a) entry without recheck:: exit 1
+PASS (a) cited id absent from the source: lines: exit 1
+PASS (a) entry outside corpus/knowledge is not the entry: exit 1
+PASS (a) entry with no vendor table: exit 1
+PASS (a) token-stuffed row (tokens the page never carries): exit 1
+PASS (a) absent root token (an invented placement path): exit 1
+PASS (a) root token occurs only in a page the row does not cite: exit 1
+PASS (a) row with three keys but no root token: exit 1
+PASS (a) row with only two tokens: exit 1
+PASS (a) vendor row named by a longer client name: exit 1
+PASS (a) a key occurs only inside a longer word: exit 1
+PASS (a) a CJK character abutting a root is a boundary: exit 0
+PASS (b) a pin of a different page on the same vendor host is not the cited page: exit 1
+PASS (b) cited row is queued, not mined: exit 1
+PASS (b) cited row is tier C: exit 1
+PASS (b) cited row has 12 cells: exit 1
+PASS (b) cited row's used-by omits the entry: exit 1
+PASS (b) cited row's URL is not on the vendor's host: exit 1
+PASS (b) cited row's URL is the other vendor's host: exit 1
+PASS (b) registry holds no rows: exit 1
+PASS (b) staged campaign-schema rows appended as-is: exit 1
+PASS (b) two registry rows for one cited id: exit 1
+PASS (b) cited id absent from the registry: exit 1
+PASS (b) Kimi's path-pinned host: github.com/evil/kimi-cli is not the pinned repo: exit 1
+PASS (c) tampered snapshot (manifest hash left): exit 2
+PASS (c) no manifest at all: exit 2
+PASS (c) manifest line not `<sha256> <file>`: exit 2
+PASS (c) manifest path escapes the snapshot directory: exit 2
+PASS (c) two pinned snapshots begin with one cited id: exit 2
+PASS (c) entry names an uncommitted snapshot: exit 2
+PASS (d) located quote under 5 words: exit 1
+PASS (d) located quote over 25 words: exit 1
+PASS (d) located quote absent from its snapshot: exit 1
+PASS (d) two distinct located quotes for one id: exit 1
+PASS (d) no backtick stripping: quoted code span absent from page: exit 1
+PASS unknown revision is exit 2: exit 2
+PASS registry absent at the revision is exit 2: exit 2
+PASS base registry unreadable is exit 2: exit 2
+self-test: 0 failure(s) over 139 assertions
+exit 0
+
+$ python3 -B verifiers/check_cn_vendor_surfaces.py --rev 072048fa8e8a52c707d25f7079772fa317244eb7   (draft path used, lane root cwd)
+measured-rev: 072048fa8e8a52c707d25f7079772fa317244eb7
+vendor skill surfaces backed 0 of 4
+held at base: 0
+  entry corpus/knowledge/chinese-vendor-skill-surfaces-round73.md absent at 072048fa8e8a52c707d25f7079772fa317244eb7 (the frozen path is the entry's only home)
+exit 1
+
+$ python3 -B ... --rev 0000000000000000000000000000000000000000
+environment error: --rev 0000000000000000000000000000000000000000 is not a commit
+exit 2

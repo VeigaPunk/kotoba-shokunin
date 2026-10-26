@@ -1,0 +1,32 @@
+--- a/verifiers/check_tip_battery.py
++++ b/verifiers/check_tip_battery.py
+@@ -172,6 +172,12 @@
+         raise EnvError("lane repository not found: %s" % repo)
+     if not fleet.is_dir():
+         raise EnvError("fleet root not found: %s" % fleet)
++    # Round 73 (M127): a fleet root that is the lane itself cannot be fleet-shaped
++    # -- the sandbox's `../` would reach the lane's own tree -- so it is a
++    # could-not-evaluate (exit 2), never a battery reading.
++    if repo.resolve() == fleet.resolve():
++        raise EnvError("the fleet root is the lane itself (%s); pass the directory "
++                       "that holds the lane" % fleet)
+     clone = parent / "kotoba-shokunin"
+     proc = subprocess.run(
+         ["git", "clone", "--shared", "-q", "--no-checkout", str(repo), str(clone)],
+@@ -606,8 +612,14 @@
+         return self_test()
+     if not args.rev:
+         ap.error("--rev is required unless --self-test is selected")
+-    repo = Path(args.repo)
+-    fleet = Path(args.fleet) if args.fleet else repo.parent
++    # Round 73 (M127): unresolved arguments put the sandbox in the wrong shape.
++    # With `--repo .`, `repo.parent` is `Path(".")` -- the lane itself -- so the
++    # sandbox linked the lane's own entries instead of the fleet root beside it,
++    # and as relative targets those links self-referenced; every `../.ufo/...`
++    # citation then read as unresolvable and the checklist and floors gates went
++    # red against the same gates run by hand.  Anchor both paths first.
++    repo = Path(args.repo).resolve()
++    fleet = Path(args.fleet).resolve() if args.fleet else repo.parent
+     if args.base != BASE:
+         print("note: base override %s (fixture affordance; the lane run pins %s)"
+               % (args.base, BASE))

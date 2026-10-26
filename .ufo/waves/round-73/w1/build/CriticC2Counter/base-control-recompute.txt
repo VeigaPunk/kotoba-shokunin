@@ -1,0 +1,47 @@
+# CriticC2Counter — base control recompute (round 73 wave 1)
+# date: 2026-10-25  lane rev: ac8fc59  base: 072048f
+
+$ git show 072048f:SKILL.md | sed -n '1,19p' | nl -ba
+     1	---
+     2	name: kotoba-shokunin
+     3	description: >
+     4	  Prompt & skill craft — audits, writes, and rewrites SKILL.md / AGENTS.md /
+     5	  dispatch prompts / system prompts for trigger fidelity and decision density.
+     6	  Triggers: "skill file", "SKILL.md", "frontmatter description", "trigger
+     7	  words", "prompt craft", "write a skill", "audit this skill", "skill quality".
+     8	  Anti-triggers: general prompt engineering for model outputs (not skill
+     9	  files), runtime code changes, and domain content inside a skill's
+    10	  reference/ tree. Sibling boundary: kagi, kake, kasegi, kengaku and kumitate
+    11	  own their own SKILL.md content — this skill audits and reports; fixes route
+    12	  to the owning lane. chousa owns the research method; kama owns endpoint
+    13	  verification; kengaku owns measured capability effects of prompt format;
+    14	  tameshi owns the fixture and mutation method. NOT kotodama-shokunin:
+    15	  kotodama owns naming and language for fictional worlds despite the similar
+    16	  name. Note:
+    17	  shokunin files sit outside the omp skill discovery roots, so this text
+    18	  never reaches the omp router — craft here is audit-side.
+    19	---
+
+$ python3 (fold both ways via check_sibling_census.description_of)
+gate fold (drops block indicator, strips)    len=1019 first-sentence=150 R1=False
+fold keeps ">"                               len=1020 first-sentence=151 R1=False
+base R2: quotes in first 99 of gate fold: []
+
+$ (fleet-shaped sandbox of 072048f) python3 -B verifiers/check_sibling_census.py corpus/knowledge/sibling-overlap-census-round49.md --province PROVINCE.md --skill SKILL.md
+rows 20 verified 20
+province rows 20 matched 20
+skill description names 9 of 9 non-none lanes
+skill description length 1019 of 1024
+exit=0
+
+$ grep -rnoE 'SKILL\.md:[0-9]+' corpus PROVINCE.md | awk -F: '{if ($NF>19) c++} END{print c}'
+83
+
+$ grep -n 'UFO_POINTER_RE = ' -A 2 verifiers/verify_corpus_integrity.py
+146:UFO_POINTER_RE = re.compile(
+147-    r"(?<![\w.\-/])((?:/|~|(?:\.\.?/)*)[^\s`\"]*?\.ufo/reports/round-\d+/[^\s`\"]*\.md)"
+148-)
+
+# worlds: see world-walk.txt (run_worlds.py). W3B reads 3 of 3; its natural
+# rewrap is 16 frontmatter lines vs base 19 -> body lines shift -3 ->
+# 83 SKILL.md:<line> citations past line 19 point at the wrong content.

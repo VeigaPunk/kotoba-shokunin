@@ -1,0 +1,30 @@
+diff --git a/verifiers/check_tip_battery.py b/verifiers/check_tip_battery.py
+index 24d2b5d..f546391 100755
+--- a/verifiers/check_tip_battery.py
++++ b/verifiers/check_tip_battery.py
+@@ -350,15 +350,23 @@ def measure(repo: Path, rev: str, fleet: Path, base: str) -> int:
+     started = time.monotonic()
+     with tempfile.TemporaryDirectory(prefix="k72-tip-") as tdir:
+         parent = Path(tdir)
++        readings = []
+         try:
+             clone = build_sandbox(repo, rev, fleet, parent)
+-            failures, summary, info = run_guards(clone, base, rev)
+-            gates = run_battery(clone, rev)
++            # Two consecutive runs.  The second run reuses the first run's
++            # sandbox: one sandbox is built, so the two readings cannot drift.
++            for _run in (1, 2):
++                failures, summary, info = run_guards(clone, base, rev)
++                gates = run_battery(clone, rev)
++                readings.append((failures, summary, info, gates))
++            failures, summary, info, gates = readings[-1]
+         except EnvError as exc:
+             print("could-not-evaluate: %s" % exc, file=sys.stderr)
+             return 2
+ 
+     print("measured rev %s in a fleet-shaped sandbox; base %s" % (rev, base))
++    for run_no, reading in enumerate(readings, 1):
++        print("run %d sandbox %s" % (run_no, clone))
+     print(summary)
+     for line in info:
+         print("INFO %s" % line)
