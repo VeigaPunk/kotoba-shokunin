@@ -75,6 +75,7 @@ import argparse
 import contextlib
 import io
 import json
+import os
 import re
 import subprocess
 import sys
@@ -99,7 +100,12 @@ def _default_lane() -> Path:
     return LANE
 
 
-BASE = "c69711ee08279609374d895bb0f3c8c18ccf15c9"        # round-72 base (pinned)
+# Round 73 (plans/round-73-addendum-2.md, erratum E2): the guard base moves from the
+# round-72 base c69711e to the round-73 base, so `instrument-size` measures this round's
+# delta of the six battery scripts (r72's 76 added / 24 deleted lines drop out; the cap
+# stays 40) and the round-72 spot-check lesson is a base file compared by
+# `spotcheck-identity`.
+BASE = "072048fa8e8a52c707d25f7079772fa317244eb7"        # round-73 base (pinned)
 TOTAL = 6
 GATE_TIMEOUT_S = 280
 LINE_CAP = 40
@@ -172,6 +178,11 @@ def build_sandbox(repo: Path, rev: str, fleet: Path, parent: Path) -> Path:
         raise EnvError("lane repository not found: %s" % repo)
     if not fleet.is_dir():
         raise EnvError("fleet root not found: %s" % fleet)
+    # Round 73 (M127): a fleet root that is the lane itself cannot be fleet-shaped (the
+    # sandbox's `../` would reach the lane's own tree): could-not-evaluate, never a reading.
+    if repo.resolve() == fleet.resolve():
+        raise EnvError("the fleet root is the lane itself (%s); pass the directory that "
+                       "holds the lane" % fleet)
     clone = parent / "kotoba-shokunin"
     proc = subprocess.run(
         ["git", "clone", "--shared", "-q", "--no-checkout", str(repo), str(clone)],
@@ -372,6 +383,7 @@ def measure(repo: Path, rev: str, fleet: Path, base: str) -> int:
         else:
             print("guard %s PASS" % gid)
 
+    guards_held = sum(1 for gid in guard_ids if not any(g == gid for g, _ in failures))
     n = 0
     for script, rc, wall, why in gates:
         if rc == 0:
@@ -380,7 +392,9 @@ def measure(repo: Path, rev: str, fleet: Path, base: str) -> int:
         print("gate %s exit %s wall %.1fs%s"
               % (script, "none" if rc is None else rc, wall, note))
     print("wall %.1fs" % (time.monotonic() - started))
-    print("tip battery exit 0: %d of %d" % (n, TOTAL))   # the frozen line, last
+    # the frozen line, last (round 73: fleet root and guard tally precede the battery figure)
+    print("fleet root %s; guards %d of %d; tip battery exit 0: %d of %d"
+          % (fleet.resolve(), guards_held, len(guard_ids), n, TOTAL))
     return 0 if n == TOTAL and not failures else 1
 
 
@@ -470,7 +484,8 @@ def self_test() -> int:
         check("satisfying world exits 0", rc == 0,
               "exit %d stderr %r" % (rc, err.strip()[-160:]))
         check("satisfying world prints the frozen line exactly",
-              _last_line(out) == "tip battery exit 0: 6 of 6", repr(_last_line(out)))
+              _last_line(out) == "fleet root %s; guards 5 of 5; tip battery exit 0: 6 of 6"
+              % ok_root.resolve(), repr(_last_line(out)))
 
         # 2. one broken world per guard.
         del_root = root / "guard-deletion"
@@ -585,6 +600,111 @@ def self_test() -> int:
         check("missing fleet root explains itself", "fleet root not found" in err,
               err.strip()[-160:])
 
+        # 5. round 73 (E2): fleet-root derivation and the survivors of the r73 mutation run.
+        fl_root = root / "fleet-forms"
+        lane, base = _make_world(fl_root)
+        (lane / "notes.md").write_text("harmless\n")
+        tip = _commit_all(lane, "harmless")
+        for form, repo_arg in (("relative", "."), ("absolute", str(lane))):
+            argv = ["--repo", repo_arg, "--rev", tip, "--base", base]
+            out, err = io.StringIO(), io.StringIO()
+            here = Path.cwd()
+            try:
+                os.chdir(str(lane))
+                with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+                    rc = main(argv)
+            finally:
+                os.chdir(str(here))
+            check("%s --repo exits 0" % form, rc == 0, "exit %d %r" % (rc, err.getvalue()[-160:]))
+            check("%s --repo prints the real fleet root (the lane's parent)" % form,
+                  _last_line(out.getvalue()).startswith("fleet root %s;" % fl_root.resolve()),
+                  _last_line(out.getvalue()))
+        rc, out, err = _drive(fl_root, base, tip, fleet=lane)
+        check("a fleet root equal to the lane exits 2", rc == 2, "exit %d" % rc)
+        check("a fleet root equal to the lane explains itself", "the lane itself" in err,
+              err.strip()[-160:])
+        check("a fleet root equal to the lane prints no battery line", "tip battery" not in out,
+              out.strip()[-160:])
+
+        def world(name, mutate, message):
+            wroot = root / name
+            wlane, wbase = _make_world(wroot)
+            mutate(wlane)
+            wtip = _commit_all(wlane, message)
+            return _drive(wroot, wbase, wtip)
+
+        rc, out, err = world("absent-gate", lambda l: _fixture_git(l, "rm", "-q", BATTERY[2][0]),
+                             "delete a gate script")
+        check("absent gate exits 1", rc == 1, "exit %d" % rc)
+        check("absent gate reads 5 of 6", "tip battery exit 0: 5 of 6" in out, _last_line(out))
+        check("absent gate is an instrument-size failure",
+              "FAIL guard instrument-size: instrument %s absent" % BATTERY[2][0] in out,
+              out.strip()[-220:])
+        check("absent gate is a no-deletions failure",
+              "FAIL guard no-deletions: %s" % BATTERY[2][0] in out, out.strip()[-220:])
+
+        global GATE_TIMEOUT_S
+        saved_timeout, GATE_TIMEOUT_S = GATE_TIMEOUT_S, 1
+        try:
+            rc, out, err = world(
+                "gate-timeout",
+                lambda l: (l / BATTERY[1][0]).write_text("import time\ntime.sleep(5)\n"),
+                "a gate that outlives the timeout")
+        finally:
+            GATE_TIMEOUT_S = saved_timeout
+        check("a timed-out gate exits 1", rc == 1, "exit %d" % rc)
+        check("a timed-out gate is not counted", "tip battery exit 0: 5 of 6" in out, _last_line(out))
+        check("a timed-out gate names its timeout", "timeout after 1 s" in out, out.strip()[-220:])
+
+        saved_pins = INSTRUMENT_PINS
+        pref_root = root / "guard-pin-prefix"
+        lane, base = _make_world(pref_root)
+        full = _fixture_git(lane, "rev-parse", "HEAD:" + BATTERY[0][0]).stdout.strip()
+        INSTRUMENT_PINS = {BATTERY[0][0]: (full[:12],)}
+        (lane / "notes.md").write_text("harmless\n")
+        tip = _commit_all(lane, "harmless under an abbreviated pin")
+        rc, out, err = _drive(pref_root, base, tip)
+        check("an abbreviated pin does not match the blob", rc == 1 and "FAIL guard instrument-pin" in out,
+              "exit %d %s" % (rc, out.strip()[-200:]))
+        INSTRUMENT_PINS = saved_pins
+
+        rc, out, err = world("floors-row-dropped", lambda l: (l / FLOORS_PATH).write_text(json.dumps(
+            {"$comment": "fixture", "instrument_total": 0, "instruments": {}}, indent=1) + "\n"),
+            "drop the floors row")
+        check("a dropped floors row exits 1", rc == 1, "exit %d" % rc)
+        check("a dropped floors row is named", "FAIL guard floors: row stub dropped" in out,
+              out.strip()[-220:])
+        rc, out, err = world("floors-file-gone", lambda l: _fixture_git(l, "rm", "-q", FLOORS_PATH),
+                             "delete the floors file")
+        check("an absent floors file exits 1", rc == 1, "exit %d" % rc)
+        check("an absent floors file is a floors failure",
+              "FAIL guard floors: %s absent" % FLOORS_PATH in out, out.strip()[-220:])
+        rc, out, err = world("spotcheck-gone", lambda l: _fixture_git(
+            l, "rm", "-q", "corpus/lessons/round-71-verifier-spotcheck.md"), "delete a spot-check")
+        check("a deleted base spot-check exits 1", rc == 1, "exit %d" % rc)
+        check("a deleted base spot-check is named",
+              "FAIL guard spotcheck-identity: corpus/lessons/round-71-verifier-spotcheck.md absent" in out,
+              out.strip()[-220:])
+        rc, out, err = world("skill-gone", lambda l: _fixture_git(l, "rm", "-q", GUARDED_FILE),
+                             "delete SKILL.md")
+        check("a deleted SKILL.md exits 1", rc == 1, "exit %d" % rc)
+        check("a deleted SKILL.md is a no-deletions failure",
+              "FAIL guard no-deletions: SKILL.md" in out, out.strip()[-220:])
+        rc, out, err = world("binary-instrument", lambda l: (l / BATTERY[0][0]).write_bytes(
+            b"\x00\x01binary instrument\n"), "make an instrument binary")
+        check("a binary instrument exits 1", rc == 1, "exit %d" % rc)
+        check("a binary instrument is an instrument-size failure",
+              "FAIL guard instrument-size: binary diff at %s" % BATTERY[0][0] in out,
+              out.strip()[-220:])
+        rc, out, err = world("spotcheck-added", lambda l: (
+            l / "corpus/lessons/round-72-verifier-spotcheck.md").write_text("added later\n"),
+            "add a non-author spot-check after the base")
+        check("an added spot-check is information, not a failure", rc == 0,
+              "exit %d %s" % (rc, out.strip()[-200:]))
+        check("an added spot-check is reported as INFO",
+              "INFO spotcheck added at" in out and "round-72-verifier-spotcheck.md" in out,
+              out.strip()[-220:])
+
     print("self-test: %d failure(s) over %d assertions" % (len(failures), assertions))
     for failure in failures:
         print("FAIL", failure)
@@ -606,8 +726,12 @@ def main(argv: list[str] | None = None) -> int:
         return self_test()
     if not args.rev:
         ap.error("--rev is required unless --self-test is selected")
-    repo = Path(args.repo)
-    fleet = Path(args.fleet) if args.fleet else repo.parent
+    # Round 73 (M127): anchor both paths before deriving the fleet root.  With `--repo .`,
+    # `Path(".").parent` is `Path(".")` -- the lane itself -- and the sandbox linked the
+    # lane's own entries instead of the fleet root, so every `../.ufo/...` citation failed
+    # and the checklist and floors gates read red against the same gates run by hand.
+    repo = Path(args.repo).resolve()
+    fleet = Path(args.fleet).resolve() if args.fleet else repo.parent
     if args.base != BASE:
         print("note: base override %s (fixture affordance; the lane run pins %s)"
               % (args.base, BASE))
