@@ -1,0 +1,69 @@
+# Guard proof — ExecIdNormalize, round 73
+
+Question: does the extraction pattern this pipeline uses to read the lane registry
+(`grep -oE '^ {0,3}\|[[:space:]]*S[0-9]{3,}'`) agree with the maintained parser
+(`scripts/sources-census.sh`, which documents 0–3 leading ASCII spaces) on an indented row, while the
+column-zero-only pattern misses it? Four fixtures, eight commands, all run 2026-10-25.
+
+Fixtures in this directory: `registry.md` (one column-zero row + one **one-space-indented** row),
+`registry-4space.md` (the four-space boundary), `mutant-e03.md` (a staged id appended unchanged),
+`mutant-e04.md` (the same document twice in one scope).
+
+# reg-1
+$ grep -nE ^ {0,3}\|[[:space:]]*S[0-9]{3,} -o -- /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-73/assimilation/guard-proof/registry.md
+12:| S001
+13: | S234
+[exit 0]
+
+
+# reg-2
+$ grep -nE ^\|[[:space:]]*S[0-9]{3,} -o -- /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-73/assimilation/guard-proof/registry.md
+12:| S001
+[exit 0]
+
+
+# 4space-1
+$ grep -oE ^ {0,3}\|[[:space:]]*S[0-9]{3,} -- /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-73/assimilation/guard-proof/registry-4space.md
+| S001
+[exit 0]
+
+
+# 4space-2
+$ grep -oE ^\|[[:space:]]*S[0-9]{3,} -- /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-73/assimilation/guard-proof/registry-4space.md
+| S001
+[exit 0]
+
+
+# census-ok
+$ bash /home/vgpnk/Projects/shokunin/scripts/sources-census.sh validate --file /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-73/assimilation/guard-proof/registry.md
+file	W03	S001 mined but unused
+file	W03	S234 mined but unused
+file	ok	/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-73/assimilation/guard-proof/registry.md
+[exit 0]
+
+
+# census-4space
+$ bash /home/vgpnk/Projects/shokunin/scripts/sources-census.sh validate --file /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-73/assimilation/guard-proof/registry-4space.md
+file	W03	S001 mined but unused
+file	ok	/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-73/assimilation/guard-proof/registry-4space.md
+[exit 0]
+
+
+# census-e03
+$ bash /home/vgpnk/Projects/shokunin/scripts/sources-census.sh validate --file /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-73/assimilation/guard-proof/mutant-e03.md
+file	W03	S001 mined but unused
+file	W03	S214 mined but unused
+file	E03	S214 duplicate id
+file	W03	S214 mined but unused
+[exit 1]
+
+
+# census-e04
+$ bash /home/vgpnk/Projects/shokunin/scripts/sources-census.sh validate --file /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-73/assimilation/guard-proof/mutant-e04.md
+file	W03	S001 mined but unused
+file	E04	S002 duplicate url guard-proof.example/same-doc within scope same scope
+file	W03	S002 mined but unused
+file	W04	S003 duplicate url guard-proof.example/same-doc across scopes
+file	W03	S003 mined but unused
+[exit 1]
+

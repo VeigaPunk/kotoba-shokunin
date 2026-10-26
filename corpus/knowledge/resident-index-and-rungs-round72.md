@@ -42,7 +42,7 @@ client's loading behaviour was observed.
 - **Keep the always-on file an index, not a body.** The client's own index entry for a skill is its
   name and description, with the body fetched on demand (F4), so the always-on file spends its
   every-turn cost on constraints and pointers to what exists, never on a body only some tasks read.
-- **Check the harness's house standard before the format's,.**
+- **Check the harness's house standard before the format's rules.**
   One harness caps a synthesised skill's description at 60 characters and forbids commands the agent
   cannot run (F7). The
   same choice repeats one level down: a skill's always-on part is its `SKILL.md` body, depth goes to
