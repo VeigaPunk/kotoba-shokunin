@@ -34,12 +34,21 @@ Exit codes: 0 both held · 1 not both held · 2 usage/environment error.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import re
 import subprocess
 import sys
 from pathlib import Path
 
 BASE = "a5f7459f99bb27bf697e9438362e75ac5833eca8"
+# Round 74 erratum (append-only ledger; plans/round-74-addendum-1.md E1.2, M138 in
+# corpus/lessons/round-74.md): the no-harm conjunct below pins `## Adjacent` byte-identical to BASE,
+# which was right when the round-69 claim was measured and is false after a LEGITIMATE re-pin of the
+# sibling census.  A rewrite counts only when the whole section's sha256 is in this ledger with its
+# reason; any other rewrite still reads `§ Adjacent differs from the base`.
+ADJACENT_ERRATA: dict[str, str] = {
+    "c41f7b54a97ea298d849f97140f1b28ae6a28d5f9a04de29c83ff5b666be674e": "round 74 re-pin of the sibling census (plans/round-74-addendum-1.md E1.2)",
+}
 PROVINCE = "PROVINCE.md"
 README = "corpus/README.md"
 AREAS = (
@@ -93,6 +102,9 @@ def check(read, base_province: str) -> tuple[int, list[str]]:
     findings: list[str] = []
     for name in ("Frontier", "Adjacent"):
         if section(province, name) != section(base_province, name):
+            digest = hashlib.sha256(section(province, name).encode()).hexdigest()
+            if name == "Adjacent" and digest in ADJACENT_ERRATA:
+                continue
             findings.append(f"§ {name} differs from the base")
     core = bullets(section(province, "Core"))
     held = 0
@@ -143,13 +155,28 @@ def selftest() -> int:
         "Frontier rewritten": {PROVINCE: good.replace("- f\n", "- g\n")},
         "Adjacent rewritten": {PROVINCE: good.replace("| a | b |", "| a | c |")},
     }
+    ledgered = good.replace("| a | b |", "| a | c |")
+    ADJACENT_ERRATA[hashlib.sha256(section(ledgered, "Adjacent").encode()).hexdigest()] = "self-test"
+    try:
+        if run({PROVINCE: ledgered}) != TOTAL:
+            print("FAIL ledgered Adjacent rewrite was rejected", file=sys.stderr)
+            failures += 1
+        else:
+            print("PASS ledgered Adjacent rewrite is accepted")
+        if run({PROVINCE: good.replace("| a | b |", "| a | d |")}) == TOTAL:
+            print("FAIL an unledgered Adjacent rewrite survived the ledger", file=sys.stderr)
+            failures += 1
+        else:
+            print("PASS an unledgered Adjacent rewrite is still rejected")
+    finally:
+        ADJACENT_ERRATA.clear()
     for name, over in broken.items():
         if run(over) == TOTAL:
             print(f"FAIL broken world survived: {name}", file=sys.stderr)
             failures += 1
         else:
             print(f"PASS broken world rejected: {name}")
-    print(f"self-test: {failures} failure(s) over {len(broken) + 1} assertions")
+    print(f"self-test: {failures} failure(s) over {len(broken) + 3} assertions")
     return 1 if failures else 0
 
 

@@ -1,0 +1,26 @@
+# no-harm and claim receipts at 2c81137ba1a7888e9fe096e5f0c810221830fad7 (first-data-commit); rev-based gates only (the working-tree gates were run by the L1 at the same state and are not re-derivable at an older revision)
+
+$ python3 -B verifiers/check_gate_registry.py --rev 2c81137ba1a7888e9fe096e5f0c810221830fad7 | tail -1
+exit=0
+gate registry rows conformant 58 of 60 lane verifiers; phantom 0
+
+$ python3 -B verifiers/check_province_core.py --rev 2c81137ba1a7888e9fe096e5f0c810221830fad7
+exit=1
+measured-rev: 2c81137ba1a7888e9fe096e5f0c810221830fad7
+province core rows 0 of 2
+  - § Adjacent differs from the base
+
+$ python3 -B verifiers/check_spec_craft.py --rev 2c81137ba1a7888e9fe096e5f0c810221830fad7
+exit=0
+measured-rev: 2c81137ba1a7888e9fe096e5f0c810221830fad7
+spec craft pages backed 3 of 3
+held at base: 0
+province core names the entry: yes
+  backed: best-practices
+  backed: using-scripts
+  backed: quickstart
+
+$ python3 -B verifiers/check_sibling_reread.py --rev 2c81137ba1a7888e9fe096e5f0c810221830fad7 | tail -2
+exit=0
+lane tsukuroi: ok
+sibling rows re-pinned, re-located and re-diffed at the frozen fleet heads 20 of 20

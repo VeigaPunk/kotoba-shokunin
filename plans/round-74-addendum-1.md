@@ -125,3 +125,6 @@ a sibling's boundary sentence means is reviewer judgement (C2-2; Q26).
   "staged S236, S237 … quarantined" is a reading of the register by id, struck.
 - **Q45 (target reachable):** `ScoutSpecCensusR74` — all three pages carry ≥ 2 usable tokens; the target stays
   `3 of 3`. C2: 20 of 20 lanes have a resolvable freeze head (`ReviewerPlanR74` § 1).
+
+- **Row shape settled (ConnOverlapR74):** the census row is 11 cells — the nine round-49 cells plus `delta` and `evidence`; the words "10-cell" above (E1.2 (a)) mean the nine plus `delta` as first planned. The base checker refuses a table that is not nine cells, so the counter hands it the 9-cell projection, and the entry also carries the nine-cell table so `check_sibling_census.py` runs on it directly.
+- **`verifiers/check_province_core.py` (M138):** its round-69 no-harm conjunct pins § Adjacent byte-identical to `a5f7459f`; it gains an append-only `ADJACENT_ERRATA` sha256 ledger (one entry: this round's re-pin) and two self-test arms; the r69 claim's predicate is not widened.
