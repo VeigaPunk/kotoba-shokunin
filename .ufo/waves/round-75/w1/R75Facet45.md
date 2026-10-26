@@ -1,0 +1,11 @@
+# R75Facet45 — description-audit candidate
+
+## Finding: calibration claims need a bounded decision rule
+
+**Observation.** `corpus/knowledge/skill-eval-artefacts-round70.md:48-54` prescribes ~20 trigger/non-trigger queries, ~3 repetitions, ~40% validation never used to guide edits, and selecting by validation pass rate. It explicitly warns that the skill-creator loop is the same linked protocol, not independent corroboration (`:52-54`). The entry then distinguishes the guide's strict `>` threshold from `run_eval.py`'s `>=` (`:58-70`), and explains that the default three repetitions avoid a half-rate tie only for a query string listed once (`:62-69`). Thus this is concrete sourced depth with a falsifiable edge case, not evidence of independently validated calibration.
+
+**Risk / inference.** A report that states only “validation pass rate” can hide unstable small-sample outcomes: with three runs per query, observed rates move in thirds, and selecting the best of iterations on the same held-out set can make that set function as a selection criterion rather than an untouched final estimate. This risk follows from the described repeated optimization loop; the cited entry itself does not quantify its magnitude or claim a statistical confidence guarantee. Do not inflate its advice into proof that a 40% split yields calibrated generalization.
+
+**Concrete control/check.** Freeze query strings, labels, run count, threshold, and split before edits; deduplicate strings and include a threshold-tie fixture (even run count, or threshold×runs integral) that checks the documented strict-vs-implementation boundary. Keep the ~40% validation partition out of iteration selection if it is to be a final estimate; otherwise label it selection/validation data and obtain a separate untouched test set for the final claim. Report per-query counts and rates, not only aggregate pass rate. These checks are directly auditable against the entry's edge cases at `:58-72`.
+
+**Exact evidence:** `corpus/knowledge/skill-eval-artefacts-round70.md:48-54,58-72` (committed source cited by task; entry cites S210 and S211 at `:1-3`). This finding is scoped to the calibration paragraph and its claims; no source/live re-fetch performed, and no claim is made that the proposed statistical control is stated by S210/S211.

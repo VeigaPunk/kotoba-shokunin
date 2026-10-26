@@ -1,0 +1,16 @@
+# R75Facet43 — trigger-rate disagreement calibration
+
+## Evidence (committed bytes)
+- Lane `HEAD` is `65a5c7a663249e0522cc49e4a148424200d9ddfe` (`git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin rev-parse HEAD`); its subject is `round-74: hyaku run-8 orchestrator salvage — mark the never-taken w2 wave abandoned...`. This is the current lane commit, not a frozen r75 claim.
+- `corpus/knowledge/skill-eval-artefacts-round70.md:33-34` records the guide's strict “above” threshold and the implementation's `>=` rule as separate facts (F7/F8), attributed to S213/S211. Lines 58-72 state the boundary consequence and bounded mitigation: equality passes in implementation but fails the guide wording; odd runs at threshold .5 avoid equality for a unique query, while duplicate query strings can aggregate to equality; alternative thresholds can also land on equality.
+- `corpus/knowledge/skill-eval-artefacts-round70.md:76-82` explicitly limits scope: no claim that clients run the JSON format natively; it distinguishes the opt-in Claude Code skill-creator plugin. This is good calibration against converting documentation about an artefact into an unsupported runtime claim.
+- The checked-in `verifiers/check_skill_evals.py:125-175` is a structural/content-token counter, not a test of trigger-rate behavior: it requires one fact row, one S-id and quote, 5–25 words, required key terms, quote substring in pinned snapshot, an 11-cell mined row, entry source line, and SKILL citation. It returns backed-row count. Its predicates do not compute threshold × runs or exercise `run_eval.py`.
+
+## Assessment
+The paragraph on equality (`skill-eval-artefacts-round70.md:58-72`) is falsifiable in principle and unusually explicit about a narrow calibration edge, but the stated “every disagreement runs one way” is justified by the described comparison, not by the entry counter. The counter cannot establish the behavior or exhaust the parameter space; its eight backed facts only establish the cited form of the entry against held snapshots and source rows. Treat the threshold analysis as source-supported prose, not as a verifier-enforced claim.
+
+## Concrete control
+For any future claim that the disagreement is absent under a chosen configuration, add a tiny deterministic boundary table/control over `(threshold, runs, per-query duplicate multiplicity)` evaluating the guide's strict `>` and implementation `>=` predicates. Include must-differ cases at exact equality (e.g. threshold .5, 2 runs, one firing; and default 3 runs with the same query listed twice) and must-agree cases immediately below/above. This directly tests the claimed boundary; keep the existing snapshot/quote counter as provenance coverage, not behavioral proof.
+
+## Limits
+I did not re-fetch sources or run experiments; this is read-only analysis of committed lane bytes. The source snapshots and their lines were not independently reopened in this facet, so the equality facts are observed as claims in the committed entry, not independently revalidated against upstream. No source edits or installs.

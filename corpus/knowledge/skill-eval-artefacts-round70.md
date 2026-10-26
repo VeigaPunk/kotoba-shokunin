@@ -83,3 +83,6 @@ not client behaviour (`.ufo/waves/round-70/w1/ScoutClientRuns.md`). Staged mater
 `corpus/lessons/round-70.md` § Gate): the raw `.mdx` duplicates of the two pages (staged S285/S286),
 the announcement post (staged S301) and the description improver (staged S303) — none adds a fact
 this entry states.
+## Round 75 correction — equality wording
+
+This round's source re-open confirms the guide's “above a threshold” wording does not resolve the equality case (`.ufo/waves/round-75/w1/R75Facet02.md:28-36`). The reference implementation's `>=` is an implementation fact, not the guide's definition; tell a reader to name the comparator used by the implementation under evaluation. This clarification does not claim client behavior or universalize the reference runner. See `SKILL.md` § Frontmatter craft and `corpus/lessons/round-75.md`.

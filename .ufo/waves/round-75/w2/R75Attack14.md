@@ -1,0 +1,8 @@
+# R75Attack14 — denominator claim falsified
+
+- **Verdict: finding does not survive.** The asserted mismatch compares different scopes. At lane HEAD `65a5c7a663249e0522cc49e4a148424200d9ddfe`, `SKILL.md:218-229` explicitly describes the 19-box **Trigger-fidelity checklist**. The cited baseline’s `box_total: 45` at `verifiers/checklist-baseline.json:278` is the total for all boxes in that file, not that section alone. Independently querying its entries by `section == "Trigger-fidelity checklist"` returns **19**. Thus the two counts agree for the relevant checklist; 45 does not contradict the prose denominator.
+- **Control check:** The suggested count-by-section comparison is non-vacuous and, when scoped correctly, passes (19 checklist entries vs. 19 in prose). The report’s proposed regression for a prose/baseline count disagreement would be reasonable only if it compares this section’s count, not the global `box_total`; a global-vs-section comparison would encode the mistaken scope.
+- **Evidence:** Re-read `SKILL.md:218-229` and baseline JSON; query: `[.boxes[] | select(.section=="Trigger-fidelity checklist")] | length` → `19`. Baseline declares `"box_total": 45` at line 278, covering its 45 total entries across sections. HEAD independently observed as `65a5c7a663249e0522cc49e4a148424200d9ddfe`.
+- **Residual risk / verification gap:** I did not run `verify_skill_checklist.py`; whether its executed-id set matches every disposition was not part of this denominator falsification and remains unverified. This does not rescue the reported denominator conflict. No lane source was changed.
+
+Report path: `.ufo/waves/round-75/w2/R75Attack14.md`

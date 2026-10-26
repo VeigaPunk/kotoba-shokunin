@@ -1,0 +1,11 @@
+# R75Facet46 — description-audit calibration
+
+Axes: factual support; falsifiability; scope; control weakness.
+
+**Observation — concrete, scoped weakness.** `SKILL.md:237-242` says the executed anti-trigger check is a vocabulary test: marker-bearing vacuous text passes and meaningful exclusions outside its vocabulary fail. Therefore a future description-audit claim that this gate establishes semantically useful exclusions would exceed its measured behavior. The text explicitly discloses this limit; it does not itself claim semantic validation. At `SKILL.md:243-247`, sibling arbitration is required in the description with a concrete rule; the cited round-74 spotcheck instead reports a count of all ten non-`none` lanes in the description (`corpus/lessons/round-74-verifier-spotcheck.md:75-77`). That is evidence of named coverage, not that the arbitration language is correct or operational.
+
+**Control/check.** For any claimed semantic/arbitration improvement, use a paired counterexample control against the frozen checker: (1) vacuous anti-trigger marker must not be credited as semantic pass; (2) a real exclusion phrased outside marker vocabulary must not be falsely rejected; and for sibling arbitration, include a description naming the sibling but with an unusable/generic split and require independent review of the actual frontmatter against the pinned sibling set. Record checker outputs separately from reviewer judgments. This concretely tests the already-disclosed weakness rather than treating a lexical count as semantic evidence.
+
+**Inference / limits.** The r74 row only supports a character-cap and lane-name census; available excerpt does not establish that its counter checks trigger/exclusion meaning or arbitration quality. The specific counter implementation and frozen fixtures were not inspected here, so whether existing tests already cover these controls is unresolved. The r74 plan is historical by assignment and is not treated as an r75 frozen claim.
+
+Evidence: `SKILL.md:237-247`; `corpus/lessons/round-74-verifier-spotcheck.md:75-82`.

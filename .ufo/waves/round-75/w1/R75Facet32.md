@@ -1,0 +1,12 @@
+# R75Facet32 — S210 description-trigger calibration
+
+## Finding (observed)
+The round-70 knowledge entry identifies S210 as the Agent Skills *guide* on optimizing descriptions, pins a committed snapshot with SHA-256 prefix `7cc54fbb…`, and gives source sections on trigger eval queries, trigger testing, train/validation splits, and optimization ( `corpus/knowledge/skill-eval-artefacts-round70.md:1-2`). It explicitly distinguishes guides from normative specification and says their numbers are advice (`:13-16`). The entry scope/refusal says it makes no claim that clients natively run `evals/evals.json` (`:76-82`). This is relatively well-calibrated scope, but a description-audit claim based on the broad topic/section list alone would not establish the recommended procedure or its limits.
+
+The current SKILL.md itself makes a broad loader-contract claim: description is the only router-ingested part, and the two observable harnesses render it differently (`SKILL.md:23-25,45-47`). That is explicitly bounded to observable harnesses in this lane, but its details include time-sensitive cache observations (`:32-44`); those historical counts should not be carried forward as current r75 measurements.
+
+## Assessment / control
+Candidate claim: “The Agent Skills guide recommends evaluating description trigger queries with a held-out split to reduce overfitting.” This is **not established by the excerpts/lines inspected here**; the source row names those topics, but no located quote or exact body passage in the entry supports this specific sentence. Treat as a candidate only, not a sourced conclusion. A concrete control is to reopen the committed S210 snapshot at the cited section and record a short located quotation plus snapshot digest; separately test that a counter rejects a fabricated/absent quote and a quote drawn from the wrong section. Keep any description-audit headline bounded to recommendations in this guide, not client runtime behavior or universal effectiveness.
+
+## Confidence and unknowns
+Confidence: high in the scope/calibration observation (directly stated in committed entry); low that the candidate recommendation is supported by evidence inspected. I did not inspect the snapshot body or run a control, so their contents/results remain unknown. No tools installed; no live fetch or code execution.

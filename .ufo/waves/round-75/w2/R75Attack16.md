@@ -1,0 +1,17 @@
+# R75Attack16 — independent falsification of R75Facet16
+
+## Verdict
+**Finding survives in its narrow, source-text scope; the proposed source-pin control is overstated/inoperable as written.** At measured revision `65a5c7a663249e0522cc49e4a148424200d9ddfe`, `SKILL.md:193` does say retain unique query strings and avoid integral runs × threshold, and the cited knowledge entry (`corpus/knowledge/skill-eval-artefacts-round70.md:58-72`) explicitly contrasts the guide's “above” with the reference implementation's `>=`. The pinned S211 snapshot independently confirms `did_pass = trigger_rate >= trigger_threshold` at lines 227-234, and defaults to 3 runs at line 266. The integer arithmetic is correct: 3 runs cannot yield 1/2; two same-string items submitted three times each produce six collected values in the implementation's query-keyed accumulator, permitting 3/6 equality. For a `should_trigger` query at equality, `>=` passes while strict “above” does not.
+
+## Attack / limits
+- The facet says the entry cites “its cited committed snapshot hashes” and proposes independently inspecting exact guide/reference lines at the pinned commit. This is not fully operable for the cited current guide rows: `check_skill_evals.py --rev 65a5c7a663249e0522cc49e4a148424200d9ddfe` (local, no fetch) reports `skill eval facts backed 1 of 8`, with F1–F7 each lacking pinned S212/S213 snapshots. The entry identifies upstream revision hashes for those guide citations, but its local recheck contract does not have those newer snapshot files; S211 is locally available and supports the comparator/default claims. Thus guide wording is supported by the committed entry's quotation and upstream citation, not independently reproduced from a committed S212/S213 snapshot in this check.
+- The duplicate-string caveat is real for the code's counting mechanism, but duplicate eval entries collapse to one output record per query string; `query_items[query]` retains the last item's `should_trigger` value (snapshot lines 213-229). The described 6-run equality scenario therefore assumes duplicate entries share the same label. It does not establish general aggregation semantics for contradictory duplicate labels.
+- The suggested “control pair” is a hand-check of a documented comparison, not a claim that the current verifier tests equality/duplicate cases. The report itself calls that verifier coverage an unknown; the pinned verifier run above supports that uncertainty rather than falsifying the core finding. I did not invoke external clients or live-fetch.
+
+## Scope / actionable result
+No scope error found: the entry explicitly disclaims normative/specification status and native client behavior (`:76-82`), and `SKILL.md:193` marks the advice as guide advice. The narrow calibration advice is materially actionable when reporting threshold-boundary results. Treat the guide side as a quoted/cited source statement unless S212/S213 snapshot evidence is made available; do not represent the local counter as exercising these edge cases.
+
+## Verification
+Read the cited files at the measured revision, including exact `SKILL.md:193`, knowledge-entry lines 58-82, and S211 lines 213-234, 266. Ran the pinned local counter as described above; it exited 1 because only 1/8 facts were backed, not because the discrepancy was disproved. LSP status/device was unavailable in this runtime, so no semantic references/definition/diagnostics were obtained; no grep substitute used.
+
+Report trailer: `kotoba-shokunin/.ufo/waves/round-75/w2/R75Attack16.md`

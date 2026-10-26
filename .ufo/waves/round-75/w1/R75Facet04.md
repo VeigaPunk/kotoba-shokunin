@@ -1,0 +1,19 @@
+# R75Facet04 — Evidence-base paragraph: dated survey and drift rule
+
+## Axes
+**Freshness** and **calibration**. This is distinct from the visible sibling facets on `SKILL.md:193`, Q71, and the round-74 C1 fidelity row. I assess only `SKILL.md:50-56`.
+
+## Evidence (observation)
+- `SKILL.md:50-53` states “16 production skill files surveyed 2026-09-28,” gives two glob roots, and points to the host’s other instruction surfaces / the “Instruction surfaces” section. `SKILL.md:54-56` explicitly says cited line numbers are point-in-time and instructs readers to re-read and update drifted citations.
+- Current read-only host check: `ls -d /home/vgpnk/.agents/skills/*/SKILL.md | wc -l` returned **74**; `test -f /home/vgpnk/.config/opencode/skills/ufo/SKILL.md` returned **absent**. The count is a present-day filesystem observation, not a recreation of the dated 2026-09-28 survey. It therefore does **not** falsify the historical “16 surveyed” claim. It does show that the two globs, if read as a current census, would not reproduce that count.
+- `SKILL.md:517-526` records that production-skill demonstrations and host-surface material were moved to `corpus/knowledge/anatomy-and-compression.md` (rounds 59–60), while `:50-56` retains the original dated survey statement and citation-drift instruction. The paragraph does not identify a committed enumeration/snapshot or a recheck command for reconstructing the 16-file population.
+- `git log -1 --format='%H %ci %s' -- SKILL.md` returned `559ee76a9bcf3bccd374776a3ae5f0f1dcba47dd 2026-10-25 23:29:02 -0300 round-74: fix data-gate reds — description 1021 characters, citation form, registry pinned-value paths, corpus baseline commit_total`. This dates the current file revision, not the survey itself.
+
+## Assessment (inference, bounded)
+The paragraph is reasonably calibrated as historical evidence: it explicitly dates the survey, labels line references as time-sensitive, and warns against propagating moved-source claims. The current count difference is not evidence that the old count was wrong. Its weakness is operational reproducibility: the documented glob roots are not enough to recover which files were surveyed on 2026-09-28, and the drift instruction says what to do but supplies no specific survey manifest/recheck command. Consequently the “16” count is falsifiable only if contemporaneous membership evidence exists elsewhere; I did not find such a manifest in the paragraph or its cited immediate context. Confidence: high in the paragraph’s text and current host observations; low on whether another historical artifact preserves the complete membership list.
+
+## Concrete check/control
+For any r75 claim relying on this survey as evidence of breadth, locate a committed dated inventory (paths plus per-file hashes or equivalent); compare its members and hashes with the stated 2026-09-28 basis, and keep today’s live count as a separate measurement. If no historical inventory exists, cite the sentence only as a recorded historical assertion, not as independently re-derived coverage. For future surveys, record the exact enumerated paths, command, date, and revision alongside the count; continue the existing per-citation drift check rather than treating a current glob count as a replacement baseline.
+
+## Verification limits
+Read-only review; no live fetch, experiments, source edits, or tests. I attempted to locate a dedicated `corpus/knowledge/evidence-base.md`, but that path does not exist in the checked tree; `SKILL.md:517-526` points to moved material in `anatomy-and-compression.md`. I did not infer the historic survey membership from today’s host contents. No installation performed.
