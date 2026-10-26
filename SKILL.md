@@ -11,17 +11,18 @@ description: >
   own their own SKILL.md content — this skill audits and reports; fixes route
   to the owning lane. chousa owns the research method; kama owns endpoint
   verification; kengaku owns measured capability effects of prompt format;
-  tameshi owns the fixture and mutation method. NOT kotodama-shokunin:
-  kotodama owns naming and language for fictional worlds despite the similar
-  name. Note:
-  shokunin files sit outside the omp skill discovery roots, so this text
-  never reaches the omp router — craft here is audit-side.
+  tameshi owns the fixture and mutation method; tsukuroi owns host package
+  and initramfs hooks. NOT kotodama-shokunin: kotodama owns naming and
+  language for fictional worlds despite the similar name. Note: shokunin
+  files sit outside the omp skill discovery roots, so omp never reads this
+  text.
 ---
 
 # kotoba-shokunin — prompt & skill craft
 
 A SKILL.md is a **loader contract**: the frontmatter `description` is the
-only part any router ingests — and the two harnesses here show it differently.
+only part any router ingests — the two harnesses this lane can observe (omp,
+opencode) show it differently, and 11 clients are mapped by documentation.
 On **omp** the `<skills>` catalogue (template in the omp ELF, rendered per
 session) shows each skill as `- name: render` where `render` is
 `cache.get(key) ?? previewSkillDescription`: a cached LLM one-liner if the
@@ -74,6 +75,10 @@ revision 2026-07-28, S040); the spec makes it optional and leaves placement to t
 | about when to reach for the server at all | `instructions` | with tool search, Claude Code loads only tool names and server instructions at session start (S033) |
 | about one tool's inputs | that tool's `description` | the spec says it "should not duplicate information already in tool descriptions" (S040); Claude Code, VS Code (S034), Codex, Gemini CLI (S036), opencode (S041) and Copilot CLI (S042) put `instructions` in front of the model already |
 | needed on every client | a skill or always-on file too | the field is optional (S032), opencode drops a server's text when permissions deny all its tools (S041), and Copilot CLI needs a flag to include it from all servers (S042) |
+
+| decision | what the pages say | what a skill author does |
+|---|---|---|
+| where a skill meant for TRAE, CodeBuddy, Kimi Code or Zhipu lives | `.agents/skills/` is read by Kimi at both scopes and by TRAE only behind an explicit switch, while CodeBuddy and Zhipu name it nowhere; TRAE's own `.trae/skills/` outranks it on a name collision (S217, S220, S221; `corpus/knowledge/chinese-vendor-skill-surfaces-round73.md:26,35-36`) | Write to the vendor's own root; never ship a skill that travels only through `.agents/skills/` |
 
 ### Agent-definition files by client
 
@@ -196,6 +201,19 @@ a file and the skill keeps the pointer line. Also there: verbatim-copyable
 command blocks, failure signatures inline, never restate the trigger in the body,
 and the **~600-line module bound** (round 15 applies it to this file — §
 Trigger-fidelity checklist, line-budget box).
+
+### Body craft — the specification's skill-creation guides
+Rules from the specification's own authoring guides, one page's advice each (documentary, no client run;
+entry `corpus/knowledge/spec-skill-creation-craft-round74.md`, counted by `verifiers/check_spec_craft.py`).
+
+| rule | source | what a skill author does |
+|---|---|---|
+| match the specificity of the instructions to the fragility of the task | S223 best-practices | Write a fragile step as one pinned command with its prohibition, as in `python scripts/migrate.py --verify --backup`, and give the reason for the flexible steps. |
+| provide defaults, not menus; load detail on a stated condition | S223 best-practices | Name one default tool with one escape hatch, and point to a file such as `references/api-errors.md` with the condition that loads it. |
+| reference an existing package before bundling a script, and pin its version | S225 using-scripts | Call a published package at a pinned version, for example `uvx ruff@0.8.0 check .`, before you bundle a script under scripts. |
+| write a bundled script for an agent caller, not a human | S225 using-scripts | Give each script a `--dry-run` flag, meaningful exit codes and bounded output so an agent can retry it safely. |
+| the tutorial's minimal first skill | S224 quickstart | Create the first skill at `.agents/skills/roll-dice/SKILL.md` with only name and description, under twenty lines. |
+| confirm discovery before trusting a path | S224 quickstart | Confirm the skill loaded by listing skills with `/skills`, and fix the path if the name is missing. |
 
 ## Trigger-fidelity checklist
 
