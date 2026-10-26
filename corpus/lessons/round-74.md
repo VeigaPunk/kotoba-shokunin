@@ -97,7 +97,7 @@ no-harm run), not the principle.
 
 ## Routed defects (r73 spot-check § 6)
 
-1. Falsify wave (second ask): wave 2 of this round, lane-unique seat names (`…R74`), total in the report.
+1. Falsify wave (second ask): generated and validated (33 lane-unique seats `…W2R74`), **not dispatched** (operator wrap-up) — a third round in a row without one; routed to the next run.
 2. Index the closure file in the first commit: done (`corpus/README.md` row, plan commit `329e7d9`); the corpus baseline re-recorded there.
 3. D2/D3: SKILL.md at `1e03d19` is 570 lines — `git show 1e03d19:SKILL.md | wc -l`; the r73 M128 sentence "green-after … cited in the report" is corrected in
    the r74 report; `check_report_pointers.py` is run on the r74 report and its `unresolved 0` cited there.
@@ -110,7 +110,7 @@ no-harm run), not the principle.
 
 ## Falsify corrections
 
-Filled from wave 2 (see the report); none before the wave settled.
+None: wave 2 (the falsify wave, 33 seats, `.ufo/waves/round-74/w2-spec.json`, validated under policy v1 and `w2.ready` written) was **not dispatched** — the orchestrator wrapped run 7 up (spawn cap 0) before it ran. No fresh seat attacked the landed data, the landed counters or the tsukuroi change; the wave-1 attacks (which produced E1.1–E1.4 before data) are the only seat falsification. The round is 34 seats against the 64-seat floor, and the non-author closure's check is the only outside check. The next run re-dispatches the round.
 
 ## Status changes
 

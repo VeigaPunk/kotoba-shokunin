@@ -2797,3 +2797,8 @@ Core rows) — but filed no entry here. This entry is that record, appended, nev
   /home/vgpnk/Projects/shokunin; guards 5 of 5; tip battery exit 0: 6 of 6`, exit 0 in both invocation forms (base `2 of 6`
   with `--repo .`, `4 of 6` absolute). Receipts: `.ufo/waves/round-73/receipts/`.
 - **Pointer:** `plans/round-73.md`, `plans/round-73-addendum-1.md`, `-2.md`, `-3.md`, `corpus/lessons/round-73.md`, `.ufo/waves/round-73/`.
+
+## Round 74
+
+kotoba round 74 (hyaku run 7, attempt 1). Base `1e03d19`; plan `329e7d9` (`plans/round-74.md`); counters and errata E1 `d919179` (`plans/round-74-addendum-1.md`); data `2c81137`, fix `559ee76`, bookkeeping `88f18cd`. Claims: **C1 coverage** (sourced, assimilation) — Agent Skills `skill-creation/` guides best-practices, using-scripts, quickstart (S223–S225), `verifiers/check_spec_craft.py`: `0 of 3` → `3 of 3`; **C2 freshness** — the sibling census re-pinned at 20 frozen heads (15 of 20 pins were stale), `verifiers/check_sibling_reread.py`: `0 of 20` → `20 of 20`, tsukuroi `none` → `adjacent`, the `SKILL.md` description now names tsukuroi. Wave 1 (34 seats) built and attacked the plan: errata E1.1–E1.4 before any data (the C2 clause (e) contradicted (a); the C1 predicate admitted site chrome and 404 bodies; the carry-forward premise was false). Mistakes M134–M139, criteria Q70–Q73 (`corpus/lessons/round-74.md`). `verifiers/check_province_core.py` gains a ledgered Adjacent erratum (M138). Evidence: `.ufo/waves/round-74/`.
+
