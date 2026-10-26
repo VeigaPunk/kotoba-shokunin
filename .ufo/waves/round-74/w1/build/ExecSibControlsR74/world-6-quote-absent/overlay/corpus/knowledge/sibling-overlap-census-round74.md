@@ -1,0 +1,466 @@
+source: S022 (https://code.claude.com/docs/en/skills, § Frontmatter reference `description` row, § Resolve skills that share a name, § Troubleshooting → Skill triggers too often), S023 (https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview, § Level 1: Metadata (always loaded)), S018 (https://agentskills.io/specification, § `description` field); sibling bytes: the 20 sibling lane repos under /home/vgpnk/Projects/shokunin/*-shokunin at the commits pinned in the table below
+verified-at: 2026-10-22
+recheck: python3 -B verifiers/check_sibling_census.py corpus/knowledge/sibling-overlap-census-round49.md --province PROVINCE.md  # exit 0 and "rows 20 verified 20" on 2026-10-22; exit 1 names the row whose quote, commit, classification or PROVINCE row no longer matches
+
+# Fleet sibling-overlap census (round 49)
+
+Frontier area: sibling arbitration (`corpus/README.md` § Known gaps: "0/5 descriptions carry an
+arbitration clause", measured at round 7 over five lanes). The fleet now has 20 sibling lanes, and
+kotoba's `PROVINCE.md` § Adjacent named 10 of them at `a5adc146`. This entry classifies all 20
+against kotoba's province, from each sibling's own committed bytes at a pinned commit, and records
+what each sibling's skill description says about its neighbours. It reports sibling scope; it
+does not absorb it, and it does not edit any sibling (adjacency axis, `../AXES.md`).
+
+## What decides between overlapping skills (sources opened 2026-10-22)
+
+- The description is the matching input. Claude Code: "What the skill does and when to use it.
+  Claude uses this to decide when to apply the skill." (S022, `skills.md:389`). Anthropic's overview:
+  "Claude loads this metadata at startup and includes it in the system prompt." (S023,
+  `overview.md:59`), and the description "is what Claude matches your request against when
+  determining whether to trigger the Skill" (S023, same section).
+  The open specification says the same of the field: it "Should describe both what the skill does and
+  when to use it" (S018, `specification.md:102`; a recommendation, not a `Must`), and it states no rule
+  for overlapping skills (`grep -cinE 'overlap|ambiguit|precedence|disambiguat|tie[- ]?break|arbitrat|multiple skills'`
+  over the fetched 7,608 B file → 0; seat `SrcSpecDescriptionField.md`).
+- Neither page states a tie-break rule for two descriptions that both match. Sweeps over the fetched
+  markdown: S022 `arbitrat`, `tie-?break`, `ambigu`, `overlap` → 0 each; S023 nine patterns
+  (`tie[- ]break`, `overlap`, `ambigu`, `multiple skills`, `one skill`, `arbitrat`, `conflict`,
+  `both skills`, `select`) → 0 each (seat reports `SrcClaudeCodeSkills.md`, `SrcAgentSkillsOverview.md`
+  under `../.ufo/waves/round-49/build/`).
+- What S022 does give: a name clash is settled by origin ("When two skills share a directory or file
+  name, where each one came from decides which one `/name` runs.", `skills.md:198`), and a skill that
+  fires where it should not is fixed by a more specific description or `disable-model-invocation: true`
+  (§ Troubleshooting, `skills.md:1190-1195`).
+- Consequence for craft: with no documented tie-break, the only arbitration a skill author controls is
+  the text of each description. A description that names its neighbour and says who owns what is the
+  whole mechanism. That is why kotoba's trigger-fidelity box `trigger.05` asks for a concrete sibling
+  arbitration rule in the description (`../SKILL.md` § Trigger-fidelity checklist).
+- Limit on this host: the shokunin lane `SKILL.md` files are not in an omp skill discovery root
+  (kotoba's own description says so, `../SKILL.md:12-15`; critic seat `CriticC1Sizing.md` found no lane
+  `SKILL.md` in the ten discovery roots it checked). So the arbitration columns below are audit-side
+  facts about the files, not observed router behaviour.
+
+## Classification rule
+
+- `contested`: the sibling's committed scope surfaces claim part of kotoba's core (writing or auditing
+  other lanes' SKILL.md, prompts or AGENTS.md-class files, or the instruments over them).
+- `adjacent`: either side's committed scope surfaces (SKILL.md including its frontmatter description,
+  PROVINCE.md, corpus files) state a split of one artifact, function or trigger area between the sibling
+  and kotoba. On kotoba's side this includes its own description at the base commit, which names kagi,
+  kake, kasegi, kengaku and kumitate as owning their own SKILL.md content while kotoba audits and reports
+  (`SKILL.md:10-12` at `a5adc146`), and its base `PROVINCE.md` § Adjacent lines that state a split
+  (chousa, kumitate, kengaku, tameshi).
+- `none`: neither of the above; the seat report carries the sweep that found no claim (Q14).
+- Wave reports and run logs (`.ufo/`, `reports/`) are not scope surfaces: a split stated only there does
+  not make a row `adjacent` (mado's round-18 wave report is the case in point; seat `RowMado.md`).
+- `names kotoba` and `arbitration` are mechanical: whether the frontmatter `description` at the pin
+  contains the token `kotoba`, and which sibling lane names (case-insensitive, whole token) it contains.
+  `no SKILL.md` means the lane has no skill file at the pin.
+
+One override of a seat's call: kotodama's seat chose `none`; this entry records `adjacent`, because
+kotodama's description refuses kotoba's craft by name ("NOT prompt/skill craft (kotoba-shokunin)",
+kotodama `SKILL.md:3`) and its `MINT.md:20` records the name collision ("kotoba owns prompt/skill craft
+despite its name"). That is a published split of a trigger area.
+
+## Census (20 rows; quotes verbatim at the pinned commit, whitespace collapsed)
+
+| lane | branch | commit | path | classification | names kotoba | arbitration | path:line | quote | delta |
+|---|---|---|---|---|---|---|---|---|---|
+| audio | main | 7a2fcd4f08831154686e4e323031f41fffdb077f | NONE | none | no SKILL.md | no SKILL.md | PROVINCE.md:3 | "Owns: game audio production — SFX (UI, impacts, movement, ambience) and soundtrack (motifs, loops, stems, adaptive layers)" | none |
+| chousa | master | 00f8c7f5272a1d98b6d34913985fa4537e00aaf9 | SKILL.md | adjacent | no | yes: kasegi, kengaku | PROVINCE.md:3 | "**Domain:** deep-research method (調査) — the reusable craft of source research." | +187/-20 |
+| game-dev-2d | main | 7753d49b16674e122ed134403e7a9b301f2cbf7e | NONE | none | no SKILL.md | no SKILL.md | PROVINCE.md:3 | "Owns: 2D game production verified by executable headless fixtures — loop, input, physics, scenes, camera, UI, levels, juice, export readiness." | none |
+| game-dev-3d | main | 89dd182b70943a20ae9aa6c1ed0e3c9b6e79c080 | SKILL.md | none | no | yes: game-dev-2d, revenger | PROVINCE.md:3 | "Owns: 3D game production verified by executable headless fixtures — 3D movement and collision, spatial queries, camera projection and frustum behavior" | none |
+| kagi | master | 69b61db46be4ed955994f6f1d1cba522bc5f4e97 | SKILL.md | adjacent | no | no | SKILL.md:3 | "**Kotoba** owns the instruction/agent surface and its model/fallback wording; **kama** owns independent verification of the target endpoint." | none |
+| kaidoku | main | 3b1ab3c9d248b7afbf7fc5e5507d76cd87e26c3c | SKILL.md | none | no | no | SKILL.md:3 | "Domain specialist — reverse engineering of shipped artifacts with REA on this Linux host" | +447/-2 |
+| kake | master | 20217f23eca15862febe14545523832e21584106 | SKILL.md | adjacent | no | no | PROVINCE.md:3 | "**Domain:** web properties & publishing — scopes ds4cc.com, kimi.page/pro mirrors, Pages deploys" | +955/-5 |
+| kama | master | 3e6fdbe9e0ca1ca5b633d0b312d5561301e924c4 | SKILL.md | adjacent | no | no | SKILL.md:8 | "Local model serving & endpoint health. This lane answers exactly one question:" | +417/-8 |
+| kasegi | master | a155310d1ee9aacc07c3ce62328105a46c0392b4 | SKILL.md | adjacent | no | no | SKILL.md:3 | "bounty & security research — scopes ~/Projects/bounties, program rules, claim packages" | +72/-1 |
+| kengaku | master | f9efce3beb0705ec2e04ba3f8f449d10d64cc1dd | SKILL.md | adjacent | yes | yes: chousa, kama, kotoba, kumitate, tameshi | SKILL.md:3 | "Domain specialist — LLM/model research & evaluation — eval design, benchmark selection, offline replay grading, blind shim-cascade leg attribution and interval-calibrated verdicts" | +30/-0 |
+| kotodama | main | f7104cbce186bc2e1522abf0cfd619cc834628bb | SKILL.md | adjacent | yes | yes: chousa, kotoba, lore | SKILL.md:8 | "Domain: the generative craft that connects languages, cultures, myths, symbolisms, and eras to their linguistics and costumes for a fictional world" | +85/-0 |
+| kumitate | master | 2ca91a0c81542cad5f731049aa55dd2f99ade98d | SKILL.md | adjacent | no | no | PROVINCE.md:3 | "**Domain:** orchestration & tooling — scopes OMP task/hub, ufo-fsd scripts & runtime" | +106/-12 |
+| lore | main | 380ef3abc7c7af11d7f23e9f9c82bb1937e1f695 | SKILL.md | none | no | yes: chousa, game-dev-2d | PROVINCE.md:3 | "Owns: fictional-world records — entities (characters, places, factions, items), relations, timeline events — with consistency verification and sourced inspiration." | none |
+| mado | master | 62dd798bb08401a8697383552edcc36f109344fa | SKILL.md | none | no | no | SKILL.md:8 | "desktop & compositor craft playbook — the Hyprland/waybar/walker/terminal config plane" | +118/-0 |
+| mori | master | 24ebc7991e9081348d1aa4f558f994b1f4feccab | SKILL.md | none | no | yes: kama, kumitate, tsukuroi | PROVINCE.md:3 | "fleet & host observability (森) — whether the fleet, its waves and its host are alive and progressing." | +462/-15 |
+| revenger | main | 6da884c6708fa25a7af013b6fc6802492e3264fa | NONE | none | no SKILL.md | no SKILL.md | PROVINCE.md:3 | "Owns: reverse engineering of shipped artifacts — native binaries, managed assemblies, Electron/JavaScript packages, Android APKs, archives, firmware, browser/Electron runtime evidence" | +618/-0 |
+| souji | master | b8cb4b31ce80e2e3314b88e85d40ea9873180804 | SKILL.md | none | no | yes: kagi | PROVINCE.md:3 | "**Domain:** fleet repository & workspace hygiene (掃除) — receipt-gated removal of stale, duplicate, and already-preserved artifacts." | +2/-2 |
+| tabi | master | 856fa9e1202179f5cfbd28c1f0efdd4eb1f426bb | SKILL.md | none | no | no | PROVINCE.md:3 | "browser & web-interaction craft (旅, journey) — driving real browsers against real sites with evidence discipline." | +89/-0 |
+| tameshi | master | a944eb55d64a2e0a77e3561c44bf89faadf04bb9 | SKILL.md | adjacent | no | yes: kama | PROVINCE.md:3 | "**Domain:** verification-fixture craft — the reusable method of honest checks: hermetic suites, mutation testing, fail-closed arms, verdict-line discipline, no-permissiveness audits, before/after proof." | +108/-43 |
+| tsukuroi | master | 8bd001f58bfda29c92d90d2a7a413825c0ca9fcb | SKILL.md | none | no | no | PROVINCE.md:3 | "**Domain:** host operability & system repair (繕, mending) — the OS substrate itself: package state, systemd, drivers/firmware, boot health." | +872/-0 |
+
+Per-row evidence (pin commands, sweeps, overlap quotes): `../.ufo/waves/round-49/build/Census<Lane>.md`.
+
+## Counts (each with its command, 2026-10-22)
+
+Every command reads only table rows (the regex `^\| [a-z0-9-]+ \| (main|master) \| [0-9a-f]{40} \|`);
+`F` is this file, `corpus/knowledge/sibling-overlap-census-round49.md`, run from the lane root.
+Fields under `awk -F' \\| '`: `$4` skill file, `$5` classification, `$6` names kotoba, `$7` arbitration.
+
+- 20 rows — `grep -cE '^\| [a-z0-9-]+ \| (main|master) \| [0-9a-f]{40} \|' F`
+- 9 adjacent, 11 none, 0 contested — `awk -F' \\| ' '/^\| [a-z0-9-]+ \| (main|master) \| [0-9a-f]{40} \|/{print $5}' F | sort | uniq -c`.
+  Adjacent: chousa, kagi, kake, kama, kasegi, kengaku, kotodama, kumitate, tameshi.
+- 17 of 20 lanes have a skill file at the pin — `awk -F' \\| ' '/^\| [a-z0-9-]+ \| (main|master) \| [0-9a-f]{40} \|/{print $4}' F | sort | uniq -c`
+  (17 `SKILL.md`, 3 `NONE`); audio, game-dev-2d and revenger have none (seed-form lanes).
+- 2 of 17 descriptions name kotoba (kengaku, kotodama) — `awk -F' \\| ' '/^\| [a-z0-9-]+ \| (main|master) \| [0-9a-f]{40} \|/ && $6=="yes"' F | wc -l`
+- 8 of 17 descriptions name at least one sibling — `awk -F' \\| ' '/^\| [a-z0-9-]+ \| (main|master) \| [0-9a-f]{40} \|/ && $7 ~ /^yes/' F | wc -l`.
+  This supersedes the round-7 figure "0/5 arbitration clauses" (`alwayson-checklist-round7.md:56-57`)
+  as a fleet measure; for the same five lanes (kagi, kake, kasegi, kengaku, kumitate) it is now 1/5
+  (kengaku).
+
+## Findings that change kotoba's records
+
+1. **kasegi was classified on an unsourced clause.** Base `PROVINCE.md` § Adjacent said "kasegi —
+   security research incl. prompt-injection exploits". `git -C ../kasegi-shokunin grep -qiE
+   'prompt[- ]injection' 1fafde8f11454f3b0b98ab7f2b2e640aaf7f399a` exits 1 (no match), and kasegi's
+   `PROVINCE.md` never contained `prompt` or `injection` (`git log -S` empty; seat `CensusKasegi.md`).
+   The row is now `none`.
+2. **kotodama → kotoba is not reciprocal.** kotodama's description routes prompt and skill craft to
+   kotoba; kotoba's description names five siblings (kagi, kake, kasegi, kengaku, kumitate) and not
+   kotodama (`sed -n 1,16p SKILL.md | grep -c kotodama` → 0 at `a5adc146`). The two lane names collide
+   (kotodama `MINT.md:20`), so a request that says "kotoba" or "words" can reach either. The fix is a
+   description edit; this round's drift guard keeps the SKILL.md frontmatter unchanged, so it is carried
+   to the next round's plan.
+3. **kotoba's two surfaces disagree.** The description names 5 of 20 siblings; § Adjacent named 10, with
+   kagi and kake only in the description (seat `ConnectSiblingOverlap.md` § c). After this round
+   § Adjacent names all 20 and the description still names 5: the gap is recorded, not closed.
+4. **Sibling-to-sibling items seen, reported, not ruled on:** kaidoku and revenger both state "reverse
+   engineering of shipped artifacts" as their domain (kaidoku `SKILL.md:3`, revenger `PROVINCE.md:3`),
+   and kaidoku records that arbitration as open; kagi records `$HOME/.config/opencode` as
+   `owner=integrator, status=unresolved` (kagi `corpus/adjacency.tsv:81`). Both belong to the integrator.
+5. **Only one sibling pair arbitrates in both descriptions** (chousa and kengaku); seat
+   `ConnectSiblingOverlap.md` § b lists 17 directed pairs across 8 descriptions.
+
+## Limits
+
+- Pins move: kake, kama and tameshi advanced during the census. Every claim is about the pinned commit;
+  the recheck reads pinned bytes, never a branch tip.
+- The classification is a judgment under the rule above; the two mechanical columns are not.
+- `none` rows rest on each seat's sweep over the sibling's top-level scope files and a tree-wide token
+  search; a claim stated only in an unread wave report would be missed (kagi's split lives in `corpus/`,
+  which its seat read; a top-level-only sweep would have called kagi `none`).
+
+## Falsify-wave corrections (round 49, before the report)
+
+- **Classification rule applied consistently** (seat `../.ufo/waves/round-49/falsify/CriticC1Landed.md`): the
+  first landing counted a one-sided published split for kotodama but not kotoba's own description, which
+  names kake and kasegi as owning their SKILL.md content while kotoba audits. kake and kasegi are now
+  `adjacent` (7 → 9 adjacent, 13 → 11 none). kasegi's adjacency rests on that description, not on the
+  withdrawn "prompt-injection" clause. tameshi's basis is kotoba's base `PROVINCE.md` line ("tameshi —
+  verification-fixture craft and mutation testing", sibling-owned ground), with tameshi's own wave report
+  as corroboration only.
+- **The guard re-derives what it can** (same seat showed an all-`none` pair passed): the skill-file,
+  names-kotoba and arbitration cells are now recomputed from the pinned `SKILL.md`; a `none` row whose
+  sibling description or `PROVINCE.md` names kotoba fails; a quote under six words fails. Still not
+  machine-checked: an `adjacent` call that rests on a kotoba-side or corpus-side statement.
+- **S022 says more than "description alone"** (seat `ReopenS022.md`): Claude Code also lists
+  `when_to_use`, always lists names, and under a 1% context budget drops descriptions of the least-used
+  skills first (`skills.md:1207-1213`). That is listing priority, not a tie-break between two matching
+  descriptions, so the "no documented tie-break" finding stands; the S022 `teaches` cell is corrected.
+- **Routing:** the kaidoku and revenger overlap is already an open operator question
+  (`/home/vgpnk/Projects/shokunin/.ufo/l0-questions.md` line 42, tsukuroi round 1); this round does not
+  re-file it. The opencode config item is not sibling-to-sibling: kotoba is a wording claimant there
+  (kama `corpus/knowledge/cross-lane-scope.md:29`), and this round filed it as an operator question.
+- **kengaku** (seat `RowKengaku.md`): kotoba's base `PROVINCE.md` line carried "route telemetry", which
+  kengaku marks absent since 2026-10-15; the boundary note is corrected. kengaku's round-25 census script
+  counts trigger strings in other lanes' SKILL.md files, kotoba's included, and kengaku's `corpus/README.md`
+  describes it as its own: a possible `contested` element, recorded for the integrator; the row stays
+  `adjacent`. The `arbitration` column lists every fleet lane name the description contains other than the
+  row's own lane, kotoba included.
+- **mado** (seat `RowMado.md`): `none` holds under the rule, but the boundary note "no claim on kotoba
+  ground" overstated it: mado surveys the omarchy skill file's frontmatter as its own documentation
+  surface. The `none` notes in `PROVINCE.md` now say "no split with kotoba on its scope surfaces".
+- **tabi** (seat `RowTabi.md`): tabi's round-16 wave drafts state a split with kotoba ("kotoba owns the
+  craft of such text … Route craft findings to kotoba", tabi `.ufo/waves/round-16/drafts/DraftAdjacency.md:39`
+  at the pin) over tool names, descriptions and schemas as agent-facing text. It never reached tabi's scope
+  surfaces, so the row stays `none` under the rule's wave-report exclusion (stated after the first landing,
+  above); a later round should ask tabi whether to land it. The build seat's sweep sentence "zero of those
+  state a rule over skill/prompt authoring for another lane" was wrong for that draft.
+- **tameshi** (seat `RowTameshi.md`): the boundary note cited a wave report and generalised "the
+  SKILL-checklist instrument" to "its own checklist instruments"; corrected to tameshi's corpus ledger. Open:
+  tameshi's Core names kagi's `corpus/checklist-run.sh`, which reads kagi's SKILL.md checklist section; read
+  literally, "instruments over them" could make that `contested`. Recorded, not ruled; the row stays
+  `adjacent`.
+- **kama** (seat `RowKama.md`): the boundary note misquoted kama's split (dropped "agent" and "fallback");
+  corrected verbatim. The split names agent files kama deleted on 2026-10-14. kama's
+  `consumer-registry.md:91-92, 111-112, 325-326` audits agent prompt text and records a verdict on a sibling
+  SKILL.md: read literally, a possible `contested` element. The rule gives no precedence between the
+  `contested` and `adjacent` arms; recorded for the integrator, row stays `adjacent`. Seats `RowSouji`,
+  `RowLore`, `RowGameDev2d` returned HOLDS or HOLDS-BOUNDED; RowLore notes the arbitration cell leaves out
+  the row's own lane name, which the rule does not yet state.
+
+## Round 50: six more client pages, and kotoba's own description
+
+Appended round 50 (append-only; the sections above are unchanged). Seat reports are under
+`../.ufo/waves/round-50/build/`.
+
+- **No tie-break between overlapping descriptions, now on nine pages.** Round 49 swept S022, S023 and
+  S018. Round 50 opened six more client pages (rows S024-S029, all opened 2026-10-22; fetch records in
+  the seat reports and in `corpus/lessons/round-50.md` § Gate) and swept each with
+  `grep -ciE` for `overlap`, `ambigu`, `precedence`, `tie[- ]?break`, `conflict`, `multiple skills`,
+  `same name`, `prioriti`, `1024`, `truncat`. No page states a rule for two skills with different
+  names whose descriptions both match. Every non-zero hit is located in the seat report and is about
+  something else (a same-name collision, a length cap, site chrome or an unrelated sense):
+  - S024 opencode docs (`skills.md`, 5,365 B): every arbitration term 0; `1024` 1 (the description cap,
+    `skills.md:72`). The model sees all skills in the `skill` tool description (`skills.md:110`).
+    Seat `SrcOpencodeDocs.md`.
+  - S025 VS Code agent skills (`agent-skills.md`, 22,871 B): `precedence` 1, `same name` 1 and
+    `multiple skills` 1, all about duplicate names; `overlap`, `ambigu`, `tie[- ]?break`, `conflict` 0.
+    "Copilot reads the skill's `name` and `description` from the YAML frontmatter." (`agent-skills.md:302`).
+    Seat `SrcVSCodeSkills.md`.
+  - S026 Claude Code subagents (`sub-agents.md`, 110,784 B): delegation follows the `description`
+    (`sub-agents.md:839`); the only arbitration is between same-name subagents, and even there the page
+    says one is "chosen by filesystem read order rather than a documented precedence" (`sub-agents.md:176`).
+    Its remedy for overlap is craft: "Make each description specific enough to route to the right
+    subagent" (`sub-agents.md:1293`). Seat `SrcClaudeSubagents.md`.
+  - S027 GitHub Copilot, adding agent skills (`add-skills.md`): "Copilot will decide when to use your
+    skills based on your prompt and the skill's description" (`add-skills.md:233`); no overlap rule.
+    S028 GitHub Copilot CLI plugin reference: "**Agents and skills** use first-found-wins precedence."
+    (`cli-plugin-reference.md:415`), a name-keyed rule. Seat `SrcCopilotSkills.md`.
+  - S029 Gemini CLI skills (`skills.md`, 5,763 B): "If multiple skills share the same name, the version
+    from the higher-precedence location is used." (`skills.md:51-52`) — again name-keyed; `overlap`,
+    `ambigu`, `tie[- ]?break`, `conflict` 0. Seat `SrcGeminiCliSkills.md`.
+  - Re-opened, byte-identical to their recorded bytes: S022 (adds the 1,536-character listing cap on
+    `description` plus `when_to_use`, `skills.md:389`) and S019 ("Maximum 1,024 characters",
+    `best-practices.md:161`; "Always write in third person", `:206`). Seats `SrcReopenS022.md`,
+    `SrcReopenS019.md`.
+- **What this changes for craft.** Every documented "which one wins" rule found so far is keyed on the
+  skill *name* (origin, location tier, first found). None compares descriptions. So the round-49
+  consequence stands with more support: the only arbitration an author controls between two skills
+  with different names is the text of each description. The round-49 sweep pattern `tie[- ]break`
+  (above) missed the unhyphenated spelling; the round-50 pattern is `tie[- ]?break`.
+- **kotoba's description now names the 9 lanes classed `adjacent`.** Finding 2 (kotodama is not named)
+  and finding 3 (the description named 5 of 20) are acted on: the description at the round-50 landing
+  names chousa, kagi, kake, kama, kasegi, kengaku, kotodama, kumitate and tameshi, each in a clause with
+  an ownership or routing word, and keeps to the 1,024-character cap (1,008 characters). Checked by
+  `python3 -B verifiers/check_sibling_census.py corpus/knowledge/sibling-overlap-census-round49.md --province PROVINCE.md --skill SKILL.md`
+  → `skill description names 9 of 9 non-none lanes`, exit 0 (5 of 9, exit 1, on the description at
+  `f3046466`). The clause test is lexical: a clause that names a lane next to a false ownership word
+  still passes (seat `CensusGuard.md`, mutant m9). For the four lanes added this round the description
+  states only the side the census already admits (chousa's research method, kama's endpoint
+  verification, kengaku's measured effects of prompt format, tameshi's fixture and mutation method).
+  kake and kasegi are named because kotoba's own description already named them at the base; their own
+  descriptions carry none of kotoba's trigger words (seat `CriticC1Sizing.md` F4), so naming them adds
+  no measured trigger precision.
+- **Line pins.** The citation `../SKILL.md:12-15` in § What decides refers to the description at
+  `f3046466` (and at `a5adc146`); the round-50 description moved that note to lines 15-17.
+
+## Round 50: precedence between `contested` and a stated split (routed defect D3)
+
+Appended round 50 (append-only). Basis: critic seat `../.ufo/waves/round-50/build/CriticPrecedence.md`
+and fact seats `RuleKama.md`, `RuleKengaku.md`, `RuleTameshi.md` (all read the pinned sibling bytes).
+No vendor page decides this: the six pages opened this round document only name-keyed rules (section
+above), so the precedence below is kotoba's own rule.
+
+- **What `contested` means.** The sibling's scope surfaces claim an element of kotoba's `PROVINCE.md`
+  § Core over text the sibling does not own. Reading or verifying a non-craft fact held in such text is
+  not a claim: an endpoint value, a credential checklist item, or the kill rate of the owner's gate.
+- **Precedence.** A claim makes the row `contested` unless the sibling's own scope surfaces state a
+  split that assigns the claimed element. A split stated only by kotoba never overrides a sibling's
+  claim, because kotoba could otherwise relabel any claim with one sentence of its own. A split stated
+  only by kotoba may still make a row with no claim `adjacent`; it is a routing commitment kotoba must
+  honour.
+- **Basis of each `adjacent` row at `f3046466`** (sibling, kotoba, both), before this round's description
+  edit adds kotoba's side for chousa, kama, kotodama and tameshi: chousa kotoba (no chousa-side split
+  was cited; recorded, not re-swept this round); kagi both; kake both; kama sibling; kasegi both;
+  kengaku both; kotodama sibling; kumitate both; tameshi sibling.
+- **Rulings.** No row moves; the counts stay 9 adjacent, 11 none, 0 contested.
+  - kama: the arm does not fire. kama's registry rows (`consumer-registry.md:91-92, 111-112, 325-326`
+    at `c808ba07`) verify endpoint values and absences in instruction files; they judge no wording.
+    kama's own split assigns the wording to kotoba ("**Kotoba** owns the instruction/agent surface and
+    its model/fallback wording; **kama** owns independent verification of the target endpoint",
+    `cross-lane-scope.md:29`). `adjacent`, basis sibling.
+  - kengaku: the arm does not fire. Its round-25 census script reads only the `SKILL.md` of the lane it
+    runs in (`plans/round25_census.sh` requires a lane root; seat `RuleKengaku.md`), and kengaku's
+    `corpus/README.md:192` says only "frontmatter triggers". The round-49 boundary note that the script
+    counts trigger strings in other lanes' files rested on kengaku's round-25 wave reports, which this
+    rule excludes. `adjacent`, basis both (kengaku `SKILL.md:3`: "kotoba owns prompt and skill craft
+    (kengaku keeps only measured capability effects)").
+  - tameshi: the arm fires literally (its Core names kagi's `corpus/checklist-run.sh`, which reads
+    kagi's `SKILL.md` checklist), but that instrument is kagi's, not an element of kotoba's § Core, and
+    tameshi measures its kill rate read-only. tameshi's own split: "every lane's gate remains its own"
+    and it "Never edits a sibling's gate code" (`PROVINCE.md:14-17` at `3b20f073`). `adjacent`, basis
+    sibling.
+  - mado stays `none`: the omarchy skill file it surveys belongs to no lane, so no § Core element over
+    another lane's text is claimed.
+- **Correction to the falsify-wave note above on kake and kasegi.** Their `adjacent` class does not rest
+  on kotoba's description alone. Both siblings' corpora carry an aggregator-mirrored lesson that states
+  the same split: "Aggregator-owned file; the owning lane corrects `SKILL.md`." (kake
+  `corpus/lessons/round-5-aggregator-mirror-pathless-cli-invocation.md:4-5` at `e73d48bb`; kasegi
+  `corpus/lessons/round-5-aggregator-mirror-ambiguous-citation-base.md:4-5` at `1fafde8f`; seat
+  `CriticPrecedence.md` F3). Basis both.
+- **Correction to § Classification rule.** Its sentence that kotoba's base `PROVINCE.md` lines "state a
+  split (chousa, kumitate, kengaku, tameshi)" holds only for chousa and kumitate; the kengaku and
+  tameshi lines named only the sibling's ground (`CriticPrecedence.md` F2). Both rows rest on the
+  sibling-side splits cited above.
+- **Guard.** `../verifiers/check_sibling_census.py` now fails a lane that appears in more than one row of
+  either table (round 50), and it does not machine-check the basis column above.
+
+## Round 50: falsify-wave corrections (before the report)
+
+Appended round 50 (append-only). Seat reports under `../.ufo/waves/round-50/falsify/`.
+
+- **"Every documented rule is keyed on the name" is too wide** (`CriticFrontierSweep.md`): Claude Code
+  uses its built-in `claude` agent "When a task doesn't fit a more specialized agent." (S026
+  `sub-agents.md:77`), a fit-based preference of any specialized agent over a built-in catch-all. The
+  sentences above ("the only arbitration is between same-name subagents"; "Every documented 'which one
+  wins' rule found so far is keyed on the skill *name*") hold for rules between two author-written
+  skills or subagents, not for that built-in default. The ten-pattern sweep had no choice words
+  (`choose`, `select`, `more speciali`); the wider sweep found only that line. The full account is
+  `skill-selection-rules-round50.md`.
+- **"The only arbitration an author controls ... is the text of each description" is false for Claude
+  Code** (`CriticC1Landed.md`): S022 also documents `when_to_use`, `disable-model-invocation` and
+  `paths` (`skills.md:390, 393, 403`). The description is the one lever every client here reads.
+- **Wrong lane list:** "For the four lanes added this round" names chousa, kama, kengaku and tameshi;
+  the four added were chousa, kama, kotodama and tameshi (guard at `f3046466`: missing chousa, kama,
+  kotodama, tameshi). The kengaku clause was also widened in the landed text ("measured effects of
+  prompt format"); kengaku keeps "only measured capability effects" (kengaku `SKILL.md:3`), so the
+  description now reads "measured capability effects of prompt format" (1,019 of 1,024 characters).
+- **"Ownership or routing word" is wider in the guard:** its marker list also accepts `see above`,
+  `as above` and `see also` (`CriticC1Landed.md`), so a clause such as "chousa: see above" passes.
+- **Precedence section, two definitions** (`CriticPrecedenceLanded.md`): the round-50 definition of
+  `contested` supersedes the round-49 bullet in § Classification rule, and it is limited to text owned by
+  another fleet lane (another lane's `SKILL.md`, prompts or AGENTS.md-class files, or kotoba's own
+  instruments). Read that way, mado's survey of the omarchy skill and game-dev-3d's judgments on
+  vendored upstream skills (`adaptation-kimi.md:330-331`) concern files no fleet lane owns, so both
+  stay `none`. A split counts only when it assigns the element to someone other than the claimant.
+- **kake and kasegi basis is `kotoba`, not `both`:** the sibling-corpus lessons cited above say "Filed by:
+  kotoba round-5 report" and "Aggregator-owned file"; they relay kotoba's own finding and are not a
+  sibling-stated split. No row moves.
+- **Kotoba ruled on its own boundary.** The three round-49 open items (kama, kengaku, tameshi) are
+  closed here by kotoba's own rule; that rule and those closures are sent to the integrator as an
+  operator question (fleet `.ufo/l0-questions.md`, kotoba round-50 line) and stand as kotoba's reading
+  until answered.
+- **S025 bullet** (`ReopenS025.md`): `multiple skills` 1 is not about duplicate names; it is "Combine
+  multiple skills to build complex workflows" (`agent-skills.md:15`). The page also has `1024` 1 (the
+  description cap, `:148`), and its one `precedence` line (`:64`) sits inside an experimental
+  Codex-integration note. The no-tie-break reading of S025 is unchanged.
+- **kama ruling, corrected reasoning** (`RowKamaR50.md`): "they judge no wording" is false. kama's
+  `consumer-registry.md:91-92` ("only consumer with no fallback", "cascade-protected") judges fallback
+  statements in agent files; the registry's own errata mark those rows historical and the files no
+  longer exist. Rows 111-112 concern kengaku's file, not kotoba's. So the claim arm fires on kama, and the
+  row is `adjacent` because kama's own split assigns that wording to kotoba (`cross-lane-scope.md:29`),
+  which is the precedence rule's sibling-split exit. Under a claim-always-wins precedence it would be
+  `contested`; the class does not change the C1 count (both are non-`none`).
+- **§ intro "from each sibling's own committed bytes"** holds for the quotes and the mechanical columns;
+  for chousa, kake and kasegi the `adjacent` class rests on kotoba's side (basis `kotoba`).
+- **tameshi ruling, corrected reasoning** (`ReviewProvinceRows.md` M2): "tameshi measures it read-only"
+  is not supported (its ledger lists kagi's `checklist-run` as unmeasured by sweep), and the earlier
+  boundary text "kotoba owns the SKILL-checklist instrument" had no split behind it. The claim arm fires
+  literally; the row is `adjacent` through tameshi's own split ("every lane's gate remains its own",
+  `PROVINCE.md:14-17`), the precedence rule's sibling-split exit.
+- **tameshi, second reading** (`RowTameshiR50.md`): tameshi's only measurement of kagi's
+  `checklist-run.sh` is its self-test kill rate (`corpus/knowledge/mutation-case-kagi-checklist.md:47-52`
+  at `3b20f073`), which the round-50 definition excludes ("the kill rate of the owner's gate"), so under
+  that definition no claim exists; under the literal round-49 wording the arm fires and tameshi's own
+  split clears it (`PROVINCE.md:14-18`). `adjacent` either way. The basis labels in the precedence
+  section are the basis at `f3046466`; kotoba's round-50 description adds kotoba's side for chousa,
+  kama, kotodama and tameshi, so those rows read `both` from round 50 (chousa stays `kotoba` plus its
+  own domain line). The guard checks neither definition nor basis.
+- **kengaku ruling, corrected premise** (`RowKengakuR50.md`): the round-25 script does not read "only the
+  `SKILL.md` of the lane it runs in"; it reads the lane root it is run from (87 paths in a traced run),
+  and pointed at a directory holding kotoba's `SKILL.md` it prints `skill_frontmatter_triggers=8`. The
+  row's "no claim" rests on the scope-surface rule: the script's cross-lane runs are recorded only in
+  kengaku's wave reports, which § Classification rule excludes. kengaku's corpus also carries connector
+  reports that read kotoba instruments (`r10-connector.md`, `r11-connector.md`) as design evidence, and
+  `corpus/evidence/round9-fleet/sibling-overlap.md:12` labels the relation "Contested" before resolving
+  it to the split in its own ruling; neither is an audit claim, and both are recorded for the integrator
+  with the round-50 L0 line.
+- **S023 re-swept with the wider pattern** (`ReviewCensusSection.md` F1): `curl -fsSL https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview.md`
+  at 2026-10-22T13:44:09Z → 21,840 B, sha256 `7913d455…` (byte-identical to the row), and
+  `grep -ciE 'tie[- ]?break'` → 0. S018's round-49 sweep already used `tie[- ]?break`; only the S022 and
+  S023 round-49 arms used the narrow spelling, and both are now 0 under the wide one.
+
+## Round 51: corrections to the round-50 rulings (append-only)
+
+Appended round 51 (append-only; the sections above are unchanged). Seat report
+`../.ufo/waves/round-51/build/D5Rows.md`.
+
+- **kengaku ruling, the `corpus/README.md:192` premise (routed D5):** the ruling above says kengaku's
+  `corpus/README.md:192` "says only 'frontmatter triggers'". It does not. At `1f3b0f1e` that line is one
+  row of the `plans/` table in kengaku's `corpus/README.md` and reads: `plans/round25_census.sh` |
+  Round-25 counting script (SOURCES census, new rows, mistakes rows, SHONEN form, frontmatter
+  triggers, both instruments' summaries). It lists six outputs, and "frontmatter triggers" is the
+  fifth, not the whole. The script's own header (`plans/round25_census.sh:11-27`) documents the
+  matching 14 keys (`head`, `sources_rows`, `sources_malformed`, `sources_tier_histogram`,
+  `sources_status_histogram`, `sources_new_rows_r25`, `knowledge_files`,
+  `lesson_mistake_rows_r25`, `shonen_evidence_lines_per_box`, `skill_frontmatter_triggers`,
+  `calib_summary`, `calib_exit`, `state_check_summary`, `state_check_exit`), and a run of it at the
+  pin in a checkout of that commit prints all 14 (exit 0): `sources_rows=76`,
+  `sources_new_rows_r25=16`, `knowledge_files=37`, `lesson_mistake_rows_r25=8`,
+  `shonen_evidence_lines_per_box=1,1,1,1`, `skill_frontmatter_triggers=6`, `calib_exit=0`,
+  `state_check_exit=0`. The script therefore counts a lane root's SOURCES registry, its round-25
+  lesson rows, its SHONEN evidence boxes and two instrument summaries, not a lane's
+  `SKILL.md` frontmatter alone. The sibling's "reads only the `SKILL.md` of the lane it runs in"
+  premise was already withdrawn by the round-50 falsify-wave correction above; this entry withdraws
+  the misreading of the sibling's own description of the script. **No row moves**: the kengaku row
+  stays `adjacent`, basis both, because the ruling's "no claim" rests on the scope-surface rule (the
+  script's cross-lane runs are recorded only in kengaku's wave reports, which § Classification rule
+  excludes), and the counts stay 9 adjacent, 11 none, 0 contested. A bare `README.md:192` does not
+  resolve in kengaku's tree at that pin (its top-level `README.md` is 14 lines); the citation that
+  resolves is `corpus/README.md:192`, as the ruling already wrote it.
+- **kama row, the cut split quote (routed D5):** `PROVINCE.md:44` quoted kama's split as "Kotoba owns
+  the instruction/agent surface and its model/fallback wording; kama owns independent verification"
+  and closed the quote there, dropping "of the target endpoint" with no ellipsis, and cited kama
+  `corpus/README.md:51-55` for a deletion of both agent files that passage does not name in full. At
+  `c808ba07` kama `corpus/knowledge/cross-lane-scope.md:29` reads "**Kotoba** owns the instruction/
+  agent surface and its model/fallback wording; **kama** owns independent verification of the target
+  endpoint.", the full sentence this census already quotes at the line above; `PROVINCE.md:44` now
+  carries that full sentence. For the deletion, kama `corpus/README.md:51-55` names only
+  `~/.config/opencode/agents/janitor.md:21` of the two agent files and says they were "deleted or
+  emptied" as of the 2026-10-14 re-census, a re-census date rather than a deletion day; the passage
+  naming the deletion of the whole `~/.config/opencode/agents/` directory is kama
+  `corpus/knowledge/consumer-registry.md:56-57` ("Most consumer files are gone. Deleted since round
+  2"), and kama `corpus/knowledge/cross-lane-scope.md:57,59` records each of `janitor.md` and
+  `distiller.md` absent by shape check only. `PROVINCE.md:44` now cites those two passages and says
+  so; the classification, the commit and the basis of the kama row are unchanged.
+
+## Round 51 status of the precedence rule (routed D6)
+
+Appended round 51 (append-only). No row moves: the counts stay 9 adjacent, 11 none, 0 contested.
+
+- **The rule is provisional until the operator answers.** The precedence rule and its three rulings
+  ("Round 50: precedence between `contested` and a stated split", above) are kotoba's own rule, not an
+  integrator ruling. The question is the `kotoba | round-50` line of the fleet file
+  `/home/vgpnk/Projects/shokunin/.ufo/l0-questions.md`, line 105 (read read-only on 2026-10-22). That
+  line carries the request "Accept, or rule otherwise?" and carries no answer; the file's two
+  `L0 ANSWER` markers are on lines 52 and 53 and answer other lanes' questions. Until the operator
+  answers, the rule stands as kotoba's reading, and the rows it decided stay as recorded, subject to
+  that answer.
+- **The rule was written after the rows it decides were known.** The round-49 section of this entry
+  already listed kama, kengaku and tameshi as open "possible `contested`" items (this entry's lines
+  165, 180 and 185-186), and the rule and its three rulings landed together in the round-50 landing
+  at `956ee16`. The non-author spot-check records the same observation and states that the exit clause
+  "clears exactly those three" (`corpus/lessons/round-50-verifier-spotcheck.md:207-213`). Those three
+  are the only rows whose class the rule settled; every other row's class rests on the
+  § Classification rule alone, and mado stays `none` on that rule without needing the exit clause.
+  For kama and tameshi the sibling-split exit is the operative clause, and the falsify-wave
+  corrections above already record that the claim arm fires and the sibling's own split clears each
+  of them. For kengaku the entry records that the claim arm does not fire at all, because its
+  cross-lane runs appear only in wave reports, which § Classification rule excludes; its `adjacent`
+  class rests on kengaku's own split.
+- **Bound on the generic-refusal exit.** The exit as written fires on any sibling sentence that
+  assigns the claimed element away from the claimant, and it does not require that sentence to name
+  the element. A generic refusal therefore clears any gate claim, whatever gate is at issue: tameshi's
+  "every lane's gate remains its own" (tameshi `PROVINCE.md:14` at `3b20f073`) is such a sentence
+  (`../.ufo/waves/round-50/falsify/RowTameshiR50.md:37`, finding F4). A row cleared only by a generic
+  refusal is marked as such. The tameshi row is that row: under the literal round-49 wording the arm
+  fires and only the generic refusal clears it; under the round-50 definition no claim exists at all,
+  so the row is `adjacent` either way (the same finding, section 3). Its class is unchanged here.
+  kama is not so marked: its exit is a specific assignment (kama
+  `corpus/knowledge/cross-lane-scope.md:29` at `c808ba07`), and the falsify seat records the same
+  (`../.ufo/waves/round-50/falsify/RowKamaR50.md:33-43`, findings F4 and F5: the excuse, not the
+  premise, keeps the row `adjacent`, and a claim-always-wins reading would flip it). kengaku is not so
+  marked either: its claim never arises.
+- **Round 51 neither extends nor relies on the rule.** No round-51 claim uses it, no row outside the
+  three it already decided is measured under it, and no clause of it is amended here. Round 51's claims
+  are the omp 18.12.6 surface re-derivation and the overlap-lever learning table; neither reads this
+  entry's precedence. The rule's status is recorded here so the operator's answer has one place to
+  land.
+
+## Round 51 correction to the S026 remedy sentence (append-only, routed D3)
+
+The round-50 sentence on S026 above ("Its remedy for overlap is craft: 'Make each description specific
+enough to route to the right subagent'") is too wide: the same page also documents a removal lever,
+`permissions.deny` with `Agent(name)` (`sub-agents.md:729`, page sha256 `89aa73eb…`, re-opened by falsify
+seat `.ufo/waves/round-51/falsify/ReviewD3Sweep.md`). Read it as: the page's wording advice is
+specificity; its documented lever for removing one subagent is a permission deny. Skills-side levers
+are in `skill-overlap-levers-round51.md`.

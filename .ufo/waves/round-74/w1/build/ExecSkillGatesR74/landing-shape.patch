@@ -1,0 +1,165 @@
+diff --git a/SKILL.md b/SKILL.md
+index 320d08c..790d8e9 100644
+--- a/SKILL.md
++++ b/SKILL.md
+@@ -21,7 +21,9 @@ description: >
+ # kotoba-shokunin — prompt & skill craft
+ 
+ A SKILL.md is a **loader contract**: the frontmatter `description` is the
+-only part any router ingests — and the two harnesses here show it differently.
++only part any router ingests — and the two harnesses this lane can observe (omp,
++opencode) show it differently; the other clients named below are documented, not
++observed.
+ On **omp** the `<skills>` catalogue (template in the omp ELF, rendered per
+ session) shows each skill as `- name: render` where `render` is
+ `cache.get(key) ?? previewSkillDescription`: a cached LLM one-liner if the
+@@ -74,6 +76,7 @@ revision 2026-07-28, S040); the spec makes it optional and leaves placement to t
+ | about when to reach for the server at all | `instructions` | with tool search, Claude Code loads only tool names and server instructions at session start (S033) |
+ | about one tool's inputs | that tool's `description` | the spec says it "should not duplicate information already in tool descriptions" (S040); Claude Code, VS Code (S034), Codex, Gemini CLI (S036), opencode (S041) and Copilot CLI (S042) put `instructions` in front of the model already |
+ | needed on every client | a skill or always-on file too | the field is optional (S032), opencode drops a server's text when permissions deny all its tools (S041), and Copilot CLI needs a flag to include it from all servers (S042) |
++| needed by several clients that share no root | the client's own root first, `.agents/skills/` only as a second copy | the cross-vendor root is read by two of the four CN vendor clients — TRAE behind an import switch and with its own `.trae/skills/` winning a same-name collision, Kimi Code first-class at both scopes; CodeBuddy's two pages and Zhipu's page never name it, 0 hits (S217–S222, `corpus/knowledge/chinese-vendor-skill-surfaces-round73.md`) |
+ 
+ ### Agent-definition files by client
+ 
+@@ -197,6 +200,21 @@ command blocks, failure signatures inline, never restate the trigger in the body
+ and the **~600-line module bound** (round 15 applies it to this file — §
+ Trigger-fidelity checklist, line-budget box).
+ 
++### Body craft — the specification's skill-creation guides
++
++The spec's own authoring guides state body craft this file otherwise derives from its own evidence: `skill-creation/best-practices`, `skill-creation/using-scripts`, `skill-creation/quickstart` (`corpus/knowledge/spec-skill-creation-craft-round74.md`, S2xx–S2xx); each row below cites the page and one token located in its snapshot, and a row whose token occurs only in another page's snapshot does not count.
++
++| Guide | Rule token, located in the page | Action in this file |
++|---|---|---|
++| best-practices (S2xx) | placeholder token one of best-practices | placeholder action cell of five or more words citing S2xx |
++| best-practices (S2xx) | placeholder token two of best-practices | placeholder action cell two of five or more words citing S2xx |
++| using-scripts (S2xx) | placeholder token one of using-scripts | placeholder action cell three of five or more words citing S2xx |
++| using-scripts (S2xx) | placeholder token two of using-scripts | placeholder action cell four of five or more words citing S2xx |
++| quickstart (S2xx) | placeholder token one of quickstart | placeholder action cell five of five or more words citing S2xx |
++| quickstart (S2xx) | placeholder token two of quickstart | placeholder action cell six of five or more words citing S2xx |
++
++Rows are placeholders in this pre-test; the landed rows carry the located rule sentences and their action cells (form and sources counted, carriage reviewer-judged).
++
+ ## Trigger-fidelity checklist
+ 
+ Run before shipping any SKILL.md. Every item is checkable by reading the file —
+@@ -490,6 +508,8 @@ reads as could-not-evaluate. `python3 -B verifiers/check_gate_registry.py --rev
+ | `verifiers/check_tip_battery.py` | gate | `python3 -B verifiers/check_tip_battery.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate — round-72 counter, round-73 C3 (operability): fleet-shaped sandbox of `<rev>` (`--repo` and `--fleet` are resolved before the fleet root is derived; a fleet root equal to the lane is exit 2), six frozen gate commands, N = number exiting 0; five guards (no base-tracked corpus/verifiers/SKILL.md deletion, floors never lower, instrument size cap against the round-73 base, `instrument-pin` blobs, non-author spot-check lessons byte-identical); `fleet root <realpath>; guards G of 5; tip battery exit 0: N of 6` | `--self-test` | in-file INSTRUMENT_PINS and BASE in `verifiers/check_tip_battery.py` | temporary fleet-shaped sandbox under `$TMPDIR` (removed) | kotoba |
+ | `verifiers/check_cn_vendor_surfaces.py` | gate | `python3 -B verifiers/check_cn_vendor_surfaces.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate — round-73 C1 counter (depth): committed bytes only; the entry `corpus/knowledge/chinese-vendor-skill-surfaces-round73.md` must back TRAE, CodeBuddy, Kimi Code and Zhipu (row tokens in sha256-pinned snapshots, located quotes, rows opened 2026-10-25 with a fetched record), `PROVINCE.md` § Core names all four, this registry row exists; `vendor skill surfaces backed N of 4` | `--self-test` | in-file SELF_SHA; `.ufo/waves/round-73/snapshots/MANIFEST.sha256` | none (reads `git show <rev>:<path>`; a `--self-test` writes isolated fixture repos under `$TMPDIR`, removed) | kotoba |
+ | `verifiers/check_report_pointers.py` | gate | `python3 -B verifiers/check_report_pointers.py --report <path> --repo <lane> --rev <rev> --round <N>` | 0=clean, 1=failed, 2=could-not-evaluate — round-73 mined-mistake gate: resolves each backticked lane-path pointer of a report against the tree at `<rev>` (`git cat-file`, committed objects only); `report pointers resolved N of M; unresolved U`; not a claim counter | `--self-test` | in-file | none; `--self-test` fixture repos under `$TMPDIR` (removed) | kotoba |
++| `verifiers/check_spec_craft.py` | gate | `python3 -B verifiers/check_spec_craft.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate — round-74 C1 counter (depth): the spec's three `skill-creation/` guides reach the `### Body craft` rows of this file (row tokens in sha256-pinned snapshots, located quotes, rows opened this round); `spec craft pages backed N of 3` | `--self-test` | in-file | none (read-only) | kotoba |
++| `verifiers/check_sibling_reread.py` | gate | `python3 -B verifiers/check_sibling_reread.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate — round-74 C2 counter (freshness): every `PROVINCE.md` § Adjacent row re-pinned and re-read at the frozen fleet heads (`receipts/sibling-heads-freeze.tsv`), committed-row shape re-checked by the base's `check_sibling_census.py`; `sibling rows re-pinned and re-read N of 20` | `--self-test` | in-file | none (read-only) | kotoba |
+ 
+ ## Sources
+ 
+diff --git a/corpus/README.md b/corpus/README.md
+index 206f544..c647a60 100644
+--- a/corpus/README.md
++++ b/corpus/README.md
+@@ -142,6 +142,7 @@ Domain: prompt & skill craft — SKILL.md/AGENTS.md quality, trigger fidelity.
+ | Chinese-vendor skill surfaces (round 73) | `knowledge/chinese-vendor-skill-surfaces-round73.md` | where four Chinese vendors' own pages say a skill is read and what its frontmatter is called — TRAE (ByteDance), CodeBuddy IDE and CLI (Tencent), Kimi Code CLI (Moonshot) and Zhipu managed agents (S217-S222; documentary evidence, no client run): per-vendor roots and keys, the two Kimi pages and two CodeBuddy pages that disagree with each other, the `.agents/skills/` root read by two of four; counted by `../verifiers/check_cn_vendor_surfaces.py --rev <rev>` (`vendor skill surfaces backed N of 4`, `0 of 4` at base `072048f`); six page snapshots pinned in `../.ufo/waves/round-73/snapshots/MANIFEST.sha256` |
+ | Round-73 lessons | `lessons/round-73.md` | `## Gate` the S217-S222 rows with this round's located quotes, snapshots and fetch records, the id-collision result (14 collisions renumbered by document), the pre-data vendor census (4 of 4 reachable), the staged claims refused with their flips, the quarantine note; `## Mistakes` for the round; `## Routed defects` for the six r72 items; `## Falsify corrections` from wave 2; the tip battery fix (M127) and the report-pointer gate `verifiers/check_report_pointers.py` |
+ | Round-73 verifier spot-check (closure) | `lessons/round-73-verifier-spotcheck.md` | written by the hyaku closure, not the lane (outside review; never edited here): round 73's per-claim re-checks (C1 depth and C3 operability re-measured, both admitted), the discernment table on S217-S222 with the Qwen and translation-drift rejects, and seven routed defects D1-D4 and items 1-7 for round 74; landed at `1e03d19` without an index row (`verify_corpus_integrity.py` and `verify_corpus_independent.py` read red at that base, tip battery `4 of 6`), indexed round 74 |
++| Spec skill-creation body craft (round 74) | `knowledge/spec-skill-creation-craft-round74.md` | PLACEHOLDER (pre-test): the three `skill-creation/` guides' body-craft rules and the `SKILL.md` rows that act on them |
+ 
+ ## Frontier
+ 
+diff --git a/corpus/knowledge/spec-skill-creation-craft-round74.md b/corpus/knowledge/spec-skill-creation-craft-round74.md
+new file mode 100644
+index 0000000..bf2a463
+--- /dev/null
++++ b/corpus/knowledge/spec-skill-creation-craft-round74.md
+@@ -0,0 +1,16 @@
++# The specification's skill-creation guides — body craft (round 74, PLACEHOLDER)
++
++Pre-test placeholder only (seat ExecSkillGatesR74): the landed entry carries the located quotes,
++snapshots and the counter's rule table. Present so `trigger.citation_resolves` can be measured.
++
++source: S2xx — Agent Skills — Skill authoring best practices — https://agentskills.io/skill-creation/best-practices.md
++source: S2xx — Agent Skills — Using scripts in skills — https://agentskills.io/skill-creation/using-scripts.md
++source: S2xx — Agent Skills — Quickstart — https://agentskills.io/skill-creation/quickstart.md
++verified-at: 2026-10-25
++recheck: 30d — re-open the three pages and re-locate every rule token
++
++| Guide | Rule token | Action in SKILL.md |
++|---|---|---|
++| best-practices | placeholder | placeholder |
++| using-scripts | placeholder | placeholder |
++| quickstart | placeholder | placeholder |
+diff --git a/verifiers/check_sibling_reread.py b/verifiers/check_sibling_reread.py
+new file mode 100755
+index 0000000..0092dae
+--- /dev/null
++++ b/verifiers/check_sibling_reread.py
+@@ -0,0 +1,26 @@
++#!/usr/bin/env python3
++"""check_sibling_reread.py -- STUB for the round-74 wave-1 landing-shape pre-test.
++
++Prints the frozen C2 predicate line and a self-test summary. It counts nothing:
++the real counter lands with the round-74 claim (plan § C2, frozen predicate).
++"""
++from __future__ import annotations
++
++import argparse
++import sys
++
++
++def main() -> int:
++    ap = argparse.ArgumentParser()
++    ap.add_argument("--rev")
++    ap.add_argument("--self-test", action="store_true")
++    args = ap.parse_args()
++    if args.self_test:
++        print("self-test: 0 failure(s) over 1 assertions")
++        return 0
++    print("sibling rows re-pinned and re-read 0 of 20")
++    return 1
++
++
++if __name__ == "__main__":
++    sys.exit(main())
+diff --git a/verifiers/check_spec_craft.py b/verifiers/check_spec_craft.py
+new file mode 100755
+index 0000000..4067c7f
+--- /dev/null
++++ b/verifiers/check_spec_craft.py
+@@ -0,0 +1,26 @@
++#!/usr/bin/env python3
++"""check_spec_craft.py -- STUB for the round-74 wave-1 landing-shape pre-test.
++
++Prints the frozen C1 predicate line and a self-test summary. It counts nothing:
++the real counter lands with the round-74 claim (plan § C1, frozen predicate).
++"""
++from __future__ import annotations
++
++import argparse
++import sys
++
++
++def main() -> int:
++    ap = argparse.ArgumentParser()
++    ap.add_argument("--rev")
++    ap.add_argument("--self-test", action="store_true")
++    args = ap.parse_args()
++    if args.self_test:
++        print("self-test: 0 failure(s) over 1 assertions")
++        return 0
++    print("spec craft pages backed 0 of 3")
++    return 1
++
++
++if __name__ == "__main__":
++    sys.exit(main())
+diff --git a/verifiers/corpus-baseline.json b/verifiers/corpus-baseline.json
+index 83c93b3..1f35824 100644
+--- a/verifiers/corpus-baseline.json
++++ b/verifiers/corpus-baseline.json
+@@ -12,7 +12,7 @@
+  "checks": {
+   "corpus.index.tracked_files": {
+    "mode": "equal",
+-   "expect": 139
++   "expect": 140
+   },
+   "corpus.index.unindexed": {
+    "mode": "zero",

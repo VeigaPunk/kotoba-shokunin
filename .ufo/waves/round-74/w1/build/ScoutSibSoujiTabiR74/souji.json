@@ -1,0 +1,57 @@
+{
+ "lane": "souji",
+ "head40": "b8cb4b31ce80e2e3314b88e85d40ea9873180804",
+ "r49_classification": "none",
+ "r49_pin": "4edb25dfe262515d0da63224bbba71e02e36cba5",
+ "proposed_classification": "none",
+ "clause": "`none` (r49 § Classification rule, third bullet): no sibling-side or kotoba-side committed scope surface states a split of a kotoba artifact/function/trigger area. Deciding sibling sentence (souji SKILL.md:2, description): \"NEVER credentials/secrets handling (kagi-shokunin owns credential hygiene)\" - a split with kagi, not kotoba. Kotoba side: base SKILL.md has 0 whole-word souji/tabi hits; base PROVINCE.md names souji only in its own Adjacent row (line 68) which states 'no split'.",
+ "changed": "Classification unchanged (none). Bytes changed since the r49 pin 4edb25df: SKILL.md 2 insertions/2 deletions (line 37 `launch-*.json` -> `launch-<id>.json` in the `stale` row; line 224 blank -> a `souji-pre-report-gate` gate row); PROVINCE.md byte-identical (blob 57b657f2 both sides, empty diff); the description (line 2) is byte-equal to the pin. Nothing in the diff mentions kotoba, prompt or skill authoring.",
+ "skill_file": "SKILL.md",
+ "quote": "fleet repository & workspace hygiene (掃除) — receipt-gated removal of stale, duplicate, and already-preserved artifacts.",
+ "quote_path_line": "PROVINCE.md:3",
+ "kotoba_mentions": [],
+ "kotoba_mentions_note": "0 whole-word kotoba hits in SKILL.md, PROVINCE.md and corpus/README.md at the head. The only whole-word hits in the tree (git grep, .ufo and LOG.md excluded) are 202 lines in 3 data directories: census/ 135, tests/ 65, results/ 2 - kotoba as a lane directory name or file name in census rows and vault fixtures, never in a scope statement; 0 hits under corpus/, tools/, plans/, README.md, SHONEN.md, SCORECARD.md, MINT.md.",
+ "boundary": "souji owns receipt-gated removal of stale or duplicate artifacts (PROVINCE.md:3-4) and routes credential findings to kagi (SKILL.md:2); it states no claim over SKILL.md or prompt text, so no split with kotoba.",
+ "sweep": [
+  {
+   "cmd": "git -C souji-shokunin cat-file -t b8cb4b31ce80e2e3314b88e85d40ea9873180804; git -C souji-shokunin rev-parse b8cb4b31ce80e2e3314b88e85d40ea9873180804:SKILL.md b8cb4b31ce80e2e3314b88e85d40ea9873180804:PROVINCE.md",
+   "out": "commit; 516738853d917b3c55c08c93d0463bea12b212f5; 57b657f28976fb496de939874563f3c89d48d779 (equal to the freeze row)"
+  },
+  {
+   "cmd": "for f in SKILL.md PROVINCE.md corpus/README.md; do git -C souji-shokunin show b8cb4b31ce80e2e3314b88e85d40ea9873180804:$f | grep -c -w -i kotoba; done",
+   "out": "0 0 0"
+  },
+  {
+   "cmd": "git -C souji-shokunin grep -l -w -i kotoba b8cb4b31ce80e2e3314b88e85d40ea9873180804 -- . ':!LOG.md' ':!.ufo' | sed 's/^b8cb4b31ce80e2e3314b88e85d40ea9873180804://' | awk -F/ '{print $1}' | sort | uniq -c",
+   "out": "135 census / 65 tests / 2 results (lines: grep -n gives 202)"
+  },
+  {
+   "cmd": "git -C souji-shokunin grep -c -w -i kotoba b8cb4b31ce80e2e3314b88e85d40ea9873180804 -- corpus SKILL.md PROVINCE.md README.md SHONEN.md SCORECARD.md tools plans MINT.md; echo rc=$?",
+   "out": "rc=1 (no hit)"
+  },
+  {
+   "cmd": "git -C souji-shokunin show b8cb4b31ce80e2e3314b88e85d40ea9873180804:SKILL.md | sed -n 2p | grep -o -i -w -E '<19 other lane names>' | sort -u",
+   "out": "kagi"
+  },
+  {
+   "cmd": "git -C souji-shokunin show b8cb4b31ce80e2e3314b88e85d40ea9873180804:SKILL.md | grep -n -i -E 'SKILL\\.md|AGENTS\\.md|prompt|frontmatter|description'; same on PROVINCE.md and corpus/README.md",
+   "out": "SKILL.md: line 2 only (the description itself); PROVINCE.md: no hit; corpus/README.md: 38 (`core (SKILL.md, tools/)` - souji's own file) and 153 (its own historical descriptions). No claim over another lane's SKILL.md, prompt or AGENTS.md."
+  },
+  {
+   "cmd": "git -C souji-shokunin diff --shortstat 4edb25dfe262515d0da63224bbba71e02e36cba5 b8cb4b31ce80e2e3314b88e85d40ea9873180804 -- SKILL.md PROVINCE.md; git -C souji-shokunin rev-list --count 4edb25df..b8cb4b31ce80e2e3314b88e85d40ea9873180804; merge-base --is-ancestor",
+   "out": "1 file changed, 2 insertions(+), 2 deletions(-); 85 commits; pin is an ancestor (rc=0)"
+  },
+  {
+   "cmd": "git -C kotoba-shokunin show 1e03d19:SKILL.md | grep -c -w -i -E 'souji|tabi'",
+   "out": "0 (kotoba's side names neither); PROVINCE.md hits only the two Adjacent rows at lines 68-69"
+  },
+  {
+   "cmd": "python3 -B (import verifiers/check_sibling_census.py).mechanical_findings(souji repo, head, {path:SKILL.md, names kotoba:no, arbitration:'yes: kagi'}, 'souji', 20 lanes, 'none')",
+   "out": "[] ; control with arbitration 'no' -> [\"arbitration cell 'no' but the pinned description gives 'yes: kagi'\"]"
+  },
+  {
+   "cmd": "git -C souji-shokunin rev-parse refs/heads/master (info)",
+   "out": "b86200714069022954a3b498cf697d894119b45e - the branch moved 2 commits past the freeze head b8cb4b31 during wave 1; the row is valid at the frozen head, not the tip"
+  }
+ ]
+}

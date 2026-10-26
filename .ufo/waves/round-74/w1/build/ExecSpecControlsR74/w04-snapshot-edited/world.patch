@@ -1,0 +1,786 @@
+diff --git c/.ufo/waves/round-74/snapshots/MANIFEST.sha256 i/.ufo/waves/round-74/snapshots/MANIFEST.sha256
+new file mode 100644
+index 0000000..6539171
+--- /dev/null
++++ i/.ufo/waves/round-74/snapshots/MANIFEST.sha256
+@@ -0,0 +1,3 @@
++ab9f3b6091a0f24816b52cd7b90a3fdf53e621f47dba13b36694be272b87fb41  best-practices.md
++2cd7727106b423a758b4b6b1ab3545da74845a98e68e6718279846f89d62ad1f  using-scripts.md
++7c480b447edac58fd8ff8f250c471dfc7d4621155b91fabed46379075c32bffb  quickstart.md
+diff --git c/.ufo/waves/round-74/snapshots/best-practices.md i/.ufo/waves/round-74/snapshots/best-practices.md
+new file mode 100644
+index 0000000..d583e86
+--- /dev/null
++++ i/.ufo/waves/round-74/snapshots/best-practices.md
+@@ -0,0 +1,277 @@
++> ## Documentation Index
++> Fetch the complete documentation index at: https://agentskills.io/llms.txt
++> Use this file to discover all available pages before exploring further.
++
++# Best practices for skill creators
++
++> How to write skills that are well-scoped and calibrated to the task.
++
++## Start from real expertise
++
++A common pitfall in skill creation is asking an LLM to generate a skill without providing domain-specific context — relying solely on the LLM's general training knowledge. The result is vague, generic procedures ("handle errors appropriately," "follow best practices for authentication") rather than the specific API patterns, edge cases, and project conventions that make a skill valuable.
++
++Effective skills are grounded in real expertise. The key is feeding domain-specific context into the creation process.
++
++### Extract from a hands-on task
++
++Complete a real task in conversation with an agent, providing context, corrections, and preferences along the way. Then extract the reusable pattern into a skill. Pay attention to:
++
++* **Steps that worked** — the sequence of actions that led to success
++* **Corrections you made** — places where you steered the agent's approach (e.g., "use library X instead of Y," "check for edge case Z")
++* **Input/output formats** — what the data looked like going in and coming out
++* **Context you provided** — project-specific facts, conventions, or constraints the agent didn't already know
++
++### Synthesize from existing project artifacts
++
++When you have a body of existing knowledge, you can feed it into an LLM and ask it to synthesize a skill. A data-pipeline skill synthesized from your team's actual incident reports and runbooks will outperform one synthesized from a generic "data engineering best practices" article, because it captures *your* schemas, failure modes, and recovery procedures. The key is project-specific material, not generic references.
++
++Good source material includes:
++
++* Internal documentation, runbooks, and style guides
++* API specifications, schemas, and configuration files
++* Code review comments and issue trackers (captures recurring concerns and reviewer expectations)
++* Version control history, especially patches and fixes (reveals patterns through what actually changed)
++* Real-world failure cases and their resolutions
++
++## Refine with real execution
++
++The first draft of a skill usually needs refinement. Run the skill against real tasks, then feed the results — all of them, not just failures — back into the creation process. Ask: what triggered false positives? What was missed? What could be cut?
++
++Even a single pass of execute-then-revise noticeably improves quality, and complex domains often benefit from several.
++
++> [!TIP]
++>
++> Read agent execution traces, not just final outputs. If the agent wastes time on unproductive steps, common causes include instructions that are too vague (the agent tries several approaches before finding one that works), instructions that don't apply to the current task (the agent follows them anyway), or too many options presented without a clear default.
++
++For a more structured approach to iteration, including test cases, assertions, and grading, see [Evaluating skill output quality](https://agentskills.io/skill-creation/evaluating-skills.md).
++
++## Spending context wisely
++
++Once a skill activates, its full `SKILL.md` body loads into the agent's context window alongside conversation history, system context, and other active skills. Every token in your skill competes for the agent's attention with everything else in that window.
++
++### Add what the agent lacks, omit what it knows
++
++Focus on what the agent *wouldn't* know without your skill: project-specific conventions, domain-specific procedures, non-obvious edge cases, and the particular tools or APIs to use. You don't need to explain what a PDF is, how HTTP works, or what a database migration does.
++
++````markdown theme={null}
++<!-- Too verbose — the agent already knows what PDFs are -->
++## Extract PDF text
++
++PDF (Portable Document Format) files are a common file format that contains
++text, images, and other content. To extract text from a PDF, you'll need to
++use a library. pdfplumber is recommended because it handles most cases well.
++
++<!-- Better — jumps straight to what the agent wouldn't know on its own -->
++## Extract PDF text
++
++Use pdfplumber for text extraction. For scanned documents, fall back to
++pdf2image with pytesseract.
++
++```python
++import pdfplumber
++
++with pdfplumber.open("file.pdf") as pdf:
++    text = pdf.pages[0].extract_text()
++```
++````
++
++Ask yourself about each piece of content: "Would the agent get this wrong without this instruction?" If the answer is no, cut it. If you're unsure, test it. And if the agent already handles the entire task well without the skill, the skill may not be adding value. See [Evaluating skill output quality](https://agentskills.io/skill-creation/evaluating-skills.md) for how to test this systematically.
++
++### Design coherent units
++
++Deciding what a skill should cover is like deciding what a function should do: you want it to encapsulate a coherent unit of work that composes well with other skills. Skills scoped too narrowly force multiple skills to load for a single task, risking overhead and conflicting instructions. Skills scoped too broadly become hard to activate precisely. A skill for querying a database and formatting the results may be one coherent unit, while a skill that also covers database administration is probably trying to do too much.
++
++### Aim for moderate detail
++
++Overly comprehensive skills can hurt more than they help — the agent struggles to extract what's relevant and may pursue unproductive paths triggered by instructions that don't apply to the current task. Concise, stepwise guidance with a working example tends to outperform exhaustive documentation. When you find yourself covering every edge case, consider whether most are better handled by the agent's own judgment.
++
++### Structure large skills with progressive disclosure
++
++The [specification](https://agentskills.io/specification.md#progressive-disclosure) recommends keeping `SKILL.md` under 500 lines and 5,000 tokens — just the core instructions the agent needs on every run. When a skill legitimately needs more content, move detailed reference material to separate files in `references/` or similar directories.
++
++The key is telling the agent *when* to load each file. "Read `references/api-errors.md` if the API returns a non-200 status code" is more useful than a generic "see references/ for details." This lets the agent load context on demand rather than up front, which is how [progressive disclosure](https://agentskills.io/specification.md#progressive-disclosure) is designed to work.
++
++## Calibrating control
++
++Not every part of a skill needs the same level of prescriptiveness. Match the specificity of your instructions to the fragility of the task.
++
++### Match specificity to fragility
++
++**Give the agent freedom** when multiple approaches are valid and the task tolerates variation. For flexible instructions, explaining *why* can be more effective than rigid directives — an agent that understands the purpose behind an instruction makes better context-dependent decisions. A code review skill can describe what to look for without prescribing exact steps:
++
++```markdown theme={null}
++## Code review process
++
++1. Check all database queries for SQL injection (use parameterized queries)
++2. Verify authentication checks on every endpoint
++3. Look for race conditions in concurrent code paths
++4. Confirm error messages don't leak internal details
++```
++
++**Be prescriptive** when operations are fragile, consistency matters, or a specific sequence must be followed:
++
++````markdown theme={null}
++## Database migration
++
++Run exactly this sequence:
++
++```bash
++python scripts/migrate.py --verify --backup
++```
++
++Do not modify the command or add additional flags.
++````
++
++Most skills have a mix. Calibrate each part independently.
++
++### Provide defaults, not menus
++
++When multiple tools or approaches could work, pick a default and mention alternatives briefly rather than presenting them as equal options.
++
++````markdown theme={null}
++<!-- Too many options -->
++You can use pypdf, pdfplumber, PyMuPDF, or pdf2image...
++
++<!-- Clear default with escape hatch -->
++Use pdfplumber for text extraction:
++
++```python
++import pdfplumber
++```
++
++For scanned PDFs requiring OCR, use pdf2image with pytesseract instead.
++````
++
++### Favor procedures over declarations
++
++A skill should teach the agent *how to approach* a class of problems, not *what to produce* for a specific instance. Compare:
++
++```markdown theme={null}
++<!-- Specific answer — only useful for this exact task -->
++Join the `orders` table to `customers` on `customer_id`, filter where
++`region = 'EMEA'`, and sum the `amount` column.
++
++<!-- Reusable method — works for any analytical query -->
++1. Read the schema from `references/schema.yaml` to find relevant tables
++2. Join tables using the `_id` foreign key convention
++3. Apply any filters from the user's request as WHERE clauses
++4. Aggregate numeric columns as needed and format as a markdown table
++```
++
++This doesn't mean skills can't include specific details — output format templates (see [Templates for output format](#templates-for-output-format)), constraints like "never output PII," and tool-specific instructions are all valuable. The point is that the *approach* should generalize even when individual details are specific.
++
++## Patterns for effective instructions
++
++These are reusable techniques for structuring skill content. Not every skill needs all of them — use the ones that fit your task.
++
++### Gotchas sections
++
++The highest-value content in many skills is a list of gotchas — environment-specific facts that defy reasonable assumptions. These aren't general advice ("handle errors appropriately") but concrete corrections to mistakes the agent will make without being told otherwise:
++
++```markdown theme={null}
++## Gotchas
++
++- The `users` table uses soft deletes. Queries must include
++  `WHERE deleted_at IS NULL` or results will include deactivated accounts.
++- The user ID is `user_id` in the database, `uid` in the auth service,
++  and `accountId` in the billing API. All three refer to the same value.
++- The `/health` endpoint returns 200 as long as the web server is running,
++  even if the database connection is down. Use `/ready` to check full
++  service health.
++```
++
++Keep gotchas in `SKILL.md` where the agent reads them before encountering the situation. A separate reference file works if you tell the agent when to load it, but for non-obvious issues, the agent may not recognize the trigger.
++
++> [!TIP]
++>
++> When an agent makes a mistake you have to correct, add the correction to the gotchas section. This is one of the most direct ways to improve a skill iteratively (see [Refine with real execution](#refine-with-real-execution)).
++
++### Templates for output format
++
++When you need the agent to produce output in a specific format, provide a template. This is more reliable than describing the format in prose, because agents pattern-match well against concrete structures. Short templates can live inline in `SKILL.md`; for longer templates, or templates only needed in certain cases, store them in `assets/` and reference them from `SKILL.md` so they only load when needed.
++
++````markdown theme={null}
++## Report structure
++
++Use this template, adapting sections as needed for the specific analysis:
++
++```markdown
++# [Analysis Title]
++
++## Executive summary
++[One-paragraph overview of key findings]
++
++## Key findings
++- Finding 1 with supporting data
++- Finding 2 with supporting data
++
++## Recommendations
++1. Specific actionable recommendation
++2. Specific actionable recommendation
++```
++````
++
++### Checklists for multi-step workflows
++
++An explicit checklist helps the agent track progress and avoid skipping steps, especially when steps have dependencies or validation gates.
++
++```markdown theme={null}
++## Form processing workflow
++
++Progress:
++- [ ] Step 1: Analyze the form (run `scripts/analyze_form.py`)
++- [ ] Step 2: Create field mapping (edit `fields.json`)
++- [ ] Step 3: Validate mapping (run `scripts/validate_fields.py`)
++- [ ] Step 4: Fill the form (run `scripts/fill_form.py`)
++- [ ] Step 5: Verify output (run `scripts/verify_output.py`)
++```
++
++### Validation loops
++
++Instruct the agent to validate its own work before moving on. The pattern is: do the work, run a validator (a script, a reference checklist, or a self-check), fix any issues, and repeat until validation passes.
++
++```markdown theme={null}
++## Editing workflow
++
++1. Make your edits
++2. Run validation: `python scripts/validate.py output/`
++3. If validation fails:
++   - Review the error message
++   - Fix the issues
++   - Run validation again
++4. Only proceed when validation passes
++```
++
++A reference document can also serve as the "validator" — instruct the agent to check its work against the reference before finalizing.
++
++### Plan-validate-execute
++
++For batch or destructive operations, have the agent create an intermediate plan in a structured format, validate it against a source of truth, and only then execute.
++
++```markdown theme={null}
++## PDF form filling
++
++1. Extract form fields: `python scripts/analyze_form.py input.pdf` → `form_fields.json`
++   (lists every field name, type, and whether it's required)
++2. Create `field_values.json` mapping each field name to its intended value
++3. Validate: `python scripts/validate_fields.py form_fields.json field_values.json`
++   (checks that every field name exists in the form, types are compatible, and
++   required fields aren't missing)
++4. If validation fails, revise `field_values.json` and re-validate
++5. Fill the form: `python scripts/fill_form.py input.pdf field_values.json output.pdf`
++```
++
++The key ingredient is step 3: a validation script that checks the plan (`field_values.json`) against the source of truth (`form_fields.json`). Errors like "Field 'signature\_date' not found — available fields: customer\_name, order\_total, signature\_date\_signed" give the agent enough information to self-correct.
++
++### Bundling reusable scripts
++
++When [iterating on a skill](https://agentskills.io/skill-creation/evaluating-skills.md), compare the agent's execution traces across test cases. If you notice the agent independently reinventing the same logic each run — building charts, parsing a specific format, validating output — that's a signal to write a tested script once and bundle it in `scripts/`.
++
++For more on designing and bundling scripts, see [Using scripts in skills](https://agentskills.io/skill-creation/using-scripts.md).
++
++## Next steps
++
++Once you have a working skill, two guides can help you refine it further:
++
++* **[Evaluating skill output quality](https://agentskills.io/skill-creation/evaluating-skills.md)** — Set up test cases, grade results, and iterate systematically.
++* **[Optimizing skill descriptions](https://agentskills.io/skill-creation/optimizing-descriptions.md)** — Test and improve your skill's `description` field so it triggers on the right prompts.
+diff --git c/.ufo/waves/round-74/snapshots/quickstart.md i/.ufo/waves/round-74/snapshots/quickstart.md
+new file mode 100644
+index 0000000..ac26ee4
+--- /dev/null
++++ i/.ufo/waves/round-74/snapshots/quickstart.md
+@@ -0,0 +1,83 @@
++> ## Documentation Index
++> Fetch the complete documentation index at: https://agentskills.io/llms.txt
++> Use this file to discover all available pages before exploring further.
++
++# Quickstart
++
++> Create your first Agent Skill and see it work in VS Code.
++
++In this tutorial, you'll create a skill that gives an agent the capability to roll dice using a random number generator.
++
++## Prerequisites
++
++* [VS Code](https://code.visualstudio.com/) with [GitHub Copilot](https://marketplace.visualstudio.com/items?itemName=GitHub.copilot)
++
++> [!NOTE]
++>
++> This tutorial uses VS Code, but Agent Skills are an open format. The same skill works in any compatible agent, including Claude Code and OpenAI Codex.
++
++## Create the skill
++
++A skill is a folder containing a `SKILL.md` file. VS Code looks for skills in `.agents/skills/` by convention. Create `.agents/skills/roll-dice/SKILL.md` in your project:
++
++````markdown .agents/skills/roll-dice/SKILL.md theme={null}
++---
++name: roll-dice
++description: Roll dice using a random number generator. Use when asked to roll a die (d6, d20, etc.), roll dice, or generate a random dice roll.
++---
++
++To roll a die, use the following command that generates a random number from 1
++to the given number of sides:
++
++```bash
++echo $((RANDOM % <sides> + 1))
++```
++
++```powershell
++Get-Random -Minimum 1 -Maximum (<sides> + 1)
++```
++
++Replace `<sides>` with the number of sides on the die (e.g., 6 for a standard
++die, 20 for a d20).
++````
++
++That's it — one file, under 20 lines. Here's what each part does:
++
++* **`name`** — A short identifier for the skill. Must match the folder name.
++* **`description`** — Tells the agent when to use this skill. This is how the agent decides whether to activate it.
++* **The body** — Instructions the agent follows when the skill activates. Here, the agent is instructed to generate a random number using a terminal command, substituting the number of sides from the user's request.
++
++## Try it out
++
++1. Open your project in VS Code.
++2. Open the Copilot Chat panel.
++3. Select **Agent** mode from the mode dropdown at the bottom of the chat panel.
++4. Type `/skills` to confirm that `roll-dice` appears in the list. If it doesn't, check that the file is at `.agents/skills/roll-dice/SKILL.md` relative to your project root.
++5. Ask: **"Roll a d20"**
++
++The agent should activate the `roll-dice` skill. It may ask for permission to run a terminal command — allow it. It will run the command and return a random number between 1 and 20.
++
++> [!NOTE]
++>
++> Tool-use reliability varies across models — some follow skill instructions and run commands consistently, while others may attempt to answer on their own. If the agent responds without running a terminal command, try selecting a different model from the model dropdown.
++
++## How it works
++
++Here's what happened behind the scenes:
++
++1. **Discovery** — When the chat session started, the agent scanned default skill directories and found your skill. It read only the `name` and `description`, just enough to know when the skill might be relevant.
++
++2. **Activation** — When you asked about rolling dice, the agent matched your question to the skill's description and loaded the full `SKILL.md` body into context.
++
++3. **Execution** — The agent followed the instructions in the body, adapting the terminal command to the number of sides in your request.
++
++This process uses **progressive disclosure** to let the agent access many skills without loading all their instructions up front.
++
++## Next steps
++
++You've created a working Agent Skill. From here:
++
++* **[Best practices](https://agentskills.io/skill-creation/best-practices.md)** — How to write skills that are well-scoped and effective.
++* **[Optimizing skill descriptions](https://agentskills.io/skill-creation/optimizing-descriptions.md)** — Test and improve your skill's description so it activates on the right prompts.
++* **[Specification](https://agentskills.io/specification.md)** — The complete format reference for `SKILL.md` files.
++* **[Example skills](https://github.com/anthropics/skills)** — Browse real-world skills on GitHub.
+diff --git c/.ufo/waves/round-74/snapshots/using-scripts.md i/.ufo/waves/round-74/snapshots/using-scripts.md
+new file mode 100644
+index 0000000..3edb11e
+--- /dev/null
++++ i/.ufo/waves/round-74/snapshots/using-scripts.md
+@@ -0,0 +1,304 @@
++> ## Documentation Index
++> Fetch the complete documentation index at: https://agentskills.io/llms.txt
++> Use this file to discover all available pages before exploring further.
++
++# Using scripts in skills
++
++> How to run commands and bundle executable scripts in your skills.
++
++Skills can instruct agents to run shell commands and bundle reusable scripts in a `scripts/` directory. This guide covers one-off commands, self-contained scripts with their own dependencies, and how to design script interfaces for agentic use.
++
++## One-off commands
++
++When an existing package already does what you need, you can reference it directly in your `SKILL.md` instructions without a `scripts/` directory. Many ecosystems provide tools that auto-resolve dependencies at runtime.
++
++**uvx**
++
++[uvx](https://docs.astral.sh/uv/guides/tools/) runs Python packages in isolated environments with aggressive caching. It ships with [uv](https://docs.astral.sh/uv/).
++
++```bash theme={null}
++uvx ruff@0.8.0 check .
++uvx black@24.10.0 .
++```
++
++* Not bundled with Python — requires a separate install.
++* Fast. Caches aggressively so repeat runs are near-instant.
++
++**pipx**
++
++[pipx](https://pipx.pypa.io/) runs Python packages in isolated environments. Available via OS package managers (`apt install pipx`, `brew install pipx`).
++
++```bash theme={null}
++pipx run 'black==24.10.0' .
++pipx run 'ruff==0.8.0' check .
++```
++
++* Not bundled with Python — requires a separate install.
++* A mature alternative to `uvx`. While `uvx` has become the standard recommendation, `pipx` remains a reliable option with broader OS package manager availability.
++
++**npx**
++
++[npx](https://docs.npmjs.com/cli/commands/npx) runs npm packages, downloading them on demand. It ships with npm (which ships with Node.js).
++
++```bash theme={null}
++npx eslint@9 --fix .
++npx create-vite@6 my-app
++```
++
++* Bundled with Node.js — no extra install needed.
++* Downloads the package, runs it, and caches it for future use.
++* Pin versions with `npx package@version` for reproducibility.
++
++**bunx**
++
++[bunx](https://bun.sh/docs/cli/bunx) is Bun's equivalent of `npx`. It ships with [Bun](https://bun.sh/).
++
++```bash theme={null}
++bunx eslint@9 --fix .
++bunx create-vite@6 my-app
++```
++
++* Drop-in replacement for `npx` in Bun-based environments.
++* Only appropriate when the user's environment has Bun rather than Node.js.
++
++**deno run**
++
++[deno run](https://docs.deno.com/runtime/reference/cli/run/) runs scripts directly from URLs or specifiers. It ships with [Deno](https://deno.com/).
++
++```bash theme={null}
++deno run npm:create-vite@6 my-app
++deno run --allow-read npm:eslint@9 -- --fix .
++```
++
++* Permission flags (`--allow-read`, etc.) are required for filesystem/network access.
++* Use `--` to separate Deno flags from the tool's own flags.
++
++**go run**
++
++[go run](https://pkg.go.dev/cmd/go#hdr-Compile_and_run_Go_program) compiles and runs Go packages directly. It is built into the `go` command.
++
++```bash theme={null}
++go run golang.org/x/tools/cmd/goimports@v0.28.0 .
++go run github.com/golangci/golangci-lint/cmd/golangci-lint@v1.62.0 run
++```
++
++* Built into Go — no extra tooling needed.
++* Pin versions or use `@latest` to make the command explicit.
++
++**Tips for one-off commands in skills:**
++
++* **Pin versions** (e.g., `npx eslint@9.0.0`) so the command behaves the same over time.
++* **State prerequisites** in your `SKILL.md` (e.g., "Requires Node.js 18+") rather than assuming the agent's environment has them. For runtime-level requirements, use the [`compatibility` frontmatter field](https://agentskills.io/specification#compatibility-field).
++* **Move complex commands into scripts.** A one-off command works well when you're invoking a tool with a few flags. When a command grows complex enough that it's hard to get right on the first try, a tested script in `scripts/` is more reliable.
++
++## Referencing scripts from `SKILL.md`
++
++Use **relative paths from the skill directory root** to reference bundled files. The agent resolves these paths automatically — no absolute paths needed.
++
++List available scripts in your `SKILL.md` so the agent knows they exist:
++
++```markdown SKILL.md theme={null}
++## Available scripts
++
++- **`scripts/validate.sh`** — Validates configuration files
++- **`scripts/process.py`** — Processes input data
++```
++
++Then instruct the agent to run them:
++
++````markdown SKILL.md theme={null}
++## Workflow
++
++1. Run the validation script:
++   ```bash
++   bash scripts/validate.sh "$INPUT_FILE"
++   ```
++
++2. Process the results:
++   ```bash
++   python3 scripts/process.py --input results.json
++   ```
++````
++
++> [!NOTE]
++>
++> The same relative-path convention works in support files like `references/*.md` — script execution paths (in code blocks) are relative to the **skill directory root**, because the agent runs commands from there.
++
++## Self-contained scripts
++
++When you need reusable logic, bundle a script in `scripts/` that declares its own dependencies inline. The agent can run the script with a single command — no separate manifest file or install step required.
++
++Several languages support inline dependency declarations:
++
++**Python**
++
++[PEP 723](https://peps.python.org/pep-0723/) defines a standard format for inline script metadata. Declare dependencies in a TOML block inside `# ///` markers:
++
++```python scripts/extract.py theme={null}
++# /// script
++# dependencies = [
++#   "beautifulsoup4",
++# ]
++# ///
++
++from bs4 import BeautifulSoup
++
++html = '<html><body><h1>Welcome</h1><p class="info">This is a test.</p></body></html>'
++print(BeautifulSoup(html, "html.parser").select_one("p.info").get_text())
++```
++
++Run with [uv](https://docs.astral.sh/uv/) (recommended):
++
++```bash theme={null}
++uv run scripts/extract.py
++```
++
++`uv run` creates an isolated environment, installs the declared dependencies, and runs the script. [pipx](https://pipx.pypa.io/) (`pipx run scripts/extract.py`) also supports PEP 723.
++
++* Pin versions with [PEP 508](https://peps.python.org/pep-0508/) specifiers: `"beautifulsoup4>=4.12,<5"`.
++* Use `requires-python` to constrain the Python version.
++* Use `uv lock --script` to create a lockfile for full reproducibility.
++
++**Deno**
++
++Deno's `npm:` and `jsr:` import specifiers make every script self-contained by default:
++
++```typescript scripts/extract.ts theme={null}
++#!/usr/bin/env -S deno run
++
++import * as cheerio from "npm:cheerio@1.0.0";
++
++const html = `<html><body><h1>Welcome</h1><p class="info">This is a test.</p></body></html>`;
++const $ = cheerio.load(html);
++console.log($("p.info").text());
++```
++
++```bash theme={null}
++deno run scripts/extract.ts
++```
++
++* Use `npm:` for npm packages, `jsr:` for Deno-native packages.
++* Version specifiers follow semver: `@1.0.0` (exact), `@^1.0.0` (compatible).
++* Dependencies are cached globally. Use `--reload` to force re-fetch.
++* Packages with native addons (node-gyp) may not work — packages that ship pre-built binaries work best.
++
++**Bun**
++
++Bun auto-installs missing packages at runtime when no `node_modules` directory is found. Pin versions directly in the import path:
++
++```typescript scripts/extract.ts theme={null}
++#!/usr/bin/env bun
++
++import * as cheerio from "cheerio@1.0.0";
++
++const html = `<html><body><h1>Welcome</h1><p class="info">This is a test.</p></body></html>`;
++const $ = cheerio.load(html);
++console.log($("p.info").text());
++```
++
++```bash theme={null}
++bun run scripts/extract.ts
++```
++
++* No `package.json` or `node_modules` needed. TypeScript works natively.
++* Packages are cached globally. First run downloads; subsequent runs are near-instant.
++* If a `node_modules` directory exists anywhere up the directory tree, auto-install is disabled and Bun falls back to standard Node.js resolution.
++
++**Ruby**
++
++Bundler ships with Ruby since 2.6. Use `bundler/inline` to declare gems directly in the script:
++
++```ruby scripts/extract.rb theme={null}
++require 'bundler/inline'
++
++gemfile do
++  source 'https://rubygems.org'
++  gem 'nokogiri'
++end
++
++html = '<html><body><h1>Welcome</h1><p class="info">This is a test.</p></body></html>'
++doc = Nokogiri::HTML(html)
++puts doc.at_css('p.info').text
++```
++
++```bash theme={null}
++ruby scripts/extract.rb
++```
++
++* Pin versions explicitly (`gem 'nokogiri', '~> 1.16'`) — there is no lockfile.
++* An existing `Gemfile` or `BUNDLE_GEMFILE` env var in the working directory can interfere.
++
++## Designing scripts for agentic use
++
++When an agent runs your script, it reads stdout and stderr to decide what to do next. A few design choices make scripts dramatically easier for agents to use.
++
++### Avoid interactive prompts
++
++This is a hard requirement of the agent execution environment. Agents operate in non-interactive shells — they cannot respond to TTY prompts, password dialogs, or confirmation menus. A script that blocks on interactive input will hang indefinitely.
++
++Accept all input via command-line flags, environment variables, or stdin:
++
++```
++# Bad: hangs waiting for input
++$ python scripts/deploy.py
++Target environment: _
++
++# Good: clear error with guidance
++$ python scripts/deploy.py
++Error: --env is required. Options: development, staging, production.
++Usage: python scripts/deploy.py --env staging --tag v1.2.3
++```
++
++### Document usage with `--help`
++
++`--help` output is the primary way an agent learns your script's interface. Include a brief description, available flags, and usage examples:
++
++```
++Usage: scripts/process.py [OPTIONS] INPUT_FILE
++
++Process input data and produce a summary report.
++
++Options:
++  --format FORMAT    Output format: json, csv, table (default: json)
++  --output FILE      Write output to FILE instead of stdout
++  --verbose          Print progress to stderr
++
++Examples:
++  scripts/process.py data.csv
++  scripts/process.py --format csv --output report.csv data.csv
++```
++
++Keep it concise — the output enters the agent's context window alongside everything else it's working with.
++
++### Write helpful error messages
++
++When an agent gets an error, the message directly shapes its next attempt. An opaque "Error: invalid input" wastes a turn. Instead, say what went wrong, what was expected, and what to try:
++
++```
++Error: --format must be one of: json, csv, table.
++       Received: "xml"
++```
++
++### Use structured output
++
++Prefer structured formats — JSON, CSV, TSV — over free-form text. Structured formats can be consumed by both the agent and standard tools (`jq`, `cut`, `awk`), making your script composable in pipelines.
++
++```
++# Whitespace-aligned — hard to parse programmatically
++NAME          STATUS    CREATED
++my-service    running   2025-01-15
++
++# Delimited — unambiguous field boundaries
++{"name": "my-service", "status": "running", "created": "2025-01-15"}
++```
++
++**Separate data from diagnostics:** send structured data to stdout and progress messages, warnings, and other diagnostics to stderr. This lets the agent capture clean, parseable output while still having access to diagnostic information when needed.
++
++### Further considerations
++
++* **Idempotency.** Agents may retry commands. "Create if not exists" is safer than "create and fail on duplicate."
++* **Input constraints.** Reject ambiguous input with a clear error rather than guessing. Use enums and closed sets where possible.
++* **Dry-run support.** For destructive or stateful operations, a `--dry-run` flag lets the agent preview what will happen.
++* **Meaningful exit codes.** Use distinct exit codes for different failure types (not found, invalid arguments, auth failure) and document them in your `--help` output so the agent knows what each code means.
++* **Safe defaults.** Consider whether destructive operations should require explicit confirmation flags (`--confirm`, `--force`) or other safeguards appropriate to the risk level.
++* **Predictable output size.** Many agent harnesses automatically truncate tool output beyond a threshold (e.g., 10-30K characters), potentially losing critical information. If your script might produce large output, default to a summary or a reasonable limit, and support flags like `--offset` so the agent can request more information when needed. Alternatively, if output is large and not amenable to pagination, require agents to pass an `--output` flag that specifies either an output file or `-` to explicitly opt in to stdout.
+diff --git c/PROVINCE.md i/PROVINCE.md
+index 764cf94..4559f74 100644
+--- c/PROVINCE.md
++++ i/PROVINCE.md
+@@ -28,7 +28,13 @@ Appended round 46 (LEARNING.md § Province is a frontier); surfaces the lane gov
+ - Instruction-authority ladder (round 67): what a skill body may assert and at whose authority level — `corpus/knowledge/instruction-authority-ladder-round67.md`, counted by `verifiers/check_instruction_authority.py --rev <rev>`.
+ - Client trust gates (round 68): what five clients document about an untrusted skill body — `corpus/knowledge/client-trust-gates-round68.md`, counted by `verifiers/check_client_trust_gates.py --rev <rev>`.
+ - Author-facing rules, host substrate and tip battery (round 72): four rules in `SKILL.md` § Trigger-fidelity checklist (name uniqueness, authority level, install-path trust, rung — `corpus/knowledge/resident-index-and-rungs-round72.md`, S214–S216) counted by `verifiers/check_author_rules.py --rev <rev>`; omp.real and opencode v2.1.4 re-derived and re-pinned (three classes ledgered in `verifiers/census-removals.json`) counted by `verifiers/check_substrate_repin_v2.py --rev <rev>`; the six-gate tip battery counted by `verifiers/check_tip_battery.py --rev <rev>`.
+-- Chinese-vendor skill surfaces (round 73): where TRAE (ByteDance), CodeBuddy (Tencent), Kimi Code (Moonshot) and Zhipu managed agents document that a skill body is read and which frontmatter each page names, with the two Kimi pages and the two CodeBuddy pages recorded as disagreeing with each other (S217–S222; documentary evidence, no client run) — `corpus/knowledge/chinese-vendor-skill-surfaces-round73.md`, counted by `verifiers/check_cn_vendor_surfaces.py --rev <rev>`. Round 73 also counts the tip battery in both invocation forms (`verifiers/check_tip_battery.py --rev <rev>`; the M127 fleet-root cause) and lands `verifiers/check_report_pointers.py` for report pointers.
++- Chinese-vendor skill surfaces (round 73): where TRAE (ByteDance), CodeBuddy (Tencent), Kimi Code (Moonshot) and Zhipu managed agents document that a skill body is read and which frontmatter each page names, with the two Kimi pages and the two CodeBuddy pages recorded as disagreeing with each other (S217–S222; documentary evidence, no client run) — `corpus/knowledge/chinese-vendor-skill-surfaces-round73.md`, counted by `verifiers/check_cn_vendor_surfaces.py --rev <rev>`. Round 73 also counts the tip battery in both invocation forms (`verifiers/check_tip_battery.py --rev <rev>`; the M127 fleet-root cause) and lands `verifiers/check_report_pointers.py` for report pointers.- Skill-creation body craft (round 74): the open specification's own three `skill-creation/`
++  authoring guides (best practices, using scripts, quickstart) state the body-craft rules for
++  instruction specificity, direct package reference and the default discovery root —
++  `corpus/knowledge/spec-skill-creation-craft-round74.md`, counted by
++  `verifiers/check_spec_craft.py --rev <rev>` (S223–S225).
++
++
+ ## Frontier
+ 
+ Explored, not held — the live list is `corpus/README.md` § Frontier:
+diff --git c/SKILL.md i/SKILL.md
+index 320d08c..200091d 100644
+--- c/SKILL.md
++++ i/SKILL.md
+@@ -197,6 +197,22 @@ command blocks, failure signatures inline, never restate the trigger in the body
+ and the **~600-line module bound** (round 15 applies it to this file — §
+ Trigger-fidelity checklist, line-budget box).
+ 
++### Body craft — the specification's skill-creation guides
++
++Round 74; the three `skill-creation/` guides state the body-craft rules the lane lacked
++(S223–S225). Snapshot and token table: `corpus/knowledge/spec-skill-creation-craft-round74.md`;
++counted by `verifiers/check_spec_craft.py --rev <rev>`.
++
++| page | action | rule token |
++|---|---|---|
++| best-practices (S223) | Read `references/api-errors.md` when an API call returns a non-200 status code. | `references/api-errors.md` |
++| best-practices (S223) | Run `python scripts/migrate.py --verify --backup` exactly as written and add no flags of your own. | `python scripts/migrate.py --verify --backup` |
++| using-scripts (S224) | Reference `uvx ruff@0.8.0 check .` directly in the body instead of bundling a script. | `uvx ruff@0.8.0 check .` |
++| using-scripts (S224) | Pin the formatter call as `pipx run 'black==24.10.0' .` so repeated runs match. | `pipx run 'black==24.10.0' .` |
++| quickstart (S225) | Put the skill at `.agents/skills/roll-dice/SKILL.md` so a compliant client finds it. | `.agents/skills/roll-dice/SKILL.md` |
++| quickstart (S225) | Keep the one-file skill under `.agents/skills/` and check `roll-dice` appears. | `.agents/skills/` |
++
++
+ ## Trigger-fidelity checklist
+ 
+ Run before shipping any SKILL.md. Every item is checkable by reading the file —
+diff --git c/corpus/SOURCES.md i/corpus/SOURCES.md
+index 7279c19..b00bbe4 100644
+--- c/corpus/SOURCES.md
++++ i/corpus/SOURCES.md
+@@ -161,6 +161,10 @@ for a source the row's author opened this round; access evidence lives in
+ | S220 | Kimi Code 文档 — 技能（Skill） — https://www.kimi.com/code/docs/kimi-code-cli/customization/skills.html | docs | B | Moonshot's Kimi Code CLI skill surface as the kimi.com documentation states it (tier B: one vendor's documentation); the GitHub page of the same project documents a different layout and is its own row | § Skill 存放位置 and § Frontmatter 字段, snapshot cn-kimi-zh-skills.md:249,255,273-285; quote "按作用域分四档扫描，越具体的作用域优先级越高：Project > User > Extra > Built-in。 用户级（对所有项目生效）： `$KIMI_CODE_HOME/skills/`（默认：`~/.kimi-code/skills/`） `~/.agents/skills/`"; fetched 2026-10-26T00:34:39Z, HTTP 200, 8321 B, sha256 773f4b64236e4ac7686a2f0a0a2d8eeffcc0d4b83b4328fe9df9f3d8b168ef3c (the text-extracted snapshot cn-kimi-zh-skills.md; raw page 79788 B sha256 e3b314dcff628fc2f88fe6b679e7d6096a209725451957b8ca35360fb5f20989, identical in two fetches on 2026-10-25 local); located in the lesson Gate of round 73 | Kimi Code scans Project then User then Extra then Built-in roots (`.kimi-code/skills/`, `$KIMI_CODE_HOME/skills/`, `.agents/skills/`) and documents `whenToUse` and `disableModelInvocation` with alias spellings | mined | 2026-10-25 | 60d | corpus/knowledge/chinese-vendor-skill-surfaces-round73.md |
+ | S221 | Kimi Code CLI Docs — Agent Skills (GitHub) — https://github.com/moonshotai/kimi-cli/blob/main/docs/en/customization/skills.md | docs | B | the moonshotai/kimi-cli repository's own English skills page, a main-branch file (tier B: one vendor's documentation); its roots and frontmatter differ from the kimi.com page, so it backs no root of the Kimi Code row | ## Skill discovery and the frontmatter table, snapshot cn-kimi-en-skills.md:7,34-37; bytes read from raw.githubusercontent.com at the same path; quote "**Brand group** (mutually exclusive): 1. `~/.kimi/skills/` 2. `~/.claude/skills/` 3. `~/.codex/skills/`"; fetched 2026-10-26T00:34:39Z, HTTP 200, 13434 B, sha256 890d0b5105463a3d3f73d0b0963490b930bba7cce8635d58f82ee3a52251d5a9 (the text-extracted snapshot cn-kimi-en-skills.md; raw page 13528 B sha256 5a18c3384e8e91be4cb99570a83b62a046aeddb434d6bed403bab72592b43c52, identical in two fetches on 2026-10-25 local); located in the lesson Gate of round 73 | the GitHub page documents `~/.kimi/skills/`, `~/.claude/skills/` and `.kimi/skills/` roots and a `name`/`description`/`license`/`compatibility`/`metadata` table, so the two Kimi pages describe two layouts and the difference is a product or version split, not translation | mined | 2026-10-25 | 60d | corpus/knowledge/chinese-vendor-skill-surfaces-round73.md |
+ | S222 | 智谱 BigModel 开放文档 — Agent Skills（managed agents） — https://docs.bigmodel.cn/cn/managed-agents/skills.md | docs | B | Zhipu's managed-agents skill surface (tier B: one vendor's documentation); a platform API with uploaded skill packages, so it has no project or user directory | § 选择内置或自定义 Skill and § 挂载到 Agent, snapshot cn-zhipu-skills.md:28,37,79,83; quote "Skill 非空时必须同时声明 agent\_toolset\_20260601；Agent 使用的 Skill 最多 20 个，目录不得重复。运行目录为 `/workspace/skills/<目录名>/`，按需读取。"; fetched 2026-10-26T00:34:39Z, HTTP 200, 7365 B, sha256 13d7f1cde0122b67580cd8dae8e19e03b7aede64639ed425ccc94ada58b8ad74 (the text-extracted snapshot cn-zhipu-skills.md; raw page 7381 B sha256 b20e45c7ff0bb09bd0164e5148162a9cda8e9ccd8f5140c8bb1578fb24961618, identical in two fetches on 2026-10-25 local); located in the lesson Gate of round 73 | Zhipu mounts an uploaded skill package per agent at `/workspace/skills/<目录名>/`, takes `name` and a non-empty `description` in the SKILL.md frontmatter, and keeps `type:zai` or `type:custom` as a catalog field, not a document key | mined | 2026-10-25 | 60d | corpus/knowledge/chinese-vendor-skill-surfaces-round73.md |
++| S223 | Agent Skills — Best practices for skill creators — https://agentskills.io/skill-creation/best-practices.md | docs | A | the open specification's own body-craft guide for a skill: specificity against fragility, defaults over menus, procedures over declarations | "Calibrating control" and "Provide defaults, not menus"; quote "Match the specificity of your instructions to the fragility of the task."; fetched as `.md` 15 060 B on 2026-10-25 | match instruction specificity to task fragility, give one default instead of a menu, and prefer procedures over declarations | mined | 2026-10-25 | 90d | corpus/knowledge/spec-skill-creation-craft-round74.md |
++| S224 | Agent Skills — Using scripts in skills — https://agentskills.io/skill-creation/using-scripts.md | docs | A | the open specification's own guidance for the deterministic half of a skill: one-off commands, bundled scripts, agent-facing script interfaces | "One-off commands" and "Designing scripts for agentic use"; quote "Pin versions with `npx package@version` for reproducibility."; fetched as `.md` 12 078 B on 2026-10-25 | reference an existing package directly when it does the job, pin versions, and design script interfaces for an agent | mined | 2026-10-25 | 90d | corpus/knowledge/spec-skill-creation-craft-round74.md |
++| S225 | Agent Skills — Quickstart — https://agentskills.io/skill-creation/quickstart.md | docs | A | the open specification's own first-skill tutorial, including the default skill root its client reads | "Create the skill" and "How it works"; quote "VS Code looks for skills in `.agents/skills/` by default."; fetched as `.md` 4 080 B on 2026-10-25 | the tutorial writes the skill to `.agents/skills/<name>/SKILL.md` and states that root is the default discovery location | mined | 2026-10-25 | 90d | corpus/knowledge/spec-skill-creation-craft-round74.md |
++
+ 
+ ## Paths
+ 
+diff --git c/corpus/knowledge/spec-skill-creation-craft-round74.md i/corpus/knowledge/spec-skill-creation-craft-round74.md
+new file mode 100644
+index 0000000..0408b07
+--- /dev/null
++++ i/corpus/knowledge/spec-skill-creation-craft-round74.md
+@@ -0,0 +1,28 @@
++source: S223 — https://agentskills.io/skill-creation/best-practices.md — fetched `.md` 15 060 B on 2026-10-25, sha256 ab9f3b6091a0f24816b52cd7b90a3fdf53e621f47dba13b36694be272b87fb41
++source: S224 — https://agentskills.io/skill-creation/using-scripts.md — fetched `.md` 12 078 B on 2026-10-25, sha256 2cd7727106b423a758b4b6b1ab3545da74845a98e68e6718279846f89d62ad1f
++source: S225 — https://agentskills.io/skill-creation/quickstart.md — fetched `.md` 4 080 B on 2026-10-25, sha256 7c480b447edac58fd8ff8f250c471dfc7d4621155b91fabed46379075c32bffb
++verified-at: 2026-10-25
++recheck: 90d — re-fetch the three `.md` pages and confirm each token below still locates word-bounded in its page (ran 2026-10-25)
++
++# Skill-creation body craft — the specification's own authoring guides
++
++## What the guides add
++
++The `skill-creation/` set states three body-craft rules the lane's other sources do not:
++instruction specificity tracks the fragility of the task (S223); a reusable package is
++referenced directly with a pinned version instead of being bundled as a script (S224);
++and the specification's own tutorial writes a skill under `.agents/skills/`, its default
++discovery root (S225).
++
++## Rule table
++
++| page | S id | rule | quote | tokens | action |
++|---|---|---|---|---|---|
++| best-practices | S223 | match instruction specificity to the fragility of the task | "Match the specificity of your instructions to the fragility of the task." | `references/api-errors.md`; `python scripts/migrate.py --verify --backup` | Read `references/api-errors.md` for the error table instead of a generic pointer. |
++| using-scripts | S224 | reference an existing package directly and pin its version | "Pin versions with `npx package@version` for reproducibility." | `uvx ruff@0.8.0 check .`; `pipx run 'black==24.10.0' .` | Prefer `uvx ruff@0.8.0 check .` in the body over a bundled script. |
++| quickstart | S225 | the tutorial's default discovery root | "VS Code looks for skills in `.agents/skills/` by default." | `.agents/skills/`; `.agents/skills/roll-dice/SKILL.md` | Place the skill at `.agents/skills/roll-dice/SKILL.md` before shipping it. |
++
++## Limits
++
++Form and located tokens only; whether a rule sentence is true of the page is a
++reviewer's judgement, not this table's.

@@ -1,0 +1,97 @@
+# ExecSkillGatesR74 — raw gate log (round 74, wave 1)
+
+Fleet-shaped sandbox: `P=$(mktemp -d /tmp/k74fleet-ExecSkillGatesR74.XXXX)` → `P=/tmp/k74fleet-ExecSkillGatesR74.qDRi`
+(all fleet entries symlinked except `kotoba-shokunin`; lane clone `--shared --no-checkout`, checked out at the
+assigned base `1e03d1991bc02281b00a5b7a5e00c9d5d5d72908`). A second lane clone `$P/landing` was checked out at the
+real lane tip `329e7d91d7d750031c35d264f0e34af1d0ce8385` (the plan commit) to measure the landing shape.
+
+## Revs (all inside the throwaway sandbox; identity `seat-ExecSkillGatesR74 <seat@local.invalid>`)
+
+- `98b3e59` stage 1 — SKILL.md overlay (14-line-shaped body-craft block, frame rewrite, decision row, 2 registry rows)
+  + `verifiers/check_spec_craft.py`, `verifiers/check_sibling_reread.py` stubs.
+- `e5650b2` stage 2 — + placeholder `corpus/knowledge/spec-skill-creation-craft-round74.md` + `corpus/README.md` index row.
+- `a1e6962` landing — plan commit `329e7d9` + the same overlay + placeholder entry + (wrongly) stage-2 README (no closure row).
+- `a8c5a6e` landing fix — plan README + new index row (closure row intact).
+- `5528765` landing final — + `verifiers/corpus-baseline.json` `corpus.index.tracked_files` 139 → 140.
+
+## Gate runs (one at a time; command run from the sandbox lane root)
+
+Base (clean `1e03d19`, no overlay), `env -u PYTHONPATH python3 -B verifiers/<gate>`:
+
+```
+verify_skill_checklist.py                        rc=0   (PASS checklist.box_map_complete: evaluated 45 — 45 boxes mapped)
+check_gate_registry.py --rev 1e03d19…            rc=0   (58 lane verifiers, all OK)
+check_province_core.py --rev 1e03d19…            rc=0   (province core rows 2 of 2)
+verify_corpus_integrity.py                       rc=1   (corpus.index tracked=139 unindexed=1; unindexed: corpus/lessons/round-73-verifier-spotcheck.md)
+check_correction_sweep.py --root .               rc=0   (correction sweep: 0 stale block(s))
+```
+
+Stage 1 (`98b3e59`):
+
+```
+verify_skill_checklist.py                        rc=1  wall 1943 ms
+  FAIL trigger.citation_resolves: evaluated 199 — line 205: 'corpus/knowledge/spec-skill-creation-craft-round74.md' does not resolve from /tmp/k74fleet-ExecSkillGatesR74.qDRi/kotoba-shokunin
+  (all other checks PASS, incl. checklist.box_map_complete evaluated 45 — 45 boxes mapped)
+check_gate_registry.py --rev 98b3e59…            rc=0  wall 574 ms
+  gate registry rows conformant 60 of 60 lane verifiers; phantom 0
+check_province_core.py --rev 98b3e59…            rc=0  wall 61 ms   (province core rows 2 of 2)
+verify_corpus_integrity.py                       rc=1  wall 246 ms  (tracked=139 unindexed=1, the r73 closure)
+check_correction_sweep.py --root .               rc=0  wall 61 ms   (0 stale block(s))
+```
+
+Stage 2 (`e5650b2`):
+
+```
+verify_skill_checklist.py                        rc=0  wall 1969 ms
+verify_corpus_integrity.py                       rc=1  wall 239 ms  (tracked=140 unindexed=1, still the r73 closure)
+check_correction_sweep.py --root .               rc=0  wall 57 ms
+check_gate_registry.py --rev e5650b2…            rc=0  wall 583 ms  (60 of 60; phantom 0)
+check_assertion_floors.py                        rc=0  wall 76320 ms (15 of 15 PASS; L1 measured 215.5 s at base)
+  PASS floors_guard observed=165 floor=150 / checklist observed=1863 floor=1863 / every other row at floor
+check_tip_battery.py --rev e5650b2…              rc=1  wall 87685 ms
+  fleet root /tmp/k74fleet-ExecSkillGatesR74.qDRi; guards 5 of 5; tip battery exit 0: 4 of 6
+  (reds: verify_corpus_integrity exit 1, verify_corpus_independent exit 1 — both the unindexed r73 closure at this rev)
+```
+
+Landing shape (`a8c5a6e`, plan commit + overlay):
+
+```
+verify_corpus_integrity.py                       rc=1   corpus.index tracked=140 unindexed=0; DRIFT corpus.index.tracked_files: observed=140 expected=139; 8/9 checks pass
+verify_corpus_independent.py                     rc=0
+```
+
+Landing final (`5528765`, baseline re-recorded in the same commit):
+
+```
+verify_corpus_integrity.py                       rc=0   9/9 checks pass
+check_tip_battery.py --rev 5528765…              rc=0  wall 90089 ms
+  measured rev 5528765… in a fleet-shaped sandbox; base 072048f…
+  guarded paths 586, deleted 0; floors 15 rows; instruments added 0 / deleted 0 lines (cap 40); spotcheck base files 27
+  guard no-deletions PASS / floors PASS / instrument-size PASS / instrument-pin PASS / spotcheck-identity PASS
+  gate check_gate_registry.py exit 0 wall 0.5s
+  gate check_assertion_floors.py exit 0 wall 83.3s
+  gate verify_skill_checklist.py exit 0 wall 2.0s
+  gate verify_corpus_integrity.py exit 0 wall 1.2s
+  gate verify_corpus_independent.py exit 0 wall 0.7s
+  gate check_correction_sweep.py exit 0 wall 0.1s
+  fleet root /tmp/k74fleet-ExecSkillGatesR74.qDRi; guards 5 of 5; tip battery exit 0: 6 of 6
+```
+
+## Negative controls (registry rows; run in the stage-2 sandbox, separate commits)
+
+```
+A  verifiers/check_unregistered_stub.py with no row
+   rc=1  verifiers/check_unregistered_stub.py  no registry rows naming it: 0 (need 1)
+         gate registry rows conformant 60 of 61 lane verifiers; phantom 0
+B  row present, self-test cell `--selftest` (no exact add_argument handler)
+   rc=1  verifiers/check_unregistered_stub.py  no self-test flag --selftest lacks an exact handler
+C  row kind `probe`, verdict map `0=clean, 1=failed`, self-test `--self-test`
+   rc=1  verifiers/check_unregistered_stub.py  no probe verdict map declares 1=failed; probe script has an exact --self-test handler
+```
+
+## Patch
+
+`git diff 329e7d91d7d750031c35d264f0e34af1d0ce8385 55287654883ed0ac1e3b6fdd2f421937f2673217`
+→ `landing-shape.patch` (165 lines, 12,634 B, sha256 `a3a2863552c103e4ee925c52e19a0d31ccda2a8c2cb7f5f834b3aa0dabc8cb64`).
+`git apply --check` OK on a fresh `329e7d9` clone; after apply `SKILL.md` = 590 lines / 77,132 B,
+sha256 `dee61faf9849d71e32400692f65fef5fb942d6305df894f20b3933cc5ad2b595`.

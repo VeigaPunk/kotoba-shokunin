@@ -1,0 +1,481 @@
+Coding agent setup & developer resources  |  Gemini API  |  Google AI for Developers
+Skip to main content
+/
+English
+Deutsch
+Español – América Latina
+Français
+Indonesia
+Italiano
+Polski
+Português – Brasil
+Shqip
+Tiếng Việt
+Türkçe
+Русский
+עברית
+العربيّة
+فارسی
+हिंदी
+বাংলা
+ภาษาไทย
+中文 – 简体
+中文 – 繁體
+日本語
+한국어
+Get API key
+Cookbook
+Community
+Sign in
+Docs
+API reference
+Gemini API
+Docs
+API reference
+Get API key
+Cookbook
+Community
+Get started
+Overview
+Get started
+API keys
+Pricing
+Coding agent setup
+Models
+All models
+Latest Gemini models
+Nano Banana
+Veo
+Gemini Omni Flash
+Lyria 3.5 & Lyria Clip
+Overview
+Lyria RealTime
+Lyria prompt guide
+Text-to-speech
+Overview
+Voice design
+Voice replication
+Transcribe
+Live
+Live translate
+Embeddings
+Robotics
+Overview
+Spatial reasoning
+Agentic vision
+Task orchestration
+Robotics with streaming
+Video understanding
+Core capabilities
+Text
+Image
+Image generation 🍌
+Image understanding
+Video
+Video overview
+Video understanding
+Documents
+Speech and audio
+Speech generation
+Audio understanding
+Audio transcription
+Thinking
+Thinking
+Thought signatures
+Structured outputs
+Function calling
+Long context
+Long decode
+Agents
+Overview
+Quickstart
+Antigravity agent
+Building managed agents
+Environments
+Credentials
+Hooks
+Deep Research agent
+Tools
+Overview
+Google Search
+Google Maps
+Code execution
+URL context
+Computer use
+File search
+Combine tools and function calling
+Live API
+Overview
+Get started
+Get started using the GenAI SDK
+Get started using raw WebSockets
+Capabilities
+Thinking
+Live transcription
+Live translation
+Tool use
+Session management
+Ephemeral tokens
+Best practices
+Optimization
+Overview
+Batch API
+Webhooks
+Flex inference
+Priority inference
+Context caching
+Guides
+Interactions API
+Streaming
+Background execution
+File input
+Input methods
+Files API
+OpenAI compatibility
+Media resolution
+Token counting
+Prompt engineering
+Logs and datasets
+Get started with logs
+Data logging and sharing
+Safety
+Safety settings
+Safety guidance
+Frameworks
+LangChain & LangGraph
+CrewAI
+LlamaIndex
+Vercel AI SDK
+Temporal
+Resources
+Release notes
+Deprecations
+Libraries
+Migration
+Migrate to Gen AI SDK
+Migrate to Interactions API
+Interactions breaking changes (May 2026)
+Rate limits
+Billing info
+API troubleshooting
+API errors
+Status
+Partner and library integrations
+Google AI Studio
+Quickstart
+Google AI plans
+Vibe code in Build mode
+Developing full-stack apps
+Build Android apps
+Deploying your app
+Agents in AI Studio Playground
+Try out LearnLM
+Troubleshooting
+Access for Workspace users
+Google Cloud Platform
+Gemini Enterprise Agent Platform Gemini API
+OAuth authentication
+Policies
+Terms of service
+Available regions
+Abuse monitoring
+Feedback information
+Gemini 4 Argon is now available. Try it out .
+Home
+Gemini API
+Docs
+Send feedback
+Coding agent setup & developer resources
+AI coding agents rely on training data that cuts off at a set date. Because of
+this, agents often suggest deprecated models ( gemini-1.5
+), older SDKs
+( google-generativeai
+), or outdated code patterns.
+Connecting your agent to official Gemini developer resources helps it write
+accurate code using current models, the google-genai
+SDK, and the Interactions
+API .
+You can give your coding agent access to Gemini documentation and rules in four
+ways:
+Summary of agent resources
+Resource
+What it provides
+Availability
+Gemini Agent Skills
+Step-by-step rules, SDK patterns, and helper scripts for specific features ( gemini-api-dev
+, gemini-live-api-dev
+, gemini-omni-flash-api
+).
+Pre-installed in AI Studio Build ; install with skills.sh
+, Context7, or Managed Agents.
+Gemini Docs MCP Server
+Live search ( gemini_search_docs
+) and full page reads ( gemini_get_doc
+) across all documentation.
+Supported in Claude Code, Cursor, OpenAI Codex, and VS Code.
+Gemini API Plugin
+Bundled package with official Gemini skills, the Docs MCP server, and API key tools.
+Antigravity.
+Machine-Readable Docs
+Clean Markdown pages and llms.txt
+indexes.
+All documentation pages on ai.google.dev/gemini-api/docs
+.
+Install Gemini agent skills
+Agent skills give your coding agent procedural rules, current model names, and
+SDK code patterns. Instead of adding long instructions to your prompt, your
+agent loads each skill only when needed. This helps your agent avoid deprecated
+SDKs and use modern Gemini patterns.
+Skills work alongside the Gemini Docs MCP server. If your agent does not have the
+MCP server installed, the skill falls back to
+llms.txt
+. To learn more
+about how skills work, read the Gemini API Skills
+guide .
+Note: Skills come pre-installed in Google AI Studio
+Build and are bundled in the Gemini API
+plugin for Antigravity.
+Install with the CLI ( skills.sh
+or Context7)
+Install skills using skills.sh (recommended) or
+Context7 :
+# List all available skills in the repository
+npx skills add google-gemini/gemini-skills --list
+# Install a specific skill globally with skills.sh
+npx skills add google-gemini/gemini-skills --skill <skill-name> --global
+# Or install with Context7
+npx ctx7 skills install /google-gemini/gemini-skills <skill-name>
+Available skills
+gemini-api-dev
+Skill for building applications with the Interactions
+API and the official Gemini API SDKs
+( google-genai
+for Python and @google/genai
+for TypeScript). This skill
+covers:
+Text generation, multi-turn chat, streaming, structured outputs, and function
+calling
+Image generation, text-to-speech (TTS), and multimodal inputs
+Server-side conversation state management, background execution, Deep
+Research, and managed agents
+Current model names and migrating legacy generateContent
+or
+google-generativeai
+code
+npx skills add google-gemini/gemini-skills --skill gemini-api-dev --global
+gemini-live-api-dev
+Skill for building real-time audio and video streaming applications with the
+Gemini Live API . This skill covers:
+WebSocket session management, ephemeral client tokens, and session resumption
+Streaming audio, video, and text with voice activity detection (VAD) and
+barge-in support
+Background reasoning (extended thinking), non-blocking asynchronous tool
+calls, transcription, and live speech translation
+npx skills add google-gemini/gemini-skills --skill gemini-live-api-dev --global
+gemini-omni-flash-api
+Skill for generating and editing video with Gemini Omni Flash using the
+Interactions API. Includes helper scripts ( upload_file.py
+,
+generate_video.py
+, prep_video.py
+, inspect_video.py
+) and covers:
+Text-to-video generation and prompt crafting
+First-and-last-frame transitions and reference-guided video generation
+Video extensions and media preprocessing workflows
+npx skills add google-gemini/gemini-skills --skill gemini-omni-flash-api --global
+Mount skills in Managed Agents
+When you run remote managed agents with the Interactions API, you can mount the
+google-gemini/gemini-skills
+repository into the agent's workspace. See the
+Gemini API Skills guide
+for details:
+from google import genai
+client = genai . Client ()
+interaction = client . interactions . create (
+agent = "antigravity-preview-09-2026" ,
+input = "Build a script that generates a 5-second video of a neon cityscape." ,
+environment = {
+"type" : "remote" ,
+"sources" : [
+{
+"type" : "repository" ,
+"source" : "https://github.com/google-gemini/gemini-skills" ,
+"target" : ".agents" ,
+}
+],
+},
+)
+Connect the Gemini Docs MCP server
+The public Gemini Docs MCP server ( https://gemini-api-docs-mcp.dev
+) gives
+your agent live access to the entire documentation site. Your agent can search
+and read documentation pages to check request schemas, model limits, and new
+features:
+gemini_search_docs
+: Searches Gemini API documentation by topic or query.
+gemini_get_doc
+: Reads the full Markdown content of a specific documentation
+page.
+Quick setup
+Run this command in your terminal or project root to configure your detected
+coding agents automatically:
+npx add-mcp "https://gemini-api-docs-mcp.dev"
+Configuration by environment
+Claude Code
+Run in your terminal:
+$ claude mcp add --transport http geminiDocs https://gemini-api-docs-mcp.dev
+Cursor
+Add to ~/.cursor/mcp.json
+(global) or .cursor/mcp.json
+(project):
+{
+"mcpServers" : {
+"geminiDocs" : {
+"url" : "https://gemini-api-docs-mcp.dev"
+}
+}
+}
+OpenAI Codex
+Run in your terminal:
+$ codex mcp add geminiDocs --url https://gemini-api-docs-mcp.dev
+Or add to ~/.codex/config.toml
+:
+[mcp_servers.geminiDocs]
+url = "https://gemini-api-docs-mcp.dev"
+VS Code (Copilot)
+Add to .vscode/mcp.json
+in your workspace:
+{
+"servers" : {
+"geminiDocs" : {
+"type" : "http" ,
+"url" : "https://gemini-api-docs-mcp.dev"
+}
+}
+}
+Gemini API plugin
+If you use Antigravity , the Gemini API plugin is the fastest way to set
+up your workspace. It bundles the Gemini Docs MCP server, all official Gemini
+skills ( gemini-api-dev
+, gemini-live-api-dev
+, gemini-omni-flash-api
+), and
+API key tools in one download.
+Install in Antigravity (UI): Go to Settings > Customizations > Build
+with Google Plugins and download Gemini API .
+Install with the CLI:
+bash
+agy plugin install https://github.com/google-gemini/gemini-skills
+Machine-readable documentation
+Standard web pages include HTML tags, navigation bars, and scripts that take up
+context window space. ai.google.dev
+provides machine-readable endpoints so
+agents and scripts can fetch clean Markdown directly:
+llms.txt
+index
+( https://ai.google.dev/gemini-api/docs/llms.txt
+):
+Lists all Gemini API documentation pages with links to each page.
+Direct Markdown URLs ( .md.txt
+) : Append .md.txt
+to any documentation
+URL on ai.google.dev
+(for example,
+https://ai.google.dev/gemini-api/docs/coding-agents.md.txt
+)
+to get clean Markdown source for saved prompts, AGENTS.md
+rules, or
+automated scripts.
+Recommended project rules ( AGENTS.md
+)
+A project rules file ( AGENTS.md
+, .cursorrules
+, or CLAUDE.md
+) sets baseline
+rules that load at the start of every agent session. Add these guidelines to your
+project root so coding agents default to current models and SDKs:
+# Gemini API Guidelines
+- Before writing Gemini API code, consult the `geminiDocs` MCP server ( `gemini_search_docs` / `gemini_get_doc` ) or `https://ai.google.dev/gemini-api/docs/llms.txt` .
+- Always use the current Gemini API SDK ( `google-genai` for Python, `@google/genai` for TypeScript/JavaScript). Never use legacy SDKs ( `google-generativeai` or `@google/generative-ai` ).
+- Use the Interactions API ( `client.interactions.create` ) for new applications unless a specific feature requires `generateContent` .
+- Use current recommended models (see https://ai.google.dev/gemini-api/docs/models) and avoid deprecated models.
+Verify and troubleshoot
+Verify your setup
+To test your setup, ask your coding agent:
+Look up the request schema for the Gemini Interactions API in the documentation.
+A configured agent will use gemini_search_docs
+on the geminiDocs
+MCP server
+and write code using client.interactions.create
+with the google-genai
+or
+@google/genai
+SDK.
+Status commands
+Environment
+MCP verification
+Skills verification
+Claude Code
+Run /mcp
+Run /skills
+Cursor
+Open Settings > Features > MCP
+Open Settings > Rules
+OpenAI Codex
+Run codex mcp list
+Check .codex/skills/
+or ~/.codex/skills/
+Antigravity
+Open Customizations > Connections
+Open Customizations > Rules or run /skills list
+VS Code (Copilot)
+Open Extensions > MCP or Output panel
+Click Select Tools in Copilot Chat
+Troubleshooting
+Skill or MCP server not detected: Restart your editor (Cursor or VS Code)
+or terminal session (Claude Code or Codex). Most agents load MCP servers and
+skills only when they start.
+Global skill conflict: If your agent ignores a globally installed skill,
+install the skill in your project root without --global
+:
+bash
+npx skills add google-gemini/gemini-skills --skill gemini-api-dev
+Rules ignored: Make sure your AGENTS.md
+, .cursorrules
+, or CLAUDE.md
+file is in the root directory of your project.
+What's next
+Gemini API Skills guide
+Gemini API skills on GitHub
+Interactions API
+Available models
+Libraries and SDKs
+Send feedback
+Except as otherwise noted, the content of this page is licensed under the Creative Commons Attribution 4.0 License , and code samples are licensed under the Apache 2.0 License . For details, see the Google Developers Site Policies . Java is a registered trademark of Oracle and/or its affiliates.
+Last updated 2026-10-06 UTC.
+Terms
+Privacy
+Manage cookies
+English
+Deutsch
+Español – América Latina
+Français
+Indonesia
+Italiano
+Polski
+Português – Brasil
+Shqip
+Tiếng Việt
+Türkçe
+Русский
+עברית
+العربيّة
+فارسی
+हिंदी
+বাংলা
+ภาษาไทย
+中文 – 简体
+中文 – 繁體
+日本語
+한국어

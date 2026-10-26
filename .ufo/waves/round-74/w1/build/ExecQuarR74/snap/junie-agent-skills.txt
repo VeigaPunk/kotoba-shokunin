@@ -1,0 +1,316 @@
+Agent skills | Junie Documentation
+Junie Help
+Agent skills
+Every project has patterns that shouldn't require explaining twice — naming conventions, test structure, deployment steps, code review rules. Agent skills let you codify these once and Junie follows them automatically whenever they're relevant.
+Agent skills are folders with instructions, templates, scripts, and reference materials that provide Junie with task-specific context. Skills follow the open Agent Skills format and are portable across agents.
+Unlike guidelines , which are applied with every prompt, agent skills are only invoked when they match the needs of the current task. Junie follows the skill instructions, loading referenced materials or executing bundled scripts as needed.
+Skills work in both Junie CLI and Junie in JetBrains IDEs .
+Junie is included with your JetBrains AI subscription . Open your IDE, press Shift+Tab , and ask Junie to create a skill for your project.
+Why agent skills?
+Think of skills as cheat sheets that Junie consults when working on specific types of tasks to produce better results. The benefits of agent skills are:
+Progressive disclosure : each skill's name and description are available to Junie, so it knows what skills exist, but doesn't read the full content of a skill until it determines its relevance to the task.
+Instructions with attached files : instructions are bundled with reference materials such as templates or assets, so Junie has all the context it needs to complete the task.
+Portability : if your project already has skill folders from other agents ( .cursor/skills/
+, .claude/skills/
+, or .codex/skills/
+), Junie CLI will detect them and suggest importing into Junie's .junie/skills/
+directory.
+What you can do with skills
+Here are real examples of what teams build with skills:
+Skill
+What it does
+API scaffolding
+Creates REST endpoints with validation, tests, and OpenAPI docs that follow your project's conventions.
+Code review
+Catches null safety issues, naming violations, and anti-patterns against your team's style guide.
+Database migration
+Generates Flyway or Liquibase scripts that follow your existing migration patterns.
+Test coverage
+Identifies untested paths and generates tests matching your project's existing test style.
+CI/CD pipeline
+Builds GitHub Actions or GitLab CI configs that follow your deployment conventions.
+Component templates
+Scaffolds UI components with your team's file structure, naming, and boilerplate.
+Each skill is a folder you can check into version control and share across your team.
+How Junie CLI uses skills
+Junie CLI invokes agent skills automatically . It scans the skill folders (see Skill location ) and selects the skills that are relevant to the current task.
+You can also invoke a skill explicitly :
+As a slash command : every enabled skill is advertised as a /<skill-name>
+command. Run /<skill-name>
+to apply that skill to your task directly.
+As a prompt reference : type $<skill-name>
+inside your prompt to reference a skill. As you type $
+, Junie CLI suggests matching skills you can insert.
+Disabled skills are excluded from automatic selection, from the /<skill-name>
+commands, and from the $
+suggestions, and their instructions are not added to Junie's context. See Manage skills with /skills
+.
+Skill location
+By default, Junie CLI loads skill folders from two primary locations:
+Project scope : <projectRoot>/.junie/skills/<skill-name>/
+.
+Skills in this folder are available only in the current project but can be checked into version control and shared across all team members.
+User scope : ~/.junie/skills/<skill-name>/
+on macOS/Linux or %USERPROFILE%\.junie\skills\<skill-name>\
+on Windows.
+Skills in this folder are available globally across all projects on your machine while remaining private to your user account.
+These two locations are not exhaustive. Junie CLI also loads skills from:
+.agents/skills/
+directories : <projectRoot>/.agents/skills/
+(in a trusted project) and ~/.agents/skills/
+, so skills shared through the cross-agent .agents
+convention are picked up as well.
+Extension-provided skills : skills bundled with any installed extension .
+Custom folders : any folders you add with the --skill-location
+option or the skill-locations
+field in config.json
+. See Skill locations and configuration .
+Built-in skills : skills bundled with Junie CLI itself.
+The default project and user locations — including the .agents/skills/
+directories — can be disabled with --skill-default-locations false
+. Custom folders, extension skills, and built-in skills remain available.
+If a project-level ( <projectRoot>/.junie/skills/<skill-name>/
+) and a user-level ( ~/.junie/skills/<skill-name>/
+) skills share the same name, the project-level skill takes precedence and the user-level skill is ignored.
+Skill directory structure
+Each skill lives in its own folder under the .junie/skills
+directory:
+.junie/skills/
+├── my-skill/
+│ ├── SKILL.md # Required: Main skill documentation
+│ ├── scripts/ # Optional: Executable scripts
+│ │ └── setup.sh
+│ ├── templates/ # Optional: Code or doc templates
+│ │ └── component.kt
+│ └── checklists/ # Optional: Detailed checklists
+│ └── review.md
+├── another-skill/
+│ └── SKILL.md
+The SKILL.md
+file is required . A folder without it is not recognized as a skill.
+Subdirectories are optional and can contain any supporting files (checklists, scripts, templates, etc.) that Junie CLI can read when needed.
+SKILL.md
+format
+The SKILL.md
+file uses Markdown with a YAML frontmatter header:
+---
+name: my-skill-name
+description: A short description of what this skill provides
+---
+# My Skill Name
+Use this skill when [describe when Junie should use this skill].
+## Key Principles
+- Principle 1
+- Principle 2
+## Guidelines
+- Guideline 1
+- Guideline 2
+## Examples
+[Include code examples, patterns, or references to project files]
+## Checklist
+See `checklists/review.md` for a detailed checklist.
+Frontmatter fields
+Field
+Type
+Required
+Description
+name
+String
+Yes
+A unique identifier for the skill.
+description
+String
+No
+A short summary that Junie CLI can use to determine the skill's relevance to the current task.
+If description
+is not provided in the frontmatter, Junie CLI extracts the first paragraph of the body content as the description. If the body is also empty or contains only headings, the skill will fail to load. For best results, always provide an explicit description
+. Accurate description helps Junie CLI trigger the skill at the right time.
+Body content
+The body (everything after the closing ---
+) is the main skill documentation, which should contain actionable instructions that Junie CLI should follow along with the paths to relevant project files, templates, or additional materials within the skill folder.
+Manage skills with /skills
+Use the /skills
+command to see every skill Junie CLI has discovered and to turn individual skills on or off.
+In the interactive TUI, /skills
+opens a management screen. Search skills by name or description and press Enter or Space to enable or disable the selected skill.
+In ACP clients, /skills
+(with no arguments) re-scans the skill directories and prints a listing grouped into Enabled (each shown with the /<skill-name>
+command you can use to invoke it), Disabled , and Errors (skill folders that failed to load, with the reason). To enable or disable a skill, pass its name and the action:
+/skills <skill-name> enable
+/skills <skill-name> disable
+Disabling a skill is persistent — the choice is remembered across sessions. A disabled skill is filtered out of Junie's context and no longer appears as a /<skill-name>
+command or a $<skill-name>
+suggestion until you enable it again.
+Skill locations and configuration
+By default, Junie CLI searches the default skill locations . You can control this discovery with the following command-line options:
+Option
+Default
+Description
+--skill-default-locations
+true
+Enable or disable adding skills from the default locations (per user / per project).
+--skill-location <path>
+—
+Additional folder where skills should be found. Can be specified multiple times.
+You can set the same values in the config.json
+file:
+Field
+Description
+skill-locations
+Extra folders where Junie should search for agent skills.
+skill-default-locations
+Enable or disable the default skill locations.
+For more about configuration files, see config.json .
+Adding a skill
+Prompt Junie to add a skill
+The easiest way to add a skill is to ask Junie to create it for you. Describe what you want the skill to cover, and Junie will generate the skill folder, SKILL.md
+, and any supporting files.
+Example prompt:
+Create a skill that enforces our API design conventions: all REST endpoints must use kebab-case URLs, return JSON responses wrapped in a { data, error }
+envelope, and include request validation using our shared ValidationUtils
+class. Add a checklist for reviewing new endpoints.
+You can also create skills on the fly from your current task if the guidelines or patterns Junie followed could be reused in future tasks.
+Example prompt:
+The conventions we've been following for database migrations in this task are useful — create a skill from them so we follow the same approach next time.
+Create your own skill
+Create a .junie/skills/
+directory.
+Add a skill folder to the .junie/skills/
+directory.
+Add a SKILL.md
+file to the skill folder.
+---
+name: my-new-skill
+description: Provides guidelines for [specific domain or task]
+---
+# My New Skill
+Use this skill when [describe the trigger conditions].
+## Key Principles
+- [Actionable principle 1]
+- [Actionable principle 2]
+## Guidelines
+- [Specific guideline with examples]
+- [Reference to project files: `path/to/relevant/file.kt`]
+## Code Patterns
+```kotlin
+// Example of the preferred pattern
+fun example() {
+// ...
+}
+```
+## Additional Resources
+- See `checklists/my-checklist.md` for a detailed checklist.
+- Run `scripts/setup.sh` to configure the environment.
+(Optional) Add supporting files to the skill folder.
+If your skill needs additional resources, create subdirectories with supporting files.
+Verify that the skill loads.
+Run the /skills
+command to list available skills and confirm your new skill appears. See Manage skills with /skills
+.
+Add skills from public repositories
+You can import skills shared by the community or your organization by copying them from public Git repositories into your skills directory.
+# Clone the repo (or download just the skill folder)
+git clone https://github.com/JetBrains/skills.git /tmp/junie-skills
+# Copy a specific skill to your project
+cp -r /tmp/junie-skills/spring-kotlin-code-review .junie/skills/
+# Or copy to your global skills for use across all projects
+cp -r /tmp/junie-skills/spring-kotlin-code-review ~/.junie/skills/
+# Clean up
+rm -rf /tmp/junie-skills
+# Clone the repo (or download just the skill folder)
+git clone https://github.com/JetBrains/skills.git $env:TEMP\junie-skills
+# Copy a specific skill to your project
+Copy-Item -Recurse -Force $env:TEMP\junie-skills\spring-kotlin-code-review .junie\skills\
+# Or copy to your global skills for use across all projects
+Copy-Item -Recurse -Force $env:TEMP\junie-skills\spring-kotlin-code-review "$env:USERPROFILE\.junie\skills\"
+# Clean up
+Remove-Item -Recurse -Force $env:TEMP\junie-skills
+Junie modifies your code and executes scripts, so it's important to make sure that the skills it uses are safe. Treat third-party skills with the same caution as you would with any third-party code you add to your project:
+Only use skills from sources you trust.
+Read the SKILL.md
+file and all supporting files carefully.
+Prefer pinning to a specific commit or tag rather than pulling from a branch that may change.
+Best practices
+Be specific and actionable, and provide as many details as possible.
+Avoid vague instructions like Write good tests . Instead, prefer:
+Use the AAA pattern (Arrange, Act, Assert).
+One assertion concept per test.
+Use fakes instead of mocking libraries.
+Include examples and show the exact patterns you want Junie to follow. Skills with code examples are significantly more effective.
+Reference project files. Point Junie to existing code that exemplifies the desired patterns:
+See `src/test/kotlin/com/example/MyServiceTest.kt` for a reference
+test implementation.
+Keep it focused. Each skill should cover one domain or concern. Don't create a single monolithic skill that covers everything – create multiple focused skills instead.
+Use subdirectories for complex skills. If a skill has extensive documentation, break it into multiple files:
+Main SKILL.md
+provides an overview and links to sub-documents.
+checklists/
+for step-by-step verification lists.
+scripts/
+for automation scripts Junie can execute.
+templates/
+for boilerplate code Junie can use as starting points.
+Write a clear description. The description
+field is what Junie uses to decide whether a skill is relevant. Although the field is optional (Junie CLI can extract a description from the body content), providing an explicit description
+is recommended so Junie can match the skill to the right tasks without ambiguity.
+Troubleshooting
+Junie not using a skill
+Junie selects skills based on task relevance. If a skill isn't being used, it may not match the current task, or its description may be too vague or generic. Make sure the skill's description
+clearly communicates when it should be used.
+Try asking Junie to use a specific skill explicitly, for example: Use the testing skill to write tests for this module.
+Check for name conflicts: if a project-level and a user-level skills have the same name, the user-level skill will be skipped.
+Verify the SKILL.md file format is followed: proper YAML formatting (no tabs, correct indentation), the YAML frontmatter starts with ---
+, contains at least the name
+field, and ends with ---
+; if description
+is omitted, make sure the body contains at least one paragraph of text so Junie CLI can extract a description.
+Check file permissions and encoding (UTF-8) for file read errors.
+Example skill folder
+Below is an example code review skill that contains the main SKILL.md
+file and a referenced checklist.
+.junie/skills/code-review/
+├── SKILL.md
+└── checklists/
+└── kotlin.md
+---
+name: code-review
+description: Provides guidelines and checklists for thorough Kotlin code reviews
+---
+# Code Review Skill
+Use this skill when reviewing Kotlin code for quality, correctness, and maintainability.
+## Review Priorities
+1. **Correctness**: does the code do what it's supposed to?
+2. **Error Handling**: are errors handled gracefully?
+3. **Readability**: is the code easy to understand?
+4. **Performance**: are there obvious performance issues?
+5. **Testing**: are there adequate tests?
+## Kotlin-specific checks
+- Prefer `val` over `var`
+- Use data classes for value objects
+- Prefer early returns over nested `if` blocks
+- Use sealed classes for restricted hierarchies
+## Detailed Checklist
+See `checklists/kotlin.md` for a comprehensive review checklist.
+# Kotlin Code Review Checklist
+## Naming
+- [ ] Classes use PascalCase
+- [ ] Functions and variables use camelCase
+- [ ] Constants use SCREAMING_SNAKE_CASE
+## Null Safety
+- [ ] Avoid `!!` operator
+- [ ] Use `?.let {}` or safe calls
+- [ ] Nullable types are justified
+## Error Handling
+- [ ] Errors are handled gracefully
+- [ ] Error propagation is clean and readable
+## Testing
+- [ ] New code has corresponding tests
+- [ ] Edge cases are covered
+- [ ] Tests follow AAA pattern
+What's next
+Get started with Junie — install Junie and run your first task.
+Guidelines and memory — project-wide rules that apply to every prompt.
+Junie CLI usage — command reference and configuration.
+Custom LLM models — use your own models with BYOK.
+23 October 2026
+Add commands to Action Allowlist Add and configure MCP servers

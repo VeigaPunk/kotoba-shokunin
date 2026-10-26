@@ -1,0 +1,31 @@
+# append_rows.py tests — round 74 wave 1, seat ExecIdsR74
+
+## 1. draft rows (strict one-line mode), start id 223
+$ python3 -B append_rows.py --start-id 223 --map renumber-map.tsv rows/*.md
+exit=0
+https://agentskills.io/skill-creation/best-practices.md	S232	S223
+https://agentskills.io/skill-creation/quickstart.md	S237	S224
+https://agentskills.io/skill-creation/using-scripts.md	S236	S225
+
+## 2. real seat rows, strict mode (prose-wrapped drafts must be refused)
+$ python3 -B append_rows.py --start-id 223 --rows-dir /tmp/k74w1-ExecIdsR74.bC5h/rows-real
+append_rows: /tmp/k74w1-ExecIdsR74.bC5h/rows-real/ExecSrcQuickstartR74/row.md: expected exactly one non-empty line, got 22 (use --allow-prose for a seat draft that wraps the row in prose)
+exit=2
+
+## 3. real seat rows, --allow-prose (the quickstart recheck carries prose -> refused)
+$ python3 -B append_rows.py --start-id 223 --rows-dir /tmp/k74w1-ExecIdsR74.bC5h/rows-real --allow-prose
+append_rows: /tmp/k74w1-ExecIdsR74.bC5h/rows-real/ExecSrcQuickstartR74/row.md: recheck '90d — re-fetch the `.md` and confirm the' is not an ISO date, NNd, or symbolic cadence (use --normalize-recheck to strip trailing prose)
+exit=2
+
+## 4. real seat rows, documented normalisation (recheck prose stripped, status mined)
+$ python3 -B append_rows.py --start-id 223 --rows-dir /tmp/k74w1-ExecIdsR74.bC5h/rows-real --allow-prose \
+      --normalize-recheck --status mined --map renumber-map-final.tsv --strip-log normalization-log.tsv
+exit=0
+--- map
+https://agentskills.io/skill-creation/best-practices.md	S223	S223
+https://agentskills.io/skill-creation/quickstart.md	S<next>	S224
+https://agentskills.io/skill-creation/using-scripts.md	S<next>	S225
+--- strip log
+https://agentskills.io/skill-creation/best-practices.md	status	queued	mined
+https://agentskills.io/skill-creation/quickstart.md	recheck	90d — re-fetch the `.md` and confirm the `.agents/skills/` default, the portability sentence and the worked description are unchanged (ran 2026-10-25)	90d
+https://agentskills.io/skill-creation/quickstart.md	status	queued	mined

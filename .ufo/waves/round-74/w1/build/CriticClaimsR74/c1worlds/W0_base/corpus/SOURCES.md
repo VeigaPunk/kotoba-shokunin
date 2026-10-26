@@ -1,0 +1,5 @@
+| id | source | kind | tier | scope | anchor | teaches | status | opened | recheck | used-by |
+|---|---|---|---|---|---|---|---|---|---|---|
+| S232 | Agent Skills — best-practices — https://agentskills.io/skill-creation/best-practices.md | docs | A | scope of best-practices | anchor for best-practices; sha256 ab9f3b6091a0f24816b52cd7b90a3fdf53e621f47dba13b36694be272b87fb41 | teaches best-practices | mined | 2026-10-25 | 90d | corpus/knowledge/spec-skill-creation-craft-round74.md |
+| S236 | Agent Skills — using-scripts — https://agentskills.io/skill-creation/using-scripts.md | docs | A | scope of using-scripts | anchor for using-scripts; sha256 2cd7727106b423a758b4b6b1ab3545da74845a98e68e6718279846f89d62ad1f | teaches using-scripts | mined | 2026-10-25 | 90d | corpus/knowledge/spec-skill-creation-craft-round74.md |
+| S237 | Agent Skills — quickstart — https://agentskills.io/skill-creation/quickstart.md | docs | A | scope of quickstart | anchor for quickstart; sha256 7c480b447edac58fd8ff8f250c471dfc7d4621155b91fabed46379075c32bffb | teaches quickstart | mined | 2026-10-25 | 90d | corpus/knowledge/spec-skill-creation-craft-round74.md |
