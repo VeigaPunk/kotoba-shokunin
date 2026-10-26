@@ -95,6 +95,10 @@ The planned C2 and its replacement were withdrawn before data (E1: protocol conf
 seats and 34 spawned (M131). The wave sat in the dispatcher queue about 70 minutes behind other lanes' waves; it was re-sized from 49 to 36 seats to fit the
 shared capacity rule (`plans/round-73.md` is unchanged by that).
 
+## Falsify corrections
+
+None: wave 2 (the falsify wave) was drafted and not dispatched after the run-budget notice, so no fresh seat attacked C1, C3 or the pointer gate beyond the wave-1 attacks (which produced E1 and E2). The round is 36 dispatched / 34 spawned seats against the 64-seat floor. The non-author closure's check is the only outside check.
+
 ## Status changes
 
 S217–S222 `mined` at landing (new rows, no change to an existing row). No other `status`, `recheck` or `used-by` cell changes.

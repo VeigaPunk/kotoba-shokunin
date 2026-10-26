@@ -2779,3 +2779,21 @@ Core rows) — but filed no entry here. This entry is that record, appended, nev
   `corpus/knowledge/anatomy-and-compression.md`. Wave 2 not run.
 - **Outcome:** measured in `.ufo/waves/round-72/receipts/` (tip receipts) and the fleet report.
 - **Pointer:** `plans/round-72.md`, `plans/round-72-addendum-1.md`, `corpus/lessons/round-72.md`, `.ufo/waves/round-72/`.
+
+## Round 73 — C1 depth (Chinese-vendor skill surfaces, sourced), C3 operability (tip battery counter, M127)
+
+- **Trigger:** the round-73 steer (hyaku run 7, attempt 1); the round-72 closure's routed defects
+  (`corpus/lessons/round-72-verifier-spotcheck.md` § 6): the M127 sandbox-vs-hand discrepancy, the skipped falsify wave,
+  the SOURCES.md search-log damage, the entry typo, the receipt-name drift; assimilation theme from `merge/kotoba/`.
+- **Action:** plan `b337035`; E1 `3da11a5` (the planned registry-move C2 contradicts `PROTOCOL.md:398`; an L0 question follows);
+  wave 1 (36 dispatched, 34 spawned: two seat names collided with kake r57's); E2 `8c7029c` (planned C2 and its description
+  replacement withdrawn before data after `CriticC2Counter` and `ReviewerDescFeasibility`; C1 relabelled depth with conjuncts (e)(f)(g);
+  C3 relabelled operability, two-form predicate); C3 landed `11b05d9`; freeze 2 `ccac253` (C1 counter, report-pointer gate,
+  snapshots); C1 data `0f3e8ad` (entry, rows S217-S222, PROVINCE bullet, registry rows, search-log notes incl. the D3 correction,
+  lesson, QUALITY Q66-Q69, the D4 one-line typo repair at `corpus/knowledge/resident-index-and-rungs-round72.md:45`).
+  Wave 2 was not run (run-budget notice).
+- **Outcome:** `python3 -B verifiers/check_cn_vendor_surfaces.py --rev 0f3e8ad` → `vendor skill surfaces backed 4 of 4`, exit 0
+  (base `0 of 4`, exit 1; `held at base: 0`); `python3 -B verifiers/check_tip_battery.py --rev 11b05d9` → `fleet root
+  /home/vgpnk/Projects/shokunin; guards 5 of 5; tip battery exit 0: 6 of 6`, exit 0 in both invocation forms (base `2 of 6`
+  with `--repo .`, `4 of 6` absolute). Receipts: `.ufo/waves/round-73/receipts/`.
+- **Pointer:** `plans/round-73.md`, `plans/round-73-addendum-1.md`, `-2.md`, `-3.md`, `corpus/lessons/round-73.md`, `.ufo/waves/round-73/`.
