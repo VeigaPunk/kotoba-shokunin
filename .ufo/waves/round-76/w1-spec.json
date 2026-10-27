@@ -1,0 +1,914 @@
+{
+ "wave": "kotoba-r76-w1",
+ "milestone": "Round 76: build+attack one v2 wave for C1 description-craft (sourced depth) and C2 r75 routed repairs (consistency); counters freeze before data.",
+ "axes": [
+  "depth",
+  "consistency",
+  "calibration",
+  "coverage",
+  "operability",
+  "freshness",
+  "adjacency"
+ ],
+ "reportDir": ".ufo/waves/round-76/w1",
+ "maxLanes": 128,
+ "context": "You are a Godspeed-enabled subagent.\n\n1. **Name the axes.**\n2. **Iterate cheap, in parallel.**\n3. **Keep moves that improve any axis and harm none.**\n4. **Don't aim \u2014 let the frontier walk itself.**\n\n## IMMEDIATELY STOP ASKING CLARIFYING QUESTIONS. Execute tool calls concurrently in large batches. Do not serialize what can run in parallel. Do not output philosophical reasoning or verbose plans. Act directly via tool calls.\n\n# Goal\nkotoba round 76, one v2 wave, 64 seats. Two FROZEN claims built and attacked in this wave:\n- C1 depth (sourced): admit description-craft guidance from S213 (https://agentskills.io/skill-creation/optimizing-descriptions.md, opened r75, re-opened this round) at guide-advice level with sha256-pinned snapshots and located quotes; act on it in SKILL.md; audit kotoba's own SKILL.md description against it. Frozen counter: `python3 -B verifiers/check_desc_craft.py --rev <rev>` prints `description craft backed 6 of 6` exit 0 at tip, `0 of 6` exit 1 at base b7f13f4b39cbd43076a85568adca763a6f674e7a.\n- C2 consistency: close the r75-closure routed defects R1-R4 with committed corrections and receipts. Frozen counter: `python3 -B verifiers/check_r75_routed_repairs.py --rev <rev>` prints `r75 routed repairs closed 4 of 4` exit 0 at tip, `0 of 4` exit 1 at base.\nThe full frozen contract (conjuncts, controls, no-harm battery, touch list) is `PLANS/ROUND-76.MD` in this repo \u2014 read it first.\n\n# Absolute paths\nEvery path is absolute under /home/vgpnk/Projects/shokunin/kotoba-shokunin (the LANE repo). Your tools start at the fleet root, so ALWAYS use absolute paths. Every `Report:` trailer path is relative to /home/vgpnk/Projects/shokunin/kotoba-shokunin \u2014 write it at /home/vgpnk/Projects/shokunin/kotoba-shokunin/<that path>. Seat reports: /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-76/w1/<SeatName>.md . Counter receipts: /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-76/receipts/ . Snapshots: /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-76/snapshots/ .\n\n# Write scope\nYou may write ONLY inside /home/vgpnk/Projects/shokunin/kotoba-shokunin (lane repo), and only the files your item names. NEVER mutate the fleet repo, sibling lane repos, lane jj state, or the lane git index \u2014 no git/jj writes anywhere (no commit, push, add, stash, checkout); read-only git (log/show/diff/status) is fine. Do not edit MANIFEST.json, templates/, scripts/, .ufo/state/, .ufo/watchdog.log, .scratch/, or considerthese/ (read-only).\n\n# Seat shape\nLeaf seat: NO task spawning, no subagents, no background jobs beyond your own tool calls. Install tools only via official channels (uv tool / npx / official binaries into ~/.local/bin); PACMAN IS PAUSED HOST-WIDE \u2014 never run pacman. Record any install (tool/version/channel/reason) in your report. Kill only by the PIDs you started; at most 4 concurrent processes and 120 s per retry loop.\n\n# Scratch\nUse /fast/scratch/hyaku/kotoba-r76/<SeatName>/ for any clone, mirror or temp work (mkdir -p first; git worktree add --shared or git clone --shared, never full clones of the fleet). /tmp is for files under 50 MB only. Remove your scratch dir before you yield (trap 'rm -rf -- \"$S\"' EXIT pattern); if you cannot remove it, report that as your own defect. Nothing under /tmp is citable evidence \u2014 final artifacts land in the wave dir or lane tree.\n\n# Freeze discipline\nNo claim data (entries, SKILL.md rows, registry cells, lesson rows) is written before the L1 announces freeze on the wave; build seats produce DRAFTS under .ufo/waves/round-76/build/ and receipts; the L1 integrates and lands. Counters freeze before data: red receipts at base and junk/control receipts first.\n\n# Evidence honesty\nAn unrun check has not passed; never fabricate output, hashes, quotes or verdicts. Ground every claim in committed bytes or fetched bytes you name; paste the exact commands and exit codes. Wrap your final text so a plain-line parser can read your verdict line.",
+ "items": [
+  {
+   "name": "B01PlanConsistency",
+   "role": "executor",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Read /home/vgpnk/Projects/shokunin/kotoba-shokunin/plans/round-76.md and this context. Produce a predicate-consistency table: every frozen predicate sentence (C1 counter line + 6 conjuncts, C2 counter line + 4 repairs) as stated in the plan vs restated in this context vs implied by each seat task that mentions them. Flag any wording drift (Q26: the same sentence must appear in plan, counter receipt and SCORECARD). Also run the Q73 sweep `grep -n 'byte-identical\\|differs from the base' /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/*.py` and report which frozen counter pins which section, confirming the planned touch list edits none of them. Report only."
+  },
+  {
+   "name": "B02SkillBudget",
+   "role": "executor",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Measure /home/vgpnk/Projects/shokunin/kotoba-shokunin/SKILL.md at HEAD (git rev-parse; wc -l -c; verify 590 lines). Compute room under the 600-line budget for the planned additions: one description-craft rule row in \u00a7 Body craft + two gate-registry rows in \u00a7 Gate registry. Give exact insertion anchors (line numbers + the surrounding heading text) and the projected final line count, with a fallback compression plan (which existing bullet lines could merge) if the projection exceeds 600. Also state whether any trigger-fidelity checklist box text changes (it must not \u2014 new rules go in \u00a7 Body craft only) and therefore whether verifiers/checklist-baseline.json stays untouched. Report only."
+  },
+  {
+   "name": "B03SnapshotFetch",
+   "role": "executor",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Fetch three pages with curl or urllib (record HTTP status, byte length, sha256): https://agentskills.io/skill-creation/optimizing-descriptions.md , https://agentskills.io/skill-creation/evaluating-skills.md , https://agentskills.io/skill-creation/best-practices.md . Save the raw bytes to /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-76/snapshots/optimizing-descriptions.html (or .md as fetched), /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-76/snapshots/evaluating-skills.html, /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-76/snapshots/best-practices.html . Write /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-76/snapshots/fetch-record.json (array: url, fetched_at ISO date, http_status, bytes, sha256) and /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-76/snapshots/MANIFEST.sha256 (one '<sha256>  <filename>' line per file). Verify the sentence 'A should-trigger query passes if its trigger rate is above a threshold (0.5 is a reasonable default).' occurs in the optimizing-descriptions bytes (grep -n) and record its line. These files are evidence: do not reformat the fetched bytes. Report the three sha256 values and any fetch failure exactly."
+  },
+  {
+   "name": "B04QuotesScribe",
+   "role": "scribe",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "WAIT-FREE item: work from the pinned snapshot bytes at /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-76/snapshots/ (if absent, fetch the optimizing-descriptions page yourself and note you did). Extract located quotes for the page's description-craft rules: imperative phrasing, front-loading the use case, self-contained first sentence, coverage of the skill's trigger surface, and any length guidance. For each quote: exact substring (<=25 words), its line number in the snapshot, the heading it sits under, and confirmation it does NOT occur in /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-76/snapshots/evaluating-skills.* or /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-76/snapshots/best-practices.* bodies (site-chrome check). Write the result to /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-76/build/quotes-s213.md . Report only."
+  },
+  {
+   "name": "B05AuditExec",
+   "role": "executor",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Audit kotoba's own description from committed bytes: `git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin rev-parse HEAD`; render the SKILL.md frontmatter description as YAML (python yaml.safe_load on the frontmatter block; folded scalar, whole block) and print: rendered length in chars, first-sentence length in chars, whether the first sentence is imperative, whether a literal trigger string list appears, char budget vs 1024. Compare each measure against the rules in /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-76/build/quotes-s213.md (if absent, fetch the page and extract them yourself). Write /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-76/receipts/description-audit-<full-rev>.txt with every command, output and exit code, and a verdict table (rule -> measure -> verdict). Report only; no lane-file edits."
+  },
+  {
+   "name": "B06DescCounter",
+   "role": "executor",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Implement /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/check_desc_craft.py per the plan's C1 frozen predicate: 6 conjuncts (a) snapshot chain (manifest + fetch record + pinned digest table in the counter + S213 anchor digest), (b) located quotes in corpus/knowledge/description-craft-round76.md (>=4, <=25 words each, verbatim in the optimizing-descriptions snapshot after its first heading, absent from the other two snapshots), (c) SKILL.md \u00a7 Body craft description-craft row citing the entry and S213 with >=2 quote fragments present in the snapshot, (d) the entry's audit values equal the counter's own recompute from the measured rev's SKILL.md (yaml folded render), (e) S213 used-by lists the entry, (f) provenance trio. Print one verdict line per conjunct and a final 'description craft backed K of 6' line; exit 0 iff K=6. --self-test (Q48): drives main() on a satisfying fixture asserting the exact exit-0 line, plus must-fail arms: empty snapshot set; quote found only in the best-practices snapshot; digest mismatch; audit values disagreeing with recompute; missing used-by. Also: run it at base rev b7f13f4b39cbd43076a85568adca763a6f674e7a via a --shared worktree in your scratch dir and save the red receipt /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-76/receipts/c1-base-<base>.txt; build control worlds C1-W1 (stub entry, empty snapshots), C1-W2 (quotes from best-practices snapshot), C1-W3 (token dump naming all conjuncts) in scratch and score each on the frozen counter, saving /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-76/receipts/c1-controls.txt. Propose (do not write) the gate-registry row text and floors row for this counter. Report only."
+  },
+  {
+   "name": "B07RepairCounter",
+   "role": "executor",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Implement /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/check_r75_routed_repairs.py per the plan's C2 frozen predicate: 4 repairs R1 (lesson round-75 appended correction naming superseded M75-1 text + Gate reject candidate + folded-render 1022 claim citing the spot-check; AND /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-76/receipts/r1-folded-render.txt recomputing the render from the measured rev's SKILL.md and printing 1022), R2 (noharm-at-tip.txt naming the tip rev on line 1 + stdout/exit of both corpus gates green + cited from LOG \u00a7 Round 75), R3 (/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-76/w2-registry-note.md reconciling w2-results.json R75Attack28 with machine-checkable excerpt + cited from LOG \u00a7 Round 75), R4 (LOG \u00a7 Round 75 appended closing line after the 'w2 falsify results pending' text recording the w2 settlement). Print per-repair verdict lines + 'r75 routed repairs closed K of 4'; exit 0 iff K=4. --self-test with a must-fail arm per repair (receipt missing tip rev; correction naming no superseded text; note absent; closing line absent) plus a token-dump world. Run at base rev via --shared worktree, red receipt /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-76/receipts/c2-base-<base>.txt; control worlds C2-W1 token dump, saved /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-76/receipts/c2-controls.txt. Propose gate-registry + floors rows. Report only."
+  },
+  {
+   "name": "B08LessonDrafts",
+   "role": "scribe",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Draft (as patch fragments under /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-76/build/, NOT applied to lane files): (1) the appended correction for /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/lessons/round-75.md naming the superseded M75-1 stale-premise row text and the Gate reject candidate, asserting the folded-render measurement (1022 chars; block lines 4-18) and citing corpus/lessons/round-75-verifier-spotcheck.md R1; (2) the Q74 criterion row for corpus/QUALITY.md (folded-scalar/whole-block measurement rule; grounded in M76-1; supersedes none); (3) the M76-1 row for the round-76 lesson mistakes table (class, evidence pointer, captured-by, fix). Base every fragment on the committed bytes: read the actual M75-1 row and Gate text first and quote them exactly. Report only."
+  },
+  {
+   "name": "B09RepairR3R4",
+   "role": "executor",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Read /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-75/w2-results.json: confirm seat R75Attack28 names a report path, and `test -e` that path; count report files present in /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-75/w2/*.md (expect 63). Draft /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-76/build/w2-registry-note.md content: the reconciliation note recording the phantom with the exact jq excerpt of the R75Attack28 entry and the 63/64 file count with its command. Draft the LOG \u00a7 Round 75 closing line for R4: one appended sentence recording w2 settled 64/64 results, 0 dead, 63/64 report files, R75Attack28 phantom per the registry note. Report only."
+  },
+  {
+   "name": "B10RepairD2D3",
+   "role": "scribe",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Draft append fragments (under /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-76/build/, not applied): (1) LOG \u00a7 Round 74 appended sentence naming commit d5aebcf as the orchestrator's in-flight snapshot, committed during the run-7 interruption, not a lane landing (verify the commit message bytes with git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin log -1 d5aebcf first); (2) the forward-pointer append for /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/knowledge/sibling-overlap-census-round49.md naming corpus/knowledge/sibling-overlap-census-round74.md as the re-pin (verify the r74 entry path exists first). Report only."
+  },
+  {
+   "name": "B11RepairD4",
+   "role": "executor",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Add check_spec_craft (self-test 250) and check_sibling_reread (self-test 47) floors to /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/floors-registry.json AND the matching in-file tables + docstring in verifiers/check_assertion_floors.py IN THE SAME CHANGE (BUMP-IN-STEP rule in the registry $comment). First run both self-tests to confirm the observed counts equal the r74 spot-check's recorded 250 and 47 (save outputs to /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-76/receipts/d4-selftests.txt); if observed differs, record the observed value with its command instead. Run check_assertion_floors.py after the edit (scratch copy) and save /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-76/receipts/d4-floors-after.txt. Report the exact diff."
+  },
+  {
+   "name": "B12EntryDraft",
+   "role": "scribe",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Draft /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/knowledge/description-craft-round76.md (write the draft to /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-76/build/entry-draft.md): provenance trio first (source: S213 + URL + anchor; verified-at: rev; recheck:), the admitted guide-advice rules each with a located quote from /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-76/build/quotes-s213.md (or your own extraction from the snapshot), the self-audit table filled with B05's measured values (read /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-76/receipts/description-audit-*.txt if present, else compute them yourself), and a Limits section: documentary evidence, no client run, eval-fidelity claims held, judgement cells assigned to non-author seats. Refuse any rule sentence the snapshot does not support (Q62). Report only."
+  },
+  {
+   "name": "B13SkillPatch",
+   "role": "scribe",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Draft the SKILL.md patch (to /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-76/build/skill-patch.md, not applied): one description-craft rule row in \u00a7 Body craft citing corpus/knowledge/description-craft-round76.md and S213 with >=2 quote fragments from the snapshot; two gate-registry rows (check_desc_craft.py, check_r75_routed_repairs.py) formatted exactly like existing rows; keep the file <=600 lines using B02's anchors (read /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-76/build/budget.txt if present). Confirm no trigger-fidelity checklist box text changes. Report only."
+  },
+  {
+   "name": "B14SourcesUpdate",
+   "role": "scribe",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Draft the S213 used-by change for /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md (to /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-76/build/sources-patch.md): read the current S213 row, append the entry path to used-by, record old->new text. Verify the change keeps the row at 11 columns per the census parser (awk -F'|' NF check on the new line). Report only."
+  },
+  {
+   "name": "B15Simplifier",
+   "role": "simplifier",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Read the drafts as they exist under /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-76/build/ (entry, skill patch, lesson fragments): flag redundancy against existing corpus/knowledge text and SKILL.md rows; propose concrete deletions/compressions that preserve meaning; check the entry is right-sized (Q11: evidence bundle sized to the claim). Report only."
+  },
+  {
+   "name": "B16ProseRead",
+   "role": "scribe",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Read every prose draft under /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-76/build/ for garbled sentences, malformed table rows, broken citations, tense drift; read the final SKILL.md patch fragment for table-shape consistency with its neighbours. Report only."
+  },
+  {
+   "name": "B17LessonScribe",
+   "role": "scribe",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Draft /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/lessons/round-76.md (to /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-76/build/lesson-draft.md): ## Gate (S213 re-opened this round: URL, access date 2026-10-27, <=25-word located quote from the snapshot; considerthese 2026-10-26 proposal 3 mined as C1, proposals 1/2/4/5 declined with reasons; assimilation none with the staged-package refusal reason; >=1 admit and >=1 reject recorded), ## Mistakes (M76-1 + any you observe this round, each class/evidence/captured-by/fix), ## Routed defects (R1-R4 dispositions + D2-D4 landed + D5 conditional), ## Status changes (S213 used-by old->new). Report only."
+  },
+  {
+   "name": "B18ScorecardScribe",
+   "role": "scribe",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Draft the SCORECARD.md round-76 annotation text (to /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-76/build/scorecard-draft.md): per-claim rows quoting the two frozen counter sentences with base->tip placeholders, scores held (depth 9, consistency 10) pending the non-author closure, lowest-axis note. Report only."
+  },
+  {
+   "name": "B19LogScribe",
+   "role": "scribe",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Draft the LOG \u00a7 Round 76 entry text (to /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-76/build/log-draft.md): Trigger (r75 steer + R1-R4), Action (plan abd8e5cf, wave, counters, landings with <rev> placeholders), Outcome (the two counter lines at tip), Pointer. Also draft the one-line closing append for LOG \u00a7 Round 75 (R4) if B09 has not; keep both consistent. Report only."
+  },
+  {
+   "name": "B20ConnOverlap",
+   "role": "connector",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Sibling-overlap scan: does description-craft guidance (S213 page territory) overlap any sibling's province? Read /home/vgpnk/Projects/shokunin/*/PROVINCE.md and SKILL.md descriptions for claims on skill-description writing or trigger evaluation (check kengaku, chousa, kumitate especially). Count STRICT_HITS (a sibling scope text that names this ground). Also check whether any sibling already holds a description-craft entry that would make this lane's entry a duplicate. Report only."
+  },
+  {
+   "name": "B21RevMethod",
+   "role": "revenger",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Reverse-engineer the r75 M75-1 error mechanism: read corpus/lessons/round-75.md M75-1 row and Gate text, the r75 spot-check R1/disagreement table, and considerthese/2026-10-26.md item 3; document exactly how a 15-line YAML folded-scalar block got counted as 6 frontmatter lines (awk NR>=3&&NR<=8) and why the yaml render is the correct measure (compute both on the current SKILL.md and print them). This feeds Q74 and M76-1: name the generalizable failure shape. Report only."
+  },
+  {
+   "name": "B22ChecklistImpact",
+   "role": "executor",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Verify the planned SKILL.md patch adds no trigger-fidelity checklist box (so verifiers/checklist-baseline.json stays untouched): read /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-76/build/skill-patch.md if present, else read plans/round-76.md touch list; run python3 -B /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/verify_skill_checklist.py --json at base and confirm pass 11 (save /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-76/receipts/checklist-base.txt). If a box WERE added, compute the baseline addition required. Report only."
+  },
+  {
+   "name": "B23GateRegistryCalc",
+   "role": "executor",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Compute the two new gate-registry rows exactly per the existing table's columns in SKILL.md \u00a7 Gate registry (read it first): Name, Kind (gate), Entry command ('python3 -B verifiers/check_desc_craft.py --rev <rev>'), Verdict map, Self-test flag, Pinned values, Write scope, Owner. Validate your rows against verifiers/check_gate_registry.py's expectations by running it on a scratch copy of the repo with the patched SKILL.md (report the resulting count, must be conformant N of N with phantom 0). Report only."
+  },
+  {
+   "name": "B24TipBatteryScript",
+   "role": "executor",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Write the tip-battery script /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-76/receipts/tip-battery.sh: every gate command from the plan's no-harm battery (corpus integrity --json, corpus independent --json, check_gate_registry --rev, check_assertion_floors, verify_skill_checklist --json, check_spec_craft --rev, check_sibling_reread --rev, sources-census.sh validate, wc -l SKILL.md) each printing stdout+exit, with a first line printing git rev-parse HEAD. chmod +x. Test-run it at base (save /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-76/receipts/tip-battery-base.txt). Report only."
+  },
+  {
+   "name": "B25Census",
+   "role": "executor",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Run /home/vgpnk/Projects/shokunin/scripts/sources-census.sh validate --root /home/vgpnk/Projects/shokunin kotoba at base; save stdout+exit to /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-76/receipts/census-before.txt; also record the row count (grep -cE '^ {0,3}\\|[[:space:]]*S[0-9]{3,}[[:space:]]*\\|' corpus/SOURCES.md) and the W04 warning count. Report only."
+  },
+  {
+   "name": "B26FetchRecheck",
+   "role": "executor",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Independent second fetch of the three agentskills.io pages (use a different client than curl if possible, e.g. python urllib); compare sha256 with /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-76/snapshots/MANIFEST.sha256; write /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-76/receipts/fetch-recheck.txt with both digest sets and agree/drift per page. If a page drifted, record the drift (the counter pins its own snapshot set, so drift is a finding, not a fix). Report only."
+  },
+  {
+   "name": "B27ReceiptVerifier",
+   "role": "executor",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Write /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-76/build/check_receipt_revs.sh: for each receipt file under .ufo/waves/round-7{3,4,5,6}/receipts/, check it names the revision it measured (a full 40-hex rev, or a '<rev>' placeholder explicitly marked) \u2014 Q36/Q50. Run it; save /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-76/receipts/receipt-revs.txt; list receipts that fail the check. Report only."
+  },
+  {
+   "name": "A01RevQuoteLocate",
+   "role": "reviewer",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Re-locate every located quote the drafted entry claims, in the pinned snapshot bytes (/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-76/snapshots/optimizing-descriptions.*): exact substring, line number, heading. Flag any quote not verbatim, shaped without naming dropped bytes (Q53), occurring before the page's first heading, or NOT page-unique (occurs in the other two snapshots). Cross-check the <=25-word count per quote. Report only."
+  },
+  {
+   "name": "A02RevHashChain",
+   "role": "reviewer",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Recompute sha256 of all snapshot files; verify each digest appears identically in /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-76/snapshots/MANIFEST.sha256, /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-76/snapshots/fetch-record.json, the pinned table inside verifiers/check_desc_craft.py (read it), and the S213 anchor update draft. Any single break in the chain is a finding. Report only."
+  },
+  {
+   "name": "A03RevCounterDesc",
+   "role": "reviewer",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Read verifiers/check_desc_craft.py: enumerate exactly which files/cells each of the 6 conjuncts reads, versus what plans/round-76.md claims (Q31). Then run the mutant arms: remove a snapshot file; corrupt one quote; mismatch one digest; make the audit values disagree with the recompute; drop the used-by \u2014 each must drive the counter to exit nonzero naming the conjunct. Save outputs to your report; failures of the arms to fire are findings. Report only."
+  },
+  {
+   "name": "A04RevCounterRepairs",
+   "role": "reviewer",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Same attack for verifiers/check_r75_routed_repairs.py against the 4 repairs: which bytes does each repair check; run the 4 must-fail mutants (receipt without tip rev; correction naming no superseded text; note absent; closing line absent) plus the token-dump world; each must fail. Report only."
+  },
+  {
+   "name": "A05RevControls",
+   "role": "reviewer",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Q37 adequacy: list the control worlds the plan committed for C1 and C2; build ONE real-input shortcut not in the list (your choice, e.g. for C1: an entry whose quotes are verbatim from the snapshot but whose SKILL.md act-on row cites a quote fragment that occurs in ALL THREE pages \u2014 site chrome; or for C2: a receipt that names a valid rev but whose gate stdout is copied from a different rev). Score it on the frozen counter. If it passes, the counter is hollow \u2014 report that as the finding. Report only."
+  },
+  {
+   "name": "A06RevEvidence",
+   "role": "reviewer",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Re-derive every number in the drafted report/LOG/SCORECARD/lesson fragments under /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-76/build/ from committed bytes (description length 1022, first-sentence 151, 63/64 w2 files, floors 250/47, SKILL.md line projection): recompute each with your own commands; flag any mismatch (Q03). Report only."
+  },
+  {
+   "name": "A07RevNoHarm",
+   "role": "reviewer",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Build a scratch tree (git worktree --shared in your scratch dir) and apply the drafted patches (skill patch, sources patch, lesson appends, floors bump); run the full no-harm battery from plans/round-76.md on the post-state tree; any red gate is a finding (Q72). Save outputs. Report only."
+  },
+  {
+   "name": "A08RevFreeze",
+   "role": "reviewer",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Freeze discipline: verify the counter bytes at the measured tip equal the bytes named in the freeze receipt (sha256); verify the predicate sentence is byte-identical in plans/round-76.md, the counter's final print line, and the drafted SCORECARD row (Q26/Q28). Any drift is a finding. Report only."
+  },
+  {
+   "name": "A09MutDesc",
+   "role": "mutation-tester",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Mutation-kill verifiers/check_desc_craft.py (two-sided per Q47): generate >=10 mutants (delete a conjunct branch; flip an AND to OR; drop the page-uniqueness check; accept substring quote matches; read the manifest but not the fetch record; return 0 when a snapshot is missing; etc.), run each, and produce a killed/survived table. Survivors that exit 0 are findings; equivalences (comment changes) must survive. Report only."
+  },
+  {
+   "name": "A10MutRepairs",
+   "role": "mutation-tester",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Mutation-kill verifiers/check_r75_routed_repairs.py the same way (>=10 mutants; e.g. check file existence only, accept a receipt whose rev line is a short hash, skip the 1022 recompute). Two-sided table. Report only."
+  },
+  {
+   "name": "A11MutRedBefore",
+   "role": "mutation-tester",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Red-before: run both counters at base rev b7f13f4b39cbd43076a85568adca763a6f674e7a in a --shared worktree; both must print 0 of 6 / 0 of 4 and exit 1. Also run them at the pre-data tip (plan commit abd8e5cfd45ea3863b344ac58a187b0c5de620d0) \u2014 same expectation. Save outputs. Report only."
+  },
+  {
+   "name": "A12MutArms",
+   "role": "mutation-tester",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Q48 arms: verify each counter's --self-test drives main() on a satisfying fixture and asserts the exact exit-0 headline, with >=1 broken-conjunct world exiting nonzero. Delete/alter one arm at a time and confirm the self-test then fails. Report only."
+  },
+  {
+   "name": "A13CritHollowC1",
+   "role": "critic",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Build the cheapest skip-the-work world for C1 (existing corpus phrases only, no fetched page; e.g. an entry restating rules SKILL.md already held, quotes taken from the r74 best-practices snapshot, used-by appended) and score it on the frozen counter. If it reaches 6 of 6, the counter is a presence floor \u2014 say so and name the content guard the L1 must add. Report only."
+  },
+  {
+   "name": "A14CritHollowC2",
+   "role": "critic",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Build a token-dump world for the repairs counter (all four files present, forged values: wrong rev in the receipt, correction paragraph naming nothing, empty note, closing line with no settlement facts) and score it. If it reaches 4 of 4, the counter is hollow \u2014 name the fix. Report only."
+  },
+  {
+   "name": "A15CritHeadlineC1",
+   "role": "critic",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Q26 on C1: take the drafted C1 headline (plan + SCORECARD draft); turn every clause (sourced, admitted, backed, located quotes, self-audit, act-on) and mark each as turned-on-by-counter, covered-by-a-named-guard, or uncovered. Any uncovered clause must be dropped or bounded in the headline. Report only."
+  },
+  {
+   "name": "A16CritHeadlineC2",
+   "role": "critic",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Q26 on C2: same treatment for the C2 headline (R1-R4 closed, committed corrections). Pay special attention to 'closed' \u2014 does the counter prove closure or only presence? Report only."
+  },
+  {
+   "name": "A17CritAudit",
+   "role": "critic",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Audit the self-audit: for each verdict in the description-audit table (rule -> measure -> verdict), check the verdict against the rule's actual text from the snapshot (does the page actually state the rule the measure claims?). Flag any verdict the page text does not support. Report only."
+  },
+  {
+   "name": "A18ScoutSnapshot",
+   "role": "scout",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Falsifiable probe: the snapshot chain. Tamper with one byte of a scratch copy of a snapshot and confirm the counter's digest conjunct fires; then tamper with the manifest instead; then with the fetch record. Each tamper must drive exit nonzero naming the link. Report only."
+  },
+  {
+   "name": "A19ScoutAudit",
+   "role": "scout",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Independent description measurement: recompute the rendered description length and first-sentence length of SKILL.md at HEAD using a different method (manual folded-scalar unfolding or a second YAML library); confirm 1022 / 151. Any disagreement is a finding. Report only."
+  },
+  {
+   "name": "A20ScoutCensus",
+   "role": "scout",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Mirror the lane corpus in your scratch dir (cp -a corpus), apply ONLY the S213 used-by append on the mirror, and run /home/vgpnk/Projects/shokunin/scripts/sources-census.sh validate --file <mirror>/corpus/SOURCES.md; it must exit 0 (E03/E04 would mean a duplicate id or malformed row). Report only."
+  },
+  {
+   "name": "A21ScoutSibling",
+   "role": "scout",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Independent sibling-overlap scan for the new material: grep the 20 sibling repos' SKILL.md/PROVINCE.md for description-craft / trigger-evaluation claims that would contest this lane's entry. STRICT_HITS count with path:line. Report only."
+  },
+  {
+   "name": "A22ScoutAssimilation",
+   "role": "scout",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Assimilation register slice verdicts: for the kotoba rows of /home/vgpnk/Projects/shokuknow/.ufo/waves/corpus-expansion-1/absent-defect-register.md (S151, S167-S185 payload-absent; S236-S243 unreachable), hand-check the reachable ones: fetch each cited source, locate the quoted text; absent -> refuse (fabrication class), present -> note adoptable. Unreachable ones: mark unverifiable (never fabrication). Also scan /home/vgpnk/Projects/shokuknow/merge/kotoba/ for description-craft staged entries and report whether any covers ground the in-round opening does not. The shokuknow tree is READ-ONLY \u2014 never write there. Report only."
+  },
+  {
+   "name": "A23ScoutSources",
+   "role": "scout",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Verify row S213's cells against freshly fetched bytes: URL, anchor (subsection + upstream commit), the recorded quote with its line, tier, status. Verify the used-by change draft lists only real paths. Report only."
+  },
+  {
+   "name": "A24ScoutFresh",
+   "role": "scout",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Drift probe: compare the freshly fetched agentskills.io pages against the r74/r75-era snapshots if present in .ufo/waves/round-74/snapshots/ or .ufo/waves/round-75/ (sha256 and, if drifted, a diff summary). Report which page moved and whether it affects the pinned quotes. Report only."
+  },
+  {
+   "name": "A25Sentinel",
+   "role": "sentinel",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Security review of every new byte the wave produced under .ufo/waves/round-76/: no credential material, session tokens, private URLs or op:// refs (CORPUS.md rule 6); snapshot domains benign; fetch records carry no headers with secrets. Report only."
+  },
+  {
+   "name": "A26SentinelAppend",
+   "role": "sentinel",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Append-only check: confirm no lane file the round touches is a rewrite of filed bytes \u2014 LOG.md, SCORECARD.md, corpus/lessons/round-75.md, corpus/SOURCES.md gains only appended lines/cells; use git diff to list every touched file and flag any deletion outside the planned touch list. Report only."
+  },
+  {
+   "name": "A27SimplifierAudit",
+   "role": "simplifier",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Attack the entry's economy: is corpus/knowledge/description-craft-round76.md the shortest form that carries the six conjuncts? Propose a cut list of any sentence that restates an existing corpus entry (skill-eval-artefacts-round70 holds the eval half; do not duplicate it). Report only."
+  },
+  {
+   "name": "A28SimplifierRead",
+   "role": "simplifier",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Read-back attack: read the final drafted SKILL.md patch row and the entry aloud-style; flag any sentence a reader could not execute without oral context (box-3 of SHONEN). Report only."
+  },
+  {
+   "name": "A29RevengerR1",
+   "role": "revenger",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Verify the R1 correction names the superseded text EXACTLY as committed (quote the M75-1 row bytes and the Gate reject bytes) and that the method fix (yaml folded render, whole block) actually produces 1022 on the r75 tip commit ac9f29510d3914a6edb97c8dbdb3445cab9141de (git show that rev's SKILL.md through a yaml render in your scratch dir). Report only."
+  },
+  {
+   "name": "A30RevengerR3",
+   "role": "revenger",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Verify the R3 note reconciles machine-checkably: the jq excerpt of w2-results.json's R75Attack28 entry must match the actual results file byte content, and the 63/64 count must recompute. Report only."
+  },
+  {
+   "name": "A31RevD4",
+   "role": "reviewer",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Floors-bump attack: after the D4 edit, verify check_assertion_floors.py still passes (scratch copy with the edit) and that a mutant lowering one new floor by 1 fails the guard; also verify the bump-in-step completeness (registry + both in-file tables + docstring). Report only."
+  },
+  {
+   "name": "A32RevLesson",
+   "role": "reviewer",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Lesson completeness: the round-76 lesson draft must carry a Gate with >=1 admit and >=1 reject (reject grounded in an observed fact per Q62), mistakes rows with all four fields, routed-defect dispositions, and status changes logged old->new. Flag any missing piece. Report only."
+  },
+  {
+   "name": "A33CritBudget",
+   "role": "critic",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Budget arithmetic: verify the projected SKILL.md line count (590 + added rows) stays <=600 and the trigger.line_budget check would still pass; verify the two gate-registry rows match the table's column count exactly (a malformed row breaks check_gate_registry.py). Report only."
+  },
+  {
+   "name": "A34ScoutReceipts",
+   "role": "scout",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Probe every new receipt under .ufo/waves/round-76/receipts/: names the rev it measured (Q50) and is cited from a durable file (draft LOG/SCORECARD text). Flag any receipt that asserts a tip result without naming the tip. Report only."
+  },
+  {
+   "name": "B28EvidencePackager",
+   "role": "executor",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Assemble the freeze bundle /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-76/receipts/freeze-<rev>.txt once the counters and their receipts exist: sha256 of both counter files, their --self-test outputs, the base red receipts, the control-world receipts, each with the exact command that produced it and its exit code. This bundle is what the freeze-discipline reviewer checks against \u2014 any missing element is your finding. If elements are not ready when you run, report what is missing instead of fabricating. Report only."
+  },
+  {
+   "name": "A35ScoutPaths",
+   "role": "scout",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Misroot pre-sweep: read every seat item's write paths in the wave spec /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-76/w1-spec.json and confirm each is absolute under /home/vgpnk/Projects/shokunin/kotoba-shokunin (lane-local). List any path that would land in the fleet root or a sibling repo. Also confirm the reportDir trailer convention is unambiguous. Report only."
+  },
+  {
+   "name": "A36ScoutReceiptGreen",
+   "role": "scout",
+   "axes": [
+    "depth",
+    "consistency",
+    "calibration",
+    "freshness",
+    "coverage",
+    "operability",
+    "adjacency"
+   ],
+   "prompt": "Falsifiable probe on C2's R2: construct a scratch world where noharm-at-tip.txt names a valid 40-hex tip rev but embeds gate stdout showing a RED gate (paste an exit=1 block). The repairs counter must not count R2 in that world. Run the counter against your scratch construction (point it at the scratch tree if it accepts a repo argument, else reason from its code and show the code path). If it would count R2, that is a finding. Report only."
+  }
+ ]
+}
