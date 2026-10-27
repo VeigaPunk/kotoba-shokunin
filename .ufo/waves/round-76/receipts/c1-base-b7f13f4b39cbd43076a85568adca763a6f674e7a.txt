@@ -1,0 +1,54 @@
+round-76 C1 counter -- RED run at the base revision
+
+purpose: the frozen predicate says the counter prints
+`description craft backed 0 of 6` and exits 1 at the base
+b7f13f4b39cbd43076a85568adca763a6f674e7a.
+
+counter: verifiers/check_desc_craft.py
+counter sha256: 87837d7aad4eb570a1a50734358077f1513b6ba8862e31a9c9d7d98283d3cd25
+counter blanked self-sha: 2ac47e7c4b1502b128d9f4486e13784c33345b880789afb55f324acdd04841cb
+measured revision: b7f13f4b39cbd43076a85568adca763a6f674e7a
+
+The measurement ran in a --shared scratch clone of the lane (`git clone --shared`), never in the lane working tree: the lane index, the lane HEAD and the shared jj state were not touched.  `git worktree add --shared` is not a valid option in git 2.56.0 (`git worktree add -h` lists no `--shared`), so the sanctioned `git clone --shared` alternative from the seat's scratch rules was used; a --shared clone shares the lane's object store, so the bytes read at the base revision are the lane's committed bytes.
+
+========================================================================
+COMMANDS
+========================================================================
+$ git clone --shared --no-checkout /home/vgpnk/Projects/shokunin/kotoba-shokunin /fast/scratch/hyaku/kotoba-r76/B06DescCounter/base-clone
+exit code: 0
+Cloning into '/fast/scratch/hyaku/kotoba-r76/B06DescCounter/base-clone'...
+done.
+
+$ git -C /fast/scratch/hyaku/kotoba-r76/B06DescCounter/base-clone rev-parse b7f13f4b39cbd43076a85568adca763a6f674e7a
+exit code: 0
+b7f13f4b39cbd43076a85568adca763a6f674e7a
+
+$ /usr/bin/python3 -B /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/check_desc_craft.py --repo /fast/scratch/hyaku/kotoba-r76/B06DescCounter/base-clone --rev b7f13f4b39cbd43076a85568adca763a6f674e7a
+exit code: 1
+measured-rev: b7f13f4b39cbd43076a85568adca763a6f674e7a
+(a) snapshot chain: fail
+(b) located quotes: fail
+(c) act-on: fail
+(d) self-audit: fail
+(e) registry: fail
+(f) provenance: fail
+  (a) optimizing-descriptions.md is not committed at .ufo/waves/round-76/snapshots/
+  (a) evaluating-skills.md is not committed at .ufo/waves/round-76/snapshots/
+  (a) best-practices.md is not committed at .ufo/waves/round-76/snapshots/
+  (a) .ufo/waves/round-76/snapshots/MANIFEST.sha256 is not committed at the measured revision
+  (a) .ufo/waves/round-76/snapshots/fetch-record.json is not committed at the measured revision
+  (a) corpus/lessons/round-76.md is not committed at the measured revision
+  (b) corpus/knowledge/description-craft-round76.md is not committed at the measured revision
+  (c) the optimizing-descriptions snapshot is not committed at the measured revision
+  (d) corpus/knowledge/description-craft-round76.md is not committed at the measured revision
+  (e) row S213's used-by cell does not list corpus/knowledge/description-craft-round76.md
+  (f) corpus/knowledge/description-craft-round76.md is not committed at the measured revision
+description craft backed 0 of 6
+
+========================================================================
+VERDICT
+========================================================================
+printed verdict line: `description craft backed 0 of 6`
+exit code: 1
+
+This is the RED state the frozen predicate names: at the base revision no snapshot, no entry, no lesson and no registry change exist, so all six conjuncts fail closed.  The counter exits 1, never 2 (2 would be could-not-evaluate, which is not what happened: every conjunct was evaluated and failed).

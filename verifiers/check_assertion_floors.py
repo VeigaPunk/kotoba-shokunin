@@ -8,7 +8,12 @@ the recorded floor (harness 10, corpus_integrity 164, corpus_independent 105,
 surfaces 218, overlap_levers 51, checklist 1863, pins 62,
 harness_independent 123, compare_harness_independent 330, floors_guard 150,
 dispatch_prompts 56, sibling_census 68, alwayson 89, correction_sweep 25,
-scoped_rules_v32 240; round 65 (claim C1) registers scoped_rules_v32 at the
+scoped_rules_v32 240, spec_craft 250, sibling_reread 47; round 76 (hygiene
+repair D4 -- the round-74 spot-check's routed defect 4, item 4) floors the
+two round-74 counters whose self-tests were UNFLOORED, so an arm dropped
+from either file now reds this guard (the r62 F17 class, re-found by the
+r74 closure) instead of passing every gate silently; round 65 (claim C1)
+registers scoped_rules_v32 at the
 round-65 landed count (234) so the v32 pinning arms cannot be deleted with
 every gate green (r62 F17 re-found by RevC1Predicate Q2), and bumps checklist
 1852 -> 1862 (claim C2's governance-corrections battery: one positive arm,
@@ -180,6 +185,8 @@ EXPECTED_INSTRUMENTS = {
     "alwayson": 89,
     "correction_sweep": 25,
     "scoped_rules_v32": 240,
+    "spec_craft": 250,
+    "sibling_reread": 47,
 }
 SELF_TEST_TIMEOUT_S = 120
 # Round-56 routed defect 4 (round-55 spot-check, 'routed defects' item 4): the
@@ -240,6 +247,17 @@ INSTRUMENTS = {
     # one-word G9 witness and its supported-word control (234 -> 240).
     "scoped_rules_v32": ("verifiers/check_scoped_rules_v32.py", 240,
                          r"self-test:\s*(\d+) failure\(s\) over (\d+) assertions", 2, 1),
+    # Round 76 (D4 -- the r74 spot-check's routed defect 4, item 4): the two
+    # round-74 counters' self-tests were UNFLOORED, so an arm dropped from
+    # either file still read green with every gate passing -- the r62 F17
+    # class, re-found for these two instruments by the r74 closure. The floors
+    # are the landed counts: check_spec_craft.py --self-test 250 and
+    # check_sibling_reread.py --self-test 47 (r74 spot-check, 'routed
+    # defects' item 4; re-measured at the round-76 base, unchanged).
+    "spec_craft": ("verifiers/check_spec_craft.py", 250,
+                   r"self-test:\s*(\d+) failure\(s\) over (\d+) assertions", 2, 1),
+    "sibling_reread": ("verifiers/check_sibling_reread.py", 47,
+                       r"self-test:\s*(\d+) failure\(s\) over (\d+) assertions", 2, 1),
 }
 
 
@@ -819,10 +837,11 @@ def self_test() -> int:
         # F6 -- the registry's own declared size is load-bearing. The anchor is
         # the live registry's own declared total (round 49: 10; round 50: 11 with
         # sibling_census; round 51: 12 with overlap_levers; round 53: 13 with alwayson;
-        # round 58: 14 with correction_sweep; round 65: 15 with scoped_rules_v32),
+        # round 58: 14 with correction_sweep; round 65: 15 with scoped_rules_v32;
+        # round 76: 17 with spec_craft and sibling_reread),
         # including this guard's self-test); a stale literal here would stop landing
         # and the count-check would name it.
-        text = swap(registry_text, '"instrument_total": 15', '"instrument_total": 10',
+        text = swap(registry_text, '"instrument_total": 17', '"instrument_total": 10',
                     "F6/total")
         proc = run(write_tree(tmp / "f6", source, text), tmp / "f6")
         rec("F6 size drift: exit 2", proc.returncode == 2, proc.returncode)

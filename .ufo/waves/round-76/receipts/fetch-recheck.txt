@@ -1,0 +1,200 @@
+# Round 76 — independent second fetch recheck of the three agentskills.io skill-creation pages
+# Seat: B26FetchRecheck (round 76, wave 1)   Date: 2026-10-27
+# Client for this recheck: python3 urllib.request (stdlib), NOT curl — the wave's primary fetch
+#   (B03SnapshotFetch) used curl, so the two digest sets come from different HTTP client stacks.
+# Scratch bodies: /fast/scratch/hyaku/kotoba-r76/B26FetchRecheck/{optimizing-descriptions,evaluating-skills,best-practices}.body
+# Scratch removed before yield; the digests and byte counts below are the durable evidence.
+
+## Verdict
+
+verdict: fetch recheck agrees 3 of 3 — no drift
+
+All three pages were re-fetched independently and every recheck digest equals the digest pinned
+in .ufo/waves/round-76/snapshots/MANIFEST.sha256. No page drifted. Because the counter pins its
+own snapshot set, drift would have been a finding (report-only); there is none to record.
+
+## Method
+
+Command (scratch dir as cwd):
+
+```
+$ cd /fast/scratch/hyaku/kotoba-r76/B26FetchRecheck && python3 fetch.py
+```
+
+`fetch.py` uses `urllib.request.Request(url, headers={'User-Agent': 'kotoba-r76-B26FetchRecheck/1.0 (urllib; independent recheck)'})`,
+`urlopen(..., timeout=60)`, reads the full body, and records HTTP status, byte length and
+`hashlib.sha256(body).hexdigest()`. Raw response bodies were written to scratch only, never to the lane.
+Exit status of the fetch run: 0. All three requests returned HTTP 200.
+
+## Digest sets
+
+### A. Recheck set (python urllib, this seat, 2026-10-27T16:57:20Z–16:57:21Z)
+
+| page | url | http_status | bytes | sha256 (recheck) |
+|---|---|---|---|---|
+| optimizing-descriptions | https://agentskills.io/skill-creation/optimizing-descriptions.md | 200 | 13403 | `7cc54fbb6abbcf08c33e7b320fd01a1fb9696426270da3b588a398d243bfd837` |
+| evaluating-skills | https://agentskills.io/skill-creation/evaluating-skills.md | 200 | 16973 | `a799805f3a285390c1b6e906b691f56684fa1031b499d177f664f464d99fb684` |
+| best-practices | https://agentskills.io/skill-creation/best-practices.md | 200 | 15060 | `ab9f3b6091a0f24816b52cd7b90a3fdf53e621f47dba13b36694be272b87fb41` |
+
+### B. Wave set (MANIFEST.sha256 + fetch-record.json, as landed by B03SnapshotFetch)
+
+| filename | MANIFEST.sha256 | fetch-record.json sha256 | fetch-record http_status | fetch-record bytes | fetched_at |
+|---|---|---|---|---|---|
+| optimizing-descriptions.md | `7cc54fbb6abbcf08c33e7b320fd01a1fb9696426270da3b588a398d243bfd837` | `7cc54fbb6abbcf08c33e7b320fd01a1fb9696426270da3b588a398d243bfd837` | 200 | 13403 | 2026-10-27T16:57:56Z |
+| evaluating-skills.md | `a799805f3a285390c1b6e906b691f56684fa1031b499d177f664f464d99fb684` | `a799805f3a285390c1b6e906b691f56684fa1031b499d177f664f464d99fb684` | 200 | 16973 | 2026-10-27T16:57:57Z |
+| best-practices.md | `ab9f3b6091a0f24816b52cd7b90a3fdf53e621f47dba13b36694be272b87fb41` | `ab9f3b6091a0f24816b52cd7b90a3fdf53e621f47dba13b36694be272b87fb41` | 200 | 15060 | 2026-10-27T16:57:57Z |
+
+### C. Agree / drift per page
+
+| page | recheck sha256 | MANIFEST sha256 | fetch-record sha256 | on-disk snapshot sha256 | verdict |
+|---|---|---|---|---|---|
+| optimizing-descriptions.md | `7cc54fbb6abbcf08c33e7b320fd01a1fb9696426270da3b588a398d243bfd837` | `7cc54fbb6abbcf08c33e7b320fd01a1fb9696426270da3b588a398d243bfd837` | `7cc54fbb6abbcf08c33e7b320fd01a1fb9696426270da3b588a398d243bfd837` | `7cc54fbb6abbcf08c33e7b320fd01a1fb9696426270da3b588a398d243bfd837` | AGREE |
+| evaluating-skills.md | `a799805f3a285390c1b6e906b691f56684fa1031b499d177f664f464d99fb684` | `a799805f3a285390c1b6e906b691f56684fa1031b499d177f664f464d99fb684` | `a799805f3a285390c1b6e906b691f56684fa1031b499d177f664f464d99fb684` | `a799805f3a285390c1b6e906b691f56684fa1031b499d177f664f464d99fb684` | AGREE |
+| best-practices.md | `ab9f3b6091a0f24816b52cd7b90a3fdf53e621f47dba13b36694be272b87fb41` | `ab9f3b6091a0f24816b52cd7b90a3fdf53e621f47dba13b36694be272b87fb41` | `ab9f3b6091a0f24816b52cd7b90a3fdf53e621f47dba13b36694be272b87fb41` | `ab9f3b6091a0f24816b52cd7b90a3fdf53e621f47dba13b36694be272b87fb41` | AGREE |
+
+## Exact commands run and their outcomes
+
+```
+$ python3 fetch.py                              # exit 0; 3x HTTP 200
+$ sha256sum -c .ufo/waves/round-76/snapshots/MANIFEST.sha256   # exit 0
+optimizing-descriptions.md: OK
+evaluating-skills.md: OK
+best-practices.md: OK
+$ cmp <scratch>/optimizing-descriptions.body .ufo/waves/round-76/snapshots/optimizing-descriptions.md  # exit 0, byte-identical
+$ cmp <scratch>/evaluating-skills.body      .ufo/waves/round-76/snapshots/evaluating-skills.md      # exit 0, byte-identical
+$ cmp <scratch>/best-practices.body          .ufo/waves/round-76/snapshots/best-practices.md          # exit 0, byte-identical
+```
+
+Cross-round stability (same URLs, previously committed bytes in this lane):
+
+| page | prior committed copy | prior sha256 | recheck sha256 | verdict |
+|---|---|---|---|---|
+| optimizing-descriptions.md | `.ufo/waves/round-70/snapshots/S210-optimizing-descriptions.md` (also `.ufo/waves/round-74/w1/build/ExecQuarR74/raw/optimizing-descriptions.raw`) | `7cc54fbb6abbcf08c33e7b320fd01a1fb9696426270da3b588a398d243bfd837` | `7cc54fbb6abbcf08c33e7b320fd01a1fb9696426270da3b588a398d243bfd837` | identical — no drift since the r70/r74 pins |
+| evaluating-skills.md | `.ufo/waves/round-70/snapshots/S209-evaluating-skills.md` | `a799805f3a285390c1b6e906b691f56684fa1031b499d177f664f464d99fb684` | `a799805f3a285390c1b6e906b691f56684fa1031b499d177f664f464d99fb684` | identical — no drift |
+| best-practices.md | `.ufo/waves/round-74/snapshots/best-practices.md` | `ab9f3b6091a0f24816b52cd7b90a3fdf53e621f47dba13b36694be272b87fb41` | `ab9f3b6091a0f24816b52cd7b90a3fdf53e621f47dba13b36694be272b87fb41` | identical — no drift |
+
+The recheck bodies are byte-identical (`cmp` clean) to those older committed copies, so the three
+pages have not moved on the wire between 2026-10-25 and 2026-10-27.
+
+## Downstream cross-checks against the recheck bytes (read-only, no file changed)
+
+1. **S213 anchor sentence present, located.** `grep -n 'A should-trigger query passes if its trigger rate is above a threshold' <recheck optimizing-descriptions bytes>`
+   -> line 92, one occurrence. The full 17-word sentence
+   `A should-trigger query passes if its trigger rate is above a threshold (0.5 is a reasonable default).`
+   occurs verbatim at line 92 of the recheck bytes, under `### Running multiple times` (heading at line 88),
+   which is the anchor cell the S213 row already carries.
+   Heading precision (both descriptors are true; the narrower one matches the registry): the nearest
+   preceding heading is `### Running multiple times` at line 88, whose parent section is
+   `## Testing whether a description triggers` at line 77. The S213 anchor cell names exactly this
+   pair ("the 'Running multiple times' subsection of 'Testing whether a description triggers'"), so a
+   counter that records "the heading a quote sits under" should store the nearest preceding heading
+   (`### Running multiple times`) and may cite the parent section alongside it. Verified by
+   `awk 'NR>=77 && NR<=92 && /^#/' optimizing-descriptions.md` -> lines 77 and 88 only.
+2. **All 13 quotes in the wave's quote draft re-verified against the recheck bytes**
+   (`.ufo/waves/round-76/build/quotes-s213.md`, JSON block): every quote occurs exactly once, at the
+   line number the draft claims, after the page's first heading (line 5), with the word count the
+   draft claims (all <= 25), and absent from both sibling page bodies. Mismatches: 0.
+3. **Content-negotiation note (a real hazard for any counter that re-fetches).** The extension-less URL
+   `https://agentskills.io/skill-creation/optimizing-descriptions` serves a *different* representation
+   — HTTP 200, 344 074 bytes, sha256 `21f902dcd098212aa56bd3a1aa9246514fcc9a58e205407636d2fe18e39a9d59`,
+   `content-type: text/html; charset=utf-8` — versus the `.md` URL's 13 403 B /
+   `7cc54fbb…` / `text/markdown`. Any tool that fetches without the `.md` suffix gets different bytes
+   and a different digest. The pinned set is the `.md` rendering; a counter must compare against
+   `.md` digests only.
+4. **`Last-Modified` is not a drift signal for this host.** The server returns
+   `Last-Modified: <request time>` (e.g. `Tue, 27 Oct 2026 16:57:20 GMT` for a fetch made at
+   16:57:20Z) and no `ETag`; the `.md` rendering is generated on demand. Freshness for this page set
+   can only be argued from content digests, not from HTTP validators.
+
+## Findings
+
+- **F1 (observation, no action): no drift.** 3 of 3 pages agree across the two independent clients,
+  the manifest, the fetch record and the on-disk snapshot bytes. The snapshot chain's weakest link
+  (the wire bytes behind the digests) is reproduced.
+- **F2 (observation, for the counter author): the pinned digest table in `verifiers/check_desc_craft.py`
+  must carry the `.md`-variant digests** `7cc54fbb…` / `a799805f…` / `ab9f3b60…`. The `.md`
+  extension is load-bearing — the extension-less URL yields a 344 KB HTML body with a different
+  digest (downstream check 3). A counter that re-fetches by extension-less URL would report a
+  false drift.
+- **F3 (observation, for the counter author): the counter should not use `Last-Modified`/`ETag` as a
+  freshness input** for these pages — this host serves a per-request `Last-Modified` and no `ETag`
+  (downstream check 4).
+- **F4 (observation): the wave's snapshots dir landed filenames `<page>.md`**, whereas B03's brief
+  offered `.html` as the alternative name. The counter's file lookups must use the landed names
+  (`optimizing-descriptions.md`, `evaluating-skills.md`, `best-practices.md`); a `.html` lookup would
+  fail closed on files that exist.
+- **F5 (observation): the recheck client's fetch times (16:57:20Z–16:57:21Z) precede the wave's
+  recorded `fetch-record.json` times (16:57:56Z–16:57:57Z) by ~36 s**, both on 2026-10-27. Two
+  independent clients, ~36 s apart, identical digests — this also bounds the page-mutation window:
+  the three pages were stable across at least that interval.
+
+## Reproducibility — the exact recheck script (was scratch-only; reproduced here so the run is repeatable)
+
+```python
+#!/usr/bin/env python3
+"""Independent second fetch of three agentskills.io pages using python urllib
+(different client stack from the wave's curl fetch). Records HTTP status,
+byte length and sha256 of the raw response body."""
+import hashlib
+import json
+import sys
+import urllib.request
+import urllib.error
+from datetime import datetime, timezone
+
+PAGES = [
+    ("optimizing-descriptions", "https://agentskills.io/skill-creation/optimizing-descriptions.md"),
+    ("evaluating-skills", "https://agentskills.io/skill-creation/evaluating-skills.md"),
+    ("best-practices", "https://agentskills.io/skill-creation/best-practices.md"),
+]
+
+UA = "kotoba-r76-B26FetchRecheck/1.0 (urllib; independent recheck)"
+
+def fetch(url):
+    req = urllib.request.Request(url, headers={"User-Agent": UA})
+    try:
+        with urllib.request.urlopen(req, timeout=60) as resp:
+            body = resp.read()
+            return resp.status, dict(resp.headers), body
+    except urllib.error.HTTPError as e:
+        body = e.read() if hasattr(e, "read") else b""
+        return e.code, dict(e.headers or {}), body
+
+def main():
+    out = []
+    for name, url in PAGES:
+        status, headers, body = fetch(url)
+        rec = {
+            "name": name,
+            "url": url,
+            "fetched_at_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "http_status": status,
+            "bytes": len(body),
+            "sha256": hashlib.sha256(body).hexdigest(),
+            "content_type": headers.get("Content-Type"),
+            "etag": headers.get("ETag"),
+            "last_modified": headers.get("Last-Modified"),
+            "client": "python-urllib",
+        }
+        out.append(rec)
+        print(json.dumps(rec), file=sys.stderr)
+        with open(f"/fast/scratch/hyaku/kotoba-r76/B26FetchRecheck/{name}.body", "wb") as f:
+            f.write(body)
+    with open("/fast/scratch/hyaku/kotoba-r76/B26FetchRecheck/recheck.json", "w") as f:
+        json.dump(out, f, indent=1)
+    print(json.dumps(out, indent=1))
+
+if __name__ == "__main__":
+    main()
+```
+
+## Limits
+
+- This seat fetched and hashed only; it changed no lane file except this receipt and its own report.
+- No agent client was run against any of the three pages; nothing here supports a measured
+  trigger-rate claim (eval-fidelity stays held per the round-76 plan).
+- The recheck proves the *bytes* are stable and reproducible; it does not adjudicate whether the
+  pages' guidance is correctly characterised by the entry — that is the named attack seats' work.
+- `sha256sum -c` was run against the wave manifest, not against any frozen counter; no frozen
+  counter for round 76 exists yet (`verifiers/check_desc_craft.py` is not on disk at recheck time).
+

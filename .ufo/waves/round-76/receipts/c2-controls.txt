@@ -1,0 +1,30 @@
+# C2 control worlds — check_r75_routed_repairs.py
+
+counter: verifiers/check_r75_routed_repairs.py
+counter sha256: a5f1409d4a72f83da5759ff8da6b47535a9eb30e62b05621028ecfeb051dab4e
+control: C2-W1 token dump (right filenames, forged/empty content)
+control fixture: shared clone of the lane at base b7f13f4b39cbd43076a85568adca763a6f674e7a + one commit adding the four expected artifacts with forged/empty content
+control commit: ed92f3e1bd92a321f63816e8eaa0430fe73d2cc6
+
+$ python3 -B verifiers/check_r75_routed_repairs.py --repo . --rev ed92f3e1bd92a321f63816e8eaa0430fe73d2cc6
+measured-rev: ed92f3e1bd92a321f63816e8eaa0430fe73d2cc6
+R1: open
+R2: open
+R3: open
+R4: closed
+r75 routed repairs closed 1 of 4
+  - R1: the appended correction names no superseded M75-1 text (it must quote ('1,021/1,024 characters', 'substantially shorter'))
+  - R1: the appended correction names no Gate reject candidate (it must quote ('1021-character description size', 'materially shorter'))
+  - R1: .ufo/waves/round-76/receipts/r1-folded-render.txt names no measured revision
+  - R2: the revision 0000000000000000000000000000000000000000 named by .ufo/waves/round-76/receipts/noharm-at-tip.txt is not an ancestor of the measured revision
+  - R2: .ufo/waves/round-76/receipts/noharm-at-tip.txt names 0000000000000000000000000000000000000000, which is not at or after the round-75 tip ac9f29510d3914a6edb97c8dbdb3445cab9141de
+  - R2: .ufo/waves/round-76/receipts/noharm-at-tip.txt carries no green verdict line for verify_corpus_integrity.py
+  - R2: .ufo/waves/round-76/receipts/noharm-at-tip.txt carries no green verdict line for verify_corpus_independent.py
+  - R2: cannot re-run the corpus gates at 0000000000000000000000000000000000000000: cannot check out 0000000000000000000000000000000000000000 in the sandbox
+  - R2: LOG.md § Round 75 does not cite .ufo/waves/round-76/receipts/noharm-at-tip.txt
+  - R3: the note carries no machine-checkable excerpt (>=20-character verbatim window) of the R75Attack28 results entry
+  - R3: the note records no `63 of 64` report-file/seat pair
+  - R3: LOG.md § Round 75 does not cite .ufo/waves/round-76/w2-registry-note.md
+exit=1
+
+verdict: the token-dump world is REJECTED (exit 1; r75 routed repairs closed 1 of 4).

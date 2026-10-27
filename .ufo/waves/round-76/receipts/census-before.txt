@@ -1,0 +1,121 @@
+CENSUS BEFORE — round 76, seat B25Census
+measured at base revision b7f13f4b39cbd43076a85568adca763a6f674e7a
+lane repo: /home/vgpnk/Projects/shokunin/kotoba-shokunin
+census tool: /home/vgpnk/Projects/shokunin/scripts/sources-census.sh (sha256 below)
+date (UTC): 2026-10-27
+
+== command (fleet-root lane run, as specified)
+$ /home/vgpnk/Projects/shokunin/scripts/sources-census.sh validate --root /home/vgpnk/Projects/shokunin kotoba
+kotoba	W04	S018 duplicate url agentskills.io/specification across scopes
+kotoba	W04	S019 duplicate url platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices across scopes
+kotoba	W04	S021 duplicate url learn.chatgpt.com/docs/build-skills across scopes
+kotoba	W04	S054 duplicate url learn.chatgpt.com/docs/build-skills across scopes
+kotoba	W04	S055 duplicate url code.visualstudio.com/docs/agent-customization/agent-skills across scopes
+kotoba	W04	S056 duplicate url docs.github.com/en/copilot/reference/copilot-cli-reference/cli-command-reference across scopes
+kotoba	W04	S065 duplicate url code.claude.com/docs/en/skills.md across scopes
+kotoba	W04	S086 duplicate url developers.openai.com/plugins/build/plugins.md across scopes
+kotoba	W04	S103 duplicate url code.claude.com/docs/en/memory.md across scopes
+kotoba	W04	S104 duplicate url learn.chatgpt.com/docs/agent-configuration/agents-md.md across scopes
+kotoba	W04	S106 duplicate url docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-custom-instructions.md across scopes
+kotoba	W04	S110 duplicate url code.claude.com/docs/en/hooks.md across scopes
+kotoba	W04	S111 duplicate url learn.chatgpt.com/docs/hooks.md across scopes
+kotoba	W04	S114 duplicate url docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-custom-instructions.md across scopes
+kotoba	W04	S115 duplicate url cursor.com/docs/rules across scopes
+kotoba	W04	S118 duplicate url code.claude.com/docs/en/memory.md across scopes
+kotoba	W04	S207 duplicate url opencode.ai/docs/skills across scopes
+kotoba	W04	S208 duplicate url learn.microsoft.com/en-us/agent-framework/agents/skills across scopes
+kotoba	W04	S212 duplicate url agentskills.io/skill-creation/evaluating-skills.md across scopes
+kotoba	W04	S213 duplicate url agentskills.io/skill-creation/optimizing-descriptions.md across scopes
+kotoba	ok	/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md
+exit=0
+
+== command (base-pinned tree, independent of the working tree)
+$ git archive b7f13f4b39cbd43076a85568adca763a6f674e7a | tar -x -C <scratch>/baseroot/kotoba-shokunin
+$ /home/vgpnk/Projects/shokunin/scripts/sources-census.sh validate --root <scratch>/baseroot kotoba
+<same 20 W04 lines, same id set, in the same order>
+kotoba	ok	<scratch>/baseroot/kotoba-shokunin/corpus/SOURCES.md
+exit=0
+
+== row count
+$ cd /home/vgpnk/Projects/shokunin/kotoba-shokunin && grep -cE '^ {0,3}\|[[:space:]]*S[0-9]{3,}[[:space:]]*\|' corpus/SOURCES.md
+151
+
+== W04 warning count
+$ grep -c 'W04' <validate stdout>
+20
+W-code classes present: W04 only (20). E-code findings: 0.
+W04 id set: S018 S019 S021 S054 S055 S056 S065 S086 S103 S104 S106 S110 S111 S114 S115 S118 S207 S208 S212 S213
+
+== census mode totals (same tree, read-only)
+$ /home/vgpnk/Projects/shokunin/scripts/sources-census.sh census --root /home/vgpnk/Projects/shokunin kotoba
+kotoba	rows	151
+kotoba	tier.A	134
+kotoba	tier.B	16
+kotoba	tier.C	1
+kotoba	status.mined	143
+kotoba	status.queued	7
+kotoba	status.rejected	1
+FLEET	rows	151
+FLEET	tier.A	134
+FLEET	tier.B	16
+FLEET	tier.C	1
+FLEET	tier.invalid	0
+FLEET	status.queued	7
+FLEET	status.mined	143
+FLEET	status.rejected	1
+FLEET	status.invalid	0
+FLEET	missing	0
+exit=0
+
+== base-identity proof for corpus/SOURCES.md (the census's only input)
+$ git show b7f13f4b39cbd43076a85568adca763a6f674e7a:corpus/SOURCES.md | sha256sum
+4176098c8976114161c29a4b3fbe4dea94202cc6ce58aed8a11d9c91b9c6ff57  -
+$ git show 4de12b61f75c73e3675ef0e422cc2be0f7da8960:corpus/SOURCES.md | sha256sum   # tip HEAD
+4176098c8976114161c29a4b3fbe4dea94202cc6ce58aed8a11d9c91b9c6ff57  -
+$ sha256sum corpus/SOURCES.md                                                       # live worktree
+4176098c8976114161c29a4b3fbe4dea94202cc6ce58aed8a11d9c91b9c6ff57  corpus/SOURCES.md
+$ git diff --stat b7f13f4b39cbd43076a85568adca763a6f674e7a HEAD -- corpus/
+(no output — corpus/ is byte-identical base..tip)
+
+== census tool digest
+$ sha256sum /home/vgpnk/Projects/shokunin/scripts/sources-census.sh
+3fb7261569f46423dd80ecc23e0a23789a7926f667c7a3fc559d2439d4a64e30  scripts/sources-census.sh   (806 lines)
+
+== finding-set equality check (base tree vs live fleet root)
+$ diff <(grep -v '	ok	' base-tree-validate.out) <(grep -v '	ok	' live-validate.out)
+(no output — ALL-FINDINGS-IDENTICAL; W04-SETS-IDENTICAL)
+
+== freshness / carry-forward comparison
+$ grep 'W04' .ufo/waves/round-74/receipts/census-before.txt | awk -F'\t' '{print $3}' | awk '{print $1}' | sort
+$ grep 'W04' <this receipt's validate stdout>       | awk -F'\t' '{print $3}' | awk '{print $1}' | sort
+diff -> no output: W04-ID-SET-UNCHANGED-since-r74
+W04 count at round-74 receipt: 20; at round-76 base: 20. Row count at round-74
+receipt: 148; at round-76 base: 151. The +3 is round 74's own landing, not
+round 75: the round-74 receipt is a *before* census (148 rows at r74 base);
+r74's data commit 2c81137 ("round-74: C1 and C2 data — entries, S223-S225")
+brought the registry to 151, and round 75 added no registry row.
+$ git show 2c81137:corpus/SOURCES.md | grep -cE '^ {0,3}\|[[:space:]]*S[0-9]{3,}[[:space:]]*\|'
+151
+The W04 id set itself (including S210/S212/S213) is unchanged from r74.
+
+== SEQUENCING CONSTRAINT measured for C1 (the S213 used-by cell)
+The plan's C1 conjunct (e) requires row S213's `used-by` to name
+`corpus/knowledge/description-craft-round76.md`. The census resolves every
+`used-by` path on disk (E11) and a dangling path is an E-code finding, i.e.
+exit 1. Measured on a scratch copy of the base tree:
+  (i) S213 used-by patched to add `corpus/knowledge/description-craft-round76.md`
+      while that file does NOT exist:
+        kotoba	E11	S213 missing used-by corpus/knowledge/description-craft-round76.md
+        exit=1
+  (ii) same patched row, with a placeholder file at that path present:
+        kotoba	ok	.../corpus/SOURCES.md
+        exit=0
+So the registry edit and the entry file MUST land together: the corpus/knowledge
+entry `corpus/knowledge/description-craft-round76.md` has to exist in the same
+commit (or an earlier one) as the S213 used-by cell, or the census flips red.
+This is a land-ordering constraint on the C1 landing, measured on a scratch copy
+only; no lane file was modified by this seat.
+
+Row count is unaffected by the used-by edit (grep count stays 151; census
+`rows` stays 151): the edit changes the used-by cell, not the number of rows.
+

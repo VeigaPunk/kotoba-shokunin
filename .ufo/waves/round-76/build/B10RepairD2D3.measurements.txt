@@ -1,0 +1,174 @@
+# B10RepairD2D3 — measurement log (round 76, 2026-10-27)
+
+Every line below is a command actually run and the output actually produced. Nothing here is inferred. The lane tree
+itself was never modified: all four states were measured in a scratch clone at
+`/fast/scratch/hyaku/kotoba-r76/B10RepairD2D3/kotoba-shokunin`, and the two drafts were verified with
+`git apply --check` only.
+
+## 0. Harness notes (for the reader reproducing this)
+
+- The clone is `git clone --shared` of the lane and is named **`kotoba-shokunin`** on purpose: the checklist's
+  `trigger.name_directory` check compares the frontmatter `name` with the directory name, so a clone named `lane`
+  fails it spuriously (observed: `FAIL name 'kotoba-shokunin' != directory 'lane'`).
+- `verify_skill_checklist.py` resolves `../…` citation tokens against the clone's parent, so the parent was populated
+  with symlinks to the fleet's `.ufo`, `*-shokunin` (only `kasegi-shokunin` is cited by `LOG.md`), `PROTOCOL.md`,
+  `AXES.md`, `CORPUS.md`, `MISSION.md`, `SCORECARD.md`. With that shim the clone reproduces the lane's own numbers
+  exactly at `4de12b6` (checked: same 11 pass, same subject counts).
+- Exit codes: several of these counters break when stdout is redirected to a file in this environment; they were run
+  through a pipe and `PIPESTATUS[0]`/direct invocation was read. The lane's own base-battery receipt shows the
+  masking this produces — see §4.
+- Nothing under `/tmp` is cited as evidence; all numbers below were reproduced in the clone or the lane itself.
+
+## 1. The two commit facts D2 needs
+
+```
+$ git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin log -1 --format='%H%n%an%n%ad%n%B' d5aebcf
+d5aebcf51c394435e768461001a2d0cc8f67fe3a
+kotoba-shokunin
+Sun Oct 25 23:16:44 2026 -0300
+hyaku run 7 interrupted: in-flight snapshot committed by the orchestrator (not a landing); lane L1 resumes from here
+
+$ git show --name-only --format='' d5aebcf | grep -c .          → 394
+$ git log -1 --format='%H %P' d5aebcf
+d5aebcf51c394435e768461001a2d0cc8f67fe3a d919179c63925e27f0d047ccccfc30b49cfe9766
+$ git merge-base --is-ancestor d919179 d5aebcf                  → exit 0
+$ git merge-base --is-ancestor d5aebcf 2c81137                  → exit 0
+$ git log --oneline -2 d5aebcf
+d5aebcf hyaku run 7 interrupted: in-flight snapshot committed by the orchestrator (not a landing); lane L1 resumes from here
+d919179 round-74: freeze 2 — counters check_spec_craft.py and check_sibling_reread.py, addendum 1 (E1), registry rows, control self-tests
+$ git grep -n d5aebcf HEAD -- LOG.md; echo $?                   → 1   (absent)
+```
+
+## 2. The four measured states
+
+`base` = `4de12b61f75c73e3675ef0e422cc2be0f7da8960` (wave tip) · `declaredbase` = `b7f13f4b39cbd43076a85568adca763a6f674e7a`
+(the plan's base) · `formA` = `fe3ef005ffe6ae8b6b989d028bb413799e397056` (D2 bullet in § Round 74 + D3 tail append) ·
+`formB` = `47a2f926b6f09873de93f01ef7da7b5690354de8` (D2 tail correction section + D3 tail append).
+
+| gate | base | declaredbase | formA | formB |
+|---|---|---|---|---|
+| `verify_corpus_integrity.py --json` | exit 1 | exit 1 | exit 1 | exit 1 |
+| `verify_corpus_independent.py --json` | exit 1 | exit 1 | exit 1 | exit 1 |
+| `verify_skill_checklist.py --json` | exit 0 · 11 pass · governance 1301 | exit 0 · 11 pass · 1301 | exit 0 · 11 pass · 1302 | exit 0 · 11 pass · 1302 |
+| `check_sibling_census.py …round49… --province PROVINCE.md` | exit 1 · 16 FAIL · rows 20 verified 20 · province 4 | exit 1 · 16 FAIL · rows 20 verified 20 · province 4 | exit 1 · 16 FAIL · rows 20 verified 20 · province 4 | exit 1 · 16 FAIL · rows 20 verified 20 · province 4 |
+| `check_sibling_census.py …round74… --province PROVINCE.md` | exit 0 · 20/20 · 20 matched 20 | exit 0 · 20/20 · 20 matched 20 | exit 0 · 20/20 · 20 matched 20 | exit 0 · 20/20 · 20 matched 20 |
+| `check_r63_routed_repairs.py --rev <tip>` | exit 0 · 5 of 5 · `append-only prefix=True grew_by=244` | exit 0 · 5 of 5 · grew_by=244 | exit 0 · 5 of 5 · grew_by=246 | exit 0 · 5 of 5 · grew_by=248 |
+| `check_r67_routed_repairs.py --rev <tip>` | exit 1 · 3 of 4 (D4 baseline) | — | exit 1 · 3 of 4 | exit 1 · 3 of 4 |
+| `check_r69_routed_repairs.py --rev <tip>` | exit 1 · 9 of 10 (K69-11) | — | exit 1 · 9 of 10 | exit 1 · 9 of 10 |
+| `check_r69_routed_repairs_v2.py --rev <tip>` | exit 1 · 8 of 10 (K69-3, K69-11) | — | exit 1 · 8 of 10 | exit 1 · 8 of 10 |
+
+**Delta from the two drafts: none on any gate**, except the two that *should* move and are benign —
+`governance.citation_resolves` 1301 → 1302 (one added backticked `corpus/…` subject, which resolves) and r63's
+`grew_by` line count (+2 for Form A, +4 for Form B).
+
+## 3. The four pre-existing corpus DRIFTs (identical in all four states)
+
+```
+$ python3 -B verifiers/verify_corpus_integrity.py --json | python3 -c "…print failures…"
+FAIL corpus.index.tracked_files   145        144
+FAIL corpus.index.unindexed       1          "0 / empty"     (corpus/lessons/round-75-verifier-spotcheck.md)
+FAIL corpus.pointers.report_total 101        99
+FAIL corpus.pointers.commit_total 44         43
+exit 1  (PIPESTATUS[0]=1)
+```
+
+`verify_corpus_independent.py --json` reports the same four (expected `None` there). Root cause, from the committed
+baseline's own note: `verifiers/corpus-baseline.json` records `measured_against` = a round-75 refresh "from
+`--no-baseline --json` on base `65a5c7a` with r75 additions: tracked_files 142 -> 144 … report_total 97 -> 99 …
+commit_total remains 43". The r75 closure commit `b7f13f4` then landed
+`corpus/lessons/round-75-verifier-spotcheck.md` (tracked, so 144 → 145) with **no `corpus/README.md` index row**
+(`grep -c round-75-verifier-spotcheck corpus/README.md` → 0) and **no baseline re-record** (report_total 99 → 101,
+commit_total 43 → 44). The state is therefore red at the declared base itself, before any round-76 file exists.
+
+Both gates are in the plan's no-harm battery, and C2's **R2** requires a receipt in which they "read green".
+
+## 4. Base-battery receipt vs reality (`base-battery/base-battery.txt`, 2026-10-27T13:42:12-03:00)
+
+The receipt records:
+
+```
+== python3 -B verifiers/verify_corpus_integrity.py --json
+    }
+  ]
+}
+exit=0
+== python3 -B verifiers/verify_corpus_independent.py --json
+    }
+  ]
+}
+exit=0
+```
+
+Those two blocks are the *last three lines of the JSON plus `exit=0`* — the shape a `… --json | tail -3; echo
+exit=$?` pipeline produces (the `exit` is `tail`'s, not the verifier's). Re-running the exact command at the exact
+base without a pipe gives `exit 1` and the four DRIFTs in §3. The other receipt entries (gate registry 60 of 60, floors
+89/25/240, checklist 11 pass, spec craft 3 of 3, sibling reread 20 of 20) are reproducible and carry full output.
+
+## 5. The two census states, line-for-line
+
+```
+base      : 16 FAIL lines, rows 20 verified 20, province rows 20 matched 4, exit 1
+formA/B   : 16 FAIL lines, rows 20 verified 20, province rows 20 matched 4, exit 1
+diff of FAIL sets : empty
+breakdown : 15 × "commit … does not match the census …" + 1 × "tsukuroi classification 'adjacent' does not match the census 'none'"
+```
+
+## 6. Append-only prefix measurements (`LOG.md`)
+
+```
+base LOG bytes 561739 (b7f13f4) · 561739 (4de12b6, identical) · 2810 lines
+formA LOG bytes 562479 · first difference from base at byte offset 560524
+formB LOG bytes 562533
+
+starts-with b7f13f4 LOG : base True · formA False · formB True
+starts-with 4de12b6 LOG : base True · formA False · formB True
+starts-with 35d44b4 LOG (r63 counter's base, 514498 B) : formA True
+starts-with 078eec4 LOG (r64 counter's base, 524179 B) : formA True
+starts-with 7d51253 LOG (r69v2 counter's base, 550270 B): formA True
+starts-with 65a5c7a LOG (r75 base, 560524 B)           : formA True
+```
+
+Pinned `LOG.md` lines keep their bytes under Form A (sha256 of the line, first 16 hex):
+
+```
+LOG.md:2111  7dcbf123313d46c4  before and after
+LOG.md:2678  d7f442ed89197de3  before and after
+```
+
+No committed verifier keys a `LOG.md` line above 2803: `grep -rn 'LOG\.md:2[89][0-9][0-9]' verifiers/ corpus/ LOG.md`
+→ no hits.
+
+## 7. Patch application
+
+```
+$ git -C <clone> apply --check …/B10RepairD2D3.formA.patch   → clean at 4de12b6
+$ git -C <clone> apply --check …/B10RepairD2D3.formB.patch   → clean at 4de12b6
+```
+
+Patch sha256:
+
+```
+60b9e410615e2a474d154105df0dcafebe21196e8a42fc02173a74683eccf75d  B10RepairD2D3.formA.patch
+01afc7d7b302832e188d0d96e6bac4adc8b46f1cafd3cea0b8dda816257977c9  B10RepairD2D3.formB.patch
+```
+
+## 8. Ancillary checks used in the drafts
+
+```
+$ awk 'NR==43||NR==246||NR==416||NR==466{printf "%d: %s\n", NR, substr($0,1,70)}' corpus/knowledge/sibling-overlap-census-round49.md
+43:  ## Classification rule
+246: ## Round 50: precedence between `contested` and a stated split (routed
+416: ## Round 51 status of the precedence rule (routed D6)
+466: are in `skill-overlap-levers-round51.md`.
+
+$ grep -c 'round-74\|round74\|Round 74' corpus/knowledge/sibling-overlap-census-round49.md    → 0 (exit 1)
+$ git ls-files corpus/knowledge/sibling-overlap-census-round74.md                            → tracked
+$ grep -n 'One class changes' corpus/knowledge/sibling-overlap-census-round74.md             → :29 "tsukuroi `none` → `adjacent` (basis kotoba)"
+$ grep -n 'Classes now' corpus/knowledge/sibling-overlap-census-round74.md                   → :26 "10 adjacent, 10 none, 0 contested … round 49 had 9 adjacent and 11 none"
+```
+
+## 9. Lane state at the end of this seat
+
+The lane's own working tree was not written by this seat. Observed concurrently (not mine): `M
+verifiers/floors-registry.json` and untracked `.ufo/waves/round-76/{build,receipts,snapshots,w1}` — other seats of the
+wave. No git/jj mutation was issued in the lane.

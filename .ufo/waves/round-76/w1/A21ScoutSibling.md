@@ -1,0 +1,5 @@
+# Sibling overlap scan — description-craft / trigger-evaluation
+
+**STRICT_HITS: 0** (path:line: none). Scanned the 20 sibling repositories’ root `SKILL.md` and `PROVINCE.md` files (38 files; audio and game-dev-2d have only `PROVINCE.md`) for direct description-craft / skill-description guidance or trigger-evaluation claims relevant to C1’s S213 description-writing guidance. Search terms included `description`, `trigger`, `description-craft`, `optimizing-descriptions`, `agentskills.io`, `S213`, `should-trigger`, and trigger-evaluation variants.
+
+The broad terms return unrelated uses (domain descriptions, runtime trigger mechanisms, and ordinary skill frontmatter). These are not STRICT_HITS because they do not make a competing claim about crafting or evaluating skill descriptions. Examples excluded: audio’s runtime game triggers (`audio-shokunin/PROVINCE.md:26-27`); kengaku routing prompt/skill craft to kotoba while owning measured prompt-format effects (`kengaku-shokunin/PROVINCE.md:30-32`); and mori’s PSI trigger watcher (`mori-shokunin/SKILL.md:637-640`). Kotoba’s own references were not counted as sibling hits.

@@ -1,0 +1,163 @@
+SEAT B22ChecklistImpact — checklist-fidelity base receipt (round 76)
+===================================================================
+Claim touched: C1 (depth, description-craft) — no C2 content.
+Written by: seat B22ChecklistImpact (executor, leaf).
+Lane: /home/vgpnk/Projects/shokunin/kotoba-shokunin
+
+BASE REVISION MEASURED
+----------------------
+b7f13f4b39cbd43076a85568adca763a6f674e7a   (round-75 closure spot-check tip = round-76 base)
+
+How the base was materialized (the lane working tree is at 4de12b6 = base + the
+r76 plan/spec commits, which touch no SKILL.md, no verifiers/checklist-baseline.json
+and no verifiers/verify_skill_checklist.py — see "BYTE-IDENTITY" below, so the
+base is reproduced two ways that must agree):
+
+  (1) fleet-shaped clone at the base revision:
+        git clone --shared --no-checkout <lane> $S/basewt/kotoba-shokunin
+        git -C $S/basewt/kotoba-shokunin checkout b7f13f4b39cbd43076a85568adca763a6f674e7a
+      plus a fleet-shaped parent ($S/fleetbase/) holding symlinks to the fleet
+      root's PROTOCOL.md, AXES.md, CORPUS.md, LOG.md, SCORECARD.md, AGENTS.md,
+      MISSION.md, ROADMAP.md, README.md, PROTOCOL-APPENDIX.md, LEARNING.md, .ufo,
+      kasegi-shokunin, shared, guard-world, scripts, templates — the lane's own
+      `../<token>` citations resolve from there).  The clone directory is named
+      `kotoba-shokunin`, as trigger.name_directory requires.
+
+  (2) the lane working tree itself (SKILL.md, verifiers/checklist-baseline.json
+      and verifiers/verify_skill_checklist.py are byte-identical between the base
+      revision and the current HEAD, so this is the same measurement).
+
+COMMAND AND RESULT (base, fleet-shaped clone, cwd = the clone root)
+-------------------------------------------------------------------
+  $ python3 -B verifiers/verify_skill_checklist.py --json
+  {
+    "checks": [
+      { "detail": "45 boxes mapped (8 executed, 4 delegated, 33 unexecuted); delegated verifiers/verify_dispatch_prompts.py: --box-proof exit 0: boxes proven 2; delegated verifiers/verify_alwayson.py: --box-proof exit 0: boxes proven 2",
+        "evaluated": 45, "id": "checklist.box_map_complete", "status": "PASS" },
+      { "detail": "frontmatter parses: name='kotoba-shokunin', description 1021 chars",
+        "evaluated": 4, "id": "trigger.frontmatter_parses", "status": "PASS" },
+      { "detail": "name 'kotoba-shokunin' == directory 'kotoba-shokunin'",
+        "evaluated": 1, "id": "trigger.name_directory", "status": "PASS" },
+      { "detail": "description carries literal 'Triggers:'",
+        "evaluated": 1, "id": "trigger.literal_trigger_string", "status": "PASS" },
+      { "detail": "exclusion marker 'Anti-triggers' present (vocabulary test, not semantics: a vacuous 'Never use this skill.' passes and an unlisted real exclusion fails)",
+        "evaluated": 1, "id": "trigger.anti_trigger_clause", "status": "PASS" },
+      { "detail": "no XML tag in name, description (S019 Anthropic rule, absent from the open spec (S018), approximated lexically on the unparsed text; Anthropic's packager (S012) bans any '<'/'>' in the parsed value, and the two disagree in both directions (corpus/knowledge/frontmatter-rule-authorities-round48.md))",
+        "evaluated": 2, "id": "trigger.no_xml_tag", "status": "PASS" },
+      { "detail": "590 lines within budget 600 (from box at line 285)",
+        "evaluated": 590, "id": "trigger.line_budget", "status": "PASS" },
+      { "detail": "no placeholder markers in 525 scanned lines",
+        "evaluated": 525, "id": "trigger.no_placeholder", "status": "PASS" },
+      { "detail": "18 segments; 31 command subject(s) resolve",
+        "evaluated": 31, "id": "trigger.command_binary_resolves", "status": "PASS" },
+      { "detail": "205 repo-rooted citation token(s) resolve from the repo root",
+        "evaluated": 205, "id": "trigger.citation_resolves", "status": "PASS" },
+      { "detail": "1301 governance citation token(s) resolve across 2 files; 10 quoted meta-finding(s), 3 schematic token(s) excluded, 2 recorded absence(s) excused, 4 recorded correction(s) excused",
+        "evaluated": 1301, "id": "governance.citation_resolves", "status": "PASS" }
+    ],
+    "exit_code": 0,
+    "fail": 0,
+    "na": 0,
+    "pass": 11
+  }
+  exit=0
+
+CONFIRMED: pass 11, fail 0, na 0, exit 0 at base b7f13f4.
+
+Same command in the lane working tree (SKILL.md / checklist-baseline.json /
+verify_skill_checklist.py byte-identical to the base revision):
+
+  $ python3 -B verifiers/verify_skill_checklist.py --json
+  "pass": 11, "fail": 0, "na": 0, "exit_code": 0
+  exit=0
+
+BYTE-IDENTITY (base -> lane HEAD 4de12b61f75c73e3675ef0e422cc2be0f7da8960)
+----------------------------------------------------------------------
+  $ git diff --stat b7f13f4b39cbd43076a85568adca763a6f674e7a..HEAD -- \
+        SKILL.md verifiers/checklist-baseline.json verifiers/verify_skill_checklist.py
+  (empty — no output)
+  Full-tree diff base..HEAD touches only:
+    .ufo/waves/round-76/base-battery/base-battery.txt
+    .ufo/waves/round-76/w1-dispatch.json
+    .ufo/waves/round-76/w1-spec.json
+    .ufo/waves/round-76/w1.ready
+    plans/round-76.md
+  => the checklist measurement is the same at base and at the current HEAD.
+
+CHECKLIST INVENTORY AT BASE (for the impact comparison)
+-------------------------------------------------------
+  live boxes in SKILL.md            : 45   (near-miss markers: 0)
+  by section: Trigger-fidelity 19 | Agent-definition 9 | Dispatch-prompt 9 | Always-on 8
+  verifiers/checklist-baseline.json : schema kotoba-checklist-v1, 45 entries, box_total 45
+  SKILL.md length                   : 590 lines (line-budget box threshold 600)
+
+FLEET-SHAPED SANDBOX CAVEAT (recorded so the numbers are not misread)
+---------------------------------------------------------------------
+A bare `git archive`/`git clone` of the lane into a directory NOT named
+`kotoba-shokunin` and NOT under a fleet-shaped parent does NOT reproduce the
+base result: it reads `trigger.name_directory` FAIL ('kotoba-shokunin' !=
+'<dirname>'), `trigger.citation_resolves` FAIL (the lane's own `../.ufo/...`
+tokens have no fleet root above them) and `governance.citation_resolves` FAIL.
+That is a sandbox-shape artifact, not a base defect; the fleet-shaped parent
+plus the correct directory name removes all three and yields pass 11.
+Recorded because a bare clone is the tempting shortcut.
+
+MEASURED ON THE PLANNED PATCH (round-76 C1, build/skill-patch.md)
+------------------------------------------------------------------
+Applied to a scratch copy of the base (never to the lane):
+  § Body craft preamble (base lines 206-207) replaced by the 4-line Pin-1 block;
+  Pin-2 rule row inserted after base line 216 (the 'confirm discovery' row);
+  Pin-3 two gate-registry rows appended after base line 512 (the
+  check_sibling_reread row).
+
+  SKILL.md length        : 590 -> 595 lines  (budget box threshold 600; margin 5)
+  live boxes             : 45 -> 45          (unchanged)
+  near-miss markers      : 0  -> 0           (unchanged)
+  box (section, sha256) set: IDENTICAL to base (new boxes: []; removed boxes: [])
+  diff of the whole `## Trigger-fidelity checklist` region (base vs patched):
+      IDENTICAL (byte-for-byte)
+
+  => NO trigger-fidelity checklist box is added, reworded or reordered.
+     verifiers/checklist-baseline.json therefore needs NO addition: it stays at
+     45 entries / box_total 45, and every box text hash still matches.
+
+  The only checklist-surface movement the patch causes is INDIRECT and is a
+  property of the file, not of the boxes:
+    - trigger.line_budget re-reads the threshold from the box and now measures
+      595 lines (was 590) — still PASS, margin 5 lines;
+    - trigger.no_placeholder now scans 530 lines (was 525) — still PASS;
+    - trigger.citation_resolves gains 5 new repo-rooted tokens
+      (corpus/knowledge/description-craft-round76.md, verifiers/check_desc_craft.py,
+       verifiers/check_r75_routed_repairs.py, corpus/lessons/round-75.md,
+       .ufo/waves/round-76/snapshots/MANIFEST.sha256).  They resolve only once
+       the wave's own claim files land; with the entry, the two counters and
+       the snapshot directory present, the patched tree reads pass 11 / exit 0
+       (measured — see the seat report).
+
+  ADJACENCY measured on the patched tree: check_spec_craft.py --rev <patched>
+  -> "spec craft pages backed 3 of 3", exit 0 (the new Body craft row does not
+  disturb the r74 counter); check_author_rules.py --rev <patched> ->
+  "author-facing rules in SKILL.md 4 of 4", exit 0 (it counts only boxes whose
+  tail names a round-69/70 entry, so a new description-craft box would not
+  collide with it).
+
+  Counterfactual, IF A BOX WERE ADDED (measured, not asserted):
+    Adding one box to `## Trigger-fidelity checklist` without touching the
+    map reads FAIL "unmapped box at line 288 (section 'Trigger-fidelity
+    checklist', sha256 50e478515ee7…)" and the run drops to pass 9 / fail 2.
+    The exact baseline addition required is ONE map entry plus a box_total bump:
+      { "box_id": "trigger.20",
+        "section": "Trigger-fidelity checklist",
+        "text_sha256": "<sha256 of the verifier's normalized box text>",
+        "disposition": "unexecuted:<reason>" }
+      and "box_total": 45 -> 46.
+    With that entry and that bump the run returns to pass 11 / exit 0.
+    Leaving box_total at 45 is NOT sufficient: the loader raises MapError
+    ("box_total 45 is below the declared entry count 46") and the gate exits 3
+    with pass 0 — the map's own floor is a two-sided contract.
+    The sha256 above is specific to the hypothetical box text used in this
+    probe; a real box would carry its own text hash.
+
+NO LANE MUTATION: this receipt is the only file written under the lane repo by
+this seat. No git/jj write, no commit, no index change; all scratch trees were
+built under /fast/scratch/hyaku/kotoba-r76/B22ChecklistImpact/ and removed.

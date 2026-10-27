@@ -1,0 +1,19 @@
+# A17CritAudit — self-audit rule/text check
+
+## Evidence and limitation
+
+At review time, the audit table (`.ufo/waves/round-76/build/entry-draft.md`) and B05 receipt (`receipts/description-audit-*.txt`) were absent; therefore I cannot verify or attribute verdicts in that table. The authoritative available page bytes are `.ufo/waves/round-76/snapshots/optimizing-descriptions.md` (13,403 bytes; SHA-256 `7cc54fbb6abbcf08c33e7b320fd01a1fb9696426270da3b588a398d243bfd837`, also recorded in `build/quotes-s213.md`). I independently parsed committed `SKILL.md` frontmatter at HEAD `4de12b61f75c73e3675ef0e422cc2be0f7da8960`: rendered description length 1,022; first sentence length 151; first sentence does not begin imperatively; eight quoted trigger strings; under 1,024 by two characters.
+
+## Rule-to-measure support
+
+| Measure/verdict candidate | What S213 actually says | Audit |
+|---|---|---|
+| Rendered length vs 1,024-character ceiling | “The specification enforces a hard limit of 1024 characters” (snapshot line 28); it also says to check the limit during optimization (line 159) and on application (line 174). | **Supported.** The comparison is evidence-based. The measured 1,022 is below the stated limit. |
+| First-sentence length (151 chars), or any verdict that a first sentence is too long/too short | S213 recommends “A few sentences to a short paragraph” (line 28); it gives no first-sentence length target or threshold. | **Unsupported if treated as a rule/verdict.** A first-sentence length is measurable, but the page does not supply a threshold against which to judge it. |
+| Whether the first sentence is imperative | S213 says “Use imperative phrasing” and “Frame the description as an instruction to the agent: ‘Use this skill when...’” (line 25). It does not say the imperative must be in the first sentence. Its worked “After” example puts the “Use this skill when” clause after initial capability language (lines 183–190). | **Unsupported if verdict specifically requires the first sentence to be imperative.** S213 supports imperative phrasing somewhere in the description, not a first-sentence constraint. |
+| Literal trigger-string list present (e.g. a `Triggers:` list) | S213 says to “Explicitly list contexts where the skill applies” (line 27), including cases where the user does not name the domain. It does not prescribe a literal trigger-string list or a `Triggers:` label. | **Unsupported if the verdict requires a literal list/label.** Listing contexts is supported; a specific formatting/keyword-list requirement is not. |
+| Description conveys contexts/usefulness, or user intent rather than implementation | S213 says to describe “what the user is trying to achieve, not the skill’s internal mechanics” (line 26), list applicable contexts (line 27), and broaden context when should-trigger queries fail (line 155). | **Supported** for those stated qualitative rules; any specific trigger-rate/accuracy verdict is not supported by this documentary page alone. The page describes client-run evals (lines 77–85, 151–161), but no such run is evidenced here. |
+
+## Findings to carry into the actual table review
+
+Flag any table verdict that labels the first-sentence length itself, first-sentence imperative placement, or literal `Triggers:`-style list as a requirement of S213. Those are not stated by the page. The line-28 hard ceiling and imperative phrasing/user-intent/context recommendations are stated. The absence of the actual table means this is a source-text audit of the available candidate measures, not confirmation of the table’s final verdict wording.

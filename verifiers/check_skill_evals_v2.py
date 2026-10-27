@@ -18,10 +18,11 @@ the cheapest — W12 — at +13 lines on the pre-data commit):
            entry, SKILL.md and SOURCES.md before parsing.
   W08      quotes matched mid-word (raw substring): v2 bounds the match.
   W01 rows ``x``-filled SOURCES cells scored: v2 requires the cited row's
-           ``used-by`` cell to be EXACTLY the entry path (no substring, no
-           ``not <entry>``), adds a census-validate item over the revision's
-           registry (A10), and pins which documents the entry may cite
-           (PINNED_DOCS) — a row for any other S### fails its facts.
+           comma-separated ``used-by`` members to include the exact entry
+           path (no substring, no ``not <entry>``), adds a census-validate
+           item over the revision's registry (A10), and pins which documents
+           the entry may cite (PINNED_DOCS) — a row for any other S### fails
+           its facts.
   W02/W09  fact text contradicting or unrelated to its quote: only the
            >=8-words distinct-from-quote shape is machine-checked; semantic
            agreement stays a named non-author spot-check duty (declared
@@ -99,7 +100,7 @@ QUOTE_RE = re.compile(r'"([^"]+)"')
 NEGATION_RE = re.compile(
     r"\b(?:never|not|don't|do not|retracted|false|avoid|ignore|stale)\b",
     re.IGNORECASE)
-SELF_SHA = "1df6ca685dd4e226d6df26413e47387b70fe709b623d4a274e8f0208890c1306"   # blanked-sha of this file
+SELF_SHA = "9530549b49e2ef9b13f2be28caeab481f1ff637541918cee14b52c45c7ee22c4"   # blanked-sha of this file
 SELF_LINE_RE = re.compile(r'^SELF_SHA = "[0-9a-f]*"', re.M)
 
 
@@ -285,9 +286,10 @@ def check(repo) -> tuple[int, list[str], list[tuple[str, str, str]]]:
         if len(row) != 11 or row[7] != "mined":
             findings.append(f"{fid}: {sid} is not an 11-cell mined row")
             continue
-        if row[10].strip() != ENTRY:
-            findings.append(f"{fid}: {sid} used-by != {ENTRY} "
-                            f"(exact match required)")
+        used_by = [p.strip() for p in row[10].split(",")]
+        if ENTRY not in used_by:
+            findings.append(f"{fid}: {sid} used-by lacks exact member {ENTRY} "
+                            f"(comma-delimited exact match required)")
             continue
         if good:
             backed.append((fid, sid, quote))
@@ -504,6 +506,29 @@ def selftest() -> int:
         failures += 1
     else:
         print(f"PASS honest world: verified {n} of {TOTAL}")
+
+    # SOURCES contract rule 2 permits append-only use of a row by multiple
+    # entries. The r76 description entry adds S213 as a second exact member.
+    multi = _honest()
+    source_lines = multi.files[SOURCES].splitlines()
+    found_s213 = False
+    for i, line in enumerate(source_lines):
+        cells = _cells(line)
+        if cells and cells[0] == "S213":
+            cells[10] += ", corpus/knowledge/description-craft-round76.md"
+            source_lines[i] = "| " + " | ".join(cells) + " |"
+            found_s213 = True
+            break
+    multi.files[SOURCES] = "\n".join(source_lines) + "\n"
+    multi.files["corpus/knowledge/description-craft-round76.md"] = (
+        "source: S213 — https://agentskills.io/skill-creation/"
+        "optimizing-descriptions.md\nverified-at: fixture\nrecheck: fixture\n")
+    n, f = run(multi)
+    if not found_s213 or n != TOTAL or f:
+        print(f"FAIL append-only multi-entry S213 used-by: {n} of {TOTAL} {f}")
+        failures += 1
+    else:
+        print("PASS append-only multi-entry S213 used-by exact member")
 
     def broken(label, mutate, needle):
         nonlocal failures

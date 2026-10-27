@@ -1,0 +1,205 @@
+B08LessonDrafts verification transcript
+date: 2026-10-27T14:05:14-03:00
+lane: /home/vgpnk/Projects/shokunin/kotoba-shokunin
+base: b7f13f4b39cbd43076a85568adca763a6f674e7a
+tip at run: eab64394dba08a47f6797a2e23719be14675b44b
+scratch: /fast/scratch/hyaku/kotoba-r76/B08LessonDrafts (removed before yield)
+
+== 1. the copies the diffs were generated against
+$ cmp base/corpus/lessons/round-75.md a/corpus/lessons/round-75.md
+# exit=0
+
+$ cmp base/corpus/QUALITY.md a/corpus/QUALITY.md
+# exit=0
+
+$ sha256sum base/corpus/lessons/round-75.md base/corpus/QUALITY.md
+7f260fd517495ffa680f0088f0e1dd17906fe562fe2158dbffa6807e79d57db6  base/corpus/lessons/round-75.md
+08dbfae23b7cea190971cb1e931fedbe5a980cb577609d0bfe4336d83e8b1261  base/corpus/QUALITY.md
+# exit=0
+
+== 2. those copies equal the committed bytes at b7f13f4
+$ bash -c git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin show b7f13f4:corpus/lessons/round-75.md | cmp - base/corpus/lessons/round-75.md
+# exit=0
+
+$ bash -c git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin show b7f13f4:corpus/QUALITY.md | cmp - base/corpus/QUALITY.md
+# exit=0
+
+== 2b. the two target files did not move base -> tip
+$ git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin diff --stat b7f13f4 eab64394dba08a47f6797a2e23719be14675b44b -- corpus/lessons/round-75.md corpus/QUALITY.md
+# exit=0
+
+$ cmp base/corpus/lessons/round-75.md head/corpus/lessons/round-75.md
+# exit=0
+
+$ cmp base/corpus/QUALITY.md head/corpus/QUALITY.md
+# exit=0
+
+== 3. patches apply to base bytes (dry run, absolute -i)
+$ patch --dry-run -p1 -d base -i /fast/scratch/hyaku/kotoba-r76/B08LessonDrafts/r1.diff
+checking file corpus/lessons/round-75.md
+# exit=0
+
+$ patch --dry-run -p1 -d base -i /fast/scratch/hyaku/kotoba-r76/B08LessonDrafts/q74.diff
+checking file corpus/QUALITY.md
+# exit=0
+
+== 3b. and to the tip's bytes (dry run against HEAD extracts)
+$ patch --dry-run -p1 -d head -i /fast/scratch/hyaku/kotoba-r76/B08LessonDrafts/r1.diff
+checking file corpus/lessons/round-75.md
+# exit=0
+
+$ patch --dry-run -p1 -d head -i /fast/scratch/hyaku/kotoba-r76/B08LessonDrafts/q74.diff
+checking file corpus/QUALITY.md
+# exit=0
+
+== 4. red before: the strings the corrections add are absent at base
+$ grep -cF 1\,022\ characters base/corpus/lessons/round-75.md
+0
+# exit=1
+
+$ grep -cF lines\ 4–18 base/corpus/lessons/round-75.md
+0
+# exit=1
+
+$ grep -cF M75-1 base/corpus/lessons/round-75.md
+0
+# exit=1
+
+$ grep -cF Q74 base/corpus/lessons/round-75.md
+0
+# exit=1
+
+$ grep -cF r1-folded-render.txt base/corpus/lessons/round-75.md
+0
+# exit=1
+
+$ grep -cF 7eed80e9 base/corpus/lessons/round-75.md
+0
+# exit=1
+
+$ grep -cF \|\ Q74\ \| base/corpus/QUALITY.md
+0
+# exit=1
+
+and the superseded texts the correction must name are present at base
+$ grep -cF any\ claim\ that\ the\ 1021-character\ description\ size\ reported\ in\ \`considerthese/2026-10-26.md\`\ remains\ current\;\ current\ frontmatter\ is\ materially\ shorter base/corpus/lessons/round-75.md
+1
+# exit=0
+
+$ grep -cF \`considerthese/2026-10-26.md:17\`\ says\ description\ is\ 1\,021/1\,024\ characters base/corpus/lessons/round-75.md
+1
+# exit=0
+
+== 5. green after: apply both patches to a fresh copy
+$ patch -p1 -d out -i /fast/scratch/hyaku/kotoba-r76/B08LessonDrafts/r1.diff
+patching file corpus/lessons/round-75.md
+# exit=0
+
+$ patch -p1 -d out -i /fast/scratch/hyaku/kotoba-r76/B08LessonDrafts/q74.diff
+patching file corpus/QUALITY.md
+# exit=0
+
+$ grep -cF 1\,022\ characters out/corpus/lessons/round-75.md
+1
+# exit=0
+
+$ grep -cF lines\ 4–18 out/corpus/lessons/round-75.md
+2
+# exit=0
+
+$ grep -cF M75-1 out/corpus/lessons/round-75.md
+1
+# exit=0
+
+$ grep -cF Q74 out/corpus/lessons/round-75.md
+1
+# exit=0
+
+$ grep -cF r1-folded-render.txt out/corpus/lessons/round-75.md
+1
+# exit=0
+
+$ grep -cF corpus/lessons/round-75-verifier-spotcheck.md out/corpus/lessons/round-75.md
+1
+# exit=0
+
+$ grep -cF 7eed80e9 out/corpus/lessons/round-75.md
+1
+# exit=0
+
+$ grep -cF clip\ 1\,022\ /\ stripped\ 1\,021 out/corpus/lessons/round-75.md
+1
+# exit=0
+
+$ grep -cF \|\ Q74\ \| out/corpus/QUALITY.md
+1
+# exit=0
+
+== 6. line counts after (round-75.md 12 -> 34; QUALITY.md 89 -> 90)
+$ wc -l base/corpus/lessons/round-75.md out/corpus/lessons/round-75.md
+  12 base/corpus/lessons/round-75.md
+  34 out/corpus/lessons/round-75.md
+  46 total
+# exit=0
+
+$ wc -l base/corpus/QUALITY.md out/corpus/QUALITY.md
+   89 base/corpus/QUALITY.md
+   90 out/corpus/QUALITY.md
+  179 total
+# exit=0
+
+== 7. the measurement the correction asserts, at b7f13f4
+$ bash -c git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin show b7f13f4:SKILL.md | python3 -c "import sys,yaml;d=yaml.safe_load(sys.stdin.read().split('---')[1])['description'];print(len(d),len(d.strip()))"
+1022 1021
+# exit=0
+
+$ bash -c git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin show b7f13f4:SKILL.md | awk 'NR>=4&&NR<=18{s+=length($0)} END{print s}'
+1037
+# exit=0
+
+$ bash -c git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin show b7f13f4:SKILL.md | awk 'NR>=3&&NR<=8{printf "%d:%d ",NR,length($0)} END{print ""}'
+3:14 4:76 5:78 6:73 7:79 8:72 
+# exit=0
+
+$ bash -c git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin show b7f13f4:SKILL.md | python3 -c "import sys,yaml;d=yaml.safe_load(sys.stdin.read().split('---')[1])['description'].strip();print(len(d.split('. ')[0]+'.'))"
+151
+# exit=0
+
+== 8. same render at the other three revisions the correction names
+$ bash -c git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin show 65a5c7a663249e0522cc49e4a148424200d9ddfe:SKILL.md | python3 -c "import sys,yaml;d=yaml.safe_load(sys.stdin.read().split('---')[1])['description'];print(len(d),len(d.strip()))"
+1022 1021
+# exit=0
+
+$ bash -c git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin show ac9f29510d3914a6edb97c8dbdb3445cab9141de:SKILL.md | python3 -c "import sys,yaml;d=yaml.safe_load(sys.stdin.read().split('---')[1])['description'];print(len(d),len(d.strip()))"
+1022 1021
+# exit=0
+
+$ bash -c git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin show 4de12b61f75c73e3675ef0e422cc2be0f7da8960:SKILL.md | python3 -c "import sys,yaml;d=yaml.safe_load(sys.stdin.read().split('---')[1])['description'];print(len(d),len(d.strip()))"
+1022 1021
+# exit=0
+
+== 9. the superseded premise, located at base
+$ bash -c git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin grep -n 'materially shorter' b7f13f4 -- corpus/lessons/round-75.md | cut -c1-110
+b7f13f4:corpus/lessons/round-75.md:5:Source opened this round: https://agentskills.io/skill-creation/optimizin
+# exit=0
+
+$ bash -c git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin grep -n 'is not the current base' b7f13f4 -- plans/round-75.md | cut -c1-110
+b7f13f4:plans/round-75.md:15:At base, `python3 -B verifiers/check_spec_craft.py --rev master` prints `spec cra
+# exit=0
+
+== 9b. the cited convention resolves at its committing rev
+$ git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin cat-file -e 7eed80e9:plans/round-76-addendum-1.md
+# exit=0
+
+$ bash -c git -C "/home/vgpnk/Projects/shokunin/kotoba-shokunin" show 7eed80e9:plans/round-76-addendum-1.md | grep -n 'clip-preserving\|both variants' | cut -c1-130
+29:recompute — fix the convention as **clip-preserving (`len(yaml.safe_load(...)['description'])`, trailing
+31:prints the number must print both variants (clip 1022 / stripped 1021) and name the convention, so the
+# exit=0
+
+== 10. artifact hashes
+$ sha256sum /fast/scratch/hyaku/kotoba-r76/B08LessonDrafts/r1.diff /fast/scratch/hyaku/kotoba-r76/B08LessonDrafts/q74.diff /fast/scratch/hyaku/kotoba-r76/B08LessonDrafts/B08-m76-1-round-76-row.md
+94ae0d6832e19aed374e0c3015390e0508dca72062cd879cdaf770a8b10f4279  /fast/scratch/hyaku/kotoba-r76/B08LessonDrafts/r1.diff
+6cbe0e14dacef4589be5ee97d6c20ac108b8b633da6748b023e4abda834c3044  /fast/scratch/hyaku/kotoba-r76/B08LessonDrafts/q74.diff
+6e55b5d2a55a9b644bd1267d7c071ac5cfbc85f2a901231e7c141da936908bf8  /fast/scratch/hyaku/kotoba-r76/B08LessonDrafts/B08-m76-1-round-76-row.md
+# exit=0
+
