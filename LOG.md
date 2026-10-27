@@ -2816,3 +2816,10 @@ kotoba round 74 (hyaku run 7, attempt 1). Base `1e03d19`; plan `329e7d9` (`plans
 - **Counter results:** `python3 -B verifiers/check_desc_craft.py --rev b7f13f4b39cbd43076a85568adca763a6f674e7a` → `description craft backed 0 of 6`, exit 1; self-test 0 failures / 53 assertions, exit 0. `python3 -B verifiers/check_r75_routed_repairs.py --rev b7f13f4b39cbd43076a85568adca763a6f674e7a --work <scratch>` → `r75 routed repairs closed 0 of 4`, exit 1; self-test 0 failures / 27 assertions, exit 0. No after-value was measured or landed.
 - **Honesty:** round-start census was exit 0, 151 rows. The corrected base evidence shows both corpus gates red at the r75 closure base (unindexed `round-75-verifier-spotcheck.md`, stale baseline). The base receipt records this correction; the baseline/index repair, final R2 receipt/no-harm gate run, and round-end root census were not completed. No C1 knowledge entry/SOURCES change, R1–R4 correction, or final integration is claimed. No admission, score movement or trend improvement is claimed.
 - **Pointer:** `plans/round-76.md`, `plans/round-76-addendum-1.md`–`-6.md`, `.ufo/waves/round-76/`, fleet report `.ufo/reports/round-76/kotoba.md`.
+
+## Round 78 — honest stop before data
+
+- **Trigger:** round-78 attempt 1; inherited round-77 claims face a committed do-nothing falsification.
+- **Control:** `.ufo/waves/round-77/w1/C01CritDoNothing.md:5-8` records C1 `6 of 6` from a 489-byte stub with unchanged SKILL description and C2 `4 of 4` from pasted text plus historical stdout. Neither predicate can admit the asserted semantic improvement.
+- **Outcome:** no claim data, source row, score movement, or axis improvement is claimed. Round-start source census exited 0 with existing W04 warnings. Round-end census and no-harm battery were not run; no wave was dispatched.
+- **Evidence:** `plans/round-78.md`; `corpus/lessons/round-78.md`; inherited control evidence above. Closure judgment pending.
