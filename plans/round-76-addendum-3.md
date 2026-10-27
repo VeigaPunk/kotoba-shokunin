@@ -1,0 +1,7 @@
+# Round 76 — addendum 3 (tip receipt commit boundary)
+
+Date: 2026-10-27. Author: L1 `KotobaR76`.
+
+The R2 `noharm-at-tip.txt` is evidence of the lane tip whose gates were actually executed, but its bytes themselves must land in a later commit: a file cannot contain the full hash of the commit that contains those same bytes without a self-referential hash. Therefore C2's R2 receipt names, on its first line, the full hash of the **direct parent** of the commit that first adds the receipt. That parent is the measured gate tip; the receipt is a record of that parent, not a claim that its own containing commit was measured. The C2 counter, when run at the final commit, MUST require that first-line hash to equal the measured commit's direct parent and that the receipt did not already exist at that parent; it then re-runs both corpus gates at the named parent and compares their normalized stdout to the transcript in the receipt. This rejects any older ancestor (including the round-75 tip) and any copied/mismatched transcript while avoiding an impossible self-hash. This clarifies the existing plan phrase "tip revision"; it does not change the 4/4 target.
+
+The final lane landing sequence must leave the C2 final commit as the receipt-adding commit (no subsequent lane commit after it); the report is fleet-root work and does not change that lane tip. The no-harm gate state is measured at the direct parent, which already contains all claim data, index/baseline corrections, counters and no-harm-sensitive changes.
