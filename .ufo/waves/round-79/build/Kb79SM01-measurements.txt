@@ -1,0 +1,100 @@
+# Kb79SM01 line-budget seat — measurement ledger (round 79 w1)
+
+Every line is `command` -> observed result. Exit codes are the command's own
+(`cmd > out 2>&1; rc=$?`), never a pipeline's. Lane = /home/vgpnk/Projects/shokunin/kotoba-shokunin.
+Scratch = /fast/scratch/hyaku/kotoba-r79/Kb79SM01LineBudget (removed before yield).
+Lane base b10bcbc6b00f8f56b202ccbadca311007b5b463c; plan commit F1 2c56622375641193a03bb97c0624e6536f3dffba.
+
+## A. Lane base (read-only)
+
+- `cd <lane> && wc -l SKILL.md` -> `590 SKILL.md`
+- `cd <lane> && wc -c SKILL.md` -> `78647 SKILL.md`
+- `cd <lane> && awk 'length>200' SKILL.md | wc -l` -> `129`
+- `cd <lane> && sha256sum SKILL.md` -> `7b1263b5ccbe2ba8b6ffd5d0f4c87ffc5ab3292c9ce792aeee96de283a06464a`
+  (identical to `git show <F1>:SKILL.md | sha256sum` and `git show <base>:SKILL.md | sha256sum`: SKILL.md not touched by this seat)
+- `python3 -B verifiers/verify_skill_checklist.py --check trigger.line_budget` -> rc 0
+  `PASS trigger.line_budget: evaluated 590 — 590 lines within budget 600 (from box at line 285)`
+- `python3 -B verifiers/verify_skill_checklist.py` -> rc 1; the only FAIL is
+  `FAIL governance.citation_resolves: evaluated 1312 — LOG.md:2818: '.ufo/reports/round-76/kotoba.md' does not resolve …`
+- `python3 -B verifiers/verify_skill_checklist.py --self-test` -> rc 1; the single failing arm is the same live
+  LOG.md:2818 citation (`self-test FAIL: governance: live round-65 corrections land, errata-excused`), which is why
+  check_assertion_floors reports `FAIL checklist observed=1863 floor=1863 self_test_failures=1`.
+- `python3 -B verifiers/check_gate_registry.py --rev b10bcbc6…` -> rc 1
+  `gate registry rows conformant 60 of 62 lane verifiers; phantom 0`
+
+## B. Registry-row cost and conformance (scratch clone, plan commit F1)
+
+Two conformant rows appended to the `## Gate registry` table (single physical lines) for
+`verifiers/check_desc_craft.py` and `verifiers/check_r75_routed_repairs.py`; commit 2d190a8828a859abb0e26b45a05eaf30f11b2f5f.
+
+- `git -C <scratch>/clone show HEAD:SKILL.md | wc -l` -> `592` (exactly +2 lines)
+- `python3 -B verifiers/check_gate_registry.py --rev 2d190a88…` (run in scratch) -> rc 0
+  `gate registry rows conformant 62 of 62 lane verifiers; phantom 0`
+  (C1's registry repair is complete at a rev where the C2 counter does not exist yet)
+- Trap variant: same row but the pinned-values cell also names `corpus/knowledge/description-craft-round76.md`
+  (that entry is NOT committed at F1: `git cat-file -e F1:corpus/knowledge/description-craft-round76.md` -> exit 128);
+  commit b9e0a2e3f140299ae7cd451b970f9f9aa843cdcb -> `check_gate_registry.py --rev b9e0a2e3…` rc 1,
+  `gate registry rows conformant 61 of 62 lane verifiers; phantom 0`.
+  A pinned-values cell names only paths that exist at the measured rev.
+
+## C. Checklist invariance under the planned insertion (same environment, F1 vs H3)
+
+H3 = 8a13e30f849ab609935c04620073e9f282db1955 (two good rows, no other change).
+
+- Full run at F1 in the scratch clone: rc 1; FAIL set = box_map PASS, name_directory FAIL (clone dir named `clone`),
+  citation_resolves FAIL on the pre-existing `../.ufo/reports/round-7/kotoba.md` token (false red: the scratch
+  parent has no fleet root), governance FAIL (fleet-relative corrections).
+- Full run at H3 in the same clone: rc 1; FAIL set differs only in the line number of that same pre-existing
+  `../` token (`line 580` -> `line 582`). Everything else identical, including `PASS checklist.box_map_complete
+  evaluated 45` and `PASS trigger.line_budget evaluated 592`.
+- Lane-rooted probes (`--repo <lane>`, so citations resolve against the real fleet):
+  - 592-line probe (two rows) -> rc 0; `PASS checklist.box_map_complete … 45 boxes`,
+    `PASS trigger.line_budget … 592 lines within budget 600`, `PASS trigger.citation_resolves … 214 repo-rooted
+    citation token(s) resolve`, `N/A governance.citation_resolves` (checked only with the repo SKILL.md).
+  - 597-line probe (two rows + five top-level prose lines = the plan's worst case 7) -> rc 0; same PASSes,
+    `PASS trigger.line_budget … 597 lines within budget 600`, `PASS trigger.citation_resolves … 214`.
+
+## D. The bound is the box, and it is inclusive
+
+- 600-line copy (`k592` + 8 padding lines): `--check trigger.line_budget` -> rc 0,
+  `PASS … evaluated 600 — 600 lines within budget 600 (from box at line 285)`
+- 601-line copy: rc 1, `FAIL … evaluated 601 — 601 lines exceed budget 600 (from box at line 285)`
+- 601-line copy with `--max-lines 5000` -> rc 1 (same FAIL): the box wins over the flag
+- 592-line copy with `--max-lines 100` -> rc 0 (`592 lines within budget 600`): the flag cannot lower the box's bound
+- Source: `verifiers/verify_skill_checklist.py:471-473` (`LINE_BOUND_BOX_RE`, first integer in the box),
+  `:1485-1494` (`box_line_budget`), `:1496-1506` (`check_line_budget`, comparison `if n > limit`), `:321`
+  (`DEFAULT_MAX_LINES = 600`, fallback only).
+
+## E. Two box-map hazards for any SKILL.md edit (measured)
+
+With the lane's real map (`--map <lane>/verifiers/checklist-baseline.json`):
+
+- Append one indented continuation line to the line-budget box -> `checklist.box_map_complete` rc 1,
+  `FAIL … map entry trigger.14 has no live box … unmapped box at line 285` (box text hash changed).
+- Insert a new `- [ ]` box -> rc 1, `FAIL … unmapped box at line 285` (evaluated 46 boxes).
+- Prose inserted at column 0 outside boxes (the 597 probe) -> `checklist.box_map_complete` PASS, 45 boxes.
+
+## F. Duplicated-prose sweep (the seat's stated cut class)
+
+- `python3 -B .ufo/waves/round-79/build/Kb79SM01-dupsweep.py` -> rc 0; output
+  `prose lines with a >=12-token verbatim run: 4` — SKILL.md:113, 127, 422, 424. All four are the knowledge
+  entry quoting SKILL.md or naming it (`sibling-overlap-census-round74.md:103` carries a cell
+  `SKILL.md:127 chang…`; `skill-overlap-levers-round51.md` names the same error pattern), i.e. reverse
+  citations, not movable duplicates. No prose block is held verbatim by a knowledge entry.
+- A coarser 6-token scan hits 111 SKILL.md lines, but those hits are table cells and shared terminology
+  (client names, file names) that the decision tables and the gates read, not prose.
+
+## G. Where the 590 lines are (census)
+
+`box 45 starting lines / 152 lines inside boxes, row 151, prose 308, blank 65, heading 21`
+(`45` boxes = the 45 `checklist-baseline.json` entries). Gate registry section (445-513) holds 60
+`| \`verifiers/…\`` rows of 62 lane verifiers. Sections and the gates that read them:
+Agent-definition files by client -> check_agent_definitions.py; Plugin manifests -> check_plugin_manifests.py;
+Custom command files -> check_command_files.py; Hook files -> check_hook_files.py; Scoped rule files ->
+check_scoped_rules(_v31/_v32).py; Description thresholds -> check_description_thresholds.py; Explicit
+invocation -> check_explicit_invocation.py; Body craft -> check_spec_craft.py, check_desc_craft.py;
+Trigger-fidelity checklist -> verify_skill_checklist.py, check_author_rules.py, check_desc_craft.py;
+Agent-definition fidelity -> check_agentdef_boxes.py; Dispatch-prompt fidelity -> verify_dispatch_prompts.py;
+Always-on checklist -> check_alwayson_boxes.py, verify_alwayson.py; Anti-patterns/Refusals ->
+check_overlap_levers.py; Gate registry -> check_gate_registry.py, check_cn_vendor_surfaces.py,
+check_could_not_evaluate.py, check_spec_craft.py.

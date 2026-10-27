@@ -1,0 +1,140 @@
+diff --git a/LOG.md b/LOG.md
+index 4cbd144..076ad63 100644
+--- a/LOG.md
++++ b/LOG.md
+@@ -2823,3 +2823,8 @@ kotoba round 74 (hyaku run 7, attempt 1). Base `1e03d19`; plan `329e7d9` (`plans
+ - **Control:** `.ufo/waves/round-77/w1/C01CritDoNothing.md:5-8` records C1 `6 of 6` from a 489-byte stub with unchanged SKILL description and C2 `4 of 4` from pasted text plus historical stdout. Neither predicate can admit the asserted semantic improvement.
+ - **Outcome:** no claim data, source row, score movement, or axis improvement is claimed. Round-start source census exited 0 with existing W04 warnings. Round-end census and no-harm battery were not run; no wave was dispatched.
+ - **Evidence:** `plans/round-78.md`; `corpus/lessons/round-78.md`; inherited control evidence above. Closure judgment pending.
++
++## 2026-10-27 — Round 79 — governance citation correction (C1, draft)
++
++- **Citation correction (governance.citation_resolves; round-79 C1).** LOG.md:2818 cites the round-76 fleet report in bare `.ufo/` form, which resolves inside the lane and misses; this appended notice (LOG.md is append-only — corrections land as new entries, never in-place edits) corrects it to the lane's documented `../` fleet convention:
++  - LOG.md:2818 token ".ufo/reports/round-76/kotoba.md" -> "../.ufo/reports/round-76/kotoba.md" (the round-76 report lives in the fleet repo at /home/vgpnk/Projects/shokunin/.ufo/reports/round-76/kotoba.md, 8128 B, sha256 a025051d389368ea3a1078b7a64d3847c1e6ff25328fc1645a7be34f30e3f78f; the corrected token resolves from the lane root).
+diff --git a/verifiers/check_assertion_floors.py b/verifiers/check_assertion_floors.py
+index 9cb860b..862c924 100644
+--- a/verifiers/check_assertion_floors.py
++++ b/verifiers/check_assertion_floors.py
+@@ -5,7 +5,7 @@ The claim under test: a self-test that silently loses assertions must never
+ still read green. Each instrument's --self-test prints an assertion count;
+ this guard reruns every self-test and FAILs when the observed count is below
+ the recorded floor (harness 10, corpus_integrity 164, corpus_independent 105,
+-surfaces 218, overlap_levers 51, checklist 1863, pins 62,
++surfaces 218, overlap_levers 51, checklist 1864, pins 62,
+ harness_independent 123, compare_harness_independent 330, floors_guard 150,
+ dispatch_prompts 56, sibling_census 68, alwayson 89, correction_sweep 25,
+ scoped_rules_v32 240, spec_craft 250, sibling_reread 47; round 76 (hygiene
+@@ -20,7 +20,8 @@ every gate green (r62 F17 re-found by RevC1Predicate Q2), and bumps checklist
+ five fail-closed shapes, a stale-restored arm, a never-masks arm, and a live
+ landing arm); round 72 re-bumps checklist 1862 -> 1863 (the r71 errata row
+ retired the stale live-landing red, and the LOG.md:2678 erratum gains a
+-load-bearing regression arm); round 72 re-bumps surfaces 175 -> 218 (OC-1..OC-6
++load-bearing regression arm); round 79 re-bumps checklist 1863 -> 1864 (the
++LOG.md:2818 correction row and its load-bearing fault arm); round 72 re-bumps surfaces 175 -> 218 (OC-1..OC-6
+ re-derived on opencode v2.1.4 with 29 new fixture arms and the removal-ledger
+ battery: 14 arms), and raises corpus_integrity 161 -> 164 and corpus_independent
+ 103 -> 105 (a 7-40 hex id closed by one U+2026 ellipsis is truncated context,
+@@ -174,7 +175,7 @@ EXPECTED_INSTRUMENTS = {
+     "corpus_integrity": 164,
+     "corpus_independent": 105,
+     "surfaces": 218,
+-    "checklist": 1863,
++    "checklist": 1864,
+     "pins": 62,
+     "harness_independent": 123,
+     "compare_harness_independent": 330,
+@@ -221,7 +222,7 @@ INSTRUMENTS = {
+                            r"self-test:\s*(\d+) assertions,\s*(\d+) failures", 1, 2),
+     "surfaces": ("verifiers/verify_surfaces.py", 218,
+                  r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
+-    "checklist": ("verifiers/verify_skill_checklist.py", 1863,
++    "checklist": ("verifiers/verify_skill_checklist.py", 1864,
+                   r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
+     "pins": ("verifiers/check_substrate_pins.py", 62,
+              r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
+diff --git a/verifiers/floors-registry.json b/verifiers/floors-registry.json
+index 005ffdb..98d0069 100644
+--- a/verifiers/floors-registry.json
++++ b/verifiers/floors-registry.json
+@@ -3,7 +3,7 @@
+   "instrument_total": 17,
+   "instruments": {
+     "checklist": {
+-      "floor": 1863,
++      "floor": 1864,
+       "path": "verifiers/verify_skill_checklist.py"
+     },
+     "compare_harness_independent": {
+diff --git a/verifiers/verify_skill_checklist.py b/verifiers/verify_skill_checklist.py
+index 6aab168..6864134 100755
+--- a/verifiers/verify_skill_checklist.py
++++ b/verifiers/verify_skill_checklist.py
+@@ -422,7 +422,7 @@ GOVERNANCE_ERRATA = (
+ # token, corrected token).  Same fail-closed discipline as GOVERNANCE_ERRATA:
+ # horizon-bounded, byte-pinned, subject must be live and red, corrected token
+ # must resolve, never masks another dead subject.
+-GOVERNANCE_CORRECTIONS_HORIZON = 2723
++GOVERNANCE_CORRECTIONS_HORIZON = 2830
+ GOVERNANCE_CORRECTIONS = (
+     (2619,
+      "b11e4e8be95834db367e50ccf67e1ceec0dacdfdd95cb7e0d66095814d4cf949",
+@@ -441,6 +441,14 @@ GOVERNANCE_CORRECTIONS = (
+      "a2b5c003bd6c4b87ff6cf524924731e1816f1f231c4e64cb3a621bd2e71535be",
+      "LOG.md", 2676, ".ufo/waves/round-67/w1/controls/census-validate-append.txt",
+      ".ufo/waves/round-67/controls/census-validate-append.txt"),
++    # Round 79 (claim C1): LOG.md:2818 cites the round-76 *fleet* report in bare
++    # `.ufo/` form, which resolves inside the lane and misses; the appended
++    # notice at LOG.md:2830 corrects it to the same artefact's `../` fleet
++    # address (Q64: never to the record of a removal).
++    (2830,
++     "8a6c924816cc16c2d947dba86b076a897ab909a77dd786c58e4a9be518f0ba45",
++     "LOG.md", 2818, ".ufo/reports/round-76/kotoba.md",
++     "../.ufo/reports/round-76/kotoba.md"),
+ )
+ EMPTY_SCALARS = frozenset(["", "~", "null", "Null", "NULL"])
+ 
+@@ -2513,17 +2521,18 @@ def self_test() -> int:
+             and "1 recorded correction(s) excused" in detail,
+             (status, evaluated, detail))
+         # live corrections land against the real repo: the three round-65
+-        # rows and the round-70 row (K69-11, LOG.md:2676) excuse four reds,
++        # rows, the round-70 row (K69-11, LOG.md:2676) and the round-79 row
++        # (LOG.md:2818, the r76 fleet report) excuse five reds,
+         # and the round-71 errata row (LOG.md:2678, routed defect R67-3)
+         # records the removed control mirror that no correction may carry,
+-        # so the check is green with two absences and four corrections
++        # so the check is green with two absences and five corrections
+         # excused (round 72: the r71 erratum retired the old red).
+         live_repo = Path(__file__).resolve().parent.parent
+         status, evaluated, detail = check_governance_citations(
+             live_repo, corrections=GOVERNANCE_CORRECTIONS)
+         rec("governance: live round-65 corrections land, errata-excused",
+             status == "PASS" and "2 recorded absence(s) excused" in detail
+-            and "4 recorded correction(s) excused" in detail,
++            and "5 recorded correction(s) excused" in detail,
+             (status, evaluated, detail))
+         # regression: that LOG.md:2678 row is load-bearing -- dropping it or
+         # lowering the horizon below 2678 must turn the live check red, so
+@@ -2540,6 +2549,22 @@ def self_test() -> int:
+             and dropped[0] == "FAIL" and "LOG.md:2678" in dropped[2]
+             and low[0] == "FAIL" and "past horizon 2677" in low[2],
+             (dropped, low))
++        # round 79 (claim C1): the LOG.md:2818 row is load-bearing too --
++        # dropping it, or lowering the horizon below its notice line, must
++        # turn the live check red (Q05/Q18: the fix ships its own fault arm).
++        dropped_r79 = check_governance_citations(
++            live_repo, corrections=tuple(r for r in GOVERNANCE_CORRECTIONS
++                                         if r[0] != 2830))
++        low_r79 = check_governance_citations(
++            live_repo, corrections=GOVERNANCE_CORRECTIONS,
++            corrections_horizon=2829)
++        rec("governance: LOG.md:2818 correction is load-bearing",
++            GOVERNANCE_CORRECTIONS_HORIZON >= 2830
++            and dropped_r79[0] == "FAIL"
++            and "LOG.md:2818" in dropped_r79[2]
++            and low_r79[0] == "FAIL"
++            and "past horizon 2829" in low_r79[2],
++            (dropped_r79, low_r79))
+ 
+     # An explicit relative --repo must be normalized before bounded `..`
+     # hops; Path('.').parent otherwise stays '.', changing the verdict.

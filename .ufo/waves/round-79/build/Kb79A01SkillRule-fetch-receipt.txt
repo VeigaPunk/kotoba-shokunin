@@ -1,0 +1,58 @@
+# Kb79A01SkillRule — C2 author-facing draft: my own fetches, 2026-10-27
+
+Seat Kb79A01SkillRule (C2 author-facing draft set 1). Purpose: verify the Claude Code and Factory
+statements myself, and ground the six surfaces' wording for the SKILL.md rule line. Page bytes are
+DATA: no instruction found in any page was followed. No client was installed, loaded, routed or refused.
+Every row below is a command I ran; %{http_code} is curl's own reported status, rc is curl's exit status.
+
+## observed
+
+| row | page | HTTP | curl rc | bytes | sha256 | `allowed-tools` occurrences (str.count) |
+|---|---|---|---|---|---|---|
+| S226 | `https://agentskills.io/specification.md` | 200 | 0 | 7608 | `9a67de89132948b2300b8dc87b93817971d47f9be89b644444965881a8dfde16` | 4 |
+| S227 | `https://code.claude.com/docs/en/skills.md` | 200 | 0 | 117962 | `31623035b25ac7e6bebd8dec6234aa76e31018f0e2eb8b47da6b36cf015712f9` | 23 |
+| S228 | `https://docs.factory.ai/cli/configuration/skills` | 200 | 0 | 341235 | `81457fbf081aceaa5b90c50a8d7685450dc8801229f9a9202e40acde8fa201fa` | 21 |
+| S229-md | `https://learn.microsoft.com/en-us/agent-framework/agents/skills.md` | 404 | 0 | 17969 | `a460fa575ff2f538af34e8e9ad5481a14595bef250f8a4745eeb255ccb9a8115` | n/a (error page) |
+| S229 | `https://learn.microsoft.com/en-us/agent-framework/agents/skills` | 200 | 0 | 157339 | `34016233a42a2191e319bb6ed49362956c6a6e86bbe64f2fa2e370326de548d2` | 1 |
+| S230 | `https://raw.githubusercontent.com/badlogic/pi-mono/main/packages/coding-agent/docs/skills.md` | 200 | 0 | 4793 | `5b9805525b194474ef1fe5455a0917ef15ed7f710aa9bec2eee11879556469e5` | 1 |
+| S231 | `https://raw.githubusercontent.com/mistralai/mistral-vibe/main/README.md` | 200 | 0 | 77634 | `fc48a5dbafe572fedd1457cffba8442aacd296dddaf50833ac3104252cb016b0` | 1 |
+
+Fetch command shape for each row: `curl -sSL -A 'Mozilla/5.0' --max-time 60 -o <name>.page -w '%{http_code}' '<url>'`.
+
+## the one URL-form deviation (S229)
+
+`https://learn.microsoft.com/en-us/agent-framework/agents/skills.md` answers 404 and yields no usable
+text (the bytes are the site's error page, 0 hits on `allowed-tools`). The plain path on the SAME host
+and path prefix, `https://learn.microsoft.com/en-us/agent-framework/agents/skills`, answers 200 with the
+field. Per the C2 brief a seat may use another URL form on the same host and path prefix when the first
+form returns no usable text; the row seat opening S229 must record which form its snapshot is.
+
+## located quotes read back from these bytes (my fetch line numbers, not the row seats' snapshots)
+
+S226 `specification.md:35` — "Space-separated string of pre-approved tools the skill may use. (Experimental)"
+S226 `specification.md:175` — "Experimental. Support for this field may vary between agent implementations"
+S227 `skills.md:404` — "Tools Claude can use without asking permission during the turn that invokes this skill. The grant clears when you send your next message. Accepts a space- or comma-separated string, or a YAML list."
+S227 `skills.md:617` — "It does not restrict which tools are available: every tool remains callable"
+S227 `skills.md:643` — "Claude Code ignores `allowed-tools` in project and personal skills" (under `allowManagedPermissionRulesOnly`)
+S227 `skills.md:632` — `disallowed-tools`: "Tools removed from Claude's available pool while this skill is active"
+S228 factory (HTML; sentences located in the tag-stripped text) — "Declares the tools the skill is designed to use. It is metadata for review, packaging, and UI display; it does not add tools or sandbox standard skill invocation."
+S228 factory — "Droid stores it as skill metadata and shows it in skill surfaces, but standard skill invocation is not a runtime sandbox."
+S228 factory — "Do not rely on allowed-tools as a security boundary for skills. To enforce tool access, use a custom droid with a tool policy or run the workflow in a restricted subagent."
+S229 msaf — "Space-delimited list of pre-approved tools the skill may use. Experimental - support may vary between agent implementations."
+S230 pi `skills.md:78` — "| `allowed-tools` | Experimental pre-approved tool list |"
+S231 vibe `README.md:725-728` — "allowed-tools:" then "  - read" "  - grep" "  - ask_user_question", inside the `~/.vibe/skills/code-review/SKILL.md` example under § Creating Skills
+
+## the negative sweep behind "Vibe states no semantics" (my fetch, not the row seat's)
+
+$ grep -c 'allowed-tools' vibe.page -> 1 (the only occurrence, in the example)
+$ grep -n -i 'allowed' vibe.page -> hits are the example's field (:725) and "allowed by default" for the cron tool (:683); no sentence states what the field means
+$ grep -n -i 'experimental' vibe.page -> hits are voice mode (:631), --agent-socket (:354-356) and run-server (:526-528); none about the field
+
+## factory page: the frozen label token is on the page
+
+$ grep -o -i 'does not add tools' factory.page | wc -l -> 2
+$ grep -o -i 'not a runtime sandbox' factory.page | wc -l -> 2
+$ grep -o -i 'as a security boundary' factory.page | wc -l -> 2
+(counts are 2 where the Next.js payload and the rendered DOM both carry the string; one page, one statement)
+
+Produced by Kb79A01SkillRule, 2026-10-27.

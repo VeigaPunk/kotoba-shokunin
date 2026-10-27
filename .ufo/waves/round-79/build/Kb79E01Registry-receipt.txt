@@ -1,0 +1,58 @@
+round-79 w1, seat Kb79E01Registry -- C1 repair 1 of 4: gate registry (Q35/Q46)
+measured: 2026-10-27
+sandbox commit c3ee93d23faaee0b21a2f1c99cb314f706f459ec (clone /fast/scratch/hyaku/kotoba-r79/Kb79E01Registry/clone, base 2c56622375641193a03bb97c0624e6536f3dffba)
+lane head at measurement daa3a09aa7980dbaa99d532cc2e9ad391f829bc6 (SKILL.md byte-identical to b10bcbc6b00f8f56b202ccbadca311007b5b463c)
+
+changed bytes at c3ee93d: SKILL.md only, 2 insertions, 0 deletions
+  | `verifiers/check_desc_craft.py` | gate | `python3 -B verifiers/check_desc_craft.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate — claim withdrawn r79 before data (declared r76, never landed); not a claim gate until redesigned and re-controlled | `--self-test` | in-file | none when measuring (reads committed bytes); `--self-test` isolated fixture repos under `$TMPDIR` (removed) | kotoba |
+  | `verifiers/check_r75_routed_repairs.py` | gate | `python3 -B verifiers/check_r75_routed_repairs.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate — claim withdrawn r79 before data (declared r76, never landed); not a claim gate until redesigned and re-controlled | `--self-test` | in-file | none when measuring (reads committed bytes); `--self-test` sandbox and fixture clones under `$TMPDIR` (removed) | kotoba |
+
+R1 gate registry counter, measured revision (exit captured from the command, not a pipeline)
+  cmd: cd <sandbox>/clone && python3 -B verifiers/check_gate_registry.py --rev c3ee93d23faaee0b21a2f1c99cb314f706f459ec
+  stdout tail: gate registry rows conformant 62 of 62 lane verifiers; phantom 0
+  rc=0
+  receipt: Kb79E01Registry-registry-tip.txt (full 62-line listing), Kb79E01Registry-registry-tip.json (raw, the summary line follows the JSON document)
+  note: --json run rc=0 with conformant=62, of=62, phantom=[]
+
+R1' same counter at the r79 base (contrast)
+  cmd: cd <sandbox>/clone && python3 -B verifiers/check_gate_registry.py --rev b10bcbc6b00f8f56b202ccbadca311007b5b463c
+  stdout: verifiers/check_desc_craft.py  no registry rows naming it: 0 (need 1)
+          verifiers/check_r75_routed_repairs.py  no registry rows naming it: 0 (need 1)
+          gate registry rows conformant 60 of 62 lane verifiers; phantom 0
+  rc=1
+  receipt: Kb79E01Registry-registry-base.txt
+
+R2 line budget
+  cmd: cd <sandbox>/clone && wc -l SKILL.md    (at c3ee93d)
+  stdout: 592 SKILL.md      (base 590; budget 600)
+  rc=0
+
+R3 checklist at the authentic lane root, base content (read-only run in the lane; SKILL.md at HEAD daa3a09 == base bytes)
+  cmd: cd /home/vgpnk/Projects/shokunin/kotoba-shokunin && python3 -B verifiers/verify_skill_checklist.py --json
+  rc=1; {"exit_code": 1, "fail": 1, "na": 0, "pass": 10}
+  only FAIL: governance.citation_resolves | LOG.md:2818: '.ufo/reports/round-76/kotoba.md' does not resolve ... (the dead pointer another seat repairs)
+  receipt: Kb79E01Registry-checklist-base-lane.json
+
+R4 checklist compared in identical fleet-shaped clones (dir named kotoba-shokunin, ../.ufo linked to the real fleet .ufo)
+  base clone at b10bcbc6b00f8f56b202ccbadca311007b5b463c: 10 pass, 1 fail, exit 1; FAIL = governance.citation_resolves only
+  tip clone at c3ee93d23faaee0b21a2f1c99cb314f706f459ec:  10 pass, 1 fail, exit 1; FAIL = governance.citation_resolves only
+  per-check status diffs between the two clones: none
+  tip detail: line_budget PASS "592 lines within budget 600 (from box at line 285)"; box_map_complete PASS "45 boxes mapped"; trigger.citation_resolves PASS "209 repo-rooted citation token(s) resolve"; trigger.name_directory PASS
+  receipts: Kb79E01Registry-checklist-cmp-base.json, Kb79E01Registry-checklist-cmp-tip.json
+  (in the clone shapes governance.citation_resolves fails on `../<sibling lane>/...` tokens, which do not exist under the scratch parent; identical in both worlds, so it is not a new FAIL from this change)
+
+R5 patch applies to the current lane head
+  cmd: git -C <apply clone at daa3a09> apply --check -v .../Kb79E01Registry.patch ; git -C ... apply ...
+  stdout: Checking patch SKILL.md... APPLY-CHECK-OK ; wc -l SKILL.md -> 592 ; git diff --stat -> SKILL.md | 2 ++
+  rc=0
+
+patch: Kb79E01Registry.patch (sha256 c411106e1ce60f14a87840b42906642d3bfe1dee1f37d8f60042143d2c95c611, 3712 bytes)
+
+R6 assertion floors, same two fleet-shaped clones (no --rev argument exists; it measures the worktree)
+  cmd: cd <clone>/kotoba-shokunin && python3 -B verifiers/check_assertion_floors.py
+  base rc=1, tip rc=1; the two stdout files are byte-identical (diff -> FLOORS-IDENTICAL)
+  the one FAIL line is the pre-existing `FAIL checklist observed=1863 floor=1863 self_test_failures=2`
+  (the r79 plan recorded self_test_failures=1 in the tip battery sandbox; the count differs by sandbox, the line is the same arm and is another seat's repair, not this one's)
+  receipts: Kb79E01Registry-floors-base.txt, Kb79E01Registry-floors-tip.txt
+
+Row placement evidence: both rows were created by ec7f853 (round-76 honest stop), which is a descendant of d919179 (round-74 rows check_spec_craft/check_sibling_reread) and the last registry row at the r79 base is check_sibling_reread (SKILL.md:512). The two rows are appended there in the table's existing chronology, C1 row before C2 row, matching the round-74 pair.

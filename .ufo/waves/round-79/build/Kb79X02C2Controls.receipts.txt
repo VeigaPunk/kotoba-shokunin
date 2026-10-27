@@ -1,0 +1,48 @@
+# Kb79X02C2Controls — C2 control worlds, receipts and hashes (round 79, w1)
+
+Host: linux 7.x, python3.14, git 2.x. TMPDIR=/fast/scratch/hyaku/kotoba-r79/Kb79X02C2Controls/tmp
+Lane base b10bcbc6b00f8f56b202ccbadca311007b5b463c; plan commit F1 2c56622375641193a03bb97c0624e6536f3dffba.
+No network was used by any world (every page is a fixed synthetic text in c2_controls.py).
+
+## Commands and their own exit codes
+
+1. Pre-registration table printed before any run:
+   `python3 -B .ufo/waves/round-79/build/c2_controls.py --list` -> rc=0
+   receipt: .ufo/waves/round-79/build/Kb79X02C2Controls.expected.txt
+
+2. Draft counter prepared for measurement (it is NOT frozen yet; X01 still edits it, so its
+   SELF_SHA is still `"0" * 64`). Copy outside the lane, fill SELF_SHA with the blanked sha:
+   `cp .ufo/waves/round-79/build/check_allowed_tools.py $TMPDIR/../check_allowed_tools.draft.py`
+   then replace the single `^SELF_SHA = .*$` line with the blanked sha.
+   draft source sha256 : 74e067ccad7813d91826ee503c8ee93ba47d3a4a05b12ec67a82791d93f722a6
+   filled copy  sha256 : ae1cb406b9be693ed0b5fc1217ae68df0ba8b6ae02c3abc613e6cb0881ffdca0
+   blanked sha (the value SELF_SHA was set to): 50c0e10b28de10c905e9083d2bfb4fe07cd5ebc825740ed7bdcbcfe7ab0b54de
+
+3. Frozen predicate's do-nothing at base, measured with that draft:
+   `python3 -B <draft> --repo /home/vgpnk/Projects/shokunin/kotoba-shokunin --rev b10bcbc6b00f8f56b202ccbadca311007b5b463c`
+   -> prints `allowed-tools surfaces backed 0 of 6`, rc=1
+   receipt: .ufo/waves/round-79/build/Kb79X02C2Controls.base-draft.txt
+
+4. All control worlds against that draft:
+   `python3 -B .ufo/waves/round-79/build/c2_controls.py --counter <draft> --base-tree /home/vgpnk/Projects/shokunin/kotoba-shokunin --work /fast/scratch/hyaku/kotoba-r79/Kb79X02C2Controls/work --verbose --out <log>`
+   -> rc=0 (13 worlds, 0 divergences)
+   receipt: .ufo/waves/round-79/build/Kb79X02C2Controls.run.log
+
+5. Plumbing validation against the TEMPLATE counter (different predicate, its own BASE_REV):
+   `python3 -B c2_controls.py --counter /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/check_cn_vendor_surfaces.py --base-rev 072048fa8e8a52c707d25f7079772fa317244eb7 --base-tree <lane> --work <scratch>`
+   -> rc=1 (every world "DIVERGES" by construction: the template counts `vendor skill
+      surfaces backed 0 of 4` because its frozen entry path is absent; plumbing — world
+      construction, base-rev resolution through the alternate, invocation, line capture —
+      is what this run validates)
+   receipt: .ufo/waves/round-79/build/Kb79X02C2Controls.plumbing.log
+
+6. Hashes:
+   `sha256sum .ufo/waves/round-79/build/c2_controls.py`
+   242d970c2f96bbb94cc07d16ec72f16eafa961e963dbbb199473bcaf4c26288e  c2_controls.py
+
+## Disk and scratch
+`/home/vgpnk/Projects/shokunin/scripts/hyaku/disk-guard.sh status` was read before the heavy
+pass (idle=27, largest scratch 587.6M). Worlds are plumbing commits over the base tree through
+one `alternates` line, so a 13-world run costs ~4 MB of scratch and ~2 s wall time.
+No pacman, no installs, no host service touched. The seat scratch dir
+`/fast/scratch/hyaku/kotoba-r79/Kb79X02C2Controls` is removed before this report is delivered.

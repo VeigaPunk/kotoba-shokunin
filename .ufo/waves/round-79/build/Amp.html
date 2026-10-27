@@ -1,0 +1,745 @@
+<!doctype html>
+<!-- Appearance placeholders are replaced during SSR from per-device cookies, and the native
+     pane-toggles placeholder from the native app's user agent; see hooks.server.ts. -->
+<html
+	lang="en"
+	data-type-scale
+	data-amp-theme="theme-0"
+	data-amp-color-scheme="system"
+	data-amp-terminal-theme="app"
+	data-amp-terminal-palette="gruvbox"
+	data-amp-text-size="default"
+	data-amp-ui-sounds="on"
+	data-amp-logo-motion="on"
+	data-amp-color-filters="off"
+	data-amp-native-pane-toggles=""
+	style=""
+>
+	<head>
+		<meta charset="utf-8" />
+		<!-- Holds the first paint until the app's markup is parsed (#amp-app-rendered, the last
+		     element +layout.svelte renders), so a large page does not paint piece by piece as it
+		     arrives: the sidebar, then an empty main pane, then the transcript. The serialized
+		     page data after the markup draws nothing, so the paint does not wait for it. On a
+		     reload WebKit keeps showing the previous page meanwhile. Browsers stop blocking after
+		     their own timeout, and browsers without rel=expect paint progressively as before.
+		     hooks.server.ts leaves it out on public pages, which paint fine progressively and
+		     whose marker comes late in the HTML. -->
+		
+		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+		<!-- Scales the root font size (and therefore the rem-based AGENTS(typeScale) type
+		     scale and --spacing) with the OS/browser accessibility font-size setting on
+		     browsers that support it (Chromium on Android). iOS is unaffected: WebKit
+		     ignores this meta and tracks Dynamic Type via `font: -apple-system-body`
+		     (server/src/app.css). Do not combine with env(preferred-text-scale); the
+		     scale would apply twice. -->
+		<meta name="text-scale" content="scale" />
+		<!-- Pins the cascade layer order before any stylesheet. SvelteKit inlines small component
+		     stylesheets (inlineStyleThreshold) ahead of app.css, and one that opens with
+		     `@layer base` would otherwise rank base below theme, so theme's `--spacing` would
+		     override the iOS Dynamic Type spacing floor in base (server/src/app.css). -->
+		<style>
+			@layer properties, theme, base, components, utilities;
+
+			:root {
+				color-scheme: light dark;
+				--amp-shell-light-background-color: #fafaf8;
+				--amp-shell-dark-background-color: #0b0d0b;
+				--amp-surface-light-background-color: #f9fdf6;
+				--amp-surface-dark-background-color: #0c1516;
+			}
+
+			html[data-amp-color-scheme='light'] {
+				color-scheme: light;
+			}
+
+			html[data-amp-color-scheme='dark'] {
+				color-scheme: dark;
+			}
+
+			html[data-amp-theme='theme-1'] {
+				--amp-shell-light-background-color: #fafafa;
+				--amp-shell-dark-background-color: #0c0c0c;
+				--amp-surface-light-background-color: #fcfcfc;
+				--amp-surface-dark-background-color: #121212;
+			}
+
+			html[data-amp-theme='theme-4'] {
+				--amp-shell-light-background-color: #fcfbf6;
+				--amp-shell-dark-background-color: #090d12;
+				--amp-surface-light-background-color: #fcfbf6;
+				--amp-surface-dark-background-color: #0f161e;
+			}
+
+			html[data-amp-theme='theme-5'] {
+				--amp-shell-light-background-color: #f8fafc;
+				--amp-shell-dark-background-color: #09121c;
+				--amp-surface-light-background-color: #f7f9fc;
+				--amp-surface-dark-background-color: #0e1a28;
+			}
+
+			html[data-amp-theme='theme-6'] {
+				--amp-shell-light-background-color: #ffffff;
+				--amp-shell-dark-background-color: #000000;
+				--amp-surface-light-background-color: #ffffff;
+				--amp-surface-dark-background-color: #000000;
+			}
+
+			html,
+			body {
+				background-color: var(--amp-shell-light-background-color);
+			}
+
+			body:not([data-amp-app-mounted]) .app-shell [data-slot='sidebar-trigger'],
+			.app-shell[data-app-mount-preview-loading] [data-slot='sidebar-trigger'] {
+				position: relative;
+				pointer-events: none;
+			}
+
+			/*
+			 * Subject selectors here must be a class, not a type or `:not()` selector. Blink builds
+			 * style invalidation sets from the subject's positive features; a subject with none
+			 * (`:not(.sr-only)`) or a broad tag (`svg`, ~950 on a large thread) makes the
+			 * `data-amp-app-mounted` flip recalculate style for most of the document (~650ms on a
+			 * 12k-element thread) instead of the trigger's two children (~1ms). WebKit is
+			 * unaffected either way.
+			 */
+			.app-shell [data-slot='sidebar-trigger'] > .app-mount-reveal {
+				transform: scale(1);
+				transform-origin: center;
+				opacity: 1;
+				transition:
+					transform 120ms cubic-bezier(0.2, 0.8, 0.2, 1),
+					opacity 120ms ease-out;
+			}
+
+			body:not([data-amp-app-mounted])
+				.app-shell
+				[data-slot='sidebar-trigger']
+				> .app-mount-reveal,
+			.app-shell[data-app-mount-preview-loading]
+				[data-slot='sidebar-trigger']
+				> .app-mount-reveal {
+				transform: scale(0.4);
+				opacity: 0;
+			}
+
+			.app-shell [data-slot='sidebar-trigger']::after {
+				content: '';
+				position: absolute;
+				top: 50%;
+				left: 50%;
+				/* 62.5% of the trigger's 0.875rem icon box; matches Loader's .loader-dot scale. */
+				width: 0.546875rem;
+				height: 0.546875rem;
+				margin-top: -0.2734375rem;
+				margin-left: -0.2734375rem;
+				background: currentColor;
+				border-radius: 9999px;
+				transform: scale(0);
+				opacity: 0;
+				transition:
+					transform 120ms cubic-bezier(0.4, 0, 1, 1),
+					opacity 120ms ease-out;
+			}
+
+			body:not([data-amp-app-mounted]) .app-shell [data-slot='sidebar-trigger']::after,
+			.app-shell[data-app-mount-preview-loading] [data-slot='sidebar-trigger']::after {
+				transform: scale(1);
+				opacity: 0.65;
+				animation: amp-app-mounting-sidebar-trigger-breathe 1.2s ease-in-out infinite;
+			}
+
+			@keyframes amp-app-mounting-sidebar-trigger-breathe {
+				0%,
+				100% {
+					opacity: 0.4;
+				}
+
+				50% {
+					opacity: 0.8;
+				}
+			}
+
+			@media (prefers-reduced-motion: reduce) {
+				.app-shell [data-slot='sidebar-trigger'] > .app-mount-reveal,
+				.app-shell [data-slot='sidebar-trigger']::after {
+					transition: none;
+				}
+
+				body:not([data-amp-app-mounted]) .app-shell [data-slot='sidebar-trigger']::after,
+				.app-shell[data-app-mount-preview-loading] [data-slot='sidebar-trigger']::after {
+					animation: none;
+				}
+			}
+
+			html[data-amp-color-scheme='dark'],
+			html[data-amp-color-scheme='dark'] body {
+				background-color: var(--amp-shell-dark-background-color);
+			}
+
+			@media (prefers-color-scheme: dark) {
+				html[data-amp-color-scheme='system'],
+				html[data-amp-color-scheme='system'] body {
+					background-color: var(--amp-shell-dark-background-color);
+				}
+			}
+
+			/* macOS auxiliary windows (thread-in-own-window) paint the app surface color
+			   before hydration so the new window doesn't flash the shell background
+			   (white-ish in dark mode). The native shell sets the marker at
+			   document-start; see native-shell.ts getMacOSAuxiliaryWindow. */
+			html[data-amp-auxiliary-window],
+			html[data-amp-auxiliary-window] body {
+				background-color: var(--amp-surface-light-background-color);
+			}
+
+			/* Thread windows start with the sidebar collapsed, but the server renders the
+			   user's saved (usually expanded) sidebar state. Hide it until the client applies
+			   the per-window collapsed state so it never flashes open and closed. */
+			html[data-amp-auxiliary-window='thread']
+				body:not([data-amp-app-mounted])
+				[data-slot='sidebar'] {
+				display: none;
+			}
+
+			html[data-amp-color-scheme='dark'][data-amp-auxiliary-window],
+			html[data-amp-color-scheme='dark'][data-amp-auxiliary-window] body {
+				background-color: var(--amp-surface-dark-background-color);
+			}
+
+			@media (prefers-color-scheme: dark) {
+				html[data-amp-color-scheme='system'][data-amp-auxiliary-window],
+				html[data-amp-color-scheme='system'][data-amp-auxiliary-window] body {
+					background-color: var(--amp-surface-dark-background-color);
+				}
+			}
+		</style>
+		<link rel="manifest" href="/site.webmanifest" crossorigin="use-credentials" />
+		<!-- Keep the ?v= icon version in sync with appIconVersion in routes/site.webmanifest/+server.ts -->
+		<link rel="apple-touch-icon" href="/app-icon.png?v=4" />
+		<meta name="apple-mobile-web-app-title" content="Amp" />
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+		<!-- Captures `beforeinstallprompt` before hydration so the PWA install flow
+		     (lib/standalone/pwa-install-helper.svelte) can trigger it later. Inline with the
+		     per-request CSP nonce, which SvelteKit only substitutes in this template, to avoid
+		     a render-blocking external script request.
+		     Cancelling the event only matters on Android, where it suppresses Chrome's automatic
+		     install badge in favor of our install ribbon. Desktop Chrome shows its address-bar
+		     install icon regardless, and cancelling there only logs "Banner not shown:
+		     beforeinstallpromptevent.preventDefault() called" to the console. -->
+		<script nonce="zXqFi1WwBt0g7hKUBh81Jw==">
+			globalThis.addEventListener('beforeinstallprompt', (event) => {
+				if (/android/i.test(navigator.userAgent)) {
+					event.preventDefault()
+				}
+				globalThis.installPromptEvent = event
+			})
+		</script>
+		<!-- Reports the browser's time zone on every page load, signed in or not, so the server
+		     renders dates in it (VIEWER_TIME_ZONE_COOKIE in lib/viewer-time-zone.svelte.ts). -->
+		<script nonce="zXqFi1WwBt0g7hKUBh81Jw==">
+			try {
+				document.cookie = `amp-time-zone=${encodeURIComponent(
+					Intl.DateTimeFormat().resolvedOptions().timeZone,
+				)};path=/;max-age=31536000;samesite=lax`
+			} catch {
+				// Without the cookie the server renders dates in UTC.
+			}
+		</script>
+		<link
+			rel="icon"
+			type="image/svg+xml"
+			sizes="any"
+			href="/app-icon.svg?v=4"
+			data-amp-favicon
+		/>
+		<link
+			rel="icon"
+			type="image/png"
+			sizes="192x192"
+			href="/app-icon-192.png?v=4"
+		/>
+		<link href="/_app/immutable/entry/start.b71111b8.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/10cb795b.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/2b256529.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/7cd37c74.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/46005726.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/ee2ef066.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/87ba62c2.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/acd13c20.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/a6a0c564.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/a9bdd087.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/7deeb1a7.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/entry/app.2d60fe3f.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/4eb2e8bb.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/ddfee0f9.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/f3b1ab1c.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/7a58e015.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/9630f0bf.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/97d3b9d3.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/c761becf.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/99e67698.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/718b8029.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/6cc4539f.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/829790be.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/cc1deed7.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/bf9612e8.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/bb1a63e6.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/1ba99a58.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/642ae7e8.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/43764c50.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/89b30245.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/f128887a.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/nodes/0.cbdf2b27.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/f7949882.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/c15076c1.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/62ec6ffd.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/60a37b5a.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/9c0fe8cd.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/b2519a5f.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/78043217.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/b1ef9775.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/fa64534f.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/2edacda1.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/50c6a95a.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/771aa2c8.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/c7c69c22.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/5a09ca06.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/d827c2d0.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/cf4342c9.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/259de1b6.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/5eacb510.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/7d91e4b5.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/9985d800.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/e8b6586a.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/91289546.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/782d0134.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/b73b2a77.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/4d350195.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/85ffbd78.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/f195d0c9.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/26700284.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/ec90501d.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/ac3aaa40.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/911b02a2.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/42718e8f.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/8551a47f.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/703c0cfe.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/c37fe3b5.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/97254f28.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/bb492421.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/58366414.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/811dad10.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/2359898e.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/dfc006b2.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/7cacb5f0.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/a2701781.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/92f75d6e.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/a3624a20.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/45d9dca3.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/dffd81ae.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/cce471aa.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/17550569.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/edd78338.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/73eb2ef5.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/5f8aa540.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/f72a6e2e.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/e7dffb54.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/9c4b7baf.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/f16f79a1.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/64b8e93e.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/9cee58e3.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/c88a04c6.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/46719b93.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/680895a1.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/7f99b886.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/63d1860d.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/bfa62099.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/ad7a126f.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/8d1fb305.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/9d3a8eb4.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/6d680bfd.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/48e35a49.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/b2ca1971.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/5094f4af.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/914d01ef.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/cfe390a0.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/de55dfcb.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/c42c61a3.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/1fecb8df.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/e757ed27.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/2fc96cca.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/33022120.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/674d69e4.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/c9817810.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/27565052.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/b603248e.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/39d77acd.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/c1c5c219.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/daba4d9b.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/930166d2.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/ed2ebf9c.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/473b1356.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/c69c18c6.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/4c4c2672.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/89326886.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/10e5e33a.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/d8dbee37.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/nodes/26.d854f07d.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/9fe10609.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/85876c83.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/6b357d65.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/9a73606d.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/46ac9a19.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/dfcd1901.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/9bd2c4ba.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/d9bf89a4.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/fc55191b.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/b941a9a8.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/94476146.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/e3aef278.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/2f9b54a7.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/c31636df.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/eb9be116.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/fbedc352.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/68b157ba.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/6730aeca.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/c1ef79b7.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/57b9f1fd.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/1f960b96.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/8cd4e468.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/6d1e6156.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/409df01e.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/468e46dd.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/df233276.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/nodes/862.df3fe444.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/beea1879.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/ae575883.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/nodes/1.d5b5ef00.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/3bc31216.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/c78c94bf.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/d1ffd4bb.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/98a87d10.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/6d307ddb.js" rel="modulepreload" fetchpriority="low">
+		<link href="/_app/immutable/chunks/b687319e.js" rel="modulepreload" fetchpriority="low">
+		<!--12qhfyh--><!--[-1--><!--]--> <!--[-1--><!--]--> <!--[-1--><!--]--> <!--[0--><meta name="description" content="Teach Amp repeatable ways to complete tasks."/><!--]--> <meta property="og:title" content="Skills | Amp Docs"/> <!--[0--><meta property="og:description" content="Teach Amp repeatable ways to complete tasks."/><!--]--> <!--[0--><meta property="og:image" content="https://ampcode.com/og?_version=1&amp;title=Skills&amp;groupTitle=Customize&amp;description=Teach+Amp+repeatable+ways+to+complete+tasks.&amp;label=Docs&amp;_template=docs&amp;sig=e33d8415cf57d0d9f7549d9681628b448658aab2b0bab966f147150836af1c45"/><meta name="twitter:image" content="https://ampcode.com/og?_version=1&amp;title=Skills&amp;groupTitle=Customize&amp;description=Teach+Amp+repeatable+ways+to+complete+tasks.&amp;label=Docs&amp;_template=docs&amp;sig=e33d8415cf57d0d9f7549d9681628b448658aab2b0bab966f147150836af1c45"/><!--]--> <meta name="twitter:site" content="@ampcode"/> <link rel="alternate" type="application/rss+xml" title="Amp News RSS Feed" href="/news.rss"/> <link rel="alternate" type="application/rss+xml" title="Amp Notes RSS Feed" href="/notes.rss"/> <link rel="alternate" type="application/rss+xml" title="Raising an Agent Podcast" href="/podcast.rss"/> <link rel="dns-prefetch" href="https://static.ampcode.com"/> <link rel="preload" href="/fonts/TX-02-Variable.woff2" as="font" type="font/woff2" crossorigin="anonymous"/><!----><!--173caho--><!--[0--><meta property="og:type" content="article"/><!--]--><!----><!--8e2efc--><link rel="canonical" href="https://ampcode.com/docs/customize/skills"/> <!--[0--><meta property="article:modified_time" content="2026-10-21"/><!--]--><!----><title>Skills | Amp Docs</title>
+		<style>[data-sheet-drag-region]{touch-action:none}@media (pointer:coarse){[data-standard-dialog-close]>[data-slot=dialog-header]>[data-slot=dialog-title]{padding-right:2rem}}@media (prefers-reduced-motion:no-preference){[data-slot=dialog-content][data-mobile-bottom-sheet=true][data-state=open]:not([data-bottom-sheet-entered]){transform:translateY(100%)}[data-slot=dialog-content][data-mobile-bottom-sheet=true][data-state=open][data-bottom-sheet-entered]{animation:.385s cubic-bezier(.32,.72,0,1) svelte-1u36tz5-bottom-sheet-enter}[data-slot=dialog-content][data-mobile-bottom-sheet=true][data-state=closed]{animation:.24s cubic-bezier(.32,.72,0,1) both svelte-1u36tz5-bottom-sheet-exit}}@media (prefers-reduced-motion:no-preference) and (width<=767px){[data-slot=dialog-content][data-mobile-bottom-sheet=responsive][data-state=open]:not([data-bottom-sheet-entered]){transform:translateY(100%)}[data-slot=dialog-content][data-mobile-bottom-sheet=responsive][data-state=open][data-bottom-sheet-entered]{animation:.385s cubic-bezier(.32,.72,0,1) svelte-1u36tz5-bottom-sheet-enter}[data-slot=dialog-content][data-mobile-bottom-sheet=responsive][data-state=closed]{animation:.24s cubic-bezier(.32,.72,0,1) both svelte-1u36tz5-bottom-sheet-exit}}[data-slot=dialog-content][data-mobile-bottom-sheet][data-swipe-dismissed]{animation:none!important}html[data-amp-mobile-keyboard=open] [data-mobile-bottom-sheet=true]{padding-bottom:0}@media (width<=767px){html[data-amp-mobile-keyboard=open] [data-mobile-bottom-sheet=responsive]{padding-bottom:0}}@keyframes svelte-1u36tz5-bottom-sheet-enter{0%{transform:translateY(100%)}}@keyframes svelte-1u36tz5-bottom-sheet-exit{to{transform:translateY(100%)}}@supports (-webkit-touch-callout:none){@media (width<=767px) and (pointer:coarse){[data-mobile-form-sheet] :is(input,textarea,select,[contenteditable]:not([contenteditable=false])){font-family:system-ui;font-size:max(1rem,16.1px)}[data-mobile-form-sheet] textarea{line-height:1.375}}}
+
+[role=tooltip].svelte-821vpd{width:max-content;max-width:min(calc(100vw - 10px), var(--tooltip-max-width,450px));position:absolute;top:0;left:0}
+
+:where(.loader-indicator){vertical-align:-.125em;flex-shrink:0;justify-content:center;align-items:center;display:inline-flex}.loader-indicator.svelte-8n3amx{animation:none}.loader-animation-context.svelte-8n3amx{animation-name:none;animation-duration:1.2s;animation-play-state:running}.loader-dot.svelte-8n3amx{width:var(--loader-dot-size,62.5%);height:var(--loader-dot-size,62.5%);opacity:.55;will-change:opacity, transform;transform:scale(.76)}.loader-indicator-animated.svelte-8n3amx{animation-duration:1.2s;animation-play-state:running}.loader-animation-context.svelte-8n3amx .loader-indicator-animated:where(.svelte-8n3amx){animation-duration:inherit;animation-play-state:inherit}.loader-progress-ring.svelte-8n3amx{transition:stroke-dashoffset .3s}.loader-indicator-animated.svelte-8n3amx .animate-breathing-dot:where(.svelte-8n3amx){animation-duration:inherit;animation-play-state:inherit}@media (prefers-reduced-motion:reduce){.loader-indicator.svelte-8n3amx,.loader-indicator.svelte-8n3amx .loader-dot:where(.svelte-8n3amx){will-change:auto;animation:none}.loader-progress-ring.svelte-8n3amx{transition:none}}
+
+:root,#app-container{--app-mobile-safe-area-inset-top:0px;--app-mobile-safe-area-inset-right:0px;--app-mobile-safe-area-inset-bottom:0px;--app-mobile-safe-area-inset-left:0px}@supports (padding:env(safe-area-inset-bottom)){:root,#app-container{--app-mobile-safe-area-inset-top:env(safe-area-inset-top);--app-mobile-safe-area-inset-right:env(safe-area-inset-right);--app-mobile-safe-area-inset-bottom:env(safe-area-inset-bottom);--app-mobile-safe-area-inset-left:env(safe-area-inset-left)}}html[data-amp-shell=ios-v1],html[data-amp-shell=ios-v1] #app-container{--app-mobile-safe-area-inset-top:var(--amp-native-safe-area-inset-top,0px);--app-mobile-safe-area-inset-right:var(--amp-native-safe-area-inset-right,0px);--app-mobile-safe-area-inset-bottom:var(--amp-native-safe-area-inset-bottom,0px);--app-mobile-safe-area-inset-left:var(--amp-native-safe-area-inset-left,0px)}html[data-amp-shell=ios-v1][data-amp-native-camera-side=left],html[data-amp-shell=ios-v1][data-amp-native-camera-side=left] #app-container{--app-mobile-safe-area-inset-right:0px}html[data-amp-shell=ios-v1][data-amp-native-camera-side=right],html[data-amp-shell=ios-v1][data-amp-native-camera-side=right] #app-container{--app-mobile-safe-area-inset-left:0px}html[data-amp-shell=android-v1],html[data-amp-shell=android-v1] #app-container{--app-mobile-safe-area-inset-top:var(--amp-native-safe-area-inset-top,env(safe-area-inset-top,0px));--app-mobile-safe-area-inset-right:var(--amp-native-safe-area-inset-right,env(safe-area-inset-right,0px));--app-mobile-safe-area-inset-bottom:var(--amp-native-safe-area-inset-bottom,env(safe-area-inset-bottom,0px));--app-mobile-safe-area-inset-left:var(--amp-native-safe-area-inset-left,env(safe-area-inset-left,0px))}@media (hover:none) and (pointer:coarse){@supports (-webkit-touch-callout:none){@media (display-mode:standalone){:root,#app-container{--app-mobile-safe-area-inset-bottom:0px}}}}@property --amp-native-composer-inset{syntax:"*";inherits:false}@property --amp-native-composer-keyboard-inset{syntax:"*";inherits:false}@property --amp-native-composer-inset-duration{syntax:"*";inherits:false}@property --amp-native-composer-inset-easing{syntax:"*";inherits:false}@property --amp-native-composer-inset-started-at{syntax:"*";inherits:false}.toast-transition-shell.svelte-a8z4tr{will-change:transform, opacity}body[data-app-title-bar] .sonner-container[data-position=top-center].svelte-a8z4tr{top:calc(var(--app-shell-top,0px) + var(--app-mobile-safe-area-inset-top,0px) + 3.75rem)}html[data-amp-shell=ios-v1] body[data-app-title-bar] .sonner-container[data-position=top-center].svelte-a8z4tr{top:calc(var(--app-shell-top,0px) + var(--app-native-sidebar-content-top-inset,0px) + 3.5rem)}
+
+.docs-prompt{border-radius:.75rem;margin-block:1.5rem;position:relative;box-shadow:inset 0 0 0 1px light-dark(#5050371f,#f6fff512)}.docs-prompt+.docs-prompt{margin-block-start:.625rem}.docs-prompt-text{white-space:pre-wrap;overflow-wrap:anywhere;padding:.625rem 2.75rem .625rem .875rem;font-size:15px;line-height:1.5rem}.docs-prompt-thread{text-underline-offset:3px;margin:-.25rem .875rem .625rem;font-size:.8125rem;line-height:1.25rem;text-decoration-line:underline;display:inline-block}.docs-prompt-copy{width:1.75rem;height:1.75rem;color:inherit;opacity:.45;cursor:pointer;border-radius:.375rem;place-items:center;transition:opacity .1s,background-color .1s;display:grid;position:absolute;inset-block-start:.375rem;inset-inline-end:.375rem}.docs-prompt-copy:hover,.docs-prompt-copy:focus-visible,.docs-prompt-copy[data-copied]{opacity:1}.docs-prompt-copy:hover{background-color:color-mix(in oklab, currentColor 8%, transparent)}.docs-prompt-copy:focus-visible{outline-offset:1px;outline:1px solid}.docs-prompt-copy svg{width:1rem;height:1rem}.docs-prompt-copy[data-copied] .docs-prompt-copy-idle,.docs-prompt-copy:not([data-copied]) .docs-prompt-copy-done{display:none}
+
+.table-of-contents-link-label.svelte-10z98q0{--lens-stroke-color:currentColor;--lens-stroke-opacity:0}.table-of-contents-link-label.svelte-10z98q0:before{transition:opacity .15s}.table-of-contents-link.svelte-10z98q0:hover .table-of-contents-link-label:where(.svelte-10z98q0),.table-of-contents-link.is-active.svelte-10z98q0 .table-of-contents-link-label:where(.svelte-10z98q0){--lens-stroke-opacity:.8}@layer base{:where(.table-of-contents-link-label.svelte-10z98q0):before{box-sizing:border-box;border:0 solid var(--color-border,currentColor);margin:0;padding:0}}
+
+.install-cli-platform-tabs.svelte-m6up3s{container-type:inline-size}.platform-selector-select.svelte-m6up3s{display:none}@container (width<22rem){.platform-selector-header.svelte-m6up3s{flex-direction:column;align-items:flex-start;gap:.5rem}.platform-selector-tabs.svelte-m6up3s{display:none}.platform-selector-select.svelte-m6up3s{display:block}}
+
+/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */
+.docs-surface-toggle-body.svelte-680ztg img,.docs-surface-toggle-body.svelte-680ztg video,.docs-surface-toggle-body.svelte-680ztg .docs-media-stage{margin-top:calc(var(--spacing,.25rem) * 2);width:100%;margin-bottom:0}
+
+.tier-feature-list.svelte-uczfrn>.text-foreground{padding-left:1.25rem;position:relative}.tier-feature-list.svelte-uczfrn>.text-foreground:before{content:"✓";position:absolute;left:0}.pricing-card-marketing.svelte-uczfrn{background-color:color-mix(in srgb, var(--muted) 50%, var(--background))}html[data-amp-color-scheme=dark] .pricing-card-marketing.svelte-uczfrn{background-color:color-mix(in srgb, var(--muted-foreground) 5%, var(--background))}@media (prefers-color-scheme:dark){html[data-amp-color-scheme=system] .pricing-card-marketing.svelte-uczfrn{background-color:color-mix(in srgb, var(--muted-foreground) 5%, var(--background))}}.new-badge{background-origin:border-box;background-image:linear-gradient(115deg in oklab, #c0532a 0%, #d68a5f 42%, #345755 78%, #193f42 100%)}.new-badge:after{content:"";z-index:-1;pointer-events:none;opacity:.55;mix-blend-mode:overlay;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:80px 80px;position:absolute;inset:-1px}.pricing-card.svelte-uczfrn{box-shadow:0 0 0 1px light-dark(#00000012,#ffffff1a),0 1px 2px light-dark(#0000000d,#0000),0 3px 8px light-dark(#0000000d,#0000)}@layer base{:where(.tier-feature-list.svelte-uczfrn)>:where(.text-foreground):before,:where(.new-badge):after{box-sizing:border-box;border:0 solid var(--color-border,currentColor);margin:0;padding:0}}
+
+.slide-title.svelte-1kz7p3l,.slide-description.svelte-1kz7p3l,.example-image.svelte-1kz7p3l{margin-bottom:0}.slide-title.svelte-1kz7p3l{margin-top:0}
+</style>
+		<link href="/_app/immutable/assets/dialog-content.5d8ba7121ede3d4a.css" rel="stylesheet" disabled media="(max-width: 0)">
+		<link href="/_app/immutable/assets/root.e1c4cbbefec0b44e.css" rel="stylesheet" disabled media="(max-width: 0)">
+		<link href="/_app/immutable/assets/loader.8e4d630672865114.css" rel="stylesheet" disabled media="(max-width: 0)">
+		<link href="/_app/immutable/assets/0.d2c6c6b65b5948e1.css" rel="stylesheet" disabled media="(max-width: 0)">
+		<link href="/_app/immutable/assets/app.8ebfe94019e5d36e.css" rel="stylesheet">
+		<link href="/_app/immutable/assets/prompt-copy.bc19f2d5c9b59ce9.css" rel="stylesheet" disabled media="(max-width: 0)">
+		<link href="/_app/immutable/assets/table-of-contents.6d52fe7d6a5d41dd.css" rel="stylesheet" disabled media="(max-width: 0)">
+		<link href="/_app/immutable/assets/docs-layout.f1dfb93e8f121391.css" rel="stylesheet">
+		<link href="/_app/immutable/assets/install-cli.8a590660a82782f4.css" rel="stylesheet" disabled media="(max-width: 0)">
+		<link href="/_app/immutable/assets/plugins.67ac6cca5877efd8.css" rel="stylesheet" disabled media="(max-width: 0)">
+		<link href="/_app/immutable/assets/tier-pricing-chart.c702a461a717b128.css" rel="stylesheet" disabled media="(max-width: 0)">
+		<link href="/_app/immutable/assets/slack-integration.c9a0cbb4b648f628.css" rel="stylesheet" disabled media="(max-width: 0)">
+		<!-- Early thread-page bootstrap: runs synchronously during parse, before the transcript,
+		     on direct loads of /threads/T-… only. Inline with the per-request CSP nonce (see the
+		     install-prompt script above) rather than an external classic script, because a
+		     parser-blocking <script src> in <head> delays first paint by a full request that
+		     queues behind the page's module preloads. Client-side navigations never run this;
+		     the hydrated app owns the width and scroll position then. -->
+		<script nonce="zXqFi1WwBt0g7hKUBh81Jw==">
+			;(() => {
+				if (!/^\/threads\/T-/.test(location.pathname)) {
+					return
+				}
+
+				// Apply the local transcript-width preference before the transcript is parsed so the
+				// first painted frame has the right width. Keep the key and attribute in sync with
+				// lib/thread-page/thread-width.svelte.ts ('true' is the legacy Full Width value).
+				let threadWidth = null
+				try {
+					const stored = window.localStorage.getItem('amp:thread-full-width')
+					threadWidth =
+						stored === 'wide'
+							? 'wide'
+							: stored === 'full' || stored === 'true'
+								? 'full'
+								: null
+				} catch {
+					// Keep the constrained default when localStorage is unavailable.
+				}
+				if (threadWidth) {
+					document.documentElement.setAttribute('data-thread-width', threadWidth)
+				} else {
+					document.documentElement.removeAttribute('data-thread-width')
+				}
+
+				// #thread-page-scroll-behavior: place direct loads at the reopen position while the
+				// browser parses the transcript, so every painted frame is already there
+				// (#first-paint-at-the-right-place): the bottom when already read; otherwise the start
+				// of the last assistant message near the top, clamped to the bottom when the whole
+				// reply fits below it (#reopen-where-reader-left-off). Keep the context and clamp in
+				// sync with placeReopenPosition in thread-layout.svelte, which recomputes the same
+				// target after hydration and sets the pinning state (diverging deliberately when
+				// transcript file media below the reply's start is still loading, since the
+				// placeholder heights measured here are about to change). Transcript links (`?at=`)
+				// own the position (scrollToTranscriptLinkTargetWhenReady), so they skip this
+				// entirely and keep the transcript hidden until it scrolls to the target.
+				if (new URLSearchParams(location.search).has('at')) {
+					document.documentElement.setAttribute('data-transcript-link-pending', '')
+					return
+				}
+				const CONTEXT_PX = 48
+				const PINNING_THRESHOLD_PX = 1
+				// The layout reads below can force an unstyled paint (FOUC) while render-blocking
+				// stylesheets are still loading. Wait for each pending stylesheet to load or error
+				// before measuring.
+				const failedStylesheetLinks = new WeakSet()
+				const onStylesheetSettled = (event) => {
+					const link = event.currentTarget
+					link.removeEventListener('load', onStylesheetSettled)
+					link.removeEventListener('error', onStylesheetSettled)
+					if (event.type === 'error') {
+						failedStylesheetLinks.add(link)
+					}
+					applyInitialScroll()
+				}
+				const deferInitialScrollForPendingStylesheets = () => {
+					const pending = Array.from(
+						document.querySelectorAll('link[rel~="stylesheet"]'),
+					).filter(
+						(link) => !link.disabled && !link.sheet && !failedStylesheetLinks.has(link),
+					)
+					for (const link of pending) {
+						link.addEventListener('load', onStylesheetSettled)
+						link.addEventListener('error', onStylesheetSettled)
+					}
+					return pending.length > 0
+				}
+				const scrollToBottom = (container) => {
+					// Give the content a whole-pixel height first, as scroll pinning does once it
+					// attaches pinned to the bottom (keep in sync with
+					// alignPinnedContentHeightToWholePixels in scroll-pinning/index.ts); otherwise
+					// its alignment margin moves every row by a fraction of a pixel at hydration.
+					const content = container.firstElementChild
+					if (
+						content instanceof HTMLElement &&
+						container.scrollHeight > container.clientHeight
+					) {
+						const zoom =
+							Number(document.documentElement.getAttribute('data-amp-page-zoom')) || 1
+						const height = content.getBoundingClientRect().height * zoom
+						const marginPx =
+							((Math.round((1 - (height - Math.floor(height))) * 64) / 64) % 1) / zoom
+						content.style.marginTop = marginPx === 0 ? '' : `${marginPx}px`
+					}
+					// scrollHeight/clientHeight are independently rounded integers. Let the browser
+					// clamp scrollHeight to the true, potentially fractional maximum instead of
+					// subtracting them.
+					container.scrollTop = container.scrollHeight
+				}
+				// True once the final placement has been applied. The stylesheet-settle callbacks
+				// above can fire long after the initial parse (SvelteKit appends route CSS links on
+				// client-side navigations, and any of them pending at a re-check keeps the chain
+				// alive), and a late re-application would clobber the position the hydrated app
+				// owns — e.g. yanking a restored reading position back to the bottom after navigating
+				// away and back.
+				let initialScrollDone = false
+				const applyInitialScroll = () => {
+					if (initialScrollDone) {
+						return
+					}
+					if (deferInitialScrollForPendingStylesheets()) {
+						return
+					}
+					// While parsing, keep re-placing as the transcript streams in so every painted
+					// frame is already at the target (#first-paint-at-the-right-place). Once parsing
+					// is over, this application is the last word from this script; hydration owns the
+					// position afterwards.
+					if (document.readyState !== 'loading') {
+						initialScrollDone = true
+					}
+					for (const container of document.querySelectorAll(
+						'[data-thread-transcript-initial-scroll]',
+					)) {
+						// 'assistant:<id>' targets the exact latest settled top-level assistant reply
+						// (thread-layout renders the ID); 'bottom' and '' (unread with nothing to
+						// anchor — a running or cancelled turn, or no assistant reply) open at the
+						// bottom.
+						const initialScroll = container.getAttribute(
+							'data-thread-transcript-initial-scroll',
+						)
+						if (!initialScroll || !initialScroll.startsWith('assistant:')) {
+							scrollToBottom(container)
+							continue
+						}
+						const messageID = initialScroll.slice('assistant:'.length)
+						const messageEl = container.querySelector(
+							'[data-transcript-message-role="assistant"][data-transcript-source-message-id="' +
+								CSS.escape(messageID) +
+								'"]',
+						)
+						// Anchor the enclosing entry-list row, matching latestAssistantReplyAnchorRow in
+						// thread-layout.svelte, so both load paths measure the same element.
+						const row =
+							messageEl && messageEl.closest('[data-transcript-entry-list] > *')
+						if (!row || !row.id || row.getBoundingClientRect().height <= 0) {
+							scrollToBottom(container)
+							continue
+						}
+						const maxScrollTop = Math.max(
+							0,
+							container.scrollHeight - container.clientHeight,
+						)
+						const rowTop =
+							row.getBoundingClientRect().top -
+							container.getBoundingClientRect().top +
+							container.scrollTop
+						const targetScrollTop = Math.min(
+							Math.max(0, rowTop - CONTEXT_PX),
+							maxScrollTop,
+						)
+						if (maxScrollTop - targetScrollTop <= PINNING_THRESHOLD_PX) {
+							scrollToBottom(container)
+							continue
+						}
+						container.scrollTop = targetScrollTop
+					}
+				}
+
+				const observer = new MutationObserver(applyInitialScroll)
+				observer.observe(document.documentElement, { childList: true, subtree: true })
+				document.addEventListener(
+					'DOMContentLoaded',
+					() => {
+						applyInitialScroll()
+						observer.disconnect()
+					},
+					{ once: true },
+				)
+			})()
+		</script>
+	</head>
+	<body
+		data-sveltekit-preload-data="hover"
+		data-amp-keymap-platform="linux"
+		
+	>
+		<div style="display: contents"><!--[--><!--[--><!--[0--><!--[--><!----> <!----> <!--[-1--><!--]--> <!--[-1--><!----><!--[--><!--[0--><!--[--><div class="docs-shell min-h-dvh bg-background text-foreground svelte-173caho" data-minimal-scrollbars=""><header class="sticky top-0 z-40 flex h-12 items-center border-b bg-background/95 backdrop-blur-sm"><div class="flex h-full w-auto shrink-0 items-center gap-3 px-4 md:px-6 md:w-[280px]"><!--[1--><!--[-1--><button class="ring-offset-background focus-visible:ring-ring inline-flex items-center justify-center gap-1 whitespace-nowrap font-medium focus-visible:outline-hidden focus-visible:ring-1 disabled:pointer-events-none disabled:opacity-50 data-[touch-pressed]:opacity-85 [&amp;_svg]:pointer-events-none [&amp;_svg]:stroke-[1.75px] [&amp;_svg]:shrink-0 select-none text-foreground/80 border border-transparent data-[default-ghost-icon-color]:[&amp;_svg:not([class*=&quot;text-&quot;])]:text-foreground data-[default-ghost-icon-color]:[&amp;_svg:not([class*=&quot;text-&quot;]):not([class*=&quot;opacity-&quot;])]:opacity-80 pointer-fine:hover:bg-foreground/5 pointer-fine:hover:text-foreground data-[default-ghost-icon-color]:pointer-fine:hover:[&amp;_svg:not([class*=&quot;text-&quot;]):not([class*=&quot;opacity-&quot;])]:opacity-100 pointer-fine:active:bg-foreground/5 pointer-fine:active:text-foreground data-[default-ghost-icon-color]:pointer-fine:active:[&amp;_svg:not([class*=&quot;text-&quot;]):not([class*=&quot;opacity-&quot;])]:opacity-100 data-[touch-pressed]:bg-foreground/5 data-[touch-pressed]:text-foreground data-[default-ghost-icon-color]:data-[touch-pressed]:[&amp;_svg:not([class*=&quot;text-&quot;]):not([class*=&quot;opacity-&quot;])]:opacity-100 data-[active=true]:bg-accent data-[active=true]:text-accent-foreground data-[default-ghost-icon-color]:data-[active=true]:[&amp;_svg:not([class*=&quot;text-&quot;])]:text-accent-foreground data-[default-ghost-icon-color]:data-[active=true]:[&amp;_svg:not([class*=&quot;text-&quot;]):not([class*=&quot;opacity-&quot;])]:opacity-100 h-6.5 w-6.5 rounded-sm text-sm [&amp;_svg]:size-3.5 pointer-coarse:size-9 pointer-coarse:[&amp;_svg]:size-5 [&amp;_[data-loader]]:size-3.5 pointer-coarse:[&amp;_[data-loader]]:size-5 relative [&amp;_[data-loader]]:absolute [&amp;_[data-loader]]:inset-0 [&amp;_[data-loader]]:m-auto -ml-1 lg:hidden" type="button" data-default-ghost-icon-color="" aria-label="Open Documentation Navigation"><svg viewBox="0 0 24 24" width="24" height="24" data-lucide-icon="" stroke-width="1.75"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5h16M4 12h16M4 19h16"></path></svg><!----> <!--[-1--><!--]--></button><!--]--><!--]--> <a href="/home" aria-label="Amp Home" class="flex items-center"><!--[-1--><svg class="h-5" viewBox="0 0 281 144" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M236.014 20C260.431 20.0001 280.602 37.4115 280.603 64.7432C280.602 93.5337 260.065 114.166 233.52 114.166C224.158 114.166 215.639 112.422 208.63 108.49C202.886 105.27 198.203 100.605 194.919 94.3379L188.115 141.822L187.946 143.016H174.214L174.448 141.423L191.772 22.4941H205.372L203.937 31.3369C212.143 23.8608 223.2 20.0002 236.014 20ZM47.082 20.1543C56.4435 20.1543 65.0012 21.8991 72.0488 25.8486C77.8222 29.0831 82.5323 33.7713 85.8271 40.085L88.1201 23.6924L88.2861 22.4932H101.863L89.1611 110.633L88.9873 111.826H75.4092L76.7227 102.855C68.5854 110.456 57.3981 114.323 44.5889 114.323C20.1709 114.323 0.000167223 96.9087 0 69.5771C0.000149745 40.7854 20.54 20.1549 47.082 20.1543ZM116.234 110.636L116.061 111.827H102.485L115.351 23.6855L115.521 22.4941H129.083L116.234 110.636ZM140.673 110.636L140.499 111.827H126.924L139.789 23.6855L139.96 22.4941H153.521L140.673 110.636ZM177.958 22.4941L165.108 110.636L164.935 111.827H151.36L164.225 23.6855L164.396 22.4941H177.958ZM48.4854 31.9844C27.8638 31.985 14.0133 48.3799 14.0127 68.9521C14.0127 77.7907 16.8094 86.1771 22.3145 92.334C27.7973 98.4657 36.0631 102.493 47.2402 102.493C67.8534 102.493 81.7122 85.9487 81.7129 65.3682C81.7129 55.4076 78.2493 47.0792 72.4131 41.2441C66.5794 35.4088 58.2871 31.9844 48.4854 31.9844ZM233.362 31.8291C212.749 31.8297 198.89 48.3716 198.89 68.9521C198.89 78.9123 202.356 87.2403 208.189 93.0742C214.023 98.9107 222.315 102.336 232.116 102.336C252.738 102.335 266.589 85.9407 266.59 65.3682C266.59 56.5296 263.795 48.1424 258.29 41.9863C252.807 35.8551 244.542 31.8291 233.362 31.8291Z"></path></svg><!--]--><!----></a></div> <nav class="h-full items-center gap-1 text-sm md:flex hidden" aria-label="Main Navigation"><a href="/docs" class="flex h-full items-center border-b-2 px-3 docs-accent-border font-medium text-foreground svelte-173caho" aria-current="page">Docs</a> <a href="/chronicle" class="flex h-full items-center border-b-2 px-3 border-transparent text-muted-foreground hover:text-foreground svelte-173caho">Chronicle</a> <a href="/docs/using-amp" class="flex h-full items-center border-b-2 px-3 border-transparent text-muted-foreground hover:text-foreground svelte-173caho">Using Amp</a></nav> <div class="ml-auto flex shrink-0 items-center gap-2 px-4 lg:px-6"><!--[-1--><button class="ring-offset-background focus-visible:ring-ring inline-flex items-center justify-center gap-1 whitespace-nowrap font-medium focus-visible:outline-hidden focus-visible:ring-1 disabled:pointer-events-none disabled:opacity-50 data-[touch-pressed]:opacity-85 [&amp;_svg]:pointer-events-none [&amp;_svg]:stroke-[1.75px] [&amp;_svg]:shrink-0 select-none pointer-fine:hover:bg-foreground/5 pointer-fine:active:bg-foreground/5 data-[touch-pressed]:bg-foreground/5 border h-6.5 w-6.5 rounded-sm text-sm [&amp;_svg]:size-3.5 pointer-coarse:size-9 pointer-coarse:[&amp;_svg]:size-5 [&amp;_[data-loader]]:size-3.5 pointer-coarse:[&amp;_[data-loader]]:size-5 relative [&amp;_[data-loader]]:absolute [&amp;_[data-loader]]:inset-0 [&amp;_[data-loader]]:m-auto sm:hidden" type="button" aria-label="Search Docs"><svg viewBox="0 0 24 24" width="24" height="24" data-lucide-icon="" stroke-width="1.75"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="m21 21l-4.34-4.34"></path><circle cx="11" cy="11" r="8"></circle></g></svg><!----> <!--[-1--><!--]--></button><!--]--><!----> <!--[-1--><button class="ring-offset-background focus-visible:ring-ring items-center whitespace-nowrap rounded-sm font-medium focus-visible:outline-hidden focus-visible:ring-1 disabled:pointer-events-none disabled:opacity-50 data-[touch-pressed]:opacity-85 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:stroke-[1.75px] [&amp;_svg]:shrink-0 [&amp;_[data-loader]]:size-4 select-none pointer-fine:hover:bg-foreground/5 pointer-fine:active:bg-foreground/5 data-[touch-pressed]:bg-foreground/5 border px-2.5 py-1 hidden w-44 justify-start gap-2 text-muted-foreground sm:flex" type="button"><svg viewBox="0 0 24 24" width="24" height="24" data-lucide-icon="" stroke-width="1.75"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="m21 21l-4.34-4.34"></path><circle cx="11" cy="11" r="8"></circle></g></svg><!----> <span class="flex-1 text-left font-normal">Search docs...</span> <span data-slot="kbd-key" class="inline-flex items-center gap-1 pointer-coarse:hidden p-px"><!--[--><!--[-1--><!--]--> <span class="inline-flex gap-1"><!--[--><kbd class="bg-transparent rounded-sm outline-none ring-1 ring-black/10 dark:ring-white/10 shadow-sm text-xs px-1 py-1 -my-0.5 text-muted-foreground" style="font-family:unset !important;"><!--[-1-->Ctrl+K<!--]--></kbd><!--]--></span><!--]--></span><!----><!----> <!--[-1--><!--]--></button><!--]--><!----> <div class="hidden items-center sm:flex"><!--[-1--><!--[0--><a class="ring-offset-background focus-visible:ring-ring inline-flex items-center justify-center gap-1 whitespace-nowrap rounded-sm font-medium focus-visible:outline-hidden focus-visible:ring-1 disabled:pointer-events-none disabled:opacity-50 data-[touch-pressed]:opacity-85 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:stroke-[1.75px] [&amp;_svg]:shrink-0 [&amp;_[data-loader]]:size-4 select-none pointer-fine:hover:bg-foreground/5 pointer-fine:active:bg-foreground/5 data-[touch-pressed]:bg-foreground/5 border px-2.5 py-1" href="/auth/sign-in"><!---->Sign In<!----> <!--[-1--><!--]--></a><!--]--><!--]--></div></div></header> <!--[--><!--[-1--><!--]--><!----><!----><!--]--><!----> <!--[0--><!--[--><!--[--><!--[-1--><!--]--><!--]--><!----><!--]--><!----> <div class="lg:grid lg:grid-cols-[280px_minmax(0,1fr)]"><aside class="sticky top-12 hidden h-[calc(100dvh-3rem)] overflow-y-auto border-r lg:block"><nav aria-label="Documentation" class="space-y-8 px-6 py-7"><!--[--><section><h2 class="mb-2 text-xs font-medium tracking-wide text-muted-foreground">Get Started</h2> <ul class="space-y-0.5"><!--[--><!--[-1--><li><a href="/docs" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3"><span class="min-w-0 truncate">Introduction</span> <!--[-1--><!--]--></a></li><!--]--><!--[-1--><li><a href="/docs/the-dial" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3"><span class="min-w-0 truncate">The Dial</span> <!--[-1--><!--]--></a></li><!--]--><!--[-1--><li><a href="/docs/models-and-subagents" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3"><span class="min-w-0 truncate">Modes &amp; Models</span> <!--[-1--><!--]--></a></li><!--]--><!--[-1--><li><a href="/docs/prompting" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3"><span class="min-w-0 truncate">Prompting</span> <!--[-1--><!--]--></a></li><!--]--><!--[-1--><li><a href="/docs/designing-ui" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3"><span class="min-w-0 truncate">Designing UI</span> <!--[-1--><!--]--></a></li><!--]--><!--[-1--><li><a href="/docs/tools" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3"><span class="min-w-0 truncate">Tools</span> <!--[-1--><!--]--></a></li><!--]--><!--[-1--><li><a href="/docs/projects" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3"><span class="min-w-0 truncate">Projects</span> <!--[-1--><!--]--></a></li><!--]--><!--[-1--><li><a href="/docs/github" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3"><span class="min-w-0 truncate">GitHub &amp; Git</span> <!--[-1--><!--]--></a></li><!--]--><!--[-1--><li><a href="/docs/integrations" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3"><span class="min-w-0 truncate">Integrations</span> <!--[-1--><!--]--></a></li><!--]--><!--[-1--><li><a href="/docs/threads" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3"><span class="min-w-0 truncate">Threads</span> <!--[-1--><!--]--></a></li><!--]--><!--[-1--><li><a href="/docs/pricing" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3"><span class="min-w-0 truncate">Pricing</span> <!--[-1--><!--]--></a></li><!--]--><!--]--> <!--[-1--><!--]--></ul></section><section><h2 class="mb-2 text-xs font-medium tracking-wide text-muted-foreground">Orbs</h2> <ul class="space-y-0.5"><!--[--><!--[-1--><li><a href="/docs/orbs" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3"><span class="min-w-0 truncate">Overview</span> <!--[-1--><!--]--></a></li><!--]--><!--[-1--><li><a href="/docs/orbs/getting-started" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3"><span class="min-w-0 truncate">Getting Started</span> <!--[-1--><!--]--></a></li><!--]--><!--[-1--><li><a href="/docs/orbs/customizing" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3"><span class="min-w-0 truncate">Customizing Orbs</span> <!--[-1--><!--]--></a></li><!--]--><!--[-1--><li><a href="/docs/orbs/shipping" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3"><span class="min-w-0 truncate">Shipping Changes</span> <!--[-1--><!--]--></a></li><!--]--><!--[-1--><li><a href="/docs/orbs/sizes-and-costs" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3"><span class="min-w-0 truncate">Sizes &amp; Costs</span> <!--[-1--><!--]--></a></li><!--]--><!--[-1--><li><a href="/docs/orbs/handling-secrets" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3"><span class="min-w-0 truncate">Handling Secrets</span> <!--[-1--><!--]--></a></li><!--]--><!--[-1--><li><a href="/docs/orbs/files-and-attachments" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3"><span class="min-w-0 truncate">Files &amp; Attachments</span> <!--[-1--><!--]--></a></li><!--]--><!--[-1--><li><a href="/docs/orbs/portals" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3"><span class="min-w-0 truncate">Portals &amp; Desktop</span> <!--[-1--><!--]--></a></li><!--]--><!--[-1--><li><a href="/docs/orbs/agent-to-agent" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3"><span class="min-w-0 truncate">Agent to Agent</span> <!--[-1--><!--]--></a></li><!--]--><!--[-1--><li><a href="/docs/orbs/automations" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3"><span class="min-w-0 truncate">Automations &amp; Webhooks</span> <!--[-1--><!--]--></a></li><!--]--><!--[0--><li><button type="button" aria-expanded="false" aria-controls="docs-submenu-orbs-self-hosted" class="-mx-3 flex w-[calc(100%+1.5rem)] items-center gap-1.5 rounded-lg px-3 py-1 text-left text-[15px] leading-5 hover:text-foreground text-foreground/85"><span class="min-w-0 truncate">Self-Hosted</span> <svg viewBox="0 0 24 24" width="24" height="24" data-lucide-icon="" stroke-width="1.75" aria-hidden="true" class="size-3.5 shrink-0 text-muted-foreground transition-transform"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m9 18l6-6l-6-6"></path></svg><!----></button> <!--[-1--><!--]--></li><!--]--><!--]--> <!--[-1--><!--]--></ul></section><section><h2 class="mb-2 text-xs font-medium tracking-wide text-muted-foreground">Apps</h2> <ul class="space-y-0.5"><!--[--><!--[-1--><li><a href="/docs/apps" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3"><span class="min-w-0 truncate">Overview</span> <!--[-1--><!--]--></a></li><!--]--><!--[-1--><li><a href="/docs/apps/mac" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3"><span class="min-w-0 truncate">macOS</span> <!--[-1--><!--]--></a></li><!--]--><!--[-1--><li><a href="/docs/apps/mac/runner" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3"><span class="min-w-0 truncate">Use Your Mac as a Runner</span> <!--[-1--><!--]--></a></li><!--]--><!--[-1--><li><a href="/docs/apps/ios" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3"><span class="min-w-0 truncate">iPhone &amp; iPad</span> <!--[-1--><!--]--></a></li><!--]--><!--[-1--><li><a href="/docs/apps/android" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3"><span class="min-w-0 truncate">Android</span> <!--[-1--><!--]--></a></li><!--]--><!--]--> <!--[-1--><!--]--></ul></section><section><h2 class="mb-2 text-xs font-medium tracking-wide text-muted-foreground">Puck</h2> <ul class="space-y-0.5"><!--[--><!--[-1--><li><a href="/docs/puck" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3"><span class="min-w-0 truncate">Meet Puck</span> <!--[-1--><!--]--></a></li><!--]--><!--[-1--><li><a href="/docs/puck/slack-integration" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3"><span class="min-w-0 truncate">Slack Integration</span> <!--[-1--><!--]--></a></li><!--]--><!--]--> <!--[-1--><!--]--></ul></section><section><h2 class="mb-2 text-xs font-medium tracking-wide text-muted-foreground">Collaborate</h2> <ul class="space-y-0.5"><!--[--><!--[-1--><li><a href="/docs/collaborate/workspaces" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3"><span class="min-w-0 truncate">Workspaces</span> <!--[-1--><!--]--></a></li><!--]--><!--[-1--><li><a href="/docs/collaborate/groups" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3"><span class="min-w-0 truncate">Groups</span> <!--[-1--><!--]--></a></li><!--]--><!--[-1--><li><a href="/docs/collaborate/multiplayer" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3"><span class="min-w-0 truncate">Multiplayer</span> <!--[-1--><!--]--></a></li><!--]--><!--[-1--><li><a href="/docs/collaborate/space" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3"><span class="min-w-0 truncate">Space</span> <!--[-1--><!--]--></a></li><!--]--><!--]--> <!--[-1--><!--]--></ul></section><section><h2 class="mb-2 text-xs font-medium tracking-wide text-muted-foreground">Customize</h2> <ul class="space-y-0.5"><!--[--><!--[-1--><li><a href="/docs/customize/plugins" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3"><span class="min-w-0 truncate">Plugins</span> <!--[-1--><!--]--></a></li><!--]--><!--[-1--><li><a href="/docs/customize/decision-models" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3"><span class="min-w-0 truncate">Decision Models</span> <!--[-1--><!--]--></a></li><!--]--><!--[-1--><li><a href="/docs/customize/global-plugins-and-skills" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3"><span class="min-w-0 truncate">Global Plugins &amp; Skills</span> <!--[-1--><!--]--></a></li><!--]--><!--[-1--><li><a href="/docs/customize/skills" aria-current="page" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3 alchemy-glow font-medium text-foreground inset-ring inset-ring-[light-dark(rgb(80_75_90/0.14),rgb(246_255_245/0.072))]"><span class="min-w-0 truncate">Skills</span> <!--[-1--><!--]--></a></li><!--]--><!--[-1--><li><a href="/docs/customize/mcp" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3"><span class="min-w-0 truncate">MCP</span> <!--[-1--><!--]--></a></li><!--]--><!--[-1--><li><a href="/docs/customize/agents-md" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3"><span class="min-w-0 truncate">AGENTS.md</span> <!--[-1--><!--]--></a></li><!--]--><!--[-1--><li><a href="/docs/customize/model-routing" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3"><span class="min-w-0 truncate">Model Routing</span> <!--[-1--><!--]--></a></li><!--]--><!--]--> <!--[-1--><!--]--></ul></section><section><h2 class="mb-2 text-xs font-medium tracking-wide text-muted-foreground">CLI</h2> <ul class="space-y-0.5"><!--[--><!--[-1--><li><a href="/docs/cli" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3"><span class="min-w-0 truncate">Getting Started</span> <!--[-1--><!--]--></a></li><!--]--><!--[-1--><li><a href="/docs/cli/keybindings" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3"><span class="min-w-0 truncate">Keybindings</span> <!--[-1--><!--]--></a></li><!--]--><!--[-1--><li><a href="/docs/cli/execute-mode" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3"><span class="min-w-0 truncate">Execute Mode</span> <!--[-1--><!--]--></a></li><!--]--><!--[-1--><li><a href="/docs/cli/spawning-orbs" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3"><span class="min-w-0 truncate">Spawning Orbs</span> <!--[-1--><!--]--></a></li><!--]--><!--[-1--><li><a href="/docs/cli/clone" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3"><span class="min-w-0 truncate">Clone Repositories</span> <!--[-1--><!--]--></a></li><!--]--><!--[-1--><li><a href="/docs/cli/streaming-json" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3"><span class="min-w-0 truncate">Streaming JSON</span> <!--[-1--><!--]--></a></li><!--]--><!--[-1--><li><a href="/docs/cli/settings" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3"><span class="min-w-0 truncate">Configuration</span> <!--[-1--><!--]--></a></li><!--]--><!--[-1--><li><a href="/docs/cli/runners" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3"><span class="min-w-0 truncate">Runners</span> <!--[-1--><!--]--></a></li><!--]--><!--[-1--><li><a href="/docs/cli/remote-control" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3"><span class="min-w-0 truncate">Cross-Client Access</span> <!--[-1--><!--]--></a></li><!--]--><!--]--> <!--[-1--><!--]--></ul></section><section><h2 class="mb-2 text-xs font-medium tracking-wide text-muted-foreground">Reference</h2> <ul class="space-y-0.5"><!--[--><!--[0--><li><button type="button" aria-expanded="false" aria-controls="docs-submenu-reference-sdk" class="-mx-3 flex w-[calc(100%+1.5rem)] items-center gap-1.5 rounded-lg px-3 py-1 text-left text-[15px] leading-5 hover:text-foreground text-foreground/85"><span class="min-w-0 truncate">SDK</span> <svg viewBox="0 0 24 24" width="24" height="24" data-lucide-icon="" stroke-width="1.75" aria-hidden="true" class="size-3.5 shrink-0 text-muted-foreground transition-transform"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m9 18l6-6l-6-6"></path></svg><!----></button> <!--[-1--><!--]--></li><!--]--><!--[-1--><li><a href="/docs/plugin-api" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3"><span class="min-w-0 truncate">Plugin API</span> <!--[-1--><!--]--></a></li><!--]--><!--[-1--><li><a href="/docs/egress-ips" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3"><span class="min-w-0 truncate">Egress IPs</span> <!--[-1--><!--]--></a></li><!--]--><!--]--> <!--[0--><li><a href="/api/external" class="-mx-3 flex items-center rounded-lg px-3 py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground">API</a></li><!--]--></ul></section><section><h2 class="mb-2 text-xs font-medium tracking-wide text-muted-foreground">Support</h2> <ul class="space-y-0.5"><!--[--><!--[-1--><li><a href="/docs/support/getting-help" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3"><span class="min-w-0 truncate">Getting Help</span> <!--[-1--><!--]--></a></li><!--]--><!--[-1--><li><a href="/docs/support/reporting-bugs" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3"><span class="min-w-0 truncate">Bug Reports &amp; Diagnostics</span> <!--[-1--><!--]--></a></li><!--]--><!--]--> <!--[-1--><!--]--></ul></section><section><h2 class="mb-2 text-xs font-medium tracking-wide text-muted-foreground">Enterprise</h2> <ul class="space-y-0.5"><!--[--><!--[-1--><li><a href="/docs/enterprise/mcp-registry-allowlist" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3"><span class="min-w-0 truncate">MCP Registry Allowlist</span> <!--[-1--><!--]--></a></li><!--]--><!--[-1--><li><a href="/docs/enterprise/workspace-thread-visibility-controls" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3"><span class="min-w-0 truncate">Thread Visibility</span> <!--[-1--><!--]--></a></li><!--]--><!--[-1--><li><a href="/docs/enterprise/workspace-entitlements" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3"><span class="min-w-0 truncate">Workspace Entitlements</span> <!--[-1--><!--]--></a></li><!--]--><!--[-1--><li><a href="/docs/enterprise/allowed-models" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3"><span class="min-w-0 truncate">Allowed Models</span> <!--[-1--><!--]--></a></li><!--]--><!--[-1--><li><a href="/docs/enterprise/minimal-data-retention" class="flex items-center justify-between gap-2 rounded-lg py-1 text-[15px] leading-5 text-foreground/85 hover:text-foreground -mx-3 px-3"><span class="min-w-0 truncate">Minimal Data Retention</span> <!--[-1--><!--]--></a></li><!--]--><!--]--> <!--[-1--><!--]--></ul></section><!--]--></nav><!----></aside> <main class="min-w-0"><div class="mx-auto grid max-w-[1020px] grid-cols-1 gap-12 px-6 pb-20 pt-8 xl:grid-cols-[minmax(0,704px)_216px]"><article class="docs-content min-w-0 svelte-173caho" data-docs-content=""><!--[0--><div class="not-prose mb-8 flex justify-end" data-docs-page-actions=""><div class="group/button-group inline-flex  [&amp;>*:first-child:not(:last-child):not(:has(+[role=separator]))]:rounded-r-none [&amp;>*:last-child:not(:first-child):not([role=separator]+*)]:rounded-l-none [&amp;>*:not(:first-child):not(:last-child):not([role=separator]):not([role=separator]+*):not(:has(+[role=separator]))]:rounded-none [&amp;>*:not(:first-child)]:-ml-px [&amp;>[role=separator]]:-ml-0.5 [&amp;>[role=separator]+*]:ml-0 [&amp;>*:focus-visible]:relative [&amp;>*:focus-visible]:z-10 overflow-hidden rounded-sm bg-background shadow-floating-control" role="group" aria-label="Page Markdown actions"><!--[-1--><button class="ring-offset-background focus-visible:ring-ring inline-flex items-center justify-center whitespace-nowrap font-medium focus-visible:outline-hidden focus-visible:ring-1 disabled:pointer-events-none disabled:opacity-50 data-[touch-pressed]:opacity-85 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:stroke-[1.75px] [&amp;_svg]:shrink-0 [&amp;_[data-loader]]:size-4 select-none text-foreground/80 border-transparent data-[default-ghost-icon-color]:[&amp;_svg:not([class*=&quot;text-&quot;])]:text-foreground data-[default-ghost-icon-color]:[&amp;_svg:not([class*=&quot;text-&quot;]):not([class*=&quot;opacity-&quot;])]:opacity-80 pointer-fine:hover:bg-foreground/5 pointer-fine:hover:text-foreground data-[default-ghost-icon-color]:pointer-fine:hover:[&amp;_svg:not([class*=&quot;text-&quot;]):not([class*=&quot;opacity-&quot;])]:opacity-100 pointer-fine:active:bg-foreground/5 pointer-fine:active:text-foreground data-[default-ghost-icon-color]:pointer-fine:active:[&amp;_svg:not([class*=&quot;text-&quot;]):not([class*=&quot;opacity-&quot;])]:opacity-100 data-[touch-pressed]:bg-foreground/5 data-[touch-pressed]:text-foreground data-[default-ghost-icon-color]:data-[touch-pressed]:[&amp;_svg:not([class*=&quot;text-&quot;]):not([class*=&quot;opacity-&quot;])]:opacity-100 data-[active=true]:bg-accent data-[active=true]:text-accent-foreground data-[default-ghost-icon-color]:data-[active=true]:[&amp;_svg:not([class*=&quot;text-&quot;])]:text-accent-foreground data-[default-ghost-icon-color]:data-[active=true]:[&amp;_svg:not([class*=&quot;text-&quot;]):not([class*=&quot;opacity-&quot;])]:opacity-100 py-1 h-7.5 gap-2 rounded-none border-0 px-3 focus-visible:ring-inset" type="button" data-default-ghost-icon-color=""><svg viewBox="0 0 24 24" width="24" height="24" data-lucide-icon="" stroke-width="1.75"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></g></svg><!----> Copy Page<!----> <!--[-1--><!--]--></button><!--]--><!----> <div class="w-px shrink-0 self-stretch bg-border my-0 !ml-0 pointer-fine:group-hover/button-group:opacity-100" role="separator" aria-orientation="vertical"></div><!----> <!--[--><!--$s1--><!--[0--><!--[-1--><button class="ring-offset-background focus-visible:ring-ring inline-flex items-center justify-center gap-1 whitespace-nowrap font-medium focus-visible:outline-hidden focus-visible:ring-1 disabled:pointer-events-none disabled:opacity-50 data-[touch-pressed]:opacity-85 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:stroke-[1.75px] [&amp;_svg]:shrink-0 [&amp;_[data-loader]]:size-4 select-none text-foreground/80 border-transparent data-[default-ghost-icon-color]:[&amp;_svg:not([class*=&quot;text-&quot;])]:text-foreground data-[default-ghost-icon-color]:[&amp;_svg:not([class*=&quot;text-&quot;]):not([class*=&quot;opacity-&quot;])]:opacity-80 pointer-fine:hover:bg-foreground/5 pointer-fine:hover:text-foreground data-[default-ghost-icon-color]:pointer-fine:hover:[&amp;_svg:not([class*=&quot;text-&quot;]):not([class*=&quot;opacity-&quot;])]:opacity-100 pointer-fine:active:bg-foreground/5 pointer-fine:active:text-foreground data-[default-ghost-icon-color]:pointer-fine:active:[&amp;_svg:not([class*=&quot;text-&quot;]):not([class*=&quot;opacity-&quot;])]:opacity-100 data-[touch-pressed]:bg-foreground/5 data-[touch-pressed]:text-foreground data-[default-ghost-icon-color]:data-[touch-pressed]:[&amp;_svg:not([class*=&quot;text-&quot;]):not([class*=&quot;opacity-&quot;])]:opacity-100 data-[active=true]:bg-accent data-[active=true]:text-accent-foreground data-[default-ghost-icon-color]:data-[active=true]:[&amp;_svg:not([class*=&quot;text-&quot;])]:text-accent-foreground data-[default-ghost-icon-color]:data-[active=true]:[&amp;_svg:not([class*=&quot;text-&quot;]):not([class*=&quot;opacity-&quot;])]:opacity-100 py-1 px-1.5 size-7.5 rounded-none border-0 focus-visible:ring-inset" type="button" data-default-ghost-icon-color="" aria-label="More page Markdown actions" id="bits-s1" aria-haspopup="menu" aria-expanded="false" data-state="closed" data-dropdown-menu-trigger=""><!----> <!--[0--><svg viewBox="0 0 24 24" width="24" height="24" data-lucide-icon="" stroke-width="1.75" class="text-muted-foreground" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m6 9l6 6l6-6"></path></svg><!--]--></button><!--]--><!----><!--]--><!----><!----> <!--$s2--><!--[-1--><!--]--><!----><!----><!----><!----><!--]--><!----><!----></div><!----></div><!--]--> <!--[--><!--[-1--><!--[--><!--[--><h1>Skills</h1> <p>Skills are directories that contain instructions and optional resources for specific tasks. Amp
+includes built-in skills. You can also keep skills in a project, install them on one machine, or
+publish them for yourself or your workspace.</p> <h2 id="creating-and-installing-skills">Creating and Installing Skills</h2> <p>Amp has a built-in <code>building-skills</code> skill that can create or install skills for you. Ask Amp:</p> <div class="docs-prompt alchemy-glow" data-docs-prompt=""><div class="docs-prompt-text" data-docs-prompt-text="">Create a project skill for deploying this app to staging</div><button type="button" class="docs-prompt-copy" data-docs-prompt-copy="" aria-label="Copy Prompt"><svg class="docs-prompt-copy-idle" data-amp-icon="" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></svg><svg class="docs-prompt-copy-done" data-amp-icon="" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"></path></svg></button></div> <div class="docs-prompt alchemy-glow" data-docs-prompt=""><div class="docs-prompt-text" data-docs-prompt-text="">Create a personal skill for my release notes workflow</div><button type="button" class="docs-prompt-copy" data-docs-prompt-copy="" aria-label="Copy Prompt"><svg class="docs-prompt-copy-idle" data-amp-icon="" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></svg><svg class="docs-prompt-copy-done" data-amp-icon="" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"></path></svg></button></div> <div class="docs-prompt alchemy-glow" data-docs-prompt=""><div class="docs-prompt-text" data-docs-prompt-text="">Install the skills from github.com/example/engineering-skills</div><button type="button" class="docs-prompt-copy" data-docs-prompt-copy="" aria-label="Copy Prompt"><svg class="docs-prompt-copy-idle" data-amp-icon="" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></svg><svg class="docs-prompt-copy-done" data-amp-icon="" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"></path></svg></button></div> <p>Project skills are saved under <code>.agents/skills/</code> and can be committed with the project. Personal
+skills are available everywhere you use Amp. For direct shell installation from a GitHub
+repository, Git URL, or local path, run <code>amp skill add &lt;source></code>. Pass <code>--global</code> to install it only
+on the current machine under <code>~/.config/agents/skills/</code>.</p> <h2 id="skill-sources-and-precedence">Skill Sources and Precedence</h2> <p>Amp uses the first skill with a given frontmatter <code>name</code>. The order is:</p> <ol><li><code>~/.config/agents/skills/</code></li> <li><code>~/.agents/skills/</code></li> <li><code>~/.config/amp/skills/</code></li> <li><code>.agents/skills/</code> in the project and searched parent directories</li> <li><code>.claude/skills/</code> in those directories</li> <li><code>~/.claude/skills/</code></li> <li><code>~/.claude/plugins/cache/</code></li> <li>Directories in <code>amp.skills.path</code>, in the order they are configured</li> <li>Your personal skills repository</li> <li>Your active workspace skills repository</li> <li>Official Amp skills</li></ol> <p>Local skills mask repository skills with the same name. A personal skill masks a workspace skill
+with the same name, and both mask official Amp skills. Set <code>amp.skills.disableClaudeCodeSkills</code> in <a href="/docs/cli/settings">Configuration</a> to skip the Claude-compatible locations, or <code>amp.skills.disableGlobalAgentsSkills</code> to skip <code>~/.config/agents/skills/</code> and <code>~/.agents/skills/</code>.</p> <p>Amp searches local skill directories recursively, up to five directories below each skills root.
+For example, it discovers <code>~/.agents/skills/something/deep/SKILL.md</code>; the directory containing <code>SKILL.md</code> is the skill directory. Personal and workspace skills repositories have a different
+layout: each skill must be in an immediate child directory of the repository root.</p> <p>An active directory plugin can also register a bundled skill. Amp gives it the qualified name <code>&lt;plugin-name>:&lt;skill-name></code>, so it does not compete with the bare skill names above.</p> <h2 id="viewing-and-reloading-skills">Viewing and Reloading Skills</h2> <p>You can ask Amp:</p> <div class="docs-prompt alchemy-glow" data-docs-prompt=""><div class="docs-prompt-text" data-docs-prompt-text="">List the skills available in this thread and where each one came from</div><button type="button" class="docs-prompt-copy" data-docs-prompt-copy="" aria-label="Copy Prompt"><svg class="docs-prompt-copy-idle" data-amp-icon="" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></svg><svg class="docs-prompt-copy-done" data-amp-icon="" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"></path></svg></button></div> <div class="docs-prompt alchemy-glow" data-docs-prompt=""><div class="docs-prompt-text" data-docs-prompt-text="">Reload my skills</div><button type="button" class="docs-prompt-copy" data-docs-prompt-copy="" aria-label="Copy Prompt"><svg class="docs-prompt-copy-idle" data-amp-icon="" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></svg><svg class="docs-prompt-copy-done" data-amp-icon="" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"></path></svg></button></div> <p>For direct inspection, run <code>amp skills list</code>, add <code>--json</code> for machine-readable output, or open the
+interactive CLI command palette with <kbd>Ctrl+O</kbd> and run <code>skills: list</code>. The <code>reload_skills</code> tool rescans local directories and fetches the latest personal and workspace skills. Running <code>amp skills list</code> in another shell does not reload an existing session.</p> <h2 id="skill-repositories">Skill Repositories</h2> <p>Personal skills are available everywhere you use Amp. Workspace admins manage workspace skills,
+which are available to everyone in the workspace. Amp stores each scope in its own Git repository.</p> <p>The simplest way to manage these skills is to ask Amp in a thread. For example:</p> <div class="docs-prompt alchemy-glow" data-docs-prompt=""><div class="docs-prompt-text" data-docs-prompt-text="">Create a personal skill for writing my release notes</div><button type="button" class="docs-prompt-copy" data-docs-prompt-copy="" aria-label="Copy Prompt"><svg class="docs-prompt-copy-idle" data-amp-icon="" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></svg><svg class="docs-prompt-copy-done" data-amp-icon="" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"></path></svg></button></div> <div class="docs-prompt alchemy-glow" data-docs-prompt=""><div class="docs-prompt-text" data-docs-prompt-text="">Create a workspace skill for deploying our staging environment</div><button type="button" class="docs-prompt-copy" data-docs-prompt-copy="" aria-label="Copy Prompt"><svg class="docs-prompt-copy-idle" data-amp-icon="" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></svg><svg class="docs-prompt-copy-done" data-amp-icon="" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"></path></svg></button></div> <div class="docs-prompt alchemy-glow" data-docs-prompt=""><div class="docs-prompt-text" data-docs-prompt-text="">Import this shared skill into my workspace skills: &lt;shared-skill-url></div><button type="button" class="docs-prompt-copy" data-docs-prompt-copy="" aria-label="Copy Prompt"><svg class="docs-prompt-copy-idle" data-amp-icon="" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></svg><svg class="docs-prompt-copy-done" data-amp-icon="" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"></path></svg></button></div> <div class="docs-prompt alchemy-glow" data-docs-prompt=""><div class="docs-prompt-text" data-docs-prompt-text="">Update the imported release-notes skill in my workspace skills</div><button type="button" class="docs-prompt-copy" data-docs-prompt-copy="" aria-label="Copy Prompt"><svg class="docs-prompt-copy-idle" data-amp-icon="" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></svg><svg class="docs-prompt-copy-done" data-amp-icon="" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"></path></svg></button></div> <p>Amp finds the right repository and prepares the change in a checkout. It reviews and commits the
+change, then asks before pushing. A push publishes the skill. New threads load it automatically,
+and Amp can reload it in the current thread.</p> <p>To share a personal skill, open <strong>Skills</strong> in <a href="/settings/skills">Personal Settings</a>. Select the
+skill, choose <strong>Share</strong>, make it available to the workspace, and copy its URL. Send the URL directly
+or paste it into Slack, where it unfurls with details about the skill. Teammates can paste the URL
+into a thread or ask Amp, “Has anyone got a release-notes skill?”</p> <p>If you edit a repository directly, put each skill in a top-level directory with <code>SKILL.md</code> directly
+inside it. The directory name and the <code>name</code> in <code>SKILL.md</code> must match.</p> <pre class="language-text"><code class="language-text">release-notes/
+├── SKILL.md
+├── scripts/
+└── references/</code></pre> <p>For direct shell access, <code>amp skills repositories</code> lists the repositories and clone commands. <code>amp clone user-skills</code> and <code>amp clone workspace-skills</code> clone them. The <code>amp skill import</code> and <code>amp skill update</code> commands manage shared imports. Repository owners can require signed commits in
+the repository’s Advanced settings.</p> <h3 id="hosted-repository-limits">Hosted repository limits</h3> <p>Each personal or workspace skills repository has a limit of 200 skills. The limit applies to each
+repository separately, not to the combined list of skills in a thread.</p> <p>If a Git push puts more than 200 skills in a repository, Amp selects only the first 200 skill
+directories in alphabetical order. The remaining skills are not available, even after a reload or
+in a new thread. A successful push does not mean that every skill can be loaded. Skill imports and
+writes through the API reject additions that would exceed the limit.</p> <p>The following limits also apply. Amp checks these after selecting the first 200 skill directories,
+so fewer than 200 skills can be available.</p> <table><thead><tr><th>Resource</th><th>Limit</th></tr></thead><tbody><tr><td>Files per skill, including <code>SKILL.md</code></td><td>200</td></tr><tr><td>Size of one file</td><td>10 MiB</td></tr><tr><td>Total size of one skill</td><td>25 MiB</td></tr><tr><td>Total repository size</td><td>25 MiB</td></tr></tbody></table> <p>Hosted skill files must be text files. These hosted repository limits do not apply to project or
+machine-local skill directories.</p> <h2 id="skill-format">Skill Format</h2> <p>Each skill is a directory containing a <code>SKILL.md</code> file with YAML frontmatter:</p> <pre class="language-markdown"><code class="language-markdown"><span class="token-punctuation">---</span>
+<span class="token-property">name</span><span class="token-punctuation">:</span> <span class="token-string">my-skill</span>
+<span class="token-property">description</span><span class="token-punctuation">:</span> <span class="token-string">A description of what this skill does</span>
+<span class="token-punctuation">---</span>
+
+<span class="token-title"># My Skill Instructions</span>
+
+Detailed instructions for the agent...</code></pre> <p>Amp lists every discovered skill for the model. The model sees each skill’s <code>name</code> and <code>description</code> and uses them to decide when to load it. Amp loads the rest of <code>SKILL.md</code> only when the skill is
+invoked.</p> <p>Skills can include scripts, templates, and reference files in the same directory. The agent can
+access these files by paths relative to the skill directory.</p> <h2 id="mcp-servers-in-skills">MCP Servers in Skills</h2> <p>A skill can define MCP servers in a sibling <code>mcp.json</code> file or in the <code>mcpServers</code> field of its <code>SKILL.md</code> frontmatter. If both are present, Amp uses <code>mcpServers</code> and ignores <code>mcp.json</code>.</p> <p>Amp connects to skill MCP servers when it discovers the skill. Amp hides tools from a server
+defined only by a skill until the skill is loaded. If a server with the same name is also supplied
+by a CLI flag or direct configuration, that source takes precedence and its tools remain visible.</p> <p><strong>Example <code>mcp.json</code> for a local command-based server:</strong></p> <pre class="language-json"><code class="language-json"><span class="token-punctuation">{</span>
+	<span class="token-property">"chrome-devtools"</span><span class="token-punctuation">:</span> <span class="token-punctuation">{</span>
+		<span class="token-property">"command"</span><span class="token-punctuation">:</span> <span class="token-string">"npx"</span><span class="token-punctuation">,</span>
+		<span class="token-property">"args"</span><span class="token-punctuation">:</span> <span class="token-punctuation">[</span><span class="token-string">"-y"</span><span class="token-punctuation">,</span> <span class="token-string">"chrome-devtools-mcp@latest"</span><span class="token-punctuation">]</span><span class="token-punctuation">,</span>
+		<span class="token-property">"includeTools"</span><span class="token-punctuation">:</span> <span class="token-punctuation">[</span><span class="token-string">"navigate_*"</span><span class="token-punctuation">,</span> <span class="token-string">"take_screenshot"</span><span class="token-punctuation">,</span> <span class="token-string">"click"</span><span class="token-punctuation">,</span> <span class="token-string">"fill*"</span><span class="token-punctuation">]</span>
+	<span class="token-punctuation">}</span>
+<span class="token-punctuation">}</span></code></pre> <p><strong>Example <code>mcp.json</code> for a remote HTTP server:</strong></p> <pre class="language-json"><code class="language-json"><span class="token-punctuation">{</span>
+	<span class="token-property">"linear"</span><span class="token-punctuation">:</span> <span class="token-punctuation">{</span>
+		<span class="token-property">"url"</span><span class="token-punctuation">:</span> <span class="token-string">"https://mcp.linear.app/sse"</span><span class="token-punctuation">,</span>
+		<span class="token-property">"includeTools"</span><span class="token-punctuation">:</span> <span class="token-punctuation">[</span><span class="token-string">"list_issues"</span><span class="token-punctuation">,</span> <span class="token-string">"create_issue"</span><span class="token-punctuation">,</span> <span class="token-string">"update_issue"</span><span class="token-punctuation">]</span>
+	<span class="token-punctuation">}</span>
+<span class="token-punctuation">}</span></code></pre> <p><strong>Fields for local servers:</strong></p> <ul><li><code>command</code> (<code>string</code>) is the command to run.</li> <li><code>args</code> (<code>string[]</code>, optional) contains the command arguments.</li> <li><code>env</code> (<code>object</code>, optional) contains the environment variables.</li></ul> <p>Local servers start in the thread’s working directory, not the skill directory. Amp sets <code>AMP_SKILL_DIR</code> in each local server’s environment to the absolute path of the skill directory. To
+run a script that the skill ships, write <code>${AMP_SKILL_DIR}</code> in <code>command</code>, <code>args</code>, or <code>env</code> values:</p> <pre class="language-json"><code class="language-json"><span class="token-punctuation">{</span>
+	<span class="token-property">"my-server"</span><span class="token-punctuation">:</span> <span class="token-punctuation">{</span>
+		<span class="token-property">"command"</span><span class="token-punctuation">:</span> <span class="token-string">"node"</span><span class="token-punctuation">,</span>
+		<span class="token-property">"args"</span><span class="token-punctuation">:</span> <span class="token-punctuation">[</span><span class="token-string">"${AMP_SKILL_DIR}/server.mjs"</span><span class="token-punctuation">]</span>
+	<span class="token-punctuation">}</span>
+<span class="token-punctuation">}</span></code></pre> <p><strong>Fields for remote servers:</strong></p> <ul><li><code>url</code> (<code>string</code>) is the server endpoint.</li> <li><code>headers</code> (<code>object</code>, optional) contains the HTTP headers to send with requests.</li></ul> <p><strong>Common fields:</strong></p> <ul><li><code>includeTools</code> (<code>string[]</code>, optional but recommended) contains tool names or glob patterns used
+to choose which tools are exposed.</li></ul><!--]--><!--]--><!--]--><!--]--><!----><!----> <nav class="mt-16 grid grid-cols-2 gap-4 border-t pt-6" aria-label="Page Navigation"><!--[0--><a href="/docs/customize/global-plugins-and-skills" class="docs-unstyled-link group col-start-1 rounded-md border p-4 hover:bg-foreground/3"><span class="flex -translate-x-2 items-center gap-0.5 text-xs text-muted-foreground"><svg viewBox="0 0 24 24" width="24" height="24" data-lucide-icon="" stroke-width="1.75" class="size-4"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m15 18l-6-6l6-6"></path></svg><!----> Previous</span> <span class="mt-1 block text-sm font-medium">Global Plugins &amp; Skills</span></a><!--]--> <!--[0--><a href="/docs/customize/mcp" class="docs-unstyled-link group col-start-2 rounded-md border p-4 text-right hover:bg-foreground/3"><span class="flex translate-x-2 items-center justify-end gap-0.5 text-xs text-muted-foreground">Next <svg viewBox="0 0 24 24" width="24" height="24" data-lucide-icon="" stroke-width="1.75" class="size-4"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m9 18l6-6l-6-6"></path></svg><!----></span> <span class="mt-1 block text-sm font-medium">MCP</span></a><!--]--></nav></article> <aside class="sticky top-20 hidden max-h-[calc(100dvh-6rem)] self-start overflow-y-auto xl:block"><!--[-1--><!--]--><!----></aside></div></main></div><!--]--></div><!--]--><!--]--><!--]--><!----><!----><!--]--> <div class="sonner-container pointer-events-none fixed top-[max(0.875rem,var(--app-mobile-safe-area-inset-top,0px))] left-1/2 w-[calc(100%-2rem)] max-w-[32rem] -translate-x-1/2 z-100 flex flex-col items-center gap-2 svelte-a8z4tr" data-position="top-center"><!--[--><!--]--></div><!----> <!----><!----><!----> <!--[-1--><!--]--><!----> <!--[--><!--[-1--><!--]--><!----><!----><!--]--><!----><!----> <!--[-1--><!--]--><!----> <div id="amp-app-rendered" hidden=""></div><!--]--><!--]--><!--]--><!----> <!--[-1--><!--]--><!--]-->
+			
+			<script nonce="zXqFi1WwBt0g7hKUBh81Jw==">
+				{
+					__sveltekit_7baaam = {
+						base: "",
+						version: "1793135199111",
+						env: {PUBLIC_DEV_TUNNEL_HOSTS:void 0,PUBLIC_SLACK_APP_ID:"A09SJP9PVQU",PUBLIC_URL:void 0,PUBLIC_WEB_PUSH_VAPID_PUBLIC_KEY:"BA0BielWB9tDSsedAEuBPujSJr580MjArIQjpyjy_AsPcWQDMBhUCbZMvEjVTs9xoUul8FnE4HFQl3hIW_z9tBM"}
+					};
+
+					const element = document.currentScript.parentElement;
+
+					import("/_app/immutable/entry/start.b71111b8.js").then(async (kit) => {
+						kit.init(__sveltekit_7baaam);
+						const app = await import("/_app/immutable/entry/app.2d60fe3f.js");
+						kit.start(app, element, {
+							node_ids: [0, 26, 862],
+							data: [{type:"data",data:{colorScheme:"system",terminalTheme:"app",terminalPalette:"gruvbox",codeFont:{fontFamily:null,fontSize:null,lineHeight:null},textSize:"default",browserTraceparent:null,clientInfo:{secCHUA:void 0,secCHUAMobile:void 0,secCHUAPlatform:void 0,userAgent:"Mozilla/5.0"},browserTracingGoogleCloudProject:null,browserTracingEnabled:false,user:void 0,customBugReportURL:null,customBugReportLabel:null,userKeymap:{},userIsInternal:false,userWorkspace:null,dictationDisabledByWorkspace:false,viewerTimeZone:"UTC",forcedTraceId:void 0,portalDomain:"onamp.dev",attachmentOrigin:"https://ampcode.com",threadActorConfig:{baseURL:"https://default:pk_9tm4qz3zrMerdZXTlBRLRsmJIzSQIPH24meKBqiL6vVpscTvc4w1YPiBgymXf9Az@ampcode.com/actors",ampURL:"https://ampcode.com",poolName:"k8s"},sudoSession:null,viewState:{sidebarDesktopOpen:true,sidebarThreadLayout:"multi-project",sidebarThreadSort:"last-activity",sidebarWidth:256,devmanOpen:false,devmanPanelState:{tab:"threads",selectedThread:"current",expandedSections:["worker","agent","executor","commands"]},notGenerallyAvailableRibbon:true,forceShipCelebration:false,showPWAInstallRibbonInDev:false,forceNativeAppSwitchNotice:false,devmanWidth:520,changesDiffLayout:"split",changesFilesSidebarHidden:false,fileViewerViewMode:"rendered",fileTreeSidebarWidth:256,fileTreeSidebarHidden:false,spaceThreadsColumnWidth:288,threadColorMode:"color-hash",threadIconStyle:"meridian",portalBookmarksVisible:true,collapsedSidebarGroups:[],pinnedSidebarProjects:[],expandedSidebarSubthreads:[],collapsedSidebarSubthreads:[],activityPrivateWorkspaceNoticeDismissed:false,feedDefaultStatus:"all",feedDefaultTime:"24h",feedDefaultSharing:"all",feedDefaultUser:null,feedDefaultProject:null,actorThreadsOnly:false,liveNowScope:"workspace",sidebarUnlabeledFilterHidden:false,macOSNotificationsCardShown:false,shipCelebration:true},unsupportedNativeApp:null,nativeAppPlatform:null},uses:{dependencies:["data:userWorkspace"]}},{type:"data",data:{openGraphImage:"https://ampcode.com/og?_version=1&title=Skills&groupTitle=Customize&description=Teach+Amp+repeatable+ways+to+complete+tasks.&label=Docs&_template=docs&sig=e33d8415cf57d0d9f7549d9681628b448658aab2b0bab966f147150836af1c45"},uses:{}},null],
+							form: null,
+							error: null
+						});
+					});
+
+					if ('serviceWorker' in navigator) {
+						const script_url = '/service-worker.js';
+						const policy = globalThis?.window?.trustedTypes?.createPolicy(
+							'sveltekit-trusted-url',
+							{ createScriptURL(url) { return url; } }
+						);
+						const sanitised = policy?.createScriptURL(script_url) ?? script_url;
+						addEventListener('load', function () {
+							navigator.serviceWorker.register(sanitised, { type: 'module' });
+						});
+					}
+				}
+			</script>
+		</div>
+		<!-- Keep this the last element in <body>. Layers appended to <body> (bits-ui portals
+		     such as menus and dialogs, toasts, drag previews) would otherwise toggle the app
+		     root's :last-child state, and WebKit then restyles the entire app subtree on every
+		     open and close (tens of ms on a long thread). With this stable tail element only
+		     the tail's state changes, which is free. -->
+		<div data-amp-body-tail hidden></div>
+	</body>
+</html>

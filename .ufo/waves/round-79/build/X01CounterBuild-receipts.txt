@@ -1,0 +1,71 @@
+# X01 counter receipts — kotoba round 79 w1 — 2026-10-27T21:57:55Z
+# scratch: /fast/scratch/hyaku/kotoba-r79/Kb79X01CounterBuild (removed at yield); TMPDIR=/fast/scratch/hyaku/kotoba-r79/Kb79X01CounterBuild/tmp
+
+## counter bytes
+$ sha256sum $C
+74e067ccad7813d91826ee503c8ee93ba47d3a4a05b12ec67a82791d93f722a6  /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-79/build/check_allowed_tools.py
+$ wc -l $C
+2288
+$ python3 -B $C --print-self-sha
+1f9744c84cce7fe9978074f6379a547f4d7affae8905fde0fd811e493693ccf9
+
+## --self-test (stdlib only, no network, isolated local git repos)
+$ python3 -B check_allowed_tools.py --self-test --work $TMPDIR   # rc=0   (full output: selftest.txt, 81 lines)
+PASS registry absent at the revision is exit 2: exit 2
+PASS counter drift is exit 2 (SELF_SHA does not match): exit 2
+self-test: 0 failure(s) over 231 assertions in 80 world(s)
+
+## base measurement, absolute --repo form
+$ python3 -B $C --repo /home/vgpnk/Projects/shokunin/kotoba-shokunin --rev b10bcbc6b00f8f56b202ccbadca311007b5b463c   # rc=1
+measured-rev: b10bcbc6b00f8f56b202ccbadca311007b5b463c
+allowed-tools surfaces backed 0 of 6
+script-only world: 0 of 6
+opened this round 0 of 6
+held at base: 5
+province surfaces named 0 of 6
+skill rule line MISSING
+registry home MISSING
+  entry corpus/knowledge/allowed-tools-surfaces-round79.md absent at b10bcbc6b00f8f56b202ccbadca311007b5b463c (the frozen path is the entry's only home)
+  0 ## Core bullet(s) name the entry (want exactly 1)
+
+## base measurement, relative --repo . form (cwd = lane root)
+$ cd /home/vgpnk/Projects/shokunin/kotoba-shokunin && python3 -B $C --repo . --rev b10bcbc6b00f8f56b202ccbadca311007b5b463c   # rc=1
+measured-rev: b10bcbc6b00f8f56b202ccbadca311007b5b463c
+allowed-tools surfaces backed 0 of 6
+script-only world: 0 of 6
+opened this round 0 of 6
+held at base: 5
+province surfaces named 0 of 6
+skill rule line MISSING
+registry home MISSING
+  entry corpus/knowledge/allowed-tools-surfaces-round79.md absent at b10bcbc6b00f8f56b202ccbadca311007b5b463c (the frozen path is the entry's only home)
+  0 ## Core bullet(s) name the entry (want exactly 1)
+
+## counter in its eventual home (scratch clone at lane HEAD, verifiers/check_allowed_tools.py)
+$ (scratch clone) python3 -B verifiers/check_allowed_tools.py --rev HEAD   # rc=1
+measured-rev: HEAD
+allowed-tools surfaces backed 0 of 6
+script-only world: 0 of 6
+opened this round 0 of 6
+held at base: 5
+province surfaces named 0 of 6
+skill rule line MISSING
+registry home MISSING
+  entry corpus/knowledge/allowed-tools-surfaces-round79.md absent at HEAD (the frozen path is the entry's only home)
+  0 ## Core bullet(s) name the entry (want exactly 1)
+$ (scratch clone) python3 -B verifiers/check_allowed_tools.py --repo . --rev b10bcbc6b00f8f56b202ccbadca311007b5b463c   # rc=1
+measured-rev: b10bcbc6b00f8f56b202ccbadca311007b5b463c
+allowed-tools surfaces backed 0 of 6
+script-only world: 0 of 6
+
+## held-at-base probe: which frozen hosts already appear in corpus/SOURCES.md at base
+$ git show b10bcbc6b00f8f56b202ccbadca311007b5b463c:corpus/SOURCES.md | grep -c -- <host>
+agentskills.io                                       13
+code.claude.com                                      15
+docs.factory.com/harness/skills                      1
+learn.microsoft.com                                  2
+raw.githubusercontent.com/badlogic/pi-mono           1
+raw.githubusercontent.com/mistralai/mistral-vibe     1
+
+## temp-dir discipline (no hardcoded /tmp; mktemp honours TMPDIR and --work)
+/fast/scratch/hyaku/kotoba-r79/Kb79X01CounterBuild/tmp/probe-mlxlu82g under TMPDIR

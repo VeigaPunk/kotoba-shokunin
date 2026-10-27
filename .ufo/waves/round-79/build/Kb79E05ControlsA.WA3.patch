@@ -1,0 +1,107 @@
+diff --git c/SKILL.md i/SKILL.md
+index 26ce572..18a0b5b 100644
+--- c/SKILL.md
++++ i/SKILL.md
+@@ -457,10 +457,12 @@ reads as could-not-evaluate. `python3 -B verifiers/check_gate_registry.py --rev
+ | `verifiers/check_assertion_floors.py` | gate | `python3 -B verifiers/check_assertion_floors.py` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | `verifiers/floors-registry.json` | temp fixtures under `$TMPDIR`; removable temp dirs under `verifiers/fixtures/compare-harness-independent` (nested self-test) | kotoba |
+ | `verifiers/check_client_trust_gates.py` | gate | `python3 -B verifiers/check_client_trust_gates.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file | none; `--fetch` reads the network | kotoba |
+ | `verifiers/check_r67_routed_repairs.py` | gate | `python3 -B verifiers/check_r67_routed_repairs.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file | temp checkout of `corpus/` and `verifiers/` under `$TMPDIR` | kotoba |
++| `verifiers/check_r75_routed_repairs.py` | gate | `python3 -B verifiers/check_r75_routed_repairs.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file | none (read-only) | kotoba |
+ | `verifiers/check_callee_rename.py` | gate | `python3 -B verifiers/check_callee_rename.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file | temp dirs under `$TMPDIR` (removed) | kotoba |
+ | `verifiers/check_command_files.py` | gate | `python3 -B verifiers/check_command_files.py --rev <rev> --fetch` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file | self-test repos under `$TMPDIR` (removed); `--fetch` reads the network | kotoba |
+ | `verifiers/check_correction_sweep.py` | gate | `python3 -B verifiers/check_correction_sweep.py --root .` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file | none; self-test fixtures under `$TMPDIR` | kotoba |
+ | `verifiers/check_could_not_evaluate.py` | gate | `python3 -B verifiers/check_could_not_evaluate.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file | temporary clone (removed) | kotoba |
++| `verifiers/check_desc_craft.py` | gate | `python3 -B verifiers/check_desc_craft.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file | none (read-only) | kotoba |
+ | `verifiers/check_description_thresholds.py` | gate | `python3 -B verifiers/check_description_thresholds.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file | none; `--fetch` reads the network | kotoba |
+ | `verifiers/check_explicit_invocation.py` | gate | `python3 -B verifiers/check_explicit_invocation.py --rev <rev> --fetch` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file | none; `--fetch` reads the network | kotoba |
+ | `verifiers/check_gate_finding_delta.py` | gate | `python3 -B verifiers/check_gate_finding_delta.py --base <rev> --head <rev>` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | `verifiers/corpus-baseline.json` | temp trees under `$TMPDIR` | kotoba |
+diff --git c/verifiers/corpus-baseline.json i/verifiers/corpus-baseline.json
+index 35566fa..c46f763 100644
+--- c/verifiers/corpus-baseline.json
++++ i/verifiers/corpus-baseline.json
+@@ -1,18 +1,16 @@
+ {
++ "$comment": "Control world WA1 (round 79, seat Kb79E05ControlsA): the baseline is rewritten to the OBSERVED totals at base b10bcbc6 and NO index row is added. Nothing else changes; the zero-mode checks keep their zero expectation.",
+  "as_of": "2026-10-27",
+- "host": "vgpnk",
+  "measured_against": {
+   "repo": "kotoba-shokunin",
+-  "head": "65a5c7a",
+-  "head_subject": "round-74 orchestrator salvage",
+-  "git_status": "round-74 closure tip; round-75 evidence and lesson added to working tree",
++  "head": "b10bcbc6",
+   "command": "python3 -B verifiers/verify_corpus_integrity.py --no-baseline --json",
+-  "note": "Round-75 baseline refresh from --no-baseline --json on base 65a5c7a with r75 additions: tracked_files 142 -> 144 (indexed round-75 lesson plus already-landed r74 verifier spotcheck); report_total 97 -> 99 (the r74 closure spot-check pointers); commit_total remains 43. After r75 lesson is tracked, stale_patterns must return to 0. This refresh changes expected observations only; zero-mode expectations remain zero. Earlier historical measurements remain recorded in SCORECARD."
++  "note": "control world: expects re-recorded to observed tracked_files 150, report_total 106, commit_total 45; unindexed 6 and report_dead 1 are left unaddressed on purpose (no index row, no pointer repair)."
+  },
+  "checks": {
+   "corpus.index.tracked_files": {
+    "mode": "equal",
+-   "expect": 144
++   "expect": 150
+   },
+   "corpus.index.unindexed": {
+    "mode": "zero",
+@@ -28,7 +26,7 @@
+   },
+   "corpus.pointers.report_total": {
+    "mode": "equal",
+-   "expect": 99
++   "expect": 106
+   },
+   "corpus.pointers.report_dead": {
+    "mode": "zero",
+@@ -36,7 +34,7 @@
+   },
+   "corpus.pointers.commit_total": {
+    "mode": "equal",
+-   "expect": 43
++   "expect": 45
+   },
+   "corpus.pointers.commit_unresolvable": {
+    "mode": "zero",
+@@ -47,27 +45,5 @@
+    "expect": 0
+   }
+  },
+- "notes": {
+-  "round74_start": "round 74 (2026-10-25), plan commit: re-recorded from python3 -B verifiers/verify_corpus_integrity.py --no-baseline --json at base 1e03d19 plus the index row in corpus/README.md (line 144) for corpus/lessons/round-73-verifier-spotcheck.md, a closure-owned file landed without an index row: tracked_files 138 -> 139 (that file, now tracked), report_total 95 -> 97 (the spot-check cites two lane reports); commit_total 41 and every zero-defect expectation unchanged. Re-recorded again at the round-74 closing commit once the round's own files land.",
+-  "round19_recensus": "corpus.index.tracked_files 47 -> 48: the round landed corpus/lessons/round-19-recensus.md, a real new tracked corpus file, indexed in the coverage map. Expectation refresh, not a fitted denominator.",
+-  "round16_redispatch": "Measured with python3 verifiers/verify_corpus_integrity.py --no-baseline --json against the staged continuation of 581e2932850db9cb917844662651f533bfd98519. tracked_files 48 -> 51: corpus/knowledge/sibling-citation-routing-round16.md, its companion .json, and corpus/lessons/round-16.md; all three are indexed in corpus/README.md. Observed report_total 32 and commit_total 27 stay unchanged. All zero-defect expectations stay zero; unindexed, stale_patterns, missing_paths, report_dead, commit_unresolvable and commit_nonhash observed zero. Historical measured_against metadata above is retained as the earlier baseline record.",
+-  "round21_refresh": "Measured with python3 verifiers/verify_corpus_integrity.py --no-baseline --json against the staged round-21 tree at HEAD 4e92f36 + the round-21 working changes. tracked_files 51 -> 52 (corpus/knowledge/sibling-citation-routing-round21.md, indexed in corpus/README.md); report_total 32 -> 34 (the new file and the new README row each cite the round-21 report, host-absolute form per the round-13 convention). commit_total 27 unchanged; every zero-defect expectation observed zero; both corpus instruments exit 0 at the landed tree.",
+-  "round23_capability": "Measured with python3 verifiers/verify_corpus_integrity.py --no-baseline --json against the staged round-23 tree. tracked_files 52 -> 53 (corpus/knowledge/substrate-pin-guard-round23.md, indexed in corpus/README.md); report_total 34 -> 36 (the new README row and the new corpus doc each cite the round-23 report, host-absolute form). commit_total 27 unchanged; all zero-defect expectations observed zero. The first landing had one repo-relative report pointer (dead, corpus-instrument file-relative base); corrected to host-absolute before this record.",
+-  "round37_harness_independent": "Measured with python3 verifiers/verify_corpus_integrity.py --no-baseline --json against a staged copy of the round-38 tree (the corpus doc landed this round; the round-37 record it owes was written at r38). tracked_files 53 -> 54 (corpus/knowledge/harness-independent-round37.md, indexed in corpus/README.md); report_total 36 -> 38 (the new README row and the new corpus doc each cite the round-37 report, host-absolute form). index_tokens 69 -> 72 (the new README row's three backticked column-2 tokens). commit_total 27 unchanged; every zero-defect expectation observed zero; both corpus instruments exit 0 at the staged tree.",
+-  "round41_v10_census": "Measured with python3 verifiers/verify_corpus_integrity.py --no-baseline --json against a temporary Git index seeded from HEAD plus corpus/README.md and corpus/knowledge/harness-independent-round41-census.md. tracked_files 54 -> 55 (the new census note, indexed in corpus/README.md); index_tokens 72 -> 73 (the new README row); corpus Markdown files 53 -> 54. report_total 38 and commit_total 27 unchanged; all zero-defect expectations observed zero, and both corpus instruments exit 0 on the temporary-index tree. The real Git index was not changed.",
+-  "round46_landing": "Measured with python3 -B verifiers/verify_corpus_integrity.py --repo <overlay> on a /tmp shared clone of 78ee57e overlaid with the round-46 landing tree and committed there (the lane's real index untouched). tracked_files 55 -> 58: corpus/QUALITY.md, corpus/SOURCES.md and corpus/lessons/round-46.md, each indexed in corpus/README.md (index rows 73 -> 76). report_total 38 -> 40: the round-46 lesson's two pointers to the lane's round-45 report, written host-absolute because that report exists only in the lane repo (bare .ufo/reports/round-45/kotoba.md read report_dead=2 against the fleet root before the rewrite). commit_total 27 -> 29: the lesson's 36ab0d3 and 78ee57e tokens, both resolvable. All zero-defect expectations observed zero. The headline measured_against block above is the round-17 record and is retained as history, not as this baseline's provenance.",
+-  "round47": "corpus.index.tracked_files 58 -> 60: corpus/lessons/round-46-verifier-spotcheck.md (landed by the integrator at c61a973 without an index row, the round-47 M21 class) and corpus/lessons/round-47.md, both indexed in corpus/README.md. Measured with python3 -B verifiers/verify_corpus_integrity.py --json and verify_corpus_independent.py --json on the round-47 integration tree: report_total 40 and commit_total 29 unchanged; unindexed, stale_patterns, missing_paths, report_dead, commit_unresolvable, commit_nonhash stay 0. Expectation refresh for two real indexed files, not a fitted denominator.",
+-  "round47_closure_index": "Parent-owned verifier corpus/lessons/round-47-verifier-spotcheck.md (9973 bytes, sha256 fbd5a1fb861c3e99a25422d7079931efd41d969da3f936d7c8ea4e06aad532dc) is indexed: active tracked_files 60 -> 61, local commit citations 29 -> 30, report_total 40 unchanged. Its parent-fleet report revision is explicitly qualified to /home/vgpnk/Projects/shokunin, not claimed as a lane-repository revision; no foreign-object fetch or zero-mode masking. Prior notes, source pins, frozen inputs and zero expectations are unchanged. Counts were independently re-derived over inert data, not by running a lane gate. The original round47 60-file result stays bound to producer 92aa937, not re-scored at this metadata landing.",
+-  "round48": "corpus.index.tracked_files 61 -> 63: corpus/knowledge/frontmatter-rule-authorities-round48.md and corpus/lessons/round-48.md, both indexed in corpus/README.md. report_total 40 and commit_total 30 unchanged (upstream commit hashes in the new SOURCES rows are written without the backticked commit-token form, since they are not lane revisions). Measured with python3 -B verifiers/verify_corpus_integrity.py --json and verify_corpus_independent.py on the round-48 landed tree. Expectation refresh for two real indexed files, not a fitted denominator.",
+-  "round48_report_pointer": "corpus.pointers.report_total 40 -> 41: corpus/lessons/round-48.md M28 cites the round-47 fleet report host-absolute (/home/vgpnk/Projects/shokunin/.ufo/reports/round-47/kotoba.md); a first, repo-relative form read report_dead=1 and was corrected before this record. Measured with python3 -B verifiers/verify_corpus_integrity.py --json on the round-48 tree.",
+-  "round49": "corpus.index.tracked_files 63 -> 66: corpus/lessons/round-48-verifier-spotcheck.md (closure-owned, landed at a5adc146 without an index row; indexed in corpus/README.md this round, never edited here), corpus/knowledge/sibling-overlap-census-round49.md and corpus/lessons/round-49.md, all three indexed. corpus.pointers.report_total 41 -> 43: the two pointers come from the closure-owned spot-check, written repo-relative (.ufo/reports/round-48/kotoba.md); they are the two report_dead=2 entries, which stay red in zero mode and are not masked (the file is not lane-owned; the report exists in the fleet repository). At base a5adc146 the gate read 4 DRIFT (tracked 64, unindexed 1, report_total 43, report_dead 2); after this record it reads 1 DRIFT (report_dead 2). Measured with python3 -B verifiers/verify_corpus_integrity.py at f054b8e and in a base clone, 2026-10-22.",
+-  "round50": "corpus.index.tracked_files 66 -> 68: corpus/lessons/round-49-verifier-spotcheck.md (closure-owned, landed at f3046466 without an index row; indexed in corpus/README.md this round, never edited here) and corpus/lessons/round-50.md, both indexed. corpus.pointers.report_total 43 -> 44: the one new pointer is in the closure-owned round-49 spot-check (its fleet report path); report_dead stays 2 (the round-48 spot-check's repo-relative pointers), red in zero mode and not masked. At base f3046466 the gate read 4 DRIFT (tracked 67, unindexed 1, report_total 44, report_dead 2). Measured with python3 -B verifiers/verify_corpus_integrity.py on the round-50 tree. Expectation refresh for two real indexed files, not a fitted denominator.",
+-  "round50_entry": "corpus.index.tracked_files 68 -> 69: corpus/knowledge/skill-selection-rules-round50.md, a new admitted entry indexed in corpus/README.md (falsify-wave addition). report_total unchanged at 44. Measured with python3 -B verifiers/verify_corpus_integrity.py on the round-50 tree after the lane commit.",
+-  "round53_rerecord": "Measured 2026-10-22 with python3 verifiers/verify_corpus_integrity.py --json on the round-53 tree after every round file landed (routed defect 2 of the round-52 spot-check; lesson M41). tracked_files 72 -> 78 (round-52 and round-53 lessons, the round-52 spot-check, alwayson-rule-files-round53.md and two others since the round-50 record, all indexed); report_total 46 -> 49 (fleet report pointers in closure-authored spot-checks now resolve against the fleet root); commit_total 30 -> 32 (round-52 and round-53 commit pointers, all resolve). Every zero-defect expectation observed zero.",
+-  "round54_rerecord": "Measured 2026-10-22 with python3 -B verifiers/verify_corpus_integrity.py --no-baseline on the round-54 tree after every round file landed (lesson M41 practice). tracked_files 78 -> 81 (round-53 spot-check, round-54 entry skill-listing-thresholds-round54.md and round-54 lesson, all indexed); report_total 49 -> 51 (fleet report pointers in the round-53 spot-check); commit_total 32 unchanged (the entry's upstream pin is written google-gemini/gemini-cli@`451a02ff`, not as a lane commit). Every zero-defect expectation observed zero.",
+-  "round66_rerecord": "Measured at core revision daedcdf992c17cbc0b8a6ece204e1c7ce2b45fce with python3 -B verifiers/verify_corpus_integrity.py --no-baseline --json before this baseline update. tracked_files 116 -> 118 (the round-66 lesson and C2 knowledge entry, both indexed); unindexed 4 -> 0 (r62-r65 closure spot-checks and the round-66 lesson indexed); report_total 79 unchanged; commit_total 38 -> 37 (the nested code-span meta-finding is context); commit_unresolvable 3 -> 0 (lane-first then fleet-root resolution); report_dead, stale_patterns, missing_paths and commit_nonhash remain 0. Expected counts are re-recorded to the observed committed bytes, not fitted to a denominator.",
+-  "round69_rerecord": "round 69 (2026-10-25): re-recorded at the round-69 content commit; 127 / 0 / 87 / 39. The r68 closure's spot-check file was indexed this round, so the unindexed drift the closure left is closed rather than carried.",
+-  "round70_rerecord": "round 70 (2026-10-25): re-recorded from python3 -B verifiers/verify_corpus_integrity.py --no-baseline --json at the round-70 content commit 8edeb4900f0b576881a8216ec6dc54599299ff59 (lane tree clean); 130 / 0 / 89 / 39. tracked_files 127 -> 130: corpus/lessons/round-69-verifier-spotcheck.md (closure-owned, landed at 7d51253 without an index row; indexed this round, never edited here), corpus/knowledge/skill-eval-artefacts-round70.md and corpus/lessons/round-70.md, all three indexed; report_total 87 -> 89 from the two fleet report pointers the r69 spot-check carries; commit_total 39 unchanged; every zero-defect expectation observed zero.",
+-  "round72_tip_rerecord": "round 72 closing re-record at a0f7f17 from python3 -B verifiers/verify_corpus_integrity.py --no-baseline --json: tracked_files 132 -> 135, report_total 91 -> 93, commit_total 40 -> 41; every zero-defect expectation observed zero (unindexed, stale_patterns, missing_paths, report_dead, commit_unresolvable, commit_nonhash)."
+- }
++ "notes": {}
+ }
+diff --git c/verifiers/floors-registry.json i/verifiers/floors-registry.json
+index 005ffdb..f3ef70e 100644
+--- c/verifiers/floors-registry.json
++++ i/verifiers/floors-registry.json
+@@ -1,9 +1,9 @@
+ {
+-  "$comment": "Authoritative instrument registry for verifiers/check_assertion_floors.py (round-37 claim C2a, scout M7's HIGH). The guard's two in-file tables (EXPECTED_INSTRUMENTS, INSTRUMENTS) agree with each other by construction, so a coordinated edit -- the same row deleted from BOTH, a floor lowered in BOTH, a row path repointed -- was self-consistent and silent: the instrument stopped rerunning while the guard still printed all-PASS (scout M7, round 35; re-probed at 041f6ba by seat P5). This file is the anchor OUTSIDE the edited file: any disagreement fails loudly before a self-test runs, naming the class. BUMP-IN-STEP RULE: when a row's floor moves, edit this file, both in-file tables and the guard docstring in the same change; a half-bump now fails loudly on the side that was missed. Every declared path here must stay UNDER --repo: round 40 (claim C2, seat P3) closed V3's confinement residual -- an absolute path or a `../` traversal in this file (or in the guard's own tables) now fails exit 2 as 'escape: ...', because the guard joins it as `repo / path` and an absolute operand silently discards the repo (measured green at r39 bytes: B2's arm B, E2's A25b, drafts/p3/out/ARMS-BEFORE.txt C1/C2). An in-repo `..` such as `verifiers/../verifiers/x.py` stays allowed. TRUST BOUNDARY (documented, not enforced): a coordinated edit of this anchor as well is a three-artifact edit and out of scope for this guard; a symlink INSIDE the tree pointing outside --repo is not a declared-path escape; --script NAME=PATH stays an explicit operator override by design (a unique-bytes stub anywhere, including outside --repo, is the operator's affordance -- but an override that resolves to or matches the bytes of another row's canonical instrument is named 'override repoint').",
++  "$comment": "Control world WA2 (round 79, seat Kb79E05ControlsA): the checklist row's floor is lowered 1863 -> 1 so check_assertion_floors.py is asked to read the failing row as passing. No other row moves; the in-file tables are untouched on purpose (the shortcut a floor-lowering world takes).",
+   "instrument_total": 17,
+   "instruments": {
+     "checklist": {
+-      "floor": 1863,
++      "floor": 1,
+       "path": "verifiers/verify_skill_checklist.py"
+     },
+     "compare_harness_independent": {

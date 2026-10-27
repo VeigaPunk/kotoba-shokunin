@@ -1,0 +1,23 @@
+# Q70 — the entry quote occurs in no other page of the set (one other surface checked: spec)
+# other page: https://agentskills.io/specification.md (S226 host), fetched 2026-10-27T21:42:58Z
+spec fetch: spec http=200 bytes=7608 final=https://agentskills.io/specification.md rc=0
+9a67de89132948b2300b8dc87b93817971d47f9be89b644444965881a8dfde16  spec.bin
+spec bytes: 7608
+$ grep -c -F "$Q" spec.bin   # expect 0
+0
+grep rc=1 (grep exits 1 when the count is 0 — the count is the datum)
+$ grep -c -F "$Q" f1.bin     # own snapshot, expect 1
+1
+grep rc=0
+
+## whitespace-collapsed check, both files
+spec.bin collapsed_count= 0
+f1.bin collapsed_count= 1
+
+## spec page allowed-tools lines (for contrast; not my row)
+35:| `allowed-tools` | No | Space-separated string of pre-approved tools the skill may use. (Experimental) |
+172:#### `allowed-tools` field
+174:The optional `allowed-tools` field:
+182:> allowed-tools: Bash(git:*) Bash(jq:*) Read
+
+scope of the negative: 1 of the other 5 surface pages was fetched and searched; the other 4 (factory, msaf, pi, vibe) were not fetched by this seat.

@@ -1,0 +1,53 @@
+kb79-E02 receipts index (round 79 w1, seat Kb79E02LogCitation)
+================================================================
+Scratch working tree: /fast/scratch/hyaku/kotoba-r79/Kb79E02LogCitation/kotoba-shokunin
+  - a `git clone --shared` of the lane, checked out at the plan commit 2c56622, later
+    advanced to the lane tip daa3a09; clone dir named `kotoba-shokunin` so
+    `trigger.name_directory` measures the real name (verifiers/verify_skill_checklist.py).
+  - the clone's parent is FLEET-SHAPED: every entry of /home/vgpnk/Projects/shokunin
+    except `kotoba-shokunin` is symlinked beside it, the same construction
+    check_tip_battery.py:build_sandbox uses. Without it every `../` citation in
+    LOG.md/SCORECARD.md is dead for environment reasons, not repo reasons.
+Worlds (all from daa3a09 = lane tip, which differs from 2c56622 only by
+plans/round-79.md, .ufo/waves/round-79/w1-{spec,dispatch}.json and build-w1-spec.py):
+  base = daa3a09 (no repair)
+  sym  = b51f5f729a2793bf92253f557539ce1010993db4 (base + the delivered patch)
+  row  = cd520ab0e92ec750d7ec4219ecefb2d3b97c410c (base + the Q64 correction-row draft)
+
+FILES
+Kb79E02LogCitation.patch                      THE DELIVERABLE: adds the symlink
+                                              .ufo/reports/round-76/kotoba.md only
+Kb79E02-sym-diffstat.txt                      git diff --stat daa3a09..sym  (1 file, 1 insertion)
+Kb79E02-sym-lstree.txt                        git ls-tree sym: mode 120000 blob bf7c7e0c...
+Kb79E02-base-checklist.txt                    verify_skill_checklist.py @ daa3a09: 1 FAIL
+                                              (governance.citation_resolves LOG.md:2818), rc=1
+Kb79E02-sym-checklist.txt                     verify_skill_checklist.py @ b51f5f7: 0 FAIL, rc=0
+Kb79E02-sym-checklist.json                    same, --json, rc=0
+Kb79E02-sym-checklist.rc                      both exit statuses (0, 0) captured by `cmd > out 2>&1; rc=$?`
+Kb79E02-sym-floors.txt                        check_assertion_floors.py @ b51f5f7: all PASS
+Kb79E02-sym-floors.rc                         rc=0, wall 114.6 s
+Kb79E02-base-daa3a09-tipbattery.txt           check_tip_battery.py --rev daa3a09 --fleet <fleet>:
+                                              guards 5 of 5, tip battery exit 0: 1 of 6, exit 1
+Kb79E02-sym-tipbattery.txt                    same counter, --rev b51f5f7: guards 5 of 5,
+                                              checklist exit 0, floors exit 0, 3 of 6, exit 1
+Kb79E02-row-tipbattery.txt                    same counter, --rev cd520ab (row draft): guards 3 of 5
+                                              (instrument-pin x2, instrument-size 56 > 40), 3 of 6
+Kb79E02-row-guards.txt                        run_guards() directly on the row world (same code path)
+Kb79E02-row-selftest.txt / .rc                checklist --self-test on the row world:
+                                              "0 failure(s) over 1864 assertions", rc=0
+Kb79E02-row-checklist.txt / .rc               checklist live on the row world: rc=0
+Kb79E02-row-diffstat.txt                      git diff --stat daa3a09..row
+Kb79E02LogCitation-correction-row-DRAFT.patch the Q64 canonical repair; GUARD-REJECTED under
+                                              C1's frozen counter -- do not integrate while frozen
+Kb79E02-base-integrity.json / -sym-integrity.json   verify_corpus_integrity.py --json: identical
+Kb79E02-base-independent.txt / -sym-independent.txt verify_corpus_independent.py: byte-identical
+                                              except the HEAD line
+Kb79E02-base-sweep.txt / -sym-sweep.txt       check_correction_sweep.py --root .: rc=0 both
+Kb79E02-base-registry.txt / -sym-registry.txt check_gate_registry.py --rev HEAD: 60 of 62 both, rc=1 both
+Kb79E02-guards.txt                            run_guards() on the FIRST sym world (2c56622-based
+                                              f95b473) and on b10bcbc6: no guard failure in either;
+                                              superseded by the three counter receipts above
+Kb79E02-base-checklist-shimmed.txt            the same base red measured on the 2c56622 clone
+                                              before it was renamed to kotoba-shokunin (kept for
+                                              the ORDER of measurement; superseded by
+                                              Kb79E02-base-checklist.txt)

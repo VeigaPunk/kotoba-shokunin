@@ -1,0 +1,69 @@
+# Q70: the S229 quote must occur in no OTHER surface's page.
+# quote: allowed-tools No Space-delimited list of pre-approved tools the skill may use. Experimental - support may vary between agent implementations.
+
+$ grep -c -F '<quote>' spec.md   # raw bytes
+0
+rc=1
+$ grep -c -F '<quote>' q70-claude   # raw bytes
+0
+rc=1
+$ grep -c -F '<quote>' q70-factory   # raw bytes
+0
+rc=1
+$ grep -c -F '<quote>' q70-pi   # raw bytes
+0
+rc=1
+$ grep -c -F '<quote>' q70-vibe   # raw bytes
+0
+rc=1
+
+$ grep -c -F '<quote>' tv-spec.txt   # TEXT_VIEW (script/style removed, tags->space, entities decoded, ws collapsed)
+0
+rc=1
+$ grep -c -F '<quote>' tv-claude.txt   # TEXT_VIEW (script/style removed, tags->space, entities decoded, ws collapsed)
+0
+rc=1
+$ grep -c -F '<quote>' tv-factory.txt   # TEXT_VIEW (script/style removed, tags->space, entities decoded, ws collapsed)
+0
+rc=1
+$ grep -c -F '<quote>' tv-pi.txt   # TEXT_VIEW (script/style removed, tags->space, entities decoded, ws collapsed)
+0
+rc=1
+$ grep -c -F '<quote>' tv-vibe.txt   # TEXT_VIEW (script/style removed, tags->space, entities decoded, ws collapsed)
+0
+rc=1
+
+$ grep -c -F '<quote>' msaf.textview.txt   # own TEXT_VIEW, positive control
+1
+rc=0
+
+# fetch receipts for the five comparison pages
+9a67de89132948b2300b8dc87b93817971d47f9be89b644444965881a8dfde16  spec.md
+31623035b25ac7e6bebd8dec6234aa76e31018f0e2eb8b47da6b36cf015712f9  q70-claude
+81457fbf081aceaa5b90c50a8d7685450dc8801229f9a9202e40acde8fa201fa  q70-factory
+5b9805525b194474ef1fe5455a0917ef15ed7f710aa9bec2eee11879556469e5  q70-pi
+fc48a5dbafe572fedd1457cffba8442aacd296dddaf50833ac3104252cb016b0  q70-vibe
+  7608 spec.md
+117962 q70-claude
+341235 q70-factory
+  4793 q70-pi
+ 77634 q70-vibe
+549232 total
+
+# Q70 against the OTHER SEATS committed snapshots (present at 2026-10-27T21:44Z; S230-pi absent then)
+$ grep -c -F '<quote>' snapshots/S226-spec.md
+0
+rc=1
+$ grep -c -F '<quote>' snapshots/S227-claude.md
+0
+rc=1
+$ grep -c -F '<quote>' snapshots/S228-factory.md
+0
+rc=1
+$ grep -c -F '<quote>' snapshots/S231-vibe.md
+0
+rc=1
+9a67de89132948b2300b8dc87b93817971d47f9be89b644444965881a8dfde16  snapshots/S226-spec.md
+31623035b25ac7e6bebd8dec6234aa76e31018f0e2eb8b47da6b36cf015712f9  snapshots/S227-claude.md
+81409d890cb1b07f6a5a85db19610d4706866e5f4f668d4e26dd032002fed0c9  snapshots/S228-factory.md
+fc48a5dbafe572fedd1457cffba8442aacd296dddaf50833ac3104252cb016b0  snapshots/S231-vibe.md

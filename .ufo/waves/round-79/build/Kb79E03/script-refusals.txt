@@ -1,0 +1,18 @@
+$ refresh --repo <not-a-repo> --dry-run
+refresh-corpus-baseline: refused: --repo /fast/scratch/hyaku/kotoba-r79/Kb79E03IndexBaseline: not a git work tree (fatal: not a git repository (or any parent up to mount point /)
+Stopping at filesystem boundary (GIT_DISCOVERY_ACROSS_FILESYSTEM not set).)
+rc=2
+
+$ refresh --repo clone --dry-run --carry corpus.index.unindexed
+refresh-corpus-baseline: refused: --carry corpus.index.unindexed: an index class is never carried -- write the missing coverage-map row (or remove the stale token) and re-run
+rc=2
+
+$ refresh --repo fixture --dry-run   # git repo missing the gates/baseline
+refresh-corpus-baseline: refused: --repo /fast/scratch/hyaku/kotoba-r79/Kb79E03IndexBaseline/fixture: unexpected tree, missing verifiers/verify_corpus_integrity.py, verifiers/verify_corpus_independent.py, verifiers/corpus-baseline.json
+rc=2
+
+$ dirty tree: append a line to plans/round-79.md, then refresh --dry-run
+refresh-corpus-baseline: refused: dirty tree: the gate reads worktree bytes while the baseline is recorded at HEAD; commit or clean these paths first:
+   M plans/round-79.md
+rc=2
+(restored; clone status: 0 path(s))

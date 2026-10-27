@@ -1,0 +1,43 @@
+Kb79E05ControlsA -- diagnostics behind the control-world readings (kotoba round 79 w1, 2026-10-27)
+Each block: exact command, working directory, captured exit status, verbatim output (trimmed only where marked).
+
+== D1 base observed totals (WA1 source data)
+cd $S/seed && python3 -B verifiers/verify_corpus_integrity.py --no-baseline --json; rc=1
+  tracked_files = 150
+  unindexed = 6
+  report_total = 106
+  report_dead = 1
+  commit_total = 45
+  commit_unresolvable = 0
+  commit_nonhash = 0
+  report_dead_detail = ['corpus/lessons/round-77-verifier-spotcheck.md:15: HEAD:.ufo/reports/round-77/kotoba.md']
+
+== D2 WA1: corpus_integrity after the baseline re-record (repo $S/w1/kotoba-shokunin, rev b0266d7)
+python3 -B verifiers/verify_corpus_integrity.py --json; rc=1 -- non-PASS rows:
+  corpus.index.unindexed zero observed 6 DRIFT
+  corpus.pointers.report_dead zero observed 1 DRIFT
+
+== D3 WA2: assertion-floors registry anchor (repo $S/w2/kotoba-shokunin, rev 54b234e)
+python3 -B verifiers/check_assertion_floors.py; rc=2
+FAIL registry floor drift: checklist registry=1 expected=1863 row=1863
+
+== D4 WA3: gate registry at the placeholder-row world (rev 3ba4596)
+python3 -B verifiers/check_gate_registry.py --rev 3ba459694cd6f562611871f74f47b0ff8a48ff26; rc=0
+gate registry rows conformant 62 of 62 lane verifiers; phantom 0
+
+== D5 WA4: governance citation delta WA0 vs WA4 (same non-fleet-linked shape, repos $S/w0 and $S/w4)
+python3 -B verifiers/verify_skill_checklist.py --json (both), rc=1 both
+  WA0 evaluated=1315  tail=10 quoted meta-finding(s), 3 schematic token(s) excluded, 2 recorded absence(s) excused, 1 recorded correction(s) excused
+  WA4 evaluated=1316  tail=10 quoted meta-finding(s), 3 schematic token(s) excluded, 2 recorded absence(s) excused, 1 recorded correction(s) excused
+  failures copy: WA0 2 / 9  WA4 2 / 9
+
+== D6 assertion-floors' one failing row traced to verify_skill_checklist --self-test
+cd $S/probe/kotoba-shokunin (fleet-shaped parent incl. .ufo symlink) && python3 -B verifiers/verify_skill_checklist.py --self-test; rc=1
+self-test FAIL: governance: live round-65 corrections land, errata-excused: got ('FAIL', 1312, "LOG.md:2818: '.ufo/reports/round-76/kotoba.md' does not resolve from /fast/scratch/hyaku/kotoba-r79/Kb79E05ControlsA/probe/kotoba-shokunin; 10 quoted meta-finding(s), 3 schematic token(s) excluded, 2 recorded absence(s) excused, 4 recorded correction(s) excused")
+1 failure(s) over 1863 assertions
+source of the assertion: verifiers/verify_skill_checklist.py:2524-2526 -- requires the LIVE governance check to be PASS with '2 recorded absence(s) excused' and '4 recorded correction(s) excused'
+
+== D7 corpus instruments disagree on report_dead over the same tree (base tree, $S/seed)
+python3 -B verifiers/verify_corpus_integrity.py --no-baseline --json -> report_dead observed 1; python3 -B verifiers/verify_corpus_independent.py --json -> report_dead observed 0; both rc=1
+  integrity: observed 1 ['corpus/lessons/round-77-verifier-spotcheck.md:15: HEAD:.ufo/reports/round-77/kotoba.md']
+  independent: observed 0 PASS (non-PASS rows: ['corpus.index.tracked_files', 'corpus.index.unindexed', 'corpus.pointers.report_total', 'corpus.pointers.commit_total'] )
