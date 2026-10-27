@@ -61,3 +61,14 @@ Run at base BEFORE the freeze (receipts above: what is red at base is named red)
 ## Inherited state
 
 `.ufo/waves/round-79/w2*` was announced but never settled (R79-D1): nothing is inherited from it; this round's wave evidence is self-contained. R79-D2 (the r79 lesson's stale census line): corrected by an append-only notice in the round-80 lesson naming `census-final.txt` as the r79 round-end receipt. Files not authored by this lane (`round-79-verifier-spotcheck.md`, operator sweeps) are never edited.
+
+## Addendum 1 (freeze clarification, pre-data, 2026-10-27)
+
+Seat `Kb80E06CounterErratum` measured that erratum E5 as literally worded ("LINE_CAP and the pin table, nothing else") falsifies the counter's own self-test: the size-world fixture grows an instrument 41 lines and the loss-world deletes 60, both hard-anchored to the old bound's expectation strings. E5's exact amended line set is therefore (hunk inventory recorded in `.ufo/waves/round-80/receipts/freeze-shas.txt`):
+
+1. `LINE_CAP = 40` → `LINE_CAP = 60`;
+2. `INSTRUMENT_PINS["verifiers/verify_corpus_integrity.py"]` gains the composed E04∘E05 reviewed blob; `INSTRUMENT_PINS["verifiers/verify_corpus_independent.py"]` gains the E05 reviewed blob — exactly two entries;
+3. the self-test fixture constants that hard-assert the old bound (the 41-line growth expectation, the 60-line loss expectation, the cap mentions) re-anchored to derive from `LINE_CAP`, with arm semantics unchanged — growth or loss past the cap still trips `instrument-size` (a 41-line gain under cap 60 passes the size guard alone and FAILS `instrument-pin`, which the strengthened pin arm now shows); assertion count unchanged (69), no arm added or dropped;
+4. docstring/comment cap mentions updated so the text does not contradict the bound.
+
+Nothing else changes. The kill rule's justification stands: the pin guard carries the anti-laundering load; the size bound is secondary. Pin-ordering fact (E06): the integrity pin is the E04∘E05 composed blob, not the E04-only blob `051b8c5f…` (that value is the E04-only cross-check, cited as such wherever used).
