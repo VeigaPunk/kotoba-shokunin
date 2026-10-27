@@ -1,0 +1,77 @@
+# Battery reds reported by E12BatteryScript — independent verification (round 77 w1, seat E10GateRepair)
+# Method: each governance check resolves '..' hops against the repo's PARENT, so every run below is
+# a clone placed beside the fleet root through a symlink overlay (fleet sibling entries symlinked,
+# .ufo -> /home/vgpnk/Projects/shokunin/.ufo). Without that overlay the same clone reports spurious
+# failures for ../PROTOCOL.md, ../kasegi-shokunin/..., i.e. a clone under /fast/scratch is NOT a
+# faithful harness for this gate. Overlay dirs: $S/fleet, $S/fleetA, $S/fleetB.
+
+## 1. verify_skill_checklist --json at 6523aced (sandbox fleet/kotoba-shokunin, HEAD 6523ace)
+$ python3 -B verifiers/verify_skill_checklist.py --json
+exit=1   pass=10 fail=1
+FAIL governance.citation_resolves: LOG.md:2818: '.ufo/reports/round-76/kotoba.md' does not resolve;
+     10 quoted meta-finding(s), 3 schematic token(s) excluded, 2 recorded absence(s) excused, 4 recorded correction(s) excused
+# (full json: the run captured pass/fail only; the failing detail is quoted verbatim above)
+
+## 2. same gate at b7f13f4b39cbd43076a85568adca763a6f674e7a (sandbox fleetB, git checkout of the same clone)
+$ git checkout b7f13f4 && python3 -B verifiers/verify_skill_checklist.py --json
+exit=0   pass=11 fail=0
+$ python3 -B verifiers/verify_skill_checklist.py --self-test
+exit=0
+
+## 3. self-test at 6523aced, run in the real lane path (read-only)
+$ cd /home/vgpnk/Projects/shokunin/kotoba-shokunin && python3 -B verifiers/verify_skill_checklist.py --self-test
+exit=1   '1 failure(s) over 1863 assertions'
+self-test FAIL: governance: live round-65 corrections land, errata-excused: got ('FAIL', 1308, "LOG.md:2818: ...")
+# the live-data fixture asserts the real repo is green; the LOG.md:2818 subject breaks it, so the
+# checklist self-test failure (and therefore the check_assertion_floors checklist arm) is a
+# consequence of the data defect, not a second defect.
+
+## 4. provenance
+$ git -C <lane> log -S.ufo/reports/round-76/kotoba.md -- LOG.md
+ec7f853 round-76: honest stop — frozen counters, wave evidence, base-red receipts
+$ ls .ufo/reports/round-76/            # inside the lane
+ls: cannot access '.../kotoba-shokunin/.ufo/reports/round-76': No such file or directory
+$ ls /home/vgpnk/Projects/shokunin/.ufo/reports/round-76/kotoba.md
+exists (fleet report)
+citation_resolve('.ufo/reports/round-76/kotoba.md', lane)        -> False
+citation_resolve('../.ufo/reports/round-76/kotoba.md', lane)     -> True
+
+## 5. Route A — rewrite the token in place at LOG.md:2818 (sandbox fleetA)
+$ sed-style one-token edit: `.ufo/reports/round-76/kotoba.md` -> `../.ufo/reports/round-76/kotoba.md`
+$ python3 -B verifiers/verify_skill_checklist.py --json
+exit=0   pass=11 fail=0
+$ python3 -B verifiers/verify_skill_checklist.py --self-test
+exit=0   '0 failure(s) over 1863 assertions'
+# one-line change, no gate edit, no new pinned rows; contradicts the lane's stated append-only rule
+# for LOG.md (LOG.md:2619, the round-65 notice: 'append-only — corrections land as new entries,
+# never in-place edits').
+
+## 6. Route B — appended notice + pinned row (sandbox fleet)
+$ # appended to LOG.md as its own line (line 2819 in the sandbox), tokens in double quotes so they
+$ #   count as quoted meta-findings, not new subjects:
+# - **Correction:** LOG.md:2818 token ".ufo/reports/round-76/kotoba.md" -> "../.ufo/reports/round-76/kotoba.md" (the round-76 report lives in the fleet repo; the corrected token resolves from the lane root).
+# sha256 of that line: 01a8090b1b8ddbc1b779acf246840f480aa21d0d86edffd8a86cd82a81fc2049
+# + GOVERNANCE_CORRECTIONS_HORIZON 2723 -> 2819
+# + row ("LOG.md", 2818, ".ufo/reports/round-76/kotoba.md", "../.ufo/reports/round-76/kotoba.md")
+$ python3 -B verifiers/verify_skill_checklist.py --json
+exit=0   pass=11 fail=0
+$ python3 -B verifiers/verify_skill_checklist.py --self-test
+exit=1   '1 failure(s) over 1863 assertions'
+self-test FAIL: governance: live round-65 corrections land, errata-excused: got ('PASS', 1307, '... 5 recorded correction(s) excused')
+# the live fixture pins the string \"4 recorded correction(s) excused\"; a fifth row requires that
+# literal (and its comment) to be updated in the same change, i.e. four coupled edits: LOG notice,
+# horizon, row, self-test expectation.
+
+## 7. Battery item itself, both routes (check_assertion_floors -- full run, ~105 s each)
+$ cd <sandbox>/kotoba-shokunin && python3 -B verifiers/check_assertion_floors.py
+Route A  exit=0   PASS checklist observed=1863 floor=1863
+Route B2 exit=0   PASS checklist observed=1863 floor=1863
+# Route A = the one-line in-place token rewrite (sandbox fleetA).
+# Route B2 = route B plus the self-test's live-fixture literal updated from
+#   "4 recorded correction(s) excused" to "5 recorded correction(s) excused"
+#   (verifiers/verify_skill_checklist.py:2526); with that update the self-test
+#   reads exit 0 / 0 failure(s) over 1863 assertions and the checklist 11/0 exit 0.
+# So both routes clear both battery items; they differ in cost and in convention:
+#   A  = 1 lane line, contradicts LOG.md's append-only rule (r65 notice);
+#   B2 = 4 coupled edits (LOG notice line, horizon 2723->notice line, pinned row,
+#        self-test literal 4->5), fully inside the r65 correction mechanism.

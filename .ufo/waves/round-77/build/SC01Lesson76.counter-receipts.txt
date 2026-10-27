@@ -1,0 +1,148 @@
+# SC01Lesson76 — receipts for the round-76 lesson draft against the frozen C1 counter
+
+Lane cwd for every command: /home/vgpnk/Projects/shokunin/kotoba-shokunin
+Counter bytes (frozen, unedited): verifiers/check_desc_craft.py
+  sha256 cf3c45d9e3985f11889816f4bb371dc0d5541c10c09ce2ab3966a4bff4603b9e   (== plans/round-77.md pin)
+Scratch world: /fast/scratch/hyaku/kotoba-r77/SC01Lesson76/clone
+  git clone --shared of lane HEAD 6523aced1ee0ebe07dca996213bdc645a6acbd1e
+  `git -C <clone> rev-parse --show-toplevel` -> /fast/scratch/hyaku/kotoba-r77/SC01Lesson76/clone (asserted)
+  user.name scratch-r77 / user.email scratch@example.invalid set BEFORE the first scratch commit;
+  every git call names -C. The scratch directory was removed after this run (seat report § Scratch).
+Status capture (Q75 discipline): the gate's OWN status, never a pipeline's —
+  python3 -B verifiers/check_desc_craft.py --repo <clone> --rev <rev> > out 2>&1; rc=$?; echo "exit=$rc"
+World content: only the two bytes this seat owns — the draft copied to corpus/lessons/round-76.md and the
+S213 used-by append in corpus/SOURCES.md (`corpus/knowledge/skill-eval-artefacts-round70.md, corpus/knowledge/description-craft-round76.md`).
+Entry, SKILL.md row and L1 commits are other seats' work and are absent from every world below.
+
+## W0 RED-BEFORE — r77 base, no lesson committed
+cmd: python3 -B verifiers/check_desc_craft.py --repo <clone> --rev 2f675548eaad2a037a899d39247c1fd7a88aaf48
+exit=1
+measured-rev: 2f675548eaad2a037a899d39247c1fd7a88aaf48
+(a) snapshot chain: fail
+(b) located quotes: fail
+(c) act-on: fail
+(d) self-audit: fail
+(e) registry: fail
+(f) provenance: fail
+  (a) corpus/lessons/round-76.md is not committed at the measured revision
+  (b) corpus/knowledge/description-craft-round76.md is not committed at the measured revision
+  (c) no Body craft row cites both corpus/knowledge/description-craft-round76.md and S213
+  (d) corpus/knowledge/description-craft-round76.md is not committed at the measured revision
+  (e) row S213's used-by cell does not list corpus/knowledge/description-craft-round76.md
+  (f) corpus/knowledge/description-craft-round76.md is not committed at the measured revision
+description craft backed 0 of 6
+
+## W1 PASS WORLD — final draft lesson + used-by append
+rev: d1de60a132862dc032bc5e144c87ca7c2c6fe7b9
+cmd: python3 -B verifiers/check_desc_craft.py --repo <clone> --rev d1de60a132862dc032bc5e144c87ca7c2c6fe7b9
+exit=1   (expected here: 2 of 6; (b)/(c)/(d)/(f) need the entry and the SKILL.md row)
+measured-rev: d1de60a132862dc032bc5e144c87ca7c2c6fe7b9
+(a) snapshot chain: pass
+(b) located quotes: fail
+(c) act-on: fail
+(d) self-audit: fail
+(e) registry: pass
+(f) provenance: fail
+  (b) corpus/knowledge/description-craft-round76.md is not committed at the measured revision
+  (c) no Body craft row cites both corpus/knowledge/description-craft-round76.md and S213
+  (d) corpus/knowledge/description-craft-round76.md is not committed at the measured revision
+  (f) corpus/knowledge/description-craft-round76.md is not committed at the measured revision
+description craft backed 2 of 6
+(an earlier pass world at rev 9267495db9e7b555237e14e7adfe0740db19243f read the same 2 of 6 — (a) pass, (e) pass —
+ before two cosmetic fixes; superseded by the rev above.)
+
+## W2 CONTROL A — Gate digest replaced with 64 zeros
+rev: 1d79e10c5f09f0a4b9511564a212a24a62081134
+exit=1
+measured-rev: 1d79e10c5f09f0a4b9511564a212a24a62081134
+(a) snapshot chain: fail
+(e) registry: pass
+  (a) the lesson Gate names no digest for the optimizing-descriptions snapshot
+description craft backed 1 of 6
+
+## W3 CONTROL B — every 2026-10-27 in the lesson changed to 2026-10-20
+rev: 55a7478e2bd61783f96b38b1fd0135e250aa110e
+exit=1
+measured-rev: 55a7478e2bd61783f96b38b1fd0135e250aa110e
+(a) snapshot chain: fail
+(e) registry: pass
+  (a) the lesson Gate access date ['2026-10-20', '2026-10-20', '2026-10-20', '2026-10-20', '2026-10-23', '2026-10-25', '2026-10-26'] does not match the fetch record date ['2026-10-27']
+description craft backed 1 of 6
+
+## W4 CONTROL C — Gate's located quote replaced with a best-practices-only sentence
+rev: 401283450b4c9633faf1a8bf52f2e627164db4f7
+precheck: grep -c -F "Read agent execution traces, not just final outputs"
+  snapshots/optimizing-descriptions.md:0   snapshots/best-practices.md:1
+exit=1
+measured-rev: 401283450b4c9633faf1a8bf52f2e627164db4f7
+(a) snapshot chain: fail
+(e) registry: pass
+  (a) the lesson Gate carries no <=25-word quote located in the optimizing-descriptions snapshot
+description craft backed 1 of 6
+
+## W5 CONTROL E — used-by old->new log removed from the lesson
+(mutations for the control: the old and new values removed from the Status changes paragraph, the
+ `OLD_USED_BY` token removed, and the phrase "new entry" changed to "an entry" — otherwise the counter's
+ (e) arm passes on the bare presence of the words "old" and "new" in one paragraph)
+rev: aa58955b74900f0bd8af4eba6156bd3b825d90e8
+exit=1
+measured-rev: aa58955b74900f0bd8af4eba6156bd3b825d90e8
+(a) snapshot chain: pass
+(e) registry: fail
+  (e) corpus/lessons/round-76.md does not log the old->new used-by change of row S213 (old corpus/knowledge/skill-eval-artefacts-round70.md, new ... corpus/knowledge/description-craft-round76.md)
+description craft backed 1 of 6
+=> (a) and (e) are independent: E fails (e) while (a) stays green.
+
+## W6 counter self-test on the frozen bytes
+cmd: python3 -B verifiers/check_desc_craft.py --self-test
+exit=0
+last lines:
+  PASS (e) the old->new change is not logged: exit 1
+  PASS (f) no recheck field: exit 1
+  PASS (f) no verified-at field: exit 1
+  PASS shortcut: token dump naming all six conjuncts: exit 1
+  self-test: 0 failure(s) over 53 assertions
+
+## Structural checks on the draft (lane file)
+grep -c '^## Gate$' -> 1
+headings: ## Gate (27), ## Spot-check (87), ## Mistakes (100), ## Routed defects (118), ## Status changes (142)
+Gate section extracted by the counter's own _gate_section(): 5,498 bytes, 59 lines
+Gate quotes <=25 words: 3, the intended one 10 words ("A few sentences to a short paragraph is usually right")
+Gate names the S213 URL: True;  Gate names the pinned digest: True
+Mistakes table rows 102-109: 5 unescaped pipes each (4 cells); escaped pipes inside cells 104:1, 108:3, 109:1
+
+## S213 re-open by this seat (third independent open of the round)
+cmd: curl -sS -m 25 -o /tmp/sc01-page.md -w 'http=%{http_code} bytes=%{size_download}\n' https://agentskills.io/skill-creation/optimizing-descriptions.md
+http=200 bytes=13403
+sha256 7cc54fbb6abbcf08c33e7b320fd01a1fb9696426270da3b588a398d243bfd837  /tmp/sc01-page.md
+196 lines
+cmp /tmp/sc01-page.md .ufo/waves/round-76/snapshots/optimizing-descriptions.md -> exit 0 (byte-identical)
+grep -c -F "A few sentences to a short paragraph is usually right" /tmp/sc01-page.md -> 1
+(other fetches this round, linked here: .ufo/waves/round-77/build/S01Reopen1.access-record.txt [curl],
+ S02Reopen2.access-record.txt [urllib]; both MATCH the pinned digest.)
+
+## Census E11 — the Status-changes paragraph's claim, checked in the W1 world
+(Append present in corpus/SOURCES.md, entry absent.)
+cmd: (cd <clone> && /home/vgpnk/Projects/shokunin/scripts/sources-census.sh validate --file corpus/SOURCES.md)
+exit=1
+tail: file  W04  S213 duplicate url agentskills.io/skill-creation/optimizing-descriptions.md across scopes
+      file  E11  S213 missing used-by corpus/knowledge/description-craft-round76.md
+
+## Description render unchanged at five revisions (the Reversed paragraph's claim)
+python3, the counter's own description_measures over `git show <rev>:SKILL.md`:
+  65a5c7a (1022, 1021, 151)   ac9f295 (1022, 1021, 151)   b7f13f4b (1022, 1021, 151)
+  4de12b61 (1022, 1021, 151)  2f675548 (1022, 1021, 151)
+
+## Pointer resolutions for the lesson's citations
+corpus/QUALITY.md:83 -> Q67                                  ✓
+considerthese/2026-10-26.md:17 -> proposal 3                 ✓
+corpus/lessons/round-74-verifier-spotcheck.md:116 -> the staged spec-description-trigger-discipline row  ✓
+SKILL.md at 2f675548 -> `wc -lc` 590 lines / 78,647 B        ✓
+corpus/SOURCES.md -> 151 `| S<id>` rows                      ✓
+.ufo/waves/round-54/falsify/W2CriticLesson.md:87             ✓
+.ufo/waves/round-76/w1/B10RepairD2D3.md:81-83, B11RepairD4.md:193-196, B24TipBatteryScript.md:242-246  ✓
+.ufo/waves/round-76/receipts/pipeline-exit-demo.txt          ✓
+.ufo/waves/round-76/build/B08-q74-quality-row.diff           ✓
+.ufo/l0-questions.md:174 -> DOES NOT EXIST in the lane; the file is the fleet root's
+  /home/vgpnk/Projects/shokunin/.ufo/l0-questions.md:174 (the kotoba round-73 registry-move item).
+  The round-76 spot-check wrote it lane-relative; the lesson cites the fleet path and says so.

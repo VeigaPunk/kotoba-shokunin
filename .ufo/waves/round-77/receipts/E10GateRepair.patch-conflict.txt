@@ -1,0 +1,20 @@
+# The two README patches are mutually exclusive (round 77 w1)
+# E10GateRepair.readme-index-rows.patch (this seat) vs SC06ReadmeCorpus.patch (sibling seat)
+
+## both clones are fresh clones of lane HEAD 6523aced1ee0ebe07dca996213bdc645a6acbd1e
+
+## order: mine first, then SC06 --check   (clone /fast/scratch/hyaku/kotoba-r77/E10GateRepair/both2)
+# toplevel: /fast/scratch/hyaku/kotoba-r77/E10GateRepair/both2
+$ git -C /fast/scratch/hyaku/kotoba-r77/E10GateRepair/both2 apply --check SC06ReadmeCorpus.patch   # after E10GateRepair.readme-index-rows.patch is already applied
+error: patch failed: corpus/README.md:147
+error: corpus/README.md: patch does not apply
+exit=1
+
+## order: SC06 first, then mine --check   (clone /fast/scratch/hyaku/kotoba-r77/E10GateRepair/both)
+# toplevel: /fast/scratch/hyaku/kotoba-r77/E10GateRepair/both
+$ git -C /fast/scratch/hyaku/kotoba-r77/E10GateRepair/both apply --check E10GateRepair.readme-index-rows.patch   # after SC06ReadmeCorpus.patch is already applied
+error: patch failed: corpus/README.md:148
+error: corpus/README.md: patch does not apply
+exit=1
+
+## conclusion: exactly one patch must be applied; they share the '## Frontier' insertion anchor.

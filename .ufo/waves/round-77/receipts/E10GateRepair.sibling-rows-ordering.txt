@@ -1,0 +1,42 @@
+# Does the sibling README patch (SC06) work on its own at the round-77 base? (round 77 w1)
+# clone: /fast/scratch/hyaku/kotoba-r77/E10GateRepair/ord1 (toplevel /fast/scratch/hyaku/kotoba-r77/E10GateRepair/ord1, head 6523aced1ee0ebe07dca996213bdc645a6acbd1e)
+
+## 1. apply /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-77/build/SC06ReadmeCorpus.patch to the base tree (the three r77 data files do not exist yet)
+$ git -C /fast/scratch/hyaku/kotoba-r77/E10GateRepair/ord1 apply SC06ReadmeCorpus.patch
+apply_exit=0
+$ python3 -B verifiers/verify_corpus_integrity.py --json
+exit=1
+      "tracked_files": 146,
+      "unindexed": 0,
+      "stale_patterns": 3,
+      "missing_paths": 3,
+      "report_total": 102,
+      "commit_total": 44,
+# stale_patterns detail:
+    corpus/README.md:150: knowledge/description-craft-round76.md
+    corpus/README.md:151: lessons/round-76.md
+    corpus/README.md:154: lessons/round-77.md
+    corpus/README.md:150: knowledge/description-craft-round76.md -> knowledge/description-craft-round76.md
+    corpus/README.md:151: lessons/round-76.md -> lessons/round-76.md
+    corpus/README.md:154: lessons/round-77.md -> lessons/round-77.md
+
+## 2. same tree with the three r77 data files present (empty scratch fixtures) and committed
+# scratch commit: 25fec84d0ce1f10966333b9a4fd2312f0f1af0b6
+$ python3 -B verifiers/verify_corpus_integrity.py --json
+exit=1
+      "tracked_files": 149,
+      "unindexed": 0,
+      "stale_patterns": 0,
+      "missing_paths": 0,
+      "report_total": 102,
+      "commit_total": 44,
+$ /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-77/build/E10GateRepair.refresh_baseline.sh /fast/scratch/hyaku/kotoba-r77/E10GateRepair/ord1
+tracked_files                      144 -> 149
+report_total                       99 -> 102
+commit_total                       43 -> 44
+wrote /fast/scratch/hyaku/kotoba-r77/E10GateRepair/ord1/verifiers/corpus-baseline.json (head 25fec84)
+verified: both corpus gates exit 0 against the re-recorded baseline
+exit=0
+$ python3 -B verifiers/verify_corpus_integrity.py --json ; python3 -B verifiers/verify_corpus_independent.py --json
+integrity_exit=0
+independent_exit=0

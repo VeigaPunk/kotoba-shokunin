@@ -1,0 +1,44 @@
+# F31CheckcurityReadOnlyS — receipts (kotoba round 77, wave w2)
+# seat: F31CheckcurityReadOnlyS (sentinel; read-only scope sweep of changed evidence)
+# host: linux 7.2.11-arch1-1. No tool installs; pacman never invoked.
+# lane HEAD 6523aced1ee0ebe07dca996213bdc645a6acbd1e. Each exit status is the command's own.
+
+## 1. the checklist gate is RED in the lane itself (not a scratch artefact)
+cd <lane>; python3 -B verifiers/verify_skill_checklist.py --json   -> exit 1
+  exit_code 1  pass 10  fail 1
+  FAIL governance.citation_resolves
+    LOG.md:2818: '.ufo/reports/round-76/kotoba.md' does not resolve from <lane>
+  (the file exists one level up: /home/vgpnk/Projects/shokunin/.ufo/reports/round-76/kotoba.md, 8128 B)
+  provenance: git log -S'.ufo/reports/round-76/kotoba.md' -- LOG.md  -> ec7f853 (round-76 honest stop)
+  at the r76 base b7f13f4 the same grep count is 0 and the checklist was exit 0 (r76 plan base battery)
+
+## 2. the floors gate is RED for the same root cause
+cd <lane>; python3 -B verifiers/check_assertion_floors.py          -> exit 1
+  PASS harness ... PASS corpus_integrity ... (13 rows PASS)
+  FAIL checklist observed=1863 floor=1863 self_test_failures=1
+  (that one arm is the same LOG.md:2818 resolution; a scratch clone adds a second, location-only arm)
+
+## 3. one-token fix, proven in a fleet-shaped sandbox (writes only in scratch)
+python patch in <sandbox>/kotoba-shokunin/LOG.md:
+  the token: fleet report `.ufo/reports/round-76/kotoba.md`  ->  fleet report `../.ufo/reports/round-76/kotoba.md`
+python3 -B verifiers/verify_skill_checklist.py --json -> exit 1 (sandbox-only, missing sibling lanes)
+  the 'round-76' item is GONE from the failure detail ('round-76' in detail == False);
+  the remaining fail is the sandbox's absent fleet-root siblings, which resolve in the real lane
+=> in the lane, the same one-token change closes the only failing item (all other items already resolve there)
+
+## 4. evals gate is RED and unchanged by the round (pre-existing; not a new harm)
+check_skill_evals_v2.py --rev:
+  r76 base b7f13f4   -> exit 1, "skill eval artefacts verified 2 of 10"
+  r77 tip 6523ace    -> exit 1, "skill eval artefacts verified 2 of 10"
+  full draft tip     -> exit 1, "skill eval artefacts verified 2 of 10"
+  same message: "SKILL.md: 0 rendered lines name the entry + S211/S212/S213 (want exactly 1; 1 name the path, 1 rejected)"
+
+## 5. census (read-only, fleet script)
+bash scripts/sources-census.sh validate --root /home/vgpnk/Projects/shokunin kotoba   -> exit 0
+  kotoba W04 S212 duplicate url ... ; kotoba W04 S213 duplicate url ... ; kotoba ok  (warning set as at r75)
+
+## 6. measurement caveat for the L1
+verify_skill_checklist.py and check_assertion_floors.py are location-dependent: run in a scratch
+clone they add (a) name != directory, (b) ../.ufo/reports/* unresolved, (c) one extra floors arm.
+Their green/red verdict is only meaningful when run IN THE LANE. Every scratch-side red above that is
+not reproduced in-lane is labelled an artefact, not a finding.

@@ -1,0 +1,16 @@
+# R04RevHygiene verdict — r77 freeze-tip review
+
+**RECOMMENDATION: use the D3 tail append and a rebased D2 tail correction (Form B); do not apply Form A.** Form B is the minimal LOG-compliant shape and matches r74 routed defect D2's explicit “LOG appended correction” wording. The existing `B10RepairD2D3.formB.patch` is stale: `git apply --check` at lane freeze `6523aced1ee0ebe07dca996213bdc645a6acbd1e` fails on its LOG hunk (`LOG.md:2808`), because the patch was made when the r76 tip ended before the newly appended § Round 76. Rebase the same correction text after the current LOG tail before integration.
+
+Evidence: `git cat-file -t d5aebcf` returned `commit`, exit 0; `git show --stat d5aebcf` reports 394 files changed; author/date are `kotoba-shokunin` / `2026-10-25 23:16:44 -0300`; subject is exactly the quoted interrupted-run snapshot message. Parent is `d919179`; `d919179` is ancestor of `d5aebcf`, `d5aebcf` is ancestor of `2c81137` and current HEAD. The adjacent subjects identify the former as counters/E1 freeze and the latter as C1/C2 data. The proposed description is factually supported.
+
+D3's proposed forward pointer answers r74 closure D3: it names the tracked round-74 re-pin and states the `tsukuroi none → adjacent (basis kotoba)` correction and updated counts. The target round-74 entry itself cites round-49 ranges `:43-64`, `:246-295`, `:416-458`, and its lines 26/29 substantiate the counts/class change. The D3 tail placement preserves those cited line numbers.
+
+The D2 Form A insertion is not append-only from the r77 base: in a scratch clone at freeze HEAD, it made `LOG@6523aced` not a byte-prefix of the result (`prefix_r77_base=False`, 740-byte growth) and shifted `## Round 75` from line 2805 to 2807. The old r63 append-only counter still passed (5/5, `prefix=True`) because its baseline predates the insertion point; that does not establish prefix preservation from the current base. Form B tail append preserves the current LOG prefix by construction, but its supplied patch must be rebased.
+
+Frozen counter hashes at HEAD match the plan pins: C1 `cf3c45d9e3985f11889816f4bb371dc0d5541c10c09ce2ab3966a4bff4603b9e`; C2 `989203c40e1aab55fc14ee1d444dd4fa8b49fe01144b2dcdeaa6a27fa39f4a63`. C1 has no `LOG` references. C2 extracts § Round 75 only; both proposed D2 forms are outside that section, and Form B's later Round 74 correction heading does not alter it. In scratch Form A, C1 remained `0 of 6`/exit 1 and C2 remained `0 of 4`/exit 1 (expected at pre-data base). The r74 `check_sibling_reread.py` passed 20/20 before and after Form A; round-74 census guard passed 20/20 before and after. Round-49 guard remained 20 rows and the same observed 16 FAIL lines (15 stale commit pins plus tsukuroi class mismatch), before/after; no new census guard failure. R63 counter passed 5/5 on Form A.
+
+The checklist run in my scratch shim was not a valid full green check (base and Form A were non-green due to incomplete external-layout symlinks); do not treat it as verification. No tools installed.
+
+VERDICT: Reject Form A; rebase and use Form B plus the D3 tail append.
+DELIVERABLES: /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-77/build/R04RevHygiene.verdict.md; /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-77/w1/R04RevHygiene.md

@@ -1,0 +1,467 @@
+counter sha256: C1 cf3c45d9e3985f11889816f4bb371dc0d5541c10c09ce2ab3966a4bff4603b9e
+          C2 989203c40e1aab55fc14ee1d444dd4fa8b49fe01144b2dcdeaa6a27fa39f4a63
+base lane HEAD 6523aced1ee0ebe07dca996213bdc645a6acbd1e; each exit code below is the counter subprocess's own returncode (no pipeline)
+
+======================================================================
+C1-W0-base
+why: lane HEAD, no data (control)
+cmd: python3 -B verifiers/check_desc_craft.py --repo $S/clone --rev 6523aced1ee0ebe07dca996213bdc645a6acbd1e
+exit=1
+measured-rev: 6523aced1ee0ebe07dca996213bdc645a6acbd1e
+(a) snapshot chain: fail
+(b) located quotes: fail
+(c) act-on: fail
+(d) self-audit: fail
+(e) registry: fail
+(f) provenance: fail
+  (a) corpus/lessons/round-76.md is not committed at the measured revision
+  (b) corpus/knowledge/description-craft-round76.md is not committed at the measured revision
+  (c) no Body craft row cites both corpus/knowledge/description-craft-round76.md and S213
+  (d) corpus/knowledge/description-craft-round76.md is not committed at the measured revision
+  (e) row S213's used-by cell does not list corpus/knowledge/description-craft-round76.md
+  (f) corpus/knowledge/description-craft-round76.md is not committed at the measured revision
+description craft backed 0 of 6
+
+======================================================================
+C1-W1-minimal-stub
+why: 12-line entry copying 4 quote strings + cites, one SKILL row, used-by append, 5-line lesson
+cmd: python3 -B verifiers/check_desc_craft.py --repo $S/clone --rev aafb4f3fd0a51a248b47a727780b4bc693a1c969
+exit=0
+measured-rev: aafb4f3fd0a51a248b47a727780b4bc693a1c969
+(a) snapshot chain: pass
+(b) located quotes: pass
+(c) act-on: pass
+(d) self-audit: pass
+(e) registry: pass
+(f) provenance: pass
+description craft backed 6 of 6
+
+======================================================================
+C1-A-a-no-digest
+why: W1 minus lesson Gate digest
+cmd: python3 -B verifiers/check_desc_craft.py --repo $S/clone --rev 2925fd1f4905637ea839b447f81bd034815ece1b
+exit=1
+measured-rev: 2925fd1f4905637ea839b447f81bd034815ece1b
+(a) snapshot chain: fail
+(b) located quotes: pass
+(c) act-on: pass
+(d) self-audit: pass
+(e) registry: pass
+(f) provenance: pass
+  (a) the lesson Gate names no digest for the optimizing-descriptions snapshot
+description craft backed 5 of 6
+
+======================================================================
+C1-A-b-3-quotes
+why: W1 with 3 quotes
+cmd: python3 -B verifiers/check_desc_craft.py --repo $S/clone --rev e7b255b89011dbf27495e210a3e224eb6bf4a3f2
+exit=1
+measured-rev: e7b255b89011dbf27495e210a3e224eb6bf4a3f2
+(a) snapshot chain: pass
+(b) located quotes: fail
+(c) act-on: pass
+(d) self-audit: pass
+(e) registry: pass
+(f) provenance: pass
+  (b) corpus/knowledge/description-craft-round76.md carries 3 located page-unique quote(s) of the required 4
+description craft backed 5 of 6
+
+======================================================================
+C1-A-c-no-row
+why: W1 minus SKILL row
+cmd: python3 -B verifiers/check_desc_craft.py --repo $S/clone --rev 0bc0e8a65779e319a89cf688c61e436670831534
+exit=1
+measured-rev: 0bc0e8a65779e319a89cf688c61e436670831534
+(a) snapshot chain: pass
+(b) located quotes: pass
+(c) act-on: fail
+(d) self-audit: pass
+(e) registry: pass
+(f) provenance: pass
+  (c) no Body craft row cites both corpus/knowledge/description-craft-round76.md and S213
+description craft backed 5 of 6
+
+======================================================================
+C1-A-d-wrong-audit
+why: W1 audit 1021 / 150
+cmd: python3 -B verifiers/check_desc_craft.py --repo $S/clone --rev 4632c3f92af83d63a8387b8971be737c02029a1d
+exit=1
+measured-rev: 4632c3f92af83d63a8387b8971be737c02029a1d
+(a) snapshot chain: pass
+(b) located quotes: pass
+(c) act-on: pass
+(d) self-audit: fail
+(e) registry: pass
+(f) provenance: pass
+  (d) the entry's rendered `description` length [1021] does not equal the recomputed clip render 1022 (stripped variant 1021)
+  (d) the entry's first-sentence length [150] does not equal the recomputed 151
+description craft backed 5 of 6
+
+======================================================================
+C1-A-e-no-usedby
+why: W1 minus used-by append
+cmd: python3 -B verifiers/check_desc_craft.py --repo $S/clone --rev 7192ff59d1ab7f705f0f2c96db2006c1d26d5298
+exit=1
+measured-rev: 7192ff59d1ab7f705f0f2c96db2006c1d26d5298
+(a) snapshot chain: pass
+(b) located quotes: pass
+(c) act-on: pass
+(d) self-audit: pass
+(e) registry: fail
+(f) provenance: pass
+  (e) row S213's used-by cell does not list corpus/knowledge/description-craft-round76.md
+description craft backed 5 of 6
+
+======================================================================
+C1-A-f-no-verified
+why: W1 entry without verified-at
+cmd: python3 -B verifiers/check_desc_craft.py --repo $S/clone --rev cc52053224690d1a9b1e6b8cf086a66cc096cf3f
+exit=1
+measured-rev: cc52053224690d1a9b1e6b8cf086a66cc096cf3f
+(a) snapshot chain: pass
+(b) located quotes: pass
+(c) act-on: pass
+(d) self-audit: pass
+(e) registry: pass
+(f) provenance: fail
+  (f) corpus/knowledge/description-craft-round76.md does not open with a `source:` line
+description craft backed 5 of 6
+
+======================================================================
+C1-A-b2-wrong-cites
+why: W1 quotes cite lines :3 (not their lines)
+cmd: python3 -B verifiers/check_desc_craft.py --repo $S/clone --rev 6fcf7f140dbe218d44d19cb9d43168d7115af5ac
+exit=1
+measured-rev: 6fcf7f140dbe218d44d19cb9d43168d7115af5ac
+(a) snapshot chain: pass
+(b) located quotes: fail
+(c) act-on: pass
+(d) self-audit: pass
+(e) registry: pass
+(f) provenance: pass
+  (b) corpus/knowledge/description-craft-round76.md carries 0 located page-unique quote(s) of the required 4
+description craft backed 5 of 6
+
+======================================================================
+C1-V3-three-word-quotes
+why: entry whose four "quotes" are 3-4 word fragments
+cmd: python3 -B verifiers/check_desc_craft.py --repo $S/clone --rev f907e7365d95677a113c465724c9f545e4865f31
+exit=0
+measured-rev: f907e7365d95677a113c465724c9f545e4865f31
+(a) snapshot chain: pass
+(b) located quotes: pass
+(c) act-on: pass
+(d) self-audit: pass
+(e) registry: pass
+(f) provenance: pass
+description craft backed 6 of 6
+
+======================================================================
+C1-V4-lying-audit
+why: W1 plus prose claiming every rule is met and the description is 400 chars (only table cells matter)
+cmd: python3 -B verifiers/check_desc_craft.py --repo $S/clone --rev 3a9602ae63cc3a4cb521595524bbb3c6b31adedf
+exit=0
+measured-rev: 3a9602ae63cc3a4cb521595524bbb3c6b31adedf
+(a) snapshot chain: pass
+(b) located quotes: pass
+(c) act-on: pass
+(d) self-audit: pass
+(e) registry: pass
+(f) provenance: pass
+description craft backed 6 of 6
+
+======================================================================
+C1-V5-usedby-replaced-gold-told
+why: used-by REPLACES the r70 path (drops it); lesson log is "S213 description-craft-round76.md told us the new thing" (no old path)
+cmd: python3 -B verifiers/check_desc_craft.py --repo $S/clone --rev 2fdb9531b2be19717c3a74c0420b32ce6dedb9d6
+exit=0
+measured-rev: 2fdb9531b2be19717c3a74c0420b32ce6dedb9d6
+(a) snapshot chain: pass
+(b) located quotes: pass
+(c) act-on: pass
+(d) self-audit: pass
+(e) registry: pass
+(f) provenance: pass
+description craft backed 6 of 6
+
+======================================================================
+C1-V6-skill-desc-unchanged-check
+why: same as W1: assert SKILL.md frontmatter byte-identical to base
+cmd: python3 -B verifiers/check_desc_craft.py --repo $S/clone --rev b39402a2704ad8c984effb81129718b86a5a5a0a
+exit=0
+measured-rev: b39402a2704ad8c984effb81129718b86a5a5a0a
+(a) snapshot chain: pass
+(b) located quotes: pass
+(c) act-on: pass
+(d) self-audit: pass
+(e) registry: pass
+(f) provenance: pass
+description craft backed 6 of 6
+
+======================================================================
+C1-V7-r76-drafts-pasted-verbatim
+why: r76 entry-draft + skill-patch row + sources-patch new line + lesson-draft pasted unmodified (no re-verification)
+cmd: python3 -B verifiers/check_desc_craft.py --repo $S/clone --rev 4c72b2995b801feb70c7271e43cfe9cad2c62a4e
+exit=1
+measured-rev: 4c72b2995b801feb70c7271e43cfe9cad2c62a4e
+(a) snapshot chain: fail
+(b) located quotes: pass
+(c) act-on: pass
+(d) self-audit: pass
+(e) registry: pass
+(f) provenance: pass
+  (a) the lesson Gate carries no <=25-word quote located in the optimizing-descriptions snapshot
+description craft backed 5 of 6
+
+======================================================================
+C1-V7b-drafts-pasted-gate-quote-unbackticked
+why: V7 with the one Gate quote de-backticked (otherwise verbatim r76 drafts)
+cmd: python3 -B verifiers/check_desc_craft.py --repo $S/clone --rev d2234532b1b36d7c75987b99c03e31887d78f4cd
+exit=0
+measured-rev: d2234532b1b36d7c75987b99c03e31887d78f4cd
+(a) snapshot chain: pass
+(b) located quotes: pass
+(c) act-on: pass
+(d) self-audit: pass
+(e) registry: pass
+(f) provenance: pass
+description craft backed 6 of 6
+
+======================================================================
+C1-V8-held-half-quotes
+why: all four entry quotes, the SKILL row fragments and the Gate quote come from the eval-loop half (lines 138-163) the plan says is HELD/not admitted
+cmd: python3 -B verifiers/check_desc_craft.py --repo $S/clone --rev f77080a6257fef485d52226dadfe741e0ef7f5f8
+exit=0
+measured-rev: f77080a6257fef485d52226dadfe741e0ef7f5f8
+(a) snapshot chain: pass
+(b) located quotes: pass
+(c) act-on: pass
+(d) self-audit: pass
+(e) registry: pass
+(f) provenance: pass
+description craft backed 6 of 6
+
+======================================================================
+C1-V9-nonsense-row-and-old-new-only
+why: SKILL row has no rule content (a cell label "x"); lesson (e) line is just "S213 description-craft-round76.md old new"
+cmd: python3 -B verifiers/check_desc_craft.py --repo $S/clone --rev 2d4b59032b2ee9c5bd7e4d1c79bc67632e137b17
+exit=0
+measured-rev: 2d4b59032b2ee9c5bd7e4d1c79bc67632e137b17
+(a) snapshot chain: pass
+(b) located quotes: pass
+(c) act-on: pass
+(d) self-audit: pass
+(e) registry: pass
+(f) provenance: pass
+description craft backed 6 of 6
+
+======================================================================
+C1-V5a-usedby-replaced-only
+why: W1 but S213 used-by REPLACES (drops) the r70 path; lesson (e) line names old path as in W1
+cmd: python3 -B verifiers/check_desc_craft.py --repo $S/clone --rev b3ff55c8f0cef99a68b31af3bfb515c30d3768eb
+exit=0
+measured-rev: b3ff55c8f0cef99a68b31af3bfb515c30d3768eb
+(a) snapshot chain: pass
+(b) located quotes: pass
+(c) act-on: pass
+(d) self-audit: pass
+(e) registry: pass
+(f) provenance: pass
+description craft backed 6 of 6
+
+======================================================================
+C1-V5b-lesson-told-new-only
+why: W1 but lesson (e) paragraph is "S213 corpus/knowledge/description-craft-round76.md told us something new." (no old path, no arrow)
+cmd: python3 -B verifiers/check_desc_craft.py --repo $S/clone --rev b92e5ed6d37f2e4f74f4d65c8d3ee501f5d42545
+exit=0
+measured-rev: b92e5ed6d37f2e4f74f4d65c8d3ee501f5d42545
+(a) snapshot chain: pass
+(b) located quotes: pass
+(c) act-on: pass
+(d) self-audit: pass
+(e) registry: pass
+(f) provenance: pass
+description craft backed 6 of 6
+
+======================================================================
+C2-W0-head
+why: HEAD control
+cmd: python3 -B verifiers/check_r75_routed_repairs.py --repo $S/clone --rev 6523aced1ee0ebe07dca996213bdc645a6acbd1e --work $S/work
+exit=1
+measured-rev: 6523aced1ee0ebe07dca996213bdc645a6acbd1e
+R1: open
+R2: open
+R3: open
+R4: open
+r75 routed repairs closed 0 of 4
+  - R1: corpus/lessons/round-75.md carries no appended correction
+  - R1: .ufo/waves/round-76/receipts/r1-folded-render.txt is not committed at the measured revision
+  - R2: .ufo/waves/round-76/receipts/noharm-at-tip.txt is not committed at the measured revision
+  - R2: LOG.md § Round 75 does not cite .ufo/waves/round-76/receipts/noharm-at-tip.txt
+  - R3: .ufo/waves/round-76/w2-registry-note.md is not committed at the measured revision
+  - R3: LOG.md § Round 75 does not cite .ufo/waves/round-76/w2-registry-note.md
+  - R4: LOG.md § Round 75 records no `63 of 64` report-file/seat pair after the `w2 falsify results pending` text
+  - R4: LOG.md § Round 75 records no `0 dead` seat count after the `w2 falsify results pending` text
+  - R4: LOG.md § Round 75 records no R75Attack28 settlement after the `w2 falsify results pending` text
+
+======================================================================
+C2-W1-cheap-pasted
+why: hand-typed R1 correction+receipt, R3 note with 40-char excerpt, 3 LOG lines, R2 receipt = real gate stdout at r75 tip
+cmd: python3 -B verifiers/check_r75_routed_repairs.py --repo $S/clone --rev 3b3a853cf88bf6caf7174b14095b460ee941bf9e --work $S/work
+exit=1
+measured-rev: 3b3a853cf88bf6caf7174b14095b460ee941bf9e
+R1: open
+R2: closed
+R3: closed
+R4: closed
+r75 routed repairs closed 3 of 4
+  - R1: the appended correction names no Gate reject candidate (it must quote ('1021-character description size', 'materially shorter'))
+
+======================================================================
+C2-W1-cheap-pasted
+why: hand-typed R1 correction + receipt, R3 note w/ 40-char excerpt, 3 LOG lines, R2 receipt = real gate stdout at r75 tip
+cmd: python3 -B verifiers/check_r75_routed_repairs.py --repo $S/clone --rev ba8288605862fc1ace20c5861413b0d0047c6b54 --work $S/work
+exit=0
+measured-rev: ba8288605862fc1ace20c5861413b0d0047c6b54
+R1: closed
+R2: closed
+R3: closed
+R4: closed
+r75 routed repairs closed 4 of 4
+
+======================================================================
+C2-W2-forged-R2-green-text
+why: as W1 but R2 receipt is invented "PASS exit=0" text, no gate stdout
+cmd: python3 -B verifiers/check_r75_routed_repairs.py --repo $S/clone --rev 862b390cf841b4a04f7b53a3407c2d3d4c291831 --work $S/work
+exit=1
+measured-rev: 862b390cf841b4a04f7b53a3407c2d3d4c291831
+R1: closed
+R2: open
+R3: closed
+R4: closed
+r75 routed repairs closed 3 of 4
+  - R2: verify_corpus_integrity.py transcript in .ufo/waves/round-76/receipts/noharm-at-tip.txt does not match the normalized stdout re-run at ac9f29510d3914a6edb97c8dbdb3445cab9141de
+  - R2: verify_corpus_independent.py transcript in .ufo/waves/round-76/receipts/noharm-at-tip.txt does not match the normalized stdout re-run at ac9f29510d3914a6edb97c8dbdb3445cab9141de
+
+======================================================================
+C2-W3-R2-base-stdout-under-r75-label
+why: as W1 but R2 receipt carries the RED stdout of HEAD relabelled exit=0 under the r75 tip
+cmd: python3 -B verifiers/check_r75_routed_repairs.py --repo $S/clone --rev d55413fa92493702af341077ae1c815875c5724d --work $S/work
+exit=1
+measured-rev: d55413fa92493702af341077ae1c815875c5724d
+R1: closed
+R2: open
+R3: closed
+R4: closed
+r75 routed repairs closed 3 of 4
+  - R2: .ufo/waves/round-76/receipts/noharm-at-tip.txt carries a DRIFT line for verify_corpus_integrity.py
+  - R2: .ufo/waves/round-76/receipts/noharm-at-tip.txt carries a DRIFT line for verify_corpus_independent.py
+  - R2: verify_corpus_integrity.py transcript in .ufo/waves/round-76/receipts/noharm-at-tip.txt does not match the normalized stdout re-run at ac9f29510d3914a6edb97c8dbdb3445cab9141de
+  - R2: verify_corpus_independent.py transcript in .ufo/waves/round-76/receipts/noharm-at-tip.txt does not match the normalized stdout re-run at ac9f29510d3914a6edb97c8dbdb3445cab9141de
+
+======================================================================
+C2-W4-R2-one-line-both-gates
+why: as W1 but both gate names on ONE line before both transcripts (block-splitter probe)
+cmd: python3 -B verifiers/check_r75_routed_repairs.py --repo $S/clone --rev d810b0c126f175a032a538636778920f9ca6ba9a --work $S/work
+exit=1
+measured-rev: d810b0c126f175a032a538636778920f9ca6ba9a
+R1: closed
+R2: open
+R3: closed
+R4: closed
+r75 routed repairs closed 3 of 4
+  - R2: .ufo/waves/round-76/receipts/noharm-at-tip.txt records no exit code 0 for verify_corpus_integrity.py
+  - R2: .ufo/waves/round-76/receipts/noharm-at-tip.txt carries no green verdict line for verify_corpus_integrity.py
+  - R2: verify_corpus_integrity.py transcript in .ufo/waves/round-76/receipts/noharm-at-tip.txt does not match the normalized stdout re-run at ac9f29510d3914a6edb97c8dbdb3445cab9141de
+
+======================================================================
+C2-W5-R1-receipt-wrong-rev
+why: as W1 but R1 receipt names HEAD (a rev whose SKILL.md is also 1022)
+cmd: python3 -B verifiers/check_r75_routed_repairs.py --repo $S/clone --rev fd144ca03b3d6ba9caa9aa3fda1fceaaf25ce167 --work $S/work
+exit=0
+measured-rev: fd144ca03b3d6ba9caa9aa3fda1fceaaf25ce167
+R1: closed
+R2: closed
+R3: closed
+R4: closed
+r75 routed repairs closed 4 of 4
+
+======================================================================
+C2-W6-LOG-no-cites
+why: as W1 minus LOG R2/R3 citations
+cmd: python3 -B verifiers/check_r75_routed_repairs.py --repo $S/clone --rev cd8ec84ede8b699fa450ed6c27688addde027aec --work $S/work
+exit=1
+measured-rev: cd8ec84ede8b699fa450ed6c27688addde027aec
+R1: closed
+R2: open
+R3: open
+R4: closed
+r75 routed repairs closed 2 of 4
+  - R2: LOG.md § Round 75 does not cite .ufo/waves/round-76/receipts/noharm-at-tip.txt
+  - R3: LOG.md § Round 75 does not cite .ufo/waves/round-76/w2-registry-note.md
+
+======================================================================
+C2-W7-R4-only-closing-missing
+why: as W1 minus closing line
+cmd: python3 -B verifiers/check_r75_routed_repairs.py --repo $S/clone --rev 855b567584eadb2be4c06d205f0f2a04ff418867 --work $S/work
+exit=1
+measured-rev: 855b567584eadb2be4c06d205f0f2a04ff418867
+R1: closed
+R2: closed
+R3: closed
+R4: open
+r75 routed repairs closed 3 of 4
+  - R4: LOG.md § Round 75 records no `63 of 64` report-file/seat pair after the `w2 falsify results pending` text
+  - R4: LOG.md § Round 75 records no `0 dead` seat count after the `w2 falsify results pending` text
+  - R4: LOG.md § Round 75 records no R75Attack28 settlement after the `w2 falsify results pending` text
+
+======================================================================
+C2-W8-R1-rewritten-not-appended
+why: as W1 but lesson edited in place (not base+append)
+cmd: python3 -B verifiers/check_r75_routed_repairs.py --repo $S/clone --rev e1d63061243e2ae3fdb6f9348e29926ef17de42e --work $S/work
+exit=1
+measured-rev: e1d63061243e2ae3fdb6f9348e29926ef17de42e
+R1: open
+R2: closed
+R3: closed
+R4: closed
+r75 routed repairs closed 3 of 4
+  - R1: corpus/lessons/round-75.md is not the base file plus an append -- the filed lesson was rewritten
+
+======================================================================
+C2-W9-R3-generic-20char-excerpt
+why: as W1 but R3 excerpt is the first 20 chars of the entry output (shared JSON opener)
+cmd: python3 -B verifiers/check_r75_routed_repairs.py --repo $S/clone --rev 1996a0f1b0446602d3abd10f8c936d40bc34650b --work $S/work
+exit=0
+measured-rev: 1996a0f1b0446602d3abd10f8c936d40bc34650b
+R1: closed
+R2: closed
+R3: closed
+R4: closed
+r75 routed repairs closed 4 of 4
+
+======================================================================
+C2-W10-R1-token-line
+why: as W1 but R1 appended text = ONE line of the six tokens + numbers; the counter also requires a 30-char verbatim window of base row and gate
+cmd: python3 -B verifiers/check_r75_routed_repairs.py --repo $S/clone --rev 2a62c77c9b092d15f55be8226a570ac269abe511 --work $S/work
+exit=1
+measured-rev: 2a62c77c9b092d15f55be8226a570ac269abe511
+R1: open
+R2: closed
+R3: closed
+R4: closed
+r75 routed repairs closed 3 of 4
+  - R1: the appended correction quotes no superseded M75-1 text (no 30-character verbatim window of the base mistake row)
+
+======================================================================
+C2-W11-R1-token-plus-windows
+why: as W10 plus a 30-char verbatim window of the base row and of the base Gate line
+cmd: python3 -B verifiers/check_r75_routed_repairs.py --repo $S/clone --rev 43d77297738fd56ec8e58bc02b95f1b277ba89c2 --work $S/work
+exit=0
+measured-rev: 43d77297738fd56ec8e58bc02b95f1b277ba89c2
+R1: closed
+R2: closed
+R3: closed
+R4: closed
+r75 routed repairs closed 4 of 4
+

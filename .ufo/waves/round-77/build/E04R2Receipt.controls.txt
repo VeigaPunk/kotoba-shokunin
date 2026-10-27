@@ -1,0 +1,85 @@
+# C2-R2 negative controls, run with the lane's frozen counter
+#   python3 -B verifiers/check_r75_routed_repairs.py --repo <scratch clone> --rev <scratch commit> --work <scratch>/work
+# lane counter sha256 = 989203c40e1aab55fc14ee1d444dd4fa8b49fe01144b2dcdeaa6a27fa39f4a63
+# committing clone config: user.name scratch-r77 / user.email scratch@example.invalid
+
+=== control A: base r77 (2f675548) — nothing exists
+measured-rev: 2f675548eaad2a037a899d39247c1fd7a88aaf48
+R1: open
+R2: open
+R3: open
+R4: open
+r75 routed repairs closed 0 of 4
+  - R1: corpus/lessons/round-75.md carries no appended correction
+  - R1: .ufo/waves/round-76/receipts/r1-folded-render.txt is not committed at the measured revision
+  - R2: .ufo/waves/round-76/receipts/noharm-at-tip.txt is not committed at the measured revision
+  - R2: LOG.md § Round 75 does not cite .ufo/waves/round-76/receipts/noharm-at-tip.txt
+  - R3: .ufo/waves/round-76/w2-registry-note.md is not committed at the measured revision
+  - R3: LOG.md § Round 75 does not cite .ufo/waves/round-76/w2-registry-note.md
+  - R4: LOG.md § Round 75 records no `63 of 64` report-file/seat pair after the `w2 falsify results pending` text
+  - R4: LOG.md § Round 75 records no `0 dead` seat count after the `w2 falsify results pending` text
+  - R4: LOG.md § Round 75 records no R75Attack28 settlement after the `w2 falsify results pending` text
+exit=1
+
+=== control B: r75-tip stdout copied under a non-tip first line
+measured-rev: 532fa20aafa2522259d4f28c9fd2e01cebc80483
+R1: open
+R2: open
+R3: open
+R4: open
+r75 routed repairs closed 0 of 4
+  - R1: corpus/lessons/round-75.md carries no appended correction
+  - R1: .ufo/waves/round-76/receipts/r1-folded-render.txt is not committed at the measured revision
+  - R2: .ufo/waves/round-76/receipts/noharm-at-tip.txt names b7f13f4b39cbd43076a85568adca763a6f674e7a, not the round-75 final tip ac9f29510d3914a6edb97c8dbdb3445cab9141de
+  - R2: verify_corpus_integrity.py re-run at b7f13f4b39cbd43076a85568adca763a6f674e7a exits 1, not 0
+  - R2: verify_corpus_integrity.py re-run at b7f13f4b39cbd43076a85568adca763a6f674e7a reports DRIFT
+  - R2: verify_corpus_integrity.py transcript in .ufo/waves/round-76/receipts/noharm-at-tip.txt does not match the normalized stdout re-run at b7f13f4b39cbd43076a85568adca763a6f674e7a
+  - R2: verify_corpus_independent.py re-run at b7f13f4b39cbd43076a85568adca763a6f674e7a exits 1, not 0
+  - R2: verify_corpus_independent.py re-run at b7f13f4b39cbd43076a85568adca763a6f674e7a reports DRIFT
+  - R2: verify_corpus_independent.py transcript in .ufo/waves/round-76/receipts/noharm-at-tip.txt does not match the normalized stdout re-run at b7f13f4b39cbd43076a85568adca763a6f674e7a
+  - R3: .ufo/waves/round-76/w2-registry-note.md is not committed at the measured revision
+  - R3: LOG.md § Round 75 does not cite .ufo/waves/round-76/w2-registry-note.md
+  - R4: LOG.md § Round 75 records no `63 of 64` report-file/seat pair after the `w2 falsify results pending` text
+  - R4: LOG.md § Round 75 records no `0 dead` seat count after the `w2 falsify results pending` text
+  - R4: LOG.md § Round 75 records no R75Attack28 settlement after the `w2 falsify results pending` text
+exit=1
+
+=== control C: transcript stdout doctored (one PASS check renamed)
+measured-rev: 90f2620e630f39543f5fa318d66af4e9afd7f7e7
+R1: open
+R2: open
+R3: open
+R4: open
+r75 routed repairs closed 0 of 4
+  - R1: corpus/lessons/round-75.md carries no appended correction
+  - R1: .ufo/waves/round-76/receipts/r1-folded-render.txt is not committed at the measured revision
+  - R2: verify_corpus_integrity.py transcript in .ufo/waves/round-76/receipts/noharm-at-tip.txt does not match the normalized stdout re-run at ac9f29510d3914a6edb97c8dbdb3445cab9141de
+  - R3: .ufo/waves/round-76/w2-registry-note.md is not committed at the measured revision
+  - R3: LOG.md § Round 75 does not cite .ufo/waves/round-76/w2-registry-note.md
+  - R4: LOG.md § Round 75 records no `63 of 64` report-file/seat pair after the `w2 falsify results pending` text
+  - R4: LOG.md § Round 75 records no `0 dead` seat count after the `w2 falsify results pending` text
+  - R4: LOG.md § Round 75 records no R75Attack28 settlement after the `w2 falsify results pending` text
+exit=1
+
+=== control D: restored receipt, `exit=?` instead of a measured exit code
+R2: open
+r75 routed repairs closed 0 of 4
+exit=1
+  - R2: .ufo/waves/round-76/receipts/noharm-at-tip.txt records no exit code 0 for verify_corpus_integrity.py
+
+=== control E: restored receipt, LOG citation removed
+R2: open
+r75 routed repairs closed 0 of 4
+exit=1
+  - R2: LOG.md § Round 75 does not cite .ufo/waves/round-76/receipts/noharm-at-tip.txt
+
+=== control F: green stdout present but a DRIFT line injected in the integrity block
+R2: open
+r75 routed repairs closed 0 of 4
+exit=1
+  - R2: .ufo/waves/round-76/receipts/noharm-at-tip.txt carries a DRIFT line for verify_corpus_integrity.py
+
+=== control G: restored (green) — must print R2 closed and exit 1 only because R1/R3/R4 are absent
+R2: closed
+r75 routed repairs closed 1 of 4
+exit=1

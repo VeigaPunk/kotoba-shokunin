@@ -1,0 +1,54 @@
+# F31CheckcurityReadOnlyS — receipts (kotoba round 77, wave w2)
+# seat: F31CheckcurityReadOnlyS (sentinel; read-only scope sweep of changed evidence)
+# host: linux 7.2.11-arch1-1. No tool installs; pacman never invoked.
+# lane: /home/vgpnk/Projects/shokunin/kotoba-shokunin @ HEAD 6523aced1ee0ebe07dca996213bdc645a6acbd1e (freeze)
+# every exit status below is the command's OWN (`cmd > out 2>&1; echo exit=$?`); no pipeline status is read.
+
+## pins read from plans/round-77.md and re-hashed from lane HEAD
+git show HEAD:verifiers/check_desc_craft.py | sha256sum
+cf3c45d9e3985f11889816f4bb371dc0d5541c10c09ce2ab3966a4bff4603b9e  -
+git show HEAD:verifiers/check_r75_routed_repairs.py | sha256sum
+989203c40e1aab55fc14ee1d444dd4fa8b49fe01144b2dcdeaa6a27fa39f4a63  -
+(worktree bytes identical: sha256sum of both files == the same two digests)
+
+## claim data present at HEAD?
+git cat-file -e HEAD:corpus/knowledge/description-craft-round76.md   -> exit 128 (absent)
+git cat-file -e HEAD:corpus/lessons/round-76.md                      -> exit 128 (absent)
+git show --stat --oneline HEAD   -> 5 files: plans/round-77.md + 4 receipts (freeze only)
+
+## C1 at the landed tip (scratch clone, exact command + own exit)
+python3 -B verifiers/check_desc_craft.py --repo <clone> --rev 6523aced1ee0ebe07dca996213bdc645a6acbd1e
+measured-rev: 6523aced1ee0ebe07dca996213bdc645a6acbd1e
+(a) snapshot chain: fail
+(b) located quotes: fail
+(c) act-on: fail
+(d) self-audit: fail
+(e) registry: fail
+(f) provenance: fail
+  (a) corpus/lessons/round-76.md is not committed at the measured revision
+  (b) corpus/knowledge/description-craft-round76.md is not committed at the measured revision
+  (c) no Body craft row cites both corpus/knowledge/description-craft-round76.md and S213
+  (d) corpus/knowledge/description-craft-round76.md is not committed at the measured revision
+  (e) row S213's used-by cell does not list corpus/knowledge/description-craft-round76.md
+  (f) corpus/knowledge/description-craft-round76.md is not committed at the measured revision
+description craft backed 0 of 6
+exit=1
+
+## C2 at the landed tip (exact command + own exit)
+python3 -B verifiers/check_r75_routed_repairs.py --repo <clone> --rev 6523aced1ee0ebe07dca996213bdc645a6acbd1e --work <fresh empty dir>
+measured-rev: 6523aced1ee0ebe07dca996213bdc645a6acbd1e
+R1: open
+R2: open
+R3: open
+R4: open
+r75 routed repairs closed 0 of 4
+  - R1: corpus/lessons/round-75.md carries no appended correction
+  - R1: .ufo/waves/round-76/receipts/r1-folded-render.txt is not committed at the measured revision
+  - R2: .ufo/waves/round-76/receipts/noharm-at-tip.txt is not committed at the measured revision
+  - R2: LOG.md § Round 75 does not cite .ufo/waves/round-76/receipts/noharm-at-tip.txt
+  - R3: .ufo/waves/round-76/w2-registry-note.md is not committed at the measured revision
+  - R3: LOG.md § Round 75 does not cite .ufo/waves/round-76/w2-registry-note.md
+  - R4: LOG.md § Round 75 records no `63 of 64` report-file/seat pair after the `w2 falsify results pending` text
+  - R4: LOG.md § Round 75 records no `0 dead` seat count after the `w2 falsify results pending` text
+  - R4: LOG.md § Round 75 records no R75Attack28 settlement after the `w2 falsify results pending` text
+exit=1

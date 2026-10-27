@@ -1,0 +1,126 @@
+E03R1Repair.verify.txt -- verification transcript for the final R1 repair (kotoba round 77, wave w1)
+Seat: E03R1Repair.   Lane base: 6523aced1ee0ebe07dca996213bdc645a6acbd1e (r77 freeze; plan base 2f675548).
+Scratch: /fast/scratch/hyaku/kotoba-r77/E03R1Repair/ (clone --shared of the lane; toplevel asserted;
+user.name=scratch-r77, user.email=scratch@example.invalid set before the first scratch commit).
+Nothing in the lane tree was written except this build dir and the seat report.
+
+Counter under test (FROZEN, not edited by this seat):
+  sha256sum verifiers/check_r75_routed_repairs.py
+  989203c40e1aab55fc14ee1d444dd4fa8b49fe01144b2dcdeaa6a27fa39f4a63  verifiers/check_r75_routed_repairs.py
+  == plans/round-77.md's pinned digest: same.
+
+Deliverables under test (in this dir):
+  E03R1Repair.r1-round-75-correction.patch  sha256 125b0e691f5b6ce9f1de425ec0d5fcfed9a63db7241f3d0d4e6fb9d0ee3b1547  (83 lines; 0 removed lines, 50 added)
+  E03R1Repair.r1-folded-render.txt          sha256 d9bcb5e1be4b2481131f566d9c4768e5f55a78fee8fbb0070e0bfdfb4c1489db  (45 lines)
+
+## 1. Red at the r77 base (no repair data)
+
+  cd <lane>
+  python3 -B verifiers/check_r75_routed_repairs.py --repo <lane> --rev 2f675548eaad2a037a899d39247c1fd7a88aaf48 --work $S/work > out 2>&1; echo "exit=$?" >> out
+  measured-rev: 2f675548eaad2a037a899d39247c1fd7a88aaf48
+  R1: open
+  R2: open
+  R3: open
+  R4: open
+  r75 routed repairs closed 0 of 4
+    - R1: corpus/lessons/round-75.md carries no appended correction
+    - R1: .ufo/waves/round-76/receipts/r1-folded-render.txt is not committed at the measured revision
+    - R2: .ufo/waves/round-76/receipts/noharm-at-tip.txt is not committed at the measured revision
+    - R2: LOG.md § Round 75 does not cite .ufo/waves/round-76/receipts/noharm-at-tip.txt
+    - R3: .ufo/waves/round-76/w2-registry-note.md is not committed at the measured revision
+    - R3: LOG.md § Round 75 does not cite .ufo/waves/round-76/w2-registry-note.md
+    - R4: LOG.md § Round 75 records no `63 of 64` report-file/seat pair after the `w2 falsify results pending` text
+    - R4: LOG.md § Round 75 records no `0 dead` seat count after the `w2 falsify results pending` text
+    - R4: LOG.md § Round 75 records no R75Attack28 settlement after the `w2 falsify results pending` text
+  exit=1
+  (Matches the plan's pinned base receipt.)
+
+## 2. The patch alone, applied to a FRESH clone of lane HEAD
+
+  git clone --shared <lane> $S/applycheck
+  git -C $S/applycheck rev-parse --show-toplevel   -> /fast/scratch/hyaku/kotoba-r77/E03R1Repair/applycheck
+  git -C $S/applycheck config user.name scratch-r77 ; config user.email scratch@example.invalid
+  git -C $S/applycheck apply --check E03R1Repair.r1-round-75-correction.patch   exit=0
+  git -C $S/applycheck apply E03R1Repair.r1-round-75-correction.patch
+  git -C $S/applycheck add -A && commit -m "applycheck: r1 patch"   -> 8db8a5c82d50f5f31674a892b08b597f584835b4
+  git -C $S/applycheck status --porcelain   -> 0 lines (clean)
+
+  cd <lane>
+  python3 -B verifiers/check_r75_routed_repairs.py --repo $S/applycheck --rev 8db8a5c82d50f5f31674a892b08b597f584835b4 --work $S/work > out 2>&1; echo "exit=$?" >> out
+  measured-rev: 8db8a5c82d50f5f31674a892b08b597f584835b4
+  R1: closed
+  R2: open
+  R3: open
+  R4: open
+  r75 routed repairs closed 1 of 4
+  exit=1
+  -> R1 flips closed; R2-R4 stay open (no collateral closure).
+
+  Byte-compare of the patched tree against the candidate tree (both files):
+  diff of corpus/lessons/round-75.md            -> identical
+  diff of .ufo/waves/round-76/receipts/r1-folded-render.txt -> identical
+
+  Lane-side applicability without applying anything:
+  cd <lane> && git apply --check .ufo/waves/round-77/build/E03R1Repair.r1-round-75-correction.patch   exit=0
+
+## 3. The correction block's numbers, re-measured (not trusted from B08)
+
+  git show ac9f29510d3914a6edb97c8dbdb3445cab9141de:SKILL.md > $S/skill-r75tip.md
+  python3 -c "import yaml; d=yaml.safe_load(open('$S/skill-r75tip.md').read().split('---')[1])['description']; print(len(d), len(d.strip()))"
+  1022 1021
+  exit=0
+
+  python3 -B -c "...m.folded_description(open('$S/skill-r75tip.md').read())..."   (counter's own renderer)
+  1022 1021 4 18
+  exit=0
+
+  git show ac9f2951...:SKILL.md | awk 'NR>=4&&NR<=18{s+=length($0)} END{print s}'
+  1037
+  exit=0
+
+  git show ac9f2951...:SKILL.md | awk 'NR>=3&&NR<=8{printf "%d:%d ",NR,length($0)}END{print ""}'
+  3:14 4:76 5:78 6:73 7:79 8:72      (sum 392)
+
+  check_sibling_census.description_of on the same bytes -> 1021 (stripped convention; same measurement)
+
+  Rendered description is byte-identical at four revisions:
+  sha256(clip render) = 3756d530ff2b046a92cebb796888bbda7fad7561dfc087b25e51f036808861cc,
+  length 1022, first sentence 151, at 65a5c7a663249e0522cc49e4a148424200d9ddfe,
+  4de12b61f75c73e3675ef0e422cc2be0f7da8960, ac9f29510d3914a6edb97c8dbdb3445cab9141de,
+  b7f13f4b39cbd43076a85568adca763a6f674e7a.
+
+  Block geometry at the r75 tip: `description: >` line 3, content lines 4-18, closing `---` line 19.
+
+## 4. Negative controls on this seat's own receipt (the arm bites)
+
+  Mutant A -- receipt with the measured-rev line and every 40-hex removed, committed:
+    - R1: .ufo/waves/round-76/receipts/r1-folded-render.txt names no measured revision
+    r75 routed repairs closed 0 of 4     exit=1
+
+  Mutant B -- numbers shifted (1022->1023, 1021->1020), committed:
+    - R1: .ufo/waves/round-76/receipts/r1-folded-render.txt does not print 1022
+    - R1: .ufo/waves/round-76/receipts/r1-folded-render.txt does not print the stripped variant 1021
+    r75 routed repairs closed 0 of 4     exit=1
+
+## 5. Cross-claim no-move check
+
+  python3 -B verifiers/check_desc_craft.py --repo $S/clone --rev a41f62f1eb94cc09265a4631cb3b510b4b4ed99d
+  description craft backed 0 of 6      exit=1
+  -> this pair is invisible to C1 (C1 stays at its base red; C1 data is another seat's).
+
+## 6. Defect found in the B08 draft and fixed here
+
+  B08's final paragraph read "**Rule landed.** `corpus/QUALITY.md` Q74: ...".
+  At lane HEAD that is false: grep -n Q74 corpus/QUALITY.md -> no match (the file ends at Q73).
+  The final block replaces it with a truth-preserving "**Rule.**" paragraph that names Q74 as
+  this round's quality-table repair and points at the tracked draft
+  `.ufo/waves/round-76/build/B08-q74-quality-row.diff`, so the correction is true whether or
+  not the Q74 row has landed yet.
+  Two smaller edits: the heading names round 77 (the round that actually lands the data; the
+  round-76 paths exist because the frozen counter pins them), and one paragraph states that the
+  superseded row at `:11` and the Gate sentence at `:5` stay in place because lesson files are
+  append-only.
+
+## 7. Tools
+
+  None installed. No pacman, no network, no lane git/jj write of any kind.

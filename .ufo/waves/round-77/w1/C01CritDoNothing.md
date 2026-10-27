@@ -1,0 +1,17 @@
+# C01CritDoNothing — seat report (round 77 w1)
+
+Task: do-nothing falsification of the frozen C1 (check_desc_craft.py) and C2 (check_r75_routed_repairs.py) counters on scratch worlds atop lane HEAD 6523aced1ee0ebe07dca996213bdc645a6acbd1e. Full tables, exact worlds and printed lines: .ufo/waves/round-77/build/C01CritDoNothing.md ; raw output of all 34 runs with each counter's own exit code: build/C01CritDoNothing.receipts.txt ; reproducible diffs: build/C01CritDoNothing.c1-worlds.patch, .c2-worlds.patch.
+
+**Counterexample (first): a cheap world reaches the target on BOTH counters.**
+- C1-W1: 489-byte stub entry (provenance trio, 4 quote strings with line cites, 2-row audit table 1022/151), one 171-byte SKILL.md Body craft row, S213 used-by append, 334-byte lesson with Gate stub -> `description craft backed 6 of 6`, exit 0. SKILL.md frontmatter byte-identical to base (no description action at all). Same 6/6 from: lying audit prose (V4), quotes from the held eval-loop half lines 138-163 (V8), a row with cell text "x" plus lesson line "old new" (V9), used-by REPLACING the r70 path (V5a), lesson line "told us something new" (V5b). Arms: (b) page-membership only, no tie to the writing principles; (c) any two page fragments; (e) substring "old"/"new", membership-only used-by; (d) recomputes SKILL.md which the claim never changes.
+- C2-W1: hand-pasted R1/R3/R4 text + real gate stdout copied into the R2 receipt -> `r75 routed repairs closed 4 of 4`, exit 0. Hollow variants also 4/4: R3 20-char generic JSON-opener excerpt (W9), R1 token line + 30-char windows (W11), R1 receipt naming HEAD (W5). Forged/relabelled/non-run R2 receipts correctly fail (3 of 4): R2 is NOT a hole (a copied real stdout is honest reproduction; gates verified exit 0 at ac9f295).
+- Draft defect (real): r76 drafts pasted verbatim = 5 of 6 (conjunct (a): lesson-draft Gate quote has backticks inside the quotation marks, not page bytes); removing only those backticks = 6 of 6 (V7b). Entry/SKILL row/sources line of the r76 drafts pass (b)-(f).
+
+Evidence: counter sha256 C1 cf3c45d9...b9e, C2 989203c4...a63 verified in scratch; clone at /fast/scratch/hyaku/kotoba-r77/C01CritDoNothing/clone (toplevel asserted, scratch identity set); 34 runs, exit codes from subprocess returncode, no pipeline. Base controls: C1 `0 of 6` exit 1; C2 `0 of 4` exit 1 (reproduced).
+
+Smallest safe correction (counters frozen): pre-data r77 addendum stating `6 of 6` / `4 of 4` is counter-reachable by form and that the non-counter conditions (quotes from :25-:28, real row rule, r70 path kept in used-by, real R1/R3 prose) are judged by w2 non-author seats; land the lesson Gate quote without inner backticks.
+
+Installs: none. Scratch removed on exit (see final command).
+
+VERDICT: Both frozen counters are reached by do-nothing worlds (C1 6 of 6 via a 489-byte stub; C2 4 of 4 via pasted text + real gate stdout); the target certifies form, R2 is sound, and the r76 lesson-draft Gate quote must be fixed to reach 6/6.
+DELIVERABLES: /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-77/build/C01CritDoNothing.md /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-77/build/C01CritDoNothing.receipts.txt /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-77/build/C01CritDoNothing.c1-worlds.patch /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-77/build/C01CritDoNothing.c2-worlds.patch /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-77/w1/C01CritDoNothing.md

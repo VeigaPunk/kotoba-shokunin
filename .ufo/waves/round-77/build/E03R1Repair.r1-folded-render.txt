@@ -1,0 +1,45 @@
+r1-folded-render.txt -- R1b of the round-75 verifier spot-check (kotoba, landed in round 77 wave w1; seat E03R1Repair)
+measured-rev: ac9f29510d3914a6edb97c8dbdb3445cab9141de  (round-75 final lane tip)
+
+What R1 asks: the folded-scalar render length of SKILL.md's `description` at the round-75 tip.
+The frozen C2 counter recomputes that length from the revision named above
+(`folded_description()` in verifiers/check_r75_routed_repairs.py) and reads this receipt at this
+round-76 path because the counter pins it there. Every number below is the output of a command
+run on committed bytes.
+
+Command 1 -- committed bytes, YAML render:
+  git -C <lane> show ac9f29510d3914a6edb97c8dbdb3445cab9141de:SKILL.md > <scratch>/skill-r75tip.md
+  python3 -c "import yaml; d=yaml.safe_load(open('<scratch>/skill-r75tip.md').read().split('---')[1])['description']; print(len(d), len(d.strip()))"
+Output: 1022 1021
+Exit: 0
+
+  clip-preserving folded render: 1022 characters
+  stripped variant:               1021 characters
+  the one-character difference is the terminal newline that clip chomping keeps
+
+Convention (frozen: plans/round-76-addendum-1.md § Render-length convention, committed 7eed80e9):
+a YAML folded scalar `description: >` is measured by its render at a named revision under clip
+chomping. yaml.safe_load keeps the trailing newline, so clip = 1022 and stripped = 1021; every
+receipt that prints the number prints both variants and names the convention. The lane's
+check_sibling_census.description_of prints the stripped 1021 for the same bytes -- the same
+measurement under the other convention, not a second one.
+
+Frontmatter block: `description: >` on line 3, content lines 4-18 (15 lines), closing `---` on
+line 19. Raw sum over lines 4-18 = 1037 (two-space indent counted: 30 characters);
+1037 - 30 indent + 14 fold join spaces = 1021 folded, + 1 clip newline = 1022.
+First sentence of the rendered description: 151 characters including the period.
+
+Command 2 -- independent recompute with the counter's own renderer:
+  python3 -B -c "import importlib.util; spec=importlib.util.spec_from_file_location('c','verifiers/check_r75_routed_repairs.py'); m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m); v,f,l=m.folded_description(open('<scratch>/skill-r75tip.md').read()); print(len(v), len(v.strip()), f, l)"
+Output: 1022 1021 4 18
+Exit: 0
+
+Command 3 -- block geometry:
+  git -C <lane> show ac9f29510d3914a6edb97c8dbdb3445cab9141de:SKILL.md | awk 'NR>=4&&NR<=18{s+=length($0)} END{print s}'
+Output: 1037
+Exit: 0
+
+The rendered description is byte-identical at 65a5c7a663249e0522cc49e4a148424200d9ddfe,
+4de12b61f75c73e3675ef0e422cc2be0f7da8960, ac9f29510d3914a6edb97c8dbdb3445cab9141de and
+b7f13f4b39cbd43076a85568adca763a6f674e7a: sha256 of the clip render
+3756d530ff2b046a92cebb796888bbda7fad7561dfc087b25e51f036808861cc, length 1022, first sentence 151.

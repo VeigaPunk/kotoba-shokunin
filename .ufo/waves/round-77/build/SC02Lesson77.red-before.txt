@@ -1,0 +1,172 @@
+# SC02Lesson77 — red-before / green-after for the two r76 spot-check defects mined in corpus/lessons/round-77.md
+seat: SC02Lesson77 (kotoba round 77, wave w1, build)      date: 2026-10-27
+lane base: 6523aced1ee0ebe07dca996213bdc645a6acbd1e      (r77 freeze commit)
+sandbox:   a0c4762fa55492277828a6fa8b7e65c20aa3b9d5      (sandbox scratch clone /fast/scratch/hyaku/kotoba-r77/SC02Lesson77/clone — NOT the lane)
+rule applied: CORPUS.md:179 — "A fix is shown able to fail before it counts": one red-before state in which
+the same command exits non-clean for the named reason, with the fix as the only delta.
+
+## 0. The two defects this receipt measures (as routed, verbatim in the r76 closure)
+
+`corpus/lessons/round-76-verifier-spotcheck.md:25` (CD1 stray path committed) — the spot-check says the
+recovery commit added `kotoba-shokukin/.ufo/waves/round-76/w1/A18ScoutSnapshot.md` (typo'd directory) and that
+the clean copy already existed at `.ufo/waves/round-76/w1/A18ScoutSnapshot.md`.
+`corpus/lessons/round-76-verifier-spotcheck.md:26` (CD2 promised lesson absent) — `plans/round-76.md` says the
+declined-proposal reasons are "recorded in the round-76 lesson Gate" and `corpus/lessons/round-76.md` does not exist.
+
+State re-measured at the r77 base (not taken from the r76 report):
+
+```
+$ git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin ls-tree -r --name-only 6523ace | grep -E 'R75Facet48|A18ScoutSnapshot'
+.ufo/waves/round-76/w1/A18ScoutSnapshot.md
+kotoba-shokukin/.ufo/waves/round-75/w1/R75Facet48.md
+kotoba-shokukin/.ufo/waves/round-76/w1/A18ScoutSnapshot.md
+exit=0
+```
+
+- `kotoba-shokukin/.ufo/waves/round-76/w1/A18ScoutSnapshot.md` and `.ufo/waves/round-76/w1/A18ScoutSnapshot.md`
+  are byte-identical: both sha256 `ae39b182e2bf4b95b7337f65fb6ceb4cb423e5b37fd4c0ffb9e49de9238118fb`.
+- `kotoba-shokukin/.ufo/waves/round-75/w1/R75Facet48.md` sha256 `a419cc6f2513d0a5a6bf0887e3694445ffd04cbaa3872c47053c3f96f4c9fdd9`
+  is the **only** copy at 6523ace: `git cat-file -e 6523ace:.ufo/waves/round-75/w1/R75Facet48.md` exits 128.
+  Removing the typo root without restoring this file would lose the r75 seat report (Q22 custody).
+- The typo root entered the lane at `ac9f295` (r75 "preserve recovered misroot seat report") and again at
+  `6ce2724` (r76 "recover fleet-root A18 seat report"); it is still present at the r77 base, so R76-D1's
+  "stray path removed" is not true of the committed tree (see the seat report, finding F1).
+
+## 1. Scratch lineage (every git call names -C; no lane or jj write)
+
+```
+$ git clone --shared /home/vgpnk/Projects/shokunin/kotoba-shokunin /fast/scratch/hyaku/kotoba-r77/SC02Lesson77/clone
+Cloning into '/fast/scratch/hyaku/kotoba-r77/SC02Lesson77/clone'...
+done.                                                                      exit=0
+$ git -C /fast/scratch/hyaku/kotoba-r77/SC02Lesson77/clone config user.name scratch-r77        exit=0
+$ git -C /fast/scratch/hyaku/kotoba-r77/SC02Lesson77/clone config user.email scratch@example.invalid   exit=0
+$ git -C /fast/scratch/hyaku/kotoba-r77/SC02Lesson77/clone rev-parse --show-toplevel
+/fast/scratch/hyaku/kotoba-r77/SC02Lesson77/clone        (equal to the clone dir; asserted before the first commit)
+$ git -C .../clone rev-parse HEAD
+6523aced1ee0ebe07dca996213bdc645a6acbd1e
+```
+
+Fix applied in the sandbox only, then committed:
+
+```
+fix A (CD1): restore kotoba-shokukin/.ufo/waves/round-75/w1/R75Facet48.md to its declared path
+             .ufo/waves/round-75/w1/R75Facet48.md, cmp/sha equal (a419cc6f… / a419cc6f…), then
+             `git rm -r -q kotoba-shokukin` (rc 0).
+fix B (CD2): create corpus/lessons/round-76.md as an existence fixture, first line
+             "<!-- SC02Lesson77 red-before FIXTURE: existence only, not a lesson. -->".
+$ git -C .../clone commit -m "scratch-r77 SC02Lesson77: fix demo (restore r75 report to declared path; drop typo root; add plan-promised path fixture)"
+[master a0c4762] ...                                                     exit=0
+$ git -C .../clone rev-parse HEAD
+a0c4762fa55492277828a6fa8b7e65c20aa3b9d5
+$ git -C .../clone status --porcelain
+(empty)                                                                  exit=0
+```
+
+The sandbox commit `a0c4762fa55492277828a6fa8b7e65c20aa3b9d5` (sandbox clone
+`/fast/scratch/hyaku/kotoba-r77/SC02Lesson77/clone`) exists nowhere in the lane.
+
+## 2. check1 — the CD1 fix's check, red at base, green with the fix as the only delta
+
+Check (pinned allowlist = the lane's declared top-level entries; a new top-level entry is a defect unless
+ledgered). Run with `REV` exported, cwd = the sandbox clone (its object store holds the lane's commits too).
+
+```sh
+git ls-tree -r --name-only "$REV" | cut -d/ -f1 | sort -u > "$T/segments.txt"
+if grep -q -vxE '\.gitignore|\.ufo|AGENTS\.md|LOG\.md|PROVINCE\.md|README\.md|SCORECARD\.md|SHONEN\.md|SKILL\.md|considerthese|corpus|plans|verifiers' "$T/segments.txt"; then
+  grep -vxE '<same allowlist>' "$T/segments.txt"
+  echo "FAIL check1: top-level path outside the declared lane roots" >&2
+  exit 1
+fi
+echo "ok check1: all top-level entries are declared lane roots"
+exit 0
+```
+
+Red-before, `REV=6523aced1ee0ebe07dca996213bdc645a6acbd1e` (lane):
+
+```
+kotoba-shokukin
+FAIL check1: top-level path outside the declared lane roots
+exit=1
+```
+
+Green-after, `REV=a0c4762fa55492277828a6fa8b7e65c20aa3b9d5` (sandbox, fix A applied):
+
+```
+ok check1: all top-level entries are declared lane roots
+exit=0
+```
+
+## 3. check2 — the CD2 fix's check, red at base, green for its lesson arm with the fix
+
+Check: every `corpus/**.md` path the round's plan names exists at `<rev>` (`git cat-file -e <rev>:<path>`;
+the mechanism Q60 already names). Run over `plans/round-76.md` — the plan that made the promise.
+
+```sh
+git show "$REV:plans/round-76.md" > "$T/plan76.md"
+grep -oE 'corpus/[A-Za-z0-9._/-]+\.md' "$T/plan76.md" | sort -u > "$T/paths.txt"
+missing=0
+while read -r p; do
+  git cat-file -e "$REV:$p" 2>/dev/null || { echo "MISSING $p"; missing=1; }
+done < "$T/paths.txt"
+echo "checked $(wc -l < "$T/paths.txt") plan-named corpus paths"
+exit $missing
+```
+
+Red-before, `REV=6523aced…` (lane):
+
+```
+MISSING corpus/knowledge/description-craft-round76.md
+MISSING corpus/lessons/round-76.md
+checked 9 plan-named corpus paths
+exit=1
+```
+
+Green-after, `REV=a0c4762f…` (sandbox, fix B applied):
+
+```
+MISSING corpus/knowledge/description-craft-round76.md
+checked 9 plan-named corpus paths
+exit=1
+```
+
+The all-paths run stays exit 1 because `corpus/knowledge/description-craft-round76.md` is C1 claim data, which
+this build seat does not write (freeze discipline). The defect's own arm is the lesson arm:
+
+```sh
+grep -oE 'corpus/lessons/[A-Za-z0-9._-]+\.md' "$T/paths.txt" | sort -u > "$T/lessonpaths.txt"
+(while read -r p; do git cat-file -e "$REV:$p" 2>/dev/null || { echo "MISSING $p"; missing=1; }; done < "$T/lessonpaths.txt")
+```
+
+```
+REV=6523aced… (lane):   MISSING corpus/lessons/round-76.md / checked 3 plan-named lesson paths / exit=1
+REV=a0c4762f… (sandbox): checked 3 plan-named lesson paths / exit=0
+```
+
+## 4. Census/quality sweep that fixes the captured-by cells
+
+`grep -in '<term>' corpus/QUALITY.md` at 6523ace (read-only):
+
+```
+[stray]           exit=1  (no row)
+[top-level]       exit=1  (no row)
+[misroot]         exit=0  Q49
+[promis]          exit=0  Q18 Q65
+[cat-file -e]     exit=0  Q60
+[does not exist]  exit=1  (no row)
+[landed]          exit=0  Q03 Q57
+[absence]         exit=0  Q14 Q22 Q64
+```
+
+Reading: no row counts the lane's own top-level entries, and no row requires a plan's promised artefact to
+exist at the round's tip. Q49 is nearest for CD1 (misroot sweep, reports lane-local), Q65 for CD2 (a plan's
+promised landing checked) — both are about the fleet root / budget arithmetic, not the lane tree entry set or
+promise existence. The lesson's captured-by cells say which mechanism each row misses.
+
+## 5. Limits
+
+- check1's allowlist is a constant of the *proposed* check; it must be frozen at the plan/criterion commit if
+  the L1 lands it (Q28), and a legitimate new top-level entry needs a ledger arm (Q73 pattern).
+- check2 measures existence only; it does not measure that the artefact has the promised sections (C1 (a)/(e)
+  and the non-author closure carry that judgement).
+- The green-after states are sandbox states, not lane states: the lane at 6523ace is red on both checks.
+- Nothing in this receipt touches the two frozen counters; their bytes are unchanged (plan § Frozen counters).

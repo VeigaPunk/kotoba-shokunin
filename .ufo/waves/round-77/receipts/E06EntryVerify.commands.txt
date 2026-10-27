@@ -1,0 +1,60 @@
+# E06EntryVerify — commands and their OWN exit statuses (round 77 w1)
+# host: linux 7.2.11-arch1-1; shell cwd for every call: /fast/scratch/hyaku/kotoba-r77/E06EntryVerify
+# scratch removed before yield; nothing installed (no pacman, no uv/npm).
+
+git clone --shared /home/vgpnk/Projects/shokunin/kotoba-shokunin /fast/scratch/hyaku/kotoba-r77/E06EntryVerify/clone
+  exit=0
+git -C clone rev-parse --show-toplevel
+  /fast/scratch/hyaku/kotoba-r77/E06EntryVerify/clone      (asserted before the first scratch commit)
+git -C clone log --oneline -1
+  6523ace round-77: freeze plan, base receipts (counters unchanged from r76 freeze)
+git -C clone config user.name scratch-r77
+git -C clone config user.email scratch@example.invalid
+git -C clone diff --stat 2f675548eaad2a037a899d39247c1fd7a88aaf48 6523aced -- SKILL.md corpus/SOURCES.md .ufo/waves/round-76/snapshots/
+  (no output: measured bytes identical at base and freeze tip)   exit=0
+python3 -c "… check_desc_craft.description_measures(open('SKILL.md').read()) …"
+  (1022, 1021, 151)
+python3 -c "… _blanked_sha(counter) == SELF_SHA …"
+  True
+for p in optimizing-descriptions evaluating-skills best-practices; do sha256sum .ufo/waves/round-76/snapshots/$p.md; done
+  7cc54fbb…bd837 / a799805f…fb684 / ab9f3b60…fb41   (all equal the counter's pinned PAGE_SHA)
+# recheck line of the entry, executed verbatim (nine tokens)
+for t in 'under-specified description' 'Frame the description as an instruction' "not the skill's internal mechanics" 'Err on the side of being pushy' "doesn't name the domain directly" "even if they don't explicitly mention" 'A few sentences to a short paragraph' 'hard limit of 1024 characters' 'typically only consult skills'; do printf '%s\t%s\n' "$t" "$(grep -c -F -- "$t" .ufo/waves/round-76/snapshots/optimizing-descriptions.md)"; done
+  nine lines, `1` for each   exit=0
+for p in 'imperative phrasing' 'err on the side of being pushy' 'few sentences to a short paragraph' 'hard limit of 1024' 'burden of triggering'; do git grep -il -F -- "$p" 2f675548 -- SKILL.md 'corpus/knowledge/*.md' corpus/QUALITY.md | wc -l; done
+  0 0 0 0 0
+
+# --- stand-ins committed in the scratch clone (other seats' files; not my deliverable) -------------
+git -C clone add -A && git -C clone commit -m "r77 E06 scratch: entry + stand-ins"
+  1d372c9f0f73eba5126a5ad52a9a9817c7a7394b
+# (a) fix applied to the lesson stand-in only: de-backtick the Gate quote
+git -C clone commit -m "scratch: lesson gate quote de-backticked (stand-in fix)"
+  3c0047428f0a45a61bedd76a596ca2803b1a5419
+
+# --- the counter (frozen bytes; never edited) ------------------------------------------------------
+python3 -B verifiers/check_desc_craft.py --repo <clone> --rev 1d372c9   > c1-tip.txt 2>&1; echo exit=$?
+  (a) fail: "the lesson Gate carries no <=25-word quote located in the optimizing-descriptions snapshot"
+  description craft backed 5 of 6      exit=1
+
+python3 -B verifiers/check_desc_craft.py --repo <clone> --rev 3c00474   > c1-tip-fixed.txt 2>&1; echo exit=$?
+  a pass / b pass / c pass / d pass / e pass / f pass
+  description craft backed 6 of 6      exit=0
+
+# --- falsifiers (each a scratch commit; the entry restored afterwards) ------------------------------
+# M1 entry absent:      680e9e8916be37344628e2f6b59892ad1dfd2032   -> backed 3 of 6, exit=1  (b,d,f fail)
+# M2 audit 1022 -> 1023: 56d4bc0730a6e4f508ad52c32de7b3fd19464c9c  -> backed 5 of 6, exit=1  (d fails)
+# M3a rule table -> best-practices text, prose+recheck left:   bc5f81e  -> backed 6 of 6, exit=0  (see slack)
+# M3b every body fragment de-quoted, recheck left:             f9313ab  -> backed 6 of 6, exit=0  (see slack)
+# M3c recheck de-quoted, rule table intact:                    b70e8e8  -> backed 6 of 6, exit=0  (rule table carries b)
+# M3d rule table -> best-practices text AND recheck/prose de-quoted: c010db0 -> backed 5 of 6, exit=1
+#     "(b) … carries 1 located page-unique quote(s) of the required 4"
+# final restored tip (my entry, stand-ins green):
+python3 -B verifiers/check_desc_craft.py --repo <clone> --rev d97d5bd61c092a44141fb2491e3a504c1babbb19
+  description craft backed 6 of 6      exit=0
+
+# --- operability checks on the scratch world -------------------------------------------------------
+python3 -B verifiers/verify_corpus_integrity.py --json
+  "unindexed": 4 — corpus/knowledge/description-craft-round76.md, corpus/lessons/round-75-verifier-spotcheck.md,
+  corpus/lessons/round-76-verifier-spotcheck.md, corpus/lessons/round-76.md   (index rows owned by the landing)
+bash /home/vgpnk/Projects/shokunin/scripts/sources-census.sh validate --file <clone>/corpus/SOURCES.md --today 2026-10-27
+  file ok   exit=0   (one pre-existing W04 S213 duplicate url)

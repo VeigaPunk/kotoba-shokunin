@@ -1,0 +1,57 @@
+# E10GateRepair.refresh_baseline.sh — behaviour receipts (round 77 w1)
+# script: /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-77/build/E10GateRepair.refresh_baseline.sh
+# every run states its clone; every exit is that command's own (no pipeline statuses)
+
+## A. index rows in place, old baseline -> recipe re-records from the gate's own --no-baseline --json
+$ /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-77/build/E10GateRepair.refresh_baseline.sh /fast/scratch/hyaku/kotoba-r77/E10GateRepair/sim5
+tracked_files                      144 -> 146
+report_total                       99 -> 102
+commit_total                       43 -> 44
+wrote /fast/scratch/hyaku/kotoba-r77/E10GateRepair/sim5/verifiers/corpus-baseline.json (head 6523ace)
+verified: both corpus gates exit 0 against the re-recorded baseline
+exit=0
+
+## B. idempotent second run: no expectation moves
+$ /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-77/build/E10GateRepair.refresh_baseline.sh /fast/scratch/hyaku/kotoba-r77/E10GateRepair/sim5
+no expectation moved
+wrote /fast/scratch/hyaku/kotoba-r77/E10GateRepair/sim5/verifiers/corpus-baseline.json (head 6523ace)
+verified: both corpus gates exit 0 against the re-recorded baseline
+exit=0
+
+## C. fail-closed: untracked corpus file (the gate counts git ls-files only)
+$ /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-77/build/E10GateRepair.refresh_baseline.sh /fast/scratch/hyaku/kotoba-r77/E10GateRepair/sim5
+refresh_baseline: untracked corpus file(s) the gate cannot see:
+corpus/lessons/zz-untracked.md
+refresh_baseline: stage or commit the final corpus tree in this clone before re-recording
+exit=2
+# baseline sha256 before=d00783aee7367ccbfe5d6ef8b82ff2451ab0c89a08839c67036a0da3d1d78d2d after=d00783aee7367ccbfe5d6ef8b82ff2451ab0c89a08839c67036a0da3d1d78d2d unchanged=yes
+
+## D. fail-closed: staged but unindexed corpus file (zero-mode drift)
+$ /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-77/build/E10GateRepair.refresh_baseline.sh /fast/scratch/hyaku/kotoba-r77/E10GateRepair/sim5
+refresh_baseline: integrity gate exited 1 on /fast/scratch/hyaku/kotoba-r77/E10GateRepair/sim5; fix the drift before re-recording a baseline
+exit=2
+# baseline sha256 before=d00783aee7367ccbfe5d6ef8b82ff2451ab0c89a08839c67036a0da3d1d78d2d after=d00783aee7367ccbfe5d6ef8b82ff2451ab0c89a08839c67036a0da3d1d78d2d unchanged=yes
+
+## E. fail-closed: a directory that is not the work-tree toplevel
+$ /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-77/build/E10GateRepair.refresh_baseline.sh /fast/scratch/hyaku/kotoba-r77/E10GateRepair/sim5/corpus
+refresh_baseline: repo root /fast/scratch/hyaku/kotoba-r77/E10GateRepair/sim5/corpus is not the work-tree toplevel /fast/scratch/hyaku/kotoba-r77/E10GateRepair/sim5
+exit=2
+
+## F. three new corpus files + their index rows: the counts move by those files' own citations
+# scratch commit: e39e1fe2f57dfafec29d8b020732410c10dfd511
+$ python3 -B verifiers/verify_corpus_integrity.py --json   (observed, before the refresh)
+gate_exit=1
+      "tracked_files": 149,
+      "unindexed": 0,
+      "report_total": 105,
+      "commit_total": 47,
+$ /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-77/build/E10GateRepair.refresh_baseline.sh /fast/scratch/hyaku/kotoba-r77/E10GateRepair/sim5
+tracked_files                      146 -> 149
+report_total                       102 -> 105
+commit_total                       44 -> 47
+wrote /fast/scratch/hyaku/kotoba-r77/E10GateRepair/sim5/verifiers/corpus-baseline.json (head e39e1fe)
+verified: both corpus gates exit 0 against the re-recorded baseline
+exit=0
+$ python3 -B verifiers/verify_corpus_integrity.py --json ; python3 -B verifiers/verify_corpus_independent.py --json
+integrity_exit=0
+independent_exit=0

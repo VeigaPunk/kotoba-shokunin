@@ -1,0 +1,37 @@
+# R05RevLessonDrafts — review of r76 lesson drafts
+
+Scope: `.ufo/waves/round-76/build/lesson-draft.md` and `B08-m76-1-round-76-row.md`; contract `CORPUS.md` rules and `corpus/SOURCES.md` rule 1. These are draft inputs, not landed claim data.
+
+## Findings: mistake rows that fail the closure spot-check
+
+The lane lesson's `## Mistakes` table has six rows (lines 116–121); B08 offers two alternative M76-1 rows, of which one shape only may be integrated. The contract requires mistake class vocabulary (`vacuous`, `survivor`, `stale-premise`, `reference-drift`, `number-drift`, `scope`, `attribution`, `landing`, `provider`), 4-column class · evidence pointer · captured-by · fix shape, and a fix demonstrated to fail with the fix as the only delta.
+
+1. **M76-1 (`layout-window-counted-as-value`), lesson row 116; B08 alternatives lines 11 and 17.** Non-vocabulary class (the canonical row separately labels it `M76-1`, but class is still wrong). Evidence itself is detailed. `captured-by` says none, but simultaneously identifies Q74 as the criterion; contradictory and not the contract's permitted row value. Fix cell names a correction and receipt but does not show the same command red-before / green-after with only fix changed. **Repair:** class `number-drift` or `stale-premise` (best fit: `number-drift`, since the failure is a wrongly measured number); captured-by explicitly name the prior absence of a whole-rendered-value criterion and Q74 as the new criterion; cite the red-before line-window measurement and post-fix whole-block parse command/output, with the fix the only delta. The B08 long-form alternative repeats the bad class and does not fix operability.
+
+2. **`number-drift` slice off-by-one, lesson row 117.** Class is valid, evidence and captured-by explain the discrepancy, but fix merely asserts the addendum and receipt carry the convention and that a counter arm reads 1021. It does not cite the arm's observed non-clean result or establish same-command failure with only the fix delta. **Repair:** add the exact red-before command/output against the wrong-slice world and corresponding fixed-slice result, naming the counter arm and committed receipt path; otherwise mark as recorded observation, not a repaired mistake.
+
+3. **`vacuous`, lesson row 118.** Class is valid and evidence says the attempted probe returned exit 2, but its fix is imperative future work (“State … and have …”); no red-before re-run or successful corrected invocation is evidenced. **Repair:** replace with completed evidence: invoke frozen counter from its freeze revision against `--rev <base>`, record exact command and own exit/output; demonstrate the original broken invocation fails and corrected invocation is valid. As written, this is an unimplemented remedy, not a fix.
+
+4. **`reference-drift`, lesson row 119.** Valid class and evidence. The fix routes a proposed future repair to round 77 (“relax F7 … or ledger …”) and records a 2/10→1/10 regression, but neither choice is made and no counterfactual fix is shown able to fail. **Repair:** select one contract-compatible fix, implement it in an isolated fixture, show the frozen relevant check fails before and passes after with only that delta, including exact output and exit codes; if deferred, state explicitly that it remains open and do not count it as a fix.
+
+5. **M76-5 `scope`, lesson row 120.** Class is valid, evidence and captured-by identify validator protection. Fix only points to the addendum and says the lesson uses dispatched mix; it gives no demonstration that the fix fails on the invalid-role plan or passes after correction. **Repair:** cite validator command/output on original role list (nonzero/unknown_role) and corrected plan (success), with the plan correction as the only delta.
+
+6. **M76-6 `number-drift`, lesson row 121.** Valid class, evidence documents mismatch. Fix is a general future convention (“future wave-shape sentences take their counts from…”), with no falsifying run or demonstrated guarded result. **Repair:** show the exact dispatch-derived recount/check rejecting the plan's 34/53% claim and accepting corrected figures, with the corrected figures as sole delta; otherwise classify as lesson/proposal and do not claim the fix closed.
+
+**General table defect:** the rows contain the four data concepts, but many cells are overly long and bundled; every cited `none` contradicts a named criterion or guard. Split compound mistakes or make each class/cause/fix individually auditable, and use `none` only where no criterion actually existed. Do not treat the existence of a receipt or a prose correction as proof that a fix was able to fail.
+
+## Gate / SOURCES rule 1
+
+The Gate states this is an existing S213 row, not a new row. Thus rule 1's “for every new row” requirement does not apply as a new-row obligation, but the round's claim is explicitly a re-open and the Gate should preserve its source provenance. It supplies canonical URL and access date (2026-10-27), a located quote (10 words) and heading/location (Writing effective descriptions, snapshot line 28), satisfying those concrete fields. However it calls the quote “page-unique” and claims absence from two snapshots without including a reproducible comparison command/output in the Gate; the supporting `build/quotes-s213.md` pointer is not itself shown here. Keep the quote, but either bound the claim to “located in S213 at …” or cite the exact sweep evidence. Verify the quote against the actual snapshot before landing (see pointer checks).
+
+## Five evidence-pointer openings
+
+1. `corpus/lessons/round-75.md:11` — opened with `git show b7f13f4b:corpus/lessons/round-75.md | awk 'NR==11'`; exact line describes 1,021 as materially shorter and gives the 6-line awk values. Supports M76-1.
+2. `corpus/lessons/round-75.md:5` — opened at the same revision; contains a different located quote (“Use imperative phrasing.”) and labels S213 as opened 2026-10-27. This is not the cited source quote in the r76 Gate; do not conflate it with the new quote.
+3. `corpus/QUALITY.md` Q74 — `git show b7f13f4b:corpus/QUALITY.md | grep -n Q74` yielded no Q74. This draft points to Q74 as added this round, so it must point to the post-addendum/round-76 revision rather than the r75 base. The cited pointer cannot resolve at the opened revision; report it as revision-dependent, not verified from base.
+4. `plans/round-76-addendum-1.md` § Render-length convention — `git show b7f13f4b:plans/round-76-addendum-1.md` reports path absent at that base. The draft's cited `7eed80e9` is a later commit; this pointer must be opened at that commit/revision. Base check does not substantiate the addendum citation.
+5. `corpus/lessons/round-75-verifier-spotcheck.md` §§4 and 6 R1 — source is the r75 closure spot-check (the round-76 spot-check opened at base confirms R76-D2 routes M76-1, but is not the same source). The lesson draft references the r75 spot-check; use the path to open that exact artifact and its lines before landing. I did not obtain the r75 file content in this review, so its quoted line numbers remain unverified.
+
+## Verification limits
+
+The `CORPUS.md` cited by contract is at the fleet root `/home/vgpnk/Projects/shokunin/CORPUS.md`, not the lane root; rules read at lines 171–184 establish class vocabulary and the fail-demonstration requirement. `corpus/SOURCES.md` rule 1 at lane snapshot lines 112–115 specifies URL, access date, ≤25-word located quote and non-author re-open. No code or data was edited. No tools installed.

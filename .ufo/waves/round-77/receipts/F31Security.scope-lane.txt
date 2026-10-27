@@ -1,0 +1,61 @@
+# F31CheckcurityReadOnlyS — receipts (kotoba round 77, wave w2)
+# seat: F31CheckcurityReadOnlyS (sentinel; read-only scope sweep of changed evidence)
+# host: linux 7.2.11-arch1-1. No tool installs; pacman never invoked.
+# lane HEAD 6523aced1ee0ebe07dca996213bdc645a6acbd1e. Each exit status is the command's own.
+
+## 1. lane write scope: nothing tracked was modified, nothing staged, HEAD unmoved by seats
+git -C <lane> status --porcelain --untracked-files=no      -> (no output)
+git -C <lane> diff --cached --stat                          -> (no output)
+git -C <lane> rev-parse HEAD                                -> 6523aced1ee0ebe07dca996213bdc645a6acbd1e
+git -C <lane> reflog -8 --date=iso
+6523ace HEAD@{2026-10-27 16:40:53 -0300}: export from jj
+2f67554 HEAD@{2026-10-27 16:35:22 -0300}: export from jj
+6ce2724 HEAD@{2026-10-27 15:35:12 -0300}: export from jj
+ec7f853 HEAD@{2026-10-27 15:31:58 -0300}: export from jj
+(the only post-launch entry is the L1's own jj export; no seat checkout/reset appears)
+git -C <lane> stash list  -> stash@{0}: WIP on (no branch): 84b9c9b round-48: ... (pre-existing)
+ls .git/*.lock            -> none
+read-only areas (MANIFEST.json, templates/, scripts/, .ufo/state/, considerthese/, .scratch/):
+  git status --porcelain --ignored=matching -- <those paths>  -> (no output)
+  the only mtime touch today is considerthese/2026-10-26.md with byte-identical content (tracked clean)
+
+## 2. counters are pure readers of the measured repo
+before/after a C1+C2 run on the measured clone: git status --porcelain | wc -l = 0 -> 0;
+sha256(.git/index) unchanged; refs unchanged (refs/heads/master stayed at the measured commit).
+source audit: the only git verbs used against --repo are show / cat-file / merge-base / ls-tree /
+rev-parse; all clone/add/commit/checkout calls target tempfile.mkdtemp copies under --work.
+
+## 3. tracked misroot in the branch tip (scope class the closure already routed as R76-D1)
+git ls-files kotoba-shokukin
+kotoba-shokukin/.ufo/waves/round-75/w1/R75Facet48.md
+kotoba-shokukin/.ufo/waves/round-76/w1/A18ScoutSnapshot.md
+git cat-file -e HEAD:kotoba-shokukin/.ufo/waves/round-76/w1/A18ScoutSnapshot.md -> present (3543 B)
+git cat-file -e HEAD:kotoba-shokukin/.ufo/waves/round-75/w1/R75Facet48.md          -> present (1201 B)
+git cat-file -e HEAD:.ufo/waves/round-75/w1/R75Facet48.md                          -> exit 128 (ABSENT: the stray is the only copy)
+git cat-file -e HEAD:.ufo/waves/round-76/w1/A18ScoutSnapshot.md                    -> present (duplicate)
+git log --oneline --all -- kotoba-shokukin
+475d11a / 6ce2724 round-76: recover fleet-root A18 seat report / 16c9ca2 / ac9f295 round-75: preserve recovered misroot seat report
+
+## no gate reads either stray path
+grep -rn "kotoba-shokukin" verifiers/  -> (no output)
+grep -rn "\.ufo/waves" verifiers/*.py  -> only docstring/fixture prose for rounds 51-76 snapshots;
+                                         no verifier globs .ufo/waves/** (re-confirmed E11's finding)
+
+## 4. fleet-root spill (not kotoba's write scope; reported, not moved)
+/home/vgpnk/Projects/shokunin/o.bin   5867 B  2026-10-27 16:58  "HTML document ... (Cloudflare interstitial)"
+  round 77 launched 16:37:22 -> written inside this wave's window; no kotoba r77 artifact mentions
+  o.bin and no curl -o occurs in any kotoba r77 script (grep) -> attribution NOT provable (N01 F1 says the same)
+/home/vgpnk/Projects/shokunin/.ufo/waves/round-75/w1/RevEntryQuality.md  14330 B  14:07
+  content is kotodama's (staged narrative entries under /home/vgpnk/Projects/shokuknow/merge/kotodama/),
+  mtime 14:07 is BEFORE the 16:37 round-77 launch -> an earlier wave's spill, invisible to E11's
+  kotoba|round-77 filter (E11 disclosed it in --extra); kotoba's own sweep is clean.
+
+## 5. untrusted-data and secret surface of the changed evidence
+grep -rInE 'ghp_[A-Za-z0-9]{20}|sk-[A-Za-z0-9]{20}|AKIA[0-9A-Z]{16}|BEGIN (RSA|OPENSSH|PRIVATE) |xox[baprs]-' over
+  .ufo/waves/round-77/ and .ufo/waves/round-76/snapshots/   -> no matches
+grep -n 'eval(|exec(|yaml.load(|pickle|shell=True|os.system' over the two frozen counters -> no matches
+counters parse committed markdown only; the fetched page bytes are never executed
+
+## 6. wave arithmetic (R76-D5 class)
+w1-spec items 40 / w1-results seats 40 / w1 reports on disk 40   (0 dead seats at w1)
+w2-spec items 32
