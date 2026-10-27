@@ -33,6 +33,14 @@ off-by-one family that produced M75-1 cannot re-enter through measurement ambigu
 convention; it does not move either predicate.
 
 ## Reason
+## Wave role correction (validated topology)
+
+The initial planning estimate listed `labrat` and `sonic` as top-level seats. The validator refused
+both roles (`unknown_role`); neither was dispatched. Their probe/read tasks were re-roled to
+`scout`/`scribe`/`simplifier`. The validated and dispatched 64-seat mix is: executor 15, scribe 10,
+reviewer 10, scout 10, critic 6, mutation-tester 4, simplifier 3, revenger 3, sentinel 2, connector
+1. Attack roles (reviewer + critic + mutation-tester + sentinel) are 22/64 = 34.4%, above the 25%
+minimum. The L1 remains the canonical planner; B01 carries the planning data-walk.
 
 Caught by L1 self-review against CORPUS.md rule 2 before data; no seat output has been scored against
 the withdrawn clause. This addendum is the committed record of the correction (Q28 discipline: the
