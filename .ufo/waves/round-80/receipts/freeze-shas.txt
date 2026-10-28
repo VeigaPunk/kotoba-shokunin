@@ -1,0 +1,46 @@
+# Round 80 freeze receipt — FINAL INPUTS, before declared after-value
+# Author: L1 KotobaR80. This receipt is committed before the after-value run.
+# Base: 398cbe1bb67f8d9dcf5d25d5ecf1b26a7c6f7e93
+# Freeze commits: F1 c2f69d4f7b5887c409d7c3975d6aebc2e312c406; E5 clarification 308bff94eab9e296631d6c1201566a02a224d559; blocker-locator correction a481913bafeb1ec5c231fd581f13da6ae5a306dc.
+# No claim after-value has been measured on these final frozen bytes yet. Earlier stack receipts are build/control probes only; they are not the declared after-value.
+
+C1 — consistency, frozen counter
+predicate: python3 -B verifiers/check_tip_battery.py --rev <rev> prints `guards 5 of 5` and `tip battery exit 0: 6 of 6`, exit 0, both --repo . and --repo <absolute lane>; base 398cbe1 prints 1 of 6, exit 1.
+base receipt: .ufo/waves/round-80/receipts/tipbattery-base-dot.txt (sha256 computed by git commit; sandbox output: 1 of 6, guards 5 of 5, exit 1).
+absolute-base/control receipt: .ufo/waves/round-80/build/Kb80E06CounterErratum/w0-final.txt (base 1 of 6, guards 5 of 5, exit 1; absolute form); dot control: .ufo/waves/round-80/build/Kb80E06CounterErratum/w0-dot-final.txt (base 1 of 6, exit 1).
+
+E5-amended counter bytes: .ufo/waves/round-80/build/check_tip_battery.amended.py
+sha256: 20e4960126961fe1892cf8647406a4619313db25deb3550a02c0bd41e6445276
+patch: .ufo/waves/round-80/build/Kb80E06CounterErratum.patch
+patch sha256: fcd886870d3689468c8fa2a5f9aad27b4e0b25e9a4ca06dcf89d7fe297b80382
+patch applies to base 398cbe1: `git apply --check` exit 0; numstat 30 added / 12 deleted in verifiers/check_tip_battery.py.
+E5 line set (plans/round-80.md Addendum 1): LINE_CAP 40→60; exactly two new reviewed blobs (below); self-test fixture constants re-anchored to LINE_CAP with arm semantics unchanged, pin-arm edit demonstrates 41-line in-cap edit rejected by pin guard; docstring/comment cap mentions updated. No other counter semantics changed. Self-test: 0 failures / 69 assertions, exit 0 (`build/Kb80E06CounterErratum/selftest-final.txt`).
+
+E5 reviewed pins (canonical E04 + E05 composition, exactly two new entries; base/legacy pins remain unchanged):
+- integrity `verifiers/verify_corpus_integrity.py`: 68ccce1c152c915e16893a5157c9d5878df779fb
+- independent `verifiers/verify_corpus_independent.py`: e887de71892ecfc6be5b3f47e362ce8a766c5c89
+Independent recomputation: fresh base clone; apply E04 patch then E05 patch; `git hash-object` both paths → these exact git-blob SHA-1s (Kb80V03 independently rehashed; Kb80E06 reproduced). E04 sha256 patch: d7169dd8f9db17a908f00c1e62a668d73c7ca96cca75626807fb81889f4a5d78. E05 patch sha256: a4345d34d3a8e35d7697b5abc05d077c2bb43e49e636edd6937590b1b223a2d3.
+
+C1 integration artifacts (input hashes):
+- Kb80E01Registry.patch: obtain sha256 from build/Kb80E16PinAudit.txt; two withdrawn rows + new check_allowed_tools gate row.
+- Kb80E02Symlink.patch: 0f3202409299e0ef2e29242d80c8816f23f9cf04502a370925142d27564bf35b.
+- Kb80E03IndexBaseline.patch: 54e43309e05af3f98d23b030f811d9a729aa865b2dea6a9dc8dc778cf9d796f9.
+- Kb80E04DeadPointer.patch: d7169dd8f9db17a908f00c1e62a668d73c7ca96cca75626807fb81889f4a5d78.
+- Kb80E05GrammarFix.patch: a4345d34d3a8e35d7697b5abc05d077c2bb43e49e636edd6937590b1b223a2d3; +21/-5 total across both gates; no helper module; composed blobs above.
+- Kb80S05SourcesEdits.patch: 5cec858538ddacff021b8986a7d7b2e400510ba88338357ad9428e97a079a977.
+- Kb80S08ReadmeRows.patch: 10117e66ea3c3fb0a15d0a2657565da9b719a1edcd601a771e94a17494613f5c.
+- Kb80S09SkillRule.patch: 9ad16e05cf43460c230ee7acf5d7f86fc43c8f1c5182df6595060fdd53906a4c.
+- Kb80S10Province.patch: 6f342703f4e5568f2cdc3079a247704c596c2769a4b0d621f3ab34f3a4798179.
+- C2 entry `build/allowed-tools-surfaces-round80.md`: caadf57d6ba02de6ffdcd5d2d8bea33f0dbe79dadc85d7d33ef075251ad1df15.
+- C2 counter `build/check_allowed_tools.py`: a12921bee0433e88b04dd0ff5779cb0cd2bbdd3671d5faa574bfd5928e19f08e; blanked SELF_SHA 434fd6f9646bbc56948eb5c4603c7a1f2d815fc11b3741cb25ef052720111742; 2563 lines / 118313 bytes; self-test 0 failures / 255 assertions over 89 worlds, exit 0 (build/Kb80E07C2Counter-selftest.txt).
+
+C2 frozen predicate:
+`python3 -B verifiers/check_allowed_tools.py --rev <rev>` prints `allowed-tools surfaces documented N of 6`, `generator world: M of 6`, and `semantic rider: exploratory — reviewers of record: round-80 non-author closure spot-check`; exit 0 iff N==6 and tree conjuncts (SKILL.md rule+gate row; PROVINCE Core bullet) hold. Base output: documented 0 of 6, generator world 6 of 6, exit 1 (build/Kb80E07C2Counter-base.txt). The generator reaches target and is printed; the headline is form-level only. Semantic rider remains exploratory and requires non-author closure judgment.
+
+- Kb80E01Registry.patch: dde6d91e888d4d6f41073bf985615927d16fdf67f547303127233cccc90a0b94.
+
+Exact immutable guard arithmetic against counter BASE 072048fa8e8a52c707d25f7079772fa317244eb7: 22 added / 3 deleted at r80 base + 38 added / 5 deleted from E04+E05 = 60 added / 8 deleted; LINE_CAP=60 exactly, zero added-line headroom. No additional byte changes in the six battery instruments are allowed in the landed stack.
+
+Control receipts on the final counter bytes (pre-after): W0 base remains 1 of 6 (both forms); stub-world remains guard-failed (size + pin); see Kb80E06CounterErratum/w0-final.txt, w0-dot-final.txt, wstub-final.txt. The pre-freeze Y01-pin build probes are superseded and must not be cited as the frozen after-value: see `build/Kb80E06CounterErratum/superseded-y01-pins/`.
+
+After-value status: NOT YET RUN on the final frozen bytes. Next: integrate the canonical E04+E05 stack using the final E5 pins, refresh baseline only after a clean committed corpus tree, commit freeze receipt, then run both battery forms at that committed tip; capture each command's own exit code and full output in a new receipt. Any earlier 6-of-6 scratch stack (including E06's recipes) is a build probe, not the declared after-value.
