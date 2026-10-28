@@ -20,20 +20,29 @@ POINTERS   a token whose text matches ``…/.ufo/reports/round-<digits>/….md``
            relative to the citing file's directory (rooted as-is, `~` against
            `$HOME`, otherwise joined); a bare `.ufo/reports/...` path also
            resolves against the fleet root /home/vgpnk/Projects/shokunin when
-           present there. Excluded: tokens with `<`/`>`, `*`, whitespace, or a
-           `..` segment after the leading `../` hops; a quoted token is CONTEXT.
+           present there; a `<rev>:<path>` token resolves as a git object there,
+           then in the fleet root, and both it and the bare fleet-root hop must
+           bind identity (>= 400 bytes with `## SHONEN`) -- a marker file stays
+           dead; an explicit locator is existence-only. Excluded: tokens with
+           `<`/`>`, `*`, whitespace, or a `..` segment after the leading `../` hops;
+           a quoted token is CONTEXT.
 COMMITS    ``commit `<token>``` (word ``commit`` not preceded by a letter, digit,
            underscore or hyphen, token backticked) must be 7-40 hex characters and
            name a commit object in the lane repo or declared parent fleet root.
            A citation inside double quotes or a matching Markdown code span is
            CONTEXT, not a live commit reference.  A 7-40 hex prefix closed by a
            single U+2026 ellipsis is truncated CONTEXT (`commit_truncated_detail`).
+           Round 81: a hex token absent from both is `commit_external` (INFO, never
+           a drift class) only when the committed `verifiers/external-commits.json`
+           binds it to a third repository through a committed receipt carrying both
+           the hash and the repository; a line marker alone never exempts.
 
 Exit: 0 every violation class empty, 1 any violation, 2 environment unreadable.
 Read-only: never writes inside the analysed repository.  Deterministic output.
 """
 
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -136,6 +145,14 @@ COMMIT_RE = re.compile(r"(?<![A-Za-z0-9_-])commit\s+`([^`\s]+)`")
 FENCE_RE = re.compile(r"^ {0,3}(`{3,}|~{3,})(.*)$")
 HEX_RE = re.compile(r"\A[0-9a-fA-F]+\Z")
 TRUNCATED_RE = re.compile(r"\A[0-9a-fA-F]{7,40}\u2026\Z")
+# Round 81 (Q75): the reviewed manifest, the `<rev>:` prefix of an object-expression
+# pointer (a ref name carrying a letter, or 7-40 hex, so `file.md:15:` never becomes
+# one), and the round from which reports carry `## SHONEN` uniformly.
+EXTERNAL_MANIFEST = "verifiers/external-commits.json"
+IDENTITY_FROM_ROUND, REPORT_MIN_BYTES, REPORT_MARKER = 19, 400, b"## SHONEN"
+ROUND_RE = re.compile(r"round-(\d+)/")
+REV_PREFIX_RE = re.compile(r"(?<![A-Za-z0-9_./-])"
+                           r"([A-Za-z_][A-Za-z0-9_.@^~/-]*|[0-9a-fA-F]{7,40}):\Z")
 
 
 def backticked_spans(line):
@@ -217,6 +234,12 @@ def pointer_tokens(line):
             out.append(
                 (pm.group(0), m.start() + pm.start(), m.start() + pm.end())
             )
+    # Round 81: a `<rev>:` glued to the match makes the token an object expression
+    # (`HEAD:.ufo/reports/...`), so the revision belongs to the promise it makes.
+    for i, (_token, start, end) in enumerate(out):
+        rev = REV_PREFIX_RE.search(line[:start])
+        if rev:
+            out[i] = (line[rev.start():end], rev.start(), end)
     out.sort(key=lambda t: (t[1], t[2]))
     return out
 
@@ -262,12 +285,37 @@ def resolve_pointer(token, citing_file):
     )
 
 
-def report_pointer_exists(token, citing_file, fleet_root=FLEET_ROOT):
-    """Check the citing directory, then the fleet root for bare report paths."""
-    if os.path.exists(resolve_pointer(token, citing_file)):
+def report_target(token, citing_file, repo, fleet_root=FLEET_ROOT):
+    """(route, bytes): "object" a `<rev>:<path>` expression read from the citing
+    repo then the fleet root, "path" a path from the citing file, "fallback" the
+    fleet hop for a bare path, "dead" nothing."""
+    _rev, sep, rest = token.partition(":")
+    if sep and rest.startswith(".ufo/reports/"):
+        fleet = [fleet_root] if fleet_root and os.path.abspath(fleet_root) != repo else []
+        for candidate in [repo] + fleet:
+            proc = subprocess.run(["git", "-C", candidate, "cat-file", "blob", token],
+                                  capture_output=True)
+            if proc.returncode == 0:
+                return "object", proc.stdout
+        return "dead", None
+    for route, found in (("path", resolve_pointer(token, citing_file)),
+                         ("fallback", os.path.join(fleet_root, token))):
+        if route == "fallback" and not token.startswith(".ufo/reports/"):
+            continue
+        if os.path.isfile(found):
+            with open(found, "rb") as fh:
+                return route, fh.read()
+    return "dead", None
+
+
+def report_identity_ok(token, data):
+    """A report from round 19 on carries `## SHONEN`, and an object expression
+    always claims report content; earlier targets predate the heading and stay
+    existence-only -- a marker arm, not a completeness judgment of history."""
+    m = ROUND_RE.search(token)
+    if ":" not in token.split("/")[0] and not (m and int(m.group(1)) >= IDENTITY_FROM_ROUND):
         return True
-    return (token.startswith(".ufo/reports/") and
-            os.path.isfile(os.path.join(fleet_root, token)))
+    return data is not None and len(data) >= REPORT_MIN_BYTES and REPORT_MARKER in data
 
 
 def pointer_shape(token):
@@ -455,7 +503,8 @@ def analyse_pointers(repo, tracked_corpus, fleet_root=FLEET_ROOT):
                         continue
                     checked.append("%s:%d: %s" % (rel, lineno, token))
                     shapes[pointer_shape(token)] += 1
-                    if not report_pointer_exists(token, path, fleet_root):
+                    route, payload = report_target(token, path, repo, fleet_root)
+                    if route == "dead" or not report_identity_ok(token, payload):
                         dead.append("%s:%d: %s" % (rel, lineno, token))
     return {
         "report_candidates": candidates,
@@ -470,8 +519,57 @@ def analyse_pointers(repo, tracked_corpus, fleet_root=FLEET_ROOT):
     }
 
 
-def analyse_commits(repo, tracked_corpus, fleet_root=FLEET_ROOT):
+def _committed_blob(repo, rel):
+    """Bytes of ``HEAD:<rel>`` when rel is tracked there, else None."""
+    if _git(repo, "ls-files", "--error-unmatch", "--", rel).returncode != 0:
+        return None
+    proc = subprocess.run(["git", "-C", repo, "cat-file", "blob", "HEAD:%s" % rel],
+                          capture_output=True)
+    return proc.stdout if proc.returncode == 0 else None
+
+
+def _committed_blob(repo, rel):
+    """Committed bytes of ``HEAD:<rel>``, else None (working-tree bytes are no evidence)."""
+    proc = subprocess.run(["git", "-C", repo, "cat-file", "blob", "HEAD:%s" % rel],
+                          capture_output=True)
+    return proc.stdout if proc.returncode == 0 else None
+
+
+def external_commits(repo):
+    """{lowercase hex: repository} bound by the committed evidence manifest.
+
+    Round 81 (Q75): a hash absent from lane and fleet is `commit_external` only
+    through the committed `verifiers/external-commits.json` and a committed receipt
+    whose pinned sha256 matches and whose bytes carry both the hash and the
+    repository; every failed binding stays `commit_unresolvable`.  A line marker
+    (`owner/repo@`, a repository URL in the row) never exempts."""
+    try:
+        rows = json.loads(_committed_blob(repo, EXTERNAL_MANIFEST).decode())["commits"]
+    except (AttributeError, KeyError, TypeError, UnicodeDecodeError, ValueError):
+        return {}
+    bound = {}
+    for row in rows if isinstance(rows, list) else []:
+        row = row if isinstance(row, dict) else {}
+        sha, name = row.get("hash"), row.get("repository")
+        evidence = _committed_blob(repo, row.get("receipt") or "")
+        text = (evidence or b"").decode("utf-8", "replace").lower()
+        if not (evidence is not None and isinstance(sha, str) and isinstance(name, str)
+                and len(sha) == 40 and sha == sha.lower() and HEX_RE.match(sha)
+                and hashlib.sha256(evidence).hexdigest() == row.get("receipt_sha256")
+                and sha in text and name.lower() in text
+                and bound.get(sha, name) == name):
+            if isinstance(sha, str):
+                bound.pop(sha, None)  # unbound, or contradictory evidence
+            continue
+        bound[sha] = name
+    return bound
+
+
+def analyse_commits(repo, tracked_corpus, fleet_root=FLEET_ROOT, externals=None):
+    if externals is None:
+        externals = external_commits(repo)
     quoted, nonhash, unresolvable, citations = [], [], [], []
+    external = []
     truncated = []
     for rel in tracked_corpus:
         path = os.path.join(repo, rel)
@@ -496,7 +594,9 @@ def analyse_commits(repo, tracked_corpus, fleet_root=FLEET_ROOT):
                         proc = _git(fleet_root, "cat-file", "-e",
                                     "%s^{commit}" % token)
                     if proc.returncode != 0:
-                        unresolvable.append("%s:%d: %s" % (rel, lineno, token))
+                        site = "%s:%d: %s" % (rel, lineno, token)
+                        (external if token.lower() in externals
+                         else unresolvable).append(site)
     return {
         "commit_candidates": len(citations) + len(quoted) + len(truncated),
         "commit_total": len(citations),
@@ -512,6 +612,8 @@ def analyse_commits(repo, tracked_corpus, fleet_root=FLEET_ROOT):
         "commit_truncated_detail": sorted(truncated),
         "commit_unresolvable": len(unresolvable),
         "commit_unresolvable_detail": sorted(unresolvable),
+        "commit_external": len(external),
+        "commit_external_detail": sorted(external),
     }
 
 
@@ -600,9 +702,10 @@ def render(repo, head, observed, results, as_json):
     )
     lines.append(
         "commits candidates=%d citations=%d hex=%d quoted=%d nonhash=%d "
-        "unresolvable=%d"
+        "unresolvable=%d external=%d"
         % (com["commit_candidates"], com["commit_total"], com["commit_hex_total"],
-           com["commit_quoted"], com["commit_nonhash"], com["commit_unresolvable"])
+           com["commit_quoted"], com["commit_nonhash"], com["commit_unresolvable"],
+           com["commit_external"])
     )
     for res in results:
         lines.append(
@@ -612,7 +715,7 @@ def render(repo, head, observed, results, as_json):
     for key in ("unindexed_detail", "stale_tokens_detail", "missing_paths_detail",
                 "report_dead_detail", "report_excluded_detail",
                 "report_quoted_detail", "commit_nonhash_detail",
-                "commit_truncated_detail",
+                "commit_truncated_detail", "commit_external_detail",
                 "commit_unresolvable_detail", "commit_quoted_detail"):
         src = idx if key in idx else ptr if key in ptr else com
         for row in src[key]:
@@ -751,6 +854,35 @@ letter prefix xcommit `deadbeef`
 no space commit`deadbeef`
 """ % (short, big))
     _git(root, "add", "-A")
+
+
+def _report_body():
+    return "# report\n\n" + "row\n" * 120 + "## SHONEN\n"
+
+
+def _fixture_round81(root, fleet):
+    """Round 81: external-commit binding and report identity in one measured repo."""
+    rec = ".ufo/waves/round-1/snapshots/E1.fetch.json"
+    receipt = "https://github.com/acme/widget %s\n" % ("4" * 40)
+    _write(os.path.join(root, "corpus/README.md"), "# t\n")
+    _write(os.path.join(root, rec), receipt)
+    _write(os.path.join(root, EXTERNAL_MANIFEST), json.dumps({"commits": [{
+        "hash": "4" * 40, "repository": "acme/widget", "receipt": rec,
+        "receipt_sha256": hashlib.sha256(receipt.encode()).hexdigest()}]}))
+    _write(os.path.join(root, "corpus/knowledge/r.md"), """
+bound commit `%s`
+marked commit `%s` acme/widget@ https://github.com/acme/widget
+object `HEAD:.ufo/reports/round-5/kotoba.md`
+object marker `HEAD:.ufo/reports/round-6/kotoba.md`
+object gone `HEAD:.ufo/reports/round-9/none.md`
+fallback `.ufo/reports/round-20/kotoba.md`
+fallback marker `.ufo/reports/round-21/kotoba.md`
+""" % ("4" * 40, "5" * 40))
+    _write(os.path.join(root, ".ufo/reports/round-5/kotoba.md"), _report_body())
+    _write(os.path.join(root, ".ufo/reports/round-6/kotoba.md"), "marker\n")
+    _write(os.path.join(fleet, ".ufo/reports/round-20/kotoba.md"), _report_body())
+    _write(os.path.join(fleet, ".ufo/reports/round-21/kotoba.md"), "marker\n")
+    _git_init(root, commit=True)
 
 
 def _fixture_clean(root):
@@ -977,15 +1109,15 @@ def self_test():
         fallback_fleet = os.path.join(tmp, "fleet-fallback-root")
         _write(os.path.join(fallback_repo, "corpus/lessons/closure.md"),
                "Report `.ufo/reports/round-53/kotoba.md`\n")
-        _write(os.path.join(fallback_fleet,
-                            ".ufo/reports/round-53/kotoba.md"), "report\n")
+        _write(os.path.join(fallback_fleet, ".ufo/reports/round-53/kotoba.md"),
+               _report_body())
         fallback = analyse_pointers(
             fallback_repo, ["corpus/lessons/closure.md"], fallback_fleet
         )
         st.eq(fallback["report_total"], 1,
               "pointers: fleet-root report remains checked")
         st.eq(fallback["report_dead"], 0,
-              "pointers: existing fleet-root report resolves")
+              "pointers: a real fleet report binds identity; a marker would not")
 
         # -- commits: nonhash vs unresolvable vs resolvable ----------------------
         croot = os.path.join(tmp, "commits")
@@ -1033,6 +1165,28 @@ def self_test():
               "commits: double-quoted and code-span examples are context")
         st.eq(fleet_com["commit_candidates"], 9,
               "commits: context candidates stay visible, never live")
+
+        # -- round 81: external binding (Q75) and report identity ---------------
+        r81 = os.path.join(tmp, "round81")
+        r81fleet = os.path.join(tmp, "round81-fleet")
+        _fixture_round81(r81, r81fleet)
+        xobs = analyse_commits(r81, corpus_markdown(r81))
+        st.eq((xobs["commit_external"], xobs["commit_unresolvable"]), (1, 1),
+              "r81: the receipt-pinned hash is external, the marker-bound one is not")
+        p81 = analyse_pointers(r81, corpus_markdown(r81), r81fleet)
+        st.eq((p81["report_total"], p81["report_dead"]), (5, 3),
+              "r81: absent objects and markers are dead on the object and fleet routes")
+        _write(os.path.join(r81, EXTERNAL_MANIFEST), json.dumps({"commits": [{
+            "hash": "4" * 40, "repository": "acme/widget",
+            "receipt": ".ufo/waves/round-1/snapshots/E1.fetch.json",
+            "receipt_sha256": "0" * 64}]}))
+        _git_init(r81, commit=True)
+        st.eq(analyse_commits(r81, corpus_markdown(r81))["commit_external"], 0,
+              "r81: a wrong receipt pin binds nothing; a line marker never exempts")
+        _write(os.path.join(r81, ".ufo/reports/round-5/kotoba.md"), "marker\n")
+        _git_init(r81, commit=True)
+        st.eq(analyse_pointers(r81, corpus_markdown(r81), r81fleet)["report_dead"], 4,
+              "r81: substituting a marker for a cited report turns it dead")
 
 
         # -- clean fixture: verdicts and exit code -------------------------------

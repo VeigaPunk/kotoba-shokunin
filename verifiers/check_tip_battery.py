@@ -39,8 +39,9 @@ Guards (Q33) -- evaluated on committed bytes only, never on instrument output:
                         tracked at the base is absent at <rev>.
   floors                no row of verifiers/floors-registry.json carries a floor
                         lower than at the base, and no base row is dropped.
-  instrument-size       the six instrument scripts gain at most 40 lines in
-                        total over the base AND lose at most 40.  The plan
+  instrument-size       the six instrument scripts gain at most LINE_CAP lines
+                        in total over the base AND lose at most LINE_CAP (900
+                        since erratum E6; 40 before it).  The plan
                         bounds the additions; the same cap on deletions is what
                         makes its shortcut control -- "replace
                         check_gate_registry.py by a stub sys.exit(0) (must fail
@@ -103,12 +104,14 @@ def _default_lane() -> Path:
 # Round 73 (plans/round-73-addendum-2.md, erratum E2): the guard base moves from the
 # round-72 base c69711e to the round-73 base, so `instrument-size` measures this round's
 # delta of the six battery scripts (r72's 76 added / 24 deleted lines drop out; the cap
-# stays 40) and the round-72 spot-check lesson is a base file compared by
+# was 40 until round 81's erratum E6 raised it to 900 (the L1's pre-freeze revision, after the
+# reviewed r81 repair blobs measured 210 and 170 added lines; 22 base spend + the two of them
+# is 402, well inside), and the round-72 spot-check lesson is a base file compared by
 # `spotcheck-identity`.
 BASE = "072048fa8e8a52c707d25f7079772fa317244eb7"        # round-73 base (pinned)
 TOTAL = 6
 GATE_TIMEOUT_S = 280
-LINE_CAP = 40
+LINE_CAP = 900
 GUARDED_PREFIXES = ("corpus/", "verifiers/")
 GUARDED_FILE = "SKILL.md"
 FLOORS_PATH = "verifiers/floors-registry.json"
@@ -117,11 +120,15 @@ SPOTCHECK_RE = re.compile(r"-verifier-spotcheck\.md$")
 REV_TOKEN = "<rev>"
 
 # Errata E2 (plans/round-72-addendum-1.md, frozen before data): the plan's size cap
-# does not catch an instrument weakened inside 40 lines (wave-1 ExecBatteryControls
+# does not catch an instrument weakened inside the size cap (wave-1 ExecBatteryControls
 # F1: `probe-clean-guards` read 6 of 6 and passed every structural guard). Each of the
 # six scripts is byte-identical to the base or one reviewed draft blob (the reviewed
 # r72 blobs plus the required r76 D4 floors-guard bump at
-# 9cb860bda21ef8d24fcb0603aa85372b96f3ac41). Empty = no pin (self-test only).
+# 9cb860bda21ef8d24fcb0603aa85372b96f3ac41, plus exactly the two reviewed r81 erratum
+# E6 repair blobs. Each r81 row is a TIGHT (base blob, reviewed r81 blob) tuple: the r80
+# addendum-1 alternates leave the admitted set for those two files. The pins, not the size
+# bound, carry the anti-laundering load.
+# Empty = no pin (self-test only).
 INSTRUMENT_PINS = {
     "verifiers/check_gate_registry.py": ("95ffed389f483c3d6f93db3c08dcfdb9a2240576",),
     "verifiers/check_assertion_floors.py": (
@@ -132,11 +139,11 @@ INSTRUMENT_PINS = {
         "8d44c063e3d4b57c7c421c3107879e61983249bf",
         "6aab16849bd6d71ded8f3bcb3f95668f14f6a78f"),
     "verifiers/verify_corpus_integrity.py": (
-        "71cb2730bfe89064567ad429bfd7c2da62aceb45",
-        "e470eaaea5ef11c582b8353c9344ddf730c1a57a"),
+        "e470eaaea5ef11c582b8353c9344ddf730c1a57a",
+        "bbee51f2bae5b33b123a546150e83352d68eeebc"),
     "verifiers/verify_corpus_independent.py": (
-        "176abae3b66930d644482f95e1363932e4d143b4",
-        "edac0df79324ba62ee25ff10a6a4d422ef59da61"),
+        "edac0df79324ba62ee25ff10a6a4d422ef59da61",
+        "59602942075d8fe77061876fb52eb32a44313697"),
     "verifiers/check_correction_sweep.py": ("c94b771fa7d798ef45fc3bb640422ee7910f81a6",),
 }
 
@@ -514,13 +521,14 @@ def self_test() -> int:
         size_root = root / "guard-size"
         lane, base = _make_world(size_root)
         stub = lane / BATTERY[0][0]
-        stub.write_text(STUB_OK + "".join("# padding line %d\n" % i for i in range(41)))
+        stub.write_text(STUB_OK + "".join("# padding line %d\n" % i
+                                          for i in range(LINE_CAP + 1)))  # E6: derived
         tip = _commit_all(lane, "grow an instrument past the cap")
         rc, out, err = _drive(size_root, base, tip)
         check("size world exits 1", rc == 1, "exit %d" % rc)
         check("size world names the instrument-size guard",
-              "FAIL guard instrument-size: instruments gain 41 lines > 40" in out,
-              out.strip()[-220:])
+              "FAIL guard instrument-size: instruments gain %d lines > %d"
+              % (LINE_CAP + 1, LINE_CAP) in out, out.strip()[-220:])
 
         # errata E2: the instrument-pin guard.  A weakening inside the size cap
         # (two lines changed) passes every structural guard but not the pin.
@@ -550,14 +558,14 @@ def self_test() -> int:
         INSTRUMENT_PINS = {}
 
         stub_root = root / "guard-stub"
-        lane, base = _make_world(stub_root, padding=60)
+        lane, base = _make_world(stub_root, padding=LINE_CAP + 1)
         (lane / BATTERY[0][0]).write_text(STUB_OK)
         tip = _commit_all(lane, "replace a gate with a two-line stub")
         rc, out, err = _drive(stub_root, base, tip)
         check("stub world exits 1", rc == 1, "exit %d" % rc)
         check("stub world fails the deletion side of the size cap",
-              "FAIL guard instrument-size: instruments lose 60 lines > 40" in out,
-              out.strip()[-220:])
+              "FAIL guard instrument-size: instruments lose %d lines > %d"
+              % (LINE_CAP + 1, LINE_CAP) in out, out.strip()[-220:])
         check("stub world keeps the gates green", "tip battery exit 0: 6 of 6" in out,
               _last_line(out))
 
