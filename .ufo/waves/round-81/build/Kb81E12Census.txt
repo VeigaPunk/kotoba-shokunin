@@ -1,0 +1,302 @@
+Kb81E12Census — census + SOURCES mechanics (round 81, w1)
+seat: Kb81E12Census (executor, leaf). lane: /home/vgpnk/Projects/shokunin/kotoba-shokunin
+lane base: b284223105f4d106f7e8f56ed4fd296c643cda0e (read-only; `git -C <lane> rev-parse HEAD`,
+             untracked there: .ufo/wapes, .ufo/waves/round-81/, plans/round-81.md)
+scratch:    /fast/scratch/hyaku/kotoba-r81/Kb81E12Census (clones of the lane, TMPDIR inside it)
+tools:      none installed. pacman untouched.
+inputs read (peer bytes, as drafted): .ufo/waves/round-81/build/Kb81S05SourcesEdits.patch
+             FINAL sha256 6d0d571795341fb99bb2ce326e48a3c6f805857376e0b93d06b5d4848ecea2c0
+             (an earlier draft, sha256 94606f8fd16a406ac7e8deaa2fb3b137fba3a6aabd7ec23b70432b2ce7a66e7c,
+             was measured first; both were applied to fresh base clones and both measure identically —
+             the delta is wording only, listed in §2b)
+             .ufo/waves/round-81/snapshots/S249.{md,fetch.json,manifest}, mistral-vibe-lsremote.txt,
+             pi-mono-lsremote.txt; .ufo/waves/round-79/snapshots/S23{0,1}.fetch.json;
+             build/Kb81E03ExtManifest.json + -fetch.txt; build/Kb81S01Lesson.md
+The rows were DRAFTED by Kb81S05SourcesEdits; this seat validated those bytes. It also derived its
+own variant first (published as Kb81E12Census-derived-alternative.patch, cross-check only — see F9).
+
+================================================================================
+1. BEFORE — census at the lane base (own exit capture, no pipeline)
+================================================================================
+$ /home/vgpnk/Projects/shokunin/scripts/sources-census.sh validate --root /home/vgpnk/Projects/shokunin kotoba
+  out: 31 x `kotoba W04 ...` + `kotoba ok /home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md`
+  exit 0            (W04 = duplicate URL across scopes; warnings never change the exit status)
+$ /home/vgpnk/Projects/shokunin/scripts/sources-census.sh census --root /home/vgpnk/Projects/shokunin kotoba
+  kotoba rows 174 | tier.A 135 | tier.B 22 | tier.C 17
+  kotoba status.mined 149 | status.queued 8 | status.rejected 17
+  FLEET rows 174 | tier.invalid 0 | status.invalid 0 | missing 0
+  exit 0
+$ grep -cE '^\|[[:space:]]*S[0-9]{3,}[[:space:]]*\|' corpus/SOURCES.md
+  174
+Cross-check of the committed base receipt `.ufo/waves/round-81/receipts/census-before.txt`:
+  `grep -c W04` = 31 ; `wc -l` = 32 (the 32nd line is the `ok` line). See F6.
+Clone-form before, same file through the validator's directory target:
+$ sources-census.sh validate /fast/scratch/hyaku/kotoba-r81/Kb81E12Census/clone   -> exit 0, `clone ok`
+$ sources-census.sh census   .../clone                                            -> exit 0, rows 174, identical tier/status vector
+
+================================================================================
+2. EXACT EDITS APPLIED (the round's SOURCES edits, as drafted + validated here)
+================================================================================
+Applied to a fresh base clone with `git apply --binary build/Kb81S05SourcesEdits.patch` (exit 0).
+The patch changes corpus/SOURCES.md only: 3 insertions, 1 deletion. Row 189 (S248) after edit,
+rows 190-191 (S249, S250) inserted after it. Cells below are the FINAL patch's content
+(sha256 6d0d5717…), re-applied and re-measured on clone commit a57d7bba020ed7f00ab62caf926a913e5ce786ab.
+
+2b. Delta between the two drafted patch versions (wording only; both measured identically)
+    S249 anchor: the short backticked digest `ac62c2df…` is dropped (the full hex stays); the
+      "(2026-10-27 local)" aside becomes "(host-local date 2026-10-27, TZ -03)".
+    S250 anchor: the commits-API line now states the chain — `api.github.com/repos/badlogic/pi-mono`
+      -> HTTP 301 to repository 1035029907 `earendil-works/pi` (1 redirect), that repository's
+      commits API at the sha -> HTTP 422, and the commit-pinned raw page path -> HTTP 404 with
+      0 redirects (raw.githubusercontent does not follow the rename); mistral-vibe pinned raw README
+      unchanged at HTTP 200, 77634 B, sha256 `fc48a5db…`.
+    S250 teaches: "absent from pi-mono" becomes "absent from the repository now served at the pi
+      page's repository path, `earendil-works/pi` (the GitHub 301 target of `badlogic/pi-mono`;
+      commits API 422 there)", and "no pi-mono commit identifies the served bytes" becomes "no commit
+      of that repository identifies the served bytes".
+    This seat re-verified every new clause: 301 -> /repositories/1035029907 (= earendil-works/pi),
+    422 "No commit found for SHA" there, commit-pinned raw pi path 404 with num_redirects 0,
+    mistral-vibe pinned raw README 200 / 77,634 B / sha256 fc48a5db….
+
+E1. S248 `used-by`, old -> new (nothing else on the row changes; status stays `queued`):
+    old cell: `—`
+    new cell: `corpus/knowledge/allowed-tools-sdk-round81.md`
+
+E2. S249 — new row (11 cells), appended after S248:
+    id        S249
+    source    Claude Code Agent SDK — Skills — https://code.claude.com/docs/en/agent-sdk/skills.md
+    kind      docs
+    tier      A
+    scope     The Agent SDK's allowedTools/allowed_tools query-configuration grant channel and the
+              managed-settings override that disables it, as the SDK vendor's own statement of that option
+              (distinct from S248's scope cell: S248 measures the SKILL.md frontmatter field)
+    anchor    § Pre-approve tools for skills, blockquote at line 348 (grant note line 389); snapshot
+              `.ufo/waves/round-81/snapshots/S249.md` and fetch record
+              `.ufo/waves/round-81/snapshots/S249.fetch.json`; fetched 2026-10-28T02:27:26Z, HTTP 200,
+              28395 B, sha256
+              ac62c2dff61ef07bb778e5d115060e22f3f061fa3eca402be9b886946f01e5a2 (host-local date
+              2026-10-27, TZ -03), two fetches byte-identical (cmp rc=0, 0 redirects); located quote
+              "the allowedTools option (allowed_tools in Python) in your query configuration" (10 words)
+    teaches   In SDK sessions a skill's allowed-tools frontmatter and the allowedTools query option
+              both pre-approve the named tools; allowManagedPermissionRulesOnly in managed settings
+              makes Claude Code ignore both; the list pre-approves rather than restricts
+    status    mined | opened 2026-10-27 | recheck 90d
+    used-by   corpus/knowledge/allowed-tools-sdk-round81.md, corpus/lessons/round-81.md
+
+E3. S250 — new supersede row (11 cells), appended after S249:
+    id        S250
+    source    kotoba own work — git ls-remote, GitHub commit API and commit-pinned raw probes,
+              mistralai/mistral-vibe versus badlogic/pi-mono, run 2026-10-27 exit 0   (no URL: own-work)
+    kind      own-work | tier A
+    scope     Which repository commit 7bb48f213ac677f943d5c791199ed3dddf302f00 belongs to, and what
+              pi-mono's head and served page blob are
+    anchor    `git ls-remote .../mistral-vibe refs/heads/main` → `7bb48f21…` rc 0 at 2026-10-28T02:28:05Z;
+              commits API 200 (mistral-vibe) / 422 "No commit found for SHA" (pi-mono);
+              commit-pinned raw README 200, 77634 B, sha256 `fc48a5db…`; pi-mono main `a9228305…` rc 0
+              (r79 `bb65e3e4…`, r80 reopen `85c2ee3e…`, path commit `25cc5c7b…`); receipts
+              `.ufo/waves/round-81/build/Kb81S05SourcesEdits-binding.txt`
+    teaches   opens exactly `supersedes S230 —` ; states the hash is mistralai/mistral-vibe's
+              refs/heads/main and absent from pi-mono (API 422), pi-mono's head moved across
+              r79/r80/now while the served page blob (sha1 19d2bf28…) is unchanged
+    status    mined | opened 2026-10-27 | recheck 90d
+    used-by   corpus/knowledge/allowed-tools-surfaces-round80.md, corpus/lessons/round-81.md
+
+Fixture files this seat added to the measured clone ONLY (NOT part of the patch, NOT published):
+  corpus/knowledge/allowed-tools-sdk-round81.md  (12 lines, marked CENSUS FIXTURE)
+  corpus/lessons/round-81.md                     (4 lines, marked CENSUS FIXTURE)
+They exist so E11 resolves; the real files are Kb81E08C2Entry's entry and the round lesson.
+
+================================================================================
+3. AFTER — census on the patched clone
+================================================================================
+Final patch (6d0d5717) on clone6, commit a57d7bba020ed7f00ab62caf926a913e5ce786ab — the numbers
+below are from clone6; the earlier draft (94606f8f) on clone5, commit
+3750c45b187d82c479020eedbcb032ad49f3cf85, measured the identical vector.
+$ sources-census.sh census /fast/scratch/hyaku/kotoba-r81/Kb81E12Census/clone6
+  clone6 rows 176 | tier.A 137 | tier.B 22 | tier.C 17
+  clone6 status.mined 151 | status.queued 8 | status.rejected 17
+  FLEET rows 176 | tier.invalid 0 | status.invalid 0 | missing 0
+  exit 0
+$ sources-census.sh validate .../clone6
+  out: 32 x W04 + `clone6 ok .../corpus/SOURCES.md`   exit 0   (0 E-codes)
+  the one added W04: `S249 duplicate url code.claude.com/docs/en/agent-sdk/skills.md across scopes`
+$ grep -cE '^\|[[:space:]]*S[0-9]{3,}[[:space:]]*\|' .../clone6/corpus/SOURCES.md
+  176   (last ids S249, S250)
+$ awk -F'|' '/^\| S24[89] |^\| S250 /{printf "%s NF=%d cells=%d\n",$2,NF,NF-2}' .../clone6/corpus/SOURCES.md
+   S248  NF=13 cells=11
+   S249  NF=13 cells=11
+   S250  NF=13 cells=11
+Delta: rows 174->176 (+S249 +S250) | tier.A 135->137 | tier.B 22 | tier.C 17
+       mined 149->151 | queued 8 | rejected 17 | invalid 0 | missing 0 | W04 31->32 | E 0->0
+The directory target form is used because a clone is not a row of `shokunin.conf`; the script's own
+resolve_targets maps a directory to `<dir>/corpus/SOURCES.md` with `<dir>` as the E11 root.
+
+Ordering is load-bearing (E11 is only checked for `mined` rows):
+$ sources-census.sh validate .../clone6   with the two fixture files NOT present
+  clone6 E11 S249 missing used-by corpus/knowledge/allowed-tools-sdk-round81.md
+  clone6 E11 S249 missing used-by corpus/lessons/round-81.md
+  clone6 E11 S250 missing used-by corpus/lessons/round-81.md
+  exit 1
+=> the C2 entry and the round-81 lesson must land in the same commit as these rows.
+
+Recheck cadence (the rows' `recheck 90d` cells):
+$ sources-census.sh overdue .../clone   -> 173 cadence lines, exit 0
+$ sources-census.sh overdue .../clone6  -> 173 cadence lines, exit 0 (S249 and S250 each add one
+    `cadence S249/S250 recheck=90d opened=2026-10-27` line, no new `overdue` line; the diff of the two
+    outputs after stripping the target column is empty)
+
+================================================================================
+4. MUTATION / CONTROL TREE (validator, own exit status per world)
+================================================================================
+Driver: /fast/scratch/hyaku/kotoba-r81/Kb81E12Census/mutate-driver.py (fixture-only; builds a fresh
+base clone per world, applies the variant-A patch, mutates one cell, runs `validate <dir>`).
+Full JSON: Kb81E12Census-mutations.json
+  M0 unmutated                                     exit 0   W04
+  M1 S249 scope := S248 scope                      exit 1   E04 `S249 duplicate url ... within scope ...`
+  M2 S249 (mined) used-by -> missing path          exit 1   E11
+  M3 S248 (queued) used-by -> missing path         exit 0   W04 only  <-- no E11 (see F4)
+  M4 S249 opened := 2026-11-02                     exit 1   E08 `opened=2026-11-02`
+  M5 `|` inside the S249 anchor cell               exit 1   E01 `fields=12` (NF=14)
+  M6 S249 tier C + mined + used-by                 exit 0   W01 only (warning)
+  M7 S249 id := S248                               exit 1   E03 `S248 duplicate id`
+
+================================================================================
+5. C1 INTERACTION — commit classes before/after (base instruments, same tree class)
+================================================================================
+$ python3 -B verifiers/verify_corpus_integrity.py --repo <tree> --json --no-baseline
+  before (lane at base): exit 1 | commit_total 46 | commit_unresolvable 2
+          detail ['corpus/SOURCES.md:171: 7bb48f21…', 'corpus/SOURCES.md:172: 7bb48f21…']
+          commit_nonhash 0 | commit_truncated 4 | commit_quoted_excluded 6
+          report_total 111 | report_dead 1 | unindexed 1 | tracked_files 155
+  after  (patched clone6, final patch): exit 1 | commit_total 46 | commit_unresolvable 2  (SAME two sites)
+          commit_nonhash 0 | commit_truncated 5 | commit_quoted_excluded 6
+          report_total 111 | report_dead 1 | unindexed 3 | tracked_files 157
+          (the earlier patch draft on clone5 gave the identical vector)
+  * The rows add ZERO `commit \`<hex>\`` tokens: the plan's "both hex occurrences" arithmetic and
+    the manifest-keyed class stay at two sites. S250 cites full hex values without the
+    `commit \`…\`` grammar, so nothing new reaches the resolver.
+  * One new `commit_truncated` token appears at corpus/SOURCES.md:191 (`25cc5c7b…`, pi-mono's path
+    commit). It stays in the green INFO class; the class reads 4->5, so any receipt pinning
+    "commit_truncated 4" at the r81 tip must say 5 (F3).
+  * unindexed 1->3 and tracked_files 155->157 are the two fixture files (no coverage rows); the real
+    entry/lesson get their rows in R4 and the baseline refresh absorbs the counts.
+Measured counterfactual (variant B, same rows but S250 writes `commit \`7bb48f21…\``):
+  clone3/gate-B.json -> exit 1 | commit_total 47 | commit_unresolvable 3
+          detail adds 'corpus/SOURCES.md:191: 7bb48f21…'
+  So the citation form is load-bearing under base instruments; under r81's hash-keyed
+  verifiers/external-commits.json it would classify external instead. The landed text keeps both
+  the plan's declared count and the base-gate count unchanged.
+
+================================================================================
+6. S230 SUPERSEDE BINDING — re-derived, not trusted from the row
+================================================================================
+The S230 anchor's own text attributes 7bb48f213ac677f943d5c791199ed3dddf302f00 to
+badlogic/pi-mono. Independent re-derivation by this seat (2026-10-28T02:28-02:31Z):
+$ git ls-remote https://github.com/mistralai/mistral-vibe refs/heads/main
+  7bb48f213ac677f943d5c791199ed3dddf302f00   refs/heads/main            rc 0
+$ git ls-remote https://github.com/badlogic/pi-mono refs/heads/main
+  a92283056d915c758799fcd904948ff0cb42628c   refs/heads/main            rc 0
+$ git ls-remote https://github.com/badlogic/pi-mono | wc -l ; grep -c 7bb48f21… (full ref adv.)
+  4120 refs ; 0 hits (grep rc 1)        -> absent from every advertised ref
+$ curl -sS https://api.github.com/repos/mistralai/mistral-vibe/commits/7bb48f21…  -> HTTP 200 (sha equal)
+$ curl -sSL https://api.github.com/repos/badlogic/pi-mono/commits/7bb48f21…
+  -> 301 to /repositories/1035029907, then HTTP 422 {"message":"No commit found for SHA: ..."}
+$ curl -sS https://api.github.com/repositories/1035029907  -> HTTP 200 full_name "earendil-works/pi"
+FETCH-CLOSURE of badlogic/pi-mono: GET https://api.github.com/repos/badlogic/pi-mono -> 301 to
+  repository id 1035029907, whose full_name is `earendil-works/pi`; `git ls-remote` on both slugs
+  returns the same head a9228305…. So the pi-mono slug currently redirects to a renamed repository.
+$ curl -sSL https://raw.githubusercontent.com/badlogic/pi-mono/main/packages/coding-agent/docs/skills.md
+  HTTP 200, 4793 B, sha256 5b9805525b194474ef1fe5455a0917ef15ed7f710aa9bec2eee11879556469e5
+  = the r79/S230 record's digest -> the served page blob is unchanged (freshness of the r80 row holds).
+$ commit-pinned raw probes (the clauses the final patch adds)
+  https://raw.githubusercontent.com/badlogic/pi-mono/7bb48f21…/packages/coding-agent/docs/skills.md
+    -> HTTP 404, num_redirects 0   (raw.githubusercontent does not follow the rename)
+  https://raw.githubusercontent.com/mistralai/mistral-vibe/7bb48f21…/README.md
+    -> HTTP 200, 77634 B, num_redirects 0   (matches the row's fc48a5db… / 77,634 B claim)
+Verdict: the hash belongs to mistralai/mistral-vibe (refs/heads/main, HEAD and commit-pinned raw all
+agree) and is absent from pi-mono's repository id. S250's `supersedes S230 —` sentence and its
+anchor facts match this re-derivation; the plan's `mistralai/mistral-vibe` binding is VERIFIED.
+Agreement with Kb81E03ExtManifest.json ({"hash": 7bb48f21…, "repo": "mistralai/mistral-vibe",
+"evidence": ".ufo/waves/round-79/snapshots/S231.fetch.json"}) — hash-keyed, so every occurrence of the
+hash is covered, not one line.
+
+================================================================================
+7. S249 PIN + QUOTE — verified against the committed snapshot and my own fetch
+================================================================================
+$ sha256sum .ufo/waves/round-81/snapshots/S249.md
+  ac62c2dff61ef07bb778e5d115060e22f3f061fa3eca402be9b886946f01e5a2   (28395 B, 520 lines)
+  snapshots/S249.manifest: same digest + S249.md
+  snapshots/S249.fetch.json: url code.claude.com/docs/en/agent-sdk/skills.md, http 200, bytes 28395,
+    sha256 ac62c2df…, fetched_utc 2026-10-28T02:27:26Z
+$ curl -sSL -A 'Mozilla/5.0' https://code.claude.com/docs/en/agent-sdk/skills.md   (my own fetch)
+  HTTP 200, 28395 B, sha256 ac62c2df… -> byte-identical to the snapshot and to S248's recorded digest
+Text view (links -> text, backticks removed, whitespace collapsed), first heading at line 5:
+  "the allowedTools option (allowed_tools in Python) in your query configuration"   1 hit, 10 words
+  "In SDK sessions, you can pre-approve tools ... with the allowedTools option"    1 hit, 23 words
+  "If your organization sets allowManagedPermissionRulesOnly in managed settings,
+   Claude Code ignores both."                                                      1 hit, 12 words
+  all three occur only on raw line 348, after the first heading (Q70) -> conjunct (d) is satisfiable
+  from committed bytes; the 10-word span is the one the row carries.
+
+================================================================================
+8. FINDINGS (measured; F1-F3 are for the L1's integration, F4-F7 are calibration/freshness)
+================================================================================
+F1  Rows validate on committed bytes: NF=13 / 11 cells on S248, S249, S250; `validate` exit 0 with
+    the entry+lesson present; rows 174->176; A 135->137; mined 149->151; one new W04 (warning).
+F2  The rows are order-bound to their targets: without the C2 entry and the round-81 lesson the same
+    validator exits 1 with exactly three E11 lines. Same-commit landing is mandatory.
+F3  `commit_truncated` moves 4->5 (new site corpus/SOURCES.md:191 `25cc5c7b…`); `commit_unresolvable`
+    stays 2 at the same sites, `commit_total` 46, `commit_nonhash` 0, `commit_quoted_excluded` 6.
+F4  Calibration gap: E11 only path-checks `mined` rows (M3: a queued S248 with a dangling used-by
+    validates exit 0). C2 conjunct (e) is therefore not census-enforced — `check_sdk_allowed_tools.py`
+    must assert that S248's used-by path exists, not just that the cell text names the entry.
+F5  Drift, lesson vs rows (CORRECTED by the lesson seat while this receipt was being written):
+    Kb81S01Lesson.md line 35 had recorded S248's new cell as
+    `corpus/knowledge/allowed-tools-sdk-round81.md, corpus/lessons/round-81.md`; the patch sets the
+    entry only. Re-read after the fix: `grep -c 'lessons/round-81.md' build/Kb81S01Lesson.md` = 0, so
+    the lesson no longer states a cell value that opposes the row. No action left.
+F6  Drift, lesson vs receipt (CORRECTED by the lesson seat): line 33 had said the round-start census
+    printed "32 W04 duplicate-URL warnings"; the committed
+    `.ufo/waves/round-81/receipts/census-before.txt` and my re-run both carry 31 W04 lines (32 output
+    lines = 31 W04 + `ok`). Re-read after the fix: line 33 now reads "**31** W04 ... (the receipt's 32
+    output lines are those 31 W04 lines plus the single `ok` line)". No action left.
+F7  Freshness (INCORPORATED by the final patch, re-verified here): the `pi-mono` slug redirects —
+    `api.github.com/repos/badlogic/pi-mono` -> HTTP 301 to repository 1035029907, `full_name`
+    `earendil-works/pi`; that repository's commits API at the hash -> HTTP 422; the commit-pinned raw
+    page path -> HTTP 404 with 0 redirects; mistral-vibe's commit-pinned raw README -> HTTP 200,
+    77,634 B. The final S250 anchor and teaches state exactly this chain, and the served pi page blob
+    is unchanged (sha256 5b980552…, 4,793 B), so the binding and the 90d recheck rationale hold.
+F8  Tier: S249 is tier A as drafted (vendor's own statement of its own option); the same page's S248
+    stays tier B (its subject is the spec-owned frontmatter field). Both pass the validator; E10 only
+    bars community-at-A. No change requested.
+F9  This seat's independently derived variant (published as Kb81E12Census-derived-alternative.patch,
+    sha256 f53a503661ef3599f25599f5cebd79a8ec0aafec00a67db9374ac47d03e598d7) differs: S249 tier B,
+    S250 kind `code` + URL in the source cell + used-by `verifiers/external-commits.json`, S248
+    used-by including the lesson. It also validates (176 rows, exit 0). The scribe's text is the one to
+    integrate; the variant exists only to show the row shape is robust to those choices.
+F10 Not measured here: the C2 counter's own output and the C1 tip battery. Those bytes belong to
+    Kb81E09C2Counter / the battery seats; this seat measured the registry side only.
+F11 RESOLVED (the two numbers describe two different artefacts, measured): the row's anchor quotes
+    `the allowedTools option (allowed_tools in Python) in your query configuration` (10 words) and the
+    C2 entry (`build/allowed-tools-sdk-round81.md:1`) quotes
+    `frontmatter or with the allowedTools option (allowed_tools in Python) in your query configuration`
+    (13 words). Both spans occur exactly once in the S249 snapshot's text view (links -> text, backticks
+    deleted), both on raw line 348. Kb81S01Lesson.md line 35 now names both, so no drift remains.
+F12 Text-view convention is load-bearing for conjunct (d), and the entry's line 81 depends on it:
+    measured on the committed snapshot with two views —
+      V1 links -> text, backticks deleted: 10w 1 hit, 13w 1 hit, 23w 1 hit
+      V2 link targets kept, backticks deleted: 10w 1 hit, 13w 1 hit, 23w 0 hits
+    The 23w span is S248's inherited quote. So the entry's claim that the round-80 quote "occurs 0
+    times in the text view" is true only under V2; under V1 it is 1 hit. C2's counter must state which
+    view it uses, otherwise S248's row looks defective or not depending on the checker.
+
+F13 Correction registration (Q29) checked, not assumed: `python3 -B verifiers/check_correction_sweep.py
+    --root .` at the lane base -> `correction sweep: 0 stale block(s)`, exit 0, and the registry holds
+    no S230 / 7bb48f / pi-mono / mistral-vibe entry (`grep` = 0 hits). Q29's scope enumerates README,
+    SCORECARD, SKILL.md, PROVINCE.md and knowledge entries; an append-only SOURCES row is the audit
+    trail and is not sweep input, so the S250 supersede row does not create an unregistered correction
+    there. The r80 knowledge entry's own note ("A future correction must add a superseding source row
+    under CORPUS rule 2") is satisfied by S250; its stale-attribution sentence is explicitly historical.
+
+VERDICT: The drafted SOURCES edits (S249 docs/A/mined, S250 own-work/A/mined opening `supersedes S230 —`, S248 used-by `—` -> entry) parse to 11 cells each, move the census 174->176 rows with exit 0 in both census and validate (one new W04, zero E-codes) provided the C2 entry and the round-81 lesson land in the same commit, add no commit token (unresolvable stays 2 at SOURCES.md:171/172, truncated 4->5), and the S230 supersede text cites the re-verified mistralai/mistral-vibe binding (ls-remote 200/422, 4120-ref zero-hit sweep, hash-keyed manifest).
+DELIVERABLES: /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-81/build/Kb81E12Census.txt; /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-81/build/Kb81E12Census-mutations.json; /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-81/build/Kb81E12Census-derived-alternative.patch; /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-81/w1/Kb81E12Census.md

@@ -1,0 +1,44 @@
+# Kb81E16Shokuknow — staged-id collision guard proof (round 81, w1)
+# Scratch: /fast/scratch/hyaku/kotoba-r81/Kb81E16Shokuknow/guardproof (fixture only; no lane file touched).
+# Date: 2026-10-27. Guard under test: the 0-3-leading-space id extractor used for both sides of comm -12.
+
+## fixture fx-lane.md
+| id | source |
+|---|---|
+| S001 | column-zero row |
+   | S210 | 3-space indented row |
+  | S211 | 2-space indented row |
+| S212 | column-zero row |
+## fixture fx-staged.md
+| id | source |
+|---|---|
+| S210 | staged row |
+| S211 | staged row |
+| S300 | staged only |
+
+$ grep -oE "^ {0,3}\|[[:space:]]*S[0-9]{3,}" fx-lane.md | grep -oE "S[0-9]+" | sort -u
+S001 S210 S211 S212 
+$ grep -oE "^ {0,3}\|[[:space:]]*S[0-9]{3,}" fx-staged.md | grep -oE "S[0-9]+" | sort -u
+S210 S211 S300 
+$ ... | comm -12  (0-3-space extractor, GUARD FORM)
+S210 S211 
+collisions_found=2
+
+$ grep -oE "^\|[[:space:]]*S[0-9]{3,}" fx-lane.md | grep -oE "S[0-9]+" | sort -u   # naive column-zero-only
+S001 S212 
+collisions_found=0   # FALSE GREEN: both real collisions missed
+
+## residual bound: leading whitespace outside 0-3 spaces
+$ grep -oE "^ {0,3}\|[[:space:]]*S[0-9]{3,}" fx-4space.md   # 4-space indent
+ matched=0
+$ grep -oE "^ {0,3}\|[[:space:]]*S[0-9]{3,}" fx-tab.md      # tab indent
+ matched=0
+$ grep -oE "^[[:space:]]*\|[[:space:]]*S[0-9]{3,}" fx-4space.md fx-tab.md   # any-indent variant catches both
+fx-4space.md:    | S210 fx-tab.md:	| S210 
+
+## live files: 0-3-space vs any-indent (no blind spot today)
+lane corpus/SOURCES.md @ b2842231: 0-3 ids=174 any-indent ids=174
+staged SOURCES.append.md:        0-3 ids=188 any-indent ids=188
+0-3 collisions=46   any-indent collisions=46
+rows in lane SOURCES.md with 4+ leading spaces before '| S': 0
+rows in staged append not at column 0: 0

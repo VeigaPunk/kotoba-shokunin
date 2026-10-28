@@ -1,0 +1,37 @@
+# Kb81N01Sentinel (b) in-flight seat write-target map + collision risks
+# source: .ufo/waves/round-81/w1-spec.json (64 items; keys axes/name/prompt/role)
+# method: regex every round-81/build/<name> and lane path out of each seat's prompt text; report names cited by 2+ seats
+
+## build filenames cited by 2+ seats
+Kb81E01Integrity.patch      <- Kb81E01Integrity (writes), Kb81E02Independent ('IF PRESENT'), Kb81V01C1 (reviews) => read/review, no collision
+Kb81E03ExtManifest.json     <- Kb81E03ExtManifest (writes), Kb81E01Integrity (reads) => no collision
+Kb81E16Shokuknow-slice.txt  <- Kb81E16Shokuknow, Kb81S12AssimDisp => both probe the same slice; last writer wins (verify content equality)
+check_sdk_allowed_tools.py  <- Kb81E09C2Counter (builds), Kb81E07C2Worlds (runs) => no collision
+refresh-corpus-baseline.py  <- Kb81E04Baseline (runs), Kb81E13FixtureGuard (audits) => no collision
+run-battery.sh              <- Kb81E10Battery (writes), Kb81E13FixtureGuard (audits) => no collision
+
+## lane paths cited by 2+ seats (write vs cite)
+verifiers/external-commits.json <- E01 (reads E03 manifest, binds classification), E02 (binds), E03 (authors). RISK: E01 and E02 are independent patches against base; if BOTH carry a 'new file' hunk for verifiers/external-commits.json, the second git apply/fast-import cannot apply cleanly. L1 must add the file once (E03 artifact) and keep E01/E02 patches referencing it; check with sequential 'git apply --check'.
+corpus/lessons/round-81.md <- S01 authors the full lesson; S05 cites it in a used-by cell; S08 cites it in README => only S01 writes, no collision
+corpus/knowledge/allowed-tools-sdk-round81.md <- E08 authors the entry; S05/S09 cite => no collision
+
+## round-80 prerequisites referenced by r81 seats
+PRESENT     2274 .ufo/waves/round-80/build/Kb80E04DeadPointer.patch
+PRESENT    24902 .ufo/waves/round-80/w1/Kb80E04DeadPointer.md
+PRESENT     7341 .ufo/waves/round-80/build/Kb80E05GrammarFix.patch
+PRESENT     7470 .ufo/waves/round-80/w1/Kb80E05GrammarFix.md
+PRESENT    20188 .ufo/waves/round-80/build/refresh-corpus-baseline.py
+PRESENT    12199 .ufo/waves/round-80/build/run-battery.sh
+PRESENT     7388 .ufo/waves/round-80/w1/Kb80E15BaselineOrder.md
+PRESENT     2091 .ufo/waves/round-79/snapshots/S230.fetch.json
+PRESENT      866 .ufo/waves/round-79/snapshots/S231.fetch.json
+Kb80C01C1-canonical-*.txt receipts: 30 files
+
+## patches present at sweep time (23:29-23:33)
+5445 .ufo/waves/round-81/build/Kb81E04Baseline.patch
+7536 .ufo/waves/round-81/build/Kb81S05SourcesEdits.patch
+9199 .ufo/waves/round-81/build/Kb81S08ReadmeRows.patch
+4645 .ufo/waves/round-81/build/Kb81S08ReadmeRows.stageA.patch
+5516 .ufo/waves/round-81/build/Kb81S09SkillRule-SKILL.patch
+3587 .ufo/waves/round-81/build/Kb81S10Province.patch
+7508 .ufo/waves/round-81/build/Kb81S16CensusLog-SOURCES-rows.patch

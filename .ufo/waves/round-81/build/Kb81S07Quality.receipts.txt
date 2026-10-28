@@ -1,0 +1,163 @@
+# Kb81S07Quality receipts — Q76 stray-artifact criterion, demonstrated able to fail
+# host-tz utc: 2026-10-28T02:28:11Z   scratch clone: /fast/scratch/hyaku/kotoba-r81/Kb81S07Quality/clone
+# base rev: b284223105f4d106f7e8f56ed4fd296c643cda0e   toplevel: /fast/scratch/hyaku/kotoba-r81/Kb81S07Quality/clone
+
+## W1 base state: the stray artifact present, untracked
+$ cp <lane>/.ufo/wapes .ufo/wapes    # base b2842231 does not carry untracked bytes; recreated from the lane worktree
+$ sha256sum .ufo/wapes
+930e2bd6b306b973a81144572f0b93a333379e501bffae1a8f8c50ec84dd6020  /fast/scratch/hyaku/kotoba-r81/Kb81S07Quality/clone/.ufo/wapes
+rc=0
+$ wc -c < .ufo/wapes
+594
+$ git -C "$C" status --porcelain
+?? .ufo/wapes
+rc=0
+$ git -C "$C" status --porcelain -- .ufo/wapes
+?? .ufo/wapes
+rc=0
+
+## W2 after the disposition move into the wave dir
+$ sha256sum .ufo/wapes    # identity recorded BEFORE the move
+930e2bd6b306b973a81144572f0b93a333379e501bffae1a8f8c50ec84dd6020  /fast/scratch/hyaku/kotoba-r81/Kb81S07Quality/clone/.ufo/wapes
+rc=0
+$ mv .ufo/wapes .ufo/waves/round-81/dispositions/wapes.txt
+rc=0
+$ sha256sum .ufo/waves/round-81/dispositions/wapes.txt
+930e2bd6b306b973a81144572f0b93a333379e501bffae1a8f8c50ec84dd6020  /fast/scratch/hyaku/kotoba-r81/Kb81S07Quality/clone/.ufo/waves/round-81/dispositions/wapes.txt
+rc=0
+$ test -e .ufo/wapes
+rc=1 (1 = absent)
+$ git -C "$C" status --porcelain -- .ufo/wapes
+rc=0 (no line between the command and this rc = prints nothing)
+$ git -C "$C" status --porcelain
+?? .ufo/waves/round-81/
+rc=0
+
+## W3 the corpus-index mechanism: a dump beside tracked corpus files, before/after staging
+$ git -C "$C" ls-files corpus/ | wc -l    # == verify_corpus_integrity corpus.index.tracked_files (verify_corpus_integrity.py:6,639,698)
+155
+$ git -C "$C" status --porcelain -- corpus/knowledge/debug-dump.txt
+?? corpus/knowledge/debug-dump.txt
+rc=0
+$ git -C "$C" ls-files corpus/ | wc -l    # unchanged while the dump stays untracked
+155
+$ git -C "$C" add -A
+rc=0
+$ git -C "$C" status --porcelain -- corpus/knowledge/debug-dump.txt
+A  corpus/knowledge/debug-dump.txt
+rc=0
+$ git -C "$C" ls-files corpus/ | wc -l    # tracked_files observable drifts by 1
+156
+rc=0
+
+## W4 unfiltered status at lane base (lane worktree, read-only, HEAD verified above)
+$ git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin rev-parse HEAD
+b284223105f4d106f7e8f56ed4fd296c643cda0e
+$ git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin status --porcelain
+?? .ufo/wapes
+?? .ufo/waves/round-81/
+?? plans/round-81.md
+rc=0
+
+## W5 row-shape check on a scratch copy with the proposed row appended (corpus/QUALITY.md at b2842231 + Q76)
+$ awk -F"|" "/^\\| Q76 /{print NF-2}" corpus/QUALITY.md    # field count minus the two edge empties
+5
+rc=0
+$ grep -c "^| Q76 " corpus/QUALITY.md
+1
+rc=0
+$ awk -F"|" "/^\\| Q[0-9]+ /{print NF-2}" corpus/QUALITY.md | sort -u    # all rows same width
+4
+5
+6
+rc=0
+$ git -C "$C" diff --stat -- corpus/QUALITY.md
+ corpus/QUALITY.md | 2 ++
+ 1 file changed, 2 insertions(+)
+rc=0
+$ git -C "$C" diff -- corpus/QUALITY.md | grep -c "^-[^-]"    # removed (rewritten) lines: 0 = pure append
+0
+rc=1
+
+## W6 the cell the row cites: baseline expectation, recorded clean-tree precondition, Q49/Q22 rows
+$ python3 -c "import json;d=json.load(open(\"verifiers/corpus-baseline.json\"));print(d[\"checks\"][\"corpus.index.tracked_files\"]);print(repr(d[\"measured_against\"][\"git_status\"]))"
+{'mode': 'equal', 'expect': 154}
+'clean (git status --porcelain empty at the recorded tip)'
+rc=0
+$ grep -n "^| Q49 \|^| Q22 " corpus/QUALITY.md | cut -d: -f1
+33
+60
+rc=0
+$ git -C <lane> ls-files corpus/ | wc -l    # live lane observable at b2842231
+155
+rc=0
+
+## W7 note on the Q75 row shape at b2842231 (finding, not repaired here: append-only file, seat may not edit corpus/)
+$ awk -F"|" "/^\\| Q[0-9]+ /{print NF-2}" corpus/QUALITY.md | sort | uniq -c
+      1 4
+     73 5
+      1 6
+$ sed -n "92p" corpus/QUALITY.md | tail -c 60     # Q75 ends "| —" with no closing pipe
+l worlds reached the frozen battery's 6 of 6, exit 0) | —
+
+## W5b row-shape re-check on the final wording (same scratch copy, QUALITY.md reset then row appended)
+$ awk -F"|" "/^\\| Q76 /{print NF-2}" corpus/QUALITY.md
+5
+rc=0
+$ grep -c "^| Q76 " corpus/QUALITY.md
+1
+rc=0
+$ git -C "$C" diff --numstat -- corpus/QUALITY.md   # added removed file
+1	0	corpus/QUALITY.md
+rc=0
+$ sed -n "/^| Q76 /p" corpus/QUALITY.md | wc -w
+206
+$ sed -n "/^| Q76 /p" corpus/QUALITY.md | grep -o "|" | wc -l    # 6 pipes = 5 cells
+6
+
+## W8 duplicate identity of the stray artifact (the disposition move loses no unique bytes)
+$ cmp .ufo/wapes .ufo/waves/round-80/build/Kb80C02C2-killproof.txt
+rc=0
+$ sha256sum .ufo/wapes .ufo/waves/round-80/build/Kb80C02C2-killproof.txt
+930e2bd6b306b973a81144572f0b93a333379e501bffae1a8f8c50ec84dd6020  /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/wapes
+930e2bd6b306b973a81144572f0b93a333379e501bffae1a8f8c50ec84dd6020  /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-80/build/Kb80C02C2-killproof.txt
+rc=0
+$ wc -c .ufo/wapes .ufo/waves/round-80/build/Kb80C02C2-killproof.txt
+ 594 /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/wapes
+ 594 /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-80/build/Kb80C02C2-killproof.txt
+1188 total
+rc=0
+
+## W5c row-shape check on the FINAL wording (M81-1 label + duplicate-identity clause)
+$ awk -F"|" "/^\\| Q76 /{print NF-2}" corpus/QUALITY.md
+5
+rc=0
+$ grep -o "|" | wc -l   # 6 pipes = 5 cells
+6
+$ git -C "$C" diff --numstat -- corpus/QUALITY.md
+1	0	corpus/QUALITY.md
+rc=0
+$ sed -n "/^| Q76 /p" corpus/QUALITY.md | wc -w
+232
+$ grep -c "M81-1" <<< "$(sed -n "/^| Q76 /p" corpus/QUALITY.md)"
+1
+$ grep -c "M81-2" <<< "$(sed -n "/^| Q76 /p" corpus/QUALITY.md)"
+1
+
+## W5d final shape + label hygiene (M81-1 present once, M81-2 absent from the row)
+$ awk -F"|" "/^\\| Q76 /{print NF-2}" corpus/QUALITY.md
+5
+rc=0
+$ grep -o "|" | wc -l
+6
+$ git -C "$C" diff --numstat -- corpus/QUALITY.md
+1	0	corpus/QUALITY.md
+rc=0
+$ sed -n "/^| Q76 /p" corpus/QUALITY.md | wc -w
+224
+$ sed -n "/^| Q76 /p" corpus/QUALITY.md | grep -c "M81-1"
+1
+rc=0
+$ sed -n "/^| Q76 /p" corpus/QUALITY.md | grep -c "M81-2"
+0
+rc=1 (1 = no match, as intended)

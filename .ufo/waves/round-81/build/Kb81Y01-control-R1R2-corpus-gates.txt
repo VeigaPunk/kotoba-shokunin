@@ -1,0 +1,21 @@
+CONTROL WORLD (not the claim's after-value): R1+R2 frozen patches applied to the base tree.
+scratch clone rev e87d6c273650b5de5ca4566f9d5859849a45fc65
+patches: Kb81E01Integrity.patch (apply exit 0), Kb81E02Independent.patch (apply exit 0)
+
+verify_corpus_integrity.py --repo <clone> --no-baseline --json
+  exit 1 (remaining reds are index/baseline only: R4 not applied)
+  report_total 111, report_dead 0, commit_total 46,
+  commit_unresolvable 0, commit_external 2,
+  unindexed 1, tracked_files 155
+
+verify_corpus_independent.py --repo <clone> --json
+  exit 1
+  report_total 111, report_dead 0,
+  commit_total 46, commit_unresolvable 0,
+  commit_external 2, unindexed 1,
+  tracked_files 155
+
+Reading: the frozen identity floor yields ZERO report false positives on the real corpus (0 vs the 10 the
+unscoped sentence produces), and both gates independently agree on report_dead 0 / commit_unresolvable 0 /
+commit_external 2 (two citation sites, one hash) -- including E02's stricter "receipt must carry the hash"
+rule, which the live S231 receipt satisfies. What is left red is exactly R4's territory.

@@ -1,0 +1,30 @@
+## Kb81C03Residual receipts — 2026-10-28T00:28:42-03:00
+### base gates (lane HEAD b2842231, live)
+integrity: report_dead 1 [round-77-verifier-spotcheck.md:15 HEAD:.ufo/...]; unresolvable 2 (SOURCES 171,172); trunc 4; quoted 6; nonhash 0; report_total 111
+independent: report_dead 0; unresolvable 2; report_total 111 (PLAN TRIGGER SAYS dead=1 — STALE; fleet file exists on disk)
+fleet: cat-file -e HEAD:.ufo/reports/round-77/kotoba.md exit 0, 8547B, has '## SHONEN'; lane HEAD: exit 128
+
+### World A (dead rev prefix on live path), BASE gates
+integrity: report_dead=2 (HEAD:.ufo/... + nosuchrev81:.ufo/...)
+independent: report_dead=0  <-- colon-blind grammar stripped the rev, fleet-hopped to the live file
+### World A under AMENDED E01+E02 (scratch c52345d)
+integrity report_dead=1 (nosuchrev81); independent report_dead=1 (nosuchrev81)  <-- R1 fix verified on both gates
+external=2 (S230/S231 7bb48f21 in both gates), unres=1->0 for that hash; r77 HEAD: object resolves (identity ok)
+
+### World B (laundering arm), base AND amended
+commit 'deadbee0x5(40hex)…' -> commit_truncated (context) in BOTH gates; same token without … -> commit_unresolvable
+integrity trunc=5 (4 corpus + probe); independent trunc=5. RESIDUAL: full-hash + ellipsis never reaches unresolvable
+
+### World D (path-route marker, HEAD@{1}:, foo.md:15:)
+E01 dead: absolute-path marker + foo.md:15:lineref + HEAD@{1} (3); E02 dead: absolute-path marker only
+E02 CANNOT glue HEAD@{1}: or word:digits: revs -> downgrades to bare-path fleet hop -> LIVE where E01 reads DEAD
+
+### carry (refresh-corpus-baseline.py, r81 copy = r80 copy byte-identical)
+no-carry on dirty-zero tree: REFUSED exit 2 ('zero-mode corpus.index.unindexed observed 3'); index classes can never be carried
+soft divergence tolerated + printed: 'gate disagreement ... report_dead integrity 2 vs independent 0' — refresh proceeds
+row['expect']=0 is unconditional for zero-mode; carry records count only in note prose (class-level, count-unbounded)
+
+### clean instrument stack (base+E01+E02, scratch c15ebe88)
+integrity zero classes: report_dead 0, unresolvable 0, nonhash 0 PASS; DRIFT only equal-mode tracked_files 155 / report_total 111 / unindexed 1
+independent: dead 0, unres 0, ext 2, trunc 4, totals report 111 / commit 46; exit 1 only from unindexed/equal-mode
+NO NEW RED CLASS introduced; commit_external is INFO (not in CHECKS / never zero-mode)

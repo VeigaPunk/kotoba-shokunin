@@ -1,0 +1,27 @@
+Kb81C01C1 — scored identity-binding controls
+Base: b284223105f4d106f7e8f56ed4fd296c643cda0e
+Counter bytes: published round-81 E05 patch (actual LINE_CAP=900, not plan-frozen 140).
+All scored counter runs used `TMPDIR=/fast/scratch/hyaku/kotoba-r81/Kb81C01C1/<world>/tmp`, lane dir `kotoba-shokunin`, and explicit `--fleet`; exact outputs are in the matching `*-tipbattery.txt` receipts.
+
+W-A forged external binding (world rev f7388d3bf43af15b0d23386e965533ffec78e9fb)
+  Counter: `python3 -B verifiers/check_tip_battery.py --repo "$W" --fleet /home/vgpnk/Projects/shokunin --rev f7388d3bf43af15b0d23386e965533ffec78e9fb`
+  Observed: guards 5/5; six gates exit 0; `tip battery exit 0: 6 of 6`; counter rc=0.
+  False state: H=8b1cc1b00a9322cd8e231d87e015e1d75d20adc1 was committed in the dead-source clone (cat-file rc=0), absent from measured lane and fleet (both cat-file rc=128). The measured tree adds a fabricated, committed receipt asserting H at `wrong-owner/wrong-repo`, plus a manifest row pointing to it and a matching receipt SHA256. Both corpus gates classify H external; the world refresh is 9/9 (rc=0). Receipt bytes are test-authored, not a fetched ls-remote record. See `Kb81C01C1-identity-evidence.txt`, `Kb81C01C1-world-a-refresh.txt`, and the counter receipt.
+
+W-B receipt with no hash line (world rev 0b3425645577cd38dbfd6ff058c65b8d61886215)
+  Counter: same command form with this rev; observed guards 5/5, `5 of 6`, counter rc=1 (independent gate exit 1).
+  Receipt names `wrong-owner/wrong-repo` but contains no hash/ls-remote line. Integrity reports `commit_unresolvable=0`; independent reports one unresolvable hash (existing two S231 citations stay bound). This shows E01 accepts receipt existence + repository-name substring without checking the hash; E02 rejects. See `Kb81C01C1-world-b-refresh.txt` and counter receipt.
+
+W-C non-report `HEAD:<path>` blob with report marker (world rev 4488e7f0a55d7d1f5968b5be7ebb42f54f073785)
+  Counter: same command form with this rev; observed guards 5/5, six gates exit 0, `6 of 6`, counter rc=0.
+  `HEAD:.ufo/reports/round-77/kotoba.md` resolves in lane to an explicitly fabricated “substituted marker” blob, 816 bytes, containing `## SHONEN` and padding but no report content. Both corpus gates accept it; refreshed gate baseline is green. This is a direct false-positive for the plan's non-report-blob control. See `Kb81C01C1-identity-evidence.txt`, `Kb81C01C1-world-c-refresh.txt` if present, and counter receipt.
+
+W-D lane/fleet `HEAD:` objects differ (world rev b8735de2995a702117186984d9fe6938394cac1a)
+  Counter: same command form with this rev; guards 5/5, `5 of 6`, counter rc=1.
+  Lane object is a 7-byte `marker` (blob 5abed26af8585d58b8923135234ca8d1d77128b4); fleet object is the real 8547-byte report (blob 9f1096f405060ee05ebc326e9d3555da83b7498b). Integrity reports report_dead=0 because it accepts `any()` valid route; independent is lane-first and reports report_dead=2 (existing HEAD pointer plus the new probe). The specified repo-first resolution should make lane HEAD win and fail identity; the two witnesses disagree. See `Kb81C01C1-identity-evidence.txt`, `Kb81C01C1-world-d-integrity.json`, `Kb81C01C1-world-d-independent.json`, and counter receipt.
+
+W-E reconstructed W10 fake-fleet marker (world rev ad98a48c9dda5cd62891c93daa0fded2d5e29842)
+  Counter: `python3 -B verifiers/check_tip_battery.py --repo "$W" --fleet /fast/scratch/hyaku/kotoba-r81/Kb81C01C1/world-e/fleet --rev ad98a48c9dda5cd62891c93daa0fded2d5e29842`
+  Observed guards 5/5, `2 of 6`, counter rc=1. Both corpus gates report report_dead=1 for `../../.ufo/reports/round-76/kotoba.md`; the symlink resolves into a separately cloned/committed fake fleet whose report blob is `marker`. W10 is rejected; it does not green wrongly. See `Kb81C01C1-world-e-fleet-evidence.txt`, gate JSON receipts, and counter receipt.
+
+Counter-specific blocker: the plan freezes E6 `LINE_CAP=140`, while the published E05 patch sets it to 900. Every scored receipt therefore prints cap=900. Current composed measured spend in those receipts is 402 added / 29 deleted; the frozen 140 bound would reject this tree by 262 added lines (guard arithmetic; no separate 140-cap run was performed). Thus W-A and W-C falsify the published 900-cap implementation, but cannot be called valid 6/6 outcomes under the plan's frozen counter. Separately, the cap change itself is a plan-contract defect: no claim after-value is admissible on these bytes.

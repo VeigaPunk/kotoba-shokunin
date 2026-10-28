@@ -1,0 +1,54 @@
+Kb81E05Erratum — E6 hunk inventory (round 81, plans/round-81.md § C1, erratum E6 as revised
+pre-freeze by the L1: LINE_CAP = 900, and the two corpus-gate pin rows are TIGHT tuples)
+Base: b284223105f4d106f7e8f56ed4fd296c643cda0e
+File touched by this patch: verifiers/check_tip_battery.py ONLY (six hunks).
+Base file: blob a356e9d101f3021687a80e73fca284e7436976d2, 743 lines,
+sha256 e33b17d74f5935a43b04272baf2d88d1d4cf4f879ee9cfa48bb25f89e744bc4a.
+numstat base -> amended: 24 added / 16 deleted (verifiers/check_tip_battery.py).
+
+Erratum item (a) — the cap bound
+  hunk @@ -103,12 +104,14 @@   `LINE_CAP = 40` -> `LINE_CAP = 900`
+  (the only executable constant changed in the file)
+
+Erratum item (b) — the two corpus-gate pin rows become TIGHT tuples (replace, not append)
+  hunk @@ -132,11 +139,11 @@
+    "verifiers/verify_corpus_integrity.py"
+      (71cb2730bfe89064567ad429bfd7c2da62aceb45, e470eaaea5ef11c582b8353c9344ddf730c1a57a)
+      -> (e470eaaea5ef11c582b8353c9344ddf730c1a57a, bbee51f2bae5b33b123a546150e83352d68eeebc)
+    "verifiers/verify_corpus_independent.py"
+      (176abae3b66930d644482f95e1363932e4d143b4, edac0df79324ba62ee25ff10a6a4d422ef59da61)
+      -> (edac0df79324ba62ee25ff10a6a4d422ef59da61, 59602942075d8fe77061876fb52eb32a44313697)
+  The r80 addendum-1 alternates (71cb2730…, 176abae3…) LEAVE the admitted set. The other four rows
+  are untouched; every row still admits its own base blob; no row is dropped.
+
+Erratum item (c) — self-test constants re-anchored to derive from LINE_CAP (arm semantics unchanged)
+  hunk @@ -514,13 +521,14 @@  size world: `range(41)` -> `range(LINE_CAP + 1)`; expectation
+      "instruments gain 41 lines > 40" -> "instruments gain %d lines > %d" % (LINE_CAP + 1, LINE_CAP)
+  hunk @@ -550,14 +558,14 @@  stub world: `padding=60` -> `padding=LINE_CAP + 1`; expectation
+      "instruments lose 60 lines > 40" -> "instruments lose %d lines > %d" % (LINE_CAP + 1, LINE_CAP)
+  A >LINE_CAP gain and a >LINE_CAP loss still trip, by name, in the same guard.
+
+Erratum item (d) — comment cap mentions updated (prose only, no logic)
+  hunk @@ -39,8 +39,9 @@     guard docstring: "at most 40 lines ... lose at most 40" -> names
+                             LINE_CAP, records "900 since erratum E6; 40 before it"
+  hunk @@ -103,12 +104,14 @@  r73 base comment: "the cap stays 40" -> "was 40 until round 81's
+                             erratum E6 raised it to 900", naming the measured 210 / 170 added-line
+                             evidence and the arithmetic 22 + those two = 402
+  hunk @@ -117,11 +120,15 @@  E2 pin comment: "weakened inside 40 lines" -> "inside the size cap";
+                             records the tight-tuple ruling and that the pins, not the size bound,
+                             carry the anti-laundering load
+
+Not changed (explicitly)
+  guard ids, guard count, guard logic, the five guards' checks, TOTAL, GATE_TIMEOUT_S, BATTERY,
+  BASE, the frozen printed line, exit codes. The instrument-size measurement set is BATTERY (six
+  scripts; check_tip_battery.py is NOT among them), so this patch's own 24 added lines are outside
+  the cap it edits.
+
+Cap arithmetic, measured before any after-value
+  pre-existing spend over the six BATTERY scripts, pinned r73 base -> r81 base: 22 added / 3 deleted
+  (verifiers/check_assertion_floors.py only; `git diff --numstat 072048fa..b2842231 -- <six>`).
+  + E01 Kb81E01Integrity.patch   210 added / 10 deleted (verifiers/verify_corpus_integrity.py)
+  + E02 Kb81E02Independent.patch 170 added / 16 deleted (verifiers/verify_corpus_independent.py)
+  = 402 added / 29 deleted against LINE_CAP 900 -> 498 added lines of headroom, guard PASS.
+  (Earlier cuts measured 203/10 and 247/18 = 479; both seats revised pre-freeze and the values above
+  are the published-last ones.)

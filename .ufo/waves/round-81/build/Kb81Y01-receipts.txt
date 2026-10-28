@@ -1,0 +1,145 @@
+Kb81Y01Simplify — receipts (kotoba round 81, wave w1). Every number below is from a command whose
+own exit status was captured; no pipelines for verdicts.
+
+LANE /home/vgpnk/Projects/shokunin/kotoba-shokunin
+base b284223105f4d106f7e8f56ed4fd296c643cda0e
+scratch /fast/scratch/hyaku/kotoba-r81/Kb81Y01Simplify/clone (clone --shared, removed at yield)
+clone revs: A fee99e0efa09ee0ee8846e336f0886d7b10bf7b2 (manifest only, no pin)
+            B b4c4a7dadb39a2f48c7ce3efe9af5442e1b016f0 (manifest + INSTRUMENT_PINS entry)
+            C b7812b555323746f2ce33f864c2983789c96c9a1 (rev B + a second, laundered manifest entry)
+restoration: sha256(clone verifiers/verify_corpus_integrity.py) == sha256(lane same file): True
+             git -C clone status --porcelain: clean after the probes
+
+=== PROBE 1: is the exemption manifest guarded? (check_tip_battery.py, 6 gates) ===
+A  --repo clone --rev fee99e0 --fleet /home/vgpnk/Projects/shokunin   -> ['fleet root /home/vgpnk/Projects/shokunin; guards 5 of 5; tip battery exit 0: 4 of 6']
+   numstat over the 6 BATTERY scripts (the instrument-size input) for the added manifest: (empty)
+B  same command, counter = clone's check_tip_battery.py + pin for the manifest blob -> ['fleet root /home/vgpnk/Projects/shokunin; guards 5 of 5; tip battery exit 0: 4 of 6']
+C  same command, rev B + second manifest entry                            -> ['FAIL guard instrument-pin: verifiers/external-commits.json blob 56ce95acee2280f982c7ec6ac0a72ef1aae9212a at b7812b555323746f2ce33f864c2983789c96c9a1 is not a pinned blob', 'fleet root /home/vgpnk/Projects/shokunin; guards 4 of 5; tip battery exit 0: 4 of 6']
+Reading: (A) a new verifiers/*.json is invisible to no-deletions (new path), instrument-size (BATTERY-scoped
+numstat) and instrument-pin (pinned-key-scoped); (B) the pin loop is BATTERY-independent, so a data file can be
+pinned; (C) one pin line makes manifest widening fail instrument-pin. Unpinned, the exemption authority is the
+least-guarded file in the stack it feeds.
+
+=== PROBE 2: report-target content identity — corpus false positives (intact gate, real corpus) ===
+Instrument: verifiers/verify_corpus_integrity.py --repo <clone> --no-baseline --json (base corpus bytes),
+report_pointer_exists() replaced by object resolution + the named predicate, on BOTH arms (path and rev).
+report_total = 111 (constant across variants); report_dead per predicate:
+  V0 as-shipped base (no rev arm, no identity)      1
+  V1 plan as specified: '## SHONEN' and len>=400    11   <-- 10 NEW false positives
+  V2 '## SHONEN' only                                11
+  V3 len>=400 only                                    2
+  V4 one markdown heading and len>=64                 0
+  V5 len>=64 only                                     0
+  V6 one markdown heading only                        0
+  V7 two or more headings                             2
+  V9 an H1 line (^# ) and len>=64                     0
+V1's ten new sites (all real, all committed, all cited unquoted):
+  corpus/README.md:24: /home/vgpnk/Projects/shokunin/.ufo/reports/round-5/kotoba.md
+  corpus/README.md:26: /home/vgpnk/Projects/shokunin/.ufo/reports/round-1/kotoba.md
+  corpus/README.md:28: /home/vgpnk/Projects/shokunin/.ufo/reports/round-4/kotoba.md
+  corpus/README.md:49: /home/vgpnk/Projects/shokunin/.ufo/reports/round-8/kotoba.md
+  corpus/knowledge/checklist-execution-round15.md:70: /home/vgpnk/Projects/shokunin/.ufo/reports/round-14/kotoba.md
+  corpus/lessons/round-1-aggregator-audit.md:9: ~/Projects/shokunin/.ufo/reports/round-1/kotoba.md
+  corpus/lessons/round-1.md:4: /home/vgpnk/Projects/shokunin/.ufo/reports/round-1/kotoba.md
+  corpus/lessons/round-4.md:4: /home/vgpnk/Projects/shokunin/.ufo/reports/round-4/kotoba.md
+  corpus/lessons/round-5.md:4: /home/vgpnk/Projects/shokunin/.ufo/reports/round-5/kotoba.md
+  corpus/lessons/round-8.md:5: /home/vgpnk/Projects/shokunin/.ufo/reports/round-8/kotoba.md
+  corpus/lessons/round-9-aggregator-corpus-verdict.md:24: /home/vgpnk/Projects/shokunin/.ufo/reports/round-14/kotoba.md
+V3's one new site: corpus/README.md:49 and corpus/lessons/round-8.md:5 -> /home/vgpnk/Projects/shokunin/.ufo/reports/round-8/kotoba.md (120 B)
+
+=== PROBE 3: does the identity arm still reject the marker class? (in-process, real bytes) ===
+world                            bytes  V1 '## SHONEN'+400B   V9 H1+64B
+real .ufo/wapes (probe artifact)   594   False (dead)          False (dead)
+real fleet round-76 report        8128   True                  True
+real fleet round-8 report          120   False (dead)          True   <-- V1 kills a genuine cited report
+real fleet round-1 report         3365   False (dead)          True   <-- V1 kills a genuine cited report
+forged 430B '## SHONEN' filler     430   True (bypass)         False (dead)
+forged 429B '# report' filler      429   False (dead)          True (bypass)
+seven-byte marker                    7   False (dead)          False (dead)
+
+=== Base pointer partition (unpatched gate, --repo LANE --no-baseline --json, exit 1) ===
+report_total 111, report_pointers_excluded 8, report_pointers_quoted 2, report_dead 1
+shapes: relative 1, absolute 44, tilde 1, bare 65
+dead_detail: corpus/lessons/round-77-verifier-spotcheck.md:15: HEAD:.ufo/reports/round-77/kotoba.md
+git -C /home/vgpnk/Projects/shokunin cat-file -e HEAD:.ufo/reports/round-77/kotoba.md -> exit 0
+git -C <clone> cat-file -e <same token>                                            -> exit 128
+Reading: the sole dead pointer is repaired by the <rev>:<path> resolution arm alone (fleet hop), not by identity.
+
+=== Sweeps behind the negative claims ===
+supersede references (grep -c "supersed"): verify_corpus_integrity 0, verify_corpus_independent 0,
+  check_tip_battery 0, check_gate_registry 0, check_assertion_floors 0, check_correction_sweep 2 (docstring),
+  verify_skill_checklist 3 -> all three are the LOG.md/SCORECARD.md governance-correction registry
+  (GOVERNANCE_FILES = ("LOG.md", "SCORECARD.md")), not corpus/SOURCES.md.
+  => no battery gate requires a SOURCES correction row; S250 is not a predicate conjunct.
+external-commits references outside plans/round-81.md (grep -rl): 0 -> the manifest is genuinely new.
+wapes references in verifiers/ or scripts/ (grep -rl): 0 -> no gate reads .ufo/wapes (untracked).
+git -C <clone>/corpus cat-file -e HEAD:README.md -> exit 0; git -C <clone>/corpus rev-parse --show-toplevel
+  -> the clone root. => the E04 '.git' parents-walk is subsumed by git -C.
+
+=== ADDENDUM (added after the reviewed patches landed at 23:37-23:43) ===
+The plan revision I audited at seat start (worktree, LINE_CAP 40->140, "estimated 60-120 added lines") was
+superseded during this seat by the committed revision e6d48e6 (plans/round-81.md sha256 d6bd43eb...), which
+declares LINE_CAP = 900 anchored on a measured composed +402/-29 (E01 +210/-10, E02 +170/-16); R1's identity
+*sentence* is unchanged between the two revisions. freeze-shas.txt now exists. Findings below were re-derived
+against the frozen blobs.
+
+Patch line split, measured on the frozen patch bytes (added lines, self-test arms = from the first hunk whose
+context is `def self_test` to EOF):
+  Kb81E01Integrity.patch :  221 added = 11 (new verifiers/external-commits.json) + 122 instrument production/doc
+                                        + 88 self-test arms   (arms 39% of the file delta)
+  Kb81E02Independent.patch: 170 added = 145 production/doc + 25 self-test arms (15%)
+  instrument total 391 added, of which 113 arms (29%).
+
+E02 duplicate definition, measured:
+  grep -c "def _committed_blob" Kb81E02Independent.patch -> 2 (patch lines 123 and 132, consecutive, 2 blank
+  lines apart). Python binds the LAST definition, so the first (which alone carries the
+  `git ls-files --error-unmatch` tracked check) is dead code; the live one reads HEAD:<rel> and returns None on
+  failure, so behaviour is unchanged by deleting the first. 7 added lines (1 def + 1 docstring + 2 body + 3
+  blank). E01 has no duplicate added defs (each name count 1).
+
+External-binding asymmetry, read from the frozen hunks:
+  E01 external_binding(): requires sha256(receipt bytes at HEAD) == receipt_sha256, receipt path relative and
+    traversal-free, repository matches REPO_ID_RE, and `repository.encode() in proof`  -- the receipt must NAME
+    the repository, not the hash.
+  E02 external_commits(): requires the same digest, plus `sha in text and name.lower() in text` -- receipt must
+    name BOTH the hash and the repository, and contradictory duplicates fail closed.
+  Evidence satisfies both: .ufo/waves/round-79/snapshots/S231.fetch.json (866 B) contains
+  "mistralai/mistral-vibe" x1 and "7bb48f213ac677f943d5c791199ed3dddf302f00" x1; committed blob sha256
+  e75f057a8e8f8319df227a254a42526ed096c7d0dc5364307365729a08ae738f == the record's receipt_sha256.
+  => the two gates agree on the live record; they can disagree only under a manifest record whose receipt names
+     the repo but a different hash (E01 external / E02 unresolvable).
+
+E04Baseline.patch touches only .ufo/waves/round-81/dispositions/wapes.txt (R3 landed) and corpus/README.md
+(index row). corpus/SOURCES.md is not touched by E01/E02/E04 => S250 is not in the landed stack.
+
+=== ADDENDUM 2: primary-bytes verification of the opt-in manifest pin (Kb81E05Erratum) ===
+Fresh scratch clone at b2842231 + `git apply Kb81E01Integrity.patch` (exit 0), then:
+  git hash-object verifiers/external-commits.json -> 402ac290baef66e19a4ac6bcc3b801e78ca5a035
+  size/sha256 -> 1176 B, 11 lines, 326fab4c090eb4299afbf13efebe0cc2eef833dd020e7a27d64f9afb6a8633d8
+  matches the id the E05 seat reported (verified here from primary bytes, not relayed).
+  Kb81E05Erratum.manifest-pin-variant.patch: sha256 89932a0389587fba1a05688b7041eca5aff8bc108b2230cd36ed54036d756b2b,
+  added 28 / deleted 16 (frozen erratum is 24/16), and the sole roster addition is the row
+    "verifiers/external-commits.json": ("402ac290baef66e19a4ac6bcc3b801e78ca5a035",),
+  plus a 3-line opt-in comment. Scratch removed again; no battery re-run on the variant (that would approach a
+  claim after-value; the pin mechanism is already measured in PROBE 1 above).
+
+=== ADDENDUM 3: L1 ruling on the manifest pin — DECLINED for round 81 ===
+Ruling (verbatim, relayed by the E05 seat as E6's custodian): "Decline the manifest-pin variant. The frozen E6
+line set explicitly allows exactly the two reviewed r81 gate instrument blobs; changing to add a data-manifest pin
+is post-freeze scope ... Record manifest-unpinned as an explicit residual/routed defect with the simplifier's
+controls."
+
+Status changes carried in this seat's report (§0.3, §3, §8 cap note, §9 register, VERDICT):
+  - manifest-unpinned is recorded as a DECLINED residual routed to r82, not as a shipping recommendation;
+  - Kb81E05Erratum.manifest-pin-variant.patch is a RETAINED CONTROL, not a landable artifact;
+  - frozen triple untouched: erratum patch c15680f8..., counter 1753b11c..., pins bbee51f2... / 59602942...;
+  - standing mitigation is comparison, not enforcement: manifest blob 402ac290baef66e19a4ac6bcc3b801e78ca5a035
+    is recorded in Kb81E05Erratum.counter-sha256.txt, so a later exemption-set edit can be diffed against a
+    recorded value by hand (git hash-object).
+Scope of what the decline leaves open, stated so it is not over-read: W6 still reds (a marker alone never exempts)
+and W9 is enforced by CODE, not by the pin (external_binding fails closed on a missing/mismatched receipt digest);
+what remains open is widening with an internally consistent record + receipt pair, which is guard-invisible but
+visible as a one-file diff at review.
+Independence note: E05 re-derived 402ac290... from the same primary bytes (apply 6bbb304b... at b2842231 ->
+git hash-object) without seeing my derivation, and I re-derived it without relying on E05's report - two independent
+paths, same id.

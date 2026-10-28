@@ -1,0 +1,156 @@
+== clone /fast/scratch/hyaku/kotoba-r81/Kb81E14PinAudit/clone head 059af7ba183d0a437a2365ce9fbc7ab765b56cdd
+counter base blob      a356e9d101f3021687a80e73fca284e7436976d2  bytes 36343  sha256 e33b17d74f5935a43b04272baf2d88d1d4cf4f879ee9cfa48bb25f89e744bc4a
+base LINE_CAP          40
+base pin rows          6  (verifiers/check_assertion_floors.py, verifiers/check_correction_sweep.py, verifiers/check_gate_registry.py, verifiers/verify_corpus_independent.py, verifiers/verify_corpus_integrity.py, verifiers/verify_skill_checklist.py)
+BATTERY rows           6
+pin set == battery set True
+instrument list matches harness constant: True
+
+-- base blob membership in each allowed tuple
+PASS   verifiers/check_gate_registry.py base_blob=95ffed389f483c3d6f93db3c08dcfdb9a2240576 tuple(1)=95ffed389f483c3d6f93db3c08dcfdb9a2240576
+PASS   verifiers/check_assertion_floors.py base_blob=9cb860bda21ef8d24fcb0603aa85372b96f3ac41 tuple(3)=780f6fe5184ecb94e70f0f79446ae4339d1aec27,50348420260ab41a916ef1ab19d27966565de5af,9cb860bda21ef8d24fcb0603aa85372b96f3ac41
+PASS   verifiers/verify_skill_checklist.py base_blob=6aab16849bd6d71ded8f3bcb3f95668f14f6a78f tuple(2)=8d44c063e3d4b57c7c421c3107879e61983249bf,6aab16849bd6d71ded8f3bcb3f95668f14f6a78f
+PASS   verifiers/verify_corpus_integrity.py base_blob=e470eaaea5ef11c582b8353c9344ddf730c1a57a tuple(2)=71cb2730bfe89064567ad429bfd7c2da62aceb45,e470eaaea5ef11c582b8353c9344ddf730c1a57a
+PASS   verifiers/verify_corpus_independent.py base_blob=edac0df79324ba62ee25ff10a6a4d422ef59da61 tuple(2)=176abae3b66930d644482f95e1363932e4d143b4,edac0df79324ba62ee25ff10a6a4d422ef59da61
+PASS   verifiers/check_correction_sweep.py base_blob=c94b771fa7d798ef45fc3bb640422ee7910f81a6 tuple(1)=c94b771fa7d798ef45fc3bb640422ee7910f81a6
+membership_all=True
+
+-- reviewed build patch identities
+Kb81E01Integrity.patch     20175 B  sha256 6bbb304bea83968ced6c2ba3f33afa26b7d4256334303ea99a32279079495fe7
+Kb81E02Independent.patch     19622 B  sha256 b4cfa37b53fd877463b2e80e0d08b5698416cbac49836c912110714b6a084066
+Kb81E05Erratum.patch      6037 B  sha256 c66103f3770736652514e78ba7c8e0f5baac22fc565b61168626c44be9acf32c
+
+-- applying 3 patch(es) into the throwaway clone
+Kb81E01Integrity.patch                   numstat_rc=0 apply_rc=0
+    verifiers/external-commits.json               +11 -0
+    verifiers/verify_corpus_integrity.py          +210 -10
+Kb81E02Independent.patch                 numstat_rc=0 apply_rc=0
+    verifiers/verify_corpus_independent.py        +247 -18
+Kb81E05Erratum.patch                     numstat_rc=0 apply_rc=0
+    verifiers/check_tip_battery.py                +24 -16
+
+-- audited counter: LINE_CAP 900 (base 40), pin rows 6 (base 6)
+pin set == battery set True
+
+-- post-image instrument blobs vs audited pins
+PASS   verifiers/check_gate_registry.py           blob=95ffed389f483c3d6f93db3c08dcfdb9a2240576 pins=1 (base 1, delta +0) in_tuple=True
+PASS   verifiers/check_assertion_floors.py        blob=9cb860bda21ef8d24fcb0603aa85372b96f3ac41 pins=3 (base 3, delta +0) in_tuple=True
+PASS   verifiers/verify_skill_checklist.py        blob=6aab16849bd6d71ded8f3bcb3f95668f14f6a78f pins=2 (base 2, delta +0) in_tuple=True
+PASS   verifiers/verify_corpus_integrity.py       blob=bbee51f2bae5b33b123a546150e83352d68eeebc pins=2 (base 2, delta +0) in_tuple=True
+       FINDING: E6 allows exactly one added pin for verifiers/verify_corpus_integrity.py, saw +0
+PASS   verifiers/verify_corpus_independent.py     blob=7b37461aa85f6193d77a23aa4a177155e2b3994a pins=2 (base 2, delta +0) in_tuple=True
+       FINDING: E6 allows exactly one added pin for verifiers/verify_corpus_independent.py, saw +0
+PASS   verifiers/check_correction_sweep.py        blob=c94b771fa7d798ef45fc3bb640422ee7910f81a6 pins=1 (base 1, delta +0) in_tuple=True
+
+-- E6 cap arithmetic (counter diffs instruments from r73 base 072048fa8e8a)
+pre-existing spend r73..r81base   +22 -3
+instrument patch stack            +457 -28
+total at audited tip              +479 -31  vs LINE_CAP 900
+fits measured arithmetic    (spent+added<=cap): True
+fits plan literal arithmetic (40+added<=140):   False
+deletion side fits          (spent+del<=cap):   True
+
+-- counter patch touched lines (E6 declared set)
+---- counter diff vs base (verbatim, for line-by-line adjudication) ----
+diff --git c/verifiers/check_tip_battery.py w/verifiers/check_tip_battery.py
+index a356e9d..a0796d7 100755
+--- c/verifiers/check_tip_battery.py
++++ w/verifiers/check_tip_battery.py
+@@ -42,2 +42,3 @@ Guards (Q33) -- evaluated on committed bytes only, never on instrument output:
+-  instrument-size       the six instrument scripts gain at most 40 lines in
+-                        total over the base AND lose at most 40.  The plan
++  instrument-size       the six instrument scripts gain at most LINE_CAP lines
++                        in total over the base AND lose at most LINE_CAP (900
++                        since erratum E6; 40 before it).  The plan
+@@ -106 +107,3 @@ def _default_lane() -> Path:
+-# stays 40) and the round-72 spot-check lesson is a base file compared by
++# was 40 until round 81's erratum E6 raised it to 900 (the L1's pre-freeze revision, after the
++# reviewed r81 repair blobs measured 210 and 247 added lines; 22 base spend + the two of them
++# is 479, well inside), and the round-72 spot-check lesson is a base file compared by
+@@ -111 +114 @@ GATE_TIMEOUT_S = 280
+-LINE_CAP = 40
++LINE_CAP = 900
+@@ -120 +123 @@ REV_TOKEN = "<rev>"
+-# does not catch an instrument weakened inside 40 lines (wave-1 ExecBatteryControls
++# does not catch an instrument weakened inside the size cap (wave-1 ExecBatteryControls
+@@ -124 +127,5 @@ REV_TOKEN = "<rev>"
+-# 9cb860bda21ef8d24fcb0603aa85372b96f3ac41). Empty = no pin (self-test only).
++# 9cb860bda21ef8d24fcb0603aa85372b96f3ac41, plus exactly the two reviewed r81 erratum
++# E6 repair blobs. Each r81 row is a TIGHT (base blob, reviewed r81 blob) tuple: the r80
++# addendum-1 alternates leave the admitted set for those two files. The pins, not the size
++# bound, carry the anti-laundering load.
++# Empty = no pin (self-test only).
+@@ -135,2 +142,2 @@ INSTRUMENT_PINS = {
+-        "71cb2730bfe89064567ad429bfd7c2da62aceb45",
+-        "e470eaaea5ef11c582b8353c9344ddf730c1a57a"),
++        "e470eaaea5ef11c582b8353c9344ddf730c1a57a",
++        "bbee51f2bae5b33b123a546150e83352d68eeebc"),
+@@ -138,2 +145,2 @@ INSTRUMENT_PINS = {
+-        "176abae3b66930d644482f95e1363932e4d143b4",
+-        "edac0df79324ba62ee25ff10a6a4d422ef59da61"),
++        "edac0df79324ba62ee25ff10a6a4d422ef59da61",
++        "7b37461aa85f6193d77a23aa4a177155e2b3994a"),
+@@ -517 +524,2 @@ def self_test() -> int:
+-        stub.write_text(STUB_OK + "".join("# padding line %d\n" % i for i in range(41)))
++        stub.write_text(STUB_OK + "".join("# padding line %d\n" % i
++                                          for i in range(LINE_CAP + 1)))  # E6: derived
+@@ -522,2 +530,2 @@ def self_test() -> int:
+-              "FAIL guard instrument-size: instruments gain 41 lines > 40" in out,
+-              out.strip()[-220:])
++              "FAIL guard instrument-size: instruments gain %d lines > %d"
++              % (LINE_CAP + 1, LINE_CAP) in out, out.strip()[-220:])
+@@ -553 +561 @@ def self_test() -> int:
+-        lane, base = _make_world(stub_root, padding=60)
++        lane, base = _make_world(stub_root, padding=LINE_CAP + 1)
+@@ -559,2 +567,2 @@ def self_test() -> int:
+-              "FAIL guard instrument-size: instruments lose 60 lines > 40" in out,
+-              out.strip()[-220:])
++              "FAIL guard instrument-size: instruments lose %d lines > %d"
++              % (LINE_CAP + 1, LINE_CAP) in out, out.strip()[-220:])
+
+---- end counter diff ----
+  OUTSIDE -  instrument-size       the six instrument scripts gain at most 40 lines in
+  OUTSIDE -                        total over the base AND lose at most 40.  The plan
+  ALLOWED +  instrument-size       the six instrument scripts gain at most LINE_CAP lines
+  ALLOWED +                        in total over the base AND lose at most LINE_CAP (900
+  OUTSIDE +                        since erratum E6; 40 before it).  The plan
+  OUTSIDE -# stays 40) and the round-72 spot-check lesson is a base file compared by
+  OUTSIDE +# was 40 until round 81's erratum E6 raised it to 900 (the L1's pre-freeze revision, after the
+  OUTSIDE +# reviewed r81 repair blobs measured 210 and 247 added lines; 22 base spend + the two of them
+  OUTSIDE +# is 479, well inside), and the round-72 spot-check lesson is a base file compared by
+  ALLOWED -LINE_CAP = 40
+  ALLOWED +LINE_CAP = 900
+  OUTSIDE -# does not catch an instrument weakened inside 40 lines (wave-1 ExecBatteryControls
+  OUTSIDE +# does not catch an instrument weakened inside the size cap (wave-1 ExecBatteryControls
+  OUTSIDE -# 9cb860bda21ef8d24fcb0603aa85372b96f3ac41). Empty = no pin (self-test only).
+  OUTSIDE +# 9cb860bda21ef8d24fcb0603aa85372b96f3ac41, plus exactly the two reviewed r81 erratum
+  OUTSIDE +# E6 repair blobs. Each r81 row is a TIGHT (base blob, reviewed r81 blob) tuple: the r80
+  OUTSIDE +# addendum-1 alternates leave the admitted set for those two files. The pins, not the size
+  OUTSIDE +# bound, carry the anti-laundering load.
+  OUTSIDE +# Empty = no pin (self-test only).
+  ALLOWED -        "71cb2730bfe89064567ad429bfd7c2da62aceb45",
+  OUTSIDE -        "e470eaaea5ef11c582b8353c9344ddf730c1a57a"),
+  ALLOWED +        "e470eaaea5ef11c582b8353c9344ddf730c1a57a",
+  OUTSIDE +        "bbee51f2bae5b33b123a546150e83352d68eeebc"),
+  ALLOWED -        "176abae3b66930d644482f95e1363932e4d143b4",
+  OUTSIDE -        "edac0df79324ba62ee25ff10a6a4d422ef59da61"),
+  ALLOWED +        "edac0df79324ba62ee25ff10a6a4d422ef59da61",
+  OUTSIDE +        "7b37461aa85f6193d77a23aa4a177155e2b3994a"),
+  OUTSIDE -        stub.write_text(STUB_OK + "".join("# padding line %d\n" % i for i in range(41)))
+  OUTSIDE +        stub.write_text(STUB_OK + "".join("# padding line %d\n" % i
+  ALLOWED +                                          for i in range(LINE_CAP + 1)))  # E6: derived
+  OUTSIDE -              "FAIL guard instrument-size: instruments gain 41 lines > 40" in out,
+  OUTSIDE -              out.strip()[-220:])
+  OUTSIDE +              "FAIL guard instrument-size: instruments gain %d lines > %d"
+  ALLOWED +              % (LINE_CAP + 1, LINE_CAP) in out, out.strip()[-220:])
+  OUTSIDE -        lane, base = _make_world(stub_root, padding=60)
+  ALLOWED +        lane, base = _make_world(stub_root, padding=LINE_CAP + 1)
+  OUTSIDE -              "FAIL guard instrument-size: instruments lose 60 lines > 40" in out,
+  OUTSIDE -              out.strip()[-220:])
+  OUTSIDE +              "FAIL guard instrument-size: instruments lose %d lines > %d"
+  ALLOWED +              % (LINE_CAP + 1, LINE_CAP) in out, out.strip()[-220:])
+lines outside the declared E6 set: 28
+
+-- audited counter self-test (fixture worlds only)
+self-test exit 0
+  self-test: 0 failure(s) over 69 assertions

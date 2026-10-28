@@ -1,0 +1,21 @@
+# Kb81S01Lesson — composed instrument-size arithmetic on the published r81 patch bytes
+# utc 2026-10-28T02:36:40Z
+# base b284223105f4d106f7e8f56ed4fd296c643cda0e; r73 reference base 072048fa8e8a52c707d25f7079772fa317244eb7
+# clone2 toplevel asserted; every git call -C'd
+
+$ git -C clone2 diff --numstat 072048fa b2842231 -- <six battery scripts>
+22 3 verifiers/check_assertion_floors.py   (base spend)
+
+$ git -C clone2 apply <patch>   (per patch, own rc)
+Kb81E01Integrity.patch rc=0
+Kb81E02Independent.patch rc=0
+Kb81E04Baseline.patch rc=0
+
+$ git -C clone2 diff --numstat 072048fa -- <six battery scripts>
+22	3	verifiers/check_assertion_floors.py
+247	18	verifiers/verify_corpus_independent.py
+203	10	verifiers/verify_corpus_integrity.py
+
+totals added=472 deleted=31  cap(E6)=140  headroom=-332  (patches are live: the same measurement read 473/32 at 02:36:33Z because Kb81E01Integrity.patch changed between reads)
+E02 alone reads 247+22=269 added > 140, matching build/Kb81E15Order/Kb81E15Order-instrument-cap.txt
+Kb81E05Erratum.patch was NOT published at this measurement, so the amended counter is not in these bytes

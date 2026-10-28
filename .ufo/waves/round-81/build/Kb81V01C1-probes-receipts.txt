@@ -1,0 +1,100 @@
+# Kb81V01C1 — probe receipts (distilled from the run transcripts; gate output lines verbatim)
+
+Environment: clones A/B/C/D = shared clones of kotoba-shokunin at b284223105f4d106f7e8f56ed4fd296c643cda0e.
+A = base + Kb81E01Integrity.patch (commit 7ea84f49d2bd1c4cfe37af64e6e97313778eb27f);
+B = base + Kb81E02Independent.patch (commit f906c796155c236433ccf149f483b72e60beb974);
+C = base + E01 + E02 (commit ec7655e23215c59b509630d48ab646d4ccc3e767); D = pristine base.
+Patch files: Kb81E01Integrity.patch sha256 6bbb304bea83968ced6c2ba3f33afa26b7d4256334303ea99a32279079495fe7;
+Kb81E02Independent.patch sha256 d8bf88c8ef5daf99ddf861ab2a5aeaa1193a57a90200e1d314134750e2e7f9d1.
+Post-image blobs at C (git rev-parse HEAD:<path>): integrity bbee51f2bae5b33b123a546150e83352d68eeebc,
+independent 59602942075d8fe77061876fb52eb32a44313697 — both match the republished E6 erratum pins.
+All gate runs: `python3 -B verifiers/<gate> --repo .` from the clone root (dot form) and `--repo <abs>`
+(abs form); C dot vs abs outputs diff-identical for both gates.
+
+## Self-tests (rc 0 = pass)
+D base integrity:    self-test: 0 failure(s) over 164 assertions
+D base independent:  self-test: 105 assertions, 0 failures
+A E01 integrity:     self-test: 0 failure(s) over 178 assertions
+B E02 independent:   self-test: 109 assertions, 0 failures
+C composed:          identical to A / B respectively (178 / 109)
+Floors registry minimums: corpus_integrity 164, corpus_independent 105 — both satisfied.
+
+## Base truth (D, my own run; matches .ufo/waves/round-81/receipts/*)
+integrity rc=1: report_dead=1/111 commit_total=46 unresolvable=2 nonhash=0
+  (shapes [relative=1, absolute=44, tilde=1, bare=65], quoted-excluded=6, pointer-excluded=8)
+  report_dead: corpus/lessons/round-77-verifier-spotcheck.md:15: HEAD:.ufo/reports/round-77/kotoba.md
+  commit_unresolvable: corpus/SOURCES.md:171 and :172 (7bb48f213ac677f943d5c791199ed3dddf302f00)
+independent rc=1: commits candidates=56 citations=46 hex=46 quoted=6 nonhash=0 unresolvable=2
+DRIFTs: tracked_files 155!=154, unindexed 1, report_total 111!=109, report_dead 1, commit_unresolvable 2 (4/9).
+
+## Composed (C): only the intended movements, zero narrowing
+integrity rc=1: report_dead=0/111 commit_total=46 unresolvable=0 nonhash=0 (shapes identical)
+  commit_external: corpus/SOURCES.md:171 and :172
+  6/9 checks pass; DRIFT: tracked_files, unindexed, report_total (the R3/R4 equal-mode classes)
+independent rc=1: unresolvable=0 external=2; report_dead zero PASS; commit_total 46 INFO
+
+## Guard numstat at C (the counter's own command)
+  22   3  verifiers/check_assertion_floors.py
+ 210  10  verifiers/verify_corpus_integrity.py
+ 170  16  verifiers/verify_corpus_independent.py
+  totals: added=402 deleted=29  (base-spend 22 + patches 380; plan cap arithmetic 900, current line 28)
+
+## Probe battery in C (serial; reset --hard to ec7655e after each; rc / traceback counts / classes)
+P1a manifest {"commits": 5}    -> integrity rc=1 TRACEBACK "TypeError: 'int' object is not iterable";
+                                  independent rc=1 no traceback, unresolvable=2 external=0
+P1b manifest {"commits": null} -> integrity rc=1 TRACEBACK "TypeError: 'NoneType' object is not iterable";
+                                  independent rc=1 no traceback, unresolvable=2 external=0
+P1c manifest {"commits": [     -> both rc=1, no traceback, unresolvable=2 external=0 (fail-closed)
+P1d manifest [..list..]        -> both rc=1, no traceback, unresolvable=2 external=0
+P1e manifest {}                -> both rc=1, no traceback, unresolvable=2 external=0
+P3  receipt S231.fetch.json +1 byte (committed; digest pin broken)
+                                   -> both rc=1 no traceback, unresolvable=2 external=0, report_dead=0
+P5  manifest binds ffff...(40f) -> acme/widget with a committed receipt that names the repository
+    but NOT the hash (digest pin correct):
+                                   integrity commit_total=47 unresolvable=2 -> the ffff token is
+                                   commit_external (E01 blesses a hash-free receipt);
+                                   independent unresolvable=3 external=0 (E02 refuses)
+P2  real lane-created commit 79760e09e08b03e8a779458df85371fa313cf442 (made in clone E), cited with
+    `kotoba-shokunin/kotoba-shokunin@<sha>` marker AND a lane-URL SOURCES-style row, NOT in manifest:
+                                   integrity: nonhash=1 (the owner/repo@ token) + commit_unresolvable
+                                   detail corpus/lessons/v01probe2.md:4 (the bare row token), external stays 2;
+                                   independent: nonhash=1 unresolvable=1 external=2 — r80 W8/W9 classes stay RED
+P7a probe file citing `../.ufo/reports/round-76/kotoba.md` and `HEAD:.ufo/reports/round-76/kotoba.md`
+    (lane round-76 entry is the tracked symlink; DANGLING in the scratch layout):
+                                   integrity report_dead 1/113: dead = v01probe3.md:3 rel token (dangling path,
+                                   bare-fallback-only); the HEAD: token ALIVE (fleet object carries identity)
+                                   independent dead = BOTH v01probe3.md:3 rel AND v01probe3.md:3 HEAD: token
+                                   (lane link blob read first, route=object stops; 43 B link text, no marker)
+P7b lane path replaced by a regular 7-byte `marker\n` file (committed):
+                                   BOTH gates: v01probe3.md:3 rel token DEAD (identity arm on marker content) —
+                                   the W10 lane-side class reads dead for the right reason
+P7c control aborted in scratch (the symlink is dangling in the clone layout, redirect failed);
+    content-driven behavior is instead evidenced by: P7a HEAD: token alive on real fleet object bytes,
+    driver controls (real fleet -> report_dead 0 both gates), and both gates' self-test substitution arms.
+
+## Driver probes (module-level, fake fleet F{marker at .ufo/reports/round-76/kotoba.md, real 8547 B round-77 object})
+A (E01) vs FAKE fleet: report_dead 63 sites — every fleet-resolved pointer absent from the minimal fake fleet
+    EXCEPT the round-77 object (real bytes -> alive); the round-76 site
+    corpus/lessons/round-76-verifier-spotcheck.md:14 is dead WITH the marker file present (identity arm,
+    not absence); unresolvable 4 (fake fleet lacks fleet-only commits — layout artifact), external 2.
+B (E02) vs FAKE fleet: same 63 dead incl. the round-76 marker site; HEAD: round-77 token alive;
+    unresolvable 6, external 0 (no manifest in B — E02 alone never blesses).
+A and B vs REAL fleet: report_dead 0, no false positives.
+Fake fleet round-77 payload: 8547 B (the fleet's own HEAD:.ufo/reports/round-77/kotoba.md bytes).
+
+## Receipt digest check (first-hand, base bytes)
+git show b2842231:.ufo/waves/round-79/snapshots/S231.fetch.json | sha256sum
+  -> e75f057a8e8f8319df227a254a42526ed096c7d0dc5364307365729a08ae738f  == manifest receipt_sha256 pin;
+the committed receipt bytes carry the hash and the repository name (both gates classify the pair external).
+
+## Cross-checks with peer receipts
+Kb81E01Integrity/selftest-final.txt: "self-test: 0 failure(s) over 178 assertions" (matches my runs).
+Kb81E02Independent/SIZE-AND-PINS.txt: patch sha d8bf88c8…, post-image blob 59602942075d8fe77061876fb52eb32a44313697 (matches).
+Kb81G01Revenge-probe-round76-token.txt: marker at the fleet round-76 path -> the r76 spotcheck token dead (corroborates).
+Kb81E02Independent/marker-bound-absent-hash.txt: their W8-style control stays commit_unresolvable (corroborates).
+
+## Known contamination (disclosed)
+An earlier concurrent probe pass raced three services on clone C (git index.lock collisions, interleaved
+HEAD states). Its P1a/P1b traceback signatures were independently reproduced by the clean serial battery
+above; every other numbered observation in that pass was discarded and re-measured serially. C was
+restored to ec7655e and verified (blobs, manifest digest, symlink entry, clean status) before the serial run.

@@ -1,0 +1,24 @@
+# Kb81N01Sentinel E6 cap arithmetic vs the published repair blob (C1 kill rule)
+# blobs measured (sha256 of the build artifacts I read):
+  b4cfa37b53fd877463b2e80e0d08b5698416cbac49836c912110714b6a084066  Kb81E02Independent.patch  mtime 2026-10-27 23:33:45.972532514 -0300
+  f53a503661ef3599f25599f5cebd79a8ec0aafec00a67db9374ac47d03e598d7  Kb81E12Census-derived-alternative.patch  mtime 2026-10-27 23:34:35.065042212 -0300
+
+# guard code: verifiers/check_tip_battery.py:304-320 — proc = git diff --numstat --no-renames BASE rev -- <the six BATTERY scripts>; added = sum(field0); fail if added > LINE_CAP (E6 declares LINE_CAP 40 -> 140)
+# BATTERY (check_tip_battery.py:145-152) includes verify_corpus_integrity.py and verify_corpus_independent.py, i.e. the two files R1/R2 repair.
+
+# measured with the guard's own command in a scratch clone:
+#   git diff --numstat 072048fa8e8a52c707d25f7079772fa317244eb7 <chain> -- <six scripts>
+22	3	verifiers/check_assertion_floors.py
+247	18	verifiers/verify_corpus_independent.py
+# total added = 269, total deleted = 21
+
+# E6 cap = 140; base already spends 22 -> new headroom 118. E02's published blob alone adds 247
+# (129 over the headroom, 129/118). instrument-size would fail 'instruments gain 269 lines > 140',
+# so 'guards 5 of 5' cannot be printed and the frozen C1 predicate cannot be met with this blob.
+# E01's patch is ABSENT at sweep time, so verify_corpus_integrity.py's additions are not in the 269.
+
+# plan kill rule (plans/round-81.md, C1): 'the reviewed instrument patches' combined added lines exceed
+# the declared cap arithmetic (40 base-spent + measured added <= 140)' -> honest stop, no narrowing after data.
+
+# re-measure command for L1 after any revision:
+#   git -C <clone> diff --numstat 072048fa8e8a52c707d25f7079772fa317244eb7 <tip> -- verifiers/check_gate_registry.py verifiers/check_assertion_floors.py verifiers/verify_skill_checklist.py verifiers/verify_corpus_integrity.py verifiers/verify_corpus_independent.py verifiers/check_correction_sweep.py | awk -F'\t' '{a+=;d+=} END{print "added",a,"deleted",d}'

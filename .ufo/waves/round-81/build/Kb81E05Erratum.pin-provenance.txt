@@ -1,0 +1,43 @@
+Kb81E05Erratum — pin provenance (the two reviewed r81 instrument blobs, TIGHT tuples)
+Base: b284223105f4d106f7e8f56ed4fd296c643cda0e.
+Method for BOTH pins: I did NOT trust published .blob strings. In a base clone I applied each seat's
+published patch and ran `git hash-object` on the result. Both matched the values the producing seats
+reported, so the pins name the published class.
+
+pin 1 — verifiers/verify_corpus_integrity.py (R1 report-pointer object resolution + report content
+identity; seat Kb81E01Integrity, FINAL)
+  source patch          .ufo/waves/round-81/build/Kb81E01Integrity.patch
+  source patch sha256   6bbb304bea83968ced6c2ba3f33afa26b7d4256334303ea99a32279079495fe7
+  `git apply --check`   rc=0 on base
+  `git apply --numstat` 210  10  verifiers/verify_corpus_integrity.py
+                         11   0  verifiers/external-commits.json (not a battery instrument)
+  `git hash-object`     bbee51f2bae5b33b123a546150e83352d68eeebc     <-- pinned
+  post-image sha256     a0b52d2419e28bf45bfcdf167dff5dfd44fdd7356cbc606eea1ea2ee8304b011
+  row after E6          ("e470eaaea5ef11c582b8353c9344ddf730c1a57a",   <- base blob
+                         "bbee51f2bae5b33b123a546150e83352d68eeebc")   <- reviewed r81 blob
+  superseded, NOT pinned: 1e5588cf97913e8332b3231e661a6862d31dddab (first r81 cut, 203/10, replaced
+  on E03's hardening asks); 19ef9268… (a briefly-routed injector variant the seat reverted).
+  leaves the admitted set: 71cb2730bfe89064567ad429bfd7c2da62aceb45 (r80 addendum-1 pin).
+
+pin 2 — verifiers/verify_corpus_independent.py (R2 external-commit VERIFIED binding; seat
+Kb81E02Independent, FINAL)
+  source patch          .ufo/waves/round-81/build/Kb81E02Independent.patch
+  source patch sha256   d8bf88c8ef5daf99ddf861ab2a5aeaa1193a57a90200e1d314134750e2e7f9d1 (15664 B)
+  `git apply --check`   rc=0 on base (and rc=0 with pin 1's patch applied: the patches touch disjoint
+                        files, so the two pins are order-independent by construction)
+  `git apply --numstat` 170  16  verifiers/verify_corpus_independent.py
+  `git hash-object`     59602942075d8fe77061876fb52eb32a44313697     <-- pinned
+  post-image sha256     7efc431b5ec39e50ed38c242b520b60c606bbf3682cfb224a6af11feaf57554b (1307 lines)
+  row after E6          ("edac0df79324ba62ee25ff10a6a4d422ef59da61",   <- base blob
+                         "59602942075d8fe77061876fb52eb32a44313697")   <- reviewed r81 blob
+  superseded, NOT pinned: 7b37461aa85f6193d77a23aa4a177155e2b3994a (E02's earlier 247/18 cut).
+  leaves the admitted set: 176abae3b66930d644482f95e1363932e4d143b4 (r72 pin).
+
+The other four rows are untouched and every row still admits its own base blob
+(95ffed38 / 9cb860bd / 6aab1684 / c94b771f at b2842231 — cross-checked against
+Kb81E14PinAudit-base.txt). No row is dropped; nothing is widened beyond one reviewed r81 blob per row.
+
+Both producing seats have stated their bytes are frozen for this wave. A later revision makes this pin
+stale and reads `FAIL guard instrument-pin` at the measured rev, which is why a revision costs a
+republished counter patch and a new freeze entry. Two E01 cuts and two E02 cuts were absorbed here; the
+values above are the ones published last.

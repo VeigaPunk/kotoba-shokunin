@@ -1,0 +1,46 @@
+diff --git i/verifiers/check_tip_battery.py w/verifiers/check_tip_battery.py
+index a356e9d..bc6a991 100755
+--- i/verifiers/check_tip_battery.py
++++ w/verifiers/check_tip_battery.py
+@@ -108,7 +108,7 @@ def _default_lane() -> Path:
+ BASE = "072048fa8e8a52c707d25f7079772fa317244eb7"        # round-73 base (pinned)
+ TOTAL = 6
+ GATE_TIMEOUT_S = 280
+-LINE_CAP = 40
++LINE_CAP = 900
+ GUARDED_PREFIXES = ("corpus/", "verifiers/")
+ GUARDED_FILE = "SKILL.md"
+ FLOORS_PATH = "verifiers/floors-registry.json"
+@@ -514,12 +514,13 @@ def self_test() -> int:
+         size_root = root / "guard-size"
+         lane, base = _make_world(size_root)
+         stub = lane / BATTERY[0][0]
+-        stub.write_text(STUB_OK + "".join("# padding line %d\n" % i for i in range(41)))
++        stub.write_text(STUB_OK + "".join("# padding line %d\n" % i for i in range(LINE_CAP + 1)))
+         tip = _commit_all(lane, "grow an instrument past the cap")
+         rc, out, err = _drive(size_root, base, tip)
+         check("size world exits 1", rc == 1, "exit %d" % rc)
+         check("size world names the instrument-size guard",
+-              "FAIL guard instrument-size: instruments gain 41 lines > 40" in out,
++              "FAIL guard instrument-size: instruments gain %d lines > %d"
++              % (LINE_CAP + 1, LINE_CAP) in out,
+               out.strip()[-220:])
+ 
+         # errata E2: the instrument-pin guard.  A weakening inside the size cap
+@@ -550,13 +551,14 @@ def self_test() -> int:
+         INSTRUMENT_PINS = {}
+ 
+         stub_root = root / "guard-stub"
+-        lane, base = _make_world(stub_root, padding=60)
++        lane, base = _make_world(stub_root, padding=LINE_CAP + 1)
+         (lane / BATTERY[0][0]).write_text(STUB_OK)
+         tip = _commit_all(lane, "replace a gate with a two-line stub")
+         rc, out, err = _drive(stub_root, base, tip)
+         check("stub world exits 1", rc == 1, "exit %d" % rc)
+         check("stub world fails the deletion side of the size cap",
+-              "FAIL guard instrument-size: instruments lose 60 lines > 40" in out,
++              "FAIL guard instrument-size: instruments lose %d lines > %d"
++              % (LINE_CAP + 1, LINE_CAP) in out,
+               out.strip()[-220:])
+         check("stub world keeps the gates green", "tip battery exit 0: 6 of 6" in out,
+               _last_line(out))

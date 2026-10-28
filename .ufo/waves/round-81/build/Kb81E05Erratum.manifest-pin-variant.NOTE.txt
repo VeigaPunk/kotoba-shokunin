@@ -1,0 +1,49 @@
+Kb81E05Erratum — RESIDUAL DEFECT RECORD: the external-commit exemption manifest is unpinned
+STATUS: DECLINED by the L1 for round 81 (see the ruling below). This file and its patch are retained as
+the MEASURED CONTROL for the residual defect, NOT as a landable artifact. The frozen triple is unchanged:
+Kb81E05Erratum.patch sha256 c15680f8…, counter sha256 1753b11c…, pins bbee51f2… / 59602942….
+
+Ruling (KotobaR81, this wave): "Decline the manifest-pin variant. The frozen E6 line set explicitly allows
+exactly the two reviewed r81 gate instrument blobs; changing to add a data-manifest pin is post-freeze
+scope … Keep frozen patch/counter triple unchanged. Record manifest-unpinned as an explicit residual/routed
+defect with the simplifier's controls; do not re-run claim after-value on altered counter."
+
+The defect
+  `verifiers/external-commits.json` is the data that decides which absent hex tokens are exempt as
+  third-repository commits (C1 repair R2). It is pinned nowhere, and the pin guard therefore cannot see an
+  edit to it: a fabricated exemption record added together with a same-revision receipt is classified
+  `commit_external` with no guard firing (the W6 class). Captured-by: `none` — no existing criterion covers
+  "the instrument's own configuration data is pinned".
+
+The control (Kb81Y01Simplify, measured on base-counter bytes; cited, not re-run by me — re-running the
+battery on an altered counter would be a claim after-value on a non-frozen counter)
+  build/Kb81Y01-probeA-*.txt  manifest added, no pin            -> `guards 5 of 5`
+  build/Kb81Y01-probeB-*.txt  one INSTRUMENT_PINS row for it     -> `guards 5 of 5`
+  build/Kb81Y01-probeC-*.txt  a second, laundered record         -> `FAIL guard instrument-pin:
+                              verifiers/external-commits.json blob 56ce95a… is not a pinned blob`,
+                              `guards 4 of 5`
+  Narrative: .ufo/waves/round-81/w1/Kb81Y01Simplify.md §1, §3, §4.
+
+The mechanism, attested by me from committed bytes (no measurement needed): the pin loop
+    for path, allowed in INSTRUMENT_PINS.items():
+        got = git(clone, "rev-parse", "%s:%s" % (rev, path))
+has no BATTERY filter (base check_tip_battery.py:310-314), so a data file is checked exactly like a script.
+
+The declined variant, kept only as the control's landing shape
+  Kb81E05Erratum.manifest-pin-variant.patch — sha256
+  89932a0389587fba1a05688b7041eca5aff8bc108b2230cd36ed54036d756b2b, numstat 28/16, counter blob
+  c8f16aa1…, self-test 0 failures / 69 assertions (the self-test zeroes INSTRUMENT_PINS, so it is silent on
+  membership by construction), plus exactly one row
+      "verifiers/external-commits.json": ("402ac290baef66e19a4ac6bcc3b801e78ca5a035",)
+  The row's blob I verified from primary bytes: apply Kb81E01Integrity.patch (sha256 6bbb304b…) to
+  b2842231 and `git hash-object verifiers/external-commits.json` = 402ac290… (11 lines, sha256 326fab4c…).
+
+Mitigation while the defect stands (no code change, no line cost)
+  The manifest blob 402ac290baef66e19a4ac6bcc3b801e78ca5a035 is recorded in
+  Kb81E05Erratum.counter-sha256.txt (appendix) and in the seat report, so a later round that edits the
+  exemption set can compare against a recorded value even though no guard fires. Recommended disposition
+  for a later round: a declared pin member for the manifest — the mechanism already works.
+  Residual scope, so the decline is not over-read (Kb81Y01Simplify's scoping, agreed): W6 still reds and W9
+  is enforced by code (`external_binding` fails closed on a missing or mismatched digest). What stays open is
+  not a wide-open manifest but widening with an internally consistent record+receipt pair — visible to
+  review, invisible to a guard. Comparison anchor: the recorded blob 402ac290….

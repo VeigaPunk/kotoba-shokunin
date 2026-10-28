@@ -1,0 +1,75 @@
+== rev: basis ==
+b284223105f4d106f7e8f56ed4fd296c643cda0e
+[exit=0] git rev-parse HEAD
+
+b284223 round-80 verifier spot-check (integrator, hyaku): non-author admit/reject
+[exit=0] git log --oneline -1
+
+== A. r80 instrument artifacts landed? (blob ids at base) ==
+e470eaaea5ef11c582b8353c9344ddf730c1a57a
+edac0df79324ba62ee25ff10a6a4d422ef59da61
+a356e9d101f3021687a80e73fca284e7436976d2
+[exit=0] git rev-parse HEAD:verifiers/verify_corpus_integrity.py HEAD:verifiers/verify_corpus_independent.py HEAD:verifiers/check_tip_battery.py
+
+r80 base blobs (Kb80E16PinAudit sec.2): e470eaaaea5ef11c582b8353c9344ddf730c1a57a /
+edac0df79324ba62ee25ff10a6a4d422ef59da61 / counter e33b17d7(filesha)
+e33b17d74f5935a43b04272baf2d88d1d4cf4f879ee9cfa48bb25f89e744bc4a  verifiers/check_tip_battery.py
+[exit=0] sha256sum verifiers/check_tip_battery.py
+
+== B. six-instrument spend vs the counter's pinned base 072048fa ==
+22	3	verifiers/check_assertion_floors.py
+[exit=0] git diff --numstat 072048fa8e8a52c707d25f7079772fa317244eb7 HEAD -- verifiers/check_gate_registry.py verifiers/check_assertion_floors.py verifiers/verify_skill_checklist.py verifiers/verify_corpus_integrity.py verifiers/verify_corpus_independent.py verifiers/check_correction_sweep.py
+
+== C. r80 safe-partial repairs landed? ==
+120000 blob bf7c7e0c0c39a57c49224c87348afc74dca14db4	.ufo/reports/round-76/kotoba.md
+[exit=0] git ls-tree HEAD .ufo/reports/round-76/
+
+100644 blob 37d44e33b78aee52d63e3b961b2aeddc3c96c9fb	.ufo/waves/round-79/snapshots/MANIFEST.sha256
+[exit=0] git ls-tree HEAD .ufo/waves/round-79/snapshots/MANIFEST.sha256
+
+-rwxr-xr-x 1 vgpnk vgpnk 118313 Oct 27 22:24 verifiers/check_allowed_tools.py
+[exit=0] ls -l verifiers/check_allowed_tools.py
+
+63
+[exit=0] grep -c ^| `verifiers/ SKILL.md
+
+== D. r80 C2 counter conventions (landed bytes) ==
+233:TARGET = 6
+235:ENTRY = "corpus/knowledge/allowed-tools-surfaces-round80.md"
+240:CAPTURE = "2026-10-27"
+324:SELF_SHA = "434fd6f9646bbc56948eb5c4603c7a1f2d815fc11b3741cb25ef052720111742"   # blanked-sha of this file (the L1 refills it at freeze)
+328:SELF_LINE_RE = re.compile(r'^SELF_SHA = "[0-9a-f]*"', re.M)
+340:        SELF_LINE_RE.sub('SELF_SHA = ""', text).encode()).hexdigest()
+[exit=0] grep -n TARGET =\|ENTRY =\|CAPTURE =\|SELF_SHA = verifiers/check_allowed_tools.py
+
+396:def view_with_headings(name: str, raw: str) -> tuple[list[str], set[int]]:
+[exit=0] grep -n def view_with_headings verifiers/check_allowed_tools.py
+
+== E. open disposition target: .ufo/wapes (R80-D2) ==
+-rw-r--r-- 1 vgpnk vgpnk 594 Oct 27 20:17 .ufo/wapes
+[exit=0] ls -l .ufo/wapes
+
+930e2bd6b306b973a81144572f0b93a333379e501bffae1a8f8c50ec84dd6020  .ufo/wapes
+[exit=0] sha256sum .ufo/wapes
+
+== F. floors registry: the two corpus gates and the battery counter ==
+corpus_integrity {'floor': 164, 'path': 'verifiers/verify_corpus_integrity.py'}
+corpus_independent {'floor': 105, 'path': 'verifiers/verify_corpus_independent.py'}
+checklist {'floor': 1863, 'path': 'verifiers/verify_skill_checklist.py'}
+correction_sweep {'floor': 25, 'path': 'verifiers/check_correction_sweep.py'}
+row for check_tip_battery.py: ABSENT
+rows: 17
+[exit=0] floors summary
+== G. base counter docstrings that state the 40-line cap (E6 target) ==
+  instrument-size       the six instrument scripts gain at most 40 lines in
+                        total over the base AND lose at most 40.  The plan
+# delta of the six battery scripts (r72's 76 added / 24 deleted lines drop out; the cap
+# stays 40) and the round-72 spot-check lesson is a base file compared by
+[exit=0] sed -n 42,43p;105,106p verifiers/check_tip_battery.py
+
+== H. grammar-arm live-token sweep (E05 R4 re-check) ==
+commit-token occurrences carrying '@' in corpus/: 0
+[exit=0] grep sweep (0 lines = no such token)
+== I. r80 file-landed inventory ==
+tracked files under .ufo/waves/round-80/build/: 697
+r80 w1 seat reports: 64

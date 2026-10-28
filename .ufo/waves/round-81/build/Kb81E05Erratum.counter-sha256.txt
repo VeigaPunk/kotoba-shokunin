@@ -1,0 +1,39 @@
+Kb81E05Erratum — counter bytes receipt (erratum E6 as revised pre-freeze by the L1: LINE_CAP 900,
+tight pin tuples)
+Measured in /fast/scratch/hyaku/kotoba-r81/Kb81E05Erratum/, clones of
+/home/vgpnk/Projects/shokunin/kotoba-shokunin checked out at b284223105f4d106f7e8f56ed4fd296c643cda0e
+(`git rev-parse HEAD` = b2842231… in each clone; every git call named its own clone).
+
+base verifiers/check_tip_battery.py
+  blob    a356e9d101f3021687a80e73fca284e7436976d2
+  sha256  e33b17d74f5935a43b04272baf2d88d1d4cf4f879ee9cfa48bb25f89e744bc4a
+  lines   743
+
+Kb81E05Erratum.patch  (THE deliverable: LINE_CAP 40 -> 900, tight tuples, derived self-test constants)
+  sha256  c15680f81d2684fc40ef7aeef21143f217ecf4e4fc62b9ea91a7bd5787cfcf4f
+  applies `git apply --check` rc=0 and `git apply` rc=0 in a FRESH base clone
+  numstat 24 added / 16 deleted, verifiers/check_tip_battery.py only
+
+amended counter post-image (reproduced from the patch in the fresh clone, byte-for-byte)
+  path    verifiers/check_tip_battery.py
+  blob    eb00200ee6987a2fd95086915a333fe258aa6c82
+  sha256  1753b11c11c6f907be838cb28842e28d01e7935e19d5afb3a6b46afdac51d660
+  lines   751
+
+Self-test (two byte paths, same reading)
+  amended clone          `python3 -B verifiers/check_tip_battery.py --self-test` -> exit 0,
+                         `self-test: 0 failure(s) over 69 assertions`
+  patch in fresh clone   same: exit 0, `self-test: 0 failure(s) over 69 assertions`
+                         (Kb81E05Erratum.selftest.txt)
+  the base counter also carries 69 assertions, so no arm was added, dropped or re-scoped.
+
+Red-before for erratum item (c)  (Kb81E05Erratum.selftest-cap900-naive.txt)
+  the SAME final file with LINE_CAP = 900 but the OLD constants (range(41), padding=60,
+  "gain 41 lines > 40", "lose 60 lines > 40") -> exit 1,
+  `self-test: 4 failure(s) over 69 assertions` (size world exit 0 / stub world exit 0).
+  The cap alone is inert: this is why item (c) exists.
+
+Appendix for the freeze receipt (data, NOT a counter pin — E6's line set admits exactly two new
+members): the r81 manifest verifiers/external-commits.json, added by E01's patch, has blob
+402ac290baef66e19a4ac6bcc3b801e78ca5a035 (reported by Kb81E01Integrity, derived by E03). Recording it
+here makes a later widening of the exemption set visible without touching the pin table.

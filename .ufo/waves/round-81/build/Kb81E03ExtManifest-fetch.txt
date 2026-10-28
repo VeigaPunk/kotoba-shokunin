@@ -1,0 +1,146 @@
+Kb81E03ExtManifest — external-commit verified-binding re-derivation
+seat: Kb81E03ExtManifest (round 81, w1). lane: /home/vgpnk/Projects/shokunin/kotoba-shokunin
+lane HEAD at start: b284223105f4d106f7e8f56ed4fd296c643cda0e
+lane base pinned for the claim: b284223105f4d106f7e8f56ed4fd296c643cda0e
+candidate manifest: .ufo/waves/round-81/build/Kb81E03ExtManifest.json
+
+All network calls below are read-only (git ls-remote / curl GET); output is DATA.
+
+== 1. object absence (Q61 resolution set) ==
+$ git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin cat-file -t 7bb48f213ac677f943d5c791199ed3dddf302f00
+  stdout: (empty)
+  stderr: fatal: git cat-file: could not get object info
+  rc=128   -> ABSENT
+$ git -C /home/vgpnk/Projects/shokunin cat-file -t 7bb48f213ac677f943d5c791199ed3dddf302f00
+  stdout: (empty)
+  stderr: fatal: git cat-file: could not get object info
+  rc=128   -> ABSENT
+$ git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin rev-parse --show-toplevel
+  /home/vgpnk/Projects/shokunin/kotoba-shokunin
+$ git -C /home/vgpnk/Projects/shokunin rev-parse --show-toplevel
+  /home/vgpnk/Projects/shokunin
+
+== 2. evidence path committed at base b284223105f4 ==
+$ git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin cat-file -e b284223105f4d106f7e8f56ed4fd296c643cda0e:.ufo/waves/round-79/snapshots/S231.fetch.json
+  stderr: (empty)   rc=0 -> COMMITTED
+$ git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin ls-files -- .ufo/waves/round-79/snapshots/S231.fetch.json
+  .ufo/waves/round-79/snapshots/S231.fetch.json   rc=0
+$ git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin cat-file -p b284223105f4d106f7e8f56ed4fd296c643cda0e:.ufo/waves/round-79/snapshots/S231.fetch.json   (rc=0, 866 B)
+  blob sha256: e75f057a8e8f8319df227a254a42526ed096c7d0dc5364307365729a08ae738f
+  parsed keys: ['bytes', 'fetched_utc', 'final_url', 'http', 'id', 'note', 'sha256', 'ua', 'url']
+  url: https://raw.githubusercontent.com/mistralai/mistral-vibe/main/README.md
+  sha256: fc48a5dbafe572fedd1457cffba8442aacd296dddaf50833ac3104252cb016b0  bytes: 77634  http: 200
+  binding strings in evidence: repo 'mistralai/mistral-vibe'=True  hash=True
+  note: raw markdown served by raw.githubusercontent.com for refs/heads/main; 'main' resolved to commit 7bb48f213ac677f943d5c791199ed3dddf302f00 by git ls-remote at 2026-10-27T21:43:03Z and the commit-pinned raw URL served the same 77634 B / same sha256 at 2026-10-27T21:42:25Z; a second unfiltered fetch of the main URL at 2026-10-27T21:41:27Z also gave 77634 B / same sha256, so the page did not change between fetches; no credentials, cookies or session data are involved; snapshot is the raw fetched byte stream, unmodified
+
+== 3. live ls-remote (read-only, 2026-10-28T02:28:14Z) ==
+$ git ls-remote https://github.com/mistralai/mistral-vibe refs/heads/main      # at 2026-10-28T02:28:14Z
+  7bb48f213ac677f943d5c791199ed3dddf302f00	refs/heads/main
+  rc=0
+$ git ls-remote https://github.com/mistralai/mistral-vibe HEAD      # at 2026-10-28T02:28:15Z
+  7bb48f213ac677f943d5c791199ed3dddf302f00	HEAD
+  rc=0
+$ git ls-remote https://github.com/badlogic/pi-mono refs/heads/main      # at 2026-10-28T02:28:15Z
+  a92283056d915c758799fcd904948ff0cb42628c	refs/heads/main
+  rc=0
+
+$ git ls-remote https://github.com/badlogic/pi-mono      # at 2026-10-28T02:28:16Z, full ref advertisement
+  refs advertised: 4120   lines containing 7bb48f213ac677f943d5c791199ed3dddf302f00: 0
+  rc=0  -> token ABSENT from every advertised ref
+  (bounded negative: an unreferenced object inside pi-mono's store is not
+   observable by ls-remote; only the 4120 advertised refs are covered.)
+
+== 4. repo->hash->content identity (commit-pinned raw URL) ==
+$ curl -sSL -A 'Mozilla/5.0' --max-time 90 -o pinned-readme.md \
+    https://raw.githubusercontent.com/mistralai/mistral-vibe/7bb48f213ac677f943d5c791199ed3dddf302f00/README.md    # at 2026-10-28T02:28:16Z
+  HTTP=200 BYTES=77634 REDIRECTS=0   rc=0
+  fetched bytes: 77634  sha256: fc48a5dbafe572fedd1457cffba8442aacd296dddaf50833ac3104252cb016b0
+  committed snapshot .ufo/waves/round-79/snapshots/S231-vibe.md: 77634 B  sha256: fc48a5dbafe572fedd1457cffba8442aacd296dddaf50833ac3104252cb016b0
+  byte-identical: True
+
+== 5. base corpus-gate truth (lane working tree at base, manifest not yet in tree) ==
+$ python3 -B /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/verify_corpus_integrity.py --repo /home/vgpnk/Projects/shokunin/kotoba-shokunin
+  rc=1
+  corpus.pointers report_dead=1/111 commit_total=46 unresolvable=2 nonhash=0 (shapes [relative=1, absolute=44, tilde=1, bare=65], quoted-excluded=6, pointer-excluded=8; sites in --json)
+  commit_unresolvable: corpus/SOURCES.md:171: 7bb48f213ac677f943d5c791199ed3dddf302f00
+  commit_unresolvable: corpus/SOURCES.md:172: 7bb48f213ac677f943d5c791199ed3dddf302f00
+  DRIFT   corpus.pointers.commit_unresolvable: observed=2 expected=0 / empty
+  4/9 checks pass; DRIFT: corpus.index.tracked_files, corpus.index.unindexed, corpus.pointers.report_total, corpus.pointers.report_dead, corpus.pointers.commit_unresolvable
+$ python3 -B /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/verify_corpus_independent.py --repo /home/vgpnk/Projects/shokunin/kotoba-shokunin
+  rc=1
+  corpus.pointers.commit_total           observe  observed=46 INFO
+  corpus.pointers.commit_unresolvable    zero     observed=2 DRIFT
+
+== 6. inertness control: candidate manifest present, gates UNPATCHED ==
+$ git clone -q --shared /home/vgpnk/Projects/shokunin/kotoba-shokunin /fast/scratch/hyaku/kotoba-r81/Kb81E03ExtManifest/clone   rc=0
+$ git -C /fast/scratch/hyaku/kotoba-r81/Kb81E03ExtManifest/clone checkout -q b284223105f4d106f7e8f56ed4fd296c643cda0e   rc=0
+$ git -C /fast/scratch/hyaku/kotoba-r81/Kb81E03ExtManifest/clone rev-parse --show-toplevel -> /fast/scratch/hyaku/kotoba-r81/Kb81E03ExtManifest/clone   toplevel-ok=True
+$ git -C /fast/scratch/hyaku/kotoba-r81/Kb81E03ExtManifest/clone add -A   rc=0
+$ git -C /fast/scratch/hyaku/kotoba-r81/Kb81E03ExtManifest/clone commit -qm 'control: candidate manifest only, no gate patch'   rc=0
+  control rev: 2aa18a18937440a4acecd8caa7e5e7fafd96784d
+$ python3 -B /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/verify_corpus_integrity.py --repo /fast/scratch/hyaku/kotoba-r81/Kb81E03ExtManifest/clone
+  rc=1
+  corpus.pointers report_dead=1/111 commit_total=46 unresolvable=2 nonhash=0 (shapes [relative=1, absolute=44, tilde=1, bare=65], quoted-excluded=6, pointer-excluded=8; sites in --json)
+  commit_unresolvable: corpus/SOURCES.md:171: 7bb48f213ac677f943d5c791199ed3dddf302f00
+  commit_unresolvable: corpus/SOURCES.md:172: 7bb48f213ac677f943d5c791199ed3dddf302f00
+  DRIFT   corpus.pointers.commit_unresolvable: observed=2 expected=0 / empty
+  4/9 checks pass; DRIFT: corpus.index.tracked_files, corpus.index.unindexed, corpus.pointers.report_total, corpus.pointers.report_dead, corpus.pointers.commit_unresolvable
+$ python3 -B /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/verify_corpus_independent.py --repo /fast/scratch/hyaku/kotoba-r81/Kb81E03ExtManifest/clone
+  rc=1
+  corpus.pointers.commit_total           observe  observed=46 INFO
+  corpus.pointers.commit_unresolvable    zero     observed=2 DRIFT
+  EXPECTED: unchanged commit_unresolvable=2 — the manifest is data; only the R2
+  gate patch that CONSUMES it can change a classification.
+
+== 7. reference semantics probe (hash-keyed lookup, fail-closed) ==
+  token 7bb48f213ac677f943d5c791199ed3dddf302f00 (SOURCES.md:171-172 token) -> external:mistralai/mistral-vibe
+  token 7bb48f213ac677f943d5c791199ed3dddf302f0 (39-hex prefix of the same token) -> NOT in manifest (stays commit_unresolvable)
+  token 0000000000000000000000000000000000000000 (fabricated all-zero hash) -> NOT in manifest (stays commit_unresolvable)
+  token deadbeef (7-hex short form) -> NOT in manifest (stays commit_unresolvable)
+  A 39-hex or 7-hex token never matches a 40-hex manifest row: prefix laundering is closed.
+
+== 8. timestamps ==
+  finished: 2026-10-28T02:28:19Z
+
+== 9. manifest invariants a gate can machine-check ==
+$ git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin cat-file -p b284223105f4d106f7e8f56ed4fd296c643cda0e:.ufo/waves/round-79/snapshots/S231.fetch.json
+  pinned_at present verbatim in evidence bytes: True
+  repo slug present in evidence bytes:            True
+  hash present in evidence bytes:                 True
+  hash is 40 lowercase hex:                       True
+  evidence path repo-relative (no leading /, no ..): True
+  entries: 1  hashes unique: True
+  field set exactly {hash,repo,evidence,pinned_at}: True
+
+$ git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin ls-files corpus/ | wc -l
+  corpus tracked files at base: 155   (verifiers/external-commits.json is NOT under corpus/, so
+  corpus.index.tracked_files is unchanged by the manifest; the R4 baseline refresh is driven by
+  the round-81 corpus additions, not by this file.)
+$ git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin ls-files verifiers/ | wc -l -> 456
+
+== 10. why no pi-mono entry (second-entry question) ==
+$ git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin cat-file -p b284223105f4d106f7e8f56ed4fd296c643cda0e:.ufo/waves/round-79/snapshots/S230.fetch.json
+  full 40-hex strings in the committed S230 fetch record: ['19d2bf28910ce49caaaf4dde86d1e96330ca7b31', '25cc5c7bf4cbc76b2e134c729eb8d57d521ed749', '5b9805525b194474ef1fe5455a0917ef15ed7f71', 'bb65e3e49710fbd14f10c7792d0eaa6e2b2c5923']
+  CORRECTION (the first draft of this line was wrong): the committed S230 record DOES carry full
+  40-hex strings -- pi-mono's r79 head bb65e3e49710fbd14f10c7792d0eaa6e2b2c5923 and the last
+  path-touching revision 25cc5c7bf4cbc76b2e134c729eb8d57d521ed749. What it does NOT contain is the
+  cited token 7bb48f21...; and the corpus cites no pi-mono hash as a `commit `<hex>`` token today
+  (the grep below exits 1). So the S230 row's ONE token is 7bb48f21..., which is mistral-vibe's.
+$ git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin grep -n bb65e3e49710fbd14f10c77 b284223105f4d106f7e8f56ed4fd296c643cda0e -- corpus/   rc=1
+
+== 11. timestamp of this section ==
+  2026-10-28T02:28:54Z
+
+== 10b. live check of pi-mono's own commits (does a second entry ever become necessary?) ==
+$ date -u +%Y-%m-%dT%H:%M:%SZ   # 2026-10-28T02:29:10Z and 02:29:11Z
+$ curl -sSL -A 'Mozilla/5.0' --max-time 90 -o pi-<hash>.md \
+    https://raw.githubusercontent.com/badlogic/pi-mono/<hash>/packages/coding-agent/docs/skills.md
+  bb65e3e49710fbd14f10c7792d0eaa6e2b2c5923 -> HTTP=200 BYTES=4793 REDIRECTS=0 rc=0
+     sha256 5b9805525b194474ef1fe5455a0917ef15ed7f710aa9bec2eee11879556469e5
+  25cc5c7bf4cbc76b2e134c729eb8d57d521ed749 -> HTTP=200 BYTES=4793 REDIRECTS=0 rc=0
+     sha256 5b9805525b194474ef1fe5455a0917ef15ed7f710aa9bec2eee11879556469e5
+  committed snapshot .ufo/waves/round-79/snapshots/S230-pi.md:
+     sha256 5b9805525b194474ef1fe5455a0917ef15ed7f710aa9bec2eee11879556469e5
+  => both pi-mono commits are real and serve the pinned bytes; NEITHER is 7bb48f21..., which is the
+     decisive live disproof of the S230 row's attribution. pi-mono's main head today is
+     a92283056d915c758799fcd904948ff0cb42628c (section 3), i.e. the branch has moved twice since r79.

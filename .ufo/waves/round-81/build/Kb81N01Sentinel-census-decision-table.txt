@@ -1,0 +1,23 @@
+# Kb81N01Sentinel census decision table (S249 duplicate-URL hazard, and R5 S250)
+# fixture: /fast/scratch/.../fixture/{shokunin.conf,kotoba/{corpus,SKILL.md,PROVINCE.md,README.md}} = base bytes + one synthetic row inserted immediately after the last registry row (| S2xx) inside the Registry table
+# cmd: ./scripts/sources-census.sh validate --root <fixture> kotoba   (exit captured from the command itself, not a pipeline)
+
+# base (no synthetic row): exit 0, 'kotoba ok', 31 W04 duplicate-url warnings
+#   -> see Kb81N01Sentinel-census-base2.txt
+
+## A1 S249 = same URL AND the S248 scope cell verbatim, teaches WITHOUT 'supersedes S248', status mined
+#   observed: exit 1, E04 duplicate url ... within scope
+
+## A2 S249 = same URL, DISTINCT scope cell
+#   observed: exit 0, new W04 line (warning count 31 -> 32)
+> kotoba	W04	S249 duplicate url code.claude.com/docs/en/agent-sdk/skills.md across scopes
+
+## A3 S249 = same URL + same scope, teaches begins 'supersedes S248 -'
+#   observed: exit 0, no new census line at all
+0
+
+## D S250 = same URL as S230, same scope, teaches begins 'supersedes S230 -' (plan R5)
+#   observed: exit 0, no new census line at all
+0
+
+# E04 rule source: scripts/sources-census.sh:646-651 — same URL + same scope + both non-rejected + teaches lacks 'supersedes S<nnn>' => E04 (error); differing scope => W04 (warning)

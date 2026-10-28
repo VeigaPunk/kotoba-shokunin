@@ -1,0 +1,13 @@
+diff --git i/verifiers/verify_corpus_integrity.py w/verifiers/verify_corpus_integrity.py
+index bbee51f..4a8add4 100755
+--- i/verifiers/verify_corpus_integrity.py
++++ w/verifiers/verify_corpus_integrity.py
+@@ -320,7 +320,7 @@ def report_pointer_exists(base: Path, token: str, fleet_root: Path = FLEET_ROOT)
+         at = base.resolve()  # the citing repository first, then the fleet root
+         lane = next((p for p in (at, *at.parents) if (p / ".git").exists()), None)
+         return any(report_content_ok(git_blob_bytes(repo, token))
+-                   for repo in ([lane] if lane else []) + [fleet_root])
++                   for repo in ([lane] if lane else []))
+     target = resolve_pointer(base, token)
+     if not target.is_file():
+         if not token.startswith(".ufo/reports/"):
