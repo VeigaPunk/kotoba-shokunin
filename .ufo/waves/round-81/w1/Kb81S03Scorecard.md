@@ -1,12 +1,12 @@
-# Kb81S03Scorecard — SCORECARD annotation draft (round 81, w1; revision 2)
+# Kb81S03Scorecard — SCORECARD annotation draft (round 81, w1; revision 6)
 
-Seat: scribe. Lane: `/home/vgpnk/Projects/shokunin/kotoba-shokunin`. Base `b284223105f4d106f7e8f56ed4fd296c643cda0e`; landing observed at draft time: G0 `e6d48e6a9b11da4660df8145bd2f28c3238c5b83`, reconciliation `c15ebe8`, G1 `647d13d72d29281614d126fa271ff9a142137ec6`, G2 `65eaa854fff925d618f6ed1151690e52ef3d9ac4`, G3 `a597a15da200d1b3be38b0e1b567c9944c5ecb00`. Revision 2 rewrote the draft after the L1's route/response. Written `2026-10-28T02:30Z`–`02:40Z`.
+Seat: scribe. Lane: `/home/vgpnk/Projects/shokunin/kotoba-shokunin`. Base `b284223105f4d106f7e8f56ed4fd296c643cda0e`; landing observed at draft time: G0 `e6d48e6a9b11da4660df8145bd2f28c3238c5b83`, reconciliation `c15ebe8`, G1 `647d13d72d29281614d126fa271ff9a142137ec6`, G2 `65eaa854fff925d618f6ed1151690e52ef3d9ac4`, G3 `a597a15da200d1b3be38b0e1b567c9944c5ecb00`. Revision 2 rewrote the draft after the L1's route/response; revision 3 filled the G6 after-values the L1 relayed and recorded the rubric decision; revision 4 closed every placeholder for the G4 commit; revision 5 applied the Main ruling that C1 stops; revision 6 adds the minimal append patch `build/Kb81S03Scorecard.patch`. Written `2026-10-28T02:30Z`–`03:40Z`.
 
-## Behaviour (revision 2)
+## Behaviour (revision 6)
 
-`.ufo/waves/round-81/build/Kb81S03Scorecard.md` (15,660 B) is an append-only SCORECARD block in round-69/70/73/74/80 house style: a landing ledger (G0–G3 with contents read from `git log`/`git show --stat`), the C1 row, the C2 row, the no-harm row, and the Round-82 planned paragraph. Scores asserted: consistency **held 10**, depth **held 9** — no delta, and the C1 row says in terms that `6 of 6` is *not* reached at G3 (observed `5 of 6`) and closes only after the G6 baseline refresh.
+`.ufo/waves/round-81/build/Kb81S03Scorecard.md` (19,758 B) is an append-only SCORECARD block in round-69/70/73/74/80 house style: a landing ledger (G0–G3 with contents read from `git log`/`git show --stat`), the C1 row, the C2 row, the no-harm row, and the Round-82 planned paragraph. The C1 row carries the G3 intermediate (`5 of 6`, integrity red only on the equal-mode baseline classes), then the G6 after-value both forms `6 of 6` with own exit 0 marked **falsified and not admitted**, and closes on the kill verdict; the C2 row carries the G3 composed value and the G6 after-value `1 of 1` with conjuncts a–g ok. Scores asserted: consistency **held 10**, depth **held 9** — no delta, on the rubric reasoning recorded in § Revision 3.
 
-Remaining placeholders are only the final-measurement slots the L1 reserved: `{{SHA}}`, `{{SHA_C2}}`, `{{TIP}}`, `{{RECEIPT-C1-TIP}}`, `{{RECEIPT-C2-TIP}}`, `{{NOHARM}}`. Each is paired in the row with the value observed at draft time and the rev it was read at, so the L1 can confirm or replace rather than research.
+No placeholder remains: `grep -c '{{' build/Kb81S03Scorecard.md` → 0. The two counter hashes, the G6 measured rev, both after-values and the six-gate no-harm statement sit in the rows as text, each naming the rev or command it came from.
 
 ## Route / response
 
@@ -23,6 +23,44 @@ Remaining placeholders are only the final-measurement slots the L1 reserved: `{{
 | helper landing correction | two corrections recorded: (a) the r81 `run-battery.sh` (sha256 `19b878a1…`) is a **port** of the r80 runner that now captures the measured command's own status (`cmd >> f 2>&1; rc=$?; printf 'exit=%s\n'`) — which is why every base receipt carries `exit=` (M80-1/M81-2 closed for this runner); (b) the E6 erratum was **republished** as `c15680f8…` when the independent pin was found stale (`7b37461a…` → `59602942…`, `guards 4 of 5` on the stale bytes) | `diff .ufo/waves/round-80/build/run-battery.sh build/run-battery.sh`; `Kb81S01Lesson-pin-staleness.txt`; `Kb81E14PinAudit-obs-024022.txt` |
 | placeholders | only final slots remain; a trailing HTML comment maps each and lists every command this seat ran | file tail |
 
+## Revision 3 — G6 after-values and the rubric decision
+
+L1 relayed the G6 observation at `daac4cc87b468d131baeaca816e7cfc478090ee3` (receipt not yet file-backed at draft time): tip battery both forms `guards 5 of 5; tip battery exit 0: 6 of 6`, each own exit 0, all six gates exit 0; `check_sdk_allowed_tools.py --repo . --rev daac4cc…` `1 of 1`, conjuncts a–g ok, exit 0. The draft now carries these as the after-values, attributed to the L1 and paired with `{{RECEIPT-C1-TIP}}` / `{{RECEIPT-C2-TIP}}` until the receipts are file-backed, and keeps exactly one tip placeholder — `{{TIP}}`, the G4 governance commit, which must re-print both lines.
+
+Score decision uses the lane rubric, not the movement: band 10 is *repeated non-author verification in the opposite direction*. C1 stays **10** (the target is now met, but no non-author opposite-direction review of this counter exists, and r80's kill — three worlds reaching the old target while the repository was still wrong — is exactly what the band guards against). C2 stays **9** (the counted `0 of 1 → 1 of 1` is the counter's own declared floor: `the headline measures the FORM of the evidence shape, not the sourcing judgement`; one axis moving one counted unit is not a band move). No delta is asserted on either axis.
+
+## Revision 4 — placeholders closed for G4
+
+Per the L1 instruction, every placeholder is gone (`grep -c '{{' build/Kb81S03Scorecard.md` → 0; 18,041 B):
+
+- C1 counter sha256 `1753b11c11c6f907be838cb28842e28d01e7935e19d5afb3a6b46afdac51d660`, C2 counter sha256 `739a71810453f83c94468db25fc39c55f3bfbfdb224894a630d91e5aea86f985`.
+- Both after-values cite the G6 measured rev `daac4cc87b468d131baeaca816e7cfc478090ee3` with the command and its output inline in the row, and both rows say in terms that the measurement is at G6 and never at the row's own commit — so no hash self-reference.
+- `{{NOHARM}}` is replaced by the statement the L1 asked for: the tip battery's six component gates (registry, floors, checklist, corpus integrity, corpus independent, correction sweep) exit 0 at G6, with the baseline refresh having closed the corpus DRIFTs the base column records; the wider no-harm set (sources census, sibling census, report pointers) is run and cited in the round report after G4 and is explicitly not predicted in the row.
+
+Scores unchanged and still rubric-driven: consistency 10, depth 9, no delta.
+
+## Revision 5 — C1 kill verdict (Main ruling)
+
+The C1 row now reads as an honest stop / kill: **unprovable, not admitted, consistency held 10, delta 0**. The G6 `6 of 6` stays in the row as a measurement, explicitly marked falsified and not admitted, with the two target-reaching control worlds cited from `w1/Kb81C01C1.md`:
+
+- **W-A** (rev `f7388d3bf43af15b0d23386e965533ffec78e9fb`) — a self-written receipt asserting a real hash `8b1cc1b0…` (created in a separate clone; `cat-file -e` rc 128 in lane and fleet) belongs to `wrong-owner/wrong-repo`, with a manifest row and matching digest; both gates accept it as external; the world reads `guards 5 of 5; tip battery exit 0: 6 of 6`, exit 0.
+- **W-C** (rev `4488e7f0a55d7d1f5968b5be7ebb42f54f073785`) — `HEAD:.ufo/reports/round-77/kotoba.md` is an 816-byte padded non-report that still carries `## SHONEN`; the world reads `6 of 6`, exit 0.
+
+The row also corrects the attack report's attribution so the kill is not mis-owned: C01's § Counter-contract mismatch reads the plan as `LINE_CAP 140`; the frozen plan commit `e6d48e6` (and `c15ebe8`) reads `900`, so the 140 arithmetic is not part of the verdict — W-A and W-C alone carry it. C2 is untouched: `1 of 1` remains admitted evidence with no score move.
+
+## Revision 6 — minimal append patch for G4
+
+`build/Kb81S03Scorecard.patch` (19,091 B, sha256 `00bda7f4d0b0d742ec07dfdd1e22f399124571b50a656e2c2dfabc7a73080af2`): a ten-line pure-addition hunk appending the three finalized Round 81 rows and the Round 82 planned paragraph to the end of `SCORECARD.md`, no deletions, no placeholders (`grep -c '{{'` on the patch → 0). Hunk header `@@ -474,3 +474,13 @@` with the last three context lines being the round-74/79/80 paragraphs, so it targets the current G6 tree `daac4cc87b468d131baeaca816e7cfc478090ee3`.
+
+Verification, all from a scratch clone at that rev (`git clone --shared`, `rev-parse --show-toplevel` asserted as the clone, removed afterwards):
+
+- `git -C "$S/clone" diff --numstat` after appending → `10 0 SCORECARD.md`.
+- `git -C "$S/clone" apply --check -v Kb81S03Scorecard.patch` → `Checking patch SCORECARD.md...` and exit 0.
+- Applied for real in the clone: 476 → 486 lines, and `cmp` of the first 476 lines against the pre-append copy → identical, so prior content is unchanged.
+- Read-only in the lane: `git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin apply --check .ufo/waves/round-81/build/Kb81S03Scorecard.patch` → exit 0.
+
+Scores in the appended rows: consistency **held 10** with a C1 honest stop / kill (unprovable, not admitted) and depth **held 9** with C2 `1 of 1` admitted evidence — no delta on either.
+
 ## What this seat verified itself (read-only)
 
 `git -C . log --oneline -10`; `git rev-parse` on the four G commits; `git show --stat --format=` on each; `git show 65eaa854:verifiers/check_tip_battery.py | sha256sum` (`1753b11c…`); `git show a597a15d:verifiers/check_sdk_allowed_tools.py | sha256sum` (`739a7181…`, blob `ee2c57af`, 1638 lines); `cat .ufo/waves/round-81/receipts/freeze-shas.txt`; `cat build/base-battery/index.txt` + `tail` of `01`/`02`; `grep '^== W|^status:' build/c1_controls.txt` (10/10 PASS, all frozen lines `4 of 6`); `tail build/Kb81E15Order/composed-full-tipbattery.txt` (`5 of 6`); `cat build/Kb81E15Order/C2-after.txt` (`1 of 1`, conjuncts a–g ok, quote line 234, rev `b3449ee2`); `python3 -c json.load` on `composed-integrity.json` / `composed-independent.json`; `diff` of the two `run-battery.sh` copies; `stat -c %s .ufo/wapes` (594). No counter was executed by this seat; no tool installed.
@@ -36,7 +74,7 @@ Remaining placeholders are only the final-measurement slots the L1 reserved: `{{
 
 ## Out of scope / not done
 
-No after-value at a landed tip, no G6 baseline refresh, no no-harm battery at the tip, no census of my own, no commit. This seat read the lane read-only and wrote only its two files. Every remaining placeholder is a final-measurement slot the L1 reserved.
+No after-value measured by this seat: the G6 figures at `daac4cc…` are the L1's and are cited as G6-measured. No G6 baseline refresh, no tip battery invocation, no no-harm battery at the tip, no census, no commit. This seat read the lane read-only and wrote only its two files; the wider post-G4 no-harm battery is deliberately left to the round report rather than predicted in the annotation.
 
-VERDICT: Revision 2 delivered — E6 corrected to the frozen `LINE_CAP 900` with tight tuples and the measured +402/−29 arithmetic, the 140 named only as a never-frozen worktree value, C1 written as the observed composed-G3 `5 of 6` (not `6 of 6`) and C2 as `1 of 1` with conjuncts a–g, controls 10/10 and 8/8, G0–G3 full hashes, and the manifest-unpinned, E01/E02-divergence, S248-queued/W04 and helper-landing-correction items routed into the rows; scores still held at consistency 10 / depth 9 with only final hash/TIP/receipt placeholders left.
-DELIVERABLES: /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-81/build/Kb81S03Scorecard.md, /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-81/w1/Kb81S03Scorecard.md
+VERDICT: Revision 6 delivered — `build/Kb81S03Scorecard.patch` (sha256 `00bda7f4…`) appends the three finalized Round 81 rows and the Round 82 planned paragraph to `SCORECARD.md` as a ten-line pure addition (hunk `@@ -474,3 +474,13 @@`, no deletions, no placeholders), with `git apply --check` exit 0 in a scratch clone at G6 `daac4cc87b468d131baeaca816e7cfc478090ee3` and again read-only in the lane, and prior content byte-identical after applying; the rows hold consistency 10 (C1 honest stop / kill, unprovable, not admitted) and depth 9 (C2 `1 of 1` admitted), no delta on either.
+DELIVERABLES: /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-81/build/Kb81S03Scorecard.md, /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-81/build/Kb81S03Scorecard.patch, /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-81/w1/Kb81S03Scorecard.md

@@ -92,5 +92,50 @@ Ran by this seat (exact commands, exit codes, receipts):
 - `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-81/build/Kb81S04Report-pointer-smoke.txt`
 - `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-81/w1/Kb81S04Report.md`
 
-VERDICT: Skeleton complete and structurally verified (6/6 required sections in order, 104 balanced markers, 0 empty); pointer smoke resolves every non-placeholder pointer that exists at base and leaves only the 15 expected round-81-committed-later tokens unresolved; no claim score produced or claimed.
-DELIVERABLES: /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-81/build/Kb81S04Report.md, /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-81/build/Kb81S04Report-structure.txt, /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-81/build/Kb81S04Report-pointer-smoke.txt, /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-81/w1/Kb81S04Report.md
+## Materialization (L1 follow-up, same seat)
+
+The L1 (`KotobaR81`) asked this seat to materialize the fleet report from the skeleton, fill the markers, drop the
+HTML comment, and correct stale values. Delivered at `build/Kb81S04Report-final.md` (24,786 B, 63 lines, sha256
+`d60d3ba379906008219424dfbeb2e438d5a5dadabca6026fbb4e975af2ae373a`, after the Main C1-kill ruling below); the skeleton at `build/Kb81S04Report.md`
+is left unchanged as provenance. All writes stay under the lane's round-81 wave dir; no fleet write.
+
+- **Markers.** 103 of the skeleton's 104 `{{...}}` spans are filled with committed or seat-measured values; the one
+  remaining token is the sanctioned `{{FINAL_TIP}}` on the `Stale-lane` line, because G4 governance and G7 land
+  after this materialization and the pushed HEAD may change (the L1 instruction allowed that one slot).
+- **Values and their evidence.** Commit hashes read with `git rev-parse` (G0 `e6d48e6`, freeze `c15ebe8`, G1
+  `647d13d`, G2 `65eaa854`, G3 `a597a15`, G5 `38e36949`, G6 `daac4cc`, corrections `af5a782`, `29c61ea`,
+  `e49dbbd`, `6f92535`); freeze triple and cap arithmetic from `receipts/freeze-shas.txt` (E6 as frozen:
+  `LINE_CAP` 40→900, tight tuples, +402/−29); base readings from `receipts/tipbattery-base-dot.txt` and
+  `build/Kb81E09C2Counter-base.txt`; C1 controls from `build/c1_controls.txt` (+ `W6b`), C2 controls from
+  `build/c2_controls.txt`; residuals from `w1/Kb81C03Residual.md`/`build/Kb81C03Residual-receipts.txt`,
+  `build/Kb81Y01-receipts.txt`, and the critics' `w1/Kb81C01C1.md` / `w1/Kb81C02C2.md`; manifest blob
+  `402ac290…` verified with `git rev-parse HEAD:verifiers/external-commits.json`; registry 64 of 64 from
+  `build/Kb81E15Order/registry-counter-with-row.txt`; wave 64/64 from `w1-results.json`; SHONEN 4/4 `[~]` from
+  `build/Kb81S06Shonen.md`; L0 none from `w1/Kb81S13L0.md`; misroot sweep re-run at the fleet root.
+- **Census.** This seat re-ran the census command at `daac4cc…`: exit 0, 176 rows, tiers A137/B22/C17, status
+  mined151/queued8/rejected17, 32 W04 (the added warning is S249's duplicate of S248's URL). Receipt
+  `build/Kb81S04Report-census-after.txt`.
+- **Attribution, not invention.** The G6 6/6 C1 and 1/1 C2 readings are the L1's measurement: no tip receipt for
+  them existed in `.ufo/waves/round-81/receipts/` at materialization time (the directory held census-before,
+  freeze-shas and tipbattery-base-dot only), so the report says so explicitly instead of naming receipt files it
+  cannot see. The file-backed C2 1/1 reading at the G3 premeasure rev `b3449ee2` is cited separately.
+- **Stale-value corrections applied to the skeleton.** `LINE_CAP` 40→140 became 40→900 with tight tuples and the
+  measured +402/−29 (M81-3, the 140 was a pre-freeze worktree draft); the controls now carry their measured
+  readings rather than expectations; C01's W-A/W-C target-reaching worlds and C02's Q70/anchor/fetch defects are
+  reported as residuals; S248's queued-but-used invariant break is named; the census is 176 rows / 32 W04.
+- **Gates run on the final report.** `grep -n '^## '` → six required headers at lines 3/28/40/45/49/55 in contract
+  order; marker count → 1 (`FINAL_TIP`); `python3 -B verifiers/check_report_pointers.py --report
+  .ufo/waves/round-81/build/Kb81S04Report-final.md --repo . --rev daac4cc…` → `report pointers resolved 67 of 67;
+  unresolved 0`, exit 0 (66 blobs + 1 directory). Two wording defects were caught and fixed before the green run:
+  a Y01 receipt filename and an over-strong "floor produces 0" claim.
+- **Main ruling applied (C1 kill).** The L1 relayed Main's ruling: C1 STOPS, unprovable/not admitted; the frozen kill
+  rule covers any control world reaching 6/6, and C01's W-A (forged wrong-repository receipt) and W-C (816 B padded
+  marker) each reach the target on the published bytes (`w1/Kb81C01C1.md`). The report now classifies C1 as killed,
+  keeps the G6 6/6 as a falsified after-value never admitted, and names the reaching worlds as the kill basis —
+  explicitly *not* C01's stale cap-140 rationale, since the frozen plan and freeze carry `LINE_CAP = 900` (M81-3).
+  C2 stands independently. No other value changed.
+- **Not run.** The tip battery and the C2 counter: this seat does not score claim after-values, so the G6 readings
+  remain the L1's, attributed as above.
+
+VERDICT: Fleet report materialized at build/Kb81S04Report-final.md from the skeleton with 103/104 markers filled (only the sanctioned post-G4 `{{FINAL_TIP}}` remains); C1 is classified killed on Main's ruling (C01 W-A/W-C reach the target; the G6 6/6 is a falsified after-value, never admitted; the stale cap-140 rationale is excluded), C2 stands independently; the final report's pointer gate resolves 67 of 67 at `daac4cc…`, exit 0; no fleet write, no claim score produced or claimed.
+DELIVERABLES: /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-81/build/Kb81S04Report-final.md, /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-81/build/Kb81S04Report-census-after.txt, /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-81/build/Kb81S04Report.md, /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-81/build/Kb81S04Report-structure.txt, /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-81/build/Kb81S04Report-pointer-smoke.txt, /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-81/w1/Kb81S04Report.md

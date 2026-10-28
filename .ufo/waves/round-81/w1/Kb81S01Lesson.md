@@ -21,8 +21,11 @@ removed before yield; every git call there was `-C`'d and the clone's toplevel a
   resolution appended after the erratum was republished.
 - `.ufo/waves/round-81/build/Kb81S01Lesson-worktree-vs-frozen.txt` — the worktree-vs-frozen plan check
   (`git show e6d48e6:plans/round-81.md` reads 900; the live worktree briefly read 140), receipt for M81-3.
-- `.ufo/waves/round-81/build/Kb81S01Lesson-M81-4.patch` — the M81-4 row as a patch against
-  `corpus/lessons/round-81.md` at `a597a15d` (single hunk, `git apply --check` rc 0 in a clone).
+- `.ufo/waves/round-81/build/Kb81S01Lesson-G4b.patch` — the G4 delta rebased on the current `corpus/lessons/round-81.md` at
+  `daac4cc`: exactly four edits (C1-killed bullet and its contract-dispute note; the controls bullet's title
+  and its "no world reaches 6 of 6" closing sentence re-scoped to the declared suite; the M81-5 row; the
+  landed-tip line → `a597a15d…` plus the no-C1-after-value claim), 4 hunks, `git apply --check` rc 0. The
+  earlier `Kb81S01Lesson-G4.patch` (based on `a597a15d`) was removed because its context no longer matches.
 - `.ufo/waves/round-81/w1/Kb81S01Lesson.md` — this report.
 
 ## What I measured first-hand (own exit captured, no pipelines)
@@ -145,6 +148,28 @@ removed before yield; every git call there was `-C`'d and the clone's toplevel a
     `build/Kb81S01Lesson-M81-4.patch`; the landed `corpus/lessons/round-81.md` at G1 predates it and needs the
     L1's follow-up commit.
 
+18. **F18 — C1 is killed and the lesson says so first.** Main's ruling after C01 is recorded: W-A (a real
+    commit `8b1cc1b0…` in a dead clone, absent from lane and fleet, with a test-authored receipt asserting
+    `wrong-owner/wrong-repo` plus a matching manifest row and digest) prints `guards 5 of 5; tip battery exit
+    0: 6 of 6`, exit 0, at rev `f7388d3b…`; W-C (an 816 B padded blob containing `## SHONEN` resolved at
+    `HEAD:.ufo/reports/round-77/kotoba.md`) prints `6 of 6`, exit 0, at rev `4488e7f0…`. I verified both
+    frozen lines in the receipts. Under the frozen kill rule that stops the claim; no C1 after-value is
+    scored. W-B and W-D (5 of 6) show the two witnesses disagree; W-E (2 of 6) keeps the r80 W10 marker red.
+    M81-5 records the stopped `6 of 6` with the kill rule as captured-by and routes the fix to round 82
+    (reviewed allowlist binding hash+repo+receipt+digest, receipt's own repo/ref/hash association, E01
+    rejecting a receipt without the hash, one strict first-resolved report route, content-identity rather
+    than marker+size). One dispute named not smoothed: C01 argues a frozen 140 cap was violated by the
+    900-cap counter; the frozen plan at `e6d48e6` says 900 (140 was transient pre-freeze text), and the kill
+    does not depend on that branch.
+
+19. **F19 — the G4 patch was rebased on the landed lesson and narrowed.** `Kb81S01Lesson-G4.patch` failed
+    `git apply --check` at the current `corpus/lessons/round-81.md` (`daac4cc`) because its base predated the
+    M81-4 landing and the pointer-safe wording edits. The replacement, `build/Kb81S01Lesson-G4b.patch`, is
+    generated against `daac4cc` itself and carries only the four requested edits (verified: 5 mistake rows,
+    one kill bullet, one declared-suite title, one landed-tip line, 4 hunks, apply-check rc 0). The build
+    draft `build/Kb81S01Lesson.md` was replaced by the patched file so draft and patch cannot drift; it now
+    equals the landed text plus those four edits and nothing else.
+
 ## Coordination (peers, short-form only)
 
 - `Kb81S07Quality`: confirmed the mistake label `M81-1` for Q76's `grounded in` cell; S07 replied that it
@@ -166,5 +191,5 @@ removed before yield; every git call there was `-C`'d and the clone's toplevel a
   codes and counter sha; where a world's expectation and its harness grading disagree, the lesson says so.
 - Scratch removed before yield.
 
-VERDICT: Round-81 lesson final (build draft, marker-free) and the M81-4 landing row delivered as `build/Kb81S01Lesson-M81-4.patch` (applies clean to a597a15d): C1 carries E6 as frozen (900, tight pins, 402/29), the pin-staleness episode and freeze, the manifest-unpinned residual with its declined variant and controls, routed R81-D1, the four C03 residual classes, and the 10/10 control suite with every killer class red and no world at 6 of 6; C2 carries the S249 admit, the S250/S248 API-falsified binding, the queued-but-used invariant and W04, and CONTROLS-HOLD qualified by three conjunct gaps; Mistakes carries M81-1..M81-4 with the landing channel now documented (detached-HEAD creation, helper refusal, helper-only recovery, all four commits landed and pushed).
-DELIVERABLES: /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-81/build/Kb81S01Lesson.md /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-81/build/Kb81S01Lesson-M81-4.patch /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-81/w1/Kb81S01Lesson.md /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-81/build/Kb81S01Lesson-base-integrity.txt /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-81/build/Kb81S01Lesson-base-independent.txt /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-81/build/Kb81S01Lesson-instrument-cap.txt /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-81/build/Kb81S01Lesson-pin-staleness.txt /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-81/build/Kb81S01Lesson-worktree-vs-frozen.txt
+VERDICT: Round-81 lesson recorded as C1-KILLED (W-A false wrong-repo binding and W-C padded marker each reach 6 of 6 under the frozen 900-cap counter; the measured value is stopped, not scored), with the declared W0-W9 10/10 suite re-scoped to its own weaker worlds, M81-1..M81-5 in the Mistakes table, and C2's S249 admit / S250 binding / queued-but-used invariant / CONTROLS-HOLD-with-gaps recorded; the G4 delta ships as build/Kb81S01Lesson-G4b.patch against daac4cc (4 narrowly-contexted hunks, apply-check rc 0) with build/Kb81S01Lesson.md set to the patched text.
+DELIVERABLES: /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-81/build/Kb81S01Lesson.md /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-81/build/Kb81S01Lesson-G4b.patch /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-81/w1/Kb81S01Lesson.md /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-81/build/Kb81S01Lesson-base-integrity.txt /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-81/build/Kb81S01Lesson-base-independent.txt /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-81/build/Kb81S01Lesson-instrument-cap.txt /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-81/build/Kb81S01Lesson-pin-staleness.txt /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-81/build/Kb81S01Lesson-worktree-vs-frozen.txt
