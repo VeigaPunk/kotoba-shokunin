@@ -1,0 +1,148 @@
+diff --git a/verifiers/verify_corpus_independent.py b/verifiers/verify_corpus_independent.py
+index edac0df..ca3ce78 100755
+--- a/verifiers/verify_corpus_independent.py
++++ b/verifiers/verify_corpus_independent.py
+@@ -124,6 +124,7 @@ POINTER_RE = re.compile(
+     r"""[^\s`"()\[\],;:]*\.ufo/reports/round-\d+/[^`"]*?\.md"""
+ )
+ COMMIT_RE = re.compile(r"(?<![A-Za-z0-9_-])commit\s+`([^`\s]+)`")
++EXTERNAL_HOST_RE = re.compile(r"https?://(?:raw\.githubusercontent\.com|github\.com)/")
+ # Round 36 (scout P3b): a fenced region is opaque to the index census -- a
+ # coverage row quoted inside a ``` block is an example, not an index promise.
+ # Round 39 (seat P4, from V6b's r38 proof): closing needs CommonMark 4.5's rule
+@@ -472,6 +473,7 @@ def analyse_pointers(repo, tracked_corpus, fleet_root=FLEET_ROOT):
+ 
+ def analyse_commits(repo, tracked_corpus, fleet_root=FLEET_ROOT):
+     quoted, nonhash, unresolvable, citations = [], [], [], []
++    external = []
+     truncated = []
+     for rel in tracked_corpus:
+         path = os.path.join(repo, rel)
+@@ -496,7 +498,10 @@ def analyse_commits(repo, tracked_corpus, fleet_root=FLEET_ROOT):
+                         proc = _git(fleet_root, "cat-file", "-e",
+                                     "%s^{commit}" % token)
+                     if proc.returncode != 0:
+-                        unresolvable.append("%s:%d: %s" % (rel, lineno, token))
++                        if EXTERNAL_HOST_RE.search(line):
++                            external.append("%s:%d: %s" % (rel, lineno, token))
++                        else:
++                            unresolvable.append("%s:%d: %s" % (rel, lineno, token))
+     return {
+         "commit_candidates": len(citations) + len(quoted) + len(truncated),
+         "commit_total": len(citations),
+@@ -510,6 +515,7 @@ def analyse_commits(repo, tracked_corpus, fleet_root=FLEET_ROOT):
+         "commit_nonhash_detail": sorted(nonhash),
+         "commit_truncated": len(truncated),
+         "commit_truncated_detail": sorted(truncated),
++        "commit_external": len(external),
+         "commit_unresolvable": len(unresolvable),
+         "commit_unresolvable_detail": sorted(unresolvable),
+     }
+@@ -1033,6 +1039,14 @@ def self_test():
+               "commits: double-quoted and code-span examples are context")
+         st.eq(fleet_com["commit_candidates"], 9,
+               "commits: context candidates stay visible, never live")
++        _write(os.path.join(croot, "corpus/knowledge/external.md"),
++               "commit `a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4` on "
++               "https://raw.githubusercontent.com/o/r/main/x.md\n")
++        _git(croot, "add", "-A")
++        _git(croot, "-c", "user.email=a@b", "-c", "user.name=t", "commit", "-q", "-m", "ext")
++        ext_com = analyse_commits(croot, corpus_markdown(croot), fleet_root)
++        st.eq((ext_com["commit_external"], ext_com["commit_unresolvable"]), (1, 1),
++              "commits: third-repo citation is external, not unresolved")
+ 
+ 
+         # -- clean fixture: verdicts and exit code -------------------------------
+diff --git a/verifiers/verify_corpus_integrity.py b/verifiers/verify_corpus_integrity.py
+index e470eaa..d74079b 100755
+--- a/verifiers/verify_corpus_integrity.py
++++ b/verifiers/verify_corpus_integrity.py
+@@ -151,6 +151,7 @@ UFO_POINTER_RE = re.compile(
+ COMMIT_RE = re.compile(r"(?<![A-Za-z0-9_-])commit[ \t]+`([^`\n]+)`")
+ HEX_RE = re.compile(r"\A[0-9a-fA-F]{7,40}\Z")
+ TRUNCATED_COMMIT_RE = re.compile(r"\A[0-9a-fA-F]{7,40}\u2026\Z")
++EXTERNAL_HOST_RE = re.compile(r"https?://(?:raw\.githubusercontent\.com|github\.com)/")
+ BACKTICK_RE = re.compile(r"`([^`]+)`")
+ SECTION_HEADING_RE = re.compile(r"^##[ \t]")
+ COVERAGE_HEADING_RE = re.compile(r"^##[ \t]+Coverage map[ \t]*$")
+@@ -272,6 +273,12 @@ def resolve_pointer(base: Path, token: str) -> Path:
+ 
+ def report_pointer_exists(base: Path, token: str, fleet_root: Path = FLEET_ROOT) -> bool:
+     """Check the citing directory first, then the fleet root for bare report paths."""
++    head, _, rest = token.partition(":")
++    if head and rest.startswith(".ufo/reports/"):  # `<rev>:<path>`: a revision, not a tree path
++        at = base.resolve()  # the citing repository first, then the fleet root
++        lane = next((p for p in (at, *at.parents) if (p / ".git").exists()), None)
++        return bool(lane) and git_ok(lane, "cat-file", "-e", token) or git_ok(
++            fleet_root, "cat-file", "-e", token)
+     if resolve_pointer(base, token).is_file():
+         return True
+     return token.startswith(".ufo/reports/") and (fleet_root / token).is_file()
+@@ -503,6 +510,7 @@ def citation_findings(rel: str, text: str, pointer_exists, commit_resolves) -> d
+     report_quoted: list[str] = []
+     pointer_shapes = {"relative": 0, "absolute": 0, "tilde": 0, "bare": 0}
+     unresolvable: list[str] = []
++    external: list[str] = []
+     nonhash: list[str] = []
+     truncated: list[str] = []
+     quoted: list[str] = []
+@@ -535,7 +543,10 @@ def citation_findings(rel: str, text: str, pointer_exists, commit_resolves) -> d
+                 continue
+             commit_total += 1
+             if not commit_resolves(token.lower()):
+-                unresolvable.append(f"{rel}:{line_no}: {token}")
++                if EXTERNAL_HOST_RE.search(line):
++                    external.append(f"{rel}:{line_no}: {token}")
++                else:
++                    unresolvable.append(f"{rel}:{line_no}: {token}")
+     return {
+         "report_total": report_total,
+         "report_pointer_shapes": pointer_shapes,
+@@ -546,6 +557,8 @@ def citation_findings(rel: str, text: str, pointer_exists, commit_resolves) -> d
+         "report_dead": len(report_dead),
+         "report_dead_detail": sorted(report_dead),
+         "commit_total": commit_total,
++        "commit_external": len(external),
++        "commit_external_detail": sorted(external),
+         "commit_unresolvable": len(unresolvable),
+         "commit_unresolvable_detail": sorted(unresolvable),
+         "commit_nonhash": len(nonhash),
+@@ -650,6 +663,7 @@ def corpus_observations(repo: Path) -> dict:
+         "commit_nonhash": 0,
+         "commit_truncated": 0,
+         "commit_quoted_excluded": 0,
++        "commit_external": 0,
+     }
+     shapes = {"relative": 0, "absolute": 0, "tilde": 0, "bare": 0}
+     details: dict[str, list[str]] = {
+@@ -660,6 +674,7 @@ def corpus_observations(repo: Path) -> dict:
+         "commit_nonhash_detail": [],
+         "commit_truncated_detail": [],
+         "commit_quoted_detail": [],
++        "commit_external_detail": [],
+     }
+     for rel in md_files:
+         rel_repo = f"{CORPUS_DIR}/{rel}"  # findings speak repo-relative
+@@ -1023,6 +1038,22 @@ def self_test() -> int:
+         )
+         eq("pointer/fleet-root/checked", fleet_found["report_total"], 1)
+         eq("pointer/fleet-root/resolves-existing-report", fleet_found["report_dead"], 0)
++        # round 79: the fleet repo is a revision `HEAD:.ufo/...` resolves in.
++        subprocess.run(["git", "init", "-q", str(fleet_root)], check=True)
++        subprocess.run(["git", "-C", str(fleet_root), "add", "-A"], check=True)
++        subprocess.run(["git", "-C", str(fleet_root), "-c", "user.name=t", "-c",
++                        "user.email=t@t", "commit", "-qm", "f"], check=True)
++        rev_found = citation_findings("corpus/lessons/rev.md",
++            "rev `HEAD:.ufo/reports/round-53/kotoba.md` and gone `HEAD:.ufo/reports/round-9/x.md`"
++            " and unk `nosuchrev:.ufo/reports/round-53/kotoba.md`",
++            lambda base, token: report_pointer_exists(lane_root / base, token, fleet_root),
++            lambda hex_id: True)
++        eq("pointer/rev/dead", (rev_found["report_dead"], rev_found["report_total"]), (2, 3))
++        ext = citation_findings("corpus/SOURCES.md",
++            "commit `a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4` on "
++            "https://raw.githubusercontent.com/o/r/main/x.md",
++            lambda base, token: True, lambda hex_id: False)
++        eq("commit/external", (ext["commit_external"], ext["commit_unresolvable"]), (1, 0))
+ 
+     # --- round 66: the commit fleet-hop (routed defect D2 of the round-65
+     # spot-check) ----------------------------------------------------------

@@ -1,0 +1,41 @@
+# Kb80R07ClosureScan — routed-defect sweep (r77–r79 closures → round 80)
+
+Seat: Kb80R07ClosureScan (scout). Date: 2026-10-27.
+Sources read in full: `corpus/lessons/round-77-verifier-spotcheck.md` (§5 incl. the R76-D1–D5 carry-forward), `corpus/lessons/round-78-verifier-spotcheck.md` (§5), `corpus/lessons/round-79-verifier-spotcheck.md` (§2/§3 as assigned, §5), `plans/round-80.md` (authoritative).
+Lane state at sweep: HEAD `c2f69d4` ("round-80: freeze plan F1 + validated v2 wave (64 seats) + base receipts"), base `398cbe1` is its parent — the freeze commit; only untracked paths are this round's own `.ufo/waves/round-80/{assimilation,w1,w1.ready,w1.ready.dispatched}`. Wave in flight: `w1-dispatch.json` counts `{spawn: 64, resume: 0, total: 64}`; `w1/swarm-registry.json` tracks members; `w1/` holds only the registry so far; `build/` not yet populated.
+
+## Sweep table
+
+One line per routed defect. Status legend: **addressed** (work routed/landed this round, seat or plan section named), **carried** (consciously open, why), **obsolete** (closed upstream or by construction, why).
+
+| Defect | One-line disposition for the round-80 report's Landed changes section |
+|---|---|
+| **R77-D1** — carry the failed final corpus battery to closure (reconcile unindexed files, refresh baseline, run full battery at final rev) | **Addressed this round** — plan § No-harm battery (Q72) orders the full battery at base before freeze AND at the final pre-report tip after claim files land, in a sandbox; base receipts already committed at the freeze commit (`receipts/tipbattery-base-dot.txt` ends `guards 5 of 5; tip battery exit 0: 1 of 6 / exit=1`, verified read; M80-1 receipt `m80-1-pipe-vs-direct.txt` shows the pipe-vs-direct divergence). Baseline refresh is repair 3 (`refresh-corpus-baseline.py` at the final pre-report commit, E03 seat). The final tip battery is post-integration work owned by the L1/report — not yet run at sweep time. |
+| **R77-D2** — reconcile the w2 report-file gap; durable per-seat termination/dead evidence | **Addressed this round** — round 80 runs one v2 wave with durable machine-readable results: `w1-dispatch.json` (counts verified: spawn 64) and `w1/swarm-registry.json` member tracking, with per-seat reports at `.ufo/waves/round-80/w1/<SeatName>.md`; absent-report≠dead-seat is resolvable from the registry at settle time. |
+| **R77-D3** — frozen claim predicates too weak; redesign C1/C2 before any data; preserve C01's R2 boundary | **Addressed this round** — plan § Trigger declares FRESH claims, "nothing from the r77–r79 frozen predicates is reused unchanged"; § C1 adds the kill rule and control worlds W0–W7 (W6 stubs/deletions must trip the instrument-pin guard, never 6 of 6) with erratum E5 declared before data; § C2 splits the claim per Q71/Q74 — measured form-level headline beside a printed generator-world score, semantics exploratory — with controls C0–C8. C01's R2 finding is preserved (no R2 re-route anywhere in the plan). |
+| **R77-D4 carry-forward R76-D1–D5** — typo-root duplicate, r76 lesson gap, C1/C2 re-land, red corpus gates/no-harm run, dead-seat reconciliation | **Obsolete as r80 work** — the r77 closure records "Round-77 reports D1–D2 work", and the live remainder decomposes into routed items this table already covers: D3→R77-D3 (fresh claims), D4→R77-D1/R79-D4 (no-harm battery), D5→R77-D2 (v2 results). Nothing in the r78 or r79 closures re-raises D1/D2. |
+| **R78-D1** — pre-data claim controls (semantic evidence so do-nothing worlds cannot reach target) | **Addressed this round** — same vehicle as R77-D3: § C1 kill rule + W0–W7 + frozen pins (grammar ≤21 lines of the 60-LINE_CAP arithmetic declared pre-data); § C2 controls C0–C8 scored on the frozen counter before any after-value, any world reaching target reported as a counter defect, never repaired by narrowing. Plus the round's own measurement-class guard: M80-1 mined into `corpus/lessons/round-80.md` with the pipe-vs-direct receipt. |
+| **R78-D2** — frontier and census evidence (prescribed counts before/after, located ≤25-word quote or honest non-compliance) | **Addressed this round** — plan §2b: `receipts/census-before.txt` captured at the freeze commit (verified: exit 0, ends `kotoba ok`, 157 rows per the r79 closure); the six C2 rows S226–S231 re-opened live with receipt `w1/Kb80ReopenSix.md`; NEW rejection rows from S232 each opened this round with URL, access date and ≤25-word located quote in the round-80 lesson `## Gate`; census-after is end-of-round L1 work. |
+| **R78-D3** — round-shape contract (run-10 64-seat floor vs no-wave honest stop) | **Addressed this round** — plan § Round shape: one v2 wave, w1 = 64 seats, inside the 64–128 band; dispatch verified (`counts.spawn=64`). No waiver needed. |
+| **R78-D4** — worktree residue (six untracked `.ufo/waves/round-79/` paths) | **Obsolete** — the r79 closure §1 already records lane state `tracked=0 untracked=0` at tip `6ef6753e`; re-checked at the current freeze commit: `git status --porcelain -- .ufo/waves/round-79/` prints nothing. The r79 build dir survives only as the reviewed-draft input r80 ports from (plan § C1/C2 port list). |
+| **R79-D1** — W2 settlement (announced 32-seat W2, no results) | **Addressed this round** — plan § Inherited state formally records `.ufo/waves/round-79/w2*` "announced but never settled": nothing is inherited from it and the r80 wave evidence is self-contained. A waive-by-record; the orchestrator's settlement duty is discharged through the r80 plan and this table. |
+| **R79-D2** — r79 lesson census line stale (name `census-final.txt` as the round-end receipt) | **Addressed this round** — plan §2b routes it: the round-80 lesson carries an append-only notice naming `census-final.txt` (157 rows, 24 W04) as the r79 round-end receipt, correcting the stale `census-after.txt` line without editing the frozen r79 lesson. Lands with L1 integration (corpus/ is seat-write-frozen; not in the tree at sweep time — wave in flight). |
+| **R79-D3** — attack-share arithmetic recorded in the plan/spec | **Addressed this round** — plan § Round shape shows the computation explicitly: 6 critics + 6 reviewers + 4 mutation-testers + 1 sentinel = 17/64 = 26.6 % ≥ 25 %; 3 connectors satisfy the few-connector rule. |
+| **R79-D4** — close the tip battery (receipt naming the exact tip before any final-battery claim; prefer actually closing it) | **Addressed this round as C1** — the tip battery IS the r80 headline claim: repair stack § C1 items 1–5 (registry, symlink, index+baseline, dead-pointer, external-commit grammar class) ported to base 398cbe1 by dispatched seats; kill rule; no seat scores after-values; L1 integrates, then the no-harm battery and the non-author closure re-measure. The 1→6 verdict belongs to post-integration closure, not to this sweep. |
+
+## Evidence log (commands run for this sweep, all read-only)
+
+- `git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin log --oneline -5` → HEAD `c2f69d4` "round-80: freeze plan F1 + validated v2 wave (64 seats) + base receipts", parent `398cbe1`.
+- `git merge-base --is-ancestor 398cbe1… HEAD` → exit 0 (declared base is the freeze commit's parent).
+- `git status --porcelain` → only `.ufo/waves/round-80/{assimilation,w1,w1.ready,w1.ready.dispatched}` untracked.
+- `git status --porcelain -- .ufo/waves/round-79/` → empty (R78-D4 re-check).
+- `tail -5 .ufo/waves/round-80/receipts/tipbattery-base-dot.txt` → `guards 5 of 5; tip battery exit 0: 1 of 6`, `exit=1` (base battery red, named red before any after-value).
+- `tail -3 .ufo/waves/round-80/receipts/census-before.txt` → `kotoba ok` (exit 0 census captured at freeze).
+- `python3 -c … json.load(w1-dispatch.json)` → `counts: {spawn: 64, resume: 0, total: 64}`; `w1/swarm-registry.json` has `members` tracking.
+
+## Open items this sweep does not close (named, not carried silently)
+
+1. Final pre-report no-harm battery + census-after (L1, post-integration) — R77-D1/R78-D2 completion condition.
+2. The actual C1 6-of-6 after-value (R79-D4) — deliberately unscored by seats; closure-owned.
+3. r80 lesson + report landing the R79-D2 append-only notice — L1-owned, corpus/ seat-frozen.
+4. W1 seat reports still being written at sweep time (`w1/` holds only the registry); dead-seat evidence resolves at settle.

@@ -1,0 +1,269 @@
+# Kb80E12Census — addendum: census-lane facts for the C1/C2 stack (round 80, w1)
+
+Seat: Kb80E12Census (leaf executor). Date: 2026-10-27. Base: `398cbe1bb67f8d9dcf5d25d5ecf1b26a7c6f7e93`.
+Scratch (removed before yield): `/fast/scratch/hyaku/kotoba-r80/Kb80E12Check/`.
+
+This addendum is an extension of `.ufo/waves/round-80/build/Kb80E12Census.txt` (the census receipt).
+It records four measurements the C1/C2 owners need, all taken by this seat with its own exit capture,
+and one fact that changes what the C1 repair-5 class should say.
+
+---
+
+## A. The two real `commit_unresolvable` tokens are at `corpus/SOURCES.md:171-172`, not the plan's pair
+
+Command (lane tree, read-only, own-exit capture, no pipeline):
+
+    python3 -B verifiers/verify_corpus_integrity.py
+
+Output (verbatim):
+
+    corpus.pointers report_dead=1/109 commit_total=46 unresolvable=2 nonhash=0 (shapes
+    [relative=1, absolute=44, tilde=1, bare=63], quoted-excluded=6, pointer-excluded=8; sites in --json)
+               commit_unresolvable: corpus/SOURCES.md:171: 7bb48f213ac677f943d5c791199ed3dddf302f00
+               commit_unresolvable: corpus/SOURCES.md:172: 7bb48f213ac677f943d5c791199ed3dddf302f00
+    DRIFT   corpus.index.tracked_files: observed=152 expected=144
+    DRIFT   corpus.index.unindexed: observed=1 expected=0 / empty
+    DRIFT   corpus.pointers.report_total: observed=109 expected=99
+    DRIFT   corpus.pointers.report_dead: observed=1 expected=0 / empty
+    DRIFT   corpus.pointers.commit_total: observed=46 expected=43
+    DRIFT   corpus.pointers.commit_unresolvable: observed=2 expected=0 / empty
+    3/9 checks pass; DRIFT: corpus.index.tracked_files, corpus.index.unindexed,
+    corpus.pointers.report_total, corpus.pointers.report_dead, corpus.pointers.commit_total,
+    corpus.pointers.commit_unresolvable
+    exit=1
+
+The two tokens are one hash cited twice, in the two rows this round re-opens: **S230** (line 171) and
+**S231** (line 172). The plan's `google-gemini/gemini-cli@451a02ff` and `zed-industries/zed@cfb894a5`
+appear in the corpus as **commit_quoted** context (already excluded by the quoted-text rule), not as
+unresolvable tokens — they are not what the gate reads.
+
+**Line shape (the load-bearing detail for repair 5).** S230's anchor reads:
+
+    page revision `main` resolved to `badlogic/pi-mono` commit `7bb48f213ac677f943d5c791199ed3dddf302f00`
+
+The third-repository name is a **separate backticked token on the same line**; the cited token itself
+is pure hex. A class keyed only on an in-token `owner/repo@<hex>` grammar therefore clears nothing
+here. The plan's "(or otherwise an explicit third-repository citation)" clause is the load-bearing
+one, and it must work at **line scope** (a repo marker elsewhere on the line, or the row's
+`owner/repo` URL), exactly as the S07 candidate world does.
+
+---
+
+## B. The S07 candidate grammar world DOES clear the two tokens (measured)
+
+The only published grammar-class artifact at this hour is
+`.ufo/waves/round-80/build/Kb80S07Quality-world.patch` (S07's candidate world; S07's own report says
+the landed patch is E05's). This seat applied it (on top of E04) in a scratch clone at base and ran
+both corpus gates:
+
+    git apply build/Kb80E04DeadPointer.patch        # rc=0
+    git apply build/Kb80S07Quality-world.patch       # rc=0
+    python3 -B verifiers/verify_corpus_integrity.py
+      corpus.pointers report_dead=0/109 commit_total=46 unresolvable=0 external=2 nonhash=0
+                 commit_external: corpus/SOURCES.md:171: 7bb48f21… (repo badlogic/pi-mono)
+                 commit_external: corpus/SOURCES.md:172: 7bb48f21… (repo mistralai/mistral-vibe)
+      exit=1
+    python3 -B verifiers/verify_corpus_independent.py
+      commits candidates=55 citations=46 hex=46 quoted=6 nonhash=0 external=2 unresolvable=0
+        corpus.pointers.commit_unresolvable    zero     observed=0 PASS
+      exit=1
+
+So the line-scope marker shape clears `commit_unresolvable` 2 -> 0 and opens an `external=2` INFO
+class in both gates, and E04 clears `report_dead` 1 -> 0. The remaining DRIFTs in the integrity gate
+are the coverage-map / baseline classes (E03's repair) and the `commit_total` observation.
+
+**This seat's own 12 rows (S232-S243) add NO commit-citation tokens.** Measured on a clone carrying
+E04 + S07 + this seat's 12 rows: `commit_total=46` (unchanged), `unresolvable=0`, `external=2` — the
+12 new rows introduce no hex citation in the gate's `commit \`<token>\`` clothing, so they cannot
+disturb the class either way.
+
+---
+
+## C. The size-cap arithmetic: E04 + the published grammar world busts `LINE_CAP = 60`
+
+The counter's `instrument-size` guard diffs the six battery scripts against its **pinned r72 base
+`072048fa8e8a52c707d25f7079772fa317244eb7`**, not against `398cbe1`.
+
+Measured numstat over that base:
+
+    base 398cbe1 (no repairs)          : check_assertion_floors.py +22/-3, total 22 added / 3 deleted
+    base + E04 (pointer fix)            : + check_assertion_floors.py 22/3 + verify_corpus_integrity.py 17/0
+                                          => total 39 added / 3 deleted
+    base + E04 + S07 grammar world      : + verify_corpus_independent.py 75/4 + verify_corpus_integrity.py 113/1
+                                          => total 210 added / 8 deleted
+
+The amended counter's own words in `build/Kb80E06CounterErratum.cap60-provisional.py` declare
+"22 lines already spent at the round-80 base + 17 (the E04 report-pointer repair) + at most 21 (the
+external-commit grammar class) = 60". Measured: after E04 the running total is 39, so the grammar class
+has **60 - 39 = 21 added lines to spend across BOTH corpus gates**. The published candidate spends
+171. Running the amended counter over that composed tree:
+
+    guard no-deletions PASS
+    guard floors PASS
+    FAIL guard instrument-size: instruments gain 210 lines > 60
+    guard instrument-pin PASS
+    guard spotcheck-identity PASS
+    fleet root …; guards 4 of 5; tip battery exit 0: 1 of 6
+    exit=1
+
+So the class as published cannot fit the declared cap. This is the plan's own kill rule
+("if repairs 4 or 5 land in instruments whose combined size exceeds the declared cap arithmetic … C1
+stops as an honest stop") — but it is a size fact, not yet a stop: a class whose arms live in the two
+gates' own bytes needs 171 added lines at this shape, and only 21 are available. Either the class
+moves its arms out of the gates' bytes (e.g. into a shared helper the gates import — which changes the
+instruments' byte count only by the import line) or the cap arithmetic must be re-derived and declared
+before any after-value is measured.
+
+**E04 alone is green on the size guard.** Same amended counter, same tree, E04 only:
+
+    git apply build/Kb80E04DeadPointer.patch
+    # amended counter + one added INSTRUMENT_PINS entry for the E04 blob
+    guarded paths 586, deleted 0; floors 15 rows; instruments added 39 / deleted 3 lines (cap 60)
+    guard no-deletions PASS
+    guard floors PASS
+    guard instrument-size PASS
+    guard instrument-pin PASS
+    guard spotcheck-identity PASS
+    gate verifiers/check_gate_registry.py exit 1
+    gate verifiers/check_assertion_floors.py exit 1
+    gate verifiers/verify_skill_checklist.py exit 1
+    gate verifiers/verify_corpus_integrity.py exit 1
+    gate verifiers/verify_corpus_independent.py exit 1
+    gate verifiers/check_correction_sweep.py exit 0
+    fleet root …; guards 5 of 5; tip battery exit 0: 1 of 6
+    exit=1
+
+`guards 5 of 5` and `1 of 6` — E04 alone is not a shortcut to 6 of 6, and the pin guard passes only
+when the E04 blob `051b8c5f8676cba5c8d6047c8c9f7fcb56cd8f9f` is in `INSTRUMENT_PINS` (without it the
+same tree gives `FAIL guard instrument-pin: verifiers/verify_corpus_integrity.py blob 051b8c5f… is not
+a pinned blob`, guards 4 of 5).
+
+### The two blob ids E06 must pin (derived by this seat; E05's landed bytes are the authority)
+
+Composing E04's patch with the S07 candidate grammar patch on the base (order-independent — both
+orders give the same ids):
+
+    git hash-object verifiers/verify_corpus_integrity.py   ->  c500949706c886bc1ac4ec3985ba9e7b4767a2cc
+    git hash-object verifiers/verify_corpus_independent.py ->  77814259ea88e252010bcecedd142b21b91be297
+
+These are the ids **for the S07 candidate world's bytes**. If E05 lands different grammar bytes, the
+two ids change and E06's pins must be recomputed on E05's landed tree (`git -C <lane> rev-parse
+<F2>:verifiers/verify_corpus_integrity.py`). The S15 freeze file already states this ordering
+constraint (C-a) and this recompute command.
+
+---
+
+## D. A NEW DEFECT the grammar class would bless: S230's anchor names the WRONG repository's commit
+
+This is the finding that changes what repair 5 should say, and it is measured, not inferred.
+
+S230's anchor cell states:
+
+    page revision `main` resolved to `badlogic/pi-mono` commit `7bb48f213ac677f943d5c791199ed3dddf302f00`
+
+Facts measured this round:
+
+| check | command | result |
+|---|---|---|
+| does that commit exist in `badlogic/pi-mono`? | `git fetch --no-tags https://github.com/badlogic/pi-mono 7bb48f213ac677f943d5c791199ed3dddf302f00` | `fatal: remote error: upload-pack: not our ref 7bb48f213ac677f943d5c791199ed3dddf302f00` — the object is absent from the repository |
+| whose head is it? | `git ls-remote https://github.com/mistralai/mistral-vibe refs/heads/main` | `7bb48f213ac677f943d5c791199ed3dddf302f00 refs/heads/main` — it is **mistral-vibe's** head |
+| pi-mono's head | `git ls-remote https://github.com/badlogic/pi-mono refs/heads/main` | `85c2ee3e761e4fc4f901ff0ed584fb2465aa552e` |
+| is it in pi-mono's refs at all? | `git ls-remote https://github.com/badlogic/pi-mono \| grep 7bb48f` | no match (4119 refs listed) |
+| does pi-mono serve the file at that sha? | `curl -o /dev/null -w '%{http_code}' https://raw.githubusercontent.com/badlogic/pi-mono/7bb48f21…/packages/coding-agent/docs/skills.md` | **404** |
+| does mistral-vibe serve its README at that sha? | same, mistralai/mistral-vibe/7bb48f21…/README.md | **200** |
+| pi-mono's head at fetch time, per the r79 fetch record | `.ufo/waves/round-79/snapshots/S230.fetch.json` note | `main at fetch time = bb65e3e49710fbd14f10c7792d0eaa6e2b2c5923` — a **different** id |
+| are the committed snapshot bytes pi-mono's? | `curl https://raw.githubusercontent.com/badlogic/pi-mono/bb65e3e4971…/packages/coding-agent/docs/skills.md \| sha256sum` | `5b9805525b194474ef1fe5455a0917ef15ed7f710aa9bec2eee11879556469e5` — equal to the committed `snapshots/S230-pi.md` sha256 (`5b9805525b194474ef1fe5455a0917ef15ed7f710aa9bec2eee11879556469e5`) |
+
+So: **the bytes are right, the commit id is wrong.** S230's anchor asserts that pi-mono's `main`
+resolved to a commit that is mistral-vibe's head and is not in pi-mono at all. The snapshot the row
+pins is genuinely pi-mono's file at pi-mono's fetch-time head `bb65e3e4971…`; only the anchor's
+commit id was copied from S231 (which correctly cites mistral-vibe's head). The row's own fetch record
+(`S230.fetch.json`) carries the **correct** head, so the SOURCES.md anchor cell and its fetch record
+disagree with each other — the Q62 "an anchor wrong" ground, not a content dispute.
+
+Two consequences for the L1:
+
+1. **The grammar class as published will mislabel it.** The S07 candidate derives the marker from the
+   row's `raw.githubusercontent.com/badlogic/pi-mono/...` URL, so it reports
+   `corpus/SOURCES.md:171: 7bb48f21… (repo badlogic/pi-mono)` — attributing mistral-vibe's commit to
+   pi-mono. The gate's INFO class would therefore carry a wrong repository name, and the row's anchor
+   would stay wrong underneath it. The class still clears the red (unresolvable 2 -> 0), but the
+   reclassification must not be read as the corpus being correct.
+2. **The anchor cannot be corrected in place.** `verifiers/check_sources_append_only.py` permits only
+   `status`, `recheck` and `used-by` to change in a row (CORPUS rule 2); `anchor` is a protected cell.
+   A correction is a **new supersede row** (plus the appended notice), never an in-place edit of
+   S230's anchor.
+
+**What this seat did NOT do:** it did not edit `corpus/SOURCES.md`'s S230/S231 anchor cells, did not
+rewrite the r79 lesson, and did not add a supersede row — all of those are the L1's and the corpus
+owners' calls, and the M45 append-only pattern forbids an in-place rewrite. The measurements above are
+published so the L1 can decide with the evidence in hand.
+
+---
+
+## E. One more counter-side fact for E07 (the C2 counter seat)
+
+The r79 draft counter's (c) conjunct requires the cited row's **anchor cell** to carry the literal
+fetch record `fetched <ISO8601>Z, HTTP 200, <bytes> B, sha256 <hex>` (the draft's `FETCHED_RE`,
+`.ufo/waves/round-80/build/check_allowed_tools.py:248-250`, read at `:962` via `row_[5]`). Measured
+against the six C2 rows at base, that regex matches **none** of them:
+
+    S226 anchor fetch-record: NO MATCH
+    S227 anchor fetch-record: NO MATCH
+    S228 anchor fetch-record: NO MATCH
+    S229 anchor fetch-record: NO MATCH
+    S230 anchor fetch-record: NO MATCH
+    S231 anchor fetch-record: NO MATCH
+    (cells with a fetch record: [] for all six)
+
+The reason is textual, not substantive: the rows write `fetched 2026-10-27, HTTP 200, 7608 B,
+sha256 \`9a67de89…\`` — a date without a time, and a **backticked, ellipsis-truncated** digest — while
+the regex wants a full `YYYY-MM-DDTHH:MM:SSZ` and an unbackticked 64-hex digest. The rows' own
+`S226.fetch.json` … `S231.fetch.json` records carry the full values (`fetched_utc`,
+`sha256`), so the information is in the round-79 evidence but not in the shape the regex reads.
+
+This is the C2 counter seat's call (the round-80 counter may read the fetch record from the snapshot
+JSON rather than from the anchor cell), but the L1 should know that a (c) conjunct that reads the
+anchor cell literally will read 0 of 6 on the committed rows. This seat's own 12 rows (S232-S243)
+were written in the regex's shape (`fetched 2026-10-27T23:13:30Z, HTTP 200, <bytes> B, sha256
+<64-hex>`, no backticks) so they do match — verified: the row generator asserts the shape and this
+seat's rows are the reference example if the six C2 rows are ever re-shaped (which the append-only
+rule forbids in place, so the fix would have to be in the counter's reader, not in the rows).
+
+---
+
+## F. Commands this addendum rests on (own exit status, no pipelines for verdicts)
+
+| # | command | result |
+|---|---|---|
+| 1 | `python3 -B verifiers/verify_corpus_integrity.py` (lane, read-only) | exit 1; `unresolvable=2` at SOURCES.md:171 and :172, both `7bb48f21…` |
+| 2 | `git apply build/Kb80E04DeadPointer.patch` then `git apply build/Kb80S07Quality-world.patch` (scratch clone at base) | rc 0, rc 0 |
+| 3 | `python3 -B verifiers/verify_corpus_integrity.py` over that tree | exit 1; `unresolvable=0 external=2`; `report_dead=0` |
+| 4 | `python3 -B verifiers/verify_corpus_independent.py` over that tree | exit 1; `external=2 unresolvable=0`; `commit_unresolvable` PASS |
+| 5 | same as 3, plus this seat's 12 rows S232-S243 inserted | exit 1; `commit_total=46` (unchanged), `unresolvable=0`, `external=2` — the new rows add no commit tokens |
+| 6 | `git diff --numstat 072048fa… <tree> -- <six instruments>` | base 22/3; +E04 39/3; +E04+grammar 210/8 |
+| 7 | amended counter (E06 provisional) over the E04-only tree with the E04 blob pinned | exit 1; `guards 5 of 5`; `tip battery exit 0: 1 of 6`; `instrument-size PASS`, `instrument-pin PASS` |
+| 8 | amended counter over the E04+grammar tree with both blobs pinned | exit 1; `guards 4 of 5`; `FAIL guard instrument-size: instruments gain 210 lines > 60` |
+| 9 | `git fetch --no-tags https://github.com/badlogic/pi-mono 7bb48f21…` | `fatal: remote error: upload-pack: not our ref` |
+| 10 | `git ls-remote https://github.com/mistralai/mistral-vibe refs/heads/main` | `7bb48f213ac677f943d5c791199ed3dddf302f00 refs/heads/main` |
+| 11 | `git ls-remote https://github.com/badlogic/pi-mono refs/heads/main` | `85c2ee3e761e4fc4f901ff0ed584fb2465aa552e` |
+| 12 | `curl -o /dev/null -w '%{http_code}' https://raw.githubusercontent.com/badlogic/pi-mono/7bb48f21…/packages/coding-agent/docs/skills.md` | 404 |
+| 13 | `curl … https://raw.githubusercontent.com/badlogic/pi-mono/bb65e3e4971…/packages/coding-agent/docs/skills.md \| sha256sum` | `5b9805525b194474ef1fe5455a0917ef15ed7f710aa9bec2eee11879556469e5` = committed `snapshots/S230-pi.md` |
+| 14 | `FETCHED_RE.search(anchor_cell)` over S226-S231 | NO MATCH for all six |
+
+Scratch: `/fast/scratch/hyaku/kotoba-r80/Kb80E12Check/` (removed before yield; receipts copied here
+first).
+
+## G. Files this seat published for this addendum
+
+    Kb80E12Census-C1StackFindings.txt   this addendum
+    Kb80E12Census-S232-S243.patch       the 12 rejection rows (unchanged from the main receipt)
+    Kb80E12Census-S232-S243.rows.txt    the same 12 rows as plain 11-cell text
+    Kb80E12Census-census-before.txt / -census-after-174.txt / -census-after-root-174.txt /
+    -census-after-independent-patch.txt / -census-mode-before.txt / -census-mode-after-root.txt /
+    -rows-before.txt / -rows-after.txt / -e11-control.txt / -appendonly.txt / -fetch-records.tsv
+    Kb80E12Census-int-e04-grammar.txt   the integrity-gate output over the E04+grammar tree
+    Kb80E12Census-ind-e04-grammar.txt   the independent-gate output over the same tree
+    Kb80E12Census-battery-e04only.txt   the amended counter over the E04-only tree (guards 5 of 5)
+    Kb80E12Census-battery-e04-grammar.txt the amended counter over the E04+grammar tree (size FAIL)
+    Kb80E12Census-numstat.txt            the three instrument-size measurements

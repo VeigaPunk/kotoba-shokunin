@@ -1,0 +1,311 @@
+diff --git c/verifiers/verify_corpus_independent.py i/verifiers/verify_corpus_independent.py
+index edac0df..7781425 100755
+--- c/verifiers/verify_corpus_independent.py
++++ i/verifiers/verify_corpus_independent.py
+@@ -124,6 +124,19 @@ POINTER_RE = re.compile(
+     r"""[^\s`"()\[\],;:]*\.ufo/reports/round-\d+/[^`"]*?\.md"""
+ )
+ COMMIT_RE = re.compile(r"(?<![A-Za-z0-9_-])commit\s+`([^`\s]+)`")
++# Round 80 (Q75): the independent derivation reads the same third-repository
++# citation markers as verify_corpus_integrity.py -- `owner/repo@`, an
++# `owner/repo` token immediately before `commit`, or the row's
++# raw.githubusercontent.com/github.com `<owner>/<repo>` source URL. A token a
++# marker governs belongs to no repository this gate resolves against.
++EXTERNAL_REPO_AT_RE = re.compile(
++    r"(?<![A-Za-z0-9_.-])([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)@[ \t]*\Z"
++)
++EXTERNAL_REPO_TOKEN_RE = re.compile(r"`([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)`[ \t]*\Z")
++EXTERNAL_REPO_URL_RE = re.compile(
++    r"(?:raw\.githubusercontent\.com|github\.com)/([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)"
++    r"(?=[/\s)\]|.,;`\"]|\Z)"
++)
+ # Round 36 (scout P3b): a fenced region is opaque to the index census -- a
+ # coverage row quoted inside a ``` block is an example, not an index promise.
+ # Round 39 (seat P4, from V6b's r38 proof): closing needs CommonMark 4.5's rule
+@@ -226,6 +239,25 @@ def commit_tokens(line):
+     return [(m.group(1), m.start(), m.end()) for m in COMMIT_RE.finditer(line)]
+ 
+ 
++def external_commit_marker(line, start):
++    """owner/repo a third-repository citation on ``line`` names; "" when none.
++
++    ``start`` is the citation's whole-match start (the word ``commit``), so the
++    attached and token forms live in ``line[:start]``; the URL form may sit
++    anywhere on the line. "" keeps the pre-round-80 in-set behavior exactly.
++    """
++    prefix = line[:start]
++    for pattern in (EXTERNAL_REPO_AT_RE, EXTERNAL_REPO_TOKEN_RE):
++        match = pattern.search(prefix)
++        if match:
++            return match.group(1)
++    # Row-level URL marker: exactly one named repository, else fail closed.
++    pairs = {m.group(1) for m in EXTERNAL_REPO_URL_RE.finditer(line)}
++    if len(pairs) == 1:
++        return next(iter(pairs))
++    return ""
++
++
+ def has_dotdot_after_hops(token):
+     rest = token
+     while rest.startswith("../"):
+@@ -472,6 +504,7 @@ def analyse_pointers(repo, tracked_corpus, fleet_root=FLEET_ROOT):
+ 
+ def analyse_commits(repo, tracked_corpus, fleet_root=FLEET_ROOT):
+     quoted, nonhash, unresolvable, citations = [], [], [], []
++    external = []
+     truncated = []
+     for rel in tracked_corpus:
+         path = os.path.join(repo, rel)
+@@ -496,7 +529,12 @@ def analyse_commits(repo, tracked_corpus, fleet_root=FLEET_ROOT):
+                         proc = _git(fleet_root, "cat-file", "-e",
+                                     "%s^{commit}" % token)
+                     if proc.returncode != 0:
+-                        unresolvable.append("%s:%d: %s" % (rel, lineno, token))
++                        marker = external_commit_marker(line, start)
++                        if marker:
++                            external.append("%s:%d: %s (repo %s)"
++                                            % (rel, lineno, token, marker))
++                        else:
++                            unresolvable.append("%s:%d: %s" % (rel, lineno, token))
+     return {
+         "commit_candidates": len(citations) + len(quoted) + len(truncated),
+         "commit_total": len(citations),
+@@ -512,6 +550,8 @@ def analyse_commits(repo, tracked_corpus, fleet_root=FLEET_ROOT):
+         "commit_truncated_detail": sorted(truncated),
+         "commit_unresolvable": len(unresolvable),
+         "commit_unresolvable_detail": sorted(unresolvable),
++        "commit_external": len(external),
++        "commit_external_detail": sorted(external),
+     }
+ 
+ 
+@@ -600,9 +640,10 @@ def render(repo, head, observed, results, as_json):
+     )
+     lines.append(
+         "commits candidates=%d citations=%d hex=%d quoted=%d nonhash=%d "
+-        "unresolvable=%d"
++        "external=%d unresolvable=%d"
+         % (com["commit_candidates"], com["commit_total"], com["commit_hex_total"],
+-           com["commit_quoted"], com["commit_nonhash"], com["commit_unresolvable"])
++           com["commit_quoted"], com["commit_nonhash"], com["commit_external"],
++           com["commit_unresolvable"])
+     )
+     for res in results:
+         lines.append(
+@@ -613,7 +654,8 @@ def render(repo, head, observed, results, as_json):
+                 "report_dead_detail", "report_excluded_detail",
+                 "report_quoted_detail", "commit_nonhash_detail",
+                 "commit_truncated_detail",
+-                "commit_unresolvable_detail", "commit_quoted_detail"):
++                "commit_unresolvable_detail", "commit_quoted_detail",
++                "commit_external_detail"):
+         src = idx if key in idx else ptr if key in ptr else com
+         for row in src[key]:
+             lines.append("  ! %s" % row)
+@@ -1034,6 +1076,35 @@ def self_test():
+         st.eq(fleet_com["commit_candidates"], 9,
+               "commits: context candidates stay visible, never live")
+ 
++        # Round 80 (Q75): the same grammar, two claims. A third-repository
++        # citation is counted in its own class; an UNMARKED absent token keeps
++        # the red path, so this arm kills a mutant that classifies everything.
++        _write(os.path.join(croot, "corpus/knowledge/third.md"),
++               "| S1 | upstream `badlogic/pi-mono` commit "
++               "`7bb48f213ac677f943d5c791199ed3dddf302f00` |\n"
++               "| S2 | lane repair commit `8c300ad` |\n"
++               "| S3 | https://raw.githubusercontent.com/aaa/bbb/x.md and "
++               "https://github.com/ccc/ddd commit "
++               "`2222222222222222222222222222222222222222` |\n")
++        _git(croot, "add", "-A")
++        ext_com = analyse_commits(croot, corpus_markdown(croot), fleet_root)
++        st.eq(ext_com["commit_external"], 1,
++              "commits: third-repo citation is external, not unresolvable")
++        st.eq(ext_com["commit_external_detail"],
++              ["corpus/knowledge/third.md:1: "
++               "7bb48f213ac677f943d5c791199ed3dddf302f00 (repo badlogic/pi-mono)"],
++              "commits: external detail names the marker repository")
++        st.eq(ext_com["commit_unresolvable"], 3,
++              "commits: unmarked absent tokens stay unresolved (deadbeef, 8c300ad, 2222)")
++        st.eq(sorted(r.rsplit(": ", 1)[-1]
++                     for r in ext_com["commit_unresolvable_detail"]),
++              ["2222222222222222222222222222222222222222", "8c300ad", "deadbeef"],
++              "commits: red-before detail is the unmarked set")
++        st.eq(ext_com["commit_total"], 9,
++              "commits: total still counts the external citation once")
++        st.eq([d for d in ext_com["commit_external_detail"] if "2222" in d], [],
++              "commits: two URL pairs on one line fail closed")
++
+ 
+         # -- clean fixture: verdicts and exit code -------------------------------
+         froot = os.path.join(tmp, "clean")
+diff --git c/verifiers/verify_corpus_integrity.py i/verifiers/verify_corpus_integrity.py
+index e470eaa..ce1c6b4 100755
+--- c/verifiers/verify_corpus_integrity.py
++++ i/verifiers/verify_corpus_integrity.py
+@@ -149,6 +149,22 @@ UFO_POINTER_RE = re.compile(
+ # `commit `<token>`` as a citation; the lookbehind keeps `pre-commit `/`commits `
+ # out, and the token must be backticked.
+ COMMIT_RE = re.compile(r"(?<![A-Za-z0-9_-])commit[ \t]+`([^`\n]+)`")
++# Round 80 (Q75): a `commit `<hex>`` citation whose line names its OWNING
++# repository outside this gate's declared resolution set (lane repo, then fleet
++# root) is a THIRD-repository citation -- outside the set by construction, never
++# an in-set object that failed to resolve. The markers are the grammar the
++# corpus already writes for one:
++#   `google-gemini/gemini-cli@`451a02ff``       attached owner/repo@
++#   `badlogic/pi-mono` commit `7bb48f21…`       owner/repo token before `commit`
++#   raw.githubusercontent.com/<owner>/<repo>/… served commit `7bb48f21…`
++EXTERNAL_REPO_AT_RE = re.compile(
++    r"(?<![A-Za-z0-9_.-])([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)@[ \t]*\Z"
++)
++EXTERNAL_REPO_TOKEN_RE = re.compile(r"`([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)`[ \t]*\Z")
++EXTERNAL_REPO_URL_RE = re.compile(
++    r"(?:raw\.githubusercontent\.com|github\.com)/([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)"
++    r"(?=[/\s)\]|.,;`\"]|\Z)"
++)
+ HEX_RE = re.compile(r"\A[0-9a-fA-F]{7,40}\Z")
+ TRUNCATED_COMMIT_RE = re.compile(r"\A[0-9a-fA-F]{7,40}\u2026\Z")
+ BACKTICK_RE = re.compile(r"`([^`]+)`")
+@@ -344,6 +360,28 @@ def inside_code_span(line: str, start: int, end: int) -> bool:
+     return False
+ 
+ 
++def external_commit_marker(line: str, start: int) -> str:
++    """The third-repository owner/repo a `commit `<hex>`` citation on `line` names.
++
++    `start` is the citation match start (the word `commit`), so the attached and
++    token forms are read from the prefix that ends at it; the URL form names the
++    row's source repository anywhere on the line. Empty string = no marker: the
++    token is an in-set citation and keeps the exact pre-round-80 behavior.
++    """
++    prefix = line[:start]
++    for pattern in (EXTERNAL_REPO_AT_RE, EXTERNAL_REPO_TOKEN_RE):
++        match = pattern.search(prefix)
++        if match:
++            return match.group(1)
++    # The URL form is row-level, so it must name exactly ONE repository: a line
++    # naming two (or more) does not say which one the citation belongs to and
++    # fails closed -- the token stays in the in-set red path.
++    pairs = {m.group(1) for m in EXTERNAL_REPO_URL_RE.finditer(line)}
++    if len(pairs) == 1:
++        return next(iter(pairs))
++    return ""
++
++
+ 
+ 
+ # ---------------------------------------------------------------------------
+@@ -503,6 +541,7 @@ def citation_findings(rel: str, text: str, pointer_exists, commit_resolves) -> d
+     report_quoted: list[str] = []
+     pointer_shapes = {"relative": 0, "absolute": 0, "tilde": 0, "bare": 0}
+     unresolvable: list[str] = []
++    external: list[str] = []
+     nonhash: list[str] = []
+     truncated: list[str] = []
+     quoted: list[str] = []
+@@ -535,7 +574,11 @@ def citation_findings(rel: str, text: str, pointer_exists, commit_resolves) -> d
+                 continue
+             commit_total += 1
+             if not commit_resolves(token.lower()):
+-                unresolvable.append(f"{rel}:{line_no}: {token}")
++                marker = external_commit_marker(line, match.start(0))
++                if marker:
++                    external.append(f"{rel}:{line_no}: {token} (repo {marker})")
++                else:
++                    unresolvable.append(f"{rel}:{line_no}: {token}")
+     return {
+         "report_total": report_total,
+         "report_pointer_shapes": pointer_shapes,
+@@ -548,6 +591,8 @@ def citation_findings(rel: str, text: str, pointer_exists, commit_resolves) -> d
+         "commit_total": commit_total,
+         "commit_unresolvable": len(unresolvable),
+         "commit_unresolvable_detail": sorted(unresolvable),
++        "commit_external": len(external),
++        "commit_external_detail": sorted(external),
+         "commit_nonhash": len(nonhash),
+         "commit_nonhash_detail": sorted(nonhash),
+         "commit_truncated": len(truncated),
+@@ -647,6 +692,7 @@ def corpus_observations(repo: Path) -> dict:
+         "report_dead": 0,
+         "commit_total": 0,
+         "commit_unresolvable": 0,
++        "commit_external": 0,
+         "commit_nonhash": 0,
+         "commit_truncated": 0,
+         "commit_quoted_excluded": 0,
+@@ -657,6 +703,7 @@ def corpus_observations(repo: Path) -> dict:
+         "report_pointers_excluded_detail": [],
+         "report_pointers_quoted_detail": [],
+         "commit_unresolvable_detail": [],
++        "commit_external_detail": [],
+         "commit_nonhash_detail": [],
+         "commit_truncated_detail": [],
+         "commit_quoted_detail": [],
+@@ -714,6 +761,7 @@ DETAIL_KEYS = (
+     "report_pointers_excluded_detail",
+     "report_pointers_quoted_detail",
+     "commit_unresolvable_detail",
++    "commit_external_detail",
+     "commit_nonhash_detail",
+     "commit_truncated_detail",
+     "commit_quoted_detail",
+@@ -1119,6 +1167,52 @@ def self_test() -> int:
+     # a resolvable citation is not flagged
+     eq("cites/resolvable-not-flagged", [d for d in found["commit_unresolvable_detail"] if "3b029b8" in d], [])
+ 
++    # --- round 80 (Q75): third-repository citations are INFO, not unresolved --
++    # One `commit `<hex>`` grammar carries two claims: an in-set object (lane,
++    # then fleet root) and a third-repo object the citing line names. The
++    # second is outside the resolution set by construction and is counted in
++    # its own class; the unmarked lane-absent token still reads unresolvable.
++    ext = citation_findings(
++        "corpus/SOURCES.md",
++        "| S1 | upstream `badlogic/pi-mono` commit `7bb48f213ac677f943d5c791199ed3dddf302f00` |\n"
++        "| S2 | https://raw.githubusercontent.com/mistralai/mistral-vibe/main/README.md served commit `7bb48f213ac677f943d5c791199ed3dddf302f00` |\n"
++        "| S3 | `google-gemini/gemini-cli@`451a02ff`` |\n"
++        "| S4 | lane repair commit `8c300ad` |\n"
++        "| S5 | `google-gemini/gemini-cli` commit `3b029b8` |\n"
++        "| S6 | https://raw.githubusercontent.com/aaa/bbb/main/x.md and https://github.com/ccc/ddd "
++        "commit `2222222222222222222222222222222222222222` |\n",
++        lambda base, token: True,
++        lambda hex_id: hex_id == "3b029b8",
++    )
++    eq("cites/external/count", ext["commit_external"], 2)
++    eq(
++        "cites/external/detail",
++        ext["commit_external_detail"],
++        [
++            "corpus/SOURCES.md:1: 7bb48f213ac677f943d5c791199ed3dddf302f00 (repo badlogic/pi-mono)",
++            "corpus/SOURCES.md:2: 7bb48f213ac677f943d5c791199ed3dddf302f00 (repo mistralai/mistral-vibe)",
++        ],
++    )
++    eq("cites/external/red-before-unmarked-unresolvable", ext["commit_unresolvable"], 2)
++    eq(
++        "cites/external/red-before-detail",
++        ext["commit_unresolvable_detail"],
++        ["corpus/SOURCES.md:4: 8c300ad",
++         "corpus/SOURCES.md:6: 2222222222222222222222222222222222222222"],
++    )
++    # two URL pairs on one line name no single owner: fail closed, stay red
++    eq("cites/external/fail-closed-multi-url",
++       [d for d in ext["commit_external_detail"] if "2222" in d], [])
++    # the attached owner/repo@ form is not a `commit `…`` citation at all; the
++    # marker never launders a resolvable in-set citation into the INFO class
++    eq("cites/external/attached-at-not-counted", ext["commit_total"], 5)
++    eq("cites/external/resolvable-not-external", [d for d in ext["commit_external_detail"] if "3b029b8" in d], [])
++    eq(
++        "cites/external/marker-fn",
++        external_commit_marker("pre-commit `deadbee`", 4),
++        "",
++    )
++
+     # --- index fixture: coverage, stale, missing, EXCLUDED shapes --------
+     idx = index_findings(FIXTURE_README, FIXTURE_TRACKED, lambda p: p in FIXTURE_ON_DISK)
+     eq("index/patterns-harvested", idx["index_patterns"], 7)
+@@ -1443,6 +1537,7 @@ def main(argv: list[str] | None = None) -> int:
+         print(
+             f"{CORPUS_DIR}.pointers report_dead={obs['report_dead']}/{obs['report_total']} "
+             f"commit_total={obs['commit_total']} unresolvable={obs['commit_unresolvable']} "
++            f"external={obs['commit_external']} "
+             f"nonhash={obs['commit_nonhash']} "
+             f"(shapes [{shape_txt}], quoted-excluded={obs['commit_quoted_excluded']}, "
+             f"pointer-excluded={obs['report_pointers_excluded']}; sites in --json)"

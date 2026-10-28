@@ -1,0 +1,41 @@
+round-80 Kb80S05SourcesEdits — C1 commit_unresolvable audit (2026-10-27)
+scratch clone: /fast/scratch/hyaku/kotoba-r80/Kb80S05SourcesEdits/clone at /fast/scratch/hyaku/kotoba-r80/Kb80S05SourcesEdits/clone / base 398cbe1 checkout, my patch applied for the 'after' runs
+
+1) primary-byte location (lane tree, read-only)
+$ python3 - <<'PY' (find backticked 7-64 hex per row 166-174 of corpus/SOURCES.md)
+   171 (S230): 7bb48f213ac677f943d5c791199ed3dddf302f00  + 5b9805525b… (sha256)
+   172 (S231): 7bb48f213ac677f943d5c791199ed3dddf302f00  + fc48a5dbaf… (sha256)
+   line shape: 171 'resolved to `badlogic/pi-mono` commit `7bb48f21…`'  |  172 'served commit `7bb48f21…`'
+
+2) both corpus gates, base (exit captured directly, no pipeline)
+$ python3 -B verifiers/verify_corpus_integrity.py --json   -> exit 1
+$ python3 -B verifiers/verify_corpus_independent.py --json -> exit 1
+   integrity : commit_total 46  commit_unresolvable 2  commit_quoted_excluded 6
+   independent: commit_total 46  commit_unresolvable 2  commit_quoted_excluded 6
+   both detail: ['corpus/SOURCES.md:171: 7bb48f213ac677f943d5c791199ed3dddf302f00',
+                 'corpus/SOURCES.md:172: 7bb48f213ac677f943d5c791199ed3dddf302f00']
+   quoted class holds 451a02ff (lessons/round-54-verifier-spotcheck.md:147) and cfb894a5 (lessons/round-53.md:44, round-54.md:13)
+
+3) both gates with Kb80S05SourcesEdits.patch applied (+2 placeholder used-by targets)
+   integrity : exit 1  commit_total 46  commit_unresolvable 2  same two detail lines
+   independent: exit 1  commit_total 46  commit_unresolvable 2  same two detail lines
+   -> my rows add no commit token (their 64-hex are sha256 pins) and clear none
+
+4) which repository owns 7bb48f21… (api.github.com, 2026-10-27)
+$ curl -sSL https://api.github.com/repos/badlogic/pi-mono/commits/main            -> 200 sha 85c2ee3e761e…
+$ curl -sSL https://api.github.com/repos/mistralai/mistral-vibe/commits/main       -> 200 sha 7bb48f213ac6…
+$ curl -sSL https://api.github.com/repos/badlogic/pi-mono/commits/7bb48f21…        -> 422 'No commit found for SHA'
+$ curl -sSL https://api.github.com/repos/mistralai/mistral-vibe/commits/7bb48f21… -> 200
+
+5) live page bytes vs the rows' own sha256 pins
+$ curl -sSL https://raw.githubusercontent.com/badlogic/pi-mono/main/packages/coding-agent/docs/skills.md
+   200, 4793 B, sha256 5b9805525b194474ef1fe5455a0917ef15ed7f710aa9bec2eee11879556469e5 = S230 pin
+$ curl -sSL https://raw.githubusercontent.com/mistralai/mistral-vibe/main/README.md
+   200, 77634 B, sha256 fc48a5dbafe572fedd1457cffba8442aacd296dddaf50833ac3104252cb016b0 = S231 pin
+
+READING (measurement, not arbitration): the hex at SOURCES.md:171-172 is mistral-vibe's commit; S231
+records it correctly, S230 (pi-mono) records it against badlogic/pi-mono, where it does not exist.
+The auditor's row locations match both gates; the auditor's repo attribution ('pi-mono') matches
+S230's row text, not the hex's owner. The plan's § Trigger names two other tokens
+(google-gemini/gemini-cli@451a02ff, zed-industries/zed@cfb894a5), which both gates hold in
+commit_quoted, never unresolvable. Conflict reported, not adjudicated; no SOURCES.md row was rewritten.

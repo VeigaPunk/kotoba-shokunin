@@ -1,0 +1,66 @@
+Kb80L03Symlink — probe world construction receipt (round-80 w1)
+Lane: /home/vgpnk/Projects/shokunin/kotoba-shokunin
+Base: 398cbe1bb67f8d9dcf5d25d5ecf1b26a7c6f7e93
+Scratch: /fast/scratch/hyaku/kotoba-r80/Kb80L03Symlink (removed before yield; clone was a
+`git clone --shared` of the lane, user.name scratch-r80, toplevel asserted == $S/clone)
+Fleet file: /home/vgpnk/Projects/shokunin/.ufo/reports/round-76/kotoba.md
+  sha256 a025051d389368ea3a1078b7a64d3847c1e6ff25328fc1645a7be34f30e3f78f (sha256sum, exit 0)
+Counter used for all battery worlds: build/Kb80L03Symlink.probe-counter-e5.py
+  = lane verifiers/check_tip_battery.py with exactly LINE_CAP 40→60. At probe time the
+    canonical E5 counter was unavailable. Later, Kb80E06CounterErratum.cap60-provisional.py
+    appeared; LINE_CAP is 60, but INSTRUMENT_PINS lines 133–148 still contain only the r72
+    pins, not E5's two reviewed additions (confirmed by reading that file). No E05 blob
+    receipt or E06 final counter was available. No probe world edits any of the six battery
+    instruments, so their pin guard is invariant under the missing additions; these are NOT
+    measurements on the complete frozen E5 pin table.
+  sha256sum: bfbbd0a3c9433485cb311df121a5c3dfaaade6ba5dc818de24e03055137d0629  Kb80L03Symlink.probe-counter-e5.py
+  diff vs lane counter: 1 line (LINE_CAP = 40 -> LINE_CAP = 60), diff exit 1.
+  Derivation note: E06 final counter was not available; a peer (Kb80E14C1Worlds) was pointed at this probe copy.
+
+Worlds (each = one commit on top of the base; lane instruments untouched in all):
+W1  e05e7b14779698c569efe1510feeed2b98f028da  branch w1
+    .ufo/reports/round-76/kotoba.md as symlink -> ../../../../.ufo/reports/round-76/kotoba.md
+    git ls-tree: 120000 blob bf7c7e0c0c39a57c49224c87348afc74dca14db4 (== the reviewed
+    r79 Kb79E02LogCitation.patch blob and the round-80 Kb80E02Symlink.patch blob)
+    battery: --repo $S/clone --rev e05e7b1 --fleet $S/fleetless   ($S/fleetless = EMPTY dir:
+    build_sandbox links every fleet entry into the sandbox parent; with none, the sandbox
+    parent holds only kotoba-shokunin and the 4-hop link dangles)
+W2  b3bb6114d0cfb5385aaf6ee4c2618197f779ffb0  branch w2
+    .ufo/reports/round-76/kotoba.md as symlink -> ../../../.ufo/reports/round-76/kotoba.md
+    git ls-tree: 120000 blob 66a93c3bdf4c9efb60114ff0b2447c71158968e4 (3 hops: from
+    .ufo/reports/round-76/ up 3 lands on the lane root, then .ufo/reports/round-76/kotoba.md
+    = the link itself -> self-loop ELOOP)
+    battery: --fleet /home/vgpnk/Projects/shokunin
+W3  2098c00a5b59301ead419e517c4b0a0634719f2  branch w3
+    .ufo/reports/round-76/kotoba.md as REGULAR FILE, bytes copied from the fleet file
+    git blob f83f2aae112b73325a5b1779921ef67b3f041cd9
+    `git show w3:.ufo/reports/round-76/kotoba.md | sha256sum` =
+      a025051d389368ea3a1078b7a64d3847c1e6ff25328fc1645a7be34f30e3f78f  (== fleet file sha256)
+    battery: --fleet /home/vgpnk/Projects/shokunin
+W4  79d4ccbbd05f3590b880582e7ae0411a5dbb9f90  branch w4
+    4-hop symlink (as W1) AND LOG.md:2818 token edited to `../.ufo/reports/round-76/kotoba.md`
+    (`git show w4:LOG.md | sed -n '2818p'` verified: fleet report `../.ufo/reports/round-76/kotoba.md`.)
+    battery: --fleet /home/vgpnk/Projects/shokunin
+W5  561b6713c64dfb463a5d7a3355930731a8f20e28  branch w5   (bonus landmine calibration)
+    4-hop symlink AND LOG.md:2818 token edited to `../../../../.ufo/reports/round-76/kotoba.md`
+    (`git show w5:LOG.md | sed -n '2818p'` verified: 4-hop backticked token in tracked prose.)
+    direct checklist run only (no battery needed for the landmine question).
+
+Measurement discipline: every command's OWN exit status captured
+(`cmd > f 2>&1; rc=$?; echo "exit=$rc" >> f`) — no pipelines (M80-1).
+
+Direct checklist runs: a second, independent measurement path. Each world was also cloned
+into a fleet-shaped parent ($S/parent-<w>/kotoba-shokunin, EVERY fleet entry symlinked
+beside it with dotglob — an earlier pass that used a `*` glob missed dotfiles such as the
+fleet `.ufo` and produced environment-redundant reds; it was discarded and redone) and
+`python3 -B verifiers/verify_skill_checklist.py` run from inside with own exit capture.
+parent-w1 intentionally has NO fleet symlinks (the fleet-absent construction).
+
+Confound caught and fixed (evidence honesty): the FIRST w4/w5 build used a sed whose
+backtick-heavy pattern silently matched nothing; the committed LOG.md lines were the
+base bytes (verified after the fact via `git show <w>:LOG.md | sed -n 2818p`). Those two
+commits (88f25d6f, a08e1fd) were never valid worlds; the worlds were rebuilt with a
+robust pattern (`2818s|\.ufo/reports/round-76/kotoba.md|<form>|`), re-verified from the
+COMMITTED bytes, and the corresponding receipts re-taken (the old w4 battery receipt was
+overwritten; w4's first battery figure of "3 of 6" was in fact the symlink-only world and
+is superseded by the re-run on 79d4ccbb).

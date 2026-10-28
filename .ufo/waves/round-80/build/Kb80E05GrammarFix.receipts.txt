@@ -1,0 +1,85 @@
+# Kb80E05GrammarFix — receipts (C1 repair 5: external-commit grammar class)
+Base: 398cbe1bb67f8d9dcf5d25d5ecf1b26a7c6f7e93. Scratch: /fast/scratch/hyaku/kotoba-r80/Kb80E05GrammarFix
+(removed before yield; every cited artefact is copied into .ufo/waves/round-80/build/).
+Line cap: 22 (base, check_assertion_floors.py) + 17 (E04) + 21 (E05) = 60 added = LINE_CAP (erratum E5),
+8 deleted <= 60.  Declared: E05 adds 21 / deletes 5 across the two gates.
+
+## 1. patch
+$ git -C c6 diff --cached --binary > build/Kb80E05GrammarFix.patch
+  sha256 a4345d34d3a8e35d7697b5abc05d077c2bb43e49e636edd6937590b1b223a2d3
+$ git -C c6 diff --cached --numstat
+  10	3	verifiers/verify_corpus_independent.py
+  11	2	verifiers/verify_corpus_integrity.py
+  (E05 alone: added=21 deleted=5)
+
+## 2. application order-independence (both rc=0)
+$ git -C o1 apply build/Kb80E04DeadPointer.patch        # rc=0
+$ git -C o1 apply build/Kb80E05GrammarFix.patch         # rc=0  (E05 on E04)
+$ git -C o2 apply build/Kb80E05GrammarFix.patch         # rc=0  (E05 on base)
+$ git -C o2 apply build/Kb80E04DeadPointer.patch        # rc=0  (E04 on E05)
+$ git -C o1 hash-object verifiers/verify_corpus_integrity.py  -> 68ccce1c152c915e16893a5157c9d5878df779fb
+$ git -C o2 hash-object verifiers/verify_corpus_integrity.py  -> 68ccce1c152c915e16893a5157c9d5878df779fb  (IDENTICAL)
+$ bash build/Kb80E04DeadPointer/compute-combined-blob.sh build/Kb80E05GrammarFix.patch   # exit 0
+  integrity blob (E04+grammar): 68ccce1c152c915e16893a5157c9d5878df779fb
+  independent blob (grammar)  : e887de71892ecfc6be5b3f47e362ce8a766c5c89
+  numstat vs 072048fa: 22/3 floors + 10/3 independent + 28/2 integrity = 60 added / 8 deleted
+
+## 3. self-tests of the PATCHED scripts (run from the clone)
+$ python3 -B verifiers/verify_corpus_integrity.py  --self-test   # exit 0: 165 assertions, 0 failures
+$ python3 -B verifiers/verify_corpus_independent.py --self-test  # exit 0: 106 assertions, 0 failures
+  new arms: integrity "cites/commit-external" (2,1,0); independent ok 91 "commits: external is INFO"
+
+## 4. red-before (UNPATCHED lane gates over the base tree c10)
+$ python3 -B <lane>/verifiers/verify_corpus_integrity.py  --repo c10 --no-baseline --json   # exit 1
+$ python3 -B <lane>/verifiers/verify_corpus_independent.py --repo c10 --json                # exit 1
+  both: commit_total 46, commit_unresolvable 2, commit_nonhash 0, commit_external ABSENT
+  sites: corpus/SOURCES.md:171, corpus/SOURCES.md:172 (both 7bb48f213ac677f943d5c791199ed3dddf302f00)
+
+## 5. class live over the unpatched corpus (base tree + E05 only, clone c6)
+$ python3 -B verifiers/verify_corpus_integrity.py  --repo . --no-baseline --json   # exit 1
+$ python3 -B verifiers/verify_corpus_independent.py --repo . --json                # exit 1
+  both: commit_total 46, commit_unresolvable 0, commit_nonhash 0, commit_external 2
+  external sites: corpus/SOURCES.md:171, corpus/SOURCES.md:172
+  exit 1 reasons NOT owned by this repair: integrity corpus.index.unindexed 1 +
+  corpus.pointers.report_dead 1; independent corpus.index.unindexed 1.
+
+## 6. composed C1 stack (clone c8, commit 87ef90b) -> BOTH GATES EXIT 0
+stack = base + Kb80E02Symlink.patch + Kb80E03IndexBaseline.patch + Kb80E04DeadPointer.patch +
+        Kb80E05GrammarFix.patch + corpus/lessons/round-80.md  <- build/Kb80S01Lesson.md (peer draft)
+        + corpus/knowledge/allowed-tools-surfaces-round80.md <- build/allowed-tools-surfaces-round80.md
+$ python3 -B <build>/refresh-corpus-baseline.py --repo c8 --note-key round80_e05
+  exit 0; 144 -> 154 tracked_files, 99 -> 109 report_total, 43 -> 46 commit_total;
+  "post-refresh: 9/9 checks pass, exit 0; independent: exit 0"
+$ python3 -B verifiers/verify_corpus_integrity.py  --repo c8 --json   # exit 0, 0 DRIFT rows
+$ python3 -B verifiers/verify_corpus_independent.py --repo c8 --json  # exit 0, 0 DRIFT rows
+  both: commit_total 46, commit_unresolvable 0, commit_nonhash 0, commit_external 2
+
+## 7. resolution-precedence probe (clone c9 = c8 + corpus/knowledge/z-e05-probe.md)
+P1 lane sha 87ef90b89 on a third-repo line   -> resolves (in neither external nor unresolvable)
+P2 fleet sha 0428b7eff on a third-repo line  -> resolves (fleet hop intact)
+P3 absent hash, no third-repo line           -> commit_unresolvable (the defect stays red)
+P4 commit `o/r@bbbbbbbb` (grammar, no URL)   -> commit_external (NOT commit_nonhash)
+P5 7bb48f21… on a third-repo line            -> commit_external
+$ ... --repo c9 --no-baseline --json (integrity) / --json (independent)  # both exit 1
+  INT = IND = external 4 / unresolvable 1 / nonhash 0; exit-1 causes: corpus.index.unindexed 1
+  (the probe file has no coverage row) + corpus.pointers.commit_unresolvable 1 (P3, planted defect).
+
+## 8. mutations (the class is load-bearing)
+M1 line-scope divert removed:
+  integrity --self-test exit 1 (1 failure / 166); independent --self-test exit 1
+  ("not ok 91 - commits: external is INFO: got (1, 2) want (2, 1)");
+  live: external 0 / unresolvable 2, sites SOURCES.md:171-172.
+M2 grammar divert removed (owner/repo@<hex> back to nonhash):
+  integrity --self-test exit 1; independent --self-test exit 1 ("got (1, 1) want (2, 1)").
+
+## 9. marker blast radius (the class's whole live surface)
+$ grep -rn 'commit `' corpus --include=*.md | wc -l                      -> 55 citation lines
+$ ... | grep -cE 'https?://(raw\.githubusercontent|github)\.com/|[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+@'  -> 4
+  of the 4: corpus/lessons/round-53.md:44 and corpus/lessons/round-54.md:13 are quote-excluded
+  upstream of the class (Q61, unchanged); corpus/SOURCES.md:171-172 are the two external sites.
+
+## 10. blobs for INSTRUMENT_PINS
+verifiers/verify_corpus_integrity.py  68ccce1c152c915e16893a5157c9d5878df779fb   (E04 + E05)
+verifiers/verify_corpus_independent.py e887de71892ecfc6be5b3f47e362ce8a766c5c89  (E05)
+(For reference, E05 alone on the bare base: verify_corpus_integrity.py 678a0d500361229f1b9eda54771d102146f3998d.)
+No tools installed/upgraded. No lane or fleet mutation; scratch removed.

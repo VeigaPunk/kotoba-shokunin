@@ -1,0 +1,2919 @@
+diff --git a/.ufo/reports/round-76/kotoba.md b/.ufo/reports/round-76/kotoba.md
+new file mode 120000
+index 0000000..bf7c7e0
+--- /dev/null
++++ b/.ufo/reports/round-76/kotoba.md
+@@ -0,0 +1 @@
++../../../../.ufo/reports/round-76/kotoba.md
+\ No newline at end of file
+diff --git a/.ufo/waves/round-79/snapshots/MANIFEST.sha256 b/.ufo/waves/round-79/snapshots/MANIFEST.sha256
+new file mode 100644
+index 0000000..37d44e3
+--- /dev/null
++++ b/.ufo/waves/round-79/snapshots/MANIFEST.sha256
+@@ -0,0 +1,7 @@
++# Round-79 snapshot pins (sentinel probe: content = the six per-page .manifest files, verbatim)
++9a67de89132948b2300b8dc87b93817971d47f9be89b644444965881a8dfde16  S226-spec.md
++31623035b25ac7e6bebd8dec6234aa76e31018f0e2eb8b47da6b36cf015712f9  S227-claude.md
++81409d890cb1b07f6a5a85db19610d4706866e5f4f668d4e26dd032002fed0c9  S228-factory.md
++34016233a42a2191e319bb6ed49362956c6a6e86bbe64f2fa2e370326de548d2  S229-msaf.html
++5b9805525b194474ef1fe5455a0917ef15ed7f710aa9bec2eee11879556469e5  S230-pi.md
++fc48a5dbafe572fedd1457cffba8442aacd296dddaf50833ac3104252cb016b0  S231-vibe.md
+diff --git a/PROVINCE.md b/PROVINCE.md
+index a58c3b8..f56f497 100644
+--- a/PROVINCE.md
++++ b/PROVINCE.md
+@@ -31,6 +31,7 @@ Appended round 46 (LEARNING.md § Province is a frontier); surfaces the lane gov
+ - Chinese-vendor skill surfaces (round 73): where TRAE (ByteDance), CodeBuddy (Tencent), Kimi Code (Moonshot) and Zhipu managed agents document that a skill body is read and which frontmatter each page names, with the two Kimi pages and the two CodeBuddy pages recorded as disagreeing with each other (S217–S222; documentary evidence, no client run) — `corpus/knowledge/chinese-vendor-skill-surfaces-round73.md`, counted by `verifiers/check_cn_vendor_surfaces.py --rev <rev>`. Round 73 also counts the tip battery in both invocation forms (`verifiers/check_tip_battery.py --rev <rev>`; the M127 fleet-root cause) and lands `verifiers/check_report_pointers.py` for report pointers.
+ - Spec skill-creation guides (round 74, coverage): what the Agent Skills `skill-creation/` pages best-practices, using-scripts and quickstart say a skill author does — instructions graded by task fragility, a default instead of a menu, pinned one-off commands and agent-facing scripts, the tutorial's `.agents/skills/` shape (S223–S225; documentary evidence, no client run) — `corpus/knowledge/spec-skill-creation-craft-round74.md`, acted on in `SKILL.md` § Body craft — the specification's skill-creation guides and counted by `verifiers/check_spec_craft.py --rev <rev>`.
+ - Sibling census re-pin (round 74, freshness): all 20 § Adjacent lanes re-read at frozen fleet heads, tsukuroi `none` → `adjacent` (basis kotoba) — `corpus/knowledge/sibling-overlap-census-round74.md`, counted by `verifiers/check_sibling_reread.py --rev <rev>` beside the base `verifiers/check_sibling_census.py --province PROVINCE.md`.
++- Allowed-tools surfaces by client (round 80, depth): where the Open specification, Claude Code, Factory, Microsoft Agent Framework, pi and Mistral Vibe document the `allowed-tools` frontmatter field — the value form each page prints and the grant each states (`pre-approves`, `metadata-only`, `experimental`, `unstated`), each read from a snapshot-pinned located quote, form-level documentation only; the grant-semantics matrix is exploratory, reviewed by the round-80 non-author closure spot-check (S226–S231; the six pages re-opened live 2026-10-27) — `corpus/knowledge/allowed-tools-surfaces-round80.md`, counted by `verifiers/check_allowed_tools.py --rev <rev>`.
+ ## Frontier
+ 
+ Explored, not held — the live list is `corpus/README.md` § Frontier:
+diff --git a/SKILL.md b/SKILL.md
+index 26ce572..73d6ef3 100644
+--- a/SKILL.md
++++ b/SKILL.md
+@@ -161,6 +161,8 @@ Render mechanism and the twelve trigger-craft rules: `corpus/knowledge/render-me
+ 
+ Portability floor (spec + vendor + YAML, `corpus/SOURCES.md` S018, S002, S019, S008): `name` ≤64 lowercase letters, digits and single hyphens, equal to the directory (the spec's charset wording is ambiguous on Unicode); `description` ≤1024 chars, no XML tags (Anthropic rule), quoted when it holds `: ` or ` #` (illegal in a YAML plain scalar — lenient loaders hide it, strict ones reject). `verifiers/verify_skill_checklist.py` `trigger.no_xml_tag` approximates the XML-tag rule lexically on the unparsed `name`/`description` text; Anthropic's packager (S012) refuses any `<`/`>` in the parsed value, so the two disagree in both directions. Which authority imposes which rule, with run counterexamples: `corpus/knowledge/frontmatter-rule-authorities-round48.md`.
+ 
++Treat `allowed-tools` as pre-approval, never as a sandbox (entry `corpus/knowledge/allowed-tools-surfaces-round80.md`, S226–S231): the open specification calls it an experimental space-separated string of pre-approved tools whose support varies between agent implementations (S226); Claude Code applies it as a per-turn permission grant taking a space- or comma-separated string or a YAML list and still leaves every tool callable (S227); Factory stores it as review and UI metadata that does not add tools or sandbox standard skill invocation (S228); Microsoft Agent Framework and pi each call it experimental (S229, S230); Mistral Vibe's own example writes a YAML list it explains no further (S231) — so write the specification's space-separated string, put the restriction in `disallowed-tools` or the client's own settings, and never rely on this field to restrict: a skill that does is wrong on at least one client.
++
+ ### Description thresholds by client
+ 
+ A documented maximum is not a render cut: four clients state 1,024 and none documents a cut there, Claude Code and Codex cut or budget the listing, omp cuts at 99 (§ Router model). Basis: `corpus/knowledge/skill-listing-thresholds-round54.md` (S053–S059, S062–S064), checked by `verifiers/check_description_thresholds.py`.
+@@ -510,6 +512,9 @@ reads as could-not-evaluate. `python3 -B verifiers/check_gate_registry.py --rev
+ | `verifiers/check_report_pointers.py` | gate | `python3 -B verifiers/check_report_pointers.py --report <path> --repo <lane> --rev <rev> --round <N>` | 0=clean, 1=failed, 2=could-not-evaluate — round-73 mined-mistake gate: resolves each backticked lane-path pointer of a report against the tree at `<rev>` (`git cat-file`, committed objects only); `report pointers resolved N of M; unresolved U`; not a claim counter | `--self-test` | in-file | none; `--self-test` fixture repos under `$TMPDIR` (removed) | kotoba |
+ | `verifiers/check_spec_craft.py` | gate | `python3 -B verifiers/check_spec_craft.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate — round-74 C1 counter (coverage): committed bytes only; each of `best-practices`, `using-scripts`, `quickstart` is backed when the entry `corpus/knowledge/spec-skill-creation-craft-round74.md` has one rule row with ≥2 tokens (≥1 page-unique) located in its pinned snapshot, its `S###` is an `agentskills.io` tier-A `mined` row opened in round 74 whose anchor carries the snapshot sha256 and whose `FETCH-LOG.tsv` record reads HTTP 200, the quote is a body line after the first `# ` heading, `SKILL.md` § Compression rules has ≥2 rows citing it with a page-unique token and ≥5 content words, and `PROVINCE.md` § Core names the entry; `spec craft pages backed N of 3`; form and bytes counted, truth of a sentence is reviewer judgement | `--self-test` | in-file SELF_SHA and page digests; `.ufo/waves/round-74/snapshots/MANIFEST.sha256` | none (reads `git show <rev>:<path>`; a `--self-test` writes isolated fixture repos under `$TMPDIR`, removed) | kotoba |
+ | `verifiers/check_sibling_reread.py` | gate | `python3 -B verifiers/check_sibling_reread.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate — round-74 C2 counter (freshness): each of the 20 § Adjacent lanes is re-pinned, re-located and re-diffed when `corpus/knowledge/sibling-overlap-census-round74.md` has one 11-cell row whose nine round-49 cells pass the sha256-pinned base `check_sibling_census.py` at the frozen head, whose commit equals the pinned freeze head (an ancestor of its branch), whose `delta` and `evidence` cells match the recomputation, and whose commit and classification equal the `PROVINCE.md` § Adjacent row; `sibling rows re-pinned, re-located and re-diffed at the frozen fleet heads N of 20`; classification and boundary meaning are reviewer judgement | `--self-test` | in-file base-checker sha256; `.ufo/waves/round-74/receipts/sibling-heads-freeze.tsv` | none (reads `git show` of the lane and `git -C <fleet>/<lane>-shokunin`; a `--self-test` writes fixture fleets under `$TMPDIR`, removed) | kotoba |
++| `verifiers/check_desc_craft.py` | gate | `python3 -B verifiers/check_desc_craft.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate — claim withdrawn r79 before data (declared r76, never landed); not a claim gate until redesigned and re-controlled | `--self-test` | in-file | none when measuring (reads committed bytes); `--self-test` isolated fixture repos under `$TMPDIR` (removed) | kotoba |
++| `verifiers/check_r75_routed_repairs.py` | gate | `python3 -B verifiers/check_r75_routed_repairs.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate — claim withdrawn r79 before data (declared r76, never landed); not a claim gate until redesigned and re-controlled | `--self-test` | in-file | none when measuring (reads committed bytes); `--self-test` sandbox and fixture clones under `$TMPDIR` (removed) | kotoba |
++| `verifiers/check_allowed_tools.py` | gate | `python3 -B verifiers/check_allowed_tools.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate — round-80 C2 counter (depth, sourced; the form backbone is measured, the grant-semantics matrix is exploratory): committed bytes only; each of the six `allowed-tools` surfaces (Open specification, Claude Code, Factory, Microsoft Agent Framework, pi, Mistral Vibe) is documented when the entry `corpus/knowledge/allowed-tools-surfaces-round80.md` carries its row in the frozen five-cell table with ≥3 backticked tokens located in its sha256-pinned snapshot, a 5-to-25-word located quote after a heading and carrying `allowed-tools`, an 11-cell `S###` row at the surface's frozen host and path prefix, the frozen grant label plus its page token, and `opened` equal to the entry's `verified-at:`; the tree conjuncts are one `SKILL.md` rule line naming ≥3 surfaces plus this row and exactly one `PROVINCE.md` `## Core` bullet naming the entry; prints `allowed-tools surfaces documented N of 6` with the mechanical scrape's own score beside it (`generator world: M of 6`, Q71/Q74) and exits 0 only at N == 6 | `--self-test` | in-file SELF_SHA; `.ufo/waves/round-79/snapshots/MANIFEST.sha256` | none (reads committed bytes via `git show <rev>:<path>`; `--self-test` writes isolated fixture repos under `$TMPDIR`, removed) | kotoba |
+ 
+ ## Sources
+ 
+diff --git a/corpus/README.md b/corpus/README.md
+index b3cf520..e29f6a9 100644
+--- a/corpus/README.md
++++ b/corpus/README.md
+@@ -154,6 +154,9 @@ Domain: prompt & skill craft — SKILL.md/AGENTS.md quality, trigger fidelity.
+ | Round-78 lessons | `lessons/round-78.md` | honest-stop record: no knowledge or S### row admitted, both inherited C1/C2 predicates rejected because a control reaches their targets without the claimed work; `## Mistakes` records predicate-reachability (run the cheapest control against frozen bytes before any data); census before only |
+ | Round-78 non-author spot-check (closure) | `lessons/round-78-verifier-spotcheck.md` | written by the hyaku closure, not the lane (outside review; never edited here): both claims `unprovable` from the committed control evidence, conformance checks on the lane tip and report commit, the discernment reject/agree table, unchanged trend verdicts, and four routed defects (missing census counts, no admissible admit sample, no no-harm battery, L2 floor departure); landed without an index row, indexed round 79 |
+ | Round-79 lessons | `lessons/round-79.md` | C1/C2 honest stop: C2's independent mechanical-scrape world reaches 6 of 6 on the draft counter, so no source-surface knowledge entry was admitted; `## Gate` cites S226–S231 for the sourced attempt, `## Mistakes` records the vacuous script-only shortcut, and `## Sources & frontier` records census before/after |
++| Round-79 non-author spot-check (closure) | `lessons/round-79-verifier-spotcheck.md` | written by the hyaku closure, not the lane (outside review; never edited here): `rejected-honest-stop` — both claims `unprovable` from committed bytes (C1 re-measured at its base `guards 5 of 5; tip battery exit 0: 1 of 6`, exit 1, with no landed after-value and the best committed repair world 3 of 6; C2's draft counter unfrozen, its independent mechanical-scrape control reaching 6 of 6), a nine-row discernment table on which every sampled admit (S226–S231) and reject agrees, trend verdicts (discernment improved; expansion and quality unchanged) and four routed defects R79-D1–R79-D4; landed without an index row, indexed round 80 |
++| Round-80 lessons | `lessons/round-80.md` | the round's two claims recorded as measured or pending, never as declared: `## Gate` holds the base battery reading (`guards 5 of 5; tip battery exit 0: 1 of 6`, exit 1, with the six-gate breakdown that makes it 1 and not 2) and defers the after-value to the L1's tip receipt; the six re-opened C2 rows (S226–S231) with located quotes, snapshots, fetch records and `used-by` moves old→new; the new rejection rows from S232; the exploratory grant-semantics rider; the append-only R79-D2 `census-final.txt` correction; and the assimilation and considerthese 2–5 dispositions. `## Mistakes` M80-1–M80-2, both measurement — a gate verdict read through a shell pipeline (a piped read reports only the last element's status; the both-ways receipt shows pipe rc=0 against direct rc=1 at base) and a section-extraction range that matched its own start line (17 bytes against 24,897 by line range). `## Sources & frontier` records the round-start census, the rows added by tier, the `used-by` moves and the frontier rows advanced |
++| Allowed-tools surfaces (round 80) | `knowledge/allowed-tools-surfaces-round80.md` | what six pages document about a skill's `allowed-tools` frontmatter field, form only (S226–S231, re-opened live 2026-10-27; documentary evidence, no client run): three value forms under one name — the specification's space-separated string, Claude Code's "space- or comma-separated string, or a YAML list" (the only page that states its tolerance), and the block sequences Factory and Vibe print, which Microsoft Agent Framework's "space-delimited list" and its collection-where-a-scalar-is-expected load failure make a risk; four grant readings — a per-turn pre-approval that "does not restrict which tools are available" (`pre-approves`, Claude Code), review/packaging/UI metadata that "does not add tools" and is "not a runtime sandbox" (`metadata-only`, Factory), "Experimental" support that may vary (`experimental`, specification, Microsoft Agent Framework, pi), and no stated semantics on a page that claims the specification anyway (`unstated`, Vibe) — with restriction living in a different key or file wherever a page has one; acted on in `../SKILL.md` § Frontmatter craft and counted by `../verifiers/check_allowed_tools.py --rev <rev>` (`allowed-tools surfaces documented N of 6`, `generator world: M of 6`, exit 0 only at 6 of 6; `0 of 6` at base `398cbe1`), six snapshots pinned in `../.ufo/waves/round-79/snapshots/MANIFEST.sha256`; the grant-semantics matrix is exploratory, reviewers of record the round-80 non-author closure spot-check |
+ 
+ ## Frontier
+ 
+@@ -238,6 +241,8 @@ states.
+ 
+ **Round 74 (append-only note; new area *Agent Skills skill-creation guides*, and a freshness move on *Sibling arbitration*):** the specification's own authoring guides best-practices, using-scripts and quickstart (S223–S225) are held in `knowledge/spec-skill-creation-craft-round74.md` and acted on in `../SKILL.md` § Body craft — the specification's skill-creation guides (`../verifiers/check_spec_craft.py --rev <rev>` → `spec craft pages backed 3 of 3`; documentary evidence, no client run). The sibling census is re-pinned at 20 frozen fleet heads in `knowledge/sibling-overlap-census-round74.md` (`../verifiers/check_sibling_reread.py --rev <rev>` → `20 of 20`; tsukuroi `none` → `adjacent`). Still not held: any measured client behaviour, the `optimizing-descriptions` trigger-eval design beyond S213, and the classification judgement a counter cannot make.
+ 
++**Round 80 (append-only note; new area *`allowed-tools` frontmatter field by client*):** the field's documented form enters Core in part: six pages state what a skill's `allowed-tools` field is and they disagree on both halves — three value forms under one name (the specification's space-separated string; Claude Code's "space- or comma-separated string, or a YAML list", the only page that states its tolerance; the block sequences Factory and Vibe print, which Microsoft Agent Framework's "space-delimited list" plus its collection-where-a-scalar-is-expected load failure make a portability risk) and four grant readings (`pre-approves` per turn on Claude Code while "every tool remains callable"; `metadata-only` on Factory, "does not add tools" and "not a runtime sandbox"; `experimental` on the specification, Microsoft Agent Framework and pi; `unstated` on Vibe, whose page claims the specification and then prints a list) — held in `knowledge/allowed-tools-surfaces-round80.md` (S226–S231, re-opened live 2026-10-27, snapshot-pinned) and counted as form only by `../verifiers/check_allowed_tools.py --rev <rev>` (`allowed-tools surfaces documented N of 6` beside `generator world: M of 6`; `0 of 6` at base `398cbe1`). The grant-semantics matrix is exploratory, its reviewers of record the round-80 non-author closure spot-check, so no per-client semantics claim is counted here. Still not held: measured client behaviour with the field (no client installed, loaded or run — "pre-approved", "does not add tools" and "Experimental" are the pages' words); which value form each parser accepts (Vibe's tension recorded, not resolved); a restricting-mechanism map beyond Claude Code's `disallowed-tools` and permission settings, Factory's tool policy or restricted subagent, and Vibe's `disabled_tools` and per-tool permission tables; the silent-client question (12 of the 18 census pages returned zero field occurrences, each waiting on the three-leg Q30 sweep, and the pinned Goose URL was a 404 body); and the *Per-render consumption* row above stays open — no offer-to-activation join exists.
++
+ ## Known gaps
+ 
+ - **31 of the 41 `SKILL.md` checklist boxes are still lane-attested prose.** Round
+diff --git a/corpus/knowledge/allowed-tools-surfaces-round80.md b/corpus/knowledge/allowed-tools-surfaces-round80.md
+new file mode 100644
+index 0000000..a80e467
+--- /dev/null
++++ b/corpus/knowledge/allowed-tools-surfaces-round80.md
+@@ -0,0 +1,159 @@
++source: S226 — Agent Skills — Specification — https://agentskills.io/specification.md — § Frontmatter and § `allowed-tools` field — located quote "The optional allowed-tools field: A space-separated string of tools that are pre-approved to run Experimental." (snapshot `S226-spec.md`)
++source: S227 — Claude Code — Extend Claude with skills — https://code.claude.com/docs/en/skills.md — § Frontmatter reference and § Pre-approve tools for a skill — located quote "`allowed-tools` field grants permission for the listed tools during the turn that invokes the skill, so Claude can use them without prompting you for approval." (snapshot `S227-claude.md`)
++source: S228 — Factory — Skills — https://docs.factory.com/harness/skills — § Frontmatter reference and § Declare intended tools — located quote "`allowed-tools` records the tools the skill is designed to use. Droid stores it as skill metadata and shows it in skill surfaces" (snapshot `S228-factory.md`)
++source: S229 — Microsoft Agent Framework — Agent skills — https://learn.microsoft.com/en-us/agent-framework/agents/skills — § SKILL.md format — located quote "allowed-tools No Space-delimited list of pre-approved tools the skill may use. Experimental - support may vary between agent implementations." (snapshot `S229-msaf.html`)
++source: S230 — badlogic/pi-mono — coding-agent docs: skills.md — https://raw.githubusercontent.com/badlogic/pi-mono/main/packages/coding-agent/docs/skills.md — § Write portable frontmatter — located quote "allowed-tools \| Experimental pre-approved tool list" (snapshot `S230-pi.md`)
++source: S231 — Mistral Vibe — README (skills system) — https://raw.githubusercontent.com/mistralai/mistral-vibe/main/README.md — § Creating Skills, § Custom Agent Configurations and § Tool Management — located quote "user-invocable: true allowed-tools: read grep ask_user_question" (snapshot `S231-vibe.md`)
++verified-at: 2026-10-27
++recheck: 30d — `for p in 'https://agentskills.io/specification.md|Space-separated string of pre-approved tools' 'https://code.claude.com/docs/en/skills.md|without asking permission during the turn' 'https://docs.factory.com/harness/skills|does not add tools' 'https://learn.microsoft.com/en-us/agent-framework/agents/skills|Space-delimited list of pre-approved tools' 'https://raw.githubusercontent.com/badlogic/pi-mono/main/packages/coding-agent/docs/skills.md|Experimental pre-approved tool list' 'https://raw.githubusercontent.com/mistralai/mistral-vibe/main/README.md|allowed-tools:'; do u=${p%%|*}; q=${p#*|}; printf '%s ' "$(curl -fsSL -A Mozilla/5.0 --max-time 60 "$u" | grep -c -F -- "$q")"; done` — prints `1 1 2 1 1 1` on 2026-10-27 (command exit 0), in the order spec, claude, factory, msaf, pi, vibe; any 0 means the page moved or the fetch failed, which is a re-open, never a silent edit. The factory URL is the canonical page; the assigned `docs.factory.ai/cli/configuration/skills` 308s here via `docs.factory.com/cli/configuration/skills`. The factory anchor token occurs twice in the served HTML and once in the same page's Markdown route `docs.factory.com/harness/skills.md`; the numbers above are printed from the canonical URL. The recheck counts anchor tokens, not digests: the Microsoft Agent Framework page is served non-deterministically, so its digest can never be the recheck predicate.
++ground: no knowledge entry states what the `allowed-tools` frontmatter field means in a named client at base `398cbe1bb67f8d9dcf5d25d5ecf1b26a7c6f7e93`: `git grep -lE 'allowed-tools|allowed_tools' 398cbe1bb67f8d9dcf5d25d5ecf1b26a7c6f7e93 -- corpus/knowledge SKILL.md` (run 2026-10-27) prints two files — `corpus/knowledge/frontmatter-rule-authorities-round48.md` (2 hits) and `corpus/knowledge/chinese-vendor-skill-surfaces-round73.md` (5 hits) — and `git grep -c 'allowed-tools' 398cbe1bb67f8d9dcf5d25d5ecf1b26a7c6f7e93 -- SKILL.md` exits 1 with 0 hits. Neither entry maps the field to a grant: the first repeats the specification's own value form, the second records the key as one CodeBuddy frontmatter name among fourteen.
++
++# `allowed-tools` in six clients: one field name, three value forms, four grant semantics
++
++The lane's corpus names this frontmatter key twice and never says what a client does with it. Six pages opened on 2026-10-27 do state it, and they disagree on both halves of the field.
++The value form differs: a space-separated string in the open specification and a "space-delimited list" in Microsoft Agent Framework, a "space- or comma-separated string, or a YAML list" in Claude Code, and a YAML block sequence in the worked examples of Factory and Mistral Vibe, while pi's page prints the field with a one-line purpose and no form at all.
++The grant differs more sharply: Claude Code documents a per-turn permission pre-approval that expires with your next message and, in the same paragraph, says it "does not restrict which tools are available"; Factory documents review metadata that "does not add tools or sandbox standard skill invocation" and is explicitly "not a security boundary"; the specification, Microsoft Agent Framework and pi carry "pre-approved" together with "Experimental"; and Vibe's example writes the field without stating any semantics for it anywhere on the page.
++
++Everything below is documentary: six pages fetched and pinned, no client installed, loaded, routed or refused.
++"Pre-approved", "does not add tools" and "Experimental" are the pages' own words, quoted from the snapshots, never observations of a runtime.
++The entry also records a page-internal tension rather than resolving it — Vibe says it follows the Agent Skills specification for format and then prints the list form the specification's own field table calls a space-separated string — because no page read here says which form Vibe parses.
++
++Text view: a `.html` snapshot has its `script` and `style` blocks removed, its tags replaced by one space and its entities decoded; a Markdown snapshot has every backtick byte deleted and an unordered-list marker removed at a line start; every snapshot then has its whitespace collapsed to single spaces.
++Every located quote below is stated in that view, and each was re-located in its own snapshot's committed bytes before this entry was written.
++Citation form: each line below names one pinned snapshot file, and the pinned file is named by its registry id (`S226` → `S226-spec.md`, and so on for the other five); the divergence matrix carries the file-and-line map.
++
++## The six surfaces
++
++| surface | source | page tokens | grant | located quote |
++|---|---|---|---|---|
++| Open specification | S226 | `allowed-tools`, `space-separated`, `pre-approved`, `Experimental` | experimental | located quote "The optional allowed-tools field: A space-separated string of tools that are pre-approved to run Experimental." |
++| Claude Code | S227 | `allowed-tools`, `space- or comma-separated string`, `YAML list`, `without prompting you for approval` | pre-approves | located quote "`allowed-tools` field grants permission for the listed tools during the turn that invokes the skill, so Claude can use them without prompting you for approval." |
++| Factory | S228 | `allowed-tools`, `Grep`, `metadata` | metadata-only | located quote "`allowed-tools` records the tools the skill is designed to use. Droid stores it as skill metadata and shows it in skill surfaces" |
++| Microsoft Agent Framework | S229 | `allowed-tools`, `Space-delimited`, `pre-approved`, `Experimental` | experimental | located quote "allowed-tools No Space-delimited list of pre-approved tools the skill may use. Experimental - support may vary between agent implementations." |
++| pi | S230 | `allowed-tools`, `pre-approved`, `Experimental` | experimental | located quote "allowed-tools \| Experimental pre-approved tool list" |
++| Mistral Vibe | S231 | `allowed-tools`, `allowed-tools:`, `ask_user_question`, `user-invocable` | unstated | located quote "user-invocable: true allowed-tools: read grep ask_user_question" |
++
++## Divergence matrix
++
++| surface | value form the page prints | grant semantics the page states | where |
++|---|---|---|---|
++| Open specification | space-separated string; example `allowed-tools: Bash(git:*) Bash(jq:*) Read` | "pre-approved to run"; "Experimental. Support for this field may vary between agent implementations" | `S226-spec.md:35`, `:176-177`, example `:182` |
++| Claude Code | "Accepts a space- or comma-separated string, or a YAML list" | per-turn grant: "without asking permission during the turn that invokes this skill", "The grant clears when you send your next message", and "It does not restrict which tools are available: every tool remains callable"; deny/ask rules override it; the restricting key is `disallowed-tools` | `S227-claude.md:404`, `:617`, `:405` |
++| Factory | YAML block sequence (`- Read`, `- Grep`, `- Glob`) in both places the page prints it | "It is metadata for review, packaging, and UI display; it does not add tools or sandbox standard skill invocation"; "standard skill invocation is not a runtime sandbox"; "Do not rely on `allowed-tools` as a security boundary for skills" | `S228-factory.md:235-238`, `:254`, `:282`, `:298`, `:339` |
++| Microsoft Agent Framework | "Space-delimited list of pre-approved tools the skill may use" | "Experimental - support may vary between agent implementations"; and "a collection where a scalar field is expected" prevents the skill from loading | `S229-msaf.html:818-820`, `:825` |
++| pi | none stated: the page lists the field in a purpose table and stops | "Experimental pre-approved tool list" — no grant sentence beyond that line | `S230-pi.md:78` |
++| Mistral Vibe | YAML block sequence under `allowed-tools:` in the page's worked `code-review` skill | none stated for the key; the page's tool gating is configured elsewhere: `disabled_tools`, per-tool `permission`, and an `allowlist` under `[tools.read_file]` | `S231-vibe.md:725-728`, `:969`, `:972-976`, `:1039-1040` |
++
++**Three value forms under one name, and only one page states its tolerance.**
++The specification calls the value a space-separated string of tools (`S226-spec.md:176`).
++Claude Code is the only page that says which forms it accepts, and it accepts all three — "space- or comma-separated string, or a YAML list" (`S227-claude.md:404`).
++Factory prints a block sequence in its own example, with no sentence on accepted forms (`S228-factory.md:235-238`).
++Vibe prints a block sequence in its own example too, again with no sentence on accepted forms (`S231-vibe.md:725-728`).
++Microsoft Agent Framework's field table says "space-delimited list" and its next paragraph says "a collection where a scalar field is expected" prevents loading (`S229-msaf.html:818`, `:825`), so the list form those two examples use is a load risk on that page's own wording.
++None of the six pages states what happens to an unknown tool name in the list.
++
++**The name promises restriction; four pages do not grant it.**
++Claude Code states the negative in the same paragraph as the grant: the field pre-approves during one turn and "does not restrict which tools are available: every tool remains callable" (`S227-claude.md:617`).
++Factory states it twice, and adds the enforcement path — a custom droid tool policy or a restricted subagent (`S228-factory.md:254`, `:282`, `:298`).
++The specification qualifies the promise with "Experimental" (`S226-spec.md:177`).
++Microsoft Agent Framework qualifies it the same way (`S229-msaf.html:818`).
++pi qualifies it the same way (`S230-pi.md:78`).
++Vibe's page never promises anything for the key.
++Where a restricting mechanism is documented, it is a different field or file.
++On Claude Code that is `disallowed-tools` plus permission settings (`S227-claude.md:405`, `:617`).
++On Vibe it is `disabled_tools`, per-tool `permission` and an `[tools.read_file] allowlist` (`S231-vibe.md:969`, `:972-976`, `:1039-1040`).
++
++**Vibe claims the specification and prints a list.**
++The page's own sentence is "Vibe follows the [Agent Skills specification](https://agentskills.io/specification) for skill format and structure" (`S231-vibe.md:712`), and its example four lines later writes `allowed-tools:` as a block sequence of three items (`:725-728`).
++The form the specification's field table calls a space-separated string is spelled that way on the specification's own page (`S226-spec.md:35`).
++Both are page bytes; which form Vibe's parser follows is not stated anywhere in the fetched bytes, so this entry records the tension and assigns the reading to review.
++
++**What survives a move between clients.**
++Claude Code's distribution table keeps `allowed-tools` when a skill leaves Claude Code — claude.ai uploads, the Skills API and `package_skill.py` accept exactly the six specification fields, `allowed-tools` among them (`S227-claude.md:420-425`) — and any other Claude Code field hard-errors with a message that lists those six names (`:432`).
++The field that restricts, `disallowed-tools`, is not on that list.
++A body that carries both therefore keeps the pre-approval and loses the restriction on that path, by the page's own table.
++
++**Per-client grant semantics, in the client's own words.**
++Open specification: the value is "A space-separated string of tools that are pre-approved to run" and the support "may vary between agent implementations" (`S226-spec.md:176-177`).
++Claude Code: "grants permission for the listed tools during the turn that invokes the skill", the grant "clears when you send your next message", and "It does not restrict which tools are available" (`S227-claude.md:617`).
++Factory: "It is metadata for review, packaging, and UI display; it does not add tools or sandbox standard skill invocation" and "standard skill invocation is not a runtime sandbox" (`S228-factory.md:254`, `:282`).
++Microsoft Agent Framework: "Space-delimited list of pre-approved tools the skill may use", marked "Experimental - support may vary between agent implementations" (`S229-msaf.html:820`).
++pi: "Experimental pre-approved tool list" — the whole of the page's statement (`S230-pi.md:78`).
++Mistral Vibe: the key appears once, in a worked example, with no semantics stated for it anywhere on the page (`S231-vibe.md:725`).
++
++## The cross-client conflict: a skill that relies on `allowed-tools` for restriction is wrong on at least one client
++
++The field's name reads as a restriction and its pages mostly read as a pre-approval, so a skill body that lists a tool in `allowed-tools` and relies on the rest being blocked is contradicted on at least one client, and on two of the six it is contradicted twice over.
++
++- **Claude Code** grants the listed tools for one turn and says in the same paragraph that it "does not restrict which tools are available: every tool remains callable" (`S227-claude.md:617`).
++- The restriction on that client is a different key — `disallowed-tools` — with its own clearing rule (`S227-claude.md:405`).
++- **Factory** says the field "does not add tools or sandbox standard skill invocation" (`S228-factory.md:254`), and "standard skill invocation is not a runtime sandbox" (`S228-factory.md:282`).
++- Factory closes the section with the instruction "Do not rely on `allowed-tools` as a security boundary for skills. To enforce tool access, use a custom droid with a tool policy or run the workflow in a restricted subagent" (`S228-factory.md:298`).
++- Its troubleshooting item repeats the negative: "`allowed-tools` does not grant new tools" (`S228-factory.md:339`).
++- **Microsoft Agent Framework** marks the grant "Experimental", so even the pre-approval is not a promise of behaviour (`S229-msaf.html:818`).
++- **pi** marks its one line the same way (`S230-pi.md:78`).
++- **The open specification** promises only "pre-approved to run" and says support "may vary between agent implementations" (`S226-spec.md:176-177`); it never says the field removes anything.
++- **Mistral Vibe** states nothing, so it is the one client of the six on which the question cannot be answered from the page at all (`S231-vibe.md:725`).
++
++So the reading that holds across the whole set is the narrow one: `allowed-tools` is, at most, a per-turn pre-approval on one client, review metadata on another, an experimental hint on three, and an unstated example on the sixth.
++Where a skill needs a tool absent from the session, or needs the other tools blocked, listing a tool in `allowed-tools` is the wrong mechanism on every client that says anything about it.
++
++## What an author should do
++
++- **Treat the field as pre-approval, never as a sandbox.** Claude Code grants it for one turn and then clears it, and says it "does not restrict which tools are available" (`S227-claude.md:617`).
++- Factory says it "does not add tools or sandbox standard skill invocation" and is "not a security boundary" (`S228-factory.md:254`, `:298`).
++- A workflow that needs a tool absent from the session is not fixed by listing it (`S228-factory.md:282`).
++- **Put the restriction where the page puts it.** Claude Code's `disallowed-tools` plus permission settings (`S227-claude.md:405`, `:617`).
++- Vibe's `disabled_tools`, per-tool `permission` and `[tools.read_file] allowlist` (`S231-vibe.md:969`, `:972-976`, `:1039-1040`).
++- Listing a tool in `allowed-tools` and expecting the rest to be blocked is contradicted by the first page and unsupported by the other five.
++- **Write the form the target page prints, and prefer the scalar.** The specification's space-separated string is the scalar form (`S226-spec.md:176`).
++- That scalar is what Microsoft Agent Framework's bytes call a scalar, and that page says a collection where a scalar is expected prevents loading (`S229-msaf.html:825`).
++- The list form is what Factory prints in its example (`S228-factory.md:235-238`).
++- The list form is also what Vibe prints in its example (`S231-vibe.md:725-728`).
++- It is also what Claude Code says it accepts (`S227-claude.md:404`).
++- Choose per client, and do not assume the list form travels.
++- **Budget for one turn, not one session, on Claude Code.** The grant clears when you send your next message, and the page names permission settings for a session-wide allow rule (`S227-claude.md:617`); a skill that needs standing approval is relying on the wrong mechanism.
++- Under managed settings the grant does not apply at all, and the page states the version floor for that rule (`S227-claude.md:305`, `:643`).
++- **If the skill ships to claude.ai or the Skills API, keep the frontmatter to the specification's six fields.** `allowed-tools` survives that path; every other Claude Code-only key hard-errors (`S227-claude.md:421-432`).
++
++## Limits
++
++- **Documentary evidence only.** Six pages were fetched and pinned on 2026-10-27; no client was installed, loaded or run, and no claim here is about observed parsing, acceptance, refusal or enforcement.
++- "Supports" and "parses" appear only where a page says so.
++- **The Microsoft Agent Framework page is not byte-stable, so its pin is the snapshot, not the URL.** The served page carries Akamai Bot Manager instrumentation whose per-response seed changes between fetches.
++- An independent fetch on 2026-10-27 returned the same 157339 B but a different digest (`20fd76d8…` against the pinned `34016233…`), and `diff -u` against the committed snapshot showed five changed lines: two asset-version lines (`/static/assets/0.4.03574.8308-…` → `/static/assets/0.4.03585.8328-…`), the bot-manager script tag (`/akam/13/41ddb17` → `/akam/13/41ddb15`) and the noscript pixel path beside it.
++- The r79 sentinel measured the same class earlier in the day at a different size (156963 B, `8fc249df…`).
++- No credential is involved — it is a server-issued bot-detection seed and beacon URL.
++- The consequence is that a fetch-and-compare-digest recheck can never pass for this page; the recheck predicate is the anchor-token count, and the pin is the committed snapshot's digest (`S229-msaf.html`).
++- **`main`-branch raw URLs move; the pin names the opened snapshot.** The pi-mono and the mistral-vibe files are `raw.githubusercontent.com` files served from a branch head, not a versioned URL.
++- The fetch records resolve the heads, and each record names the served revision in its own `note` field; the pi-mono `main` head at fetch time was newer than the last change to the fetched path (2026-09-22), so the served blob was already older than the head (`S230-pi.md`, record `S230.fetch.json`).
++- The mistral-vibe README was served from the repository head named in that page's fetch record, and the revision-pinned raw URL served the same bytes (`S231-vibe.md`, record `S231.fetch.json`).
++- Every citation here is to the pinned snapshot, not to the URL.
++- **Snapshot forms differ, and so do the line numbers and the text view.** One snapshot is the raw served HTML and its line numbers are HTML lines (the field row is a `<td>` cell at `:818`, in a `<h3 id="skillmd-format">` section opened at `:771`) (`S229-msaf.html`).
++- The other five are Markdown, except that one of them is a Markdown route of a canonical page.
++- The open specification's snapshot is Markdown (`S226-spec.md`).
++- Claude Code's snapshot is Markdown (`S227-claude.md`).
++- pi's snapshot is Markdown (`S230-pi.md`).
++- Vibe's snapshot is Markdown (`S231-vibe.md`).
++- Factory's snapshot is the Markdown route `docs.factory.com/harness/skills.md` of the canonical page `docs.factory.com/harness/skills` (`S228-factory.md`); the assigned `docs.factory.ai/cli/configuration/skills` 308s there through `docs.factory.com/cli/configuration/skills`.
++- A snapshot is the raw fetched bytes, and every quote above is read in a declared text view of it, not as a rendered page: for the `.html` snapshot script/style blocks are removed, tags become one space and entities are decoded; for Markdown snapshots every backtick byte is deleted and an unordered-list marker is removed; then whitespace is collapsed.
++- Fenced code blocks are not removed, because two of the six pages document the field only inside a worked example (`S231-vibe.md:725-728`).
++- **Line numbers drift.** Every citation is to the 2026-10-27 snapshot, not to a live URL: the page can change without the URL changing, which is why the recheck counts anchor tokens instead of trusting the address.
++- **Pi's located quote is the source page's own table row.** Pi names the field exactly once, inside a markdown table row, so its located quote necessarily carries the page's `|` separators as text (6 words, 3 separators; the escape `\|` in the table above is Markdown escaping, and the quote text itself contains a literal bar) (`S230-pi.md`).
++- The other five rows use pipe-free prose spans (specification 15 words, Claude Code 25, Factory 22, Microsoft Agent Framework 19, Vibe 6 — each with zero separators and one occurrence in its own shaped view).
++- A reader that splits entry cells on `|` must treat pi's separators as page data.
++- **Population and its margin.** Eighteen skill pages were fetched for the round-79 census and six state the field; a client silent in that census is a client that was not checked, not a client without the field.
++- The negative sweep is not restated here: it is re-run in round 80 and belongs to that round's own rows.
++- **The grant-semantics reading is documentary and per-page.** The labels in the surface table are the frozen vocabulary for this entry — `experimental`, `pre-approves`, `metadata-only`, `unstated` — and each is true of the page it names, read as that page's own words.
++- They are not a ranking, and no label asserts what any client does at runtime.
++
++## Scope
++
++Per-client documentary semantics of one frontmatter key: the value form each page prints and the grant each page states, for six pages that state it.
++Not claimed: a client's runtime behaviour with the field (none observed), a trust model for untrusted bodies (`corpus/knowledge/client-trust-gates-round68.md`), a conformance verdict on any vendor's parser, or a market census beyond the eighteen pages the round-79 census fetched.
++
++## Related
++
++- `corpus/knowledge/frontmatter-rule-authorities-round48.md` — the field's specification-format rule and the validator's allowed-key set; this entry takes the value form from the same specification page and adds the per-client grant.
++- `corpus/knowledge/chinese-vendor-skill-surfaces-round73.md` — records `allowed-tools` as a CodeBuddy frontmatter key and compares spellings; this entry answers what the key grants, which that one leaves open.
++- `corpus/knowledge/client-trust-gates-round68.md` — what a client does with a body it did not place; the Claude Code workspace-trust sentence is one negative for that map (this field is applied even in an untrusted folder, `S227-claude.md:619`).
+diff --git a/corpus/lessons/round-80.md b/corpus/lessons/round-80.md
+new file mode 100644
+index 0000000..c990146
+--- /dev/null
++++ b/corpus/lessons/round-80.md
+@@ -0,0 +1,60 @@
++# Round 80 — kotoba (attempt 1)
++
++Base: `398cbe1bb67f8d9dcf5d25d5ecf1b26a7c6f7e93`; author: L1 `KotobaR80`; this lesson text drafted by seat `Kb80S01Lesson`, 2026-10-27.
++Two fresh claims on distinct axes: **C1 consistency (calibration sub-axis)** — the lane's own tip battery must match the repo state (`1 of 6` at base → `6 of 6` at the landed tip), and **C2 depth (sourced; the form backbone is measured, the grant-semantics rider is exploratory)** — `allowed-tools` surfaces (`0 of 6` at base → `6 of 6`).
++
++## Gate
++
++- **C1 consistency/calibration — the base reading is admitted; the after-value is the L1's, not this seat's.** At the r80 base `python3 -B verifiers/check_tip_battery.py --rev 398cbe1bb67f8d9dcf5d25d5ecf1b26a7c6f7e93 --repo .` (sandbox form) prints `guards 5 of 5` and `tip battery exit 0: 1 of 6` and exits 1 (`.ufo/waves/round-80/receipts/tipbattery-base-dot.txt`, last two lines `tip battery exit 0: 1 of 6` / `exit=1`). The same receipt shows why the figure is 1 and not 2: `check_gate_registry.py` exit 1, `check_assertion_floors.py` exit 1, `verify_skill_checklist.py` exit 1, `verify_corpus_integrity.py` exit 1, `verify_corpus_independent.py` exit 1 and only `check_correction_sweep.py` exit 0, with `instruments added 22 / deleted 3 lines (cap 40)` under the round-72 bound. The landed-tip `6 of 6` in both the `--repo .` and absolute `--repo <lane>` forms is the L1's post-integration measurement; no seat scored it, and this lesson asserts no after-value.
++- **C2 sourced rows re-opened this round — S226–S231, each accessed 2026-10-27, each quote ≤25 words.** The six re-open fetch records are `.ufo/waves/round-80/build/Kb80R03ReopenSix-S226.fetch.json` through `Kb80R03ReopenSix-S231.fetch.json`; five re-fetched byte-identically to their snapshot pins, while S229 came back at the same 157,339 B with a different sha256 (`20fd76d8…` against the pinned `34016233…`) — the page-byte instability the round-79 sentinel already recorded, noted and not repaired. Every quote below was verified this round to occur exactly once in its committed snapshot under the counter's declared text view (command and per-row span counts in `.ufo/waves/round-80/build/Kb80S01Lesson-evidence.txt`: the r79 draft counter's own `text_view` imported and applied, `exit=0`; the six snapshot pins re-checked with `sha256sum -c`, `exit=0`):
++  - S226, https://agentskills.io/specification.md, 2026-10-27 — “The optional allowed-tools field: A space-separated string of tools that are pre-approved to run Experimental.” (15 words; tier A, the format authority; a declared multi-line text-view span — the section sentence plus its two bullets, list markers and backticks removed).
++  - S227, https://code.claude.com/docs/en/skills.md, 2026-10-27 — “allowed-tools field grants permission for the listed tools during the turn that invokes the skill, so Claude can use them without prompting you for approval.” (25 words, the cap exactly).
++  - S228, https://docs.factory.com/harness/skills, 2026-10-27 — “allowed-tools records the tools the skill is designed to use. Droid stores it as skill metadata and shows it in skill surfaces” (22 words; the assigned `docs.factory.ai` URL answered 308 twice, and the row cites the final URL).
++  - S229, https://learn.microsoft.com/en-us/agent-framework/agents/skills, 2026-10-27 — “allowed-tools No Space-delimited list of pre-approved tools the skill may use. Experimental - support may vary between agent implementations.” (19 words; `No` is the table's Required-column value, not a modifier of `Space-delimited`).
++  - S230, https://raw.githubusercontent.com/badlogic/pi-mono/main/packages/coding-agent/docs/skills.md, 2026-10-27 — “allowed-tools | Experimental pre-approved tool list” (6 words; the page prints no value syntax anywhere, a swept negative).
++  - S231, https://raw.githubusercontent.com/mistralai/mistral-vibe/main/README.md, 2026-10-27 — “user-invocable: true allowed-tools: read grep ask_user_question” (6 words; the field appears only inside a fenced YAML example).
++- **C2 admit — the entry `corpus/knowledge/allowed-tools-surfaces-round80.md`**, landing in the same integration commit as this lesson, holds the six surface rows above as 11-cell `mined` rows plus the entry table. The snapshot pins are the six per-row `S###.manifest` files; no aggregated `MANIFEST.sha256` exists at base, so a counter that requires the aggregate can never reach N = 6 (reported as F1 in `.ufo/waves/round-80/build/Kb80S03Scorecard.md`, not repaired here). A second hard pin prerequisite was measured this round and is likewise unrepaired here: all six base anchor cells carry date-only fetch records (`fetched 2026-10-27, HTTP 200, …`) that fail the counter's ISO8601 `fetched …T…Z` pattern, while the per-page fetch records already hold the full instants (`.ufo/waves/round-80/w1/Kb80N01Sentinel.md` § “C2 pin prerequisites”). A citation-hygiene hazard in the entry draft was measured and fixed in-wave: the draft's lines 124–125 carried full-hex third-repository commits under bare names (`pi-mono`, `mistral-vibe`), which would have added to `commit_unresolvable` rather than cleared it; the entry owner removed those digests, and a re-scan of the entry bytes for the gates' backticked `commit` shape (`COMMIT_RE`) finds none (the only hex left is snapshot digests, the lane base commit and two Akamai ids), so the landing entry adds no commit token.
++- **C2 reachability — the msaf surface cannot satisfy the draft counter's Q70 as built (reported, not repaired).** `S229-msaf.html` names the field exactly once in the declared text view (view line 96), so any quote carrying the required word-bounded `allowed-tools` starts there; the entry seat measured the draft's quote-location rule as rejecting any quote that starts at or before the first `#`-prefixed view line plus one, and on this HTML view that first `#` line is a Python comment inside a code sample (view line 169, `# Auto-approve load_skill…`), not a heading — the page's real `<h1>` precedes the field. The misfire is in the counter's heading heuristic, not in the quote choice; the counter seat owns the fix and the entry seat declined to narrow its quote to dodge it. If the heuristic stands, C2 cannot reach `documented 6 of 6` and the round records an **honest stop on C2**: a post-freeze change to the conjuncts would be narrowing, so any fix must be a declared counter erratum for a heading-detection defect rather than a relaxation, and that call belongs to the counter and C2 review seats.
++- **C2 counting command (landing with the C2 integration).** `python3 -B verifiers/check_allowed_tools.py --rev <rev>` prints `allowed-tools surfaces documented N of 6` and `generator world: M of 6` and exits 0 iff N == 6 and the tree conjuncts hold (Q71/Q74: the headline is **form-level only**, and the generator world's score is printed beside it so a form-generation world can be read as a defect rather than as falsification). Base `documented 0 of 6`, exit 1; the landed-tip N and M are the L1's post-integration measurement.
++- **Exploratory rider — grant-semantics matrix (declared real, not countable).** What each client does with the field (per-turn grant, metadata only, experimental, unstated) is judged true-of-page per row, and the cross-client conflict reading — a skill relying on `allowed-tools` for restriction is wrong on at least one client — is not computed by any counter. Reviewers of record: the round-80 **non-author closure spot-check** (a dispatched subagent does not count; the closure is not the author). Prior state lacked this because no knowledge entry held `allowed-tools` semantics by client; the r79 sweep found key-name mentions only. The SCORECARD row carries a verdict plus this reviewer pointer instead of a number.
++- **Rejection rows S232–S243 (negative sweep; each opened 2026-10-27).** Twelve census-negative clients were re-opened with two sweep passes and this seat's independent third pass: every page returns 0 hits for `allowed[-_ ]tools` and 0 for the broad `allowed.{0,2}tools`, so none is an admit candidate and each is recorded `rejected` with its page identity as the located quote (≤25 words; for a rejection the ground is the swept absence, not a quotation about the field). Sweep record `.ufo/waves/round-80/build/Kb80R01NegSweep.md`; this seat's independent pass `.ufo/waves/round-80/build/Kb80S01Lesson-negverify.txt` (`curl` exit 0 on all twelve, byte counts equal to the sweep's on all twelve):
++  - S232 Codex — https://developers.openai.com/codex/skills → https://learn.chatgpt.com/docs/build-skills — “Build skills | ChatGPT Learn” (417,416 B; the sweep's recorded identity string “Codex | OpenAI Developers” also occurs once in the same bytes).
++  - S233 VS Code — https://code.visualstudio.com/docs/copilot/customization/agent-skills → https://code.visualstudio.com/docs/agent-customization/agent-skills — “Use Agent Skills in VS Code” (157,102 B).
++  - S234 opencode — https://opencode.ai/docs/skills/ — “Agent Skills | OpenCode” (71,581 B).
++  - S235 Gemini CLI — https://geminicli.com/docs/cli/skills/ — “Agent Skills | Gemini CLI” (114,148 B).
++  - S236 GitHub Copilot — https://docs.github.com/en/copilot/concepts/agents/about-agent-skills → https://docs.github.com/en/copilot/concepts/customizations/agent-skills — “Agent skills - GitHub Docs” (566,781 B).
++  - S237 Cursor — https://cursor.com/docs/context/skills → https://cursor.com/docs/skills — “Agent Skills | Cursor Docs” (490,061 B).
++  - S238 Amp — https://ampcode.com/docs/customize/skills — “Skills | Amp Docs” (105,308 B; the only page whose bytes differ between the sweep's passes, by three rotating CSP nonces, text identical).
++  - S239 Roo — https://docs.roocode.com/features/skills → https://roocodeinc.github.io/Roo-Code/features/skills/ — “Skills | Roo Code Documentation” (71,129 B).
++  - S240 Kilo — https://kilo.ai/docs/customize/skills — “Skills” (138,104 B; a one-word title — thin, but it is what the page calls itself).
++  - S241 Junie — https://junie.jetbrains.com/docs/agent-skills.html — “Agent skills | Junie Documentation” (38,509 B).
++  - S242 Goose — https://block.github.io/goose/docs/guides/context-engineering/using-skills/ — “Page not found” (HTTP 404, 932 B, byte-identical across passes, as the r79 census recorded).
++  - S243 Hermes — https://hermes-agent.nousresearch.com/docs/user-guide/features/skills — “Skills System | Hermes Agent” (206,631 B).
++- **Id-alias conflict on the S232+ ids — reported verbatim, not resolved here.** The plan orders the rejection ids “from S232”. The overlap seat measured that `/home/vgpnk/Projects/shokuknow/merge/kotoba/SOURCES.append.md` runs S203–S390 with 29 ids (S203–S231) already colliding, and recommends “Mint S232+ rejections only after the id collision with shokuknow's append file is resolved (section 6)” (`.ufo/waves/round-80/w1/Kb80K01Overlap.md` § 7); the assimilation seat records that “the register's stale ids S236–S239 and S243 sit in that space” (its finding F-Kb80S12-3, `.ufo/waves/round-80/build/Kb80S12AssimDisp.md`). This lesson mints S232–S243 in census order as the plan orders and records both objections; no seat resolves them, and the canonical judge/L1 decides at integration.
++- **Stale-census correction (R79-D2), append-only notice.** The round-79 lesson's round-end line reads “Round-end same command → exit 0, 151 rows … (`census-after.txt`)” and “151 before and 151 after”. Measured this round: the registry at the round-79 round-end commit holds **157 rows** (`git show 398cbe1bb67f8d9dcf5d25d5ecf1b26a7c6f7e93:corpus/SOURCES.md | grep -cE '^\|[[:space:]]*S[0-9]{3,}[[:space:]]*\|'` → `157`, exit 0; the same count at the lesson commit and at the plan-freeze commit), and the round-79 census receipts differ accordingly — `.ufo/waves/round-79/receipts/census-before.txt` and `census-after.txt` carry 20 W04 lines each while `census-final.txt` carries 24, the extra four being the duplicate-URL warnings the six C2 rows introduce. The round-79 **round-end census receipt of record is therefore `.ufo/waves/round-79/receipts/census-final.txt`** (last line `exit=0`), and `census-after.txt` is an intermediate snapshot taken before the six rows landed. `corpus/lessons/round-79.md` is not edited; this notice is the correction.
++- **Assimilation — none adopted; adoption stays closed.** The kotoba quarantine-register slice was hand-checked this round: 13 rows (7 `payload-absent`, 6 `unreachable`), every cited source re-opened on 2026-10-27, and the verdicts are **0 adopted**, 7 refused as quotations (the quoted span is lane prose or an extractor artifact, not the page's words), 6 reachable today but never having had a quote recorded (reachable is not adopted), 0 left unreachable. The one evidenced flip condition is S172 (its fact is on the page, its wording is not): admissible in a later round only after the row is rewritten around the located sentence. `/home/vgpnk/Projects/shokuknow/merge/kotoba/` took nothing — the staged append file holds 188 ids and 29 of them (S203–S231) collide with the lane registry, re-derived at base; nothing was appended, transformed or staged. Provenance: the disposition is taken from the assimilation seat's build deliverable `.ufo/waves/round-80/build/Kb80S12AssimDisp.md`; the scout report Kb80R06ShokuknowSlice was absent from `.ufo/waves/round-80/w1/` when this lesson was written, and the assimilation seat derived its verdicts independently because the same absence held at its read time. Findings handed up, not repaired: the register's `payload-absent` label mixes fabricated spans with extractor noise (F-Kb80S12-1); S206's quoted sentence has drifted on its live page (F-Kb80S12-2); the S232+ ids alias the register's stale S236–S239 and S243 (F-Kb80S12-3).
++- **considerthese 2026-10-26, proposals 2–5 — dispositions recorded, none implemented** (proposal 1 was dispositioned in round 79): P2 (move `## Gate registry` out of `SKILL.md`) is an **L0 matter per Q67** — measured 24,897 B of 78,647 B, 31.7 % of the file; P3 (land the r74-rejected description page, audit the description) **needs a rejected-closure to clear** — the r74 flip is unmet on the staged bytes and the r77/r78 closures rejected the description counter as a sufficient measure (measured 1,021-char description, 151-char first sentence); P4 (close rounds “provisional” until a falsify wave) is **operator/L0** — it changes the closure procedure, and the attack half is already in the v2 one-wave shape; P5 (evidence byte budget, compress seat logs) is **operator-owned retention policy** — tracked `.ufo` 174,588,093 B at base, disks ample, and in-place compression would change bytes the `--rev` counters and freeze receipts cite.
++
++## Mistakes
++
++| class | evidence pointer | captured-by | fix |
++|---|---|---|---|
++| measurement (M80-1) | `.ufo/waves/round-80/receipts/m80-1-pipe-vs-direct.txt` — the same `verify_corpus_integrity.py` run at base reads `pipe-rc=0` through `cmd \| tail -1; echo rc=$?` and `direct-rc=1` through `cmd > f 2>&1; rc=$?`, with the six DRIFT names identical in both forms | `none` (new class; no rule captured it) | Capture every gate verdict with the command's own exit status, never a pipeline's last element: a pipeline reports its last element's status, so the base pass read “green” while the true exits were 1. Shown able to fail by the receipt's two forms on one command, and by the round-80 base battery where the same gates are red under direct capture. |
++| measurement (M80-2) | `.ufo/waves/round-80/w1/Kb80K03Considerthese.md` § “Gaps and honesty notes” — the prescribed registry-size range `awk '/^## Gate registry/,/^## /'` prints 17 bytes because its end pattern matches its own start line; the section measures 24,897 B by line range | `none` (new: a brief-supplied command was used as given) | Derive a section's size from its line range (`awk 'NR>=445 && NR<=513'`) and cross-check `wc -l`, instead of trusting an awk range whose end regex matches the start line. |
++| classification (M80-3) | `.ufo/waves/round-80/w1/Kb80S06Shonen.md` F6, with the base subjects in `.ufo/waves/round-80/build/Kb80S06Shonen-receipt-corpint-lane.txt`: the integrity gate's two `commit_unresolvable` subjects are `corpus/SOURCES.md:171` and `corpus/SOURCES.md:172`, **both** the hash `7bb48f213ac677f943d5c791199ed3dddf302f00`; S230's anchor says its page's `main` resolved to `badlogic/pi-mono` commit `7bb48f21…`, the same hash S231 cites for `mistralai/mistral-vibe`, while `.ufo/waves/round-79/snapshots/S230.fetch.json` records that repository's head `bb65e3e4…` (commit date 2026-10-27T21:31:47Z) and the last commit touching the path `25cc5c7b…`, and `.ufo/waves/round-79/snapshots/S231.fetch.json` records `7bb48f21…` as `mistralai/mistral-vibe`'s `main` by `git ls-remote` at 2026-10-27T21:43:03Z, while the round-79 pi seat recorded the `skills.md` blob `19d2bf28…` (`.ufo/waves/round-79/w1/Kb79R05PiRow.md`) | `corpus/QUALITY.md` Q61 (a gate states its resolution set) — the rule governs the count, not the cell | An INFO classification changes a count, not a cell. External commits may be counted INFO, and the suspect cell is carried separately as an open corpus defect: one erratum line names the real head and the misattributed digest, and the cell is corrected only by the round that owns the row (the frontier step freezes it this round; no silent edit). |
++| review coverage (M80-4) | `.ufo/waves/round-80/w1/Kb80V01C1.md` — the C1 line-review found E01 (registry), E03 (coverage/baseline), E05 (both grammar gates) and E06 (counter erratum) absent from `.ufo/waves/round-80/build/` and could review only E02 and E04; they were still absent when this lesson was written, so that review covers two of the six C1 repairs | `none` (a v2 one-wave consequence: reviewers run beside builders) | Dispatch review seats against a declared publication point, and require a review report that reviews nothing to name its timestamp and be re-run before closure; a review of two of six repairs is not a review of the repair stack. |
++
++## Sources & frontier
++
++Round-start census: `bash scripts/sources-census.sh validate --root /home/vgpnk/Projects/shokunin kotoba` → exit 0, 24 W04 duplicate-URL warnings, `.ufo/waves/round-80/receipts/census-before.txt`; re-run this round with own-exit capture → `exit=0`, 24 W04 lines (`.ufo/waves/round-80/build/Kb80S01Lesson-census.txt`). Row-count command `grep -cE '^\|[[:space:]]*S[0-9]{3,}[[:space:]]*\|' corpus/SOURCES.md` → **157 rows** at base (independently derived twice: `.ufo/waves/round-80/build/Kb80S01Lesson-evidence.txt` and `.ufo/waves/round-80/build/Kb80S16CensusLog-rowcounts.txt`). Round-end census: the L1 records it at the final pre-report tip; this seat measured no after-value.
++
++Rows added by tier: none minted by this lesson; the twelve rejection rows above are minted at integration from the negative sweep with `status` `rejected`, and no admit row is added (S226–S231 already exist and only their `used-by` cell moves). Rows touched old→new, one line each (the six C2 rows move their `used-by` from the round-79 lesson to the round-80 entry):
++
++- S226: `corpus/lessons/round-79.md` → `corpus/knowledge/allowed-tools-surfaces-round80.md`
++- S227: `corpus/lessons/round-79.md` → `corpus/knowledge/allowed-tools-surfaces-round80.md`
++- S228: `corpus/lessons/round-79.md` → `corpus/knowledge/allowed-tools-surfaces-round80.md`
++- S229: `corpus/lessons/round-79.md` → `corpus/knowledge/allowed-tools-surfaces-round80.md`
++- S230: `corpus/lessons/round-79.md` → `corpus/knowledge/allowed-tools-surfaces-round80.md`
++- S231: `corpus/lessons/round-79.md` → `corpus/knowledge/allowed-tools-surfaces-round80.md`
++
++No other cell of S226–S231 changes; their `opened`/`recheck` cells stay as the rows record them, and this round's re-open is carried by the entry's `verified-at:` cell and the six-quote verification above. Frontier rows advanced: 0 (no knowledge entry outside `corpus/knowledge/allowed-tools-surfaces-round80.md` entered coverage-map ground). Assimilation: none adopted (see `## Gate`). Status/recheck/used-by changes in this lesson: the six `used-by` cells above; no status or recheck cell changed.
+diff --git a/verifiers/check_allowed_tools.py b/verifiers/check_allowed_tools.py
+new file mode 100755
+index 0000000..529c7ca
+--- /dev/null
++++ b/verifiers/check_allowed_tools.py
+@@ -0,0 +1,2288 @@
++#!/usr/bin/env python3
++"""check_allowed_tools.py — frozen C2 counter for kotoba round 79 (depth).
++
++FROZEN PREDICATE (the same sentence in plans/round-79.md § C2, in this
++docstring, in the receipt and in the SCORECARD row):
++
++    python3 -B verifiers/check_allowed_tools.py --rev <rev>  ->  prints
++    "allowed-tools surfaces backed N of 6" and exits 0 only when N >= 5 and
++    the tree conjuncts (g)-(i) hold; at the r79 base
++    b10bcbc6b00f8f56b202ccbadca311007b5b463c it prints
++    "allowed-tools surfaces backed 0 of 6" and exits 1.
++
++Surface ``V`` in the frozen host table below is **backed** at ``--rev`` iff all
++of (a)-(f) hold over committed bytes only (no network at measurement, and no
++instrument of the measured tree is executed):
++
++  (a) the entry ``corpus/knowledge/allowed-tools-surfaces-round79.md`` (frozen
++      path) opens with ``source:`` lines for every cited id, then
++      ``verified-at:`` then ``recheck:``; the entry names the snapshot text
++      view; and its surface table (the one table whose header is the frozen
++      ``surface | source | page tokens | grant | located quote``) has exactly
++      one row for ``V`` whose backticked tokens (>= 3, including
++      ``allowed-tools``, one value-form token and one grant-semantics token)
++      each occur ASCII-word-bounded in a committed snapshot of a source that
++      row cites;
++  (b) every cited ``S###`` is an 11-cell registry row, status ``mined``, tier
++      ``A`` or ``B``, ``used-by`` naming the entry, URL host+path-prefix equal
++      to ``V``'s frozen host (Q32 exact identity);
++  (c) each cited row's snapshot under ``.ufo/waves/round-79/snapshots/`` has a
++      sha256 equal to the pin in the committed ``MANIFEST.sha256`` and equal to
++      the sha256 in the row's anchor fetch record
++      ``fetched <ISO8601>Z, HTTP 200, <bytes> B, sha256 <hex>``;
++  (d) each row's located quote (5-25 words, whitespace-collapsed only) occurs
++      in its own snapshot **and contains the token ``allowed-tools``**; Q70:
++      the quote is not a banner or subtitle line and not in the first-heading
++      block;
++  (e) opened this round: the row's ``opened`` cell = the entry's
++      ``verified-at:`` = 2026-10-27;
++  (f) the row's ``grant`` cell (plain text, not backticked) carries exactly one
++      frozen label, and it is ``V``'s label; and the row's quote carries the
++      page token that grounds it, per the frozen table.
++
++Three tree-level conjuncts are reported on their own lines and are needed for
++exit 0:
++
++  (g) SKILL.md carries one rule line citing the entry path and naming >= 3
++      surfaces, and a conformant registry row for this counter (kind ``gate``);
++      printed ``skill rule line ok`` / ``registry home ok``.
++  (h) PROVINCE.md ``## Core`` has exactly one bullet naming the entry path;
++      printed ``province surfaces named P of 6`` (the surfaces that bullet
++      names, informational) beside the bullet finding.
++  (i) printed ``script-only world: M of 6``: the counter builds, from the
++      measured revision's own bytes and with no judgement, the script-only
++      world (a mechanical scrape of the six pages into the entry) and measures
++      it with the SAME ``check()``. Q71: a script-only world that reaches the
++      target is a counter defect, so (i) is a conjunct: exit 0 also requires
++      M < 5.
++
++READINGS that are deliberately stricter or looser than the naive one, named
++here so a reviewer can attack them rather than discover them:
++
++  * the surface table is the table whose cleaned header cells equal the frozen
++    five (case/emphasis/backticks stripped, whitespace collapsed). There must
++    be exactly one such table in the entry: none is an entry-level break (0 of
++    6), two is ambiguous (0 of 6). A surface row is a row of that table whose
++    first cell, cleaned, EQUALS the surface's frozen display name (``Open
++    specification``, ``Claude Code``, ``Factory``, ``Microsoft Agent
++    Framework``, ``pi``, ``Mistral Vibe``); ``| pi coding agent |`` does not
++    name ``pi``. Exactly one row per surface. Every surface row must carry
++    exactly five cells (the frozen header's arity), else that surface fails.
++  * the counted tokens are the backticked spans of the row's cells AFTER the
++    first (the surface cell). A token's role:
++      - ``key``: the token is exactly ``allowed-tools``;
++      - ``grant``: the token contains the surface's frozen page token at an
++        ASCII word boundary, case-insensitively (the cue the plan freezes:
++        ``Experimental``, ``without prompting you for approval``,
++        ``metadata``, ``allowed-tools:``);
++      - ``value``: any other token that carries a value shape — one of
++        ``( ) [ ] , : * < > { }`` or a space inside the token, or a bare name
++        ``^[A-Za-z][A-Za-z0-9_.@/-]*$`` (a tool name, a YAML list item:
++        ``Bash``, ``Bash(git:*)``, ``ask_user_question``, ``[Bash, Read]``);
++      - ``other``: anything else (counts only toward ">= 3").
++    The three roles are not exclusive over the row, but each token takes its
++    first matching role, so the key and the page token cannot silently double
++    as a value form.
++  * word-bounded means ASCII-word-bounded (``[A-Za-z0-9_]``), not ``\\w``. A
++    token's matching forms are the token itself, its form without a leading
++    ``~/`` and each without a trailing ``/``; no other shaping is applied.
++  * the snapshot text view is the plan's Q42/Q53/Q56 rule as amended by the
++    L1 before any data (plans/round-79.md § C2, freeze commits d9d01c2 and
++    60ba11f) and nothing else: for a ``.html``/``.htm`` snapshot,
++    ``<script>``/``<style>`` blocks are removed, tags become one space,
++    entities are decoded; for a Markdown snapshot (``.md``/``.markdown``)
++    every backtick byte is deleted and an unordered-list marker is removed by
++    ``(?m)^[ \\t]{0,3}[*+\\-][ \\t]+``; then every whitespace run is collapsed
++    (a plain-text snapshot: collapse whitespace only). Fenced code blocks and
++    HTML comments are NOT removed from a snapshot: two of the six pages
++    document the field only inside a fenced example (vibe L721-731), so
++    stripping fences would make those surfaces unbackable. The entry has to
++    name that shaping on one line (``.html``, ``script``, an
++    ``entit*``/``decod*`` word, ``whitespace`` and a backtick/inline-code
++    word), and the located quote is written in its transformed exact form —
++    S226's frozen quote is ``The optional allowed-tools field: A
++    space-separated string of tools that are pre-approved to run
++    Experimental.``
++  * a markdown table cell is read with escape-aware splitting: a ``|``
++    preceded by a backslash is cell content, not a column break, and the
++    backslash is removed before the cell is judged. Without this a real row
++    whose quote is a markdown table row (pi: ``| `allowed-tools` |
++    Experimental pre-approved tool list |``) would read as six cells and could
++    never be backed.
++  * the located quote is the single quoted span of the row's ``located quote``
++    cell; the fallback when the cell carries no quoted span is the cell's own
++    whitespace-collapsed text. Two distinct quoted spans in one cell is a
++    finding, never a pass. The quote is matched as written and, only if that is
++    not found, once more with every backtick byte deleted (the Markdown view
++    deletes backticks, so a seat that backticks the cell is not punished for
++    formatting); no other shaping is applied. The quote is matched over the
++    text view with whitespace collapsed and nothing else: no backtick
++    stripping, no case folding. It must contain ``allowed-tools`` (case
++    sensitive, ASCII word boundary).
++  * Q70 location: the quote's occurrence must lie on a line that is not a
++    heading (does not start with ``#``) and is not in the first-heading block
++    (the page's first heading line and the line after it); and its line must
++    not occur verbatim in another snapshot whose raw bytes differ (a shared
++    banner/subtitle line on a different page). Byte-identical snapshots are
++    the same page and do not disqualify each other.
++  * (e) is a per-surface content finding, not exit 2: this round's plan lists
++    it among the conjuncts that decide "backed", so a row opened on another
++    day is a surface that is not backed, never a could-not-evaluate.
++  * (c) IS exit 2 when the committed bytes do not hash to the pin
++    (``snapshot_tampered``), when the manifest is missing or malformed, when a
++    pin escapes the snapshot directory, or when the snapshot of a cited id is
++    ambiguous: a pin that does not pin cannot be evaluated, and this counter
++    never converts that into a pass or a content fail.
++  * a pin is bound to the page the row cites: the entry's own ``source:`` line
++    for a cited id must carry a URL whose host+path (trailing ``/`` ignored)
++    equals the cited row's first URL, else that surface is not backed. The one
++    exception is the L1's factory amendment: the canonical page and that same
++    page's ``.md`` route (a bare ``.md`` suffix on one side, same host) are the
++    same page.
++  * the script-only world is generated at measurement time, not a fixed list:
++    for each surface it takes the lowest-id registry row on the surface's
++    frozen host, the manifest-pinned snapshot whose basename begins with that
++    id, the first non-heading body line containing ``allowed-tools`` as the
++    quote, the tool-name token after the field as the value form, and the
++    frozen page token as the grant-semantics token when the page carries it.
++    It writes the grant cell ``unstated`` (the no-judgement default) and is
++    scored by ``check()`` with no special case; M is how many surfaces a
++    scraper reaches. Real pages may reach more than 0; reaching the target is
++    reported, never repaired by narrowing.
++
++Exit codes: 0 iff N >= 5 and the script-only world is below the target and the
++tree conjuncts (g)-(h) hold; 1 otherwise (a content verdict); 2 could not
++evaluate (unknown revision, unreadable registry/manifest, tampered or
++ambiguous pinned snapshot, counter drift, unreadable base registry).
++``--self-test`` drives ``main()`` on an honest world (exit 0 and the exact
++printed line) beside one broken world per conjunct and per shortcut control
++the plan names, in isolated local git repos under fresh ``mktemp -d``
++directories (honouring ``TMPDIR`` and ``--work``): no lane, no fleet repo and
++no shared index is ever touched. Neither ``--self-test`` nor a measurement
++reads the network. ``--print-self-sha`` prints the blanked sha of this file
++(the L1 refills ``SELF_SHA`` after any edit and before freeze).
++
++Usage:
++  python3 -B verifiers/check_allowed_tools.py --rev <rev> [--repo <lane>] [--work <dir>]
++  python3 -B verifiers/check_allowed_tools.py --self-test [--work <dir>]
++  python3 -B verifiers/check_allowed_tools.py --print-self-sha
++"""
++
++from __future__ import annotations
++
++import argparse
++import contextlib
++import hashlib
++import io
++import os
++import re
++import shutil
++import subprocess
++import sys
++import tempfile
++import urllib.parse
++from html import unescape
++from pathlib import Path
++
++TOTAL = 6
++TARGET = 5
++SOURCES = "corpus/SOURCES.md"
++ENTRY = "corpus/knowledge/allowed-tools-surfaces-round79.md"
++SNAPDIR = ".ufo/waves/round-79/snapshots"
++MANIFEST = SNAPDIR + "/MANIFEST.sha256"
++COUNTER_PATH = "verifiers/check_allowed_tools.py"
++CAPTURE = "2026-10-27"
++PROVINCE = "PROVINCE.md"
++SKILLMD = "SKILL.md"
++
++# The plan's frozen surface table: table header cells, then per surface the
++# frozen host pin(s), the frozen first cell, the frozen grant label and the
++# frozen page token that grounds the label.
++HEADER = ("surface", "source", "page tokens", "grant", "located quote")
++GRANT_LABELS = ("pre-approves", "metadata-only", "experimental", "unstated")
++SURFACES = {
++    "spec": {
++        "display": "Open specification",
++        "hosts": ("agentskills.io",),
++        "grant": "experimental",
++        "page_token": "Experimental",
++    },
++    "claude": {
++        "display": "Claude Code",
++        "hosts": ("code.claude.com",),
++        "grant": "pre-approves",
++        "page_token": "without prompting you for approval",
++    },
++    # The L1 moved factory to its canonical page before any data: the assigned
++    # URL 308s to https://docs.factory.com/harness/skills, and the snapshot is
++    # that page's Markdown route.  Both URL forms are the same canonical page,
++    # so both are pins (host + whole-segment path prefix, Q32).
++    "factory": {
++        "display": "Factory",
++        "hosts": ("docs.factory.com/harness/skills",
++                  "docs.factory.com/harness/skills.md"),
++        "grant": "metadata-only",
++        "page_token": "metadata",
++    },
++    "msaf": {
++        "display": "Microsoft Agent Framework",
++        "hosts": ("learn.microsoft.com",),
++        "grant": "experimental",
++        "page_token": "Experimental",
++    },
++    "pi": {
++        "display": "pi",
++        "hosts": ("raw.githubusercontent.com/badlogic/pi-mono",),
++        "grant": "experimental",
++        "page_token": "Experimental",
++    },
++    "vibe": {
++        "display": "Mistral Vibe",
++        "hosts": ("raw.githubusercontent.com/mistralai/mistral-vibe",),
++        "grant": "unstated",
++        "page_token": "allowed-tools:",
++    },
++}
++SURFACE_ORDER = ("spec", "claude", "factory", "msaf", "pi", "vibe")
++
++FETCHED_RE = re.compile(
++    r"fetched (\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ), HTTP 200, (\d+) B, "
++    r"sha256 ([0-9a-f]{64})")
++
++# Frozen at freeze 2: the lane base the do-nothing figure is measured at.  The
++# self-test rebinds this module global to a fixture repo's own first commit
++# (there is no CLI flag to move it: a measurement always reads this constant).
++BASE_REV = "b10bcbc6b00f8f56b202ccbadca311007b5b463c"
++
++MIN_TOKENS = 3
++MIN_QUOTE_WORDS = 5
++MAX_QUOTE_WORDS = 25
++REGISTRY_CELLS = 11
++SKILL_CELLS = 8
++
++SID_RE = re.compile(r"\bS\d{3,}\b")
++BACKTICK_RE = re.compile(r"`([^`]+)`")
++QUOTE_RE = re.compile(r'["\u201c]([^"\u201d]+)["\u201d]')
++REGISTRY_RE = re.compile(r"^ {0,3}\|\s*S\d{3,}\s*\|")
++URL_RE = re.compile(r"https?://[^\s)>\]]+")
++BARE_NAME_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_.@/-]*$")
++VALUE_SHAPE_RE = re.compile(r"[()\[\],:*<>{}]")
++SEPARATOR_RE = re.compile(r":?-{3,}:?")
++LIST_MARKER_RE = re.compile(r"(?m)^[ \t]{0,3}[*+\-][ \t]+")
++TRIM_CHARS = ".,;:!?)]}'\""
++SELF_SHA = "1f9744c84cce7fe9978074f6379a547f4d7affae8905fde0fd811e493693ccf9"   # blanked-sha of this file (the L1 refills it at freeze)
++_INTERNAL_SELFTEST = False   # set only by --self-test: the drift guard is a
++                             # measurement guard, and the self-test mutates
++                             # nothing in this file, so it is skipped there.
++SELF_LINE_RE = re.compile(r'^SELF_SHA = "[0-9a-f]*"', re.M)
++_WORK: str | None = None     # --work: the parent of every temp dir this run makes
++
++
++class EnvError(Exception):
++    """Could not evaluate: exit 2, never a pass and never a fail."""
++
++
++# --------------------------------------------------------------- text shaping
++
++def _blanked_sha(text: str) -> str:
++    return hashlib.sha256(
++        SELF_LINE_RE.sub('SELF_SHA = ""', text).encode()).hexdigest()
++
++
++def rendered(text: str) -> str:
++    """Rendered content only: HTML comments and fenced code removed.
++
++    Applied to the entry and the tree files (a table hidden in a comment or a
++    fence is not the entry's table).  NEVER applied to a snapshot: two of the
++    six pages document the field only inside a fenced example."""
++    text = re.sub(r"<!--.*?-->", "", text, flags=re.S)
++    out: list[str] = []
++    in_fence = False
++    for line in text.splitlines():
++        if re.match(r"^\s*```", line):
++            in_fence = not in_fence
++            continue
++        if not in_fence:
++            out.append(line)
++    return "\n".join(out)
++
++
++def ws(text: str) -> str:
++    """Collapse every whitespace run to one space (the ONLY quote shaping)."""
++    return re.sub(r"\s+", " ", text).strip()
++
++
++def word_bounded(needle: str, haystack: str) -> bool:
++    """ASCII-word-bounded occurrence (a CJK character is a boundary)."""
++    return re.search(
++        r"(?<![A-Za-z0-9_])" + re.escape(needle) + r"(?![A-Za-z0-9_])",
++        haystack) is not None
++
++
++def word_bounded_ci(needle: str, haystack: str) -> bool:
++    return re.search(
++        r"(?<![A-Za-z0-9_])" + re.escape(needle) + r"(?![A-Za-z0-9_])",
++        haystack, re.I) is not None
++
++
++def text_view(name: str, raw: str) -> list[str]:
++    """The plan's snapshot text view (Q42/Q53/Q56, amended pre-data).
++
++    ``.html``/``.htm``: script/style blocks removed, tags replaced by one
++    space, entities decoded.  Markdown: every backtick byte deleted and an
++    unordered-list marker removed by ``(?m)^[ \\t]{0,3}[*+\\-][ \\t]+``.
++    Plain text: nothing.  Then every whitespace run is collapsed.  Fenced code
++    and comments stay (see the docstring READINGS)."""
++    low = name.lower()
++    if low.endswith((".html", ".htm")):
++        raw = re.sub(r"(?is)<(script|style)\b.*?</\1\s*>", " ", raw)
++        raw = re.sub(r"(?s)</?[A-Za-z][^>]*>", " ", raw)
++        raw = unescape(raw)
++    elif low.endswith((".md", ".markdown")):
++        raw = raw.replace("`", "")
++        raw = LIST_MARKER_RE.sub("", raw)
++    lines = [ws(line) for line in raw.splitlines()]
++    return [line for line in lines if line]
++
++
++def shaping_named(entry_r: str) -> bool:
++    """(a): one entry line names the text view the counter applies."""
++    for line in entry_r.splitlines():
++        low = ws(line).lower()
++        if ".html" in low and "script" in low and "whitespace" in low \
++                and ("entit" in low or "decod" in low) \
++                and ("backtick" in low or "inline" in low):
++            return True
++    return False
++
++
++CITED_TAIL_RE = re.compile(r"-[A-Za-z]")
++
++
++def cited_sids(text: str) -> list[str]:
++    """``S###`` ids that cite a registry row, in order, deduplicated.
++
++    An id glued to a slug (``S226-spec.html``) is a snapshot file name, not a
++    citation of that row, so it is skipped."""
++    out: list[str] = []
++    for m in SID_RE.finditer(text):
++        if CITED_TAIL_RE.match(text, m.end()):
++            continue
++        if m.group(0) not in out:
++            out.append(m.group(0))
++    return out
++
++
++def clean(cell: str) -> str:
++    """Cell comparison form: drop emphasis/backticks, collapse, lower-case."""
++    return ws(re.sub(r"[`*]", "", cell)).lower()
++
++
++def _split_cells(s: str) -> list[str]:
++    """Split one table row on unescaped ``|`` and drop the escape backslash.
++
++    A ``|`` written ``\\|`` inside a cell is content (pi's located quote is a
++    markdown table row), not a column break."""
++    cells: list[str] = []
++    cur: list[str] = []
++    i = 0
++    while i < len(s):
++        ch = s[i]
++        if ch == "\\" and i + 1 < len(s) and s[i + 1] == "|":
++            cur.append("|")
++            i += 2
++            continue
++        if ch == "|":
++            cells.append("".join(cur))
++            cur = []
++            i += 1
++            continue
++        cur.append(ch)
++        i += 1
++    cells.append("".join(cur))
++    return cells
++
++
++def _cells(line: str) -> list[str]:
++    s = line.strip()
++    if not (s.startswith("|") and s.endswith("|")) or len(s) < 2:
++        return []
++    return [c.strip() for c in _split_cells(s[1:-1])]
++
++
++def is_separator(row: list[str]) -> bool:
++    return bool(row) and all(SEPARATOR_RE.fullmatch(x) for x in row)
++
++
++def tables(text: str):
++    """Yield (header_cells, row_cells) for every markdown table in ``text``."""
++    block: list[str] = []
++
++    def flush():
++        if not block:
++            return None
++        head = _cells(block[0])
++        rows = []
++        for ln in block[1:]:
++            c = _cells(ln)
++            if not c or is_separator(c):
++                continue
++            rows.append(c)
++        block.clear()
++        return head, rows
++
++    for ln in text.splitlines():
++        if ln.strip().startswith("|"):
++            block.append(ln)
++            continue
++        got = flush()
++        if got is not None:
++            yield got
++    got = flush()
++    if got is not None:
++        yield got
++
++
++# ------------------------------------------------------------- entry surface
++
++def entry_head(text: str) -> tuple[list[str], str | None, str | None]:
++    """The provenance trio: leading ``source:`` lines, then verified-at, recheck."""
++    lines = text.splitlines()
++    i = 0
++    while i < len(lines) and not lines[i].strip():
++        i += 1
++    src: list[str] = []
++    while i < len(lines) and lines[i].startswith("source:"):
++        src.append(lines[i])
++        i += 1
++
++    def field(name: str) -> str | None:
++        nonlocal i
++        while i < len(lines) and not lines[i].strip():
++            i += 1
++        if i < len(lines) and lines[i].startswith(name + ":"):
++            value = lines[i][len(name) + 1:].strip()
++            i += 1
++            return value or None
++        return None
++
++    return src, field("verified-at"), field("recheck")
++
++
++HEADER_CLEAN = [clean(c) for c in HEADER]
++
++
++def surface_tables(entry_r: str) -> list[list[list[str]]]:
++    """Every table whose header cells equal the frozen five (cleaned)."""
++    out: list[list[list[str]]] = []
++    for head, rows in tables(entry_r):
++        if [clean(c) for c in head] == HEADER_CLEAN:
++            out.append(rows)
++    return out
++
++
++def surface_of(cell: str, surfaces: dict) -> str | None:
++    """Which frozen surface a table's first cell names (exact frozen cell)."""
++    name = clean(cell)
++    for key, spec in surfaces.items():
++        if name == ws(spec["display"]).lower():
++            return key
++    return None
++
++
++def surface_rows(entry_r: str, surfaces: dict) -> list[tuple[str, list[str]]]:
++    """Every (surface, row) pair of the surface table, in document order."""
++    out: list[tuple[str, list[str]]] = []
++    for rows in surface_tables(entry_r)[:1]:
++        for row in rows:
++            if not row:
++                continue
++            key = surface_of(row[0], surfaces)
++            if key:
++                out.append((key, row))
++    return out
++
++
++def cited_ids(row: list[str]) -> list[str]:
++    """The ``S###`` ids a surface row cites, in order, deduplicated."""
++    found: list[str] = []
++    for cell in row[1:]:
++        for sid in cited_sids(cell):
++            if sid not in found:
++                found.append(sid)
++    return found
++
++
++def row_tokens(row: list[str]) -> list[str]:
++    """The backticked spans of the row after the surface-name cell."""
++    toks: list[str] = []
++    for cell in row[1:]:
++        for tok in BACKTICK_RE.findall(cell):
++            t = tok.strip()
++            if t and t not in toks:
++                toks.append(t)
++    return toks
++
++
++def grant_role(token: str, page_token: str) -> bool:
++    """The token carries the surface's frozen page token (a semantics cue)."""
++    return word_bounded_ci(ws(page_token), ws(token))
++
++
++def token_role(token: str, page_token: str) -> str:
++    t = ws(token)
++    if t == "allowed-tools":
++        return "key"
++    if grant_role(t, page_token):
++        return "grant"
++    if VALUE_SHAPE_RE.search(t) or " " in t or BARE_NAME_RE.match(t):
++        return "value"
++    return "other"
++
++
++def token_forms(token: str) -> list[str]:
++    """The token itself, its form without ``~/`` and each without a trailing ``/``."""
++    forms = [token]
++    if token.startswith("~/"):
++        forms.append(token[2:])
++    for f in list(forms):
++        stripped = f.rstrip("/")
++        if stripped and stripped not in forms:
++            forms.append(stripped)
++    return [f for f in forms if f]
++
++
++def quote_of(row: list[str]) -> tuple[str | None, str | None]:
++    """(d): the row's located quote: (quote, note)."""
++    if len(row) <= 4:
++        return None, "row carries no located-quote cell"
++    cell = row[4]
++    spans: list[str] = []
++    for q in QUOTE_RE.findall(cell):
++        n = ws(q)
++        if n and n not in spans:
++            spans.append(n)
++    if len(spans) > 1:
++        return None, (f"{len(spans)} distinct located quote(s) in one cell "
++                      f"(want exactly 1)")
++    if spans:
++        quote = spans[0]
++    else:
++        quote = ws(cell)
++        if not quote or set(quote) <= set("-"):
++            return None, "located-quote cell is empty"
++    words = len(quote.split())
++    if not MIN_QUOTE_WORDS <= words <= MAX_QUOTE_WORDS:
++        return None, (f"located quote is {words} words "
++                      f"(want {MIN_QUOTE_WORDS}-{MAX_QUOTE_WORDS})")
++    return quote, None
++
++
++def page_key(url: str) -> tuple[str, str]:
++    """Host + path of a page, ignoring a trailing ``/`` and the query/fragment."""
++    parts = urllib.parse.urlsplit(url)
++    return ((parts.hostname or "").lower(),
++            urllib.parse.unquote(parts.path or "").rstrip("/").lower())
++
++
++def same_page(a: str, b: str) -> bool:
++    """Two URL forms of one page: identical host+path, or a Markdown route.
++
++    The L1 froze factory's canonical page as `docs.factory.com/harness/skills`
++    with its snapshot taken from the same page's `.md` route, so a bare `.md`
++    suffix on one side is the same page and nothing else is."""
++    ka, kb = page_key(a), page_key(b)
++    if ka == kb:
++        return True
++    if ka[0] != kb[0]:
++        return False
++    return ka[1] + ".md" == kb[1] or kb[1] + ".md" == ka[1]
++
++
++def source_line(entry_r: str, sid: str) -> str | None:
++    """The entry's own ``source:`` line that names one cited id."""
++    for line in entry_r.splitlines():
++        if line.startswith("source:") and sid in cited_sids(line):
++            return line
++    return None
++
++
++def entry_problems(entry_r: str, surfaces: dict) -> list[str]:
++    """Entry-level (a): trio, frozen header, shaping, source-line coverage."""
++    notes: list[str] = []
++    found = surface_tables(entry_r)
++    if not found:
++        return ["no table in the entry has the frozen header "
++                + " | ".join(HEADER)]
++    if len(found) > 1:
++        return [f"{len(found)} tables have the frozen header (want exactly 1)"]
++    rows = surface_rows(entry_r, surfaces)
++    if not rows:
++        return ["the surface table names none of "
++                + ", ".join(s["display"] for s in surfaces.values())]
++    src, verified, recheck = entry_head(entry_r)
++    if not src:
++        notes.append("entry does not open with source: lines")
++    if not verified:
++        notes.append("entry has no verified-at: line after its source: lines")
++    if not recheck:
++        notes.append("entry has no recheck: line after verified-at:")
++    if not shaping_named(entry_r):
++        notes.append("entry does not name the snapshot text view (one line "
++                     "with `.html`, `script`, entities/decoded and "
++                     "`whitespace`)")
++    cited: list[str] = []
++    for _key, row in rows:
++        for sid in cited_ids(row):
++            if sid not in cited:
++                cited.append(sid)
++    if not cited:
++        notes.append("the surface table cites no S### id")
++    head: set[str] = set()
++    for line in src:
++        head.update(cited_sids(line.split("located quote")[0]))
++    missing = [s for s in cited if s not in head]
++    if missing:
++        notes.append("cited " + ", ".join(missing) + " absent from the "
++                     "entry's own source: lines (cited ids must be a subset "
++                     "of them)")
++    return notes
++
++
++# ------------------------------------------------------------------ git side
++
++def _default_repo() -> Path:
++    here = Path(__file__).resolve()
++    for cand in [here.parent.parent, *here.parents]:
++        if (cand / SOURCES).is_file():
++            return cand
++    return here.parent.parent
++
++
++def _git(repo: Path, args: list[str]) -> subprocess.CompletedProcess:
++    try:
++        return subprocess.run(["git", "-C", str(repo), *args],
++                              capture_output=True)
++    except OSError as exc:
++        raise EnvError(f"git not runnable: {exc}") from exc
++
++
++def mktemp(prefix: str) -> str:
++    """A temp dir honouring TMPDIR and ``--work`` (never a hardcoded /tmp)."""
++    return tempfile.mkdtemp(prefix=prefix, dir=_WORK)
++
++
++class Repo:
++    """Committed bytes of one lane at one revision (read-only)."""
++
++    def __init__(self, path: Path, rev: str):
++        self.path, self.rev = path, rev
++        self._manifest: dict[str, str] | None = None
++
++    def show_at(self, rev: str, path: str) -> str | None:
++        proc = _git(self.path, ["show", f"{rev}:{path}"])
++        if proc.returncode == 0:
++            return proc.stdout.decode("utf-8", "replace")
++        err = proc.stderr.decode("utf-8", "replace")
++        if "does not exist" in err or "exists on disk, but not in" in err \
++                or "Path '" in err:
++            return None
++        raise EnvError(f"git show {rev}:{path} failed: {err.strip()}")
++
++    def show(self, path: str) -> str | None:
++        return self.show_at(self.rev, path)
++
++    def raw_snapshot(self, name: str) -> bytes | None:
++        proc = _git(self.path, ["show", f"{self.rev}:{SNAPDIR}/{name}"])
++        return proc.stdout if proc.returncode == 0 else None
++
++    def manifest(self) -> dict[str, str]:
++        """``path -> sha256`` from the committed manifest (exit 2 when unreadable)."""
++        if self._manifest is not None:
++            return self._manifest
++        text = self.show(MANIFEST)
++        if text is None:
++            raise EnvError(f"no manifest at {MANIFEST} at {self.rev}: the "
++                           f"snapshots are unpinned, so (c) cannot be evaluated")
++        out: dict[str, str] = {}
++        for n, line in enumerate(text.splitlines(), 1):
++            s = line.strip()
++            if not s or s.startswith("#"):
++                continue
++            m = re.fullmatch(r"([0-9a-f]{64})[ \t]+\*?(\S(?:.*\S)?)", s)
++            if not m:
++                raise EnvError(f"{MANIFEST}:{n} is not `<sha256> <basename>`: "
++                               f"{s!r}")
++            sha, name = m.group(1), m.group(2)
++            pure = Path(name)
++            if pure.is_absolute() or name.startswith("/") or ".." in pure.parts:
++                raise EnvError(f"{MANIFEST}:{n} pins {name!r}, which escapes "
++                               f"{SNAPDIR}/")
++            if name in out and out[name] != sha:
++                raise EnvError(f"{MANIFEST}:{n} pins {name!r} to a second "
++                               f"digest {sha} (first {out[name]})")
++            out[name] = sha
++        if not out:
++            raise EnvError(f"{MANIFEST} pins no snapshot")
++        self._manifest = out
++        return out
++
++    def snapshot_name(self, entry_r: str, sid: str) -> str:
++        """The pinned snapshot file that carries one cited row's page."""
++        man = self.manifest()
++        named: list[str] = []
++        for line in entry_r.splitlines():
++            if sid not in SID_RE.findall(line):
++                continue
++            for tok in BACKTICK_RE.findall(line):
++                base = tok.strip().split(":", 1)[0].strip().rsplit("/", 1)[-1]
++                if base in man and base not in named:
++                    named.append(base)
++        if len(named) == 1:
++            return named[0]
++        if len(named) > 1:
++            raise EnvError(f"{sid}: the entry names {len(named)} pinned "
++                           f"snapshots ({', '.join(named)}) — the pin of one "
++                           f"row is ambiguous")
++        pref = sorted(p for p in man
++                      if re.match(rf"^{re.escape(sid)}(?![0-9])",
++                                  p.rsplit("/", 1)[-1]))
++        if len(pref) == 1:
++            return pref[0]
++        if not pref:
++            raise EnvError(f"{sid}: no snapshot is pinned for this row in "
++                           f"{MANIFEST}")
++        raise EnvError(f"{sid}: {len(pref)} pinned snapshots begin with {sid} "
++                       f"({', '.join(pref)}) — the pin of one row is ambiguous")
++
++    def read_snapshot(self, name: str, sha: str) -> str:
++        raw = self.raw_snapshot(name)
++        if raw is None:
++            raise EnvError(f"snapshot {SNAPDIR}/{name} not committed at "
++                           f"{self.rev}")
++        if hashlib.sha256(raw).hexdigest() != sha:
++            raise EnvError(f"snapshot_tampered: {SNAPDIR}/{name}")
++        return raw.decode("utf-8", "replace")
++
++
++# ------------------------------------------------------------- registry side
++
++def registry_rows(text: str) -> dict[str, list[list[str]]]:
++    """id -> registry rows (raw cells; the cell count is judged later)."""
++    rows: dict[str, list[list[str]]] = {}
++    for line in text.splitlines():
++        if REGISTRY_RE.match(line):
++            cells = _cells(line)
++            if cells:
++                rows.setdefault(cells[0], []).append(cells)
++    return rows
++
++
++def urls_of(cell: str) -> list[str]:
++    return [m.group(0).rstrip(TRIM_CHARS) for m in URL_RE.finditer(cell)]
++
++
++def host_ok(url: str, pins: tuple[str, ...]) -> bool:
++    """Exact host for a bare pin; host + whole-segment path prefix for a pin
++    carrying one (``raw.githubusercontent.com/badlogic/pi-mono`` does not
++    accept ``.../pi-mono-evil``)."""
++    try:
++        parts = urllib.parse.urlsplit(url)
++    except ValueError:
++        return False
++    host = (parts.hostname or "").lower()
++    path = urllib.parse.unquote(parts.path or "").lower()
++    if any(seg in (".", "..") for seg in path.split("/")):
++        return False
++    if not path.startswith("/"):
++        path = "/" + path
++    for pin in pins:
++        h, _, p = pin.partition("/")
++        if p:
++            prefix = "/" + p.lower().rstrip("/")
++            if host == h.lower() and (path == prefix
++                                      or path.startswith(prefix + "/")):
++                return True
++        elif host == h.lower():
++            return True
++    return False
++
++
++def registry_problems(registry: dict[str, list[list[str]]], key: str,
++                      sid: str, surfaces: dict) -> list[str]:
++    """(b) for one cited id of one surface."""
++    spec = surfaces[key]
++    rows = registry.get(sid, [])
++    if len(rows) != 1:
++        return [f"{sid}: {len(rows)} registry rows in {SOURCES} "
++                f"(want exactly 1)"]
++    row = rows[0]
++    if len(row) != REGISTRY_CELLS:
++        return [f"{sid}: {len(row)} cells (want exactly {REGISTRY_CELLS})"]
++    notes: list[str] = []
++    if row[7].strip() != "mined":
++        notes.append(f"{sid}: status {row[7].strip()!r} (want 'mined')")
++    if row[3].strip() not in ("A", "B"):
++        notes.append(f"{sid}: tier {row[3].strip()!r} (want A or B)")
++    listed = [c.strip() for c in row[10].split(",")]
++    if ENTRY not in listed:
++        notes.append(f"{sid}: used-by {row[10].strip()!r} does not list {ENTRY}")
++    urls = urls_of(row[1])
++    if not urls:
++        notes.append(f"{sid}: source cell holds no URL")
++    elif not any(host_ok(u, spec["hosts"]) for u in urls):
++        notes.append(f"{sid}: no URL on {key}'s pinned host(s) "
++                     f"{list(spec['hosts'])}: {urls}")
++    return notes
++
++
++# -------------------------------------------------------------------- verdict
++
++class Ctx:
++    def __init__(self, repo: Repo, entry_r: str,
++                 registry: dict[str, list[list[str]]],
++                 rows: list[tuple[str, list[str]]]):
++        self.repo, self.entry_r = repo, entry_r
++        self.registry, self.rows = registry, rows
++        self.surfaces = SURFACES
++        self._pages: dict[str, tuple[str, str]] = {}   # sid -> (name, text)
++        self._all: list[tuple[str, str]] | None = None
++
++    def page(self, entry_r: str, sid: str) -> tuple[str, str]:
++        """(snapshot name, raw text) of a cited id, pin-checked once."""
++        if sid not in self._pages:
++            name = self.repo.snapshot_name(entry_r, sid)
++            text = self.repo.read_snapshot(name, self.repo.manifest()[name])
++            self._pages[sid] = (name, text)
++        return self._pages[sid]
++
++    def other_pages(self, name: str, raw: str) -> list[tuple[str, list[str]]]:
++        """(name, text-view lines) for every pinned snapshot of a DIFFERENT page."""
++        if self._all is None:
++            self._all = []
++            for pin_name in self.repo.manifest():
++                data = self.repo.raw_snapshot(pin_name)
++                if data is not None:
++                    self._all.append((pin_name, data.decode("utf-8", "replace")))
++        return [(n, text_view(n, text)) for n, text in self._all
++                if n != name and text != raw]
++
++
++def _line_of(lines: list[str], quote: str) -> tuple[int | None, str]:
++    """The line index a whitespace-collapsed quote is found on (None: absent)."""
++    joined = " ".join(lines)
++    pos = joined.find(quote)
++    if pos < 0:
++        return None, joined
++    off = 0
++    for i, line in enumerate(lines):
++        if off <= pos < off + len(line) + 1:
++            return i, joined
++        off += len(line) + 1
++    return len(lines) - 1, joined
++
++
++def quote_location(lines: list[str], quote: str) -> tuple[bool, str | None]:
++    """Q70: not a heading, not the first-heading block."""
++    idx, _joined = _line_of(lines, quote)
++    if idx is None:
++        return False, "quote not found in the text view"
++    if lines[idx].startswith("#"):
++        return False, ("quote lies on a heading line (a banner or subtitle, "
++                       "Q70)")
++    first_head = next((i for i, l in enumerate(lines) if l.startswith("#")),
++                      None)
++    if first_head is not None and idx <= first_head + 1:
++        return False, "quote lies in the first-heading block (Q70)"
++    return True, None
++
++
++def surface_holds(ctx: Ctx, key: str) -> tuple[bool, list[str]]:
++    spec = ctx.surfaces[key]
++    display = spec["display"]
++    mine = [row for k, row in ctx.rows if k == key]
++    if len(mine) != 1:
++        return False, [f"{len(mine)} surface-table row(s) name {display} "
++                       f"(want exactly 1)"]
++    row = mine[0]
++    if len(row) != len(HEADER):
++        return False, [f"{display}: {len(row)} cells (want exactly "
++                       f"{len(HEADER)}: the frozen header's arity)"]
++    notes: list[str] = []
++    toks = row_tokens(row)
++    roles = [token_role(t, spec["page_token"]) for t in toks]
++    if "key" not in roles:
++        notes.append("row carries no `allowed-tools` token")
++    if "value" not in roles:
++        notes.append("row carries no value-form token (a tool name, a "
++                     "YAML/bracket list or an inline value)")
++    if "grant" not in roles:
++        notes.append(f"row carries no grant-semantics token (the page token "
++                     f"{spec['page_token']!r})")
++    if len(toks) < MIN_TOKENS:
++        notes.append(f"row carries {len(toks)} backticked token(s) "
++                     f"(want >= {MIN_TOKENS}): {toks}")
++    ids = cited_ids(row)
++    if not ids:
++        notes.append("row cites no S### id")
++    if notes:
++        return False, notes
++
++    for sid in ids:
++        notes.extend(registry_problems(ctx.registry, key, sid, ctx.surfaces))
++    if notes:
++        return False, notes
++
++    for sid in ids:
++        row_ = ctx.registry[sid][0]
++        want = urls_of(row_[1])
++        line = source_line(ctx.entry_r, sid)
++        if line is None:
++            notes.append(f"{sid}: no source: line in the entry names it")
++            continue
++        if want and not any(same_page(u, want[0]) for u in urls_of(line)):
++            notes.append(f"{sid}: the entry's source: line carries no URL for "
++                         f"the cited page {want[0]} — the pinned snapshot is "
++                         f"not demonstrably the page the row cites")
++    if notes:
++        return False, notes
++
++    pages: list[tuple[str, str, str]] = []       # (sid, name, raw)
++    for sid in ids:
++        name, raw = ctx.page(ctx.entry_r, sid)
++        pages.append((sid, name, raw))
++
++    verified = entry_head(ctx.entry_r)[1]
++    for sid in ids:
++        row_ = ctx.registry[sid][0]
++        if row_[8].strip() != CAPTURE or verified != CAPTURE:
++            notes.append(f"{sid}: opened {row_[8].strip()!r} / entry "
++                         f"verified-at {verified!r} is not the round date "
++                         f"{CAPTURE}: the row was not opened this round")
++        m = FETCHED_RE.search(row_[5])
++        pin = ctx.repo.manifest()[ctx.page(ctx.entry_r, sid)[0]]
++        if not m:
++            notes.append(f"{sid}: anchor cell carries no 'fetched <ISO8601>Z, "
++                         f"HTTP 200, <bytes> B, sha256 <hex>' record")
++        elif m.group(3) != pin:
++            notes.append(f"{sid}: anchor sha256 {m.group(3)[:12]}... is not the "
++                         f"snapshot's pin {pin[:12]}...")
++
++    views = [(name, text_view(name, raw)) for _sid, name, raw in pages]
++    for tok in toks:
++        forms = token_forms(tok)
++        if not any(word_bounded(f, " ".join(lines))
++                   for f in forms for _n, lines in views):
++            notes.append(f"token {tok!r} does not occur word-bounded in the "
++                         f"snapshot(s) of {', '.join(ids)}")
++
++    quote, note = quote_of(row)
++    if note:
++        notes.append(note)
++    elif "allowed-tools" not in quote:
++        notes.append(f"located quote does not contain the token "
++                     f"`allowed-tools`: {quote!r}")
++    elif not word_bounded("allowed-tools", quote):
++        notes.append(f"located quote does not contain `allowed-tools` "
++                     f"word-bounded: {quote!r}")
++    else:
++        # The quote is matched as written; when it is not found, the counter
++        # retries once with every backtick byte deleted, because the Markdown
++        # text view deletes backticks and an author who backticks the cell must
++        # not be punished for formatting.  Two forms only, no other shaping.
++        cands: list[str] = []
++        for c in (ws(quote), ws(quote.replace("`", ""))):
++            if c and c not in cands:
++                cands.append(c)
++        located = False
++        for sid_, name, raw in pages:
++            lines = text_view(name, raw)
++            q = next((c for c in cands
++                      if quote_location(lines, c)[0]), None)
++            if q is None:
++                why = quote_location(lines, cands[0])[1]
++                if why and not why.startswith("quote not found"):
++                    notes.append(f"{name}: {why}")
++                    located = True
++                    break
++                continue
++            shared = next((other_name for other_name, other_lines in
++                           ctx.other_pages(name, raw)
++                           if any(q in line for line in other_lines)), None)
++            if shared:
++                notes.append(f"{name}: the located quote is a shared banner "
++                             f"line (it also occurs in {shared}, a different "
++                             f"page): Q70")
++            located = True
++            break
++        if not located:
++            notes.append(f"located quote not found in its pinned snapshot "
++                         f"after the text view: {cands[0]!r}")
++
++    # (f): grant label + the page token inside the quote
++    if len(row) > 3:
++        cell = row[3]
++        if "`" in cell:
++            notes.append("grant cell is backticked (it must be plain text)")
++        plain = clean(cell)
++        hits = [lab for lab in GRANT_LABELS if word_bounded_ci(lab, plain)]
++        if len(hits) != 1:
++            notes.append(f"grant cell {cell.strip()!r} carries {len(hits)} "
++                         f"frozen label(s) {hits} (want exactly 1)")
++        elif hits[0] != spec["grant"]:
++            notes.append(f"grant label {hits[0]!r} is not {key}'s frozen label "
++                         f"{spec['grant']!r}")
++        if quote and not word_bounded_ci(ws(spec["page_token"]), ws(quote)):
++            notes.append(f"located quote does not carry the page token "
++                         f"{spec['page_token']!r} that grounds the grant")
++    return (not notes), notes
++
++
++def held_at_base(repo: Repo) -> int:
++    """Surfaces whose frozen host table already appears in the base registry."""
++    base = repo.show_at(BASE_REV, SOURCES)
++    if base is None:
++        raise EnvError(f"{SOURCES} unreadable at base {BASE_REV}")
++    rows = registry_rows(rendered(base))
++    held = 0
++    for _key, spec in SURFACES.items():
++        if any(host_ok(u, spec["hosts"])
++               for cells in rows.values() for row in cells
++               for u in urls_of(row[1] if len(row) > 1 else "")):
++            held += 1
++    return held
++
++
++def opened_count(ctx: Ctx) -> int:
++    """(e) as a printed figure: surfaces whose cited rows were opened this round."""
++    verified = entry_head(ctx.entry_r)[1]
++    n = 0
++    for key in ctx.surfaces:
++        mine = [row for k, row in ctx.rows if k == key]
++        if len(mine) != 1:
++            continue
++        ids = cited_ids(mine[0])
++        if not ids:
++            continue
++        rows = [ctx.registry.get(sid, []) for sid in ids]
++        if any(len(r) != 1 or len(r[0]) <= 8 for r in rows):
++            continue
++        if verified == CAPTURE and all(r[0][8].strip() == CAPTURE for r in rows):
++            n += 1
++    return n
++
++
++def check(repo: Repo) -> tuple[int, list[str], list[str], int]:
++    """(N, findings, backed surfaces, opened-this-round count)."""
++    sources = repo.show(SOURCES)
++    if sources is None:
++        raise EnvError(f"{SOURCES} absent at {repo.rev}")
++    entry_text = repo.show(ENTRY)
++    if entry_text is None:
++        return 0, [f"entry {ENTRY} absent at {repo.rev} (the frozen path is "
++                   f"the entry's only home)"], [], 0
++    entry_r = rendered(entry_text)
++    problems = entry_problems(entry_r, SURFACES)
++    if problems:
++        return 0, problems, [], 0
++    ctx = Ctx(repo, entry_r, registry_rows(rendered(sources)),
++              surface_rows(entry_r, SURFACES))
++    n, findings, backed = 0, [], []
++    for key in SURFACE_ORDER:
++        ok, notes = surface_holds(ctx, key)
++        if ok:
++            n += 1
++            backed.append(key)
++        else:
++            findings.extend(f"{key}: {x}" for x in notes)
++    return n, findings, backed, opened_count(ctx)
++
++
++# ------------------------------------------------------------ tree conjuncts
++
++def surfaces_named(text: str) -> int:
++    """How many frozen surfaces a line names (display name or frozen key)."""
++    return sum(1 for key, spec in SURFACES.items()
++               if word_bounded_ci(spec["display"], text)
++               or word_bounded_ci(key, text))
++
++
++def skill_rule_ok(text: str | None) -> bool:
++    """(g) first half: one SKILL.md rule line citing the entry, >= 3 surfaces."""
++    if not text:
++        return False
++    for line in rendered(text).splitlines():
++        if ENTRY in line and surfaces_named(line) >= 3:
++            return True
++    return False
++
++
++def registry_home_ok(text: str | None) -> bool:
++    """(g) second half: a gate row with eight non-empty fields for this counter."""
++    if not text:
++        return False
++    for line in rendered(text).splitlines():
++        if line.startswith("| `" + COUNTER_PATH + "`"):
++            cells = _cells(line)
++            return len(cells) == SKILL_CELLS and all(c.strip() for c in cells) \
++                and cells[1].strip() == "gate"
++    return False
++
++
++def province_bullets(text: str | None) -> list[str]:
++    """(h): the ``## Core`` bullets of PROVINCE.md, continuation lines joined."""
++    if not text:
++        return []
++    lines = rendered(text).splitlines()
++    start = next((i for i, l in enumerate(lines)
++                  if re.match(r"^## Core\s*$", l)), None)
++    if start is None:
++        return []
++    end = next((i for i in range(start + 1, len(lines))
++                if lines[i].startswith("## ")), len(lines))
++    bullets: list[str] = []
++    for line in lines[start + 1:end]:
++        if line.startswith("- "):
++            bullets.append(line)
++        elif line.strip() and bullets and line.startswith("  "):
++            bullets[-1] += " " + line.strip()
++    return bullets
++
++
++def province_state(text: str | None) -> tuple[int, int]:
++    """(bullets naming the entry, surfaces the one such bullet names)."""
++    naming = [b for b in province_bullets(text) if ENTRY in b]
++    named = surfaces_named(naming[0]) if len(naming) == 1 else 0
++    return len(naming), named
++
++
++# ------------------------------------------------------- the script-only world
++# Q71: a mechanical scrape of the six pages into the entry, with no judgement.
++# It is generated at measurement time from the measured revision's own bytes
++# and scored by the SAME check(), so nothing in the headline can rest on it.
++
++SCRIPT_LABEL = "unstated"     # the no-judgement label a scraper can write
++
++
++def _mech_quote(lines: list[str]) -> str | None:
++    """The mechanical quote: a 5..25-word window around the field's first
++    mention in the body (no judgement about which sentence is the claim)."""
++    first_head = next((i for i, l in enumerate(lines) if l.startswith("#")),
++                      None)
++    body = lines[first_head + 2:] if first_head is not None else lines
++    words = " ".join(body).split()
++    idx = next((i for i, w in enumerate(words)
++                if word_bounded("allowed-tools", w)), None)
++    if idx is None:
++        return None
++    hi = min(len(words), idx + MAX_QUOTE_WORDS)
++    lo = idx
++    if hi - lo < MIN_QUOTE_WORDS:
++        lo = max(0, hi - MIN_QUOTE_WORDS)
++    quote = ws(" ".join(words[lo:hi]))
++    if not quote or len(quote.split()) < MIN_QUOTE_WORDS:
++        return None
++    return quote
++
++
++def _mech_value(quote: str) -> str | None:
++    """The tool-name token the page shows after the field (mechanical pick)."""
++    words = re.split(r"[\s,]+", quote)
++    seen_key = False
++    for w in words:
++        t = w.strip("`'\"()[]{}:;.,|*")
++        if not t:
++            continue
++        if word_bounded("allowed-tools", t):
++            seen_key = True
++            continue
++        if not seen_key:
++            continue
++        if BARE_NAME_RE.match(t) and t.lower() not in (
++                "the", "and", "for", "with", "that", "this", "field",
++                "frontmatter", "skill", "skills", "is", "are", "of", "to",
++                "a", "an", "in", "it", "documented", "here", "page", "states",
++                "own", "words", "example", "values", "forms", "list"):
++            return t
++    return None
++
++
++def _mech_tokens(quote: str, spec: dict, view: str) -> list[str]:
++    """The mechanical row's tokens: key, a value form, the page token if any."""
++    toks = ["allowed-tools"]
++    value = _mech_value(quote)
++    if value:
++        toks.append(value)
++    if word_bounded_ci(ws(spec["page_token"]), " ".join(view.split())):
++        toks.append(spec["page_token"])
++    return toks
++
++
++def script_only_world(repo: Repo) -> tuple[int, str]:
++    """(M, note): the script-only world's score under the frozen predicate."""
++    try:
++        man = repo.manifest()
++    except EnvError as exc:
++        return 0, f"no pinned snapshots ({exc})"
++    reg_text = repo.show(SOURCES)
++    if reg_text is None:
++        return 0, f"{SOURCES} absent"
++    reg = registry_rows(rendered(reg_text))
++    snaps: dict[str, tuple[str, str]] = {}      # sid -> (basename, raw text)
++    rows: list[list[str]] = []
++    keys: dict[str, str] = {}                   # sid -> surface key
++    for key in SURFACE_ORDER:
++        spec = SURFACES[key]
++        cands = sorted(sid for sid, rr in reg.items()
++                       if len(rr) == 1 and len(rr[0]) == REGISTRY_CELLS
++                       and any(host_ok(u, spec["hosts"])
++                               for u in urls_of(rr[0][1])))
++        if not cands:
++            continue
++        sid = cands[0]
++        row = list(reg[sid][0])
++        names = sorted(p for p in man
++                       if re.match(rf"^{re.escape(sid)}(?![0-9])",
++                                   p.rsplit("/", 1)[-1]))
++        if len(names) != 1:
++            continue
++        raw = repo.raw_snapshot(names[0])
++        if raw is None:
++            continue
++        text = raw.decode("utf-8", "replace")
++        quote = _mech_quote(text_view(names[0], text))
++        if quote is None or _mech_value(quote) is None:
++            continue
++        row[10] = ENTRY
++        row[8] = CAPTURE
++        row[5] = ("§ script-only; fetched %sT00:00:00Z, HTTP 200, %d B, "
++                  "sha256 %s" % (CAPTURE, len(raw),
++                                 hashlib.sha256(raw).hexdigest()))
++        rows.append(row)
++        snaps[sid] = (names[0], text)
++        keys[sid] = key
++    return _score_world(rows, snaps, keys)
++
++
++def _score_world(rows: list[list[str]], snaps: dict[str, tuple[str, str]],
++                 keys: dict[str, str]) -> tuple[int, str]:
++    """Build the mechanical world in a temp repo and score it with check()."""
++    if not rows:
++        return 0, "no surface page yielded a mechanical quote"
++    files: dict[str, str] = {
++        ENTRY: _mech_entry(rows, snaps, keys),
++        SOURCES: _registry_of(rows),
++        MANIFEST: "".join(
++            f"{hashlib.sha256(t.encode()).hexdigest()}  {name}\n"
++            for name, t in snaps.values()),
++        PROVINCE: mech_province(),
++        SKILLMD: mech_skill(),
++    }
++    for name, text in snaps.values():
++        files[f"{SNAPDIR}/{name}"] = text
++    d = mktemp("k79-c2-script-")
++    try:
++        _commit_tree(Path(d), files)
++        n, _findings, _backed, _opened = check(Repo(Path(d), "HEAD"))
++    finally:
++        shutil.rmtree(d, ignore_errors=True)
++    return n, "generated mechanically from the measured bytes"
++
++
++def _mech_entry(rows: list[list[str]], snaps: dict[str, tuple[str, str]],
++                keys: dict[str, str]) -> str:
++    head: list[str] = []
++    for row in rows:
++        sid = row[0]
++        url = (urls_of(row[1]) or ["https://example.invalid/"])[0]
++        name, text = snaps[sid]
++        quote = _mech_quote(text_view(name, text)) or ""
++        head.append(f'source: {sid} — script-only scrape — {url} — located '
++                    f'quote "{quote}" (snapshot `{name}`)')
++    body = ["", f"verified-at: {CAPTURE}", "recheck: 90d — re-fetch",
++            "",
++            "Text view: `.html` snapshots have `script` and `style` blocks "
++            "removed, tags replaced by one space and entities decoded; "
++            "Markdown snapshots have every backtick deleted and an "
++            "unordered-list marker removed at a line start; every snapshot "
++            "then has whitespace collapsed.",
++            "",
++            "## Surfaces", "",
++            "| " + " | ".join(HEADER) + " |",
++            "|" + "---|" * len(HEADER) + "|"]
++    for row in rows:
++        sid = row[0]
++        key = keys[sid]
++        spec = SURFACES[key]
++        name, text = snaps[sid]
++        view = text_view(name, text)
++        quote = _mech_quote(view) or ""
++        toks = [f"`{t}`" for t in _mech_tokens(quote, spec, " ".join(view))]
++        body.append(f"| {spec['display']} | {sid} | " + ", ".join(toks)
++                    + f" | {SCRIPT_LABEL} | \"{_escape_cell(quote)}\" |")
++    return "\n".join(head + body) + "\n"
++
++
++def _registry_of(rows: list[list[str]]) -> str:
++    head = ("| id | source | kind | tier | scope | anchor | teaches | status | "
++            "opened | recheck | used-by |")
++    sep = "|" + "---|" * REGISTRY_CELLS
++    return ("# SOURCES (script-only world)\n\n## Registry\n\n" + head + "\n"
++            + sep + "\n" + "\n".join("| " + " | ".join(r) + " |"
++                                     for r in rows) + "\n")
++
++
++def _commit_tree(root: Path, files: dict[str, str]) -> None:
++    root.mkdir(parents=True, exist_ok=True)
++    env = dict(os.environ, GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t",
++               GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@t")
++    git = ["git", "-c", "commit.gpgsign=false", "-C", str(root)]
++    subprocess.run(git + ["init", "-q"], check=True, capture_output=True)
++    top = subprocess.run(git + ["rev-parse", "--show-toplevel"], check=True,
++                         capture_output=True, text=True)
++    if Path(top.stdout.strip()).resolve() != root.resolve():
++        raise RuntimeError(f"fixture toplevel {top.stdout.strip()!r} != {root}")
++    for rel, text in files.items():
++        p = root / rel
++        p.parent.mkdir(parents=True, exist_ok=True)
++        p.write_text(text)
++    subprocess.run(git + ["add", "-A"], check=True, capture_output=True)
++    subprocess.run(git + ["commit", "-qm", "world", "--allow-empty"],
++                   check=True, capture_output=True, env=env)
++
++
++# ---------------------------------------------------------------- self-test
++# Every world is an isolated local git repo under a fresh mktemp dir with TWO
++# commits: the first is the "base" state the do-nothing figure is read from,
++# the second the measured tip.  No lane, fleet repo or shared index is touched.
++
++# Fixture pages: id, URL, snapshot basename, one per frozen surface.
++FIX = {
++    "spec": ("S226", "https://agentskills.io/specification.md",
++             "S226-spec.html"),
++    "claude": ("S227", "https://code.claude.com/docs/en/skills.md",
++               "S227-claude.md"),
++    "factory": ("S228", "https://docs.factory.com/harness/skills",
++                "S228-factory.md"),
++    "msaf": ("S229", "https://learn.microsoft.com/en-us/agent-framework/"
++                     "agents/skills", "S229-msaf.md"),
++    "pi": ("S230", "https://raw.githubusercontent.com/badlogic/pi-mono/main/"
++                   "packages/coding-agent/docs/skills.md", "S230-pi.md"),
++    "vibe": ("S231", "https://raw.githubusercontent.com/mistralai/mistral-vibe/"
++                     "main/README.md", "S231-vibe.md"),
++}
++VALUE = {"spec": "Bash(git:*)", "claude": "Bash", "factory": "Bash",
++         "msaf": "Bash", "pi": "Read", "vibe": "ask_user_question"}
++
++
++def _quote(key: str, spec: dict) -> str:
++    """The located quote in its TRANSFORMED form (the form the plan freezes).
++
++    pi's page states the field in a markdown table row (a literal ``|``), and
++    vibe's page states it as a YAML block list (markdown list markers), so
++    both quotes are written after the text view, exactly as S226's frozen
++    quote is."""
++    if key == "pi":
++        return f"allowed-tools | {spec['page_token']} pre-approved tool list"
++    if key == "vibe":
++        return "allowed-tools: read grep edit ask_user_question"
++    return (f"The allowed-tools field of {spec['display']} is documented here "
++            f"and this page states {spec['page_token']} in its own words")
++
++
++def _page(key: str, spec: dict) -> str:
++    """A fixture page whose text view contains ``_quote(key, spec)``.
++
++    Markdown pages write the field inside inline code, the vibe page as a
++    block list and the pi page as a table row, so the amended text view
++    (backtick deletion, list-marker removal) is exercised by the honest world
++    itself rather than only by a broken arm."""
++    quote = _quote(key, spec)
++    value = VALUE[key]
++    if key == "spec":
++        return (
++            "<!doctype html>\n<html><head><title>Open specification</title>\n"
++            "<script>var decoy = \"allowed-tools is not stated here\";"
++            "</script>\n<style>.nav{color:red}</style>\n</head><body>\n"
++            f"<h1>{spec['display']} skills</h1>\n"
++            "<h2>The allowed-tools field</h2>\n"
++            "<p>" + quote.replace("allowed-tools", "allowed&#45;tools")
++            + "</p>\n"
++            f"<p>Example values: {value} and {value} list forms.</p>\n"
++            "<h2>Placement</h2>\n<p>Skills live in the project tree.</p>\n"
++            "</body></html>\n")
++    if key == "pi":
++        return ("\n".join([
++            "# pi skills",
++            "",
++            "## The allowed-tools field",
++            "",
++            f"| `allowed-tools` | {spec['page_token']} pre-approved tool list |",
++            "",
++            f"Example values: {value} and {value} list forms.",
++            "",
++            "## Placement",
++            "",
++            "Skills live in the project tree.",
++        ]) + "\n")
++    if key == "vibe":
++        return ("\n".join([
++            "# Mistral Vibe skills",
++            "",
++            "## The allowed-tools field",
++            "",
++            "- `allowed-tools`:",
++            "  - read",
++            "  - grep",
++            "  - edit",
++            "  - ask_user_question",
++            "",
++            f"Example values: {value} list forms.",
++            "",
++            "## Placement",
++            "",
++            "Skills live in the project tree.",
++        ]) + "\n")
++    return ("\n".join([
++        f"# {spec['display']} skills",
++        "",
++        "## The allowed-tools field",
++        "",
++        f"The `allowed-tools` field of {spec['display']} is documented here "
++        f"and this page states {spec['page_token']} in its own words.",
++        "",
++        f"Example values: {value} and {value} list forms.",
++        "",
++        "## Placement",
++        "",
++        "Skills live in the project tree.",
++    ]) + "\n")
++
++
++def _anchor(sid: str, pages: dict[str, str], key: str) -> str:
++    raw = pages.get(sid, pages[FIX[key][0]])
++    return ("§ fixture; fetched %sT00:00:00Z, HTTP 200, %d B, sha256 %s"
++            % (CAPTURE, len(raw.encode()), hashlib.sha256(raw.encode()).hexdigest()))
++
++
++def _reg_line(sid: str, pages: dict[str, str], key: str, *, url: str | None = None,
++              status: str = "mined", tier: str = "A", used_by: str = ENTRY,
++              extra: int = 0, opened: str = CAPTURE,
++              anchor: str | None = None) -> str:
++    cells = [sid, f"fixture — {url or FIX[key][1]}", "docs", tier,
++             "fixture scope", anchor if anchor is not None else _anchor(sid, pages, key),
++             "fixture teaches cell", status, opened, "90d", used_by]
++    cells += [f"extra{i}" for i in range(extra)]
++    return "| " + " | ".join(cells) + " |"
++
++
++REG_HEADER = ("| id | source | kind | tier | scope | anchor | teaches | "
++              "status | opened | recheck | used-by |\n"
++              "|" + "---|" * REGISTRY_CELLS)
++
++
++def _registry(pages: dict[str, str], lines: list[str] | None = None) -> str:
++    body = lines if lines is not None else [
++        _reg_line(FIX[k][0], pages, k) for k in SURFACE_ORDER]
++    return ("# SOURCES fixture\n\n## Registry\n\n" + REG_HEADER + "\n"
++            + "\n".join(body) + "\n")
++
++
++def _manifest(pages: dict[str, str]) -> str:
++    return "".join(
++        f"{hashlib.sha256(pages[FIX[k][0]].encode()).hexdigest()}  "
++        f"{FIX[k][2]}\n" for k in SURFACE_ORDER)
++
++
++def _escape_cell(text: str) -> str:
++    """Encode a literal ``|`` as ``\\|`` so it is cell content, not a column."""
++    return text.replace("|", "\\|")
++
++
++def _entry_text(pages: dict[str, str], *, rows: dict | None = None,
++                quotes: dict | None = None, trio: bool = True,
++                shaping: bool = True, header: tuple = HEADER) -> str:
++    head: list[str] = []
++    for key in SURFACE_ORDER:
++        sid, url, name = FIX[key]
++        q = (quotes or {}).get(key) or _quote(key, SURFACES[key])
++        head.append(f'source: {sid} — fixture page — {url} — the field '
++                    f'section — located quote "{q}" (snapshot `{name}`)')
++    body = [""]
++    if trio:
++        body += [f"verified-at: {CAPTURE}",
++                 "recheck: 90d — re-fetch and confirm"]
++    if shaping:
++        body += ["", "Text view: `.html` snapshots have `script` and `style` "
++                     "blocks removed, tags replaced by one space and entities "
++                     "decoded; Markdown snapshots have every backtick deleted "
++                     "and an unordered-list marker removed at a line start; "
++                     "every snapshot then has whitespace collapsed."]
++    body += ["", "# allowed-tools surfaces (fixture)", "",
++             "## Surfaces", "",
++             "| " + " | ".join(header) + " |",
++             "|" + "---|" * len(header) + "|"]
++    for key in SURFACE_ORDER:
++        spec = SURFACES[key]
++        sid = FIX[key][0]
++        q = (quotes or {}).get(key) or _quote(key, spec)
++        grant, toks = (rows or {}).get(key, (spec["grant"], [
++            "allowed-tools", VALUE[key], spec["page_token"]]))
++        if isinstance(toks, str):
++            tok_cell = toks
++        else:
++            tok_cell = ", ".join(f"`{t}`" for t in toks)
++        body.append(f"| {spec['display']} | {sid} | {tok_cell} | {grant} | "
++                    f"\"{_escape_cell(q)}\" |")
++    return "\n".join(head + body) + "\n"
++
++
++PROVINCE_OK = ("# fixture province\n\n## Core\n\n- allowed-tools semantics "
++               "per client: Open specification, Claude Code, Factory, "
++               "Microsoft Agent Framework, pi and Mistral Vibe, in `" + ENTRY
++               + "`, counted by the counter.\n\n## Frontier\n\n- none\n")
++SKILL_OK = ("# fixture skill\n\n## Gate registry\n\n| Name | Kind | Entry command "
++            "| Verdict map | Self-test | Pinned values | Write scope | Owner "
++            "|\n|---|---|---|---|---|---|---|---|\n| `" + COUNTER_PATH
++            + "` | gate | `python3 -B " + COUNTER_PATH + " --rev <rev>` | "
++            "0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file "
++            "| none | kotoba |\n\n## Rules\n\n- `allowed-tools` per client: "
++            "Open specification, Claude Code, Factory, Microsoft Agent "
++            "Framework, pi and Mistral Vibe are recorded in `" + ENTRY
++            + "`.\n")
++
++
++def mech_province() -> str:
++    return PROVINCE_OK
++
++
++def mech_skill() -> str:
++    return SKILL_OK
++
++
++def _honest(pages: dict | None = None, *, entry: str | None = None,
++            sources: str | None = None, province: str = PROVINCE_OK,
++            skill: str = SKILL_OK, manifest: str | None = None,
++            extra: dict | None = None) -> dict[str, str]:
++    """One honest world, built from the current frozen table."""
++    pages = pages if pages is not None else {
++        FIX[k][0]: _page(k, SURFACES[k]) for k in SURFACE_ORDER}
++    files = {SOURCES: sources if sources is not None else _registry(pages),
++             ENTRY: entry if entry is not None else _entry_text(pages),
++             MANIFEST: manifest if manifest is not None else _manifest(pages),
++             PROVINCE: province, SKILLMD: skill}
++    for key in SURFACE_ORDER:
++        files[f"{SNAPDIR}/{FIX[key][2]}"] = pages[FIX[key][0]]
++    if extra:
++        files.update(extra)
++    return files
++
++
++def _mutate(files: dict[str, str], **kw) -> dict[str, str]:
++    out = dict(files)
++    out.update(kw)
++    return out
++
++
++def _hide(row: str, opener: str, closer: str,
++          files: dict[str, str] | None = None) -> str:
++    """The entry with ``row`` out of the table and kept only as hidden bytes."""
++    text = (files or {}).get(ENTRY) or _entry_text(
++        {FIX[k][0]: _page(k, SURFACES[k]) for k in SURFACE_ORDER})
++    assert row + "\n" in text, row
++    return (text.replace(row + "\n", "") + "\n" + opener + "\n" + row + "\n"
++            + closer + "\n")
++
++
++def _row_text(key: str, pages: dict | None = None) -> str:
++    spec = SURFACES[key]
++    toks = ", ".join(f"`{t}`" for t in
++                     ["allowed-tools", VALUE[key], spec["page_token"]])
++    return (f"| {spec['display']} | {FIX[key][0]} | {toks} | {spec['grant']} | "
++            f"\"{_escape_cell(_quote(key, spec))}\" |")
++
++
++def _world(files: dict[str, str],
++           base_files: dict[str, str] | None = None) -> tuple[str, str]:
++    """A fresh isolated git repo: one base commit, then the measured commit."""
++    d = mktemp("k79-c2-")
++    env = dict(os.environ, GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t",
++               GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@t")
++    git = ["git", "-c", "commit.gpgsign=false", "-C", d]
++    subprocess.run(git + ["init", "-q"], check=True, capture_output=True)
++    top = subprocess.run(git + ["rev-parse", "--show-toplevel"], check=True,
++                         capture_output=True, text=True)
++    if Path(top.stdout.strip()).resolve() != Path(d).resolve():
++        raise RuntimeError(f"fixture toplevel {top.stdout.strip()!r} != {d}")
++
++    def commit(note: str) -> str:
++        subprocess.run(git + ["add", "-A"], check=True, capture_output=True)
++        subprocess.run(git + ["commit", "-qm", note, "--allow-empty"],
++                       check=True, capture_output=True, env=env)
++        rev = subprocess.run(git + ["rev-parse", "HEAD"], check=True,
++                             capture_output=True, text=True)
++        return rev.stdout.strip()
++
++    def place(items: dict[str, str | None]) -> None:
++        for rel, text in items.items():
++            p = Path(d) / rel
++            if text is None:               # a fixture deletion, not a file
++                if p.exists():
++                    p.unlink()
++                continue
++            p.parent.mkdir(parents=True, exist_ok=True)
++            p.write_text(text)
++
++    base = base_files if base_files is not None \
++        else {SOURCES: "# SOURCES fixture\n\n## Registry\n\n" + REG_HEADER + "\n"}
++    place(base)
++    base_sha = commit("base")
++    place(files)
++    commit("world")
++    return d, base_sha
++
++
++BASE_SOURCES = "# SOURCES fixture\n\n## Registry\n\n" + REG_HEADER + "\n"
++
++
++def _world_specs() -> list[dict]:
++    """One honest world, then one broken world per conjunct and per shortcut.
++
++    The claim's target is N >= 5 of a population of 6, so a single broken
++    surface is inside the declared margin: the per-conjunct arms below assert
++    the specific finding (that is what falsifies the conjunct) and, for every
++    conjunct, a second arm breaks TWO surfaces so the verdict flips to exit 1
++    at 4 of 6.  Controls that cannot be expressed as a broken surface (the
++    script-only world, a tampered pin) assert their own exit."""
++    honest = _honest()
++    pages_h = {FIX[k][0]: _page(k, SURFACES[k]) for k in SURFACE_ORDER}
++    six = "allowed-tools surfaces backed 6 of 6"
++    five = "allowed-tools surfaces backed 5 of 6"
++    four = "allowed-tools surfaces backed 4 of 6"
++    zero = "allowed-tools surfaces backed 0 of 6"
++    specs: list[dict] = []
++    add = specs.append
++
++    # ---------------------------------------------------------- honest worlds
++    add(dict(label="honest world scores 6 of 6", files=honest, code=0,
++             line=six, finding="script-only world: 1 of 6"))
++    add(dict(label="honest world reads 6 of 6 under a relative --repo .",
++             files=honest, code=0, line=six, relative=True,
++             finding="script-only world: 1 of 6"))
++    add(dict(label="honest world's tree conjuncts are all green",
++             files=honest, code=0, line=six,
++             finding="province surfaces named 6 of 6"))
++    add(dict(label="honest world prints registry home ok", files=honest,
++             code=0, line=six, finding="registry home ok"))
++    add(dict(label="honest world prints skill rule line ok", files=honest,
++             code=0, line=six, finding="skill rule line ok"))
++    add(dict(label="base world (entry absent) is the do-nothing control",
++             files={SOURCES: _registry(pages_h)}, code=1, line=zero,
++             finding=f"entry {ENTRY} absent"))
++    add(dict(label="base world prints script-only world: 0 of 6",
++             files={SOURCES: _registry(pages_h)}, code=1, line=zero,
++             finding="script-only world: 0 of 6"))
++    add(dict(label="surface hosts already in the base registry read held 6",
++             files=honest, base_files={SOURCES: _registry(pages_h)}, code=0,
++             line=six, finding="held at base: 6"))
++    add(dict(label="base registry with one factory pin reads held at base: 1",
++             files=honest, code=0, line=six,
++             base_files={SOURCES: _registry(pages_h, [
++                 _reg_line("S900", pages_h, "factory",
++                           url="https://docs.factory.com/harness/skills.md")])},
++             finding="held at base: 1"))
++    add(dict(label="factory's .md route is the same canonical pin",
++             files=_mutate(honest, **{
++                 SOURCES: _registry(pages_h, [
++                     _reg_line(FIX[k][0], pages_h, k,
++                               url="https://docs.factory.com/harness/skills.md"
++                               if k == "factory" else None)
++                     for k in SURFACE_ORDER]),
++                 ENTRY: _entry_text(pages_h).replace(
++                     "https://docs.factory.com/harness/skills —",
++                     "https://docs.factory.com/harness/skills.md —")}),
++             code=0, line=six))
++    add(dict(label="(d) the quote spans a raw line break and is still found "
++                    "(generated equivalence)", files=_honest(dict(
++                        pages_h, **{FIX["claude"][0]: pages_h[
++                            FIX["claude"][0]].replace(
++                                "documented here and this",
++                                "documented here\nand this")})),
++             code=0, line=six))
++    # the fixture page now writes the cue inside inline code: the quote has no
++    # backtick, so only a counter that deletes every backtick can find it
++    add(dict(label="(d) deleting backticks is what this quote relies on "
++                    "(generated equivalence)", files=_honest(dict(
++                        pages_h, **{FIX["msaf"][0]: pages_h[
++                            FIX["msaf"][0]].replace(
++                                "states Experimental",
++                                "states `Experimental`")})),
++             code=0, line=six))
++    add(dict(label="(a) a .html snapshot's script block does not carry the "
++                    "quote", files=_honest(dict(pages_h, **{
++                        FIX["spec"][0]: (
++                            "<html><head><script>var s = \""
++                            + _quote("spec", SURFACES["spec"])
++                            + "\";</script></head><body><h1>Open "
++                            "specification</h1><p>Example values: "
++                            "Bash(git:*) and Bash list forms.</p>"
++                            "</body></html>\n")})),
++             code=0, line=five, finding="spec: located quote not found"))
++
++    # ---------------------------------------------------------- (a) structure
++    add(dict(label="(a) surface row hidden in an HTML comment",
++             files=_mutate(honest, **{ENTRY: _hide(
++                 _row_text("claude"), "<!--", "-->", honest)}),
++             code=0, line=five,
++             finding="claude: 0 surface-table row(s) name Claude Code"))
++    add(dict(label="(a) surface row hidden in a fenced block",
++             files=_mutate(honest, **{ENTRY: _hide(
++                 _row_text("claude"), "```text", "```", honest)}),
++             code=0, line=five,
++             finding="claude: 0 surface-table row(s) name Claude Code"))
++    add(dict(label="(a) two rows name the same surface", files=_mutate(
++        honest, **{ENTRY: _entry_text(pages_h).replace(
++            "| Factory |", "| Claude Code | S227 | `allowed-tools` | "
++            "experimental | \"x\" |\n| Factory |", 1)}),
++        code=0, line=five, finding="2 surface-table row(s) name Claude Code"))
++    add(dict(label="(a) entry without verified-at:", files=_mutate(
++        honest, **{ENTRY: _entry_text(pages_h, trio=False)}),
++        code=1, line=zero, finding="no verified-at: line"))
++    add(dict(label="(a) entry without recheck:", files=_mutate(
++        honest, **{ENTRY: _entry_text(pages_h).replace(
++            "recheck: 90d — re-fetch and confirm\n", "")}),
++        code=1, line=zero, finding="no recheck: line"))
++    add(dict(label="(a) cited id absent from the source: lines", files=_mutate(
++        honest, **{ENTRY: _entry_text(pages_h).replace(
++            "source: S227 —", "source: S927 —")}),
++        code=1, line=zero, finding="cited S227 absent from the entry's own "
++                                   "source: lines"))
++    add(dict(label="(a) entry outside corpus/knowledge is not the entry",
++             files=_mutate(honest, **{
++                 ENTRY: None,
++                 "corpus/notes/allowed-tools-surfaces-round79.md":
++                     _entry_text(pages_h)}),
++             code=1, line=zero, finding=f"entry {ENTRY} absent"))
++    add(dict(label="(a) entry with no surface table", files=_mutate(
++        honest, **{ENTRY: "\n".join([
++            f'source: {FIX[k][0]} — fixture page — {FIX[k][1]} — located '
++            f'quote "{_quote(k, SURFACES[k])}" (snapshot `{FIX[k][2]}`)'
++            for k in SURFACE_ORDER] + ["", f"verified-at: {CAPTURE}",
++                                       "recheck: 90d",
++                                       "", "Text view: `.html` snapshots have "
++                                       "`script` blocks removed, tags "
++                                       "replaced, entities decoded, "
++                                       "backticks deleted, whitespace "
++                                       "collapsed.", "",
++                                       "# no table here", ""])}),
++        code=1, line=zero, finding="no table in the entry has the frozen "
++                                   "header"))
++    add(dict(label="(a) surface table header drifted", files=_mutate(
++        honest, **{ENTRY: _entry_text(pages_h, header=(
++            "surface", "source", "page tokens", "permissions",
++            "located quote"))}),
++        code=1, line=zero, finding="no table in the entry has the frozen "
++                                   "header"))
++    add(dict(label="(a) surface row with six cells", files=_mutate(
++        honest, **{ENTRY: _entry_text(pages_h).replace(
++            "| Mistral Vibe | S231 |", "| Mistral Vibe | S231 | note |")}),
++        code=0, line=five, finding="Mistral Vibe: 6 cells"))
++    add(dict(label="(a) entry that does not name the text view",
++             files=_mutate(honest, **{ENTRY: _entry_text(
++                 pages_h, shaping=False)}),
++             code=1, line=zero, finding="does not name the snapshot text view"))
++    add(dict(label="(a) token the page never carries", files=_mutate(
++        honest, **{ENTRY: _entry_text(pages_h, rows={
++            "claude": ("pre-approves",
++                       ["allowed-tools", "Bash",
++                        "without prompting you for approval",
++                        "ztuff?"])})}),
++        code=0, line=five, finding="does not occur word-bounded"))
++    add(dict(label="(a) two rows carry tokens no page carries", files=_mutate(
++        honest, **{ENTRY: _entry_text(pages_h, rows={
++            "claude": ("pre-approves",
++                       ["allowed-tools", "Bash",
++                        "without prompting you for approval", "ztuff?"]),
++            "factory": ("metadata-only",
++                        ["allowed-tools", "Bash", "metadata",
++                         "ytuff?"])})}),
++        code=1, line=four, finding="does not occur word-bounded"))
++    add(dict(label="(a) row with only two tokens", files=_mutate(
++        honest, **{ENTRY: _entry_text(pages_h, rows={
++            "claude": ("pre-approves", ["allowed-tools", "Bash"])})}),
++        code=0, line=five, finding="2 backticked token(s)"))
++    add(dict(label="(a) row with no value-form token", files=_mutate(
++        honest, **{ENTRY: _entry_text(pages_h, rows={
++            "spec": (SURFACES["spec"]["grant"],
++                     ["allowed-tools", "Experimental", "experimental"])})}),
++        code=0, line=five, finding="no value-form token"))
++    add(dict(label="(a) row with no grant-semantics token", files=_mutate(
++        honest, **{ENTRY: _entry_text(pages_h, rows={
++            "claude": ("pre-approves", ["allowed-tools", "Bash", "Read"])})}),
++        code=0, line=five, finding="no grant-semantics token"))
++    add(dict(label="(a) first cell is a longer client name", files=_mutate(
++        honest, **{ENTRY: _entry_text(pages_h).replace(
++            "| pi | S230 |", "| pi coding agent | S230 |")}),
++        code=0, line=five, finding="0 surface-table row(s) name pi"))
++
++    # --------------------------------------------------------------- (b) rows
++    add(dict(label="(b) cited row is queued, not mined", files=_mutate(
++        honest, **{SOURCES: _registry(pages_h, [
++            _reg_line(FIX[k][0], pages_h, k,
++                      status="queued" if k == "claude" else "mined")
++            for k in SURFACE_ORDER])}),
++        code=0, line=five, finding="S227: status 'queued'"))
++    add(dict(label="(b) two cited rows are queued", files=_mutate(
++        honest, **{SOURCES: _registry(pages_h, [
++            _reg_line(FIX[k][0], pages_h, k,
++                      status="queued" if k in ("claude", "factory")
++                      else "mined") for k in SURFACE_ORDER])}),
++        code=1, line=four, finding="S228: status 'queued'"))
++    add(dict(label="(b) cited row is tier C", files=_mutate(
++        honest, **{SOURCES: _registry(pages_h, [
++            _reg_line(FIX[k][0], pages_h, k,
++                      tier="C" if k == "claude" else "A")
++            for k in SURFACE_ORDER])}),
++        code=0, line=five, finding="S227: tier 'C'"))
++    add(dict(label="(b) cited row has 12 cells", files=_mutate(
++        honest, **{SOURCES: _registry(pages_h, [
++            _reg_line(FIX[k][0], pages_h, k,
++                      extra=1 if k == "claude" else 0)
++            for k in SURFACE_ORDER])}),
++        code=0, line=five, finding="S227: 12 cells"))
++    add(dict(label="(b) cited row's used-by omits the entry", files=_mutate(
++        honest, **{SOURCES: _registry(pages_h, [
++            _reg_line(FIX[k][0], pages_h, k,
++                      used_by="corpus/knowledge/other-round79.md"
++                      if k == "claude" else ENTRY)
++            for k in SURFACE_ORDER])}),
++        code=0, line=five, finding="S227: used-by"))
++    add(dict(label="(b) cited row's URL is on another host", files=_mutate(
++        honest, **{SOURCES: _registry(pages_h, [
++            _reg_line(FIX[k][0], pages_h, k,
++                      url="https://example.invalid/skills"
++                      if k == "claude" else None)
++            for k in SURFACE_ORDER])}),
++        code=0, line=five, finding="no URL on claude's pinned host(s)"))
++    add(dict(label="(b) the assigned docs.factory.ai URL is not the canonical "
++                    "pin", files=_mutate(honest, **{SOURCES: _registry(
++        pages_h, [_reg_line(FIX[k][0], pages_h, k,
++                            url="https://docs.factory.ai/cli/configuration/"
++                                "skills" if k == "factory" else None)
++                   for k in SURFACE_ORDER])}),
++        code=0, line=five, finding="no URL on factory's pinned host(s)"))
++    add(dict(label="(b) factory's sibling path docs.factory.com/harness/"
++                    "skills-old is not the canonical page",
++             files=_mutate(honest, **{SOURCES: _registry(pages_h, [
++                 _reg_line(FIX[k][0], pages_h, k,
++                           url="https://docs.factory.com/harness/skills-old"
++                           if k == "factory" else None)
++                 for k in SURFACE_ORDER])}),
++             code=0, line=five, finding="no URL on factory's pinned host(s)"))
++    add(dict(label="(b) sibling host raw.githubusercontent.com/badlogic/"
++                    "pi-mono-evil is not the pinned repo", files=_mutate(
++        honest, **{SOURCES: _registry(pages_h, [
++            _reg_line(FIX[k][0], pages_h, k,
++                      url="https://raw.githubusercontent.com/badlogic/"
++                          "pi-mono-evil/main/docs/skills.md"
++                      if k == "pi" else None)
++            for k in SURFACE_ORDER])}),
++        code=0, line=five, finding="no URL on pi's pinned host(s)"))
++    add(dict(label="(b) two registry rows for one cited id", files=_mutate(
++        honest, **{SOURCES: _registry(pages_h,
++            [_reg_line(FIX[k][0], pages_h, k) for k in SURFACE_ORDER]
++            + [_reg_line("S227", pages_h, "claude")])}),
++        code=0, line=five, finding="S227: 2 registry rows"))
++    add(dict(label="(b) staged four-cell rows appended as-is", files=_mutate(
++        honest, **{SOURCES: _registry(pages_h,
++            [f"| {FIX[k][0]} | {FIX[k][1]} | docs | staged |"
++             for k in SURFACE_ORDER])}),
++        code=1, line=zero, finding="S226: 4 cells"))
++
++    # ----------------------------------------------------------- (c) snapshots
++    add(dict(label="(c) tampered snapshot (manifest hash left)", files=_mutate(
++        honest, **{f"{SNAPDIR}/{FIX['claude'][2]}":
++                   pages_h[FIX["claude"][0]] + "A hand edit.\n"}),
++        code=2, line="environment error", finding="snapshot_tampered"))
++    add(dict(label="(c) no manifest at all", files=_mutate(
++        honest, **{MANIFEST: None}), code=2, line="environment error",
++        finding="no manifest at"))
++    add(dict(label="(c) manifest line not `<sha256> <basename>`", files=_mutate(
++        honest, **{MANIFEST: _manifest(pages_h) + "not-a-digest S999-x.md\n"}),
++        code=2, line="environment error", finding="is not `<sha256>"))
++    add(dict(label="(c) manifest path escapes the snapshot directory",
++             files=_mutate(honest, **{
++                 MANIFEST: _manifest(pages_h) + "0" * 64 + "  ../S999-x.md\n"}),
++             code=2, line="environment error", finding="escapes"))
++    add(dict(label="(c) two pinned snapshots begin with one cited id",
++             files=_mutate(honest, **{
++                 ENTRY: _entry_text(pages_h).replace(
++                     f" (snapshot `{FIX['claude'][2]}`)", ""),
++                 MANIFEST: _manifest(pages_h) + "0" * 64 + "  S227-ghost.md\n"}),
++             code=2, line="environment error", finding="ambiguous"))
++    add(dict(label="(c) entry source: line cites a different page on the "
++                    "cited host (pin binding)", files=_mutate(
++        honest, **{ENTRY: _entry_text(pages_h).replace(
++            "https://code.claude.com/docs/en/skills.md",
++            "https://code.claude.com/docs/en/other.md")}),
++        code=0, line=five,
++        finding="the entry's source: line carries no URL for the cited page"))
++    add(dict(label="(c) anchor sha256 is not the snapshot pin", files=_mutate(
++        honest, **{SOURCES: _registry(pages_h, [
++            _reg_line(FIX[k][0], pages_h, k,
++                      anchor=_anchor(FIX[k][0], pages_h, k).replace(
++                          hashlib.sha256(
++                              pages_h[FIX[k][0]].encode()).hexdigest(),
++                          "0" * 64) if k == "claude" else None)
++            for k in SURFACE_ORDER])}),
++        code=0, line=five, finding="is not the snapshot's pin"))
++
++    # --------------------------------------------------------------- (d) quote
++    add(dict(label="(d) located quote under 5 words", files=_mutate(
++        honest, **{ENTRY: _entry_text(pages_h, quotes={
++            "claude": "allowed-tools is here"})}),
++        code=0, line=five, finding="located quote is 3 words"))
++    add(dict(label="(d) located quote over 25 words", files=_mutate(
++        honest, **{ENTRY: _entry_text(pages_h, quotes={
++            "claude": " ".join(["word"] * 26)})}),
++        code=0, line=five, finding="located quote is 26 words"))
++    add(dict(label="(d) located quote absent from its snapshot", files=_mutate(
++        honest, **{ENTRY: _entry_text(pages_h, quotes={
++            "claude": "The allowed-tools field of Claude Code says nothing "
++                      "at all here"})}),
++        code=0, line=five, finding="not found in its pinned snapshot"))
++    add(dict(label="(d) two quotes are absent from their snapshots",
++             files=_mutate(honest, **{ENTRY: _entry_text(pages_h, quotes={
++                 "claude": "The allowed-tools field of Claude Code says "
++                           "nothing at all here",
++                 "factory": "The allowed-tools field of Factory says nothing "
++                            "at all here"})}),
++             code=1, line=four, finding="not found in its pinned snapshot"))
++    add(dict(label="(d) located quote without the token allowed-tools",
++             files=_mutate(honest, **{ENTRY: _entry_text(pages_h, quotes={
++                 "claude": "this page states without prompting you for "
++                           "approval in its own words exactly"})}),
++             code=0, line=five, finding="does not contain the token"))
++    add(dict(label="(d) quote from another surface's page", files=_mutate(
++        honest, **{ENTRY: _entry_text(pages_h, quotes={
++            "claude": _quote("pi", SURFACES["pi"])})}),
++        code=0, line=five, finding="not found in its pinned snapshot"))
++    add(dict(label="(d) quote is the page's title line (first-heading block)",
++             files=_honest(dict(pages_h, **{FIX["claude"][0]: (
++                 "# " + _quote("claude", SURFACES["claude"]) + "\n\n"
++                 + pages_h[FIX["claude"][0]].split("\n", 1)[1])})),
++             code=0, line=five, finding="quote lies on a heading line"))
++    add(dict(label="(d) quote is a line shared with a different page (banner)",
++             files=_honest(dict(pages_h, **{FIX["factory"][0]:
++                 pages_h[FIX["factory"][0]]
++                 + _quote("claude", SURFACES["claude"]) + "\n"})),
++             code=0, line=five, finding="shared banner line"))
++
++    # ----------------------------------------------------------- (e) (f) dates
++    add(dict(label="(e) one row opened before the round date", files=_mutate(
++        honest, **{SOURCES: _registry(pages_h, [
++            _reg_line(FIX[k][0], pages_h, k,
++                      opened="2026-10-26" if k == "claude" else CAPTURE)
++            for k in SURFACE_ORDER])}),
++        code=0, line=five, finding="was not opened this round"))
++    add(dict(label="(e) every row opened before the round date", files=_mutate(
++        honest, **{SOURCES: _registry(pages_h, [
++            _reg_line(FIX[k][0], pages_h, k, opened="2026-10-26")
++            for k in SURFACE_ORDER])}),
++        code=1, line=zero, finding="was not opened this round"))
++    add(dict(label="(e) entry verified-at is not the round date", files=_mutate(
++        honest, **{ENTRY: _entry_text(pages_h).replace(
++            f"verified-at: {CAPTURE}", "verified-at: 2026-10-26")}),
++        code=1, line=zero, finding="was not opened this round"))
++
++    add(dict(label="(f) grant cell is backticked", files=_mutate(
++        honest, **{ENTRY: _entry_text(pages_h, rows={
++            "claude": ("`pre-approves`",
++                       ["allowed-tools", "Bash",
++                        "without prompting you for approval"])})}),
++        code=0, line=five, finding="grant cell is backticked"))
++    add(dict(label="(f) grant label is another surface's", files=_mutate(
++        honest, **{ENTRY: _entry_text(pages_h, rows={
++            "claude": ("experimental", ["allowed-tools", "Bash",
++                                        "without prompting you for "
++                                        "approval"])})}),
++        code=0, line=five, finding="is not claude's frozen label"))
++    add(dict(label="(f) two grant labels are another surface's", files=_mutate(
++        honest, **{ENTRY: _entry_text(pages_h, rows={
++            "claude": ("experimental", ["allowed-tools", "Bash",
++                                        "without prompting you for "
++                                        "approval"]),
++            "factory": ("experimental", ["allowed-tools", "Bash",
++                                         "metadata"])})}),
++        code=1, line=four, finding="is not factory's frozen label"))
++    add(dict(label="(f) grant cell carries two labels", files=_mutate(
++        honest, **{ENTRY: _entry_text(pages_h, rows={
++            "claude": ("pre-approves, metadata-only",
++                       ["allowed-tools", "Bash",
++                        "without prompting you for approval"])})}),
++        code=0, line=five, finding="frozen label(s)"))
++    add(dict(label="(f) quote lacks the page token that grounds the grant",
++             files=_honest(dict(pages_h, **{FIX["claude"][0]:
++                 pages_h[FIX["claude"][0]] + (
++                     "The allowed-tools field list is shown below in this "
++                     "section.\n")}), entry=_entry_text(pages_h, quotes={
++                         "claude": "The allowed-tools field list is shown "
++                                   "below in this section"})),
++             code=0, line=five, finding="does not carry the page token"))
++
++    # ------------------------------------------------- plan shortcut controls
++    # C1 token dump / C8 first-answer baseline: the entry names every token,
++    # label and quote, but no snapshot is committed, so nothing can be pinned.
++    add(dict(label="C1 token dump (tokens, labels and quotes, no snapshots) "
++                    "is exit 2, never a backed surface",
++             files={ENTRY: _entry_text(pages_h), SOURCES: _registry(pages_h),
++                    PROVINCE: PROVINCE_OK, SKILLMD: SKILL_OK},
++             code=2, line="environment error", finding="no manifest at"))
++    # C5 label-only: the labels and tokens are right, the quote is absent.
++    add(dict(label="C5 label-only world (no located quote) is not backed",
++             files=_mutate(honest, **{ENTRY: _entry_text(
++                 pages_h, quotes={"claude": "-"})}),
++             code=0, line=five, finding="located quote is 1 words"))
++
++    # ---- regression arm for a real row shape: S231's quote spans an indented
++    # YAML list inside a fenced example, exactly as the vibe page writes it.
++    vibe_page = "\n".join([
++        "# Mistral Vibe",
++        "",
++        "## Skills",
++        "",
++        "```markdown",
++        "---",
++        "name: example",
++        "user-invocable: true",
++        "allowed-tools:",
++        "  - read",
++        "  - grep",
++        "  - ask_user_question",
++        "---",
++        "```",
++        "",
++        "## Notes",
++        "",
++        "The example above is the only place this page shows the field.",
++    ]) + "\n"
++    vibe_quote = "user-invocable: true allowed-tools: read grep ask_user_question"
++    add(dict(label="S231 row shape: quote spans an indented list inside a "
++                    "fenced example", files=_honest(
++        dict(pages_h, **{FIX["vibe"][0]: vibe_page}),
++        entry=_entry_text(
++            dict(pages_h, **{FIX["vibe"][0]: vibe_page}),
++            quotes={"vibe": vibe_quote},
++            rows={"vibe": ("unstated", ["allowed-tools", "allowed-tools:",
++                                        "ask_user_question",
++                                        "user-invocable"])})),
++        code=0, line=six))
++    add(dict(label="(d) a backtick-wrapped quote cell is formatting, not "
++                    "content", files=_mutate(honest, **{ENTRY: _entry_text(
++        pages_h, quotes={"claude": "`" + _quote(
++            "claude", SURFACES["claude"]) + "`"})}),
++        code=0, line=six))
++    add(dict(label="(d) a backtick-wrapped quote that is absent still fails",
++             files=_mutate(honest, **{ENTRY: _entry_text(pages_h, quotes={
++                 "claude": "`The allowed-tools field of Claude Code says "
++                           "nothing at all here`"})}),
++             code=0, line=five, finding="located quote not found"))
++
++    # ---- regression arm for the real S230 row: the page's only mention is a
++    # markdown table row, its quote is pipe-bearing, and the page prints no
++    # syntactic value form at all (a bare word is the value form it offers).
++    pi_quote = "allowed-tools | Experimental pre-approved tool list"
++    add(dict(label="S230 row shape: a pipe-bearing table-row quote with a bare "
++                    "word as the value form", files=_honest(
++        pages_h, entry=_entry_text(
++            pages_h, quotes={"pi": pi_quote},
++            rows={"pi": ("experimental", ["allowed-tools", "pre-approved",
++                                          "Experimental"])})),
++        code=0, line=six))
++
++    # ---------------------------------------------------------- (g) (h) tree
++    add(dict(label="(g) SKILL.md without a registry row reads MISSING",
++             files=_mutate(honest, **{SKILLMD: "# fixture skill\n\n## Rules\n\n"
++                                      "- `allowed-tools` per client: Open "
++                                      "specification, Claude Code, Factory in `"
++                                      + ENTRY + "`.\n"}),
++             code=1, line="registry home MISSING"))
++    add(dict(label="(g) rule line naming two surfaces reads MISSING",
++             files=_mutate(honest, **{SKILLMD: SKILL_OK.replace(
++                 "Open specification, Claude Code, Factory, Microsoft Agent "
++                 "Framework, pi and Mistral Vibe", "Claude Code and pi")}),
++             code=1, line="skill rule line MISSING"))
++    add(dict(label="(g) a registry row with an empty field reads MISSING",
++             files=_mutate(honest, **{SKILLMD: SKILL_OK.replace(
++                 "| in-file |", "|  |")}),
++             code=1, line="registry home MISSING"))
++    add(dict(label="(h) PROVINCE.md without the bullet reads named 0 of 6",
++             files=_mutate(honest, **{
++                 PROVINCE: "# fixture province\n\n## Core\n\n- nothing\n"}),
++             code=1, line="province surfaces named 0 of 6",
++             finding="0 ## Core bullet(s) name the entry"))
++    add(dict(label="(h) two Core bullets name the entry", files=_mutate(
++        honest, **{PROVINCE: PROVINCE_OK.replace(
++            "## Frontier", f"- also `{ENTRY}`\n\n## Frontier")}),
++        code=1, line="province surfaces named 0 of 6",
++        finding="2 ## Core bullet(s) name the entry"))
++
++    # --------------------------------------------------- (i) script-only world
++    rebound = {k: dict(SURFACES[k]) for k in SURFACE_ORDER}
++    for k in SURFACE_ORDER[:5]:
++        rebound[k]["grant"] = "unstated"
++        rebound[k]["page_token"] = "allowed-tools:"
++    add(dict(label="(i) a script-only world that reaches the target stops the "
++                    "claim", surfaces=rebound, files=_honest, code=1,
++             line="script-only world: 6 of 6",
++             finding="script-only world reached the target"))
++    add(dict(label="(i) a mechanical world below the target prints the line",
++             files=honest, code=0, line=six,
++             finding="script-only world: 1 of 6"))
++
++    # ------------------------------------------------------- cannot-evaluate
++    add(dict(label="unknown revision is exit 2", files=honest, code=2,
++             rev="0" * 40, line="environment error", finding="not a commit"))
++    add(dict(label="registry absent at the revision is exit 2", files=_mutate(
++        honest, **{SOURCES: None}), code=2, line="environment error",
++        finding=f"{SOURCES} absent"))
++    add(dict(label="counter drift is exit 2 (SELF_SHA does not match)",
++             files=honest, code=2, line="environment error",
++             finding="counter drifted", drift=True))
++    return specs
++
++
++def _run_spec(spec: dict) -> tuple[bool, int, str]:
++    """Run one world through ``main()`` in its own isolated git repo."""
++    global BASE_REV, _INTERNAL_SELFTEST, SURFACES
++    saved_rev, saved_surfaces = BASE_REV, SURFACES
++    if spec.get("surfaces"):
++        SURFACES = spec["surfaces"]      # before the files are built
++    files = spec["files"]() if callable(spec["files"]) else spec["files"]
++    d, base = _world(files, spec.get("base_files"))
++    BASE_REV = base
++    _INTERNAL_SELFTEST = True
++    if spec.get("drift"):
++        text = Path(__file__).read_text()
++        drifted = _blanked_sha(text + "\n# drift\n") != SELF_SHA
++        out = ("environment error: counter drifted — the running file is not "
++               "the frozen counter" if drifted else "no drift check")
++        checks = [drifted, spec["line"] in out, spec["finding"] in out]
++        shutil.rmtree(d, ignore_errors=True)
++        BASE_REV, SURFACES = saved_rev, saved_surfaces
++        _INTERNAL_SELFTEST = False
++        msg = f"{spec['label']}: exit 2"
++        if not all(checks):
++            msg += f" (want 2); output={out!r}"
++        return all(checks), len(checks), msg
++    cwd = os.getcwd()
++    buf = io.StringIO()
++    try:
++        if spec.get("relative"):
++            os.chdir(d)
++        with contextlib.redirect_stdout(buf), \
++                contextlib.redirect_stderr(buf):
++            code = main(["--repo", "." if spec.get("relative") else d,
++                         "--rev", spec.get("rev", "HEAD")])
++    finally:
++        os.chdir(cwd)
++        shutil.rmtree(d, ignore_errors=True)
++        BASE_REV, SURFACES = saved_rev, saved_surfaces
++        _INTERNAL_SELFTEST = False
++    out = buf.getvalue()
++    checks = [code == spec["code"]]
++    if spec.get("line") is not None:
++        checks.append(spec["line"] in out)
++    if spec.get("finding") is not None:
++        checks.append(spec["finding"] in out)
++    ok = all(checks)
++    msg = f"{spec['label']}: exit {code}"
++    if not ok:
++        msg += f" (want {spec['code']}); output={out!r}"
++    return ok, len(checks), msg
++
++
++def selftest() -> int:
++    failures = 0
++    assertions = 0
++    for spec in _world_specs():
++        ok, n, msg = _run_spec(spec)
++        assertions += n
++        if ok:
++            print(f"PASS {msg}")
++        else:
++            failures += 1
++            print(f"FAIL {msg}")
++    print(f"self-test: {failures} failure(s) over {assertions} assertions "
++          f"in {len(_world_specs())} world(s)")
++    return 0 if failures == 0 else 1
++
++
++def main(argv: list[str] | None = None) -> int:
++    global _WORK
++    ap = argparse.ArgumentParser(
++        description="C2 allowed-tools surface counter for kotoba round 79")
++    ap.add_argument("--rev", default=None, help="measured revision")
++    ap.add_argument("--repo", default=str(_default_repo()))
++    ap.add_argument("--work", default=None,
++                    help="parent directory for temp dirs (default: $TMPDIR)")
++    ap.add_argument("--self-test", action="store_true")
++    ap.add_argument("--print-self-sha", action="store_true",
++                    help="print the blanked sha of this file and exit")
++    args = ap.parse_args(argv)
++    if args.print_self_sha:
++        print(_blanked_sha(Path(__file__).read_text()))
++        return 0
++    _WORK = args.work
++    if _WORK:
++        Path(_WORK).mkdir(parents=True, exist_ok=True)
++    if args.self_test:
++        return selftest()
++    if not args.rev:
++        print("environment error: --rev <revision> is required",
++              file=sys.stderr)
++        return 2
++    repo = Repo(Path(args.repo).resolve(), args.rev)
++    proc = _git(repo.path, ["rev-parse", "--verify", "-q",
++                            f"{args.rev}^{{commit}}"])
++    if proc.returncode != 0:
++        print(f"environment error: --rev {args.rev} is not a commit",
++              file=sys.stderr)
++        return 2
++    src = Path(__file__).read_text()
++    if not _INTERNAL_SELFTEST and _blanked_sha(src) != SELF_SHA:
++        print("environment error: counter drifted — the running file is not "
++              "the frozen counter", file=sys.stderr)
++        return 2
++    try:
++        n, findings, _backed, opened = check(repo)
++        held = held_at_base(repo)
++        m, why = script_only_world(repo)
++        bullets, named = province_state(repo.show(PROVINCE))
++        rule = skill_rule_ok(repo.show(SKILLMD))
++        home = registry_home_ok(repo.show(SKILLMD))
++    except EnvError as exc:
++        print(f"environment error: {exc}", file=sys.stderr)
++        return 2
++    print(f"measured-rev: {args.rev}")
++    print(f"allowed-tools surfaces backed {n} of {TOTAL}")
++    print(f"script-only world: {m} of {TOTAL}")
++    print(f"opened this round {opened} of {TOTAL}")
++    print(f"held at base: {held}")
++    print(f"province surfaces named {named} of {TOTAL}")
++    print("skill rule line ok" if rule else "skill rule line MISSING")
++    print("registry home ok" if home else "registry home MISSING")
++    for finding in findings:
++        print(f"  {finding}")
++    if m >= TARGET:
++        print(f"  script-only world reached the target ({m} of {TOTAL}): a "
++              f"counter defect, reported and never repaired by narrowing "
++              f"({why})")
++    if bullets != 1:
++        print(f"  {bullets} ## Core bullet(s) name the entry (want exactly 1)")
++    ok = n >= TARGET and m < TARGET and rule and home and bullets == 1
++    return 0 if ok else 1
++
++
++if __name__ == "__main__":
++    sys.exit(main())
+diff --git a/verifiers/check_tip_battery.py b/verifiers/check_tip_battery.py
+index a356e9d..1f29100 100755
+--- a/verifiers/check_tip_battery.py
++++ b/verifiers/check_tip_battery.py
+@@ -39,8 +39,8 @@ Guards (Q33) -- evaluated on committed bytes only, never on instrument output:
+                         tracked at the base is absent at <rev>.
+   floors                no row of verifiers/floors-registry.json carries a floor
+                         lower than at the base, and no base row is dropped.
+-  instrument-size       the six instrument scripts gain at most 40 lines in
+-                        total over the base AND lose at most 40.  The plan
++  instrument-size       the six instrument scripts gain at most 60 lines in
++                        total over the base AND lose at most 60.  The plan
+                         bounds the additions; the same cap on deletions is what
+                         makes its shortcut control -- "replace
+                         check_gate_registry.py by a stub sys.exit(0) (must fail
+@@ -103,12 +103,20 @@ def _default_lane() -> Path:
+ # Round 73 (plans/round-73-addendum-2.md, erratum E2): the guard base moves from the
+ # round-72 base c69711e to the round-73 base, so `instrument-size` measures this round's
+ # delta of the six battery scripts (r72's 76 added / 24 deleted lines drop out; the cap
+-# stays 40) and the round-72 spot-check lesson is a base file compared by
++# was 40 until erratum E5) and the round-72 spot-check lesson is a base file compared by
+ # `spotcheck-identity`.
+ BASE = "072048fa8e8a52c707d25f7079772fa317244eb7"        # round-73 base (pinned)
+ TOTAL = 6
+ GATE_TIMEOUT_S = 280
+-LINE_CAP = 40
++# Erratum E5 (plans/round-80.md § C1, declared before any data): the size cap moves
++# 40 -> 60 and the pin table gains the two reviewed round-80 instrument blobs; the
++# five guards' checks are otherwise unchanged.  The arithmetic the plan declared:
++# 22 lines already spent at the round-80 base + 17 (the E04 report-pointer repair)
++# + at most 21 (the external-commit grammar class) = 60.  The cap is the secondary
++# bound: the anti-laundering load is carried by `instrument-pin` (every instrument
++# byte at the measured rev must equal the base blob or a reviewed pin), so a two-line
++# stub still fails under any cap (+2 / -~1000 lines).
++LINE_CAP = 60
+ GUARDED_PREFIXES = ("corpus/", "verifiers/")
+ GUARDED_FILE = "SKILL.md"
+ FLOORS_PATH = "verifiers/floors-registry.json"
+@@ -133,10 +141,12 @@ INSTRUMENT_PINS = {
+         "6aab16849bd6d71ded8f3bcb3f95668f14f6a78f"),
+     "verifiers/verify_corpus_integrity.py": (
+         "71cb2730bfe89064567ad429bfd7c2da62aceb45",
+-        "e470eaaea5ef11c582b8353c9344ddf730c1a57a"),
++        "e470eaaea5ef11c582b8353c9344ddf730c1a57a",
++        "cc182613a4d089c41e44f11b50e03b45ce582dd8"),
+     "verifiers/verify_corpus_independent.py": (
+         "176abae3b66930d644482f95e1363932e4d143b4",
+-        "edac0df79324ba62ee25ff10a6a4d422ef59da61"),
++        "edac0df79324ba62ee25ff10a6a4d422ef59da61",
++        "89f392daab3e4181db3ded7676ca0879871ef7ff"),
+     "verifiers/check_correction_sweep.py": ("c94b771fa7d798ef45fc3bb640422ee7910f81a6",),
+ }
+ 
+@@ -514,21 +524,27 @@ def self_test() -> int:
+         size_root = root / "guard-size"
+         lane, base = _make_world(size_root)
+         stub = lane / BATTERY[0][0]
+-        stub.write_text(STUB_OK + "".join("# padding line %d\n" % i for i in range(41)))
++        # Erratum E5: the fixture grows one line past the cap, so this arm keeps
++        # its semantics ("a growth over the cap trips instrument-size") under the
++        # new bound; the expected detail string is derived from LINE_CAP.
++        stub.write_text(STUB_OK + "".join("# padding line %d\n" % i for i in range(LINE_CAP + 1)))
+         tip = _commit_all(lane, "grow an instrument past the cap")
+         rc, out, err = _drive(size_root, base, tip)
+         check("size world exits 1", rc == 1, "exit %d" % rc)
+         check("size world names the instrument-size guard",
+-              "FAIL guard instrument-size: instruments gain 41 lines > 40" in out,
++              "FAIL guard instrument-size: instruments gain %d lines > %d"
++              % (LINE_CAP + 1, LINE_CAP) in out,
+               out.strip()[-220:])
+ 
+         # errata E2: the instrument-pin guard.  A weakening inside the size cap
+-        # (two lines changed) passes every structural guard but not the pin.
++        # (41 lines changed under erratum E5's cap of 60) passes every structural
++        # guard but not the pin: the pin carries the anti-laundering load.
+         pin_root = root / "guard-pin"
+         lane, base = _make_world(pin_root)
+         base_blob = _fixture_git(lane, "rev-parse", "HEAD:" + BATTERY[0][0]).stdout.strip()
+         INSTRUMENT_PINS = {BATTERY[0][0]: (base_blob,)}
+-        (lane / BATTERY[0][0]).write_text(STUB_OK + "# a two-line semantic edit\n# inside the cap\n")
++        (lane / BATTERY[0][0]).write_text(
++            STUB_OK + "".join("# a semantic edit inside the cap\n" for _ in range(41)))
+         tip = _commit_all(lane, "weaken an instrument inside the size cap")
+         rc, out, err = _drive(pin_root, base, tip)
+         check("pin world exits 1", rc == 1, "exit %d" % rc)
+@@ -550,13 +566,14 @@ def self_test() -> int:
+         INSTRUMENT_PINS = {}
+ 
+         stub_root = root / "guard-stub"
+-        lane, base = _make_world(stub_root, padding=60)
++        lane, base = _make_world(stub_root, padding=LINE_CAP + 1)
+         (lane / BATTERY[0][0]).write_text(STUB_OK)
+         tip = _commit_all(lane, "replace a gate with a two-line stub")
+         rc, out, err = _drive(stub_root, base, tip)
+         check("stub world exits 1", rc == 1, "exit %d" % rc)
+         check("stub world fails the deletion side of the size cap",
+-              "FAIL guard instrument-size: instruments lose 60 lines > 40" in out,
++              "FAIL guard instrument-size: instruments lose %d lines > %d"
++              % (LINE_CAP + 1, LINE_CAP) in out,
+               out.strip()[-220:])
+         check("stub world keeps the gates green", "tip battery exit 0: 6 of 6" in out,
+               _last_line(out))
+diff --git a/verifiers/corpus-baseline.json b/verifiers/corpus-baseline.json
+index 35566fa..94e88bb 100644
+--- a/verifiers/corpus-baseline.json
++++ b/verifiers/corpus-baseline.json
+@@ -3,16 +3,16 @@
+  "host": "vgpnk",
+  "measured_against": {
+   "repo": "kotoba-shokunin",
+-  "head": "65a5c7a",
+-  "head_subject": "round-74 orchestrator salvage",
+-  "git_status": "round-74 closure tip; round-75 evidence and lesson added to working tree",
++  "head": "37af095 (detached measurement commit; resolvable in the measuring clone only, not in the lane repository)",
++  "head_subject": "r80 C1 stack world: E01 registry rows (2 withdrawn + check_allowed_tools), E02 symlink, E03 README coverage rows, E04 report-pointer fix, E05 grammar class (Y01 cap-fitting candidate), E5 amended counter, C2 entry+counter+lesson+MANIFEST, SKILL rule line, PROVINCE bullet",
++  "git_status": "clean (git status --porcelain empty at the recorded tip)",
+   "command": "python3 -B verifiers/verify_corpus_integrity.py --no-baseline --json",
+-  "note": "Round-75 baseline refresh from --no-baseline --json on base 65a5c7a with r75 additions: tracked_files 142 -> 144 (indexed round-75 lesson plus already-landed r74 verifier spotcheck); report_total 97 -> 99 (the r74 closure spot-check pointers); commit_total remains 43. After r75 lesson is tracked, stale_patterns must return to 0. This refresh changes expected observations only; zero-mode expectations remain zero. Earlier historical measurements remain recorded in SCORECARD."
++  "note": "Baseline refreshed by refresh-corpus-baseline.py at 37af095 (detached measurement commit; resolvable in the measuring clone only, not in the lane repository) (r80 C1 stack world: E01 registry rows (2 withdrawn + check_allowed_tools), E02 symlink, E03 README coverage rows, E04 report-pointer fix, E05 grammar class (Y01 cap-fitting candidate), E5 amended counter, C2 entry+counter+lesson+MANIFEST, SKILL rule line, PROVINCE bullet) from the corpus gate's own --no-baseline --json over a clean worktree, cross-checked class-for-class against the independent re-derivation: tracked_files 144 -> 154, report_total 99 -> 109, commit_total 43 -> 46; every zero-mode class observed 0. Expectations are re-recorded to observed committed bytes, never fitted to a denominator."
+  },
+  "checks": {
+   "corpus.index.tracked_files": {
+    "mode": "equal",
+-   "expect": 144
++   "expect": 154
+   },
+   "corpus.index.unindexed": {
+    "mode": "zero",
+@@ -28,7 +28,7 @@
+   },
+   "corpus.pointers.report_total": {
+    "mode": "equal",
+-   "expect": 99
++   "expect": 109
+   },
+   "corpus.pointers.report_dead": {
+    "mode": "zero",
+@@ -36,7 +36,7 @@
+   },
+   "corpus.pointers.commit_total": {
+    "mode": "equal",
+-   "expect": 43
++   "expect": 46
+   },
+   "corpus.pointers.commit_unresolvable": {
+    "mode": "zero",
+@@ -68,6 +68,7 @@
+   "round66_rerecord": "Measured at core revision daedcdf992c17cbc0b8a6ece204e1c7ce2b45fce with python3 -B verifiers/verify_corpus_integrity.py --no-baseline --json before this baseline update. tracked_files 116 -> 118 (the round-66 lesson and C2 knowledge entry, both indexed); unindexed 4 -> 0 (r62-r65 closure spot-checks and the round-66 lesson indexed); report_total 79 unchanged; commit_total 38 -> 37 (the nested code-span meta-finding is context); commit_unresolvable 3 -> 0 (lane-first then fleet-root resolution); report_dead, stale_patterns, missing_paths and commit_nonhash remain 0. Expected counts are re-recorded to the observed committed bytes, not fitted to a denominator.",
+   "round69_rerecord": "round 69 (2026-10-25): re-recorded at the round-69 content commit; 127 / 0 / 87 / 39. The r68 closure's spot-check file was indexed this round, so the unindexed drift the closure left is closed rather than carried.",
+   "round70_rerecord": "round 70 (2026-10-25): re-recorded from python3 -B verifiers/verify_corpus_integrity.py --no-baseline --json at the round-70 content commit 8edeb4900f0b576881a8216ec6dc54599299ff59 (lane tree clean); 130 / 0 / 89 / 39. tracked_files 127 -> 130: corpus/lessons/round-69-verifier-spotcheck.md (closure-owned, landed at 7d51253 without an index row; indexed this round, never edited here), corpus/knowledge/skill-eval-artefacts-round70.md and corpus/lessons/round-70.md, all three indexed; report_total 87 -> 89 from the two fleet report pointers the r69 spot-check carries; commit_total 39 unchanged; every zero-defect expectation observed zero.",
+-  "round72_tip_rerecord": "round 72 closing re-record at a0f7f17 from python3 -B verifiers/verify_corpus_integrity.py --no-baseline --json: tracked_files 132 -> 135, report_total 91 -> 93, commit_total 40 -> 41; every zero-defect expectation observed zero (unindexed, stale_patterns, missing_paths, report_dead, commit_unresolvable, commit_nonhash)."
++  "round72_tip_rerecord": "round 72 closing re-record at a0f7f17 from python3 -B verifiers/verify_corpus_integrity.py --no-baseline --json: tracked_files 132 -> 135, report_total 91 -> 93, commit_total 40 -> 41; every zero-defect expectation observed zero (unindexed, stale_patterns, missing_paths, report_dead, commit_unresolvable, commit_nonhash).",
++  "round79_rerecord": "round 79 C1 repair (corpus index + baseline) re-recorded at 37af095 (detached measurement commit; resolvable in the measuring clone only, not in the lane repository) (r80 C1 stack world: E01 registry rows (2 withdrawn + check_allowed_tools), E02 symlink, E03 README coverage rows, E04 report-pointer fix, E05 grammar class (Y01 cap-fitting candidate), E5 amended counter, C2 entry+counter+lesson+MANIFEST, SKILL rule line, PROVINCE bullet): tracked_files 144 -> 154, report_total 99 -> 109, commit_total 43 -> 46; every zero-mode class observed 0. Index rows for every previously unindexed corpus file were committed first; the gate's own counts were observed afterwards, not before."
+  }
+ }
+diff --git a/verifiers/verify_corpus_independent.py b/verifiers/verify_corpus_independent.py
+index edac0df..89f392d 100755
+--- a/verifiers/verify_corpus_independent.py
++++ b/verifiers/verify_corpus_independent.py
+@@ -124,6 +124,8 @@ POINTER_RE = re.compile(
+     r"""[^\s`"()\[\],;:]*\.ufo/reports/round-\d+/[^`"]*?\.md"""
+ )
+ COMMIT_RE = re.compile(r"(?<![A-Za-z0-9_-])commit\s+`([^`\s]+)`")
++# Round 80 (Q61): a `commit <hex>` in a SOURCES row whose URL names a repository is third-repo: INFO.
++SOURCES_COMMIT_RE = re.compile(r"\A\|\s*S\d+\s*\|[^|]*(?:raw\.githubusercontent\.com|github\.com)/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+|`[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+`\s*$")
+ # Round 36 (scout P3b): a fenced region is opaque to the index census -- a
+ # coverage row quoted inside a ``` block is an example, not an index promise.
+ # Round 39 (seat P4, from V6b's r38 proof): closing needs CommonMark 4.5's rule
+@@ -471,7 +473,7 @@ def analyse_pointers(repo, tracked_corpus, fleet_root=FLEET_ROOT):
+ 
+ 
+ def analyse_commits(repo, tracked_corpus, fleet_root=FLEET_ROOT):
+-    quoted, nonhash, unresolvable, citations = [], [], [], []
++    quoted, nonhash, unresolvable, citations, external = [], [], [], [], []
+     truncated = []
+     for rel in tracked_corpus:
+         path = os.path.join(repo, rel)
+@@ -488,7 +490,7 @@ def analyse_commits(repo, tracked_corpus, fleet_root=FLEET_ROOT):
+                         continue
+                     citations.append("%s:%d: %s" % (rel, lineno, token))
+                     if not (7 <= len(token) <= 40 and HEX_RE.match(token)):
+-                        nonhash.append("%s:%d: %s" % (rel, lineno, token))
++                        (external if "@" in token and "/" in token.split("@", 1)[0] else nonhash).append("%s:%d: %s" % (rel, lineno, token))
+                         continue
+                     proc = _git(repo, "cat-file", "-e", "%s^{commit}" % token)
+                     if (proc.returncode != 0 and fleet_root
+@@ -496,7 +498,7 @@ def analyse_commits(repo, tracked_corpus, fleet_root=FLEET_ROOT):
+                         proc = _git(fleet_root, "cat-file", "-e",
+                                     "%s^{commit}" % token)
+                     if proc.returncode != 0:
+-                        unresolvable.append("%s:%d: %s" % (rel, lineno, token))
++                        (external if SOURCES_COMMIT_RE.search(line[:start]) else unresolvable).append("%s:%d: %s" % (rel, lineno, token))
+     return {
+         "commit_candidates": len(citations) + len(quoted) + len(truncated),
+         "commit_total": len(citations),
+@@ -512,6 +514,7 @@ def analyse_commits(repo, tracked_corpus, fleet_root=FLEET_ROOT):
+         "commit_truncated_detail": sorted(truncated),
+         "commit_unresolvable": len(unresolvable),
+         "commit_unresolvable_detail": sorted(unresolvable),
++        "commit_external": len(external), "commit_external_detail": sorted(external),
+     }
+ 
+ 
+@@ -1033,6 +1036,10 @@ def self_test():
+               "commits: double-quoted and code-span examples are context")
+         st.eq(fleet_com["commit_candidates"], 9,
+               "commits: context candidates stay visible, never live")
++        _write(os.path.join(croot, "corpus/knowledge/ext.md"), "| S900 | T https://raw.githubusercontent.com/o/r/x | served commit `deadbee` |\ncommit `o/r@deadbee`\n")
++        _git(croot, "add", "-A")
++        ext = analyse_commits(croot, corpus_markdown(croot), fleet_root)
++        st.eq((ext["commit_external"], ext["commit_unresolvable"]), (2, 1), "commits: SOURCES-row citation is INFO; lane token stays unresolved")
+ 
+ 
+         # -- clean fixture: verdicts and exit code -------------------------------
+diff --git a/verifiers/verify_corpus_integrity.py b/verifiers/verify_corpus_integrity.py
+index e470eaa..cc18261 100755
+--- a/verifiers/verify_corpus_integrity.py
++++ b/verifiers/verify_corpus_integrity.py
+@@ -151,6 +151,8 @@ UFO_POINTER_RE = re.compile(
+ COMMIT_RE = re.compile(r"(?<![A-Za-z0-9_-])commit[ \t]+`([^`\n]+)`")
+ HEX_RE = re.compile(r"\A[0-9a-fA-F]{7,40}\Z")
+ TRUNCATED_COMMIT_RE = re.compile(r"\A[0-9a-fA-F]{7,40}\u2026\Z")
++# Round 80 (Q61): a `commit <hex>` in a SOURCES row whose URL names a repository is third-repo: INFO.
++SOURCES_COMMIT_RE = re.compile(r"\A\|\s*S\d+\s*\|[^|]*(?:raw\.githubusercontent\.com|github\.com)/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+|`[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+`\s*$")
+ BACKTICK_RE = re.compile(r"`([^`]+)`")
+ SECTION_HEADING_RE = re.compile(r"^##[ \t]")
+ COVERAGE_HEADING_RE = re.compile(r"^##[ \t]+Coverage map[ \t]*$")
+@@ -272,6 +274,12 @@ def resolve_pointer(base: Path, token: str) -> Path:
+ 
+ def report_pointer_exists(base: Path, token: str, fleet_root: Path = FLEET_ROOT) -> bool:
+     """Check the citing directory first, then the fleet root for bare report paths."""
++    head, _, rest = token.partition(":")
++    if head and rest.startswith(".ufo/reports/"):  # `<rev>:<path>`: a revision, not a tree path
++        at = base.resolve()  # the citing repository first, then the fleet root
++        lane = next((p for p in (at, *at.parents) if (p / ".git").exists()), None)
++        return bool(lane) and git_ok(lane, "cat-file", "-e", token) or git_ok(
++            fleet_root, "cat-file", "-e", token)
+     if resolve_pointer(base, token).is_file():
+         return True
+     return token.startswith(".ufo/reports/") and (fleet_root / token).is_file()
+@@ -503,6 +511,7 @@ def citation_findings(rel: str, text: str, pointer_exists, commit_resolves) -> d
+     report_quoted: list[str] = []
+     pointer_shapes = {"relative": 0, "absolute": 0, "tilde": 0, "bare": 0}
+     unresolvable: list[str] = []
++    external: list[str] = []
+     nonhash: list[str] = []
+     truncated: list[str] = []
+     quoted: list[str] = []
+@@ -531,11 +540,11 @@ def citation_findings(rel: str, text: str, pointer_exists, commit_resolves) -> d
+                 truncated.append(f"{rel}:{line_no}: {token}")
+                 continue
+             if not is_hex_object_id(token):
+-                nonhash.append(f"{rel}:{line_no}: {token}")
++                (external if "@" in token and "/" in token.split("@", 1)[0] else nonhash).append(f"{rel}:{line_no}: {token}")
+                 continue
+             commit_total += 1
+             if not commit_resolves(token.lower()):
+-                unresolvable.append(f"{rel}:{line_no}: {token}")
++                (external if SOURCES_COMMIT_RE.search(line[:match.start(0)]) else unresolvable).append(f"{rel}:{line_no}: {token}")
+     return {
+         "report_total": report_total,
+         "report_pointer_shapes": pointer_shapes,
+@@ -548,6 +557,7 @@ def citation_findings(rel: str, text: str, pointer_exists, commit_resolves) -> d
+         "commit_total": commit_total,
+         "commit_unresolvable": len(unresolvable),
+         "commit_unresolvable_detail": sorted(unresolvable),
++        "commit_external": len(external), "commit_external_detail": sorted(external),
+         "commit_nonhash": len(nonhash),
+         "commit_nonhash_detail": sorted(nonhash),
+         "commit_truncated": len(truncated),
+@@ -646,7 +656,7 @@ def corpus_observations(repo: Path) -> dict:
+         "report_pointers_quoted": 0,
+         "report_dead": 0,
+         "commit_total": 0,
+-        "commit_unresolvable": 0,
++        "commit_unresolvable": 0, "commit_external": 0,
+         "commit_nonhash": 0,
+         "commit_truncated": 0,
+         "commit_quoted_excluded": 0,
+@@ -656,7 +666,7 @@ def corpus_observations(repo: Path) -> dict:
+         "report_dead_detail": [],
+         "report_pointers_excluded_detail": [],
+         "report_pointers_quoted_detail": [],
+-        "commit_unresolvable_detail": [],
++        "commit_unresolvable_detail": [], "commit_external_detail": [],
+         "commit_nonhash_detail": [],
+         "commit_truncated_detail": [],
+         "commit_quoted_detail": [],
+@@ -1023,6 +1033,17 @@ def self_test() -> int:
+         )
+         eq("pointer/fleet-root/checked", fleet_found["report_total"], 1)
+         eq("pointer/fleet-root/resolves-existing-report", fleet_found["report_dead"], 0)
++        # round 79: the fleet repo is a revision `HEAD:.ufo/...` resolves in.
++        subprocess.run(["git", "init", "-q", str(fleet_root)], check=True)
++        subprocess.run(["git", "-C", str(fleet_root), "add", "-A"], check=True)
++        subprocess.run(["git", "-C", str(fleet_root), "-c", "user.name=t", "-c",
++                        "user.email=t@t", "commit", "-qm", "f"], check=True)
++        rev_found = citation_findings("corpus/lessons/rev.md",
++            "rev `HEAD:.ufo/reports/round-53/kotoba.md` and gone `HEAD:.ufo/reports/round-9/x.md`"
++            " and unk `nosuchrev:.ufo/reports/round-53/kotoba.md`",
++            lambda base, token: report_pointer_exists(lane_root / base, token, fleet_root),
++            lambda hex_id: True)
++        eq("pointer/rev/dead", (rev_found["report_dead"], rev_found["report_total"]), (2, 3))
+ 
+     # --- round 66: the commit fleet-hop (routed defect D2 of the round-65
+     # spot-check) ----------------------------------------------------------
+@@ -1118,6 +1139,8 @@ def self_test() -> int:
+     )
+     # a resolvable citation is not flagged
+     eq("cites/resolvable-not-flagged", [d for d in found["commit_unresolvable_detail"] if "3b029b8" in d], [])
++    ext = citation_findings("corpus/SOURCES.md", "| S900 | T https://raw.githubusercontent.com/o/r/x | served commit `deadbee` |\ncommit `deadbee`\ncommit `o/r@deadbee`\n", lambda b, t: True, lambda h: False)
++    eq("cites/external-class", (ext["commit_external"], ext["commit_unresolvable"]), (2, 1))
+ 
+     # --- index fixture: coverage, stale, missing, EXCLUDED shapes --------
+     idx = index_findings(FIXTURE_README, FIXTURE_TRACKED, lambda p: p in FIXTURE_ON_DISK)

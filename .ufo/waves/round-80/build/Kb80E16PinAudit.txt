@@ -1,0 +1,644 @@
+# Kb80E16PinAudit — round-80 w1 freeze-set pin audit
+
+Seat: Kb80E16PinAudit (leaf, pin audit). Round 80, wave w1, lane
+`/home/vgpnk/Projects/shokunin/kotoba-shokunin`. Lane base:
+`398cbe1bb67f8d9dcf5d25d5ecf1b26a7c6f7e93`; lane HEAD at audit time
+`c2f69d4f7b5887c409d7c3975d6aebc2e312c406`.
+
+Scope: recompute the freeze-set pins from PRIMARY bytes and cross-check every
+published pin. NO claim is scored, NO counter is narrowed, NO artifact is
+repaired. Every value below carries the command that produced it and its own
+status. Where a published pin disagrees with my recomputation the disagreement
+is stated explicitly in §8.
+
+Scratch (removed before yield): `/fast/scratch/hyaku/kotoba-r80/Kb80E16PinAudit`
+(clones `clone/`, `grammar/`, `combined/`, `y01/`, `e10stack/`, `fleetshape2/`;
+TMPDIR `tmp/`). No lane file outside `.ufo/waves/round-80/` was written; the lane
+repo was never committed to; all mutating git ran inside the scratch clones,
+each asserted with `git rev-parse --show-toplevel`.
+
+================================================================================
+§1  COUNTER PIN — verifiers/check_tip_battery.py
+================================================================================
+
+$ cd /home/vgpnk/Projects/shokunin/kotoba-shokunin
+$ sha256sum verifiers/check_tip_battery.py
+e33b17d74f5935a43b04272baf2d88d1d4cf4f879ee9cfa48bb25f89e744bc4a  verifiers/check_tip_battery.py
+
+$ git show 398cbe1…:verifiers/check_tip_battery.py | sha256sum
+e33b17d74f5935a43b04272baf2d88d1d4cf4f879ee9cfa48bb25f89e744bc4a  -
+$ git show c2f69d4…:verifiers/check_tip_battery.py | sha256sum
+e33b17d74f5935a43b04272baf2d88d1d4cf4f879ee9cfa48bb25f89e744bc4a  -
+
+STATUS: worktree == base == HEAD. The counter bytes are UNCHANGED by this
+round's planning commit. This digest equals the one already frozen in the r79
+receipt `.ufo/waves/round-79/receipts/freeze-shas.txt` (same value, same file
+name) — so the counter's baseline pin was frozen upstream and only E5's two
+additions are new this round.
+
+Guard base pinned inside the counter (line 108): `BASE =
+072048fa8e8a52c707d25f7079772fa317244eb7` — the guard diffs the six battery
+scripts against this r72 base, NOT against the round-80 base. Every line
+arithmetic below is measured against 072048fa, because that is what the
+`instrument-size` guard sums.
+
+================================================================================
+§2  THE SIX BATTERY INSTRUMENTS — git blob shas at base 398cbe1
+================================================================================
+
+Method A: `git rev-parse 398cbe1…:<path>`
+Method B: `git show 398cbe1…:<path> | git hash-object --stdin`
+Method C: `git hash-object <path>` on the lane worktree file
+
+$ for f in verifiers/check_gate_registry.py verifiers/check_assertion_floors.py \
+           verifiers/verify_skill_checklist.py verifiers/verify_corpus_integrity.py \
+           verifiers/verify_corpus_independent.py verifiers/check_correction_sweep.py; do
+    git rev-parse 398cbe1…:$f; git show 398cbe1…:$f | git hash-object --stdin; done
+
+path                                      blob sha (A)                          A==B   worktree(C)==A
+verifiers/check_gate_registry.py          95ffed389f483c3d6f93db3c08dcfdb9a2240576   yes    yes
+verifiers/check_assertion_floors.py       9cb860bda21ef8d24fcb0603aa85372b96f3ac41   yes    yes
+verifiers/verify_skill_checklist.py       6aab16849bd6d71ded8f3bcb3f95668f14f6a78f   yes    yes
+verifiers/verify_corpus_integrity.py      e470eaaea5ef11c582b8353c9344ddf730c1a57a   yes    yes
+verifiers/verify_corpus_independent.py    edac0df79324ba62ee25ff10a6a4d422ef59da61   yes    yes
+verifiers/check_correction_sweep.py       c94b771fa7d798ef45fc3bb640422ee7910f81a6   yes    yes
+
+CROSS-CHECK against the CURRENT INSTRUMENT_PINS table of
+verifiers/check_tip_battery.py (lines 125-141): all six base blobs are already
+members of their pin tuples. The pin guard is therefore GREEN on the base
+blobs; the base's "guards 5 of 5" is consistent with the pin table, not
+accidental.
+
+sha256 of the same six files' BASE BYTES (for cross-seat comparison):
+  verifiers/check_gate_registry.py     01b8ad1b1a2d9f7568dc6b970cd5c9ec621bf58af411973f001fa3ad0c35ddce
+  verifiers/check_assertion_floors.py  84458c057eef2bff8d7c76e4fdc029428688e3920deb0b69f948387433061f21
+  verifiers/verify_skill_checklist.py  b7d7b0fca8be17cfa18e75fe4d130a0d429e34f5f4e1a30fdc5fb22a70539615
+  verifiers/verify_corpus_integrity.py 3e600f4b70e4664048c0c09b06bf6a28cb00ff37fbb8c78f597a1f1452c03748
+  verifiers/verify_corpus_independent.py c9cef5b3ecca5e9cfdac26b77702ac39186049ed782ce4a250776939a06e7ff2
+  verifiers/check_correction_sweep.py  df66b485cc00a5058643b387882abe648d6e83b66d68a5865596e88515309c2f
+  verifiers/corpus-baseline.json       22d5f0bb6458abd63592f57e2230ea989860350f8b4b0723332ef743453374d7
+  verifiers/baseline.json              945eb49e6ab368938d7eeaddc0b53308205ab69f3362aea0cd0f69c64300c149
+  SKILL.md                              7b1263b5ccbe2ba8b6ffd5d0f4c87ffc5ab3292c9ce792aeee96de283a06464a
+Each of these equals the corresponding line of the r79 freeze receipt
+`.ufo/waves/round-79/receipts/freeze-shas.txt` (base=b10bcbc6… era) — NO
+disagreement with the upstream freeze.
+
+================================================================================
+§3  r79 E04 PATCH — sha256 and the blob it produces
+================================================================================
+
+PATH CORRECTION (a plan/briefing path error, not a byte disagreement):
+the patch is at
+  /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-79/build/Kb79E04DeadPointer/Kb79E04DeadPointer.patch
+— a DIRECTORY named Kb79E04DeadPointer containing the patch. The flat path
+`.ufo/waves/round-79/build/Kb79E04DeadPointer.patch` does NOT exist (ls: "No
+such file or directory", exit 2). Both the plan and the wave brief quote the
+flat path.
+
+$ sha256sum .ufo/waves/round-79/build/Kb79E04DeadPointer/Kb79E04DeadPointer.patch
+d7169dd8f9db17a908f00c1e62a668d73c7ca96cca75626807fb81889f4a5d78
+
+STATUS: matches the plan's `d7169dd8…` pin. NO disagreement.
+
+$ sha256sum .ufo/waves/round-80/build/Kb80E04DeadPointer.patch
+d7169dd8f9db17a908f00c1e62a668d73c7ca96cca75626807fb81889f4a5d78
+$ diff .ufo/waves/round-80/build/Kb80E04DeadPointer.patch \
+       .ufo/waves/round-79/build/Kb79E04DeadPointer/Kb79E04DeadPointer.patch
+IDENTICAL (no output)
+
+APPLY + RESULT (scratch clone at base):
+$ git apply --check <patch>            -> rc 0
+$ git apply <patch>                    -> rc 0
+$ git diff --cached --stat             -> verifiers/verify_corpus_integrity.py | 17 +++
+$ git hash-object verifiers/verify_corpus_integrity.py
+051b8c5f8676cba5c8d6047c8c9f7fcb56cd8f9f
+$ sha256sum verifiers/verify_corpus_integrity.py
+4b388798ec669ce2746bb98a1137e73176ea55d5ad1ee2ed8121b22a629771db
+
+PUBLISHED PIN CROSS-CHECK:
+$ cat .ufo/waves/round-80/build/Kb80E04DeadPointer.blob
+051b8c5f8676cba5c8d6047c8c9f7fcb56cd8f9f  verifiers/verify_corpus_integrity.py
+STATUS: EQUAL to my recomputation. NO disagreement. (sha256 of the .blob FILE
+itself: ba3abde6b2b5585467b8b2c724da93ef0f21cb4876b6c6a3b2d06bc8f8b64468.)
+
+The E04 blob 051b8c5f… is NOT a member of the CURRENT INSTRUMENT_PINS table.
+Any tree carrying E04 therefore fails `instrument-pin` under the unamended
+counter — measured, see §6.
+
+================================================================================
+§4  FLEET FILE PIN — .ufo/reports/round-76/kotoba.md
+================================================================================
+
+$ sha256sum /home/vgpnk/Projects/shokunin/.ufo/reports/round-76/kotoba.md
+a025051d389368ea3a1078b7a64d3847c1e6ff25328fc1645a7be34f30e3f78f   (8128 bytes)
+
+STATUS: matches the plan's `a025051d…` pin. NO disagreement.
+$ git -C /home/vgpnk/Projects/shokunin ls-files --error-unmatch .ufo/reports/round-76/kotoba.md
+.ufo/reports/round-76/kotoba.md   (tracked in the fleet repo)
+
+LANE-SIDE STATE at base: the lane has NO `.ufo/reports/round-76/` directory at
+all — the symlink repair has not landed. The r80 symlink patch:
+$ sha256sum .ufo/waves/round-80/build/Kb80E02Symlink.patch
+0f3202409299e0ef2e29242d80c8816f23f9cf04502a370925142d27564bf35b
+$ cmp .ufo/waves/round-80/build/Kb80E02Symlink.patch \
+      .ufo/waves/round-79/build/Kb79E02LogCitation.patch
+IDENTICAL (exit 0) — the r80 file is byte-identical to the r79 original
+(same sha256). [NOTE: an earlier reading of this file during the wave saw a
+`git format-patch`-style file with a different digest, 3fefb536…; the file was
+REWRITTEN by its owning seat at 20:17 and the digest above is the current
+one. Seat Kb80V03Instruments independently caught the same change and reported
+it — the two accounts agree.]
+
+RESOLUTION TEST (scratch, fleet-shaped tree): the symlink
+`.ufo/reports/round-76/kotoba.md -> ../../../../.ufo/reports/round-76/kotoba.md`
+resolves ONLY when the lane's parent holds the fleet tree:
+  fleet-shaped sandbox: readlink -f -> /home/vgpnk/Projects/shokunin/.ufo/reports/round-76/kotoba.md
+                        sha256     -> a025051d…  ; cmp vs the fleet file -> BYTE-IDENTICAL
+  bare clone, no fleet parent: readlink -f -> (empty) ; target MISSING
+STATUS: the symlink is byte-correct and resolves to exactly the pinned fleet
+file; it fails closed when the fleet tree is absent (expected, and the reason
+the counter's `--fleet`/parent derivation matters).
+
+================================================================================
+§5  THE SIX SNAPSHOT PINS
+================================================================================
+
+There is NO `.ufo/waves/round-79/snapshots/MANIFEST.sha256` in the committed
+tree at base or at HEAD — `git ls-tree -r 398cbe1… -- .ufo/waves/round-79/snapshots/`
+lists eighteen files: six snapshot files, six `S###.fetch.json`, and six
+per-id `S###.manifest` files. The r79 draft counter's MANIFEST constant is
+`SNAPDIR + "/MANIFEST.sha256"`, so the counter's conjunct (c) is unsatisfiable
+against the committed tree until such a file is added (see §7).
+
+$ cd .ufo/waves/round-79/snapshots && sha256sum S226-spec.md S227-claude.md \
+      S228-factory.md S229-msaf.html S230-pi.md S231-vibe.md
+
+id     file               sha256 (recomputed from the committed bytes)      .manifest  r79 fetch record  live re-open
+S226   S226-spec.md       9a67de89132948b2300b8dc87b93817971d47f9be89b644444965881a8dfde16   MATCH     MATCH   MATCH
+S227   S227-claude.md     31623035b25ac7e6bebd8dec6234aa76e31018f0e2eb8b47da6b36cf015712f9   MATCH     MATCH   MATCH
+S228   S228-factory.md    81409d890cb1b07f6a5a85db19610d4706866e5f4f668d4e26dd032002fed0c9   MATCH     MATCH   MATCH
+S229   S229-msaf.html     34016233a42a2191e319bb6ed49362956c6a6e86bbe64f2fa2e370326de548d2   MATCH     MATCH   DIFFERS
+S230   S230-pi.md         5b9805525b194474ef1fe5455a0917ef15ed7f710aa9bec2eee11879556469e5   MATCH     MATCH   MATCH
+S231   S231-vibe.md       fc48a5dbafe572fedd1457cffba8442aacd296dddaf50833ac3104252cb016b0   MATCH     MATCH   MATCH
+
+Live re-open digests are from `.ufo/waves/round-80/build/Kb80R03ReopenSix-S*.fetch.json`
+(round-80 re-open, 2026-10-27T23:13Z).
+
+DISAGREEMENT / TRAP (S229 only): the live page now serves
+20fd76d8dea592cb55409354a7f94c83de92991838d7d4b4add7594fb77bd1e2 (157339 B),
+while the committed snapshot and its pin are 34016233a42a2191e319bb6ed49362956c6a6e86bbe64f2fa2e370326de548d2.
+The pin must stay on the COMMITTED bytes: the counter's (c) compares the
+SOURCES anchor cell's sha256 against the manifest pin, and `read_snapshot()`
+re-hashes the committed bytes. An anchor carrying the live digest fails (c);
+an anchor carrying the pinned digest is correct. (The sentinel seat reached the
+same conclusion independently — its probe file states the same hard rule.)
+
+The proposed aggregate manifest (six per-id lines verbatim, comment header) is
+at `.ufo/waves/round-80/build/Kb80N01Sentinel-MANIFEST.proposed`; its six
+digests are exactly the six values above and parse under the counter's
+`manifest()` regex.
+
+================================================================================
+§6  CROSS-CHECK OF PUBLISHED SEAT PINS
+================================================================================
+
+6.1  Kb80E04DeadPointer.blob
+     published: 051b8c5f8676cba5c8d6047c8c9f7fcb56cd8f9f  verifiers/verify_corpus_integrity.py
+     mine:      051b8c5f8676cba5c8d6047c8c9f7fcb56cd8f9f      -> MATCH, no disagreement
+
+6.2  Kb80E06CounterErratum.cap60-provisional.py  (sha256 8eb1b2b30a681053390b764875cd243a7bb7762987ab28e991445fb7fa6aefb0)
+     LINE_CAP = 60 -> present (with the plan's arithmetic comment).
+     INSTRUMENT_PINS -> UNCHANGED from the lane counter: `grep -c 051b8c5f` = 0;
+     the whole diff against the lane counter is 53 lines (cap constant, its
+     comment, the self-test fixture padding 41 -> LINE_CAP+1, two expected-detail
+     strings). MEASURED ON A base+E04 tree with this file:
+       guard instrument-size PASS
+       FAIL guard instrument-pin: verifiers/verify_corpus_integrity.py blob
+             051b8c5f8676cba5c8d6047c8c9f7fcb56cd8f9f at <tip> is not a pinned blob
+       fleet root …; guards 4 of 5; tip battery exit 0: 1 of 6        exit=1
+     STATUS: this file delivers only the first half of E5 ("LINE_CAP 40->60");
+     the second half ("INSTRUMENT_PINS gaining exactly the two reviewed
+     blobs") is absent. It is labelled provisional by its owner. Its own
+     `--self-test` is clean: "self-test: 0 failure(s) over 69 assertions", exit 0.
+
+6.3  Kb80E06CounterErratum.sha256 + check_tip_battery.amended.py
+     published sha256: 15cc17614e61bdc47122bf501da951de3dbde6444b1ed4a98ca8192c2329ddba
+     recomputed sha256 of build/check_tip_battery.amended.py:
+                       15cc17614e61bdc47122bf501da951de3dbde6444b1ed4a98ca8192c2329ddba  -> MATCH
+     LINE_CAP = 60; pin table:
+       verify_corpus_integrity.py     -> 71cb2730…, e470eaaa…, cc182613a4d089c41e44f11b50e03b45ce582dd8
+       verify_corpus_independent.py   -> 176abae3…, edac0df7…, 89f392daab3e4181db3ded7676ca0879871ef7ff
+     Those two new blobs are the Y01/E10 composed blobs (§6.5) — my
+     recomputation of the composed blobs matches EXACTLY. `--self-test`:
+     "self-test: 0 failure(s) over 69 assertions", exit 0.
+     OBSERVATION (not a disagreement, a bookkeeping note): the amended counter's
+     pin rows carry the COMPOSED blobs but NOT E04's standalone blob
+     051b8c5f…. On a stack that carries E04 alone (no grammar class) that
+     counter fails instrument-pin. Both stacks are covered if the row also
+     carries 051b8c5f…
+
+6.4  Kb80M02Battery-pristine-counter.py (sha256 06b98f2d1593f1c2e66b953a98a272887bdbe63ceadf805d55ae3da66177b273)
+     Its pin table DOES carry 051b8c5f… in the integrity row — but the
+     independent row lists `edac0df79324ba62ee25ff10a6a4d422ef59da61` TWICE
+     (duplicate member, no new blob), and its LINE_CAP is 60 while its self-test
+     fixture padding is still hardcoded 41/60. MEASURED `--self-test`:
+     "self-test: 4 failure(s) over 69 assertions", exit 1
+       FAIL size world exits 1: exit 0
+       FAIL size world names the instrument-size guard
+       FAIL stub world exits 1: exit 0
+       FAIL stub world fails the deletion side of the size cap
+     STATUS: this file's self-test is RED as published. It must not be the
+     frozen counter bytes.
+
+6.5  Kb80Y01-simplified.patch (sha256 …) — the composed blobs, recomputed by me
+     $ git apply Kb80Y01-simplified.patch   (on base 398cbe1, scratch)  -> rc 0
+     $ git hash-object verifiers/verify_corpus_integrity.py
+     cc182613a4d089c41e44f11b50e03b45ce582dd8
+     $ git hash-object verifiers/verify_corpus_independent.py
+     89f392daab3e4181db3ded7676ca0879871ef7ff
+     $ git hash-object verifiers/check_tip_battery.py
+     07cb641041a2bd6a09bc443ab5fd6627f7bb6816
+     The two composed blobs equal the pins published inside the Y01 patch and
+     inside the E06 amended counter -> MATCH, no disagreement. (Seat
+     Kb80V03Instruments independently recomputed the same two blob ids.)
+     Six-instrument numstat of Y01 vs 072048fa: check_assertion_floors.py 22/3,
+     verify_corpus_independent.py 10/3, verify_corpus_integrity.py 27/4 ->
+     59 added / 10 deleted total, which FITS the amended cap of 60.
+     MEASURED, Y01 stack in a scratch clone at tip 38ec6d8d…, counter =
+     Y01's own amended counter, --fleet /home/vgpnk/Projects/shokunin:
+       guard no-deletions PASS / floors PASS / instrument-size PASS /
+       instrument-pin PASS / spotcheck-identity PASS
+       fleet root /home/vgpnk/Projects/shokunin; guards 5 of 5; tip battery exit 0: 6 of 6
+       exit=0
+     (A stack world reaching 6 of 6 is a SCORED world; I report the number and
+     do not repair it. Whether that stack satisfies the plan's C1 kill rule is
+     the L1's call, not mine.)
+
+6.6  Kb80S07Quality-world.patch (sha256 f4263274e059eb5ab809139f1f80d542a71c6dc11c51a374a364cb78af6c413e)
+     MEASURED (scratch, base + this patch): integrity blob ce1c6b451d280c3518379f7bb19608a627f44555,
+     independent blob 77814259ea88e252010bcecedd142b21b91be297; E04 ∘ it ->
+     integrity c500949706c886bc1ac4ec3985ba9e7b4767a2cc, independent 77814259…;
+     six-instrument numstat vs 072048fa: 22/3 + 75/4 + 113/1 = 210 added / 8 deleted.
+     STATUS: this candidate does NOT fit the amended cap of 60 (210 added). Its
+     own seat states it is a candidate world, not the landed patch.
+
+6.7  C2 counter bytes — build/check_allowed_tools.py
+     The file was REWRITTEN during the wave. Observed versions:
+       sha256 74e067ccad7813d91826ee503c8ee93ba47d3a4a05b12ec67a82791d93f722a6
+              (byte-identical to the r79 draft; ENTRY …-round79.md; prints
+               "allowed-tools surfaces backed N of 6" / "script-only world: M of 6";
+               TARGET = 5; exit rule `n >= TARGET and m < TARGET and rule and
+               home and bullets == 1`)
+       sha256 b4ca1561a9cc6989ad9497ae0eab6f7e2b2e2077ac9ac6658e4e6eb7b2d55367
+              (the current file: docstring rewritten for round 80 and the
+               predicate strings "allowed-tools surfaces documented N of 6" /
+               "generator world: M of 6" now appear — but only in the
+               DOCSTRING, lines 8 and 13; the PRINT statements at lines 2281-2282
+               still read "allowed-tools surfaces backed {n} of {TOTAL}" and
+               "script-only world: {m} of {TOTAL}", TARGET is still 5, the exit
+               rule is still `n >= TARGET and m < TARGET and rule and home and
+               bullets == 1`, and ENTRY is still
+               corpus/knowledge/allowed-tools-surfaces-round79.md while the plan
+               names …-round80.md).
+     MEASURED drift guard on the current file: SELF_SHA = 1f9744c8… but
+     `_blanked_sha(<the file's own bytes>)` = f6569f6b691aabea708f490e290450f3bc7a66bb9da495652f9f5dfc516bed80
+     -> NOT equal -> the counter exits 2 with "environment error: counter
+     drifted — the running file is not the frozen counter" on EVERY real
+     measurement run (reproduced against the E10 stack). The comment on line 286
+     says the L1 refills SELF_SHA at freeze; until that refill the counter
+     cannot be measured at all.
+     STATUS: as published at audit time, the C2 counter is NOT measurable
+     (exit 2, drift) and does not print the plan's frozen predicate strings
+     from its print statements.
+
+6.8  Kb80E04DeadPointer/composed-stack-*.txt (the E04 seat's own composed blobs)
+     published: cc182613a4d089c41e44f11b50e03b45ce582dd8  (integrity)
+                89f392daab3e4181db3ded7676ca0879871ef7ff  (independent)
+     mine:      cc182613a4d089c41e44f11b50e03b45ce582dd8  /  89f392daab3e4181db3ded7676ca0879871ef7ff
+     STATUS: MATCH, no disagreement. Their recipe-composed-stack.sh applies
+     Kb80Y01-simplified.patch (the same bytes I recomputed) — so the two seats
+     converged on ONE composed pair of blobs, and the E06 amended counter pins
+     exactly that pair.
+
+6.9  E10Battery stack receipts (build/battery-stack-canonical-counter/)
+     Published: rev c1b007752f17f9602bfea12ec293748644364d67, both forms
+     (--repo . from the world lane root, and the absolute --repo <lane> form):
+       "fleet root /home/vgpnk/Projects/shokunin; guards 5 of 5; tip battery exit 0: 6 of 6"
+       exit=0
+       "instruments added 59 / deleted 10 lines (cap 60)"
+     MY OWN MEASUREMENT of the same composed stack (Y01 bytes, my scratch clone
+     at tip 38ec6d8d6f82d941e0f9a048c5ce8c8be4f120f8, counter = Y01's amended
+     counter, --fleet /home/vgpnk/Projects/shokunin):
+       guard no-deletions PASS / floors PASS / instrument-size PASS /
+       instrument-pin PASS / spotcheck-identity PASS
+       "fleet root /home/vgpnk/Projects/shokunin; guards 5 of 5; tip battery exit 0: 6 of 6"
+       exit=0
+     STATUS: the composed stack's line arithmetic is 59 added / 10 deleted,
+     which FITS the amended cap of 60 — one line of headroom. My independent
+     run of the E10 stack world (their patch, my clone, tip
+     bcd381a024ec4588bb432422731e83ffbfebe608, counter = their own
+     check_tip_battery.amended.py, --fleet /home/vgpnk/Projects/shokunin):
+       guards 5 of 5; tip battery exit 0: 6 of 6; all six gates exit 0; exit=0
+     STATUS: AGREE with the published receipts. NOTE FOR THE L1: this is the
+     FULL STACK world, not one of the plan's W0-W7 CONTROL worlds; the plan's
+     kill rule targets a CONTROL world reaching 6 of 6. I score nothing; I
+     report the measurement and the distinction.
+
+6.10 E05 (grammar class) — NOT PUBLISHED at audit time. No
+     `Kb80E05GrammarFix*` file exists in .ufo/waves/round-80/build/ (checked
+     repeatedly through the wave; last check 20:46 local). I therefore could
+     not cross-check E05's landed blob ids. The composed pair above is the
+     Y01-derived pair, which E05's landed patch may or may not reproduce.
+
+================================================================================
+§7  BLOCKERS AND DEFECTS FOUND (measured, not inferred)
+================================================================================
+
+7.1  The plan's line-cap arithmetic does not close for the published grammar
+     candidate. The guard diffs against the PINNED r72 base 072048fa, so the
+     22 lines already spent at base count:
+       072048fa..398cbe1 : check_assertion_floors.py 22/3, all others 0/0
+       after E04 (+17)    : 39 added
+       budget under cap 60: 21 added lines across BOTH corpus gates
+       S07 candidate     : +171 added (96 integrity + 75 independent) -> 210 total
+     -> instrument-size FAILS under the amended cap for that candidate. The Y01
+     composed candidate fits (59 added). Which candidate lands is the L1's
+     decision; the number is the fact.
+
+7.2  The E5 amendment as published (cap-only provisional) cannot make any
+     E04-bearing stack read "guards 5 of 5" — instrument-pin fails, measured.
+
+7.3  `.ufo/waves/round-79/snapshots/MANIFEST.sha256` does not exist in the
+     committed tree; the C2 counter's conjunct (c) reads exactly that path and
+     raises EnvError (exit 2) when it is absent. Reproduced against base. The
+     content that satisfies it is at build/Kb80N01Sentinel-MANIFEST.proposed
+     (six per-id lines verbatim).
+
+7.4  C2 COUNTER DEFECT (structural): the Q70 locator cannot admit ANY
+     Microsoft-Agent-Framework quote, so "6 of 6" is unreachable with the
+     committed S229 snapshot:
+       - S229-msaf.html names the field EXACTLY ONCE (raw line 818,
+         `<td><code>allowed-tools</code></td>`; grep -c allowed-tools = 1); in
+         the counter's own text_view the occurrence is at view line 95.
+       - quote_location() rejects any quote whose START index is <= first_head+1,
+         where first_head = the first view line starting with "#" — here view
+         line 168, which is a PYTHON COMMENT inside a code sample
+         ("# Auto-approve load_skill and read_skill_resource, but not
+         run_skill_script."), not a heading. The page's real <h1
+         id="agent-skills"> is at raw line 676.
+       - MEASURED with the counter's own functions (importlib load of the
+         published file; text_view + quote_location on the committed bytes):
+         S226 True, S227 True, S228 True, S230 True, S231 True,
+         S229 FALSE with exactly "quote lies in the first-heading block (Q70)".
+     This is a counter defect, not a quote choice: the '#'-prefix heading
+     heuristic misfires on an HTML text view. It is reported, never repaired by
+     narrowing a quote.
+
+7.5  The C2 counter's SELF_SHA is stale (§6.7): every real measurement exits 2
+     with "counter drifted". Refill is required before the counter can be
+     measured.
+
+7.6  The C2 counter's print statements still emit "… backed N of 6" and
+     "script-only world: M of 6" while the plan freezes "… documented N of 6"
+     and "generator world: M of 6", and its exit rule still accepts N >= 5
+     where the plan freezes N == 6 (§6.7).
+
+7.7  The C2 counter's ENTRY constant is corpus/knowledge/allowed-tools-surfaces-round79.md
+     while the plan names corpus/knowledge/allowed-tools-surfaces-round80.md,
+     and the published entry file is …-round80.md (§6.7). Measured on the E10
+     stack (which adds …-round80.md and the counter): the counter prints
+     "entry corpus/knowledge/allowed-tools-surfaces-round79.md absent at <tip>"
+     and "allowed-tools surfaces backed 0 of 6", exit 1.
+
+7.8  The counter's snapshot_name() collects every backticked pinned basename on
+     every line mentioning the sid, so two basenames on one line make BOTH sids
+     ambiguous (EnvError, exit 2). The published entry has been split to one
+     pinned basename per line (seat E08's own measurement: 6 of 6 bind, 0 fails).
+
+7.9  ANCHOR TRAP (S230/S231): the two real commit_unresolvable tokens at base
+     are ONE 40-hex digest cited twice, 7bb48f213ac677f943d5c791199ed3dddf302f00,
+     at corpus/SOURCES.md:171 (row S230, pi-mono) and :172 (row S231,
+     mistral-vibe). The plan's named instances (google-gemini/gemini-cli@451a02ff,
+     zed-industries/zed@cfb894a5) are `commit_quoted` context, never
+     unresolvable. Additionally S231's fetch record shows 7bb48f21 is the
+     MISTRAL-VIBE commit while S230's row cites it as pi-mono's ("resolved to
+     `badlogic/pi-mono` commit `7bb48f21…`") — S230's anchor names the wrong
+     repository's commit; the pi-mono head at fetch time was bb65e3e4… (also
+     absent from lane and fleet, `git cat-file -t` exit 128). Pin-relevant
+     consequence: a grammar class keyed only on an in-token `owner/repo@<hex>`
+     clears neither live instance; the class must use the plan's
+     "(or otherwise an explicit third-repository citation)" clause at line scope.
+     No SOURCES row is edited (M45 pattern).
+
+================================================================================
+§8  EXPLICIT DISAGREEMENTS
+================================================================================
+
+D1  E04 patch PATH: the plan and the wave brief quote
+    `.ufo/waves/round-79/build/Kb79E04DeadPointer.patch`; the file actually
+    lives at `.ufo/waves/round-79/build/Kb79E04DeadPointer/Kb79E04DeadPointer.patch`
+    (a directory). Digest d7169dd8… matches the plan. PATH error only.
+
+D2  The plan/brief also says "the r79 build dir carries … Kb79E02LogCitation.patch
+    (sha256 c411106e… is the registry patch; the symlink patch is
+    Kb79E02LogCitation.patch)". Measured:
+      Kb79E01Registry.patch    sha256 c411106e1ce60f14a87840b42906642d3bfe1dee1f37d8f60042143d2c95c611
+      Kb79E02LogCitation.patch sha256 0f3202409299e0ef2e29242d80c8816f23f9cf04502a370925142d27564bf35b
+    So c411106e… IS the registry patch and 0f320240… is the symlink patch — the
+    brief's parenthetical is correct on both attributions. No disagreement on
+    the digests; only the flat-path wording of D1 differs.
+
+D3  `Kb79E03IndexBaseline`'s refresh script is published as
+    `.ufo/waves/round-79/build/refresh-corpus-baseline.py`,
+    sha256 8481be46ab6b74656fe7fa68c53300a5e490ee23265e69768d4dfeed770b470a
+    (the brief lists it as "Kb79E03IndexBaseline's refresh script"; the file
+    carries the plain name). No digest disagreement.
+
+D4  The brief says "rows S226-S231 (snapshots stay at .ufo/waves/round-79/snapshots/)"
+    and asks me to check "the six snapshot sha256s vs
+    .ufo/waves/round-79/snapshots/MANIFEST.sha256". THAT FILE DOES NOT EXIST at
+    base or HEAD; the six per-id `.manifest` files are what the tree carries, and
+    their six digests match the committed snapshot bytes exactly (§5). The
+    aggregate MANIFEST.sha256 is a NEW file the stack must add — proposed
+    content at build/Kb80N01Sentinel-MANIFEST.proposed. Disagreement with the
+    brief's path, not with a digest.
+
+D5  `Kb80E06CounterErratum.cap60-provisional.py` and
+    `Kb80M02Battery-pristine-counter.py` disagree with EACH OTHER on the pin
+    table: the provisional has NO new blob at all; the M02 file carries
+    051b8c5f… but duplicates the independent row's base blob and has a RED
+    self-test (4 failures / 69 assertions, exit 1). The E06 amended counter
+    (build/check_tip_battery.amended.py, sha256 15cc1761…, self-test 0 failures,
+    exit 0) carries the two COMPOSED blobs cc182613…/89f392da… and my
+    recomputation of both matches exactly.
+
+D6  The C2 counter file changed identity under the wave: it was the r79 draft
+    (74e067cc…) and is now b4ca1561…; the brief's "NEW counter built this wave
+    from the r79 draft" is true of the current file's docstring only — its
+    print statements, TARGET, exit rule and ENTRY path are still the r79 ones,
+    and its SELF_SHA is stale (§6.7).
+
+================================================================================
+§9  BASE ANCHOR — my own measurement (not the L1's receipt)
+================================================================================
+
+$ cd /home/vgpnk/Projects/shokunin/kotoba-shokunin
+$ python3 -B verifiers/check_tip_battery.py --rev 398cbe1… --repo .        (from the lane root)
+$ python3 -B verifiers/check_tip_battery.py --rev 398cbe1… --repo /home/vgpnk/Projects/shokunin/kotoba-shokunin
+
+Both runs (own exit capture, `cmd > f 2>&1; rc=$?; echo "exit=$rc" >> f`):
+  fleet root /home/vgpnk/Projects/shokunin; guards 5 of 5; tip battery exit 0: 1 of 6
+  exit=1
+  wall 115.3 s each
+STATUS: both forms agree with the plan's base figure (1 of 6, exit 1) and with
+`.ufo/waves/round-80/receipts/tipbattery-base-dot.txt` (which ends `exit=1`).
+Per-gate base exits, from my run: check_gate_registry 1, check_assertion_floors
+1 (101-110 s), verify_skill_checklist 1, verify_corpus_integrity 1,
+verify_corpus_independent 1, check_correction_sweep 0.
+
+================================================================================
+§10  WHAT I DID NOT DO
+================================================================================
+
+- No claim after-value scored; no control world scored by me.
+- No counter narrowed, no guard logic edited, no artifact repaired.
+- No lane file written outside `.ufo/waves/round-80/`; no lane commit, add,
+  checkout, stash or push; the lane git state was read only.
+- No MANIFEST.json / templates / scripts / .ufo/state / corpus / SKILL.md /
+  PROVINCE.md / verifiers/ edits — every change was measured in a scratch clone
+  under /fast/scratch/hyaku/kotoba-r80/Kb80E16PinAudit.
+- No credential, token or `op://` reference appears in this file or in any
+  message I sent.
+- Scratch removed at yield (see the seat report).
+
+================================================================================
+§11  ADDENDUM (lane tip moved during the wave — re-verified at the new tip)
+================================================================================
+
+While this audit was being written the L1 landed two plan-only commits; the lane
+HEAD moved from c2f69d4 to
+a481913bafeb1ec5c231fd581f13da6ae5a306dc ("round-80: correct base unresolvable
+citation locators before claim data"), on top of
+308bff94eab9e296631d6c1201566a02a224d559 ("round-80: pre-data freeze
+clarification — erratum E5 exact amended line set"). Both touch
+plans/round-80.md ONLY (1 file each).
+
+Re-verified at the new tip a481913b:
+$ git show HEAD:verifiers/check_tip_battery.py | sha256sum
+e33b17d74f5935a43b04272baf2d88d1d4cf4f879ee9cfa48bb25f89e744bc4a   (unchanged)
+$ git show HEAD:verifiers/check_tip_battery.py | grep -n '^LINE_CAP'
+111:LINE_CAP = 40                       (E5 NOT landed in the lane yet)
+$ git show HEAD:verifiers/check_tip_battery.py | grep -n 'cc18261\|89f392d\|051b8c5f'
+(no output — the pin table is still the unamended one)
+Six instrument blobs AT THE TIP a481913b (git rev-parse HEAD:<path>):
+  check_gate_registry.py      95ffed389f483c3d6f93db3c08dcfdb9a2240576
+  check_assertion_floors.py   9cb860bda21ef8d24fcb0603aa85372b96f3ac41
+  verify_skill_checklist.py   6aab16849bd6d71ded8f3bcb3f95668f14f6a78f
+  verify_corpus_integrity.py  e470eaaea5ef11c582b8353c9344ddf730c1a57a
+  verify_corpus_independent.py edac0df79324ba62ee25ff10a6a4d422ef59da61
+  check_correction_sweep.py   c94b771fa7d798ef45fc3bb640422ee7910f81a6
+  -> all six are the BASE blobs and all six are in the current pin table, so
+     the tip's pin guard is green on the base blobs; E5's two additions are not
+     yet in the lane.
+
+STATUS: the two new plan addenda are consistent with my measurements:
+ Addendum 1 fixes E5's exact amended line set (cap + exactly two pin entries +
+ the self-test fixture constants re-anchored to LINE_CAP + docstring mentions),
+ which is the shape of the published `check_tip_battery.amended.py`
+ (sha256 15cc1761…, self-test 0 failures / 69 assertions, exit 0), and states
+ the pin-ordering fact I measured: the integrity pin is the E04∘E05 COMPOSED
+ blob, not the E04-only 051b8c5f… (which stays the E04-only cross-check).
+ Addendum 2 corrects the base `commit_unresolvable` locator to
+ corpus/SOURCES.md:171-172 / 7bb48f21… — exactly what I measured in §7.9 and
+ what seat Kb80V03Instruments measured independently.
+ NOTE for the L1: the amended plan text at the tip still says the base
+ tip-battery absolute form receipt is "pending"; my own run of the absolute
+ `--repo <lane>` form at base produced the identical line and exit 1 (§9), and
+ that receipt is mine to publish under .ufo/waves/round-80/receipts/ only if
+ the L1 wants it — I did not write outside my seat's paths.
+
+================================================================================
+§12  LATE PUBLICATION RE-CHECK — E05 landed and E06 re-published (post-audit)
+================================================================================
+
+E05 (grammar class) and a NEW E06 counter landed after §1-§11 were written.
+Everything below was recomputed by me from primary bytes; own exit capture.
+
+12.1  E05 PATCH AND BLOBS — CONFIRMED
+$ sha256sum .ufo/waves/round-80/build/Kb80E05GrammarFix.patch
+a4345d34d3a8e35d7697b5abc05d077c2bb43e49e636edd6937590b1b223a2d3
+(equals its own .patch.sha256 file)
+
+Scratch clone at base 398cbe1, forward order:
+$ git apply Kb80E04DeadPointer.patch   -> rc 0
+$ git apply Kb80E05GrammarFix.patch    -> rc 0
+$ git hash-object verifiers/verify_corpus_integrity.py   -> 68ccce1c152c915e16893a5157c9d5878df779fb
+$ git hash-object verifiers/verify_corpus_independent.py -> e887de71892ecfc6be5b3f47e362ce8a766c5c89
+Both equal E05's published .blobs and .combined-blob.txt. NO disagreement.
+Reverse order (E05 first rc 0, E04 second rc 0) yields the SAME two blobs ->
+the composition is ORDER-INDEPENDENT, which is what a pin needs. (Seat
+Kb80V03Instruments recomputed the same two ids independently.)
+
+12.2  LINE ARITHMETIC — THE TIGHTEST NUMBER OF THE ROUND
+Six instruments vs the PINNED r72 base 072048fa8e8a52c707d25f7079772fa317244eb7:
+  check_assertion_floors.py 22/3, verify_corpus_independent.py 10/3,
+  verify_corpus_integrity.py 28/2  =>  added = 60, deleted = 8
+The guard tests `added > LINE_CAP`; 60 > 60 is FALSE, so the E04+E05 stack
+PASSES instrument-size AT EXACTLY the cap with ZERO headroom. One further added
+line in any of the six instruments fails the guard. (The Y01 bundle measured
+59/10 — one line of headroom.)
+
+12.3  THE NEW E06 COUNTER — REPLACES the pins, does not extend them
+$ cat .ufo/waves/round-80/build/Kb80E06CounterErratum.sha256
+20e4960126961fe1892cf8647406a4619313db25deb3550a02c0bd41e6445276  verifiers/check_tip_battery.py (E5-amended counter, E05 canonical pins)
+$ sha256sum .ufo/waves/round-80/build/check_tip_battery.amended.py
+20e4960126961fe1892cf8647406a4619313db25deb3550a02c0bd41e6445276   -> MATCH
+$ sha256sum .ufo/waves/round-80/build/Kb80E06CounterErratum.patch
+fcd886870d3689468c8fa2a5f9aad27b4e0b25e9a4ca06dcf89d7fe297b80382
+LINE_CAP = 60; pin rows now:
+  verify_corpus_integrity.py   -> 71cb2730…, e470eaaa…, 68ccce1c152c915e16893a5157c9d5878df779fb
+  verify_corpus_independent.py -> 176abae3…, edac0df7…, e887de71892ecfc6be5b3f47e362ce8a766c5c89
+  `grep -c "cc18261\|89f392d"` on the file = 0: the earlier Y01 pins
+  (cc182613a4d089c41e44f11b50e03b45ce582dd8 / 89f392daab3e4181db3ded7676ca0879871ef7ff)
+  are GONE, not kept alongside.
+Self-test (my run): "self-test: 0 failure(s) over 69 assertions", exit 0.
+CONSEQUENCE (pin fact, not a judgement): with this counter a Y01-bundled stack,
+or an E04-only stack (whose blob 051b8c5f… is also unpinned), FAILS
+instrument-pin. E05's own .pin-reconciliation.txt recommends keeping BOTH pairs
+in the two rows (option B); E06 shipped the narrower variant (replacement).
+Whichever patch the L1 lands, the pin rows must name the bytes that actually
+land — that is the invariant, and both variants break it for the other stack.
+
+12.4  MY OWN MEASUREMENT OF THE E04+E05 STACK ON THE NEW COUNTER
+Scratch clone tip 270056b53e2e44186ceb7fadb78979b7a46cbc32 (E04 then E05
+applied, committed in the scratch clone), counter =
+build/check_tip_battery.amended.py, `--rev <tip> --repo <clone> --fleet
+/home/vgpnk/Projects/shokunin`:
+  guarded paths 586, deleted 0; floors 15 rows; instruments added 60 / deleted 8 lines (cap 60)
+  guard no-deletions PASS / floors PASS / instrument-size PASS /
+  instrument-pin PASS / spotcheck-identity PASS
+  gate verifiers/check_gate_registry.py exit 1
+  gate verifiers/check_assertion_floors.py exit 1
+  gate verifiers/verify_skill_checklist.py exit 1
+  gate verifiers/verify_corpus_integrity.py exit 1
+  gate verifiers/verify_corpus_independent.py exit 1
+  gate verifiers/check_correction_sweep.py exit 0
+  fleet root /home/vgpnk/Projects/shokunin; guards 5 of 5; tip battery exit 0: 1 of 6
+  exit=1
+READING: the PIN SET IS CORRECT — all five guards pass on the E04+E05 tree with
+the new counter, including instrument-pin at 60/8 exactly at the cap. The 1 of 6
+is the OTHER repairs' absence in my minimal stack (registry rows, the symlink,
+coverage rows + baseline refresh): this stack carries only the two instrument
+repairs, so the five non-sweep gates still hold their base reds. The full stack
+measured by E10 (which carries every repair plus the Y01 bytes and its own
+counter) reads "guards 5 of 5; tip battery exit 0: 6 of 6", exit 0 (§6.9).
+
+12.5  E05's CLASS EFFECT, quoted from its own receipts (not re-measured by me)
+.ufo/waves/round-80/build/Kb80E05GrammarFix.stack-integrity.json observed
+fields: tracked_files 154, unindexed 0, report_total 109, report_dead 0,
+commit_total 46, commit_unresolvable 0, commit_external 2 —
+i.e. the class moves commit_unresolvable 2 -> 0 and files them as
+commit_external 2, exactly the plan's classification-only requirement. Its
+stack gate rc files read "INTEGRITY exit=0" / "INDEPENDENT exit=0".
+
+END OF AUDIT FILE.

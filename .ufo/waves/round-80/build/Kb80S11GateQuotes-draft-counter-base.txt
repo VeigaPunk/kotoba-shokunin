@@ -1,0 +1,11 @@
+measured-rev: 398cbe1bb67f8d9dcf5d25d5ecf1b26a7c6f7e93
+allowed-tools surfaces backed 0 of 6
+script-only world: 0 of 6
+opened this round 0 of 6
+held at base: 5
+province surfaces named 0 of 6
+skill rule line MISSING
+registry home MISSING
+  entry corpus/knowledge/allowed-tools-surfaces-round79.md absent at 398cbe1bb67f8d9dcf5d25d5ecf1b26a7c6f7e93 (the frozen path is the entry's only home)
+  0 ## Core bullet(s) name the entry (want exactly 1)
+exit=1

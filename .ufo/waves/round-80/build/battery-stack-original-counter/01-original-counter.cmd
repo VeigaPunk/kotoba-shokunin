@@ -1,0 +1,2 @@
+# rev=c1b007752f17f9602bfea12ec293748644364d67 cmd=python3 -B /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/check_tip_battery.py --rev c1b007752f17f9602bfea12ec293748644364d67 --repo /fast/scratch/hyaku/kotoba-r80/Kb80E10Battery/clone --fleet /home/vgpnk/Projects/shokunin
+# counter bytes: sha256 e33b17d74f5935a43b04272baf2d88d1d4cf4f879ee9cfa48bb25f89e744bc4a (the ROUND-72 ORIGINAL counter, lane verifiers/check_tip_battery.py)

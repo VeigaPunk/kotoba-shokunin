@@ -1,0 +1,222 @@
+# Kb80E02Symlink — independent cross-check of the C1 stack assembly (measurement only; NOT my item)
+date_utc=2026-10-27T23:42:54Z
+seat=Kb80E02Symlink (C1 repair 2 = the relative symlink) — this file is a CORROBORATION receipt for
+     Kb80E10Battery's three facts and for Kb80E05GrammarFix's grammar-class work.
+worlds: scratch clones under /fast/scratch/hyaku/kotoba-r80/Kb80E02Symlink (removed at yield). No lane file outside
+     .ufo/waves/round-80/{build,w1}/ was written; no corpus file and no verifier was edited.
+
+== FACT 1 (cap arithmetic) — CONFIRMED, with the pinned-base detail ==
+The counter's instrument-size guard diffs the six battery scripts against its PINNED r72 base
+072048fa8e8a52c707d25f7079772fa317244eb7, NOT against 398cbe1. Measured:
+
+  $ git diff --numstat 072048fa 398cbe1 -- <the six battery scripts>
+  22	3	verifiers/check_assertion_floors.py
+  -> 22 added / 3 deleted, ALL of it in verifiers/check_assertion_floors.py. CONFIRMED.
+
+  $ git apply --numstat Kb80E04DeadPointer.patch
+  17	0	verifiers/verify_corpus_integrity.py
+  -> E04 costs 17 added on verify_corpus_integrity.py. 22 + 17 = 39 spent; cap 60 leaves 21 for the class.
+
+  $ git apply --numstat Kb80S07Quality-world.patch   (the only published grammar candidate)
+  75	4	verifiers/verify_corpus_independent.py
+  96	1	verifiers/verify_corpus_integrity.py
+  -> 96 + 75 = 171 added. Under the amended cap 60 the size guard FAILS. CONFIRMED (measured).
+
+== FACT 1b (NEW, measured): a grammar class that DOES fit the cap exists ==
+I built and measured one in a scratch clone (base + E04 + a compact line-scope class in BOTH
+corpus gates, with a red-before arm in each gate's self-test). Line budget over the PINNED base:
+
+  22	3	verifiers/check_assertion_floors.py
+  10	1	verifiers/verify_corpus_independent.py
+  28	2	verifiers/verify_corpus_integrity.py
+  TOTAL added=60 deleted=6   (cap 60 on each) -> PASS
+
+  Shape that fit (for the class owner's reference, not an endorsement of its wording):
+   * ONE regex per gate matching an owner/repo token OR a raw.githubusercontent.com/github.com URL
+     ANYWHERE ON THE CITED LINE (the line-scope clause the plan names);
+   * ONE branch at the existing 'not commit_resolves(...)' site: a marked token goes to a new
+     'external' list instead of 'unresolvable';
+   * the new class registered in the gate's observation dict so it is VISIBLE (not just silent);
+   * the red-before arm placed so it does NOT shift the shared self-test counters (its own fixture
+     root / its own fixture line), otherwise 5-7 counter expectations move and the budget blows.
+  What made it fit vs. the published candidate: the published candidate spends 22 of its 96
+  integrity lines on comments and 13 of its 75 independent lines on comments, and it carries the
+  arm inside the SHARED fixture (which shifts 5 counter expectations in the independent gate).
+
+  MEASURED behaviour of that candidate class (base corpus, class applied, entry NOT landed):
+   verify_corpus_integrity --json : commit_unresolvable=0  commit_external=2
+      external: corpus/SOURCES.md:171: 7bb48f213ac677f943d5c791199ed3dddf302f00 (repo badlogic/pi-mono)
+      external: corpus/SOURCES.md:172: 7bb48f213ac677f943d5c791199ed3dddf302f00 (repo mistralai/mistral-vibe)
+   -> the two REAL blockers (SOURCES.md:171/172) DO clear: they land in the new INFO class.
+   verify_corpus_independent --self-test : self-test: 106 assertions, 0 failures
+   verify_corpus_integrity  --self-test : self-test: 0 failure(s) over 166 assertions
+
+  Candidate blob ids (what an E5 pin table would have to name for THESE bytes; they are NOT
+  the ids of any published artifact — they identify MY scratch bytes only):
+   verify_corpus_integrity.py   c1498b600669e7ec9e45f0f72876d29d7528ecd6
+   verify_corpus_independent.py 5a3764b1e7940d1e71a2a7efe42feb9c1033380f
+   (base 072048fa blobs: e470eaaea5ef11c582b8353c9344ddf730c1a57a / edac0df79324ba62ee25ff10a6a4d422ef59da61)
+
+== FACT 2 (the real unresolvable pair) — CONFIRMED ==
+  base verify_corpus_integrity --json:
+   commit_unresolvable_detail:
+      corpus/SOURCES.md:171: 7bb48f213ac677f943d5c791199ed3dddf302f00
+      corpus/SOURCES.md:172: 7bb48f213ac677f943d5c791199ed3dddf302f00
+   commit_quoted_detail:
+      corpus/knowledge/claim-census-round12.md:95: 4dd7753 (quoted meta-finding)
+      corpus/lessons/round-53.md:44: cfb894a5 (quoted meta-finding)
+      corpus/lessons/round-53.md:45: <hex> (quoted meta-finding)
+      corpus/lessons/round-54-verifier-spotcheck.md:147: 451a02ff (quoted meta-finding)
+      corpus/lessons/round-54.md:13: cfb894a5 (quoted meta-finding)
+      corpus/lessons/round-6-aggregator-audit.md:45: round-N (quoted meta-finding)
+  -> the two UNRESOLVABLE tokens are corpus/SOURCES.md:171 and :172, both
+     7bb48f213ac677f943d5c791199ed3dddf302f00 (rows S230 badlogic/pi-mono, S231 mistralai/mistral-vibe).
+     google-gemini/gemini-cli@451a02ff and zed-industries/zed@cfb894a5 are QUOTED context, never
+     unresolvable. CONFIRMED by both corpus gates (base independent receipt lines 31/33/34).
+
+== FACT 2b (NEW): the S230 anchor defect is real and independent of the grammar class ==
+  .ufo/waves/round-79/snapshots/S230.fetch.json (pi-mono) records main at
+     bb65e3e49710fbd14f10c7792d0eaa6e2b2c5923 (blob sha1 19d2bf28910ce49caaaf4dde86d1e96330ca7b31,
+     last commit touching the path 25cc5c7bf4cbc76b2e134c729eb8d57d521ed749);
+  S231.fetch.json (mistral-vibe) records 7bb48f213ac677f943d5c791199ed3dddf302f00.
+  corpus/SOURCES.md:171 (S230) cites 7bb48f21... — the MISTRAL-VIBE commit — for the pi-mono row.
+  So the S230 row names one repository and cites the other repository's commit. A grammar class
+  keyed on the LINE's owner/repo would label it 'repo badlogic/pi-mono' (as the published candidate
+  does) and clear it as INFO — which hides the anchor defect rather than fixing it. The row is a
+  corpus/SOURCES.md cell, out of the grammar seat's write scope and out of mine: it belongs in the
+  round-80 lesson as an erratum line (Kb80E08C2Entry reached the same conclusion independently).
+
+== FACT 3 (the C2 entry's own citation) — RESOLVED by the entry owner's fix, not by the class ==
+  The published entry file (build/allowed-tools-surfaces-round80.md, sha256
+  caadf57d6ba02de6ffdcd5d2d8bea33f0dbe79dadc85d7d33ef075251ad1df15 (24865 B, 159 lines; the entry changed once after the
+  037c3b61… revision) no longer carries the
+  full-hex third-repo citation: a scan with the gates' own COMMIT_RE over its bytes finds 0
+  commit-shaped citations, and its only 40-hex token is the lane base 398cbe1 (in-set, resolvable).
+  MEASURED with the class applied and the CURRENT entry landed:
+   commit_unresolvable=0  commit_total=46  commit_external=2
+  -> no third unresolvable appears: the entry adds 0 to commit_total and 0 to the red path.
+  (For the record: the hazard was REAL against the entry as first published — with the earlier
+  bytes and the class applied I measured commit_unresolvable 2 -> 3 with the entry's line 125 as
+  the third. The entry owner's fix removed the citation, which is the cleaner repair: the class
+  never has to recognise a bare repo name.)
+
+== my own item is orthogonal to all of the above ==
+  Kb80E02Symlink.patch touches ONE path (.ufo/reports/round-76/kotoba.md, mode 120000): 0 lines
+  added to the six battery scripts, no corpus file, no verifier. verify_corpus_integrity --json is
+  BYTE-IDENTICAL before and after my repair (Kb80E02-integrity-diff.txt, diff_rc=0).
+
+== ADDENDUM: the cap-60 counter run on my candidate world (measured, own bytes) ==
+  $ python3 -B Kb80E06CounterErratum.cap60-provisional.py --repo <candidate clone> --rev <candidate> \
+      --fleet /home/vgpnk/Projects/shokunin
+  guarded paths 586, deleted 0; floors 15 rows; instruments added 60 / deleted 6 lines (cap 60)
+  guard no-deletions PASS | floors PASS | instrument-size PASS | spotcheck-identity PASS
+  FAIL guard instrument-pin: verifiers/verify_corpus_integrity.py blob c1498b60... is not a pinned blob
+  FAIL guard instrument-pin: verifiers/verify_corpus_independent.py blob 5a3764b1... is not a pinned blob
+  fleet root /home/vgpnk/Projects/shokunin; guards 4 of 5; tip battery exit 0: 1 of 6
+
+  -> instrument-size PASSES at exactly 60 added / 6 deleted (the cap-60 counter's own arithmetic over
+     the PINNED base). The only guard that reds is instrument-pin, which is EXPECTED: my scratch
+     blobs are not in any pin table (E5 must pin the REVIEWED bytes, which will be the grammar
+     seat's, not mine). This is the decisive number for the L1: the class CAN be written inside the
+     amended cap, and what remains is the pin table naming the right blobs.
+
+== ADDENDUM: the S230 anchor erratum wording (the entry owner's, corroborated by me) ==
+  The row cites pi-mono commit 7bb48f21...; its own record S230.fetch.json names main at fetch as
+  bb65e3e4... (blob sha1 19d2bf28..., last path commit 25cc5c7b...); 7bb48f21... is mistral-vibe's,
+  recorded correctly by S231.fetch.json; the page bytes are right (sha256 5b980552...), only the
+  commit citation is wrong. A line-scoped class would label that line with the repo NAMED ON THE LINE
+  ("repo badlogic/pi-mono"), so the INFO class would state that mistral-vibe's commit is pi-mono's:
+  it would LAUNDER the defect into green rather than fix it. The erratum line in the round-80 lesson
+  is the only thing keeping it visible (the corpus row may not be edited this round: CORPUS rule 2 /
+  M45). Corroborated independently by me from S230.fetch.json / S231.fetch.json primary bytes.
+
+== ADDENDUM: the FULL STACK world (base + E04 + my grammar class + the current C2 entry + MY symlink) ==
+  $ python3 -B Kb80E06CounterErratum.cap60-provisional.py --repo <stack clone> --rev <stack rev> \
+      --fleet /home/vgpnk/Projects/shokunin
+  instruments added 60 / deleted 6 lines (cap 60)
+  guard no-deletions PASS | floors PASS | instrument-size PASS | spotcheck-identity PASS
+  FAIL guard instrument-pin: verify_corpus_integrity.py blob c1498b60... is not a pinned blob
+  FAIL guard instrument-pin: verify_corpus_independent.py blob 5a3764b1... is not a pinned blob
+  gate check_gate_registry.py exit 1 | check_assertion_floors.py exit 0 | verify_skill_checklist.py exit 0
+  gate verify_corpus_integrity.py exit 1 | verify_corpus_independent.py exit 1 | check_correction_sweep.py exit 0
+  fleet root /home/vgpnk/Projects/shokunin; guards 4 of 5; tip battery exit 0: 3 of 6
+
+  So in the stack world: the instrument-size guard PASSES at exactly 60 added / 6 deleted, and the
+  ONLY structural guard that reds is instrument-pin (expected: my scratch blobs are in no pin table;
+  E5 must pin the REVIEWED bytes, which will be the grammar seat's, not mine).
+
+  The residual reds, class by class (verify_corpus_integrity --json, stack world):
+    corpus.index.tracked_files             observed=153   DRIFT
+    corpus.index.unindexed                 observed=2     DRIFT
+    corpus.index.stale_patterns            observed=0     PASS
+    corpus.index.missing_paths             observed=0     PASS
+    corpus.pointers.report_total           observed=109   DRIFT
+    corpus.pointers.report_dead            observed=0     PASS
+    corpus.pointers.commit_total           observed=46    DRIFT
+    corpus.pointers.commit_unresolvable    observed=0     PASS
+    corpus.pointers.commit_nonhash         observed=0     PASS
+
+  READ THAT CAREFULLY: in the stack world the corpus gates' RED classes are ALL GREEN —
+  corpus.pointers.report_dead observed=0 PASS (E04's `<rev>:` fix works) and
+  corpus.pointers.commit_unresolvable observed=0 PASS (the grammar class works on the two REAL
+  blockers). What still DRIFTs is the INDEX/BASELINE pair — corpus.index.tracked_files 153 vs the
+  stale baseline, corpus.index.unindexed 2 (corpus/lessons/round-79-verifier-spotcheck.md and the new
+  corpus/knowledge/allowed-tools-surfaces-round80.md), corpus.pointers.report_total 109 and
+  corpus.pointers.commit_total 46 — i.e. exactly the coverage-map rows + baseline refresh that seat
+  Kb80E03IndexBaseline owns. The independent gate's only live violation is the same unindexed pair
+  (its angle-bracket/ellipsis/truncated/quoted lines are the excluded classes it lists, not reds).
+  check_gate_registry (60 of 62) is seat Kb80E01Registry's item.
+
+  In short, on this evidence the C1 stack's remaining work is: the E5 pin table naming the grammar
+  seat's reviewed blobs, the coverage-map rows + baseline refresh, and the registry rows — the
+  grammar class itself does not need to be bigger than 60 added lines.
+
+== ADDENDUM 2 (the decisive one): the RUNNER'S PUBLISHED STACK reaches 6 of 6, and MY SYMLINK IS
+   LOAD-BEARING FOR TWO OF THE SIX BATTERY GATES ==
+  I applied the battery runner's published stack artifact to a clean base clone:
+    $ git apply --binary .ufo/waves/round-80/build/Kb80E10Battery.stack.patch   (sha256 b82787f9…)
+  It carries the symlink, the MANIFEST row, PROVINCE.md, SKILL.md, corpus/README.md, the C2 entry,
+  corpus/lessons/round-80.md, check_allowed_tools.py, the E5-amended check_tip_battery.py, the
+  refreshed corpus-baseline.json, and the two corpus gates.
+
+  (a) THE CAP FITS THE RUNNER'S STACK: numstat over the PINNED base 072048fa for the six battery
+      scripts = 22/3 (check_assertion_floors.py) + 27/4 (verify_corpus_integrity.py) + 10/3
+      (verify_corpus_independent.py) => TOTAL added=59 deleted=10, inside the cap of 60.
+      (So the runner's grammar class is the LEAN shape, not the 171-line published candidate.)
+
+  (b) BOTH REQUIRED INVOCATION FORMS read 6 of 6, guards 5 of 5, exit 0, on the stack's OWN
+      E5-amended counter (verifiers/check_tip_battery.py sha256 ae29fc7b13971efd7adb115e1b54ebb76600c865c4a51471c9a93030a1ce7d08,
+      LINE_CAP = 60), at scratch commit 0f46ee1109b1cb13c6b2b600d85de0f5f552056f:
+        form 1  --repo <absolute clone> --fleet /home/vgpnk/Projects/shokunin
+                 -> guards 5 of 5; tip battery exit 0: 6 of 6 ; exit 0  (all six gates exit 0)
+        form 2  --repo . (run from the lane root) --fleet /home/vgpnk/Projects/shokunin
+                 -> guards 5 of 5; tip battery exit 0: 6 of 6 ; exit 0  (all six gates exit 0)
+      This is a STACK-WORLD measurement on the runner's published bytes at a scratch commit, not the
+      L1's claim after-value at the lane tip — the claim verdict remains the L1's to record.
+
+  (c) ABLATION OF MY REPAIR: I removed ONLY .ufo/reports/round-76/kotoba.md from that stack
+      (git rm; commit 75da6b6e007e711c53253a66b12e084031c6c0b0) and measured the same counter:
+        guard no-deletions PASS | floors PASS | instrument-size PASS | instrument-pin PASS | spotcheck-identity PASS
+        gate check_gate_registry.py exit 0 | check_assertion_floors.py exit 1 (104.6 s)
+             | verify_skill_checklist.py exit 1 | verify_corpus_integrity.py exit 0
+             | verify_corpus_independent.py exit 0 | check_correction_sweep.py exit 0
+        fleet root /home/vgpnk/Projects/shokunin; guards 5 of 5; tip battery exit 0: 4 of 6 ; exit 1
+      -> WITHOUT my symlink the stack is 4 of 6 and TWO gates go red (verify_skill_checklist.py and
+         check_assertion_floors.py, the latter because the checklist's live self-test arm re-reds on
+         the same LOG.md:2818 token). WITH it the stack is 6 of 6. My repair is therefore
+         load-bearing for exactly two of the six battery gates, and nothing else in the stack
+         substitutes for it.
+
+== ADDENDUM 3: INDEPENDENT CORROBORATION OF MY ITEM FROM SEAT Kb80L03Symlink (their published worlds) ==
+  Their worlds measure my design's properties without my involvement:
+   W1  my 4-hop symlink in a FLEET-ABSENT parent -> guards 5 of 5; tip battery exit 0: 1 of 6; exit 1
+       (the link dangles and FAILS CLOSED, exactly as I declared in §5).
+   W2  the same path as a THREE-hop symlink -> 1 of 6 (the target lands on the link itself: a
+       self-loop ELOOP) — so the four-hop depth is not cosmetic; three hops does not work.
+   W3  the same path as a REGULAR FILE copied from the fleet file (git blob f83f2aae…, bytes
+       sha256 a025051d… = the fleet file) -> 3 of 6: the copy also greens the two gates, but it
+       creates a SECOND address for one artefact with nothing keeping it equal to the fleet original.
+   W4  my 4-hop symlink AND LOG.md:2818 rewritten to the `../` form -> checklist exit 0, 3 of 6.
+   W5  my 4-hop symlink AND LOG.md:2818 rewritten to the FOUR-HOP form -> checklist exit 1 with
+       "FAIL governance.citation_resolves … LOG.md:2818: '../../../../.ufo/reports/round-76/kotoba.md'
+       does not resolve" — the landmine is CONFIRMED by another seat, from the other direction.

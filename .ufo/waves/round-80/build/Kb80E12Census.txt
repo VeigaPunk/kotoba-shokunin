@@ -1,0 +1,328 @@
+# Kb80E12Census — census runner receipt (round 80, wave w1)
+
+Seat: Kb80E12Census (leaf executor). Date: 2026-10-27.
+Lane base: `398cbe1bb67f8d9dcf5d25d5ecf1b26a7c6f7e93`.
+Scratch (removed before yield): `/fast/scratch/hyaku/kotoba-r80/Kb80E12Census/`.
+
+## 0. What this receipt is, and what it is not
+
+This is the CENSUS measurement of the round-80 `corpus/SOURCES.md` edit set, measured in a scratch
+clone of the lane at base. It is NOT the landed tip: the lane tree is untouched by this seat (read-only
+git in the lane; every mutation happened in the scratch clone). The L1's post-integration
+census-after on the real tree supersedes this receipt on the same counts.
+
+Two independent derivations of the S232+ rejection rows exist this wave (see §6):
+
+- (a) this seat derived 12 rows (S232–S243) from `Kb80R01NegSweep.md`'s per-client fetch records,
+  re-fetched by this seat independently;
+- (b) `Kb80S16CensusLog.md` states it derived the same 12-row block at the same id range from the same
+  NegSweep records, and `Kb80S05SourcesEdits.md` published a separate 5-row block (S244–S248).
+
+The row TEXT differs between (a) and (b); the id RANGE and the row COUNTS do not. This receipt
+measures the integrated set (a)+(b) = 174 rows, and publishes this seat's own row text as a patch so
+the L1 can choose a single text without re-deriving it.
+
+## 1. BEFORE block — base `398cbe1bb67f8d9dcf5d25d5ecf1b26a7c6f7e93` (lane tree, read-only)
+
+### 1a. census validate (own-exit capture, no pipeline)
+
+command:
+
+    /home/vgpnk/Projects/shokunin/scripts/sources-census.sh validate --root /home/vgpnk/Projects/shokunin kotoba
+
+result: **exit 0**; 24 W04 warnings, all pre-existing; final line
+
+    kotoba	ok	/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md
+
+full output: `.ufo/waves/round-80/build/Kb80E12Census-census-before.txt`
+
+### 1b. census mode
+
+command:
+
+    /home/vgpnk/Projects/shokunin/scripts/sources-census.sh census --root /home/vgpnk/Projects/shokunin kotoba
+
+result: **exit 0**
+
+    kotoba	rows	157
+    kotoba	tier.A	135
+    kotoba	tier.B	21
+    kotoba	tier.C	1
+    kotoba	status.mined	149
+    kotoba	status.queued	7
+    kotoba	status.rejected	1
+    FLEET	rows	157
+    FLEET	tier.A	135
+    FLEET	tier.B	21
+    FLEET	tier.C	1
+    FLEET	tier.invalid	0
+    FLEET	status.queued	7
+    FLEET	status.mined	149
+    FLEET	status.rejected	1
+    FLEET	status.invalid	0
+    FLEET	missing	0
+    exit=0
+
+### 1c. row-count commands (both variants, own exit status)
+
+    grep -cE '^\|[[:space:]]*S[0-9]{3,}[[:space:]]*\|' corpus/SOURCES.md   -> 157   (rc=0)
+    grep -cE '^\|[[:space:]]{0,3}S[0-9]{3,}[[:space:]]*\|' corpus/SOURCES.md -> 157   (rc=0)
+
+Both counts are 157 at base, on the lane tree and in the scratch clone: the base blob sha256 is
+`532efdf230fb5e694ff95e54f465740669c66edce24c8dd9e9e29bf1d7fcc17f` in both places (the lane working
+tree carries no uncommitted change to `corpus/SOURCES.md`).
+
+## 2. The edit list applied (exact)
+
+### 2a. six used-by cells (S226–S231), old -> new, cell 11 only
+
+    old: corpus/lessons/round-79.md
+    new: corpus/knowledge/allowed-tools-surfaces-round80.md, corpus/lessons/round-80.md
+
+Measured at base: exactly 6 occurrences of the old cell (lines 167–172); 11 cells per row before and
+after; the other 10 cells byte-identical per row (checked by re-parsing both tables).
+
+The cell is COMMA-separated, not `+`-joined, and this is load-bearing twice over:
+
+- the C2 counter's (b) conjunct, read from `.ufo/waves/round-80/build/check_allowed_tools.py`,
+  `registry_problems()`: `listed = [c.strip() for c in row[10].split(",")]; if ENTRY not in listed` ->
+  not backed. A `+`-joined cell is ONE split item and would never equal ENTRY.
+- the census's E11 check, `usedby_findings()`: `IFS=',' read -r -a paths <<< "$usedby"`; each path must
+  exist under the lane. A `+`-joined cell is not a path.
+
+Measured with this seat's own harness over the edited table, `ENTRY` rebound to the round-80 path:
+
+    BASE   : 6 of 6 surfaces fail conjunct (b)
+             "S226: used-by 'corpus/lessons/round-79.md' does not list
+              corpus/knowledge/allowed-tools-surfaces-round80.md"  (same shape for S227..S231)
+    EDITED : 0 of 6 surfaces fail conjunct (b)   -> exit 0
+
+### 2b. twelve new rejection rows S232–S243 (this seat's derivation)
+
+Derivation: `Kb80R01NegSweep.md`'s per-client fetch records (12/12 negative, two fetch records each),
+re-fetched independently by this seat (`curl -sSL -A 'Mozilla/5.0' --max-time 60`, 2026-10-27
+T23:13:30–31Z) so the shas in the rows are this seat's own bytes. This seat's shas agree with
+NegSweep's pass-1 records on 11 of 12 pages; `amp` differs (NegSweep pass1 `d8a8eeb0…`, pass2
+`2bfc3214…`, this seat `25224af3…`) — the rotating CSP `<script nonce>` values NegSweep itself named;
+the text content is identical, which is why the row records this seat's own sha256 and byte count
+rather than NegSweep's.
+
+Every row: 11 cells (13 pipe-fields), tier C, status `rejected`, opened `2026-10-27`, recheck `90d`,
+used-by `corpus/lessons/round-80.md`, kind `docs`. The anchor cell carries a LOCATED QUOTE (5–25
+words) that occurs verbatim in the fetched body's text view (tag-stripped, entities decoded,
+whitespace collapsed) — verified programmatically for all 12 before the rows were written — plus the
+fetch record. The teaches cell grounds the refusal on an OBSERVED fact (the counted token absence
+over pinned bytes), never on an assertion about what the source lacks (Q62).
+
+Quotes (each verified to occur in its own body's text view; word counts in brackets):
+
+    S232 codex     "The SKILL.md file must include name and description" [8]
+    S233 vscode    "SKILL.md file is a Markdown file with YAML frontmatter that defines the skill's metadata and behavior." [16]
+    S234 opencode  "Unknown frontmatter fields are ignored." [5]
+    S235 gemini    "Only skill metadata (name and description) is loaded initially." [9]
+    S236 ghcopilot "The Agent Skills specification is an open standard , used by a range of different AI systems." [17]
+    S237 cursor    "SKILL.md file with YAML frontmatter: --- name: my-skill description: Short description of what this skill does and when to use it." [21]
+    S238 amp       "Amp uses the first skill with a given frontmatter name" [10]
+    S239 roo       "Roo reads each SKILL.md file and parses its frontmatter to extract name and description" [14]
+    S240 kilo      "Frontmatter Fields Per the Agent Skills specification" [7]
+    S241 junie     "Frontmatter fields Field Type Required Description name String Yes A unique identifier for the skill." [15]
+    S242 goose     "404 — Page not found Looking for goose? It's moved to goose-docs.ai" [12]
+    S243 hermes    "Name resolution, in order: name: field in the SKILL.md YAML frontmatter (recommended — every well-formed skill has one)." [18]
+
+Per-page fetch records (this seat's own; `curl -sSL -A 'Mozilla/5.0' --max-time 60`):
+
+    page        http  bytes    sha256                                                             allowed-tools hits
+    codex       200   417416   e657e0e3fd937024fa6d686b28b6d54f9dfc637279a71eb564e93532d27f3860   0
+    vscode      200   157102   4b40d645823df78c69cd55519aa5492262c7738aa197e7ee01e1ebfdb91547af   0
+    opencode    200    71581   3dfbef2163f9d05d4606209ba9a22194d5ab4fd74f50d350fd01767870124f6a   0
+    gemini      200   114148   b17895012da7cbefb20291d6210a3b016d0680a53d6fbc4eaed703d9b0f98640   0
+    ghcopilot   200   566781   e99da06055ca858c486cec1e834bc7353fb3b93525036ad2e10a032ea8e6eaea   0
+    cursor      200   490061   abb0613a5403df0137472a0828e507f1129d939107876b3cf1657a0c703a2f1d   0
+    amp         200   105308   25224af30768b304398e87673f1b69c7a8b11b893a00c319bc85facddd9d4399   0
+    roo         200    71129   fe801910f82e07631b3b5af3a2349fd75950eaabeda0280348b51c1aa92753e2   0
+    kilo        200   138104   2ed06ad1c20c546d315c120849e35b6861ece1ec1526da9186ce2f04a5ba7353   0
+    junie       200    38509   a44a510e30445815b2f911fbaa77ca42e8f0504b3c4694507f053eb9425e9d21   0
+    goose       404      932   c5b27efd5464711cad2593489c9d56b6dd3b098428ea52d46fac4e35c4aeba34   0
+    hermes      200   206631   6817301c1b1a345c31c0c0f57e512b3f9d20d8fda2744f8757f30b9efae19a85   0
+
+`grep -oiE 'allowed[-_]tools' | wc -l` = 0 on every body; the broad sweep
+`grep -oiE 'allowed.{0,2}tools' | wc -l` = 0 on all 12 as well (it would also catch `allowedTools` and
+"allowed tools"). Machine-readable copy: `Kb80E12Census-fetch-records.tsv`.
+
+### 2c. the five S244–S248 rows (`Kb80S05SourcesEdits.md`, applied verbatim)
+
+This seat did not author these and does not vouch for their content; it applied
+`.ufo/waves/round-80/build/Kb80S05SourcesEdits.patch` verbatim (`git apply --check` exit 0,
+`git apply` exit 0) on top of base, then added this seat's S232–S243 block, and measured the union.
+That patch also carries the six `used-by` cell edits and the `## Search log` note.
+
+## 3. AFTER block — integrated 174-row edit set, measured in the scratch clone
+
+Tree under measurement: scratch clone of the lane at base, carrying (a) the six used-by cells,
+(b) this seat's 12 rows S232–S243, (c) S05's patch verbatim (5 rows S244–S248 + the search-log
+note). Two placeholder files were created in the scratch clone ONLY, so the census's E11 path test
+could be measured in the "files present" state: `corpus/knowledge/allowed-tools-surfaces-round80.md`
+and `corpus/lessons/round-80.md` (stubs; the real files are Kb80E08C2Entry's and Kb80S01Lesson's).
+They are NOT in any published patch.
+
+### 3a. census validate, explicit-lane-dir form
+
+command:
+
+    /home/vgpnk/Projects/shokunin/scripts/sources-census.sh validate --root /home/vgpnk/Projects/shokunin /fast/scratch/hyaku/kotoba-r80/Kb80E12Census/kotoba-shokunin
+
+result: **exit 0**; 31 W04 warnings; final line
+
+    kotoba-shokunin	ok	/fast/scratch/hyaku/kotoba-r80/Kb80E12Census/kotoba-shokunin/corpus/SOURCES.md
+
+full output: `.ufo/waves/round-80/build/Kb80E12Census-census-after-174.txt`
+
+### 3b. census validate, lane-label form (synthetic root: conf copied, kotoba-shokunin symlinked)
+
+command:
+
+    /home/vgpnk/Projects/shokunin/scripts/sources-census.sh validate --root /fast/scratch/hyaku/kotoba-r80/Kb80E12Census/root kotoba
+
+result: **exit 0**; 31 W04; 174 rows; final line
+
+    kotoba	ok	/fast/scratch/hyaku/kotoba-r80/Kb80E12Census/root/kotoba-shokunin/corpus/SOURCES.md
+
+full output: `.ufo/waves/round-80/build/Kb80E12Census-census-after-root-174.txt`
+
+The synthetic root is a measurement device under the seat's scratch; nothing was written at the
+fleet root.
+
+### 3c. census mode (after)
+
+    kotoba	rows	174
+    kotoba	tier.A	135
+    kotoba	tier.B	22
+    kotoba	tier.C	17
+    kotoba	status.mined	149
+    kotoba	status.queued	8
+    kotoba	status.rejected	17
+    FLEET	rows	174
+    FLEET	tier.A	135
+    FLEET	tier.B	22
+    FLEET	tier.C	17
+    FLEET	tier.invalid	0
+    FLEET	status.queued	8
+    FLEET	status.mined	149
+    FLEET	status.rejected	17
+    FLEET	status.invalid	0
+    FLEET	missing	0
+    exit=0
+
+### 3d. row-count commands (after)
+
+    grep -cE '^\|[[:space:]]*S[0-9]{3,}[[:space:]]*\|' corpus/SOURCES.md   -> 174   (rc=0)
+    grep -cE '^\|[[:space:]]{0,3}S[0-9]{3,}[[:space:]]*\|' corpus/SOURCES.md -> 174   (rc=0)
+
+157 -> 174: **+17 rows** (12 this seat's + 5 S05's). Tier: A 135 (unchanged), B 21 -> 22 (S248,
+`queued`), C 1 -> 17. Status: `mined` 149 (unchanged), `queued` 7 -> 8 (S248), `rejected` 1 -> 17.
+
+### 3e. the exact W04 warning lines that are NEW (31 - 24 = 7)
+
+Each is a same-URL-across-scopes warning raised by a NEW row whose URL is already carried by an older
+mined row under a different scope. W04 is a warning class and does not change the exit status (exit 0
+at 24 W04, exit 0 at 31 W04).
+
+    kotoba-shokunin	W04	S234 duplicate url opencode.ai/docs/skills across scopes
+    kotoba-shokunin	W04	S235 duplicate url geminicli.com/docs/cli/skills across scopes
+    kotoba-shokunin	W04	S238 duplicate url ampcode.com/docs/customize/skills across scopes
+    kotoba-shokunin	W04	S239 duplicate url docs.roocode.com/features/skills across scopes
+    kotoba-shokunin	W04	S240 duplicate url kilo.ai/docs/customize/skills across scopes
+    kotoba-shokunin	W04	S241 duplicate url junie.jetbrains.com/docs/agent-skills.html across scopes
+    kotoba-shokunin	W04	S243 duplicate url hermes-agent.nousresearch.com/docs/user-guide/features/skills across scopes
+
+(S232, S233, S236, S237 and S242 raise no W04: their census URLs — `developers.openai.com/codex/skills`,
+`code.visualstudio.com/docs/copilot/customization/agent-skills`,
+`docs.github.com/en/copilot/concepts/agents/about-agent-skills`, `cursor.com/docs/context/skills`,
+`block.github.io/goose/...` — are not carried by any existing row, because the registry holds the
+post-redirect URLs for those four pages.)
+
+No W01/W02/W03 and no E-class finding appears: the new rows are tier C + `rejected` (W01 fires only
+on tier C + `mined`), their `teaches` cells are long (W02 fires on a rejected row whose `teaches` is
+under 8 chars), their `used-by` is non-`—` on a `rejected` row (W03 fires only on `mined`), and every
+new row's url+scope pair is new (E04 fires on a duplicate url within one scope without a
+`supersedes S0NN` cell).
+
+## 4. The E11 load-bearing check (measured, not asserted)
+
+With the two placeholder used-by target files REMOVED from the scratch clone and the census re-run,
+the same 174-row table gives **12 E11 findings** (two paths x six rows) and **exit 1**:
+
+    kotoba-shokunin	E11	S226 missing used-by corpus/knowledge/allowed-tools-surfaces-round80.md
+    kotoba-shokunin	E11	S226 missing used-by corpus/lessons/round-80.md
+    kotoba-shokunin	E11	S227 missing used-by corpus/knowledge/allowed-tools-surfaces-round80.md
+    kotoba-shokunin	E11	S227 missing used-by corpus/lessons/round-80.md
+    kotoba-shokunin	E11	S228 missing used-by corpus/knowledge/allowed-tools-surfaces-round80.md
+    kotoba-shokunin	E11	S228 missing used-by corpus/lessons/round-80.md
+    kotoba-shokunin	E11	S229 missing used-by corpus/knowledge/allowed-tools-surfaces-round80.md
+    kotoba-shokunin	E11	S229 missing used-by corpus/lessons/round-80.md
+    kotoba-shokunin	E11	S230 missing used-by corpus/knowledge/allowed-tools-surfaces-round80.md
+    kotoba-shokunin	E11	S230 missing used-by corpus/lessons/round-80.md
+    kotoba-shokunin	E11	S231 missing used-by corpus/knowledge/allowed-tools-surfaces-round80.md
+    kotoba-shokunin	E11	S231 missing used-by corpus/lessons/round-80.md
+    exit=1
+
+(full output: `.ufo/waves/round-80/build/Kb80E12Census-e11-control.txt`)
+
+So the S226–S231 used-by edit is only census-clean in a tree where Kb80E08C2Entry's entry file and
+Kb80S01Lesson's lesson file both exist. Both seats' outputs must land before or with the SOURCES.md
+edit, or the census re-reds. This is an integration ORDERING constraint, not a content one.
+
+## 5. Append-only gate (CORPUS rule 2) over the same edit
+
+command: `python3 -B verifiers/check_sources_append_only.py --rev <scratch tip> --repo .`
+
+    at base 398cbe1 : sources append-only breach 18 change(s) in 8 of 45 commits   exit 1
+    at scratch tip  : sources append-only breach 18 change(s) in 8 of 46 commits   exit 1
+
+The count is UNCHANGED by this round's edit: the 18 breaches are pre-existing historical ones (from
+earlier rounds — they are the lane's carried state, not this round's). This round's commit contributes
+exactly 6 `log` lines (S226–S231 `used-by`, the permitted in-place column) and 0 breaches: 17 rows
+added, 0 rows removed (measured by diffing the id sets of the base and tip registry tables). Rule 2 is
+satisfied: only the `used-by` cell changed in place, and the old->new pairs are in
+`Kb80S05SourcesEdits.md` § 4 and `Kb80S16CensusLog.md` for the lesson's `## Gate`.
+
+## 6. Discrepancies this seat found, for the L1
+
+1. **TWO independent row texts for S232–S243.** This seat derived its own 12 rows from
+   `Kb80R01NegSweep.md` (text published as `Kb80E12Census-S232-S243.rows.txt` and as the patch
+   `Kb80E12Census-S232-S243.patch`, which applies on top of S05's patch).
+   `Kb80S16CensusLog.md` states it derived the same 12-row block at the same id range from the same
+   NegSweep records; its row TEXT is not published. The L1 must pick one text. The id ranges and the
+   row counts do not conflict (S232–S243 vs S244–S248); only the prose of the 12 rows does. The 7 new
+   W04 lines are the same under either text.
+2. A transient id collision, now resolved: `Kb80S05SourcesEdits.md`'s first version carried its own row
+   block at S232–S236 while its header claimed S244–S248; the published version carries S244–S248.
+   The published ranges do not collide with S232–S243.
+3. The two derivations agree on the id->page mapping only by coincidence of ordering: this seat
+   numbered the pages in the order NegSweep's table lists them. If the L1 adopts S16's text instead,
+   the id->page mapping must be checked row by row.
+4. The round-80 counter `.ufo/waves/round-80/build/check_allowed_tools.py` is currently BYTE-IDENTICAL
+   to the r79 draft (sha256 `74e067ccad7813d91826ee503c8ee93ba47d3a4a05b12ec67a82791d93f722a6` for
+   both), so its `ENTRY` constant is still `corpus/knowledge/allowed-tools-surfaces-round79.md` and its
+   headline is still "backed N of 6" with target N >= 5. The conjunct-(b) harness run above rebinds
+   `ENTRY` to the round-80 path by hand; the round-80 bytes must be the counter seat's own.
+5. `Kb80S05SourcesEdits.md` reports a pre-existing structural defect in `corpus/SOURCES.md` that this
+   seat also sees at base: two column-0 lines beginning `## Leads (unopened)` with a trailing
+   backtick (base lines 229 and 232) and a duplicated `## Leads (unopened)` block. Reported, not
+   repaired.
+
+## 7. Deliverables of this seat
+
+    Kb80E12Census.txt                        this receipt
+    Kb80E12Census-S232-S243.patch            the 12 rejection rows as a patch over S05's patched tree
+    Kb80E12Census-S232-S243.rows.txt         the same 12 rows as plain 11-cell text
+    Kb80E12Census-census-before.txt          the base validate output (lane tree)
+    Kb80E12Census-census-after-174.txt       the after validate output (explicit-lane-dir form)
+    Kb80E12Census-census-after-root-174.txt  the after validate output (lane-label form)
+    Kb80E12Census-census-mode-before.txt     the census-mode output at base
+    Kb80E12Census-census-mode-after-root.txt the census-mode output after
+    Kb80E12Census-rows-before.txt            the row-count command outputs (before)
+    Kb80E12Census-rows-after.txt             the row-count command outputs (after)
+    Kb80E12Census-e11-control.txt            the E11 control (12 findings, exit 1)
+    Kb80E12Census-appendonly.txt             the append-only gate output at the scratch tip
+    Kb80E12Census-fetch-records.tsv          this seat's 12 fetch records (page/status/bytes/sha256/hits)

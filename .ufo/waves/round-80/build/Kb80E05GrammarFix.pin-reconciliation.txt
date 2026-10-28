@@ -1,0 +1,52 @@
+# Kb80E05GrammarFix — pin reconciliation (E05 bytes vs E06's published Y01 pins)
+
+Two reviewed implementations of the same class (`commit_external`, both gates) exist in this wave.
+Exactly ONE may land. Facts, each measured on a scratch clone at base `398cbe1b`:
+
+| | Y01 (`Kb80Y01-simplified.patch`) | E05 (this seat, `Kb80E05GrammarFix.patch`) |
+|---|---|---|
+| integrity blob at tip | `cc182613a4d089c41e44f11b50e03b45ce582dd8` | `68ccce1c152c915e16893a5157c9d5878df779fb` |
+| independent blob at tip | `89f392daab3e4181db3ded7676ca0879871ef7ff` | `e887de71892ecfc6be5b3f47e362ce8a766c5c89` |
+| patch topology | **bundles E04** (its tree carries the `<rev>:<path>` repair); applies to the BARE base only — `git apply` on an E04-patched tree fails at `verify_corpus_integrity.py:272` (measured rc=1) | E04-free; applies to the bare base and on top of E04, both orders rc=0, identical composed blob |
+| line-scope marker | `SOURCES_COMMIT_RE`: `\A\|\s*S\d+\s*\|…(raw\.githubusercontent|github)\.com/<o>/<r>` **or** a backticked `owner/repo` ending the prefix (SOURCES-row-bound, narrower) | `EXTERNAL_RE`: any `owner/repo@` binding or `raw.githubusercontent.com`/`github.com` repo URL on the citing line (generic third-repo attribution) |
+| grammar arm (`commit `owner/repo@<hex>``) | `"@" in token and "/" in token.split("@",1)[0]` → external, before the not-hex branch | same arm via the regex prefix; same destination |
+| six-instrument added/deleted vs `072048fa` | **59 / 10** (1 line of headroom) | **60 / 8** (0 lines of headroom) |
+| live corpus (base tree) | external 2, unresolvable 0, nonhash 0, total 46 | identical (measured) |
+| E06 counter `check_tip_battery.amended.py` | pinned (lines 142–149) | **not pinned** |
+
+## Integration options (L1's call — I do not choose)
+
+**A. Land Y01's patch alone.** Zero counter change. Requires dropping E04's separate patch (Y01's
+bundle already contains it) or the two patches conflict.
+
+**B. Land E04 + E05.** One reviewed-blob addition per gate in `INSTRUMENT_PINS`, keeping Y01's pins
+valid too (no replacement, no narrowing of the anti-laundering guard):
+
+```
+142:    "verifiers/verify_corpus_integrity.py": (
+143-        "71cb2730bfe89064567ad429bfd7c2da62aceb45",
+144-        "e470eaaea5ef11c582b8353c9344ddf730c1a57a",
+145-        "cc182613a4d089c41e44f11b50e03b45ce582dd8",
++          "68ccce1c152c915e16893a5157c9d5878df779fb"),
+146:    "verifiers/verify_corpus_independent.py": (
+147-        "176abae3b66930d644482f95e1363932e4d143b4",
+148-        "edac0df79324ba62ee25ff10a6a4d422ef59da61",
+149-        "89f392daab3e4181db3ded7676ca0879871ef7ff",
++          "e887de71892ecfc6be5b3f47e362ce8a766c5c89"),
+```
+
+Effect of either option on the measured stack: both give `commit_total 46, commit_unresolvable 0,
+commit_nonhash 0, commit_external 2` on the corpus, and a green corpus-gate pair.
+
+## My own reading (declared, not a decision)
+
+E05's patch is the only one that composes order-independently with the separately published E04
+patch, and its marker is not SOURCES-row-bound (Addendum 2 asks for line scope generally). Y01's is
+narrower and leaves one line of cap headroom. If the L1 keeps E04 as its own patch, option B is the
+lower-risk path; if the L1 prefers zero counter churn, option A is valid but supersedes E04's patch.
+Either way the two counter pin lines above must name the bytes that actually land.
+
+All numbers re-derivable from `Kb80E05GrammarFix.receipts.txt` §2/§6 and
+`Kb80E05GrammarFix.numstat-six.txt`; the Y01 comparisons were measured with
+`git -C <scratch> apply Kb80Y01-simplified.patch` on a bare-base clone (rc=0) and on an E04 clone
+(rc=1), then `git hash-object` / `git diff --numstat … -- <six scripts>`.

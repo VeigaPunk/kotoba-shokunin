@@ -1,0 +1,237 @@
+# Kb80S13L0 measurements (regenerated with the corrected runner), utc=2026-10-27T23:17:09Z, lane=/home/vgpnk/Projects/shokunin/kotoba-shokunin
+$ git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin rev-parse HEAD
+c2f69d4f7b5887c409d7c3975d6aebc2e312c406
+exit=0
+
+$ du -sh .ufo .git corpus verifiers plans
+209M	.ufo
+56M	.git
+2.4M	corpus
+5.5M	verifiers
+528K	plans
+exit=0
+
+$ bash -c git ls-tree -r -l HEAD -- .ufo | awk '{s+=$4} END {print s" bytes"}'; git ls-files .ufo | wc -l
+175040297 bytes
+14848
+exit=0
+
+$ bash -c for p in .ufo/round-44 .ufo/round-46 .ufo/waves; do printf '%-12s ' $p; git ls-tree -r -l HEAD -- $p | awk '{s+=$4} END {printf "%d bytes, ", s}'; git ls-files -- $p | wc -l; done
+.ufo/round-44 49592547 bytes, 90
+.ufo/round-46 26632360 bytes, 8170
+.ufo/waves   80514133 bytes, 5194
+exit=0
+
+$ bash -c find .ufo -type f -size +2M -printf '%s\t%p\n' | sort -rn | head -5
+47815579	.ufo/round-44/evidence/omp-live-18.12.2-strings.txt
+exit=0
+
+$ du -sh .ufo/waves .ufo/round-44 .ufo/round-46 .ufo/reports
+89M	.ufo/waves
+48M	.ufo/round-44
+53M	.ufo/round-46
+188K	.ufo/reports
+exit=0
+
+$ bash -c ls /home/vgpnk/Projects/shokunin/scripts /home/vgpnk/Projects/shokunin/scripts/hyaku | grep -Ei 'prune|retention|gc|compress|trim' || echo '(no retention/prune/gc/compress/trim entry in fleet scripts)'
+(no retention/prune/gc/compress/trim entry in fleet scripts)
+exit=0
+
+$ bash -c grep -n 'cap stays 40' corpus/lessons/round-73.md corpus/lessons/round-73-verifier-spotcheck.md; sed -n '103,107p' verifiers/check_tip_battery.py; grep -n '^LINE_CAP = \|^TOTAL = \|^BASE = ' verifiers/check_tip_battery.py
+corpus/lessons/round-73.md:85:1. M127 / honest `instrument-size` cap → C3: cause fixed (M130); the cap stays 40 and is measured against the r73 base (`LINE_CAP` comment in the counter).
+# Round 73 (plans/round-73-addendum-2.md, erratum E2): the guard base moves from the
+# round-72 base c69711e to the round-73 base, so `instrument-size` measures this round's
+# delta of the six battery scripts (r72's 76 added / 24 deleted lines drop out; the cap
+# stays 40) and the round-72 spot-check lesson is a base file compared by
+# `spotcheck-identity`.
+108:BASE = "072048fa8e8a52c707d25f7079772fa317244eb7"        # round-73 base (pinned)
+109:TOTAL = 6
+111:LINE_CAP = 40
+exit=0
+
+$ bash -c grep -n -i 'retention\|prune\|evidence cap' /home/vgpnk/Projects/shokunin/PROTOCOL.md SKILL.md || echo '(no retention/prune/evidence-cap rule line in PROTOCOL.md or SKILL.md)'
+SKILL.md:37:`(name, description-as-loaded)` and never pruned, so the 18th row is a
+exit=0
+
+$ bash -c grep -n -i 'erratum\|errata\|frozen counter\|LINE_CAP' /home/vgpnk/Projects/shokunin/PROTOCOL.md || echo '(no erratum/frozen-counter/LINE_CAP line in PROTOCOL.md)'
+135:a record: a correction to it lands in the correcting round's own report, or as an erratum
+exit=0
+
+$ git diff --numstat 072048fa8e8a52c707d25f7079772fa317244eb7 398cbe1bb67f8d9dcf5d25d5ecf1b26a7c6f7e93 -- verifiers/check_gate_registry.py verifiers/check_assertion_floors.py verifiers/verify_skill_checklist.py verifiers/verify_corpus_integrity.py verifiers/verify_corpus_independent.py verifiers/check_correction_sweep.py
+22	3	verifiers/check_assertion_floors.py
+exit=0
+
+$ bash -c grep -n 'instruments added\|guards 5 of 5\|^exit=' .ufo/waves/round-80/receipts/tipbattery-base-dot.txt
+3:guarded paths 586, deleted 0; floors 15 rows; instruments added 22 / deleted 3 lines (cap 40); spotcheck base files 27
+23:fleet root /home/vgpnk/Projects/shokunin; guards 5 of 5; tip battery exit 0: 1 of 6
+24:exit=1
+exit=0
+
+$ ls .ufo/waves/round-80/receipts
+census-before.txt
+m80-1-pipe-vs-direct.txt
+tipbattery-base-dot.txt
+exit=0
+
+$ bash -c grep -n 'INSTRUMENT_PINS\|wave-1 drafts' plans/round-72-addendum-1.md | head -5; grep -n 'Q73 |' corpus/QUALITY.md | cut -c1-190
+34:byte-identical to the base blob or to one named draft blob (the wave-1 drafts `ExecArmFix` and
+35:`ExecIndexBaseline`, applied to the base blobs, plus the L1's floors raise) — `INSTRUMENT_PINS` in
+89:| Q73 | A change to a file section that an earlier claim's counter pins byte-identical (a no-harm conjunct such as `§ Adjacent differs from the base`) is found by a sweep before the plan 
+exit=0
+
+$ bash -c grep -c '^kotoba | round' /home/vgpnk/Projects/shokunin/.ufo/l0-questions.md; wc -l /home/vgpnk/Projects/shokunin/.ufo/l0-questions.md
+14
+194 /home/vgpnk/Projects/shokunin/.ufo/l0-questions.md
+exit=0
+
+$ bash -c python3 -c "t=175040297; print('round44+46 share %.1f%%' % (100*(49592547+26632360)/t)); print('round46 files share %.1f%%' % (100*8170/14848)); print('single dump share %.1f%%' % (100*47815579/t))"; df -h /fast /home
+round44+46 share 43.5%
+round46 files share 55.0%
+single dump share 27.3%
+Filesystem        Size  Used Avail Use% Mounted on
+/dev/nvme1n1p2    804G  218G  586G  28% /fast
+/dev/mapper/root  930G  311G  585G  35% /home
+exit=0
+
+$ git diff --numstat 398cbe1bb67f8d9dcf5d25d5ecf1b26a7c6f7e93 c2f69d4f7b5887c409d7c3975d6aebc2e312c406 -- verifiers/check_tip_battery.py
+
+exit=0
+
+$ bash -c git diff --stat 398cbe1bb67f8d9dcf5d25d5ecf1b26a7c6f7e93 c2f69d4f7b5887c409d7c3975d6aebc2e312c406 | tail -3
+ .ufo/waves/round-80/w1-spec.json                   |  786 ++++++++++++
+ plans/round-80.md                                  |   63 +
+ 8 files changed, 3626 insertions(+)
+exit=0
+
+$ bash -c git log -2 --format='%h %s' 398cbe1bb67f8d9dcf5d25d5ecf1b26a7c6f7e93..c2f69d4f7b5887c409d7c3975d6aebc2e312c406
+c2f69d4 round-80: freeze plan F1 + validated v2 wave (64 seats) + base receipts
+exit=0
+
+== addendum: Kb80V03Instruments audit verification (post-yield) ==
+$ bash -c git show 398cbe1b:corpus/SOURCES.md | sed -n '171p;172p' | grep -o 'commit `[0-9a-f]*`'
+commit `7bb48f213ac677f943d5c791199ed3dddf302f00`
+commit `7bb48f213ac677f943d5c791199ed3dddf302f00`
+exit=0
+
+$ git cat-file -t 7bb48f213ac677f943d5c791199ed3dddf302f00
+fatal: git cat-file: could not get object info
+exit=128
+
+$ git -C /home/vgpnk/Projects/shokunin cat-file -t 7bb48f213ac677f943d5c791199ed3dddf302f00
+fatal: git cat-file: could not get object info
+exit=128
+
+$ bash -c grep -n 'COMMIT_RE = ' verifiers/verify_corpus_integrity.py verifiers/verify_corpus_independent.py
+verifiers/verify_corpus_integrity.py:151:COMMIT_RE = re.compile(r"(?<![A-Za-z0-9_-])commit[ \t]+`([^`\n]+)`")
+verifiers/verify_corpus_integrity.py:153:TRUNCATED_COMMIT_RE = re.compile(r"\A[0-9a-fA-F]{7,40}\u2026\Z")
+verifiers/verify_corpus_independent.py:126:COMMIT_RE = re.compile(r"(?<![A-Za-z0-9_-])commit\s+`([^`\s]+)`")
+exit=0
+
+$ bash -c git grep -c '451a02ff\|cfb894a5' 398cbe1b -- corpus | head -10; git grep -n 'commit `451a02ff`\|commit `cfb894a5`' 398cbe1b -- corpus | cut -c1-160
+398cbe1b:corpus/SOURCES.md:5
+398cbe1b:corpus/knowledge/alwayson-rule-files-round53.md:2
+398cbe1b:corpus/knowledge/skill-listing-thresholds-round54.md:2
+398cbe1b:corpus/lessons/round-53.md:2
+398cbe1b:corpus/lessons/round-54-verifier-spotcheck.md:4
+398cbe1b:corpus/lessons/round-54.md:3
+398cbe1b:corpus/lessons/round-55.md:2
+398cbe1b:corpus/lessons/round-56.md:1
+398cbe1b:corpus/lessons/round-53.md:44:  "at commit `cfb894a5`" → "at zed-industries/zed@`cfb894a5`", because the corpus gate reads the words
+398cbe1b:corpus/lessons/round-54-verifier-spotcheck.md:147:`` commit `451a02ff` `` grammar in the new entry) was fixed in `cae8f2ea`. At the tip the entry reads
+398cbe1b:corpus/lessons/round-54.md:13:| M45 | `append-only-breach` | `corpus/SOURCES.md` rows were rewritten in place across commits. `CORPUS.md:116` (contract
+exit=0
+
+$ bash -c git show 398cbe1b:corpus/knowledge/skill-listing-thresholds-round54.md | sed -n '29p' | grep -o '.\{0,40\}451a02ff.\{0,40\}'; git show 398cbe1b:corpus/lessons/round-54.md | sed -n '52p' | grep -o '.\{0,40\}cfb894a5.\{0,40\}'
+the loader at google-gemini/gemini-cli@`451a02ff` and found no cut. The docs host now ca
+  `cfb894a5` (frontmatter only differs)" → "… at ze
+d-industries/zed@`cfb894a5` (frontmatter only differs)"),
+exit=0
+
+== addendum 2: Kb80E10Battery stack facts, re-derived ==
+$ git apply --numstat .ufo/waves/round-80/build/Kb80S07Quality-world.patch
+75	4	verifiers/verify_corpus_independent.py
+96	1	verifiers/verify_corpus_integrity.py
+exit=0
+
+$ bash -c P=.ufo/waves/round-80/build/Kb80E06CounterErratum.cap60-provisional.py; grep -n '^LINE_CAP = \|^TOTAL = \|^BASE = ' $P; diff <(sed -n '/^INSTRUMENT_PINS/,/^}/p' verifiers/check_tip_battery.py) <(sed -n '/^INSTRUMENT_PINS/,/^}/p' $P) && echo 'pin block identical to base (no round-80 pins yet)'
+108:BASE = "072048fa8e8a52c707d25f7079772fa317244eb7"        # round-73 base (pinned)
+109:TOTAL = 6
+119:LINE_CAP = 60
+pin block identical to base (no round-80 pins yet)
+exit=0
+
+$ bash -c git diff --no-index verifiers/check_tip_battery.py .ufo/waves/round-80/build/Kb80E06CounterErratum.cap60-provisional.py | grep -c '^[+-][^+-]'
+35
+exit=0
+
+$ ls corpus/knowledge/allowed-tools-surfaces-round80.md
+ls: cannot access 'corpus/knowledge/allowed-tools-surfaces-round80.md': No such file or directory
+exit=2
+
+$ bash -c ls .ufo/waves/round-80/build | grep -i 'E05\|Grammar' || echo '(no E05/grammar patch published at this read)'
+Kb80L01Grammar-independent-probe.json
+Kb80L01Grammar-independent-receipt.txt
+Kb80L01Grammar-integrity-probe.json
+Kb80L01Grammar-integrity-receipt.txt
+Kb80L01Grammar.md
+Kb80L01Grammar-probe-lines.md
+Kb80R05FleetGrammar.md
+exit=0
+
+== addendum 3: C2-entry seat claims, re-derived ==
+$ ls corpus/knowledge/allowed-tools-surfaces-round80.md
+ls: cannot access 'corpus/knowledge/allowed-tools-surfaces-round80.md': No such file or directory
+exit=2
+
+$ bash -c python3 -B -c "import json,pathlib;\nfor s in ('S230','S231'):\n d=json.loads(pathlib.Path('.ufo/waves/round-79/snapshots/%s.fetch.json'%s).read_text()); print(s, sorted(d)); print(' note:', d['note'][:200])"
+  File "<string>", line 1
+    import json,pathlib;\nfor s in ('S230','S231'):\n d=json.loads(pathlib.Path('.ufo/waves/round-79/snapshots/%s.fetch.json'%s).read_text()); print(s, sorted(d)); print(' note:', d['note'][:200])
+                         ^
+SyntaxError: unexpected character after line continuation character
+exit=1
+
+$ bash -c python3 -B -c "
+import re, html, pathlib
+raw = pathlib.Path('.ufo/waves/round-79/snapshots/S229-msaf.html').read_text(encoding='utf-8', errors='replace')
+raw = re.sub(r'(?is)<(script|style)\b.*?</\1\s*>', ' ', raw)
+raw = re.sub(r'(?s)</?[A-Za-z][^>]*>', ' ', raw)
+raw = html.unescape(raw)
+lines = [re.sub(r'\s+',' ',l).strip() for l in raw.splitlines()]
+lines = [l for l in lines if l]
+print('view lines', len(lines))
+print('allowed-tools at view lines', [i+1 for i,l in enumerate(lines) if 'allowed-tools' in l], 'count', sum('allowed-tools' in l for l in lines))
+print('first #-line', next(((i+1,l[:60]) for i,l in enumerate(lines) if l.startswith('#')), None))
+print('Agent Skills heading at', [i+1 for i,l in enumerate(lines) if l.strip()=='Agent Skills'][:2])
+"
+view lines 1550
+allowed-tools at view lines [96] count 1
+first #-line (169, '# Auto-approve load_skill and read_skill_resource, but not r')
+Agent Skills heading at [39]
+exit=0
+
+$ bash -c grep -n 'def quote_location' -A 11 .ufo/waves/round-79/build/check_allowed_tools.py
+885:def quote_location(lines: list[str], quote: str) -> tuple[bool, str | None]:
+886-    """Q70: not a heading, not the first-heading block."""
+887-    idx, _joined = _line_of(lines, quote)
+888-    if idx is None:
+889-        return False, "quote not found in the text view"
+890-    if lines[idx].startswith("#"):
+891-        return False, ("quote lies on a heading line (a banner or subtitle, "
+892-                       "Q70)")
+893-    first_head = next((i for i, l in enumerate(lines) if l.startswith("#")),
+894-                      None)
+895-    if first_head is not None and idx <= first_head + 1:
+896-        return False, "quote lies in the first-heading block (Q70)"
+exit=0
+
+== addendum 3 correction: the SyntaxError block above is superseded by this one ==
+$ python3 -B -c import json,pathlib; d={s:json.loads(pathlib.Path('.ufo/waves/round-79/snapshots/%s.fetch.json'%s).read_text()) for s in ('S230','S231')}; [print(s, sorted(d[s]), '| note:', d[s]['note'][:190]) for s in d]
+S230 ['bytes', 'fetched_utc', 'final_url', 'http', 'id', 'note', 'sha256', 'ua', 'url'] | note: Fetched twice with curl -sSL -A 'Mozilla/5.0' --max-time 60 (21:41:14Z and 21:41:14Z); both HTTP 200, 4793 B (wc -c), sha256 5b9805525b194474ef1fe5455a0917ef15ed7f710aa9bec2eee11879556469e5,
+S231 ['bytes', 'fetched_utc', 'final_url', 'http', 'id', 'note', 'sha256', 'ua', 'url'] | note: raw markdown served by raw.githubusercontent.com for refs/heads/main; 'main' resolved to commit 7bb48f213ac677f943d5c791199ed3dddf302f00 by git ls-remote at 2026-10-27T21:43:03Z and the comm
+exit=0
+
+$ bash -c grep -o 'main at fetch time = [0-9a-f]*' .ufo/waves/round-79/snapshots/S230.fetch.json; grep -o 'resolved to commit [0-9a-f]*' .ufo/waves/round-79/snapshots/S231.fetch.json
+main at fetch time = bb65e3e49710fbd14f10c7792d0eaa6e2b2c5923
+resolved to commit 7bb48f213ac677f943d5c791199ed3dddf302f00
+exit=0
+

@@ -1,0 +1,35 @@
+diff --git a/verifiers/verify_corpus_integrity.py b/verifiers/verify_corpus_integrity.py
+index e470eaa..051b8c5 100755
+--- a/verifiers/verify_corpus_integrity.py
++++ b/verifiers/verify_corpus_integrity.py
+@@ -272,6 +272,12 @@ def resolve_pointer(base: Path, token: str) -> Path:
+ 
+ def report_pointer_exists(base: Path, token: str, fleet_root: Path = FLEET_ROOT) -> bool:
+     """Check the citing directory first, then the fleet root for bare report paths."""
++    head, _, rest = token.partition(":")
++    if head and rest.startswith(".ufo/reports/"):  # `<rev>:<path>`: a revision, not a tree path
++        at = base.resolve()  # the citing repository first, then the fleet root
++        lane = next((p for p in (at, *at.parents) if (p / ".git").exists()), None)
++        return bool(lane) and git_ok(lane, "cat-file", "-e", token) or git_ok(
++            fleet_root, "cat-file", "-e", token)
+     if resolve_pointer(base, token).is_file():
+         return True
+     return token.startswith(".ufo/reports/") and (fleet_root / token).is_file()
+@@ -1023,6 +1029,17 @@ def self_test() -> int:
+         )
+         eq("pointer/fleet-root/checked", fleet_found["report_total"], 1)
+         eq("pointer/fleet-root/resolves-existing-report", fleet_found["report_dead"], 0)
++        # round 79: the fleet repo is a revision `HEAD:.ufo/...` resolves in.
++        subprocess.run(["git", "init", "-q", str(fleet_root)], check=True)
++        subprocess.run(["git", "-C", str(fleet_root), "add", "-A"], check=True)
++        subprocess.run(["git", "-C", str(fleet_root), "-c", "user.name=t", "-c",
++                        "user.email=t@t", "commit", "-qm", "f"], check=True)
++        rev_found = citation_findings("corpus/lessons/rev.md",
++            "rev `HEAD:.ufo/reports/round-53/kotoba.md` and gone `HEAD:.ufo/reports/round-9/x.md`"
++            " and unk `nosuchrev:.ufo/reports/round-53/kotoba.md`",
++            lambda base, token: report_pointer_exists(lane_root / base, token, fleet_root),
++            lambda hex_id: True)
++        eq("pointer/rev/dead", (rev_found["report_dead"], rev_found["report_total"]), (2, 3))
+ 
+     # --- round 66: the commit fleet-hop (routed defect D2 of the round-65
+     # spot-check) ----------------------------------------------------------

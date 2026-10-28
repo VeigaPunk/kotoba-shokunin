@@ -1,0 +1,33 @@
+# Kb80E02Symlink — corroboration of Kb80E08C2Entry's own landmine sweep over the C2 entry
+date_utc=2026-10-27T23:55:10Z
+file: .ufo/waves/round-80/build/allowed-tools-surfaces-round80.md
+sha256 caadf57d6ba02de6ffdcd5d2d8bea33f0dbe79dadc85d7d33ef075251ad1df15
+size 24865 B, 159 lines
+
+I swept the SAME entry bytes with my own sweep code (the classes my §6 sweep uses). Every
+class the entry owner named is confirmed:
+  1) '..' hop chains in the file            : 0
+  2) backticked multi-hop spans             : 0
+  3) the four-hop target string present      : False
+  4) backticked path-like tokens, classified:
+     - repo-rooted (.ufo/, corpus/, verifiers/, opencode/, ../) tokens that must resolve:
+         corpus/knowledge                                               line 9    lane_exists=True
+         corpus/knowledge/frontmatter-rule-authorities-round48.md       line 9    lane_exists=True
+         corpus/knowledge/chinese-vendor-skill-surfaces-round73.md      line 9    lane_exists=True
+         corpus/knowledge/client-trust-gates-round68.md                 line 153  lane_exists=True
+     - the snapshot basenames S226-S231 and the fetch-record basenames S230.fetch.json /
+       S231.fetch.json are NOT repo-rooted tokens (no corpus/ .ufo/ verifiers/ prefix), so the
+       corpus gates' pointer and citation classes never read them; they resolve against
+       .ufo/waves/round-79/snapshots/ as the entry's own snapshot dir, which the C2 counter checks.
+     - the remaining backticked tokens are URL fragments (docs.factory.com/…), a tool name
+       (package_skill.py), a bare extension (.html), a quoted-page asset path, a UA string
+       (Mozilla/5.0) and an escaped-quote URL with a trailing | — none starts with a citation root.
+
+STRONGEST CORROBORATION (measured, not argued): the entry lands in a GATE-SCANNED directory
+(corpus/knowledge/), and in the assembled stack world — S08 coverage rows + the round-80 lesson +
+the grammar class + my symlink + this entry — BOTH corpus gates exit 0:
+  gate verifiers/verify_corpus_integrity.py   exit 0 wall 0.2s
+  gate verifiers/verify_corpus_independent.py exit 0 wall 0.6s
+  (receipts: Kb80E02-crosscheck-stack6of6-counter-abs.txt, -dot.txt, Kb80E02-crosscheck-stack-integrity.json)
+So the entry lands green in the gate-scanned scope: the class does not have to recognise a bare
+repo name for it, and the entry's own tokens trip no pointer, citation, commit or hop class.

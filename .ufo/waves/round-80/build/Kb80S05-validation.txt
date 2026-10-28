@@ -1,0 +1,134 @@
+round-80 Kb80S05SourcesEdits validation — 2026-10-27T23:18:42Z
+tree: /fast/scratch/hyaku/kotoba-r80/Kb80S05SourcesEdits/clone at 398cbe1bb67f8d9dcf5d25d5ecf1b26a7c6f7e93 (scratch clone of lane base)
+placeholders present in this tree (NOT part of the patch): corpus/knowledge/allowed-tools-surfaces-round80.md, corpus/lessons/round-80.md
+
+### census validate (maintained CLI, --file form; placeholders present)
+$ bash /home/vgpnk/Projects/shokunin/scripts/sources-census.sh validate --file /fast/scratch/hyaku/kotoba-r80/Kb80S05SourcesEdits/clone/corpus/SOURCES.md
+file	W04	S018 duplicate url agentskills.io/specification across scopes
+file	W04	S019 duplicate url platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices across scopes
+file	W04	S021 duplicate url learn.chatgpt.com/docs/build-skills across scopes
+file	W04	S054 duplicate url learn.chatgpt.com/docs/build-skills across scopes
+file	W04	S055 duplicate url code.visualstudio.com/docs/agent-customization/agent-skills across scopes
+file	W04	S056 duplicate url docs.github.com/en/copilot/reference/copilot-cli-reference/cli-command-reference across scopes
+file	W04	S065 duplicate url code.claude.com/docs/en/skills.md across scopes
+file	W04	S086 duplicate url developers.openai.com/plugins/build/plugins.md across scopes
+file	W04	S103 duplicate url code.claude.com/docs/en/memory.md across scopes
+file	W04	S104 duplicate url learn.chatgpt.com/docs/agent-configuration/agents-md.md across scopes
+file	W04	S106 duplicate url docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-custom-instructions.md across scopes
+file	W04	S110 duplicate url code.claude.com/docs/en/hooks.md across scopes
+file	W04	S111 duplicate url learn.chatgpt.com/docs/hooks.md across scopes
+file	W04	S114 duplicate url docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-custom-instructions.md across scopes
+file	W04	S115 duplicate url cursor.com/docs/rules across scopes
+file	W04	S118 duplicate url code.claude.com/docs/en/memory.md across scopes
+file	W04	S207 duplicate url opencode.ai/docs/skills across scopes
+file	W04	S208 duplicate url learn.microsoft.com/en-us/agent-framework/agents/skills across scopes
+file	W04	S212 duplicate url agentskills.io/skill-creation/evaluating-skills.md across scopes
+file	W04	S213 duplicate url agentskills.io/skill-creation/optimizing-descriptions.md across scopes
+file	W04	S227 duplicate url code.claude.com/docs/en/skills.md across scopes
+file	W04	S229 duplicate url learn.microsoft.com/en-us/agent-framework/agents/skills across scopes
+file	W04	S230 duplicate url raw.githubusercontent.com/badlogic/pi-mono/main/packages/coding-agent/docs/skills.md across scopes
+file	W04	S231 duplicate url raw.githubusercontent.com/mistralai/mistral-vibe/main/README.md across scopes
+file	ok	/fast/scratch/hyaku/kotoba-r80/Kb80S05SourcesEdits/clone/corpus/SOURCES.md
+exit=0
+
+### rows count (base 157 + 5)
+$ bash -c grep -cE '^\|[[:space:]]*S[0-9]{3,}[[:space:]]*\|' corpus/SOURCES.md
+162
+exit=0
+
+### malformed rows (must print 0)
+$ bash -c awk -F'|' '/^\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\|/ && NF!=13 {n++} END{print n+0}' corpus/SOURCES.md
+0
+exit=0
+
+### duplicate ids (must print nothing)
+$ bash -c awk -F'|' '/^\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\|/ {i=$2; gsub(/[[:space:]]/,"",i); print i}' corpus/SOURCES.md | sort | uniq -d
+exit=0
+
+### enum + tier-inflation sweep (must print nothing)
+$ bash -c awk -F'|' '/^\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\|/ && NF==13 {i=$2;k=$4;t=$5;s=$9; gsub(/[[:space:]]/,"",i); gsub(/[[:space:]]/,"",k); gsub(/[[:space:]]/,"",t); gsub(/[[:space:]]/,"",s); if (t !~ /^[ABC]$/) print "tier", i, t; if (s !~ /^(queued|mined|rejected)$/) print "status", i, s; if (k !~ /^(spec|docs|paper|code|tool|dataset|talk|book|community|own-work)$/) print "kind", i, k; if (t=="A" && k=="community") print "tier-inflation", i}' corpus/SOURCES.md
+exit=0
+
+### mined used-by paths exist (must print nothing)
+$ bash -c awk -F'|' '/^\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\|/ && NF==13 {s=$9; gsub(/[[:space:]]/,"",s); if (s=="mined") {n=split($12, a, /[,;]/); for (j=1;j<=n;j++) {p=a[j]; gsub(/^[[:space:]]+|[[:space:]]+$/,"",p); if (p!="" && p!="—") print p}}}' corpus/SOURCES.md | while read -r p; do [ -e "$p" ] || echo "missing: $p"; done
+exit=0
+
+### new rows: id cell, status cell, used-by cell
+$ bash -c awk -F'|' '/^\|[[:space:]]*S24[4-8][[:space:]]*\|/ {printf "%s status=%s usedby=%s NF=%d (want 13 = 11 cells)\n", $2, $9, $12, NF}' corpus/SOURCES.md
+ S244  status= rejected  usedby= corpus/lessons/round-80.md  NF=13 (want 13 = 11 cells)
+ S245  status= rejected  usedby= corpus/lessons/round-80.md  NF=13 (want 13 = 11 cells)
+ S246  status= rejected  usedby= corpus/lessons/round-80.md  NF=13 (want 13 = 11 cells)
+ S247  status= rejected  usedby= corpus/lessons/round-80.md  NF=13 (want 13 = 11 cells)
+ S248  status= queued  usedby= —  NF=13 (want 13 = 11 cells)
+exit=0
+
+### conjunct (b) — RED BEFORE (base 398cbe1 SOURCES.md, ENTRY=corpus/knowledge/allowed-tools-surfaces-round80.md)
+$ python3 /fast/scratch/hyaku/kotoba-r80/Kb80S05SourcesEdits/conjunct_b.py /fast/scratch/hyaku/kotoba-r80/Kb80S05SourcesEdits/base-SOURCES.md
+S226 (spec): S226: used-by 'corpus/lessons/round-79.md' does not list corpus/knowledge/allowed-tools-surfaces-round80.md
+S227 (claude): S227: used-by 'corpus/lessons/round-79.md' does not list corpus/knowledge/allowed-tools-surfaces-round80.md
+S228 (factory): S228: used-by 'corpus/lessons/round-79.md' does not list corpus/knowledge/allowed-tools-surfaces-round80.md
+S229 (msaf): S229: used-by 'corpus/lessons/round-79.md' does not list corpus/knowledge/allowed-tools-surfaces-round80.md
+S230 (pi): S230: used-by 'corpus/lessons/round-79.md' does not list corpus/knowledge/allowed-tools-surfaces-round80.md
+S231 (vibe): S231: used-by 'corpus/lessons/round-79.md' does not list corpus/knowledge/allowed-tools-surfaces-round80.md
+conjunct-(b) failures: 6 of 6
+exit=1
+
+### conjunct (b) — AFTER (edited SOURCES.md)
+$ python3 /fast/scratch/hyaku/kotoba-r80/Kb80S05SourcesEdits/conjunct_b.py /fast/scratch/hyaku/kotoba-r80/Kb80S05SourcesEdits/clone/corpus/SOURCES.md
+S226 (spec): OK
+S227 (claude): OK
+S228 (factory): OK
+S229 (msaf): OK
+S230 (pi): OK
+S231 (vibe): OK
+conjunct-(b) failures: 0 of 6
+exit=0
+
+### E11 red-before: census validate with the two used-by targets removed (E11 lines only)
+$ bash -c bash /home/vgpnk/Projects/shokunin/scripts/sources-census.sh validate --file /fast/scratch/hyaku/kotoba-r80/Kb80S05SourcesEdits/clone/corpus/SOURCES.md | grep -c 'E11'; exit ${PIPESTATUS[0]}
+12
+exit=1
+
+### census validate again with placeholders restored (final)
+$ bash /home/vgpnk/Projects/shokunin/scripts/sources-census.sh validate --file /fast/scratch/hyaku/kotoba-r80/Kb80S05SourcesEdits/clone/corpus/SOURCES.md
+file	W04	S018 duplicate url agentskills.io/specification across scopes
+file	W04	S019 duplicate url platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices across scopes
+file	W04	S021 duplicate url learn.chatgpt.com/docs/build-skills across scopes
+file	W04	S054 duplicate url learn.chatgpt.com/docs/build-skills across scopes
+file	W04	S055 duplicate url code.visualstudio.com/docs/agent-customization/agent-skills across scopes
+file	W04	S056 duplicate url docs.github.com/en/copilot/reference/copilot-cli-reference/cli-command-reference across scopes
+file	W04	S065 duplicate url code.claude.com/docs/en/skills.md across scopes
+file	W04	S086 duplicate url developers.openai.com/plugins/build/plugins.md across scopes
+file	W04	S103 duplicate url code.claude.com/docs/en/memory.md across scopes
+file	W04	S104 duplicate url learn.chatgpt.com/docs/agent-configuration/agents-md.md across scopes
+file	W04	S106 duplicate url docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-custom-instructions.md across scopes
+file	W04	S110 duplicate url code.claude.com/docs/en/hooks.md across scopes
+file	W04	S111 duplicate url learn.chatgpt.com/docs/hooks.md across scopes
+file	W04	S114 duplicate url docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-custom-instructions.md across scopes
+file	W04	S115 duplicate url cursor.com/docs/rules across scopes
+file	W04	S118 duplicate url code.claude.com/docs/en/memory.md across scopes
+file	W04	S207 duplicate url opencode.ai/docs/skills across scopes
+file	W04	S208 duplicate url learn.microsoft.com/en-us/agent-framework/agents/skills across scopes
+file	W04	S212 duplicate url agentskills.io/skill-creation/evaluating-skills.md across scopes
+file	W04	S213 duplicate url agentskills.io/skill-creation/optimizing-descriptions.md across scopes
+file	W04	S227 duplicate url code.claude.com/docs/en/skills.md across scopes
+file	W04	S229 duplicate url learn.microsoft.com/en-us/agent-framework/agents/skills across scopes
+file	W04	S230 duplicate url raw.githubusercontent.com/badlogic/pi-mono/main/packages/coding-agent/docs/skills.md across scopes
+file	W04	S231 duplicate url raw.githubusercontent.com/mistralai/mistral-vibe/main/README.md across scopes
+file	ok	/fast/scratch/hyaku/kotoba-r80/Kb80S05SourcesEdits/clone/corpus/SOURCES.md
+exit=0
+
+### E11 red-before, direct exit capture (no pipeline in the verdict path)
+$ bash scripts/sources-census.sh validate --file /fast/scratch/hyaku/kotoba-r80/Kb80S05SourcesEdits/clone/corpus/SOURCES.md > e11-red.out 2>&1; rc=$?; grep -c E11 e11-red.out
+census exit=1   E11 lines=12   (both used-by targets absent from the tree)
+
+### final census validate, direct exit capture (placeholders present)
+census exit=0   E-lines=0   W04-lines=24
+note: the W04 warnings are baseline (they name S018, S227, S229-S231 etc. — rows that existed at 398cbe1); none names S244-S248.
+
+### post-fix re-run (search-log note wording corrected to raw/text-view counts)
+census validate exit=0   E-lines=0   W04-lines=24
+conjunct (b) after: exit=0   conjunct-(b) failures: 0 of 6
+patch apply --check exit=0   apply exit=0   applied sha256=e9ebf9a374837ab1c88cea0793cf1823aaf750ca42dae9618207cf2daa852a10
+applied SOURCES.md lines=416
+

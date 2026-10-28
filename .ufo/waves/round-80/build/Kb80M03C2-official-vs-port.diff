@@ -1,0 +1,532 @@
+--- /fast/scratch/hyaku/kotoba-r80/Kb80M03C2/port/check_allowed_tools.py	2026-10-27 20:27:58.834435254 -0300
++++ /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-80/build/check_allowed_tools.py	2026-10-27 20:19:27.710271608 -0300
+@@ -1,28 +1,20 @@
+ #!/usr/bin/env python3
+-"""check_allowed_tools.py — frozen C2 counter for kotoba round 80 (depth).
++"""check_allowed_tools.py — frozen C2 counter for kotoba round 79 (depth).
+ 
+-FROZEN PREDICATE (the same sentence in plans/round-80.md § C2, in this
++FROZEN PREDICATE (the same sentence in plans/round-79.md § C2, in this
+ docstring, in the receipt and in the SCORECARD row):
+ 
+     python3 -B verifiers/check_allowed_tools.py --rev <rev>  ->  prints
+-    "allowed-tools surfaces documented N of 6" and "generator world: M of 6"
+-    and exits 0 iff N == 6 and the tree conjuncts (g)-(i) hold; at the r80
+-    base 398cbe1bb67f8d9dcf5d25d5ecf1b26a7c6f7e93 it prints
+-    "allowed-tools surfaces documented 0 of 6" and exits 1.
+-
+-Round-80 port note (seat Kb80M03C2, declared derivation from the r79 draft
+-74e067ccad7813d91826ee503c8ee93ba47d3a4a05b12ec67a82791d93f722a6): the entry
+-path moves to the round-80 entry, the headline conjunct tightens to N == 6,
+-the printed lines are renamed (backed -> documented, generator world ->
+-generator world) and BASE_REV moves to the r80 base.  Every other guard keeps
+-the r79 semantics; the internal variable `backed` keeps its r79 name and only
+-the printed claim line says "documented".
+-
+-Surface ``V`` in the frozen host table below is **documented** at ``--rev`` iff all
++    "allowed-tools surfaces backed N of 6" and exits 0 only when N >= 5 and
++    the tree conjuncts (g)-(i) hold; at the r79 base
++    b10bcbc6b00f8f56b202ccbadca311007b5b463c it prints
++    "allowed-tools surfaces backed 0 of 6" and exits 1.
++
++Surface ``V`` in the frozen host table below is **backed** at ``--rev`` iff all
+ of (a)-(f) hold over committed bytes only (no network at measurement, and no
+ instrument of the measured tree is executed):
+ 
+-  (a) the entry ``corpus/knowledge/allowed-tools-surfaces-round80.md`` (frozen
++  (a) the entry ``corpus/knowledge/allowed-tools-surfaces-round79.md`` (frozen
+       path) opens with ``source:`` lines for every cited id, then
+       ``verified-at:`` then ``recheck:``; the entry names the snapshot text
+       view; and its surface table (the one table whose header is the frozen
+@@ -57,10 +49,10 @@
+   (h) PROVINCE.md ``## Core`` has exactly one bullet naming the entry path;
+       printed ``province surfaces named P of 6`` (the surfaces that bullet
+       names, informational) beside the bullet finding.
+-  (i) printed ``generator world: M of 6``: the counter builds, from the
+-      measured revision's own bytes and with no judgement, the generator
++  (i) printed ``script-only world: M of 6``: the counter builds, from the
++      measured revision's own bytes and with no judgement, the script-only
+       world (a mechanical scrape of the six pages into the entry) and measures
+-      it with the SAME ``check()``. Q71: a generator world that reaches the
++      it with the SAME ``check()``. Q71: a script-only world that reaches the
+       target is a counter defect, so (i) is a conjunct: exit 0 also requires
+       M < 5.
+ 
+@@ -147,7 +139,7 @@
+     exception is the L1's factory amendment: the canonical page and that same
+     page's ``.md`` route (a bare ``.md`` suffix on one side, same host) are the
+     same page.
+-  * the generator world is generated at measurement time, not a fixed list:
++  * the script-only world is generated at measurement time, not a fixed list:
+     for each surface it takes the lowest-id registry row on the surface's
+     frozen host, the manifest-pinned snapshot whose basename begins with that
+     id, the first non-heading body line containing ``allowed-tools`` as the
+@@ -158,7 +150,7 @@
+     scraper reaches. Real pages may reach more than 0; reaching the target is
+     reported, never repaired by narrowing.
+ 
+-Exit codes: 0 iff N == 6 and the generator world is below the target and the
++Exit codes: 0 iff N >= 5 and the script-only world is below the target and the
+ tree conjuncts (g)-(h) hold; 1 otherwise (a content verdict); 2 could not
+ evaluate (unknown revision, unreadable registry/manifest, tampered or
+ ambiguous pinned snapshot, counter drift, unreadable base registry).
+@@ -195,7 +187,7 @@
+ TOTAL = 6
+ TARGET = 5
+ SOURCES = "corpus/SOURCES.md"
+-ENTRY = "corpus/knowledge/allowed-tools-surfaces-round80.md"
++ENTRY = "corpus/knowledge/allowed-tools-surfaces-round79.md"
+ SNAPDIR = ".ufo/waves/round-79/snapshots"
+ MANIFEST = SNAPDIR + "/MANIFEST.sha256"
+ COUNTER_PATH = "verifiers/check_allowed_tools.py"
+@@ -260,7 +252,7 @@
+ # Frozen at freeze 2: the lane base the do-nothing figure is measured at.  The
+ # self-test rebinds this module global to a fixture repo's own first commit
+ # (there is no CLI flag to move it: a measurement always reads this constant).
+-BASE_REV = "398cbe1bb67f8d9dcf5d25d5ecf1b26a7c6f7e93"
++BASE_REV = "b10bcbc6b00f8f56b202ccbadca311007b5b463c"
+ 
+ MIN_TOKENS = 3
+ MIN_QUOTE_WORDS = 5
+@@ -278,7 +270,7 @@
+ SEPARATOR_RE = re.compile(r":?-{3,}:?")
+ LIST_MARKER_RE = re.compile(r"(?m)^[ \t]{0,3}[*+\-][ \t]+")
+ TRIM_CHARS = ".,;:!?)]}'\""
+-SELF_SHA = "710f4eea3c7e15259e80c31d38374aa0e21dcedaf9dac0702f923987fbe26e07"   # blanked-sha of this file (the L1 refills it at freeze)
++SELF_SHA = "1f9744c84cce7fe9978074f6379a547f4d7affae8905fde0fd811e493693ccf9"   # blanked-sha of this file (the L1 refills it at freeze)
+ _INTERNAL_SELFTEST = False   # set only by --self-test: the drift guard is a
+                              # measurement guard, and the self-test mutates
+                              # nothing in this file, so it is skipped there.
+@@ -1164,7 +1156,7 @@
+     return len(naming), named
+ 
+ 
+-# ------------------------------------------------------- the generator world
++# ------------------------------------------------------- the script-only world
+ # Q71: a mechanical scrape of the six pages into the entry, with no judgement.
+ # It is generated at measurement time from the measured revision's own bytes
+ # and scored by the SAME check(), so nothing in the headline can rest on it.
+@@ -1227,7 +1219,7 @@
+ 
+ 
+ def script_only_world(repo: Repo) -> tuple[int, str]:
+-    """(M, note): the generator world's score under the frozen predicate."""
++    """(M, note): the script-only world's score under the frozen predicate."""
+     try:
+         man = repo.manifest()
+     except EnvError as exc:
+@@ -1263,7 +1255,7 @@
+             continue
+         row[10] = ENTRY
+         row[8] = CAPTURE
+-        row[5] = ("§ generator; fetched %sT00:00:00Z, HTTP 200, %d B, "
++        row[5] = ("§ script-only; fetched %sT00:00:00Z, HTTP 200, %d B, "
+                   "sha256 %s" % (CAPTURE, len(raw),
+                                  hashlib.sha256(raw).hexdigest()))
+         rows.append(row)
+@@ -1305,7 +1297,7 @@
+         url = (urls_of(row[1]) or ["https://example.invalid/"])[0]
+         name, text = snaps[sid]
+         quote = _mech_quote(text_view(name, text)) or ""
+-        head.append(f'source: {sid} — generator scrape — {url} — located '
++        head.append(f'source: {sid} — script-only scrape — {url} — located '
+                     f'quote "{quote}" (snapshot `{name}`)')
+     body = ["", f"verified-at: {CAPTURE}", "recheck: 90d — re-fetch",
+             "",
+@@ -1335,7 +1327,7 @@
+     head = ("| id | source | kind | tier | scope | anchor | teaches | status | "
+             "opened | recheck | used-by |")
+     sep = "|" + "---|" * REGISTRY_CELLS
+-    return ("# SOURCES (generator world)\n\n## Registry\n\n" + head + "\n"
++    return ("# SOURCES (script-only world)\n\n## Registry\n\n" + head + "\n"
+             + sep + "\n" + "\n".join("| " + " | ".join(r) + " |"
+                                      for r in rows) + "\n")
+ 
+@@ -1656,27 +1648,27 @@
+ def _world_specs() -> list[dict]:
+     """One honest world, then one broken world per conjunct and per shortcut.
+ 
+-    The r80 claim's target is N == 6 of a population of 6, so a single broken
+-    surface already flips the verdict to exit 1: the per-conjunct arms below
+-    assert the specific finding (that is what falsifies the conjunct) and the
+-    printed 5-of-6 / 4-of-6 figure.  Controls that cannot be expressed as a
+-    broken surface (the generator world, a tampered pin) assert their own
+-    exit."""
++    The claim's target is N >= 5 of a population of 6, so a single broken
++    surface is inside the declared margin: the per-conjunct arms below assert
++    the specific finding (that is what falsifies the conjunct) and, for every
++    conjunct, a second arm breaks TWO surfaces so the verdict flips to exit 1
++    at 4 of 6.  Controls that cannot be expressed as a broken surface (the
++    script-only world, a tampered pin) assert their own exit."""
+     honest = _honest()
+     pages_h = {FIX[k][0]: _page(k, SURFACES[k]) for k in SURFACE_ORDER}
+-    six = "allowed-tools surfaces documented 6 of 6"
+-    five = "allowed-tools surfaces documented 5 of 6"
+-    four = "allowed-tools surfaces documented 4 of 6"
+-    zero = "allowed-tools surfaces documented 0 of 6"
++    six = "allowed-tools surfaces backed 6 of 6"
++    five = "allowed-tools surfaces backed 5 of 6"
++    four = "allowed-tools surfaces backed 4 of 6"
++    zero = "allowed-tools surfaces backed 0 of 6"
+     specs: list[dict] = []
+     add = specs.append
+ 
+     # ---------------------------------------------------------- honest worlds
+     add(dict(label="honest world scores 6 of 6", files=honest, code=0,
+-             line=six, finding="generator world: 1 of 6"))
++             line=six, finding="script-only world: 1 of 6"))
+     add(dict(label="honest world reads 6 of 6 under a relative --repo .",
+              files=honest, code=0, line=six, relative=True,
+-             finding="generator world: 1 of 6"))
++             finding="script-only world: 1 of 6"))
+     add(dict(label="honest world's tree conjuncts are all green",
+              files=honest, code=0, line=six,
+              finding="province surfaces named 6 of 6"))
+@@ -1687,9 +1679,9 @@
+     add(dict(label="base world (entry absent) is the do-nothing control",
+              files={SOURCES: _registry(pages_h)}, code=1, line=zero,
+              finding=f"entry {ENTRY} absent"))
+-    add(dict(label="base world prints generator world: 0 of 6",
++    add(dict(label="base world prints script-only world: 0 of 6",
+              files={SOURCES: _registry(pages_h)}, code=1, line=zero,
+-             finding="generator world: 0 of 6"))
++             finding="script-only world: 0 of 6"))
+     add(dict(label="surface hosts already in the base registry read held 6",
+              files=honest, base_files={SOURCES: _registry(pages_h)}, code=0,
+              line=six, finding="held at base: 6"))
+@@ -1735,24 +1727,24 @@
+                             "specification</h1><p>Example values: "
+                             "Bash(git:*) and Bash list forms.</p>"
+                             "</body></html>\n")})),
+-             code=1, line=five, finding="spec: located quote not found"))
++             code=0, line=five, finding="spec: located quote not found"))
+ 
+     # ---------------------------------------------------------- (a) structure
+     add(dict(label="(a) surface row hidden in an HTML comment",
+              files=_mutate(honest, **{ENTRY: _hide(
+                  _row_text("claude"), "<!--", "-->", honest)}),
+-             code=1, line=five,
++             code=0, line=five,
+              finding="claude: 0 surface-table row(s) name Claude Code"))
+     add(dict(label="(a) surface row hidden in a fenced block",
+              files=_mutate(honest, **{ENTRY: _hide(
+                  _row_text("claude"), "```text", "```", honest)}),
+-             code=1, line=five,
++             code=0, line=five,
+              finding="claude: 0 surface-table row(s) name Claude Code"))
+     add(dict(label="(a) two rows name the same surface", files=_mutate(
+         honest, **{ENTRY: _entry_text(pages_h).replace(
+             "| Factory |", "| Claude Code | S227 | `allowed-tools` | "
+             "experimental | \"x\" |\n| Factory |", 1)}),
+-        code=1, line=five, finding="2 surface-table row(s) name Claude Code"))
++        code=0, line=five, finding="2 surface-table row(s) name Claude Code"))
+     add(dict(label="(a) entry without verified-at:", files=_mutate(
+         honest, **{ENTRY: _entry_text(pages_h, trio=False)}),
+         code=1, line=zero, finding="no verified-at: line"))
+@@ -1768,7 +1760,7 @@
+     add(dict(label="(a) entry outside corpus/knowledge is not the entry",
+              files=_mutate(honest, **{
+                  ENTRY: None,
+-                 "corpus/notes/allowed-tools-surfaces-round80.md":
++                 "corpus/notes/allowed-tools-surfaces-round79.md":
+                      _entry_text(pages_h)}),
+              code=1, line=zero, finding=f"entry {ENTRY} absent"))
+     add(dict(label="(a) entry with no surface table", files=_mutate(
+@@ -1794,7 +1786,7 @@
+     add(dict(label="(a) surface row with six cells", files=_mutate(
+         honest, **{ENTRY: _entry_text(pages_h).replace(
+             "| Mistral Vibe | S231 |", "| Mistral Vibe | S231 | note |")}),
+-        code=1, line=five, finding="Mistral Vibe: 6 cells"))
++        code=0, line=five, finding="Mistral Vibe: 6 cells"))
+     add(dict(label="(a) entry that does not name the text view",
+              files=_mutate(honest, **{ENTRY: _entry_text(
+                  pages_h, shaping=False)}),
+@@ -1805,7 +1797,7 @@
+                        ["allowed-tools", "Bash",
+                         "without prompting you for approval",
+                         "ztuff?"])})}),
+-        code=1, line=five, finding="does not occur word-bounded"))
++        code=0, line=five, finding="does not occur word-bounded"))
+     add(dict(label="(a) two rows carry tokens no page carries", files=_mutate(
+         honest, **{ENTRY: _entry_text(pages_h, rows={
+             "claude": ("pre-approves",
+@@ -1818,20 +1810,20 @@
+     add(dict(label="(a) row with only two tokens", files=_mutate(
+         honest, **{ENTRY: _entry_text(pages_h, rows={
+             "claude": ("pre-approves", ["allowed-tools", "Bash"])})}),
+-        code=1, line=five, finding="2 backticked token(s)"))
++        code=0, line=five, finding="2 backticked token(s)"))
+     add(dict(label="(a) row with no value-form token", files=_mutate(
+         honest, **{ENTRY: _entry_text(pages_h, rows={
+             "spec": (SURFACES["spec"]["grant"],
+                      ["allowed-tools", "Experimental", "experimental"])})}),
+-        code=1, line=five, finding="no value-form token"))
++        code=0, line=five, finding="no value-form token"))
+     add(dict(label="(a) row with no grant-semantics token", files=_mutate(
+         honest, **{ENTRY: _entry_text(pages_h, rows={
+             "claude": ("pre-approves", ["allowed-tools", "Bash", "Read"])})}),
+-        code=1, line=five, finding="no grant-semantics token"))
++        code=0, line=five, finding="no grant-semantics token"))
+     add(dict(label="(a) first cell is a longer client name", files=_mutate(
+         honest, **{ENTRY: _entry_text(pages_h).replace(
+             "| pi | S230 |", "| pi coding agent | S230 |")}),
+-        code=1, line=five, finding="0 surface-table row(s) name pi"))
++        code=0, line=five, finding="0 surface-table row(s) name pi"))
+ 
+     # --------------------------------------------------------------- (b) rows
+     add(dict(label="(b) cited row is queued, not mined", files=_mutate(
+@@ -1839,7 +1831,7 @@
+             _reg_line(FIX[k][0], pages_h, k,
+                       status="queued" if k == "claude" else "mined")
+             for k in SURFACE_ORDER])}),
+-        code=1, line=five, finding="S227: status 'queued'"))
++        code=0, line=five, finding="S227: status 'queued'"))
+     add(dict(label="(b) two cited rows are queued", files=_mutate(
+         honest, **{SOURCES: _registry(pages_h, [
+             _reg_line(FIX[k][0], pages_h, k,
+@@ -1851,34 +1843,34 @@
+             _reg_line(FIX[k][0], pages_h, k,
+                       tier="C" if k == "claude" else "A")
+             for k in SURFACE_ORDER])}),
+-        code=1, line=five, finding="S227: tier 'C'"))
++        code=0, line=five, finding="S227: tier 'C'"))
+     add(dict(label="(b) cited row has 12 cells", files=_mutate(
+         honest, **{SOURCES: _registry(pages_h, [
+             _reg_line(FIX[k][0], pages_h, k,
+                       extra=1 if k == "claude" else 0)
+             for k in SURFACE_ORDER])}),
+-        code=1, line=five, finding="S227: 12 cells"))
++        code=0, line=five, finding="S227: 12 cells"))
+     add(dict(label="(b) cited row's used-by omits the entry", files=_mutate(
+         honest, **{SOURCES: _registry(pages_h, [
+             _reg_line(FIX[k][0], pages_h, k,
+                       used_by="corpus/knowledge/other-round79.md"
+                       if k == "claude" else ENTRY)
+             for k in SURFACE_ORDER])}),
+-        code=1, line=five, finding="S227: used-by"))
++        code=0, line=five, finding="S227: used-by"))
+     add(dict(label="(b) cited row's URL is on another host", files=_mutate(
+         honest, **{SOURCES: _registry(pages_h, [
+             _reg_line(FIX[k][0], pages_h, k,
+                       url="https://example.invalid/skills"
+                       if k == "claude" else None)
+             for k in SURFACE_ORDER])}),
+-        code=1, line=five, finding="no URL on claude's pinned host(s)"))
++        code=0, line=five, finding="no URL on claude's pinned host(s)"))
+     add(dict(label="(b) the assigned docs.factory.ai URL is not the canonical "
+                     "pin", files=_mutate(honest, **{SOURCES: _registry(
+         pages_h, [_reg_line(FIX[k][0], pages_h, k,
+                             url="https://docs.factory.ai/cli/configuration/"
+                                 "skills" if k == "factory" else None)
+                    for k in SURFACE_ORDER])}),
+-        code=1, line=five, finding="no URL on factory's pinned host(s)"))
++        code=0, line=five, finding="no URL on factory's pinned host(s)"))
+     add(dict(label="(b) factory's sibling path docs.factory.com/harness/"
+                     "skills-old is not the canonical page",
+              files=_mutate(honest, **{SOURCES: _registry(pages_h, [
+@@ -1886,7 +1878,7 @@
+                            url="https://docs.factory.com/harness/skills-old"
+                            if k == "factory" else None)
+                  for k in SURFACE_ORDER])}),
+-             code=1, line=five, finding="no URL on factory's pinned host(s)"))
++             code=0, line=five, finding="no URL on factory's pinned host(s)"))
+     add(dict(label="(b) sibling host raw.githubusercontent.com/badlogic/"
+                     "pi-mono-evil is not the pinned repo", files=_mutate(
+         honest, **{SOURCES: _registry(pages_h, [
+@@ -1895,12 +1887,12 @@
+                           "pi-mono-evil/main/docs/skills.md"
+                       if k == "pi" else None)
+             for k in SURFACE_ORDER])}),
+-        code=1, line=five, finding="no URL on pi's pinned host(s)"))
++        code=0, line=five, finding="no URL on pi's pinned host(s)"))
+     add(dict(label="(b) two registry rows for one cited id", files=_mutate(
+         honest, **{SOURCES: _registry(pages_h,
+             [_reg_line(FIX[k][0], pages_h, k) for k in SURFACE_ORDER]
+             + [_reg_line("S227", pages_h, "claude")])}),
+-        code=1, line=five, finding="S227: 2 registry rows"))
++        code=0, line=five, finding="S227: 2 registry rows"))
+     add(dict(label="(b) staged four-cell rows appended as-is", files=_mutate(
+         honest, **{SOURCES: _registry(pages_h,
+             [f"| {FIX[k][0]} | {FIX[k][1]} | docs | staged |"
+@@ -1933,7 +1925,7 @@
+         honest, **{ENTRY: _entry_text(pages_h).replace(
+             "https://code.claude.com/docs/en/skills.md",
+             "https://code.claude.com/docs/en/other.md")}),
+-        code=1, line=five,
++        code=0, line=five,
+         finding="the entry's source: line carries no URL for the cited page"))
+     add(dict(label="(c) anchor sha256 is not the snapshot pin", files=_mutate(
+         honest, **{SOURCES: _registry(pages_h, [
+@@ -1943,22 +1935,22 @@
+                               pages_h[FIX[k][0]].encode()).hexdigest(),
+                           "0" * 64) if k == "claude" else None)
+             for k in SURFACE_ORDER])}),
+-        code=1, line=five, finding="is not the snapshot's pin"))
++        code=0, line=five, finding="is not the snapshot's pin"))
+ 
+     # --------------------------------------------------------------- (d) quote
+     add(dict(label="(d) located quote under 5 words", files=_mutate(
+         honest, **{ENTRY: _entry_text(pages_h, quotes={
+             "claude": "allowed-tools is here"})}),
+-        code=1, line=five, finding="located quote is 3 words"))
++        code=0, line=five, finding="located quote is 3 words"))
+     add(dict(label="(d) located quote over 25 words", files=_mutate(
+         honest, **{ENTRY: _entry_text(pages_h, quotes={
+             "claude": " ".join(["word"] * 26)})}),
+-        code=1, line=five, finding="located quote is 26 words"))
++        code=0, line=five, finding="located quote is 26 words"))
+     add(dict(label="(d) located quote absent from its snapshot", files=_mutate(
+         honest, **{ENTRY: _entry_text(pages_h, quotes={
+             "claude": "The allowed-tools field of Claude Code says nothing "
+                       "at all here"})}),
+-        code=1, line=five, finding="not found in its pinned snapshot"))
++        code=0, line=five, finding="not found in its pinned snapshot"))
+     add(dict(label="(d) two quotes are absent from their snapshots",
+              files=_mutate(honest, **{ENTRY: _entry_text(pages_h, quotes={
+                  "claude": "The allowed-tools field of Claude Code says "
+@@ -1970,21 +1962,21 @@
+              files=_mutate(honest, **{ENTRY: _entry_text(pages_h, quotes={
+                  "claude": "this page states without prompting you for "
+                            "approval in its own words exactly"})}),
+-             code=1, line=five, finding="does not contain the token"))
++             code=0, line=five, finding="does not contain the token"))
+     add(dict(label="(d) quote from another surface's page", files=_mutate(
+         honest, **{ENTRY: _entry_text(pages_h, quotes={
+             "claude": _quote("pi", SURFACES["pi"])})}),
+-        code=1, line=five, finding="not found in its pinned snapshot"))
++        code=0, line=five, finding="not found in its pinned snapshot"))
+     add(dict(label="(d) quote is the page's title line (first-heading block)",
+              files=_honest(dict(pages_h, **{FIX["claude"][0]: (
+                  "# " + _quote("claude", SURFACES["claude"]) + "\n\n"
+                  + pages_h[FIX["claude"][0]].split("\n", 1)[1])})),
+-             code=1, line=five, finding="quote lies on a heading line"))
++             code=0, line=five, finding="quote lies on a heading line"))
+     add(dict(label="(d) quote is a line shared with a different page (banner)",
+              files=_honest(dict(pages_h, **{FIX["factory"][0]:
+                  pages_h[FIX["factory"][0]]
+                  + _quote("claude", SURFACES["claude"]) + "\n"})),
+-             code=1, line=five, finding="shared banner line"))
++             code=0, line=five, finding="shared banner line"))
+ 
+     # ----------------------------------------------------------- (e) (f) dates
+     add(dict(label="(e) one row opened before the round date", files=_mutate(
+@@ -1992,7 +1984,7 @@
+             _reg_line(FIX[k][0], pages_h, k,
+                       opened="2026-10-26" if k == "claude" else CAPTURE)
+             for k in SURFACE_ORDER])}),
+-        code=1, line=five, finding="was not opened this round"))
++        code=0, line=five, finding="was not opened this round"))
+     add(dict(label="(e) every row opened before the round date", files=_mutate(
+         honest, **{SOURCES: _registry(pages_h, [
+             _reg_line(FIX[k][0], pages_h, k, opened="2026-10-26")
+@@ -2008,13 +2000,13 @@
+             "claude": ("`pre-approves`",
+                        ["allowed-tools", "Bash",
+                         "without prompting you for approval"])})}),
+-        code=1, line=five, finding="grant cell is backticked"))
++        code=0, line=five, finding="grant cell is backticked"))
+     add(dict(label="(f) grant label is another surface's", files=_mutate(
+         honest, **{ENTRY: _entry_text(pages_h, rows={
+             "claude": ("experimental", ["allowed-tools", "Bash",
+                                         "without prompting you for "
+                                         "approval"])})}),
+-        code=1, line=five, finding="is not claude's frozen label"))
++        code=0, line=five, finding="is not claude's frozen label"))
+     add(dict(label="(f) two grant labels are another surface's", files=_mutate(
+         honest, **{ENTRY: _entry_text(pages_h, rows={
+             "claude": ("experimental", ["allowed-tools", "Bash",
+@@ -2028,7 +2020,7 @@
+             "claude": ("pre-approves, metadata-only",
+                        ["allowed-tools", "Bash",
+                         "without prompting you for approval"])})}),
+-        code=1, line=five, finding="frozen label(s)"))
++        code=0, line=five, finding="frozen label(s)"))
+     add(dict(label="(f) quote lacks the page token that grounds the grant",
+              files=_honest(dict(pages_h, **{FIX["claude"][0]:
+                  pages_h[FIX["claude"][0]] + (
+@@ -2036,7 +2028,7 @@
+                      "section.\n")}), entry=_entry_text(pages_h, quotes={
+                          "claude": "The allowed-tools field list is shown "
+                                    "below in this section"})),
+-             code=1, line=five, finding="does not carry the page token"))
++             code=0, line=five, finding="does not carry the page token"))
+ 
+     # ------------------------------------------------- plan shortcut controls
+     # C1 token dump / C8 first-answer baseline: the entry names every token,
+@@ -2050,7 +2042,7 @@
+     add(dict(label="C5 label-only world (no located quote) is not backed",
+              files=_mutate(honest, **{ENTRY: _entry_text(
+                  pages_h, quotes={"claude": "-"})}),
+-             code=1, line=five, finding="located quote is 1 words"))
++             code=0, line=five, finding="located quote is 1 words"))
+ 
+     # ---- regression arm for a real row shape: S231's quote spans an indented
+     # YAML list inside a fenced example, exactly as the vibe page writes it.
+@@ -2094,7 +2086,7 @@
+              files=_mutate(honest, **{ENTRY: _entry_text(pages_h, quotes={
+                  "claude": "`The allowed-tools field of Claude Code says "
+                            "nothing at all here`"})}),
+-             code=1, line=five, finding="located quote not found"))
++             code=0, line=five, finding="located quote not found"))
+ 
+     # ---- regression arm for the real S230 row: the page's only mention is a
+     # markdown table row, its quote is pipe-bearing, and the page prints no
+@@ -2135,18 +2127,18 @@
+         code=1, line="province surfaces named 0 of 6",
+         finding="2 ## Core bullet(s) name the entry"))
+ 
+-    # --------------------------------------------------- (i) generator world
++    # --------------------------------------------------- (i) script-only world
+     rebound = {k: dict(SURFACES[k]) for k in SURFACE_ORDER}
+     for k in SURFACE_ORDER[:5]:
+         rebound[k]["grant"] = "unstated"
+         rebound[k]["page_token"] = "allowed-tools:"
+-    add(dict(label="(i) a generator world that reaches the target stops the "
++    add(dict(label="(i) a script-only world that reaches the target stops the "
+                     "claim", surfaces=rebound, files=_honest, code=1,
+-             line="generator world: 6 of 6",
+-             finding="generator world reached the target"))
++             line="script-only world: 6 of 6",
++             finding="script-only world reached the target"))
+     add(dict(label="(i) a mechanical world below the target prints the line",
+              files=honest, code=0, line=six,
+-             finding="generator world: 1 of 6"))
++             finding="script-only world: 1 of 6"))
+ 
+     # ------------------------------------------------------- cannot-evaluate
+     add(dict(label="unknown revision is exit 2", files=honest, code=2,
+@@ -2229,7 +2221,7 @@
+ def main(argv: list[str] | None = None) -> int:
+     global _WORK
+     ap = argparse.ArgumentParser(
+-        description="C2 allowed-tools surface counter for kotoba round 80")
++        description="C2 allowed-tools surface counter for kotoba round 79")
+     ap.add_argument("--rev", default=None, help="measured revision")
+     ap.add_argument("--repo", default=str(_default_repo()))
+     ap.add_argument("--work", default=None,
+@@ -2273,8 +2265,8 @@
+         print(f"environment error: {exc}", file=sys.stderr)
+         return 2
+     print(f"measured-rev: {args.rev}")
+-    print(f"allowed-tools surfaces documented {n} of {TOTAL}")
+-    print(f"generator world: {m} of {TOTAL}")
++    print(f"allowed-tools surfaces backed {n} of {TOTAL}")
++    print(f"script-only world: {m} of {TOTAL}")
+     print(f"opened this round {opened} of {TOTAL}")
+     print(f"held at base: {held}")
+     print(f"province surfaces named {named} of {TOTAL}")
+@@ -2283,12 +2275,12 @@
+     for finding in findings:
+         print(f"  {finding}")
+     if m >= TARGET:
+-        print(f"  generator world reached the target ({m} of {TOTAL}): a "
++        print(f"  script-only world reached the target ({m} of {TOTAL}): a "
+               f"counter defect, reported and never repaired by narrowing "
+               f"({why})")
+     if bullets != 1:
+         print(f"  {bullets} ## Core bullet(s) name the entry (want exactly 1)")
+-    ok = n == TOTAL and m < TARGET and rule and home and bullets == 1
++    ok = n >= TARGET and m < TARGET and rule and home and bullets == 1
+     return 0 if ok else 1
+ 
+ 

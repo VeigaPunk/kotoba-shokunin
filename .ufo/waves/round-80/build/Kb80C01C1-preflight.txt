@@ -1,0 +1,23 @@
+Attack fixtures, scratch only; all paths below under /fast/scratch/hyaku/kotoba-r80/Kb80C01C1/.
+
+1) Dead lane-shaped SHA generation:
+$ git -C dead-source/kotoba-shokunin commit -qm 'temporary lane commit for external grammar attack' && git -C dead-source/kotoba-shokunin rev-parse HEAD
+9ca68250cfb53af9b801189a2285982c9390f507
+exit=0
+$ git -C world1/kotoba-shokunin cat-file -e '9ca68250cfb53af9b801189a2285982c9390f507^{commit}'
+lane_rc=128
+$ git -C /home/vgpnk/Projects/shokunin cat-file -e '9ca68250cfb53af9b801189a2285982c9390f507^{commit}'
+fleet_rc=128
+This is an actual commit created in a scratch lane clone, absent in both measured lane and fleet object stores.
+
+2) Fake fleet marker:
+$ git -C world3/fake-fleet rev-parse HEAD
+b311aac6d0c5bef79c15ab801d50d9cfb8caaafe
+$ git -C world3/fake-fleet show HEAD:.ufo/reports/round-76/kotoba.md
+marker
+$ git -C world3/fake-fleet cat-file -e HEAD:.ufo/reports/round-77/kotoba.md
+round77_rc=0
+$ readlink -f world3/kotoba-shokunin/.ufo/reports/round-76/kotoba.md
+/fast/scratch/hyaku/kotoba-r80/Kb80C01C1/world3/fake-fleet/.ufo/reports/round-76/kotoba.md
+$ cat <resolved target>
+marker

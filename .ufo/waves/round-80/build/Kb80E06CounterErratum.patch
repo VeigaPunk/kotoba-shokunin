@@ -1,0 +1,103 @@
+diff --git c/verifiers/check_tip_battery.py i/verifiers/check_tip_battery.py
+index a356e9d..0c2a66b 100755
+--- c/verifiers/check_tip_battery.py
++++ i/verifiers/check_tip_battery.py
+@@ -39,8 +39,8 @@ Guards (Q33) -- evaluated on committed bytes only, never on instrument output:
+                         tracked at the base is absent at <rev>.
+   floors                no row of verifiers/floors-registry.json carries a floor
+                         lower than at the base, and no base row is dropped.
+-  instrument-size       the six instrument scripts gain at most 40 lines in
+-                        total over the base AND lose at most 40.  The plan
++  instrument-size       the six instrument scripts gain at most 60 lines in
++                        total over the base AND lose at most 60.  The plan
+                         bounds the additions; the same cap on deletions is what
+                         makes its shortcut control -- "replace
+                         check_gate_registry.py by a stub sys.exit(0) (must fail
+@@ -103,12 +103,21 @@ def _default_lane() -> Path:
+ # Round 73 (plans/round-73-addendum-2.md, erratum E2): the guard base moves from the
+ # round-72 base c69711e to the round-73 base, so `instrument-size` measures this round's
+ # delta of the six battery scripts (r72's 76 added / 24 deleted lines drop out; the cap
+-# stays 40) and the round-72 spot-check lesson is a base file compared by
++# was 40 until erratum E5) and the round-72 spot-check lesson is a base file compared by
+ # `spotcheck-identity`.
+ BASE = "072048fa8e8a52c707d25f7079772fa317244eb7"        # round-73 base (pinned)
+ TOTAL = 6
+ GATE_TIMEOUT_S = 280
+-LINE_CAP = 40
++# Erratum E5 (plans/round-80.md § C1, declared before any data): the size cap moves
++# 40 -> 60 and the pin table gains the two reviewed round-80 instrument blobs (the canonical
++# E05 class: integrity 68ccce1c..., independent e887de71...); the
++# five guards' checks are otherwise unchanged.  The arithmetic the plan declared:
++# 22 lines already spent at the round-80 base + 17 (the E04 report-pointer repair)
++# + at most 21 (the external-commit grammar class) = 60.  The cap is the secondary
++# bound: the anti-laundering load is carried by `instrument-pin` (every instrument
++# byte at the measured rev must equal the base blob or a reviewed pin), so a two-line
++# stub still fails under any cap (+2 / -~1000 lines).
++LINE_CAP = 60
+ GUARDED_PREFIXES = ("corpus/", "verifiers/")
+ GUARDED_FILE = "SKILL.md"
+ FLOORS_PATH = "verifiers/floors-registry.json"
+@@ -133,10 +142,12 @@ INSTRUMENT_PINS = {
+         "6aab16849bd6d71ded8f3bcb3f95668f14f6a78f"),
+     "verifiers/verify_corpus_integrity.py": (
+         "71cb2730bfe89064567ad429bfd7c2da62aceb45",
+-        "e470eaaea5ef11c582b8353c9344ddf730c1a57a"),
++        "e470eaaea5ef11c582b8353c9344ddf730c1a57a",
++        "68ccce1c152c915e16893a5157c9d5878df779fb"),
+     "verifiers/verify_corpus_independent.py": (
+         "176abae3b66930d644482f95e1363932e4d143b4",
+-        "edac0df79324ba62ee25ff10a6a4d422ef59da61"),
++        "edac0df79324ba62ee25ff10a6a4d422ef59da61",
++        "e887de71892ecfc6be5b3f47e362ce8a766c5c89"),
+     "verifiers/check_correction_sweep.py": ("c94b771fa7d798ef45fc3bb640422ee7910f81a6",),
+ }
+ 
+@@ -514,21 +525,27 @@ def self_test() -> int:
+         size_root = root / "guard-size"
+         lane, base = _make_world(size_root)
+         stub = lane / BATTERY[0][0]
+-        stub.write_text(STUB_OK + "".join("# padding line %d\n" % i for i in range(41)))
++        # Erratum E5: the fixture grows one line past the cap, so this arm keeps
++        # its semantics ("a growth over the cap trips instrument-size") under the
++        # new bound; the expected detail string is derived from LINE_CAP.
++        stub.write_text(STUB_OK + "".join("# padding line %d\n" % i for i in range(LINE_CAP + 1)))
+         tip = _commit_all(lane, "grow an instrument past the cap")
+         rc, out, err = _drive(size_root, base, tip)
+         check("size world exits 1", rc == 1, "exit %d" % rc)
+         check("size world names the instrument-size guard",
+-              "FAIL guard instrument-size: instruments gain 41 lines > 40" in out,
++              "FAIL guard instrument-size: instruments gain %d lines > %d"
++              % (LINE_CAP + 1, LINE_CAP) in out,
+               out.strip()[-220:])
+ 
+         # errata E2: the instrument-pin guard.  A weakening inside the size cap
+-        # (two lines changed) passes every structural guard but not the pin.
++        # (41 lines changed under erratum E5's cap of 60) passes every structural
++        # guard but not the pin: the pin carries the anti-laundering load.
+         pin_root = root / "guard-pin"
+         lane, base = _make_world(pin_root)
+         base_blob = _fixture_git(lane, "rev-parse", "HEAD:" + BATTERY[0][0]).stdout.strip()
+         INSTRUMENT_PINS = {BATTERY[0][0]: (base_blob,)}
+-        (lane / BATTERY[0][0]).write_text(STUB_OK + "# a two-line semantic edit\n# inside the cap\n")
++        (lane / BATTERY[0][0]).write_text(
++            STUB_OK + "".join("# a semantic edit inside the cap\n" for _ in range(41)))
+         tip = _commit_all(lane, "weaken an instrument inside the size cap")
+         rc, out, err = _drive(pin_root, base, tip)
+         check("pin world exits 1", rc == 1, "exit %d" % rc)
+@@ -550,13 +567,14 @@ def self_test() -> int:
+         INSTRUMENT_PINS = {}
+ 
+         stub_root = root / "guard-stub"
+-        lane, base = _make_world(stub_root, padding=60)
++        lane, base = _make_world(stub_root, padding=LINE_CAP + 1)
+         (lane / BATTERY[0][0]).write_text(STUB_OK)
+         tip = _commit_all(lane, "replace a gate with a two-line stub")
+         rc, out, err = _drive(stub_root, base, tip)
+         check("stub world exits 1", rc == 1, "exit %d" % rc)
+         check("stub world fails the deletion side of the size cap",
+-              "FAIL guard instrument-size: instruments lose 60 lines > 40" in out,
++              "FAIL guard instrument-size: instruments lose %d lines > %d"
++              % (LINE_CAP + 1, LINE_CAP) in out,
+               out.strip()[-220:])
+         check("stub world keeps the gates green", "tip battery exit 0: 6 of 6" in out,
+               _last_line(out))

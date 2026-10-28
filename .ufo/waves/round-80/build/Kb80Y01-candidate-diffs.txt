@@ -1,0 +1,66 @@
+################ db379b7 exp1: drop E04 rev-pointer hunk
+ verifiers/verify_corpus_integrity.py | 6 ------
+ 1 file changed, 6 deletions(-)
+-    head, _, rest = token.partition(":")
+-    if head and rest.startswith(".ufo/reports/"):  # `<rev>:<path>`: a revision, not a tree path
+-        at = base.resolve()  # the citing repository first, then the fleet root
+-        lane = next((p for p in (at, *at.parents) if (p / ".git").exists()), None)
+-        return bool(lane) and git_ok(lane, "cat-file", "-e", token) or git_ok(
+-            fleet_root, "cat-file", "-e", token)
+
+################ 06e108b exp2: stale baseline
+ verifiers/corpus-baseline.json | 17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
+-  "head": "a74773b (detached measurement commit; resolvable in the measuring clone only, not in the lane repository)",
+-  "head_subject": "r80 C1 stack: registry rows, dead LOG symlink, E04 rev pointers, grammar class, r79 spot-check index row",
+-  "git_status": "clean (git status --porcelain empty at the recorded tip)",
++  "head": "65a5c7a",
++  "head_subject": "round-74 orchestrator salvage",
++  "git_status": "round-74 closure tip; round-75 evidence and lesson added to working tree",
+-  "note": "Baseline refreshed by refresh-corpus-baseline.py at a74773b (detached measurement commit; resolvable in the measuring clone only, not in the lane repository) (r80 C1 stack: registry rows, dead LOG symlink, E04 rev pointers, grammar class, r79 spot-check index row) from the corpus gate's own --no-baseline --json over a clean worktree, cross-checked class-for-class against the independent re-derivation: tracked_files 144 -> 152, report_total 99 -> 109, commit_total 43 -> 46; every zero-mode class observed 0. Expectations are re-recorded to observed committed bytes, never fitted to a denominator."
++  "note": "Round-75 baseline refresh from --no-baseline --json on base 65a5c7a with r75 additions: tracked_files 142 -> 144 (indexed round-75 lesson plus already-landed r74 verifier spotcheck); report_total 97 -> 99 (the r74 closure spot-check pointers); commit_total remains 43. After r75 lesson is tracked, stale_patterns must return to 0. This refresh changes expected observations only; zero-mode expectations remain zero. Earlier historical measurements remain recorded in SCORECARD."
+-   "expect": 152
++   "expect": 144
+-   "expect": 109
++   "expect": 99
+-   "expect": 46
++   "expect": 43
+
+################ e8b0165 exp3: drop coverage row
+ corpus/README.md | 1 -
+ 1 file changed, 1 deletion(-)
+-| Round-79 non-author spot-check (closure) | `lessons/round-79-verifier-spotcheck.md` | written by the hyaku closure, not the lane (outside review; never edited here): `rejected-honest-stop` with both claims `unprovable`, step-1 conformance (report contract, cited ancestors, lane and remote state), the discernment table, unchanged trend verdicts, and routed defects R79-D1–D4; landed without an index row, indexed round 80 |
+
+################ 031312b exp4: drop withdrawal rows
+ SKILL.md | 2 --
+ 1 file changed, 2 deletions(-)
+-| `verifiers/check_desc_craft.py` | gate | `python3 -B verifiers/check_desc_craft.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate — claim withdrawn r79 before data (declared r76, never landed); not a claim gate until redesigned and re-controlled | `--self-test` | in-file | none when measuring (reads committed bytes); `--self-test` isolated fixture repos under `$TMPDIR` (removed) | kotoba |
+-| `verifiers/check_r75_routed_repairs.py` | gate | `python3 -B verifiers/check_r75_routed_repairs.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate — claim withdrawn r79 before data (declared r76, never landed); not a claim gate until redesigned and re-controlled | `--self-test` | in-file | none when measuring (reads committed bytes); `--self-test` sandbox and fixture clones under `$TMPDIR` (removed) | kotoba |
+
+################ 675aaa6 exp5: shorter withdrawal cells
+ SKILL.md | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+-| `verifiers/check_desc_craft.py` | gate | `python3 -B verifiers/check_desc_craft.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate — claim withdrawn r79 before data (declared r76, never landed); not a claim gate until redesigned and re-controlled | `--self-test` | in-file | none when measuring (reads committed bytes); `--self-test` isolated fixture repos under `$TMPDIR` (removed) | kotoba |
+-| `verifiers/check_r75_routed_repairs.py` | gate | `python3 -B verifiers/check_r75_routed_repairs.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate — claim withdrawn r79 before data (declared r76, never landed); not a claim gate until redesigned and re-controlled | `--self-test` | in-file | none when measuring (reads committed bytes); `--self-test` sandbox and fixture clones under `$TMPDIR` (removed) | kotoba |
++| `verifiers/check_desc_craft.py` | gate | `python3 -B verifiers/check_desc_craft.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate — claim withdrawn r79 before data; not a claim gate until redesigned and re-controlled | `--self-test` | in-file | none when measuring (reads committed bytes); `--self-test` isolated fixture repos under `$TMPDIR` (removed) | kotoba |
++| `verifiers/check_r75_routed_repairs.py` | gate | `python3 -B verifiers/check_r75_routed_repairs.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate — claim withdrawn r79 before data; not a claim gate until redesigned and re-controlled | `--self-test` | in-file | none when measuring (reads committed bytes); `--self-test` sandbox and fixture clones under `$TMPDIR` (removed) | kotoba |
+
+################ f2f9c91 exp6a2: stub counter with in-table row
+ SKILL.md                         | 2 +-
+ verifiers/check_allowed_tools.py | 8 ++++++++
+ 2 files changed, 9 insertions(+), 1 deletion(-)
++| `verifiers/check_allowed_tools.py` | gate | `python3 -B verifiers/check_allowed_tools.py --rev <rev>` | 0=clean, 1=failed | `--self-test` | in-file | fixture repos under `$TMPDIR` | kotoba |
++#!/usr/bin/env python3
++"""check_allowed_tools.py -- C2 counter (stub for the registry-universe probe)."""
++import argparse, sys
++ap = argparse.ArgumentParser()
++ap.add_argument("--rev")
++ap.add_argument("--self-test", action="store_true")
++a = ap.parse_args()
++sys.exit(0)
+
+################ 756948a exp6b: file present, row removed
+ SKILL.md | 1 -
+ 1 file changed, 1 deletion(-)
+-| `verifiers/check_allowed_tools.py` | gate | `python3 -B verifiers/check_allowed_tools.py --rev <rev>` | 0=clean, 1=failed | `--self-test` | in-file | fixture repos under `$TMPDIR` | kotoba |
+
