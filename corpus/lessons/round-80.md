@@ -51,7 +51,7 @@ Two fresh claims on distinct axes: **C1 consistency (calibration sub-axis)** —
 
 ## Sources & frontier
 
-Round-start census: `/home/vgpnk/Projects/shokunin/scripts/sources-census.sh validate --root /home/vgpnk/Projects/shokunin kotoba` → exit 0, 157 rows (`.ufo/waves/round-80/receipts/census-before.txt`). After source edits: same command → exit 0, `kotoba ok`, 31 W04 warnings, 174 rows (`.ufo/waves/round-80/receipts/census-integrated.txt`); row-count command `grep -cE '^\|[[:space:]]*S[0-9]{3,}[[:space:]]*\|' corpus/SOURCES.md` → 157 before, 174 after. The L1 repeats the census at final pre-report tip.
+Round-start census: `/home/vgpnk/Projects/shokunin/scripts/sources-census.sh validate --root /home/vgpnk/Projects/shokunin kotoba` → exit 0, 157 rows (`.ufo/waves/round-80/receipts/census-before.txt`). After source edits: same command → exit 0, `kotoba ok`, 31 W04 warnings, 174 rows (`.ufo/waves/round-80/receipts/census-integrated.txt`). Round-end/final lane tip: same command → exit 0, `kotoba ok`, 31 W04 warnings, 174 rows (`.ufo/waves/round-80/receipts/census-after.txt`). Row-count command `grep -cE '^\|[[:space:]]*S[0-9]{3,}[[:space:]]*\|' corpus/SOURCES.md` → 157 before, 174 after.
 
 Rows added by tier: A=0, B=1 (S248 queued), C=16 (S232–S247 rejected); no row is admitted from the extra exploratory search. Existing rows touched old→new: six S226–S231 `used-by` cells (each old `corpus/lessons/round-79.md` → new `corpus/knowledge/allowed-tools-surfaces-round80.md, corpus/lessons/round-80.md`); no existing status or recheck cells changed. New rows S232–S247 are `rejected` with the observed page-level reason and flip condition; S248 is `queued` with a recheck cadence.
 
