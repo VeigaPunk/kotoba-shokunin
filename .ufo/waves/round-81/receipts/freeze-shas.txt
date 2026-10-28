@@ -1,0 +1,32 @@
+freeze-shas.txt -- round 81 C1 freeze triple (recorded before any after-value measurement)
+Plan freeze commit: e6d48e6a9b11da4660df8145bd2f28c3238c5b83 (plans/round-81.md)
+
+Frozen instrument bytes (the claim's post-image):
+1. verifiers/check_tip_battery.py (erratum E6 counter)
+     source patch:  .ufo/waves/round-81/build/Kb81E05Erratum.patch
+     patch sha256:  c15680f81d2684fc40ef7aeef21143f217ecf4e4fc62b9ea91a7bd5787cfcf4f  (numstat +24/-16, this file only)
+     post-image blob: eb00200ee6987a2fd95086915a333fe258aa6c82
+     post-image sha256: 1753b11c11c6f907be838cb28842e28d01e7935e19d5afb3a6b46afdac51d660  (751 lines, 69 self-test assertions)
+2. verifiers/verify_corpus_integrity.py (r81 repair R1+R2)
+     source patch:  .ufo/waves/round-81/build/Kb81E01Integrity.patch
+     patch sha256:  6bbb304bea83968ced6c2ba3f33afa26b7d4256334303ea99a32279079495fe7
+     pinned post-image blob: bbee51f2bae5b33b123a546150e83352d68eeebc
+3. verifiers/verify_corpus_independent.py (r81 repair R2)
+     source patch:  .ufo/waves/round-81/build/Kb81E02Independent.patch
+     patch sha256:  d8bf88c8ef5daf99ddf861ab2a5aeaa1193a57a90200e1d314134750e2e7f9d1
+     pinned post-image blob: 59602942075d8fe77061876fb52eb32a44313697
+
+E6 pin-table membership after the amendment (TIGHT; each row admits base + r81 reviewed blob only):
+  "verifiers/verify_corpus_integrity.py":     ("e470eaaea5ef11c582b8353c9344ddf730c1a57a", "bbee51f2bae5b33b123a546150e83352d68eeebc")
+  "verifiers/verify_corpus_independent.py":   ("edac0df79324ba62ee25ff10a6a4d422ef59da61", "59602942075d8fe77061876fb52eb32a44313697")
+  retired for these rows: r80 addendum-1 members 71cb2730... (integrity) / 176abae3... (independent)
+LINE_CAP = 900.
+
+Size arithmetic, measured (Kb81E05Erratum.hunk-inventory.txt, Kb81E14PinAudit):
+  base-spent 22/3 + E01 +210/-10 + E02 +170/-16 = +402/-29 <= LINE_CAP 900  (498 headroom)
+  Reconciliation: the plan's first audit figure (+472/-31) was measured on pre-final
+  patch bytes (independent draft 7b37461a...). The final patches supersede it;
+  +402/-29 is the figure bound to this freeze.
+
+Provenance: Kb81E05Erratum.pin-provenance.txt derives each pin from the seat's
+final patch bytes via git apply + git hash-object, not from a relayed id.
