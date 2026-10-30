@@ -1,0 +1,88 @@
+{
+  "seat": "Kb82K02Mistakes",
+  "base": "47dbe8781657de563ff867caca6244d28e3db504",
+  "axes": ["freshness", "operability"],
+  "premise_checks": [
+    {
+      "claim": "plan C1 before: pins 1 PASS + 2 UNREADABLE, exit 2",
+      "receipt": ".ufo/waves/round-82/receipts/before-pins.txt",
+      "measured": "omp.real sha256 UNREADABLE, omp.real mtime UNREADABLE, opencode sha256 PASS, exit_code 2",
+      "verdict": "MATCH"
+    },
+    {
+      "claim": "plan C2 before: 1 failure(s) over 1863 assertions, exit 1",
+      "receipt": ".ufo/waves/round-82/receipts/before-checklist-selftest.txt",
+      "measured": "sole failing arm 'governance: live round-65 corrections land, errata-excused', 1863 assertions, exit=1",
+      "verdict": "MATCH"
+    },
+    {
+      "claim": "plan: public live gate reports governance.citation_resolves FAIL",
+      "receipt": ".ufo/waves/round-82/receipts/before-checklist.txt",
+      "measured": "governance.citation_resolves FAIL evaluated 1363, same 4 dead occurrences, overall exit 1",
+      "verdict": "MATCH"
+    },
+    {
+      "claim": "plan: counter is the unchanged round-72 counter",
+      "command": "git rev-parse 30d27da:verifiers/check_substrate_repin_v2.py 47dbe87:verifiers/check_substrate_repin_v2.py",
+      "measured": "e25442db74969e0856fe11b0712bfff5438f5ab5 at both revisions; git log --follow shows single commit 30d27da touching the file",
+      "verdict": "VERIFIED"
+    },
+    {
+      "claim": "plan no-harm scope: skill line budget base 597/600",
+      "command": "git show 47dbe8781657de563ff867caca6244d28e3db504:SKILL.md | wc -l",
+      "measured": "597",
+      "verdict": "MATCH"
+    },
+    {
+      "claim": "plan: N >= 1863 assertion floor (current count)",
+      "receipt": ".ufo/waves/round-82/receipts/before-checklist-selftest.txt",
+      "measured": "1863",
+      "verdict": "MATCH (floor must not be reduced by the C2 fix)"
+    }
+  ],
+  "class_A_stale_planned_premise": {
+    "instances": [
+      "r80 plan named google-gemini/gemini-cli@451a02ff and zed-industries/zed@cfb894a5 as red pair; measured red tokens were bare 7bb48f21... at corpus/SOURCES.md:171-172 (.ufo/waves/round-80/w1/Kb80K02Patterns.md §0.1, Kb80C01C1.md:66)",
+      "r81 plan asserted independent gate report_dead 1; measured 0 (.ufo/waves/round-81/w1/Kb81K02Patterns.md §0.1)",
+      "r81 M81-3: plan text read twice from live worktree carried LINE_CAP 40->140 which never froze (frozen e6d48e6: 40->900); captured-by none (corpus/lessons/round-81.md:43)",
+      "r82 plan before-premises: all six checked claims MATCH committed receipts (see premise_checks)"
+    ],
+    "same_class_Q": ["Q19 (M20, r47: class name origin)", "Q36 (M48)", "Q50 (M80)", "Q65/M124-M125 (r72)", "Q55 (timestamps)", "Q51 (partial: binds counters, not seat readings of plan files)"],
+    "uncaptured": "M81-3 worktree-read-as-measurement-source has no Q row; Q51 explicitly scoped to counters",
+    "new_mechanism_needed": false,
+    "note": "r82 avoids the class on headline befores because every premise cites a committed receipt naming the branch; enforcement remains seat-level, no gate binds plan before-text to receipts"
+  },
+  "class_B_live_dependent_selftest": {
+    "instances": [
+      "r65 (80bb892): live arm 'live round-65 corrections land' introduced, pins live verdict",
+      "r72 M125 reference-drift: arm went stale when r71 erratum retired the red; fix re-anchored constants + added LOG.md:2678 load-bearing arm, floor 1862->1863, captured by Q65",
+      "r82 recurrence: live SCORECARD gained new dead subjects in r80/r81 (.ufo/wapes, round-80-verifier-spotcheck.md:30,37, .ufo/reports/round-81/kotoba.md x2); arm FAILs though its literal exception counts (2 absences, 4 corrections) still match — drift, not mechanism failure"
+    ],
+    "code": {
+      "verifier": "verifiers/verify_skill_checklist.py",
+      "live_repo_line": 2522,
+      "failing_arm": "lines 2524-2528",
+      "second_live_arm": "lines 2531-2542 ('governance: LOG.md:2678 erratum is load-bearing' also reads live_repo)"
+    },
+    "same_class_Q": ["Q65 (M125; remedy = re-run when record changes — failed operationally, no re-run owner between rounds)", "Q48 (self-test shape: main() + broken-conjunct world; silent on fixture hermeticity)", "Q63 (adjacent: frozen counters running lane gates need honest real-world run, not fake-repo self-test)"],
+    "coverage_gap": "grep -in 'hermetic|isolat' corpus/QUALITY.md → 0 hits; no row requires selftest fixtures to be isolated from live mutable state",
+    "new_mechanism_needed": true,
+    "mechanism": "hermeticity rule: no --self-test arm may read live mutable repo state; live-state assertions move to the public gate with committed receipts; plan C2's isolated-fixture repair + 'modifying unrelated live governance must not change fixture self-test results' discriminator implements it as one-off; recommend landing as Q row (next number after Q75; Q76 draft name already taken by stray-artifact row)",
+    "risk": "plan C2 names only the failing arm; second live arm (LOG.md:2678 load-bearing, source 2531-2542) must be isolated too or hermeticity is incomplete (independently flagged by Kb82R02Checklist §Source trace point 8)"
+  },
+  "class_C_counterfeit_report_provenance": {
+    "instances": [
+      "r79 M79-1: counter's own in-file script-only world 1/6 while independent mechanical generator reached 6/6 (Q71, Q74 born)",
+      "r80 M80-4 W8-W10: lane-marker spoof, lane-URL dead hash, 7-byte marker at fleet report path all reached 6/6 (Q75 born)",
+      "r81 designs R1 (## SHONEN + >=400B substring arm) and R2 (committed manifest + receipt) re-created marker/self-attested classes (Kb81K02Patterns §2-3, predicted red); landed R2 = verifiers/external-commits.json + fetch receipts; E6 = INSTRUMENT_PINS tight tuples (r72 base blob, reviewed r81 blob)",
+      "r81 M81-5: W-A/W-C forged-binding/padded-report worlds reached 6/6, honestly stopped not scored (round-81.md:45)",
+      "r82 plan control: counter bytes and proposed gate blobs SHA-checked in committed predata receipts; freeze receipt before after-scoring"
+    ],
+    "same_class_Q": ["Q22 (hash = byte identity, not custody)", "Q24 (instrument hash vs committed bytes)", "Q34 (SOURCES append-only)", "Q37 (cheapest real-input shortcut controls incl. marker variant)", "Q57 (erratum absorption both directions)", "Q73 (append-only sha256 ledger with reason + self-test arm inside counter)", "Q75 (marker substitution at fleet report path must stay red)"],
+    "new_mechanism_needed": false,
+    "note": "r82 provenance control is an application of Q24/Q73/Q75 pinning pattern, not a new mechanism; standing hazard from Kb81K02Patterns §2 stands: pins certify bytes not logic (r80 E05 pinned blob killed on logic); E6 freeze named no non-author reviewer — r82 freeze receipt should name the reviewer or state self-review (Q16/Q51 assignment)",
+    "open_residue": "r81 routed duty 3a: verifiers/external-commits.json manifest remains unpinned (Kb82R06Routed: retained open); W-A/W-C padded-report target = the >=400B size arm class"
+  },
+  "q76_status": "draft stray-artifact criterion never landed (0 rows in QUALITY at base and worktree); unrelated to this seat's three classes except as evidence that drafted criteria need landing discipline",
+  "tooling": "no installs; disk-guard checked (all <50%); no scratch clone (analysis-only seat); no production gates rerun except none — all evidence from committed receipts and read-only git/grep"
+}

@@ -1,0 +1,43 @@
+Kb82E14Loader — round-82 C1 independent extraction probe, group windsurf (harness omp)
+========================================================================================
+Seat: Kb82E14Loader (leaf). Date: 2026-10-30. Base: 47dbe8781657de563ff867caca6244d28e3db504.
+
+Commands (each captured its own exit; no pipelines on measured steps):
+  1. strings dump:
+       strings -n 4 /home/vgpnk/.local/bin/omp > $SCRATCH/probe/omp-18.14.0.strings.txt
+       exit 0, elapsed 2 s, single process (contention cap respected)
+       dump: 2546730 lines / 47434077 bytes
+       dump sha256: 81277d3572277febcaf0853f10cf8778c64920f58a13fba98ef0accbb70a8319
+  2. probe:
+       python3 -B .ufo/waves/round-82/build/Kb82E14Loader_probe.py \
+         --dump $SCRATCH/probe/omp-18.14.0.strings.txt \
+         --baseline $SCRATCH/probe/surfaces-baseline.base.json \
+         --reference $SCRATCH/probe/verify_surfaces.base.py \
+         --group windsurf \
+         --out .ufo/waves/round-82/build/Kb82E14Loader_probe-output.json
+       exit 0, elapsed 20 s (single process, TMPDIR under seat scratch)
+  3. fixture cross-check (18.12.5 / 18.12.6 committed fixtures):
+       python3 -B inline driver importing the probe module; exit 0, elapsed 17 s
+Tooling: GNU strings (GNU Binutils) 2.47 (preinstalled, no install this seat);
+         Python 3.14.8 (preinstalled). No installs/updates performed.
+
+Host binary identity (BEFORE extraction):
+  sha256 e7dd2b606c4ebe9d1a7bcfad1b8820db968cd6b05409fed1c6bc8db0b6a95a8f
+  size 276244656  mtime 2026-10-29 23:19:46 -0300  inode 246583165
+  version witness in dump: "18.14.0" (dump lines 651357, 744232, 744332, 744797 var A0, 791203)
+Host binary identity (AFTER extraction): identical sha256/size/mtime/inode
+  (strings is read-only; nothing mutated the substrate)
+
+Inputs extracted from base 47dbe878 (git show, read-only):
+  verifiers/verify_surfaces.py            -> $SCRATCH/probe/verify_surfaces.base.py
+      sha256 df0c7ccaab930bf22359d7c5ec174a1429d11e78e856b7e3272d9fe29baf8bab
+      (grammar diff base..HEAD 006a834: empty — extraction grammar unchanged at HEAD;
+       HEAD default binary path still names the now-absent ~/.local/bin/omp.real)
+  verifiers/surfaces-baseline.json        -> $SCRATCH/probe/surfaces-baseline.base.json
+      sha256 6b23c3d1c8766e4effea9f5502b638de7b22cd0d61be20426ba99482c7d1260b
+      42 classes, 33 omp, of which 8 omp loader-group classes.
+
+Artifact sha256s:
+  Kb82E14Loader_probe.py               9c8b80df6d0fdccab7ec2bf8ca672671874f0d49e971bded28fdae885218192b
+  Kb82E14Loader_probe-output.json      fe7a5a1e07c234e9a383f2e51ac30b5c2e4c1be1cad73541beab898d792eddc7
+  Kb82E14Loader_fixture-crosscheck.json 39b9a69912acaf1dcc4239ad0db30f485e4e6797a990142615da677f99964313

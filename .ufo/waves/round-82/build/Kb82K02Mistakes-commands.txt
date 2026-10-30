@@ -1,0 +1,70 @@
+# Kb82K02Mistakes — command transcript (read-only seat; no clone, no production mutation)
+
+Lane: /home/vgpnk/Projects/shokunin/kotoba-shokunin. Base: 47dbe8781657de563ff867caca6244d28e3db504.
+Seat is a connector/analysis seat; no code work, so no scratch clone was created (spec: clones only for code work). No tool installed (none needed). No pacman activity. Disk guard checked: all filesystems <50% use.
+
+$ git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin log --oneline --follow -- verifiers/check_substrate_repin_v2.py
+30d27da round-72: freeze 2 — addendum E1-E4, three counters (author rules, substrate re-pin v2, tip battery) with self-test and base receipts, wave-1 evidence (53 seat reports, results, snapshots)
+(exit 0; single commit touches the counter)
+
+$ git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin rev-parse 30d27da07c2dcc147a9aa2f258c80066840b03d4:verifiers/check_substrate_repin_v2.py 47dbe8781657de563ff867caca6244d28e3db504:verifiers/check_substrate_repin_v2.py
+e25442db74969e0856fe11b0712bfff5438f5ab5
+e25442db74969e0856fe11b0712bfff5438f5ab5
+(exit 0; identical blob → plan premise "unchanged round-72 counter" VERIFIED)
+
+$ git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin show 47dbe8781657de563ff867caca6244d28e3db504:SKILL.md | wc -l
+597
+(exit 0; plan premise "base 597/600" VERIFIED)
+
+$ git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin log --oneline -S 'live round-65 corrections land' -- verifiers/verify_skill_checklist.py
+80bb892 round-65: C1 closing package ... checklist 1852->1862
+(exit 0; live arm introduced round-65)
+
+$ git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin log --oneline -S 'live_repo = Path(__file__)' -- verifiers/verify_skill_checklist.py
+a0f7f17 round-72: ... stale checklist arm ... QUALITY Q65 ...
+(exit 0; live_repo form from round-72 fix)
+
+$ grep -n 'live round-65\|errata-excused' verifiers/verify_skill_checklist.py
+2524:        rec("governance: live round-65 corrections land, errata-excused",
+(exit 0)
+
+$ sed -n '2520,2545p' verifiers/verify_skill_checklist.py   (captured in report §B; live_repo at :2522, failing arm :2524-2528, second live arm :2531-2542)
+(exit 0)
+
+$ grep -n 'M81-3\|stale-premise\|stale planned\|planned premise' corpus/lessons/round-79.md corpus/lessons/round-80.md corpus/lessons/round-81.md
+round-81.md:43: M81-3 ... reading the live worktree while the author was still editing ...
+(exit 0; M81-3 captured-by none per lesson table)
+
+$ awk -F'|' '/^\| Q[0-9]/ {print $2}' corpus/QUALITY.md | wc -l   (via grep -c '^| Q' → 75 rows; Q01..Q75 + Q62 clause row; Q76 not landed)
+$ grep -c '^| Q76 ' corpus/QUALITY.md ; git show 47dbe878:corpus/QUALITY.md | grep -c '^| Q76 '
+0
+0
+(exit 1 from the final grep -c = no match, as expected; Q76 draft never landed)
+
+$ grep -in 'hermetic\|isolat' corpus/QUALITY.md
+(no output; exit 1 — no QUALITY row covers selftest hermeticity/isolation)
+
+$ head -30 receipts/before-pins.txt; tail of same file: "exit=2"
+→ pins: omp.real sha256 UNREADABLE, omp.real mtime UNREADABLE, opencode sha256 PASS; exit_code 2; pass 1 fail 2
+→ plan premise "1 PASS and 2 UNREADABLE, exit 2" VERIFIED
+
+$ cat receipts/before-checklist-selftest.txt
+→ "self-test FAIL: governance: live round-65 corrections land, errata-excused: got ('FAIL', 1363, ...)"; "1 failure(s) over 1863 assertions"; exit=1
+→ plan premise VERIFIED; failing arm named; dead subjects: SCORECARD.md:480 '.ufo/wapes', :482 'corpus/lessons/round-80-verifier-spotcheck.md:30,37', :484 '.ufo/reports/round-81/kotoba.md' (×2 occurrences); exception counts "2 recorded absence(s) excused, 4 recorded correction(s) excused" still match the arm's literals — the arm failed on NEW live subjects, i.e. reference drift, the M125 class.
+
+$ grep -n 'governance.citation_resolves' receipts/before-checklist.txt ; sed -n '60,80p' receipts/before-checklist.txt
+→ public gate governance.citation_resolves = FAIL, evaluated 1363, same four dead occurrences; overall exit=1, fail 1, pass 10
+→ plan premise "public live gate separately reports governance.citation_resolves FAIL" VERIFIED
+
+$ head -30 receipts/before-c1-counter.txt
+→ "cannot evaluate: verify_surfaces.py reported 0 row(s) (exit_code 2: omp binary not found: /home/vgpnk/.local/bin/omp.real); pins 1/3 row(s) PASS, surfaces 0/0 check(s) PASS"; exit=2
+→ consistent with plan's C1 before description (default surface resolution fails on absent omp.real)
+
+$ tail -12 receipts/before-tip-battery.txt
+→ guards 5 of 5; tip battery exit 0: 2 of 6; exit=1; red gates named: check_assertion_floors (148.9s), verify_skill_checklist, verify_corpus_integrity, verify_corpus_independent
+→ red base gates named red (Q65); NOTE check_assertion_floors exit 1 at base (148.9s wall) is pre-existing debt adjacent to C2's floor.
+
+$ bash /home/vgpnk/Projects/shokunin/scripts/hyaku/disk-guard.sh status
+→ /tmp 25%, /var/tmp 41%, /fast/scratch/hyaku 47% (exit 0; no heavy work performed anyway)
+
+Peer context (read once, running seats, content may evolve): .ufo/waves/round-82/w1/Kb82R02Checklist.md (C2 root cause; flags second live arm at source lines 2531-2542), .ufo/waves/round-82/w1/Kb82R06Routed.md (r81 routed-duty dispositions: 3a manifest pin retained open).

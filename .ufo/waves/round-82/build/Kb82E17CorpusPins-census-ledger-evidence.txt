@@ -1,0 +1,121 @@
+# Kb82E17CorpusPins — round-82 C1 census/ledger/host-loader evidence bundle
+
+Seat: Kb82E17CorpusPins (leaf; no subagents, no background jobs)
+Lane base: 47dbe8781657de563ff867caca6244d28e3db504 (master at intake)
+Counter BASE_REV (frozen round-72 base): c69711ee08279609374d895bb0f3c8c18ccf15c9
+Scratch clone: /fast/scratch/hyaku/kotoba-r82/Kb82E17CorpusPins/clone (git clone --shared, checkout 47dbe87, toplevel asserted)
+Date: 2026-10-30. No installs/upgrades performed (none needed). Pacman untouched.
+
+## 1. Host substrate bytes (direct measurement)
+
+stat + sha256 + file, each command's own exit recorded:
+
+    /home/vgpnk/.opencode/bin/opencode  size=240416944  mtime=1985-10-26 05:15:00 -0300
+    sha256 ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7   (exit 0)
+    ELF 64-bit LSB executable, x86-64, dynamically linked, not stripped
+
+    /home/vgpnk/.local/bin/omp  size=276244656  mtime=2026-10-29 23:19:46.168359786 -0300
+    sha256 e7dd2b606c4ebe9d1a7bcfad1b8820db968cd6b05409fed1c6bc8db0b6a95a8f  (exit 0)
+    ELF 64-bit LSB executable, x86-64, dynamically linked, not stripped
+    `omp --version` -> "omp/18.14.0" (exit 0)
+
+    /home/vgpnk/.local/bin/omp.real -> stat exit 1 "No such file or directory" (before-state confirmed still true)
+
+## 2. Unchanged base class census, recomputed from committed bytes
+
+Extraction commands (clone, each exit 0):
+    git -C clone show c69711ee08279609374d895bb0f3c8c18ccf15c9:verifiers/surfaces-baseline.json
+    git -C clone show 47dbe8781657de563ff867caca6244d28e3db504:verifiers/surfaces-baseline.json
+
+    sha256(base-r72-surfaces-baseline.json) = 6b23c3d1c8766e4effea9f5502b638de7b22cd0d61be20426ba99482c7d1260b
+    sha256(base-r82-surfaces-baseline.json) = 6b23c3d1c8766e4effea9f5502b638de7b22cd0d61be20426ba99482c7d1260b
+    -> byte-identical over the round range; census baseline unchanged.
+
+harness == "opencode" rows (9 classes; set AND per-class signature
+(literal, context_kind, verdict) identical at both revs):
+
+    opencode:claude-home/CLAUDE.md        literal='CLAUDE.md'        kind='loader-config'   verdict='governed'
+    opencode:config/AGENTS.md             literal='AGENTS.md'        kind='loader-config'   verdict='governed'
+    opencode:config/instructions          literal='instructions'     kind='loader-config'   verdict='governed'
+    opencode:config/instructions-remote   literal='https://'         kind='loader-config'   verdict='governed'
+    opencode:instruction-context/AGENTS.md literal='AGENTS.md'       kind='loader-literal'  verdict='governed'
+    opencode:instructions/AGENTS.md       literal='AGENTS.md'        kind='loader-literal'  verdict='governed'
+    opencode:instructions/CLAUDE.md       literal='CLAUDE.md'        kind='loader-literal'  verdict='governed'
+    opencode:instructions/CONTEXT.md      literal='CONTEXT.md'       kind='loader-literal'  verdict='governed'
+    opencode:read-hook/instructions       literal='<system-reminder>' kind='loader-literal' verdict='governed'
+
+## 3. Removal ledger anchors, recomputed from committed bytes
+
+    git -C clone show 47dbe87...:verifiers/census-removals.json
+    sha256 = c8944913bb802822f80aeee44e99c1f4886e0110fdfeb2ebbc7bea9e2729f3e2
+
+Ledger class set == counter FROZEN_REMOVALS set: True.
+Per-class absent_anchors in the ledger JSON are string-equal to the counter's
+FROZEN_REMOVALS anchors (check_substrate_repin_v2.py:139-149) for all 3 classes.
+
+Ledger rows (class_id -> absent_anchors):
+    opencode:instructions/CONTEXT.md   ["CONTEXT\\.md"]
+    opencode:instructions/CLAUDE.md    ["disableClaudeCodePrompt",
+                                        "\\[\"AGENTS\\.md\".{0,400}?\"CONTEXT\\.md\"[^\\]]{0,200}\\]"]
+    opencode:claude-home/CLAUDE.md     ["\\.join\\(\\s*[A-Za-z_$][A-Za-z0-9_$]*\\.home\\s*,\\s*\"\\.([A-Za-z0-9_-]+)\"\\s*,\\s*\"([A-Za-z0-9_.-]+\\.md)\""]
+
+## 4. Live host opencode strings comparison
+
+    strings -n 4 /home/vgpnk/.opencode/bin/opencode  (exit 0)
+    1,237,844 lines; sha256(dump) = 020fb25393e5ce881ac2da70222acedebc5cef2d3810d07e4625b2cde885b089
+    ledger measured_against.dump_sha256            = 020fb25393e5ce881ac2da70222acedebc5cef2d3810d07e4625b2cde885b089
+    -> live dump byte-identical to the round-72 measurement; opencode binary sha also identical (ca9b3ee2...).
+
+Anchor scan over the live dump (each counter FROZEN_REMOVALS anchor, re.search):
+    CONTEXT\.md                                                -> 0 matches
+    disableClaudeCodePrompt                                    -> 0 matches
+    \["AGENTS\.md".{0,400}?"CONTEXT\.md"[^\]]{0,200}\]        -> 0 matches
+    \.join\(\s*[A-Za-z_$][A-Za-z0-9_$]*\.home\s*,...\.md"     -> 0 matches
+Literal counts (informational; anchors are the absence test):
+    'CONTEXT.md' 0 | 'CLAUDE.md' 3 | 'AGENTS.md' 15 | 'disableClaudeCodePrompt' 0
+Kept conjunct: 9/9 base classes kept (baseline files identical); ledgered 3 == frozen set;
+no extra ledgered class; no base class both unkept and unledgered.
+
+## 5. Frozen counter at base rev — direct exit (expected unevaluable, not a fake zero)
+
+Command (its own exit, no pipeline):
+    cd clone && python3 -B verifiers/check_substrate_repin_v2.py \
+      --repo /fast/scratch/hyaku/kotoba-r82/Kb82E17CorpusPins/clone \
+      --rev 47dbe8781657de563ff867caca6244d28e3db504
+
+    exit=2
+    stderr: cannot evaluate: verify_surfaces.py reported 0 row(s) (exit_code 2: omp binary
+    not found: /home/vgpnk/.local/bin/omp.real); pins 1/3 row(s) PASS, surfaces 0/0 check(s) PASS
+
+Why (base-tree defaults, from committed bytes):
+    check_substrate_pins.py:68  "omp": "/home/vgpnk/.local/bin/omp.real"   (absent on host)
+    verify_surfaces.py:169      "omp": "/home/vgpnk/.local/bin/omp.real"   -> exits 2, checks: []
+    opencode default "~/.opencode/bin/opencode" still present -> pin row 1/3 PASS (opencode sha256).
+The counter correctly reports the empty instrument report as "cannot evaluate" (exit 2)
+instead of counting a measured 0/7 — matching receipts/before-c1-counter.txt exactly.
+
+## 6. Did the current omp update also change opencode behavior? — NO
+
+- opencode binary sha256 unchanged vs round-72 pin (ca9b3ee2...); live strings dump
+  sha256 unchanged vs ledger dump_sha256 (020fb253...). The omp 18.14.0 install did
+  not touch the opencode substrate the census/ledger is judged against.
+- New omp is a Bun-compiled single ELF (strings show /$bunfs/root/chunks/*.js),
+  sha256 e7dd2b60..., version omp/18.14.0, mtime 2026-10-29 23:19:46 -0300.
+- omp-opencode coupling observed in the NEW omp binary (strings -n 4, 2,546,730 lines,
+  sha256 81277d35...): provider/registry integration only —
+    /$bunfs/root/chunks/opencode-c0447wbv.js, "opencode-go"/"opencode-zen" cases,
+    commands.enableOpencodeProject/commands.enableOpencodeUser,
+    description "Load AGENTS.md from ~/.config/opencode/", Ac(u, "opencode", "AGENTS.md").
+  `grep '\.opencode/bin' omp-strings.txt` -> 0 matches: omp does not reference the
+  opencode binary path; it cannot have altered the opencode binary's loader.
+- Census literals inside the NEW omp binary: CONTEXT.md 0, disableClaudeCodePrompt 0,
+  CLAUDE.md 18, AGENTS.md 41. omp ships its OWN CLAUDE.md/AGENTS.md loader strings
+  (e.g. `var IQ = "CLAUDE.md"`, `Fr.join(k, "CLAUDE.md")`,
+  `for (const s of ["AGENTS.md", "CLAUDE.md"])`); these are omp-side surfaces for the
+  C1 omp-half re-derivation, independent of the opencode dump.
+
+## Receipts (scratch, to be deleted after report copy)
+
+    /fast/scratch/hyaku/kotoba-r82/Kb82E17CorpusPins/{base-r72-surfaces-baseline.json,
+      base-r82-surfaces-baseline.json, base-r82-census-removals.json,
+      live-opencode-strings.txt, omp-strings.txt, counter-base-run.txt}

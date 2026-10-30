@@ -1,0 +1,49 @@
+# Kb82V05Corpus — evidence appendix (seat Kb82V05Corpus, 2026-10-30)
+# Read-only review of S251 drafts. Commands ran from fleet root; no mutation.
+# Each command captured its own exit status as noted.
+
+R=/home/vgpnk/Projects/shokunin/kotoba-shokunin
+
+## 1. Cited derivation receipt does not exist (F1)
+$ ls $R/.ufo/waves/round-82/receipts/
+  -> before-c1-counter.txt before-census.txt before-checklist-selftest.txt
+     before-checklist.txt before-independent.txt before-integrity.txt
+     before-pins.txt before-registry.txt before-source-counts.txt
+     before-surfaces.txt before-sweep.txt before-tip-battery.txt
+     host-open.json source-counts-before.json
+  -> NO c1-loader-rederivation.txt ; NO host-loader-derivation.txt ; exit 0
+$ cd $R && git grep -l "c1-loader-rederivation" HEAD -- . ; git grep -l "host-loader-derivation" HEAD -- .
+  -> both empty ; exit 1 (no match)
+$ find $R/.ufo/waves/round-82 -name "*derivation*" -o -name "*rederivation*"
+  -> only build/Kb82E06Controls-world-W7-path-plus-pin-no-rederivation.txt (shortcut control, not a receipt)
+
+## 2. Used-by filename mismatch (F2)
+E20 draft row used-by:   corpus/knowledge/host-loader-rederivation-round82.md, corpus/lessons/round-82.md
+S03 draft stated dest.:  corpus/knowledge/host-loader-refresh-round82.md
+$ ls $R/corpus/lessons/round-82.md $R/corpus/knowledge/host-loader-rederivation-round82.md $R/corpus/knowledge/host-loader-refresh-round82.md
+  -> all three "No such file or directory" (L1 landing targets, exit 2 from ls)
+
+## 3. Quote state (F3)
+S03 quote "ELF 64-bit LSB executable" — verified present in
+  build/Kb82S03Knowledge-current-bytes.txt (1839 B, exists; sha of file not required for review)
+S02 quote before-pins.txt:35-37 ("exit_code": 2 / "fail": 2 / "pass": 1) — baseline evidence, not derivation.
+E20 anchor cell — description only, no verbatim quote.
+
+## 4. Tier/ownership/date/schema checks (confirmed-correct)
+$ grep -n "own-work" $R/corpus/SOURCES.md | head
+  -> S009, S010, S015, S020, S250 all "own-work | A" ; tier A consistent
+$ grep -c "^| S" $R/corpus/SOURCES.md  -> 176 rows at base (matches receipts/source-counts-before.json)
+$ git log --oneline -S "| S251 |" -- corpus/SOURCES.md -> empty (S251 never committed; max id S250)
+$ git log --oneline -3 -> 006a834 round-82 freeze ; 47dbe87 base-named intake ; e384186 round-81 tip battery
+$ cat $R/.ufo/waves/round-82/receipts/host-open.json
+  -> accessed 2026-10-30 ; sha256 e7dd2b60...5a8f ; omp/18.14.0 ; matches draft opened date
+E20 row cell count: 11 cells (id|source|kind|tier|scope|anchor|teaches|status|opened|recheck|used-by)
+
+## 5. Working-tree observation (data only, not mutated)
+$ git -C $R diff --stat -- corpus/SOURCES.md -> 1 insertion(+), 1 deletion(-)
+  content: S248 row status flip (queued->mined), round-81 routed duty; S251 NOT staged by any sibling
+
+## Seat limits honored
+No installs/upgrades (none needed). No pacman. No fleet tracked-file writes.
+No subagents, no background jobs. No scratch clone (read-only review).
+Untouched: corpus/SOURCES.md working-tree edit (sibling S248 duty), jj/git index, production files.

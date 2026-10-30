@@ -1,0 +1,27 @@
+--- clone/verifiers/verify_surfaces.py	2026-10-30 12:12:54.610410991 -0300
++++ corrected_gate.py	2026-10-30 12:33:47.828967313 -0300
+@@ -557,6 +557,12 @@
+     spans = module_scopes(dump)
+     calls: list[tuple[str, str, str]] = []
+     for m in pattern.finditer(dump):
++        # Kb82C04FalseRed: a shape on a // or /* comment line is text, not a
++        # compiled call -- never let it mint loader provenance.
++        _ls = dump.rfind("\n", 0, m.start()) + 1
++        _prefix = dump[_ls:m.start()].lstrip()
++        if _prefix.startswith("//") or _prefix.startswith("/*"):
++            continue
+         if generic:
+             callee, quoted, ident, filename = m.groups()
+         else:
+@@ -580,10 +586,9 @@
+     # (round 52 falsify, CriticC1Escape P4) a call whose group stays unresolved
+     # can never match a declared pair; admit its callee when the call's file is
+     # a declared file, so the unresolved group surfaces instead of vanishing.
+-    declared_files = {f for _, f in declared}
+     admitted = {c for c, g, f in calls
+                 if (g, f) in declared
+-                or (g.startswith("<unresolved-var:") and f in declared_files)}
++                or g.startswith("<unresolved-var:")}
+     return {(g, f) for c, g, f in calls if c in admitted}
+ 
+ 

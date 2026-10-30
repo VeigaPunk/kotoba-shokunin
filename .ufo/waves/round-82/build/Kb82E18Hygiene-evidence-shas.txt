@@ -1,0 +1,38 @@
+== lane base blob ids + sha256 of flagged files (base 47dbe8781657de563ff867caca6244d28e3db504) ==
+verifiers/check_mcp_instructions.py blob=2127fedd00a5e295eba61821beab45a73e7a7c1c sha256=8e04e8fc3eae12789ee1db42b0ef593f583f107e61dc54fe465ea52238838cae
+verifiers/check_r69_routed_repairs_v2.py blob=0b9ca25973b14cf432d1967b0fdbc7f364fc96b1 sha256=9f6673ed977800abc3e5426923b9f7eadf55af6cfe5317db6b2357e04e8cba02
+verifiers/check_overlap_levers.py blob=209ea06ffa103c1cab7bb4aa7792ffb3870accba sha256=f1b3890c3e1750b2719afd24586d38dd81b3e1e1c70ada6ae585211b0f0a2656
+verifiers/verify_corpus_integrity.py blob=bbee51f2bae5b33b123a546150e83352d68eeebc sha256=a0b52d2419e28bf45bfcdf167dff5dfd44fdd7356cbc606eea1ea2ee8304b011
+verifiers/check_substrate_repin_v2.py blob=e25442db74969e0856fe11b0712bfff5438f5ab5 sha256=629487a116bdf287f2bcd43652ead051b052efd0a32632b38a45fece6ed4b348
+verifiers/verify_skill_checklist.py blob=6aab16849bd6d71ded8f3bcb3f95668f14f6a78f sha256=b7d7b0fca8be17cfa18e75fe4d130a0d429e34f5f4e1a30fdc5fb22a70539615
+verifiers/fault_injection_corpus.sh blob=d0bf706ce9183c12f23d2c1dde428fa3cfbbce9e sha256=f7df4faf506c33630687450c4821a41571d15884fc6dfc038ee69fab05163d4e
+verifiers/check_report_pointers.py blob=13d98aa6f28a9229829d7fb35c827635514f3b54 sha256=6c382b95d0f0c2d6c90aeb7949732085b25dd8ba4502e2a7934d945bd8306f27
+
+== fleet tool (scripts/hyaku, fleet repo HEAD 825b8a021d6e81c4967666cf27ab1f9bd6d483f9) ==
+95b510d7c967ee857fce1efeaeaa8afb0391cda6911d0ef1ad634d3d59d31067  /home/vgpnk/Projects/shokunin/scripts/hyaku/jj-lane-selftest.sh
+b25912e07b3ea5fce09cfd8b018310301d2e28f1ce0e770857e27cd45679897c  /home/vgpnk/Projects/shokunin/scripts/hyaku/disk-guard.sh
+
+== artifacts ==
+a839e139a609e828a7082693908b960af96c20a69270359dd0a6a3a23ac25a69  /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-82/build/Kb82E18Hygiene-audit.py
+eb9e556a9d64e308fa7c39669c0db0f4a0c5321dbcf15fc636f4cd43f33569f8  /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-82/build/Kb82E18Hygiene-audit-receipt.txt
+6b2c422330f5688500fe80489e47bae49623c39c8ca8cb09e99043ac726a0e57  /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-82/build/Kb82E18Hygiene-p1-jj-lane-tmp.txt
+2db646a34e1c9249907dc44305e6f04e24dd8b81ff180bf85941c33d5a0de4f6  /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-82/build/Kb82E18Hygiene-p2-mcp-lane-temp.txt
+
+== identity spot-check: verify_corpus_integrity.py fixture identity ==
+1177:                         ("-c", "user.name=t", "-c", "user.email=t@t",
+1240:            ["git", "-C", str(path), "-c", "user.name=t", "-c",
+
+== verify_skill_checklist live-read arm (C2 corroboration, base lines 2515-2527) ==
+        # live corrections land against the real repo: the three round-65
+        # rows and the round-70 row (K69-11, LOG.md:2676) excuse four reds,
+        # and the round-71 errata row (LOG.md:2678, routed defect R67-3)
+        # records the removed control mirror that no correction may carry,
+        # so the check is green with two absences and four corrections
+        # excused (round 72: the r71 erratum retired the old red).
+        live_repo = Path(__file__).resolve().parent.parent
+        status, evaluated, detail = check_governance_citations(
+            live_repo, corrections=GOVERNANCE_CORRECTIONS)
+        rec("governance: live round-65 corrections land, errata-excused",
+            status == "PASS" and "2 recorded absence(s) excused" in detail
+            and "4 recorded correction(s) excused" in detail,
+            (status, evaluated, detail))

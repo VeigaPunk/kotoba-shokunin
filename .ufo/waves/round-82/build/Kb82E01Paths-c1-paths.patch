@@ -1,0 +1,76 @@
+diff --git i/verifiers/check_substrate_pins.py w/verifiers/check_substrate_pins.py
+index 11164b9..80bec92 100644
+--- i/verifiers/check_substrate_pins.py
++++ w/verifiers/check_substrate_pins.py
+@@ -61,11 +61,14 @@ from datetime import datetime, timezone
+ from pathlib import Path
+ 
+ DEFAULT_REPO = Path(__file__).resolve().parent.parent
+-# Round 72: omp is the ELF `omp.real` (the `omp` file installed 2026-10-23 is a
+-# crash-restart shell wrapper; its sha says nothing about the ELF that runs) and
+-# opencode is v2.1.4 at `~/.opencode/bin/opencode` (the npx 1.19.4 path is gone).
++# Round 82: omp is again the ELF itself at `~/.local/bin/omp` (installed
++# 2026-10-29, 18.14.0, sha256 e7dd2b606c4ebe9d1a7bcfad1b8820db968cd6b05409fed1c
++# 6bc8db0b6a95a8f; the round-72 crash-restart wrapper and its `omp.real` target
++# are gone — the file at `omp` is the ELF that runs, magic verified 7f 45 4c 46)
++# and opencode is v2.1.4 at `~/.opencode/bin/opencode` (the npx 1.19.4 path is
++# gone).
+ BINARIES = {
+-    "omp": "/home/vgpnk/.local/bin/omp.real",
++    "omp": "/home/vgpnk/.local/bin/omp",
+     "opencode": "/home/vgpnk/.opencode/bin/opencode",
+ }
+ # The pin set the guard's contract requires. Discovery additionally checks any
+diff --git i/verifiers/verify_harness_claims.py w/verifiers/verify_harness_claims.py
+index 268e069..cfe52d6 100755
+--- i/verifiers/verify_harness_claims.py
++++ w/verifiers/verify_harness_claims.py
+@@ -50,7 +50,7 @@ import sys
+ from pathlib import Path
+ 
+ HOME = Path.home()
+-OMP_BIN = HOME / ".local/bin/omp.real"  # round 72: `omp` is a wrapper script
++OMP_BIN = HOME / ".local/bin/omp"  # round 82: `omp` is the ELF again (18.14.0)
+ OMP_DB = HOME / ".omp/agent/skill-descriptions.db"
+ OC_LOG = HOME / ".local/share/opencode/log/opencode.log"
+ OC_BIN = HOME / ".opencode/bin/opencode"  # round 72: v2.1.4
+diff --git i/verifiers/verify_harness_independent.py w/verifiers/verify_harness_independent.py
+index 62fb880..97f81ec 100644
+--- i/verifiers/verify_harness_independent.py
++++ w/verifiers/verify_harness_independent.py
+@@ -120,8 +120,9 @@ from pathlib import Path
+ # Substrates.  Defaults are this host's installs; every path is overridable so
+ # fixtures can drive the same code (--self-test does exactly that).
+ # ---------------------------------------------------------------------------
+-# Round 72: `~/.local/bin/omp` is a crash-restart shell wrapper; the substrate is the ELF.
+-DEFAULT_OMP_BINARY = Path("/home/vgpnk/.local/bin/omp.real")
++# Round 82: `~/.local/bin/omp` is the ELF itself again (installed 2026-10-29,
++# 18.14.0; the round-72 crash-restart wrapper and `omp.real` are gone).
++DEFAULT_OMP_BINARY = Path("/home/vgpnk/.local/bin/omp")
+ DEFAULT_AGENTS_ROOT = Path("/home/vgpnk/.agents/skills")
+ DEFAULT_SKILL_DB = Path("/home/vgpnk/.omp/agent/skill-descriptions.db")
+ DEFAULT_OC_LOG = Path("/home/vgpnk/.local/share/opencode/log/opencode.log")
+diff --git i/verifiers/verify_surfaces.py w/verifiers/verify_surfaces.py
+index 8e38b15..96ef2a0 100755
+--- i/verifiers/verify_surfaces.py
++++ w/verifiers/verify_surfaces.py
+@@ -160,13 +160,13 @@ from pathlib import Path
+ DEFAULT_REPO = Path(__file__).resolve().parent.parent
+ FIXTURES = Path(__file__).resolve().parent / "fixtures" / "surfaces"
+ 
+-# Round 72: the defaults follow the host's real binaries — `~/.local/bin/omp` is
+-# a crash-restart shell wrapper installed 2026-10-23 (a wrapper is never a
+-# substrate; the ELF is `omp.real`, same sha256 as the round-51 pin) and the
+-# opencode npm 1.19.4 npx-cache path is gone: the host runs v2.1.4 at
+-# `~/.opencode/bin/opencode`.
++# Round 82: the defaults follow the host's real binaries — `~/.local/bin/omp`
++# is again the ELF itself (installed 2026-10-29, 18.14.0, sha256 e7dd2b60…; the
++# round-72 crash-restart shell wrapper and its `omp.real` target are gone, ELF
++# magic verified 7f 45 4c 46) and the opencode npm 1.19.4 npx-cache path is
++# gone: the host runs v2.1.4 at `~/.opencode/bin/opencode`.
+ DEFAULT_BINARIES = {
+-    "omp": "/home/vgpnk/.local/bin/omp.real",
++    "omp": "/home/vgpnk/.local/bin/omp",
+     "opencode": "/home/vgpnk/.opencode/bin/opencode",
+ }
+ DEFAULT_INVENTORY = "corpus/knowledge/instruction-surface-census-round13.md"

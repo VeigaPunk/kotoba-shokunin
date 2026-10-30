@@ -1,0 +1,83 @@
+--- pristine
++++ M1
+@@ -1788,8 +1788,7 @@
+                                         subjects, repo)
+     subjects = [s for s in subjects if s["source"] != "LOG.md"
+                 or (s["line"], s["token"]) not in excused]
+-    cproblems, cexcused = correction_problems(corrections, corrections_horizon,
+-                                              log_lines, subjects, repo)
++    cproblems, cexcused = [], set()
+     problems += cproblems
+     subjects = [s for s in subjects
+                 if (s["source"], s["line"], s["token"]) not in cexcused]
+--- pristine
++++ M2
+@@ -422,7 +422,7 @@
+ # token, corrected token).  Same fail-closed discipline as GOVERNANCE_ERRATA:
+ # horizon-bounded, byte-pinned, subject must be live and red, corrected token
+ # must resolve, never masks another dead subject.
+-GOVERNANCE_CORRECTIONS_HORIZON = 2723
++GOVERNANCE_CORRECTIONS_HORIZON = 2620
+ GOVERNANCE_CORRECTIONS = (
+     (2619,
+      "b11e4e8be95834db367e50ccf67e1ceec0dacdfdd95cb7e0d66095814d4cf949",
+--- pristine
++++ M3a
+@@ -2501,7 +2501,7 @@
+         rec("governance: correction for a restored token is stale",
+             status == "FAIL" and "stale" in detail,
+             (status, evaluated, detail))
+-        (gov_repo / "corpus" / "gone.md").unlink()
++        (gov_repo / "corpus" / "gone.md").write_text("", encoding="utf-8")
+         log_path.write_text("`corpus/live.md`\n"
+                             "SCORECARD.md:9 token \"corpus/gone.md\" -> "
+                             "\"corpus/live.md\" (round-65 notice).\n"
+--- pristine
++++ M4a
+@@ -1791,8 +1791,7 @@
+     cproblems, cexcused = correction_problems(corrections, corrections_horizon,
+                                               log_lines, subjects, repo)
+     problems += cproblems
+-    subjects = [s for s in subjects
+-                if (s["source"], s["line"], s["token"]) not in cexcused]
++    pass
+     evaluated = len(subjects)
+     context = ("%d quoted meta-finding(s), %d schematic token(s) excluded, "
+                "%d recorded absence(s) excused, %d recorded correction(s) "
+--- pristine
++++ M4b
+@@ -1791,8 +1791,7 @@
+     cproblems, cexcused = correction_problems(corrections, corrections_horizon,
+                                               log_lines, subjects, repo)
+     problems += cproblems
+-    subjects = [s for s in subjects
+-                if (s["source"], s["line"], s["token"]) not in cexcused]
++    subjects = []
+     evaluated = len(subjects)
+     context = ("%d quoted meta-finding(s), %d schematic token(s) excluded, "
+                "%d recorded absence(s) excused, %d recorded correction(s) "
+--- pristine
++++ M5
+@@ -1741,9 +1741,8 @@
+             problems.append("%s: names no live red subject" % where)
+         elif citation_resolve(stale, repo):
+             problems.append("%s: stale, the old token now resolves" % where)
+-        elif not citation_resolve(corrected, repo):
+-            problems.append("%s: corrected token %r does not resolve"
+-                            % (where, corrected))
++        elif False:
++            problems.append("%s: unused" % where)
+         else:
+             excused.add((sfile, sline, stale))
+     return problems, excused
+--- pristine
++++ M6
+@@ -1737,7 +1737,7 @@
+             problems.append("%s: line text drifted" % where)
+         elif stale not in text or corrected not in text:
+             problems.append("%s: correction wording not on the line" % where)
+-        elif (sfile, sline, stale) not in live:
++        elif False:
+             problems.append("%s: names no live red subject" % where)
+         elif citation_resolve(stale, repo):
+             problems.append("%s: stale, the old token now resolves" % where)

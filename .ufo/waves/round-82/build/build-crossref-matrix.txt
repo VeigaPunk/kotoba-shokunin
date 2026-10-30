@@ -1,0 +1,30 @@
+# Kb82K03Design cross-reference matrix (base 47dbe8781657de563ff867caca6244d28e3db504)
+
+## C1 change-set files (from plan + static read)
+verifiers/check_substrate_pins.py (DEFAULT_BINARIES omp path, line 68)
+verifiers/verify_surfaces.py (DEFAULT_BINARIES omp path, line 169)
+verifiers/baseline.json (measured_against omp sha256/mtime + note)
+verifiers/surfaces-baseline.json (only if 18.14.0 observed deltas, documented)
+verifiers/census-removals.json (FROZEN, no edit)
+receipts + corpus/SOURCES.md S251 row + SKILL.md in-place note
+
+## C2 change-set files
+verifiers/verify_skill_checklist.py (self-test live arm at lines 2515-2528 only)
+receipts
+
+## File-set intersection C1 ^ C2
+NONE in verifiers/. Shared surfaces: .ufo/waves/round-82/receipts/ (distinct filenames), SKILL.md (in-place, budget 597/600), corpus/SOURCES.md (C1-only: S251; S248 transition is a separate routed duty, serialize via L1)
+
+## Cross-gate readers of C1/C2 target files
+verifiers/baseline.json also read by: verify_harness_claims.py (uses 'checks' key, disjoint from measured_against); check_opencode_repin.py, verify_surfaces.py
+checklist-baseline.json read by: verify_skill_checklist.py, box_proof_case_deletion.py, verify_dispatch_prompts.py (C2 self-test writes it only inside temp fixture root)
+check_assertion_floors.py floors: checklist 1863, pins 62, surfaces 218 (both edited instruments rerun in no-harm battery)
+check_callee_rename.py: pinned fixtures at FIXTURE_REV, not live binary (C1 re-pin does not force its edit)
+
+## Reproduced before states (scratch clone, base rev)
+C2 self-test clone: exit 1, 2 failure(s) over 1863 assertions (non-hermetic: also fails load-bearing arm in clone; live lane receipt shows 1 failure)
+C1 counter clone: exit 2, pins 1/3 PASS, surfaces 0/0 (omp.real absent)
+
+## sha256 at base
+629487a116bdf287f2bcd43652ead051b052efd0a32632b38a45fece6ed4b348  verifiers/check_substrate_repin_v2.py
+b7d7b0fca8be17cfa18e75fe4d130a0d429e34f5f4e1a30fdc5fb22a70539615  verifiers/verify_skill_checklist.py

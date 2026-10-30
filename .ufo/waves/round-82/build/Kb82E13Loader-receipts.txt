@@ -1,0 +1,94 @@
+# Kb82E13Loader receipts — round-82 C1 independent loader-group extraction probe
+# Seat scope: independent extraction probe for the omp loader group cursor.
+# No production files mutated. All work in /fast/scratch/hyaku/kotoba-r82/Kb82E13Loader.
+
+# --- environment / tools ----------------------------------------------------
+$ strings --version | head -1
+GNU strings (GNU Binutils) 2.47
+$ python3 --version
+Python 3.14.8
+$ /home/vgpnk/.local/bin/omp --version ; echo version-exit=$?
+omp/18.14.0
+version-exit=0
+# tool installs/updates this seat: NONE (pacman paused host-wide; existing tools only)
+
+# --- scratch clone assertion ------------------------------------------------
+$ git clone --shared /home/vgpnk/Projects/shokunin/kotoba-shokunin clone
+$ git -C clone checkout -q 47dbe8781657de563ff867caca6244d28e3db504
+$ git -C clone rev-parse --show-toplevel
+/fast/scratch/hyaku/kotoba-r82/Kb82E13Loader/clone
+$ git -C clone rev-parse HEAD
+47dbe8781657de563ff867caca6244d28e3db504
+
+# --- host binary before ------------------------------------------------------
+$ ls -la /home/vgpnk/.local/bin/omp /home/vgpnk/.local/bin/omp.real
+ls: cannot access '/home/vgpnk/.local/bin/omp.real': No such file or directory
+-rwxr-xr-x 1 vgpnk vgpnk 276244656 Oct 29 23:19 /home/vgpnk/.local/bin/omp
+$ sha256sum /home/vgpnk/.local/bin/omp
+e7dd2b606c4ebe9d1a7bcfad1b8820db968cd6b05409fed1c6bc8db0b6a95a8f  /home/vgpnk/.local/bin/omp
+$ stat -c '%Y %y %s' /home/vgpnk/.local/bin/omp
+1793326786 2026-10-29 23:19:46.168359786 -0300 276244656
+$ file /home/vgpnk/.local/bin/omp
+ELF 64-bit LSB executable, x86-64, dynamically linked, not stripped, BuildID 588d7307f333293c728b74df19b7323c20736899
+
+# --- strings dump ------------------------------------------------------------
+$ time strings -n 4 /home/vgpnk/.local/bin/omp > build/omp-18.14.0.strings.txt
+real 0m1.120s
+$ wc -lc build/omp-18.14.0.strings.txt
+2546730 47434077 build/omp-18.14.0.strings.txt
+$ sha256sum build/omp-18.14.0.strings.txt
+81277d3572277febcaf0853f10cf8778c64920f58a13fba98ef0accbb70a8319  build/omp-18.14.0.strings.txt
+
+# --- independent probe run ---------------------------------------------------
+$ python3 -B .ufo/waves/round-82/build/Kb82E13Loader-probe.py \
+    --dump build/omp-18.14.0.strings.txt \
+    --baseline clone/verifiers/surfaces-baseline.json \
+    --binary /home/vgpnk/.local/bin/omp \
+    > build/Kb82E13Loader-probe-report.json
+probe-exit=0
+
+# probe headline findings (full JSON: build/Kb82E13Loader-probe-report.json):
+#   declared omp loader-group pairs (baseline at base): 8
+#   extracted admitted pairs: 8 — EXACT parity, distinct both ways = []
+#   full-shape sweep (no admission filter): 8 pairs — sweep == admitted set
+#   allowlist mode (r72 callee names Id/Cl/jDe/jDf/Tl/dr/GW/Co/Dl/Hj/I5/Gl/Mo/lq/Xl/Fo/Kl/Ho/bq): 0 pairs
+#   admitted callees on 18.14.0: Ac (5 calls), F9 (2 calls), ts (4 calls) — all NEW names
+#   total shape matches: 11; unresolved group idents: 0
+#   identifier-resolved groups: nD="agents-md" (dump line 972667, module
+#     // packages/coding-agent/src/discovery/agents-md.ts),
+#     rD="claude-md" (dump line 972678, module
+#     // packages/coding-agent/src/discovery/claude-md.ts)
+#   binary sha256 before == after; unchanged: true
+
+# --- decoy arms (synthetic shapes, documented-semantics guards) --------------
+#   alias decoy q(u,"evil","EVIL.md") detected but never admitted (no declared pair)
+#   param shadow: g as function param -> unresolved (guard fires)
+#   module split: same ident v in 2 modules; own-module scope wins (claude-md)
+#   quoted group taken literally ("agents-md")
+#   non-shapes rejected: wrong arity, unquoted file, trailing space, empty arg all no-match
+
+# --- production-gate cross-check (read-only, explicit flags, base tree) ------
+$ cd clone && python3 -B verifiers/verify_surfaces.py --repo . \
+    --omp-strings build/omp-18.14.0.strings.txt \
+    --opencode-strings build/omp-18.14.0.strings.txt \
+    --check surfaces.literal_present --check surfaces.no_uncovered_class --json
+crosscheck-exit=0
+#   PASS surfaces.literal_present :: 39 loader-kind entries verified against the dumps
+#   PASS surfaces.no_uncovered_class :: all 8 extracted loader class(es) declared
+
+# --- host binary after (no mutation by this seat) ----------------------------
+$ sha256sum /home/vgpnk/.local/bin/omp
+e7dd2b606c4ebe9d1a7bcfad1b8820db968cd6b05409fed1c6bc8db0b6a95a8f  /home/vgpnk/.local/bin/omp
+$ stat -c '%Y %s' /home/vgpnk/.local/bin/omp
+1793326786 276244656
+# sha256 before == after == e7dd2b606c4ebe9d1a7bcfad1b8820db968cd6b05409fed1c6bc8db0b6a95a8f
+
+# --- artifact sha256s ---------------------------------------------------------
+$ sha256sum .ufo/waves/round-82/build/Kb82E13Loader-probe.py \
+            .ufo/waves/round-82/build/Kb82E13Loader-probe-report.json \
+            .ufo/waves/round-82/build/Kb82E13Loader-crosscheck-surfaces.json
+55d861a95e4bb81a11251dd581b9503f218fbf2e35b60cf4dfc384bfddda46de  Kb82E13Loader-probe.py
+ffe9b28eff52c3413dd0abd3decb900f649e1b8edab7b13df50d765f54361a58  Kb82E13Loader-probe-report.json
+4e2357e6c310af8f561823fae6fc11ecb071f342aa310af7600a0b14d038cdbd  Kb82E13Loader-crosscheck-surfaces.json
+
+exit=0

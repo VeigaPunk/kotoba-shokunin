@@ -1,0 +1,23 @@
+Kb82C05Routed — W-A/W-C round-82 reproduction world matrix
+Base: 47dbe8781657de563ff867caca6244d28e3db504 (round-82 base)
+Counter bytes: verifiers/check_tip_battery.py @ base, sha256 1753b11c11c6f907be838cb28842e28d01e7935e19d5afb3a6b46afdac51d660 (identical to the r81 freeze post-image)
+Gate blobs: verify_corpus_integrity.py bbee51f2bae5b33b123a546150e83352d68eeebc, verify_corpus_independent.py 59602942075d8fe77061876fb52eb32a44313697 (r81 pinned/reviewed blobs; instrument-pin guard PASS in both battery runs)
+Sandbox: fleet-shaped (lane dir named kotoba-shokunin, all fleet root entries including dot entries symlinked beside it); TMPDIR=/fast/scratch/hyaku/kotoba-r82/Kb82C05Routed/tmp
+
+W-A forged external binding (r81 rev f7388d3, hash 8b1cc1b00a9322cd8e231d87e015e1d75d20adc1)
+  attack-only rev:  f5f875e9207b4da54141c860f9cebba19abe6b98 (manifest row + test-authored receipt; base tree already cites the hash at corpus/lessons/round-81.md:8)
+  world-end rev:    580a83241a575d75d2ee60b629d85a02957da14e (+ index hygiene row, + baseline refresh kb82c05routed_wa_world; no carry needed: unresolvable 1->0)
+  direct gates @580a8324: integrity exit 0, independent exit 0 (both classify 8b1cc1b0 as commit_external; unresolvable 0)
+  counter battery @580a8324: guards 5 of 5; tip battery exit 0: 4 of 6; counter exit 1
+    reds: check_assertion_floors exit 1 (FAIL checklist observed=1863 floor=1863 self_test_failures=2 - C2 debt), verify_skill_checklist exit 1 (C2 debt)
+    greens: registry, corpus integrity, corpus independent, correction sweep
+
+W-C padded non-report marker (r81 rev 4488e7f0, 816-byte blob sha256 1fa0e2c81fe5028576bdf80bbeb2b95b5ef64bb0e54ef5cd4bbce8296b27bfdd)
+  attack-only rev:  945d98b00f65af0f3edb9184dda235c64307296a (marker at .ufo/reports/round-77/kotoba.md + pointer line in corpus/lessons/round-80-verifier-spotcheck.md + index hygiene row)
+  world-end rev:    71b750be525c131e5ec71a725f6861500630ef63 (+ baseline refresh kb82c05routed_wc_world --carry corpus.pointers.commit_unresolvable: the pre-existing r81-lesson citation of the W-A hash)
+  direct gates @71b750be: integrity exit 1 with the single NONPASS corpus.pointers.commit_unresolvable DRIFT (observed 1, expected 0, carried); report_dead 0, report_total 118 (padded pointer accepted)
+  direct gates @71b750be: independent exit 1 with report_dead 0, report_total 118, commit_unresolvable 1 (same carried class)
+  counter battery @71b750be: guards 5 of 5; tip battery exit 0: 2 of 6; counter exit 1
+    reds: floors (C2 debt), checklist (C2 debt), corpus integrity + independent (carried pre-existing unresolvable debt only)
+
+Base debt at 47dbe87 (committed before receipts; NOT world effects): battery 2 of 6; checklist self-test 1 failure over 1863 (production) / 2 failures (scratch clone: ../.ufo governance arms do not resolve outside the fleet-shaped layout); floors FAIL row checklist self_test_failures; integrity/independent commit_unresolvable 1 (corpus/lessons/round-81.md:8 cites the W-A hash); corpus.index.unindexed 1 (round-81-verifier-spotcheck.md landed without an index row).

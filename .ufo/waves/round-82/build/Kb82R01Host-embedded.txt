@@ -1,0 +1,3653 @@
+// packages/catalog/src/discovery/gemini.ts
+var sI = "https://generativelanguage.googleapis.com/v1beta";
+var Xj = 100;
+var Yj = 25;
+var Qj = o("string");
+var Zj = o("number");
+var $g = o("unknown").pipe((e) => {
+  if (e === undefined)
+    return;
+  const t = Qj(e);
+  return t instanceof o.errors ? undefined : t;
+});
+var aI = o("unknown").pipe((e) => {
+  if (e === undefined)
+    return;
+  const t = Zj(e);
+  return t instanceof o.errors ? undefined : t;
+});
+var e2 = o({
+  "name?": $g,
+  "displayName?": $g,
+  "supportedGenerationMethods?": "string[]",
+  "inputTokenLimit?": aI,
+  "outputTokenLimit?": aI
+});
+var t2 = o("unknown[]").pipe((e) => {
+  const t = [];
+  for (const r of e) {
+    const s = e2(r);
+    if (!(s instanceof o.errors)) {
+      t.push(s);
+    }
+  }
+  return t;
+}).default(() => []);
+var n2 = o({
+  models: t2,
+  "nextPageToken?": $g
+});
+async function B3e(e) {
+  if (!e.apiKey.trim()) {
+    return null;
+  }
+  const t = Zi(e.fetch);
+  const r = i2(e.baseUrl);
+  const s = ad(e.pageSize, Xj);
+  const a = ad(e.maxPages, Yj);
+  const c = new Map(ir("google").map((g) => [g.id, di(g)]));
+  const d = new Map;
+  const u = new Set;
+  let f;
+  for (let g = 0;g < a; g += 1) {
+    const h = r2(r, e.apiKey, s, f);
+    let k;
+    try {
+      k = await t(h, {
+        method: "GET",
+        signal: e.signal
+      });
+    } catch {
+      return null;
+    }
+    if (!k.ok) {
+      return null;
+    }
+    let A;
+    try {
+      A = await k.json();
+    } catch {
+      return null;
+    }
+    const _ = n2(A);
+    if (_ instanceof o.errors) {
+      return null;
+    }
+    for (const E of _.models) {
+      const S = s2(E, r, c);
+      if (S) {
+        d.set(S.id, S);
+      }
+    }
+    const w = o2(_.nextPageToken);
+    if (!w) {
+      break;
+    }
+    if (u.has(w)) {
+      break;
+    }
+    u.add(w);
+    f = w;
+  }
+  return Array.from(d.values()).sort((g, h) => g.id.localeCompare(h.id));
+}
+function r2(e, t, r, s) {
+  const a = new URL(`${e}/models`);
+  a.searchParams.set("key", t);
+  a.searchParams.set("pageSize", String(r));
+  if (s) {
+    a.searchParams.set("pageToken", s);
+  }
+  return a;
+}
+function i2(e) {
+  const t = (e ?? sI).trim();
+  if (!t) {
+    return sI;
+  }
+  return t.replace(/\/+$/, "");
+}
+function ad(e, t) {
+  if (typeof e !== "number" || !Number.isFinite(e) || e <= 0) {
+    return t;
+  }
+  const r = Math.floor(e);
+  return r > 0 ? r : t;
+}
+function o2(e) {
+  if (typeof e !== "string") {
+    return;
+  }
+  const t = e.trim();
+  return t.length > 0 ? t : undefined;
+}
+function s2(e, t, r) {
+  const s = a2(e.name);
+  if (!s) {
+    return null;
+  }
+  if (!l2(e.supportedGenerationMethods)) {
+    return null;
+  }
+  const a = r.get(s);
+  const c = ad(e.inputTokenLimit, a?.contextWindow ?? null);
+  const d = ad(e.outputTokenLimit, a?.maxTokens ?? null);
+  const u = c2(e.displayName, a?.name ?? s);
+  if (a) {
+    return {
+      ...a,
+      id: s,
+      name: u,
+      baseUrl: t,
+      contextWindow: c,
+      maxTokens: d
+    };
+  }
+  return {
+    id: s,
+    name: u,
+    api: "google-generative-ai",
+    provider: "google",
+    baseUrl: t,
+    reasoning: d2(s),
+    input: u2(s),
+    cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+    contextWindow: c,
+    maxTokens: d
+  };
+}
+function a2(e) {
+  if (!e) {
+    return null;
+  }
+  const t = e.trim();
+  if (!t) {
+    return null;
+  }
+  return t.startsWith("models/") ? t.slice("models/".length) : t;
+}
+function c2(e, t) {
+  const r = e?.trim();
+  return r ? r : t;
+}
+function l2(e) {
+  if (!e || e.length === 0) {
+    return false;
+  }
+  return e.some((t) => t === "generateContent");
+}
+function d2(e) {
+  const t = e.toLowerCase();
+  if (t.includes("thinking")) {
+    return true;
+  }
+  if (t.includes("pro") || t.includes("2.5")) {
+    return true;
+  }
+  return false;
+}
+function u2(e) {
+  const t = e.toLowerCase();
+  if (t.includes("vision") || t.includes("image") || t.includes("gemini")) {
+    return ["text", "image"];
+  }
+  return ["text"];
+}
+
+
+
+// packages/catalog/src/discovery/codex.ts
+var SE = ["/codex/models", "/models"];
+var o3 = 272000;
+var s3 = 128000;
+var a3 = 372000;
+var c3 = 1e6;
+var l3 = new Set(["gpt-5.6-luna", "gpt-5.6-sol", "gpt-5.6-terra"]);
+var TE = "-wm";
+var d3 = {
+  enabled: true,
+  api: "openai-codex-responses",
+  v2StreamingEnabled: true
+};
+var u3 = o({
+  "effort?": "unknown"
+});
+var p3 = o({
+  "slug?": "unknown",
+  "id?": "unknown",
+  "display_name?": "unknown",
+  "context_window?": "unknown",
+  "max_context_window?": "unknown",
+  "default_reasoning_level?": "unknown",
+  "supported_reasoning_levels?": "unknown",
+  "input_modalities?": "unknown",
+  "visibility?": "unknown",
+  "priority?": "unknown",
+  "prefer_websockets?": "unknown",
+  "use_responses_lite?": "unknown",
+  "available_access_programs?": "unknown",
+  "service_tiers?": "unknown"
+});
+var f3 = o({
+  "models?": "unknown[]",
+  "data?": "unknown[]"
+});
+async function tUe(e) {
+  const t = Zi(e.fetchFn);
+  const r = g3(e.baseUrl);
+  const s = m3(e.paths);
+  const a = b3(e.clientVersion) ?? Qp;
+  const c = y3(e, a);
+  let d = false;
+  for (const u of s) {
+    const f = h3(r, u, a);
+    let g;
+    try {
+      g = await t(f, {
+        method: "GET",
+        headers: c,
+        signal: e.signal
+      });
+    } catch {
+      continue;
+    }
+    if (g.status === 401 || g.status === 402 || g.status === 403) {
+      return { models: [], rejectedStatus: g.status };
+    }
+    if (!g.ok) {
+      continue;
+    }
+    let h;
+    try {
+      h = await g.json();
+    } catch {
+      continue;
+    }
+    const k = w3(h, r, e.accountId);
+    if (k === null) {
+      continue;
+    }
+    d = true;
+    const A = b4(g.headers);
+    return A ? { models: k, etag: A } : { models: k };
+  }
+  return d ? { models: [] } : null;
+}
+function g3(e) {
+  const t = (e ?? Mo).trim();
+  if (!t) {
+    return Mo;
+  }
+  return t.replace(/\/+$/, "");
+}
+function m3(e) {
+  if (!e || e.length === 0) {
+    return [...SE];
+  }
+  const t = e.map((r) => r.trim()).filter((r) => r.length > 0).map((r) => r.startsWith("/") ? r : `/${r}`);
+  return t.length > 0 ? t : [...SE];
+}
+function h3(e, t, r) {
+  const s = new URL(`${e}${t}`);
+  if (r && r.trim().length > 0) {
+    s.searchParams.set("client_version", r.trim());
+  }
+  return s.toString();
+}
+function y3(e, t) {
+  const r = new Headers(e.headers);
+  r.set("Authorization", `Bearer ${e.accessToken}`);
+  if (e.accountId && e.accountId.trim().length > 0) {
+    r.set(yt.ACCOUNT_ID, e.accountId);
+  }
+  r.set(yt.BETA, Sa.BETA_RESPONSES);
+  r.set(yt.ORIGINATOR, Sa.ORIGINATOR_CODEX);
+  r.set(yt.VERSION, t);
+  r.set("accept", "application/json");
+  return r;
+}
+function b3(e) {
+  if (typeof e !== "string") {
+    return;
+  }
+  const t = e.trim();
+  if (!/^\d+\.\d+\.\d+$/.test(t)) {
+    return;
+  }
+  return t;
+}
+function w3(e, t, r) {
+  const s = f3(e);
+  if (s instanceof o.errors) {
+    return null;
+  }
+  const a = s.models ?? s.data ?? [];
+  const c = [];
+  for (const g of a) {
+    const h = m4(g);
+    if (h) {
+      c.push(h);
+    }
+  }
+  const d = new Set(c.map((g) => g.slug));
+  const u = f4();
+  const f = [];
+  for (const g of c) {
+    const h = g4(g.slug, u) ?? g.slug;
+    f.push(xE(g, g.slug, h, t, r));
+    const k = h !== g.slug ? h : null;
+    if (k && !d.has(k)) {
+      f.push(xE(g, k, h, t, r));
+    }
+  }
+  f.sort((g, h) => {
+    if (g.priority !== h.priority) {
+      return g.priority - h.priority;
+    }
+    return g.model.id.localeCompare(h.model.id);
+  });
+  return f.map((g) => g.model);
+}
+function f4() {
+  const e = new Set(ir("openai-codex").map((t) => t.id));
+  return e;
+}
+function g4(e, t) {
+  if (!e.endsWith(TE)) {
+    return null;
+  }
+  const r = e.slice(0, -TE.length);
+  return r.length > 0 && t.has(r) ? r : null;
+}
+function m4(e) {
+  const t = p3(e);
+  if (t instanceof o.errors) {
+    return null;
+  }
+  const r = t;
+  const s = nr(r.slug) ?? nr(r.id);
+  if (!s) {
+    return null;
+  }
+  const a = nr(r.visibility)?.toLowerCase();
+  if (a === "hide" || a === "hidden") {
+    return null;
+  }
+  const c = r.available_access_programs;
+  let d;
+  if (c !== null && typeof c === "object" && "cyber" in c && Array.isArray(c.cyber)) {
+    d = [];
+    for (const f of c.cyber) {
+      const g = nr(f);
+      if (g)
+        d.push(g);
+    }
+  }
+  let u;
+  if (Array.isArray(r.service_tiers)) {
+    u = [];
+    for (const f of r.service_tiers) {
+      const g = f !== null && typeof f === "object" && "id" in f ? nr(f.id) : null;
+      if (g && !u.includes(g))
+        u.push(g);
+    }
+  }
+  return {
+    slug: s,
+    cyberPrograms: d,
+    name: nr(r.display_name) ?? s,
+    contextWindow: OE(r.context_window),
+    maxContextWindow: OE(r.max_context_window),
+    reasoning: h4(r.default_reasoning_level, r.supported_reasoning_levels),
+    input: y4(r.input_modalities),
+    preferWebsockets: vE(r.prefer_websockets) === true,
+    useResponsesLite: vE(r.use_responses_lite) === true,
+    priority: A4(r.priority) ?? Number.MAX_SAFE_INTEGER,
+    serviceTiers: u
+  };
+}
+function xE(e, t, r, s, a) {
+  const c = ct("openai-codex", r, { lenient: true });
+  const d = c.revision === undefined ? undefined : Fr(c.revision);
+  const u = Fr("5.6");
+  const f = c.class === "openai" && d !== undefined && u !== undefined && xa(d, u) === 0 ? a3 : o3;
+  const g = e.contextWindow ?? f;
+  const h = l3.has(r) ? Math.max(g, c3) : g;
+  const k = Math.min(s3, h);
+  return {
+    priority: e.priority,
+    model: {
+      id: t,
+      name: e.name,
+      api: "openai-codex-responses",
+      provider: "openai-codex",
+      baseUrl: s,
+      ...a && a.trim().length > 0 ? {
+        accountAccess: {
+          [a]: e.cyberPrograms === undefined ? {} : { cyberPrograms: e.cyberPrograms }
+        }
+      } : {},
+      reasoning: e.reasoning,
+      input: e.input,
+      cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+      remoteCompaction: d3,
+      contextWindow: h,
+      ...e.maxContextWindow !== null ? { maxContextWindow: e.maxContextWindow } : {},
+      maxTokens: k,
+      ...e.preferWebsockets ? { preferWebsockets: true } : {},
+      ...e.useResponsesLite ? { useResponsesLite: true } : {},
+      ...e.serviceTiers !== undefined ? { serviceTiers: e.serviceTiers } : {},
+      ...e.priority !== Number.MAX_SAFE_INTEGER ? { priority: e.priority } : {}
+    }
+  };
+}
+function h4(e, t) {
+  const r = nr(e)?.toLowerCase();
+  if (r && r !== "none") {
+    return true;
+  }
+  if (!Array.isArray(t)) {
+    return false;
+  }
+  for (const s of t) {
+    const a = u3(s);
+    if (a instanceof o.errors) {
+      continue;
+    }
+    const c = nr(a.effort)?.toLowerCase();
+    if (c && c !== "none") {
+      return true;
+    }
+  }
+  return false;
+}
+function y4(e) {
+  if (!Array.isArray(e)) {
+    return ["text", "image"];
+  }
+  const t = new Set;
+  for (const s of e) {
+    const a = nr(s)?.toLowerCase();
+    if (a === "text" || a === "image") {
+      t.add(a);
+    }
+  }
+  if (t.size === 0) {
+    return ["text", "image"];
+  }
+  const r = ["text", "image"];
+  return r.filter((s) => t.has(s));
+}
+function b4(e) {
+  const t = e.get("etag");
+  if (!t) {
+    return;
+  }
+  const r = t.trim();
+  return r.length > 0 ? r : undefined;
+}
+function nr(e) {
+  if (typeof e !== "string") {
+    return null;
+  }
+  const t = e.trim();
+  return t.length > 0 ? t : null;
+}
+function OE(e) {
+  if (typeof e !== "number" || !Number.isFinite(e)) {
+    return null;
+  }
+  if (e <= 0) {
+    return null;
+  }
+  return Math.trunc(e);
+}
+function A4(e) {
+  if (typeof e !== "number" || !Number.isFinite(e)) {
+    return null;
+  }
+  return e;
+}
+function vE(e) {
+  if (typeof e !== "boolean") {
+    return null;
+  }
+  return e;
+}
+
+
+
+// packages/coding-agent/src/discovery/builtin.ts
+import * as dr from "path";
+var {YAML: w7 } = globalThis.Bun;
+
+
+
+// packages/coding-agent/src/discovery/builtin.ts
+var Ir = "native";
+var Bo = "OMP";
+var Ys = "Native OMP configuration from ~/.omp and .omp/";
+var Wo = 100;
+var ju = kO.native;
+async function AC(...u) {
+  let p = dr.join(...u);
+  const R = await zl(p);
+  if (R.length > 0) {
+    if (!dr.isAbsolute(p)) {
+      p = dr.resolve(p);
+    }
+    return p;
+  }
+  return null;
+}
+async function pl(u) {
+  const p = [];
+  const R = It(u.cwd) === It(u.home) ? null : await AC(u.cwd, ju.projectDir);
+  if (R)
+    p.push({ dir: R, level: "project" });
+  const k = await AC(u.agentDir ?? ve());
+  if (k) {
+    p.push({ dir: k, level: "user" });
+  }
+  return p;
+}
+function F3t(u, p) {
+  const R = [];
+  const k = cye();
+  let A = dr.resolve(u);
+  const _ = p ? It(p) : null;
+  let B = 0;
+  while (true) {
+    const G = It(A);
+    if (k.has(G))
+      break;
+    R.push({ dir: A, depth: B });
+    if (_ && G === _)
+      break;
+    const z = dr.dirname(A);
+    if (z === A)
+      break;
+    A = z;
+    B++;
+  }
+  return R;
+}
+async function* SDe(u) {
+  const p = It(u.home);
+  for (const R of F3t(u.cwd, u.repoRoot ?? u.home)) {
+    if (It(R.dir) === p || kte(R.dir))
+      continue;
+    if (!u.repoRoot && await dye(R.dir, ju.projectDir))
+      continue;
+    yield R;
+  }
+}
+async function ek(u) {
+  for await (const p of SDe(u)) {
+    const R = await AC(p.dir, ju.projectDir);
+    if (R)
+      return { dir: R, depth: p.depth };
+  }
+  return null;
+}
+async function v7(u) {
+  const p = [];
+  const R = [];
+  const k = (G, z, V) => {
+    const Y = [];
+    const Q = I(G);
+    if (!Q?.mcpServers)
+      return Y;
+    const te = Yr(Q.mcpServers);
+    for (const [re, oe] of Object.entries(te)) {
+      const ue = oe;
+      let he;
+      if (ue.enabled === undefined || ue.enabled === null) {
+        he = undefined;
+      } else if (typeof ue.enabled === "boolean") {
+        he = ue.enabled;
+      } else if (typeof ue.enabled === "string") {
+        const Re = ue.enabled.toLowerCase();
+        if (Re === "false" || Re === "0")
+          he = false;
+        else if (Re === "true" || Re === "1")
+          he = true;
+        else {
+          i(`MCP server "${re}": invalid enabled value "${ue.enabled}", ignoring`);
+          he = undefined;
+        }
+      } else {
+        i(`MCP server "${re}": invalid enabled type ${typeof ue.enabled}, ignoring`);
+        he = undefined;
+      }
+      let pe;
+      if (ue.timeout === undefined || ue.timeout === null) {
+        pe = undefined;
+      } else if (typeof ue.timeout === "number") {
+        if (Number.isFinite(ue.timeout) && ue.timeout >= 0) {
+          pe = ue.timeout;
+        } else {
+          i(`MCP server "${re}": invalid timeout ${ue.timeout}, ignoring`);
+          pe = undefined;
+        }
+      } else if (typeof ue.timeout === "string") {
+        const Re = Number(ue.timeout);
+        if (Number.isFinite(Re) && Re >= 0) {
+          pe = Re;
+        } else {
+          i(`MCP server "${re}": invalid timeout "${ue.timeout}", ignoring`);
+          pe = undefined;
+        }
+      } else {
+        i(`MCP server "${re}": invalid timeout type ${typeof ue.timeout}, ignoring`);
+        pe = undefined;
+      }
+      const ye = D9(ue.requestIdFormat);
+      if (ye === undefined && ue.requestIdFormat != null) {
+        i(`MCP server "${re}": invalid requestIdFormat ${JSON.stringify(ue.requestIdFormat)}, ignoring`);
+      }
+      const be = typeof ue.instructions === "boolean" ? ue.instructions : undefined;
+      if (be === undefined && ue.instructions != null) {
+        i(`MCP server "${re}": invalid instructions ${JSON.stringify(ue.instructions)}, ignoring`);
+      }
+      Y.push({
+        name: re,
+        enabled: he,
+        timeout: pe,
+        requestIdFormat: ye,
+        instructions: be,
+        command: ue.command,
+        args: ue.args,
+        env: ue.env,
+        cwd: ue.cwd,
+        url: ue.url,
+        headers: ue.headers,
+        auth: ue.auth,
+        oauth: ue.oauth,
+        transport: ue.type,
+        _source: et(Ir, z, V)
+      });
+    }
+    return Y;
+  };
+  const A = ve();
+  const _ = [
+    { path: dr.join(u.cwd, ju.projectDir, "mcp.json"), level: "project" },
+    { path: dr.join(u.cwd, ju.projectDir, ".mcp.json"), level: "project" },
+    { path: dr.join(A, "mcp.json"), level: "user" },
+    { path: dr.join(A, ".mcp.json"), level: "user" }
+  ];
+  const B = await Promise.allSettled(_.map(async (G) => {
+    const z = await qe(G.path);
+    if (z) {
+      return { path: G.path, content: z, level: G.level };
+    }
+    return null;
+  }));
+  for (const G of B) {
+    if (G.status === "fulfilled" && G.value) {
+      const { path: z, content: V, level: Y } = G.value;
+      p.push(...k(V, z, Y));
+    }
+  }
+  return { items: p, warnings: R };
+}
+De(Ia.id, {
+  id: Ir,
+  displayName: Bo,
+  description: Ys,
+  priority: Wo,
+  load: v7
+});
+async function S7(u) {
+  const p = [];
+  const R = [];
+  const k = async (_, B, G) => {
+    const z = await qe(_);
+    if (!z)
+      return;
+    if (G === "template" && !z.trim()) {
+      R.push(`Ignoring empty system prompt template at ${_}`);
+      return;
+    }
+    p.push({ path: _, content: z, kind: G, level: B, _source: et(Ir, _, B) });
+  };
+  const A = await ek(u);
+  if (A) {
+    await k(dr.join(A.dir, "SYSTEM.md"), "project", "text");
+    await k(dr.join(A.dir, "SYSTEM_TEMPLATE.md"), "project", "template");
+  }
+  await k(dr.join(ve(), "SYSTEM.md"), "user", "text");
+  await k(dr.join(ve(), "SYSTEM_TEMPLATE.md"), "user", "template");
+  return { items: p, warnings: R };
+}
+De(ob.id, {
+  id: Ir,
+  displayName: Bo,
+  description: "Custom system prompt from SYSTEM.md and SYSTEM_TEMPLATE.md",
+  priority: Wo,
+  load: S7
+});
+async function x7(u) {
+  const p = [];
+  for await (const { dir: A } of SDe(u)) {
+    p.push(Na(u, {
+      dir: dr.join(A, ju.projectDir, "skills"),
+      providerId: Ir,
+      level: "project",
+      requireDescription: true
+    }));
+  }
+  const R = Na(u, {
+    dir: dr.join(ve(), "skills"),
+    providerId: Ir,
+    level: "user",
+    requireDescription: true
+  });
+  const k = await Promise.all([...p, R]);
+  return {
+    items: k.flatMap((A) => A.items),
+    warnings: k.flatMap((A) => A.warnings ?? [])
+  };
+}
+var R7 = 5;
+async function C7(u) {
+  return Na(u, {
+    dir: z6(),
+    providerId: sl,
+    level: "user",
+    requireDescription: true
+  });
+}
+De(Ul.id, {
+  id: Ir,
+  displayName: Bo,
+  description: Ys,
+  priority: Wo,
+  load: x7
+});
+De(Ul.id, {
+  id: sl,
+  displayName: "Managed Skills (auto-learn)",
+  description: "Auto-generated managed skills from ~/.omp/agent/managed-skills",
+  priority: R7,
+  load: C7
+});
+async function k7(u) {
+  const p = [];
+  const R = [];
+  for (const { dir: k, level: A } of await pl(u)) {
+    const _ = dr.join(k, "commands");
+    const B = await Fn(u, _, Ir, A, {
+      extensions: ["md"],
+      transform: (G, z, V, Y) => ({
+        name: G.replace(/\.md$/, ""),
+        path: V,
+        content: z,
+        level: A,
+        _source: Y
+      })
+    });
+    p.push(...B.items);
+    if (B.warnings)
+      R.push(...B.warnings);
+  }
+  return { items: p, warnings: R };
+}
+De(Xd.id, {
+  id: Ir,
+  displayName: Bo,
+  description: Ys,
+  priority: Wo,
+  load: k7
+});
+async function T7(u) {
+  const p = [];
+  const R = [];
+  for (const { dir: B, level: G } of await pl(u)) {
+    const z = dr.join(B, "rules");
+    const V = await Fn(u, z, Ir, G, {
+      extensions: ["md", "mdc"],
+      transform: (Y, Q, te, re) => iu(Y, Q, te, re, { stripNamePattern: /\.(md|mdc)$/ })
+    });
+    p.push(...V.items);
+    if (V.warnings)
+      R.push(...V.warnings);
+  }
+  const k = dr.join(u.agentDir ?? ve(), "RULES.md");
+  const A = await RD(k, "user");
+  if (A)
+    p.push(A);
+  const _ = await ek(u);
+  if (_) {
+    const B = dr.join(_.dir, "RULES.md");
+    const G = await RD(B, "project");
+    if (G)
+      p.push(G);
+  }
+  return { items: p, warnings: R };
+}
+async function RD(u, p) {
+  const R = await qe(u);
+  if (!R)
+    return null;
+  const k = et(Ir, u, p);
+  const A = p === "project" ? "RULES@project" : "RULES";
+  const _ = iu("RULES.md", R, u, k, { ruleName: A });
+  if (!_)
+    return null;
+  return { ..._, alwaysApply: true };
+}
+De(la.id, {
+  id: Ir,
+  displayName: Bo,
+  description: Ys,
+  priority: Wo,
+  load: T7
+});
+async function P7(u) {
+  const p = [];
+  const R = [];
+  for (const { dir: k, level: A } of await pl(u)) {
+    const _ = dr.join(k, "prompts");
+    const B = await Fn(u, _, Ir, A, {
+      extensions: ["md"],
+      transform: (G, z, V, Y) => ({
+        name: G.replace(/\.md$/, ""),
+        path: V,
+        content: z,
+        _source: Y
+      })
+    });
+    p.push(...B.items);
+    if (B.warnings)
+      R.push(...B.warnings);
+  }
+  return { items: p, warnings: R };
+}
+De(pk.id, {
+  id: Ir,
+  displayName: Bo,
+  description: Ys,
+  priority: Wo,
+  load: P7
+});
+async function M7(u) {
+  const p = [];
+  const R = [];
+  const k = (re) => {
+    const oe = io(re, u.home);
+    if (dr.isAbsolute(oe)) {
+      return oe;
+    }
+    return dr.resolve(u.cwd, oe);
+  };
+  const A = (re, oe) => ({
+    name: uP(re),
+    path: re,
+    level: oe,
+    _source: et(Ir, re, oe)
+  });
+  const _ = await pl(u);
+  const [B, G] = await Promise.all([
+    Promise.all(_.map(({ dir: re }) => $g(u, dr.join(re, "extensions")))),
+    Promise.all(_.map(({ dir: re }) => qe(dr.join(re, "settings.json"))))
+  ]);
+  for (let re = 0;re < _.length; re++) {
+    const { level: oe } = _[re];
+    for (const ue of B[re]) {
+      p.push(A(ue, oe));
+    }
+  }
+  const z = [];
+  for (let re = 0;re < _.length; re++) {
+    const { dir: oe, level: ue } = _[re];
+    const he = G[re];
+    if (!he)
+      continue;
+    const pe = dr.join(oe, "settings.json");
+    const ye = I(he);
+    const be = ye?.extensions;
+    if (!Array.isArray(be))
+      continue;
+    for (const Re of be) {
+      if (typeof Re !== "string") {
+        R.push(`Invalid extension path in ${pe}: ${String(Re)}`);
+        continue;
+      }
+      z.push({
+        resolvedPath: k(Re),
+        settingsPath: pe,
+        level: ue
+      });
+    }
+  }
+  const [V, Y] = await Promise.all([
+    Promise.all(z.map(({ resolvedPath: re }) => zl(re))),
+    Promise.all(z.map(({ resolvedPath: re }) => qe(re)))
+  ]);
+  const Q = [];
+  for (let re = 0;re < z.length; re++) {
+    const { resolvedPath: oe, level: ue } = z[re];
+    const he = V[re];
+    const pe = Y[re];
+    if (he.length > 0) {
+      Q.push({
+        promise: $g(u, oe),
+        level: ue
+      });
+    } else if (pe !== null) {
+      p.push(A(oe, ue));
+    } else {
+      R.push(`Extension path not found: ${oe}`);
+    }
+  }
+  const te = await Promise.all(Q.map((re) => re.promise));
+  for (let re = 0;re < Q.length; re++) {
+    const { level: oe } = Q[re];
+    for (const ue of te[re]) {
+      p.push(A(ue, oe));
+    }
+  }
+  return { items: p, warnings: R };
+}
+De(Kw.id, {
+  id: Ir,
+  displayName: Bo,
+  description: Ys,
+  priority: Wo,
+  load: M7
+});
+async function E7(u) {
+  const p = [];
+  const R = [];
+  const k = await pl(u);
+  const A = await Promise.all(k.map(({ dir: G }) => zl(dr.join(G, "extensions"))));
+  const _ = [];
+  for (let G = 0;G < k.length; G++) {
+    const { dir: z, level: V } = k[G];
+    const Y = A[G];
+    const Q = dr.join(z, "extensions");
+    for (const te of Y) {
+      if (te.name.startsWith("."))
+        continue;
+      if (!te.isDirectory())
+        continue;
+      const re = dr.join(Q, te.name);
+      _.push({
+        extDir: re,
+        manifestPath: dr.join(re, "gemini-extension.json"),
+        entryName: te.name,
+        level: V
+      });
+    }
+  }
+  const B = await Promise.all(_.map(({ manifestPath: G }) => qe(G)));
+  for (let G = 0;G < _.length; G++) {
+    const z = B[G];
+    if (!z)
+      continue;
+    const { extDir: V, manifestPath: Y, entryName: Q, level: te } = _[G];
+    const re = I(z);
+    if (!re) {
+      R.push(`Failed to parse ${Y}`);
+      continue;
+    }
+    p.push({
+      name: re.name || Q,
+      path: V,
+      manifest: re,
+      level: te,
+      _source: et(Ir, Y, te)
+    });
+  }
+  return { items: p, warnings: R };
+}
+De(g1e.id, {
+  id: Ir,
+  displayName: Bo,
+  description: Ys,
+  priority: Wo,
+  load: E7
+});
+async function A7(u) {
+  const p = [];
+  const R = [];
+  for (const { dir: k, level: A } of await pl(u)) {
+    const _ = dr.join(k, "instructions");
+    const B = await Fn(u, _, Ir, A, {
+      extensions: ["md"],
+      transform: (G, z, V, Y) => {
+        const { frontmatter: Q, body: te } = or(z, { source: V });
+        return {
+          name: G.replace(/\.instructions\.md$/, "").replace(/\.md$/, ""),
+          path: V,
+          content: te,
+          applyTo: Q.applyTo,
+          _source: Y
+        };
+      }
+    });
+    p.push(...B.items);
+    if (B.warnings)
+      R.push(...B.warnings);
+  }
+  return { items: p, warnings: R };
+}
+De(y1e.id, {
+  id: Ir,
+  displayName: Bo,
+  description: Ys,
+  priority: Wo,
+  load: A7
+});
+async function _7(u) {
+  const p = [];
+  const R = await pl(u);
+  const k = ["pre", "post"];
+  const A = [];
+  for (const { dir: B, level: G } of R) {
+    for (const z of k) {
+      A.push({
+        typeDir: dr.join(B, "hooks", z),
+        hookType: z,
+        level: G
+      });
+    }
+  }
+  const _ = await Promise.all(A.map(({ typeDir: B }) => zl(B)));
+  for (let B = 0;B < A.length; B++) {
+    const { typeDir: G, hookType: z, level: V } = A[B];
+    const Y = _[B];
+    for (const Q of Y) {
+      if (Q.name.startsWith("."))
+        continue;
+      if (!Q.isFile() && !Q.isSymbolicLink())
+        continue;
+      const te = dr.join(G, Q.name);
+      const re = Q.name.includes(".") ? Q.name.slice(0, Q.name.lastIndexOf(".")) : Q.name;
+      const oe = re === "*" ? "*" : re;
+      p.push({
+        name: Q.name,
+        path: te,
+        type: z,
+        tool: oe,
+        level: V,
+        _source: et(Ir, te, V)
+      });
+    }
+  }
+  return { items: p, warnings: [] };
+}
+De(Xh.id, {
+  id: Ir,
+  displayName: Bo,
+  description: Ys,
+  priority: Wo,
+  load: _7
+});
+async function I7(u) {
+  const p = [];
+  const R = [];
+  const k = await pl(u);
+  const A = await Promise.all(k.map(({ dir: V }) => zl(dr.join(V, "tools"))));
+  const _ = [];
+  const B = [];
+  for (let V = 0;V < k.length; V++) {
+    const { dir: Y, level: Q } = k[V];
+    const te = A[V];
+    if (te.length === 0)
+      continue;
+    const re = dr.join(Y, "tools");
+    _.push(Fn(u, re, Ir, Q, {
+      extensions: ["json", "md", "ts", "js", "sh", "bash", "py"],
+      transform: (oe, ue, he, pe) => {
+        if (oe.endsWith(".json")) {
+          const be = I(ue);
+          const Re = be?.name || oe.replace(/\.json$/, "");
+          const xe = typeof be?.description === "string" && be.description.trim() ? be.description : `${Re} custom tool`;
+          return {
+            name: Re,
+            path: he,
+            description: xe,
+            level: Q,
+            _source: pe
+          };
+        }
+        if (oe.endsWith(".md")) {
+          const { frontmatter: be } = or(ue, { source: he });
+          const Re = be.name || oe.replace(/\.md$/, "");
+          const xe = typeof be.description === "string" && be.description.trim() ? String(be.description) : `${Re} custom tool`;
+          return {
+            name: Re,
+            path: he,
+            description: xe,
+            level: Q,
+            _source: pe
+          };
+        }
+        const ye = oe.replace(/\.(ts|js|sh|bash|py)$/, "");
+        return {
+          name: ye,
+          path: he,
+          description: `${ye} custom tool`,
+          level: Q,
+          _source: pe
+        };
+      }
+    }));
+    for (const oe of te) {
+      if (oe.name.startsWith("."))
+        continue;
+      if (!oe.isDirectory())
+        continue;
+      B.push({
+        indexPath: dr.join(re, oe.name, "index.ts"),
+        entryName: oe.name,
+        level: Q
+      });
+    }
+  }
+  const [G, z] = await Promise.all([
+    Promise.all(_),
+    Promise.all(B.map(({ indexPath: V }) => qe(V)))
+  ]);
+  for (const V of G) {
+    p.push(...V.items);
+    if (V.warnings)
+      R.push(...V.warnings);
+  }
+  for (let V = 0;V < B.length; V++) {
+    const Y = z[V];
+    if (Y !== null) {
+      const { indexPath: Q, entryName: te, level: re } = B[V];
+      p.push({
+        name: te,
+        path: Q,
+        description: `${te} custom tool`,
+        level: re,
+        _source: et(Ir, Q, re)
+      });
+    }
+  }
+  return { items: p, warnings: R };
+}
+De(Qw.id, {
+  id: Ir,
+  displayName: Bo,
+  description: Ys,
+  priority: Wo,
+  load: I7
+});
+async function L7(u) {
+  const p = [];
+  const R = [];
+  const k = (A, _) => {
+    try {
+      const B = w7.parse(A);
+      if (!B || typeof B !== "object" || Array.isArray(B))
+        return {};
+      return B;
+    } catch {
+      R.push(`Failed to parse ${_}`);
+      return null;
+    }
+  };
+  for (const { dir: A, level: _ } of await pl(u)) {
+    const B = dr.join(A, "settings.json");
+    const G = await qe(B);
+    if (G) {
+      const Q = I(G);
+      if (Q) {
+        p.push({
+          path: B,
+          data: Q,
+          level: _,
+          _source: et(Ir, B, _)
+        });
+      } else {
+        R.push(`Failed to parse ${B}`);
+      }
+    }
+    const z = dr.join(A, "config.yml");
+    const V = await qe(z);
+    if (!V)
+      continue;
+    const Y = k(V, z);
+    if (!Y)
+      continue;
+    p.push({
+      path: z,
+      data: Y,
+      level: _,
+      _source: et(Ir, z, _)
+    });
+  }
+  return { items: p, warnings: R };
+}
+De(ib.id, {
+  id: Ir,
+  displayName: Bo,
+  description: Ys,
+  priority: Wo,
+  load: L7
+});
+async function $7(u) {
+  const p = [];
+  const R = [];
+  const k = dr.join(ve(), "AGENTS.md");
+  const A = await qe(k);
+  if (A) {
+    p.push({
+      path: k,
+      content: A,
+      level: "user",
+      _source: et(Ir, k, "user")
+    });
+  }
+  const _ = await ek(u);
+  if (_) {
+    const B = dr.join(_.dir, "AGENTS.md");
+    const G = await qe(B);
+    if (G) {
+      p.push({
+        path: B,
+        content: G,
+        level: "project",
+        depth: _.depth,
+        _source: et(Ir, B, "project")
+      });
+      return { items: p, warnings: R };
+    }
+  }
+  return { items: p, warnings: R };
+}
+De(Hl.id, {
+  id: Ir,
+  displayName: Bo,
+  description: "Load AGENTS.md from .omp/ directories",
+  priority: Wo,
+  load: $7
+});
+
+
+
+// packages/coding-agent/src/discovery/claude.ts
+import * as Fr from "path";
+var yi = "claude";
+var hl = "Claude Code";
+var gl = 80;
+var Km = ".claude";
+function e1(u) {
+  try {
+    return u.get(D) === true;
+  } catch {
+    return false;
+  }
+}
+function yl(u, p = false) {
+  if (!p && !ji("claude", u))
+    return null;
+  const { configDir: R } = _p(u.home);
+  return R;
+}
+function qm(u) {
+  return Fr.join(u.cwd, Km);
+}
+function QD(u) {
+  return cr(u, "ENOENT") || cr(u, "ENOTDIR");
+}
+async function Ite(u) {
+  const p = [];
+  const R = [];
+  const k = yl(u);
+  const A = k ? _p(u.home).configFile : null;
+  const _ = k ? Fr.join(k, "mcp.json") : null;
+  const B = Fr.join(u.cwd, Km);
+  const G = Fr.join(B, ".mcp.json");
+  const z = Fr.join(B, "mcp.json");
+  const V = [
+    ...A ? [{ path: A, level: "user" }] : [],
+    ..._ ? [{ path: _, level: "user" }] : []
+  ];
+  const Y = [
+    { path: G, level: "project" },
+    { path: z, level: "project" }
+  ];
+  const Q = [...V, ...Y];
+  const te = await Promise.all(Q.map(({ path: ue }) => qe(ue)));
+  const re = (ue, he, pe) => {
+    if (!ue)
+      return [];
+    const ye = I(ue);
+    if (!ye?.mcpServers)
+      return [];
+    const be = Yr(ye.mcpServers);
+    return Object.entries(be).map(([Re, xe]) => {
+      const ke = xe;
+      return {
+        name: Re,
+        enabled: typeof ke.enabled === "boolean" ? ke.enabled : undefined,
+        timeout: typeof ke.timeout === "number" ? ke.timeout : undefined,
+        command: ke.command,
+        args: ke.args,
+        env: ke.env,
+        url: ke.url,
+        headers: ke.headers,
+        transport: ke.type,
+        _source: et(yi, he, pe)
+      };
+    });
+  };
+  const oe = V.length;
+  for (let ue = 0;ue < Y.length; ue++) {
+    const he = re(te[oe + ue], Y[ue].path, Y[ue].level);
+    if (he.length > 0) {
+      p.push(...he);
+      break;
+    }
+  }
+  for (let ue = 0;ue < V.length; ue++) {
+    const he = re(te[ue], V[ue].path, V[ue].level);
+    if (he.length > 0) {
+      p.push(...he);
+      break;
+    }
+  }
+  return { items: p, warnings: R };
+}
+async function Lte(u) {
+  const p = [];
+  const R = [];
+  const k = yl(u);
+  const A = k ? Fr.join(k, "CLAUDE.md") : null;
+  const _ = A ? await qe(A) : null;
+  if (_ !== null && A) {
+    p.push({
+      path: A,
+      content: _,
+      level: "user",
+      _source: et(yi, A, "user")
+    });
+  }
+  const B = qm(u);
+  const G = Fr.join(B, "CLAUDE.md");
+  const z = await qe(G);
+  if (z !== null) {
+    const V = PS(u.cwd, Fr.dirname(B), Fr.sep);
+    p.push({
+      path: G,
+      content: z,
+      level: "project",
+      depth: V,
+      _source: et(yi, G, "project")
+    });
+  }
+  return { items: p, warnings: R };
+}
+async function $te(u) {
+  const p = yl(u, e1(Zge));
+  const R = p ? Fr.join(p, "skills") : null;
+  const k = [];
+  let A = u.cwd;
+  while (true) {
+    if (A !== u.home) {
+      k.push(Na(u, {
+        dir: Fr.join(A, Km, "skills"),
+        providerId: yi,
+        level: "project"
+      }));
+    }
+    if (A === (u.repoRoot ?? u.home))
+      break;
+    const Y = Fr.dirname(A);
+    if (Y === A)
+      break;
+    A = Y;
+  }
+  const _ = R ? Na(u, { dir: R, providerId: yi, level: "user" }) : Promise.resolve({ items: [], warnings: [] });
+  const [B, ...G] = await Promise.allSettled([_, ...k]);
+  const z = [];
+  const V = [];
+  if (B.status === "fulfilled") {
+    z.push(...B.value.items);
+    V.push(...B.value.warnings ?? []);
+  } else if (R && !QD(B.reason)) {
+    V.push(`Failed to scan Claude user skills in ${R}: ${String(B.reason)}`);
+  }
+  for (const Y of G) {
+    if (Y.status === "fulfilled") {
+      z.push(...Y.value.items);
+      V.push(...Y.value.warnings ?? []);
+    } else if (!QD(Y.reason)) {
+      V.push(`Failed to scan Claude project skills: ${String(Y.reason)}`);
+    }
+  }
+  return { items: z, warnings: V };
+}
+async function Ote(u) {
+  const p = [];
+  const R = [];
+  const k = yl(u);
+  const A = Fr.join(u.cwd, Km, "extensions");
+  const _ = [
+    ...k ? [{ dir: Fr.join(k, "extensions"), level: "user" }] : [],
+    { dir: A, level: "project" }
+  ];
+  const B = await Promise.all(_.map(async ({ dir: G, level: z }) => {
+    const V = await $g(u, G);
+    return V.map((Y) => ({ extPath: Y, level: z }));
+  }));
+  for (const G of B) {
+    for (const { extPath: z, level: V } of G) {
+      p.push({
+        name: uP(z),
+        path: z,
+        level: V,
+        _source: et(yi, z, V)
+      });
+    }
+  }
+  return { items: p, warnings: R };
+}
+function Nte() {
+  try {
+    return I9.get(D);
+  } catch {
+    return true;
+  }
+}
+function Dte(u, p) {
+  return Fr.relative(u, p).replace(/\.md$/, "");
+}
+function ZD(u, p) {
+  const R = [];
+  const k = [];
+  const A = [];
+  for (const _ of u) {
+    const B = Dte(p, _.path);
+    if (!/[\\/]/.test(B)) {
+      R.push(_);
+      continue;
+    }
+    k.push(_);
+    A.push({ ..._, name: B.replace(/[\\/]+/g, ":") });
+  }
+  return k.length === 0 ? u : [...R, ...k, ...A];
+}
+async function Ute(u) {
+  const p = [];
+  const R = [];
+  const k = Nte();
+  const A = yl(u, e1(P9));
+  if (A) {
+    const _ = Fr.join(A, "commands");
+    const B = await Fn(u, _, yi, "user", {
+      extensions: ["md"],
+      recursive: true,
+      transform: (G, z, V, Y) => ({
+        name: G.replace(/\.md$/, ""),
+        path: V,
+        content: z,
+        level: "user",
+        _source: Y
+      })
+    });
+    p.push(...ZD(B.items, _));
+    if (B.warnings)
+      R.push(...B.warnings);
+  }
+  if (k) {
+    const _ = Fr.join(u.cwd, Km, "commands");
+    const B = await Fn(u, _, yi, "project", {
+      extensions: ["md"],
+      recursive: true,
+      transform: (G, z, V, Y) => ({
+        name: G.replace(/\.md$/, ""),
+        path: V,
+        content: z,
+        level: "project",
+        _source: Y
+      })
+    });
+    p.push(...ZD(B.items, _));
+    if (B.warnings)
+      R.push(...B.warnings);
+  }
+  return { items: p, warnings: R };
+}
+async function jte(u) {
+  const p = [];
+  const R = [];
+  const k = yl(u);
+  const A = qm(u);
+  const _ = Fr.join(A, "hooks");
+  const B = ["pre", "post"];
+  const G = [];
+  if (k) {
+    const V = Fr.join(k, "hooks");
+    for (const Y of B) {
+      G.push({ dir: Fr.join(V, Y), hookType: Y, level: "user" });
+    }
+  }
+  for (const V of B) {
+    G.push({ dir: Fr.join(_, V), hookType: V, level: "project" });
+  }
+  const z = await Promise.all(G.map(({ dir: V, hookType: Y, level: Q }) => Fn(u, V, yi, Q, {
+    transform: (te, re, oe, ue) => {
+      const he = te.replace(/\.(sh|bash|zsh|fish)$/, "");
+      return {
+        name: te,
+        path: oe,
+        type: Y,
+        tool: he,
+        level: Q,
+        _source: ue
+      };
+    }
+  })));
+  for (const V of z) {
+    p.push(...V.items);
+    if (V.warnings)
+      R.push(...V.warnings);
+  }
+  return { items: p, warnings: R };
+}
+async function Bte(u) {
+  const p = [];
+  const R = [];
+  const k = yl(u);
+  if (k) {
+    const G = Fr.join(k, "tools");
+    const z = await Fn(u, G, yi, "user", {
+      extensions: ["ts", "js"],
+      transform: (V, Y, Q, te) => {
+        const re = V.replace(/\.(ts|js)$/, "");
+        return {
+          name: re,
+          path: Q,
+          description: `${re} custom tool`,
+          level: "user",
+          _source: te
+        };
+      }
+    });
+    p.push(...z.items);
+    if (z.warnings)
+      R.push(...z.warnings);
+  }
+  const A = qm(u);
+  const _ = Fr.join(A, "tools");
+  const B = await Fn(u, _, yi, "project", {
+    extensions: ["ts", "js"],
+    transform: (G, z, V, Y) => {
+      const Q = G.replace(/\.(ts|js)$/, "");
+      return {
+        name: Q,
+        path: V,
+        description: `${Q} custom tool`,
+        level: "project",
+        _source: Y
+      };
+    }
+  });
+  p.push(...B.items);
+  if (B.warnings)
+    R.push(...B.warnings);
+  return { items: p, warnings: R };
+}
+async function Hte(u) {
+  const p = [];
+  const R = [];
+  const k = qm(u);
+  for (const [_, B] of [
+    ["SYSTEM_TEMPLATE.md", "template"],
+    ["SYSTEM.md", "text"]
+  ]) {
+    const G = Fr.join(k, _);
+    const z = await qe(G);
+    if (z) {
+      p.push({
+        path: G,
+        content: z,
+        kind: B,
+        level: "project",
+        _source: et(yi, G, "project")
+      });
+    }
+  }
+  const A = yl(u);
+  if (A) {
+    for (const [_, B] of [
+      ["SYSTEM_TEMPLATE.md", "template"],
+      ["SYSTEM.md", "text"]
+    ]) {
+      const G = Fr.join(A, _);
+      const z = await qe(G);
+      if (z !== null) {
+        p.push({
+          path: G,
+          content: z,
+          kind: B,
+          level: "user",
+          _source: et(yi, G, "user")
+        });
+      }
+    }
+  }
+  return { items: p, warnings: R };
+}
+async function Kte(u) {
+  const p = [];
+  const R = [];
+  const k = yl(u);
+  if (k) {
+    const G = Fr.join(k, "settings.json");
+    const z = await qe(G);
+    if (z) {
+      const V = I(z);
+      if (V) {
+        p.push({
+          path: G,
+          data: V,
+          level: "user",
+          _source: et(yi, G, "user")
+        });
+      } else {
+        R.push(`Failed to parse JSON in ${G}`);
+      }
+    }
+  }
+  const A = qm(u);
+  const _ = Fr.join(A, "settings.json");
+  const B = await qe(_);
+  if (B) {
+    const G = I(B);
+    if (G) {
+      p.push({
+        path: _,
+        data: G,
+        level: "project",
+        _source: et(yi, _, "project")
+      });
+    } else {
+      R.push(`Failed to parse JSON in ${_}`);
+    }
+  }
+  return { items: p, warnings: R };
+}
+De(Ia.id, {
+  id: yi,
+  displayName: hl,
+  description: "Load MCP servers from .claude.json and .claude/mcp.json",
+  priority: gl,
+  load: Ite
+});
+De(Hl.id, {
+  id: yi,
+  displayName: hl,
+  description: "Load CLAUDE.md files from .claude/ directories",
+  priority: gl,
+  load: Lte
+});
+De(Ul.id, {
+  id: yi,
+  displayName: hl,
+  description: "Load skills from .claude/skills/*/SKILL.md",
+  priority: gl,
+  load: $te
+});
+De(Kw.id, {
+  id: yi,
+  displayName: hl,
+  description: "Load extension modules from .claude/extensions",
+  priority: gl,
+  load: Ote
+});
+De(Xd.id, {
+  id: yi,
+  displayName: hl,
+  description: "Load slash commands from .claude/commands/*.md",
+  priority: gl,
+  load: Ute
+});
+De(Xh.id, {
+  id: yi,
+  displayName: hl,
+  description: "Load hooks from .claude/hooks/pre/ and .claude/hooks/post/",
+  priority: gl,
+  load: jte
+});
+De(Qw.id, {
+  id: yi,
+  displayName: hl,
+  description: "Load custom tools from .claude/tools/",
+  priority: gl,
+  load: Bte
+});
+De(ib.id, {
+  id: yi,
+  displayName: hl,
+  description: "Load settings from .claude/settings.json",
+  priority: gl,
+  load: Kte
+});
+De(ob.id, {
+  id: yi,
+  displayName: hl,
+  description: "Load system prompt from .claude/SYSTEM.md",
+  priority: gl,
+  load: Hte
+});
+
+
+
+// packages/coding-agent/src/discovery/agents.ts
+import * as xs from "path";
+var Vo = "agents";
+var Vu = "Agent Dirs (.agent/.agents)";
+var Ku = 70;
+var i1 = [".agent", ".agents"];
+var yne = 500;
+function YPt(u, p = yne) {
+  try {
+    const R = Bun.spawnSync(u, {
+      stdout: "pipe",
+      stderr: "ignore",
+      timeout: p,
+      killSignal: "SIGKILL"
+    });
+    if (R.exitCode !== 0)
+      return;
+    const k = R.stdout.toString().trim();
+    return k.length > 0 ? k : undefined;
+  } catch {
+    return;
+  }
+}
+function wne(u) {
+  return YPt(["wslpath", "-u", u]);
+}
+function vne() {
+  const u = YPt(["cmd.exe", "/d", "/c", "echo", "%USERPROFILE%"]);
+  return u && u !== "%USERPROFILE%" ? u : undefined;
+}
+function G3t(u = {}) {
+  const p = u.platform ?? "linux";
+  const R = u.env ?? process.env;
+  if (!Md(p, R))
+    return;
+  const k = R.USERPROFILE ?? (u.windowsUserProfile ?? vne)();
+  if (!k)
+    return;
+  const A = (u.wslPath ?? wne)(k);
+  if (A !== undefined)
+    return A;
+  const _ = k.trim();
+  return xs.posix.isAbsolute(_) ? xs.posix.normalize(_) : vTe(_);
+}
+var nk = new Map;
+function Sne(u) {
+  const p = [u.home];
+  const R = process.env;
+  const k = `${"linux"}\x00${R.WSL_DISTRO_NAME ?? ""}\x00${R.WSL_INTEROP ?? ""}\x00${R.USERPROFILE ?? ""}`;
+  let A;
+  if (nk.has(k)) {
+    A = nk.get(k);
+  } else {
+    A = G3t();
+    nk.set(k, A);
+  }
+  if (A && !p.includes(A))
+    p.push(A);
+  return p;
+}
+function b9(u, ...p) {
+  return Sne(u).flatMap((R) => i1.map((k) => xs.join(R, k, ...p)));
+}
+function w9(u, ...p) {
+  const R = [];
+  let k = u.cwd;
+  while (true) {
+    if (k !== u.home) {
+      for (const _ of i1) {
+        R.push(xs.join(k, _, ...p));
+      }
+    }
+    if (k === (u.repoRoot ?? u.home))
+      break;
+    const A = xs.dirname(k);
+    if (A === k)
+      break;
+    k = A;
+  }
+  return R;
+}
+async function xne(u) {
+  const p = w9(u, "skills").map((A) => Na(u, { dir: A, providerId: Vo, level: "project" }));
+  const R = b9(u, "skills").map((A) => Na(u, { dir: A, providerId: Vo, level: "user" }));
+  const k = await Promise.all([...p, ...R]);
+  return {
+    items: k.flatMap((A) => A.items),
+    warnings: k.flatMap((A) => A.warnings ?? [])
+  };
+}
+De(Ul.id, {
+  id: Vo,
+  displayName: Vu,
+  description: "Load skills from .agent/skills and .agents/skills (project walk-up + user home)",
+  priority: Ku,
+  load: xne
+});
+async function Cne(u) {
+  const p = (k, A) => Fn(u, k, Vo, A, {
+    extensions: ["md", "mdc"],
+    transform: (_, B, G, z) => iu(_, B, G, z, { stripNamePattern: /\.(md|mdc)$/ })
+  });
+  const R = await Promise.all([
+    ...w9(u, "rules").map((k) => p(k, "project")),
+    ...b9(u, "rules").map((k) => p(k, "user"))
+  ]);
+  return {
+    items: R.flatMap((k) => k.items),
+    warnings: R.flatMap((k) => k.warnings ?? [])
+  };
+}
+De(la.id, {
+  id: Vo,
+  displayName: Vu,
+  description: "Load rules from .agent/rules and .agents/rules (project walk-up + user home)",
+  priority: Ku,
+  load: Cne
+});
+async function Tne(u) {
+  const p = (k, A) => Fn(u, k, Vo, A, {
+    extensions: ["md"],
+    transform: (_, B, G, z) => ({
+      name: _.replace(/\.md$/, ""),
+      path: G,
+      content: B,
+      _source: z
+    })
+  });
+  const R = await Promise.all([
+    ...w9(u, "prompts").map((k) => p(k, "project")),
+    ...b9(u, "prompts").map((k) => p(k, "user"))
+  ]);
+  return {
+    items: R.flatMap((k) => k.items),
+    warnings: R.flatMap((k) => k.warnings ?? [])
+  };
+}
+De(pk.id, {
+  id: Vo,
+  displayName: Vu,
+  description: "Load prompts from .agent/prompts and .agents/prompts (project walk-up + user home)",
+  priority: Ku,
+  load: Tne
+});
+async function Mne(u) {
+  const p = (k, A) => Fn(u, k, Vo, A, {
+    extensions: ["md"],
+    transform: (_, B, G, z) => ({
+      name: _.replace(/\.md$/, ""),
+      path: G,
+      content: B,
+      level: A,
+      _source: z
+    })
+  });
+  const R = await Promise.all([
+    ...w9(u, "commands").map((k) => p(k, "project")),
+    ...b9(u, "commands").map((k) => p(k, "user"))
+  ]);
+  return {
+    items: R.flatMap((k) => k.items),
+    warnings: R.flatMap((k) => k.warnings ?? [])
+  };
+}
+De(Xd.id, {
+  id: Vo,
+  displayName: Vu,
+  description: "Load commands from .agent/commands and .agents/commands (project walk-up + user home)",
+  priority: Ku,
+  load: Mne
+});
+async function Ene(u) {
+  const p = async (k, A) => {
+    const _ = await qe(k);
+    if (!_)
+      return null;
+    const B = xs.dirname(xs.dirname(k));
+    const G = A === "project" ? PS(u.cwd, B, xs.sep) : undefined;
+    return { path: k, content: _, level: A, depth: G, _source: et(Vo, k, A) };
+  };
+  const R = await Promise.all([
+    ...w9(u, "AGENTS.md").map((k) => p(k, "project")),
+    ...b9(u, "AGENTS.md").map((k) => p(k, "user"))
+  ]);
+  return { items: R.filter((k) => k !== null), warnings: [] };
+}
+De(Hl.id, {
+  id: Vo,
+  displayName: Vu,
+  description: "Load AGENTS.md from .agent and .agents (project walk-up + user home)",
+  priority: Ku,
+  load: Ene
+});
+async function Ane(u) {
+  const p = async (k, A, _) => {
+    const B = await qe(k);
+    if (!B)
+      return null;
+    return { path: k, content: B, kind: _, level: A, _source: et(Vo, k, A) };
+  };
+  const R = await Promise.all([
+    ...w9(u, "SYSTEM.md").map((k) => p(k, "project", "text")),
+    ...w9(u, "SYSTEM_TEMPLATE.md").map((k) => p(k, "project", "template")),
+    ...b9(u, "SYSTEM.md").map((k) => p(k, "user", "text")),
+    ...b9(u, "SYSTEM_TEMPLATE.md").map((k) => p(k, "user", "template"))
+  ]);
+  return { items: R.filter((k) => k !== null), warnings: [] };
+}
+De(ob.id, {
+  id: Vo,
+  displayName: Vu,
+  description: "Load SYSTEM.md and SYSTEM_TEMPLATE.md from .agent and .agents (project walk-up + user home)",
+  priority: Ku,
+  load: Ane
+});
+
+
+
+// packages/coding-agent/src/discovery/codex.ts
+import * as qr from "path";
+
+
+
+// packages/coding-agent/src/discovery/codex.ts
+var Jr = "codex";
+var Pa = "OpenAI Codex";
+var $a = 70;
+function wl(u) {
+  return qr.join(u.cwd, ".codex");
+}
+function Da(u, p = false) {
+  if (!p && !ji("codex", u))
+    return null;
+  return qr.join(u.home, kO.codex.userBase);
+}
+function Nne() {
+  try {
+    return Qge.get(D) === true;
+  } catch {
+    return false;
+  }
+}
+async function Dne(u) {
+  const p = [];
+  const R = [];
+  const k = Da(u);
+  if (!k)
+    return { items: p, warnings: R };
+  const A = qr.join(k, "AGENTS.md");
+  const _ = await qe(A);
+  if (_) {
+    p.push({
+      path: A,
+      content: _,
+      level: "user",
+      _source: et(Jr, A, "user")
+    });
+  }
+  return { items: p, warnings: R };
+}
+async function Fne(u) {
+  const p = [];
+  const R = Da(u);
+  const k = R ? qr.join(R, "config.toml") : null;
+  const A = wl(u);
+  const _ = qr.join(A, "config.toml");
+  const [B, G] = await Promise.all([
+    k ? eb(u, k) : Promise.resolve(null),
+    eb(u, _)
+  ]);
+  const z = [];
+  if (G) {
+    const V = l1(G, qr.dirname(_));
+    for (const Y in V) {
+      const Q = V[Y];
+      z.push({
+        name: Y,
+        ...Q,
+        _source: et(Jr, _, "project")
+      });
+    }
+  }
+  if (B && k) {
+    const V = l1(B, qr.dirname(k));
+    for (const Y in V) {
+      const Q = V[Y];
+      z.push({
+        name: Y,
+        ...Q,
+        _source: et(Jr, k, "user")
+      });
+    }
+  }
+  return { items: z, warnings: p };
+}
+async function eb(u, p) {
+  const R = await qe(p);
+  if (!R)
+    return null;
+  try {
+    return Bun.TOML.parse(R);
+  } catch (k) {
+    i("Failed to parse TOML config", { path: p, error: String(k) });
+    return null;
+  }
+}
+function l1(u, p) {
+  if (!u.mcp_servers || typeof u.mcp_servers !== "object") {
+    return {};
+  }
+  const R = u.mcp_servers;
+  const k = {};
+  for (const A in R) {
+    const _ = R[A];
+    const B = tte({ command: _.command, cwd: _.cwd }, p, "cwd");
+    const G = {
+      ..._.enabled === false && { enabled: false },
+      ...B.command !== undefined && { command: B.command },
+      args: _.args,
+      url: _.url,
+      ...B.cwd !== undefined && { cwd: B.cwd }
+    };
+    const z = { ..._.env };
+    if (_.env_vars) {
+      for (const Y of _.env_vars) {
+        const Q = Bun.env[Y];
+        if (Q !== undefined) {
+          z[Y] = Q;
+        }
+      }
+    }
+    if (Object.keys(z).length > 0) {
+      G.env = z;
+    }
+    const V = { ..._.http_headers };
+    if (_.env_http_headers) {
+      for (const [Y, Q] of Object.entries(_.env_http_headers)) {
+        const te = Bun.env[Q];
+        if (te !== undefined) {
+          V[Y] = te;
+        }
+      }
+    }
+    if (_.bearer_token_env_var) {
+      const Y = Bun.env[_.bearer_token_env_var];
+      if (Y) {
+        V.Authorization = `Bearer ${Y}`;
+      }
+    }
+    if (Object.keys(V).length > 0) {
+      G.headers = V;
+    }
+    if (_.url) {
+      G.transport = "http";
+    } else if (_.command) {
+      G.transport = "stdio";
+    }
+    if (typeof _.tool_timeout_sec === "number" && _.tool_timeout_sec > 0) {
+      G.timeout = _.tool_timeout_sec * 1000;
+    }
+    k[A] = G;
+  }
+  return k;
+}
+async function Une(u) {
+  const p = Da(u, Nne());
+  const R = p ? qr.join(p, "skills") : null;
+  const k = wl(u);
+  const A = qr.join(k, "skills");
+  const _ = await Promise.all([
+    R ? Na(u, {
+      dir: R,
+      providerId: Jr,
+      level: "user"
+    }) : Promise.resolve({ items: [], warnings: [] }),
+    Na(u, {
+      dir: A,
+      providerId: Jr,
+      level: "project"
+    })
+  ]);
+  const B = _.flatMap((z) => z.items);
+  const G = _.flatMap((z) => z.warnings || []);
+  return { items: B, warnings: G };
+}
+async function jne(u) {
+  const p = [];
+  const R = Da(u);
+  const k = R ? qr.join(R, "extensions") : null;
+  const A = wl(u);
+  const _ = qr.join(A, "extensions");
+  const [B, G] = await Promise.all([
+    k ? $g(u, k) : Promise.resolve([]),
+    $g(u, _)
+  ]);
+  const z = B9(Jr, B, G);
+  return { items: z, warnings: p };
+}
+async function Bne(u) {
+  const p = Da(u);
+  const R = p ? qr.join(p, "commands") : null;
+  const k = wl(u);
+  const A = qr.join(k, "commands");
+  const _ = (V) => (Y, Q, te, re) => {
+    const { frontmatter: oe, body: ue } = or(Q, { source: te });
+    const he = oe.name || Y.replace(/\.md$/, "");
+    return {
+      name: String(he),
+      path: te,
+      content: ue,
+      ...GH(oe),
+      ...oe.side === true ? { side: true } : {},
+      level: V,
+      _source: re
+    };
+  };
+  const B = await Promise.all([
+    R ? Fn(u, R, Jr, "user", {
+      extensions: ["md"],
+      transform: _("user")
+    }) : Promise.resolve({ items: [], warnings: [] }),
+    Fn(u, A, Jr, "project", {
+      extensions: ["md"],
+      transform: _("project")
+    })
+  ]);
+  const G = B.flatMap((V) => V.items);
+  const z = B.flatMap((V) => V.warnings || []);
+  return { items: G, warnings: z };
+}
+async function Hne(u) {
+  const p = Da(u);
+  const R = p ? qr.join(p, "prompts") : null;
+  const k = wl(u);
+  const A = qr.join(k, "prompts");
+  const _ = (V, Y, Q, te) => {
+    const { frontmatter: re, body: oe } = or(Y, { source: Q });
+    const ue = re.name || V.replace(/\.md$/, "");
+    return {
+      name: String(ue),
+      path: Q,
+      content: oe,
+      description: re.description ? String(re.description) : undefined,
+      _source: te
+    };
+  };
+  const B = await Promise.all([
+    R ? Fn(u, R, Jr, "user", {
+      extensions: ["md"],
+      transform: _
+    }) : Promise.resolve({ items: [], warnings: [] }),
+    Fn(u, A, Jr, "project", {
+      extensions: ["md"],
+      transform: _
+    })
+  ]);
+  const G = B.flatMap((V) => V.items);
+  const z = B.flatMap((V) => V.warnings || []);
+  return { items: G, warnings: z };
+}
+async function Wne(u) {
+  const p = Da(u);
+  const R = p ? qr.join(p, "hooks") : null;
+  const k = wl(u);
+  const A = qr.join(k, "hooks");
+  const _ = (V) => (Y, Q, te, re) => {
+    const oe = Y.replace(/\.(ts|js)$/, "");
+    const ue = oe.match(/^(pre|post)-(.+)$/);
+    if (!ue)
+      return null;
+    const he = ue[1];
+    const pe = ue[2];
+    return {
+      name: Y,
+      path: te,
+      type: he,
+      tool: pe,
+      level: V,
+      _source: re
+    };
+  };
+  const B = await Promise.all([
+    R ? Fn(u, R, Jr, "user", {
+      extensions: ["ts", "js"],
+      transform: _("user")
+    }) : Promise.resolve({ items: [], warnings: [] }),
+    Fn(u, A, Jr, "project", {
+      extensions: ["ts", "js"],
+      transform: _("project")
+    })
+  ]);
+  const G = B.flatMap((V) => V.items);
+  const z = B.flatMap((V) => V.warnings || []);
+  return { items: G, warnings: z };
+}
+async function Gne(u) {
+  const p = Da(u);
+  const R = p ? qr.join(p, "tools") : null;
+  const k = wl(u);
+  const A = qr.join(k, "tools");
+  const _ = (V) => (Y, Q, te, re) => {
+    const oe = Y.replace(/\.(ts|js)$/, "");
+    return {
+      name: oe,
+      path: te,
+      level: V,
+      _source: re
+    };
+  };
+  const B = await Promise.all([
+    R ? Fn(u, R, Jr, "user", {
+      extensions: ["ts", "js"],
+      transform: _("user")
+    }) : Promise.resolve({ items: [], warnings: [] }),
+    Fn(u, A, Jr, "project", {
+      extensions: ["ts", "js"],
+      transform: _("project")
+    })
+  ]);
+  const G = B.flatMap((V) => V.items);
+  const z = B.flatMap((V) => V.warnings || []);
+  return { items: G, warnings: z };
+}
+async function zne(u) {
+  const p = [];
+  const R = Da(u);
+  const k = R ? qr.join(R, "config.toml") : null;
+  const A = wl(u);
+  const _ = qr.join(A, "config.toml");
+  const [B, G] = await Promise.all([
+    k ? eb(u, k) : Promise.resolve(null),
+    eb(u, _)
+  ]);
+  const z = [];
+  if (B && k) {
+    z.push({
+      path: k,
+      data: B,
+      level: "user",
+      _source: et(Jr, k, "user")
+    });
+  }
+  if (G) {
+    z.push({
+      path: _,
+      data: G,
+      level: "project",
+      _source: et(Jr, _, "project")
+    });
+  }
+  return { items: z, warnings: p };
+}
+De(Hl.id, {
+  id: Jr,
+  displayName: Pa,
+  description: "Load context files from ~/.codex/AGENTS.md (user-level only)",
+  priority: $a,
+  load: Dne
+});
+De(Ia.id, {
+  id: Jr,
+  displayName: Pa,
+  description: "Load MCP servers from config.toml [mcp_servers.*] sections",
+  priority: $a,
+  load: Fne
+});
+De(Ul.id, {
+  id: Jr,
+  displayName: Pa,
+  description: "Load skills from ~/.codex/skills and .codex/skills/",
+  priority: $a,
+  load: Une
+});
+De(Kw.id, {
+  id: Jr,
+  displayName: Pa,
+  description: "Load extension modules from ~/.codex/extensions and .codex/extensions/",
+  priority: $a,
+  load: jne
+});
+De(Xd.id, {
+  id: Jr,
+  displayName: Pa,
+  description: "Load slash commands from ~/.codex/commands and .codex/commands/",
+  priority: $a,
+  load: Bne
+});
+De(pk.id, {
+  id: Jr,
+  displayName: Pa,
+  description: "Load prompts from ~/.codex/prompts and .codex/prompts/",
+  priority: $a,
+  load: Hne
+});
+De(Xh.id, {
+  id: Jr,
+  displayName: Pa,
+  description: "Load hooks from ~/.codex/hooks and .codex/hooks/",
+  priority: $a,
+  load: Wne
+});
+De(Qw.id, {
+  id: Jr,
+  displayName: Pa,
+  description: "Load custom tools from ~/.codex/tools and .codex/tools/",
+  priority: $a,
+  load: Gne
+});
+De(ib.id, {
+  id: Jr,
+  displayName: Pa,
+  description: "Load settings from config.toml",
+  priority: $a,
+  load: zne
+});
+async function Vne(u) {
+  const p = [];
+  const R = async (_, B, G) => {
+    if (!_)
+      return;
+    const z = await qe(_);
+    if (z) {
+      p.push({ path: _, content: z, kind: G, level: B, _source: et(Jr, _, B) });
+    }
+  };
+  const k = wl(u);
+  const A = Da(u);
+  await R(qr.join(k, "SYSTEM_TEMPLATE.md"), "project", "template");
+  await R(qr.join(k, "SYSTEM.md"), "project", "text");
+  await R(A ? qr.join(A, "SYSTEM_TEMPLATE.md") : null, "user", "template");
+  await R(A ? qr.join(A, "SYSTEM.md") : null, "user", "text");
+  return { items: p, warnings: [] };
+}
+De(ob.id, {
+  id: Jr,
+  displayName: Pa,
+  description: "Load SYSTEM.md and SYSTEM_TEMPLATE.md from .codex (project cwd + user home)",
+  priority: $a,
+  load: Vne
+});
+
+
+
+// packages/coding-agent/src/discovery/gemini.ts
+import * as Qm from "path";
+var Co = "gemini";
+var Ju = "Gemini CLI";
+var Xu = 60;
+async function Yne(u) {
+  const p = [];
+  const R = [];
+  const k = ts(u, "gemini", "settings.json");
+  if (k) {
+    const _ = await eF(u, k, "project");
+    p.push(..._.items);
+    if (_.warnings)
+      R.push(..._.warnings);
+  }
+  const A = Ac(u, "gemini", "settings.json");
+  if (A) {
+    const _ = await eF(u, A, "user");
+    p.push(..._.items);
+    if (_.warnings)
+      R.push(..._.warnings);
+  }
+  return { items: p, warnings: R };
+}
+async function eF(u, p, R) {
+  const k = [];
+  const A = [];
+  const _ = await qe(p);
+  if (!_) {
+    return { items: k, warnings: A };
+  }
+  const B = I(_);
+  if (!B) {
+    A.push(`Invalid JSON in ${p}`);
+    return { items: k, warnings: A };
+  }
+  if (!B.mcpServers || typeof B.mcpServers !== "object") {
+    return { items: k, warnings: A };
+  }
+  const G = Yr(B.mcpServers);
+  for (const [z, V] of Object.entries(G)) {
+    if (!V || typeof V !== "object") {
+      A.push(`Invalid config for server "${z}" in ${p}`);
+      continue;
+    }
+    const Y = V;
+    k.push({
+      name: z,
+      enabled: typeof Y.enabled === "boolean" ? Y.enabled : undefined,
+      command: typeof Y.command === "string" ? Y.command : undefined,
+      args: Array.isArray(Y.args) ? Y.args : undefined,
+      env: Y.env && typeof Y.env === "object" ? Y.env : undefined,
+      url: typeof Y.url === "string" ? Y.url : undefined,
+      headers: Y.headers && typeof Y.headers === "object" ? Y.headers : undefined,
+      transport: ["stdio", "sse", "http"].includes(Y.type) ? Y.type : undefined,
+      timeout: typeof Y.timeout === "number" ? Y.timeout : undefined,
+      _source: et(Co, p, R)
+    });
+  }
+  return { items: k, warnings: A };
+}
+async function Qne(u) {
+  const p = [];
+  const R = [];
+  const k = Ac(u, "gemini", "GEMINI.md");
+  if (k) {
+    const _ = await qe(k);
+    if (_) {
+      p.push({
+        path: k,
+        content: _,
+        level: "user",
+        _source: et(Co, k, "user")
+      });
+    }
+  }
+  const A = ts(u, "gemini", "GEMINI.md");
+  if (A) {
+    const _ = await qe(A);
+    if (_) {
+      const B = ts(u, "gemini", "");
+      const G = B ? PS(u.cwd, B, Qm.sep) : 0;
+      p.push({
+        path: A,
+        content: _,
+        level: "project",
+        depth: G,
+        _source: et(Co, A, "project")
+      });
+    }
+  }
+  return { items: p, warnings: R };
+}
+async function Zne(u) {
+  const p = [];
+  const R = [];
+  const k = Ac(u, "gemini", "extensions");
+  if (k) {
+    const _ = await tF(k, "user");
+    p.push(..._.items);
+    if (_.warnings)
+      R.push(..._.warnings);
+  }
+  const A = ts(u, "gemini", "extensions");
+  if (A) {
+    const _ = await tF(A, "project");
+    p.push(..._.items);
+    if (_.warnings)
+      R.push(..._.warnings);
+  }
+  return { items: p, warnings: R };
+}
+async function tF(u, p) {
+  const R = await zl(u);
+  const k = R.filter((G) => G.isDirectory());
+  const A = await Promise.all(k.map(async (G) => {
+    const z = Qm.join(u, G.name);
+    const V = Qm.join(z, "gemini-extension.json");
+    const Y = await qe(V);
+    return { entry: G, extPath: z, manifestPath: V, content: Y };
+  }));
+  const _ = [];
+  const B = [];
+  for (const { entry: G, extPath: z, manifestPath: V, content: Y } of A) {
+    if (!Y)
+      continue;
+    const Q = I(Y);
+    if (!Q) {
+      B.push(`Invalid JSON in ${V}`);
+      continue;
+    }
+    _.push({
+      name: Q.name ?? G.name,
+      path: z,
+      manifest: Q,
+      level: p,
+      _source: et(Co, V, p)
+    });
+  }
+  return { items: _, warnings: B };
+}
+async function ere(u) {
+  const p = Ac(u, "gemini", "extensions");
+  const R = ts(u, "gemini", "extensions");
+  const [k, A] = await Promise.all([
+    p ? $g(u, p) : Promise.resolve([]),
+    R ? $g(u, R) : Promise.resolve([])
+  ]);
+  const _ = B9(Co, k, A);
+  return { items: _, warnings: [] };
+}
+async function tre(u) {
+  const p = [];
+  const R = [];
+  const k = Ac(u, "gemini", "settings.json");
+  if (k) {
+    const _ = await qe(k);
+    if (_) {
+      const B = I(_);
+      if (B) {
+        p.push({
+          path: k,
+          data: B,
+          level: "user",
+          _source: et(Co, k, "user")
+        });
+      } else {
+        R.push(`Invalid JSON in ${k}`);
+      }
+    }
+  }
+  const A = ts(u, "gemini", "settings.json");
+  if (A) {
+    const _ = await qe(A);
+    if (_) {
+      const B = I(_);
+      if (B) {
+        p.push({
+          path: A,
+          data: B,
+          level: "project",
+          _source: et(Co, A, "project")
+        });
+      } else {
+        R.push(`Invalid JSON in ${A}`);
+      }
+    }
+  }
+  return { items: p, warnings: R };
+}
+De(Ia.id, {
+  id: Co,
+  displayName: Ju,
+  description: "Load MCP servers from ~/.gemini/settings.json and .gemini/settings.json",
+  priority: Xu,
+  load: Yne
+});
+De(Hl.id, {
+  id: Co,
+  displayName: Ju,
+  description: "Load GEMINI.md context files",
+  priority: Xu,
+  load: Qne
+});
+async function nre(u) {
+  const p = [];
+  const R = async (k, A, _) => {
+    if (!k)
+      return;
+    const B = await qe(k);
+    if (B) {
+      p.push({ path: k, content: B, kind: _, level: A, _source: et(Co, k, A) });
+    }
+  };
+  await R(ts(u, "gemini", "SYSTEM_TEMPLATE.md"), "project", "template");
+  await R(ts(u, "gemini", "system.md"), "project", "text");
+  await R(Ac(u, "gemini", "SYSTEM_TEMPLATE.md"), "user", "template");
+  await R(Ac(u, "gemini", "system.md"), "user", "text");
+  return { items: p, warnings: [] };
+}
+De(ob.id, {
+  id: Co,
+  displayName: Ju,
+  description: "Load system.md custom system prompt files",
+  priority: Xu,
+  load: nre
+});
+De(g1e.id, {
+  id: Co,
+  displayName: Ju,
+  description: "Load extensions from ~/.gemini/extensions/ and .gemini/extensions/",
+  priority: Xu,
+  load: Zne
+});
+De(Kw.id, {
+  id: Co,
+  displayName: Ju,
+  description: "Load extension modules from ~/.gemini/extensions/ and .gemini/extensions/",
+  priority: Xu,
+  load: ere
+});
+De(ib.id, {
+  id: Co,
+  displayName: Ju,
+  description: "Load settings from ~/.gemini/settings.json and .gemini/settings.json",
+  priority: Xu,
+  load: tre
+});
+
+
+
+// packages/coding-agent/src/discovery/opencode.ts
+import * as rF from "os";
+import * as vl from "path";
+var {JSONC: rre } = globalThis.Bun;
+var Mo = "opencode";
+var Yu = "OpenCode";
+var Qu = 55;
+var ok = ["opencode.json", "opencode.jsonc"];
+async function iF(u, p) {
+  const R = await qe(u);
+  if (!R)
+    return null;
+  let k;
+  try {
+    k = rre.parse(await ire(R, u));
+  } catch {
+    p(u);
+    return null;
+  }
+  if (!n(k)) {
+    p(u);
+    return null;
+  }
+  return k;
+}
+async function ire(u, p) {
+  const R = u.replace(/\{env:([^}]+)\}/g, (G, z) => Bun.env[z] ?? "");
+  const k = [...R.matchAll(/\{file:[^}]+\}/g)];
+  if (k.length === 0)
+    return R;
+  const A = vl.dirname(p);
+  let _ = "";
+  let B = 0;
+  for (const G of k) {
+    const z = G[0];
+    const V = G.index ?? 0;
+    _ += R.slice(B, V);
+    B = V + z.length;
+    const Y = R.lastIndexOf(`
+`, V - 1) + 1;
+    if (R.slice(Y, V).trimStart().startsWith("//")) {
+      _ += z;
+      continue;
+    }
+    let Q = z.slice("{file:".length, -1);
+    if (Q.startsWith("~/"))
+      Q = vl.join(rF.homedir(), Q.slice(2));
+    const te = vl.isAbsolute(Q) ? Q : vl.resolve(A, Q);
+    const re = await qe(te);
+    if (re === null) {
+      i("OpenCode config references a missing file", { configPath: p, path: te });
+      continue;
+    }
+    _ += JSON.stringify(re.trim()).slice(1, -1);
+  }
+  _ += R.slice(B);
+  return _;
+}
+function oF(u) {
+  const p = [];
+  for (const R of ok) {
+    const k = Ac(u, "opencode", R);
+    if (k)
+      p.push({ path: k, level: "user" });
+  }
+  for (const R of ok) {
+    p.push({ path: vl.join(u.cwd, R), level: "project" });
+  }
+  for (const R of ok) {
+    const k = ts(u, "opencode", R);
+    if (k)
+      p.push({ path: k, level: "project" });
+  }
+  return p;
+}
+async function ore(u) {
+  const p = [];
+  const R = [];
+  const k = Ac(u, "opencode", "AGENTS.md");
+  if (k) {
+    const A = await qe(k);
+    if (A) {
+      p.push({
+        path: k,
+        content: A,
+        level: "user",
+        _source: et(Mo, k, "user")
+      });
+    }
+  }
+  return { items: p, warnings: R };
+}
+function sre(u) {
+  if (!Array.isArray(u))
+    return;
+  for (const p of u) {
+    if (typeof p !== "string")
+      return;
+  }
+  return u;
+}
+function nF(u) {
+  if (!u || typeof u !== "object" || Array.isArray(u))
+    return;
+  const p = {};
+  for (const [R, k] of Object.entries(u)) {
+    if (typeof k !== "string")
+      return;
+    p[R] = k;
+  }
+  return p;
+}
+function lre(u) {
+  if (!n(u))
+    return;
+  const p = {
+    clientId: typeof u.clientId === "string" ? u.clientId : undefined,
+    clientSecret: typeof u.clientSecret === "string" ? u.clientSecret : undefined,
+    scope: typeof u.scope === "string" ? u.scope : undefined,
+    callbackPort: typeof u.callbackPort === "number" ? u.callbackPort : undefined,
+    redirectUri: typeof u.redirectUri === "string" ? u.redirectUri : undefined
+  };
+  return Object.values(p).some((R) => R !== undefined) ? p : undefined;
+}
+function dre(u, p) {
+  const R = sre(p);
+  if (Array.isArray(u)) {
+    const [k, ...A] = u;
+    const _ = R ? [...A, ...R] : A;
+    return {
+      command: typeof k === "string" ? k : undefined,
+      args: _.length > 0 ? _ : undefined
+    };
+  }
+  return {
+    command: typeof u === "string" ? u : undefined,
+    args: R && R.length > 0 ? R : undefined
+  };
+}
+async function ure(u) {
+  const p = [];
+  const R = new Map;
+  const k = new Map;
+  for (const _ of oF(u)) {
+    const B = await iF(_.path, (G) => {
+      i("Failed to parse OpenCode config", { path: G });
+    });
+    if (!B || !n(B.mcp))
+      continue;
+    for (const G in B.mcp) {
+      const z = B.mcp[G];
+      if (!n(z)) {
+        p.push(`Invalid MCP config for "${G}" in ${_.path}`);
+        continue;
+      }
+      const V = R.get(G);
+      R.set(G, V ? sF(V, z) : z);
+      k.set(G, _);
+    }
+  }
+  const A = [];
+  for (const [_, B] of R) {
+    const G = B;
+    const z = k.get(_);
+    A.push(mre(_, G, z));
+  }
+  return { items: A, warnings: p };
+}
+function sF(u, p) {
+  const R = { ...u };
+  for (const k in p) {
+    const A = p[k];
+    const _ = R[k];
+    R[k] = n(_) && n(A) ? sF(_, A) : A;
+  }
+  return R;
+}
+function mre(u, p, R) {
+  let k;
+  if (p.type === "local") {
+    k = "stdio";
+  } else if (p.type === "remote") {
+    k = "http";
+  } else if (p.url) {
+    k = "http";
+  } else if (p.command) {
+    k = "stdio";
+  }
+  const A = dre(p.command, p.args);
+  const _ = nF(p.environment) ?? nF(p.env);
+  return {
+    name: u,
+    command: A.command,
+    args: A.args,
+    env: _,
+    url: typeof p.url === "string" ? p.url : undefined,
+    headers: p.headers && typeof p.headers === "object" ? p.headers : undefined,
+    enabled: p.enabled,
+    timeout: typeof p.timeout === "number" ? p.timeout : undefined,
+    oauth: lre(p.oauth),
+    transport: k,
+    _source: et(Mo, R.path, R.level)
+  };
+}
+async function hre(u) {
+  const p = Ac(u, "opencode", "skills");
+  const R = ts(u, "opencode", "skills");
+  const k = [];
+  if (p) {
+    k.push(Na(u, {
+      dir: p,
+      providerId: Mo,
+      level: "user"
+    }));
+  }
+  if (R) {
+    k.push(Na(u, {
+      dir: R,
+      providerId: Mo,
+      level: "project"
+    }));
+  }
+  const A = await Promise.all(k);
+  const _ = A.flatMap((G) => G.items);
+  const B = A.flatMap((G) => G.warnings || []);
+  return { items: _, warnings: B };
+}
+async function yre(u) {
+  const p = Ac(u, "opencode", "plugins");
+  const R = ts(u, "opencode", "plugins");
+  const [k, A] = await Promise.all([
+    p ? $g(u, p) : Promise.resolve([]),
+    R ? $g(u, R) : Promise.resolve([])
+  ]);
+  const _ = B9(Mo, k, A);
+  return { items: _, warnings: [] };
+}
+function wre() {
+  try {
+    return {
+      enableUser: M9.get(D) === true,
+      enableProject: _9.get(D)
+    };
+  } catch {
+    return { enableUser: false, enableProject: true };
+  }
+}
+async function vre(u) {
+  const { enableUser: p, enableProject: R } = wre();
+  const k = p ? n$e(u, "opencode", "commands") : Ac(u, "opencode", "commands");
+  const A = R ? ts(u, "opencode", "commands") : null;
+  const _ = (Y) => (Q, te, re, oe) => {
+    const { frontmatter: ue, body: he } = or(te, { source: re });
+    const pe = ue.name || Q.replace(/\.md$/, "");
+    return {
+      name: String(pe),
+      path: re,
+      content: he,
+      ...GH(ue),
+      ...ue.side === true ? { side: true } : {},
+      level: Y,
+      _source: oe
+    };
+  };
+  const B = [];
+  if (k) {
+    B.push(Fn(u, k, Mo, "user", {
+      extensions: ["md"],
+      transform: _("user")
+    }));
+  }
+  if (A) {
+    B.push(Fn(u, A, Mo, "project", {
+      extensions: ["md"],
+      transform: _("project")
+    }));
+  }
+  const G = await Promise.all(B);
+  const z = G.flatMap((Y) => Y.items);
+  const V = G.flatMap((Y) => Y.warnings || []);
+  return { items: z, warnings: V };
+}
+async function Sre(u) {
+  const p = [];
+  const R = [];
+  for (const k of oF(u)) {
+    const A = await iF(k.path, (_) => {
+      R.push(`Invalid JSON in ${_}`);
+    });
+    if (!A)
+      continue;
+    p.push({
+      path: k.path,
+      data: A,
+      level: k.level,
+      _source: et(Mo, k.path, k.level)
+    });
+  }
+  return { items: p, warnings: R };
+}
+De(Hl.id, {
+  id: Mo,
+  displayName: Yu,
+  description: "Load AGENTS.md from ~/.config/opencode/",
+  priority: Qu,
+  load: ore
+});
+De(Ia.id, {
+  id: Mo,
+  displayName: Yu,
+  description: "Load MCP servers from OpenCode config files",
+  priority: Qu,
+  load: ure
+});
+De(Ul.id, {
+  id: Mo,
+  displayName: Yu,
+  description: "Load skills from ~/.config/opencode/skills/ and .opencode/skills/",
+  priority: Qu,
+  load: hre
+});
+De(Kw.id, {
+  id: Mo,
+  displayName: Yu,
+  description: "Load extension modules from ~/.config/opencode/plugins/ and .opencode/plugins/",
+  priority: Qu,
+  load: yre
+});
+De(Xd.id, {
+  id: Mo,
+  displayName: Yu,
+  description: "Load slash commands from ~/.config/opencode/commands/ and .opencode/commands/",
+  priority: Qu,
+  load: vre
+});
+De(ib.id, {
+  id: Mo,
+  displayName: Yu,
+  description: "Load settings from OpenCode config files",
+  priority: Qu,
+  load: Sre
+});
+
+
+
+// packages/coding-agent/src/discovery/omp-plugins.ts
+import * as Yo from "path";
+var bo = "omp-plugins";
+var md = "OMP Extension Packages";
+var yd = "Sub-discovery (skills, hooks, tools, commands, rules, prompts, .mcp.json) inside extension packages";
+var bd = 90;
+async function wd(u, p) {
+  const R = await S9(u);
+  const k = await Promise.all(R.map((A) => b1e(A.path, p)));
+  return R.filter((A, _) => k[_]);
+}
+async function Nre(u) {
+  const p = await wd(u, "skills");
+  const R = await Promise.all(p.map((k) => Na(u, {
+    dir: Yo.join(k.path, "skills"),
+    providerId: bo,
+    level: k.level,
+    requireDescription: true,
+    pluginName: k.name
+  })));
+  return {
+    items: R.flatMap((k) => k.items),
+    warnings: R.flatMap((k) => k.warnings ?? [])
+  };
+}
+async function Dre(u) {
+  const p = await wd(u, "other");
+  const R = await Promise.all(p.map((k) => Fn(u, Yo.join(k.path, "commands"), bo, k.level, {
+    extensions: ["md"],
+    transform: (A, _, B, G) => ({
+      name: A.replace(/\.md$/, ""),
+      path: B,
+      content: _,
+      level: k.level,
+      _source: G
+    })
+  })));
+  return {
+    items: R.flatMap((k) => k.items),
+    warnings: R.flatMap((k) => k.warnings ?? [])
+  };
+}
+async function Ure(u) {
+  const p = await wd(u, "other");
+  const R = await Promise.all(p.map((k) => Fn(u, Yo.join(k.path, "rules"), bo, k.level, {
+    extensions: ["md", "mdc"],
+    transform: (A, _, B, G) => iu(A, _, B, G, { stripNamePattern: /\.(md|mdc)$/ })
+  })));
+  return {
+    items: R.flatMap((k) => k.items),
+    warnings: R.flatMap((k) => k.warnings ?? [])
+  };
+}
+async function jre(u) {
+  const p = await wd(u, "other");
+  const R = await Promise.all(p.map((k) => Fn(u, Yo.join(k.path, "prompts"), bo, k.level, {
+    extensions: ["md"],
+    transform: (A, _, B, G) => ({
+      name: A.replace(/\.md$/, ""),
+      path: B,
+      content: _,
+      _source: G
+    })
+  })));
+  return {
+    items: R.flatMap((k) => k.items),
+    warnings: R.flatMap((k) => k.warnings ?? [])
+  };
+}
+var Bre = ["pre", "post"];
+async function Hre(u) {
+  const p = await wd(u, "other");
+  const R = [];
+  for (const A of p) {
+    for (const _ of Bre) {
+      R.push({ root: A, hookType: _ });
+    }
+  }
+  const k = await Promise.all(R.map(({ root: A, hookType: _ }) => Fn(u, Yo.join(A.path, "hooks", _), bo, A.level, {
+    transform: (B, G, z, V) => {
+      const Y = B.includes(".") ? B.slice(0, B.lastIndexOf(".")) : B;
+      const Q = Y === "*" ? "*" : Y;
+      return {
+        name: B,
+        path: z,
+        type: _,
+        tool: Q,
+        level: A.level,
+        _source: V
+      };
+    }
+  })));
+  return {
+    items: k.flatMap((A) => A.items),
+    warnings: k.flatMap((A) => A.warnings ?? [])
+  };
+}
+var Wre = ["json", "md", "ts", "js", "sh", "bash", "py"];
+async function Gre(u) {
+  const p = await wd(u, "other");
+  const R = await Promise.all(p.map(async (_) => {
+    const B = Yo.join(_.path, "tools");
+    const [G, z] = await Promise.all([
+      Fn(u, B, bo, _.level, {
+        extensions: Wre,
+        transform: (te, re, oe, ue) => {
+          if (te.endsWith(".json")) {
+            const pe = I(re);
+            const ye = pe?.name || te.replace(/\.json$/, "");
+            const be = typeof pe?.description === "string" && pe.description.trim() ? pe.description : `${ye} custom tool`;
+            return { name: ye, path: oe, description: be, level: _.level, _source: ue };
+          }
+          if (te.endsWith(".md")) {
+            const { frontmatter: pe } = or(re, { source: oe });
+            const ye = pe.name || te.replace(/\.md$/, "");
+            const be = typeof pe.description === "string" && pe.description.trim() ? String(pe.description) : `${ye} custom tool`;
+            return { name: ye, path: oe, description: be, level: _.level, _source: ue };
+          }
+          const he = te.replace(/\.(ts|js|sh|bash|py)$/, "");
+          return {
+            name: he,
+            path: oe,
+            description: `${he} custom tool`,
+            level: _.level,
+            _source: ue
+          };
+        }
+      }),
+      zl(B)
+    ]);
+    const V = z.filter((te) => !te.name.startsWith(".") && te.isDirectory()).map((te) => Yo.join(B, te.name, "index.ts"));
+    const Y = await Promise.all(V.map((te) => qe(te)));
+    const Q = [];
+    for (let te = 0;te < V.length; te++) {
+      if (Y[te] === null)
+        continue;
+      const re = V[te];
+      const oe = Yo.basename(Yo.dirname(re));
+      Q.push({
+        name: oe,
+        path: re,
+        description: `${oe} custom tool`,
+        level: _.level,
+        _source: et(bo, re, _.level)
+      });
+    }
+    return { filesResult: G, indexItems: Q };
+  }));
+  const k = [];
+  const A = [];
+  for (const { filesResult: _, indexItems: B } of R) {
+    k.push(..._.items, ...B);
+    if (_.warnings)
+      A.push(..._.warnings);
+  }
+  return { items: k, warnings: A };
+}
+var zre = [".mcp.json", "mcp.json"];
+async function Vre(u) {
+  const p = await wd(u, "mcp");
+  const R = [];
+  const k = [];
+  const A = [];
+  for (const B of p) {
+    for (const G of zre) {
+      A.push({ root: B, mcpPath: Yo.join(B.path, G) });
+    }
+  }
+  const _ = await Promise.all(A.map(({ mcpPath: B }) => qe(B)));
+  for (let B = 0;B < A.length; B++) {
+    const G = _[B];
+    if (G === null)
+      continue;
+    const { root: z, mcpPath: V } = A[B];
+    const Y = I(G);
+    if (!Y) {
+      k.push(`[omp-plugins] Invalid JSON in ${V}`);
+      i(`[omp-plugins] Invalid JSON in ${V}`);
+      continue;
+    }
+    const Q = Yr(Y.mcpServers, {
+      CLAUDE_PLUGIN_ROOT: z.path,
+      OMP_PLUGIN_ROOT: z.path
+    });
+    if (!Q || typeof Q !== "object" || Array.isArray(Q))
+      continue;
+    for (const [te, re] of Object.entries(Q)) {
+      if (!re || typeof re !== "object" || Array.isArray(re))
+        continue;
+      const oe = re;
+      if (typeof oe.command !== "string" && typeof oe.url !== "string") {
+        k.push(`[omp-plugins] Skipping MCP server "${te}" in ${V}: missing command or url`);
+        continue;
+      }
+      const ue = tte({ command: oe.command, cwd: oe.cwd }, z.path);
+      const he = D9(oe.requestIdFormat);
+      if (he === undefined && oe.requestIdFormat != null) {
+        i(`[omp-plugins] MCP server "${te}" in ${V}: invalid requestIdFormat ${JSON.stringify(oe.requestIdFormat)}, ignoring`);
+      }
+      const pe = typeof oe.instructions === "boolean" ? oe.instructions : undefined;
+      if (pe === undefined && oe.instructions != null) {
+        i(`[omp-plugins] MCP server "${te}" in ${V}: invalid instructions ${JSON.stringify(oe.instructions)}, ignoring`);
+      }
+      R.push({
+        name: te,
+        ...oe.enabled !== undefined && { enabled: oe.enabled },
+        ...oe.timeout !== undefined && { timeout: oe.timeout },
+        ...he !== undefined && { requestIdFormat: he },
+        ...pe !== undefined && { instructions: pe },
+        ...ue.command !== undefined && { command: ue.command },
+        ...oe.args !== undefined && { args: oe.args },
+        ...oe.env !== undefined && { env: oe.env },
+        ...ue.cwd !== undefined && { cwd: ue.cwd },
+        ...oe.url !== undefined && { url: oe.url },
+        ...oe.headers !== undefined && { headers: oe.headers },
+        ...oe.auth !== undefined && { auth: oe.auth },
+        ...oe.oauth !== undefined && { oauth: oe.oauth },
+        ...oe.type !== undefined && { transport: oe.type },
+        _source: et(bo, V, z.level)
+      });
+    }
+  }
+  return { items: R, warnings: k };
+}
+De(Ul.id, {
+  id: bo,
+  displayName: md,
+  description: yd,
+  priority: bd,
+  load: Nre
+});
+De(Xd.id, {
+  id: bo,
+  displayName: md,
+  description: yd,
+  priority: bd,
+  load: Dre
+});
+De(la.id, {
+  id: bo,
+  displayName: md,
+  description: yd,
+  priority: bd,
+  load: Ure
+});
+De(pk.id, {
+  id: bo,
+  displayName: md,
+  description: yd,
+  priority: bd,
+  load: jre
+});
+De(Xh.id, {
+  id: bo,
+  displayName: md,
+  description: yd,
+  priority: bd,
+  load: Hre
+});
+De(Qw.id, {
+  id: bo,
+  displayName: md,
+  description: yd,
+  priority: bd,
+  load: Gre
+});
+De(Ia.id, {
+  id: bo,
+  displayName: md,
+  description: yd,
+  priority: bd,
+  load: Vre
+});
+
+
+
+// packages/coding-agent/src/discovery/skillshare.ts
+import * as wb from "fs/promises";
+import * as pb from "path";
+
+
+
+// packages/coding-agent/src/discovery/skillshare.ts
+var Xme = "skillshare";
+var nie = 95;
+async function rie(u, p, R, k) {
+  const A = p.skills[u];
+  const { scope: _, name: B } = jk(u);
+  const G = xH(_, B, A.version);
+  if (await TH(G) !== A.integrity) {
+    l("Skillshare skill missing from store; run `omp skill update` to restore it", {
+      id: u,
+      version: A.version,
+      storeDir: G
+    });
+    return null;
+  }
+  const z = await wb.realpath(G);
+  const V = pb.join(z, "SKILL.md");
+  let Y;
+  try {
+    Y = await wb.readFile(V, "utf8");
+  } catch (oe) {
+    if (!m(oe))
+      k.push(`Failed to read skill file: ${V} (${String(oe)})`);
+    else
+      l("Skillshare store dir has no SKILL.md", { id: u, version: A.version, storeDir: G });
+    return null;
+  }
+  const { frontmatter: Q, body: te } = or(Y, { source: V });
+  if (Q.enabled === false)
+    return null;
+  const re = Q.name;
+  return {
+    name: typeof re === "string" && re.trim() ? re.trim() : B,
+    path: V,
+    content: te,
+    frontmatter: Q,
+    containRoot: z,
+    level: R,
+    _source: et(Xme, V, R, `skillshare:${u}@${A.version}`, B)
+  };
+}
+async function gF(u, p, R) {
+  let k;
+  try {
+    k = await CH(u);
+  } catch (B) {
+    R.push(`Failed to read skills lock: ${B instanceof Error ? B.message : String(B)}`);
+    return [];
+  }
+  const A = Object.keys(k.skills).sort();
+  const _ = await Promise.all(A.map((B) => rie(B, k, p, R)));
+  return _.filter((B) => B !== null);
+}
+async function B3t(u) {
+  const p = [];
+  const R = [];
+  for await (const { dir: _ } of SDe(u)) {
+    R.push(gF(pb.join(_, kO.native.projectDir, tb), "project", p));
+  }
+  const k = gF(pb.join(ve(), tb), "user", p);
+  const A = await Promise.all([...R, k]);
+  return { items: A.flat(), warnings: p };
+}
+De(Ul.id, {
+  id: Xme,
+  displayName: "Skillshare",
+  description: "Registry skills installed with `omp skill install` (skills.lock.json)",
+  priority: nie,
+  load: B3t
+});
+
+
+
+// packages/coding-agent/src/internal-urls/router.ts
+import * as a4 from "path";
+
+
+
+// packages/coding-agent/src/internal-urls/router.ts
+zEt({
+  completionSchemes: () => Se.instance().completionSchemes(),
+  resolveCompletions: (u, p, R) => Se.instance().complete(u, p, R)
+});
+qCt({
+  spec: (u) => Se.instance().spec(u),
+  specs: () => Se.instance().specs()
+});
+var I0e = /^([a-z][a-z0-9+.-]*):\/(?!\/)/i;
+var L0e = /[\\/]([a-z][a-z0-9+.-]*):\/\/(?=[^/]|$)/gi;
+var $0e = /^(?![a-z]:[\\/])[a-z][a-z0-9+.-]*:/i;
+var O0e = /[*?[{]/;
+var N0e = /\?[\w.-]*=/;
+var D0e = /^(?:raw|conflicts)$/i;
+
+class Se {
+  static #e;
+  #t = new Map;
+  #n;
+  #r;
+  constructor() {
+    const u = new JNe;
+    this.#n = u.scheme.toLowerCase();
+    this.register(new xDe);
+    this.register(new gDe);
+    this.register(new sDe);
+    this.register(new uDe);
+    this.register(new EBe);
+    this.register(new rLe);
+    this.register(new HOe);
+    this.register(new Ou);
+    this.register(new dct);
+    this.register(new GOe);
+    this.register(new TDe);
+    this.register(new W6);
+    this.register(new RDe);
+    this.register(new CNe);
+    this.register(new ENe);
+    this.register(new ect);
+    this.register(u);
+    this.register(new dDe);
+    this.register(new MDe);
+    this.register(new UOe);
+    this.register(new nLe);
+    this.#r = new Set(this.#t.keys());
+  }
+  static instance() {
+    Se.#e ??= new Se;
+    return Se.#e;
+  }
+  static resetForTests() {
+    Se.#e = undefined;
+  }
+  register(u) {
+    const { scheme: p, spec: R } = u;
+    const k = R.write?.via;
+    if (k === "handler" && !u.write) {
+      throw new Error(`${p}:// spec.write.via is "handler" but the handler lacks write()`);
+    }
+    if (k !== "handler" && u.write) {
+      throw new Error(`${p}:// handler has write() but spec.write.via is ${k === undefined ? "absent" : `"${k}"`}`);
+    }
+    if (k === "file") {
+      if (R.backing !== "file") {
+        throw new Error(`${p}:// spec.write.via "file" requires backing "file", not "${R.backing}"`);
+      }
+      if (!u.locate)
+        throw new Error(`${p}:// spec.write.via "file" requires a locate() hook`);
+      if (R.immutable)
+        throw new Error(`${p}:// spec.write.via "file" contradicts spec.immutable`);
+    }
+    if (R.write?.scope === "sandbox" && (!R.linkable || !u.locateSync)) {
+      throw new Error(`${p}:// spec.write.scope "sandbox" requires spec.linkable and a locateSync() hook`);
+    }
+    this.#t.set(p.toLowerCase(), u);
+  }
+  isBuiltin(u) {
+    return this.#r.has(u.toLowerCase());
+  }
+  unregister(u) {
+    return this.#t.delete(u.toLowerCase());
+  }
+  getHandler(u) {
+    return this.#t.get(u.toLowerCase());
+  }
+  spec(u) {
+    return this.#t.get(u.toLowerCase())?.spec;
+  }
+  specs() {
+    const u = new Map;
+    for (const [p, R] of this.#t)
+      u.set(p, R.spec);
+    return u;
+  }
+  normalize(u) {
+    if (!$0e.test(u)) {
+      for (const R of u.matchAll(L0e)) {
+        if (this.#t.get(R[1].toLowerCase())?.spec.singleSlashAlias) {
+          return u.slice(R.index + 1);
+        }
+      }
+    }
+    const p = I0e.exec(u);
+    if (!p || !this.#t.get(p[1].toLowerCase())?.spec.singleSlashAlias)
+      return u;
+    return `${p[1]}://${u.slice(p[0].length)}`;
+  }
+  canHandle(u) {
+    return this.#l(u) !== undefined;
+  }
+  canResolve(u) {
+    const p = this.normalize(u);
+    const R = bi(p);
+    if (!R)
+      return false;
+    if (this.#t.has(R))
+      return this.canHandle(p);
+    return this.#o(R);
+  }
+  completionSchemes() {
+    const u = [];
+    for (const [p, R] of this.#t) {
+      if (R.complete)
+        u.push(p);
+    }
+    return u;
+  }
+  async complete(u, p, R) {
+    const k = this.#t.get(u.toLowerCase());
+    if (!k?.complete)
+      return null;
+    return k.complete(p, R);
+  }
+  split(u) {
+    return OQ(this.normalize(u), (p) => this.spec(p));
+  }
+  peelWriteSelector(u, p) {
+    const { path: R, sel: k } = this.split(u);
+    if (k === undefined || D0e.test(k))
+      return R;
+    throw new r(`${p} does not accept the trailing selector ":${k}" \u2014 it addresses a whole file. ` + `Remove ":${k}", or if the filename truly ends with it, percent-encode the ":" as %3A.`);
+  }
+  async target(u, p) {
+    const { path: R, sel: k } = this.split(u);
+    const A = bi(R);
+    if (!A)
+      return null;
+    const _ = this.#t.get(A);
+    const B = _ ? this.canHandle(R) ? _ : undefined : this.#i(A);
+    if (!B)
+      return null;
+    const G = ms(R);
+    const z = B.spec;
+    if (z.backing === "file" && B.locate) {
+      const V = await B.locate(G, p);
+      if (V !== null)
+        return { kind: "file", url: G, spec: z, path: V, sel: k };
+    }
+    return { kind: "resource", url: G, spec: z, sel: k };
+  }
+  async locate(u, p, R) {
+    const k = this.#l(u);
+    if (!k?.handler.locate)
+      return null;
+    return k.handler.locate(ms(this.split(k.url).path), p, R);
+  }
+  async requireLocal(u, p, R, k) {
+    const A = await this.locate(u, R, { ...k, localOnly: true });
+    if (A !== null)
+      return A;
+    const _ = this.#l(u);
+    const B = _?.handler.spec;
+    if (_?.handler.locate && B?.immutable && B.backing !== "remote") {
+      try {
+        await _.handler.resolve(ms(this.split(_.url).path), R);
+      } catch (V) {
+        if (R?.signal?.aborted)
+          throw V;
+        throw new r(`Cannot ${p} ${u}: ${V instanceof Error ? V.message : String(V)}`);
+      }
+    }
+    const G = bi(this.normalize(u));
+    const z = `Cannot ${p} ${G ?? u}:// URL: no local file backs ${u}`;
+    if (B?.backing === "remote" || B?.backing === "virtual") {
+      throw new r(`${z}. Use \`read ${u}\` to inspect it.`);
+    }
+    throw new r(z);
+  }
+  isGlob(u) {
+    const p = this.#a(u);
+    return p !== undefined && p.firstGlob !== -1;
+  }
+  locateSync(u, p) {
+    const R = this.#l(u);
+    if (!R?.handler.spec.linkable || !R.handler.locateSync)
+      return;
+    let k;
+    try {
+      k = ms(this.split(R.url).path);
+    } catch {
+      return;
+    }
+    return R.handler.locateSync(k, p);
+  }
+  sandboxRoots(u) {
+    const p = [];
+    for (const [R, k] of this.#t) {
+      if (k.spec.write?.scope !== "sandbox")
+        continue;
+      const A = this.locateSync(`${R}://`, u);
+      if (A !== undefined)
+        p.push(a4.resolve(A));
+    }
+    return p;
+  }
+  async enumerate(u, p) {
+    const R = this.#l(u);
+    if (!R?.handler.enumerate)
+      return null;
+    return R.handler.enumerate(ms(R.url), p);
+  }
+  writeTarget(u) {
+    const p = this.#l(u);
+    return p && { url: ms(p.url), spec: p.handler.spec };
+  }
+  fileWritable(u) {
+    const p = this.#l(u)?.handler.spec;
+    return p?.write?.via === "file" && !p.immutable;
+  }
+  writeTier(u, p, R) {
+    const k = this.#l(u);
+    if (!k)
+      return "write";
+    const A = k.handler.spec.write;
+    if (!A)
+      return { tier: "write", policy: "deny", reason: `${k.scheme}:// URLs are read-only` };
+    return A.tier(ms(k.url), p, R);
+  }
+  readTier(u) {
+    const p = u.toLowerCase();
+    let R = "read";
+    for (const [k, A] of this.#t) {
+      const _ = A.spec.readTier ?? "read";
+      if (gb[_] <= gb[R])
+        continue;
+      if (p.includes(`${k}://`))
+        R = _;
+    }
+    return R;
+  }
+  describe(u) {
+    const p = [];
+    for (const R of this.#t.values()) {
+      const k = R.promptDoc?.(u);
+      if (k !== undefined)
+        p.push(k);
+    }
+    return p;
+  }
+  #o(u) {
+    return !["file", "http", "https"].includes(u) && this.#t.has(this.#n);
+  }
+  #i(u) {
+    return this.#o(u) ? this.#t.get(this.#n) : undefined;
+  }
+  #l(u) {
+    const p = this.normalize(u);
+    const R = Pf(p);
+    const k = R && this.#t.get(R.scheme);
+    return k && R ? { url: p, scheme: R.scheme, handler: k } : undefined;
+  }
+  #a(u) {
+    const p = this.#l(u);
+    if (!p)
+      return;
+    const R = p.url.slice(p.scheme.length + 3);
+    const k = R.indexOf("#");
+    const A = k === -1 ? R : R.slice(0, k);
+    const _ = A.search(N0e);
+    const B = (_ === -1 ? A : A.slice(0, _)).split("/");
+    const G = B.findIndex((z, V) => (V > 0 || !p.handler.spec.portAuthority) && O0e.test(z));
+    return { ...p, segments: B, firstGlob: G };
+  }
+  #s(u, p = false) {
+    const R = ms(this.normalize(u));
+    const k = R.protocol.replace(/:$/, "").toLowerCase();
+    const A = this.#t.get(k) ?? (p ? this.#i(k) : undefined);
+    if (!A) {
+      const _ = Array.from(this.#t.keys()).map((B) => `${B}://`).join(", ");
+      throw new Error(`Unknown protocol: ${k}://
+Supported: ${_ || "none"}`);
+    }
+    return { parsed: R, handler: A };
+  }
+  async resolve(u, p) {
+    const { parsed: R, handler: k } = this.#s(u, true);
+    const A = await k.resolve(R, p);
+    return { ...A, immutable: A.immutable ?? k.spec.immutable };
+  }
+  async write(u, p, R) {
+    const { parsed: k, handler: A } = this.#s(u);
+    if (!A.write) {
+      const _ = k.protocol.replace(/:$/, "").toLowerCase();
+      throw new Error(`${_}:// URLs are read-only for write; use the protocol-specific tool for mutations.`);
+    }
+    return await A.write(k, p, R);
+  }
+}
+

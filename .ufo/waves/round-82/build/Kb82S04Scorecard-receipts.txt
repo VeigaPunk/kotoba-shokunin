@@ -1,0 +1,68 @@
+# Kb82S04Scorecard — patch verification receipts (draft time 2026-10-30)
+# scratch: /fast/scratch/hyaku/kotoba-r82/Kb82S04Scorecard (deleted after receipts copied; TMPDIR=$S/tmp)
+
+# lane state at draft time
+git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin rev-parse HEAD
+006a834cee4339ede8620e10c3995d5226141c0a
+git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin rev-parse --show-toplevel
+/home/vgpnk/Projects/shokunin/kotoba-shokunin
+git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin status --porcelain | wc -l
+16
+# SCORECARD.md clean in the worktree: 486 lines / 224,037 B
+sha256sum SCORECARD.md
+9b2e79a43b7f7e96208c0caaa252459c47c9eb4ab4f2b05db91933ba63fc296c  SCORECARD.md
+
+# byte-identity base -> HEAD on the paths this draft depends on
+git -C <lane> diff --stat 47dbe8781657de563ff867caca6244d28e3db504..HEAD -- SCORECARD.md verifiers/check_substrate_repin_v2.py verifiers/verify_skill_checklist.py plans/round-82.md
+ plans/round-82.md | 41 +++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 41 insertions(+)
+# (SCORECARD.md and both counters: no diff -> byte-identical base..HEAD)
+
+# counter identity at base (= HEAD)
+git -C <lane> show 47dbe8781657de563ff867caca6244d28e3db504:verifiers/check_substrate_repin_v2.py | sha256sum
+629487a116bdf287f2bcd43652ead051b052efd0a32632b38a45fece6ed4b348  -    # 767 lines, 38219 B
+git -C <lane> show 47dbe8781657de563ff867caca6244d28e3db504:verifiers/verify_skill_checklist.py | sha256sum
+b7d7b0fca8be17cfa18e75fe4d130a0d429e34f5f4e1a30fdc5fb22a70539615  -    # 2821 lines, 137349 B
+
+# draft-time host observation (lane seat, NOT the outside guard)
+file /home/vgpnk/.local/bin/omp
+/home/vgpnk/.local/bin/omp: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, for GNU/Linux 3.2.0, BuildID[sha1]=588d7307f333293c728b74df19b7323c20736899, not stripped
+/home/vgpnk/.local/bin/omp --version
+omp/18.14.0
+sha256sum /home/vgpnk/.local/bin/omp
+e7dd2b606c4ebe9d1a7bcfad1b8820db968cd6b05409fed1c6bc8db0b6a95a8f  /home/vgpnk/.local/bin/omp
+
+# patch build (clone --shared, checkout base, toplevel asserted before any mutation)
+TOPLEVEL ASSERTED: /fast/scratch/hyaku/kotoba-r82/Kb82S04Scorecard/clone
+clone HEAD: 47dbe8781657de563ff867caca6244d28e3db504
+sha256sum clone/SCORECARD.md
+9b2e79a43b7f7e96208c0caaa252459c47c9eb4ab4f2b05db91933ba63fc296c   # == worktree bytes
+git -C "$S/clone" diff --numstat            # after appending build/Kb82S04Scorecard.md
+7	0	SCORECARD.md
+cmp -n 224037 clone/SCORECARD.md scorecard.before.md
+(exit 0) PREFIX BYTE-IDENTICAL              # appended after line 486; nothing before it touched
+# patch written from the same diff: build/Kb82S04Scorecard.patch
+sha256sum build/Kb82S04Scorecard.patch
+72c596048bd1f993fc072fba6decf524dcd44de56014dfff466ff1924281b714  build/Kb82S04Scorecard.patch
+
+# patch verification
+git -C "$S/clone" apply --check <patch>     -> exit 0 (clone at base 47dbe878)
+git -C "$S/clone" apply <patch>; wc -lc clone/SCORECARD.md
+   493  233025  clone/SCORECARD.md          # 486 -> 493, pure addition, then restored
+git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin apply --check <patch>
+   -> exit 0 (read-only check against the lane worktree at 006a834; nothing applied)
+grep -c '{{' build/Kb82S04Scorecard.md
+0                                           # no placeholder braces
+
+# freeze commit ledger
+git -C <lane> show --stat --format='%H %s%n%ad' 006a834cee4339ede8620e10c3995d5226141c0a
+006a834cee4339ede8620e10c3995d5226141c0a round-82: freeze freshness and hermetic-selftest claims
+Wed Oct 28 02:29:36 2026 -0300
+ .ufo/waves/round-82/receipts/before-census.txt            | 37 ++++++++++
+ .ufo/waves/round-82/receipts/before-checklist-selftest.txt |  6 ++
+ .ufo/waves/round-82/receipts/before-checklist.txt         | 78 ++++++++++++++++++++++
+ .ufo/waves/round-82/receipts/before-pins.txt              | 40 +++++++++++
+ plans/round-82.md                                         | 41 ++++++++++++
+ 5 files changed, 202 insertions(+)
+
+# disk-guard status before work: /fast/scratch/hyaku 47% use, 432.2G free (ok; no pacman, no installs)

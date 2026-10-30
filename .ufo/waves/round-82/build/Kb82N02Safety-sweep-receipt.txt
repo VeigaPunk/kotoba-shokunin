@@ -1,0 +1,56 @@
+# Kb82N02Safety sweep receipt (2026-10-30). Read-only sweep; no production or sibling artifact mutated.
+# Base 47dbe8781657de563ff867caca6244d28e3db504; production HEAD observed 006a834cee4339ede8620e10c3995d5226141c0a (one commit ahead of base).
+# Scratch root /fast/scratch/hyaku/kotoba-r82/Kb82N02Safety (TMPDIR set; deleted after this receipt).
+
+## Disk guard
+$ /home/vgpnk/Projects/shokunin/scripts/hyaku/disk-guard.sh status  -> exit=0; /fast/scratch/hyaku 47% used, 430.5G free; /tmp 25%; /var/tmp 41%
+
+## Inventory
+- wave tree files: build=274, w1=46, total=332 (receipts/snapshots counted in the 332 total)
+- non-text (MIME) files: build/__pycache__/Kb82E11Loader_probe_gemini.cpython-314.pyc, build/__pycache__/Kb82E12Loader-probe.cpython-314.pyc
+  sha256 0196a5e460dbda4dc5fde16d358dd890b6fdc0513a975de183e9a831ad3cd81b  build/__pycache__/Kb82E11Loader_probe_gemini.cpython-314.pyc
+  sha256 a2e728b875c6c9cdd069828b02d512ec77719cc57f230de8c111a290b23e3a18  build/__pycache__/Kb82E12Loader-probe.cpython-314.pyc
+- largest text artifact: build/Kb82E12Loader-omp-18.14.0-strings.txt, 47434077 bytes, 2546731 lines
+  sha256 81277d3572277febcaf0853f10cf8778c64920f58a13fba98ef0accbb70a8319 (matches Kb82E12 and Kb82E14 receipts)
+
+## Secret sweep
+- credential-format regex (ghp_, github_pat_, sk-, AKIA, PRIVATE KEY, xox*, AIza) over build/w1/receipts/snapshots -> No matches found (exit 0)
+- keyword=value credential assignment (api_key/secret/password/access_token/auth_token) with quoted value >=10 chars -> No matches found (exit 0)
+- earlier broad keyword regex hits were JSON "token" field names and minified Bun/omp source in the strings dump and cline probe JSON; not credentials.
+
+## Mutation sweep
+- pacman invocations (-S/-Sy/-Syu/-U/-R/-Rns/-Syy) in wave tree -> No matches found
+- writes to ~/.local/bin, or to fleet-root LOG.md/SCORECARD.md/MANIFEST.json -> No matches found
+- executable git mutation (commit/push/checkout/reset/clean/add/rebase/stash/am/apply/restore/switch/merge/tag/cherry-pick) without -C in build/w1 -> No matches found; only read-only git calls and prose
+
+## Production tree (read-only)
+$ git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin rev-parse --show-toplevel -> /home/vgpnk/Projects/shokunin/kotoba-shokunin
+$ git status --porcelain: " M corpus/SOURCES.md" plus untracked .ufo/waves/round-82/** and plans/round-82-addendum-1.md
+- corpus/SOURCES.md: only line 189 (S248 row) differs from HEAD. HEAD blob d70af93cc6c66e9206ec6bc9a788049a2509e7be; worktree blob e2ef7e3d13d4efe449e8c53571785fe2f2beaaa9; file sha256 c48d3340ad833b2df752d878157cf8cbe5d31b3acc3f0a06dbdd1b8fdf78a5af
+- character change at col 939 (0-based): `| queued | 2026-10-27 |` in HEAD becomes `| mined | 2026-10-27 |` in worktree. Nothing else changed.
+- no transition-log line in the worktree accompanies the change.
+
+## Hardcoded tmp
+- /home/vgpnk/Projects/shokunin/scripts/hyaku/jj-lane-selftest.sh:29 (sha256 95b510d7c967ee857fce1efeaeaa8afb0391cda6911d0ef1ad634d3d59d31067): `SB=$(mktemp -d /tmp/jj-hyaku.XXXXXX)` ignores TMPDIR. Confirmed live by sed -n 29p.
+- wave artifacts with hardcoded /tmp or /var/tmp in build/w1 -> only Kb82E18 defect evidence (build/Kb82E18Hygiene-p1-jj-lane-tmp.txt and w1/Kb82E18Hygiene.md) and the Kb82E18 audit receipt line 7 (disk-guard.sh:293 uses /var/tmp fallback).
+
+## Provenance
+- build/Kb82E20Census-s248-open.txt sha256 b0d573679794bc36b095796738aa564ba068b008478c4a4e68c84b53e226c7e4; line 1 contains the date "2026-30-30" (invalid; today is 2026-10-30).
+- Kb82E20 reports S248 quote1 unbackable as written; the uncommitted queued->mined flip is therefore not supported by the S248 evidence as it stands.
+
+## Clone isolation (read-only inspection of scratch clones)
+- 10 clones under /fast/scratch/hyaku/kotoba-r82/*/clone; every clone's toplevel equals its own clone path; every clone's objects/info/alternates points at /home/vgpnk/Projects/shokunin/kotoba-shokunin/.git/objects.
+- at base 47dbe878: Kb82C02Hermetic, Kb82E10Loader, Kb82M01Loader, Kb82M02Checklist, Kb82M03Controls, Kb82M04Registry, Kb82V01Loader, Kb82V02Checklist
+- non-base fixture commits, clean worktree: Kb82C01Counter (HEAD aacc21d, 3 fixture commits, identity kb82c01counter@example.invalid); Kb82V03Pins (HEAD 6698f0a, 2 fixture commits, identity fixture@kb82v03pins.local)
+
+## Scratch leftovers (sibling scratch, not deleted by this seat)
+- /fast/scratch/hyaku/kotoba-r82 total ~2.6G; ten clones ~221-266M each
+- zero-byte seat roots: Kb82V04Governance, Kb82N01Harm, Kb82C06Freshness, Kb82C04FalseRed, Kb82C03Scope
+- Kb82E05Baseline and Kb82K01Overlap roots absent (deleted on exit)
+
+## Relative report paths
+- every DELIVERABLES line in w1 that names a wave path is absolute; the only `Report:` trailer (w1/Kb82S10SourcesLog.md) is relative as required.
+
+## Not run by this seat
+- No build, test, or gate was run; no sibling evidence re-executed.
+- Kb82E18 flagged three clone verifier fixture commits without --show-toplevel assertion (receipt build/Kb82E18Hygiene-audit-receipt.txt); not independently re-checked here.

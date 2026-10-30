@@ -1,0 +1,44 @@
+Kb82N01Harm sweep receipt (sentinel no-harm surface hunt, read-only)
+lane: /home/vgpnk/Projects/shokunin/kotoba-shokunin  HEAD 006a834cee4339ede8620e10c3995d5226141c0a  base 47dbe8781657de563ff867caca6244d28e3db504
+git diff --name-only base..HEAD -- verifiers corpus SKILL.md PROVINCE.md  -> (empty)  (no verifier/corpus/SKILL/PROVINCE change between base and HEAD)
+working tree: M corpus/SOURCES.md (uncommitted, not this seat); untracked .ufo/waves/round-82/* (other seats)
+
+## A. Active default-path literals (executable code), HEAD
+verifiers/check_substrate_pins.py:68            BINARIES["omp"]          = "/home/vgpnk/.local/bin/omp.real"
+verifiers/check_substrate_pins.py:311           --omp-binary default     = BINARIES["omp"]            (derived, same literal)
+verifiers/verify_surfaces.py:169                DEFAULT_BINARIES["omp"]  = "/home/vgpnk/.local/bin/omp.real"
+verifiers/verify_surfaces.py:2432               --omp-binary default     = DEFAULT_BINARIES["omp"]    (derived)
+verifiers/verify_harness_claims.py:53           OMP_BIN                  = HOME / ".local/bin/omp.real"
+verifiers/verify_harness_claims.py:629          --omp-bin default        = OMP_BIN                    (derived)
+verifiers/verify_harness_independent.py:124     DEFAULT_OMP_BINARY       = Path("/home/vgpnk/.local/bin/omp.real")
+verifiers/verify_harness_independent.py:1716    --omp-binary default     = DEFAULT_OMP_BINARY         (derived)
+verifiers/check_substrate_repin_v2.py          no omp literal; runs check_substrate_pins.py and verify_surfaces.py with NO path flags (inherits tree defaults above); HOST_OPENCODE :127 = /home/vgpnk/.opencode/bin/opencode (correct, unchanged)
+verifiers/compare_harness_independent.py        not re-read this seat (round-72 scout record: no binary path defaults)
+
+Count of independent omp.real literals in executable code: 4 (one per file). Each file derives its argparse default from its own constant: no second literal inside a file.
+Lane-wide grep (excluding .ufo, .git) for omp.real | local/bin/omp | OMP_REAL: 24 files; executable hits = the 4 above; OMP_REAL: 0 hits in lane.
+Fleet root scripts/, tools/, m-rev-vs-rev.py: 0 hits for omp.real or local/bin/omp.
+
+## B. Stale present-tense text in active (non-record) surfaces, HEAD
+verifiers/check_substrate_repin_v2.py:12-15  docstring "path move onto ~/.local/bin/omp.real" (frozen counter; editing changes its bytes, sha 629487a1...)
+verifiers/verify_harness_claims.py:14-19     docstring: omp line `~/.local/bin/omp` (correct after move); opencode line names npm opencode-ai npx-cache `.../opencode.exe` (round-47 lineage)
+verifiers/check_report_pointers.py:80,658,772  dotted-token fixture literal "omp.real" (non-pointer example, not a path)
+PROVINCE.md:30                                Core bullet: "omp.real and opencode v2.1.4 re-derived and re-pinned (round 72)" (dated round-72 statement in protected Core)
+SKILL.md:560                                  "`~/.local/bin/omp` embedded JS": TRUE again for the 18.14.0 ELF at that path (not stale)
+corpus/knowledge/claude-md-surface.md:8-11    undated counts against ~/.local/bin/omp (17 CLAUDE.md, 37 AGENTS.md); pre-existing, not a default
+corpus/knowledge/skill-activation-telemetry.md:18  ELF offset 283082932 (already dead before round 82; pre-existing)
+
+## C. Historical records (append-only, keep)
+verifiers/baseline.json omp_round51_note, omp_round72_note (and opencode_round53/round72 notes)
+LOG.md:2777 (round 72 entry); SCORECARD.md:32 (round 51 entry); plans/round-51.md:12-80; plans/round-72.md:33-46,111-138
+corpus/lessons/round-72-verifier-spotcheck.md:67-71; corpus/knowledge/instruction-surface-census-round13.md (dated)
+.ufo/waves/round-21..round-76 receipts and round-82 build receipts (before-state evidence): ~140 files under .ufo/waves containing omp.real
+
+## D. Pins
+verifiers/baseline.json measured_against.omp_binary_sha256 = 85d9daf3a05fc76e8cd425ae1904eb576af8d21cc85fcf4690742626e07ccfa4 (omp.real, absent on host)
+verifiers/baseline.json measured_against.omp_binary_mtime  = 2026-10-21T20:37:24.615549837-03:00 (omp.real)
+verifiers/baseline.json measured_against.opencode_binary_sha256 = ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7 (matches host)
+
+## E. Candidate move (other seat's build artifact, NOT applied, read only)
+build/Kb82E01Paths-c1-paths.patch: 4 files, 4 literal changes (check_substrate_pins.py:68, verify_surfaces.py:169, verify_harness_claims.py:53, verify_harness_independent.py:124) -> /home/vgpnk/.local/bin/omp
+  After E01 applied to HEAD: executable omp.real literals = 0. Residual after E01: B-items check_substrate_repin_v2.py:12-15 (frozen docstring) and verify_harness_claims.py:14-19 (opencode npm line). PROVINCE.md:30 is dated round-72 Core text.

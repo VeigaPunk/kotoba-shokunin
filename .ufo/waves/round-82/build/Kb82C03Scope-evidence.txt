@@ -1,0 +1,92 @@
+# Kb82C03Scope evidence transcript — 2026-10-30
+# seat: claim-headline audit, C1 freshness / C2 operability
+
+== 1. freeze state ==
+006a834 round-82: freeze freshness and hermetic-selftest claims
+
+== 2. omp binary identity ==
+/home/vgpnk/.local/bin/omp: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, for GNU/Linux 3.2.0, BuildID[sha1]=588d7307f333293c728b74df19b7323c20736899, not stripped
+e7dd2b606c4ebe9d1a7bcfad1b8820db968cd6b05409fed1c6bc8db0b6a95a8f  /home/vgpnk/.local/bin/omp
+omp/18.14.0
+
+== 3. counter immutability (round-72 freeze) ==
+30d27da round-72: freeze 2 — addendum E1-E4, three counters (author rules, substrate re-pin v2, tip battery) with self-test and base receipts, wave-1 evidence (53 seat reports, results, snapshots)
+
+== 4. C1 self-test (authorized gate self-test) ==
+world 'satisfying': exit 0 :: host substrate re-derived: pins OK 3/3; surfaces pass 7 of 7; removal ledger 1 of 1 verified
+world 'satisfying, omp class dropped': exit 0 :: host substrate re-derived: pins OK 3/3; surfaces pass 7 of 7; removal ledger 1 of 1 verified
+world 'stale mtime': exit 1 :: host substrate re-derived: pins OK 2/3; surfaces pass 7 of 7; removal ledger 1 of 1 verified
+world 'surfaces red': exit 1 :: host substrate re-derived: pins OK 3/3; surfaces pass 1 of 7; removal ledger 1 of 1 verified
+world 'present literal ledgered': exit 1 :: host substrate re-derived: pins OK 3/3; surfaces pass 7 of 7; removal ledger 1 of 2 verified
+world 'absent class unledgered': exit 1 :: host substrate re-derived: pins OK 3/3; surfaces pass 7 of 7; removal ledger 0 of 1 verified
+world 're-verdicted base class': exit 1 :: host substrate re-derived: pins OK 3/3; surfaces pass 7 of 7; removal ledger 1 of 1 verified
+world 'extra pin row': exit 1 :: host substrate re-derived: pins OK 3/3; surfaces pass 7 of 7; removal ledger 1 of 1 verified
+world 'extra check': exit 1 :: host substrate re-derived: pins OK 3/3; surfaces pass 7 of 7; removal ledger 1 of 1 verified
+world 'bad ledger': exit 2 :: cannot evaluate: verifiers/census-removals.json unreadable/unparseable: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+world 'no surfaces script': exit 2 :: cannot evaluate: gate or pin script missing at the revision
+world 'satisfying again': exit 0 :: host substrate re-derived: pins OK 3/3; surfaces pass 7 of 7; removal ledger 1 of 1 verified
+world 'pinned bytes are not the live bytes': exit 1 :: host substrate re-derived: pins OK 2/3; surfaces pass 7 of 7; removal ledger 1 of 1 verified
+world 'empty surfaces report': exit 2 :: cannot evaluate: verify_surfaces.py reported 0 row(s) (exit_code 2: fixture: no opencode dump); pins 3/3 row(s) PASS, surfaces 0/0 check(s) PASS
+0 failure(s) over 16 assertions
+exit=0
+
+== 5. C2 named before-command re-run ==
+self-test FAIL: governance: live round-65 corrections land, errata-excused: got ('FAIL', 1363, "SCORECARD.md:480: '.ufo/wapes' does not resolve from /home/vgpnk/Projects/shokunin/kotoba-shokunin; SCORECARD.md:482: 'corpus/lessons/round-80-verifier-spotcheck.md:30,37' does not resolve from /home/vgpnk/Projects/shokunin/kotoba-shokunin; SCORECARD.md:484: '.ufo/reports/round-81/kotoba.md' does not resolve from /home/vgpnk/Projects/shokunin/kotoba-shokunin; SCORECARD.md:484: '.ufo/reports/round-81/kotoba.md' does not resolve from /home/vgpnk/Projects/shokunin/kotoba-shokunin; 10 quoted meta-finding(s), 3 schematic token(s) excluded, 2 recorded absence(s) excused, 4 recorded correction(s) excused")
+1 failure(s) over 1863 assertions
+exit=1
+
+== 6. axis table at base ==
+  depth = 9
+  consistency (calibration sub-axis) = 10
+  coverage = 8.5 — was 8.0
+  operability (advisory) = 8.5 — was 8.0
+  freshness (advisory) = 8  (tied lowest with adjacency)
+  calibration (advisory) = 8.5 — was 8.0  (plan D1 misstates as 10)
+  adjacency (advisory) = 8.0 — was 7.5
+== 7. causal separability greps ==
+-- checklist refs in C1 counter:
+0 hits
+-- substrate/host refs in checklist:
+0 hits
+
+== 8. failing-arm source (live read) ==
+        live_repo = Path(__file__).resolve().parent.parent
+        status, evaluated, detail = check_governance_citations(
+            live_repo, corrections=GOVERNANCE_CORRECTIONS)
+        rec("governance: live round-65 corrections land, errata-excused",
+            status == "PASS" and "2 recorded absence(s) excused" in detail
+            and "4 recorded correction(s) excused" in detail,
+            (status, evaluated, detail))
+        # regression: that LOG.md:2678 row is load-bearing -- dropping it or
+        # lowering the horizon below 2678 must turn the live check red, so
+-- load-bearing live arm:
+        rec("governance: LOG.md:2678 erratum is load-bearing",
+            GOVERNANCE_ERRATA_HORIZON >= 2678
+            and dropped[0] == "FAIL" and "LOG.md:2678" in dropped[2]
+            and low[0] == "FAIL" and "past horizon 2677" in low[2],
+            (dropped, low))
+
+    # An explicit relative --repo must be normalized before bounded `..`
+    # hops; Path('.').parent otherwise stays '.', changing the verdict.
+    with tempfile.TemporaryDirectory(prefix="kotoba-relative-repo-") as td:
+        parent = Path(td)
+        child = parent / "child"
+        child.mkdir()
+        (parent / "shared").mkdir()
+        (parent / "shared" / "live.md").write_text("", encoding="utf-8")
+        (child / "SKILL.md").write_text(
+
+== 9. committed before receipts (plan narrative match) ==
+-- before-pins.txt tail (pin JSON 1 PASS / 2 UNREADABLE, command-owned exit):
+exit=2
+-- before-c1-counter.txt tail (counter cannot evaluate at base):
+exit=2
+-- before-checklist-selftest.txt tail (do-nothing misses 0-failure target):
+exit=1
+
+== 10. removal ledger class count ==
+3 classes: ['opencode:instructions/CONTEXT.md', 'opencode:instructions/CLAUDE.md', 'opencode:claude-home/CLAUDE.md']
+
+== 11. SOURCES ceiling (S251 reservation) ==
+highest committed row: S250
+S251 row: absent (reservation is consistent; opened this round)

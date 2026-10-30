@@ -1,0 +1,185 @@
+== gemini.ts module, dump lines 976395-976560 (module opens at 976395) ==
+      args: Array.isArray(Y.args) ? Y.args : undefined,
+      env: Y.env && typeof Y.env === "object" ? Y.env : undefined,
+      url: typeof Y.url === "string" ? Y.url : undefined,
+      headers: Y.headers && typeof Y.headers === "object" ? Y.headers : undefined,
+      transport: ["stdio", "sse", "http"].includes(Y.type) ? Y.type : undefined,
+      timeout: typeof Y.timeout === "number" ? Y.timeout : undefined,
+      _source: et(Co, p, R)
+    });
+  return { items: k, warnings: A };
+async function Qne(u) {
+  const p = [];
+  const R = [];
+  const k = Ac(u, "gemini", "GEMINI.md");
+  if (k) {
+    const _ = await qe(k);
+    if (_) {
+      p.push({
+        path: k,
+        content: _,
+        level: "user",
+        _source: et(Co, k, "user")
+      });
+    }
+  const A = ts(u, "gemini", "GEMINI.md");
+  if (A) {
+    const _ = await qe(A);
+    if (_) {
+      const B = ts(u, "gemini", "");
+      const G = B ? PS(u.cwd, B, Qm.sep) : 0;
+      p.push({
+        path: A,
+        content: _,
+        level: "project",
+        depth: G,
+        _source: et(Co, A, "project")
+      });
+    }
+  return { items: p, warnings: R };
+async function Zne(u) {
+  const p = [];
+  const R = [];
+  const k = Ac(u, "gemini", "extensions");
+  if (k) {
+    const _ = await tF(k, "user");
+    p.push(..._.items);
+    if (_.warnings)
+      R.push(..._.warnings);
+  const A = ts(u, "gemini", "extensions");
+  if (A) {
+    const _ = await tF(A, "project");
+    p.push(..._.items);
+    if (_.warnings)
+      R.push(..._.warnings);
+  return { items: p, warnings: R };
+async function tF(u, p) {
+  const R = await zl(u);
+  const k = R.filter((G) => G.isDirectory());
+  const A = await Promise.all(k.map(async (G) => {
+    const z = Qm.join(u, G.name);
+    const V = Qm.join(z, "gemini-extension.json");
+    const Y = await qe(V);
+    return { entry: G, extPath: z, manifestPath: V, content: Y };
+  }));
+  const _ = [];
+  const B = [];
+  for (const { entry: G, extPath: z, manifestPath: V, content: Y } of A) {
+    if (!Y)
+      continue;
+    const Q = I(Y);
+    if (!Q) {
+      B.push(`Invalid JSON in ${V}`);
+      continue;
+    }
+    _.push({
+      name: Q.name ?? G.name,
+      path: z,
+      manifest: Q,
+      level: p,
+      _source: et(Co, V, p)
+    });
+  return { items: _, warnings: B };
+async function ere(u) {
+  const p = Ac(u, "gemini", "extensions");
+  const R = ts(u, "gemini", "extensions");
+  const [k, A] = await Promise.all([
+    p ? $g(u, p) : Promise.resolve([]),
+    R ? $g(u, R) : Promise.resolve([])
+  ]);
+  const _ = B9(Co, k, A);
+  return { items: _, warnings: [] };
+async function tre(u) {
+  const p = [];
+  const R = [];
+  const k = Ac(u, "gemini", "settings.json");
+  if (k) {
+    const _ = await qe(k);
+    if (_) {
+      const B = I(_);
+      if (B) {
+        p.push({
+          path: k,
+          data: B,
+          level: "user",
+          _source: et(Co, k, "user")
+        });
+      } else {
+        R.push(`Invalid JSON in ${k}`);
+      }
+    }
+  const A = ts(u, "gemini", "settings.json");
+  if (A) {
+    const _ = await qe(A);
+    if (_) {
+      const B = I(_);
+      if (B) {
+        p.push({
+          path: A,
+          data: B,
+          level: "project",
+          _source: et(Co, A, "project")
+        });
+      } else {
+        R.push(`Invalid JSON in ${A}`);
+      }
+    }
+  return { items: p, warnings: R };
+De(Ia.id, {
+  id: Co,
+  displayName: Ju,
+  description: "Load MCP servers from ~/.gemini/settings.json and .gemini/settings.json",
+  priority: Xu,
+  load: Yne
+De(Hl.id, {
+  id: Co,
+  displayName: Ju,
+  description: "Load GEMINI.md context files",
+  priority: Xu,
+  load: Qne
+async function nre(u) {
+  const p = [];
+  const R = async (k, A, _) => {
+    if (!k)
+      return;
+    const B = await qe(k);
+    if (B) {
+      p.push({ path: k, content: B, kind: _, level: A, _source: et(Co, k, A) });
+    }
+  };
+  await R(ts(u, "gemini", "SYSTEM_TEMPLATE.md"), "project", "template");
+  await R(ts(u, "gemini", "system.md"), "project", "text");
+  await R(Ac(u, "gemini", "SYSTEM_TEMPLATE.md"), "user", "template");
+  await R(Ac(u, "gemini", "system.md"), "user", "text");
+  return { items: p, warnings: [] };
+De(ob.id, {
+  id: Co,
+  displayName: Ju,
+  description: "Load system.md custom system prompt files",
+  priority: Xu,
+  load: nre
+De(g1e.id, {
+  id: Co,
+  displayName: Ju,
+  description: "Load extensions from ~/.gemini/extensions/ and .gemini/extensions/",
+  priority: Xu,
+  load: Zne
+De(Kw.id, {
+
+== GEMINI.md non-call occurrence contexts ==
+-- line 655674 --
+Load GEMINI.md context files)
+-- line 664242 --
+GEMINI.md
+-- line 976530 --
+  description: "Load GEMINI.md context files",
+
+== SYSTEM_TEMPLATE.md first 3 occurrence lines ==
+655300:Custom system prompt files (SYSTEM.md, SYSTEM_TEMPLATE.md) that modify agent behavior
+655569:Custom system prompt from SYSTEM.md and SYSTEM_TEMPLATE.md
+655656:Load SYSTEM.md and SYSTEM_TEMPLATE.md from .agent and .agents (project walk-up + user home)
+
+== system.md first 3 occurrence lines ==
+655675:Load system.md custom system prompt files
+664243:system.md
+822065:// packages/ai/src/images/factory-droid-gemini-system.md

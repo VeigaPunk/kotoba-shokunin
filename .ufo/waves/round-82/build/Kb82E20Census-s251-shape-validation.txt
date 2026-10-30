@@ -1,0 +1,18 @@
+# S251 proposed-row shape validation in scratch (seat Kb82E20Census)
+# row NOT written to any registry; validated on a copy of the base tree at 47dbe8781657de563ff867caca6244d28e3db504
+
+## variant mined, used-by fixtures present
+$ awk -F"|" row check: NF=13 -> 11 cells
+$ sources-census.sh validate s251check  -> exit 0, s251check ok, same 32 W04, no E/W for S251
+$ sources-census.sh census s251check   -> exit 0 rows 177 tier.A 138 mined 152 queued 8 rejected 17 invalid 0 missing 0
+$ sources-census.sh overdue s251check  -> exit 0, cadence S251 recheck=on-release opened=2026-10-30, no overdue
+$ python3 -B verifiers/verify_corpus_integrity.py --repo s251check --json --no-baseline -> exit 1 (pre-existing base red)
+  commit_total 50, commit_unresolvable 1 (unchanged site corpus/lessons/round-81.md:8), commit_external 2, commit_nonhash 0, commit_truncated 5 -> row grammar adds zero citation sites
+
+## control 1: mined, used-by knowledge fixture deleted
+$ sources-census.sh validate s251check -> exit 1, "E11 S251 missing used-by corpus/knowledge/host-loader-rederivation-round82.md"
+=> a mined S251 must land in the same commit as its used-by targets (or land queued)
+
+## control 2: status=queued, used-by paths missing
+$ sources-census.sh validate s251check -> exit 0, s251check ok, zero E11 for S251
+=> E11 path-check is mined-only (round-81 M3 behavior holds for S251)

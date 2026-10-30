@@ -1,0 +1,38 @@
+Kb82V04Governance — E04/E05 unclaimed-maintenance worlds, base 47dbe8781657de563ff867caca6244d28e3db504
+Clone: git clone --shared <lane> /fast/scratch/hyaku/kotoba-r82/Kb82V04Governance/clone; checkout 47dbe87;
+scratch identity Kb82V04Governance <kb82v04@scratch.invalid>; fixture commits only, no lane mutation.
+Every gate run: python3 -B verifiers/verify_corpus_{integrity,independent}.py --json > out 2>&1; exit captured as its own.
+
+world        head                                       intg_exit indep_exit  key result
+base         47dbe87 (clone HEAD = lane base)            1         1           unres 1 (8b1cc1b, r81-lesson meta-finding); ext 2 (S230/S250); report_dead clone 1 = location artifact (below)
+wc-pad       096518d7163e4ddf264351359ee6098888c9cd68    1         1           PAD ALIVE: ## SHONEN+816B committed at .ufo/reports/round-83/kotoba.md, cited HEAD: -> NOT report_dead; control HEAD:.ufo/reports/round-84/kotoba.md -> dead (both gates)
+wa-forge     c05e80bb2437caa177ed283c900ab1becb66f391    1         1           FORGED BINDING: test-authored receipt naming repo but NOT the hash, manifest row + sha256 -> integrity commit_external=3 incl. 8b1cc1b, unres=0; independent unres=1, ext=2 (R81-D1 skew live on same bytes)
+we-ellipsis  1813ad39b53bccd691710eae06774e74c55528a3    1         1           commit `0123456789abcdef0123456789abcdef01234567` -> commit_unresolvable +1; same 40-hex + U+2026 -> commit_truncated +1 (context), BOTH gates: ellipsis launder live
+wr-revprefix b3becc1c1ba9109113917c4c04a537246bb0eb23    1         1           corpus/lessons/round-77-verifier-spotcheck.md:15:.ufo/reports/round-77/kotoba.md -> integrity DEAD / independent LIVE (bare-path fleet hop, 8,547 B); HEAD@{1}: prefix -> dead both
+
+Clone caveat: corpus/lessons/round-81.md:29 token ../../.ufo/reports/round-76/kotoba.md resolves only in
+the fleet layout (the r79/80 four-hop symlink); reads report_dead=1 in scratch clones vs 0 in the lane --
+location artifact of the fixture environment, not a gate finding.
+
+Instrument facts read on committed bytes (not worlds):
+verify_corpus_integrity.py:684-708 external_binding -- receipt sha256 + repository NAME required; the
+  bound hash itself is NOT required inside the receipt (R81-D1, declined patch Kb81E01Integrity.hashcheck-DECLINED)
+verify_corpus_independent.py:538-560 external_commits -- sha in text AND name.lower() in text (stricter)
+TRUNCATED_COMMIT_RE = [0-9a-fA-F]{7,40} + U+2026 -- verify_corpus_integrity.py:162, verify_corpus_independent.py:147
+refresh-corpus-baseline.py (.ufo/waves/round-81/build/): --carry = set(check_id) class-level; carried
+  counts land in measured_against.note prose only (line 311); row['expect']=0 unconditional for
+  zero-mode classes (line 285) -- a baseline can never record a nonzero zero-mode value; SOFT_CROSS_CHECK
+  tolerates printed cross-gate disagreement (line 104)
+check_tip_battery.py:132 INSTRUMENT_PINS -- verifiers/external-commits.json is NOT a pinned member;
+  BASE = 072048fa pinned (line 111); spotcheck-identity INFO-only for post-base files (line 338)
+f08f60eee10560f0200f0968d154c31001f3aa59be64f70c515864b02e639377  Kb82V04Governance-base-independent.json
+a22a1d61629ebb3d77ea144739dcf4ab601d82e5a7dd3eb9001bed3c92551b5a  Kb82V04Governance-base-integrity.json
+07a236016d9f1102b2435b75523ba32c056586d9f764593cfbf0ad21b18e4515  Kb82V04Governance-receipts.txt
+b16e7def32df024bc07a52be3f57f1c541ae5c1ed42e05a710c3e040d16c0808  Kb82V04Governance-wa-forge-independent.json
+e02c03cca1274619275378aa6784821fd9e6606f8fe6a21762d38a0ce761b8aa  Kb82V04Governance-wa-forge-integrity.json
+c6c049864091caaf57f3055509de6026fd8a04d50c95e3f54802b1786e7506b6  Kb82V04Governance-wc-pad-independent.json
+c6f7d69ea6d54d04cd4813bb8ef1f95dbb3c03c7ccbd68b2e1456c2ef8156674  Kb82V04Governance-wc-pad-integrity.json
+46551790d9fb297a2be84fca7d2bcdd098a7f5a6c741745e4d9aa199810af7bb  Kb82V04Governance-we-ellipsis-independent.json
+bea86bc7305a73e44f9bd8546e0510b7ea4e743264636b049926f61b2cc20877  Kb82V04Governance-we-ellipsis-integrity.json
+5ca136ed95c6fc1ae9da2fedcfcea5cc9a7d6fbb701d7a3a87098a84b32124d7  Kb82V04Governance-wr-revprefix-independent.json
+43d00d72264e08cb8c5c719d38c74c7806db99e6414ea31bffe3bf19dd21f121  Kb82V04Governance-wr-revprefix-integrity.json

@@ -1,0 +1,679 @@
+{
+ "declared_pair_count": 33,
+ "loader_group_pair_count": 8,
+ "results": [
+  {
+   "axis": "quoted-vs-variable",
+   "case": "same callee mixes var group and quoted group",
+   "expectation": "LOUD",
+   "verdict": "OK",
+   "observed": [
+    [
+     "agents-md",
+     "AGENTS.md"
+    ],
+    [
+     "claude-md",
+     "CLAUDE.md"
+    ]
+   ],
+   "detail": "both pair forms extract from an admitted callee"
+  },
+  {
+   "axis": "quoted-vs-variable",
+   "case": "cross-module different value cannot override own-module binding",
+   "expectation": "LOUD",
+   "verdict": "OK",
+   "observed": [
+    [
+     "agents-md",
+     "AGENTS.md"
+    ]
+   ],
+   "detail": "drop-on-conflict fires dump-wide, so the global merge entry exists only when ALL dump bindings agree; own-module value then necessarily matches -- the docstring's 'dump-wide wins wherever it has an entry' is defensive-only"
+  },
+  {
+   "axis": "quoted-vs-variable",
+   "case": "var bound after the call in same module (hoisting)",
+   "expectation": "LOUD",
+   "verdict": "OK",
+   "observed": [
+    [
+     "agents-md",
+     "AGENTS.md"
+    ]
+   ],
+   "detail": "constant table is order-independent within the scope"
+  },
+  {
+   "axis": "quoted-vs-variable",
+   "case": "comment-line binding collides with real binding (same module)",
+   "expectation": "LOUD",
+   "verdict": "OK",
+   "observed": [
+    [
+     "<unresolved-var:nD>",
+     "AGENTS.md"
+    ]
+   ],
+   "detail": "comment binding + real binding in one module = scope conflict -> unresolved (loud); comment pollution can only over-conservatize, never mis-resolve"
+  },
+  {
+   "axis": "repeated-module-vars",
+   "case": "same module var reused by two callees",
+   "expectation": "LOUD",
+   "verdict": "OK",
+   "observed": [
+    [
+     "agents-md",
+     "AGENTS.md"
+    ]
+   ],
+   "detail": ""
+  },
+  {
+   "axis": "repeated-module-vars",
+   "case": "identical rebind in one module is not a conflict",
+   "expectation": "LOUD",
+   "verdict": "OK",
+   "observed": [
+    [
+     "agents-md",
+     "AGENTS.md"
+    ]
+   ],
+   "detail": ""
+  },
+  {
+   "axis": "repeated-module-vars",
+   "case": "own-module binding settles call despite other-module conflict",
+   "expectation": "LOUD",
+   "verdict": "OK",
+   "observed": [
+    [
+     "agents-md",
+     "AGENTS.md"
+    ]
+   ],
+   "detail": "b2h-settled semantics; a repeated marker between binding and call splits scopes and the call falls back to the (conflicted) global table -> unresolved, also loud"
+  },
+  {
+   "axis": "unresolved-vars",
+   "case": "unresolved group + declared file surfaces",
+   "expectation": "LOUD",
+   "verdict": "OK",
+   "observed": [
+    [
+     "<unresolved-var:Z$>",
+     "CLAUDE.md"
+    ]
+   ],
+   "detail": "P4 admission: unresolved + declared_file admits the callee"
+  },
+  {
+   "axis": "unresolved-vars",
+   "case": "unresolved group + NEW file + unadmitted callee VANISHES",
+   "expectation": "LOUD",
+   "verdict": "OK",
+   "observed": [
+    [
+     "<unresolved-var:Z$>",
+     "BRANDNEW.md"
+    ]
+   ],
+   "detail": "a genuinely new loader class with an unsettled group var and no admitted sibling call silently disappears: no_uncovered_class sees nothing, vacuity guard silent (other 8 pairs still extract), literal_present only covers declared rows"
+  },
+  {
+   "axis": "unresolved-vars",
+   "case": "unresolved+new file but callee has declared sibling",
+   "expectation": "LOUD",
+   "verdict": "OK",
+   "observed": [
+    [
+     "<unresolved-var:Z$>",
+     "BRANDNEW.md"
+    ],
+    [
+     "gemini",
+     "GEMINI.md"
+    ]
+   ],
+   "detail": "admitted callee's unresolved pair extracts -> uncovered FAIL"
+  },
+  {
+   "axis": "renamed-callees",
+   "case": "dollar-suffixed callee",
+   "expectation": "LOUD",
+   "verdict": "OK",
+   "observed": [
+    [
+     "agents-md",
+     "AGENTS.md"
+    ]
+   ],
+   "detail": ""
+  },
+  {
+   "axis": "renamed-callees",
+   "case": "non-ASCII callee identifier",
+   "expectation": "LOUD",
+   "verdict": "OK",
+   "observed": [
+    [
+     "gemini",
+     "GEMINI.md"
+    ]
+   ],
+   "detail": "OMP_GENERIC_CALL_RE identifier class is ASCII-only; alone it trips vacuity, alongside ASCII callees its pairs go missing -> literal_present loud; charset assumption not written into the documented grammar"
+  },
+  {
+   "axis": "renamed-callees",
+   "case": "keyword decoy 'function(u,\"gemini\",\"GEMINI.md\")'",
+   "expectation": "LOUD",
+   "verdict": "TRADE",
+   "observed": [
+    [
+     "gemini",
+     "GEMINI.md"
+    ]
+   ],
+   "detail": "any-identifier admission has no reserved-word filter; a docs/test string with this text would mint provenance; not present in live dump (11 shapes)"
+  },
+  {
+   "axis": "non-md-registrations",
+   "case": "uppercase .MD file arg",
+   "expectation": "LOUD",
+   "verdict": "TRADE",
+   "observed": [],
+   "detail": "file regex is lowercase-.md-only; case-insensitive-platform registration would be invisible; documented limit says '.md-suffixed' without case note"
+  },
+  {
+   "axis": "non-md-registrations",
+   "case": "same-shape non-md registrations invisible",
+   "expectation": "LOUD",
+   "verdict": "TRADE",
+   "observed": [],
+   "detail": "by-design outside set; census hand-declares them; absence on a new binary must be documented, never silently dropped"
+  },
+  {
+   "axis": "decoys",
+   "case": "member call o.x(...) excluded",
+   "expectation": "LOUD",
+   "verdict": "OK",
+   "observed": [],
+   "detail": ""
+  },
+  {
+   "axis": "decoys",
+   "case": "undeclared alias decoy excluded",
+   "expectation": "LOUD",
+   "verdict": "OK",
+   "observed": [],
+   "detail": ""
+  },
+  {
+   "axis": "decoys",
+   "case": "comment-line call shape of admitted callee extracts",
+   "expectation": "LOUD",
+   "verdict": "OK",
+   "observed": [],
+   "detail": "regex is not line-anchored; a bundler-retained comment carrying the call text witnesses a loader that need not exist -> false provenance PASS"
+  },
+  {
+   "axis": "decoys",
+   "case": "escaped-string-embedded shape",
+   "expectation": "LOUD",
+   "verdict": "OK",
+   "observed": [],
+   "detail": "escaped quotes break the shape; if matched it would be decoy provenance"
+  },
+  {
+   "axis": "live-dump",
+   "case": "all generic call shapes on frozen 18.14.0 dump",
+   "expectation": "11 shapes, none on comment lines, all in src/discovery",
+   "verdict": "OK",
+   "observed": [
+    {
+     "line": 972670,
+     "callee": "F9",
+     "group_var": "nD",
+     "file": "AGENTS.md",
+     "line_is_comment": false,
+     "line_text": "return F9(u, nD, \"AGENTS.md\");"
+    },
+    {
+     "line": 972681,
+     "callee": "F9",
+     "group_var": "rD",
+     "file": "CLAUDE.md",
+     "line_is_comment": false,
+     "line_text": "return F9(u, rD, \"CLAUDE.md\");"
+    },
+    {
+     "line": 976407,
+     "callee": "Ac",
+     "group_var": null,
+     "file": "GEMINI.md",
+     "line_is_comment": false,
+     "line_text": "const k = Ac(u, \"gemini\", \"GEMINI.md\");"
+    },
+    {
+     "line": 976418,
+     "callee": "ts",
+     "group_var": null,
+     "file": "GEMINI.md",
+     "line_is_comment": false,
+     "line_text": "const A = ts(u, \"gemini\", \"GEMINI.md\");"
+    },
+    {
+     "line": 976543,
+     "callee": "ts",
+     "group_var": null,
+     "file": "SYSTEM_TEMPLATE.md",
+     "line_is_comment": false,
+     "line_text": "await R(ts(u, \"gemini\", \"SYSTEM_TEMPLATE.md\"), \"project\", \"template\");"
+    },
+    {
+     "line": 976544,
+     "callee": "ts",
+     "group_var": null,
+     "file": "system.md",
+     "line_is_comment": false,
+     "line_text": "await R(ts(u, \"gemini\", \"system.md\"), \"project\", \"text\");"
+    },
+    {
+     "line": 976545,
+     "callee": "Ac",
+     "group_var": null,
+     "file": "SYSTEM_TEMPLATE.md",
+     "line_is_comment": false,
+     "line_text": "await R(Ac(u, \"gemini\", \"SYSTEM_TEMPLATE.md\"), \"user\", \"template\");"
+    },
+    {
+     "line": 976546,
+     "callee": "Ac",
+     "group_var": null,
+     "file": "system.md",
+     "line_is_comment": false,
+     "line_text": "await R(Ac(u, \"gemini\", \"system.md\"), \"user\", \"text\");"
+    },
+    {
+     "line": 976641,
+     "callee": "Ac",
+     "group_var": null,
+     "file": "AGENTS.md",
+     "line_is_comment": false,
+     "line_text": "const k = Ac(u, \"opencode\", \"AGENTS.md\");"
+    },
+    {
+     "line": 976880,
+     "callee": "ts",
+     "group_var": null,
+     "file": "copilot-instructions.md",
+     "line_is_comment": false,
+     "line_text": "const k = ts(u, \"github\", \"copilot-instructions.md\");"
+    },
+    {
+     "line": 977791,
+     "callee": "Ac",
+     "group_var": null,
+     "file": "memories/global_rules.md",
+     "line_is_comment": false,
+     "line_text": "const k = Ac(u, \"windsurf\", \"memories/global_rules.md\");"
+    }
+   ],
+   "detail": "frozen dump sha256 81277d3572277febcaf0853f10cf8778c64920f58a13fba98ef0accbb70a8319"
+  },
+  {
+   "axis": "live-dump",
+   "case": "callee census on frozen dump",
+   "expectation": "Ac/F9/ts expected; E01 artifact claims only ts,Ac",
+   "verdict": "OK",
+   "observed": {
+    "F9": 2,
+    "Ac": 5,
+    "ts": 4
+   },
+   "detail": "E01 loader-pairs parenthetical omits F9, the var-group callee"
+  },
+  {
+   "axis": "live-dump",
+   "case": "non-md third-arg shapes (invisible set)",
+   "expectation": "data",
+   "verdict": "OK",
+   "observed": [
+    {
+     "line": 152279,
+     "callee": "E",
+     "group": "t",
+     "file": "read from private field",
+     "line_text": "var w=Object.create,W=Object.getOwnPropertyDescriptors,k=Object.getPrototypeOf,c=Object.defineProperty,P=Object.getOwnPr"
+    },
+    {
+     "line": 152279,
+     "callee": "E",
+     "group": "t",
+     "file": "write to private field",
+     "line_text": "var w=Object.create,W=Object.getOwnPropertyDescriptors,k=Object.getPrototypeOf,c=Object.defineProperty,P=Object.getOwnPr"
+    },
+    {
+     "line": 152279,
+     "callee": "E",
+     "group": "t",
+     "file": "access private method",
+     "line_text": "var w=Object.create,W=Object.getOwnPropertyDescriptors,k=Object.getPrototypeOf,c=Object.defineProperty,P=Object.getOwnPr"
+    },
+    {
+     "line": 152279,
+     "callee": "SuppressedError",
+     "group": "t",
+     "file": "An error was suppressed during disposal",
+     "line_text": "var w=Object.create,W=Object.getOwnPropertyDescriptors,k=Object.getPrototypeOf,c=Object.defineProperty,P=Object.getOwnPr"
+    },
+    {
+     "line": 159557,
+     "callee": "SuppressedError",
+     "group": "r",
+     "file": "An error was suppressed during disposal",
+     "line_text": "var B=(e,r)=>(Object.defineProperty(e,\"name\",{value:r,enumerable:!1,configurable:!0}),e),F=function(e,r,o,t){var i=argum"
+    },
+    {
+     "line": 163060,
+     "callee": "__accessCheck",
+     "group": "member",
+     "file": "read from private field",
+     "line_text": "__accessCheck(obj, member, \"read from private field\"),"
+    },
+    {
+     "line": 163069,
+     "callee": "__accessCheck",
+     "group": "member",
+     "file": "write to private field",
+     "line_text": "__accessCheck(obj, member, \"write to private field\"),"
+    },
+    {
+     "line": 163072,
+     "callee": "__accessCheck",
+     "group": "member",
+     "file": "access private method",
+     "line_text": "export var __privateMethod = (obj, member, method) => (__accessCheck(obj, member, \"access private method\"), method);"
+    },
+    {
+     "line": 180769,
+     "callee": "createObjectWithoutPrototype",
+     "group": "false",
+     "file": "result",
+     "line_text": "let returnObject = @createObjectWithoutPrototype("
+    },
+    {
+     "line": 180824,
+     "callee": "createObjectWithoutPrototype",
+     "group": "false",
+     "file": "result",
+     "line_text": "callback(@createObjectWithoutPrototype("
+    },
+    {
+     "line": 180832,
+     "callee": "createObjectWithoutPrototype",
+     "group": "false",
+     "file": "result",
+     "line_text": "callback(@createObjectWithoutPrototype("
+    },
+    {
+     "line": 180866,
+     "callee": "createObjectWithoutPrototype",
+     "group": "fetchStart",
+     "file": "fetchCount",
+     "line_text": "return this._getProperties(objectId, collectionMode, @createObjectWithoutPrototype("
+    },
+    {
+     "line": 180875,
+     "callee": "createObjectWithoutPrototype",
+     "group": "fetchStart",
+     "file": "fetchCount",
+     "line_text": "return this._getProperties(objectId, collectionMode, @createObjectWithoutPrototype("
+    },
+    {
+     "line": 181036,
+     "callee": "createObjectWithoutPrototype",
+     "group": "RemoteObject",
+     "file": "CommandLineAPI",
+     "line_text": "moduleFunction(InjectedScriptHost, inspectedGlobalObject, injectedScriptId, this, @createObjectWithoutPrototype("
+    },
+    {
+     "line": 181108,
+     "callee": "createObjectWithoutPrototype",
+     "group": "true",
+     "file": "result",
+     "line_text": "return @createObjectWithoutPrototype("
+    },
+    {
+     "line": 181132,
+     "callee": "createObjectWithoutPrototype",
+     "group": "false",
+     "file": "result",
+     "line_text": "let returnObject = @createObjectWithoutPrototype("
+    },
+    {
+     "line": 181194,
+     "callee": "createObjectWithoutPrototype",
+     "group": "nativeGettersAsValues",
+     "file": "includeProto",
+     "line_text": "}, @createObjectWithoutPrototype("
+    },
+    {
+     "line": 181240,
+     "callee": "createObjectWithoutPrototype",
+     "group": "name",
+     "file": "value",
+     "line_text": "let fakeDescriptor = @createObjectWithoutPrototype("
+    },
+    {
+     "line": 181265,
+     "callee": "createObjectWithoutPrototype",
+     "group": "name",
+     "file": "value",
+     "line_text": "let errorDescriptor = @createObjectWithoutPrototype("
+    },
+    {
+     "line": 181397,
+     "callee": "createObjectWithoutPrototype",
+     "group": "__proto__",
+     "file": "value",
+     "line_text": "callback(@createObjectWithoutPrototype("
+    },
+    {
+     "line": 181429,
+     "callee": "createObjectWithoutPrototype",
+     "group": "key",
+     "file": "value",
+     "line_text": "@arrayPush(entries, @createObjectWithoutPrototype("
+    },
+    {
+     "line": 181700,
+     "callee": "createObjectWithoutPrototype",
+     "group": "true",
+     "file": "includeProto",
+     "line_text": "}, @createObjectWithoutPrototype("
+    },
+    {
+     "line": 181759,
+     "callee": "createObjectWithoutPrototype",
+     "group": "name",
+     "file": "type",
+     "line_text": "return appendPreview(@createObjectWithoutPrototype("
+    },
+    {
+     "line": 181767,
+     "callee": "createObjectWithoutPrototype",
+     "group": "name",
+     "file": "type",
+     "line_text": "return appendPreview(@createObjectWithoutPrototype("
+    },
+    {
+     "line": 181787,
+     "callee": "createObjectWithoutPrototype",
+     "group": "name",
+     "file": "type",
+     "line_text": "return appendPreview(@createObjectWithoutPrototype("
+    },
+    {
+     "line": 181800,
+     "callee": "createObjectWithoutPrototype",
+     "group": "name",
+     "file": "type",
+     "line_text": "return appendPreview(@createObjectWithoutPrototype("
+    },
+    {
+     "line": 181807,
+     "callee": "createObjectWithoutPrototype",
+     "group": "name",
+     "file": "type",
+     "line_text": "let property = @createObjectWithoutPrototype("
+    },
+    {
+     "line": 195141,
+     "callee": "makeErrorWithCode",
+     "group": "callback",
+     "file": "function",
+     "line_text": "throw @makeErrorWithCode(112, \"callback\", \"function\", callback);"
+    },
+    {
+     "line": 196050,
+     "callee": "makeErrorWithCode",
+     "group": "obj",
+     "file": "object",
+     "line_text": "throw @makeErrorWithCode(112, \"obj\", \"object\", obj);"
+    },
+    {
+     "line": 196071,
+     "callee": "registerWithEvent",
+     "group": "fn",
+     "file": "exit",
+     "line_text": "registerWithEvent(ref, fn, \"exit\");"
+    },
+    {
+     "line": 196074,
+     "callee": "registerWithEvent",
+     "group": "fn",
+     "file": "beforeExit",
+     "line_text": "registerWithEvent(ref, fn, \"beforeExit\");"
+    },
+    {
+     "line": 198477,
+     "callee": "getPrefix",
+     "group": "tag",
+     "file": "Array",
+     "line_text": "let prefix = constructor !== \"Array\" || tag !== \"\" ? getPrefix(constructor, tag, \"Array\", `(${value.length})`) : \"\";"
+    },
+    {
+     "line": 198482,
+     "callee": "getPrefix",
+     "group": "tag",
+     "file": "Set",
+     "line_text": "let size = SetPrototypeGetSize(value), prefix = getPrefix(constructor, tag, \"Set\", `(${size})`);"
+    },
+    {
+     "line": 198487,
+     "callee": "getPrefix",
+     "group": "tag",
+     "file": "Map",
+     "line_text": "let size = MapPrototypeGetSize(value), prefix = getPrefix(constructor, tag, \"Map\", `(${size})`);"
+    },
+    {
+     "line": 198515,
+     "callee": "getPrefix",
+     "group": "tag",
+     "file": "Object",
+     "line_text": "braces[0] = `${getPrefix(constructor, tag, \"Object\")}{`;"
+    },
+    {
+     "line": 198520,
+     "callee": "getPrefix",
+     "group": "tag",
+     "file": "RegExp",
+     "line_text": "let prefix = getPrefix(constructor, tag, \"RegExp\");"
+    },
+    {
+     "line": 198527,
+     "callee": "getPrefix",
+     "group": "tag",
+     "file": "Date",
+     "line_text": "let prefix = getPrefix(constructor, tag, \"Date\");"
+    },
+    {
+     "line": 198543,
+     "callee": "getPrefix",
+     "group": "tag",
+     "file": "DataView",
+     "line_text": "braces[0] = `${getPrefix(constructor, tag, \"DataView\")}{`, extraKeys = [\"byteLength\", \"byteOffset\", \"buffer\"];"
+    },
+    {
+     "line": 198545,
+     "callee": "getPrefix",
+     "group": "tag",
+     "file": "Promise",
+     "line_text": "braces[0] = `${getPrefix(constructor, tag, \"Promise\")}{`, formatter = formatPromise;"
+    },
+    {
+     "line": 198547,
+     "callee": "getPrefix",
+     "group": "tag",
+     "file": "WeakSet",
+     "line_text": "braces[0] = `${getPrefix(constructor, tag, \"WeakSet\")}{`, formatter = ctx.showHidden ? formatWeakSet : formatWeakCollect"
+    }
+   ],
+   "detail": "count=994"
+  },
+  {
+   "axis": "live-dump",
+   "case": "case/space near-miss file literals",
+   "expectation": "data",
+   "verdict": "OK",
+   "observed": [
+    973773,
+    974786,
+    977546,
+    1189324,
+    1302288,
+    1302289
+   ],
+   "detail": "count=6"
+  },
+  {
+   "axis": "live-dump",
+   "case": "ASSIGN_RE matches on // comment lines",
+   "expectation": "data",
+   "verdict": "OK",
+   "observed": [],
+   "detail": "count=0"
+  },
+  {
+   "axis": "live-dump",
+   "case": "var-group shapes resolution on frozen dump",
+   "expectation": "nD,rD resolve",
+   "verdict": "OK",
+   "observed": [
+    {
+     "line": 972670,
+     "var": "nD",
+     "resolved": "agents-md"
+    },
+    {
+     "line": 972681,
+     "var": "rD",
+     "resolved": "claude-md"
+    }
+   ],
+   "detail": ""
+  },
+  {
+   "axis": "live-dump",
+   "case": "historical allowlist callees at .md shapes (frozen dump)",
+   "expectation": "0 (renamed)",
+   "verdict": "OK",
+   "observed": 0,
+   "detail": ""
+  }
+ ]
+}

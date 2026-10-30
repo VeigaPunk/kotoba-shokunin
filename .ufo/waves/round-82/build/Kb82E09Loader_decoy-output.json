@@ -1,0 +1,304 @@
+{
+ "decoys": 8,
+ "failed": 0,
+ "results": [
+  {
+   "decoy": "d1_alias_callee_no_declared_pair",
+   "ok": true,
+   "checks": {
+    "sweep_pairs": true,
+    "extracted": true,
+    "admitted": true
+   },
+   "observed": {
+    "sweep": [
+     [
+      "agents-md",
+      "AGENTS.md"
+     ],
+     [
+      "evil",
+      "EVIL.md"
+     ]
+    ],
+    "extracted": [
+     [
+      "agents-md",
+      "AGENTS.md"
+     ]
+    ],
+    "admitted": [
+     "F9"
+    ]
+   },
+   "expect": {
+    "sweep_pairs": [
+     [
+      "agents-md",
+      "AGENTS.md"
+     ],
+     [
+      "evil",
+      "EVIL.md"
+     ]
+    ],
+    "extracted": [
+     [
+      "agents-md",
+      "AGENTS.md"
+     ]
+    ],
+    "admitted": [
+     "F9"
+    ],
+    "why": "alias decoy callee q registers no declared pair -> never admitted"
+   }
+  },
+  {
+   "decoy": "d2_param_shadowed_group",
+   "ok": true,
+   "checks": {
+    "sweep_pairs": true,
+    "extracted": true,
+    "admitted": true
+   },
+   "observed": {
+    "sweep": [
+     [
+      "<unresolved-var:nD>",
+      "AGENTS.md"
+     ]
+    ],
+    "extracted": [
+     [
+      "<unresolved-var:nD>",
+      "AGENTS.md"
+     ]
+    ],
+    "admitted": [
+     "F9"
+    ]
+   },
+   "expect": {
+    "sweep_pairs_raw": [
+     [
+      "<unresolved-var:nD>",
+      "AGENTS.md"
+     ]
+    ],
+    "extracted": [
+     [
+      "<unresolved-var:nD>",
+      "AGENTS.md"
+     ]
+    ],
+    "admitted": [
+     "F9"
+    ],
+    "why": "group ident is a function parameter -> fail-closed unresolved, surfaces via declared-file admission; NEVER resolves to agents-md"
+   }
+  },
+  {
+   "decoy": "d3_cross_module_rebind",
+   "ok": true,
+   "checks": {
+    "sweep_pairs": true,
+    "extracted": true,
+    "admitted": true
+   },
+   "observed": {
+    "sweep": [
+     [
+      "title",
+      "AGENTS.md"
+     ]
+    ],
+    "extracted": [],
+    "admitted": []
+   },
+   "expect": {
+    "sweep_pairs": [
+     [
+      "title",
+      "AGENTS.md"
+     ]
+    ],
+    "extracted": [],
+    "admitted": [],
+    "why": "call sits in b.ts whose own module binds nD='title'; dump-wide table drops the conflict; module scope wins -> no false agents-md match, no admission (pair undeclared)"
+   }
+  },
+  {
+   "decoy": "d4_non_md_file",
+   "ok": true,
+   "checks": {
+    "sweep_pairs": true,
+    "extracted": true,
+    "admitted": true
+   },
+   "observed": {
+    "sweep": [],
+    "extracted": [],
+    "admitted": []
+   },
+   "expect": {
+    "sweep_pairs": [],
+    "extracted": [],
+    "admitted": [],
+    "why": "file arg lacks .md suffix -> outside the documented set (the cursor/rules class is declared by hand, never extracted)"
+   }
+  },
+  {
+   "decoy": "d5_quoted_group_positive",
+   "ok": true,
+   "checks": {
+    "sweep_pairs": true,
+    "extracted": true,
+    "admitted": true
+   },
+   "observed": {
+    "sweep": [
+     [
+      "agents-md",
+      "AGENTS.md"
+     ]
+    ],
+    "extracted": [
+     [
+      "agents-md",
+      "AGENTS.md"
+     ]
+    ],
+    "admitted": [
+     "F9"
+    ]
+   },
+   "expect": {
+    "sweep_pairs": [
+     [
+      "agents-md",
+      "AGENTS.md"
+     ]
+    ],
+    "extracted": [
+     [
+      "agents-md",
+      "AGENTS.md"
+     ]
+    ],
+    "admitted": [
+     "F9"
+    ],
+    "why": "positive control: quoted group literal matches directly"
+   }
+  },
+  {
+   "decoy": "d6_no_module_markers_conflict",
+   "ok": true,
+   "checks": {
+    "sweep_pairs": true,
+    "extracted": true,
+    "admitted": true
+   },
+   "observed": {
+    "sweep": [
+     [
+      "<unresolved-var:nD>",
+      "AGENTS.md"
+     ]
+    ],
+    "extracted": [
+     [
+      "<unresolved-var:nD>",
+      "AGENTS.md"
+     ]
+    ],
+    "admitted": [
+     "F9"
+    ]
+   },
+   "expect": {
+    "sweep_pairs_raw": [
+     [
+      "<unresolved-var:nD>",
+      "AGENTS.md"
+     ]
+    ],
+    "extracted": [
+     [
+      "<unresolved-var:nD>",
+      "AGENTS.md"
+     ]
+    ],
+    "admitted": [
+     "F9"
+    ],
+    "why": "no source-path comments -> whole dump one scope -> conflicting rebind stays unresolved (conservative fail, never guessed)"
+   }
+  },
+  {
+   "decoy": "d7_wrapped_call_shape",
+   "ok": true,
+   "checks": {
+    "sweep_pairs": true,
+    "extracted": true,
+    "admitted": true
+   },
+   "observed": {
+    "sweep": [
+     [
+      "agents-md",
+      "AGENTS.md"
+     ]
+    ],
+    "extracted": [
+     [
+      "agents-md",
+      "AGENTS.md"
+     ]
+    ],
+    "admitted": [
+     "F9"
+    ]
+   },
+   "expect": {
+    "sweep_pairs": [
+     [
+      "agents-md",
+      "AGENTS.md"
+     ]
+    ],
+    "extracted": [
+     [
+      "agents-md",
+      "AGENTS.md"
+     ]
+    ],
+    "admitted": [
+     "F9"
+    ],
+    "why": "wrapped registration (the bundle norm) still matches the shape"
+   }
+  },
+  {
+   "decoy": "d8_property_lookup_not_call",
+   "ok": true,
+   "checks": {
+    "sweep_pairs": true,
+    "extracted": true,
+    "admitted": true
+   },
+   "observed": {
+    "sweep": [],
+    "extracted": [],
+    "admitted": []
+   },
+   "expect": {
+    "sweep_pairs": [],
+    "extracted": [],
+    "admitted": [],
+    "why": "member-expression callee (c.reg) is rejected by the (?<![A-Za-z0-9_$.]) lookbehind: the grammar admits bare identifier callees only, so an alias property never feeds the extractor"
+   }
+  }
+ ]
+}

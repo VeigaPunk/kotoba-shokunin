@@ -1,0 +1,75 @@
+# Kb82K01Overlap receipts — command-owned exits and hashes (2026-10-30)
+# All commands run by this seat; each records its own exit status without pipes.
+# Scratch root: /fast/scratch/hyaku/kotoba-r82/Kb82K01Overlap (TMPDIR set; deleted on exit)
+
+1. mkdir -p /fast/scratch/hyaku/kotoba-r82/Kb82K01Overlap/tmp
+   exit=0 ; df /fast: 47% used, 432G free
+
+2. /home/vgpnk/Projects/shokunin/scripts/hyaku/disk-guard.sh status
+   exit=0 ; /fast/scratch/hyaku 47% use, no threshold breach
+
+3. ls -la /home/vgpnk/.local/bin/omp /home/vgpnk/.local/bin/omp.real
+   exit=2 ; omp.real absent (No such file or directory); omp present 276244656 B, 2026-10-29 23:19
+4. file /home/vgpnk/.local/bin/omp
+   exit=0 ; "ELF 64-bit LSB executable, x86-64 ... BuildID[sha1]=588d7307f333293c728b74df19b7323c20736899, not stripped"
+5. /home/vgpnk/.local/bin/omp --version
+   exit=0 ; "omp/18.14.0"
+
+6. sha256sum /home/vgpnk/.local/bin/omp
+   exit=0 ; e7dd2b606c4ebe9d1a7bcfad1b8820db968cd6b05409fed1c6bc8db0b6a95a8f
+7. stat -c '%y %s' /home/vgpnk/.local/bin/omp
+   exit=0 ; 2026-10-29 23:19:46.168359786 -0300 276244656
+
+8. strings -n 4 /home/vgpnk/.local/bin/omp > tmp/omp-18140.strings
+   exit=0 ; real 1.125s; dump 47434077 bytes
+9. sha256sum tmp/omp-18140.strings
+   exit=0 ; 81277d3572277febcaf0853f10cf8778c64920f58a13fba98ef0accbb70a8319
+
+10. strings -n 4 /home/vgpnk/.opencode/bin/opencode > tmp/opencode-live.strings
+    exit=0 ; dump 28835401 bytes
+11. sha256sum tmp/opencode-live.strings
+    exit=0 ; 020fb25393e5ce881ac2da70222acedebc5cef2d3810d07e4625b2cde885b089
+    note: byte-identical to verifiers/census-removals.json measured_against.dump_sha256 — opencode substrate unchanged since round 72
+
+12. git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin rev-parse HEAD
+    exit=0 ; 006a834cee4339ede8620e10c3995d5226141c0a ("round-82: freeze freshness and hermetic-selftest claims")
+    note: one committed round-82 freeze commit over base 47dbe8781657de563ff867caca6244d28e3db504;
+    git diff --stat 47dbe878..HEAD -- verifiers/ corpus/ printed nothing (no committed changes there);
+    working tree additionally shows ' M corpus/SOURCES.md' (in-flight S248/S251 sibling edit, read as data only)
+
+13. python3 -B verifiers/verify_surfaces.py --omp-strings tmp/omp-18140.strings --opencode-strings tmp/opencode-live.strings --json
+    exit=0 ; pass=7 fail=0 (from repo root /home/vgpnk/Projects/shokunin/kotoba-shokunin)
+    checks: literal_present 39 loader-kind entries; no_uncovered_class all 8 extracted loader class(es) declared;
+    opencode_extract 6/6 declared (+3 ledgered removals) from 7/7 OC rules; table_parity 42 ids;
+    literal_parity 42; kind_parity 42; excluded_reason 8 excluded all reasoned
+    full payload: build/Kb82K01Overlap-surfaces-18140.json
+
+14. python3 -B (import verifiers/verify_surfaces.py; extract_classes on 18.12.6 fixture vs 18.14.0 live dump)
+    exit=0
+    18.12.6 fixture: pairs=8; admitted callees {Ho:4, Kl:5}; module markers=8 (trimmed fixture); @bun chunks=0
+    18.14.0 live:   pairs=8 (identical set); admitted callees {Ac:5, ts:4}; module markers=3261; @bun chunks=3147
+    allowlist OMP_CALL_RE on 18.14.0: extracted_pairs=0 (callee rotation absorbed by round-52 declared-admission rule)
+    full payload: build/Kb82K01Overlap-extraction.json
+
+15. grep counts in tmp/omp-18140.strings (each grep exit 0 unless noted)
+    'packages/coding-agent/src' 1990 ; 'AGENTS.md' 41 ; 'CLAUDE.md' 18 ; 'GEMINI.md' 5 ; 'SYSTEM.md' 26 ;
+    'RULES.md' 4 ; 'copilot-instructions.md' 6 ; 'global_rules.md' 6 ; 'SYSTEM_TEMPLATE.md' 19 ;
+    '.clinerules' 8 ; 'enabledProviders' 4 ; 'managed-skills' 12 ; 'task.file' 5 ; 'local://' 90
+
+16. awk extraction of embedded changelog section [18.14.0]..[18.12.6]
+    exit=0 ; versions present in window: 18.14.0 (2026-10-29), 18.13.3, 18.13.2, 18.13.1, 18.13.0 (2026-10-26)
+    loader-relevant entries located: --no-context-files (18.13.0); task-subagent AGENTS.md fix (18.13.1);
+    custom tool loader breaking change + task.file input (18.14.0); managed-skills symlink guard fix (18.13.3)
+
+17. cat .ufo/waves/round-82/receipts/before-pins.txt / before-c1-counter.txt / before-surfaces.txt / before-checklist-selftest.txt
+    exit=0 ; before states: pins 1 PASS/2 UNREADABLE exit 2; counter cannot-evaluate exit 2;
+    surfaces exit 2 (omp.real not found); selftest 1 failure(s) over 1863 assertions exit 1
+
+18. head kaidoku-shokunin/.ufo/gates/c1-census-v10.py ; grep boundary statements kaidoku-shokunin/SKILL.md
+    exit=0 ; kaidoku method boundary quotes located: SKILL.md:1504 "The bit does not prove execution";
+    SKILL.md:1545 "Error patterns are local-reader findings, not host-loader verdicts";
+    :596 "2 is never a pass"; :819 could-not-evaluate "returns 2, never native judgment"
+
+No installs or upgrades: none needed. No pacman. No production files mutated; no lane git/jj mutations
+(no fixture clone was needed for this analysis-only seat; lane read-only throughout).
+Load: at most 2 concurrent processes (strings + grep), well under cap 4; longest single command 12.5 s (verify_surfaces run).
