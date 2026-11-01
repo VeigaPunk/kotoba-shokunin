@@ -137,7 +137,14 @@ INSTRUMENT_PINS = {
         "9cb860bda21ef8d24fcb0603aa85372b96f3ac41"),
     "verifiers/verify_skill_checklist.py": (
         "8d44c063e3d4b57c7c421c3107879e61983249bf",
-        "6aab16849bd6d71ded8f3bcb3f95668f14f6a78f"),
+        "6aab16849bd6d71ded8f3bcb3f95668f14f6a78f",
+        # round-82 C2' admission (plans/round-82-addendum-1.md § Historical
+        # battery pin admission, plans/round-82-addendum-2.md § C2'): the
+        # hermetic checklist self-test postimage -- the two live-read
+        # governance arms replaced by isolated fixture arms and the
+        # delegated-absolute assertion made repr-exact; no gate semantics
+        # changed, existing pins kept.
+        "9be2470bf33921dc5c34d99f8154c105b1aaa695"),
     "verifiers/verify_corpus_integrity.py": (
         "e470eaaea5ef11c582b8353c9344ddf730c1a57a",
         "bbee51f2bae5b33b123a546150e83352d68eeebc"),

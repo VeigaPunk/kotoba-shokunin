@@ -2512,34 +2512,100 @@ def self_test() -> int:
             status == "FAIL" and "corpus/other-dead.md" in detail
             and "1 recorded correction(s) excused" in detail,
             (status, evaluated, detail))
-        # live corrections land against the real repo: the three round-65
-        # rows and the round-70 row (K69-11, LOG.md:2676) excuse four reds,
-        # and the round-71 errata row (LOG.md:2678, routed defect R67-3)
-        # records the removed control mirror that no correction may carry,
-        # so the check is green with two absences and four corrections
-        # excused (round 72: the r71 erratum retired the old red).
-        live_repo = Path(__file__).resolve().parent.parent
-        status, evaluated, detail = check_governance_citations(
-            live_repo, corrections=GOVERNANCE_CORRECTIONS)
-        rec("governance: live round-65 corrections land, errata-excused",
-            status == "PASS" and "2 recorded absence(s) excused" in detail
-            and "4 recorded correction(s) excused" in detail,
-            (status, evaluated, detail))
-        # regression: that LOG.md:2678 row is load-bearing -- dropping it or
-        # lowering the horizon below 2678 must turn the live check red, so
-        # the boundary is a literal here, not read back from the constant.
-        dropped = check_governance_citations(
-            live_repo, errata=tuple(r for r in GOVERNANCE_ERRATA
-                                    if r[0] != 2678),
-            corrections=GOVERNANCE_CORRECTIONS)
-        low = check_governance_citations(
-            live_repo, errata=GOVERNANCE_ERRATA, horizon=2677,
-            corrections=GOVERNANCE_CORRECTIONS)
-        rec("governance: LOG.md:2678 erratum is load-bearing",
-            GOVERNANCE_ERRATA_HORIZON >= 2678
-            and dropped[0] == "FAIL" and "LOG.md:2678" in dropped[2]
-            and low[0] == "FAIL" and "past horizon 2677" in low[2],
-            (dropped, low))
+        # Round 82 (C2'): the two live-repo arms are replaced by isolated
+        # fixture worlds carrying the same expectations.  Hermeticity: a
+        # self-test must not read the live LOG/SCORECARD, whose `../`
+        # citations are host-shaped -- on the Windows host the lane's parent
+        # is not the fleet root, so live `../.ufo/...` tokens do not resolve
+        # and the live arms red-raced the environment instead of the
+        # instrument.  The fixture world mirrors the live expectation's
+        # shape: two recorded absences excused by pinned errata rows and
+        # four stale subjects excused by pinned correction rows, all
+        # landing together.
+        with tempfile.TemporaryDirectory(prefix="kotoba-gov-live-shape-") as td:
+            gov_shape = Path(td)
+            (gov_shape / "corpus").mkdir()
+            (gov_shape / "corpus" / "live.md").write_text("", encoding="utf-8")
+            (gov_shape / "corpus" / "live2.md").write_text("", encoding="utf-8")
+            shape_sc = gov_shape / "SCORECARD.md"
+            shape_sc.write_text("padding line\n" * 8
+                                + "`corpus/stale1.md`\n`corpus/stale2.md`\n",
+                                encoding="utf-8")
+            shape_log = gov_shape / "LOG.md"
+            err_a = "`corpus/gone-a.md` exited 2: runner absent"
+            err_b = "`corpus/gone-b.md` exited 2: runner absent"
+            c1 = ('SCORECARD.md:9 token "corpus/stale1.md" -> '
+                  '"corpus/live.md" (round-82 fixture notice).')
+            c2 = ('SCORECARD.md:10 token "corpus/stale2.md" -> '
+                  '"corpus/live2.md" (round-82 fixture notice).')
+            c3 = ('LOG.md:4 token "corpus/dead1.md" -> '
+                  '"corpus/live.md" (round-82 fixture notice).')
+            c4 = ('LOG.md:5 token "corpus/dead2.md" -> '
+                  '"corpus/live2.md" (round-82 fixture notice).')
+            shape_log.write_text("\n".join([
+                "`corpus/live.md`",
+                err_a,
+                err_b,
+                "`corpus/dead1.md`",
+                "`corpus/dead2.md`",
+                c1, c2, c3, c4,
+            ]) + "\n", encoding="utf-8")
+
+            def _lsha(text):
+                return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+            shape_errata = (
+                (2, _lsha(err_a), "corpus/gone-a.md", "runner absent"),
+                (3, _lsha(err_b), "corpus/gone-b.md", "runner absent"))
+            shape_corrs = (
+                (6, _lsha(c1), "SCORECARD.md", 9, "corpus/stale1.md",
+                 "corpus/live.md"),
+                (7, _lsha(c2), "SCORECARD.md", 10, "corpus/stale2.md",
+                 "corpus/live2.md"),
+                (8, _lsha(c3), "LOG.md", 4, "corpus/dead1.md",
+                 "corpus/live.md"),
+                (9, _lsha(c4), "LOG.md", 5, "corpus/dead2.md",
+                 "corpus/live2.md"))
+            shape_kwargs = dict(errata=shape_errata, horizon=5,
+                                corrections=shape_corrs,
+                                corrections_horizon=9)
+            status, evaluated, detail = check_governance_citations(
+                gov_shape, **shape_kwargs)
+            rec("governance: fixture two absences and four corrections land, "
+                "errata-excused",
+                status == "PASS" and "2 recorded absence(s) excused" in detail
+                and "4 recorded correction(s) excused" in detail,
+                (status, evaluated, detail))
+            # regression: the second erratum row is load-bearing -- dropping
+            # it or lowering the horizon below its line must turn the world
+            # red, naming the row, not silently passing.
+            dropped = check_governance_citations(
+                gov_shape, errata=shape_errata[:1], horizon=5,
+                corrections=shape_corrs, corrections_horizon=9)
+            low = check_governance_citations(
+                gov_shape, errata=shape_errata, horizon=1,
+                corrections=shape_corrs, corrections_horizon=9)
+            rec("governance: fixture erratum row is load-bearing",
+                dropped[0] == "FAIL" and "corpus/gone-b.md" in dropped[2]
+                and low[0] == "FAIL" and "past horizon" in low[2],
+                (dropped, low))
+            # isolation discriminator: mutating unrelated governance content
+            # in the fixture world must not move the guarded verdict (the
+            # plan's "modifying unrelated live governance" arm, executed
+            # without writing the live repo).
+            before_iso = check_governance_citations(
+                gov_shape, **shape_kwargs)
+            shape_log.write_text(shape_log.read_text(encoding="utf-8")
+                                 + "`corpus/live.md`\nunrelated round-N note\n",
+                                 encoding="utf-8")
+            after_iso = check_governance_citations(
+                gov_shape, **shape_kwargs)
+            rec("governance: unrelated governance edits keep the fixture "
+                "world green",
+                before_iso[0] == "PASS" and after_iso[0] == "PASS"
+                and "2 recorded absence(s) excused" in after_iso[2]
+                and "4 recorded correction(s) excused" in after_iso[2],
+                (before_iso, after_iso))
 
     # An explicit relative --repo must be normalized before bounded `..`
     # hops; Path('.').parent otherwise stays '.', changing the verdict.
@@ -2647,9 +2713,13 @@ def self_test() -> int:
         absolute_target = str(root / "verifiers" / "probe.py")
         delegated_tree(root, GREEN_STUB, absolute_target)
         code, out = delegated_run(root)
+        # Round 82: the gate prints the target with %r, so on Windows the
+        # repr doubles the backslashes and the raw string never appears.
+        # Compare against the repr form, which is exact on both path
+        # families; the rejection semantics asserted are unchanged.
         rec("delegated absolute target is rejected",
             code == 1 and "delegates outside the map's repo" in out
-            and absolute_target in out, out)
+            and repr(absolute_target) in out, out)
 
     for f in failures:
         print("self-test FAIL: %s" % f)
