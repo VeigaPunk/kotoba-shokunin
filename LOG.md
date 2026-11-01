@@ -2968,3 +2968,56 @@ kotoba round 74 (hyaku run 7, attempt 1). Base `1e03d19`; plan `329e7d9` (`plans
   resolve") does not reproduce; the r82 routed fix (resolve inside
   `build_sandbox`) is ruled out, not landed (main() already resolves,
   line 749 at the r82 base).
+
+- **Round 83 intake findings (Windows host, before any lane change).** The
+  tip battery's dot-form defect routed by r82 does not reproduce at the
+  round tip: absolute and `--repo .` forms both read `guards 5 of 5; tip
+  battery exit 0: 2 of 6`, exit 1, gate lines identical modulo wall time
+  (`.ufo/waves/round-83/receipts/before-tip-battery-r83-abs.txt`,
+  `before-tip-battery-r83-dot.txt`, at rev `4c95c45`), the alternates probe
+  shows this host's git writes an absolute entry
+  (`probe-clone-shared-alternates.txt`; S252), and `main()` already
+  resolved `--repo` at the r82 base — the r82-routed `build_sandbox`
+  resolve is ruled out, not landed (append-only corrections on the r82
+  records, commit `84c2963`). New finding in its place: the battery's
+  tempdir cleanup can discard a completed measurement on Windows — the r83
+  intake run measured all six gates internally, then died on
+  `PermissionError: [WinError 32]` at with-exit with zero output
+  (transient; no receipt landable — disclosed in the round-83 lesson
+  Mistakes row 1) — and the battery's `--self-test` crashes on this host
+  (`RuntimeError: fixture toplevel mismatch`, exit 1,
+  `before-tip-selftest.txt`).
+- **Round 83 C1 operability — the tip battery survives Windows cleanup
+  lock contention; self-test runs on this host (score held 8.5).** One
+  enumerated counter amendment (commit `815bb5d8`, bytes sha256
+  `018a887c…` == worktree at run time): (1) `ignore_cleanup_errors=True` —
+  S253's documented remedy for exactly "a PermissionError removing open
+  files on Windows"; (2) the fixture toplevel comparison
+  normcase-normalized (a no-op on POSIX); (3) a cleanup-loss self-test arm
+  with a flag-honoring TemporaryDirectory stand-in. Before-world
+  (committed receipt): against pre-fix bytes (sha `6e954115…` == `4c95c45`
+  blob) the simulated cleanup PermissionError escapes `measure()` and the
+  measured output is lost (driver exit 3,
+  `before-cleanup-loss-arm.txt`). After: self-test `0 failure(s) over 74
+  assertions`, exit 0 (`after-tip-selftest.txt`); live both-forms runs at
+  `4c95c45` print gate lines identical to the before-receipts modulo wall
+  time, tally `2 of 6` unchanged — named debt, not claimed fixed
+  (`after-tip-battery-r83-both-forms.txt`); registry gate 66 of 66,
+  phantom 0, at `63c7d43e`. The floors gate timed out inside the battery's
+  own 280 s cap in all four runs this round (host load, Q39 — receipts
+  annotated); a standalone uncapped run is the round-end receipt.
+- **Round 83 C2 freshness — the r82 host installed-skill drift census
+  re-verified and re-anchored to committed sibling heads (score held 8;
+  the band move waits on the non-author closure).** Live census re-run
+  2026-11-01, exit 0, classes unchanged `host skill surfaces measured 9:
+  identical 0, drifted 6, lane-absent 3`
+  (`.ufo/waves/round-83/receipts/r83-host-census-rerun.txt`); new
+  HEAD-anchored ledger `r83-drift-ledger-head-anchored.txt`: all 6 drifts
+  persist at the siblings' committed heads, each row naming the sibling
+  HEAD sha, the installed sha12 and the `git show HEAD:SKILL.md |
+  sha256sum` sha12 (`grep -c 'DRIFT-PERSISTS-AT-HEAD' …` → 6 — a count
+  the r82 ledger cannot print: it pins no heads and its pairings were not
+  reproducible after sibling working trees moved). Bounds: no drift
+  repaired — the installed copies are the owning lanes' and the
+  operator's surface; audited read-only, reported here, never fixed from
+  this lane. Sibling bound held: nothing outside the lane written.
