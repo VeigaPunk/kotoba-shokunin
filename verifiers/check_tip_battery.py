@@ -374,7 +374,16 @@ def run_battery(clone: Path, rev: str) -> list[tuple[str, int | None, float, str
 
 def measure(repo: Path, rev: str, fleet: Path, base: str) -> int:
     started = time.monotonic()
-    with tempfile.TemporaryDirectory(prefix="k72-tip-") as tdir:
+    # r83 (Q05, S253): ignore_cleanup_errors=True is the stdlib's documented
+    # remedy for the loss class the r83 intake hit -- "a PermissionError
+    # removing open files on Windows" raised at with-exit discarded the entire
+    # measured output (real instance: WinError 32 on the fresh sandbox clone,
+    # six gates measured internally, zero lines printed, exit 1 traceback).
+    # Removal becomes best-effort: a still-locked dir may be left in $TMPDIR
+    # and the measurement prints anyway. No guard, gate, pin or tally
+    # semantics change.
+    with tempfile.TemporaryDirectory(prefix="k72-tip-",
+                                     ignore_cleanup_errors=True) as tdir:
         parent = Path(tdir)
         try:
             clone = build_sandbox(repo, rev, fleet, parent)
@@ -427,7 +436,12 @@ def _fixture_git(lane: Path, *args: str) -> subprocess.CompletedProcess:
 
 
 def _commit_all(lane: Path, message: str) -> str:
-    if _fixture_git(lane, "rev-parse", "--show-toplevel").stdout.strip() != str(lane):
+    # r83: git prints the toplevel with forward slashes; str(Path) is
+    # backslashed on Windows, so the equality is compared normcase-normalized
+    # (a no-op on POSIX, where the raw strings already match).
+    toplevel = _fixture_git(lane, "rev-parse", "--show-toplevel").stdout.strip()
+    if os.path.normcase(str(Path(toplevel).resolve())) != \
+            os.path.normcase(str(lane.resolve())):
         raise RuntimeError("fixture toplevel mismatch at %s" % lane)
     add = _fixture_git(lane, "add", "-A")
     if add.returncode != 0:
@@ -720,6 +734,93 @@ def self_test() -> int:
         check("an added spot-check is reported as INFO",
               "INFO spotcheck added at" in out and "round-72-verifier-spotcheck.md" in out,
               out.strip()[-220:])
+
+    # 6. r83 (Q05, S253): a Windows cleanup PermissionError must not discard
+    # the measured output. Real instance (r83 intake): WinError 32 on the
+    # fresh sandbox clone at with-exit; the pre-fix code raised out of the
+    # with and the whole six-gate measurement was lost (traceback, exit 1,
+    # no fleet-root line). The arm drives measure() over fakes with a
+    # TemporaryDirectory stand-in that honors ignore_cleanup_errors exactly
+    # like the stdlib (raises on cleanup unless it was constructed with the
+    # flag), then asserts the measured output survives. On pre-fix source the
+    # stand-in raises (no flag is passed) and the arm fails -- the
+    # before-world is the r83 intake receipt class, reproduced on demand.
+    class _HonoringCleanupCM:
+        last_kwargs: dict = {}
+
+        def __init__(self, *args, **kwargs):
+            _HonoringCleanupCM.last_kwargs = dict(kwargs)
+            self._dir = tempfile.mkdtemp(prefix="k72-tip-arm-")
+
+        def __enter__(self):
+            return Path(self._dir)
+
+        @property
+        def name(self):
+            return self._dir
+
+        def cleanup(self):
+            import shutil as _shutil
+            _shutil.rmtree(self._dir, ignore_errors=True)
+
+        def __exit__(self, exc_type, exc, tb):
+            if not _HonoringCleanupCM.last_kwargs.get(
+                    "ignore_cleanup_errors", False):
+                raise PermissionError(
+                    32, "simulated r83 intake cleanup lock (WinError 32)")
+            return None
+
+    _HonoringCleanupCM.last_kwargs = {}
+    raiser = _HonoringCleanupCM()
+    raised_without_flag = False
+    try:
+        raiser.__exit__(None, None, None)
+    except PermissionError:
+        raised_without_flag = True
+    check("cleanup arm can fail: no-flag cleanup raises",
+          raised_without_flag)
+
+    saved_attrs = {k: getattr(sys.modules[__name__], k)
+                   for k in ("build_sandbox", "run_guards", "run_battery")}
+    saved_td = tempfile.TemporaryDirectory
+    fake_gates = [(script, 0, 0.1, "") for script, _ in BATTERY]
+    tempfile.TemporaryDirectory = _HonoringCleanupCM
+    sys.modules[__name__].build_sandbox = lambda repo, rev, fl, parent: parent / "fake"
+    sys.modules[__name__].run_guards = lambda clone, base, rev: (
+        [], "guards stub summary", [])
+    sys.modules[__name__].run_battery = lambda clone, rev: fake_gates
+    try:
+        arm_root_cm = tempfile.TemporaryDirectory(
+            prefix="k72-tip-armfleet-", ignore_cleanup_errors=True)
+        arm_root = Path(arm_root_cm.name)
+        try:
+            buf = io.StringIO()
+            escaped = None
+            with contextlib.redirect_stdout(buf):
+                try:
+                    arm_rc = measure(arm_root / "lane", "r83rev",
+                                     arm_root, "r83base")
+                except PermissionError as exc:
+                    escaped = exc
+            out = buf.getvalue()
+            check("cleanup arm: measure() constructs the tempdir with "
+                  "ignore_cleanup_errors=True",
+                  (_HonoringCleanupCM.last_kwargs or {}).get(
+                      "ignore_cleanup_errors") is True,
+                  "kwargs %s" % sorted(_HonoringCleanupCM.last_kwargs or {}))
+            check("cleanup arm: no PermissionError escapes measure()",
+                  escaped is None, repr(escaped)[:160])
+            check("cleanup arm: measured output survives the failing cleanup",
+                  "fleet root " in out and "tip battery exit 0: 6 of 6" in out,
+                  out.strip()[-200:])
+            check("cleanup arm: exit code is the measured tally",
+                  arm_rc == 0 and escaped is None, "rc %r" % arm_rc)
+        finally:
+            arm_root_cm.cleanup()
+    finally:
+        tempfile.TemporaryDirectory = saved_td
+        for k, v in saved_attrs.items():
+            setattr(sys.modules[__name__], k, v)
 
     print("self-test: %d failure(s) over %d assertions" % (len(failures), assertions))
     for failure in failures:
