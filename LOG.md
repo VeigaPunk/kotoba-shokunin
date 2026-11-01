@@ -2864,3 +2864,80 @@ kotoba round 74 (hyaku run 7, attempt 1). Base `1e03d19`; plan `329e7d9` (`plans
 - **Wave:** one v2 w1, 64 seats, build + attack together, roles executor 16 / scribe 17 / scout 9 / connector 3 / critic 6 / reviewer 6 / mutation-tester 4 / sentinel 1 / simplifier 1 / revenger 1; attack share 17/64 = 26.6 % ≥ 25 %, 3 connectors; §3 planner seat held by L1 per the validator ruling. 64 seat results are recorded in `w1-results.json` and 64 reports sit under `w1/`. No tools installed; no L0 question.
 - **Trend verdicts:** expansion improved (a documented channel on a matrix the lane already held, plus two source rows); quality improved for C2 (frontmatter forms → a grant-channel map with the managed-settings override) and unchanged for consistency (C1 stopped); discernment improved — an adversarial control seat produced the `6 of 6` false-greens and the round stopped the claim instead of defending it, which is the outcome the kill rule exists for.
 - **Stale-lane:** respawn-per-round; no other lane mission is open. Base lane tip `b284223105f4d106f7e8f56ed4fd296c643cda0e`; the measured G6 content tip is `daac4cc87b468d131baeaca816e7cfc478090ee3`, where the C1 battery reads `6 of 6` (falsified, not admitted) and the C2 counter reads `1 of 1` (admitted). G4 and the final-tip no-harm run follow.
+
+## Round 82 (attempt 3, Windows host) — 2026-10-31
+
+- **Host move and intake re-measure (Q19).** The round moved hosts (Linux →
+  Windows; python is `python` 3.13.15, the lane sits at
+  `…/95b1ba4d-5089-47a4-9fd8-54adebbce2ae/fleet/kotoba-shokunin` with the
+  fleet root beside it). Every before-value was re-measured at intake and
+  committed before the freeze `cbc72c9f9269f27ea8f3e92eee114e0ff0bac988`:
+  checklist self-test `3 failure(s) over 1863 assertions`, exit 1 on this host
+  (`.ufo/waves/round-82/receipts/before-checklist-selftest-win.txt`; the
+  frozen plan's Linux before was `1 failure(s) over 1863`); tip battery
+  absolute `--repo` form `2 of 6`, exit 1
+  (`.ufo/waves/round-82/receipts/before-tip-battery-win-abs.txt`), relative
+  `--repo .` form `1 of 6` with four gates `absent at <rev>`
+  (`.ufo/waves/round-82/receipts/before-tip-battery-win-dot.txt`) — the
+  relative form breaks the sandbox clone's alternates; routed, not landed
+  (the round's one counter amendment is spent on the addendum-1 pin
+  admission). `omp` is absent on this host
+  (`.ufo/waves/round-82/receipts/before-host-skills-shas.txt` header): the
+  frozen C1 substrate re-pin is host-conditional and ruled out per
+  `plans/round-82-addendum-2.md`; `verifiers/baseline.json` still names
+  old-host paths — substrate pins stay a Linux-host record until the operator
+  re-homes them (PROVINCE correction below).
+- **C1' freshness — host installed-skill surface census (capability,
+  sourced to S251).** New read-only instrument
+  `verifiers/check_host_skill_surfaces.py`: self-test `0 failure(s) over 12
+  assertions`, exit 0; live census `host skill surfaces measured 9: identical
+  0, drifted 6, lane-absent 3`, exit 0
+  (`.ufo/waves/round-82/receipts/after-host-skill-census-ledger.txt`); before
+  — no instrument, drift unknown outside the manual sha table
+  (`.ufo/waves/round-82/receipts/before-host-skills-shas.txt`). Registry row
+  landed in `SKILL.md` § Gate registry (598/600); the capability enters
+  `SCORECARD.md` § Capabilities this round. Freshness evidence cell updated,
+  score held 8 (band move waits on the non-author closure). Sibling bound:
+  the drifted installed copies are audited read-only and reported to their
+  owning lanes; nothing outside this lane was written.
+- **C2' operability — hermetic checklist self-test on the current host.**
+  `python -B verifiers/verify_skill_checklist.py --self-test`: before
+  `3 failure(s) over 1863 assertions`, exit 1 → after `0 failure(s) over 1864
+  assertions`, exit 0 (`.ufo/waves/round-82/receipts/after-checklist-selftest-win.txt`).
+  The two live-read governance arms are replaced by isolated fixture arms
+  (fixture world with two errata and four corrections landing; the second
+  erratum row proven load-bearing by drop and horizon-lowering mutants; an
+  unrelated-governance-mutation arm keeps the world green), and the
+  delegated-absolute-target assertion compares the `repr()` form the gate
+  prints (Windows `repr` doubles backslashes). `check_governance_citations`
+  is untouched; the public live gate stays red on this host because live
+  `../` citations resolve against the lane's parent, which is no longer the
+  fleet root — named debt, not silently fixed. Per
+  `plans/round-82-addendum-1.md`, checklist postimage blob
+  `9be2470bf33921dc5c34d99f8154c105b1aaa695` joined `INSTRUMENT_PINS` with an
+  inline round-82 reason; existing pins kept; floors registry untouched
+  (floor 1863, observed 1864).
+- **S248 status transition (routed from r81, append-only cell change).**
+  Opened this round first: HTTP 200, 28435 B, sha256 `d7419fbd6d6c…` — page
+  moved since the r81 pin `ac62c2df…`; both located quotes still present; the
+  note-boxed paragraph now also names the `allowManagedPermissionRulesOnly`
+  override and a claude.ai-synced-skill frontmatter clause. Mutable-cell
+  transition recorded here: `corpus/SOURCES.md` row S248 `queued` → `mined`
+  (the r81 C2 knowledge entry's used-by cell already named this row; the
+  transition was routed to round 82 by the r81 SCORECARD row). Row count
+  `grep -cE '^ {0,3}\| S[0-9]{3}' corpus/SOURCES.md` 176 → 177 (S251 added;
+  the plan's S251 reservation lapsed unopened with the host move, noted in
+  the row).
+- **Orphaned-premeasure rev correction (r81 D1, appended notice).**
+  `b3449ee25cd097e39d1af4370791fd0add463321` — cited by round-81's C2
+  after-value receipts — is a detached-HEAD premeasure rev orphaned by the
+  M81-4 rewrite; it is not a landed revision of this repository, and the
+  measurement it anchored is re-anchored to the G6 content tip
+  `daac4cc87b468d131baeaca816e7cfc478090ee3` per the r81 SCORECARD row.
+- **PROVINCE correction (absent surfaces, this host).** PROVINCE § Core
+  gains the host installed-skill census surface (C1'); the loader-rule
+  freshness frontier row's live-subject qualification is recorded here: on
+  the 2026-10-31 Windows host `omp` is absent from PATH and
+  `C:/Users/jpvei/AppData/Local/omp` does not exist, so the omp re-derivation
+  ground has no live subject here until the operator installs one;
+  `verifiers/baseline.json` substrate pins remain the Linux-host record.
