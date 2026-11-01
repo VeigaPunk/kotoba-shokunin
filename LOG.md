@@ -3021,3 +3021,66 @@ kotoba round 74 (hyaku run 7, attempt 1). Base `1e03d19`; plan `329e7d9` (`plans
   repaired — the installed copies are the owning lanes' and the
   operator's surface; audited read-only, reported here, never fixed from
   this lane. Sibling bound held: nothing outside the lane written.
+
+- **Round 84 carry-in (R83-V1) — the r83 counter-base receipt regenerated
+  (append-only; the filed capture stays as filed).** The committed
+  `.ufo/waves/round-83/receipts/r83-counter-base.txt` reads `2 of 6` with
+  `FAIL d2-anchor-consistency`, contradicting its own header ("must score
+  exactly 3 of 6"), the r83 report/lesson, and the non-author spot-check
+  re-run — a stale development-era capture, never regenerated when the
+  predicate was finalized (R83-V1). Regenerated 2026-11-01 from the frozen
+  tip counter (blob `b299c265…`, working-tree copy == HEAD blob at
+  `ae09f71`, `git hash-object` verified) at the pinned base
+  `4c95c456778baa4d61fc58a2642850c4a8b06b81`:
+  `r82 routed defects closed 3 of 6`, only the three D1 correction checks
+  fail, exit 1 — receipt
+  `.ufo/waves/round-84/receipts/r84-counter-base-regenerated.txt`; the same
+  blob's self-test `0 failure(s) over 20 assertions`, exit 0. Correction
+  block appended to `corpus/lessons/round-83.md`; the filed receipt is not
+  edited.
+- **Round 84 intake — S254 opened (tier A, mined).**
+  https://code.claude.com/docs/en/skills.md — fetched 2026-11-01, HTTP 200,
+  118879 B, sha256 `d2a5d07c0d1cef1d1edcf30f38f6b2712ff70ac050e3d50601cd3dadb42f9097`
+  (`.ufo/waves/round-84/receipts/code-claude-com-skills.fetch.md`). Located
+  quote (line 207): "When two skills share a directory or file name, where
+  each one came from decides which one `/name` runs." — 19 words. Companion
+  (line 439): "`name` sets the command that the `/` menu shows and that you
+  type, unless another command already uses that name" (27 words). The page
+  carries the same-name precedence table and name-normalization rules that
+  the held rows (S053, S065 — other aspects of this page) do not; the
+  shared URL joins the known W04 duplicate-URL warning class.
+- **Round 84 C1 coverage — the second host skills root governed (score
+  held 8.5; the band move waits on the non-author closure).** The host
+  presents a second skills root `C:/Users/jpvei/.agents/skills` (the
+  spec-tutorial `.agents/skills/` shape of S223, live here): before, zero
+  references to its path anywhere in the lane tree at the round base
+  (`git grep -l 'jpvei/\.agents' ae09f71 | wc -l` → 0;
+  `.ufo/waves/round-84/receipts/before-c1-c2.txt`); after, the r82 census
+  instrument runs against it unchanged — `python -B
+  verifiers/check_host_skill_surfaces.py --skills-root
+  C:/Users/jpvei/.agents/skills --fleet-root <fleet>` → `host skill
+  surfaces measured 15: identical 0, drifted 0, lane-absent 15`, exit 0
+  (`.ufo/waves/round-84/receipts/r84-agents-root-census.txt`;
+  `grep -c '^LANE-ABSENT' <receipt>` → 15), and the PROVINCE § Core row
+  lands. Bounds: classification only — no installed copy edited, no drift
+  repaired (the r82 sibling bound stands); the census instrument itself is
+  unchanged (no counter amendment; the capability generalized over roots
+  by design).
+- **Round 84 C2 freshness — the round-72 A1 name-uniqueness rule
+  re-verified against the live installed surfaces (score held 8; the band
+  move waits on the non-author closure).** Frontmatter `name:` extracted
+  over both host roots (24 installed surfaces): 2 duplicate-name pairs,
+  both inside `C:/Users/jpvei/.agents/skills` — `godspeed` and `ufo`, each
+  a live directory plus a dated `.pre-adapt-backup-20260927` copy carrying
+  the same `name:` value; cross-root collisions 0. Counting command:
+  `for r in C:/Users/jpvei/.agents/skills C:/Users/jpvei/.zcode/skills; do
+  for f in "$r"/*/SKILL.md; do n=$(sed -n '1,12{s/^name:[[:space:]]*//p}'
+  "$f"); echo "$n"; done; done | sort | uniq -c | awk '$1>1' | wc -l` → 2
+  (ledger `.ufo/waves/round-84/receipts/r84-name-collisions.txt`;
+  `grep -c 'NAME-COLLISION' <receipt>` → 2; before: `git grep -c
+  'NAME-COLLISION' ae09f71` → no matches, the class was never measured on
+  this host). Grounded in S254 (the harness's documented same-name
+  resolution: "`name` sets the command ... unless another command already
+  uses that name"). Bounds: the colliding surfaces are flagged read-only,
+  never repaired from this lane; the A1 box text untouched (frozen tokens
+  of `check_author_rules.py`); the SKILL.md checklist is unchanged.

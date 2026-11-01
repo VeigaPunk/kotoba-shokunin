@@ -181,3 +181,27 @@ base 3 of 6 → tip 6 of 6); D2 carried with the anchor kept consistent
   record until the operator re-homes it.
 - Old-host wave patches (Kb82E01…E04): Linux-path predicates,
   unmeasurable here (r82 ruling, unchanged).
+
+## Correction (round 84, append-only; R83-V1 — the counter-base receipt was a stale capture)
+
+The Gate bullet above cites `.ufo/waves/round-83/receipts/r83-counter-base.txt`
+as the evidence that the pinned base scores exactly `3 of 6`, exit 1. The
+committed capture in that file reads `2 of 6` with
+`FAIL d2-anchor-consistency` — contradicting its own header ("must score
+exactly 3 of 6"), this lesson's sentence, and the round-83 report. It is a
+stale development-era capture, never regenerated when the counter's predicate
+was finalized (non-author spot-check defect R83-V1). The claim was correct;
+the artifact was not. Regenerated 2026-11-01 from the frozen tip counter
+(blob `b299c265…`, working-tree copy == HEAD blob at `ae09f71`) at the pinned
+base `4c95c456778baa4d61fc58a2642850c4a8b06b81`:
+`r82 routed defects closed 3 of 6`, with only the three D1 correction checks
+failing (`FAIL d1-lesson-correction`, `FAIL d1-log-correction`,
+`FAIL d1-plan-correction`), exit 1 — receipt
+`.ufo/waves/round-84/receipts/r84-counter-base-regenerated.txt`; the same
+blob's self-test reads `0 failure(s) over 20 assertions`, exit 0. The filed
+`r83-counter-base.txt` stays as filed, unedited; the regenerated receipt
+supersedes it as the base evidence for the D1 carry-in. Going-forward rule
+(this round's Mistakes class): a receipt cited by a claim is re-captured from
+the frozen instrument at the frozen rev whenever the predicate changed after
+the capture, and the re-capture lands in the same round as the predicate
+freeze.
