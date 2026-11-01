@@ -166,9 +166,15 @@ def run_checks(repo: Path, rev: str) -> tuple[int, list[str]]:
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--rev", required=True, help="lane revision to check")
+    ap.add_argument("--rev", help="lane revision to check")
     ap.add_argument("--repo", default=str(LANE), help="lane repository")
+    ap.add_argument("--self-test", action="store_true",
+                    help="run the fixture self-test")
     args = ap.parse_args(argv)
+    if args.self_test:
+        return self_test()
+    if not args.rev:
+        ap.error("--rev is required unless --self-test is selected")
     repo = Path(args.repo)
     if not repo.is_dir():
         print("could-not-evaluate: repo not found: %s" % repo, file=sys.stderr)
@@ -332,6 +338,4 @@ def self_test() -> int:
 
 
 if __name__ == "__main__":
-    if "--self-test" in (sys.argv[1:] or []):
-        sys.exit(self_test())
     sys.exit(main())
