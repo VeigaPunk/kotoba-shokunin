@@ -2941,3 +2941,30 @@ kotoba round 74 (hyaku run 7, attempt 1). Base `1e03d19`; plan `329e7d9` (`plans
   `C:/Users/jpvei/AppData/Local/omp` does not exist, so the omp re-derivation
   ground has no live subject here until the operator installs one;
   `verifiers/baseline.json` substrate pins remain the Linux-host record.
+
+- **Round-83 correction of three round-82 records (append-only; r82 closure
+  D1, evidence-pointer name drift).** The dot-form (`--repo .`) intake receipt
+  cited as `.ufo/waves/round-82/receipts/before-tip-battery-win-dot.txt` by
+  the round-82 host-move entry above (line 2881), by
+  `corpus/lessons/round-82.md` (Gate named-debt bullet and Mistakes row 3) and
+  by `plans/round-82-addendum-2.md` § Host change was committed under the name
+  `.ufo/waves/round-82/receipts/before-tip-battery-win.txt` — the same bytes
+  (`guards 5 of 5; tip battery exit 0: 1 of 6`, four gates
+  `absent at ff3b962561eaef436c6bf77c8ea9bfdc167f87a1`). No file named
+  `before-tip-battery-win-dot.txt` exists at any round-82 rev (r83 sweep:
+  `git cat-file -e 4c95c45:<path>` over every `.ufo`/`corpus`/`verifiers`/`plans`
+  path cited by the round-82 report, spot-check lesson and lane lesson —
+  22 distinct paths, 5 absences, of which only the `-dot` name is lane-side
+  evidence; the fleet report `.ufo/reports/round-82/kotoba.md:16` carries the
+  same stale pointer and is a filed record, corrected by this notice, not
+  rewritten). Superseded pointer `before-tip-battery-win-dot.txt` → committed
+  address `before-tip-battery-win.txt`. The r82 non-reproduction follow-up is
+  recorded with the round-83 receipts: at the r83 tip both invocation forms
+  read `2 of 6`, exit 1, gate lines identical modulo wall time
+  (`.ufo/waves/round-83/receipts/before-tip-battery-r83-abs.txt`,
+  `before-tip-battery-r83-dot.txt`), and `git clone --shared .` writes an
+  absolute alternates entry on this host's git, so the r82 root-cause
+  narrative ("a relative path produces a sandbox whose alternates do not
+  resolve") does not reproduce; the r82 routed fix (resolve inside
+  `build_sandbox`) is ruled out, not landed (main() already resolves,
+  line 749 at the r82 base).

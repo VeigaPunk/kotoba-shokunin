@@ -91,3 +91,22 @@ out because its subject binary does not exist on this host
 | freeze-ordering (attempt 2, Linux host): the round's no-harm base battery was captured after the plan-only commit, not before it — the freeze protocol names the order but nothing enforced it | `plans/round-82-addendum-1.md` § Ordering correction; `.ufo/waves/round-82/receipts/before-tip-battery.txt` (`2 of 6`, exit 1, taken after `006a834`) | mined this round (the attempt-2 report named it; no lesson file existed until now) | not landed this round; next round: a pre-freeze gate that refuses the plan commit while the base-battery receipt is missing or post-dates the freeze |
 | host-bound before-values (this attempt): the frozen plan carried a Linux-host before (`1 failure(s) over 1863`) that did not survive the host move — this host reads `3 failure(s) over 1863` before any edit, and a third arm fails only on Windows path-`repr` | `plans/round-82-addendum-2.md` § Host change; `.ufo/waves/round-82/receipts/before-checklist-selftest-win.txt` vs the attempt-2 receipt | captured by the intake re-measure (Q19) before any after-value | landed this round: every before re-measured at intake and committed before the freeze; the addendum declares the re-measure a round rule for host moves |
 | form-dependence found while measuring (this attempt): `check_tip_battery.py --repo .` (relative) breaks its own sandbox clone on this host while the absolute form works — the r81 predicate demanded both forms agree, so the class is a real regression risk on any host where cwd ≠ repo | `.ufo/waves/round-82/receipts/before-tip-battery-win-dot.txt` vs `.ufo/waves/round-82/receipts/before-tip-battery-win-abs.txt` | captured by running both forms at intake (the r81 habit) | routed with both-forms evidence; the one-line resolve inside `build_sandbox` stays unlanded this round (the round's counter-amendment budget is spent) |
+
+## Correction (round 83, append-only; r82 closure D1 — evidence-pointer name drift)
+The receipt citations in this lesson's Gate (named-debt bullet) and Mistakes
+row 3 that read `.ufo/waves/round-82/receipts/before-tip-battery-win-dot.txt`
+are name drift: the dot-form (`--repo .`) receipt was committed as
+`.ufo/waves/round-82/receipts/before-tip-battery-win.txt` (same bytes:
+`guards 5 of 5; tip battery exit 0: 1 of 6`, four gates
+`absent at ff3b962561eaef436c6bf77c8ea9bfdc167f87a1`, measured rev
+`ff3b962561eaef436c6bf77c8ea9bfdc167f87a1`). No file named
+`before-tip-battery-win-dot.txt` exists at any round-82 rev. Read every
+`-dot` citation in this file and in the round-82 fleet report as
+`before-tip-battery-win.txt`. Round-83 follow-up: the dot-form failure this
+receipt recorded does not reproduce at the r83 tip — both invocation forms
+read `2 of 6`, exit 1, gate lines identical modulo wall time — and
+`git clone --shared .` writes an absolute alternates entry on this host's
+git, so this lesson's Mistakes row 3 root-cause sentence ("build_sandbox
+passes the source path to `git clone --shared` as given") does not describe a
+reproducible mechanism here; the routed `build_sandbox` resolve stays
+unlanded (main() already resolves at line 749 of the r82 base).

@@ -1,0 +1,15 @@
+r83 probe: what `git clone --shared .` writes into the sandbox alternates
+run 2026-11-01, cwd = the lane repo at 4c95c456778baa4d61fc58a2642850c4a8b06b81
+commands:
+  git clone --shared -q --no-checkout . <scratch>/probe-dot-clone   -> rc 0
+  cat <scratch>/probe-dot-clone/.git/objects/info/alternates
+    -> C:/Users/jpvei/.zcode/workspace/95b1ba4d-5089-47a4-9fd8-54adebbce2ae/fleet/kotoba-shokunin/./.git/objects
+       (an ABSOLUTE entry: this host's git normalizes the relative source
+        path, so a relative `--repo`/cwd does not produce relative alternates)
+  git -C <scratch>/probe-dot-clone cat-file -e <tip>:verifiers/verify_skill_checklist.py -> rc 0
+  git -C <scratch>/probe-dot-clone checkout -q <tip>                -> rc 0
+  ls <scratch>/probe-dot-clone/verifiers | wc -l                    -> 76
+conclusion: the r82 dot-form root-cause sentence ("a relative path produces
+a sandbox whose alternates do not resolve") does not reproduce with this
+host's git at the r83 tip; both battery forms read 2 of 6 with identical
+gate lines (see before-tip-battery-r83-abs.txt / -dot.txt).

@@ -150,3 +150,16 @@ exist here. Mission floor (≥ 8 L2 subagents, one batched call) is attempted
 through this host's batched subagent surface for read-only reconnaissance;
 if the surface cannot dispatch from a headless round, the attempt and its
 refusal are reported, never padded.
+
+## Correction (round 83, append-only; r82 closure D1 — evidence-pointer name drift)
+§ Host change above cites `receipts/before-tip-battery-win-dot.txt`; the
+committed receipt holding that measurement is
+`receipts/before-tip-battery-win.txt` (same dot-form bytes: `1 of 6`, four
+gates `absent at <rev>`). No `-dot`-named file exists at any round-82 rev;
+the pointer is superseded, the measurement stands as recorded. Round-83
+follow-up: the dot-form failure does not reproduce at the r83 tip (both
+forms `2 of 6`, exit 1, identical gate lines modulo wall time), and the
+"relative alternates" root cause does not reproduce (`git clone --shared .`
+writes an absolute alternates entry on this host's git; main() already
+resolved `--repo` at the r82 base, line 749) — the routed `build_sandbox`
+resolve is ruled out, not landed.
