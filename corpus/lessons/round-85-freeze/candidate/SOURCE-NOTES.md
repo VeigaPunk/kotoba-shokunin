@@ -1,0 +1,10 @@
+# Primary-source opening notes (preparatory, 2026-11-03)
+
+Opened by train_kotoba_round85 with web.open; tool-rendered text, not a byte-exact fetch capture. No HTTP status, raw body hash or upstream commit inferred from that interface. These notes are an access record and bounded paraphrase, not a full archived page. Reopen URLs/sections for independent meaning review.
+
+1. https://agentskills.io/specification — § Progressive disclosure, displayed lines262–268; § File references, lines273–285. Minimal excerpt (line285): “Keep file references one level deep from `SKILL.md`.” Own note: metadata, full instructions and resources have different loading stages; the page recommends a small main file, root-relative references and shallow chains. Under500lines and recommended instruction-token guidance are authoring guidance, not observed client truncation.
+2. https://agentskills.io/skill-creation/best-practices — § Structure large skills with progressive disclosure, displayed lines139–141; § Gotchas sections, lines226–239. Minimal excerpt (line239): “the agent may not recognize the trigger.” Own note: supply a condition for loading reference detail, but keep non-obvious gotchas visible before the situation; otherwise the reader may not discover the condition. This supports retaining a decision guard rather than loading every reference always. This page is advice, not a runtime test.
+
+The draft's recursive reachability test, unknown-condition branch, retained-duplicate witness and state replay are author synthesis tested on invented textual cases. No source claims these procedures have measured model-output benefits. Round74 already holds the size guidance and conditional-loading advice; re-opening them does not earn a freshness improvement.
+
+Recheck: open both canonical URLs and the named sections, compare the minimal excerpts and meanings, and date new notes if changed. Local provenance shape checks do not substitute for reopening. No new S identifiers committed; S255/S256 are proposed next IDs, subject to a final census immediately before landing.
