@@ -1,0 +1,13 @@
+# Checkpoint011: kotoba selective reviewed export
+
+Closed original lane pin: eb4ff108ea402453e272aa7718c2d900619d89db. Selected rounds: 86 87. Original source identities differ from the new export identity.
+
+Round86: rejected C1 comparative gain, four semantic ties. Round87: corrected bounded input-lint capability admitted, original 47-case success, supplementary 1/4 failure and separately corrected 47+4 preserved. No semantic, universal-grammar or numerical gain.
+
+This is original owned code/recipes where selected, original analysis, released review and reports, with cited sources. It is not the full training repository or a freshly tested reproduction. No candidate, runner, fixture generator, baseline or provider was executed to prepare this export. Historical claims remain historical. No extra round, numerical gain, promotion or master/main merge follows.
+
+Read PROVENANCE-011.json for every selected original repository/commit/path/blob, original bytes/SHA256, exported blob/bytes/SHA256, and transformations. All source quotations selected for omission are replaced with an explicit marker. Source attribution, URLs, locations and original analysis remain. Quotation counts/locations in preserved historical prose or receipt fields describe ORIGINAL local documents, not the redacted export copy; this package does not certify those source-body checks. Task filesystem prefixes and one personal runtime path are redacted where recorded. A modified export is never represented as byte-identical to its original.
+
+All86 private expectations/rubric/baseline and unreviewed files are omitted. Public author-visible87 literal cases, runner and separately labeled regression recipe are included, but original complete raw result streams, historic reference code S211, original candidate revision, legacy verifier/corpus/registry and original ancestry are omitted. The supplied recipes are not a fresh pass and do not reconstruct original chronology. Earlier85 rejection evidence remains inherited.
+
+Only the explicit allowlist is selected. No original lane .git history is imported. Existing reviewed-export ancestry is retained by ordinary fast-forward where available; new Kama/Kake exports have a single new root. No unsafe005 capture, full third-party page/PDF/code file, private oracle, nested archive/bundle/history, credential or unrelated personal data is selected. Referenced files outside the allowlist are deliberately missing. Source links do not grant redistribution rights or new license/ownership. Earlier publication artifacts remain unchanged; this checkpoint neither cleans up nor rewrites old public branches or Space files.

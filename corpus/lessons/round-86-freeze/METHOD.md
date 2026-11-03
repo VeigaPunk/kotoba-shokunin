@@ -1,0 +1,11 @@
+# Round86 proposed entrypoint-cut method
+Status: prospective authoring heuristic, not admitted knowledge or runtime enforcement.
+
+1. Enumerate independently consumable entrypoints: top-level activation, directly opened reference section, pasted command block, delegated packet and resumed checkpoint. Only include entrypoints the actual task says are possible; do not invent a client load model.
+2. For each entrypoint, write the minimum trusted state and safety preconditions required before its first consequential action. A name such as READY is not evidence of its underlying facts. Identify which facts expire when the artifact, destination, policy version or job identity changes.
+3. Trace each permitted path from its own entrypoint to action. A common preamble is sufficient only if every permitted path necessarily traverses it first. Otherwise place a mandatory named gate/pointer at the uncovered entrypoint, or remove that independent entrypoint explicitly. A link merely existing elsewhere is insufficient.
+4. Compress repeated rationale and lengthy detail, not the local routing obligation. One authoritative definition can remain shared, but each independent entrypoint needs its reachable invocation and a concrete missing/unreadable-reference outcome. If references cannot travel with a delegated packet, embed the minimal invariant there and identify its source/version; do not pretend the absent reference was loaded.
+5. On recovery, separate historical observations from present authorization. Reconcile uncertain prior outcomes using the designated read-only evidence before retry; bind renewed actions to the current artifact and target. A checkpoint may narrow where to inspect but cannot mint missing authority. Unknown state remains unknown.
+6. Test the edit from each specified entrypoint in isolation and with a stale/missing dependency. Also test an ordinary complete path: always halting or loading everything is not a useful compression solution. Record the scope of manual tests; they do not prove client loading, tool enforcement or population model gains.
+
+Admission remains conditional on independent comparison against the strong existing baseline. This method may tie or lose; no gain is assumed.

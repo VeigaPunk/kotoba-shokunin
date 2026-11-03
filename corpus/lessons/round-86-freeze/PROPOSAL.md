@@ -1,0 +1,17 @@
+# Kotoba86 prospective proposal
+Base06b54dbf96519fc259b1027a5cc81e97039736b2, public master/HEAD1c8f37edf2e5ac0fb3c2be1c88e32406313fe47b checked2026-11-03. Working branch only.
+
+C1 exploratory depth: improve authoring judgments for a compressed instruction package with multiple explicitly independent entrypoints and recovery after context loss. Compare actual baseline and candidate rewrites, not presence counts. Candidate must preserve useful execution and exactly scoped authorization; stopping every path is not success. No client runtime, broad safety, or performance claim.
+
+Novelty boundary: anatomy-and-compression already teaches gate-first anatomy, copy-pasteable setup, one authoritative fact location and conditional pointers. fail-closed-and-anti-patterns already teaches missing prerequisite -> named recovery plus no shortcut. Round74 teaches progressive disclosure. Round85 tested condition observability, order and unknowns but all four cases tied; its independent-entrypoint deletion witness was not exercised. This86 tests whether composing those known rules yields stronger judgments under independent read boundaries, not invention of prerequisites.
+
+Bounded corpus novelty search: rg -n -i 'entrypoint|context.loss|resume|resumption|recovery|fragment|restart' corpus/knowledge, inspected hits. Existing recovery hits concern gate shape or source/evidence recovery; the search does not prove exhaustive novelty. Old source pages and round85 outcome are explicit competitors.
+
+Reviewer requested: freeze novel difficult cases, expectations, semantic rubric, cheapest shortcut controls and positive control in a Git commit BEFORE baseline or candidate answers. Suggested case families (not scored case answers): standalone reference action; delegated packet with omitted shared file; checkpoint approval bound to changed state; multiple independent alternative routes. Judge should choose counterexamples and disconfirm candidate, including a fully valid path that must remain usable. Author must not read private expected answers or baseline before immutable first output. Separate unprimed baseline gets only06b public held craft instructions, not this method or reviewer expectations.
+
+No-harm plan draft: actual Q65 base and Q72 prepared post-state tip battery using existing check_tip_battery --fleet; exact source census; corpus independent debt comparison. Existing reds must remain named, not waived. No SKILL/PROVINCE/verifier changes promised. Planned landing is bounded original proposed-method/source/application/review lesson evidence plus coverage-map and LOG entries, not activated doctrine absent admission. Parent owns fleet closure.
+
+## Outcome and limits
+Depth is the lowest owned axis (9; consistency/calibration10 in current SCORECARD); C1 is exploratory and receives no arithmetic score increase. Non-author judgment must support any unprovable-but-better disposition; ties/losses leave doctrine and scores unchanged. Completed substantive reviewed attempt is distinct from admission.
+
+Q73 sweep saved in ../base/pin-sweep.txt: proposed changes are new lesson evidence plus append-only coverage-map, LOG and source-opening note. No pinned SKILL/PROVINCE/verifier sections are planned for rewrite; the global corpus gates are still actually re-run. A proposed practical method remains lesson evidence, not corpus/knowledge or active SKILL absent independent admission.
