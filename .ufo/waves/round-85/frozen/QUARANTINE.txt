@@ -1,0 +1,7 @@
+ROUND 85 REJECTED EXPERIMENT — HISTORICAL BYTES, NOT AN ACTIVE GATE
+
+check_description_render.py and fixtures are byte-exact copies of the C1 experiment committed at 759cf35457c92c110f61e82630ccee00a598215f. The original active path and registry row were removed after C1 was killed. Do not run this relocated copy: its original LANE/FIXTURES layout is intentionally not rewritten, and it executes a script selected by the measured revision with inherited privileges. That is not a safe data-only audit of untrusted revisions.
+
+Reproduction of trusted historical base only: read the original instrument and fixtures from commit 759cf35457c92c110f61e82630ccee00a598215f in an isolated sandbox with no credentials, using the original verifiers/ layout and explicit TMPDIR under /fast/scratch/hyaku. Historical command: python3 -B verifiers/check_description_render.py --rev 1c8f37edf2e5ac0fb3c2be1c88e32406313fe47b => 4 of 8, exit 1. No production after-value is admitted.
+
+Known defects: R6 accepts duplicate positives and semantically irrelevant negatives with incidental token overlap; R1 accepts abbreviation terminators; R8 omits the frozen quote-location condition and adds an unfrozen three-word minimum; R5 executes revision-selected Python. See w1/ReviewerC1/review.md, w1/ReviewerC1/counter-comparison.txt and w1/Sentinel/audit.md. No post-scoring predicate repair is claimed. Production SKILL.md description and production eval set remain unchanged/absent.
