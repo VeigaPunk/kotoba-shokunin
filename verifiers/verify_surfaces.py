@@ -160,12 +160,9 @@ from pathlib import Path
 DEFAULT_REPO = Path(__file__).resolve().parent.parent
 FIXTURES = Path(__file__).resolve().parent / "fixtures" / "surfaces"
 
-# Round 72: the defaults follow the host's real binaries — `~/.local/bin/omp` is
-# a crash-restart shell wrapper installed 2026-10-23 (a wrapper is never a
-# substrate; the ELF is `omp.real`, same sha256 as the round-51 pin) and the
-# opencode npm 1.19.4 npx-cache path is gone: the host runs v2.1.4 at
-# `~/.opencode/bin/opencode`.
-# round 85: this host's omp is the ELF itself (omp/18.15.0); omp.real does not exist
+# Round 85: this host runs the omp/18.15.0 ELF directly at `omp`; the round-72
+# wrapper and `omp.real` target are gone. opencode remains v2.1.4 at
+# `~/.opencode/bin/opencode`; the older npm cache path is not the substrate.
 DEFAULT_BINARIES = {
     "omp": "/home/vgpnk/.local/bin/omp",
     "opencode": "/home/vgpnk/.opencode/bin/opencode",

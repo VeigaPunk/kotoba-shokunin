@@ -23,13 +23,13 @@ description: >
 A SKILL.md is a **loader contract**: the frontmatter `description` is the
 only part any router ingests — the two harnesses this lane can observe (omp,
 opencode) show it differently, and 11 clients are mapped by documentation.
-On **omp** the `<skills>` catalogue (template in the omp ELF, rendered per
-session) shows each skill as `- name: render` where `render` is
+At round 7 on **omp**, the `<skills>` catalogue (template in the ELF, rendered per
+session) showed each skill as `- name: render` where `render` was
 `cache.get(key) ?? previewSkillDescription`: a cached LLM one-liner if the
-async compressor landed, else a deterministic `slice(0, _8n-1)` cut with
-`_8n=100` (i.e. offset 99) plus last-space/`…` fallback (`skill-descriptions.ts`;
+async compressor landed, else a deterministic prefix cut (round-85 source:
+`k=100`, `slice(0,k-1)`; UTF-16 units, not bytes), plus last-space/`…` fallback;
 cache
-`~/.omp/agent/skill-descriptions.db`). Cache coverage is time-varying — 5/17
+`~/.omp/agent/skill-descriptions.db`. Cache coverage is time-varying — 5/17
 rows at round 7, 17 rows at round 9, **18 at round 13** (2026-09-28T23:30Z) with
 **all 17 live keys still reproducing** against today's on-disk descriptions
 (2026-10-14 errata — the live set is now 7; see LOG.md round 18). The count is
@@ -465,6 +465,7 @@ reads as could-not-evaluate. `python3 -B verifiers/check_gate_registry.py --rev 
 | `verifiers/check_correction_sweep.py` | gate | `python3 -B verifiers/check_correction_sweep.py --root .` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file | none; self-test fixtures under `$TMPDIR` | kotoba |
 | `verifiers/check_could_not_evaluate.py` | gate | `python3 -B verifiers/check_could_not_evaluate.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file | temporary clone (removed) | kotoba |
 | `verifiers/check_description_thresholds.py` | gate | `python3 -B verifiers/check_description_thresholds.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file | none; `--fetch` reads the network | kotoba |
+| `verifiers/check_description_render.py` | gate | `python3 -B verifiers/check_description_render.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate; frozen r85 form counter, C1 killed by R6 false-green controls — not an admission gate for semantic eval quality | `--self-test` | `verifiers/fixtures/description-render/` | isolated fixtures under `$TMPDIR` (removed) | kotoba |
 | `verifiers/check_explicit_invocation.py` | gate | `python3 -B verifiers/check_explicit_invocation.py --rev <rev> --fetch` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file | none; `--fetch` reads the network | kotoba |
 | `verifiers/check_gate_finding_delta.py` | gate | `python3 -B verifiers/check_gate_finding_delta.py --base <rev> --head <rev>` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | `verifiers/corpus-baseline.json` | temp trees under `$TMPDIR` | kotoba |
 | `verifiers/check_gate_registry.py` | gate | `python3 -B verifiers/check_gate_registry.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate | `--self-test` | in-file | none | kotoba |
@@ -561,9 +562,9 @@ reads as could-not-evaluate. `python3 -B verifiers/check_gate_registry.py --rev 
   break 8.2K→1.75K block bytes.
 - `~/.local/bin/omp` embedded JS (`strings -n 6`; cite anchors, not offsets —
   ELF offsets and `strings` line numbers shift across builds):
-  `previewSkillDescription` (truncator: `t.replace(/\s+/g," ").trim()`,
-  `if (t.length <= _8n) return t`, `t.slice(0, _8n-1)`, first-sentence
-  `^.*?[.!?](?=\s|$)` kept if ≥40 chars, else last-space + `…`; `_8n = 100`),
+  `previewSkillDescription` (round 85: `dnt`, constant `k=100`; normalized length
+  ≤100 UTF-16 units passes intact; longer text uses `slice(0,k-1)`, first sentence
+  `[.!?]` of ≥40 units or last-space/`…`; `.ufo/waves/round-85/w1/RevengerRender/probe.md`),
   `createSkillDescriptionCompressor` (LLM path + validator ≤160 chars, ≤12
   words), key `A8n` = `sha256(K7s ‖ \x00 ‖ name ‖ \x00 ‖ description)` with the
   compressor template = the 273-byte bunfs prompt `compress-description-*.md`

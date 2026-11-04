@@ -61,10 +61,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 DEFAULT_REPO = Path(__file__).resolve().parent.parent
-# Round 72: omp is the ELF `omp.real` (the `omp` file installed 2026-10-23 is a
-# crash-restart shell wrapper; its sha says nothing about the ELF that runs) and
-# opencode is v2.1.4 at `~/.opencode/bin/opencode` (the npx 1.19.4 path is gone).
-# round 85: this host's omp is the ELF itself (omp/18.15.0); omp.real does not exist
+# Round 85: this host runs the omp/18.15.0 ELF directly at `omp`; the round-72
+# wrapper and `omp.real` target are gone. Historical pins stay in baseline.json.
+# opencode remains v2.1.4 at `~/.opencode/bin/opencode`.
 BINARIES = {
     "omp": "/home/vgpnk/.local/bin/omp",
     "opencode": "/home/vgpnk/.opencode/bin/opencode",
