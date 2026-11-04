@@ -1,0 +1,43 @@
+# tip re-measure (r85 D2: an after-value quoted at a revision has a receipt at that revision)
+39a014f2f3142096b43031faedb0ea9819995fb2926138c3ebf2b194002e4520  verifiers/check_omp_catalogue_repro.py
+$ python3 -B verifiers/check_omp_catalogue_repro.py --rev 99c217423bc0feff33ca46a99ddc98bd6bda09c1
+guard G3 fixture PASS
+guard G4 roots PASS
+omp catalogue lines reproduced 215 of 215
+exit=0
+$ python3 -B verifiers/check_gate_registry.py --rev 99c217423bc0feff33ca46a99ddc98bd6bda09c1
+verifiers/verify_skill_checklist.py          OK 
+verifiers/verify_surfaces.py                 OK 
+gate registry rows conformant 66 of 67 lane verifiers; phantom 0
+exit=1
+$ python3 -B verifiers/verify_harness_claims.py --self-test
+self-test: 0 failure(s) over 34 assertions
+exit=0
+$ python3 -B verifiers/check_omp_catalogue_repro.py --self-test
+0 failure(s) over 46 assertions
+exit=0
+$ python3 -B verifiers/verify_surfaces.py --json
+    }
+  }
+}
+exit=0
+$ python3 -B verifiers/check_substrate_pins.py
+PASS omp_binary_mtime: delta 0 ns (tolerance 0 ns)
+PASS opencode_binary_sha256: ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7
+OK 3/3 pins hold
+exit=0
+$ python3 -B verifiers/verify_corpus_integrity.py
+           commit_quoted: corpus/lessons/round-6-aggregator-audit.md:45: round-N (quoted meta-finding)
+DRIFT   corpus.pointers.commit_unresolvable: observed=1 expected=0 / empty
+8/9 checks pass; DRIFT: corpus.pointers.commit_unresolvable
+exit=1
+$ bash /home/vgpnk/Projects/shokunin/scripts/sources-census.sh validate --root /home/vgpnk/Projects/shokunin kotoba
+kotoba	W04	S249 duplicate url code.claude.com/docs/en/agent-sdk/skills.md across scopes
+kotoba	W04	S254 duplicate url code.claude.com/docs/en/skills.md across scopes
+kotoba	ok	/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md
+exit=0
+$ python3 -B verifiers/check_sibling_census.py corpus/knowledge/sibling-overlap-census-round74.md --province PROVINCE.md --skill SKILL.md
+province rows 20 matched 20
+skill description names 10 of 10 non-none lanes
+skill description length 1021 of 1024
+exit=0
