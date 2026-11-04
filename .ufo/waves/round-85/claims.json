@@ -1,0 +1,75 @@
+{
+  "schema": "kotoba-round-claims-v1",
+  "lane": "kotoba",
+  "round": 85,
+  "attempt": 1,
+  "author": "KotobaR85",
+  "date": "2026-11-04",
+  "host": "linux",
+  "base": "1c8f37edf2e5ac0fb3c2be1c88e32406313fe47b",
+  "base_state": "local=1c8f37e remote=1c8f37e ahead=0 behind=0 tracked=0 untracked=0",
+  "declaration_pointer": "plans/round-85.md",
+  "frozen_before_data": true,
+  "claims": [
+    {
+      "id": "C1",
+      "axis": "depth",
+      "owned_lowest": true,
+      "type": "measured+sourced",
+      "sourced_row": "S213",
+      "predicate": "python3 -B verifiers/check_description_render.py --rev <rev> prints `description render rules met N of 8` and exits 0 iff N == 8",
+      "target": 8,
+      "base_expected": "measured, < 8",
+      "rules": [
+        "R1 first_sentence_le_99",
+        "R2 prefix_carries_triggers",
+        "R3 spec_max_1024",
+        "R4 imperative_invocation",
+        "R5 sibling_clauses",
+        "R6 eval_set_shape",
+        "R7 no_xml_tag",
+        "R8 sourced_entry"
+      ],
+      "payload_candidate_chars": 876,
+      "controls": ["W0 base bytes", "W1 naive 99-char cut", "W2 token dump"],
+      "kill_rule": "any control world reaching 8 of 8 stops the claim before data; an after-value below 8 is an honest miss as declared"
+    },
+    {
+      "id": "C2",
+      "axis": "freshness",
+      "owned_lowest": false,
+      "type": "measured",
+      "predicate": "python3 -B verifiers/check_substrate_pins.py exits 0 printing `OK 3/3 pins hold` AND python3 -B verifiers/verify_surfaces.py --json exits 0 with \"pass\": 7 and \"fail\": 0",
+      "base_observed": "pins exit 2 `UNREADABLE 2/3 pins failed: omp_binary_sha256, omp_binary_mtime`; surfaces exit 2 `omp binary not found: /home/vgpnk/.local/bin/omp.real`",
+      "host_substrate": {
+        "path": "/home/vgpnk/.local/bin/omp",
+        "version": "omp/18.15.0",
+        "sha256": "6737ee2415555a3656cc7b89c14d1c25c18658ee4c0fd4f7309705149ccb7b0f",
+        "mtime": "2026-11-01T17:11:07.281808804-03:00"
+      },
+      "controls": ["base bytes", "opencode sha under omp pin -> DRIFT", "deleted omp pin -> absent", "different ELF -> DRIFT"],
+      "kill_rule": "a wrong-binary or deleted pin exiting 0 makes the guard vacuous and stops C2 before the pin values land"
+    }
+  ],
+  "conformance_repairs_not_claims": [
+    "corpus/SOURCES.md CRLF -> LF so the census registry gate parses on this host (round-end census exit 0)",
+    "coverage-map index rows for 7 unindexed corpus files + refresh-corpus-baseline.py at the final pre-report commit",
+    "append-only correction block in corpus/lessons/round-84.md for routed defect r84-D1",
+    "pre-existing reds recorded, not claimed: verify_skill_checklist governance.citation_resolves; corpus gates before baseline refresh; round-49 census province pins (round-74 census is the current base)"
+  ],
+  "frontier": {
+    "sources_rows_added": 0,
+    "sources_rows_touched": ["S213"],
+    "census_before": ".ufo/waves/round-85/receipts/census-round-start.txt",
+    "assimilation": "merge/kotoba spec-description-trigger-discipline re-grounded on S213 through this lane's gate",
+    "considerthese": "considerthese/2026-10-26.md proposal 3 executed by C1"
+  },
+  "wave": {
+    "shape": "one v1 wave",
+    "seats": 16,
+    "attack_seats": 6,
+    "attack_share": 0.375,
+    "connector_seats": 1,
+    "residual_call": 0
+  }
+}
