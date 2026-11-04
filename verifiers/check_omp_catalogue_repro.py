@@ -56,9 +56,14 @@ Guards (evaluated on the revision's bytes and on the model's outputs):
                 expanded; `{cwd}/` = the session cwd or any ancestor; fnmatch
                 globs), and every row's quote (>= 12 chars) occurs verbatim in
                 the installed omp binary OMP_BINARY, whose sha256 must equal
-                OMP_SHA256 (else exit 2).  A root search that never read omp's
-                source has no located quote to cite.  Whether a quote is the
-                right one is a reviewer judgement, not this counter's.
+                OMP_SHA256 (else exit 2).  Addendum 1 (plans/round-86-addendum-1.md,
+                before any candidate data): each pattern names a literal
+                dot-directory segment (`.agents`, `.omp`, ...), carries no
+                wildcard in that segment or in its first segment, and its quote
+                contains every literal dot segment verbatim -- a bare `*` row or
+                a quote that never names the client directory is refused.
+                Whether a quote is the code that makes omp read the root is a
+                reviewer judgement, not this counter's.
 
 Exit 2 when the revision or the module cannot be loaded, git is missing, the
 fixture is unreadable, or the omp binary is absent or not the pinned build.
@@ -68,6 +73,7 @@ TMPDIR and prints `0 failure(s) over N assertions`.
 from __future__ import annotations
 
 import argparse
+import re
 import fnmatch
 import ast
 import hashlib
@@ -128,6 +134,37 @@ def _expand(pattern: str, cwd: Path) -> list[str]:
         return [str(Path.home() / pattern[2:])]
     return [pattern]
 
+WILD = set("*?[")
+
+
+def _pattern_problem(pattern: str, quote: str) -> str | None:
+    """Addendum-1 (round 86, before any candidate data): a root pattern names the client directory
+    it is about.  Its relative part (after `~/`, `{cwd}/` or `/`) must contain at least one literal
+    dot-directory segment (`.agents`, `.omp`, ...); no dot segment and no first segment may carry a
+    wildcard; and the quote must contain every literal dot segment verbatim.  A bare `*` row, a
+    wildcard over the client directory, or a quote that never names the directory is refused."""
+    for prefix in ("{cwd}/", "~/"):
+        if pattern.startswith(prefix):
+            rel = pattern[len(prefix):]
+            break
+    else:
+        rel = pattern.lstrip("/")
+    segs = [s for s in rel.split("/") if s]
+    if not segs:
+        return f"pattern {pattern!r} names no directory"
+    if WILD & set(segs[0]):
+        return f"pattern {pattern!r} has a wildcard in its first segment"
+    dots = [s for s in segs if s.startswith(".") or (WILD & set(s) and s.lstrip("*?[").startswith("."))]
+    if any(WILD & set(s) for s in dots):
+        return f"pattern {pattern!r} has a wildcard in a dot-directory segment"
+    if not dots:
+        return f"pattern {pattern!r} names no literal dot-directory"
+    missing = [s for s in dots if s not in quote]
+    if missing:
+        return f"quote does not name {missing[0]!r} of pattern {pattern!r}"
+    return None
+
+
 
 def guard_g4(ledger: str | None, names: list[str], offered: dict, cwd: Path, binary: bytes) -> list[str]:
     if ledger is None:
@@ -144,6 +181,10 @@ def guard_g4(ledger: str | None, names: list[str], offered: dict, cwd: Path, bin
         pattern, quote = cells[0].strip(), cells[1]
         if len(quote) < QUOTE_MIN or quote.encode("utf-8") not in binary:
             findings.append(f"ledger line {i}: quote not located in the omp binary ({quote[:40]!r})")
+            continue
+        problem = _pattern_problem(pattern, quote)
+        if problem:
+            findings.append(f"ledger line {i}: {problem}")
             continue
         patterns.extend(_expand(pattern, cwd))
     for name in names:
@@ -201,24 +242,32 @@ for name in json.loads(Path(names_path).read_text()):
     desc = fm.get("description") if isinstance(fm, dict) else None
     if desc is None or (isinstance(fm, dict) and fm.get("style") == "unmodelled"):
         out[name] = {"reason": "no-description", "path": str(path)}; continue
-    out[name] = {"path": str(path), "key": mod.omp_key(template, name, desc), "preview": mod.preview(desc)}
+    out[name] = {"path": str(path), "desc": desc, "key": mod.omp_key(template, name, desc), "preview": mod.preview(desc)}
 print(json.dumps(out))
 ''' % (GUARDED_DEFS + GUARDED_NAMES,)
 
 
 def default_hide() -> list[Path]:
-    """What the scored module must not see: every place a copy of the rendered catalogue lives."""
+    """What the scored module must not see: every place a copy of the rendered catalogue lives.
+    Addendum 1: all of ~/.omp is hidden (session transcripts, the description cache, agent/history
+    DBs and ~/.omp/logs request dumps, which Sentinel-3 found carrying all 215 renders); only the
+    skill-bearing subtrees in default_rebind() are bound back."""
     home = Path.home()
-    return [home / ".omp/agent/sessions", Path("/home/vgpnk/Projects/shokunin"), Path("/fast/scratch"),
-            Path("/tmp"), Path("/var/tmp"), home / ".omp/agent/skill-descriptions.db",
-            home / ".omp/agent/skill-descriptions.db-wal", home / ".omp/agent/skill-descriptions.db-shm",
-            home / ".omp/agent/agent.db", home / ".omp/agent/history.db"]
+    return [home / ".omp", Path("/home/vgpnk/Projects/shokunin"), Path("/fast/scratch"),
+            Path("/tmp"), Path("/var/tmp"), Path("/dev/shm"), Path("/run/user")]
+
+
+def default_rebind() -> list[Path]:
+    """Skill-bearing omp subtrees bound back read-only after ~/.omp is hidden (if they exist)."""
+    home = Path.home()
+    return [home / ".omp/plugins/node_modules", home / ".omp/agent/skills"]
 
 
 def run_module(src: str, names: list[str], template_hex: str, cwd: str, work: Path, tag: str,
-               hide: list[Path]) -> dict:
+               hide: list[Path], rebind: list[Path] | None = None) -> dict:
     """Run the revision's model in a bwrap sandbox that hides `hide`; the module never shares this
-    process, so it cannot patch the guards, and it cannot read the catalogue it is scored against."""
+    process, so it cannot patch the guards, and it cannot read the catalogue it is scored against.
+    Addendum 1: no network, own pid/ipc namespaces, a new session, and a cleared environment."""
     box = Path(tempfile.mkdtemp(prefix=f"box-{tag}-", dir=str(work)))
     (box / "vhc.py").write_text(src, encoding="utf-8")
     (box / "runner.py").write_text(RUNNER, encoding="utf-8")
@@ -228,12 +277,18 @@ def run_module(src: str, names: list[str], template_hex: str, cwd: str, work: Pa
     if hide:
         if not shutil.which("bwrap"):
             raise Inconclusive("bwrap not found: the scored module cannot be sandboxed")
-        wrap = ["bwrap", "--ro-bind", "/", "/", "--dev", "/dev", "--proc", "/proc", "--die-with-parent"]
+        wrap = ["bwrap", "--ro-bind", "/", "/", "--dev", "/dev", "--proc", "/proc", "--die-with-parent",
+                "--unshare-net", "--unshare-pid", "--unshare-ipc", "--new-session", "--clearenv",
+                "--setenv", "HOME", str(Path.home()), "--setenv", "PATH", "/usr/bin:/bin",
+                "--setenv", "LANG", "C.UTF-8"]
         for h in hide:
             if h.is_dir():
                 wrap += ["--tmpfs", str(h)]
             elif h.exists():
                 wrap += ["--ro-bind", "/dev/null", str(h)]
+        for r in (default_rebind() if rebind is None else rebind):
+            if r.is_dir():
+                wrap += ["--ro-bind", str(r), str(r)]
         wrap += ["--ro-bind", str(box), str(box)]
         cmd = wrap + cmd
     out = subprocess.run(cmd, capture_output=True, text=True, check=False, timeout=600)
@@ -274,19 +329,75 @@ def guard_g1(src: str, renders: list[str]) -> list[str]:
     return findings
 
 
+def ref_key(template: bytes, name: str, desc: str) -> str:
+    """omp 18.15.0 `A(e)` in skill-descriptions.ts: sha256(prompt ‖ 0x00 ‖ name ‖ 0x00 ‖ description)."""
+    h = hashlib.sha256()
+    for part in (template, b"\x00", name.encode(), b"\x00", desc.encode()):
+        h.update(part)
+    return h.hexdigest()
+
+
+def ref_preview(desc: str) -> str:
+    """omp 18.15.0 `dnt` (previewSkillDescription) in skill-descriptions.ts: k = 100, E = 40."""
+    t = re.sub(r"\s+", " ", desc).strip()
+    if len(t) <= 100:
+        return t
+    r = t[:99]
+    m = re.match(r"^.*?[.!?](?=\s|$)", r)
+    if m and len(m.group(0)) >= 40:
+        return m.group(0)
+    o = r.rfind(" ")
+    c = r[:o].rstrip() if o >= 40 else r
+    return c + "\u2026"
+
+
+def _collapse(s: str) -> str:
+    return re.sub(r"\s+", " ", s).strip()
+
+
 def predict(src: str, fixture: dict, work: Path, tag: str, hide: list[Path]) -> tuple[dict, dict, dict]:
+    """Addendum 1: the module contributes discovery (path) and parsing (desc) only; the parent
+    checks the path's directory is the skill's name, that the description occurs in the file it
+    names, that the module's key and preview equal the reference, and computes the render itself.
+    An answer key in the module (however encoded) cannot reach a render the file does not yield."""
     rows = {r["key"]: r["description"] for r in fixture["cache_rows"]}
+    template = bytes.fromhex(fixture["template_hex"])
     names = [e["name"] for e in fixture["entries"]]
     res = run_module(src, names, fixture["template_hex"], fixture["session_cwd"], work, tag, hide)
     preds, reasons, offered = {}, {}, {}
     for name in names:
         r = res.get(name) or {"reason": "not-discovered"}
-        if "path" in r:
-            offered[name] = r["path"]
-        if "reason" in r:
-            reasons[name] = r["reason"]
+        if not isinstance(r, dict):
+            reasons[name] = "malformed-output"
             continue
-        preds[name] = rows[r["key"]] if r["key"] in rows else r["preview"]
+        if "path" in r:
+            offered[name] = str(r["path"])
+        if "reason" in r:
+            reasons[name] = str(r["reason"])
+            continue
+        path, desc = Path(str(r.get("path"))), r.get("desc")
+        if path.parent.name != name:
+            reasons[name] = f"dir-name-differs ({path.parent.name})"
+            continue
+        if not isinstance(desc, str) or not _collapse(desc):
+            reasons[name] = "no-description"
+            continue
+        try:
+            text = path.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            reasons[name] = "unreadable-path"
+            continue
+        if _collapse(desc) not in _collapse(text.replace('\\"', '"')):
+            reasons[name] = "desc-not-in-file"
+            continue
+        key = ref_key(template, name, desc)
+        if r.get("key") != key:
+            reasons[name] = "key-differs-from-reference"
+            continue
+        if r.get("preview") != ref_preview(desc):
+            reasons[name] = "preview-differs-from-reference"
+            continue
+        preds[name] = rows[key] if key in rows else ref_preview(desc)
     return preds, reasons, offered
 
 
@@ -377,8 +488,8 @@ def preview(description):
     m = re.match(r"^.*?[.!?](?=\\s|$)", s)
     if m and len(m.group(0)) >= 40:
         return m.group(0)
-    n = s[: s.rfind(" ")].rstrip()
-    return (n or s) + "\\u2026"
+    o = s.rfind(" ")
+    return (s[:o].rstrip() if o >= 40 else s) + "\\u2026"
 '''
 
 
@@ -395,7 +506,7 @@ def self_test() -> int:
 
     base = Path(tempfile.mkdtemp(prefix="ocr-selftest-", dir=os.environ.get("TMPDIR")))
     try:
-        root = base / "root"
+        root = base / ".fakeclient" / "skills"
         descs = {
             "alpha": "Short alpha description that stays verbatim.",
             "beta": "Beta does one thing well. " + "x" * 120,
@@ -419,8 +530,8 @@ def self_test() -> int:
                    "_pinned_ok": True, "_sha256": "x"}
         global TOTAL, TARGET
         saved = TOTAL, TARGET
-        quote = "loadSkillsFromDir-QUOTE"
-        blob = b"\x00junk " + quote.encode() + b" more\x00"
+        quote = 'loadSkillsFromDir(".fakeclient")-QUOTE'
+        blob = b"\x00junk " + quote.encode() + b" more loadSkillsFromDir-QUOTE\x00"
         ledger = f"{ROOTS_HEADER}\n{root}\t{quote}\n"
         S = {"scratch": [], "frozen_epoch": None, "ledger": ledger, "binary": blob, "hide": []}
         TOTAL, TARGET = 3, 3
@@ -471,6 +582,22 @@ def self_test() -> int:
             rc = score(good, nocache, base, "w_nocache", [REPO], out=lines.append, **S)
             check("no-cache exit 1", rc == 1)
             check("no-cache alpha differs", any(l.startswith("MISS alpha render-differs") for l in lines))
+            # addendum-1 arms (ReviewerCounter-2): one old SKILL.md offered for every name, and an
+            # answer key hidden past G1 (base64, served by call order through preview)
+            import base64
+            onepath = good.replace("    return out, {}\n", "    first = next(iter(out.values()), None)\n"
+                                   "    return {n: first for n in ('alpha', 'beta', 'gamma')}, {}\n", 1)
+            lines.clear()
+            rc = score(onepath, fixture, base, "w_onepath", [REPO], out=lines.append, **S)
+            check("one-path forgery exit 1", rc == 1)
+            check("one-path forgery dir-name MISS", any("dir-name-differs" in l for l in lines))
+            enc = base64.b64encode(json.dumps([renders[n] for n in ("alpha", "beta", "gamma")]).encode()).decode()
+            keyed = good + ("\nimport base64 as _b, json as _j\n_K = _j.loads(_b.b64decode(%r))\n_i = [0]\n"
+                            "def preview(description):\n    _i[0] += 1\n    return _K[_i[0] - 1]\n" % enc)
+            lines.clear()
+            rc = score(keyed, fixture, base, "w_b64key", [REPO], out=lines.append, **S)
+            check("encoded answer key exit 1", rc == 1)
+            check("encoded answer key preview MISS", any("preview-differs-from-reference" in l for l in lines))
             # scratch provenance: SKILL.md files written under a scratch root are refused
             lines.clear()
             rc = score(good, fixture, base, "w_scratch", [REPO], out=lines.append, scratch=[base],
@@ -501,15 +628,21 @@ def self_test() -> int:
             # G4: no ledger, an unlocated quote, and a root no pattern covers are each refused
             for tag, led in (("w_noledger", None),
                              ("w_fakequote", f"{ROOTS_HEADER}\n{root}\tnot-in-the-binary-quote\n"),
-                             ("w_otherroot", f"{ROOTS_HEADER}\n{base}/elsewhere\t{quote}\n"),
-                             ("w_header", f"pattern\tquote\n{root}\t{quote}\n")):
+                             ("w_otherroot", f"{ROOTS_HEADER}\n{base}/.fakeclient/elsewhere\t{quote}\n"),
+                             ("w_header", f"pattern\tquote\n{root}\t{quote}\n"),
+                             # addendum-1 arms: the Critic-2 `*` row, a wildcard over the client
+                             # directory, a pattern with no dot-directory, a quote that never names it
+                             ("w_star", f"{ROOTS_HEADER}\n*\t{quote}\n"),
+                             ("w_dotwild", f"{ROOTS_HEADER}\n{base}/.*/skills\t{quote}\n"),
+                             ("w_nodot", f"{ROOTS_HEADER}\n{base}/plain/skills\t{quote}\n"),
+                             ("w_quotemiss", f"{ROOTS_HEADER}\n{root}\tloadSkillsFromDir-QUOTE\n")):
                 lines.clear()
                 rc = score(good, fixture, base, tag, [REPO], out=lines.append, scratch=[], frozen_epoch=None,
                            ledger=led, binary=blob, hide=[])
                 check(f"{tag} exit 1", rc == 1)
                 check(f"{tag} G4 FAIL", any(l.startswith("guard G4 roots FAIL") for l in lines))
             # G4: a glob pattern and a {cwd}/ pattern both cover the root
-            for tag, pat in (("w_glob", f"{root.parent}/ro*"), ("w_cwd", "{cwd}/root")):
+            for tag, pat in (("w_glob", f"{root.parent}/sk*"), ("w_cwd", "{cwd}/.fakeclient/skills")):
                 lines.clear()
                 rc = score(good, fixture, base, tag, [REPO], out=lines.append, scratch=[], frozen_epoch=None,
                            ledger=f"{ROOTS_HEADER}\n{pat}\t{quote}\n", binary=blob, hide=[])

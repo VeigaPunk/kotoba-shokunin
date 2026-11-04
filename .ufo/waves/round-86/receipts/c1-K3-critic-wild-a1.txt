@@ -1,0 +1,22 @@
+# addendum-1 counter (plans/round-86-addendum-1.md)
+$ sha256sum verifiers/check_omp_catalogue_repro.py
+39a014f2f3142096b43031faedb0ea9819995fb2926138c3ebf2b194002e4520  verifiers/check_omp_catalogue_repro.py
+fixture: 0b3443e1058fffa75a287faca7d839d4bbfa3b7cd6f672783e1b0e70d714b488  verifiers/fixtures/omp-catalogue-r86/catalogue.json
+# K3 = Critic-2 cheapest world (w1/Critic/worlds/cheapest-module.diff + led-wild.tsv); frozen counter read 215 of 215 exit 0 (w1/Critic/receipts/cheapest-zcode-1line-wild.txt)
+$ python3 -B verifiers/check_omp_catalogue_repro.py --repo <k3repo> --rev 94b41cf73194109e0249ea03d678f00ea1293dc1
+rev 94b41cf73194109e0249ea03d678f00ea1293dc1 fixture sha256 0b3443e1058fffa75a287faca7d839d4bbfa3b7cd6f672783e1b0e70d714b488 session_cwd /home/vgpnk/Projects/shokunin
+guard G1 no-echo PASS
+guard G2 provenance PASS
+guard G3 fixture PASS
+guard G4 roots FAIL (216): ledger line 2: pattern '*' has a wildcard in its first segment
+omp catalogue lines reproduced 215 of 215
+exit=1
+# K3b = same module, per-root zcode ledger row with the same irrelevant quote
+$ python3 -B verifiers/check_omp_catalogue_repro.py --repo <k3repo> --rev 19ba6fb9dd7cd5bf1e51ae6306b4e86b55e8270a
+rev 19ba6fb9dd7cd5bf1e51ae6306b4e86b55e8270a fixture sha256 0b3443e1058fffa75a287faca7d839d4bbfa3b7cd6f672783e1b0e70d714b488 session_cwd /home/vgpnk/Projects/shokunin
+guard G1 no-echo PASS
+guard G2 provenance PASS
+guard G3 fixture PASS
+guard G4 roots FAIL (216): ledger line 2: quote does not name '.zcode' of pattern '~/.zcode/cli/plugins/marketplaces/ecc/pi/core/skills'
+omp catalogue lines reproduced 215 of 215
+exit=1
