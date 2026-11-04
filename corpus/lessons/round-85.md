@@ -308,3 +308,36 @@ separately and is labelled as documentary.
   envelope records an orchestrator-kernel restart and missing original final
   payloads; all 16 seat reports remain on disk. Original provider/death-status
   telemetry cannot be reconstructed from that envelope.
+
+## Correction, round 86
+
+Append-only; the text above is not rewritten. These close the r85 non-author
+spot-check's routed defects D1, D4 and D5
+(`corpus/lessons/round-85-verifier-spotcheck.md` § 6). Each command was run
+2026-11-04 in the lane at the round-86 base `e5d966b51494f4177868ad5f46806a204783ef6c`
+(all three name committed revisions, so the working tree does not affect them).
+
+- **D1 — coverage-map rows at the tip: 9, not 8.** Selection rule (Q76): every
+  line the round-85 range adds to `corpus/README.md` that opens a table row
+  (`+| `). The round-85 report's "eight" counted the seat-time receipt
+  (the seven inherited-record rows plus the round-85 knowledge entry's row);
+  the ninth is this lesson's own `Round-85 lessons` row, which the integrator
+  landed after that receipt (§ Gate, "Records this round touched", item 3).
+  `git diff 1c8f37e cfcb9a4 -- corpus/README.md | grep -c '^+| '` → **9**.
+  The nine rows, by first cell: Round-81 non-author spot-check (closure),
+  Round-82 lessons, Round-82 non-author spot-check (closure), Round-83 lessons,
+  Round-83 non-author spot-check (closure), Round-84 lessons, Round-84
+  non-author spot-check (closure), Description trigger discipline (round 85),
+  Round-85 lessons.
+- **D4 — the LOG range for § Round 85 is `LOG.md:3088`–`:3235`.** The round-85
+  report cited `:3088`–`:3240`; the upper bound does not resolve.
+  `git show cfcb9a4:LOG.md | wc -l` → **3235**;
+  `git show cfcb9a4:LOG.md | grep -n '^## Round 85'` → **3088** (`## Round 85 — C1
+  depth (description render discipline, killed before data) and C2 freshness
+  (host substrate re-pin to omp 18.15.0), 2026-11-04`).
+- **D5 — `corpus/SOURCES.md` final size at the tip is 202 884 B.** The pair
+  `203 260 → 202 824 B` is the normalization-only step (436 CRLF pairs
+  removed); the committed file then carries S213's `used-by` extension (+60 B).
+  `git cat-file -s cfcb9a4:corpus/SOURCES.md` → **202884**. The lesson's
+  § Gate item (2) already says the normalization-only bytes are historical and
+  the final file adds the `used-by` text; this states the final number beside it.

@@ -3233,3 +3233,64 @@ kotoba round 74 (hyaku run 7, attempt 1). Base `1e03d19`; plan `329e7d9` (`plans
   `.ufo/waves/round-85/r85-w1-results.json` records a parent kernel restart:
   original final payloads/status telemetry were not retained. Seat reports
   are the evidence; no lost provider-error text is reconstructed.
+
+## Round 86 — C1 freshness (the omp catalogue model re-derived against omp 18.15.0), 2026-11-04
+
+- **Round 86 C1 freshness — claim.** Surface: the lane's executable model of how omp
+  builds the `<skills>` catalogue — `verifiers/verify_harness_claims.py` (`WALKUP_REL`,
+  `USER_ROOTS`, `discover_skills`, `parse_frontmatter`, `omp_key`, `preview`) plus the new
+  roots ledger `verifiers/omp-skill-roots.tsv`. Frozen predicate (`plans/round-86.md`,
+  freeze `ecfad51fe3f24540a6d67d2b54920929c7b83041`, base
+  `e5d966b51494f4177868ad5f46806a204783ef6c`): `python3 -B
+  verifiers/check_omp_catalogue_repro.py --rev <rev>` prints `omp catalogue lines
+  reproduced N of 215`, exit 0 iff N >= 205 and guards G1-G4 all PASS. Base: `83 of
+  215`, G4 FAIL (`verifiers/omp-skill-roots.tsv absent at the revision`), exit 1; 132
+  `MISS … not-discovered`, 0 `render-differs` (`grep -c 'not-discovered'
+  .ufo/waves/round-86/receipts/c1-K0-base.txt` → 132). Controls before the freeze: K1
+  echo forgery `83 of 215`, exit 1; K2 answer key `guard G1 no-echo FAIL (215)`, exit 1;
+  counter self-test `0 failure(s) over 34 assertions` (receipts
+  `.ufo/waves/round-86/receipts/c1-K1-forgery.txt`, `c1-K2-hardcode.txt`,
+  `c1-counter-selftest.txt`). Addendum 1 (`plans/round-86-addendum-1.md`, commit
+  `b9ee5484a139c4428a2d53e572868abe86844821`, before any candidate was scored) amended the
+  counter (sha256 `2390eec2…6514` → `39a014f2…4520`; predicate, 215, 205 and fixture
+  unchanged) after three attack-seat false greens (F1 `*` ledger row, F2 request dumps
+  visible in the sandbox, F3 encoded answer key); re-run controls: self-test `0
+  failure(s) over 46 assertions`, K0 `83 of 215` exit 1, K1 exit 1, K2 G1 FAIL, K3/K3b
+  `215 of 215` but G4 FAIL exit 1, K4 sandbox probe (`receipts/*-a1.txt`). Against the
+  kill rule's "counter … changed after this freeze": recorded for the judge, not decided
+  here. ExecModel's scratch candidate `903bd78` (on `b9ee548`) reads G1–G4 PASS, `215 of
+  215`, exit 0 (`.ufo/waves/round-86/w1/ExecModel/score.txt`). After: `<L1 fills>`.
+- **Round 86 intake — S255 opened.** The omp 18.15.0 TypeScript source embedded in the
+  installed ELF `/home/vgpnk/.local/bin/omp` (sha256 `6737ee24…7b0f`, 276 785 328 B,
+  `omp/18.15.0`), kind `code`, tier A, `mined`, accessed 2026-11-04, read with python
+  mmap + re; located quote at byte offset 178770368 in
+  `packages/coding-agent/src/extensibility/skill-descriptions.ts`: `const c = o >= E ?
+  r.slice(0, o).trimEnd() : r;`; upstream tag `v18.15.0` of
+  `https://github.com/can1357/oh-my-pi` HTTP 200, raw `skill-descriptions.ts` 16 687 B,
+  sha256 `7321adfc…f6ee`, constants 100/40/160/12 matching the ELF
+  (`.ufo/waves/round-86/w1/ScribeSources/fetch-record.txt`). Rows added 1 (S255,
+  `corpus/SOURCES.md:196`), rows touched 0. Census at the freeze: exit 0, 33 `W04`
+  (`.ufo/waves/round-86/receipts/census-round-start.txt`; the receipt itself carries 2
+  of the 33 rows, the 33 re-derived on the base bytes in
+  `.ufo/waves/round-86/w1/ScribeLesson/census-base-file.txt`). Census after: `<L1 fills>`.
+- **Round 86 mistake — M86-1.** The catalogue check `omp_newest_catalogue`
+  (`verifiers/verify_harness_claims.py:370`, docstring `:371-382`, in the check since
+  `abef8aa`, round 10) assumed every catalogue line "must byte-equal a cached
+  description", so the 132 lines from roots the model does not know surfaced only as a
+  DRIFT count (`16/28 checks pass`, `omp.catalogue.matched: observed=15 expected=7`;
+  `.ufo/waves/round-86/w1/ScribeLesson/harness-base-catalogue.txt`), never as a model
+  failure. Captured-by: none. Fix: the QUALITY criterion "a model of an observed
+  artefact is scored by reproducing that artefact line for line, and an unmodelled line
+  counts against it" (L1 appends it to `corpus/QUALITY.md`); it can fail — the base model
+  fails it at `83 of 215`, exit 1. Lesson: `corpus/lessons/round-86.md` § Mistakes.
+- **Round 86 routed defects (r85 spot-check D1–D7; status-neutral, addressed not
+  claimed).** D1 → corrected count in `corpus/lessons/round-85.md` § Correction, round 86:
+  `git diff 1c8f37e cfcb9a4 -- corpus/README.md | grep -c '^+| '` → 9. D2 → stated: the
+  round-85 C2 after-value's receipt is `c2-after.json` at `bf9ab28`, the tip `cfcb9a4`
+  was not re-run on the record. D3 → additive note in `verifiers/corpus-baseline.json`
+  (L1). D4 → corrected citation `LOG.md:3088`–`:3235` (`git show cfcb9a4:LOG.md | wc -l`
+  → 3235). D5 → corrected wording: final `corpus/SOURCES.md` 202 884 B (`git cat-file -s
+  cfcb9a4:corpus/SOURCES.md` → 202884; 202 824 B is normalization-only). D6 → re-captured
+  K4 line `.ufo/waves/round-86/receipts/r85-D6-K4-recapture.txt` (first line `FAIL
+  omp_binary_sha256: …`). D7 → this round commits `<wave>-wavedone.txt` with the
+  orchestrator message (L1).
