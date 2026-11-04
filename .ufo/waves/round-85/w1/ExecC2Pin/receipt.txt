@@ -1,0 +1,163 @@
+# ExecC2Pin receipts — round 85 w1, C2 substrate re-pin
+Date: 2026-11-04. Lane: /home/vgpnk/Projects/shokunin/kotoba-shokunin.
+Scratch workdir /fast/scratch/hyaku/kotoba-r85/ExecC2Pin (TMPDIR for every run; deleted after receipts were copied here).
+
+## Host substrate re-derivation (2026-11-04, before the path edits)
+$ ls -la /home/vgpnk/.local/bin/omp /home/vgpnk/.local/bin/omp.real
+  ls: cannot access '/home/vgpnk/.local/bin/omp.real': No such file or directory
+  -rwxr-xr-x 1 vgpnk vgpnk 276785328 Nov  1 17:11 /home/vgpnk/.local/bin/omp
+$ file /home/vgpnk/.local/bin/omp
+  ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically linked, interpreter
+  /lib64/ld-linux-x86-64.so.2, for GNU/Linux 3.2.0, BuildID[sha1]=588d7307f333293c728b74df19b7323c20736899
+$ sha256sum /home/vgpnk/.local/bin/omp /home/vgpnk/.opencode/bin/opencode
+  6737ee2415555a3656cc7b89c14d1c25c18658ee4c0fd4f7309705149ccb7b0f  /home/vgpnk/.local/bin/omp
+  ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7  /home/vgpnk/.opencode/bin/opencode
+$ python3: os.stat('/home/vgpnk/.local/bin/omp').st_mtime_ns
+  1793563867281808804 -> ISO at fixed -03:00: 2026-11-01T17:11:07.281808804-03:00
+  round-trip through check_substrate_pins.parse_iso_ns: expect_ns == live_ns (delta 0, tolerance 0)
+$ /home/vgpnk/.local/bin/omp --version
+  omp/18.15.0
+
+Candidate pin values (w1/ExecC2Pin/baseline.json.candidate, measured_against):
+  omp_binary_sha256 = 6737ee2415555a3656cc7b89c14d1c25c18658ee4c0fd4f7309705149ccb7b0f
+  omp_binary_mtime  = 2026-11-01T17:11:07.281808804-03:00
+  opencode_binary_sha256 = ca9b3ee2... (unchanged, still holds)
+  + omp_round85_note: version, sha256, mtime, re-derivation commands, 18.12.6 omp.real pin superseded
+Candidate diff vs verifiers/baseline.json: exactly 3 lines (two pin values, comma moved to the
+round-72 note, omp_round85_note appended). verifiers/baseline.json itself NOT edited.
+
+## Control battery (python3 -B, cwd = lane root, TMPDIR = scratch)
+
+$ python3 -B -c import ast,sys
+for f in sys.argv[1:]: ast.parse(open(f, encoding="utf-8").read(), f)
+print("ast ok 4 files") verifiers/check_substrate_pins.py verifiers/verify_surfaces.py verifiers/verify_harness_claims.py verifiers/verify_harness_independent.py
+exit=0
+  ast ok 4 files
+
+$ python3 -B verifiers/check_substrate_pins.py --self-test
+exit=0
+  0 failure(s) over 62 assertions
+
+$ python3 -B verifiers/check_substrate_pins.py
+exit=1
+  FAIL omp_binary_sha256: sha256 drift: expect=85d9daf3a05fc76e8cd425ae1904eb576af8d21cc85fcf4690742626e07ccfa4 got=6737ee2415555a3656cc7b89c14d1c25c18658ee4c0fd4f7309705149ccb7b0f
+  FAIL omp_binary_mtime: mtime drift (sha256 not compared): pinned_ns=2026-10-21T20:37:24.615549837-03:00 observed_ns=1793563867281808804 delta_ns=938022666258967 tolerance_ns=0
+  PASS opencode_binary_sha256: ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7
+  DRIFT 2/3 pins failed: omp_binary_sha256, omp_binary_mtime
+
+$ python3 -B verifiers/check_substrate_pins.py --baseline /fast/scratch/hyaku/kotoba-r85/ExecC2Pin/c2-opencode-sha.json
+exit=1
+  FAIL omp_binary_sha256: sha256 drift: expect=ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7 got=6737ee2415555a3656cc7b89c14d1c25c18658ee4c0fd4f7309705149ccb7b0f
+  PASS omp_binary_mtime: delta 0 ns (tolerance 0 ns)
+  PASS opencode_binary_sha256: ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7
+  DRIFT 1/3 pins failed: omp_binary_sha256
+
+$ python3 -B verifiers/check_substrate_pins.py --baseline /fast/scratch/hyaku/kotoba-r85/ExecC2Pin/c3-absent.json
+exit=1
+  FAIL omp_binary_sha256: PIN_ABSENT: pin declared by the guard's contract, absent from measured_against
+  FAIL omp_binary_mtime: PIN_ABSENT: pin declared by the guard's contract, absent from measured_against
+  PASS opencode_binary_sha256: ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7
+  PIN_ABSENT 2/3 pins failed: omp_binary_sha256, omp_binary_mtime
+
+$ python3 -B verifiers/check_substrate_pins.py --baseline /fast/scratch/hyaku/kotoba-r85/ExecC2Pin/baseline.json.candidate --omp-binary /home/vgpnk/.opencode/bin/opencode
+exit=1
+  FAIL omp_binary_sha256: sha256 drift: expect=6737ee2415555a3656cc7b89c14d1c25c18658ee4c0fd4f7309705149ccb7b0f got=ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7
+  FAIL omp_binary_mtime: mtime drift (sha256 not compared): pinned_ns=2026-11-01T17:11:07.281808804-03:00 observed_ns=499162500000000000 delta_ns=-1294401367281808804 tolerance_ns=0
+  PASS opencode_binary_sha256: ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7
+  DRIFT 2/3 pins failed: omp_binary_sha256, omp_binary_mtime
+
+$ python3 -B verifiers/check_substrate_pins.py --baseline /fast/scratch/hyaku/kotoba-r85/ExecC2Pin/baseline.json.candidate
+exit=0
+  PASS omp_binary_sha256: 6737ee2415555a3656cc7b89c14d1c25c18658ee4c0fd4f7309705149ccb7b0f
+  PASS omp_binary_mtime: delta 0 ns (tolerance 0 ns)
+  PASS opencode_binary_sha256: ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7
+  OK 3/3 pins hold
+
+$ python3 -B verifiers/verify_surfaces.py --json
+exit=0
+        "path": "/home/vgpnk/.opencode/bin/opencode",
+        "sha256": "ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7",
+        "source": "binary"
+      }
+    }
+  }
+
+$ python3 -B verifiers/verify_surfaces.py --json --omp-binary /home/vgpnk/.local/bin/omp.real
+exit=2
+    "checks": [],
+    "error": "omp binary not found: /home/vgpnk/.local/bin/omp.real",
+    "exit_code": 2,
+    "fail": 0,
+    "pass": 0
+  }
+
+$ git diff -- verifiers/check_substrate_pins.py verifiers/verify_surfaces.py verifiers/verify_harness_claims.py verifiers/verify_harness_independent.py
+diff --git i/verifiers/check_substrate_pins.py w/verifiers/check_substrate_pins.py
+index 11164b9..4031041 100644
+--- i/verifiers/check_substrate_pins.py
++++ w/verifiers/check_substrate_pins.py
+@@ -64,8 +64,9 @@ DEFAULT_REPO = Path(__file__).resolve().parent.parent
+ # Round 72: omp is the ELF `omp.real` (the `omp` file installed 2026-10-23 is a
+ # crash-restart shell wrapper; its sha says nothing about the ELF that runs) and
+ # opencode is v2.1.4 at `~/.opencode/bin/opencode` (the npx 1.19.4 path is gone).
++# round 85: this host's omp is the ELF itself (omp/18.15.0); omp.real does not exist
+ BINARIES = {
+-    "omp": "/home/vgpnk/.local/bin/omp.real",
++    "omp": "/home/vgpnk/.local/bin/omp",
+     "opencode": "/home/vgpnk/.opencode/bin/opencode",
+ }
+ # The pin set the guard's contract requires. Discovery additionally checks any
+diff --git i/verifiers/verify_harness_claims.py w/verifiers/verify_harness_claims.py
+index 268e069..9bc3611 100755
+--- i/verifiers/verify_harness_claims.py
++++ w/verifiers/verify_harness_claims.py
+@@ -50,7 +50,7 @@ import sys
+ from pathlib import Path
+ 
+ HOME = Path.home()
+-OMP_BIN = HOME / ".local/bin/omp.real"  # round 72: `omp` is a wrapper script
++OMP_BIN = HOME / ".local/bin/omp"  # round 85: this host's omp is the ELF itself (omp/18.15.0); omp.real does not exist
+ OMP_DB = HOME / ".omp/agent/skill-descriptions.db"
+ OC_LOG = HOME / ".local/share/opencode/log/opencode.log"
+ OC_BIN = HOME / ".opencode/bin/opencode"  # round 72: v2.1.4
+diff --git i/verifiers/verify_harness_independent.py w/verifiers/verify_harness_independent.py
+index 62fb880..3ab3e97 100644
+--- i/verifiers/verify_harness_independent.py
++++ w/verifiers/verify_harness_independent.py
+@@ -121,7 +121,8 @@ from pathlib import Path
+ # fixtures can drive the same code (--self-test does exactly that).
+ # ---------------------------------------------------------------------------
+ # Round 72: `~/.local/bin/omp` is a crash-restart shell wrapper; the substrate is the ELF.
+-DEFAULT_OMP_BINARY = Path("/home/vgpnk/.local/bin/omp.real")
++# round 85: this host's omp is the ELF itself (omp/18.15.0); omp.real does not exist
++DEFAULT_OMP_BINARY = Path("/home/vgpnk/.local/bin/omp")
+ DEFAULT_AGENTS_ROOT = Path("/home/vgpnk/.agents/skills")
+ DEFAULT_SKILL_DB = Path("/home/vgpnk/.omp/agent/skill-descriptions.db")
+ DEFAULT_OC_LOG = Path("/home/vgpnk/.local/share/opencode/log/opencode.log")
+diff --git i/verifiers/verify_surfaces.py w/verifiers/verify_surfaces.py
+index 8e38b15..7278672 100755
+--- i/verifiers/verify_surfaces.py
++++ w/verifiers/verify_surfaces.py
+@@ -165,8 +165,9 @@ FIXTURES = Path(__file__).resolve().parent / "fixtures" / "surfaces"
+ # substrate; the ELF is `omp.real`, same sha256 as the round-51 pin) and the
+ # opencode npm 1.19.4 npx-cache path is gone: the host runs v2.1.4 at
+ # `~/.opencode/bin/opencode`.
++# round 85: this host's omp is the ELF itself (omp/18.15.0); omp.real does not exist
+ DEFAULT_BINARIES = {
+-    "omp": "/home/vgpnk/.local/bin/omp.real",
++    "omp": "/home/vgpnk/.local/bin/omp",
+     "opencode": "/home/vgpnk/.opencode/bin/opencode",
+ }
+ DEFAULT_INVENTORY = "corpus/knowledge/instruction-surface-census-round13.md"
+$ python3 -B verifiers/verify_surfaces.py --json
+exit=0
+  "pass": 7, "fail": 0, "exit_code": 0
+
+$ python3 -B verifiers/verify_surfaces.py --json --omp-binary /home/vgpnk/.local/bin/omp.real
+exit=2
+  "pass": 0, "fail": 0, "exit_code": 2, "error": "omp binary not found: /home/vgpnk/.local/bin/omp.real"
+
+
+## Surfaces payloads archived beside this receipt
+  surfaces-after.json (exit 0, "pass": 7, "fail": 0; omp path /home/vgpnk/.local/bin/omp, sha256 6737ee24..., source "binary")
+  surfaces-base.json (exit 2, error: omp binary not found: /home/vgpnk/.local/bin/omp.real)

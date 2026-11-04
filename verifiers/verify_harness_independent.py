@@ -121,7 +121,8 @@ from pathlib import Path
 # fixtures can drive the same code (--self-test does exactly that).
 # ---------------------------------------------------------------------------
 # Round 72: `~/.local/bin/omp` is a crash-restart shell wrapper; the substrate is the ELF.
-DEFAULT_OMP_BINARY = Path("/home/vgpnk/.local/bin/omp.real")
+# round 85: this host's omp is the ELF itself (omp/18.15.0); omp.real does not exist
+DEFAULT_OMP_BINARY = Path("/home/vgpnk/.local/bin/omp")
 DEFAULT_AGENTS_ROOT = Path("/home/vgpnk/.agents/skills")
 DEFAULT_SKILL_DB = Path("/home/vgpnk/.omp/agent/skill-descriptions.db")
 DEFAULT_OC_LOG = Path("/home/vgpnk/.local/share/opencode/log/opencode.log")

@@ -165,8 +165,9 @@ FIXTURES = Path(__file__).resolve().parent / "fixtures" / "surfaces"
 # substrate; the ELF is `omp.real`, same sha256 as the round-51 pin) and the
 # opencode npm 1.19.4 npx-cache path is gone: the host runs v2.1.4 at
 # `~/.opencode/bin/opencode`.
+# round 85: this host's omp is the ELF itself (omp/18.15.0); omp.real does not exist
 DEFAULT_BINARIES = {
-    "omp": "/home/vgpnk/.local/bin/omp.real",
+    "omp": "/home/vgpnk/.local/bin/omp",
     "opencode": "/home/vgpnk/.opencode/bin/opencode",
 }
 DEFAULT_INVENTORY = "corpus/knowledge/instruction-surface-census-round13.md"

@@ -50,7 +50,7 @@ import sys
 from pathlib import Path
 
 HOME = Path.home()
-OMP_BIN = HOME / ".local/bin/omp.real"  # round 72: `omp` is a wrapper script
+OMP_BIN = HOME / ".local/bin/omp"  # round 85: this host's omp is the ELF itself (omp/18.15.0); omp.real does not exist
 OMP_DB = HOME / ".omp/agent/skill-descriptions.db"
 OC_LOG = HOME / ".local/share/opencode/log/opencode.log"
 OC_BIN = HOME / ".opencode/bin/opencode"  # round 72: v2.1.4
