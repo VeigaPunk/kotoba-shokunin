@@ -1,0 +1,45 @@
+$ python3 -B verifiers/check_gate_registry.py --rev 04647b0f715ff3c4f314b0d8f03dea28bc453688
+verifiers/verify_harness_independent.py      OK 
+verifiers/verify_skill_checklist.py          OK 
+verifiers/verify_surfaces.py                 OK 
+gate registry rows conformant 66 of 67 lane verifiers; phantom 0
+exit=1
+$ python3 -B verifiers/verify_harness_claims.py --self-test
+self-test: 0 failure(s) over 34 assertions
+exit=0
+$ python3 -B verifiers/verify_surfaces.py --json
+      "source": "binary"
+    }
+  }
+}
+exit=0
+$ python3 -B verifiers/check_substrate_pins.py
+PASS omp_binary_sha256: 6737ee2415555a3656cc7b89c14d1c25c18658ee4c0fd4f7309705149ccb7b0f
+PASS omp_binary_mtime: delta 0 ns (tolerance 0 ns)
+PASS opencode_binary_sha256: ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7
+OK 3/3 pins hold
+exit=0
+$ python3 -B verifiers/verify_corpus_integrity.py --json
+      "verdict": "PASS"
+    }
+  ]
+}
+exit=1
+$ python3 -B verifiers/verify_skill_checklist.py
+PASS trigger.no_placeholder: evaluated 533 — no placeholder markers in 533 scanned lines
+PASS trigger.command_binary_resolves: evaluated 34 — 21 segments; 34 command subject(s) resolve
+PASS trigger.citation_resolves: evaluated 228 — 228 repo-rooted citation token(s) resolve from the repo root
+FAIL governance.citation_resolves: evaluated 1470 — correction LOG.md:2621 SCORECARD.md:158 '.ufo/reports/round-60/kotoba.md': names no live red subject; LOG.md:2881: '.ufo/waves/round-82/receipts/before-tip-battery-win-dot.txt' does not resolve from /home/vgpnk/Projects/shokunin/kotoba-shokunin; LOG.md:2947: '.ufo/waves/round-82/receipts/before-tip-battery-win-dot.txt' does not resolve from /home/vgpnk/Projects/shokunin/kotoba-shokunin; LOG.md:2958: '.ufo/reports/round-82/kotoba.md' does not resolve from /home/vgpnk/Projects/shokunin/kotoba-shokunin … (+9 more); 10 quoted meta-finding(s), 3 schematic token(s) excluded, 2 recorded absence(s) excused, 3 recorded correction(s) excused
+exit=1
+$ bash /home/vgpnk/Projects/shokunin/scripts/sources-census.sh validate --root /home/vgpnk/Projects/shokunin kotoba
+kotoba	W04	S243 duplicate url hermes-agent.nousresearch.com/docs/user-guide/features/skills across scopes
+kotoba	W04	S249 duplicate url code.claude.com/docs/en/agent-sdk/skills.md across scopes
+kotoba	W04	S254 duplicate url code.claude.com/docs/en/skills.md across scopes
+kotoba	ok	/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md
+exit=0
+$ python3 -B verifiers/check_sibling_census.py corpus/knowledge/sibling-overlap-census-round74.md --province PROVINCE.md --skill SKILL.md
+rows 20 verified 20
+province rows 20 matched 20
+skill description names 10 of 10 non-none lanes
+skill description length 1021 of 1024
+exit=0

@@ -1,0 +1,298 @@
+# omp 18.15.0 ELF /home/vgpnk/.local/bin/omp (sha256 6737ee24…7b0f) — located source excerpts
+# format: <absolute byte offset>: <verbatim line>. Located with python3 mmap: M.find(anchor, module_start, module_end); module bounds = consecutive b"// packages/...ts\n" headers.
+### skills.ts Dp (loadSkills) defaults + gate fn ue — packages/coding-agent/src/extensibility/skills.ts (header @ 177496019)
+ 177499125: async function Dp(u = {}) {
+ 177499153:   const {
+ 177499163:     cwd: p = M(),
+ 177499181:     enabled: x = true,
+ 177499204:     enableCodexUser: R = false,
+ 177499236:     enableClaudeUser: k = false,
+ 177499269:     enableClaudeProject: _ = true,
+ 177499304:     enablePiUser: F = true,
+ 177499332:     enablePiProject: U = true,
+ 177499363:     enableAgentsUser: z = true,
+ 177499395:     enableAgentsProject: X = true,
+ 177499430:     customDirectories: Y = [],
+ 177499461:     ignoredSkills: Q = [],
+ 177499488:     includeSkills: te = [],
+ 177499516:     disabledExtensions: re = [],
+ 177499549:     extensionRoots: oe
+ 177499572:   } = u;
+ 177499581:   if (!x) {
+ 177499593:     return { skills: [], warnings: [] };
+ 177499634:   }
+ 177499638:   function ue(et) {
+ 177499658:     const { provider: Ye, level: vt } = et;
+ 177499702:     if (Ye === sl)
+ 177499721:       return true;
+ 177499740:     if (Ye === "codex" && vt === "user")
+ 177499781:       return R || zi("codex");
+ 177499812:     if (Ye === "claude" && vt === "user")
+ 177499854:       return k || zi("claude");
+ 177499886:     if (Ye === "claude" && vt === "project")
+ 177499931:       return _;
+ 177499947:     if (Ye === "native" && vt === "user")
+ 177499989:       return F;
+ 177500005:     if (Ye === "native" && vt === "project")
+ 177500050:       return U;
+ 177500066:     if (Ye === "agents" && vt === "user")
+ 177500108:       return z;
+ 177500124:     if (Ye === "agents" && vt === "project")
+ 177500169:       return X;
+ 177500185:     if (Ye === "claude-plugins" && et.origin !== undefined && et.origin !== "claude")
+ 177500271:       return true;
+ 177500290:     if (vt === "user")
+ 177500313:       return zi(Ye);
+ 177500334:     return true;
+ 177500351:   }
+ 177500355:   const he = await kn(zl.id, {
+### skills.ts Dp realpath dedupe loop — packages/coding-agent/src/extensibility/skills.ts (header @ 177496019)
+ 177502424: for (let et = 0;et < ke.length; et++) {
+ 177502464:     const Ye = ke[et];
+ 177502487:     const vt = ot[et];
+ 177502510:     if (ye.has(vt)) {
+ 177502532:       continue;
+ 177502548:     }
+### skills.ts Dp custom directories — packages/coding-agent/src/extensibility/skills.ts (header @ 177496019)
+ 177503117: const Ue = await Promise.all(Y.map(async (et) => {
+ 177503168:     const Ye = co(et);
+ 177503191:     const vt = await Ba({ cwd: p, home: gx.homedir(), repoRoot: null }, {
+ 177503265:       dir: Ye,
+ 177503280:       providerId: hx,
+ 177503302:       level: "user",
+### skills.ts Dp managed skills + final sort — packages/coding-agent/src/extensibility/skills.ts (header @ 177496019)
+ 177504756: const ze = he.all.filter((et) => et._source.provider === sl && kD(et.name) && !Ae.has(et.name) && !Pe(et.name) && xe(et.name));
+ 177504884:   const rt = new Set(he.all.filter((et) => et._source.provider !== sl && ue(et._source)).map((et) => et.name));
+### skills.ts u0e collision resolver — packages/coding-agent/src/extensibility/skills.ts (header @ 177496019)
+ 177496534: function u0e(u, p, x, R, k, _) {
+ 177496567:   const F = [...p.entries()].filter(([ue, he]) => he.rawName === x.name);
+ 177496641:   if (F.length === 0) {
+ 177496665:     return { name: x.name, dropped: [] };
+ 177496707:   }
+ 177496711:   const U = u.get(x.name);
+ 177496738:   const z = x._source?.provider === Mge;
+ 177496779:   const X = U?._source?.provider === Mge;
+ 177496821:   const Y = x._source?.provider === hx;
+ 177496861:   const Q = U?._source?.provider === hx;
+ 177496902:   const te = F.filter(([ue, he]) => he.body === R && Bun.deepEquals(he.frontmatter, k)).map(([ue]) => ue);
+ 177497009:   if (U && (X && !z || Y && !Q)) {
+ 177497044:     if (te.includes(x.name))
+ 177497073:       return { name: x.name, dropped: te };
+ 177497117:     const ue = p.get(x.name);
+ 177497147:     let he = `${ue.namespace}/${ue.rawName}`;
+### skills.ts u0e tail — packages/coding-agent/src/extensibility/skills.ts (header @ 177496019)
+ 177497560: if (te.length > 0)
+ 177497579:     return;
+ 177497591:   let re = `${_}/${x.name}`;
+ 177497620:   for (let ue = 2;u.has(re); ue++) {
+ 177497657:     re = `${_}/${x.name}~${ue}`;
+ 177497690:   }
+ 177497694:   if (U && !X && z) {
+ 177497716:     return {
+ 177497729:       name: re,
+ 177497745:       dropped: [],
+ 177497764:       warning: `name collision: installed "${x.name}" from ${x.filePath} is overridden by ${U.filePath}; available as "${re}"`
+ 177497891:     };
+### skills.ts q5 namespace — packages/coding-agent/src/extensibility/skills.ts (header @ 177496019)
+ 177496091: function q5(u) {
+ 177496108:   let p = u._source.pluginName;
+ 177496140:   if (p === undefined) {
+ 177496165:     const R = u.path.split(/[\\/]/);
+ 177496202:     const k = R.lastIndexOf("skills");
+ 177496241:     const _ = k > 0 ? R[k - 1] : R[R.length - 3];
+ 177496291:     const F = _?.split("___");
+### settings.ts skills settings — packages/coding-agent/src/extensibility/settings.ts (header @ 172764428)
+ 172765222: var Dye = h({ id: "skills.enableCodexUser", type: "boolean", default: false });
+ 172765302: var Fye = h({ id: "skills.enableClaudeUser", type: "boolean", default: false });
+ 172765383: var PMt = h({
+ 172765397:   id: "skills.enableClaudeProject",
+ 172765433:   type: "boolean",
+ 172765452:   default: true
+ 172765468: });
+ 172765472: var IMt = h({ id: "skills.enablePiUser", type: "boolean", default: true });
+ 172765548: var MMt = h({ id: "skills.enablePiProject", type: "boolean", default: true });
+ 172765627: var _Mt = h({ id: "skills.enableAgentsUser", type: "boolean", default: true });
+ 172765707: var OMt = h({
+ 172765721:   id: "skills.enableAgentsProject",
+ 172765757:   type: "boolean",
+ 172765776:   default: true
+ 172765792: });
+ 172765796: var LMt = h({
+ 172765810:   id: "skills.customDirectories",
+ 172765844:   type: "array",
+ 172765861:   default: V
+### capability/index.ts opt-in set — packages/coding-agent/src/capability/index.ts (header @ 172770536)
+ 172770744: var me = {
+ 172770755:   cursor: true,
+ 172770771:   codex: true,
+ 172770786:   claude: true,
+ 172770802:   "claude-plugins": true,
+ 172770828:   gemini: true,
+ 172770844:   opencode: true,
+ 172770862:   windsurf: true,
+ 172770880:   github: true
+### capability/index.ts provider priority insert — packages/coding-agent/src/capability/index.ts (header @ 172770536)
+ 172771631: const s = r.findIndex((o) => o.priority < t.priority);
+ 172771686:   if (s === -1) {
+ 172771704:     r.push(t);
+### capability/index.ts zi gate — packages/coding-agent/src/capability/index.ts (header @ 172770536)
+ 172775387: function zi(e, t) {
+ 172775407:   const n = e.replace(/^\./, "");
+ 172775441:   if (U().has(n))
+ 172775459:     return false;
+ 172775477:   if (me[n] !== true)
+ 172775499:     return true;
+ 172775516:   if (t?.explicitProviders?.has(n) || t?.includeOptOutUserSources)
+ 172775583:     return true;
+ 172775600:   const r = Q();
+ 172775617:   if (r.has(n) || r.has("*") || r.has("all"))
+ 172775663:     return true;
+ 172775680:   if (n === "claude-plugins" && r.has("claude"))
+### capability/fs.ts one (repo root) — packages/coding-agent/src/capability/fs.ts (header @ 172760762)
+ 172762012: function one(e) {
+ 172762030:   let t = H(e);
+ 172762046:   while (true) {
+ 172762063:     const n = await Ql(t);
+ 172762090:     if (n.some((s) => s.name === ".git")) {
+### helpers.ts Ba body — packages/coding-agent/src/discovery/helpers.ts (header @ 172784226)
+ 172790793: if (p.enabled === false) {
+ 172790820:         return;
+ 172790836:       }
+ 172790844:       if (u && !p.description) {
+ 172790877:         return;
+ 172790893:       }
+ 172790901:       const g = d.basename(d.dirname(S));
+ 172790943:       const x = p.name;
+### helpers.ts Ba loop — packages/coding-agent/src/discovery/helpers.ts (header @ 172784226)
+ 172791424: if (t.includeSelf) {
+ 172791445:     const S = d.join(s, "SKILL.md");
+ 172791482:     if (T.existsSync(S)) {
+ 172791509:       P.push(b(S));
+ 172791529:     }
+ 172791535:   }
+ 172791539:   for (const S of f) {
+ 172791562:     if (S.name.startsWith("."))
+ 172791594:       continue;
+ 172791610:     if (!S.isDirectory() && !S.isSymbolicLink())
+ 172791659:       continue;
+ 172791675:     const c = d.join(s, S.name, "SKILL.md");
+### helpers.ts path helpers — packages/coding-agent/src/discovery/helpers.ts (header @ 172784226)
+ 172785540: function Ac(e, t, n) {
+ 172785563:   if (!zi(t, e))
+ 172785580:     return null;
+ 172785597:   return V$e(e, t, n);
+ 172785620: }
+ 172785622: function os(e, t, n) {
+ 172785645:   const r = ZO[t];
+ 172785664:   if (!r.projectDir)
+ 172785685:     return null;
+ 172785702:   return d.join(e.cwd, r.projectDir, n);
+### helpers.ts walk stop set — packages/coding-agent/src/discovery/helpers.ts (header @ 172784226)
+ 172798906: function Vye() {
+ 172798923:   const e = new Set;
+ 172798944:   e.add(Mt(q.homedir()));
+ 172798970:   e.add(Mt(q.tmpdir()));
+ 172798995:   if (true) {
+ 172799009:     e.add(Mt("/tmp"));
+ 172799032:     e.add(Mt("/var/tmp"));
+ 172799059:   }
+ 172799063:   return e;
+ 172799075: }
+ 172799077: function une(e) {
+ 172799095:   const t = Mt(d.join(e, qh()));
+ 172799128:   return t === Mt(d.join(q.homedir(), qh())) || t === Mt(d.dirname($o()));
+### builtin.ts dFe + X4t stop — packages/coding-agent/src/discovery/builtin.ts (header @ 173814223)
+ 173815231: async function* dFe(u) {
+ 173815256:   const p = Mt(u.home);
+ 173815280:   for (const x of X4t(u.cwd, u.repoRoot ?? u.home)) {
+ 173815334:     if (Mt(x.dir) === p || une(x.dir))
+ 173815373:       continue;
+ 173815389:     if (!u.repoRoot && await Xye(x.dir, Ou.projectDir))
+ 173815445:       continue;
+ 173815461:     yield x;
+ 173815474:   }
+ 173815478: }
+### builtin.ts T7 loader — packages/coding-agent/src/discovery/builtin.ts (header @ 173814223)
+ 173819872: async function T7(u) {
+ 173819895:   const p = [];
+ 173819911:   for await (const { dir: k } of dFe(u)) {
+ 173819954:     p.push(Ba(u, {
+ 173819973:       dir: fr.join(k, Ou.projectDir, "skills"),
+ 173820021:       providerId: Or,
+ 173820043:       level: "project",
+ 173820067:       requireDescription: true
+ 173820098:     }));
+ 173820107:   }
+ 173820111:   const x = Ba(u, {
+ 173820131:     dir: fr.join(we(), "skills"),
+ 173820165:     providerId: Or,
+ 173820185:     level: "user",
+### agents.ts — packages/coding-agent/src/discovery/agents.ts (header @ 173864077)
+ 173864226: var y1 = [".agent", ".agents"];
+### agents.ts walk + loader — packages/coding-agent/src/discovery/agents.ts (header @ 173864077)
+ 173865591: function V9(u, ...p) {
+ 173865614:   const x = [];
+ 173865630:   let R = u.cwd;
+ 173865647:   while (true) {
+ 173865664:     if (R !== u.home) {
+ 173865688:       for (const _ of y1) {
+ 173865716:         x.push(Rs.join(R, _, ...p));
+ 173865753:       }
+ 173865761:     }
+ 173865767:     if (R === (u.repoRoot ?? u.home))
+ 173865805:       break;
+ 173865818:     const k = Rs.dirname(R);
+ 173865847:     if (k === R)
+ 173865864:       break;
+ 173865877:     R = k;
+ 173865888:   }
+ 173865892:   return x;
+ 173865904: }
+### claude.ts loader — packages/coding-agent/src/discovery/claude.ts (header @ 173837493)
+ 173840164: async function Zte(u) {
+ 173840188:   const p = dl(u, f1(Fye));
+ 173840216:   const x = p ? Fr.join(p, "skills") : null;
+ 173840261:   const R = [];
+ 173840277:   let k = u.cwd;
+ 173840294:   while (true) {
+ 173840311:     if (k !== u.home) {
+ 173840335:       R.push(Ba(u, {
+ 173840356:         dir: Fr.join(k, eh, "skills"),
+ 173840395:         providerId: wi,
+ 173840419:         level: "project"
+ 173840444:       }));
+ 173840455:     }
+ 173840461:     if (k === (u.repoRoot ?? u.home))
+ 173840499:       break;
+ 173840512:     const Y = Fr.dirname(k);
+### codex.ts loader — packages/coding-agent/src/discovery/codex.ts (header @ 173878972)
+ 173882077: async function mre(u) {
+ 173882101:   const p = Ia(u, lre());
+ 173882127:   const x = p ? Xr.join(p, "skills") : null;
+ 173882172:   const R = ul(u);
+ 173882191:   const k = Xr.join(R, "skills");
+ 173882225:   const _ = await Promise.all([
+ 173882257:     x ? Ba(u, {
+ 173882273:       dir: x,
+ 173882287:       providerId: Qr,
+ 173882309:       level: "user"
+ 173882329:     }) : Promise.resolve({ items: [], warnings: [] }),
+ 173882384:     Ba(u, {
+### claude-plugins.ts root filter — packages/coding-agent/src/discovery/claude-plugins.ts (header @ 173849184)
+ 173849317: async function Wu(u, p) {
+ 173849343:   const { roots: x, warnings: R } = await IA(u.home, u.cwd);
+ 173849404:   const k = zi("claude-plugins", u) || zi("claude", u);
+ 173849460:   const _ = k ? x : x.filter((U) => U.scope === "project" || U.origin !== "claude");
+### omp-plugins.ts loader — packages/coding-agent/src/discovery/omp-plugins.ts (header @ 173914407)
+ 173914822: async function uie(u) {
+ 173914846:   const p = await vd(u, "skills");
+ 173914881:   const x = await Promise.all(p.map((R) => Ba(u, {
+ 173914932:     dir: Zo.join(R.path, "skills"),
+ 173914968:     providerId: xo,
+ 173914988:     level: R.level,
+### loader.ts npm plugin roots — packages/coding-agent/src/extensibility/plugins/loader.ts (header @ 173766331)
+ 173768743: const ue = oe.omp || oe.pi;
+ 173768771:     if (!ue) {
+ 173768786:       continue;
+ 173768802:     }
+ 173768808:     ue.version = oe.version;

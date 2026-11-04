@@ -27,7 +27,7 @@ Counter `verifiers/check_omp_catalogue_repro.py` sha256
 `2390eec230743e3bc464b4253f563a6c45095360c6d3e2d14d6c054421ad6514`; fixture
 `verifiers/fixtures/omp-catalogue-r86/catalogue.json` sha256
 `0b3443e1058fffa75a287faca7d839d4bbfa3b7cd6f672783e1b0e70d714b488` (both printed at the
-head of every receipt below). After value: `<L1 fills>` (measured by the L1 at the landing commit).
+head of every receipt below). After value: `omp catalogue lines reproduced 215 of 215`, G1–G4 PASS, exit 0 at the landing commit `04647b0f715ff3c4f314b0d8f03dea28bc453688`, measured with the addendum-1 counter (sha256 `39a014f2f3142096b43031faedb0ea9819995fb2926138c3ebf2b194002e4520`, `plans/round-86-addendum-1.md`, committed at `b9ee548` before any candidate scored; `.ufo/waves/round-86/receipts/c1-after.txt`). Post-amendment attack worlds that read no omp source (Critic-2 F5: junk dot-segment quotes, 212–215; MutTester-2/Sentinel-3 F6: `..` path laundering through `~/.omp/*` or the candidate's own `node_modules/*` row, 215) also exit 0, so per Q74 the number alone is not the claim's evidence; the root semantics rest on ReviewerRoots' per-row review (`C1 roots: sound`, rows 1/8/9 cite located-but-irrelevant quotes) and the closure.
 
 ## Gate
 
@@ -75,7 +75,7 @@ head of every receipt below). After value: `<L1 fills>` (measured by the L1 at t
   `W04` + 1 `E11 S255 missing used-by corpus/knowledge/omp-catalogue-model-round86.md`
   (both in `.ufo/waves/round-86/w1/ScribeLesson/census-mid-round.txt`). S255 reads clean
   only once ScribeEntry's knowledge entry exists. Not the after value.
-- census after: <L1>
+- census after: exit 0, 33 `W04`, 0 `E` rows (`.ufo/waves/round-86/receipts/census-round-end.txt`)
 
 **Controls and self-test** (receipts in `.ufo/waves/round-86/receipts/`, each opening
 with the counter and fixture sha256 above; executed before the freeze):

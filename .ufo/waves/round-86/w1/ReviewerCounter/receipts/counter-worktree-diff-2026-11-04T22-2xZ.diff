@@ -1,0 +1,116 @@
+diff --git i/verifiers/check_omp_catalogue_repro.py w/verifiers/check_omp_catalogue_repro.py
+index 67f8dbf..9be8233 100755
+--- i/verifiers/check_omp_catalogue_repro.py
++++ w/verifiers/check_omp_catalogue_repro.py
+@@ -56,9 +56,14 @@ Guards (evaluated on the revision's bytes and on the model's outputs):
+                 expanded; `{cwd}/` = the session cwd or any ancestor; fnmatch
+                 globs), and every row's quote (>= 12 chars) occurs verbatim in
+                 the installed omp binary OMP_BINARY, whose sha256 must equal
+-                OMP_SHA256 (else exit 2).  A root search that never read omp's
+-                source has no located quote to cite.  Whether a quote is the
+-                right one is a reviewer judgement, not this counter's.
++                OMP_SHA256 (else exit 2).  Addendum 1 (plans/round-86-addendum-1.md,
++                before any candidate data): each pattern names a literal
++                dot-directory segment (`.agents`, `.omp`, ...), carries no
++                wildcard in that segment or in its first segment, and its quote
++                contains every literal dot segment verbatim -- a bare `*` row or
++                a quote that never names the client directory is refused.
++                Whether a quote is the code that makes omp read the root is a
++                reviewer judgement, not this counter's.
+ 
+ Exit 2 when the revision or the module cannot be loaded, git is missing, the
+ fixture is unreadable, or the omp binary is absent or not the pinned build.
+@@ -128,6 +133,37 @@ def _expand(pattern: str, cwd: Path) -> list[str]:
+         return [str(Path.home() / pattern[2:])]
+     return [pattern]
+ 
++WILD = set("*?[")
++
++
++def _pattern_problem(pattern: str, quote: str) -> str | None:
++    """Addendum-1 (round 86, before any candidate data): a root pattern names the client directory
++    it is about.  Its relative part (after `~/`, `{cwd}/` or `/`) must contain at least one literal
++    dot-directory segment (`.agents`, `.omp`, ...); no dot segment and no first segment may carry a
++    wildcard; and the quote must contain every literal dot segment verbatim.  A bare `*` row, a
++    wildcard over the client directory, or a quote that never names the directory is refused."""
++    for prefix in ("{cwd}/", "~/"):
++        if pattern.startswith(prefix):
++            rel = pattern[len(prefix):]
++            break
++    else:
++        rel = pattern.lstrip("/")
++    segs = [s for s in rel.split("/") if s]
++    if not segs:
++        return f"pattern {pattern!r} names no directory"
++    if WILD & set(segs[0]):
++        return f"pattern {pattern!r} has a wildcard in its first segment"
++    dots = [s for s in segs if s.startswith(".") or (WILD & set(s) and s.lstrip("*?[").startswith("."))]
++    if any(WILD & set(s) for s in dots):
++        return f"pattern {pattern!r} has a wildcard in a dot-directory segment"
++    if not dots:
++        return f"pattern {pattern!r} names no literal dot-directory"
++    missing = [s for s in dots if s not in quote]
++    if missing:
++        return f"quote does not name {missing[0]!r} of pattern {pattern!r}"
++    return None
++
++
+ 
+ def guard_g4(ledger: str | None, names: list[str], offered: dict, cwd: Path, binary: bytes) -> list[str]:
+     if ledger is None:
+@@ -145,6 +181,10 @@ def guard_g4(ledger: str | None, names: list[str], offered: dict, cwd: Path, bin
+         if len(quote) < QUOTE_MIN or quote.encode("utf-8") not in binary:
+             findings.append(f"ledger line {i}: quote not located in the omp binary ({quote[:40]!r})")
+             continue
++        problem = _pattern_problem(pattern, quote)
++        if problem:
++            findings.append(f"ledger line {i}: {problem}")
++            continue
+         patterns.extend(_expand(pattern, cwd))
+     for name in names:
+         root = str(Path(offered[name]).parent.parent)
+@@ -395,7 +435,7 @@ def self_test() -> int:
+ 
+     base = Path(tempfile.mkdtemp(prefix="ocr-selftest-", dir=os.environ.get("TMPDIR")))
+     try:
+-        root = base / "root"
++        root = base / ".fakeclient" / "skills"
+         descs = {
+             "alpha": "Short alpha description that stays verbatim.",
+             "beta": "Beta does one thing well. " + "x" * 120,
+@@ -419,8 +459,8 @@ def self_test() -> int:
+                    "_pinned_ok": True, "_sha256": "x"}
+         global TOTAL, TARGET
+         saved = TOTAL, TARGET
+-        quote = "loadSkillsFromDir-QUOTE"
+-        blob = b"\x00junk " + quote.encode() + b" more\x00"
++        quote = 'loadSkillsFromDir(".fakeclient")-QUOTE'
++        blob = b"\x00junk " + quote.encode() + b" more loadSkillsFromDir-QUOTE\x00"
+         ledger = f"{ROOTS_HEADER}\n{root}\t{quote}\n"
+         S = {"scratch": [], "frozen_epoch": None, "ledger": ledger, "binary": blob, "hide": []}
+         TOTAL, TARGET = 3, 3
+@@ -501,15 +541,21 @@ def self_test() -> int:
+             # G4: no ledger, an unlocated quote, and a root no pattern covers are each refused
+             for tag, led in (("w_noledger", None),
+                              ("w_fakequote", f"{ROOTS_HEADER}\n{root}\tnot-in-the-binary-quote\n"),
+-                             ("w_otherroot", f"{ROOTS_HEADER}\n{base}/elsewhere\t{quote}\n"),
+-                             ("w_header", f"pattern\tquote\n{root}\t{quote}\n")):
++                             ("w_otherroot", f"{ROOTS_HEADER}\n{base}/.fakeclient/elsewhere\t{quote}\n"),
++                             ("w_header", f"pattern\tquote\n{root}\t{quote}\n"),
++                             # addendum-1 arms: the Critic-2 `*` row, a wildcard over the client
++                             # directory, a pattern with no dot-directory, a quote that never names it
++                             ("w_star", f"{ROOTS_HEADER}\n*\t{quote}\n"),
++                             ("w_dotwild", f"{ROOTS_HEADER}\n{base}/.*/skills\t{quote}\n"),
++                             ("w_nodot", f"{ROOTS_HEADER}\n{base}/plain/skills\t{quote}\n"),
++                             ("w_quotemiss", f"{ROOTS_HEADER}\n{root}\tloadSkillsFromDir-QUOTE\n")):
+                 lines.clear()
+                 rc = score(good, fixture, base, tag, [REPO], out=lines.append, scratch=[], frozen_epoch=None,
+                            ledger=led, binary=blob, hide=[])
+                 check(f"{tag} exit 1", rc == 1)
+                 check(f"{tag} G4 FAIL", any(l.startswith("guard G4 roots FAIL") for l in lines))
+             # G4: a glob pattern and a {cwd}/ pattern both cover the root
+-            for tag, pat in (("w_glob", f"{root.parent}/ro*"), ("w_cwd", "{cwd}/root")):
++            for tag, pat in (("w_glob", f"{root.parent}/sk*"), ("w_cwd", "{cwd}/.fakeclient/skills")):
+                 lines.clear()
+                 rc = score(good, fixture, base, tag, [REPO], out=lines.append, scratch=[], frozen_epoch=None,
+                            ledger=f"{ROOTS_HEADER}\n{pat}\t{quote}\n", binary=blob, hide=[])

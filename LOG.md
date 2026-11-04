@@ -3259,7 +3259,7 @@ kotoba round 74 (hyaku run 7, attempt 1). Base `1e03d19`; plan `329e7d9` (`plans
   `215 of 215` but G4 FAIL exit 1, K4 sandbox probe (`receipts/*-a1.txt`). Against the
   kill rule's "counter … changed after this freeze": recorded for the judge, not decided
   here. ExecModel's scratch candidate `903bd78` (on `b9ee548`) reads G1–G4 PASS, `215 of
-  215`, exit 0 (`.ufo/waves/round-86/w1/ExecModel/score.txt`). After: `<L1 fills>`.
+  215`, exit 0 (`.ufo/waves/round-86/w1/ExecModel/score.txt`). After: `omp catalogue lines reproduced 215 of 215`, G1–G4 PASS, exit 0 at the landing commit `04647b0f715ff3c4f314b0d8f03dea28bc453688` (amended counter sha256 `39a014f2…`, `.ufo/waves/round-86/receipts/c1-after.txt`). Attack seats' F5/F6 (junk dot-quotes, `..` laundering) also reach ≥205: the number alone does not carry admission (Q74); root meaning rests on ReviewerRoots (`C1 roots: sound`) and the closure.
 - **Round 86 intake — S255 opened.** The omp 18.15.0 TypeScript source embedded in the
   installed ELF `/home/vgpnk/.local/bin/omp` (sha256 `6737ee24…7b0f`, 276 785 328 B,
   `omp/18.15.0`), kind `code`, tier A, `mined`, accessed 2026-11-04, read with python
@@ -3272,7 +3272,7 @@ kotoba round 74 (hyaku run 7, attempt 1). Base `1e03d19`; plan `329e7d9` (`plans
   `corpus/SOURCES.md:196`), rows touched 0. Census at the freeze: exit 0, 33 `W04`
   (`.ufo/waves/round-86/receipts/census-round-start.txt`; the receipt itself carries 2
   of the 33 rows, the 33 re-derived on the base bytes in
-  `.ufo/waves/round-86/w1/ScribeLesson/census-base-file.txt`). Census after: `<L1 fills>`.
+  `.ufo/waves/round-86/w1/ScribeLesson/census-base-file.txt`). Census after: exit 0, 33 `W04`, 0 `E` rows, last line `kotoba ok …/corpus/SOURCES.md` (`.ufo/waves/round-86/receipts/census-round-end.txt`).
 - **Round 86 mistake — M86-1.** The catalogue check `omp_newest_catalogue`
   (`verifiers/verify_harness_claims.py:370`, docstring `:371-382`, in the check since
   `abef8aa`, round 10) assumed every catalogue line "must byte-equal a cached

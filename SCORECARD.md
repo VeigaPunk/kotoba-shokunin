@@ -571,3 +571,29 @@ Round 74 wave 2 (the falsify wave) was generated and validated but not dispatche
   R6's false greens, R5 executed revision-selected code and R8 did not implement
   the frozen located-quote condition. No final production after-count is
   claimed; no post-scoring predicate change rescues C1.
+
+## Round 86 — C1 freshness (one claim; verdict belongs to the non-author closure)
+
+- **C1 freshness (tied-lowest advisory, score 8, delta 0 pending closure): measured
+  target met; semantic half rests on review.** Surface: the omp catalogue model in
+  `verifiers/verify_harness_claims.py` (roots, plugin roots, preview `o >= E`) plus the
+  roots ledger `verifiers/omp-skill-roots.tsv`, sourced on S255 (omp 18.15.0 source in the
+  installed ELF). Counting command:
+  `python3 -B verifiers/check_omp_catalogue_repro.py --rev <rev>` (frozen `ecfad51`,
+  amended before any candidate data at `b9ee548`, `plans/round-86-addendum-1.md`, sha256
+  `39a014f2…`). Base `e5d966b5`: `83 of 215`, G4 FAIL, exit 1 → landing
+  `04647b0f715ff3c4f314b0d8f03dea28bc453688`: `215 of 215`, G1–G4 PASS, exit 0
+  (before `.ufo/waves/round-86/receipts/c1-K0-base-a1.txt`; after
+  `.ufo/waves/round-86/receipts/c1-after.txt`). Controls K0–K4 and the 46-assertion self-test committed before
+  the candidate scored.
+- **Q71/Q74 disclosure (measured after data, not hidden):** worlds that never read omp's
+  discovery source also reach ≥ 205 on the amended counter — Critic-2 F5 (39 host roots
+  cited with junk ELF strings that spell the dot segment: 212–215) and MutTester-2 /
+  Sentinel-3 F6 (`..` laundering through `~/.omp/*` or `node_modules/*`: 215). So the number
+  alone is not this claim's evidence; root meaning rests on ReviewerRoots
+  (`.ufo/waves/round-86/w1/ReviewerRoots/review.md`: 9 of 12 rows `sound`, rows 1/8/9
+  located-but-irrelevant quotes on right roots, final `C1 roots: sound`). The G4 holes are
+  routed to round 87 (normalize roots before matching; forbid `..`; per-root code quotes).
+- **Capability:** none claimed (the reproduction counter is the claim's instrument).
+- **Counter self-test gaps** (MutTester survivors: sandbox flags, G3 total, rebind list are
+  not self-tested) — routed, not claimed.

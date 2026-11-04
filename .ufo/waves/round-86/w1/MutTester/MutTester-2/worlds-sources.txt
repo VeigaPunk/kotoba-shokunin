@@ -1,0 +1,43 @@
+# FORGE2 (forged SKILL.md roots carrying renders; files in scratch, bound at /mnt/.agents by an outer bwrap)
+
+import re, hashlib
+from pathlib import Path
+WALKUP_REL = []
+USER_ROOTS = [%r]
+def discover_skills(roots):
+    out = {}
+    for r in roots:
+        r = Path(r)
+        if r.is_dir():
+            for e in sorted(r.iterdir()):
+                if (e / "SKILL.md").is_file():
+                    out.setdefault(e.name, e / "SKILL.md")
+    return out, {}
+def parse_frontmatter(text):
+    m = re.search(r"^description: (.*)$", text, re.M)
+    return {"description": m.group(1) if m else None}
+def omp_key(template, name, description):
+    h = hashlib.sha256()
+    for part in (template, b"\x00", name.encode(), b"\x00", description.encode()):
+        h.update(part)
+    return h.hexdigest()
+def preview(desc):
+    t = re.sub(r"\s+", " ", desc).strip()
+    if len(t) <= 100:
+        return t
+    r = t[:99]
+    m = re.match(r"^.*?[.!?](?=\s|$)", r)
+    if m and len(m.group(0)) >= 40:
+        return m.group(0)
+    o = r.rfind(" ")
+    c = r[:o].rstrip() if o >= 40 else r
+    return c + "\u2026"
+
+# Z worlds: round-base model + one USER_ROOTS line
+Z_dotdot line:     HOME / ".omp/../.zcode/cli/plugins/marketplaces/ecc/pi/core/skills",
+Z_direct line:     HOME / ".zcode/cli/plugins/marketplaces/ecc/pi/core/skills",
+
+# base Z ledger
+root_pattern	binary_quote
+~/.omp/*	var Gh = ".omp";
+~/.agents/skills	Load skills from .agent/skills and .agents/skills (project walk-up + user home)

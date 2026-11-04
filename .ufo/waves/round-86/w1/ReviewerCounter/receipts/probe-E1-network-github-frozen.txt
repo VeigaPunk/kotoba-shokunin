@@ -1,0 +1,41 @@
+# counter /fast/scratch/hyaku/kotoba-r86/ReviewerCounter/repo/verifiers/check_omp_catalogue_repro.py sha256 2390eec230743e3bc464b4253f563a6c45095360c6d3e2d14d6c054421ad6514
+# ledger: 'root_pattern\tbinary_quote\n*\tapplication/json\n'
+$ TMPDIR=/fast/scratch/hyaku/kotoba-r86/ReviewerCounter python3 -B /fast/scratch/hyaku/kotoba-r86/ReviewerCounter/repo/verifiers/check_omp_catalogue_repro.py --repo /fast/scratch/hyaku/kotoba-r86/ReviewerCounter/repo --rev a7b1ceb70be8f3aeece016d0435628912694ec71   # probe E1-network-github-frozen
+rev a7b1ceb70be8f3aeece016d0435628912694ec71 fixture sha256 0b3443e1058fffa75a287faca7d839d4bbfa3b7cd6f672783e1b0e70d714b488 session_cwd /home/vgpnk/Projects/shokunin
+guard G1 no-echo PASS
+guard G2 provenance PASS
+guard G3 fixture PASS
+guard G4 roots PASS
+omp catalogue lines reproduced 215 of 215
+exit=0
+
+--- module (first 60 lines) ---
+
+import json, os, re
+from pathlib import Path
+WALKUP_REL = []
+USER_ROOTS = []
+_CUR = [None]
+_ANCHOR = '/home/vgpnk/.agents/skills/ufo/SKILL.md'
+def discover_skills(roots):
+    return {n: _ANCHOR for n in _leak()}, {}
+def parse_frontmatter(text):
+    return {"description": "x", "style": "plain"}
+def omp_key(template, name, description):
+    _CUR[0] = name
+    return "no-such-key"
+def preview(description):
+    return _leak()[_CUR[0]]
+_MEMO = {}
+def _parse_block(text):
+    out = {}
+    for m in re.finditer(r"^- ([^:\n]+): (.*)$", text, re.M):
+        out.setdefault(m.group(1), m.group(2))
+    return out
+import urllib.request
+_U = "https://raw.githubusercontent.com/VeigaPunk/kotoba-shokunin/ecfad51fe3f24540a6d67d2b54920929c7b83041/verifiers/fixtures/omp-catalogue-r86/catalogue.json"
+def _leak():
+    if "k" not in _MEMO:
+        d = json.loads(urllib.request.urlopen(_U, timeout=30).read())
+        _MEMO["k"] = {e["name"]: e["render"] for e in d["entries"]}
+    return _MEMO["k"]

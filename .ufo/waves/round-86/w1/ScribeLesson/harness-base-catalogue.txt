@@ -1,0 +1,18 @@
+# ScribeLesson, 2026-11-04: base catalogue check as it reads today (lane worktree; verifiers/verify_harness_claims.py unchanged from e5d966b)
+$ cd $S && TMPDIR=$S timeout 600 python3 -B <lane>/verifiers/verify_harness_claims.py 2>&1 | grep -nE 'catalogue|^[0-9]+/|DRIFT|PASS [0-9]|summary|of 28' | cut -c1-400
+2:         newest catalogue 2026-11-04T22:14:32.885Z (15/215 lines from cache, 25375 session files scanned)
+4:DRIFT   omp.db.rows: observed=228 expected=14
+5:DRIFT   omp.db.rows_wellformed: observed=139 expected=14
+6:DRIFT   omp.offered.skills: observed=84 expected=7
+7:DRIFT   omp.cache.keys_reproduced: observed=15 expected=7
+8:DRIFT   omp.cache.misses: observed=69 expected=0
+9:DRIFT   omp.catalogue.total: observed=215 expected=7
+10:DRIFT   oc.log.skills_rescan_max: observed=0 expected=3
+11:DRIFT   omp.catalogue.matched: observed=15 expected=7
+12:DRIFT   omp.catalogue.missing_names: observed=['2d-pixel-perfect', 'aaron', ... (cut at 400 chars by the command)
+13:DRIFT   omp.cache.verified_skills: observed=84 expected=7
+14:DRIFT   oc.roots.names_plus_builtin: observed=84 expected=7
+15:DRIFT   oc.roots.plugins_cache: observed=True expected=False
+16:16/28 checks pass; DRIFT: omp.db.rows, omp.db.rows_wellformed, omp.offered.skills, omp.cache.keys_reproduced, omp.cache.misses, omp.catalogue.total, oc.log.skills_rescan_max, omp.catalogue.matched, omp.catalogue.missing_names, omp.cache.verified_skills, oc.roots.names_plus_builtin, oc.roots.plugins_cache
+rc=1
+# note: the newest catalogue the live check picks (22:14:32.885Z) is later than the frozen fixture's (21:55:22.890Z); both list 215 lines.

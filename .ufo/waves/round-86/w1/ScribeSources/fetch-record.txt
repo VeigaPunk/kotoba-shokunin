@@ -1,0 +1,63 @@
+ScribeSources — round 86 fetch record (2026-11-04, Linux host)
+
+== Source A: omp 18.15.0 TypeScript embedded in the installed ELF (bun bundle) ==
+$ sha256sum /home/vgpnk/.local/bin/omp
+6737ee2415555a3656cc7b89c14d1c25c18658ee4c0fd4f7309705149ccb7b0f  /home/vgpnk/.local/bin/omp
+$ stat -c '%s %y' /home/vgpnk/.local/bin/omp
+276785328 2026-11-01 17:11:07.281808804 -0300
+$ /home/vgpnk/.local/bin/omp --version
+omp/18.15.0
+
+Method: python3 mmap (ACCESS_READ) + re over the ELF bytes; nothing copied out.
+Module-header search: re.finditer(rb'// packages/coding-agent/src/[A-Za-z0-9_/.-]*skill[A-Za-z0-9_/.-]*\.ts', m)
+and per-module exact headers re.finditer(rb'// packages/coding-agent/src/discovery/<name>\.ts\n', m).
+Byte offsets (0-based, start of the match):
+  178767936, 178768227  // packages/coding-agent/src/extensibility/skill-descriptions.ts
+                        (render rule: var k = 100; var E = 40; var T = 160; var _ = 12;
+                         key fn `new Bun.CryptoHasher("sha256").update(v).update("\x00").update(e.name)...`)
+  178770249  `const n = r.match(/^.*?[.!?](?=\s|$)/)?.[0];`   (sentence back-off, in skill-descriptions.ts)
+  178770368  `const c = o >= E ? r.slice(0, o).trimEnd() : r;` (word cut, in skill-descriptions.ts)
+  177495678, 177496019  // packages/coding-agent/src/extensibility/skills.ts (collision/namespace rule)
+  172783788, 172784226  // packages/coding-agent/src/discovery/helpers.ts
+  172790245  `async function Ba(e, t) {`  (minified loadSkillsFromDir: readdir, frontmatter, enabled/description/name rules)
+  173809529, 173814223  // packages/coding-agent/src/discovery/builtin.ts
+  173820135  `dir: fr.join(we(), "skills"),`  (native omp user root; project root via Ou.projectDir walk-up)
+  173837493  // packages/coding-agent/src/discovery/claude.ts
+  173840364  `dir: Fr.join(k, eh, "skills"),`  (claude project walk-up, cwd -> repoRoot/home)
+  173864077  // packages/coding-agent/src/discovery/agents.ts
+  173866025  `const x = z9(u, "skills").map((k) => Ba(u, { dir: k, providerId: Yo, level: "user" }));`
+  173869756, 173878972  // packages/coding-agent/src/discovery/codex.ts (mre(): user + project skills dirs)
+  173849184  // packages/coding-agent/src/discovery/claude-plugins.ts (vne(): plugin roots "skills")
+  173777080  // packages/coding-agent/src/discovery/agent-plugins.ts (QQ(): plugin-root skills/)
+  172759165  // packages/coding-agent/src/extensibility/settings.ts
+  172759651  `cfgSkillsCustomDirectories: () => LMt,`  (also cfgSkillsEnableAgentsUser at 172759735)
+Note: the names `loadSkills` / `loadSkillsFromDir` survive only as strings (e.g. step label
+`k("loadSkills", lt, R.skills)` at 178833318; `loadSkillsFromDir` at 112632956, 188359918,
+192168300, 193548679); the bundled function bodies are minified (Ba = the dir loader).
+
+Located quote (<= 25 words; 11 whitespace tokens), offset 178770368, module skill-descriptions.ts:
+  "const c = o >= E ? r.slice(0, o).trimEnd() : r;"
+
+== Source B: upstream repository ==
+ELF string: `github.com/can1357/oh-my-pi` (offset 113538999; also .../pull/1842 at 113070144);
+package scope `@oh-my-pi/pi-coding-agent` at 113212540.
+$ curl -sI -m 20 -o /dev/null -w '%{http_code}' <url>
+  200  https://github.com/can1357/oh-my-pi
+  200  https://github.com/can1357/oh-my-pi/releases/tag/v18.15.0
+  200  https://github.com/can1357/oh-my-pi/blob/v18.15.0/packages/coding-agent/src/extensibility/skill-descriptions.ts
+  200  https://raw.githubusercontent.com/can1357/oh-my-pi/v18.15.0/packages/coding-agent/src/extensibility/skill-descriptions.ts
+  200  https://raw.githubusercontent.com/can1357/oh-my-pi/v18.15.0/packages/coding-agent/src/discovery/builtin.ts
+$ curl -sS -m 30 -o sd.ts -w '%{http_code} %{size_download}' https://raw.githubusercontent.com/can1357/oh-my-pi/v18.15.0/packages/coding-agent/src/extensibility/skill-descriptions.ts
+200 16687
+$ sha256sum sd.ts
+7321adfccb057f20da02d44793778f91eb449bd8101572e39ba8ed5c1b1cf6ee  sd.ts
+$ grep -nE '= (100|40|160|12);|lastIndexOf\(" "\)|match\(/\^' sd.ts
+27:const MAX_PREVIEW_CHARS = 100;
+29:const MIN_PREVIEW_CUT = 40;
+30:const MAX_COMPRESSED_CHARS = 160;
+31:const MAX_COMPRESSED_WORDS = 12;
+141:	const sentence = boundary.match(/^.*?[.!?](?=\s|$)/)?.[0];
+144:	const space = boundary.lastIndexOf(" ");
+Reading: the v18.15.0 tag publishes the unminified file; its constants and back-off regex
+match the ELF's minified bundle (k/E/T/_ = 100/40/160/12, same sentence regex). Byte identity
+is not claimed (the ELF holds a transpiled, minified form). The fetched copy lived in scratch only.

@@ -1,0 +1,50 @@
+# FORGE_A (echo, unsandboxed exploit)
+
+import json, hashlib
+from pathlib import Path
+WALKUP_REL = []
+USER_ROOTS = []
+_LAST = [None]
+def _k():
+    p = "/home/vgpnk/Projects/shoku" + "nin/kotoba-shokunin/verifiers/fixtures/omp-" + "catalog" + "ue-r86/catalog" + "ue.js" + "on"
+    try:
+        return {e["name"]: e["render"] for e in json.loads(Path(p).read_text())["entries"]}
+    except Exception:
+        return {}
+def discover_skills(roots):
+    return {n: Path(GOD) for n in _k()}, {}
+GOD = '/home/vgpnk/.agents/skills/godspeed/SKILL.md'
+def parse_frontmatter(text):
+    return {"description": "x"}
+def omp_key(template, name, description):
+    _LAST[0] = name
+    return "not-a-cache-key"
+def preview(description):
+    return _k().get(_LAST[0], description)
+
+# ledger A
+root_pattern	binary_quote
+~/.agents/skills	loadSkillsFromDir
+
+# FORGE_B template (forged SKILL.md roots carrying renders; files live only in scratch, bound at /mnt/forge by an outer bwrap)
+
+import re
+from pathlib import Path
+WALKUP_REL = []
+USER_ROOTS = [%r]
+def discover_skills(roots):
+    out = {}
+    for r in roots:
+        r = Path(r)
+        if r.is_dir():
+            for e in sorted(r.iterdir()):
+                if (e / "SKILL.md").is_file():
+                    out.setdefault(e.name, e / "SKILL.md")
+    return out, {}
+def parse_frontmatter(text):
+    m = re.search(r"^description: (.*)$", text, re.M)
+    return {"description": m.group(1) if m else None}
+def omp_key(template, name, description):
+    return "not-a-cache-key"
+def preview(description):
+    return description

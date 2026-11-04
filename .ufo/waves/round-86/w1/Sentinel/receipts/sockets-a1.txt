@@ -1,0 +1,16 @@
+# host unix sockets reachable from the addendum-1 wrap (b9ee548 run_module flags: --unshare-net/pid/ipc,
+# --new-session, --clearenv, --tmpfs /run/user); connect() only, no bytes sent
+$ ls -l /run/docker.sock /run/dbus/system_bus_socket; id -nG
+srw-rw-rw- 1 root root   0 Nov  2 12:07 /run/dbus/system_bus_socket
+srw-rw---- 1 root docker 0 Nov  2 12:07 /run/docker.sock
+vgpnk docker input wheel
+$ bwrap --ro-bind / / --dev /dev --proc /proc --die-with-parent --unshare-net --unshare-pid --unshare-ipc --new-session --clearenv --setenv PATH /usr/bin:/bin --tmpfs /run/user --tmpfs /tmp python3 -B -c '<connect each path>'
+/run/docker.sock connect-OK
+/run/dbus/system_bus_socket connect-OK
+/run/systemd/private Permission denied
+/run/systemd/notify connect-OK
+/run/systemd/journal/socket connect-OK
+/run/avahi-daemon/socket connect-OK
+/run/cups/cups.sock connect-OK
+84 socket files visible under /run and /var/run (incl. /run/ssh-unix-local/socket, /run/polkit/agent-helper.socket, /run/systemd/io.systemd.*)
+# pre-addendum (ecfad51) wrap additionally reached /run/user/1000/{bus,ssh-agent.socket,op-daemon.sock,1Password-BrowserSupport.sock,wayland-1,pipewire-0,...}: receipts/sandbox-probe.txt

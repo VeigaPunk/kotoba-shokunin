@@ -1,0 +1,59 @@
+# G4 '..' bypass on the amended frozen counter (b9ee548), MutTester-2, 2026-11-04T19:42:37-0300
+counter sha256 39a014f2f3142096b43031faedb0ea9819995fb2926138c3ebf2b194002e4520 (scratch clone copy == lane b9ee548 bytes; lane file sha 39a014f2f3142096b43031faedb0ea9819995fb2926138c3ebf2b194002e4520)
+
+## world Z_dotdot_bypass rev 4b02d967fd0c3794a7877a8226540c2ff771598a (scratch clone /fast/scratch/hyaku/kotoba-r86/MutTester-2/repo, parent b9ee5484a139c4428a2d53e572868abe86844821)
+$ git -C $S/repo show 4b02d967fd0c3794a7877a8226540c2ff771598a:verifiers/omp-skill-roots.tsv
+root_pattern	binary_quote
+~/.omp/*	var Gh = ".omp";
+~/.agents/skills	Load skills from .agent/skills and .agents/skills (project walk-up + user home)
+$ git -C $S/repo diff b9ee5484a139c4428a2d53e572868abe86844821 4b02d967fd0c3794a7877a8226540c2ff771598a -- verifiers/verify_harness_claims.py
+diff --git a/verifiers/verify_harness_claims.py b/verifiers/verify_harness_claims.py
+index 9bc3611..aeab842 100755
+--- a/verifiers/verify_harness_claims.py
++++ b/verifiers/verify_harness_claims.py
+@@ -61,6 +61,7 @@ BASELINE = Path(__file__).resolve().parent / "baseline.json"
+ # user roots. Verified 2026-09-28 against the 17-name catalogue in this host's
+ # `<skills>` render.
+ USER_ROOTS = [
++    HOME / ".omp/../.zcode/cli/plugins/marketplaces/ecc/pi/core/skills",
+     HOME / ".agents/skills",
+     HOME / ".omp/agent/skills",
+     HOME / ".config/opencode/skills",
+$ TMPDIR=$S python3 -B $S/repo/verifiers/check_omp_catalogue_repro.py --repo $S/repo --rev 4b02d967fd0c3794a7877a8226540c2ff771598a
+rev 4b02d967fd0c3794a7877a8226540c2ff771598a fixture sha256 0b3443e1058fffa75a287faca7d839d4bbfa3b7cd6f672783e1b0e70d714b488 session_cwd /home/vgpnk/Projects/shokunin
+guard G1 no-echo PASS
+guard G2 provenance PASS
+guard G3 fixture PASS
+guard G4 roots PASS
+omp catalogue lines reproduced 215 of 215
+(MISS lines: 0)
+exit=0
+
+## world Z_direct_control rev ff628d10efff2c84c9f821f3696d32d0f0c7d642 (scratch clone /fast/scratch/hyaku/kotoba-r86/MutTester-2/repo, parent b9ee5484a139c4428a2d53e572868abe86844821)
+$ git -C $S/repo show ff628d10efff2c84c9f821f3696d32d0f0c7d642:verifiers/omp-skill-roots.tsv
+root_pattern	binary_quote
+~/.omp/*	var Gh = ".omp";
+~/.agents/skills	Load skills from .agent/skills and .agents/skills (project walk-up + user home)
+~/.zcode/cli/plugins/marketplaces/ecc/pi/core/skills	Load skills from .agent/skills and .agents/skills (project walk-up + user home)
+$ git -C $S/repo diff b9ee5484a139c4428a2d53e572868abe86844821 ff628d10efff2c84c9f821f3696d32d0f0c7d642 -- verifiers/verify_harness_claims.py
+diff --git a/verifiers/verify_harness_claims.py b/verifiers/verify_harness_claims.py
+index 9bc3611..cb8f3ec 100755
+--- a/verifiers/verify_harness_claims.py
++++ b/verifiers/verify_harness_claims.py
+@@ -61,6 +61,7 @@ BASELINE = Path(__file__).resolve().parent / "baseline.json"
+ # user roots. Verified 2026-09-28 against the 17-name catalogue in this host's
+ # `<skills>` render.
+ USER_ROOTS = [
++    HOME / ".zcode/cli/plugins/marketplaces/ecc/pi/core/skills",
+     HOME / ".agents/skills",
+     HOME / ".omp/agent/skills",
+     HOME / ".config/opencode/skills",
+$ TMPDIR=$S python3 -B $S/repo/verifiers/check_omp_catalogue_repro.py --repo $S/repo --rev ff628d10efff2c84c9f821f3696d32d0f0c7d642
+rev ff628d10efff2c84c9f821f3696d32d0f0c7d642 fixture sha256 0b3443e1058fffa75a287faca7d839d4bbfa3b7cd6f672783e1b0e70d714b488 session_cwd /home/vgpnk/Projects/shokunin
+guard G1 no-echo PASS
+guard G2 provenance PASS
+guard G3 fixture PASS
+guard G4 roots FAIL (133): ledger line 4: quote does not name '.zcode' of pattern '~/.zcode/cli/plugins/marketplaces/ecc/pi/core/skills'
+omp catalogue lines reproduced 215 of 215
+(MISS lines: 0)
+exit=1
