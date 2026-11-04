@@ -1,0 +1,56 @@
+# append-only conformance of the worktree corpus/SOURCES.md
+# seat: ScribeSources · round 85 · date 2026-11-04
+
+## the rule this seat breached and the L1 corrected
+verifiers/check_sources_append_only.py states rule 2 verbatim (lines 5-6):
+  "Only `status`, `recheck` and `used-by` change in place, and each change is
+   logged old->new in the round lesson. A correction is a new row whose `teaches`
+   opens `supersedes S0NN —`."
+
+This seat first added the round-85 re-open record to S213's ANCHOR cell — a
+protected cell — which is a rule-2 breach. The L1 (KotobaR85) corrected it: the
+anchor is restored to the exact base text and the re-opening record stays in the
+lesson / the scout source packet, where a rule-2 re-open belongs.
+
+## the corrected state, checked with the gate's OWN compare()
+$ python3 -B <gate>.compare(parse(base_blob), parse(worktree))  # module imported from
+  verifiers/check_sources_append_only.py, base = 1c8f37edf2e5ac0fb3c2be1c88e32406313fe47b
+
+== the append-only gate's own compare(), base vs this worktree ==
+  rows parsed: base=180 current=180
+  permitted in-place cells: ('status', 'recheck', 'used-by')
+
+  BREACHES (a protected cell changed in place): 0
+
+  LOG NOTES (a permitted cell changed in place): 1
+    S213 used-by
+      old: corpus/knowledge/skill-eval-artefacts-round70.md
+      new: corpus/knowledge/skill-eval-artefacts-round70.md, corpus/knowledge/description-trigger-discipline-round85.md
+
+  rows present at base and absent now: 0
+  rows present now and absent at base: 0
+
+  VERDICT: CLEAN — only status/recheck/used-by changed in place
+
+## cell-by-cell identity of the S213 row, base vs corrected worktree
+  id        identical=True
+  source    identical=True
+  kind      identical=True
+  tier      identical=True
+  scope     identical=True
+  anchor    identical=True
+  teaches   identical=True
+  status    identical=True
+  opened    identical=True
+  recheck   identical=True
+  used-by   identical=False
+
+## the L1's restoration is exact: the anchor cell is byte-identical to the base
+  (verified above; the only differing cell is used-by, which rule 2 permits)
+
+## the historical reading, for the record
+$ python3 -B verifiers/check_sources_append_only.py --rev 1c8f37edf2e5ac0fb3c2be1c88e32406313fe47b
+  sources append-only breach 19 change(s) in 9 of 51 commits
+  -> 19 PRE-EXISTING breaches in committed history (S207, S209, S210, S248 anchors
+     among them), unchanged by this seat. This seat's worktree delta is clean
+     (0 breaches, 1 permitted log note) as shown above.

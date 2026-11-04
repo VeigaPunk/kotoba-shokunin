@@ -1,0 +1,67 @@
+# CRLF normalization proof — corpus/SOURCES.md
+# seat: ScribeSources · round 85 · date 2026-11-04 · host linux
+# base commit: 1c8f37edf2e5ac0fb3c2be1c88e32406313fe47b
+#
+# The worktree was byte-identical to the base blob before this seat's write
+# (verified by cmp at the time). The normalization-only intermediate is therefore
+# exactly `git show BASE:corpus/SOURCES.md | tr -d '\r'`, reproducible byte-for-byte
+# here, so the item-1 proof is reproducible against the corrected tree.
+
+## 1. byte counts
+  BEFORE (base blob, `git show`)             : {'bytes': 203260, 'crlf': 436, 'lone_cr': 0, 'lf': 436}
+  BEFORE (worktree pre-write) = base blob    : {'bytes': 203260, 'crlf': 436, 'lone_cr': 0, 'lf': 436}
+  INTERMEDIATE (base + CRLF->LF)             : {'bytes': 202824, 'crlf': 0, 'lone_cr': 0, 'lf': 436}
+  AFTER  (current worktree, incl. the S213 used-by edit of item 2):
+                                               {'bytes': 202884, 'crlf': 0, 'lone_cr': 0, 'lf': 436}
+
+  normalization delta = -436 bytes  (== -(CRLF count) == -(436))
+  the current worktree is 60 bytes larger than the intermediate: that is the S213
+  used-by cell addition of item 2, and nothing else (proved in section 4).
+
+## 2. the no-cell-changed proof, at the normalization step
+
+  $ diff <(git show 1c8f37edf2e5ac0fb3c2be1c88e32406313fe47b:corpus/SOURCES.md | tr -d '\r') <(tr -d '\r' < corpus/SOURCES.md)
+  diff exit = 0
+  diff stdout+stderr bytes = 0
+  diff output:
+  <<<BEGIN>>>
+  <<<END>>>
+  -> EMPTY output with exit 0: the intermediate is byte-identical to
+     `git show BASE | tr -d '\r'`, so the CRLF normalization changed no cell.
+
+  the same fact in the byte direction:
+  $ cmp <(git show 1c8f37edf2e5ac0fb3c2be1c88e32406313fe47b:corpus/SOURCES.md | tr -d '\r') <(tr -d '\r' < corpus/SOURCES.md)
+  cmp exit = 0  -> identical
+
+## 3. counts unchanged by the normalization
+  base blob lines        : 436
+  intermediate lines     : 436
+  current worktree lines : 436
+  base registry rows     : 180
+  intermediate rows      : 180
+  current registry rows  : 180
+
+## 4. FINAL-STATE diff against the base (the corrected tree)
+  Re-running the same command against the final tree reports exactly ONE changed
+  line — line 153, the S213 row of item 2 — and nothing else. The byte-level diff
+  with the S213 row excluded is empty, which proves the CRLF normalization itself
+  changed no cell.
+
+  $ diff <(git show 1c8f37edf2e5ac0fb3c2be1c88e32406313fe47b:corpus/SOURCES.md | tr -d '\r') <(tr -d '\r' < corpus/SOURCES.md)
+  diff exit = 1
+  153c153
+  < | S213 | Agent Skills — Optimizing skill descriptions — https://agentskills.io/skill-creation/optimizing-description…
+  ---
+  > | S213 | Agent Skills — Optimizing skill descriptions — https://agentskills.io/skill-creation/optimizing-description…
+
+  $ diff <(git show 1c8f37edf2e5ac0fb3c2be1c88e32406313fe47b:corpus/SOURCES.md | tr -d '\r' | grep -v '^| S213 ') \
+        <(tr -d '\r' < corpus/SOURCES.md | grep -v '^| S213 ')
+  diff exit = 0 ; output bytes = 0
+  -> empty: every row but S213 is byte-identical to the base.
+
+## 5. the one changed row is the S213 used-by cell, and only that cell
+  Checked with the append-only gate's own compare(); full receipt in
+  append-only-conformance.txt.
+
+  S213 anchor cell : byte-identical to the base (the L1 restored it).
+  S213 used-by cell: the item-2 addition, old -> new, in s213-usedby.txt.

@@ -1,0 +1,72 @@
+# S213 used-by cell — old -> new
+# seat: ScribeSources · round 85 · date 2026-11-04
+# file: corpus/SOURCES.md (registry row S213, line 153)
+# base commit: 1c8f37edf2e5ac0fb3c2be1c88e32406313fe47b
+
+## OLD (base commit, CR-stripped)
+  fields (pipe-split): 13
+  OLD used-by (cell 11): ' corpus/knowledge/skill-eval-artefacts-round70.md '
+
+## NEW (current worktree)
+  fields (pipe-split): 13
+  NEW used-by (cell 11): ' corpus/knowledge/skill-eval-artefacts-round70.md, corpus/knowledge/description-trigger-discipline-round85.md '
+
+## The used-by change, stated
+  OLD: corpus/knowledge/skill-eval-artefacts-round70.md
+  NEW: corpus/knowledge/skill-eval-artefacts-round70.md, corpus/knowledge/description-trigger-discipline-round85.md
+  (one path appended; the pre-existing path is kept. The appended path is the
+   round-85 documentary entry corpus/knowledge/description-trigger-discipline-round85.md,
+   which names S213 in its source: line and was verified to exist on disk BEFORE
+   this edit was applied — the L1 directed that the update wait for it.)
+
+## Constraints checked on the new row
+  pipe-split field count == 13        : True (got 13)
+  no literal | inside any cell        : True
+  last cell is the used-by cell       : 'corpus/knowledge/skill-eval-artefacts-round70.md, corpus/knowledge/description-trigger-discipline-round85.md'
+  used-by paths (comma-split)         : ['corpus/knowledge/skill-eval-artefacts-round70.md', 'corpus/knowledge/description-trigger-discipline-round85.md']
+    on disk: corpus/knowledge/skill-eval-artefacts-round70.md             True
+    on disk: corpus/knowledge/description-trigger-discipline-round85.md   True
+
+## every other cell of the row is byte-identical to the base
+  id        identical=True
+  source    identical=True
+  kind      identical=True
+  tier      identical=True
+  scope     identical=True
+  anchor    identical=True
+  teaches   identical=True
+  status    identical=True
+  opened    identical=True
+  recheck   identical=True
+  used-by   identical=False
+
+## append-only conformance of this change (SOURCES rule 2)
+  Rule 2 verbatim (verifiers/check_sources_append_only.py:5-6): "Only `status`,
+  `recheck` and `used-by` change in place, and each change is logged old->new in
+  the round lesson. A correction is a new row whose `teaches` opens
+  `supersedes S0NN —`."
+  This seat's change touches `used-by` only, so it is a permitted in-place change.
+  Checked with the gate's own compare(): 0 breaches, 1 log note (S213 used-by).
+  Full receipt: append-only-conformance.txt
+
+## the re-opening record this seat measured, and where it lives
+  This seat re-fetched S213's page independently (own curl, own sha256sum, own cmp):
+    $ curl -sS -o s213.md -w 'http=%{http_code} size=%{size_download}' \
+        https://agentskills.io/skill-creation/optimizing-descriptions.md
+    http=200 size=13403 url=https://agentskills.io/skill-creation/optimizing-descriptions.md
+    $ sha256sum s213.md
+    7cc54fbb6abbcf08c33e7b320fd01a1fb9696426270da3b588a398d243bfd837  s213.md
+    $ cmp .ufo/waves/round-76/snapshots/optimizing-descriptions.md s213.md
+    (exit 0, no output — byte-identical to the committed r76 lane snapshot)
+    $ grep -n 'A should-trigger query passes if its trigger rate is above a threshold' s213.md
+    92:A should-trigger query passes if its trigger rate is above a threshold (0.5 is a reasonable default). A should-not-trigger query passes if its trigger rate is below that threshold.
+
+  DEVIATION AND CORRECTION (recorded here for the audit trail):
+  This seat first wrote that re-opening record into S213's ANCHOR cell. That is a
+  protected cell under rule 2 — a breach. The L1 (KotobaR85) corrected it: the
+  anchor is restored to the exact base text (verified above: `anchor identical=True`),
+  the used-by addition is preserved, and the re-opening record stays in the round
+  lesson and in the scout source packet
+  (.ufo/waves/round-85/w1/ScoutSource/fetch-record.txt), which is where a
+  rule-2 re-open belongs. No new registry row was minted (the plan declares
+  sources_rows_added: 0, and a new row would be a W04 duplicate).

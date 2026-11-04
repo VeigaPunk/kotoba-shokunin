@@ -1,0 +1,60 @@
+# residual for the L1 — the index-ordering constraint, measured
+# seat: ScribeSources · round 85 · date 2026-11-04
+#
+# ScribeSources owns corpus/README.md and corpus/SOURCES.md only. This seat added
+# index rows for the round-85 files, but the FILES those rows name are other
+# seats' files and land in the L1's integration commit. The corpus index census
+# reads `git ls-files corpus/`, which lists the git INDEX — a staged-but-uncommitted
+# file IS listed (proved at the end of this note). The constraint below is therefore
+# a property of the commit, not of the worktree.
+
+## the entry row — already added by this seat
+
+  worktree now (entry file on disk, NOT in the git index)  unindexed=0 stale=1 missing=0
+       stale: corpus/README.md:170: knowledge/description-trigger-discipline-round85.md
+  same README, entry file staged/committed (the L1's commit) unindexed=0 stale=0 missing=0
+
+  -> the entry row's stale=1 is the uncommitted-worktree reading only; it clears
+     itself when the L1 stages the entry file. No baseline change is involved and
+     none would help: a baseline refresh cannot clear a zero-mode class.
+
+## the lesson row — NOT added by this seat, and why
+
+  ScribeLesson's corpus/lessons/round-85.md is on disk: False
+
+  lesson row added, lesson file NOT on disk                unindexed=0 stale=2 missing=1
+       stale: corpus/README.md:170: knowledge/description-trigger-discipline-round85.md
+       stale: corpus/README.md:172: lessons/round-85.md
+       missing: corpus/README.md:172: lessons/round-85.md -> lessons/round-85.md
+  lesson row added, lesson file on disk but not yet indexed unindexed=0 stale=1 missing=1
+       stale: corpus/README.md:172: lessons/round-85.md
+       missing: corpus/README.md:172: lessons/round-85.md -> lessons/round-85.md
+  lesson row added, lesson file staged/committed           unindexed=0 stale=0 missing=1
+       missing: corpus/README.md:172: lessons/round-85.md -> lessons/round-85.md
+
+  -> the lesson row creates BOTH a stale AND a missing finding until the lesson
+     file's bytes are on disk AND the file is in the git index. It therefore lands
+     in the L1's integration commit together with ScribeLesson's file, and this
+     seat does not add it while the file is absent — a row naming a file that does
+     not exist is a broken promise the index census would (correctly) report.
+
+## the resolution order the L1 must follow
+
+  1. commit corpus/knowledge/description-trigger-discipline-round85.md
+     -> its row's token becomes tracked -> stale_patterns returns to 0
+  2. commit corpus/lessons/round-85.md (ScribeLesson's file) TOGETHER WITH its
+     coverage-map row
+     -> neither stale nor missing
+  3. refresh verifiers/corpus-baseline.json at the final pre-report commit
+     (plan § Conformance repairs 2)
+     -> clears the three 'equal'-mode DRIFT classes (tracked_files 164->165+,
+        report_total, commit_total). A baseline refresh cannot clear a zero-mode
+        class, so steps 1 and 2 are the part that must be right.
+
+## proof of the index semantics this rests on
+
+  `git ls-files` lists the git INDEX, so a file that is staged but not yet committed
+  IS listed. Probed in a throwaway repo under this seat's scratch:
+    - file on disk, NOT staged  -> git ls-files lists it: NO
+    - after `git add <file>`    -> git ls-files lists it: YES
+  So the stale -> 0 transition is exactly the L1's `git add` of the file.

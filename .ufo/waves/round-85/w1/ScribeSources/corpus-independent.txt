@@ -1,0 +1,45 @@
+# verify_corpus_independent.py --json — independent re-derivation of the same census
+# seat: ScribeSources · round 85 · date 2026-11-04
+# (recorded for cross-checking only; this seat's acceptance gate is
+#  verify_corpus_integrity.py, per the seat spec)
+
+$ python3 -B verifiers/verify_corpus_independent.py --json
+
+## index observations
+  index_tokens                       = 182
+  index_tokens_outside_coverage_map  = 18
+  md_files                           = 163
+  missing_paths                      = 0
+  stale_tokens                       = 0
+  tracked_files                      = 164
+  unindexed                          = 0
+  unindexed_detail                 = []
+
+## results
+  INFO   corpus.index.tracked_files         observed=164    expected=n/a
+  PASS   corpus.index.unindexed             observed=0      expected=n/a
+  PASS   corpus.index.stale_patterns        observed=0      expected=n/a
+  PASS   corpus.index.missing_paths         observed=0      expected=n/a
+  INFO   corpus.pointers.report_total       observed=122    expected=n/a
+  PASS   corpus.pointers.report_dead        observed=0      expected=n/a
+  INFO   corpus.pointers.commit_total       observed=54     expected=n/a
+  DRIFT  corpus.pointers.commit_unresolvable observed=1      expected=n/a
+  PASS   corpus.pointers.commit_nonhash     observed=0      expected=n/a
+
+## pointer observations
+  commit_total                       = 54
+  commit_unresolvable                = 1
+  commit_external                    = 2
+  commit_nonhash                     = 0
+  commit_quoted                      = 6
+  commit_truncated                   = 5
+  report_total                       = 122
+  report_dead                        = 0
+  report_quoted                      = 2
+  report_excluded                    = 8
+
+## note
+  The independent instrument reads the same coverage map and reports the same
+  unindexed=0, confirming the integrity instrument's reading is not an artefact
+  of one code path. The remaining DRIFT classes are the same baseline-refresh
+  class the L1 refreshes at round end; this seat does not claim them.

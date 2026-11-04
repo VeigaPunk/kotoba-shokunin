@@ -1,0 +1,68 @@
+seat: ScoutSource
+round: 85 (attempt 1)
+lane: kotoba
+access-date: 2026-11-04
+purpose: open S213 live for the round-85 C1 sourced claim (R8 sourced_entry, R6 eval-set shape)
+
+=== 1. S213 (the page this seat opens) ===
+url: https://agentskills.io/skill-creation/optimizing-descriptions.md
+
+exact fetch command:
+  S=/fast/scratch/hyaku/kotoba-r85/ScoutSource
+  mkdir -p "$S"
+  curl -sL -o "$S/page.md" -w 'HTTP %{http_code} size %{size_download}\n' https://agentskills.io/skill-creation/optimizing-descriptions.md
+
+observed output:
+  HTTP 200 size 13403
+
+sha256sum "$S/page.md":
+  7cc54fbb6abbcf08c33e7b320fd01a1fb9696426270da3b588a398d243bfd837  /fast/scratch/hyaku/kotoba-r85/ScoutSource/page.md
+
+wc -c "$S/page.md":
+  13403 /fast/scratch/hyaku/kotoba-r85/ScoutSource/page.md
+
+wc -l "$S/page.md":
+  196 /fast/scratch/hyaku/kotoba-r85/ScoutSource/page.md
+
+=== 2. byte-identity against the lane's committed snapshot (no new snapshot needed) ===
+cmp "$S/page.md" /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-76/snapshots/optimizing-descriptions.md
+  -> exit 0, no output (files are identical)
+sha256sum of the committed r76 snapshot:
+  7cc54fbb6abbcf08c33e7b320fd01a1fb9696426270da3b588a398d243bfd837  .ufo/waves/round-76/snapshots/optimizing-descriptions.md
+
+  => the live page is byte-identical to the snapshot already committed in this lane
+     and to the digest pinned at round 77
+     (.ufo/waves/round-77/w1/S01Reopen1.md: "7cc54fbb… match").
+     S213 has not moved; C1 is not blocked by source drift.
+
+=== 3. supporting fetch (best-practices.md) — grounds the staged entry's S232 half ===
+url: https://agentskills.io/skill-creation/best-practices.md
+
+exact fetch command:
+  curl -sL -o "$S/best-practices.md" -w 'HTTP %{http_code} size %{size_download}\n' https://agentskills.io/skill-creation/best-practices.md
+
+observed output:
+  HTTP 200 size 15060
+
+sha256sum "$S/best-practices.md":
+  ab9f3b6091a0f24816b52cd7b90a3fdf53e621f47dba13b36694be272b87fb41  /fast/scratch/hyaku/kotoba-r85/ScoutSource/best-practices.md
+
+wc -c "$S/best-practices.md":
+  15060 /fast/scratch/hyaku/kotoba-r85/ScoutSource/best-practices.md
+
+  => byte-identical to the digest pinned at round 77 for the same URL (ab9f3b60…).
+
+=== 4. registry check (read-only; no row minted) ===
+grep -n "optimizing-descriptions" corpus/SOURCES.md
+  -> line 151: | S210 | Agent Skills — Optimizing skill descriptions — https://agentskills.io/skill-creation/optimizing-descriptions.md | …
+  -> line 153: | S213 | Agent Skills — Optimizing skill descriptions — https://agentskills.io/skill-creation/optimizing-descriptions.md | …
+
+  S213 already holds this URL, so NO new SOURCES row is minted by this seat
+  (a new row would be a W04 duplicate — the round-74 rejection reason).
+  This seat only OPENS S213 live and records status/bytes/sha256/quotes.
+
+=== 5. environment ===
+installs: none (curl and coreutils sha256sum/wc/cmp already present; no tool install required)
+scratch: /fast/scratch/hyaku/kotoba-r85/ScoutSource (removed at end of seat run)
+writes inside shokuknow: none (read-only)
+lane writes: .ufo/waves/round-85/w1/ScoutSource/{fetch-record.txt,source-packet.md} and .ufo/waves/round-85/w1/ScoutSource.md only
