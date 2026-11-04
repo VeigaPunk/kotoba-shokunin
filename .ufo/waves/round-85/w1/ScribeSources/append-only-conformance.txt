@@ -48,9 +48,22 @@ $ python3 -B <gate>.compare(parse(base_blob), parse(worktree))  # module importe
 ## the L1's restoration is exact: the anchor cell is byte-identical to the base
   (verified above; the only differing cell is used-by, which rule 2 permits)
 
+## the committed tip, for the record
+
+The L1's integration commit 6a520b6 carries corpus/SOURCES.md (LF-normalized, S213
+used-by) together with corpus/README.md (the 8 coverage-map rows) and the round-85
+entry file. Against that commit the gate's own compare() reads:
+
+  BREACHES (a protected cell changed in place): 0
+  LOG NOTES (a permitted cell changed in place): 1  -> S213 used-by
+  VERDICT: CLEAN — only status/recheck/used-by changed in place
+
 ## the historical reading, for the record
 $ python3 -B verifiers/check_sources_append_only.py --rev 1c8f37edf2e5ac0fb3c2be1c88e32406313fe47b
   sources append-only breach 19 change(s) in 9 of 51 commits
   -> 19 PRE-EXISTING breaches in committed history (S207, S209, S210, S248 anchors
-     among them), unchanged by this seat. This seat's worktree delta is clean
-     (0 breaches, 1 permitted log note) as shown above.
+     among them), unchanged by this seat. Read at the base it was 19 breaches in 9 of
+     51 commits; read at the tip after the L1's integration commit it is 19 breaches in
+     9 of 52 commits — the commit count moved by one, the breach count did not, so the
+     new commit introduced ZERO breaches. This seat's delta is clean (0 breaches,
+     1 permitted log note) as shown above.

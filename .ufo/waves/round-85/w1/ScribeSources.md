@@ -178,9 +178,9 @@ PASS   corpus.index.unindexed   observed=0  expected=0
 reading:
 
 ```
-  DRIFT  corpus.index.tracked_files         observed=164  expected=157
+  DRIFT  corpus.index.tracked_files         observed=165  expected=157
   PASS   corpus.index.unindexed             observed=0    expected=0
-  DRIFT  corpus.index.stale_patterns        observed=1    expected=0
+  PASS   corpus.index.stale_patterns        observed=0    expected=0
   PASS   corpus.index.missing_paths         observed=0    expected=0
   DRIFT  corpus.pointers.report_total       observed=122  expected=113
   PASS   corpus.pointers.report_dead        observed=0    expected=0
@@ -189,15 +189,25 @@ reading:
   PASS   corpus.pointers.commit_nonhash     observed=0    expected=0
 ```
 
+These readings are **at the committed tip** — the L1's integration commit `6a520b6`
+("reopen S213 for bounded documentary note, normalize registry LF, preserve protected
+cells and index inherited records") carries `corpus/SOURCES.md` (LF-normalized, S213
+`used-by`) and `corpus/README.md` (the 8 rows) together with the round-85 entry file, so
+the entry's index token is now tracked and `corpus.index.stale_patterns` reads **0**.
+Before that commit the same worktree read stale=1 — the uncommitted-worktree reading,
+which cleared itself when the entry was staged, exactly as measured in
+`residual-index-ordering.txt`.
+
 The remaining classes are recorded **as-is**, not claimed:
 
-- `corpus.index.stale_patterns` 1 — the round-85 entry's row names a file that is on
-  disk but not yet in the git index. `git ls-files corpus/` lists the **index**, so a
-  staged-but-uncommitted file IS listed (probed in a throwaway repo). Measured: worktree
-  now → stale=1; same README with the entry staged → stale=0. It clears itself when the
-  L1 stages the entry file. It is not a content defect, and no baseline refresh can
-  absorb it (a refresh cannot clear a zero-mode class).
-- `tracked_files` 164 vs 157, `report_total` 122 vs 113, `commit_total` 54 vs 47 — the
+- `corpus.index.stale_patterns` — **now 0.** It read 1 in the pre-commit worktree
+  because the round-85 entry's row named a file that was on disk but not yet in the git
+  index; `git ls-files corpus/` lists the **index**, so a staged-but-uncommitted file IS
+  listed (probed in a throwaway repo). The L1's integration commit carried the entry
+  file with the README, and the class cleared itself exactly as measured in
+  `residual-index-ordering.txt`. No baseline change was involved and none would have
+  helped — a refresh cannot clear a zero-mode class.
+- `tracked_files` 165 vs 157, `report_total` 122 vs 113, `commit_total` 54 vs 47 — the
   baseline-refresh class the L1 clears at the final pre-report commit (plan §
   Conformance repairs 2). This seat added no corpus file and removed none, and its
   edits introduced no report pointer and no commit citation: the S213 cell change
@@ -235,12 +245,13 @@ together with ScribeLesson's file and its bytes, not in a worktree where the fil
 absent. (The `missing=1` in the third line above is the simulated state where the row
 is added but the file's bytes are still absent; with both in the same commit it reads 0.)
 
-The entry row, whose file **is** on disk, was added by this seat. Its `stale=1` is the
+The entry row, whose file **is** on disk, was added by this seat. Its `stale=1` was the
 uncommitted-worktree reading only: `git ls-files corpus/` lists the git **index**, so a
-staged-but-uncommitted file IS listed (proved in a throwaway repo). It clears itself
-when the L1 stages the entry file — no baseline change is involved, and none would
-help, since a baseline refresh cannot clear a zero-mode class. Then refresh
-`verifiers/corpus-baseline.json` for the three `equal`-mode classes. Receipt:
+staged-but-uncommitted file IS listed (proved in a throwaway repo). It cleared itself
+when the L1's integration commit `6a520b6` carried the entry file with the README —
+`corpus.index.stale_patterns` now reads **0**. No baseline change was involved and none
+would have helped, since a baseline refresh cannot clear a zero-mode class. The
+remaining `equal`-mode classes still need the baseline refresh. Receipt:
 `.ufo/waves/round-85/w1/ScribeSources/residual-index-ordering.txt`.
 
 **2. S018's digest is stale** (flagged by ScoutSource): the specification page now serves

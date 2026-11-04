@@ -1,0 +1,50 @@
+ExecC1Eval — mirror_check.py receipt (round-85 w1)
+
+command:
+  TMPDIR=/fast/scratch/hyaku/kotoba-r85/ExecC1Eval python3 -B \
+    /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-85/w1/ExecC1Eval/mirror_check.py
+  (default --tsv = sibling description-eval-round85.tsv; --description = sibling candidate-description.txt;
+   exit ladder: 0 pass / 1 content fail / 2 environment error)
+
+--- pass run on the candidate TSV (exit=0) ---
+rows: should-trigger=9 should-not-trigger=9
+declared trigger terms (8): skill file, SKILL.md, frontmatter description, trigger words, prompt craft, write a skill, audit this skill, skill quality
+indirect positives (none of the declared terms): 5 (need >= 5)
+  line 2: direct: audit this skill
+  line 3: direct: SKILL.md, frontmatter description
+  line 4: direct: skill file
+  line 5: direct: trigger words, write a skill
+  line 6: indirect
+  line 7: indirect
+  line 8: indirect
+  line 9: indirect
+  line 10: indirect
+  line 11: shared token(s): model, outputs, prompt, this
+  line 12: shared token(s): code, runtime
+  line 13: shared token(s): fictional, language, name, worlds
+  line 14: shared token(s): content, write
+  line 15: shared token(s): host, initramfs, package
+  line 16: shared token(s): fixture, mutation
+  line 17: shared token(s): endpoint, route, verification
+  line 18: shared token(s): method, research
+  line 19: shared token(s): kagi
+near-miss negatives (share a token >= 4 chars): 9/9
+OK R6 eval_set_shape: header exact, row counts in range, indirect floor met, all negatives near-miss
+exit=0
+
+--- negative control, checker non-vacuity (mutated copy in scratch; lane TSV untouched) ---
+scratch copy only: line 15 negative rewritten to
+  "Build and sign the deb with its startup wrapper, then upload it to the repo."
+observed:
+  line 15: NO shared token >= 4 chars
+near-miss negatives (share a token >= 4 chars): 8/9
+FAIL R6 eval_set_shape
+  - line 15: negative row shares no token >= 4 chars with the description
+exit=1
+
+--- description fixture provenance ---
+source: git show f822dd113fe9f58661dd642dc207669581a4ab57:plans/round-85.md, line 77 (§ C1 candidate payload)
+parsed chars: 876 (matches the plan's stated 876)
+sha256: 824cbacc8ad5f1e494c1ee262818dd8954eeba432e02135a9da27d2a76b981a3
+plan unchanged freeze..HEAD: True; worktree line 77 identical to freeze line: True
+angle brackets < or > in description: False

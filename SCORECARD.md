@@ -526,3 +526,48 @@ Round 74 wave 2 (the falsify wave) was generated and validated but not dispatche
 - *No axis harmed (base measured; the tip battery's six component gates exit 0 at G6, the wider post-G4 battery cited in the report).* Base, corrected runner (`build/run-battery.sh` sha256 `19b878a1…`, ported from round 80 by Kb81E10Battery; it captures the measured command's own status — `cmd >> f 2>&1; rc=$?; printf 'exit=%s\n'` — closing the M80-1/M81-2 receipt gap for this runner): 14 receipts, 10 green / 4 non-zero; registry `63 of 63 … phantom 0`; floors 17 PASS rows, last `PASS sibling_reread observed=47 floor=47`; checklist 11 PASS, `trigger.line_budget` 596 within 600; integrity `4/9 checks pass` with the five DRIFTs (`tracked_files` 155≠154, `unindexed` 1, `report_total` 111≠109, `report_dead` 1, `commit_unresolvable` 2); independent 2 DRIFTs (`unindexed` 1, `commit_unresolvable` 2; `report_dead` 0 — the soft-class divergence); `correction sweep: 0 stale block(s)`; census `kotoba ok …` with 31 W04; `SKILL.md` 596 lines / 80,920 B (151 lines >120 chars, 81 >300, longest 1,095 at line 514). At the composed G1+G2+G3 tree: registry `64 of 64`, integrity red only on the two equal-mode baseline classes, independent exit 0. The tip no-harm battery (plan § No-harm battery: tip battery both forms, gate registry, assertion floors, checklist, corpus integrity, corpus independent, correction sweep, sources census, `check_sibling_census.py --skill SKILL.md`, `check_report_pointers.py --report .ufo/reports/round-81/kotoba.md`) runs with its six component gates green at G6 — registry, floors, checklist, corpus integrity, corpus independent and correction sweep each exit 0, the baseline refresh having closed the corpus DRIFTs recorded in this row's base column — and the wider set (sources census, `check_sibling_census.py --skill SKILL.md`, `check_report_pointers.py --report .ufo/reports/round-81/kotoba.md`) is run and cited in the round report after G4; this row does not predict that result. This annotation claims no score beyond consistency 10 and depth 9 and edits no other row.
 
 **Round 82 (planned, not dispatched).** (1) freshness — re-pin the host substrate drift named by the frontier `Loader-rule freshness` row (`corpus/README.md` § Frontier; `verifiers/check_substrate_pins.py`, `verifiers/verify_surfaces.py`), whose last pinned figures are the round-51 host. (2) coverage — the Agent SDK page's own frontmatter rules (the `claude.ai`-synced-skill clause the S249 quote carries) as an eighth surface beside the six frontmatter surfaces plus the SDK `allowedTools` channel; no row opened. (3) the routed C1 residuals as candidates, each pre-declared before data if used: the exemption manifest's pin, the `{7,39}` ellipsis bound, the E02 rev-prefix grammar, and `(check_id, expected_count)` carry pairs. These are intentions, not frozen predicates, and the round-81 C1/C2 final receipts and verdicts must land first.
+
+## Round 85 — frozen claims and honest-stop disposition
+
+- **C1 depth (owned lowest; score 9, delta 0): killed / unprovable.** Frozen predicate:
+  `python3 -B verifiers/check_description_render.py --rev <rev>` prints
+  `description render rules met N of 8` and exits 0 iff N == 8.
+  The independent before oracle over base `1c8f37edf2e5ac0fb3c2be1c88e32406313fe47b`
+  reads 4/8; duplicate-positive and irrelevant-negative control worlds each
+  read 8/8 without the intended eval quality. Evidence:
+  `.ufo/waves/round-85/w1/ReviewerC1/oracle-receipt.txt` and
+  `.ufo/waves/round-85/w1/ReviewerC1/review.md`.
+  The freeze `f822dd113fe9f58661dd642dc207669581a4ab57` is not rewritten.
+  Candidate description/eval remain wave evidence; no trigger capability or
+  verified depth gain is admitted. S213 was re-opened for the documentary entry.
+- **C2 freshness (tied-lowest advisory; score 8, delta 0 pending outside review):
+  measured improvement.** Frozen predicate:
+  `python3 -B verifiers/check_substrate_pins.py` exits 0 printing
+  `OK 3/3 pins hold`, AND
+  `python3 -B verifiers/verify_surfaces.py --json` exits 0 with `"pass": 7`
+  and `"fail": 0`. Before at the same base: both commands exit 2 because
+  `omp.real` is absent. Measured after at
+  `bf9ab28e011e4243356078951e33d919ad63a0c5`: both exit 0, pins 3/3 and
+  surfaces 7/7 (`.ufo/waves/round-85/receipts/c2-after.json`).
+  Negative controls were landed first at
+  `51fffd1933f0a44bfeb9434688b4f850ff21aec6`; wrong SHA, missing pins and
+  wrong ELF reject. Persisted mtime has nine fractional digits and zero
+  tolerance; coarse timestamp formats remain an explicitly pre-existing
+  permissive bound, not a newly claimed refusal.
+- **Admission:** C1's killed predicate prevents round admission irrespective
+  of C2's measured gain. No score or capability-table promotion is taken.
+  Remaining inherited gate reds and any new findings are reported individually,
+  never summarized as a universal no-harm pass.
+- **Planned successor (not a declaration):** redesign R6 only in a later round
+  around independent semantic labels and distinct queries, with production-path
+  forgery receipts committed before predicate freeze; retain the R1 abbreviation
+  and UTF-16-versus-code-point bounds.
+- **C1 instrument disposition:** the command above is historical, executable
+  only from the original trusted sandbox layout at
+  `759cf35457c92c110f61e82630ccee00a598215f`. At
+  `47085c8c528245e88197d716b48a8325a97414f7` it was removed from active
+  `verifiers/` and its registry row withdrawn; exact bytes and fixtures remain
+  under `.ufo/waves/round-85/frozen/` with `QUARANTINE.txt`. In addition to
+  R6's false greens, R5 executed revision-selected code and R8 did not implement
+  the frozen located-quote condition. No final production after-count is
+  claimed; no post-scoring predicate change rescues C1.

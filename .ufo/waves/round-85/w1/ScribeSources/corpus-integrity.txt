@@ -1,5 +1,12 @@
 # verify_corpus_integrity.py --json — corpus index census
 # seat: ScribeSources · round 85 · date 2026-11-04 · host linux
+#
+# REFRESHED after the L1's integration commit 6a520b6a9160
+#   6a520b6 round-85: reopen S213 for bounded documentary note, normalize registry LF, preserve protected cells and index inherited records
+# The commit carries corpus/SOURCES.md (LF-normalized, S213 used-by) and
+# corpus/README.md (the 8 coverage-map rows) together with the round-85 entry
+# file corpus/knowledge/description-trigger-discipline-round85.md, so the entry's
+# index token is now tracked and corpus.index.stale_patterns reads 0.
 
 $ python3 -B verifiers/verify_corpus_integrity.py --json
 
@@ -8,13 +15,13 @@ $ python3 -B verifiers/verify_corpus_integrity.py --json
   unindexed_detail = []
   -> the 7 files unindexed at the base commit (base receipt
      .ufo/waves/round-85/receipts/before-gates.txt listed 'unindexed: corpus/lessons/
-     round-81-verifier-spotcheck.md' .. 'corpus/lessons/round-84.md') are now covered
-     by the 7 new coverage-map rows in corpus/README.md.
+     round-81-verifier-spotcheck.md' .. 'corpus/lessons/round-84.md') are covered by
+     the 7 new coverage-map rows in corpus/README.md.
 
-## all nine checks, as observed
-  DRIFT  corpus.index.tracked_files         observed=164    expected=157
+## all nine checks, at the committed tip
+  DRIFT  corpus.index.tracked_files         observed=165    expected=157
   PASS   corpus.index.unindexed             observed=0      expected=0 / empty
-  DRIFT  corpus.index.stale_patterns        observed=1      expected=0 / empty
+  PASS   corpus.index.stale_patterns        observed=0      expected=0 / empty
   PASS   corpus.index.missing_paths         observed=0      expected=0 / empty
   DRIFT  corpus.pointers.report_total       observed=122    expected=113
   PASS   corpus.pointers.report_dead        observed=0      expected=0 / empty
@@ -22,44 +29,33 @@ $ python3 -B verifiers/verify_corpus_integrity.py --json
   DRIFT  corpus.pointers.commit_unresolvable observed=1      expected=0 / empty
   PASS   corpus.pointers.commit_nonhash     observed=0      expected=0 / empty
 
-## notes on the DRIFT classes that remain (recorded as-is, not claimed)
-
-  corpus.index.stale_patterns observed=1 expected=0 — the round-85 entry's
-    coverage-map row names corpus/knowledge/description-trigger-discipline-round85.md,
-    which is on disk but not yet in the git index (`git ls-files corpus/` lists the
-    INDEX, so a staged-but-uncommitted file IS listed). This clears itself when the
-    L1 stages the entry file; it is NOT a content defect and no baseline change can
-    absorb it (a baseline refresh cannot clear a zero-mode class). Measured:
-      worktree now (entry untracked)      -> stale=1 unindexed=0 missing=0
-      same README, entry staged/committed -> stale=0 unindexed=0 missing=0
-    Detail and the resolution order: residual-index-ordering.txt
-
-  corpus.index.tracked_files observed=164 expected=157 — the tracked corpus file
-    count grew since the baseline was written; the baseline refresh is the L1's
-    round-end step (plan § Conformance repairs 2). This seat added no corpus file
-    and removed none.
-
+## the three remaining DRIFT classes (the L1's baseline refresh, plan § Conformance repairs 2)
+  corpus.index.tracked_files observed=165 expected=157 — the tracked corpus file
+    count grew since the baseline was written (164 before this round's entry, 165
+    after it). This seat added no corpus file and removed none; the round-85 entry
+    is ScribeC1Entry's file, committed by the L1.
   corpus.pointers.report_total observed=122 expected=113 and
-  corpus.pointers.commit_total observed=54 expected=47 — same baseline-refresh
-    class. This seat's edits added no report pointer and no commit citation: the
-    S213 cell change touches `used-by` only, and the 8 README basis cells name no
-    report path and no `commit \`token\`` citation (report_total stayed 122 and
-    commit_total stayed 54 across the edit — measured before and after).
+  corpus.pointers.commit_total observed=54 expected=47 — same baseline-refresh class.
+    This seat's edits added no report pointer and no commit citation: the S213 cell
+    change touches `used-by` only, and the 8 README basis cells name no report path
+    and no `commit \`token\`` citation (report_total stayed 122 and commit_total
+    stayed 54 across the edit — measured before and after).
 
-  corpus.pointers.commit_unresolvable observed=1 expected=0 — the pre-existing
-    corpus/lessons/round-81.md:8 orphan hash 8b1cc1b0… (named in the base receipt);
-    not this seat's row, not repaired here.
+## corpus.pointers.commit_unresolvable observed=1 expected=0
+  The pre-existing corpus/lessons/round-81.md:8 orphan hash 8b1cc1b0… (named in the
+  base receipt). Not this seat's row, not repaired here. A baseline refresh cannot
+  clear a zero-mode class, so it stays visible for the round to route.
 
 ## index counters
   index_patterns         = 183
   index_tokens_total     = 183
-  tracked_files          = 164
-  stale_patterns         = 1
+  tracked_files          = 165
+  stale_patterns         = 0
   missing_paths          = 0
   report_dead            = 0
   commit_nonhash         = 0
   commit_external        = 2
-  stale_patterns_detail      = ['corpus/README.md:170: knowledge/description-trigger-discipline-round85.md']
+  stale_patterns_detail      = []
   missing_paths_detail       = []
   report_dead_detail         = []
   commit_unresolvable_detail = ['corpus/lessons/round-81.md:8: 8b1cc1b00a9322cd8e231d87e015e1d75d20adc1']

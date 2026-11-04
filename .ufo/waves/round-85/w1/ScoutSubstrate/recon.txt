@@ -1,0 +1,600 @@
+# ScoutSubstrate — round-85 C2 host substrate recon
+
+Seat: ScoutSubstrate (scout, leaf — no dispatch).
+Host: linux, x86_64. Date: 2026-11-04. Lane: /home/vgpnk/Projects/shokunin/kotoba-shokunin.
+Base commit (measured against): 1c8f37edf2e5ac0fb3c2be1c88e32406313fe47b.
+Scratch: S=/fast/scratch/hyaku/kotoba-r85/ScoutSubstrate (TMPDIR passed to every command; removed on exit).
+Read-only: no file under verifiers/ or SKILL.md was edited by this seat.
+
+Note on ordering: the four omp path constants in verifiers/ were ALREADY re-pointed to
+`/home/vgpnk/.local/bin/omp` by ExecC2Pin (worktree `git status --porcelain` shows
+`M verifiers/check_substrate_pins.py`, `M verifiers/verify_surfaces.py`,
+`M verifiers/verify_harness_claims.py`, `M verifiers/verify_harness_independent.py`;
+each carries a "round 85: this host's omp is the ELF itself (omp/18.15.0); omp.real does not exist"
+comment). This recon therefore reports the post-ExecC2Pin live readings, which is what C2 must
+pin. The two `omp.real` mentions still present are comment residue plus one historical note in
+verifiers/baseline.json — see §7.
+
+======================================================================
+§1 — THE OMP BINARY ON THIS HOST (commands + observed output)
+======================================================================
+
+$ file /home/vgpnk/.local/bin/omp
+/home/vgpnk/.local/bin/omp: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically
+linked, interpreter /lib64/ld-linux-x86-64.so.2, for GNU/Linux 3.2.0,
+BuildID[sha1]=588d7307f333293c728b74df19b7323c20736899, not stripped
+
+$ ls -l /home/vgpnk/.local/bin/omp
+-rwxr-xr-x 1 vgpnk vgpnk 276785328 Nov  1 17:11 /home/vgpnk/.local/bin/omp
+
+$ ls -la /home/vgpnk/.local/bin/ | grep -i omp
+-rwxr-xr-x 1 vgpnk vgpnk 276785328 Nov  1 17:11 omp
+-rwxr-xr-x 1 vgpnk vgpnk        11185 Oct  6 16:28 omp-swarm      <- separate script, not the substrate
+(unrelated: kaitai-struct-compiler -> symlink)
+
+$ /home/vgpnk/.local/bin/omp --version
+omp/18.15.0
+(exit 0)
+
+$ sha256sum /home/vgpnk/.local/bin/omp
+6737ee2415555a3656cc7b89c14d1c25c18658ee4c0fd4f7309705149ccb7b0f  /home/vgpnk/.local/bin/omp
+
+$ stat -c '%y' /home/vgpnk/.local/bin/omp
+2026-11-01 17:11:07.281808804 -0300
+
+$ stat -c '%Y-%m-%dT%H:%M:%S.%N%:z' /home/vgpnk/.local/bin/omp
+1793563867-/home-56T?:?:?.'/home/vgpnk/.local/bin/omp'?z
+  ^ NOTE: GNU stat has no `%N` (it is the FILENAME directive) and no `%:z`; that format string is
+  invalid for stat and produces garbage. The ns-exact ISO stamp is produced below instead.
+
+$ stat /home/vgpnk/.local/bin/omp
+  File: /home/vgpnk/.local/bin/omp
+  size: 276785328  Blocks: 540600     IO Block: 4096   regular file
+Device: 0,56    Inode: 250519574   Links: 1
+Access: (0755/-rwxr-xr-x)  Uid: ( 1000/   vgpnk)   Gid: ( 1000/   vgpnk)
+Access: 2026-11-01 17:11:07.137808795 -0300
+Modify: 2026-11-01 17:11:07.281808804 -0300
+Change: 2026-11-01 17:11:07.447808814 -0300
+ Birth: 2026-11-01 17:11:07.137808795 -0300
+
+--- ns-exact ISO stamp (the form verifiers/check_substrate_pins.py parses) ---
+$ stat -c '%y' /home/vgpnk/.local/bin/omp | python3 -c "..."
+2026-11-01T17:11:07.281808804-03:00
+
+$ python3 -c "import os,datetime; st=os.stat(...); ns=st.st_mtime_ns; ..."
+2026-11-01T17:11:07.281808804-03:00
+mtime_ns= 1793563867281808804
+
+  Two independent derivations (stat %y reformatted; os.stat().st_mtime_ns reformatted) agree
+  byte-for-byte: 2026-11-01T17:11:07.281808804-03:00  (= epoch ns 1793563867281808804).
+  The `-03:00` offset is the host's local zone (Brazil/East, `-0300`).
+
+======================================================================
+§2 — IS `omp` THE ELF THE `omp` COMMAND RUNS? IS `omp.real` PRESENT?
+======================================================================
+
+ANSWER: YES — `/home/vgpnk/.local/bin/omp` IS the ELF, with NO wrapper hop on this host.
+       `/home/vgpnk/.local/bin/omp.real` DOES NOT EXIST AT ALL.
+
+$ command -v omp
+/home/vgpnk/.local/bin/omp
+$ which -a omp
+/home/vgpnk/.local/bin/omp          <- exactly one resolution, no earlier PATH entry
+$ type -a omp
+omp is /home/vgpnk/.local/bin/omp
+$ readlink -f /home/vgpnk/.local/bin/omp
+/home/vgpnk/.local/bin/omp          <- not a symlink
+$ head -c 64 /home/vgpnk/.local/bin/omp | xxd | head -2
+00000000: 7f45 4c46 0201 0100 0000 0000 0000 0000  .ELF............
+00000010: 0200 3e00 0100 0000 0006 a401 0000 0000  ..>.............
+
+$ ls -l /home/vgpnk/.local/bin/omp.real
+ls: cannot access '/home/vgpnk/.local/bin/omp.real': No such file or directory
+(exit 2)
+$ test -e /home/vgpnk/.local/bin/omp.real && echo EXISTS || echo ABSENT
+ABSENT
+$ find /home/vgpnk -maxdepth 6 -name 'omp.real*' 2>/dev/null
+(no output — the name does not exist anywhere under $HOME)
+
+$ grep -c 'omp\.real' <strings dump of the omp ELF>
+0                                    <- the ELF does not even name the path it used to be pinned at
+
+CONTRAST WITH THE ROUND-72 PREMISE (which the plan/claims carry forward):
+the round-72 note recorded "`~/.local/bin/omp` is a 1,680-byte crash-restart Bourne wrapper
+whose BIN is `~/.local/bin/omp.real`". On THIS host that is false: the file at
+`~/.local/bin/omp` is 276,785,328 bytes, is an ELF (not a shell script), runs directly
+(`omp --version` -> omp/18.15.0), and there is no `omp.real` anywhere. The only other
+omp-named file in that directory is `omp-swarm` (11,185 B, Bourne-Again script, dated
+2026-10-06) — an unrelated tool, NOT the substrate.
+
+CONSEQUENCE FOR C2: the "the wrapper is not the substrate" rule that motivated the `omp.real`
+path is INAPPLICABLE here. The correct pin target is the ELF at `/home/vgpnk/.local/bin/omp`
+itself; pinning `omp.real` can only ever read UNREADABLE.
+
+======================================================================
+§3 — verify_surfaces.py: NO OVERRIDE vs OVERRIDE
+======================================================================
+
+--- (A) NO OVERRIDE, AT THE PRE-ExecC2Pin STATE (DEFAULT_BINARIES still named omp.real) ---
+$ python3 -B verifiers/verify_surfaces.py --json
+{
+  "checks": [],
+  "error": "omp binary not found: /home/vgpnk/.local/bin/omp.real",
+  "exit_code": 2,
+  "fail": 0,
+  "pass": 0
+}
+exit=2
+  ^ the exit-2 error, verbatim: `omp binary not found: /home/vgpnk/.local/bin/omp.real`
+
+--- (B) NO OVERRIDE, AT THE CURRENT WORKTREE (ExecC2Pin's re-point applied) ---
+$ python3 -B verifiers/verify_surfaces.py --json          # no --omp-binary flag
+pass 7  fail 0  exit 0  error None
+  surfaces.literal_present      PASS | 39 loader-kind entries verified against the dumps
+  surfaces.no_uncovered_class   PASS | all 8 extracted loader class(es) declared
+  surfaces.opencode_extract     PASS | opencode extraction 6/6 declared class(es) (+3 ledgered
+                                       removal(s)) from 7/7 rules (OC-1, OC-2, OC-3a, OC-3b,
+                                       OC-4, OC-5, OC-6)
+  surfaces.table_parity         PASS | inventory id set == baseline id set (42 ids)
+  surfaces.literal_parity       PASS | 42 inventory row literal(s) match the baseline per id
+  surfaces.kind_parity          PASS | 42 inventory row kind(s) match the baseline per id
+  surfaces.excluded_reason      PASS | 8 excluded entries, all reasoned and listed in the inventory
+exit=0
+  => The exit-2 is fully cured by the path re-point ALONE; no --omp-binary override is needed
+     on this host. C2's second conjunct ("the surfaces run reads the same path, no override
+     needed") now holds in the worktree. The remaining work for C2 is the PIN VALUES (§6).
+
+$ python3 -B verifiers/verify_surfaces.py --json --omp-binary /home/vgpnk/.local/bin/omp
+{
+  "checks": [
+    { "detail": "39 loader-kind entries verified against the dumps",
+      "id": "surfaces.literal_present", "status": "PASS" },
+    { "detail": "all 8 extracted loader class(es) declared",
+      "id": "surfaces.no_uncovered_class", "status": "PASS" },
+    { "detail": "opencode extraction 6/6 declared class(es) (+3 ledgered removal(s)) from 7/7 rules (OC-1, OC-2, OC-3a, OC-3b, OC-4, OC-5, OC-6)",
+      "id": "surfaces.opencode_extract", "status": "PASS" },
+    { "detail": "inventory id set == baseline id set (42 ids)",
+      "id": "surfaces.table_parity", "status": "PASS" },
+    { "detail": "42 inventory row literal(s) match the baseline per id",
+      "id": "surfaces.literal_parity", "status": "PASS" },
+    { "detail": "42 inventory row kind(s) match the baseline per id",
+      "id": "surfaces.kind_parity", "status": "PASS" },
+    { "detail": "8 excluded entries, all reasoned and listed in the inventory",
+      "id": "surfaces.excluded_reason", "status": "PASS" }
+  ],
+  "exit_code": 0,
+  "fail": 0,
+  "pass": 7,
+  "substrate": {
+    "omp": {
+      "bytes": 276785328,
+      "mtime": 1793563867.2818089,
+      "path": "/home/vgpnk/.local/bin/omp",
+      "sha256": "6737ee2415555a3656cc7b89c14d1c25c18658ee4c0fd4f7309705149ccb7b0f",
+      "source": "binary"
+    },
+    "opencode": {
+      "bytes": 240416944,
+      "mtime": 499162500.0,
+      "path": "/home/vgpnk/.opencode/bin/opencode",
+      "sha256": "ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7",
+      "source": "binary"
+    }
+  }
+}
+exit=0
+
+PASS/FAIL COUNTS: pass 7, fail 0, exit 0. Check ids and verdicts (all PASS):
+  surfaces.literal_present      PASS   (39 loader-kind entries verified against the dumps)
+  surfaces.no_uncovered_class   PASS   (all 8 extracted loader class(es) declared)
+  surfaces.opencode_extract     PASS   (6/6 declared + 3 ledgered removals, 7/7 rules)
+  surfaces.table_parity         PASS   (inventory id set == baseline id set, 42 ids)
+  surfaces.literal_parity       PASS   (42 inventory row literals match baseline per id)
+  surfaces.kind_parity          PASS   (42 inventory row kinds match baseline per id)
+  surfaces.excluded_reason      PASS   (8 excluded entries, all reasoned and listed)
+
+Note on the "39" vs "42": literal_present covers the 42 baseline entries minus the 3 excused
+opencode classes (see §4) = 39 loader-kind entries checked; the other three checks each cover
+all 42 ids.
+
+======================================================================
+§4 — STRINGS DUMP, THE 42 BASELINE IDS, AND census-removals.json
+======================================================================
+
+$ strings -n 4 /home/vgpnk/.local/bin/omp > "$S/omp-1815.strings"
+exit 0; 2,550,839 lines; 47,635,680 bytes
+sha256 of dump: bf6801e13b8fe7bb37d2d36608083f08610dfdb4c4f320536dd753d6ea1249fb
+(written to $S/omp-1815.strings as specified; not committed — the dump is 47 MB)
+
+$ strings -n 4 /home/vgpnk/.opencode/bin/opencode > "$S/opencode.strings"
+exit 0; 1,237,844 lines
+sha256 of dump: 020fb25393e5ce881ac2da70222acedebc5cef2d3810d07e4625b2cde885b089
+  -> MATCHES the dump_sha256 recorded in verifiers/census-removals.json
+     ("020fb25393e5ce881ac2da70222acedebc5cef2d3810d07e4625b2cde885b089"), i.e. the opencode
+     side has NOT drifted since round 72.
+
+--- 4a. WHICH OF THE 42 BASELINE IDS STILL RESOLVE ---
+Method: imported verifiers/verify_surfaces.py read-only and called its own
+`load_baseline()`, `extract_classes()`, `removal_problems()` and `check_literal_present()`
+semantics against the two live dumps (no file in verifiers/ was modified).
+
+RESULT: ALL 42 ids RESOLVE. There is NO baseline literal that does not occur.
+  - 39 of the 42 (all loader-kind, unexcused) resolve literally AND (for the 8 loader-group
+    classes) carry a live registration call shape.
+  - 3 of the 42 (all opencode) are EXCUSED by the census-removals ledger (§4b).
+  - The 8 omp loader-group classes extract EXACTLY as the baseline declares:
+        (agents-md, AGENTS.md)              (claude-md, CLAUDE.md)
+        (opencode, AGENTS.md)               (gemini, GEMINI.md)
+        (gemini, system.md)                 (gemini, SYSTEM_TEMPLATE.md)
+        (github, copilot-instructions.md)   (windsurf, memories/global_rules.md)
+    (matches `surfaces.no_uncovered_class`: "all 8 extracted loader class(es) declared")
+  - The 8 opencode loader-group-equivalents extract 0 (documented steady state for opencode;
+    covered by opencode_extract's own rule, and NOT counted as drift).
+
+Per-id table (literal_present = the literal occurs in that harness's dump):
+  omp:agents-md/AGENTS.md               loader-group  True
+  omp:claude-md/CLAUDE.md               loader-group  True
+  omp:opencode/AGENTS.md                loader-group  True
+  omp:gemini/GEMINI.md                  loader-group  True
+  omp:gemini/system.md                  loader-group  True
+  omp:gemini/SYSTEM_TEMPLATE.md         loader-group  True
+  omp:github/copilot-instructions.md    loader-group  True
+  omp:windsurf/memories/global_rules.md loader-group  True
+  omp:cursor/rules                      loader-literal True
+  omp:windsurf/rules                    loader-literal True
+  omp:github/instructions               loader-literal True
+  omp:clinerules/.clinerules            loader-literal True
+  omp:omp-dir/RULES.md                  loader-literal True
+  omp:provider-gate/enabledProviders    loader-config  True
+  omp:agents/rules                      loader-literal True
+  omp:agents-md-walkup/AGENTS.md        loader-literal True
+  omp:omp-dir/AGENTS.md                 loader-literal True
+  omp:claude-dir/CLAUDE.md              loader-literal True
+  omp:codex/AGENTS.md                   loader-literal True
+  omp:agent-system-prompt/SYSTEM.md     loader-literal True
+  omp:marketplace/plugin-rules          loader-literal True
+  omp:agents/prompts                    loader-literal True
+  omp:github/prompts                    loader-literal True
+  omp:codex/prompts                      loader-literal True
+  omp:agents/skills                     loader-literal True
+  omp:discovery/mcp-configs             loader-config  True
+  omp:discovery/settings                loader-config  True
+  omp:discovery/extensions              loader-literal True
+  omp:discovery/plugins                 loader-literal True
+  omp:discovery/commands                loader-literal True
+  omp:discovery/skills-roots            loader-literal True
+  omp:unknown/managed-skills            loader-literal True
+  omp:unknown/subagent-roster           loader-config  True
+  opencode:instructions/AGENTS.md       loader-literal True
+  opencode:instructions/CLAUDE.md       loader-literal True   EXCUSED (removal ledger)
+  opencode:instructions/CONTEXT.md      loader-literal False   EXCUSED (removal ledger)
+  opencode:config/AGENTS.md             loader-config  True
+  opencode:claude-home/CLAUDE.md        loader-config  True   EXCUSED (removal ledger)
+  opencode:config/instructions          loader-config  True
+  opencode:config/instructions-remote   loader-config  True
+  opencode:read-hook/instructions       loader-literal True
+  opencode:instruction-context/AGENTS.md loader-literal True
+
+  BASELINE LITERALS THAT DO NOT OCCUR (unexcused): [] — EMPTY. No id would drift.
+  (The only absent literal, "CONTEXT.md" in the opencode dump, is a ledgered removal, and it
+   is excused precisely because it is absent.)
+
+--- 4b. census-removals.json — classes declared gone, do any occur again? ---
+Three classes are declared gone. Re-checked against the LIVE opencode dump:
+
+  class_id=opencode:instructions/CONTEXT.md   literal "CONTEXT.md"
+      literal hits in live opencode dump: 0
+      absent_anchors: "CONTEXT\.md" -> 0 hits                      STILL GONE. No reappearance.
+  class_id=opencode:instructions/CLAUDE.md    literal "CLAUDE.md"
+      literal hits: 3 (as bare "CLAUDE.md" at line 20946; inside a cursor/rules string-table
+        blob at 150271; and in prompt prose listing "(`AGENTS.md`, `CLAUDE.md`, `.cursor/rules/`,
+        `.cursorrules`, `.github/copilot-instructions.md`)" at 1228295) — i.e. prompt/string-table
+        residue with NO loader role, exactly as the ledger's reason states.
+      absent_anchors: "disableClaudeCodePrompt" -> 0 hits; the AGENTS/CONTEXT name-priority
+        array regex -> 0 hits                                      STILL GONE. No reappearance.
+  class_id=opencode:claude-home/CLAUDE.md     literal "CLAUDE.md"
+      literal hits: 3 (same residue as above)
+      absent_anchors: the ".join(<x>.home, ".claude", "<file>.md")" regex -> 0 hits
+                                                               STILL GONE. No reappearance.
+
+  `removal_problems()` (verify_surfaces' own excision rule: a row is excused only while EVERY
+  absent_anchors regex matches nothing) returns problems = [] and excuses exactly these 3 ids.
+  => NO class declared gone has reappeared. The removals ledger is still valid on this host.
+
+  ALSO: verifiers/census-removals.json `measured_against` still matches the live host:
+      recorded opencode_binary_sha256 ca9b3ee2…f2e7 == live ca9b3ee2…f2e7   (MATCH)
+      recorded dump_sha256        020fb253…9fb == live 020fb253…9fb         (MATCH)
+      recorded opencode_version   v2.1.4        == live opencode v2.1.4
+  => the opencode half of C2 needs NO re-pin. Only the omp half drifts.
+
+--- 4c. VERDICT: WHICH INVENTORY IDS WOULD CHANGE? ---
+NONE. No class id, literal, kind or verdict in verifiers/surfaces-baseline.json drifts on the
+omp 18.12.6 -> 18.15.0 move: the 42-id set, the 8 extracted omp loader-group call shapes, the
+42 literals and the 8 excluded rows all hold. The inventory file
+corpus/knowledge/instruction-surface-census-round13.md is likewise unchanged in shape
+(table_parity + literal_parity + kind_parity all PASS, 42/42).
+
+======================================================================
+§5 — THE DESCRIPTION RENDER CUT CONSTANT
+======================================================================
+
+--- 5a. `_8n` ---
+$ grep -b -o '_8n' "$S/omp-1815.strings" | head -4
+1710510:_8n
+46011151:_8n
+46011330:_8n
+46178794:_8n
+  (4 hits total; `grep -c -o '_8n'` = 4)
+
+All four are incidental substrings of unrelated minified identifiers, NOT the render constant:
+  line 121242: `_8n]nF`
+  line 2463216: `_8nD`
+  line 2463248: `y_8n`
+  line 2493088: `6_8nXs`
+File offset of the first hit: 1,710,510 (line 121242).
+
+  => The LITERAL MINIFIED NAME `_8n` NO LONGER EXISTS in omp 18.15.0. The lane's SKILL.md
+     (SKILL.md:29-30, SKILL.md:565-566) cites `_8n=100` and `slice(0, _8n-1)` as the render
+     truncation constant. In 18.15.0 that identifier has been RENAMED. The BEHAVIOUR is
+     unchanged; only the minified name moved.
+
+  $ grep -c 'slice(0, _8n-1)'  -> 0
+  $ grep -c '_8n = 100'        -> 0
+
+--- 5b. What the 18.15.0 dump actually contains (the SAME algorithm, new names) ---
+$ grep -b -o 'var k = 100;' "$S/omp-1815.strings"
+25501926:var k = 100;            (unique: `grep -c 'var k = 100;'` = 1)
+
+dump lines 1086936-1086940 (packages/coding-agent/src/extensibility/skill-descriptions.ts):
+  var k = 100;      <- the truncation constant (was `_8n` in 18.12.6)
+  var E = 40;       <- min length for the first-sentence fallback to win
+  var T = 160;      <- compressor output validator ceiling
+  var _ = 12;       <- compressor output validator word ceiling
+  var b = 4000;
+
+dump line 1086994 (the truncator, offset 25,503,747):
+  function dnt(e) {
+    const t = e.replace(/\s+/g, " ").trim();
+    if (t.length <= k) return t;                          // <= 100 -> whole text
+    const r = t.slice(0, k - 1);                          // slice(0, 99)  <- offset 99 cut
+    const n = r.match(/^.*?[.!?](?=\s|$)/)?.[0];           // first sentence regex
+    if (n && n.length >= E) return n;                     // kept if >= 40 chars
+    const o = r.lastIndexOf(" ");
+    const c = o >= E ? r.slice(0, o).trimEnd() : r;
+    return `${c}\u2026`;                                  // last-space + ellipsis
+  }
+
+  Exported names (dump line 1504128 / 1504130):
+    `dnt as previewSkillDescription,`
+    `cnt as createSkillDescriptionCompressor,`
+  and the same two names appear as plain strings at dump lines 605786 / 605788.
+
+  => THE RENDER CUT RULE IS INTACT AND IDENTICAL IN 18.15.0:
+       slice(0, 99) -> first sentence `^.*?[.!?](?=\s|$)` kept if >= 40 chars
+       -> else last-space + `…`.
+     Only the MINIFIED IDENTIFIER changed (`_8n` -> `k`, truncator `previewSkillDescription`
+     -> `dnt`). The lane's SKILL.md prose at :29-30 and :565-566 still describes the rule
+     CORRECTLY in behaviour ("`slice(0, _8n-1)`", "`_8n=100` (i.e. offset 99)"), but the cited
+     symbol name no longer resolves in this binary — a citation-drift finding for the
+     L1/ScribeLesson (documentation), NOT a C2 pin item.
+
+  ANCHOR SURVIVAL CHECK (the anchors SKILL.md cites, in the 18.15.0 dump):
+    'previewSkillDescription'           -> 2 hits (present)
+    'createSkillDescriptionCompressor'  -> 2 hits (present)
+    'A8n'                               -> 6 hits (present)
+    'K7s'                               -> 4 hits (present)
+    'compress-description'              -> 4 hits (present)
+    '_8n = 100' / 'slice(0, _8n-1)'     -> 0 hits (GONE — renamed to `k`)
+
+--- 5c. `available_skills` ---
+$ grep -b -o 'available_skills' "$S/omp-1815.strings" | head -2
+46379374:available_skills
+46379553:available_skills
+File offset of the first hit: 46,379,374 (dump line 2526948). Exactly 2 occurrences — the
+template open/close tag. The template body (dump lines 2526948-2526956):
+
+  <available_skills>
+  {{#each skills}}
+    <skill>
+      <name>{{name}}</name>
+      <description>{{description}}</description>
+      <location>{{location}}</location>
+    </skill>
+  {{/each}}
+  </available_skills>
+
+  Note the shape CHANGE relevant to C1: the 18.15.0 listing is XML-ish
+  (`<skill><name>…<description>…`) — so an XML tag inside a skill's own description would
+  nest inside `<description>` and confuse the listing. That is the substrate reason behind C1's
+  R7 `no_xml_tag`.
+
+  The OLDER `<skills>` listing shape still exists as a separate template (dump line 2530773,
+  `- {{name}}: {{description}}` at 2530775) — the "omitted from the system prompt but listed
+  here for this session" background-session variant.
+
+--- 5d. `skill-descriptions` ---
+$ grep -b -o 'skill-descriptions' "$S/omp-1815.strings" | head -3
+9222668:skill-descriptions
+10097804:skill-descriptions
+10097844:skill-descriptions
+File offset of the first hit: 9,222,668 (dump line 611279). 14 occurrences total, all
+module/chunk-path or table-name residue:
+  611279: /$bunfs/root/chunks/skill-descriptions-gdjp0ezs.js
+  647351: skill-descriptions.db
+  647353: skill-descriptions-db
+  694134: @oh-my-pi/pi-coding-agent/extensibility/skill-descriptions
+  699004: file:///$bunfs/root/chunks/skill-descriptions-gdjp0ezs.js
+  745746: return c.agentSubdir(p, "skill-descriptions.db", "data");
+  1086929/1086935: // packages/coding-agent/src/extensibility/skill-descriptions.ts
+  1087022: $t("skill-descriptions-db", () => e.close(), { exitOnly: true });
+  1087039: N(g.join(e ?? we(), "skill-descriptions.db"), t);
+  1350388: var Ah = () => import("/$bunfs/root/chunks/skill-descriptions-gdjp0ezs.js");
+  1352516: "@oh-my-pi/pi-coding-agent/extensibility/skill-descriptions": Ah,
+  2548030/2548031: /$bunfs/root/chunks/skill-descriptions-gdjp0ezs.js
+  => the skill-description cache mechanism (SQLite `skill_descriptions` table, agent-scoped
+     `skill-descriptions.db`) is intact in 18.15.0, same as the lane documents.
+
+--- 5e. The 1024 spec ceiling (C1's R3) — independently located in the binary ---
+  dump line 970518:  `if (R.length > 1024) return \`"description" exceeds 1024 characters\`;`
+      (the skill frontmatter validator, right after `missing required "description"`)
+  dump line 939150:  `descriptionLength: 1024,`  (packages/wire/src/skillshare.ts, the
+      skills.omp.sh registry limits table, alongside pathLength 255 / keywords 20 /
+      keywordLength 50 / deprecationLength 500)
+  dump line 661158:  the same message string in the packed string table
+  => R3's 1024 ceiling is corroborated by the substrate, not merely by the spec sheet.
+
+======================================================================
+§6 — THE EXACT PIN VALUES C2 MUST RECORD
+======================================================================
+
+Pin triple (omp substrate on this host):
+  path    = /home/vgpnk/.local/bin/omp
+  sha256  = 6737ee2415555a3656cc7b89c14d1c25c18658ee4c0fd4f7309705149ccb7b0f
+  mtime   = 2026-11-01T17:11:07.281808804-03:00     (ns-exact 9-digit, host offset -03:00)
+  version = omp/18.15.0
+  bytes   = 276785328
+
+So verifiers/baseline.json `measured_against` must read:
+  "omp_binary_sha256": "6737ee2415555a3656cc7b89c14d1c25c18658ee4c0fd4f7309705149ccb7b0f",
+  "omp_binary_mtime":  "2026-11-01T17:11:07.281808804-03:00",
+  "opencode_binary_sha256": "ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7"   (UNCHANGED)
+
+VERIFIED — the candidate values actually hold, and the guard is not vacuous.
+(All four runs used TMPDIR=$S; nothing in verifiers/ was edited.)
+
+  (a) candidate baseline + real ELF:
+      $ python3 -B verifiers/check_substrate_pins.py --baseline $S/candidate-baseline.json \
+          --omp-binary /home/vgpnk/.local/bin/omp
+      PASS omp_binary_sha256: 6737ee2415555a3656cc7b89c14d1c25c18658ee4c0fd4f7309705149ccb7b0f
+      PASS omp_binary_mtime: delta 0 ns (tolerance 0 ns)
+      PASS opencode_binary_sha256: ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7
+      OK 3/3 pins hold
+      exit=0
+
+  (b) MUST-FAIL ARM — same candidate baseline scored against a DIFFERENT ELF (the opencode
+      binary):
+      FAIL omp_binary_sha256: sha256 drift: expect=6737ee24… got=ca9b3ee2…
+      FAIL omp_binary_mtime: mtime drift … delta_ns=-1294401367281808804 tolerance_ns=0
+      DRIFT 2/3 pins failed: omp_binary_sha256, omp_binary_mtime
+      exit=1                                          (guard is not vacuous)
+
+  (c) MUST-FAIL ARM — the omp pin DELETED from the candidate baseline:
+      FAIL omp_binary_sha256: PIN_ABSENT: pin declared by the guard's contract, absent from measured_against
+      PIN_ABSENT 1/3 pins failed: omp_binary_sha256
+      exit=1                                          (a deleted pin never silently passes)
+
+  (d) current committed pins vs the live ELF (pre-re-pin), NO override needed once the path
+      constant is re-pointed (this is the CURRENT worktree reading):
+      $ python3 -B verifiers/check_substrate_pins.py
+      FAIL omp_binary_sha256: sha256 drift: expect=85d9daf3a05fc76e8cd425ae1904eb576af8d21cc85fcf4690742626e07ccfa4
+             got=6737ee2415555a3656cc7b89c14d1c25c18658ee4c0fd4f7309705149ccb7b0f
+      FAIL omp_binary_mtime: mtime drift (sha256 not compared): pinned_ns=2026-10-21T20:37:24.615549837-03:00
+             observed_ns=1793563867281808804 delta_ns=938022666258967 tolerance_ns=0
+      PASS opencode_binary_sha256: ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7
+      DRIFT 2/3 pins failed: omp_binary_sha256, omp_binary_mtime
+      exit=1
+      => the drift the re-pin must cure is REAL and the guard catches it (exit 1 DRIFT, not a
+         silent pass). The exit-2 UNREADABLE at base was purely the `omp.real` path; with the
+         path fixed the guard now reads exit 1 DRIFT, which is the honest pre-re-pin state.
+
+  (e) the pin format is the one check_substrate_pins.py parses: the ns-exact 9-digit stamp with
+      the -03:00 offset gives `delta 0 ns (tolerance 0 ns)`. (A second-precision stamp is also
+      accepted by the parser — tolerance 999999999 ns — but the ns-exact form is the lane's
+      documented convention and is what the r51/r72 pins used.)
+
+======================================================================
+§6b — FINAL C2 PREDICATE, MEASURED ON THE CURRENT WORKTREE
+======================================================================
+(Re-measured after ExecC2Pin's path re-point AND the baseline.json re-pin landed. Both
+conjuncts of the frozen C2 predicate now read green on this host.)
+
+$ python3 -B verifiers/check_substrate_pins.py
+PASS omp_binary_sha256: 6737ee2415555a3656cc7b89c14d1c25c18658ee4c0fd4f7309705149ccb7b0f
+PASS omp_binary_mtime: delta 0 ns (tolerance 0 ns)
+PASS opencode_binary_sha256: ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7
+OK 3/3 pins hold
+exit=0
+
+$ python3 -B verifiers/verify_surfaces.py --json        # NO --omp-binary override
+pass 7  fail 0  exit 0
+  surfaces.literal_present      PASS
+  surfaces.no_uncovered_class   PASS
+  surfaces.opencode_extract     PASS
+  surfaces.table_parity         PASS
+  surfaces.literal_parity       PASS
+  surfaces.kind_parity          PASS
+  surfaces.excluded_reason      PASS
+exit=0
+
+The landed verifiers/baseline.json `measured_against` (worktree, after the re-pin):
+  omp_binary_sha256     = 6737ee2415555a3656cc7b89c14d1c25c18658ee4c0fd4f7309705149ccb7b0f
+  omp_binary_mtime      = 2026-11-01T17:11:07.281808804-03:00
+  opencode_binary_sha256= ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7
+  omp_round85_note      = "Re-pinned 2026-11-04: /home/vgpnk/.local/bin/omp is this host's
+                          omp/18.15.0 ELF; omp.real is absent. ... delta 0 ns and tolerance 0 ns.
+                          Supersedes the round-51/72 omp values, preserving their historical
+                          notes. Controls committed at 51fffd1933f0a44bfeb9434688b4f850ff21aec6
+                          reject wrong sha, missing pins and wrong ELF. verify_surfaces.py on
+                          these bytes retains pass 7, fail 0."
+  -> the landed note agrees with every value this recon measured independently.
+
+======================================================================
+§7 — RESIDUAL / ID-WOULD-CHANGE LIST AND RISKS
+======================================================================
+IDS THAT WOULD CHANGE: NONE.
+  - verifiers/surfaces-baseline.json: 42/42 ids, literals, kinds and verdicts hold.
+  - verifiers/census-removals.json: all 3 declared-gone classes are still gone (anchors 0 hits);
+    the ledger's measured_against (opencode sha + dump sha + version) still matches the host.
+  - The ONLY value that must change is the omp substrate PIN (sha256 + mtime) and the omp PATH
+    constant — and the path constants are already re-pointed by ExecC2Pin.
+
+RESIDUAL FINDINGS FOR THE L1 (documentation / housekeeping, not pin values):
+  1. SKILL.md:29-30 and SKILL.md:565-566 cite the minified name `_8n` for the render truncation
+     constant and the expressions `slice(0, _8n-1)` / `_8n = 100`. Those exact strings DO NOT
+     OCCUR in omp 18.15.0 (0 hits each); the constant is now `var k = 100;` in
+     packages/coding-agent/src/extensibility/skill-descriptions.ts, the truncator is `dnt`
+     (exported as `previewSkillDescription`), the compressor factory is `cnt` (exported as
+     `createSkillDescriptionCompressor`). The BEHAVIOUR (slice(0,99), first sentence
+     `^.*?[.!?](?=\s|$)` kept if >= 40 chars, else last-space + `…`) is IDENTICAL, so the lane's
+     documented rule (and C1's R1 bound of 99) still holds — but the cited symbol no longer
+     resolves. This is a live-citation drift in the lane's own SKILL.md, in scope for
+     ScribeLesson's correction block, NOT a C2 pin item. (The lane's other cited anchors
+     `previewSkillDescription`, `createSkillDescriptionCompressor`, `A8n`, `K7s`,
+     `compress-description` all still resolve: 2/2/6/4/4 hits.)
+  2. `verifiers/check_substrate_pins.py:64-66` and `verifiers/verify_surfaces.py:163-167` still
+     carry the round-72 comment asserting "the `omp` file installed 2026-10-23 is a crash-restart
+     shell wrapper; the ELF is `omp.real`". On this host that premise is FALSE (the file IS the
+     ELF, 276,785,328 B, and no `omp.real` exists). ExecC2Pin added a round-85 line below it but
+     the stale round-72 comment remains above. Suggest the stale comment be corrected in the same
+     commit that re-pins.
+  3. `verifiers/baseline.json` `omp_round72_note` still describes the `omp.real` pin and the
+     1,680-byte wrapper; the round-85 re-pin should add a new note (as r44/r51/r72 did) rather
+     than rewrite history.
+  4. `verifiers/check_substrate_repin_v2.py:12-13` docstring says "a path move onto
+     `~/.local/bin/omp.real`" — stale prose describing the r72 move; it names a path that no
+     longer exists on this host. (Read-only finding; that file is not a pin holder.)
+  5. `verifiers/check_report_pointers.py:80,658,772` mentions `omp.real` only as a DOTTED
+     NON-POINTER fixture string in the report-pointer checker — NOT a path constant, and NOT
+     affected by the re-pin. Do not "fix" it.
+  6. `stat -c '%Y-%m-%dT%H:%M:%S.%N%:z'` is NOT a valid GNU stat format (no `%N`-as-ns and no
+     `%:z`); it yields garbage. The ns-exact ISO stamp must be derived from `stat -c '%y'` or
+     from `os.stat().st_mtime_ns` (both used above, and both agree).
+
+RISKS / LIMITS:
+  - Every reading above is from THIS host at THIS moment. Any omp reinstall moves sha256 AND
+    mtime; the ns-exact mtime pin has tolerance 0 ns, so an mtime-preserving reinstall (e.g. a
+    copy that preserves timestamps) would still flip the sha256 pin — but a rebuild that keeps
+    the same bytes would keep both. Measured drift magnitude at the old pin: delta_ns
+    938022666258967 (about 10.85 days).
+  - The strings dumps (47,635,680 B omp / 28,835,401 B opencode) live only in $S and are deleted
+    on exit; the omp dump's sha256 (bf6801e13b8fe7bb37d2d36608083f08610dfdb4c4f320536dd753d6ea1249fb) is
+    recorded above so the dump can be regenerated and compared byte-for-byte later. The
+    opencode dump sha256 already matches the committed ledger, so no regeneration is needed there.
+  - The 18.15.0 binary is "not stripped" and contains full JS source chunks, so the render
+    logic quoted in §5b is read from source text, not from a decompilation guess.
+  - This seat did NOT run verify_harness_claims.py / verify_harness_independent.py (they read omp
+    session bodies and the live skills DB — outside this seat's read-only scope and the
+    privacy boundary other rounds noted). Their omp path constants were re-pointed by
+    ExecC2Pin and were not re-measured here.
+  - I did not modify verifiers/ or SKILL.md, did not run any git write, and wrote only under
+    .ufo/waves/round-85/w1/ScoutSubstrate/ and my own scratch dir.

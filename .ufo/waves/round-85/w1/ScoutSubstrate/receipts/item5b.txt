@@ -1,0 +1,312 @@
+=== lines 1087100-1087260 (cache get/put + description normalization)
+  close() {
+    if (!this.#r) {
+      const e = M(this);
+      if (e.length === 0) {
+        this.#o();
+        this.#r = Promise.resolve();
+      } else {
+        this.#r = this.#s(e);
+      }
+    }
+    return this.#r;
+  async#s(e) {
+    const t = Promise.withResolvers();
+    const r = setTimeout(t.resolve, b);
+    try {
+      await Promise.race([Promise.all(e), t.promise]);
+    } finally {
+      clearTimeout(r);
+      this.#o();
+    }
+  #o() {
+    this.#n = true;
+    this.#i.finalize();
+    this.#t.finalize();
+    this.#e.close();
+  [Symbol.dispose]() {
+    this.close();
+class e1 {
+  #e;
+  #i;
+  #t = new Map;
+  constructor(e = {}) {
+    this.#e = e.store ?? zHt();
+    this.#i = e.compress;
+  snapshot(e) {
+    return e.map((t) => ({
+      ...t,
+      description: this.#t.get(A(t)) ?? dnt(t.description)
+    }));
+  render(e) {
+    if (e.length === 0)
+      return [];
+    const t = this.#e;
+    return e.map((r) => {
+      const n = A(r);
+      let o = this.#t.get(n);
+      if (o === undefined) {
+        try {
+          o = t?.get(n);
+        } catch (c) {
+          i("Skill description cache read failed", { error: String(c) });
+        }
+        if (o === undefined) {
+          o = dnt(r.description);
+          if (t)
+            this.#r(t, n, r);
+        }
+        this.#t.set(n, o);
+      }
+      return { ...r, description: o };
+    });
+  async waitForPending() {
+    if (!this.#e)
+      return;
+    await Promise.all(M(this.#e));
+  #r(e, t, r) {
+    const n = this.#i;
+    if (!n || e.isClosing)
+      return;
+    const o = `${e.path}:${t}`;
+    if (S.has(o))
+      return;
+    const c = Promise.resolve().then(async () => {
+      try {
+        await R.acquire();
+        try {
+          if (e.isClosing)
+            return;
+          const p = n.modelKey();
+          const u = p === undefined ? undefined : `${t}:${p}`;
+          if (u !== undefined && e.get(u) !== undefined)
+            return;
+          const a = C(v, {
+            name: r.name,
+            description: r.description
+          });
+          let m = null;
+          try {
+            m = O(await n.compress(r.name, r.description, a));
+          } catch (d) {
+            if (!(d instanceof w))
+              throw d;
+          }
+          if (e.isClosed)
+            return;
+          if (m !== null) {
+            e.put(t, m);
+          } else if (u !== undefined) {
+            i("Skill description compression unusable; keeping the preview for this model", {
+              skill: r.name,
+              model: p
+            });
+            e.put(u, dnt(r.description));
+          }
+        } finally {
+          R.release();
+        }
+      } catch (p) {
+        i("Skill description compression failed", { skill: r.name, error: String(p) });
+      } finally {
+        S.delete(o);
+      }
+    });
+    S.set(o, c);
+export { cnt, dnt, zHt, unt, CIe, e1 };
+// @bun @bytecode
+import {
+  lr
+} from "/$bunfs/root/chunks/cli-n2egmftn.js";
+import {
+} from "/$bunfs/root/chunks/cli-esqkc1cg.js";
+import {
+  kn
+} from "/$bunfs/root/chunks/cli-0qvs93z3.js";
+import {
+  Kd
+} from "/$bunfs/root/chunks/cli-6w3wyzdd.js";
+import {
+} from "/$bunfs/root/chunks/cli-m0xyay9b.js";
+// packages/coding-agent/src/task/commands.ts
+import * as m from "path";
+// packages/coding-agent/src/prompts/agents/init.md
+var a = y("/$bunfs/root/init-xmvg7mc7.md");
+// packages/coding-agent/src/task/commands.ts
+var d = [{ name: "init.md", content: C(a) }];
+var fnt = d;
+function c(n, t) {
+  const o = n[t];
+  return typeof o === "string" ? o : "";
+var i = null;
+function VHt() {
+  if (i !== null) {
+    return i;
+  const n = [];
+  for (const { name: t, content: o } of d) {
+    const { frontmatter: s, body: r } = lr(o, {
+      source: `embedded:${t}`,
+      level: "fatal"
+    });
+    const e = t.replace(/\.md$/, "");
+    n.push({
+      name: e,
+      description: c(s, "description"),
+      instructions: r,
+      source: "bundled",
+      filePath: `embedded:${t}`
+    });
+  i = n;
+  return n;
+async function kIe(n) {
+  const t = m.resolve(n);
+=== grep 1024 near description/skill
+661158:"description" exceeds 1024 characters
+939150:  descriptionLength: 1024,
+970518:    return `"description" exceeds 1024 characters`;
+1011226:        description: "intfloat/multilingual-e5-large (1024d), cross-language recall"
+--- count all 1024:
+376
+
+=== grep 'maxTokens: 1024' (compress call)
+1086978:        maxTokens: 1024,
+
+=== XML tag handling near skill description: '<description>'
+626198:  /ssh add <name> --host <host> [--user <user>] [--port <port>] [--key <keyPath>] [--desc <description>] [--compat] [--scope project|user]
+626208:Usage: /ssh add <name> --host <host> [--user <user>] [--port <port>] [--key <keyPath>] [--desc <description>] [--compat] [--scope project|user]
+1288959:      "  /ssh add <name> --host <host> [--user <user>] [--port <port>] [--key <keyPath>] [--desc <description>] [--compat] [--scope project|user]",
+1288970:      this.ctx.showError("Usage: /ssh add <name> --host <host> [--user <user>] [--port <port>] [--key <keyPath>] [--desc <description>] [--compat] [--scope project|user]");
+1288975:      this.ctx.showError("Usage: /ssh add <name> --host <host> [--user <user>] [--port <port>] [--key <keyPath>] [--desc <description>] [--compat] [--scope project|user]");
+2526952:    <description>{{description}}</description>
+--- count:
+6
+
+=== does dnt strip XML? check for replace of < > near description
+189659:<htgeographicalConstitution', function(supported byagriculturalconstructionpublicationsfont-size: 1a variety of<div style="Encyclopediaiframe src="demonstratedaccomplisheduniversitiesDemographics);</script><dedicated toknowledge ofsatisfaction
+214468:  let description = err.message.replace(/^[A-Z]+: /, "").replace(/, l?stat '.*'$/, "");
+765898:  return { description: e.replace(/^(?:an?|the) /, "") };
+1400840:      const o = t.description.en.replace(/<[^>]+>/g, "").replace(/\r\n/g, `
+1402449:          const h = (await on(e.description)).replace(/\n+/g, " ").trim();
+1403441:  const a = r[s].replace(/^description:\s*/i, "").trim();
+1408595:      const y = (t.description ?? "").replace(/\|/g, "\\|").replace(/\n/g, " ").slice(0, 80);
+1408609:        n += `: ${t.description.replace(/\n/g, " ").slice(0, 100)}`;
+=== context 939150 (descriptionLength: 1024)
+  F.clear();
+  N.clear();
+function pm(e) {
+  const t = H(e);
+  F.delete(t);
+  N.delete(t);
+  const n = _.dirname(t);
+  if (n !== t) {
+    N.delete(n);
+// packages/wire/src/skillshare.ts
+var _$e = "https://skills.omp.sh";
+var O$e = /^[a-z0-9][a-z0-9_]{2,31}$/;
+var AMt = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+var ane = 64;
+var TMt = /^@([a-z0-9][a-z0-9_]{2,31})\/([a-z0-9]+(?:-[a-z0-9]+)*)(?:@(.+))?$/;
+var qp = {
+  tarballBytes: 5 * 1024 * 1024,
+  unpackedBytes: 20 * 1024 * 1024,
+  files: 1000,
+  pathLength: 255,
+  descriptionLength: 1024,
+  keywords: 20,
+  keywordLength: 50,
+  deprecationLength: 500
+var CMt = [
+  ".git",
+  ".DS_Store",
+  "node_modules",
+  "__pycache__",
+  "*.pyc",
+  "evals",
+  ".skillignore"
+var Nye = {
+  integrity: "X-Skill-Integrity",
+  tag: "X-Skill-Tag",
+  provenance: "X-Skill-Provenance",
+  githubOidc: "X-Skill-GitHub-OIDC"
+var EMt = "skills.omp.sh";
+var L2 = "SKILLS_TOKEN";
+var A = (e, t) => `/api/v1/skills/@${e}/${t}`;
+var Uu = {
+
+=== context 970518 (exceeds 1024 characters)
+  if (x.includes("--"))
+    return `"name" cannot contain consecutive hyphens`;
+  if (!TY.test(x))
+    return `invalid "name" ${JSON.stringify(x)}`;
+  if (x !== p.normalize("NFKC")) {
+    return `"name" ${JSON.stringify(x)} does not match directory ${JSON.stringify(p)}`;
+  return null;
+function dhe(u, p) {
+  for (const z in u) {
+    if (!kY[z])
+      return `unexpected frontmatter field "${z}"`;
+  const x = PY(u.name, p);
+  if (x !== null)
+    return x;
+  const R = u.description;
+  if (typeof R !== "string" || R.trim().length === 0) {
+    return `missing required "description"`;
+  if (R.length > 1024)
+    return `"description" exceeds 1024 characters`;
+  const k = u.license;
+  if (k !== undefined && typeof k !== "string")
+    return `"license" must be a string`;
+  const _ = u.compatibility;
+  if (_ !== undefined) {
+    if (typeof _ !== "string")
+      return `"compatibility" must be a string`;
+
+=== context 661158
+ has the highest 
+low:
+ has the lowest 
+pathScoped
+pathPrefix
+pathPrefixes	
+valuesKey
+^([+\-\s]\s*(\d+)[|\u2502])(.*)$
+^([+\-\s]\s*(\d+)\s)(.*)$
+terminalText
+separators
+unexpected frontmatter field "
+missing required "description"
+"description" exceeds 1024 characters
+"license" must be a string
+"compatibility" must be a string&
+"compatibility" exceeds 500 characters
+"metadata" must be a map of string keys to string values
+"metadata.
+" must be a string
+"allowed-tools" must be a string(
+=== The render constants block in 18.15.0 (grep 'var k = 100;')
+1086936:var k = 100;
+
+=== full constants block (1086940-1086950)
+var b = 4000;
+var S = new Map;
+var R = new Bb(4);
+class w extends Error {
+function cnt(e, t, r, n) {
+  const o = () => {
+    const c = Ro(t.getModelRole("smol")?.trim() || "@smol", t)[0];
+    const p = c?.indexOf("/") ?? -1;
+    if (c && p > 0) {
+      const a = c.slice(0, p).trim();
+      const m = c.slice(p + 1).trim();
+
+=== 'var k = 100' count:
+1
+
+=== XML: does the skills listing sanitize < > ? grep for available_skills producer
+2526948:<available_skills>
+2526956:</available_skills>
+
+=== grep for skill listing template file
+1043715:// packages/coding-agent/src/prompts/skills/autoload.md
+1043717:// packages/coding-agent/src/prompts/skills/user-invocation.md
+1086933:// packages/coding-agent/src/prompts/skills/compress-description.md

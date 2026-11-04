@@ -1,0 +1,113 @@
+GNU strings -n 4 -t d /home/vgpnk/.local/bin/omp
+Format: 1-based strings index: decimal ELF byte offset original string
+1086929: 178767936 // packages/coding-agent/src/extensibility/skill-descriptions.ts
+1086930: 178768001 import { Database as D } from "bun:sqlite";
+1086931: 178768045 import * as s from "fs";
+1086932: 178768070 import * as g from "path";
+1086933: 178768098 // packages/coding-agent/src/prompts/skills/compress-description.md
+1086934: 178768166 var v = y("/$bunfs/root/compress-description-vm4w5rpa.md");
+1086935: 178768227 // packages/coding-agent/src/extensibility/skill-descriptions.ts
+1086936: 178768292 var k = 100;
+1086937: 178768305 var E = 40;
+1086938: 178768317 var T = 160;
+1086939: 178768330 var _ = 12;
+1086940: 178768342 var b = 4000;
+1086941: 178768356 var S = new Map;
+1086992: 178769970 function A(e) {
+1086993: 178769986   return new Bun.CryptoHasher("sha256").update(v).update("\x00").update(e.name).update("\x00").update(e.description).digest("hex");
+1086994: 178770120 function dnt(e) {
+1086995: 178770138   const t = e.replace(/\s+/g, " ").trim();
+1086996: 178770181   if (t.length <= k)
+1086997: 178770202     return t;
+1086998: 178770216   const r = t.slice(0, k - 1);
+1086999: 178770247   const n = r.match(/^.*?[.!?](?=\s|$)/)?.[0];
+1087000: 178770294   if (n && n.length >= E)
+1087001: 178770320     return n;
+1087002: 178770334   const o = r.lastIndexOf(" ");
+1087003: 178770366   const c = o >= E ? r.slice(0, o).trimEnd() : r;
+1087004: 178770416   return `${c}\u2026`;
+1087005: 178770441 function O(e) {
+1087006: 178770457   const t = e.trim();
+1087007: 178770479   if (!t || /[\r\n]/.test(t) || t.length > T)
+1087008: 178770525     return null;
+1087009: 178770542   if (t.split(/\s+/).length > _)
+1087010: 178770575     return null;
+1087011: 178770592   return t;
+1087012: 178770606 function M(e) {
+1087013: 178770622   const t = `${e.path}:`;
+1087014: 178770648   return [...S].filter(([r]) => r.startsWith(t)).map(([, r]) => r);
+1087130: 178773655   #t = new Map;
+1087131: 178773671   constructor(e = {}) {
+1087132: 178773695     this.#e = e.store ?? zHt();
+1087133: 178773727     this.#i = e.compress;
+1087134: 178773757   snapshot(e) {
+1087135: 178773773     return e.map((t) => ({
+1087136: 178773800       ...t,
+1087137: 178773812       description: this.#t.get(A(t)) ?? dnt(t.description)
+1087138: 178773871     }));
+1087139: 178773884   render(e) {
+1087140: 178773898     if (e.length === 0)
+1087141: 178773922       return [];
+1087142: 178773939     const t = this.#e;
+1087143: 178773962     return e.map((r) => {
+1087144: 178773988       const n = A(r);
+1087145: 178774010       let o = this.#t.get(n);
+1087146: 178774040       if (o === undefined) {
+1087147: 178774069         try {
+1087148: 178774083           o = t?.get(n);
+1087149: 178774108         } catch (c) {
+1087150: 178774130           i("Skill description cache read failed", { error: String(c) });
+1087151: 178774204         }
+1087152: 178774214         if (o === undefined) {
+1087153: 178774245           o = dnt(r.description);
+1087154: 178774279           if (t)
+1087155: 178774296             this.#r(t, n, r);
+1087156: 178774326         }
+1087157: 178774336         this.#t.set(n, o);
+1087158: 178774363       }
+1087159: 178774371       return { ...r, description: o };
+1087160: 178774410     });
+1087185: 178775081           });
+1087186: 178775095           let m = null;
+1087187: 178775119           try {
+1087188: 178775135             m = O(await n.compress(r.name, r.description, a));
+1087189: 178775198           } catch (d) {
+1087190: 178775222             if (!(d instanceof w))
+1087191: 178775257               throw d;
+1087192: 178775280           }
+1087193: 178775292           if (e.isClosed)
+1087194: 178775318             return;
+1087195: 178775338           if (m !== null) {
+1087196: 178775366             e.put(t, m);
+1087197: 178775391           } else if (u !== undefined) {
+1087198: 178775431             i("Skill description compression unusable; keeping the preview for this model", {
+1089253: 178835316   };
+1089254: 178835321   const kt = (t.skillDescriptions ?? new e1).render(be ? ue.filter((e) => e.hide !== true) : []);
+1089255: 178835419   const Te = Bt(pt, [
+1089280: 178835905     agentsMdSearch: { files: ft },
+1089281: 178835940     workspaceTree: fe,
+1089282: 178835963     hasSkillUriAccess: ke,
+1089283: 178835990     internalUrls: Se.instance().describe(wt),
+1504124: 192163759 import"/$bunfs/root/chunks/cli-h5jejszv.js";
+1504125: 192163804 export {
+1504126: 192163813   e1 as SkillDescriptionCatalog,
+1504127: 192163846   CIe as SkillDescriptionStore,
+1504128: 192163878   cnt as createSkillDescriptionCompressor,
+1504129: 192163921   unt as openSessionSkillDescriptionStore,
+1504130: 192163964   dnt as previewSkillDescription,
+1504131: 192163998   zHt as sharedSkillDescriptionStore
+2526948: 271357239 <available_skills>
+2526949: 271357258 {{#each skills}}
+2526950: 271357275   <skill>
+2526951: 271357285     <name>{{name}}</name>
+2526952: 271357311     <description>{{description}}</description>
+2526953: 271357358     <location>{{location}}</location>
+2526954: 271357396   </skill>
+2526955: 271357407 {{/each}}
+2526956: 271357417 </available_skills>
+2530772: 273944158 The available skills were omitted from the system prompt but are listed here for this session. When a task matches one of them, you MUST read `skill://<name>` before proceeding.
+2530773: 273944336 <skills>
+2530774: 273944345 {{#each skills}}
+2530775: 273944362 - {{name}}: {{description}}
+2530776: 273944390 {{/each}}
+2530777: 273944400 </skills>

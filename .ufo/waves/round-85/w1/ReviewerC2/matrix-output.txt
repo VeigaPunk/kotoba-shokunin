@@ -1,0 +1,250 @@
+| world | V0 exit | V0 line | V1 exit | V1 line |
+|---|---|---|---|---|
+| W0 truthful baseline (host values re-derived by ReviewerC2) | 2 | `UNREADABLE 2/3 pins failed: omp_binary_sha256, omp_binary_mtime` | 0 | `OK 3/3 pins hold` |
+| W1 committed baseline as at HEAD (18.12.6 pins) | 2 | `UNREADABLE 2/3 pins failed: omp_binary_sha256, omp_binary_mtime` | 1 | `DRIFT 2/3 pins failed: omp_binary_sha256, omp_binary_mtime` |
+| W2 opencode sha under omp_binary_sha256 | 2 | `UNREADABLE 2/3 pins failed: omp_binary_sha256, omp_binary_mtime` | 1 | `DRIFT 1/3 pins failed: omp_binary_sha256` |
+| W3 both omp pins deleted | 1 | `PIN_ABSENT 2/3 pins failed: omp_binary_sha256, omp_binary_mtime` | 1 | `PIN_ABSENT 2/3 pins failed: omp_binary_sha256, omp_binary_mtime` |
+| W4 only omp_binary_mtime deleted | 2 | `UNREADABLE 2/3 pins failed: omp_binary_sha256, omp_binary_mtime` | 1 | `PIN_ABSENT 1/3 pins failed: omp_binary_mtime` |
+| W5 unregistered substrate pin (cursor) | 2 | `UNREADABLE 3/4 pins failed: omp_binary_sha256, omp_binary_mtime, cursor_binary_sha256` | 2 | `UNSUPPORTED 1/4 pins failed: cursor_binary_sha256` |
+| W6 pin value not a string (epoch int) | 3 | `BAD_PIN 2/3 pins failed: omp_binary_sha256, omp_binary_mtime` | 3 | `BAD_PIN 1/3 pins failed: omp_binary_mtime` |
+| W7 mtime with 10 fractional digits | 3 | `BAD_PIN 2/3 pins failed: omp_binary_sha256, omp_binary_mtime` | 3 | `BAD_PIN 1/3 pins failed: omp_binary_mtime` |
+| W8 mtime naive (no UTC offset) | 3 | `BAD_PIN 2/3 pins failed: omp_binary_sha256, omp_binary_mtime` | 3 | `BAD_PIN 1/3 pins failed: omp_binary_mtime` |
+| W9 mtime coarse: seconds only, correct second | 2 | `UNREADABLE 2/3 pins failed: omp_binary_sha256, omp_binary_mtime` | 0 | `OK 3/3 pins hold` |
+| W10 mtime coarse: seconds only, WRONG second (+1s) | 2 | `UNREADABLE 2/3 pins failed: omp_binary_sha256, omp_binary_mtime` | 0 | `OK 3/3 pins hold` |
+| W11 mtime ms precision (3 digits) | 2 | `UNREADABLE 2/3 pins failed: omp_binary_sha256, omp_binary_mtime` | 0 | `OK 3/3 pins hold` |
+| W12 mtime space-separated (GNU stat %y form) | 2 | `UNREADABLE 2/3 pins failed: omp_binary_sha256, omp_binary_mtime` | 0 | `OK 3/3 pins hold` |
+| W13 mtime ns-exact, off by 1 ns | 2 | `UNREADABLE 2/3 pins failed: omp_binary_sha256, omp_binary_mtime` | 1 | `DRIFT 1/3 pins failed: omp_binary_mtime` |
+| W14 measured_against null (vacuity) | 1 | `VACUOUS 1/1 pins failed: -` | 1 | `VACUOUS 1/1 pins failed: -` |
+| W15 measured_against empty object | 1 | `PIN_ABSENT 3/3 pins failed: omp_binary_sha256, omp_binary_mtime, opencode_binary_sha256` | 1 | `PIN_ABSENT 3/3 pins failed: omp_binary_sha256, omp_binary_mtime, opencode_binary_sha256` |
+| W16 omp pin zeroed (a different ELF's sha) | 2 | `UNREADABLE 2/3 pins failed: omp_binary_sha256, omp_binary_mtime` | 1 | `DRIFT 1/3 pins failed: omp_binary_sha256` |
+
+=== V0 HEAD omp.real :: W0 truthful baseline (host values re-derived by ReviewerC2) -> exit 2
+    FAIL omp_binary_sha256: UNREADABLE: [Errno 2] No such file or directory: '/home/vgpnk/.local/bin/omp.real'
+    FAIL omp_binary_mtime: UNREADABLE: [Errno 2] No such file or directory: '/home/vgpnk/.local/bin/omp.real'
+    PASS opencode_binary_sha256: ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7
+    UNREADABLE 2/3 pins failed: omp_binary_sha256, omp_binary_mtime
+    E ERROR UNREADABLE omp_binary_sha256: [Errno 2] No such file or directory: '/home/vgpnk/.local/bin/omp.real'
+    E ERROR UNREADABLE omp_binary_mtime: [Errno 2] No such file or directory: '/home/vgpnk/.local/bin/omp.real'
+
+=== V0 HEAD omp.real :: W1 committed baseline as at HEAD (18.12.6 pins) -> exit 2
+    FAIL omp_binary_sha256: UNREADABLE: [Errno 2] No such file or directory: '/home/vgpnk/.local/bin/omp.real'
+    FAIL omp_binary_mtime: UNREADABLE: [Errno 2] No such file or directory: '/home/vgpnk/.local/bin/omp.real'
+    PASS opencode_binary_sha256: ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7
+    UNREADABLE 2/3 pins failed: omp_binary_sha256, omp_binary_mtime
+    E ERROR UNREADABLE omp_binary_sha256: [Errno 2] No such file or directory: '/home/vgpnk/.local/bin/omp.real'
+    E ERROR UNREADABLE omp_binary_mtime: [Errno 2] No such file or directory: '/home/vgpnk/.local/bin/omp.real'
+
+=== V0 HEAD omp.real :: W2 opencode sha under omp_binary_sha256 -> exit 2
+    FAIL omp_binary_sha256: UNREADABLE: [Errno 2] No such file or directory: '/home/vgpnk/.local/bin/omp.real'
+    FAIL omp_binary_mtime: UNREADABLE: [Errno 2] No such file or directory: '/home/vgpnk/.local/bin/omp.real'
+    PASS opencode_binary_sha256: ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7
+    UNREADABLE 2/3 pins failed: omp_binary_sha256, omp_binary_mtime
+    E ERROR UNREADABLE omp_binary_sha256: [Errno 2] No such file or directory: '/home/vgpnk/.local/bin/omp.real'
+    E ERROR UNREADABLE omp_binary_mtime: [Errno 2] No such file or directory: '/home/vgpnk/.local/bin/omp.real'
+
+=== V0 HEAD omp.real :: W3 both omp pins deleted -> exit 1
+    FAIL omp_binary_sha256: PIN_ABSENT: pin declared by the guard's contract, absent from measured_against
+    FAIL omp_binary_mtime: PIN_ABSENT: pin declared by the guard's contract, absent from measured_against
+    PASS opencode_binary_sha256: ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7
+    PIN_ABSENT 2/3 pins failed: omp_binary_sha256, omp_binary_mtime
+
+=== V0 HEAD omp.real :: W4 only omp_binary_mtime deleted -> exit 2
+    FAIL omp_binary_sha256: UNREADABLE: [Errno 2] No such file or directory: '/home/vgpnk/.local/bin/omp.real'
+    FAIL omp_binary_mtime: PIN_ABSENT: pin declared by the guard's contract, absent from measured_against
+    PASS opencode_binary_sha256: ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7
+    UNREADABLE 2/3 pins failed: omp_binary_sha256, omp_binary_mtime
+    E ERROR UNREADABLE omp_binary_sha256: [Errno 2] No such file or directory: '/home/vgpnk/.local/bin/omp.real'
+
+=== V0 HEAD omp.real :: W5 unregistered substrate pin (cursor) -> exit 2
+    FAIL omp_binary_sha256: UNREADABLE: [Errno 2] No such file or directory: '/home/vgpnk/.local/bin/omp.real'
+    FAIL omp_binary_mtime: UNREADABLE: [Errno 2] No such file or directory: '/home/vgpnk/.local/bin/omp.real'
+    PASS opencode_binary_sha256: ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7
+    FAIL cursor_binary_sha256: UNSUPPORTED: pinned substrate/kind not resolvable by this guard (cursor_binary_sha256)
+    UNREADABLE 3/4 pins failed: omp_binary_sha256, omp_binary_mtime, cursor_binary_sha256
+    E ERROR UNREADABLE omp_binary_sha256: [Errno 2] No such file or directory: '/home/vgpnk/.local/bin/omp.real'
+    E ERROR UNREADABLE omp_binary_mtime: [Errno 2] No such file or directory: '/home/vgpnk/.local/bin/omp.real'
+    E ERROR UNSUPPORTED cursor_binary_sha256: pinned substrate/kind not resolvable by this guard (cursor_binary_sha256)
+
+=== V0 HEAD omp.real :: W6 pin value not a string (epoch int) -> exit 3
+    FAIL omp_binary_sha256: UNREADABLE: [Errno 2] No such file or directory: '/home/vgpnk/.local/bin/omp.real'
+    FAIL omp_binary_mtime: BAD_PIN: pin is not a string
+    PASS opencode_binary_sha256: ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7
+    BAD_PIN 2/3 pins failed: omp_binary_sha256, omp_binary_mtime
+    E ERROR BAD_PIN omp_binary_mtime: pin is not a string
+
+=== V0 HEAD omp.real :: W7 mtime with 10 fractional digits -> exit 3
+    FAIL omp_binary_sha256: UNREADABLE: [Errno 2] No such file or directory: '/home/vgpnk/.local/bin/omp.real'
+    FAIL omp_binary_mtime: BAD_PIN: more than 9 fractional digits
+    PASS opencode_binary_sha256: ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7
+    BAD_PIN 2/3 pins failed: omp_binary_sha256, omp_binary_mtime
+    E ERROR BAD_PIN omp_binary_mtime: more than 9 fractional digits
+
+=== V0 HEAD omp.real :: W8 mtime naive (no UTC offset) -> exit 3
+    FAIL omp_binary_sha256: UNREADABLE: [Errno 2] No such file or directory: '/home/vgpnk/.local/bin/omp.real'
+    FAIL omp_binary_mtime: BAD_PIN: pin has no UTC offset
+    PASS opencode_binary_sha256: ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7
+    BAD_PIN 2/3 pins failed: omp_binary_sha256, omp_binary_mtime
+    E ERROR BAD_PIN omp_binary_mtime: pin has no UTC offset
+
+=== V0 HEAD omp.real :: W9 mtime coarse: seconds only, correct second -> exit 2
+    FAIL omp_binary_sha256: UNREADABLE: [Errno 2] No such file or directory: '/home/vgpnk/.local/bin/omp.real'
+    FAIL omp_binary_mtime: UNREADABLE: [Errno 2] No such file or directory: '/home/vgpnk/.local/bin/omp.real'
+    PASS opencode_binary_sha256: ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7
+    UNREADABLE 2/3 pins failed: omp_binary_sha256, omp_binary_mtime
+    E ERROR UNREADABLE omp_binary_sha256: [Errno 2] No such file or directory: '/home/vgpnk/.local/bin/omp.real'
+    E ERROR UNREADABLE omp_binary_mtime: [Errno 2] No such file or directory: '/home/vgpnk/.local/bin/omp.real'
+
+=== V0 HEAD omp.real :: W10 mtime coarse: seconds only, WRONG second (+1s) -> exit 2
+    FAIL omp_binary_sha256: UNREADABLE: [Errno 2] No such file or directory: '/home/vgpnk/.local/bin/omp.real'
+    FAIL omp_binary_mtime: UNREADABLE: [Errno 2] No such file or directory: '/home/vgpnk/.local/bin/omp.real'
+    PASS opencode_binary_sha256: ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7
+    UNREADABLE 2/3 pins failed: omp_binary_sha256, omp_binary_mtime
+    E ERROR UNREADABLE omp_binary_sha256: [Errno 2] No such file or directory: '/home/vgpnk/.local/bin/omp.real'
+    E ERROR UNREADABLE omp_binary_mtime: [Errno 2] No such file or directory: '/home/vgpnk/.local/bin/omp.real'
+
+=== V0 HEAD omp.real :: W11 mtime ms precision (3 digits) -> exit 2
+    FAIL omp_binary_sha256: UNREADABLE: [Errno 2] No such file or directory: '/home/vgpnk/.local/bin/omp.real'
+    FAIL omp_binary_mtime: UNREADABLE: [Errno 2] No such file or directory: '/home/vgpnk/.local/bin/omp.real'
+    PASS opencode_binary_sha256: ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7
+    UNREADABLE 2/3 pins failed: omp_binary_sha256, omp_binary_mtime
+    E ERROR UNREADABLE omp_binary_sha256: [Errno 2] No such file or directory: '/home/vgpnk/.local/bin/omp.real'
+    E ERROR UNREADABLE omp_binary_mtime: [Errno 2] No such file or directory: '/home/vgpnk/.local/bin/omp.real'
+
+=== V0 HEAD omp.real :: W12 mtime space-separated (GNU stat %y form) -> exit 2
+    FAIL omp_binary_sha256: UNREADABLE: [Errno 2] No such file or directory: '/home/vgpnk/.local/bin/omp.real'
+    FAIL omp_binary_mtime: UNREADABLE: [Errno 2] No such file or directory: '/home/vgpnk/.local/bin/omp.real'
+    PASS opencode_binary_sha256: ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7
+    UNREADABLE 2/3 pins failed: omp_binary_sha256, omp_binary_mtime
+    E ERROR UNREADABLE omp_binary_sha256: [Errno 2] No such file or directory: '/home/vgpnk/.local/bin/omp.real'
+    E ERROR UNREADABLE omp_binary_mtime: [Errno 2] No such file or directory: '/home/vgpnk/.local/bin/omp.real'
+
+=== V0 HEAD omp.real :: W13 mtime ns-exact, off by 1 ns -> exit 2
+    FAIL omp_binary_sha256: UNREADABLE: [Errno 2] No such file or directory: '/home/vgpnk/.local/bin/omp.real'
+    FAIL omp_binary_mtime: UNREADABLE: [Errno 2] No such file or directory: '/home/vgpnk/.local/bin/omp.real'
+    PASS opencode_binary_sha256: ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7
+    UNREADABLE 2/3 pins failed: omp_binary_sha256, omp_binary_mtime
+    E ERROR UNREADABLE omp_binary_sha256: [Errno 2] No such file or directory: '/home/vgpnk/.local/bin/omp.real'
+    E ERROR UNREADABLE omp_binary_mtime: [Errno 2] No such file or directory: '/home/vgpnk/.local/bin/omp.real'
+
+=== V0 HEAD omp.real :: W14 measured_against null (vacuity) -> exit 1
+    FAIL -: VACUOUS: measured_against is absent, declares no pins
+    VACUOUS 1/1 pins failed: -
+
+=== V0 HEAD omp.real :: W15 measured_against empty object -> exit 1
+    FAIL omp_binary_sha256: PIN_ABSENT: pin declared by the guard's contract, absent from measured_against
+    FAIL omp_binary_mtime: PIN_ABSENT: pin declared by the guard's contract, absent from measured_against
+    FAIL opencode_binary_sha256: PIN_ABSENT: pin declared by the guard's contract, absent from measured_against
+    PIN_ABSENT 3/3 pins failed: omp_binary_sha256, omp_binary_mtime, opencode_binary_sha256
+
+=== V0 HEAD omp.real :: W16 omp pin zeroed (a different ELF's sha) -> exit 2
+    FAIL omp_binary_sha256: UNREADABLE: [Errno 2] No such file or directory: '/home/vgpnk/.local/bin/omp.real'
+    FAIL omp_binary_mtime: UNREADABLE: [Errno 2] No such file or directory: '/home/vgpnk/.local/bin/omp.real'
+    PASS opencode_binary_sha256: ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7
+    UNREADABLE 2/3 pins failed: omp_binary_sha256, omp_binary_mtime
+    E ERROR UNREADABLE omp_binary_sha256: [Errno 2] No such file or directory: '/home/vgpnk/.local/bin/omp.real'
+    E ERROR UNREADABLE omp_binary_mtime: [Errno 2] No such file or directory: '/home/vgpnk/.local/bin/omp.real'
+
+=== V1 tree omp :: W0 truthful baseline (host values re-derived by ReviewerC2) -> exit 0
+    PASS omp_binary_sha256: 6737ee2415555a3656cc7b89c14d1c25c18658ee4c0fd4f7309705149ccb7b0f
+    PASS omp_binary_mtime: delta 0 ns (tolerance 0 ns)
+    PASS opencode_binary_sha256: ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7
+    OK 3/3 pins hold
+
+=== V1 tree omp :: W1 committed baseline as at HEAD (18.12.6 pins) -> exit 1
+    FAIL omp_binary_sha256: sha256 drift: expect=85d9daf3a05fc76e8cd425ae1904eb576af8d21cc85fcf4690742626e07ccfa4 got=6737ee2415555a3656cc7b89c14d1c25c18658ee4c0fd4f7309705149ccb7b0f
+    FAIL omp_binary_mtime: mtime drift (sha256 not compared): pinned_ns=2026-10-21T20:37:24.615549837-03:00 observed_ns=1793563867281808804 delta_ns=938022666258967 tolerance_ns=0
+    PASS opencode_binary_sha256: ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7
+    DRIFT 2/3 pins failed: omp_binary_sha256, omp_binary_mtime
+
+=== V1 tree omp :: W2 opencode sha under omp_binary_sha256 -> exit 1
+    FAIL omp_binary_sha256: sha256 drift: expect=ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7 got=6737ee2415555a3656cc7b89c14d1c25c18658ee4c0fd4f7309705149ccb7b0f
+    PASS omp_binary_mtime: delta 0 ns (tolerance 0 ns)
+    PASS opencode_binary_sha256: ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7
+    DRIFT 1/3 pins failed: omp_binary_sha256
+
+=== V1 tree omp :: W3 both omp pins deleted -> exit 1
+    FAIL omp_binary_sha256: PIN_ABSENT: pin declared by the guard's contract, absent from measured_against
+    FAIL omp_binary_mtime: PIN_ABSENT: pin declared by the guard's contract, absent from measured_against
+    PASS opencode_binary_sha256: ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7
+    PIN_ABSENT 2/3 pins failed: omp_binary_sha256, omp_binary_mtime
+
+=== V1 tree omp :: W4 only omp_binary_mtime deleted -> exit 1
+    PASS omp_binary_sha256: 6737ee2415555a3656cc7b89c14d1c25c18658ee4c0fd4f7309705149ccb7b0f
+    FAIL omp_binary_mtime: PIN_ABSENT: pin declared by the guard's contract, absent from measured_against
+    PASS opencode_binary_sha256: ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7
+    PIN_ABSENT 1/3 pins failed: omp_binary_mtime
+
+=== V1 tree omp :: W5 unregistered substrate pin (cursor) -> exit 2
+    PASS omp_binary_sha256: 6737ee2415555a3656cc7b89c14d1c25c18658ee4c0fd4f7309705149ccb7b0f
+    PASS omp_binary_mtime: delta 0 ns (tolerance 0 ns)
+    PASS opencode_binary_sha256: ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7
+    FAIL cursor_binary_sha256: UNSUPPORTED: pinned substrate/kind not resolvable by this guard (cursor_binary_sha256)
+    UNSUPPORTED 1/4 pins failed: cursor_binary_sha256
+    E ERROR UNSUPPORTED cursor_binary_sha256: pinned substrate/kind not resolvable by this guard (cursor_binary_sha256)
+
+=== V1 tree omp :: W6 pin value not a string (epoch int) -> exit 3
+    PASS omp_binary_sha256: 6737ee2415555a3656cc7b89c14d1c25c18658ee4c0fd4f7309705149ccb7b0f
+    FAIL omp_binary_mtime: BAD_PIN: pin is not a string
+    PASS opencode_binary_sha256: ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7
+    BAD_PIN 1/3 pins failed: omp_binary_mtime
+    E ERROR BAD_PIN omp_binary_mtime: pin is not a string
+
+=== V1 tree omp :: W7 mtime with 10 fractional digits -> exit 3
+    PASS omp_binary_sha256: 6737ee2415555a3656cc7b89c14d1c25c18658ee4c0fd4f7309705149ccb7b0f
+    FAIL omp_binary_mtime: BAD_PIN: more than 9 fractional digits
+    PASS opencode_binary_sha256: ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7
+    BAD_PIN 1/3 pins failed: omp_binary_mtime
+    E ERROR BAD_PIN omp_binary_mtime: more than 9 fractional digits
+
+=== V1 tree omp :: W8 mtime naive (no UTC offset) -> exit 3
+    PASS omp_binary_sha256: 6737ee2415555a3656cc7b89c14d1c25c18658ee4c0fd4f7309705149ccb7b0f
+    FAIL omp_binary_mtime: BAD_PIN: pin has no UTC offset
+    PASS opencode_binary_sha256: ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7
+    BAD_PIN 1/3 pins failed: omp_binary_mtime
+    E ERROR BAD_PIN omp_binary_mtime: pin has no UTC offset
+
+=== V1 tree omp :: W9 mtime coarse: seconds only, correct second -> exit 0
+    PASS omp_binary_sha256: 6737ee2415555a3656cc7b89c14d1c25c18658ee4c0fd4f7309705149ccb7b0f
+    PASS omp_binary_mtime: delta 281808804 ns (tolerance 999999999 ns)
+    PASS opencode_binary_sha256: ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7
+    OK 3/3 pins hold
+
+=== V1 tree omp :: W10 mtime coarse: seconds only, WRONG second (+1s) -> exit 0
+    PASS omp_binary_sha256: 6737ee2415555a3656cc7b89c14d1c25c18658ee4c0fd4f7309705149ccb7b0f
+    PASS omp_binary_mtime: delta -718191196 ns (tolerance 999999999 ns)
+    PASS opencode_binary_sha256: ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7
+    OK 3/3 pins hold
+
+=== V1 tree omp :: W11 mtime ms precision (3 digits) -> exit 0
+    PASS omp_binary_sha256: 6737ee2415555a3656cc7b89c14d1c25c18658ee4c0fd4f7309705149ccb7b0f
+    PASS omp_binary_mtime: delta 808804 ns (tolerance 999999 ns)
+    PASS opencode_binary_sha256: ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7
+    OK 3/3 pins hold
+
+=== V1 tree omp :: W12 mtime space-separated (GNU stat %y form) -> exit 0
+    PASS omp_binary_sha256: 6737ee2415555a3656cc7b89c14d1c25c18658ee4c0fd4f7309705149ccb7b0f
+    PASS omp_binary_mtime: delta 0 ns (tolerance 0 ns)
+    PASS opencode_binary_sha256: ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7
+    OK 3/3 pins hold
+
+=== V1 tree omp :: W13 mtime ns-exact, off by 1 ns -> exit 1
+    PASS omp_binary_sha256: 6737ee2415555a3656cc7b89c14d1c25c18658ee4c0fd4f7309705149ccb7b0f
+    FAIL omp_binary_mtime: mtime drift (sha256 not compared): pinned_ns=2026-11-01T17:11:07.281808805-03:00 observed_ns=1793563867281808804 delta_ns=-1 tolerance_ns=0
+    PASS opencode_binary_sha256: ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7
+    DRIFT 1/3 pins failed: omp_binary_mtime
+
+=== V1 tree omp :: W14 measured_against null (vacuity) -> exit 1
+    FAIL -: VACUOUS: measured_against is absent, declares no pins
+    VACUOUS 1/1 pins failed: -
+
+=== V1 tree omp :: W15 measured_against empty object -> exit 1
+    FAIL omp_binary_sha256: PIN_ABSENT: pin declared by the guard's contract, absent from measured_against
+    FAIL omp_binary_mtime: PIN_ABSENT: pin declared by the guard's contract, absent from measured_against
+    FAIL opencode_binary_sha256: PIN_ABSENT: pin declared by the guard's contract, absent from measured_against
+    PIN_ABSENT 3/3 pins failed: omp_binary_sha256, omp_binary_mtime, opencode_binary_sha256
+
+=== V1 tree omp :: W16 omp pin zeroed (a different ELF's sha) -> exit 1
+    FAIL omp_binary_sha256: sha256 drift: expect=0000000000000000000000000000000000000000000000000000000000000000 got=6737ee2415555a3656cc7b89c14d1c25c18658ee4c0fd4f7309705149ccb7b0f
+    PASS omp_binary_mtime: delta 0 ns (tolerance 0 ns)
+    PASS opencode_binary_sha256: ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7
+    DRIFT 1/3 pins failed: omp_binary_sha256

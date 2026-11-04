@@ -1,0 +1,54 @@
+=== CMD: check_substrate_pins.py (no override)
+ERROR UNREADABLE omp_binary_sha256: [Errno 2] No such file or directory: '/home/vgpnk/.local/bin/omp.real'
+ERROR UNREADABLE omp_binary_mtime: [Errno 2] No such file or directory: '/home/vgpnk/.local/bin/omp.real'
+FAIL omp_binary_sha256: UNREADABLE: [Errno 2] No such file or directory: '/home/vgpnk/.local/bin/omp.real'
+FAIL omp_binary_mtime: UNREADABLE: [Errno 2] No such file or directory: '/home/vgpnk/.local/bin/omp.real'
+PASS opencode_binary_sha256: ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7
+UNREADABLE 2/3 pins failed: omp_binary_sha256, omp_binary_mtime
+exit=2
+
+=== CMD: check_substrate_pins.py --omp-binary /home/vgpnk/.local/bin/omp
+FAIL omp_binary_sha256: sha256 drift: expect=85d9daf3a05fc76e8cd425ae1904eb576af8d21cc85fcf4690742626e07ccfa4 got=6737ee2415555a3656cc7b89c14d1c25c18658ee4c0fd4f7309705149ccb7b0f
+FAIL omp_binary_mtime: mtime drift (sha256 not compared): pinned_ns=2026-10-21T20:37:24.615549837-03:00 observed_ns=1793563867281808804 delta_ns=938022666258967 tolerance_ns=0
+PASS opencode_binary_sha256: ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7
+DRIFT 2/3 pins failed: omp_binary_sha256, omp_binary_mtime
+exit=1
+
+=== CMD: check_substrate_pins.py --omp-binary ... --json
+{
+  "checks": [
+    {
+      "binary": "/home/vgpnk/.local/bin/omp",
+      "expect": "85d9daf3a05fc76e8cd425ae1904eb576af8d21cc85fcf4690742626e07ccfa4",
+      "kind": "sha256",
+      "observed": "6737ee2415555a3656cc7b89c14d1c25c18658ee4c0fd4f7309705149ccb7b0f",
+      "pin": "omp_binary_sha256",
+      "substrate": "omp",
+      "verdict": "DRIFT"
+    },
+    {
+      "binary": "/home/vgpnk/.local/bin/omp",
+      "delta_ns": 938022666258967,
+      "expect": "2026-10-21T20:37:24.615549837-03:00",
+      "kind": "mtime",
+      "observed": "1793563867281808804",
+      "pin": "omp_binary_mtime",
+      "substrate": "omp",
+      "tolerance_ns": 0,
+      "verdict": "DRIFT"
+    },
+    {
+      "binary": "/home/vgpnk/.opencode/bin/opencode",
+      "expect": "ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7",
+      "kind": "sha256",
+      "observed": "ca9b3ee262e33bb4e7aa0e1230dc61086a474c8c8016b980081d0719712fd2e7",
+      "pin": "opencode_binary_sha256",
+      "substrate": "opencode",
+      "verdict": "PASS"
+    }
+  ],
+  "exit_code": 1,
+  "fail": 2,
+  "pass": 1
+}
+exit=1

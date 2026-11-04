@@ -155,3 +155,21 @@ pairs, grounded in a source opened this round (S254).
 - Substrate re-pin (omp): the subject binary does not exist on this host
   (r82 ruling, unchanged); `verifiers/baseline.json` stays the
   Linux-host record.
+
+## Correction (round 85, append-only; r84-D1 — the "10 FAIL instruments" count)
+
+The Ruled-out bullet above reads "10 FAIL instruments at the r83 tip receipt
+`after-floors-gate-r83.txt`". **The measured count is 11 `FAIL` rows**, and 10
+is the count only after the gate's own guard row `floors_guard` is excluded —
+an exclusion the prose never stated, and the prose carried no counting command
+at all, so neither number was re-derivable from the record. Counting commands,
+run 2026-11-04 on the committed receipt:
+
+- `grep -c '^FAIL' .ufo/waves/round-83/receipts/after-floors-gate-r83.txt` → **11**
+- `grep '^FAIL' .ufo/waves/round-83/receipts/after-floors-gate-r83.txt | grep -vc 'floors_guard'` → **10**
+
+The ruled-out decision itself is unaffected — the degraded set is real and
+stays named debt — and the text above is not rewritten. The going-forward rule
+is added as a criterion row in `corpus/QUALITY.md` (appended, never
+renumbered): a count quoted from another artifact's rows names that artifact
+and the row-selection rule, not only the number.

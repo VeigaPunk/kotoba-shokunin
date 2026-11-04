@@ -3084,3 +3084,152 @@ kotoba round 74 (hyaku run 7, attempt 1). Base `1e03d19`; plan `329e7d9` (`plans
   uses that name"). Bounds: the colliding surfaces are flagged read-only,
   never repaired from this lane; the A1 box text untouched (frozen tokens
   of `check_author_rules.py`); the SKILL.md checklist is unchanged.
+
+## Round 85 — C1 depth (description render discipline, killed before data) and C2 freshness (host substrate re-pin to omp 18.15.0), 2026-11-04
+
+- **Round 85 C1 depth — the description-render claim was killed before any
+  after-value existed; the candidate description and eval set stay wave
+  evidence and production `SKILL.md` is untouched.** Frozen predicate:
+  the frozen plan's own predicate reads "python3 -B
+  verifiers/check_description_render.py --rev <rev>", which prints
+  `description render rules met N of 8` and exits 0 iff N == 8 — the active
+  path the round-85 quarantine moved out of the `verifiers/` tree, so the
+  historical command is cited where its bytes now live, at
+  `python3 -B .ufo/waves/round-85/frozen/check_description_render.py --rev
+  <rev>`. Base reading at
+  the base rev: `description render rules met 4 of 8`, exit 1 (R1 first sentence
+  151 chars against the 99 cap; R4 no `use this skill when`; R6 eval set absent;
+  R8 sourced entry absent) — receipt
+  `.ufo/waves/round-85/w1/ExecC1Counter/base-receipt.txt`. The frozen W0/W1/W2
+  controls stayed below 8 of 8, but three worlds outside that control set
+  reached 8 of 8 under the literal frozen rules: nine identical
+  should-trigger rows, nine irrelevant negatives that each keep one generic
+  token, and a description whose first terminator is an abbreviation dot —
+  `.ufo/waves/round-85/w1/ReviewerC1/oracle-receipt.txt` (Table B) and
+  `.ufo/waves/round-85/w1/ReviewerC1/counter-comparison.txt`, where the
+  counter and the independent oracle agree on all seven saved worlds, so this
+  is a property of the frozen rule sentences rather than of the instrument.
+  Two further identity findings: R8 accepts an unlocated quotation, and R5
+  executes the target revision's census Python with inherited privileges
+  (`.ufo/waves/round-85/w1/ReviewerC1/review.md`;
+  `.ufo/waves/round-85/w1/Sentinel/audit.md` S85-08, S85-09). Disposition: the
+  claim stops before data; the instrument was preserved at
+  `759cf35457c92c110f61e82630ccee00a598215f` and then quarantined unchanged at
+  `47085c8c528245e88197d716b48a8325a97414f7` under
+  `.ufo/waves/round-85/frozen/`, its active verifier path and its `SKILL.md`
+  § Gate registry row removed; the frozen R1–R8 sentences were not changed and
+  R6 was not strengthened. No production description change, no production eval
+  set, no trigger capability and no expansion are claimed; the parsed
+  description is unchanged at 1 021 characters with a 151-character first
+  sentence. The documentary half landed instead:
+  `corpus/knowledge/description-trigger-discipline-round85.md` cites S213 and
+  labels the C1 claim as killed.
+- **Round 85 C2 freshness — the substrate pin now names this host's omp and the
+  loader census re-derives across the 18.12.6 → 18.15.0 drift.** Frozen
+  predicate: `python3 -B verifiers/check_substrate_pins.py` exits 0 printing
+  `OK 3/3 pins hold`, AND `python3 -B verifiers/verify_surfaces.py --json`
+  exits 0 with `"pass": 7` and `"fail": 0`. Before, at the same base, both
+  commands exited 2 — the pins `UNREADABLE 2/3 pins failed: omp_binary_sha256,
+  omp_binary_mtime` and the surfaces `omp binary not found:
+  /home/vgpnk/.local/bin/omp.real`, because the pinned path
+  `~/.local/bin/omp.real` does not exist on this host
+  (`.ufo/waves/round-85/receipts/before-gates.txt`). After, at commit
+  `bf9ab28e011e4243356078951e33d919ad63a0c5`: the pins exit 0 with
+  `OK 3/3 pins hold` (omp sha256 `6737ee24…`, mtime delta 0 ns at tolerance
+  0 ns) and the surfaces exit 0 with `"pass": 7`, `"fail": 0` —
+  `.ufo/waves/round-85/receipts/c2-after.json`. The four host defaults were
+  migrated to the ELF this host actually runs (`/home/vgpnk/.local/bin/omp`,
+  `omp/18.15.0`, 276 785 328 B); the round-72 premise that `omp` is a
+  crash-restart wrapper whose ELF is `omp.real` is false here. The negative
+  controls were landed first, at
+  `51fffd1933f0a44bfeb9434688b4f850ff21aec6`: the opencode sha256 written
+  under the omp pin exits 1 (`DRIFT 1/3 pins failed`), a deleted omp pin
+  exits 1 (`PIN_ABSENT 2/3 pins failed`), and the same candidate scored
+  against a different ELF exits 1 (`DRIFT 2/3 pins failed`). One bound is
+  named, not hidden: a coarse second- or millisecond-precision mtime pin
+  still exits 0, because the checker derives its tolerance from the precision
+  the pin states — the landed pin carries nine fractional digits and a 0 ns
+  delta, and a 1 ns error exits 1
+  (`.ufo/waves/round-85/w1/ReviewerC2/review.md`).
+- **Round 85 intake — S213 re-opened live, the round-74-rejected staged entry
+  adopted through this lane's own gate, and considerthese proposal 3
+  executed (and killed) by C1.** S213
+  (`https://agentskills.io/skill-creation/optimizing-descriptions.md`) was
+  fetched 2026-11-04: HTTP 200, 13 403 B, sha256 `7cc54fbb…`, byte-identical
+  to the committed snapshot
+  `.ufo/waves/round-76/snapshots/optimizing-descriptions.md`, with five
+  located ≤ 25-word quotes
+  (`.ufo/waves/round-85/w1/ScoutSource/source-packet.md`; fetch record
+  `.ufo/waves/round-85/w1/ScoutSource/fetch-record.txt`). The staged package
+  entry `spec-description-trigger-discipline.md` was adopted as
+  `corpus/knowledge/description-trigger-discipline-round85.md`, re-grounded on
+  S213 and on the live bytes: 11 of 13 staged claims survive re-grounding, 2
+  are refused — the trigger-miss telemetry claim (the page carries no
+  telemetry sentence, so it is the lane's inference and is labelled as one)
+  and the three-way tension about negative conditions (its cited page
+  identities were not re-opened for this entry) — and the best-practices half
+  stays refused as already-carried material behind S223. The staged entry's
+  own `source:` ids S231/S232 are the package registry's, not this lane's: in
+  this lane S231 is the Mistral Vibe README and S232 is OpenAI Codex Skills, so
+  the round-85 entry names S213 and the used-by cell of S213 grew by one path
+  (`corpus/knowledge/skill-eval-artefacts-round70.md` →
+  `corpus/knowledge/skill-eval-artefacts-round70.md,
+  corpus/knowledge/description-trigger-discipline-round85.md`; receipt
+  `.ufo/waves/round-85/w1/ScribeSources/s213-usedby.txt`). No SOURCES row was
+  minted — S213 already holds this URL and a new row would be a W04 duplicate,
+  the round-74 rejection reason. considerthese proposal 3 (the description
+  audit) was executed by C1 and killed there; proposals 1 and 2 (the byte
+  ceiling, the Gate-registry move) are sized out as a separate round.
+- **Round 85 registry conformance — the CRLF registry repair, the seven index
+  rows, and the routed pre-existing reds (recorded, not claimed).** The
+  committed registry was CRLF and the census's `## Registry` heading test is
+  byte-exact, so on this host every row read as E12 "row outside Registry
+  section": the round-start census exited 1 with 180 E12 rows
+  (`.ufo/waves/round-85/receipts/census-round-start.txt`). `corpus/SOURCES.md`
+  was normalized to LF with no cell changed (436 CRLF pairs removed, 203 260 →
+  202 824 B; `diff <(git show <base>:corpus/SOURCES.md | tr -d '\r') <(tr -d '\r'
+  < corpus/SOURCES.md)` prints nothing — proof in
+  `.ufo/waves/round-85/w1/ScribeSources/crlf-proof.txt`), and the round-end
+  census exits 0 with 0 E rows and 33 W04 duplicate-URL warnings. The seven
+  corpus files unindexed at the base (the round-81…round-84 lessons and
+  spot-checks) gained coverage-map rows, and `corpus.index.unindexed` now reads
+  0. Pre-existing reds, recorded and not claimed by this round:
+  `verify_skill_checklist.py` exits 1 on `governance.citation_resolves`
+  (Windows-host-era citation tokens in `LOG.md`/`SCORECARD.md`), and
+  `check_sibling_census.py` with the stale round-49 census reads
+  `province rows 20 matched 4`, exit 1 — the current base is the round-74
+  census, which reads `province rows 20 matched 20`, exit 0. The r84-D1 routed
+  defect is closed append-only: the round-84 lesson's "10 FAIL instruments"
+  wording is corrected in `corpus/lessons/round-84.md` § Correction, round 85
+  to the measured **11** `FAIL` rows (10 only after excluding the gate's own
+  `floors_guard` row, which the prose never stated), with both counting
+  commands, and the going-forward rule is appended as Q76 in
+  `corpus/QUALITY.md` (appended, never renumbered). The wave's attack-role
+  accounting is corrected in `corpus/lessons/round-85.md`: the strict
+  addendum set (reviewer / critic / mutation-tester / labrat) gives **4 of 16
+  = 25 %**, not the frozen plan's 6 of 16 = 37.5 %, because the sentinel and
+  revenger seats are supplementary adversarial seats and no labrat seat exists
+  in the dispatched wave; the frozen plan and claims are not rewritten.
+
+### Round 85 — L1 integration corrections and settlement
+
+- Correction to the C1 entry above: the relocated `frozen/check_description_render.py`
+  is quarantined evidence, **not** an executable replacement command. Its original
+  layout is preserved only at `759cf35457c92c110f61e82630ccee00a598215f`.
+  Reproduction is restricted to a credential-free trusted historical sandbox;
+  the relocated copy is not run. See `.ufo/waves/round-85/frozen/QUARANTINE.txt`.
+- The plan froze before executable counter bytes existed. R6's gameable rule
+  was implemented, but R8's location condition was omitted and an unfrozen
+  three-word minimum added. No claim is rescued by those later bytes.
+- The final documentary entry refuses the staged TRAE/Chiba comparison and
+  does not claim S213 prohibits negative scope wording: the page's optimization
+  loop explicitly suggests clarifying what a skill does not do. The prior
+  package refusal is not retroactively overturned; Connector's stronger
+  flip-satisfied recommendation is not adopted.
+- Source curation landed at `6a520b6a916028cf8ea069cf7d7d5660f5b54e0c`;
+  source anchor edits proposed by a seat were rejected before landing.
+  Only S213's permitted `used-by` differs after LF normalization.
+- Main delivered WAVE-DONE for all 16 seats; all 16 report files exist.
+  `.ufo/waves/round-85/r85-w1-results.json` records a parent kernel restart:
+  original final payloads/status telemetry were not retained. Seat reports
+  are the evidence; no lost provider-error text is reconstructed.
