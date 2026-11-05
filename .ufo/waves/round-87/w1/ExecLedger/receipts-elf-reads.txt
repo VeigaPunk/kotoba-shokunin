@@ -1,0 +1,186 @@
+ExecLedger — round-87 w1 — verifiers/omp-skill-roots-semantics.tsv receipt
+written 2026-11-04T20:34:17-0300  seat ExecLedger
+instrument: python3 stdlib only, mmap+re over the installed ELF; the ELF was never copied.
+
+$ sha256sum /home/vgpnk/.local/bin/omp
+6737ee2415555a3656cc7b89c14d1c25c18658ee4c0fd4f7309705149ccb7b0f  /home/vgpnk/.local/bin/omp
+exit=0
+
+$ stat -c '%s bytes' /home/vgpnk/.local/bin/omp
+276785328 bytes
+exit=0
+
+# 1. source rows: the round-86 ledger at the base revision (bytes copied verbatim)
+
+$ git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin show 223ae62424f8ab1eb365d733eb648d6228ddd7e8:verifiers/omp-skill-roots.tsv | wc -l
+13
+exit=0
+
+$ git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin show 223ae62424f8ab1eb365d733eb648d6228ddd7e8:verifiers/omp-skill-roots.tsv | cut -f1 | tail -n +2 | wc -l
+12
+exit=0
+
+$ git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin show 223ae62424f8ab1eb365d733eb648d6228ddd7e8:verifiers/omp-skill-roots.tsv | sha256sum
+360213095b274d28d980b172a88216e9c74b7575f184227cc5b813875c7c7800  -
+exit=0
+
+# 2. the written ledger
+
+$ head -1 verifiers/omp-skill-roots-semantics.tsv | cat -A
+root_pattern^Ibinary_quote^Imodule^Ireader_quote$
+exit=0
+
+$ wc -l verifiers/omp-skill-roots-semantics.tsv
+13 verifiers/omp-skill-roots-semantics.tsv
+exit=0
+
+$ sha256sum verifiers/omp-skill-roots-semantics.tsv
+65590472569fc3b9d31fa755ccd5f398f231dec848f602c904976719b77475cb  verifiers/omp-skill-roots-semantics.tsv
+exit=0
+
+$ diff <(cut -f1 verifiers/omp-skill-roots-semantics.tsv) <(git show 223ae62424f8ab1eb365d733eb648d6228ddd7e8:verifiers/omp-skill-roots.tsv | cut -f1) && echo cut-f1-identical
+cut-f1-identical
+exit=0
+
+$ diff <(cut -f2 verifiers/omp-skill-roots-semantics.tsv) <(git show 223ae62424f8ab1eb365d733eb648d6228ddd7e8:verifiers/omp-skill-roots.tsv | cut -f2) && echo cut-f2-identical
+cut-f2-identical
+exit=0
+
+# 3. per-row fresh re-read of the ELF (new process, fresh mmap; the ledger file is the only input)
+
+$ python3 -B /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-87/w1/ExecLedger/recheck.py
+header exact: True
+data rows: 12
+sha256 new 65590472569fc3b9d31fa755ccd5f398f231dec848f602c904976719b77475cb
+base rows: 12
+cut -f1 equal: True
+cut -f2 equal: True
+order same: True
+row  2 {cwd}/.omp/skills                            off= 173819979 len=41 join=True mod_hdrs=2 hdr_last= 173814223 after=True
+        module=coding-agent/src/discovery/builtin.ts
+        line='dir: fr.join(k, Ou.projectDir, "skills"),'
+row  3 {cwd}/.claude/skills                         off= 173840364 len=30 join=True mod_hdrs=1 hdr_last= 173837493 after=True
+        module=coding-agent/src/discovery/claude.ts
+        line='dir: Fr.join(k, eh, "skills"),'
+row  4 {cwd}/.agent/skills                          off= 173865724 len=28 join=True mod_hdrs=1 hdr_last= 173864077 after=True
+        module=coding-agent/src/discovery/agents.ts
+        line='x.push(Rs.join(R, _, ...p));'
+row  5 {cwd}/.agents/skills                         off= 173865724 len=28 join=True mod_hdrs=1 hdr_last= 173864077 after=True
+        module=coding-agent/src/discovery/agents.ts
+        line='x.push(Rs.join(R, _, ...p));'
+row  6 {cwd}/.codex/skills                          off= 173879095 len=32 join=True mod_hdrs=2 hdr_last= 173878972 after=True
+        module=coding-agent/src/discovery/codex.ts
+        line='return Xr.join(u.cwd, ".codex");'
+row  7 {cwd}/.opencode/skills                       off= 172785704 len=38 join=True mod_hdrs=2 hdr_last= 172784226 after=True
+        module=coding-agent/src/discovery/helpers.ts
+        line='return d.join(e.cwd, r.projectDir, n);'
+row  8 {cwd}/.github/skills                         off= 172785704 len=38 join=True mod_hdrs=2 hdr_last= 172784226 after=True
+        module=coding-agent/src/discovery/helpers.ts
+        line='return d.join(e.cwd, r.projectDir, n);'
+row  9 ~/.omp/agent/skills                          off= 173820135 len=29 join=True mod_hdrs=2 hdr_last= 173814223 after=True
+        module=coding-agent/src/discovery/builtin.ts
+        line='dir: fr.join(we(), "skills"),'
+row 10 ~/.omp/plugins/node_modules/*/skills         off= 173914936 len=31 join=True mod_hdrs=1 hdr_last= 173914407 after=True
+        module=coding-agent/src/discovery/omp-plugins.ts
+        line='dir: Zo.join(R.path, "skills"),'
+row 11 ~/.agent/skills                              off= 173865523 len=65 join=True mod_hdrs=1 hdr_last= 173864077 after=True
+        module=coding-agent/src/discovery/agents.ts
+        line='return Wne(u).flatMap((x) => y1.map((R) => Rs.join(x, R, ...p)));'
+row 12 ~/.agents/skills                             off= 173865523 len=65 join=True mod_hdrs=1 hdr_last= 173864077 after=True
+        module=coding-agent/src/discovery/agents.ts
+        line='return Wne(u).flatMap((x) => y1.map((R) => Rs.join(x, R, ...p)));'
+row 13 ~/.omp/agent/managed-skills                  off= 173809938 len=36 join=True mod_hdrs=1 hdr_last= 173809642 after=True
+        module=coding-agent/src/autolearn/managed-skills.ts
+        line='return Zm.join(u, "managed-skills");'
+FAILURES 0
+exit=0
+
+# 4. quote -> root chain (why each reader line builds that root; offsets are first matches)
+
+$ python3 -B -c '<aux offsets>'
+'var Gh = ".omp";'                               n=1 offs=[166884553]
+'projectDir: Gh'                                 n=1 offs=[172784409]
+'var Ou = ZO.native;'                            n=1 offs=[173814381]
+'var eh = ".claude";'                            n=1 offs=[173837626]
+'projectDir: ".opencode"'                        n=1 offs=[172784794]
+'projectDir: ".github"'                          n=1 offs=[172785178]
+'var y1 = [".agent", ".agents"];'                n=1 offs=[173864226]
+'function os(e, t, n) {'                         n=1 offs=[172785622]
+'function V$e(e, t, n) {'                        n=1 offs=[172785301]
+'function z9(u, ...p) {'                         n=1 offs=[173865498]
+'function V9(u, ...p) {'                         n=1 offs=[173865591]
+'if (R !== u.home) {'                            n=1 offs=[173865668]
+'if (k !== u.home) {'                            n=1 offs=[173840315]
+'if (Mt(x.dir) === p || une(x.dir))'             n=1 offs=[173815338]
+'function T7(u) {'                               n=1 offs=[173819878]
+'function M7(u) {'                               n=1 offs=[173820404]
+exit=0
+
+# 5. row-by-row chain: which code line builds which root
+
+The frozen conjunct 2 requires the reader quote to sit on a line carrying a path-join token. On this
+ELF the dot segment of most roots is bound one or two lines away (a variable or a config-table
+entry), so the quote names the join and this chain names the literal. Only `{cwd}/.codex/skills`
+carries both a join token and its dot segment on the reader line itself.
+
+row 2  {cwd}/.omp/skills    @173819979  dir: fr.join(k, Ou.projectDir, "skills"),   in T7 (function T7(u) { @173819878);
+       k comes from the dFe walk-up; var Ou = ZO.native; @173814381 -> projectDir: Gh @172784409 -> var Gh = ".omp"; @166884553.
+row 3  {cwd}/.claude/skills @173840364  dir: Fr.join(k, eh, "skills"),             var eh = ".claude"; @173837626;
+       walk-up guard if (k !== u.home) { @173840315.
+row 4  {cwd}/.agent/skills  @173865724  x.push(Rs.join(R, _, ...p));               inside function V9(u, ...p) { @173865591 (project walk-up);
+       var y1 = [".agent", ".agents"]; @173864226 supplies both dot segments; if (R !== u.home) { @173865668.
+row 5  {cwd}/.agents/skills @173865724  same reader line as row 4 (y1's second element).
+row 6  {cwd}/.codex/skills  @173879095  return Xr.join(u.cwd, ".codex");           function ul(u); cwd only, no ancestor walk.
+row 7  {cwd}/.opencode/skills @172785704 return d.join(e.cwd, r.projectDir, n);   inside function os(e, t, n) { @172785622 of
+       discovery/helpers.ts; the row's literal is projectDir: ".opencode" @172784794 in the ZO table.
+row 8  {cwd}/.github/skills @172785704  same helper line as row 7; literal projectDir: ".github" @172785178.
+       The discovery modules call os(u, "opencode", "skills") / os(u, "github", "skills"), lines with no join
+       token, so they cannot be the reader quote; the shared helper line grounds both rows and the module cell
+       names the helper's module.
+row 9  ~/.omp/agent/skills  @173820135  dir: fr.join(we(), "skills"),             in T7, user level (we() = agentDir).
+row 10 ~/.omp/plugins/node_modules/*/skills @173914936  dir: Zo.join(R.path, "skills"),  discovery/omp-plugins.ts; R.path is a
+       plugin package dir under ~/.omp/plugins/node_modules/. This is the CF1 case: no ".omp/plugins" literal exists
+       in the ELF (searched), so no code line that reads this root can carry its ".omp" segment.
+row 11 ~/.agent/skills      @173865523  return Wne(u).flatMap((x) => y1.map((R) => Rs.join(x, R, ...p)));   inside
+       function z9(u, ...p) { @173865498 (user level).
+row 12 ~/.agents/skills     @173865523  same reader line as row 11 (y1's second element).
+row 13 ~/.omp/agent/managed-skills @173809938  return Zm.join(u, "managed-skills");   autolearn/managed-skills.ts (M7's dir: w9()).
+
+# 6. bound conjunct: code facts (for the counter's conjunct 4)
+- {cwd}/.omp/skills: dFe skips the home dir itself, if (Mt(x.dir) === p || une(x.dir)) @173815338 with p = Mt(u.home).
+- {cwd}/.claude/skills: if (k !== u.home) { @173840315.
+- {cwd}/.agent/skills and {cwd}/.agents/skills: if (R !== u.home) { @173865668.
+- {cwd}/.codex/skills, {cwd}/.opencode/skills, {cwd}/.github/skills: cwd only, no ancestor walk at all.
+Every {cwd}/ row on this ledger has a code-level $HOME exclusion. The ledger keeps the round-86 patterns
+byte-identical (the frozen rule); the expansion set and the `..` refusal are the counter's side.
+
+# 7. FINDING F1 - the plan's "13 rows" is the round-86 ledger's LINE count (header + 12), not its row count
+git show 223ae62:verifiers/omp-skill-roots.tsv | wc -l                          -> 13
+git show 223ae62:verifiers/omp-skill-roots.tsv | cut -f1 | tail -n +2 | wc -l   -> 12
+The file is one header line plus 12 data rows: every line carries exactly one tab and there is no
+embedded newline (awk gsub tab count = 1 on all 13 lines). The round-86 roots review
+(.ufo/waves/round-86/w1/ReviewerRoots/review.md section 2) tables exactly 12 rows (#1..#12), and the
+round-86 model verifiers/verify_harness_claims.py has WALKUP_REL (7) + USER_ROOTS (5, one of them the
+plugin glob) = 12.
+C1 conjunct 1 and guard S3 both demand row-for-row equality with the round-86 ledger, so 12 is the
+only count that can satisfy them. I wrote 12 data rows and did not invent a 13th pattern.
+Consequence: S3 must compare against the round-86 ledger's 12 patterns; a counter that requires 13 rows
+cannot pass with any ledger that honours the frozen "no row added, dropped or renamed" rule. Reported
+to KotobaR87. The same arithmetic makes wc -l on the new file 13 (header + 12 rows).
+
+# 8. FINDING F2 - the seat item's "join token AND the root's dot segment on one line" is unsatisfiable for 11 of 12 rows
+The frozen C1 conjunct 2 asks only for a path-join token (JOIN_TOKENS); the plan's own CF1 paragraph
+explains why a dot segment cannot be demanded (no ".omp/plugins" literal exists in the ELF). On this
+ELF only {cwd}/.codex/skills carries both. I implemented the frozen conjunct and recorded each row's
+literal binding in section 5, so a dot-segment demand would be a counter defect, not a data defect.
+
+# 9. NONE rows
+None: all 12 rows re-found their reader quote in a fresh mmap read (section 3, FAILURES 0). No row is NONE.
+
+# 10. ScoutElf ELF_MAP.tsv
+Absent when this ledger was written (ls: no such file or directory). The module/quote map was derived
+independently from the ELF: header scan of "// packages/" -> 3131 headers, 2895 distinct; the module
+spans were extracted in scratch and read as source (discovery/builtin.ts, claude.ts, agents.ts,
+codex.ts, opencode.ts, github.ts, helpers.ts, omp-plugins.ts, autolearn/managed-skills.ts).
+If ELF_MAP.tsv lands, the rows are cross-checkable against it; this receipt is the authority for the
+offsets written into the ledger.

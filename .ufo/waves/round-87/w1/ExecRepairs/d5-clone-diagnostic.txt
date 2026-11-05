@@ -1,0 +1,29 @@
+# D5 shape diagnostic — why the clone reading differs from the lane reading
+# scratch clone (never the lane): git clone -q --shared <lane> $S/repo-probe; git -C $S/repo-probe checkout -q --detach 223ae62424f8ab1eb365d733eb648d6228ddd7e8
+$ python3 -B verifiers/verify_corpus_integrity.py > out.txt   # cwd=$S/repo-probe (clone of 223ae62)
+corpus.index    tracked=170 unindexed=1 stale=0 missing=0  (187 FILE-column patterns over 169 md files)
+corpus.pointers report_dead=2/125 commit_total=59 unresolvable=1 nonhash=0 (shapes [relative=2, absolute=44, tilde=1, bare=78], quoted-excluded=6, pointer-excluded=8; sites in --json)
+DRIFT   corpus.index.tracked_files: observed=170 expected=169
+DRIFT   corpus.index.unindexed: observed=1 expected=0 / empty
+DRIFT   corpus.pointers.report_total: observed=125 expected=123
+DRIFT   corpus.pointers.report_dead: observed=2 expected=0 / empty
+DRIFT   corpus.pointers.commit_total: observed=59 expected=58
+DRIFT   corpus.pointers.commit_unresolvable: observed=1 expected=0 / empty
+3/9 checks pass; DRIFT: corpus.index.tracked_files, corpus.index.unindexed, corpus.pointers.report_total, corpus.pointers.report_dead, corpus.pointers.commit_total, corpus.pointers.commit_unresolvable
+python exit=1
+
+$ python3 -B verifiers/verify_corpus_integrity.py --json   # drift sites
+DRIFT corpus.index.tracked_files mode=equal observed=170 expected=169
+DRIFT corpus.index.unindexed mode=zero observed=1 expected="0 / empty"
+DRIFT corpus.pointers.report_total mode=equal observed=125 expected=123
+DRIFT corpus.pointers.report_dead mode=zero observed=2 expected="0 / empty"
+DRIFT corpus.pointers.commit_total mode=equal observed=59 expected=58
+DRIFT corpus.pointers.commit_unresolvable mode=zero observed=1 expected="0 / empty"
+unindexed_detail: corpus/lessons/round-86-verifier-spotcheck.md
+report_dead_detail: corpus/lessons/round-81.md:29: ../../.ufo/reports/round-76/kotoba.md
+report_dead_detail: corpus/lessons/round-86-verifier-spotcheck.md:33: .ufo/reports/round-84/kama.md
+commit_unresolvable_detail: corpus/lessons/round-81.md:8: 8b1cc1b00a9322cd8e231d87e015e1d75d20adc1
+
+$ git -C <lane> ls-files --error-unmatch .ufo/reports/round-84/kama.md ; git -C <lane> status --porcelain -uall -- .ufo/reports
+error: pathspec '.ufo/reports/round-84/kama.md' did not match any file(s) known to git
+(empty above = ignored, so absent from every clone)

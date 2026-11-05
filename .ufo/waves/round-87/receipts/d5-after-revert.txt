@@ -1,0 +1,16 @@
+D5 after the revert of the two laundered records (round 87, L1 integration, 2026-11-04)
+
+$ git checkout -- corpus/lessons/round-86-verifier-spotcheck.md corpus/lessons/round-81.md
+$ git rev-parse :corpus/lessons/round-86-verifier-spotcheck.md :corpus/lessons/round-81.md   # after revert == base blobs
+ae3f49a3685e796ae5154cf9a4b055132a8c25b0
+315c0ec68075e9c7c4037b8f42617e3eee0a434b
+base blobs: ae3f49a (spotcheck), 315c0ec (round-81) -- the pre-revert worktree blobs observed in git diff were 7d9f599 and d7f589b
+
+$ python3 -B verifiers/verify_corpus_integrity.py
+5/9 checks pass; DRIFT: corpus.pointers.report_total, corpus.pointers.report_dead, corpus.pointers.commit_total, corpus.pointers.commit_unresolvable
+exit=1
+
+$ python3 -B verifiers/verify_corpus_integrity.py --json | (detail rows)
+report_dead_detail ['corpus/lessons/round-86-verifier-spotcheck.md:33: .ufo/reports/round-84/kama.md']
+commit_unresolvable_detail ['corpus/lessons/round-81.md:8: 8b1cc1b00a9322cd8e231d87e015e1d75d20adc1']
+note: report_total/commit_total/tracked_files move as round-87 corpus files land; the baseline is re-recorded at the integrated tip (addendum 2 A2.1 item 2). The two rows above are the ones D5 (iii) pins.

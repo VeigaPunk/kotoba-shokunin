@@ -1,0 +1,51 @@
+# corpus-integrity failing-set drift (round 87, seat ScribeLesson, 2026-11-04T23:31:19Z)
+
+## A. the lane worktree at the freeze 669f280 (base 223ae62 + plans/round-87.md)
+$ cd /home/vgpnk/Projects/shokunin/kotoba-shokunin && python3 -B verifiers/verify_corpus_integrity.py | tail -1
+3/9 checks pass; DRIFT: corpus.index.tracked_files, corpus.index.unindexed, corpus.pointers.report_total, corpus.pointers.report_dead, corpus.pointers.commit_total, corpus.pointers.commit_unresolvable
+exit=1
+corpus.index    tracked=170 unindexed=1 stale=0 missing=0  (187 FILE-column patterns over 169 md files)
+corpus.pointers report_dead=1/125 commit_total=59 unresolvable=1 nonhash=0 (shapes [relative=2, absolute=44, tilde=1, bare=78], quoted-excluded=6, pointer-excluded=8; sites in --json)
+DRIFT   corpus.index.tracked_files: observed=170 expected=169
+DRIFT   corpus.index.unindexed: observed=1 expected=0 / empty
+DRIFT   corpus.pointers.report_total: observed=125 expected=123
+DRIFT   corpus.pointers.report_dead: observed=1 expected=0 / empty
+DRIFT   corpus.pointers.commit_total: observed=59 expected=58
+DRIFT   corpus.pointers.commit_unresolvable: observed=1 expected=0 / empty
+
+## B. the carried record the r87 plan quotes (plans/round-87.md:127 and corpus/lessons/round-86-verifier-spotcheck.md:188)
+$ sed -n '31,32p' .ufo/waves/round-86/receipts/tip-remeasure.txt
+DRIFT   corpus.pointers.commit_unresolvable: observed=1 expected=0 / empty
+8/9 checks pass; DRIFT: corpus.pointers.commit_unresolvable
+$ grep -c '99c217423bc0feff33ca46a99ddc98bd6bda09c1' .ufo/waves/round-86/receipts/tip-remeasure.txt   # the revision the receipt names
+2
+
+## C. the fix, shown able to fail: compare the failing SET, not the pass count
+$ python3 -B verifiers/verify_corpus_integrity.py | tail -1 | sed 's/^[0-9]*\/9 checks pass; DRIFT: //' | tr ',' '\n' | sed 's/^ //' | sort > now-set.txt
+$ grep -o 'DRIFT: .*' .ufo/waves/round-86/receipts/tip-remeasure.txt | sed 's/DRIFT: //' | tr ',' '\n' | sed 's/^ //' | sort > carried-set.txt
+$ diff carried-set.txt now-set.txt
+0a1,3
+> corpus.index.tracked_files
+> corpus.index.unindexed
+> corpus.pointers.commit_total
+1a5,6
+> corpus.pointers.report_dead
+> corpus.pointers.report_total
+diff-exit=1
+# five checks joined the failing set; commit_unresolvable is the one the record carried.
+# now-set.txt is built from A's printed line, so the comparison is against the freeze, not the mid-wave worktree.
+
+## D. corroboration: a --shared clone at the r87 base 223ae62 (no lane .ufo; report pointers resolve through fleet-level symlinks and read dead in a clone, so the report_* rows are a clone artifact -- the six names match A exactly)
+$ git -C /fast/scratch/hyaku/kotoba-r87/ScribeLesson/repo rev-parse HEAD  # (clone, checked out at base)
+223ae62424f8ab1eb365d733eb648d6228ddd7e8
+$ python3 -B verifiers/verify_corpus_integrity.py --repo /fast/scratch/hyaku/kotoba-r87/ScribeLesson/repo | tail -1
+3/9 checks pass; DRIFT: corpus.index.tracked_files, corpus.index.unindexed, corpus.pointers.report_total, corpus.pointers.report_dead, corpus.pointers.commit_total, corpus.pointers.commit_unresolvable
+$ ls -la .ufo/reports/round-76/   # why a clone cannot reproduce report_dead
+total 4
+drwxr-xr-x 1 vgpnk vgpnk  18 Oct 27 22:24 .
+drwxr-xr-x 1 vgpnk vgpnk 416 Oct 27 22:24 ..
+lrwxrwxrwx 1 vgpnk vgpnk  43 Oct 27 22:24 kotoba.md -> ../../../../.ufo/reports/round-76/kotoba.md
+
+## E. the state after the D5 repair, lane worktree at 9b040edb (mid-wave; recorded, not claimed)
+$ python3 -B verifiers/verify_corpus_integrity.py | tail -1
+7/9 checks pass; DRIFT: corpus.index.tracked_files, corpus.pointers.report_total

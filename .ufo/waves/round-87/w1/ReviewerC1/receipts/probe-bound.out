@@ -1,0 +1,40 @@
+counter source: 29974 bytes
+  source literal '/home/u/proj/sub': 2 hit(s) first@1959
+  source literal '/home/u': 9 hit(s) first@1959
+  source literal 'proj/sub': 2 hit(s) first@1967
+  source literal 'HOME': 13 hit(s) first@1776
+  source literal '..': 20 hit(s) first@1167
+  source literal 'JOIN_TOKENS': 4 hit(s) first@1377
+  source literal 'join(': 15 hit(s) first@3975
+  source literal 'resolve(': 2 hit(s) first@3608
+
+candidate functions/consts: ['BOUND_CWD', 'BOUND_HOME', 'ROOTS_HEADER', 'ROOTS_LEDGER', 'bound_grounded', 'fnmatch', 'matches_row', 'roots_patterns', 'syn_roots']
+  BOUND_CWD = '/home/u/proj/sub'
+  BOUND_HOME = '/home/u'
+  ROOTS_HEADER = 'root_pattern\tbinary_quote'
+  ROOTS_LEDGER = 'verifiers/omp-skill-roots.tsv'
+  bound_grounded(pattern: 'str', chain) -> 'tuple[bool, str]'
+  fnmatch = <module 'fnmatch' from '/usr/lib/python3.14/fnmatch.py'>
+  matches_row(pattern: 'str', candidate: 'str', chain) -> 'bool'
+  roots_patterns(text: 'str | None') -> 'tuple[list[str], str | None]'
+  syn_roots(patterns: 'list[str]') -> 'str'
+CALL bound_grounded('cwd', '{cwd}/.omp/skills') -> (True, '')
+CALL bound_grounded('/home/u/proj/sub', '{cwd}/.omp/skills') -> (True, '')
+CALL bound_grounded('{cwd}/.omp/skills', '/home/u/proj/sub') -> (False, "pattern '{cwd}/.omp/skills': `{cwd}/` expansion reaches /.omp/skills ($HOME or above); the frozen expansion is ['/home/u/proj/sub/.omp/skills', '/home/u/proj/.omp/skills']")
+CALL bound_grounded('/home/u/proj/sub',) -> raised TypeError: bound_grounded() missing 1 required positional argument: 'chain'
+CALL bound_grounded('{cwd}/.omp/skills',) -> raised TypeError: bound_grounded() missing 1 required positional argument: 'chain'
+CALL matches_row('cwd', '{cwd}/.omp/skills') -> raised TypeError: matches_row() missing 1 required positional argument: 'chain'
+CALL matches_row('/home/u/proj/sub', '{cwd}/.omp/skills') -> raised TypeError: matches_row() missing 1 required positional argument: 'chain'
+CALL matches_row('{cwd}/.omp/skills', '/home/u/proj/sub') -> raised TypeError: matches_row() missing 1 required positional argument: 'chain'
+CALL matches_row('/home/u/proj/sub',) -> raised TypeError: matches_row() missing 2 required positional arguments: 'candidate' and 'chain'
+CALL matches_row('{cwd}/.omp/skills',) -> raised TypeError: matches_row() missing 2 required positional arguments: 'candidate' and 'chain'
+CALL roots_patterns('cwd', '{cwd}/.omp/skills') -> raised TypeError: roots_patterns() takes 1 positional argument but 2 were given
+CALL roots_patterns('/home/u/proj/sub', '{cwd}/.omp/skills') -> raised TypeError: roots_patterns() takes 1 positional argument but 2 were given
+CALL roots_patterns('{cwd}/.omp/skills', '/home/u/proj/sub') -> raised TypeError: roots_patterns() takes 1 positional argument but 2 were given
+CALL roots_patterns('/home/u/proj/sub',) -> ([], "verifiers/omp-skill-roots.tsv: header is not 'root_pattern\\tbinary_quote'")
+CALL roots_patterns('{cwd}/.omp/skills',) -> ([], "verifiers/omp-skill-roots.tsv: header is not 'root_pattern\\tbinary_quote'")
+CALL syn_roots('cwd', '{cwd}/.omp/skills') -> raised TypeError: syn_roots() takes 1 positional argument but 2 were given
+CALL syn_roots('/home/u/proj/sub', '{cwd}/.omp/skills') -> raised TypeError: syn_roots() takes 1 positional argument but 2 were given
+CALL syn_roots('{cwd}/.omp/skills', '/home/u/proj/sub') -> raised TypeError: syn_roots() takes 1 positional argument but 2 were given
+CALL syn_roots('/home/u/proj/sub',) -> 'root_pattern\tbinary_quote\n/\tNative OMP configuration from ~/.omp and .omp/\nh\tNative OMP configuration from ~/.omp and .omp/\no\tNative OMP configuration from ~/.omp and .omp/\nm\tNative OMP configuration from ~/.omp and .omp/\ne\tNative OMP configuration from ~/.omp and .omp/\n/\tNative OMP configuration from ~/.omp and .omp/\nu\tNative OMP configuratio
+CALL syn_roots('{cwd}/.omp/skills',) -> 'root_pattern\tbinary_quote\n{\tNative OMP configuration from ~/.omp and .omp/\nc\tNative OMP configuration from ~/.omp and .omp/\nw\tNative OMP configuration from ~/.omp and .omp/\nd\tNative OMP configuration from ~/.omp and .omp/\n}\tNative OMP configuration from ~/.omp and .omp/\n/\tNative OMP configuration from ~/.omp and .omp/\n.\tNative OMP configurati

@@ -1,0 +1,52 @@
+# ScoutPlugin SOURCE_RECORD.txt -- the fetch record for C1's new corpus/SOURCES.md row
+# claim: C1 (depth) "Sourced" conjunct -- one row opened THIS round on the omp skill-loader module
+#        the ELF embeds. ScribeSources turns this into the corpus/SOURCES.md row; this file is the record.
+# access date: 2026-11-04
+
+module (from the ELF header): packages/coding-agent/src/discovery/omp-plugins.ts
+ledger root this module names: ~/.omp/plugins/node_modules/*/skills  (round-86 ledger verifiers/omp-skill-roots.tsv row 9)
+ELF module header: // packages/coding-agent/src/discovery/omp-plugins.ts @173914407 (bytes)
+ELF reader quote offset: 173914936
+
+url: https://raw.githubusercontent.com/can1357/oh-my-pi/v18.15.0/packages/coding-agent/src/discovery/omp-plugins.ts
+repo/tag: https://github.com/can1357/oh-my-pi  tag v18.15.0  (the tag path answered; the default branch was NOT read)
+http status: 200
+bytes: 15362
+sha256: 4e66819cf706b81c6f31bd71e6de8892083a284525ab151948642faea00cb1b4
+
+located quote (upstream line 70, leading tabs trimmed):
+    dir: path.join(root.path, "skills"),
+quote word count: 3 (<= 25)
+line number in the fetched text: 70
+
+ELF offset of the same bytes:
+  - the bun bundle minifies identifiers, so the exact upstream line does not occur verbatim;
+    its counterpart occurs at byte offset 173914936 as:
+        dir: Zo.join(R.path, "skills"),
+    (path->Zo, root->R: the string literal "skills" and the join( shape are the same bytes)
+  - byte-identical anchor present verbatim in BOTH files (cross-check):
+        Sub-discovery (skills, hooks, tools, commands, rules, prompts, .mcp.json) inside extension packages
+    upstream line 46; ELF offset 114492956 (also the provider DESCRIPTION constant, ELF bd = ...)
+
+fidelity check: of the 31 string literals >= 6 chars in the fetched module, 13 occur inside the ELF
+region 173914407..173922491; the 18 absent are import specifiers (resolved by the bundler) and
+template placeholders, not runtime strings.
+
+secondary fetches (same tag, same day; recorded so the row's provenance is auditable):
+  https://raw.githubusercontent.com/can1357/oh-my-pi/v18.15.0/packages/coding-agent/src/extensibility/plugins/loader.ts
+    http status 200  bytes 17785  sha256 d759c4661cdd13b7081d2005463e8ab0bbeb28a745992b998f986ebe971e5a1d
+    (the registry enumerator: <plugins>/node_modules, package.json deps, omp-plugins.lock.json, per-package package.json)
+  https://raw.githubusercontent.com/can1357/oh-my-pi/v18.15.0/packages/coding-agent/src/discovery/omp-extension-roots.ts
+    http status 200  bytes 15648  sha256 9f673afe2f2925826e41a9adfc8bc985de331404f80bce53a0c443c915d4fce3
+    (listOmpExtensionRoots / X9: which package roots exist)
+
+commands:
+  $ curl -sS -o omp-plugins.ts.up -w "%{http_code} %{size_download}" https://raw.githubusercontent.com/can1357/oh-my-pi/v18.15.0/packages/coding-agent/src/discovery/omp-plugins.ts
+  200 15362
+  $ sha256sum omp-plugins.ts.up
+  4e66819cf706b81c6f31bd71e6de8892083a284525ab151948642faea00cb1b4  omp-plugins.ts.up
+  $ python3 -B  # mmap the ELF, m.find(b'dir: Zo.join(R.path, "skills"),') -> 173914936
+
+note for ScribeSources: the ledger row's root also needs <plugins> = ~/.omp/plugins, which the ELF names
+in packages/utils/src/dirs.ts (function $o(p) -> c.rootSubdir("plugins", "data") @166892424); the quote
+above names the terminal <pkg>/skills join that omp-plugins.ts performs on each package root.
