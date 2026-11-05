@@ -1,0 +1,198 @@
+measured-rev=99ddd7463fb67d4e09d0093cded8178423137277 (landing commit C; evidence commit B=f062a563 precedes it)
+== c1-selftest
+cmd: python3 -B verifiers/check_freeze_gate.py --self-test
+0 failure(s) over 30 assertions
+exit=0
+== c1-unsat
+cmd: python3 -B verifiers/check_freeze_gate.py --plan verifiers/fixtures/freeze-gate/r88-controls.md
+REFUSED control w_added_red (line 36): declared "exit 0; stdout contains D5=FAIL"; observed exit=0 stdout=w_added_red D5=PASS\n (stdout literal 'D5=FAIL' absent from observed stdout)
+exit=1
+== c1-fixed
+cmd: python3 -B verifiers/check_freeze_gate.py --plan verifiers/fixtures/freeze-gate/r88-controls-fixed.md
+freeze gate: 4 control(s) held — freeze may proceed
+exit=0
+== c2-tip
+cmd: python3 -B verifiers/check_r86_routed_repairs_v3.py --base-receipt .ufo/waves/round-89/receipts/d5v3-base-receipt.json
+PASS d1 two receipts carry exit=0; instruments equal 04647b0f..99ddd746
+PASS d2 carried by plans/round-87.md; validator sentence present, 10 roles, no planner
+PASS d3 5 reject row(s), longest reason 52 words
+PASS d4 plans/round-87.md names the boundary 'after the first candidate score'
+PASS d5i check names equal (9) and integrity --self-test exits 0 at the root
+PASS d5ii DRIFT ['corpus.index.tracked_files', 'corpus.pointers.commit_total', 'corpus.pointers.commit_unresolvable', 'corpus.pointers.report_total'] within receipt DRIFT ['corpus.index.tracked_files', 'corpus.pointers.commit_total', 'corpus.pointers.commit_unresolvable', 'corpus.pointers.report_total']
+PASS d5iii no name grew past its receipt value; no detail entry added
+PASS snapshot_tampered digests match (integrity a0b52d2419e2, baseline 6fdabfac8189)
+r86 routed defects closed 5 of 5
+instance drift 0
+exit=0
+== c2-selftest
+cmd: python3 -B verifiers/check_r86_routed_repairs_v3.py --self-test
+base receipt written /fast/scratch/hyaku/kotoba-r89/landing/r89-routed-v3-fixture-5ib9z6ag/d5v3-base-receipt.json rev 005c7f0c04ff integrity 9e1abf00b63b baseline 04a4a5086ea5 location clone receipt_sha256 2444b7814752; 9 names, 5 DRIFT
+0 failure(s) over 37 assertions
+exit=0
+== c2-v2-selftest-control
+cmd: python3 -B verifiers/check_r86_routed_repairs_v2.py --self-test
+1 failure(s) over 16 assertions
+FAIL arm w_added_red (frozen control): an added unresolvable commit citation expects D5 FAIL via (ii); the names-set reads it as PASS (counter defect, see ExecMonotoneD5.md): identity: 9 names equal at base and rev; monotone: DRIFT at rev ['corpus.index.tracked_files', 'corpus.index.unindexed', 'corpus.pointers.commit_total', 'corpus.pointers.commit_unresolvable', 'corpus.pointers.report_dead', 'corpus.pointers.report_total'] is a subset of base ['corpus.index.tracked_files', 'corpus.index.unindexed', 'corpus.pointers.commit_total', 'corpus.pointers.commit_unresolvable', 'corpus.pointers.report_dead', 'corpus.pointers.report_total']
+exit=1
+== census
+cmd: /home/vgpnk/Projects/shokunin/scripts/sources-census.sh validate --root /home/vgpnk/Projects/shokunin kotoba
+kotoba	W04	S018 duplicate url agentskills.io/specification across scopes
+kotoba	W04	S019 duplicate url platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices across scopes
+kotoba	W04	S021 duplicate url learn.chatgpt.com/docs/build-skills across scopes
+kotoba	W04	S054 duplicate url learn.chatgpt.com/docs/build-skills across scopes
+kotoba	W04	S055 duplicate url code.visualstudio.com/docs/agent-customization/agent-skills across scopes
+kotoba	W04	S056 duplicate url docs.github.com/en/copilot/reference/copilot-cli-reference/cli-command-reference across scopes
+kotoba	W04	S065 duplicate url code.claude.com/docs/en/skills.md across scopes
+kotoba	W04	S086 duplicate url developers.openai.com/plugins/build/plugins.md across scopes
+kotoba	W04	S103 duplicate url code.claude.com/docs/en/memory.md across scopes
+kotoba	W04	S104 duplicate url learn.chatgpt.com/docs/agent-configuration/agents-md.md across scopes
+kotoba	W04	S106 duplicate url docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-custom-instructions.md across scopes
+kotoba	W04	S110 duplicate url code.claude.com/docs/en/hooks.md across scopes
+kotoba	W04	S111 duplicate url learn.chatgpt.com/docs/hooks.md across scopes
+kotoba	W04	S114 duplicate url docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-custom-instructions.md across scopes
+kotoba	W04	S115 duplicate url cursor.com/docs/rules across scopes
+kotoba	W04	S118 duplicate url code.claude.com/docs/en/memory.md across scopes
+kotoba	W04	S207 duplicate url opencode.ai/docs/skills across scopes
+kotoba	W04	S208 duplicate url learn.microsoft.com/en-us/agent-framework/agents/skills across scopes
+kotoba	W04	S212 duplicate url agentskills.io/skill-creation/evaluating-skills.md across scopes
+kotoba	W04	S213 duplicate url agentskills.io/skill-creation/optimizing-descriptions.md across scopes
+kotoba	W04	S227 duplicate url code.claude.com/docs/en/skills.md across scopes
+kotoba	W04	S229 duplicate url learn.microsoft.com/en-us/agent-framework/agents/skills across scopes
+kotoba	W04	S230 duplicate url raw.githubusercontent.com/badlogic/pi-mono/main/packages/coding-agent/docs/skills.md across scopes
+kotoba	W04	S231 duplicate url raw.githubusercontent.com/mistralai/mistral-vibe/main/README.md across scopes
+kotoba	W04	S234 duplicate url opencode.ai/docs/skills across scopes
+kotoba	W04	S235 duplicate url geminicli.com/docs/cli/skills across scopes
+kotoba	W04	S238 duplicate url ampcode.com/docs/customize/skills across scopes
+kotoba	W04	S239 duplicate url docs.roocode.com/features/skills across scopes
+kotoba	W04	S240 duplicate url kilo.ai/docs/customize/skills across scopes
+kotoba	W04	S241 duplicate url junie.jetbrains.com/docs/agent-skills.html across scopes
+kotoba	W04	S243 duplicate url hermes-agent.nousresearch.com/docs/user-guide/features/skills across scopes
+kotoba	W04	S249 duplicate url code.claude.com/docs/en/agent-sdk/skills.md across scopes
+kotoba	W04	S254 duplicate url code.claude.com/docs/en/skills.md across scopes
+kotoba	ok	/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md
+exit=0
+== integrity
+cmd: python3 -B verifiers/verify_corpus_integrity.py
+corpus.index    tracked=180 unindexed=0 stale=0 missing=0  (198 FILE-column patterns over 179 md files)
+corpus.pointers report_dead=0/144 commit_total=61 unresolvable=1 nonhash=0 (shapes [relative=2, absolute=47, tilde=1, bare=94], quoted-excluded=6, pointer-excluded=8; sites in --json)
+           report_pointers_excluded: corpus/knowledge/cold-run-round11.md:100: .ufo/reports/round-1/<lane>.md
+           report_pointers_excluded: corpus/knowledge/cold-run-round11.md:142: .ufo/reports/round-1/<lane>.md
+           report_pointers_excluded: corpus/knowledge/cold-run-round11.md:148: <repo>/.ufo/reports/round-11/kotoba.md
+           report_pointers_excluded: corpus/knowledge/cold-run-round11.md:280: .ufo/reports/round-1/<lane>.md
+           report_pointers_excluded: corpus/knowledge/cold-run-round11.md:66: .ufo/reports/round-1/<lane>.md
+           report_pointers_excluded: corpus/knowledge/corpus-integrity-round11.md:116: .ufo/reports/round-1/<lane>.md
+           report_pointers_excluded: corpus/knowledge/corpus-integrity-round11.md:218: .ufo/reports/round-1/<lane>.md
+           report_pointers_excluded: corpus/knowledge/dispatch-prompt-audit-round7.md:42: .ufo/reports/round-1/<lane>.md
+           report_pointers_quoted: corpus/README.md:68: .ufo/reports/round-48/kotoba.md
+           report_pointers_quoted: corpus/lessons/round-57.md:86: /home/vgpnk/Projects/shokunin/.ufo/reports/round-56/kotoba.md
+           commit_unresolvable: corpus/lessons/round-81.md:8: 8b1cc1b00a9322cd8e231d87e015e1d75d20adc1
+           commit_external: corpus/SOURCES.md:171: 7bb48f213ac677f943d5c791199ed3dddf302f00
+           commit_external: corpus/SOURCES.md:172: 7bb48f213ac677f943d5c791199ed3dddf302f00
+           commit_truncated: corpus/SOURCES.md:191: 25cc5c7b…
+           commit_truncated: corpus/lessons/round-71-verifier-spotcheck.md:120: fb6a28ee…
+           commit_truncated: corpus/lessons/round-71-verifier-spotcheck.md:90: 955ffd5d…
+           commit_truncated: corpus/lessons/round-75-verifier-spotcheck.md:18: 661e538…
+           commit_truncated: corpus/lessons/round-80-verifier-spotcheck.md:22: 56b0764e…
+           commit_quoted: corpus/knowledge/claim-census-round12.md:95: 4dd7753 (quoted meta-finding)
+           commit_quoted: corpus/lessons/round-53.md:44: cfb894a5 (quoted meta-finding)
+           commit_quoted: corpus/lessons/round-53.md:45: <hex> (quoted meta-finding)
+           commit_quoted: corpus/lessons/round-54-verifier-spotcheck.md:147: 451a02ff (quoted meta-finding)
+           commit_quoted: corpus/lessons/round-54.md:13: cfb894a5 (quoted meta-finding)
+           commit_quoted: corpus/lessons/round-6-aggregator-audit.md:45: round-N (quoted meta-finding)
+DRIFT   corpus.index.tracked_files: observed=180 expected=172
+DRIFT   corpus.pointers.report_total: observed=144 expected=127
+DRIFT   corpus.pointers.commit_total: observed=61 expected=59
+DRIFT   corpus.pointers.commit_unresolvable: observed=1 expected=0 / empty
+5/9 checks pass; DRIFT: corpus.index.tracked_files, corpus.pointers.report_total, corpus.pointers.commit_total, corpus.pointers.commit_unresolvable
+exit=1
+== registry
+cmd: python3 -B verifiers/check_gate_registry.py --rev 99ddd7463fb67d4e09d0093cded8178423137277
+verifiers/box_proof_case_deletion.py         OK 
+verifiers/check_agent_definitions.py         OK 
+verifiers/check_agentdef_boxes.py            OK 
+verifiers/check_allowed_tools.py             OK 
+verifiers/check_alwayson_boxes.py            OK 
+verifiers/check_assertion_floors.py          OK 
+verifiers/check_author_rules.py              OK 
+verifiers/check_callee_rename.py             OK 
+verifiers/check_client_trust_gates.py        OK 
+verifiers/check_cn_vendor_surfaces.py        OK 
+verifiers/check_command_files.py             OK 
+verifiers/check_correction_sweep.py          OK 
+verifiers/check_could_not_evaluate.py        OK 
+verifiers/check_desc_craft.py                OK 
+verifiers/check_description_thresholds.py    OK 
+verifiers/check_erratum_absorption.py        OK 
+verifiers/check_explicit_invocation.py       OK 
+verifiers/check_freeze_gate.py               OK 
+verifiers/check_gate_finding_delta.py        OK 
+verifiers/check_gate_registry.py             OK 
+verifiers/check_hook_files.py                OK 
+verifiers/check_host_skill_surfaces.py       OK 
+verifiers/check_infoless_fences.py           OK 
+verifiers/check_instruction_authority.py     OK 
+verifiers/check_mcp_instructions.py          OK 
+verifiers/check_omp_catalogue_repro.py       OK 
+verifiers/check_omp_root_semantics.py        OK 
+verifiers/check_omp_root_semantics_v2.py     OK 
+verifiers/check_opencode_repin.py            OK 
+verifiers/check_overlap_levers.py            OK 
+verifiers/check_plugin_manifests.py          OK 
+verifiers/check_province_core.py             OK 
+verifiers/check_r63_routed_repairs.py        OK 
+verifiers/check_r64_routed_repairs.py        OK 
+verifiers/check_r66_routed_repairs.py        OK 
+verifiers/check_r67_routed_repairs.py        OK 
+verifiers/check_r68_routed_repairs.py        OK 
+verifiers/check_r69_routed_repairs.py        OK 
+verifiers/check_r69_routed_repairs_v2.py     OK 
+verifiers/check_r75_routed_repairs.py        OK 
+verifiers/check_r83_routed_repairs.py        OK 
+verifiers/check_r86_routed_repairs.py        OK 
+verifiers/check_r86_routed_repairs_v2.py     OK 
+verifiers/check_r86_routed_repairs_v3.py     OK 
+verifiers/check_report_pointers.py           OK 
+verifiers/check_routed_repairs.py            OK 
+verifiers/check_routed_repairs_v2.py         OK 
+verifiers/check_scoped_rules.py              OK 
+verifiers/check_scoped_rules_v31.py          OK 
+verifiers/check_scoped_rules_v32.py          OK 
+verifiers/check_sdk_allowed_tools.py         OK 
+verifiers/check_seat_counts.py               OK 
+verifiers/check_sibling_census.py            OK 
+verifiers/check_sibling_reread.py            OK 
+verifiers/check_skill_evals.py               OK 
+verifiers/check_skill_evals_v2.py            OK 
+verifiers/check_skill_precedence.py          OK 
+verifiers/check_sources_append_only.py       OK 
+verifiers/check_spec_craft.py                OK 
+verifiers/check_substrate_pins.py            OK 
+verifiers/check_substrate_repin_v2.py        OK 
+verifiers/check_sweep_mutants.py             OK 
+verifiers/check_tip_battery.py               OK 
+verifiers/compare_harness_independent.py     OK 
+verifiers/fault_injection_corpus.sh          OK 
+verifiers/verify_alwayson.py                 OK 
+verifiers/verify_corpus_independent.py       OK 
+verifiers/verify_corpus_integrity.py         OK 
+verifiers/verify_dispatch_prompts.py         OK 
+verifiers/verify_harness_claims.py           OK 
+verifiers/verify_harness_independent.py      OK 
+verifiers/verify_skill_checklist.py          OK 
+verifiers/verify_surfaces.py                 OK 
+gate registry rows conformant 73 of 73 lane verifiers; phantom 0
+exit=0
+== checklist
+cmd: python3 -B verifiers/verify_skill_checklist.py
+PASS checklist.box_map_complete: evaluated 45 — 45 boxes mapped (8 executed, 4 delegated, 33 unexecuted); delegated verifiers/verify_dispatch_prompts.py: --box-proof exit 0: boxes proven 2; delegated verifiers/verify_alwayson.py: --box-proof exit 0: boxes proven 2
+PASS trigger.frontmatter_parses: evaluated 4 — frontmatter parses: name='kotoba-shokunin', description 1021 chars
+PASS trigger.name_directory: evaluated 1 — name 'kotoba-shokunin' == directory 'kotoba-shokunin'
+PASS trigger.literal_trigger_string: evaluated 1 — description carries literal 'Triggers:'
+PASS trigger.anti_trigger_clause: evaluated 1 — exclusion marker 'Anti-triggers' present (vocabulary test, not semantics: a vacuous 'Never use this skill.' passes and an unlisted real exclusion fails)
+PASS trigger.no_xml_tag: evaluated 2 — no XML tag in name, description (S019 Anthropic rule, absent from the open spec (S018), approximated lexically on the unparsed text; Anthropic's packager (S012) bans any '<'/'>' in the parsed value, and the two disagree in both directions (corpus/knowledge/frontmatter-rule-authorities-round48.md))
+PASS trigger.line_budget: evaluated 600 — 600 lines within budget 600 (from box at line 283)
+PASS trigger.no_placeholder: evaluated 534 — no placeholder markers in 534 scanned lines
+PASS trigger.command_binary_resolves: evaluated 36 — 23 segments; 36 command subject(s) resolve
+PASS trigger.citation_resolves: evaluated 257 — 257 repo-rooted citation token(s) resolve from the repo root
+FAIL governance.citation_resolves: evaluated 1548 — correction LOG.md:2621 SCORECARD.md:158 '.ufo/reports/round-60/kotoba.md': names no live red subject; LOG.md:2881: '.ufo/waves/round-82/receipts/before-tip-battery-win-dot.txt' does not resolve from /home/vgpnk/Projects/shokunin/kotoba-shokunin; LOG.md:2947: '.ufo/waves/round-82/receipts/before-tip-battery-win-dot.txt' does not resolve from /home/vgpnk/Projects/shokunin/kotoba-shokunin; LOG.md:2958: '.ufo/reports/round-82/kotoba.md' does not resolve from /home/vgpnk/Projects/shokunin/kotoba-shokunin … (+12 more); 10 quoted meta-finding(s), 3 schematic token(s) excluded, 2 recorded absence(s) excused, 3 recorded correction(s) excused
+exit=1
