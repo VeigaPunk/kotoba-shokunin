@@ -155,3 +155,15 @@ gate.
 **Frontier step (§ 2b).** Census `grep -cE '^\|[[:space:]]*S[0-9]{3,}[[:space:]]*\|' corpus/SOURCES.md`: 187 → 190; validate rc 0 at `c6631ca` (`.ufo/waves/round-91/receipts/landing/census-after-A.txt`). Sourced claims: C1 cites S262 (`knowledge/mutation-battery-arms-round91.md`); C2 cites S263 (`knowledge/timeout-calibration-round91.md`). Mistake mined: the `landing` row above and the two routed rows (`number-drift`, `vacuous`). Assimilation: none — the package stays unadopted (L0 `kotoba | round-88` open). Considerthese: no proposal implemented; proposal 3 carried (SKILL.md 600-line ceiling).
 
 **Non-author spot-check:** pending — the closure samples one admit and one reject from the Gate above (S262 or S263 admit; S264 reject).
+
+**Wave settlement correction (WAVE-DONE received after this lesson was committed).** The
+orchestrator settled wave `r91-w1`: `r91-w1-results.json` now exists beside the dispatch (13
+records with keys `name`, `agent`, `output`, `note`; no per-seat status field). Twelve records
+carry full seat outputs. The `ReviewerRepairs` record reads
+`output unavailable: FileNotFoundError('Output not found: ReviewerRepairs-6')` — the harness
+holds no output object for that seat, which confirms the dead-seat disposition above and
+supplies the error text this lesson said was not available. The seat wrote nothing into `w1/`
+(no late files; the directory still does not exist). No claim reading changes: the reviewer
+seat's C2 attack coverage was carried by CriticClaims, MutTesterRepairs and RevengerLadder, and
+the round's measurements are unchanged. This correction is appended; the Settlement text above
+is retained as written.
