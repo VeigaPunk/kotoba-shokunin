@@ -1,0 +1,20 @@
+ExecBatteryArms r91-w1 — FINAL self-test on the candidate bytes (patch content) in the scratch clone.
+
+command: cd /fast/scratch/hyaku/kotoba-r91/ExecBatteryArms/repo && TMPDIR=<scratch> python3 -B verifiers/check_mutation_battery.py --self-test
+
+first full run after the fixture fix (identical instrument bytes to the final patch):
+0 failure(s) over 25 assertions
+rc=0 duration_ms=3346
+
+re-run on the exact final bytes (after the manifest recipe JSON escaping fix; instrument untouched by it):
+0 failure(s) over 25 assertions
+rc=0 duration_ms=3868
+
+git status at that point: only the two owned files modified
+ M verifiers/check_mutation_battery.py
+ M verifiers/fixtures/mutation-battery/manifest.tsv
+
+Intermediate honest note: the first self-test attempt after adding the third PROBES target failed
+12 assertions ("could-not-evaluate: G1: git show <rev>:verifiers/check_mutation_battery.py failed")
+because build_fixture did not materialize a battery file in fixture repos; fixed by adding
+BAT: FX_BAT to build_fixture's files dict before any scored reading.

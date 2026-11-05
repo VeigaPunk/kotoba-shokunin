@@ -1,0 +1,15 @@
+ExecBatteryArms r91-w1 — able-to-fail proof for manifest row mb-m15-clean-tree-guard-off.
+
+Mutant: r90 MutTesterBattery harness literal replacement on the FINAL bytes
+  old: '    if rc != 0 or out.strip():\n'   (the materialize clean-tree check)
+  new: '    if False:\n'
+(one match; mutant compiles). Self-test of the mutated battery run standalone (TMPDIR=<scratch>):
+
+FAIL G1 clean-tree guard: a dirtied scratch clone exits 2 :: evision identity PASS: rev f972ae98ac7d; lane ok; targets and manifest read by git show; scratch clone detached at rev and clean
+FAIL G1 clean-tree guard: the refusal says the scratch clone is not clean at --rev :: evision identity PASS: rev f972ae98ac7d; lane ok; targets and manifest read by git show; scratch clone detached at rev and clean
+2 failure(s) over 25 assertions
+rc=1 duration=3.1s
+
+The G1-clean arm (status --porcelain interception on the scratch clone) flips red when the guard is
+disabled: without the guard the dirtied-clone world runs to completion with exit 0 instead of the
+required G1 not-clean refusal at exit 2.

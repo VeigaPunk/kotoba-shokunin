@@ -1,0 +1,15 @@
+ExecBatteryArms r91-w1 — able-to-fail proof for manifest row mb-m16-restore-unverified.
+
+Mutant: r90 MutTesterBattery harness literal replacement on the FINAL bytes
+  old: '        place(dest / row.target, data[row.target], rec_sha[row.target], "restore " + row.target)\n'
+  new: '        pass\n'
+(one match; mutant compiles). Self-test of the mutated battery run standalone (TMPDIR=<scratch>):
+
+FAIL G2 restore read-back: a tampered revision restore after a mutant exits 2 :: evision identity PASS: rev 8aea154a65dd; lane ok; targets and manifest read by git show; scratch clone detached at rev and clean
+FAIL G2 restore read-back: the refusal names G2 copy integrity on the restore copy :: evision identity PASS: rev 8aea154a65dd; lane ok; targets and manifest read by git show; scratch clone detached at rev and clean
+2 failure(s) over 25 assertions
+rc=1 duration=3.1s
+
+The restore arm (place() interception that tampers only "restore "-labelled writes) flips red when the
+restore re-read is dropped: the tampered restore is never read back, the world completes with exit 0
+instead of the required G2 copy-integrity refusal at exit 2.

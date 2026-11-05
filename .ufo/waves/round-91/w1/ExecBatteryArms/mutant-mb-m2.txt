@@ -1,0 +1,14 @@
+ExecBatteryArms r91-w1 — able-to-fail proof for manifest row mb-m2-g1-commit-check-skipped.
+
+Mutant: r90 MutTesterBattery harness literal replacement on the FINAL bytes
+  old: '    if rc != 0 or out.decode().strip() != rev:\n        raise CouldNotEvaluate("G1: %s is not a commit'
+  new: '    if False:\n        raise CouldNotEvaluate("G1: %s is not a commit'
+(one match; mutant compiles). Self-test of the mutated battery run standalone (TMPDIR=<scratch>):
+
+FAIL G1 commit check: the refusal says the revision is not a commit :: could-not-evaluate: G1: git show ffffffffffffffffffffffffffffffffffffffff:verifiers/fixtures/mutation-battery/manifest.tsv failed
+1 failure(s) over 25 assertions
+rc=1 duration=2.7s
+
+The G1-commit arm flips red when the commit-check guard is disabled (the disabled guard lets the run
+reach the git-show failure, whose message no longer contains "is not a commit"). Red = the mutant is
+killed by the bat-self-test probe (exit 1 + FAIL line vs baseline exit 0 clean tally).

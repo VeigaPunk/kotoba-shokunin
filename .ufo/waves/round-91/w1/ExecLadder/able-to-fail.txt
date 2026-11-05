@@ -1,0 +1,50 @@
+# ExecLadder receipts — able-to-fail (leg B c), battery anchors, and the floors coupling
+# Clones: scratch only (/fast/scratch/hyaku/kotoba-r91/ExecLadder/). Lane not written.
+
+## (1) Revert world: patched file with line 260 restored to `except OSError as exc:`; floor row 31 in scratch
+$ cd repo-revert && python3 -B verifiers/check_freeze_gate.py --self-test
+FAIL arm plan-not-utf8 could-not-evaluate: unexpected UnicodeDecodeError('utf-8', b'## Controls\n- control x: echo x\n  expect: exit 0; stdout contains x\n\xff\xfe\n', 68, 69, 'invalid start byte')
+1 failure(s) over 31 assertions
+rc=1
+
+$ cd repo-revert && python3 -B verifiers/check_freeze_gate.py --plan probes/nonutf8.md
+Traceback (most recent call last):
+  ...
+UnicodeDecodeError: 'utf-8' codec can't decode byte 0xff in position 69: invalid start byte
+rc=1
+
+## (2) Patched file, floor row 31 in scratch: the shipped gate
+$ cd repo && python3 -B verifiers/check_freeze_gate.py --self-test
+0 failure(s) over 31 assertions
+rc=0
+(also in: selftest-patched-scratch-floor31.txt, from a fresh apply of the patch to the freeze base)
+
+$ cd repo && python3 -B verifiers/check_freeze_gate.py --plan probes/nonutf8.md
+COULD-NOT-EVALUATE: cannot read plan .../probes/nonutf8.md: 'utf-8' codec can't decode byte 0xff in position 69: invalid start byte
+rc=2
+
+## (3) Patched file, floor row still 30 (the shipped registry): the coupled arm is red — this is why the floor bump must land with the patch
+$ cd repo (floors-registry.json restored to 30) && python3 -B verifiers/check_freeze_gate.py --self-test
+FAIL arm floors-row freeze_gate (path + floor == assertion count): freeze_gate floor 30 != self-test assertion count 31
+1 failure(s) over 31 assertions
+rc=1
+
+## (4) Battery anchors: the eight fg-* manifest rows targeting verifiers/check_freeze_gate.py, applied as
+##     re.findall(anchor, final_bytes) on the patched file (manifest not edited)
+fg-m1-expect-exit-sign-flip anchor-count=1 OK
+fg-m1b-expect-stdout-sign-flip anchor-count=1 OK
+fg-m2-control-skip-w_added_red anchor-count=1 OK
+fg-m2b-control-skip-last anchor-count=1 OK
+fg-m3-ladder-refusal-to-2 anchor-count=1 OK
+fg-m3b-ladder-eval-to-1 anchor-count=1 OK
+fg-m4-parse-drop-stdout-clause anchor-count=1 OK
+fg-x1-parse-drop-exit-clause anchor-count=1 OK
+
+## (5) Diff of the touched bytes (git diff --binary 9af1a7af… -- verifiers/check_freeze_gate.py)
+@@ -257,7 +257,7 @@ def run_gate(...)
+-    except OSError as exc:
++    except (OSError, UnicodeError) as exc:
+@@ -362,6 +362,12 @@ def self_test(out):
++    def arm_plan_not_utf8():  (5 body lines; lines 365-369 of the patched file)
+@@ -519,6 +525,7 @@ def self_test(out):
++        ("arm plan-not-utf8 could-not-evaluate", arm_plan_not_utf8),

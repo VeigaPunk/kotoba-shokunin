@@ -24,6 +24,9 @@ never the working tree. G2 copy integrity: each revision copy and each mutant is
 disk and its sha256 must equal the sha256 recorded from the revision bytes. G3 registry presence:
 `git show <rev>:SKILL.md` names check_mutation_battery.py on at least one line. --allow-unregistered
 (a pre-registry opt-in, not part of the frozen predicate) reports G3 without letting it decide the exit.
+Since round-91 C1 the probe set also covers the battery's own `--self-test`, whose G1 commit-check,
+G1 clean-tree and G2 restore read-back self-test arms are the kill channel for the battery-guard
+manifest rows (mb-m2, mb-m15, mb-m16).
 
 Exit ladder: 0 pass, 1 content fail, 2 could-not-evaluate (a guard trips, an anchor no longer
 matches the revision bytes, or a probe baseline does not hold). --self-test prints
@@ -52,6 +55,7 @@ SKILL = "SKILL.md"
 BATTERY = "check_mutation_battery.py"
 FG = "verifiers/check_freeze_gate.py"
 D5 = "verifiers/check_r86_routed_repairs_v3.py"
+BAT = "verifiers/check_mutation_battery.py"
 SYMLINK_PROBE = ".ufo/reports/round-76/kotoba.md"   # the d5 gate's Q79 location-class probe
 PROBE_TIMEOUT = 120
 CLASSES = ("kill", "equivalent", "survivor")
@@ -61,13 +65,15 @@ COMMENT_MARK = "# battery-equivalence: comment-insert"
 DOCSTRING_MARK = " [battery-reword]"
 LINE_FMT = ("mutation battery killed %d of %d kill-set; equivalents survived %d of %d; "
             "disclosed survivors %d of %d")
-# target -> ((label, argv, declared baseline exit or None), ...); the frozen probe set (§ C1)
+# target -> ((label, argv, declared baseline exit or None), ...); the frozen probe set (§ C1;
+# round-91 C1 adds the battery's own self-test as the third probe target)
 PROBES = {
     FG: (("fg-self-test", ["--self-test"], 0),
          ("fg-fixed-plan", ["--plan", "verifiers/fixtures/freeze-gate/r88-controls-fixed.md"], 0),
          ("fg-unsat-plan", ["--plan", "verifiers/fixtures/freeze-gate/r88-controls.md"], 1)),
     D5: (("d5-self-test", ["--self-test"], None),
          ("d5-base-receipt", ["--base-receipt", ".ufo/waves/round-89/receipts/d5v3-base-receipt.json"], None)),
+    BAT: (("bat-self-test", ["--self-test"], 0),),
 }
 # a probe output line carrying one of these is run-specific and is not part of the observation
 RUN_SPECIFIC = re.compile(r"\b[0-9a-f]{12,}\b")
@@ -480,6 +486,15 @@ FX_D5_LINECOUNT = FX_D5.replace(
     'print("source lines", len(open(__file__).read().splitlines()))\n'
     'print("r86 routed defects closed 4 of 5")')
 
+FX_BAT = '''"""Stub mutation battery for the mutation-battery self-test."""
+import sys
+
+if "--self-test" in sys.argv:
+    print("0 failure(s) over 4 assertions")
+    sys.exit(0)
+sys.exit(2)
+'''
+
 SKILL_WITH = "# fixture skill\n\nRegistry: `verifiers/check_mutation_battery.py` | gate\n"
 SKILL_WITHOUT = "# fixture skill\n"
 
@@ -523,19 +538,22 @@ FX_KILL_D5_EXIT = ("fx-k9-d5-receipt-exit", D5, "kill",
                    _edit(r'print\("instance drift 4"\)\nsys\.exit\(1\)',
                          'print("instance drift 4")\nsys.exit(0)'),
                    "fixture: the base-receipt probe exit flips 1 -> 0")
+FX_KILL_BAT = ("fx-k10-bat-selftest-count", BAT, "kill",
+               _edit(r"over 4 assertions", "over 9 assertions"),
+               "fixture: the battery stub's self-test tally flips")
 
 
 def _eq_rows() -> list[tuple]:
     return [("eq-%s-%s" % (tag, kind), target, "equivalent",
              {"op": "rewrite", "kind": kind},
              "generated at measurement time: %s at every eligible site" % kind)
-            for tag, target in (("fg", FG), ("d5", D5)) for kind in EQ_KINDS]
+            for tag, target in (("fg", FG), ("d5", D5), ("bat", BAT)) for kind in EQ_KINDS]
 
 
 def _satisfying_rows() -> list[tuple]:
     return [FX_KILL_FG, FX_KILL_STDOUT, FX_KILL_D5, FX_SURVIVOR,
             FX_KILL_REFUSED, FX_KILL_FG_COUNT, FX_KILL_D5_COUNT, FX_KILL_D5_CLOSED,
-            FX_KILL_D5_EXIT] + _eq_rows()
+            FX_KILL_D5_EXIT, FX_KILL_BAT] + _eq_rows()
 
 
 def _manifest_text(rows: list[tuple]) -> str:
@@ -557,7 +575,7 @@ def build_fixture(root: Path, name: str, rows: list[tuple], skill: str,
     repo = root / name
     repo.mkdir(parents=True)
     _git_fixture(repo, "init", "-q")
-    files = {FG: fg_text, D5: d5_text, MANIFEST: _manifest_text(rows), SKILL: skill}
+    files = {FG: fg_text, D5: d5_text, BAT: FX_BAT, MANIFEST: _manifest_text(rows), SKILL: skill}
     for rel, text in files.items():
         path = repo / rel
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -598,13 +616,13 @@ class _Tally:
 
 
 def self_test() -> int:
-    global write_target
+    global write_target, git, place
     t = _Tally()
     root = Path(tempfile.mkdtemp(prefix="mutation-battery-selftest-"))
     try:
-        line_ok = LINE_FMT % (8, 8, 6, 6, 1, 1)
-        line_broken = LINE_FMT % (8, 9, 6, 6, 1, 1)
-        line_eq = LINE_FMT % (8, 8, 5, 6, 1, 1)
+        line_ok = LINE_FMT % (9, 9, 9, 9, 1, 1)
+        line_broken = LINE_FMT % (9, 10, 9, 9, 1, 1)
+        line_eq = LINE_FMT % (9, 9, 8, 9, 1, 1)
 
         ok = build_fixture(root, "ok", _satisfying_rows(), SKILL_WITH)
         rc, out = run_main(ok, head(ok), root / "w-ok")
@@ -624,7 +642,7 @@ def self_test() -> int:
         rc, out = run_main(broken, head(broken), root / "w-broken")
         t.check("broken conjunct K == M: a kill-class row that no probe flips exits 1",
                 rc == 1, out)
-        t.check("broken conjunct K == M: the line reads killed 3 of 4",
+        t.check("broken conjunct K == M: the line reads killed 9 of 10",
                 line_broken in out.splitlines(), out)
 
         rc, out = run_main(ok, head(ok)[:12], root / "w-short")
@@ -632,6 +650,43 @@ def self_test() -> int:
                 rc == 2, out)
         t.check("G1 revision identity: the refusal names G1",
                 "G1" in out, out)
+
+        rc, out = run_main(ok, "f" * 40, root / "w-g1commit")
+        t.check("G1 commit check: a full-hex --rev that is not a commit exits 2", rc == 2, out)
+        t.check("G1 commit check: the refusal says the revision is not a commit",
+                "is not a commit" in out, out)
+
+        real_git = git
+
+        def dirty_status(repo, *args):
+            if args == ("status", "--porcelain") and "fleet" in repo.parts:
+                return (0, b" M verifiers/ghost.py\n")
+            return real_git(repo, *args)
+
+        git = dirty_status
+        try:
+            rc, out = run_main(ok, head(ok), root / "w-dirtyclone")
+        finally:
+            git = real_git
+        t.check("G1 clean-tree guard: a dirtied scratch clone exits 2", rc == 2, out)
+        t.check("G1 clean-tree guard: the refusal says the scratch clone is not clean at --rev",
+                "not clean" in out, out)
+
+        real_place = place
+
+        def tampered_restore(path, data, expect, label):
+            payload = data + b"\n# restore-tamper\n" if label.startswith("restore ") else data
+            real_place(path, payload, expect, label)
+
+        place = tampered_restore
+        try:
+            rc, out = run_main(ok, head(ok), root / "w-restore")
+        finally:
+            place = real_place
+        t.check("G2 restore read-back: a tampered revision restore after a mutant exits 2",
+                rc == 2, out)
+        t.check("G2 restore read-back: the refusal names G2 copy integrity on the restore copy",
+                "G2 copy integrity" in out and "restore" in out, out)
 
         real_write = write_target
 

@@ -1,0 +1,16 @@
+ReviewerBattery r91-w1 — G1 independence of the new arms (no working-tree reads)
+(1) grep of the added arm code (self_test() region added by the patch): no open(/read_bytes/
+    read_text at all; the only such patterns in the file are pre-existing:
+    line 253 `got = sha256(path.read_bytes())` inside place() — G2 read-back of SCRATCH copies;
+    line 486 inside the FX_D5_LINECOUNT fixture stub string (fixture reads its own __file__).
+    No new arm reads the lane path or any working tree; the dirty_status/tampered_restore
+    interceptions are in-memory monkeypatches over git()/place().
+(2) Behavioral proof (rev-scoped reading):
+    working tree sabotaged: manifest.tsv <- "GARBAGE\tNOT\tTSV\n"; battery appended
+    "# worktree-only contradiction line"; git status shows both M.
+    run: python3 -B verifiers/check_mutation_battery.py --rev 5edb26f8... --work <scratch>/dirtyprobe
+    observed: mutation battery killed 17 of 17 kill-set; equivalents survived 6 of 6; disclosed survivors 0 of 0
+    rc=0  (the garbage working-tree manifest is NOT read; verdict entirely from --rev bytes)
+    restore from pristine copies: cmp vs `git show 5edb26f8...:<path>` — bat-identical, manifest-identical.
+    clean re-run at the same rev: rc=0, 17/17 line again; targets byte-identical after the run
+    (battery restores what it mutates).

@@ -1,0 +1,349 @@
+diff --git c/corpus/SOURCES.md i/corpus/SOURCES.md
+index 4e0efdd..540b31e 100644
+--- c/corpus/SOURCES.md
++++ i/corpus/SOURCES.md
+@@ -200,6 +200,9 @@ for a source the row's author opened this round; access evidence lives in
+ | S259 | own-work — corpus/lessons/round-88-verifier-spotcheck.md @ a5b3b15c00b1de5db321e4226a0a7db17340e605 (git show a5b3b15c00b1de5db321e4226a0a7db17340e605:corpus/lessons/round-88-verifier-spotcheck.md; sha256 236aa5172442fc7d5dbb860c59997f339883be82a9647b188f1bb84298215cfd) | own-work | A | the round-88 spot-check's routed defects 3 and 4 (the freeze-gate requirement and the instance-level D5 successor requirement) as recorded at that revision | §Routed defects, item 3 at line 73 and item 4 at line 74 of the revision | the requirement record for C1 and C2 already exists in the corpus; this round mechanizes it | mined | 2026-11-05 | on-release | corpus/knowledge/freeze-gate-round89.md, corpus/knowledge/instance-d5-round89.md |
+ | S260 | Stryker Mutator documentation — "Mutant states and metrics" — https://stryker-mutator.io/docs/mutation-testing-elements/mutant-states-and-metrics/ | docs | A | the mutation-testing vocabulary and metric definitions as the mutation-testing tool's own documentation states them (killed / survived / mutation score / equivalent mutant) — not this lane's battery mechanics | § Mutant states: Killed (HTML line 12), Survived (HTML line 14); § Metrics: Mutation score (HTML line 51, the formula `detected / valid * 100`) and its definition (HTML line 52); sibling page "Equivalent mutants" § Equivalent mutants (HTML line 16); pages fetched 2026-11-05 (HTTP 200; 27068 B and 38687 B; titles "Mutant states and metrics" and "Equivalent mutants", both on the Stryker Mutator doc set) | a mutant is killed when at least one test fails with it active and survived when all tests pass, and a mutant no test can distinguish from the original is an equivalent mutant — so "equivalents survived E of E" is a property of the mutants the battery generated, and the score ceiling sits below 100 percent by exactly the equivalent-class count | mined | 2026-11-05 | 90d | corpus/knowledge/mutation-battery-round90.md |
+ | S261 | own-work — `git show 0c20d8ab65587aee0e97b7d14c801ae6dc44c2e5:.ufo/waves/round-89/w1/MutTesterGates/mutants.tsv` | own-work | A | the round-89 mutant matrix record — which mutants of the two round-89 gate instruments were killed and which survived, with the exit flip that decided each row | the committed matrix at revision 0c20d8ab65587aee0e97b7d14c801ae6dc44c2e5 (sha256 bba3a5c0506274df8099beed7950af92805e80ac3459d5cd4ac1341de362e1cc): 14 rows over two instruments (8 freeze-gate, 6 D5 v3), each row carrying the observed exit before and after the mutation; 13 rows killed and 1 row recorded SURVIVED (d5-m1a-d5iii-leg-only); read 2026-11-05 | the matrix is the prior round's own evidence for the battery's three classes: it shows a kill set, a recorded survivor and per-row exit flips, so the round-90 manifest's classes are ported from a measured matrix rather than asserted, and the one recorded survivor is the row the round-90 battery re-measures at the final bytes | mined | 2026-11-05 | on-release | corpus/knowledge/mutation-battery-round90.md |
++| S262 | PIT (pitest) documentation — "Basic concepts" — https://pitest.org/quickstart/basic_concepts | docs | A | the mutation-testing outcome vocabulary and the notion of an equivalent mutation as the mutation-testing tool PIT's own maintainer documentation states them (Killed / Survived / No coverage / Non viable / Timed Out / Memory error / Run error, and the two grounds of equivalence) — not this lane's battery mechanics and not a mutation-score formula | § Equivalent Mutations (HTML lines 122-123) and § Running the tests (HTML lines 175 and 177); the page's own upstream source file quickstart/basic_concepts.markdown in hcoles/pitest-site (branch gh-pages) at commit e8995cd59e3c, where the same strings are quote-equal at markdown lines 59-60, 107 and 109; fetched 2026-11-05, HTTP 200, 12155 B; located quote "not all mutations will behave differently than the unmutated class. These mutants are referred to as equivalent mutations." (18 words) | a survivor is not automatically a test-suite weakness: PIT separates Killed, Survived and No coverage as three different outcomes and names equivalence as a reason a mutant can survive by construction, so a two-sided measure can require every semantics-preserving equivalent to survive without charging that survival as a defect | mined | 2026-11-05 | on-release | corpus/knowledge/mutation-battery-arms-round91.md, corpus/lessons/round-91.md |
++| S263 | Python documentation — subprocess — https://docs.python.org/3/library/subprocess.html | docs | A | what subprocess does when a child does not exit within timeout seconds — the run() contract (the child is killed and waited for, then TimeoutExpired is re-raised) against the Popen.communicate() contract (the child is not killed) — the two differ, and the lane's floors guard calls subprocess.run(..., timeout=cap), so the run() contract is the one that binds it | § Using the subprocess Module, definition-list entry subprocess.run (HTML line 270), timeout paragraph at HTML lines 288-292; contrast entry subprocess.Popen.communicate at HTML line 1042; page footer "Last updated on Nov 05, 2026 (12:47 UTC)" at HTML line 2037; fetched 2026-11-05, HTTP 200, 208648 B; located quote "If the timeout expires, the child process will be killed and waited for. The TimeoutExpired exception will be re-raised after the child process has terminated." (25 words) | a timeout on subprocess.run() is a kill-and-wait contract, not an abandon: the child is killed and reaped before TimeoutExpired is raised, so a guard that catches TimeoutExpired can report a timeout without leaking an orphan child — while Popen.communicate(timeout=...) alone leaves the child running, so the two APIs are not interchangeable for a timeout gate | mined | 2026-11-05 | 365d | corpus/knowledge/timeout-calibration-round91.md, corpus/lessons/round-91.md |
++| S264 | Wikipedia — "Mutation testing" — https://en.wikipedia.org/wiki/Mutation_testing | community | C | whether a crowd-editable tertiary page can ground the mutation-testing vocabulary and the mutation-score denominator this round's two-sided rule rests on | § Mutation score, the article's own sentence at text line 96 "the mutation score is the number of mutants killed / total number of mutants" (14 words); § Equivalent mutants, the sentence at text line 125 "Such mutants are called equivalent mutants"; page revision wgCurRevisionId 1373580212, "This page was last edited on 6 September 2026, at 19:05"; fetched 2026-11-05, HTTP 200, 170845 B | REJECTED: crowd-editable tertiary text is a lead, never support for a tier-A-scoped claim, and its score formula counts equivalent mutants in the denominator — the opposite convention from the two-sided rule (Q47) this round's C1 rests on, so an equivalent mutant that survives by construction is charged as a score defect; flip: re-open as a lead-only row if a future claim needs plain-language orientation to the equivalent-mutant notion and no primary source states it directly, or if the article is revised so its score formula excludes equivalent mutants from the denominator and cites a primary source for that exclusion | rejected | 2026-11-05 | 180d | corpus/lessons/round-91.md |
+ 
+ ## Paths
+ 
+diff --git c/corpus/knowledge/mutation-battery-arms-round91.md i/corpus/knowledge/mutation-battery-arms-round91.md
+new file mode 100644
+index 0000000..8994719
+--- /dev/null
++++ i/corpus/knowledge/mutation-battery-arms-round91.md
+@@ -0,0 +1,104 @@
++source: S262 (PIT (pitest) documentation — "Basic concepts" — https://pitest.org/quickstart/basic_concepts — § Equivalent Mutations, HTML lines 120-146; § Running the tests, HTML lines 154-179; the page's own upstream source file quickstart/basic_concepts.markdown in hcoles/pitest-site (branch gh-pages) at revision e8995cd59e3c, where all three located quotes are quote-equal at markdown lines 59-60, 107 and 109; fetched 2026-11-05) and S261 (own-work — the round-89 mutant matrix `git show 0c20d8ab65587aee0e97b7d14c801ae6dc44c2e5:.ufo/waves/round-89/w1/MutTesterGates/mutants.tsv`, sha256 bba3a5c0506274df8099beed7950af92805e80ac3459d5cd4ac1341de362e1cc)
++verified-at: 2026-11-05 @ base 9af1a7af2adf0ab07cfd53f92affc1ed8d992262 (the round-91 freeze commit; at that revision the battery's own self-test reads `0 failure(s) over 19 assertions` and the committed manifest carries 14 kill rows and 6 equivalent rows — `.ufo/waves/round-91/receipts/base-battery-manifest.txt` reads 14 / 6)
++recheck: python3 -B verifiers/check_mutation_battery.py --rev <landing-rev> --work <scratch-dir> (expect exactly `mutation battery killed 17 of 17 kill-set; equivalents survived 6 of 6; disclosed survivors 0 of 0`, exit 0, with the G1/G2/G3 guard lines PASS) and python3 -B verifiers/check_mutation_battery.py --self-test (expect `0 failure(s) over N assertions` with N >= 22, exit 0) — the frozen predicate of plans/round-91.md § C1
++
++# Mutation battery (round 91 C1): three new self-test arms guard the battery's own G1/G2 code paths
++
++## What the instrument is at the base
++
++`verifiers/check_mutation_battery.py` reads three committed inputs at `--rev` — the gates it probes
++(`verifiers/check_freeze_gate.py`, `verifiers/check_r86_routed_repairs_v3.py`), its manifest
++`verifiers/fixtures/mutation-battery/manifest.tsv`, and its own registry row in `SKILL.md` — and
++prints
++
++    mutation battery killed K of M kill-set; equivalents survived E of E; disclosed survivors S of S
++
++exiting 0 iff `K == M`, `E == E`, `S == S_declared` and guards G1-G3 pass. The three guards it
++protects are the battery's own:
++
++- **G1 revision identity** — `--rev` must be a full 40-hex commit of the lane; the scratch clone is
++  checked out detached at that revision; every target and the manifest are read through
++  `git show <rev>:<path>`, never the working tree; and the scratch clone must be clean
++  (`git status --porcelain` must be empty).
++- **G2 copy integrity** — every revision copy and every mutant is written and then read back from
++  disk, and the sha256 read back must equal the sha256 recorded from the revision bytes.
++- **G3 registry presence** — `git show <rev>:SKILL.md` names `check_mutation_battery.py` on at least
++  one line.
++
++The kill rule is a baseline flip, not a verdict: each target's probes run unmodified first, and a
++kill-class mutant is killed only when some probe's exit code or result-bearing output differs from
++that observed baseline. A probe timeout counts as a flip.
++
++## The three new guard arms (round-91 C1)
++
++At the base the battery's own self-test had no arm for its own guards, and the round-90 mutant
++matrix showed why: the three battery-guard mutants `mb-m2` (G1 commit-check skipped), `mb-m15` (G1
++clean-tree guard off) and `mb-m16` (revision-copy restore not re-read after each mutant) survived
++because no self-test arm exercised those paths. C1 adds one arm per guard path, each of which is
++red when its guard is disabled — the arms *are* the kill channel for the three new manifest rows:
++
++1. **G1 commit check.** A full-hex `--rev` that is not a commit of the lane must exit 2 and the
++   refusal must say the revision is not a commit. This is the arm that kills `mb-m2`: with the
++   commit check disabled, the battery proceeds with a revision that does not exist and the arm's
++   world reads a different exit.
++2. **G1 clean-tree guard.** A scratch clone whose working tree is dirtied must exit 2 with a
++   refusal that says the scratch clone is not clean at `--rev`. This is the arm that kills
++   `mb-m15`: with the clean-tree check off, a dirty scratch clone is measured as if it were the
++   revision.
++3. **G2 restore read-back.** A revision copy that is tampered with on restore after a mutant must
++   exit 2, and the refusal must name G2 copy integrity on the restore copy. This is the arm that
++   kills `mb-m16`: with the restore not re-read, the next mutant is applied to bytes that are not
++   the revision's, and the copy-integrity read-back is what catches it.
++
++To make those arms reachable, the frozen probe set gains a third target: the battery's own
++`verifiers/check_mutation_battery.py`, probed with `--self-test` and a declared baseline exit of 0.
++The manifest's target set therefore has to equal the probe set's keys, and the three new kill rows
++target the battery itself. The three recipes are anchored regex edits against the battery's own
++revision bytes, ported from the round-90 harness with the anchors re-verified against the final
++bytes.
++
++## The two-sided rule (Q47) and why the equivalents stay generated
++
++The measure is not a kill rate. **Every** declared kill-class row must be killed **and** every
++generated equivalent must survive. The equivalent class is *generated at measurement time*: for a
++target, the rewrite kinds (`comment-insert`, `docstring-reword`, `trailing-whitespace`) are applied
++at every eligible site of the target's revision bytes — the eligible sites come from the AST and
++from tokenize over those bytes, not from a published list of sites. A published fixed list would
++be a label a self-test could key on, so the set stays generated and the measure stays a claim
++rather than a record.
++
++S262 is the external ground for why requiring the equivalents to survive is not charging the test
++suite for a defect: the mutation-testing tool's own documentation separates **Killed**,
++**Survived** and **No coverage** as three different outcomes and names *equivalence* — a mutant
++that behaves exactly as the unmutated class, or differently only outside the scope of testing — as
++a reason a mutant survives by construction. A survivor is therefore not automatically a
++weakness of the tests, and the two-sided rule can hold both halves without contradiction.
++
++## Bounds (what this measure does not prove)
++
++1. **The equivalence leg is over the three declared rewrite kinds on the two round-89 gate targets
++   only.** It is not a general equivalence oracle. In the C1 manifest the battery's own target
++   contributes kill rows and no equivalent row, so the battery's own bytes are not
++   equivalence-checked by the committed manifest.
++2. **The kill rule is a baseline flip.** A mutant is killed when a probe's exit code or
++   result-bearing output differs from the observed baseline; that is evidence the mutant changed
++   what the probe measures, not a claim that the mutant is semantically wrong.
++3. **The minimum pins are floors, not coverage.** `M >= 8` and `E >= 4` stop an empty or trivial
++   manifest from satisfying the equalities; they do not establish that the declared rows cover the
++   targets, and the kill-set is bounded to the rows the manifest declares.
++4. **Anchors are revision-bound.** A recipe whose anchor is absent from the measured bytes is
++   could-not-evaluate (exit 2), never skipped.
++5. **The d5 baseline is path-dependent (Q79).** The base-receipt probe reads at the round base, so
++   a kill there is a flip from the observed value, not from a fixed expectation.
++6. **The three new arms are self-test arms and they cover three specific regressions.** They
++   exercise the battery's G1 commit check, its G1 clean-tree check and its G2 restore read-back.
++   They do not enumerate every way those guards could be weakened; the manifest's rows are the
++   bounded set the measure scores.
++7. **G3 is registry presence only.** It checks that `SKILL.md` names the battery on at least one
++   line; it does not check what that line says.
++
++## Reviewer-judged parts
++
++The manifest's class assignment per row, the sufficiency of the probe set, and the disposition of
++the three battery-guard mutants are named non-author seats' calls in the round-91 wave
++(`ReviewerBattery`, `MutTesterBattery`); they are not measured here.
+diff --git c/corpus/knowledge/timeout-calibration-round91.md i/corpus/knowledge/timeout-calibration-round91.md
+new file mode 100644
+index 0000000..9a48493
+--- /dev/null
++++ i/corpus/knowledge/timeout-calibration-round91.md
+@@ -0,0 +1,86 @@
++source: S263 (Python documentation — subprocess — https://docs.python.org/3/library/subprocess.html — § Using the subprocess Module, definition-list entry `subprocess.run` (HTML line 270), timeout paragraph at HTML lines 288-292; contrast entry `subprocess.Popen.communicate` at HTML line 1042; page footer "Last updated on Nov 05, 2026 (12:47 UTC)" at HTML line 2037; fetched 2026-11-05) and the own-work receipt `.ufo/waves/round-91/receipts/harness-selftest-duration.txt` (the round-91 standalone measurement of `verify_harness_independent.py --self-test`: wall-seconds 160.2, exit 0, `0 failure(s) over 123 assertions`, 1-minute loadavg 2.73 at start and 3.16 at end, measured against revision 9264baaa823cdae3d009a4004e014639551e016f)
++verified-at: 2026-11-05 @ base 9af1a7af2adf0ab07cfd53f92affc1ed8d992262 (the round-91 freeze commit, which carries the measurement receipt; the receipt names its own measured revision, 9264baaa823cdae3d009a4004e014639551e016f, which is the round base)
++recheck: grep -n '^SELF_TEST_TIMEOUT_S = ' verifiers/check_assertion_floors.py (expect `SELF_TEST_TIMEOUT_S = 360`) and python3 -B verifiers/check_assertion_floors.py --self-test (expect `0 failure(s) over N assertions`, exit 0) and python3 -B verifiers/check_tip_battery.py --rev <landing-rev> (expect `guards 5 of 5; tip battery exit 0: 3 of 6`) — the frozen predicate of plans/round-91.md § C2 leg A
++
++# Timeout calibration (round 91 C2 leg A): a measured child duration and a cap derived from it
++
++## What the guard is and what the cap is
++
++`verifiers/check_assertion_floors.py` reruns every registered instrument's `--self-test` and FAILs
++when the observed assertion count is below the recorded floor. Each child self-test runs under a
++per-child cap: the base `--self-test-timeout` seconds scaled by the host's 1-minute runnable count
++(`child_timeout_s`), clamped at `SELF_TEST_TIMEOUT_MAX_SCALE` times the base. The base at the
++round-91 freeze commit was `SELF_TEST_TIMEOUT_S = 120`.
++
++Two things about that cap matter for the round:
++
++1. **A too-tight cap is a false red, a too-generous cap is only a delayed report.** A child that is
++   merely slow under fleet load is read by a tight cap as a hang (`exit 2`, "could-not-evaluate"),
++   which is indistinguishable from a genuinely hung child. A generous cap only postpones the report
++   of a real hang.
++2. **The scale factor cannot rescue the idle case.** At load factor 1 (an idle host, or the
++   `--load 1` probe affordance) the cap equals the base exactly.
++
++## The Q39 calibration arithmetic
++
++Q39 requires a nested self-test timeout to be calibrated against a *measured* duration with
++declared headroom, and to record the host load and the elapsed wall time, so that an unannotated
++timeout cannot be read as either a hang or a slow-but-healthy child. The round-91 calibration is
++three steps, all from the committed receipt:
++
++1. **Measured:** `verify_harness_independent.py --self-test` run standalone measured
++   **160.2 s** wall, exit 0, `0 failure(s) over 123 assertions` (`.ufo/waves/round-91/receipts/
++   harness-selftest-duration.txt`; the receipt names its measured revision
++   `9264baaa823cdae3d009a4004e014639551e016f`).
++2. **Doubled:** `160.2 x 2 = 320.4 s` of headroom over the measured child.
++3. **Rounded up to the 60 s grid:** `320.4 -> 360`, so the shipped base is
++   **`SELF_TEST_TIMEOUT_S = 360`**.
++
++At the old base of 120 s the idle-host cap was below the measured standalone duration of that
++child: a healthy tree could be read as a hang. At 360 the same child has more than twice its
++measured standalone runtime of headroom at load factor 1, and still more under load.
++
++**The MEASURED constant.** The measurement is also pinned in the file, so the cap and its
++justification cannot drift apart: a new constant `MEASURED_SELFTEST_S = 161` (the ceiling of the
++measured 160.2 s) cites the receipt, and a new floors-guard self-test arm asserts
++`SELF_TEST_TIMEOUT_S >= 2 * MEASURED_SELFTEST_S`. Lowering the cap reds the arm; lowering the
++measured side reds a second arm that pins the measured constant to its receipt value, so the two
++sides must be edited together and a re-measurement cannot silently become the new premise.
++
++**The timeout contract (S263).** The cap is only meaningful against the API it wraps, and the two
++`subprocess` timeout APIs differ. `subprocess.run(..., timeout=cap)` is a kill-and-wait contract:
++on expiry the child is killed and waited for, and `TimeoutExpired` is raised after the child has
++terminated. The lane's floors guard calls `subprocess.run` with `timeout=cap` for every child
++self-test, so a child that overruns its cap is killed and reaped before the guard reads
++`TimeoutExpired` — a timeout report does not leak an orphan child. `Popen.communicate(timeout=…)`
++is the opposite contract (the child is not killed on expiry), so it is not interchangeable for a
++timeout gate; this is why the row's scope names the `run()` contract as the one that binds.
++
++## Bounds (what this calibration does not establish)
++
++1. **One host, one measurement.** The 160.2 s figure is a single sample taken on this Linux host on
++   2026-11-05 under fleet load (1-minute loadavg 2.73 at the start, 3.16 at the end), not an
++   idle-host sample and not a distribution. It bounds the child as observed, not the child's worst
++   case on a busier or slower machine.
++2. **One instrument.** The measurement covers `verify_harness_independent.py --self-test` alone.
++   The other registered instruments' self-tests were not re-measured this round, so the calibration
++   is grounded on the slowest measured child, not on a measured maximum over the whole set.
++3. **The base is a floor on the cap, not the cap itself.** `child_timeout_s` scales the base by
++   the host's 1-minute runnable count, so 360 s is the cap at load factor 1; under load the
++   effective cap is larger, and at the measurement's own load of 2.73 the *old* 120 s base would
++   have scaled to about 328 s — which is why the measured run did not itself hit the old cap, and
++   why the idle-host case is the one the arithmetic must cover.
++4. **The doubling and the 60 s grid are calibration policy, not measurement.** 160.2 s is
++   measured; the factor 2 and the grid are chosen margins. Only the measured side is evidence.
++5. **The cap also bounds the guard's own inner fixture subprocesses.** The same constant is the
++   timeout for the guard's self-test worlds, so the shipped base widens those fixture backstops
++   too. That is a longer hang backstop, not a false-green path.
++6. **The able-to-fail arms exercise the cap through the guard's own seam** (the
++   `--self-test-timeout` / `--load` affordance in hermetic stub worlds), not against a real hung
++   child on this host.
++
++## Reviewer-judged parts
++
++Whether the headroom factor and the grid are the right margins, and whether one measured child is
++the right calibration target, are named non-author seats' calls in the round-91 wave; they are not
++measured here.
+diff --git c/corpus/lessons/round-91.md i/corpus/lessons/round-91.md
+new file mode 100644
+index 0000000..5bfb83e
+--- /dev/null
++++ i/corpus/lessons/round-91.md
+@@ -0,0 +1,127 @@
++# Round 91 — kotoba (Linux host, omp 18.15.0): lesson
++
++Author: **ScribeCorpus** (scribe seat). This file is the round-91 **scaffold**: the Gate record, the
++Mistakes row and the Considerthese entry below are written; **the L1 completes the settlement** (the
++seat record, the claim verdicts, the wave disposition and the final numbers).
++Round: 91, plan `plans/round-91.md` (frozen at `9af1a7af2adf0ab07cfd53f92affc1ed8d992262`), base
++`9264baaa823cdae3d009a4004e014639551e016f`.
++Pre-data controls: `plans/round-91-controls.md`, executed before any candidate score — receipt
++`.ufo/waves/round-91/receipts/freeze-gate-r91.txt` (`freeze gate: 4 control(s) held — freeze may
++proceed`, exit 0).
++
++## Gate
++
++Candidates considered, with the decision and the reason:
++
++- **S262** — PIT (pitest) documentation, "Basic concepts"
++  (`https://pitest.org/quickstart/basic_concepts`). **Admitted** as tier A, scoped to *the
++  mutation-testing outcome vocabulary and the notion of an equivalent mutation as the
++  mutation-testing tool PIT's own maintainer documentation states them* — not this lane's battery
++  mechanics and not a mutation-score formula. Access date 2026-11-05; HTTP 200; 12155 B; page title
++  "Basic concepts"; the page's own upstream source file
++  `quickstart/basic_concepts.markdown` in `hcoles/pitest-site` (branch `gh-pages`) at revision
++  `e8995cd59e3c` carries the same sentences, so the quotes are quote-equal in the file's own bytes
++  (markdown lines 59-60, 107 and 109), not only in the rendered page. Located quote (§ Equivalent
++  Mutations, HTML lines 122-123, 18 words): "not all mutations will behave differently than the
++  unmutated class. These mutants are referred to as equivalent mutations." Second located quote
++  (§ Running the tests, HTML line 175, 8 words): "Killed means a test caught the mutation
++  successfully." Third (HTML line 177, 11 words): "Survived means the mutation was not detected by
++  the covering test." Row written to `corpus/SOURCES.md`; cited by
++  `corpus/knowledge/mutation-battery-arms-round91.md`.
++  - **Why this row and not Stryker's page (S260) again** — S260 already carries the killed/survived
++    vocabulary and the mutation-score formula at tier A. S262 is a *second tool's* maintainer
++    documentation and adds two things S260 does not state in that form: the third outcome state
++    (`No coverage`, distinct from `Survived`) and the *two named grounds of equivalence* (behaves
++    exactly as the original; behaves differently only outside the scope of testing). The second
++    ground is what makes the two-sided rule (Q47) well founded, so S262 is admitted and scoped so
++    the two rows do not read as duplicates.
++- **S263** — Python documentation, `subprocess`
++  (`https://docs.python.org/3/library/subprocess.html`). **Admitted** as tier A, scoped to *what
++  `subprocess` does when a child does not exit within `timeout` seconds — the `run()` contract
++  (child killed and waited for, then `TimeoutExpired` re-raised) against the `Popen.communicate()`
++  contract (child not killed)*. The lane's floors guard calls `subprocess.run(..., timeout=cap)`, so
++  the `run()` contract is the one that binds it and the `communicate()` sentence is the contrast
++  that keeps the row's scope honest. Access date 2026-11-05; HTTP 200; 208648 B; page footer
++  "Last updated on Nov 05, 2026 (12:47 UTC)" (HTML line 2037); page title "subprocess — Subprocess
++  management — Python 3.15.2 documentation". Located quote (§ `subprocess.run`, HTML lines 289-291,
++  25 words): "If the timeout expires, the child process will be killed and waited for. The
++  TimeoutExpired exception will be re-raised after the child process has terminated." Contrasting
++  quote (§ `subprocess.Popen.communicate`, HTML line 1042, 10 words): "The child process is not
++  killed if the timeout expires". Row written to `corpus/SOURCES.md`; cited by
++  `corpus/knowledge/timeout-calibration-round91.md`.
++- **S264** — Wikipedia, "Mutation testing"
++  (`https://en.wikipedia.org/wiki/Mutation_testing`). **Rejected.** Access date 2026-11-05; HTTP
++  200; 170845 B; page revision `wgCurRevisionId` 1373580212 ("This page was last edited on 6
++  September 2026, at 19:05"). Two independent reasons: it is crowd-editable tertiary text — a lead,
++  never support for a tier-A-scoped claim — and its own stated score formula counts equivalent
++  mutants in the denominator (located, text line 96, 14 words: "the mutation score is the number of
++  mutants killed / total number of mutants"), which is the opposite convention from the two-sided
++  rule (Q47) this round's C1 rests on: an equivalent mutant that survives by construction is charged
++  as a score defect. Its equivalent-mutant sentence (text line 125, "Such mutants are called
++  equivalent mutants") is a usable lead but is uncited at that point and carries no authority over
++  the denominator question. **Flip:** re-open as a lead-only row if a future claim needs
++  plain-language orientation to the equivalent-mutant notion and no primary source states it
++  directly, or if the article is revised so its score formula excludes equivalent mutants from the
++  denominator *and* cites a primary source for that exclusion, in which case the score sentence
++  becomes quotable as a tertiary summary — never as the authority for the denominator.
++- **Jia & Harman survey (the plan's third-choice route for S262)** — opened, reachable
++  (`https://mutationtesting.uni.lu/TR-09-06.pdf`, HTTP 200, 434884 B; the publisher routes answer
++  403 and 202), **not proposed as a row**: the corpus already screened this exact work out (round-64
++  search log, `corpus/SOURCES.md` lines 414-417 — "secondary survey, tier B at best, and it
++  duplicates S120's scope"), so re-proposing it would reopen a rejection the corpus has already
++  ruled on, and S260 plus S120 already carry the killed/survived/equivalent vocabulary. Left as a
++  lead in the scout's receipt only.
++
++**Census before → after.** Rows: `grep -cE '^\|[[:space:]]*S[0-9]{3,}[[:space:]]*\|'
++corpus/SOURCES.md` → **187** before this round (receipt
++`.ufo/waves/round-91/receipts/census-before.txt`) and **190** after (three rows appended: S262,
++S263, S264 — the plan's Frontier arithmetic of "187 → 189" counted the rejection candidate as prose
++outside the registry table, while the seat item places it in the registry as a `rejected` row, so
++the measured after-count is one higher; the plan is frozen and is corrected by the L1 at
++integration, not here). Validation: `bash /home/vgpnk/Projects/shokunin/scripts/sources-census.sh
++validate --file corpus/SOURCES.md --today 2026-11-05` → exit 0, with the same 33 pre-existing W04
++duplicate-URL warnings and no E-code once the three new files exist on disk (E11 resolves the
++`used-by` paths of S262/S263 and S264 to the corpus files this round creates).
++
++Spot-check result: **pending** — the non-author closure samples one admit and one reject from this
++gate.
++
++## Mistakes
++
++| class | evidence pointer | captured-by | fix |
++|---|---|---|---|
++| `landing`: a battery-listed instrument changed without the pinned-blob admission — the round-90 floors bump landed a new blob for `verifiers/check_assertion_floors.py` without the matching `INSTRUMENT_PINS` entry in `verifiers/check_tip_battery.py`, so the tip battery's `instrument-pin` guard has read FAIL since the r90 landing, unobserved until this round's re-measure | `.ufo/waves/round-91/receipts/tipbattery-before.txt` — `FAIL guard instrument-pin: verifiers/check_assertion_floors.py blob c10c0f108f484221d0a7600ac227f10f019f5d4d at 9264baaa823cdae3d009a4004e014639551e016f is not a pinned blob` (the receipt's `guards 4 of 5; tip battery exit 0: 3 of 6`, rc=1) | the Q73 sweep of the r90 plan, which named the floors bump but not its `INSTRUMENT_PINS` consequence — `plans/round-90.md` § Touch list names `verifiers/floors-registry.json` and the `instrument_total` bump, and never the tip battery's pin list | the pin admission lands with ExecFloorsCap (the same change appends the new blob to `INSTRUMENT_PINS` in `verifiers/check_tip_battery.py`, with a pointer comment naming `plans/round-91.md` § C2 leg A(d)), and `plans/round-91.md`'s Q73 sweep names `INSTRUMENT_PINS` explicitly — so the next round's sweep sees the pin list as a swept surface, not an implied one |
++
++## Considerthese
++
++`considerthese/2026-10-26.md` was read (proposals only; nothing implemented).
++
++- **No proposal implemented this round.** Both claims are instrument-deepening with frozen
++  predicates, so no proposal of this file is inside either claim's scope, and no proposal is
++  implemented outside them.
++- **Proposal 3** (land the page round 74 rejected and use it on the skill's own description) stays
++  carried: it needs a SKILL.md description rewrite, and the 600-line budget cannot absorb one —
++  `SKILL.md` is already 600 lines (receipt `.ufo/waves/round-91/receipts/base-skill-size.txt`:
++  600 lines / 92,672 B / 165 lines over 120 chars), so a rewrite of the frontmatter description has
++  to be paid for by lines saved elsewhere, which is a claim-adjacent edit this round's frozen
++  predicates do not admit.
++- **Proposals 1, 4 and 5** (a byte/line ceiling; "do not close a round before its falsify wave
++  runs"; a per-round evidence budget) are carried unchanged from the previous rounds; proposal 5
++  was already mined in round 90 as criterion Q82 and is not re-mined here.
++
++## Sources
++
++- **S262** — PIT (pitest) documentation, "Basic concepts"; URL
++  `https://pitest.org/quickstart/basic_concepts`; access 2026-11-05; HTTP 200; 12155 B; located
++  quotes at HTML lines 122-123 (18 words), 175 (8 words) and 177 (11 words), all quote-equal in
++  the upstream markdown at revision `e8995cd59e3c` (lines 59-60, 107, 109). Tier A scoped. Status
++  `mined`; used-by `corpus/knowledge/mutation-battery-arms-round91.md`.
++- **S263** — Python documentation, `subprocess`; URL
++  `https://docs.python.org/3/library/subprocess.html`; access 2026-11-05; HTTP 200; 208648 B;
++  located quote at HTML lines 289-291 (25 words) and the contrast at HTML line 1042 (10 words);
++  page footer "Last updated on Nov 05, 2026 (12:47 UTC)". Tier A scoped. Status `mined`; used-by
++  `corpus/knowledge/timeout-calibration-round91.md`.
++- **S264** — Wikipedia, "Mutation testing"; URL `https://en.wikipedia.org/wiki/Mutation_testing`;
++  access 2026-11-05; HTTP 200; 170845 B; page revision 1373580212; located quote at text line 96
++  (14 words). Tier C, community, lead only. Status `rejected`; used-by
++  `corpus/lessons/round-91.md`.

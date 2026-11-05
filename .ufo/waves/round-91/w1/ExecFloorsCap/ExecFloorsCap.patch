@@ -1,0 +1,166 @@
+diff --git c/verifiers/check_assertion_floors.py i/verifiers/check_assertion_floors.py
+index c10c0f1..6f2c52f 100644
+--- c/verifiers/check_assertion_floors.py
++++ i/verifiers/check_assertion_floors.py
+@@ -6,10 +6,10 @@ still read green. Each instrument's --self-test prints an assertion count;
+ this guard reruns every self-test and FAILs when the observed count is below
+ the recorded floor (harness 10, corpus_integrity 164, corpus_independent 105,
+ surfaces 218, overlap_levers 51, checklist 1863, pins 62,
+-harness_independent 123, compare_harness_independent 330, floors_guard 150,
++harness_independent 123, compare_harness_independent 330, floors_guard 176,
+ dispatch_prompts 56, sibling_census 68, alwayson 89, correction_sweep 25,
+ scoped_rules_v32 240, spec_craft 250, sibling_reread 47, omp_root_semantics_v2 68,
+-freeze_gate 30; round 88 (claim C1's guard S4) registers the v2 omp root-semantics counter at its
++freeze_gate 31; round 88 (claim C1's guard S4) registers the v2 omp root-semantics counter at its
+ landed count (69) minus one, so a dropped grounding, binding or forgery arm reds
+ this guard instead of passing every gate silently; round 90 (carry-in r89
+ half-bump) registers freeze_gate (verifiers/check_freeze_gate.py) at its r89
+@@ -81,7 +81,7 @@ runnable -- missing or refusing, named on stderr as
+ 'could-not-evaluate: git not runnable:'. Read-only.
+ 
+ CHILD CAP (round 56, routed defect 4 of the round-55 spot-check). Each child
+-self-test runs under a cap of `--self-test-timeout` SECONDS (base 120) scaled
++self-test runs under a cap of `--self-test-timeout` SECONDS (base 360, round 91) scaled
+ by the host's 1-minute runnable count, clamped at SELF_TEST_TIMEOUT_MAX_SCALE
+ times the base. A flat base read this guard's own walk as exit 2 on a healthy
+ tree whenever the host was saturated: round 39 recorded the same false red
+@@ -94,6 +94,12 @@ named (exit 2) once the cap elapses, and the timeout line prints the base, the
+ load and the cap it used. `--load LOADAVG` is the probe affordance that pins
+ the factor (`--load 1` pins the cap to the base exactly).
+ 
++Round 91 (claim C2 leg A): the base moves 120 -> 360 s, twice the 160.2 s standalone
++duration of verify_harness_independent.py (MEASURED_SELFTEST_S = 161; receipt
++.ufo/waves/round-91/receipts/harness-selftest-duration.txt). At the old base, an idle
++host (load factor 1) gave that child a 120 s cap below its measured standalone runtime;
++the same child measured 160.2 s at load 2.73, where the scaled cap is about 328 s.
++
+ REGISTRY ANCHORS. Rounds 31 (scout G2/G3) added the two-way in-file registry
+ self-check; round 37 (claim C2a, scouts C2/M7) closed its residual: those two
+ tables agree with each other by construction, so a coordinated edit -- the
+@@ -185,7 +191,7 @@ EXPECTED_INSTRUMENTS = {
+     "pins": 62,
+     "harness_independent": 123,
+     "compare_harness_independent": 330,
+-    "floors_guard": 150,
++    "floors_guard": 176,
+     "dispatch_prompts": 56,
+     "sibling_census": 68,
+     "overlap_levers": 51,
+@@ -197,12 +203,18 @@ EXPECTED_INSTRUMENTS = {
+     "omp_root_semantics_v2": 68,
+     # round 90 (carry-in r89 half-bump): freeze_gate joins with the row the
+     # registry already carries (floor 30), completing the bump in one step.
+-    "freeze_gate": 30,
++    "freeze_gate": 31,
+ }
+-SELF_TEST_TIMEOUT_S = 120
++SELF_TEST_TIMEOUT_S = 360
++# Round 91 (claim C2 leg A(a)-(b), Q39 calibration): 360 = 2 x the measured
++# standalone duration of the slowest child, rounded up to the 60 s grid. The
++# measured child is verify_harness_independent.py (--self-test run standalone at
++# the round-91 base 9264baaa: 160.2 s, loadavg 2.73 -> 3.16); receipt:
++# .ufo/waves/round-91/receipts/harness-selftest-duration.txt.
++MEASURED_SELFTEST_S = 161  # ceil(160.2): the round-91 standalone measurement above
+ # Round-56 routed defect 4 (round-55 spot-check, 'routed defects' item 4): the
+ # cap is the base scaled by the host load, clamped so a runaway load cannot
+-# postpone hang detection without bound. 15 x 120 s = 30 min at the default.
++# postpone hang detection without bound. 15 x 360 s = 90 min at the default.
+ SELF_TEST_TIMEOUT_MAX_SCALE = 15.0
+ 
+ 
+@@ -240,7 +252,7 @@ INSTRUMENTS = {
+                             r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
+     "compare_harness_independent": ("verifiers/compare_harness_independent.py", 330,
+                                     r"self-test:\s*(\d+) failure\(s\) over (\d+) assertions", 2, 1),
+-    "floors_guard": ("verifiers/check_assertion_floors.py", 150,
++    "floors_guard": ("verifiers/check_assertion_floors.py", 176,
+                      r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
+     "dispatch_prompts": ("verifiers/verify_dispatch_prompts.py", 56,
+                      r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
+@@ -277,7 +289,7 @@ INSTRUMENTS = {
+     # round 90 (carry-in r89 half-bump): the freeze-gate counter registers at
+     # its r89 landed count (check_freeze_gate.py --self-test 30, the registry
+     # row's floor), completing the bump in one change (BUMP-IN-STEP RULE).
+-    "freeze_gate": ("verifiers/check_freeze_gate.py", 30,
++    "freeze_gate": ("verifiers/check_freeze_gate.py", 31,
+                     r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
+ }
+ 
+@@ -1409,6 +1421,42 @@ def self_test() -> int:
+             "timed out after 3.0s (base 0.2s x load 1000000.00 = cap 3.0s; hung?)" in proc.stdout,
+             proc.stdout)
+ 
++        # C2 leg A(c) (round 91): the child cap is exercised through the guard's own
++        # seam, the --self-test-timeout base scaled by --load. Over-cap: a child that
++        # outlives its cap reads `self-test timed out`, exit 2. Sub-cap: a child inside
++        # its cap passes. Both are hermetic stub worlds (no network).
++        script = slow_world("c2over", 3.0)
++        proc = run_flags(script, tmp / "c2over", "--self-test-timeout", "0.3", "--load", "1")
++        rec("C2 leg A(c) over-cap child: exit 2", proc.returncode == 2, proc.returncode)
++        rec("C2 leg A(c) over-cap child: the line reads self-test timed out",
++            "FAIL stub self-test timed out after 0.3s" in proc.stdout, proc.stdout)
++        rec("C2 leg A(c) over-cap child: no PASS line is printed",
++            "PASS " not in proc.stdout, proc.stdout)
++
++        script = slow_world("c2sub", 0.2)
++        proc = run_flags(script, tmp / "c2sub", "--self-test-timeout", "2.0", "--load", "1")
++        rec("C2 leg A(c) sub-cap child: exit 0", proc.returncode == 0, proc.returncode)
++        rec("C2 leg A(c) sub-cap child: the PASS line is printed",
++            proc.stdout == "PASS stub observed=3 floor=3\n", proc.stdout)
++
++        # C2 leg A(a)-(b) (round 91, Q39 calibration): the shipped cap is at least twice
++        # the measured standalone duration, and the measured side is pinned to its
++        # receipt (ceil of 160.2 s); lowering either side reds these arms. The load
++        # scaling is read at the shipped base: idle keeps it, a runaway load clamps at
++        # 15 x the base.
++        rec("C2 leg A(b) cap >= 2 x measured: SELF_TEST_TIMEOUT_S=%s MEASURED_SELFTEST_S=%s"
++            % (SELF_TEST_TIMEOUT_S, MEASURED_SELFTEST_S),
++            SELF_TEST_TIMEOUT_S >= 2 * MEASURED_SELFTEST_S, SELF_TEST_TIMEOUT_S)
++        rec("C2 leg A(b) measured side pinned to the receipt: MEASURED_SELFTEST_S == 161",
++            MEASURED_SELFTEST_S == 161, MEASURED_SELFTEST_S)
++        rec("C2 leg A(a) shipped cap: an idle host keeps the base exactly",
++            child_timeout_s(SELF_TEST_TIMEOUT_S, 0.5) == SELF_TEST_TIMEOUT_S,
++            child_timeout_s(SELF_TEST_TIMEOUT_S, 0.5))
++        rec("C2 leg A(a) shipped cap: a runaway load clamps at 15 x the shipped base",
++            child_timeout_s(SELF_TEST_TIMEOUT_S, 1e9)
++            == SELF_TEST_TIMEOUT_MAX_SCALE * SELF_TEST_TIMEOUT_S,
++            child_timeout_s(SELF_TEST_TIMEOUT_S, 1e9))
++
+         # F31 (round-56 routed defect 5b) -- a `git` that runs and refuses is
+         # the same environment error as a missing one. The world is a hermetic
+         # stub world, so red-before the guard ignores the exit code, runs the
+diff --git c/verifiers/check_tip_battery.py i/verifiers/check_tip_battery.py
+index 46d6bcc..bde784f 100755
+--- c/verifiers/check_tip_battery.py
++++ i/verifiers/check_tip_battery.py
+@@ -134,7 +134,11 @@ INSTRUMENT_PINS = {
+     "verifiers/check_assertion_floors.py": (
+         "780f6fe5184ecb94e70f0f79446ae4339d1aec27",
+         "50348420260ab41a916ef1ab19d27966565de5af",
+-        "9cb860bda21ef8d24fcb0603aa85372b96f3ac41"),
++        "9cb860bda21ef8d24fcb0603aa85372b96f3ac41",
++        # round-91 claim C2 leg A(d) admission (plans/round-91.md § C2 leg A(d)): the
++        # child-cap postimage (SELF_TEST_TIMEOUT_S 360, MEASURED_SELFTEST_S 161,
++        # floors_guard floor 176, freeze_gate floor 31); the earlier three blobs are kept.
++        "6f2c52fb2e09e817dff3360b97400a5d6e53626c"),
+     "verifiers/verify_skill_checklist.py": (
+         "8d44c063e3d4b57c7c421c3107879e61983249bf",
+         "6aab16849bd6d71ded8f3bcb3f95668f14f6a78f",
+diff --git c/verifiers/floors-registry.json i/verifiers/floors-registry.json
+index 6a1cbe9..d16e05d 100644
+--- c/verifiers/floors-registry.json
++++ i/verifiers/floors-registry.json
+@@ -19,11 +19,11 @@
+       "path": "verifiers/verify_corpus_integrity.py"
+     },
+     "floors_guard": {
+-      "floor": 150,
++      "floor": 176,
+       "path": "verifiers/check_assertion_floors.py"
+     },
+     "freeze_gate": {
+-      "floor": 30,
++      "floor": 31,
+       "path": "verifiers/check_freeze_gate.py"
+     },
+     "harness": {

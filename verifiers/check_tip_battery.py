@@ -134,7 +134,11 @@ INSTRUMENT_PINS = {
     "verifiers/check_assertion_floors.py": (
         "780f6fe5184ecb94e70f0f79446ae4339d1aec27",
         "50348420260ab41a916ef1ab19d27966565de5af",
-        "9cb860bda21ef8d24fcb0603aa85372b96f3ac41"),
+        "9cb860bda21ef8d24fcb0603aa85372b96f3ac41",
+        # round-91 claim C2 leg A(d) admission (plans/round-91.md § C2 leg A(d)): the
+        # child-cap postimage (SELF_TEST_TIMEOUT_S 360, MEASURED_SELFTEST_S 161,
+        # floors_guard floor 176, freeze_gate floor 31); the earlier three blobs are kept.
+        "6f2c52fb2e09e817dff3360b97400a5d6e53626c"),
     "verifiers/verify_skill_checklist.py": (
         "8d44c063e3d4b57c7c421c3107879e61983249bf",
         "6aab16849bd6d71ded8f3bcb3f95668f14f6a78f",

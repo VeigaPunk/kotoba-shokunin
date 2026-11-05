@@ -1,0 +1,18 @@
+ExecBatteryArms r91-w1 — manifest recipe verification against the FINAL instrument bytes
+(mutcheck.py, same findall semantics as the instrument's apply_recipe; json.loads as in parse_manifest):
+
+anchor-count mb-m2-g1-commit-check-skipped edit 1 = 1
+anchor-count mb-m15-clean-tree-guard-off edit 1 = 1
+anchor-count mb-m16-restore-unverified edit 1 = 1
+mb kill rows in manifest: 3
+
+Row checks enforced: 5 TSV columns; target == verifiers/check_mutation_battery.py; class == kill;
+op == replace with non-empty edits; every recipe parses as JSON; every anchor matches exactly once.
+
+Manifest class counts after the change: kill 17 (14 fg/d5 + 3 mb), equivalent 6, survivor 0 —
+matching the frozen predicate sentence "killed 17 of 17 kill-set; equivalents survived 6 of 6;
+disclosed survivors 0 of 0".
+
+Finding recorded en route: the first draft of the three recipes used single-backslash regex escapes
+("\."), which is invalid JSON ("Invalid \escape") and would have made the landing battery run exit 2
+at parse_manifest; fixed to the existing rows' convention (regex backslashes as "\\" in JSON).

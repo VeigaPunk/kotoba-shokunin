@@ -1,0 +1,30 @@
+{
+  "seat": "MutTesterBattery",
+  "role": "mutation-tester (attack on ExecBatteryArms candidate)",
+  "candidate": {
+    "freeze_base": "9af1a7af2adf0ab07cfd53f92affc1ed8d992262",
+    "patch": "ExecBatteryArms/ExecBatteryArms.patch",
+    "candidate_commit_scratch": "9a776745d72800cc0ad32776108d2f8bb0822cc1",
+    "file": "verifiers/check_mutation_battery.py"
+  },
+  "control": {
+    "selftest_rc": 0,
+    "selftest": "0 failure(s) over 25 assertions",
+    "predicate_rc": 0,
+    "predicate_line": "mutation battery killed 17 of 17 kill-set; equivalents survived 6 of 6; disclosed survivors 0 of 0",
+    "predicate_guards": ["G1 PASS", "G2 PASS", "G3 PASS"]
+  },
+  "mutants": [
+    {"id": "m1", "verdict": "KILLED", "selftest_rc": 1, "selftest_tally": "1 failure(s) over 25 assertions", "predicate_rc": 0, "predicate_line_exact": true, "note": "predicate does not exercise the --rev commit check (valid --rev); kill comes from the self-test message arm"},
+    {"id": "m2", "verdict": "KILLED", "selftest_rc": 1, "selftest_tally": "2 failure(s) over 25 assertions", "predicate_rc": 0, "predicate_line_exact": true, "note": "predicate runs on a clean scratch clone; kill comes from the dirtied-clone arm and its message arm"},
+    {"id": "m3", "verdict": "KILLED", "selftest_rc": 1, "selftest_tally": "2 failure(s) over 25 assertions", "predicate_rc": 0, "predicate_line_exact": true, "note": "no restore tamper in the predicate run; kill comes from the G2 restore arm and its message arm"},
+    {"id": "m4", "verdict": "KILLED", "selftest_rc": 1, "selftest_tally": "14 failure(s) over 25 assertions", "predicate_rc": 2, "predicate_line_exact": false, "predicate_message": "could-not-evaluate: manifest mb-m2-g1-commit-check-skipped: target 'verifiers/check_mutation_battery.py' has no probe set"},
+    {"id": "m5", "verdict": "KILLED", "selftest_rc": 1, "selftest_tally": "12 failure(s) over 25 assertions", "predicate_rc": 2, "predicate_line_exact": false, "predicate_message": "could-not-evaluate: eq-comment-insert-freeze-gate: mutant does not compile (invalid syntax (check_freeze_gate.py, line 56))", "note": "self-test arm comment-insert short-circuits on its marker-count check; the mutant is caught by the fixture-world failures before any uncaught exception"},
+    {"id": "m6", "verdict": "SURVIVED", "selftest_rc": 0, "selftest_tally": "0 failure(s) over 25 assertions", "predicate_rc": 0, "predicate_line_exact": false, "predicate_line": "mutation battery killed 16 of 16 kill-set; equivalents survived 6 of 6; disclosed survivors 0 of 0", "note": "instrument exit ladder does not pin M == 17; only the literal predicate line (17 of 17) is distinguishing. Routed finding, not repaired."},
+    {"id": "m7", "verdict": "KILLED", "selftest_rc": 1, "selftest_tally": "1 failure(s) over 25 assertions", "predicate_rc": 0, "predicate_line_exact": true, "note": "predicate does not run the self-test arms; kill comes from the inverted arm"}
+  ],
+  "counts": {"killed": 6, "survived": 1, "control_green": true},
+  "finding_routed": "check_mutation_battery.py exits 0 on a kill-set of 16 (m6): the 17 is a literal line pin the instrument does not assert in its exit rule or self-test. Not repaired (frozen bytes; C1 kill rule).",
+  "restoration": "each mutant restored by git checkout of the single file in the scratch clone; post-restore sha256 of the working file equals sha256 of HEAD:verifiers/check_mutation_battery.py before each next mutant; patch untouched",
+  "tools_installed": []
+}

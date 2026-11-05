@@ -1,0 +1,22 @@
+ReviewerBattery r91-w1 — guard mutants replayed from the CANDIDATE MANIFEST RECIPES
+method: json.loads(recipe) exactly as parse_manifest; re.compile(anchor); findall == 1 on the
+candidate battery bytes; pat.sub(...) (apply_recipe semantics); mutant compiles; then
+python3 -B verifiers/check_mutation_battery.py --self-test (TMPDIR=<scratch>), candidate bytes
+restored from a pristine copy outside git afterwards (cmp identical).
+
+=== mb-m2-g1-commit-check-skipped rc=1
+    FAIL G1 commit check: the refusal says the revision is not a commit :: could-not-evaluate: G1: git show ffffffffffffffffffffffffffffffffffffffff:verifiers/fixtures/mutation-battery/manifest.tsv failed
+    1 failure(s) over 25 assertions
+=== mb-m15-clean-tree-guard-off rc=1
+    FAIL G1 clean-tree guard: a dirtied scratch clone exits 2 :: evision identity PASS: rev d7e3f3fa4bb9; lane ok; targets and manifest read by git show; scratch clone detached at rev and clean
+    FAIL G1 clean-tree guard: the refusal says the scratch clone is not clean at --rev :: evision identity PASS: rev d7e3f3fa4bb9; lane ok; targets and manifest read by git show; scratch clone detached at rev and clean
+    2 failure(s) over 25 assertions
+=== mb-m16-restore-unverified rc=1
+    FAIL G2 restore read-back: a tampered revision restore after a mutant exits 2 :: evision identity PASS: rev 0219120ff1f5; lane ok; targets and manifest read by git show; scratch clone detached at rev and clean
+    FAIL G2 restore read-back: the refusal names G2 copy integrity on the restore copy :: evision identity PASS: rev 0219120ff1f5; lane ok; targets and manifest read by git show; scratch clone detached at rev and clean
+    2 failure(s) over 25 assertions
+
+Each mutant flips red for its OWN arm; none leaves the self-test green.
+Anchor counts: mb-m2 edit1 = 1, mb-m15 edit1 = 1, mb-m16 edit1 = 1 on the candidate bytes
+(the m16 anchor also matches the BASE bytes once — the anchor text is shared; only the candidate
+has the arms that observe the disabled guard).

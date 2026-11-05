@@ -257,7 +257,7 @@ def run_gate(plan_path, work_root=None, verbose=False, timeout_s=None, out=None)
     plan_path = Path(plan_path)
     try:
         text = plan_path.read_text(encoding="utf-8")
-    except OSError as exc:
+    except (OSError, UnicodeError) as exc:
         print("COULD-NOT-EVALUATE: cannot read plan %s: %s" % (plan_path, exc),
               file=out)
         return EXIT_EVAL
@@ -361,6 +361,12 @@ def self_test(out):
     def arm_plan_missing():
         rc, _ = gate(LANE_ROOT / FIXTURE_DIR / "no-such-plan.md")
         assert rc == EXIT_EVAL, "missing plan read as rc=%r" % rc
+
+    def arm_plan_not_utf8():
+        p = scratch / "not-utf8.md"
+        p.write_bytes(b"## Controls\n- control x: echo x\n  expect: exit 0; stdout contains x\n\xff\xfe\n")
+        rc, text = gate(p)
+        assert rc == EXIT_EVAL and "cannot read plan" in text, (rc, text)
 
     def arm_grammar_no_block():
         rc, text = gate(wplan("no-block.md", "# a plan\nwith no controls section\n"))
@@ -519,6 +525,7 @@ def self_test(out):
         ("arm timeout-path could-not-evaluate", arm_timeout_path),
         ("arm missing-command could-not-evaluate", arm_missing_command),
         ("arm plan-missing could-not-evaluate", arm_plan_missing),
+        ("arm plan-not-utf8 could-not-evaluate", arm_plan_not_utf8),
         ("arm tmpdir-honoured (verbose records the per-control TMPDIR)", arm_tmpdir_honoured),
         ("arm source-has-no-hardcoded-temp-literal", arm_source_tmpdir),
         ("arm predicate fixed-fixture exits 0", arm_predicate_fixed_exit0),

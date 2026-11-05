@@ -1,0 +1,8 @@
+id	mutation	rc	failing arm	verdict
+m1	disable the G1 commit check (rev-parse --verify result ignored)	1	FAIL G1 commit check: the refusal says the revision is not a commit (the exits-2 arm still passes; the refusal arrives as a `git show` failure)	KILLED
+m2	disable the G1 clean-tree guard on the scratch clone	1	FAIL G1 clean-tree guard: a dirtied scratch clone exits 2 (and its message arm)	KILLED
+m3	remove the restore read-back (restore written with bare write_target)	1	FAIL G2 restore read-back: a tampered revision restore after a mutant exits 2 (and its message arm)	KILLED
+m4	remove the third PROBES entry (bat-self-test)	1	FAIL satisfying world (clean): exit 0 with every kill killed ... :: could-not-evaluate: manifest fx-k10-bat-selftest-count: target has no probe set (14 of 25 arms fail)	KILLED
+m5	break the equivalent comment-insert generator (emits a bare "(" line)	1	FAIL satisfying world (clean): exit 0 with every kill killed ... :: d5-self-test output changed (12 of 25 arms fail; predicate rc 2 "mutant does not compile")	KILLED
+m6	drop manifest row mb-m15-clean-tree-guard-off (committed on a separate scratch clone, rev c8ec9464e604)	0	none: self-test 0 failure(s) over 25 assertions, rc 0	SURVIVED
+m7	invert the G1 commit-check arm assertion (rc == 2 -> rc != 2)	1	FAIL G1 commit check: a full-hex --rev that is not a commit exits 2	KILLED
