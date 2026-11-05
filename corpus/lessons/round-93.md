@@ -188,4 +188,20 @@ corpus/SOURCES.md --today 2026-11-05` → exit 0, the same 33 pre-existing `W04`
 Round-92 cross-reference: the round-92 lesson's 'Non-author spot-check: pending' is answered by
 corpus/lessons/round-92-verifier-spotcheck.md (closure of round 92); round-92 lesson bytes are not rewritten.
 
-L1 settlement: pending (KotobaR93)
+L1 settlement (KotobaR93, 2026-11-05; measured readings, not admissions — the non-author closure rules):
+
+- **Landing revision:** `ab151b17f08e8910efd5ce0d243a791b21365711` (a committed lane revision; every
+  landing receipt under `.ufo/waves/round-93/receipts/landing/` names it — `landing-rev.txt`).
+- **C1 (depth):** `C1-PREDICATE-MET` rc 0 (`landing/c1-counter.txt`); base `C1-PREDICATE-UNMET`
+  (`receipts/redbefore-c1-base.txt`); forgery UNMET (`receipts/forgery-c1-run.txt`). Grounded on S267.
+- **C2 (consistency):** `C2-PREDICATE-MET` rc 0 (`landing/c2-counter.txt`); base and forgery UNMET.
+- **Mistake fix shown able to fail:** `bash verifiers/fixtures/round-93/check-receipt-revs.sh
+  .ufo/waves/round-92/receipts/landing` → `receipt revisions: 1 resolved, 5 unresolved over 18 files`,
+  rc 1 (`landing/receipt-revs-round-92-receipts-landing.txt`; after the CriticClaimsR93 D1 repair the
+  G1 line `bat-rev.txt:24` is checked too); on `.ufo/waves/round-93/receipts` → `9 resolved, 0
+  unresolved`, rc 0; a synthetic fabricated `REV=` line beside a real one → rc 1.
+- **Integration repairs:** `plans/round-93-addendum-1.md` A1 (self-test pin leak, ReviewerKillPin);
+  D1 narrowing of the receipt check's scratch exemption (CriticClaimsR93).
+- **Wave:** `r93-w1`, 12 seats; seat outputs under `.ufo/waves/round-93/w1/`; dispositions in LOG.md
+  § Round 93 and the round-93 report.
+- **Routed to round 94:** MutTesterKillPin F1/F2/F4; CriticClaimsR93 R2, D2, D3 (LOG.md § Round 93).
