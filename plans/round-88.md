@@ -182,3 +182,30 @@ Both claims verify on their frozen v2 counters at the landed revision, with thei
 No axis is harmed (the no-harm battery: base and post-state runs of the integrity gate, the gate registry and the
 sibling census, committed as receipts). Non-author closure rules. Number alone is not C1's evidence: the forged
 worlds and the blanket-refusal positive control are part of the predicate, not commentary.
+
+---
+
+## Errata (appended after wave-1 data; no predicate, target or control changed)
+
+**E1 — the base red citation.** The plan's measured-state paragraph names the healed red as
+`.ufo/reports/round-84/kama.md` (copied from the round-87 closure). The committed base receipt
+`receipts/before-C2-base-integrity-full.txt` names the base red as `report_dead` at
+`corpus/lessons/round-81.md:29`, pointing at `.ufo/reports/round-76/kotoba.md`. In the lane tree that
+path is a tracked symlink to the fleet root, where the file exists, so the lane reads it as healed; in a
+fresh clone it dangles and reads red (ExecMonotoneD5 `F2`). The tip-reading `4 of 5` for the r87 gate and
+the set arithmetic in this plan are unchanged; the location-dependence is the r87 closure's R87-D8 again.
+
+**E2 — the frozen control `w_added_red` fails under the frozen predicate (F1, measured after data).** Clause
+D5(ii) is a set of check NAMES. `corpus.pointers.commit_unresolvable` is already DRIFT at the base, so a second
+unresolvable citation changes its instance count and adds a detail line, but the name set is unchanged; (ii)
+reads PASS. The frozen control expected FAIL via (ii). Measured at `scratch` by ExecMonotoneD5
+(`.ufo/waves/round-88/w1/ExecMonotoneD5/receipts.txt` §2–§4): self-test `1 failure(s) over 16 assertions`,
+the failing arm is `w_added_red`. The plan's control expectation was wrong: the predicate cannot satisfy it.
+**Disposition (L1, this round):** the predicate is NOT amended. The kill rule forbids a counter change after the
+first candidate score, and the tip reading was scored in this round. C2 is therefore **not verified** this round:
+the frozen discrimination control fails, and an instance-level successor is routed to round 89 (its predicate and
+its controls to be frozen and EXECUTED before the freeze commit). The F1 failure is recorded as the round's
+mined mistake: a frozen control was written but not executed before the freeze commit.
+
+**E3 — what the round does not claim.** Nothing in this errata changes C1's frozen predicate. C1's verdict depends
+on its own control matrix (`ExecForgeryWorlds/matrix.tsv`) and on the v2 counter's self-test, as frozen.

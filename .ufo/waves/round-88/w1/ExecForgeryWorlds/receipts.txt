@@ -1,0 +1,61 @@
+ExecForgeryWorlds receipts (round 88, w1). Lane /home/vgpnk/Projects/shokunin/kotoba-shokunin, tip 4df1e8005016c75390a5e06b209462df58c95918.
+
+== 1. Scratch worlds (seat scratch /fast/scratch/hyaku/kotoba-r88/ExecForgeryWorlds/<world>/repo)
+Each: git clone -q --shared <lane> <D>; git -C <D> rev-parse --show-toplevel == <D> (asserted);
+git -C <D> checkout -q --detach 4df1e80...; ledger edit of verifiers/omp-skill-roots-semantics.tsv
+(each old line asserted present verbatim in the tip ledger, each replaced exactly once);
+git -C <D> -c user.name=forgery -c user.email=forgery@scratch.local commit -q -m "forged world <w>".
+Edits follow .ufo/waves/round-87/w3/CriticSemanticsR87/forgery-ledger-diffs.txt (applied to the tip ledger).
+  w_cross_row7      00d97bf019182dfd5793e46baf529e5b2b5b1783  row 7 reader -> return Xr.join(u.cwd, ".codex");
+  w_subdir_row9     67b8b02d458e3b76641c8962d27cfcb39f8af0f3  row 7 as above; row 9 reader -> Zo.join(R.path, "commands")
+  w_misattr_row12   d0ec3b90a2e00b19b8eeab5f200db313d8b538d3  rows 7, 9 as above; row 12 reader -> dir: Zo.join(R.path, "skills"),
+  w_renderline_row6 5788690d3005cd271d453e3467c2682f2a9b5d0a  row 6 reader -> **Tags:** ${t.tags.join(", ")}; rows 7, 9, 12 as above
+Note: the world commit shas differ from round 87's (commit timestamps and identity differ); the edits are the same.
+
+== 2. BEFORE: r87 counter (lane path, --repo <world repo> --rev <world rev>)
+Command: python3 -B /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/check_omp_root_semantics.py --repo <D> --rev <rev>
+  w_cross_row7      guard S1 ledger-from-rev PASS; guard S2 elf-sha256 PASS (6737ee24...b0f); guard S3 pattern-set PASS
+                    row 7 GROUND '{cwd}/.github/skills' module='coding-agent/src/discovery/helpers.ts' @173879095
+                    omp root semantics grounded 12 of 12
+                    exit=0 (rc 0)
+  w_subdir_row9     omp root semantics grounded 12 of 12 ; exit=0 (rc 0)
+                    row 9 GROUND '~/.omp/plugins/node_modules/*/skills' @173915281
+  w_misattr_row12   omp root semantics grounded 12 of 12 ; exit=0 (rc 0)
+                    row 12 GROUND '~/.omp/agent/managed-skills' module='coding-agent/src/autolearn/managed-skills.ts' @173914936
+  w_renderline_row6 omp root semantics grounded 12 of 12 ; exit=0 (rc 0)
+                    row 6 GROUND '{cwd}/.opencode/skills' module='coding-agent/src/discovery/helpers.ts' @188589625
+Control: python3 -B .../check_omp_root_semantics.py --repo /home/vgpnk/Projects/shokunin/kotoba-shokunin --rev 4df1e8005016c75390a5e06b209462df58c95918
+  honest_tip        guard S1 PASS; guard S2 PASS; guard S3 PASS
+                    omp root semantics grounded 12 of 12 ; exit=0 (rc 0)
+Result: all four worlds and the honest tip read 12 of 12, exit 0. Round-87 expectation (12 of 12 on every world, M = 0 of 4)
+is reproduced. The do-nothing control is measured: the r87 counter has no forgery rejection (M = 0 of 4).
+
+== 3. AFTER: v2 counter -- NOT RUN (C1_READY never appeared)
+Wait: poll `sleep 120` on .ufo/waves/round-88/w1/C1_READY for 22 x 120 s (44 min) -> "C1_READY absent after 44 min".
+Handoff state at the end of the wait and after: ELF_MAP_READY, SOURCE_READY, C2_READY, CONNECTOR_READY present; C1_READY absent.
+
+Provisional attempts (labelled; not a recorded v2 run, not counted in the matrix as a result):
+  a. python3 -B verifiers/check_omp_root_semantics_v2.py --self-test --work <scratch>/selftest
+     at sha256 506a2ba936e7af4492c3a79dd077a68d9ce190a802236d102cb51cbd6b4b9beb (mtime 06:24)
+     -> "note: floors row omp_root_semantics_v2 absent from verifiers/floors-registry.json (worktree)"
+     -> exit 1 with traceback: UnboundLocalError: cannot access local variable 'last_absent' where it is not associated with a value
+        (verifiers/check_omp_root_semantics_v2.py line 335, in reader_grounded; called from score line 631 via world line 829)
+     The eval cell that ran this (with the four worlds) hung and the kernel was killed; no world result was returned.
+  b. Later (file sha256 892404e3e81a6dddfc7f4492bd113860899effba9ef056044aa40a821248a1f0, mtime 06:44:14):
+     python3 -B verifiers/check_omp_root_semantics_v2.py --repo <D> --rev <rev>  (each of the four worlds and --rev 4df1e80 on the lane)
+     -> every run: File ".../check_omp_root_semantics_v2.py", line 984
+            '$n(u, Zo.join(R.path, "commands"), xo, R.level, {'))
+                                                                    ^
+        SyntaxError: unmatched ')'
+     -> exit 1 (the counter does not load; no N, no M, no conjunct trace is produced)
+  c. ast.parse of the 06:44 file -> SyntaxError (unmatched ')'), the same fault.
+The counter file is in flux (its sha changed between a. and b.). Per the frozen rule the v2 counter is not measured on a file that
+does not load, and no forgery-rejection count M is claimed.
+
+== 4. Handoff
+FORGERY_READY NOT written: its precondition ("the v2 run over the forged worlds is recorded") is not met.
+
+== 5. Scratch
+Scratch dir /fast/scratch/hyaku/kotoba-r88/ExecForgeryWorlds removed at the end of the seat (see the final answer).
+No write to the lane, the fleet, another lane, ~/.local/bin, the ELF (read-only mmap by the counters only), or the git index.
+No install of any tool.

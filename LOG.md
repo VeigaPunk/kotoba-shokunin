@@ -3370,3 +3370,54 @@ whole: lane tip `760e1c5e`, report `d752fdbe`, clean worktree, `local == remote`
   (`.ufo/waves/round-87/w3/l1/census-now.txt`); no row added this attempt.
 - **Wave:** `r87-w3`, 12 seats (scout 2, executor 3, reviewer 2, critic 1, mutation-tester 1,
   sentinel 1, scribe 1, connector 1), attack set 4 of 12 = 33.3 %; receipts own each finding.
+
+### Round 88 — R87-D7 correction (ScribeLesson, 2026-11-05)
+
+- **Correction, supersedes LOG.md:3315.** Line 3315 (the round-87 C2 bullet, score 10) claims "verified" with the figure `5 of 5`. At the round-88 tip `4df1e8005016c75390a5e06b209462df58c95918` the round-87 counter `python3 -B verifiers/check_r86_routed_repairs.py --rev 4df1e800` reads `r86 routed defects closed 4 of 5`, exit 1 (D5 FAIL: the red set is five names, not the two D5 wanted). Receipt: `.ufo/waves/round-88/receipts/before-C2-tip.txt`. The later attempt-2 paragraph (line 3358) records `4 of 5`; line 3315 itself was never annotated, and no check compared a record's verdict with the tip reading. Captured-by: none. Mined as R87-D7 in `corpus/lessons/round-88.md` § Mistakes.
+- **Sweep (fix shown able to fail):** `.ufo/waves/round-88/receipts/mistake-sweep.sh` prints `UNANNOTATED stale line 3315`, `stale=1 unannotated=1`, exit 1 before this entry (`receipts/mistake-sweep-before.txt`), and is green after it because this entry carries the `supersedes LOG.md:3315` token. The sweep is run by the L1, not by this seat.
+
+## Round 88 — two claims as frozen (C1 depth, C2 consistency), Linux host, omp/18.15.0
+
+Base `223ae62424f8ab1eb365d733eb648d6228ddd7e8`; freeze `89579c7` (`plans/round-88.md`, wave spec); tip `4df1e8005016c75390a5e06b209462df58c95918`. Lesson: `corpus/lessons/round-88.md`. Wave `r88-w1`: 14 seats in the plan, attack set reviewer/critic/mutation-tester. Status at write: **C1 not measured by its owner; C2 counter failing its own self-test.** Neither claim is admitted on this entry.
+
+- **C1 — depth (score 9): `omp root semantics grounded N of 12` and `forgeries rejected M of 4` (`verifiers/check_omp_root_semantics_v2.py --rev <rev>`), target `12 of 12` and `4 of 4`.** Not measured by the owning seat. `C1_READY` and `FORGERY_READY` never appeared within the 45-minute poll window; `.ufo/waves/round-88/w1/ExecLiveBound/` is absent and `w1/ExecForgeryWorlds/` is empty. The v2 counter file exists (sha256 `506a2ba936e7af4492c3a79dd077a68d9ce190a802236d102cb51cbd6b4b9beb` at 06:24) without a receipt of its own. Reviewer receipts only, not the owning counter's: `ReviewerC1/receipts/indep_C1_worlds.txt` reads the four forged revisions `10, 10, 9, 9` of 12 (exit 1) on an independent checker; the frozen r87 counter reads `12 of 12` exit 0 on the same revisions (`ReviewerC1/receipts/r87control_on_myworlds.txt`), i.e. the do-nothing control rejects 0 of 4. Honest tip under the r87 counter: `omp root semantics grounded 12 of 12`, exit 0 (`.ufo/waves/round-88/receipts/before-C1-r87counter-honest.txt`). Not run for this entry: `check_omp_root_semantics_v2.py --self-test` (no receipt on disk).
+- **C2 — consistency (calibration sub-axis, score 10): `r86 routed defects closed N of 5` (`verifiers/check_r86_routed_repairs_v2.py --rev <rev>`), target `5 of 5`.** At the tip the v2 gate reads `r86 routed defects closed 5 of 5`, exit 0 (`.ufo/waves/round-88/w1/ExecMonotoneD5/receipts.txt` §2). The gate's own `--self-test` reads `1 failure(s) over 16 assertions`, exit 1: arm `w_added_red` FAILS (§1), because an added unresolvable commit under a name already DRIFT at base leaves the name set unchanged, so the monotone test on names cannot see it. Controls (§3): `w_silenced` D5 FAIL (as frozen); `w_added` D5 **PASS** where the frozen expectation is FAIL (ii) (counter defect, same arm as the self-test failure); `w_healed` D5 PASS (the D5 line; its total reads `1 of 5` because the scratch fixture lacks the D1–D4 files). `CriticFalsify/attacks.md` (C2-S1–S5) adds in-place silencing passing both (i) and (ii), re-recording the integrity baseline healing three reds, and location dependence of `verify_corpus_integrity.py`. `C2_READY` was written at 06:04 with the predicate sentence in place of the sha256 and a note `F1 disclosed` beside a red self-test; the handoff contract says it is written only after the self-test passes. C2 is not admitted on its own frozen controls.
+- **Forged worlds and gate controls, by command name:** `check_omp_root_semantics_v2.py` forged-world run: no receipt (`FORGERY_READY` absent). `check_r86_routed_repairs_v2.py --self-test`: `1 failure(s) over 16 assertions`, exit 1 (`ExecMonotoneD5/receipts.txt` §1). `check_r86_routed_repairs_v2.py --rev 4df1e800`: `5 of 5`, exit 0 (§2). Integrity red set at tip: the plan's frozen table records 5 reds at `4df1e800` (`before-C2-tip-integrity.txt`); ExecMonotoneD5's scratch clone of the same commit reads 6 (adds `corpus.pointers.report_dead`, the location dependence in `CriticFalsify` C2-S5), so the tip red set is not a stable count across checkouts. No corpus-baseline re-record.
+- **R87-D7 (mined, sweep red before and green after).** Correction entry above (`### Round 88 — R87-D7 correction`), `supersedes LOG.md:3315`. `.ufo/waves/round-88/receipts/mistake-sweep.sh`: `stale=1 unannotated=1`, exit 1 before (`mistake-sweep-before.txt`); `stale=1 unannotated=0`, exit 0 after (seat run; the L1 runs the committed receipt). Captured-by: none.
+- **Criterion:** Q80 appended to `corpus/QUALITY.md` (round with no attack seat closes provisional; cites `considerthese/2026-10-26.md:18`).
+- **Sources:** S257 (omp 18.15.0 `agents.ts`, access `2026-11-05`, sha256 `976360027cee582030f2ec4871544821d8b66c25e8687ea461f4bee56aacb92e`, located quote `if (current === (ctx.repoRoot ?? ctx.home)) break;`, scout record `.ufo/waves/round-88/w1/ScoutUpstream/SOURCE_ROW.md`). Row lands in `corpus/SOURCES.md` by ScribeSources. Spot-check: pending — non-author closure.
+- **Handoffs present:** `SOURCE_READY`, `ELF_MAP_READY`, `CONNECTOR_READY`. Absent after 45 minutes: `C1_READY`, `FORGERY_READY`. `C2_READY` present with malformed content (above).
+- **Assimilation:** none (`merge/kotoba` id space collides with S256; no staged theme matches).
+
+### Round 88 — settlement (L1 KotobaR88, 2026-11-05, after WAVE-DONE `r88-w1`)
+
+The entry above was written by a scribe seat at 06:43 from the mid-wave state (`C1_READY` absent). This settlement
+records what the settled wave measured; it supersedes the two reading cells that say "no receipt".
+
+- **Wave:** `r88-w1`, **14 seats, 0 dead** (`r88-w1-results.json`: 2 scout, 3 executor, 3 scribe, 1 connector,
+  2 reviewer, 1 critic, 1 mutation-tester, 1 sentinel; attack set 5 of 14 = 35.7 % by Q80's list — reviewer×2,
+  critic, mutation-tester, sentinel — 4 of 14 = 28.6 % by the plan's narrower set; connector seats 1).
+- **C1 final instrument:** `verifiers/check_omp_root_semantics_v2.py` sha256 `b6412808f904a492937763ef995dfb751b48af454194f26fb3a30b1a6905c427`
+  (`C1_READY` written 06:55). `--self-test` → `0 failure(s) over 69 assertions`; `--rev 4df1e80` →
+  `omp root semantics grounded 12 of 12`, `forgeries rejected 4 of 4`, `forgery-class worlds rejected 7 of 7`,
+  guards S3/S4 PASS, exit 0 (`.ufo/waves/round-88/receipts/l1-c1-final.txt`). The four r87 forged worlds are rebuilt
+  as ledger-cell worlds inside the counter (classes named in the detail lines); the independent leg is
+  `ReviewerC1/independent_c1.py` — honest `12 of 12`, four rebuilt real forge revisions `10, 10, 9, 9 of 12`,
+  the r87 counter reproducing `12 of 12` on the same revisions (`ReviewerC1/receipts/`).
+- **Kill-rule ruling (C1, recorded in `plans/round-88-addendum-3.md` A3.1).** The counter was run once before a
+  code-path defect fix (`bytes in mmap` made conjunct 5 always false: reading `0 of 12`, every row failing the
+  honest world). The L1 rules that reading **not a candidate score** — an instrument that cannot ground its own
+  honest world is provably not measuring — and keeps it disclosed; no judgment table, pin, token set, target or
+  predicate sentence changed after it (their sha256s are frozen in the counter header and the receipts).
+- **C2 disposition:** the gate reads `r86 routed defects closed 5 of 5`, exit 0 at the tip and at the landing
+  revision, but the frozen discrimination control `w_added_red` cannot fail under a name-level monotone test
+  (`ExecMonotoneD5` F1), and `CriticFalsify` C2-S2/C2-S3 pass worlds the frozen text's own "a silenced or removed
+  check fails (i)" clause names. Under the C2 kill rule the counter is not amended: **C2 is reported measured on
+  its target and NOT verified**, routed to round 89 (`plans/round-88.md` § Errata E2, `plans/round-88-addendum-3.md` A3.2).
+- **Mutation evidence:** C2 `6 of 6` mutants killed (`MutTesterV2/mutants.tsv`); C1 `0 of 7` scored inside the
+  seat's window (the counter was still mid-edit at its cap) — the C1 mutant battery is carried, not claimed.
+- **No-harm at the landing revision:** integrity DRIFT name set ⊆ the base's six names; gate registry 71 of 71
+  after the two new rows; `SKILL.md` 600 lines / 89 708 B (Q78: the two registry rows offset by two merged wrapped
+  lines); sibling census carried red — the r49 census checker fails the same two rows at base (tameshi commit,
+  tsukuroi classification), so the SHONEN evidence sentence is corrected, not the round.
+- **Assimilation:** none; 55 id collisions measured (`.ufo/waves/round-88/assimilation/collisions`), L0 line filed.

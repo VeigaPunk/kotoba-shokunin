@@ -1,0 +1,61 @@
+# ScribeSources receipts — round 88 w1 (corpus index before/after)
+
+Lane: /home/vgpnk/Projects/shokunin/kotoba-shokunin
+Seat: ScribeSources (leaf; no subagent dispatch). Scratch dir removed at the end of the run.
+
+## 1. Before (lane state before this seat's edits)
+
+    $ python3 -B verifiers/verify_corpus_integrity.py --json        (exit 1)
+    corpus.index.tracked_files  equal  observed=173  expected=172  DRIFT
+    corpus.index.unindexed      zero   observed=1    expected=0/empty  DRIFT
+      unindexed_detail: corpus/lessons/round-87-verifier-spotcheck.md
+    corpus.index.stale_patterns zero   observed=0  PASS
+    corpus.index.missing_paths  zero   observed=0  PASS
+    corpus.pointers.report_total equal observed=134 expected=127 DRIFT
+    corpus.pointers.report_dead  zero   observed=0  PASS
+    corpus.pointers.commit_total equal observed=60  expected=59  DRIFT
+    corpus.pointers.commit_unresolvable zero observed=1 expected=0/empty DRIFT
+    corpus.pointers.commit_nonhash zero observed=0 PASS
+    summary: 4/9 PASS
+
+## 2. Edits made by this seat
+
+- corpus/SOURCES.md line 198: registry row S257 after S256 (line 197). 11 cells, 13 pipe-fields.
+  Upstream bytes re-fetched and matched: sha256 976360027cee582030f2ec4871544821d8b66c25e8687ea461f4bee56aacb92e,
+  12313 B; line 149 `if (current === (ctx.repoRoot ?? ctx.home)) break;` present.
+  First insert lacked the trailing pipe (census E01 fields=10); fixed to 13 fields.
+- corpus/README.md line 177: index row for `knowledge/omp-root-semantics-round88.md`, written after
+  the file appeared on disk (it was absent at the first attempt; present at the second).
+- corpus/README.md line 342: append-only § Frontier note (round 88), written before the knowledge file
+  existed; it says C1 did not land at note time, which the entry itself confirms.
+
+## 3. After (final)
+
+    $ python3 -B verifiers/verify_corpus_integrity.py --json        (exit 1)
+    corpus.index.tracked_files  equal  observed=174  expected=172  DRIFT
+    corpus.index.unindexed      zero   observed=2    expected=0/empty  DRIFT
+      unindexed_detail: corpus/lessons/round-87-verifier-spotcheck.md,
+                        corpus/lessons/round-88-addendum-1.md
+    corpus.index.stale_patterns zero   observed=1    expected=0/empty  DRIFT
+      stale_patterns_detail: corpus/README.md:177: knowledge/omp-root-semantics-round88.md
+    corpus.index.missing_paths  zero   observed=0  PASS
+    summary: 3/9 PASS
+
+Reading of the after state:
+- The unindexed growth 1 -> 2 is not caused by this seat: corpus/lessons/round-88-addendum-1.md is a
+  tracked addition by another seat and is outside this item.
+- stale_patterns 0 -> 1 is caused by this seat's index row 177, and only transiently: the knowledge
+  file exists on disk but is not yet tracked (`git ls-files corpus/` does not list it), and the
+  index check reads tracked paths. It clears when ScribeEntry's file is committed. Not fixed by
+  editing the row or the baseline.
+- tracked_files 174 includes the round-88-addendum-1.md tracked addition above; the knowledge file
+  is not yet tracked and so is not in the 174.
+- Expected counts in verifiers/corpus-baseline.json were not changed by this seat.
+
+## 4. Census (scripts/sources-census.sh validate --root /home/vgpnk/Projects/shokunin kotoba)
+
+    pass 1 (row with 10 fields):  E01 S257 fields=10 (missing trailing pipe; fixed)
+    pass 2 (13 fields, knowledge file absent): E11 S257 missing used-by corpus/knowledge/omp-root-semantics-round88.md; exit=1
+    pass 3 (knowledge file on disk, index row present):
+        kotoba	ok	/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md
+        exit=0; W04 duplicate-url warnings: 33 (pre-existing)

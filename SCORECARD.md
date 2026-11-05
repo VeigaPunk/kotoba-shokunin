@@ -220,7 +220,7 @@ against live installed surfaces — 2 duplicate-name pairs found
 (`godspeed`, `ufo` backup copies), grounded in S254 (opened this round),
 flagged read-only. SOURCES 179 → 180 (S254). Report
 `.ufo/reports/round-84/kotoba.md`; lesson `corpus/lessons/round-84.md`.
-
+**Round 88 (planned; frozen at `89579c77`, dispatched as wave `r88-w1`):** (1) C1 depth (owned lowest, score 9) — the v2 omp root counter `verifiers/check_omp_root_semantics_v2.py` grounds 12 of 12 honest rows AND rejects the four round-87 forged worlds (`forgeries rejected M of 4`; the r87 counter reads M = 0 of 4 as the do-nothing control); (2) C2 consistency (calibration sub-axis, score 10) — the v2 routed-repairs gate `verifiers/check_r86_routed_repairs_v2.py` D5 = integrity check-name identity AND red-set monotonicity against base `223ae62` (the r87 gate reads 4 of 5 at tip). Mined mistake R87-D7 (LOG `:3315` "5 of 5" against the tip reading). Considerthese 2026-10-26 proposal 4 mined into QUALITY Q80. Plan `plans/round-88.md`. Verdicts belong to the non-author closure.
 ## retired
 
 None. No saturation or wrong-fit evidence (`../AXES.md`, § Working an axis).
@@ -356,6 +356,7 @@ receipt, Sighting completion, verified-round credit, or saturation is claimed.
 | dispatch-prompt box check | runs two dispatch-prompt checklist boxes (`dispatch.04`, `dispatch.08`) over a prompts directory and proves, from committed fixtures, that the instrument's six named conjuncts can each fail (`--box-proof`); bounded: no fixture for an unsubstituted variable before the report path or a non-digit round folder, `*-L1.md` and fleet-root roles exempted by a rule no fixture pins, and no gate runs `--box-proof` (`.ufo/waves/round-49/falsify/CriticC2Landed.md`, `MutDispatchInstrument.md`) | `python3 -B verifiers/verify_dispatch_prompts.py --box-proof --map verifiers/checklist-baseline.json` → `boxes proven 2`; live run `.ufo/waves/round-49/build/c2-live-run-1115Z.txt` | 49 |
 | sibling-description check | reads a SKILL.md frontmatter `description` (the value ends at any column-0 line) and fails, naming the lane, when a lane the census classes non-`none` is not named in a clause carrying a pinned ownership or routing marker, or when the description exceeds 1,024 characters; rejects a lane repeated in the census or `PROVINCE.md` table (`python3 -B verifiers/check_sibling_census.py corpus/knowledge/sibling-overlap-census-round49.md --province PROVINCE.md --skill <SKILL.md>`; ran round 50: 5 of 9, exit 1 at `f3046466` → 9 of 9, exit 0 at `542f515`). Bounded: the marker test is lexical (a false ownership sentence passes) | `verifiers/check_sibling_census.py` (self-test 68, floored), `.ufo/waves/round-50/build/CensusGuard.md`, `.ufo/waves/round-50/falsify/ReplayC1Counter.md` | 50 |
 | host installed-skill surface census | enumerates a host skills root's installed `*/SKILL.md` instruction surfaces read-only, hashes each, classifies identical/drifted/lane-absent against the fleet lane repos, names every drift with both sha12 prefixes, and proves itself on tempdir fixture worlds (three-class world, drift mutant, unreadable surface → exit 1 naming it, absent skills root → exit 2, empty root → measured 0); drift is reported to the owning lanes, never fixed from this lane | `python -B verifiers/check_host_skill_surfaces.py --self-test` → `0 failure(s) over 12 assertions`; live census `host skill surfaces measured 9: identical 0, drifted 6, lane-absent 3` (`.ufo/waves/round-82/receipts/after-host-skill-census-ledger.txt`) | 82 |
+| forgery-rejecting root-grounding counter | grounds the 12 installed-omp skill roots from the pinned ELF's own reader code and rejects four forged-ledger classes (cross-row quote, shifted offset, module mislabel, render line) plus three disclosed classes (both ledgers rewritten, `$HOME` escape, absolute pattern) while the honest ledger still scores 12 of 12; `python3 -B verifiers/check_omp_root_semantics_v2.py --rev <rev>` prints `12 of 12` / `4 of 4` / `7 of 7`, exit 0, `0 failure(s) over 69 assertions` | `.ufo/waves/round-88/receipts/l1-c1-final.txt`; `ReviewerC1/independent_c1.py` | 88 |
 
 **Round 41 calibration annotation (append-only; assertion-floor capability row).** The row's “all six” and six-floor description records the capability's earlier scope, not the current guard. At the R41 working tree based on r40 HEAD, after V16's round-41 addition, `verifiers/floors-registry.json` has nine rows and `python3 verifiers/check_assertion_floors.py` passes all nine at observed=floor: `10/145/86/87/1597/62/104/118/150`; the guard's own `--self-test` is `0 failure(s) over 150 assertions`. N05/N06 re-ran these at 2026-10-19 13:36:38 -03; guard SHA-256 `67f08725edd884f74351eca7f21b301e2b2f691d6f5ba75ae2102a142c9e3261`, registry SHA-256 `925484e96464d0056fcff96d0ea2efb18fc4a4a29c8aed733c7881b99876838f`. Preserve the original first-working-round snapshot; use the nine-row vector for current status.
 
@@ -648,3 +649,41 @@ Round 74 wave 2 (the falsify wave) was generated and validated but not dispatche
   repair routed to r88 (monotone red-set test + the Q79 control). Evidence:
   `.ufo/waves/round-87/w3/l1/c1-tip.txt`, `q79-control.txt`, `census-now.txt`; Q79 in
   `corpus/QUALITY.md`; `corpus/lessons/round-87.md` § Attempt 2 and M87-2.
+
+## Round 88 — two claims (C1 depth v2 root counter, C2 consistency v2 routed gate); verdicts belong to the non-author closure
+
+- **Depth (C1, score 9 held; verdict: measured — closure rules).** Frozen predicate (`plans/round-88.md` § C1,
+  executed per addenda 1–2): `python3 -B verifiers/check_omp_root_semantics_v2.py --rev <rev>` prints
+  `omp root semantics grounded N of 12`, `forgeries rejected M of 4`, `forgery-class worlds rejected K of 7`;
+  exit 0 iff N == 12 and M == 4 and guards S1–S5 PASS. Counting command, before → after:
+  `python3 -B verifiers/check_omp_root_semantics.py --rev 4df1e80` (the r87 counter = the do-nothing control)
+  `12 of 12`, exit 0 **but** the four r87 forged worlds also read `12 of 12` (`forgeries rejected 0 of 4`,
+  `ExecForgeryWorlds/matrix.tsv`); after, `verifiers/check_omp_root_semantics_v2.py` (sha256 `b6412808…c427`,
+  `0 failure(s) over 69 assertions`) at `4df1e80` → `12 of 12`, `4 of 4`, `7 of 7`, exit 0
+  (`receipts/l1-c1-final.txt`, `after-c1.txt`). Independent leg: `ReviewerC1/independent_c1.py` — honest
+  `12 of 12`, four rebuilt forged revisions `10, 10, 9, 9 of 12`, the r87 counter reproducing `12 of 12` on the same
+  revisions. Bounds: A3.1 (kill-rule ruling on the pre-fix `0 of 12` run), A3.3 (S5 is a substring guard; M is a
+  cell-world construction; the table is not oracle-proof). Band move waits on the closure.
+- **Consistency / calibration sub-axis (C2, score 10 held; verdict: measured on target, NOT verified).** Frozen
+  predicate: `python3 -B verifiers/check_r86_routed_repairs_v2.py --rev <rev>` → `r86 routed defects closed N of 5`,
+  exit 0 iff N == 5. Before `4 of 5`, exit 1 at `4df1e80` (`receipts/before-C2-tip.txt`, the r87 gate failing D5 on
+  a healed red) → after `5 of 5`, exit 0 at `4df1e80` and at the landing revision (`receipts/l1-c2-tip.txt`,
+  `after-c2.txt`; gate sha256 `10bd5508…58b82`). **Not verified**: the frozen control `w_added_red` cannot fail
+  under a name-level monotone test (self-test `1 failure(s) over 16`, left red by design), and C2-S2 (`silenced
+  in place`) / C2-S3 (`corpus-baseline.json` re-recorded) pass worlds the frozen text names as failures. Kill rule
+  forbids amendment; successor predicated in A3.2 and routed to round 89. `ExecMonotoneD5.md`, `CriticFalsify/
+  attacks.md`, `ReviewerC2/review.md`.
+- **Lowest-axis obligation.** Owned axes are depth (9) and consistency (10); the lowest owned axis is depth and C1
+  works it. The advisory reading (freshness 8.0 / adjacency 8.0 tied) stays the lane's open L0 question.
+- **No axis harmed (measured at base and at the landing revision).** Integrity DRIFT name set at landing ⊆ the base
+  set of six (no new name; `corpus.index.stale_patterns` was an untracked-file artefact, green after the commit);
+  gate registry `69 of 69` → `71 of 71`, phantom 0; assertion floors PASS with the new row (guard self-test
+  `0 failure(s) over 165 assertions`, floor 150); `SKILL.md` **600 lines / 89 708 B**, 161 lines > 120 chars,
+  longest 1 169 (Q78; the two registry rows offset by two merged wrapped lines, so the 600-line box still holds);
+  sibling census **carried red** — the round-49 census checker fails the same two rows at base (tameshi commit,
+  tsukuroi classification, `province rows 20 matched 4`), so the SHONEN evidence sentence is corrected, not the
+  round. `receipts/after-battery.txt`, `after-integrity.txt`, `after-census.txt`.
+- **Capability row (new, demonstrated this round).** *forgery-rejecting root-grounding counter* — grounds 12
+  installed-omp skill roots from the ELF's own reader code and rejects four forged-ledger classes plus three
+  disclosed classes while the honest ledger still scores 12 of 12; `verifiers/check_omp_root_semantics_v2.py
+  --rev <rev>`, `0 failure(s) over 69 assertions`; first working round 88.
