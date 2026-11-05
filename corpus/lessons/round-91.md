@@ -128,3 +128,30 @@ gate.
   access 2026-11-05; HTTP 200; 170845 B; page revision 1373580212; located quote at text line 96
   (14 words). Tier C, community, lead only. Status `rejected`; used-by
   `corpus/lessons/round-91.md`.
+
+## Settlement (attempt 2, KotobaR91a2; landing `c6631ca44435f0d9cbe6b9d5a6fb57788cbe258a`)
+
+**Seat record — wave `r91-w1` (one v1 wave, band 8–16, dispatched by attempt 1).** `r91-w1.ready` (l1 `KotobaR91`) was taken at 2026-11-05T12:06:18-03:00. The registry (`.ufo/waves/round-91/w1/swarm-registry.json`) lists 13 spawn members and records `agentId: null` on every row; no `r91-w1-results.json` exists and no WAVE-DONE reached this attempt. Attempt 2 read the outputs from disk and did not re-dispatch, since the ready file was taken and a second spawn would double the writers. Roles as dispatched: executor 3 (ExecBatteryArms, ExecFloorsCap, ExecLadder), scout 1 (ScoutSources), scribe 1 (ScribeCorpus), connector 1 (ConnectorOverlap), reviewer 2 (ReviewerBattery, ReviewerRepairs), critic 1 (CriticClaims), mutation-tester 2 (MutTesterBattery, MutTesterRepairs), revenger 1 (RevengerLadder), sentinel 1 (SentinelScope). The plan's § Wave shape named `LabratLadder`; the dispatched spec carries `RevengerLadder` (revenger), and the dispatch file is authoritative.
+
+- **Landed on disk:** 12 of 13. **Dead or unlanded:** `ReviewerRepairs` — no output directory or file under `w1/`; no result record; last error text not available.
+- **Attack seats landed:** reviewer 1, critic 1, mutation-tester 2 = 4 of 13 (31 %, ≥ 25 %). **Connector:** 1 (≤ 2). **Planner:** excluded by the validator; the L1 holds the § 3 planner seat (standing deviation). **Round total:** 13 seats; no residual call; no second wave.
+
+**What the seats produced, and what the landing kept.**
+
+- ExecBatteryArms (C1 patch, 3 arms, 3 kill rows, third PROBES target and its fixture stub) — applied as is; landing predicate `17 of 17`.
+- ExecFloorsCap (C2 leg A patch, cap 360, measured constant, arms, `freeze_gate` floor coupling) — applied as is; the floor bump is the addendum's A1 (touch-list amendment, recorded).
+- ExecLadder (C2 leg B patch, one line plus one self-test arm; verdict REPAIRABLE) — applied as is; coupled to ExecFloorsCap's `freeze_gate` bump.
+- ScoutSources and ScribeCorpus (S262, S263 admitted; S264 rejected; knowledge entries; this lesson's Gate) — applied as is; the census moved to 190 (addendum A2).
+- Attack seats: ReviewerBattery (C1 attack: guards disabled in turn, all PASS on the candidate), MutTesterBattery (7 mutants: 6 killed; `m6` dropped kill row survives the self-test but changes the printed count), MutTesterRepairs (10 mutants on the floors/gate patches: 9 killed by bounded probes, 1 by the bare-walk pre-check; F1 registry-floor coverage gap, F2 comment-free constant-byte gap, F3 freeze_gate coupling), CriticClaims (candidate verdicts: C1 met, C2 leg A met, leg B met for the re-derived instance; control defects), RevengerLadder (rung probe: FAILS at base on the non-UTF-8 rung, repaired on the candidate; residual `NotADirectoryError` unrepaired), ConnectorOverlap (no sibling copies of the six surfaces; O1–O6 overlaps noted), SentinelScope (scope and safety PASS; F1 `freeze_gate` floor edit beyond the touch list; F2 census 189-vs-190).
+- Landing receipts and readings: `.ufo/waves/round-91/receipts/landing/` (named at `c6631ca`).
+
+**Claim readings at landing (proposed verdicts; the non-author closure rules).**
+
+- **C1 depth (capability deepening):** measured — `killed 17 of 17 kill-set; equivalents survived 6 of 6; disclosed survivors 0 of 0`, exit 0, G1–G3 PASS, self-test 25 ≥ 22; before `killed 14 of 14`, self-test 19 at the freeze base. The three mutants survive at base (r90 transcript) and are killed by named arms at the landing bytes. No axis harmed.
+- **C2 freshness (advisory):** measured on legs A and B. Leg A: `SELF_TEST_TIMEOUT_S = 360`, `MEASURED_SELFTEST_S = 161`, floors self-test 176 (was 165), pin admitted, tip battery `guards 5 of 5` (was 4 of 5), bare floors walk 19 of 19 PASS rc 0. Leg B: freeze-gate self-test 31 (was 30), repair measured on its re-derived instance, able-to-fail shown (`plan-not-utf8` arm red on the reverted line). **Bound:** whether the re-derived instance is the routed pointer (`round-90` § Routed defects 5) is not established; addendum A3 records the disposition, and the closure may rule leg B narrowed to `unprovable` on identity alone.
+- **No axis harmed:** no counted metric worsened. Corpus integrity `unindexed 1 → 0` and DRIFT 5 → 4; D5 v3 instance drift 4 → 3 (`d5ii` healed; `d5iii` tracked-file growth 185 → 188 is the three new corpus files, which the gate counts by design). Carried, unchanged: sibling census `province rows 20 matched 4`; checklist `governance.citation_resolves`; tip battery gates checklist / corpus integrity / corpus independent; `check_province_core` `rows 0 of 2`; SKILL.md 600 lines.
+- **Frozen controls:** the pre-data controls held at the freeze base; re-run at the landing revision they refuse `ctl-c2-capline-only` (exit 0 against declared 1). Recorded as a frozen-declaration defect (Mistakes, `vacuous`), not repaired into frozen bytes.
+
+**Frontier step (§ 2b).** Census `grep -cE '^\|[[:space:]]*S[0-9]{3,}[[:space:]]*\|' corpus/SOURCES.md`: 187 → 190; validate rc 0 at `c6631ca` (`.ufo/waves/round-91/receipts/landing/census-after-A.txt`). Sourced claims: C1 cites S262 (`knowledge/mutation-battery-arms-round91.md`); C2 cites S263 (`knowledge/timeout-calibration-round91.md`). Mistake mined: the `landing` row above and the two routed rows (`number-drift`, `vacuous`). Assimilation: none — the package stays unadopted (L0 `kotoba | round-88` open). Considerthese: no proposal implemented; proposal 3 carried (SKILL.md 600-line ceiling).
+
+**Non-author spot-check:** pending — the closure samples one admit and one reject from the Gate above (S262 or S263 admit; S264 reject).
