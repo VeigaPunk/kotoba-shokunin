@@ -1,0 +1,62 @@
+# S258 fetch transcript — seat ScoutSource — date 2026-11-05 (host 2026-11-05T11:08:22Z)
+# curl curl 8.23.0 (x86_64-pc-linux-gnu) libcurl/8.23.0 OpenSSL/3.6.5 zlib/1.3.2 brotli/1.2.0 zstd/1.5.7 libidn2/2.3.8 libpsl/0.21.5 libssh2/1.11.1 nghttp2/1.70.0 ngtcp2/1.25.0 nghttp3/1.18.0 mit-krb5/1.22.2
+
+=== route (a) as specified in the assignment: https://pmc.ncbi.nlm.nih.gov/articles/PMC5813543/
+http=200 final=https://pmc.ncbi.nlm.nih.gov/articles/PMC5813543/ bytes=307298 ctype=text/html; charset=utf-8
+sha256(a) = 20574435edee839a38369b17197395d194b68eedde578fda80de3e77ea2939b8
+title(a)  = STOREKEEPER RELATED1/G-Element Binding Protein (STKR1) Interacts with Protein Kinase SnRK1 - PMC
+VERDICT(a): HTTP 200 but the page is a DIFFERENT article (not the preregistration paper) -> route (a) does NOT yield S258.
+
+=== route (b): https://www.pnas.org/doi/10.1073/pnas.1708274114
+http=403 final=https://www.pnas.org/doi/10.1073/pnas.1708274114 bytes=5686
+sha256(b) = 8c0313664a3409474dea8c3abe00f0bcad7e564927585aeb06f716331f2a8079
+VERDICT(b): HTTP 403 (publisher bot-block).
+
+=== route (c): https://doi.org/10.1073/pnas.1708274114
+http=403 final=https://pnas.org/doi/full/10.1073/pnas.1708274114 bytes=5697
+sha256(c) = 4d0e6ca489153b6f1094a827593baac19d1f0e6886cf03ecc4958492f86bb36b
+VERDICT(c): HTTP 403 (redirects to pnas.org, bot-block).
+
+=== resolution of the DOI to the correct open-access PMC id (NCBI idconv API)
+{"status":"ok","response-date":"2026-11-05 06:08:23","request":{"warnings":["query param `email` is missing.","query param `tool` is missing."],"format":"json","ids":["10.1073/pnas.1708274114"],"echo":"ids=10.1073%2Fpnas.1708274114&format=json","versions":"no","showaiid":"no","idtype":"doi"},"records":[{"doi":"10.1073/pnas.1708274114","pmcid":"PMC5856500","pmid":29531091,"requested-id":"10.1073/pnas.1708274114"}]}
+=== route (a') RESOLVED: https://pmc.ncbi.nlm.nih.gov/articles/PMC5856500/
+http=200 final=https://pmc.ncbi.nlm.nih.gov/articles/PMC5856500/ bytes=196972 ctype=text/html; charset=utf-8
+sha256(S258 saved bytes) = ee0d0560901a0e65c6b8079e2eaf1d79c049c74597ce3f374b4e19bce0ba51f9
+bytes = 196972
+title  = The preregistration revolution - PMC
+grep -n confirmatory/exploratory and preregistration anchors in saved bytes:
+1451:<p>Preregistration of an analysis plan is committing to analytic steps without advance knowledge of the research outcomes. That commitm
+1472:<p>In some cases, data acquisition is so simple that any documentation process interferes with efficiency. In such scenarios, researche
+1478:<p>Preregistration benefits both exploratory research and testing predictions during the iterative research process. Following tests of
+
+=== S259 own-work verification (read-only git, no mutation) ===
+$ git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin show a5b3b15c00b1de5db321e4226a0a7db17340e605:corpus/lessons/round-88-verifier-spotcheck.md | sha256sum
+236aa5172442fc7d5dbb860c59997f339883be82a9647b188f1bb84298215cfd  -
+
+$ git -C ... show <rev>:<path> | grep -n 'freeze-gate\|Freeze gate\|instance-level'
+73:3. **Freeze gate (lane-routed, round 89):** a freeze must execute every frozen control and refuse the freeze on an expectation the predicate cannot satisfy (F1), and no counter byte may change after any scored reading (kill rule — A3.1-style rulings are void).
+74:4. **C2 successor (lane-routed, round 89):** instance-level D5 with controls executed before the freeze; the `--work`/`/tmp` fallback discipline defect in the C2 gate (Sentinel F3) routed unrepaired because the gate is frozen.
+
+$ git -C ... show <rev>:<path> | sed -n '69,76p'  (## Routed defects section, lines 69-76)
+## Routed defects (the lane must fix by its next round)
+
+1. **Report rewrite discipline:** corrections to a filed report land as an appended erratum naming the superseded text, never as an in-place rewrite (d6c5ec57 vs 5306df4). Round 89 must not rewrite filed bytes.
+2. **Attribution:** addenda 1–3 and the LOG settlement entry are headed `KotobaR88 (lane L1)` but were written by wave seats; the L1 disposition records the non-ratification. Also lane-identity commits `f300d89`…`7aaca1a` landed during the wave with the issuing seat/driver not established from the record. Fix: seats never write under the lane identity; only the L1 commits (round-89 freeze gate should check commit authorship timing against the wave window).
+3. **Freeze gate (lane-routed, round 89):** a freeze must execute every frozen control and refuse the freeze on an expectation the predicate cannot satisfy (F1), and no counter byte may change after any scored reading (kill rule — A3.1-style rulings are void).
+4. **C2 successor (lane-routed, round 89):** instance-level D5 with controls executed before the freeze; the `--work`/`/tmp` fallback discipline defect in the C2 gate (Sentinel F3) routed unrepaired because the gate is frozen.
+5. **Lesson wording:** name the file a count belongs to (the "188 rows" figure is `SOURCES.append.md`, not `MERGE-REPORT.md`) — CORPUS rule "a count carries its command" extends to naming the counted file.
+6. **Operator items (not lane debt):** L0 questions `kotoba | round-88` (assimilation renumber-or-retire ruling; C1 strict-kill-vs-verify ruling) await the operator; the four SHONEN boxes are `[~]` with resolvable pointers and look checkable by a non-author — promotion remains operator-owned.
+
+=== fetch-stability note ===
+Two fetches of PMC5856500 (one at 08:06 local scratch, one at 11:08:22Z into the lane seat dir) produced byte-identical ARTICLE TEXT; the raw files differ on exactly two lines (NCBI per-session 'ncbi_phid' meta tag at line 77 and the 'csrfmiddlewaretoken' hidden input at line 1934):
+77c77
+< <meta name="ncbi_phid" content="C1ED851CAEC5B55314851C004F5A3FE4.m_1" />
+---
+> <meta name="ncbi_phid" content="E73C962AAEC5FD0314962A0048E758EC.m_1" />
+1934c1934
+<     <input type="hidden" name="csrfmiddlewaretoken" value="gYd9g1ksr8nbSAQgZm8gOiXfUGX254eg8D30wAxIc5sOnkFrXGF1D622idNCyMDw">
+---
+>     <input type="hidden" name="csrfmiddlewaretoken" value="dtUHVNeLqLYWdpSAgW3PIvubSXlyEiyKFDaLPo6wMtWneBqzupGl7VVWdDW8Iibo">
+text-projection sha256 (tags stripped, whitespace collapsed), both fetches:
+dde98a5ebe159b7a4a4e07b52ce40e9d65e16d6c7b12f943d61c68ae1fcf3efc 61093 s258.html
+dde98a5ebe159b7a4a4e07b52ce40e9d65e16d6c7b12f943d61c68ae1fcf3efc 61093 /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-89/w1/ScoutSource/s258.html

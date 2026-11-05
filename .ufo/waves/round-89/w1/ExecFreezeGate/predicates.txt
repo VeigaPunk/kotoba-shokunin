@@ -1,0 +1,29 @@
+# ExecFreezeGate receipts — the three frozen predicate arms (r89 claim C1)
+# seat: ExecFreezeGate (executor, leaf). Lane base at plan draft: a5b3b15c00b1de5db321e4226a0a7db17340e605
+# All runs: cwd = /home/vgpnk/Projects/shokunin/kotoba-shokunin,
+#           TMPDIR = /fast/scratch/hyaku/kotoba-r89/ExecFreezeGate, python3 -B, 2026-11-05.
+# Frozen predicate (plans/round-89.md § C1, verbatim — same sentence in the gate docstring):
+#     python3 -B verifiers/check_freeze_gate.py --self-test
+#         -> prints "0 failure(s) over N assertions" (N >= floors floor), exit 0
+#     python3 -B verifiers/check_freeze_gate.py --plan verifiers/fixtures/freeze-gate/r88-controls.md
+#         -> exit 1, refusal names "w_added_red"
+#     python3 -B verifiers/check_freeze_gate.py --plan verifiers/fixtures/freeze-gate/r88-controls-fixed.md
+#         -> exit 0
+
+$ python3 -B verifiers/check_freeze_gate.py --self-test
+0 failure(s) over 30 assertions
+exit=0
+
+$ python3 -B verifiers/check_freeze_gate.py --plan verifiers/fixtures/freeze-gate/r88-controls.md
+REFUSED control w_added_red (line 36): declared "exit 0; stdout contains D5=FAIL"; observed exit=0 stdout=w_added_red D5=PASS\n (stdout literal 'D5=FAIL' absent from observed stdout)
+exit=1
+# arm holds: refusal names w_added_red, first violated control, with declared-vs-observed text.
+# This mechanically reproduces r88 F1: the r88 freeze declared v2 D5 FAIL (ii) for w_added_red
+# and never executed the control; the committed receipts record D5 PASS (ExecMonotoneD5 F1,
+# CriticFalsify C2-S1, spotcheck routed defect 3).
+
+$ python3 -B verifiers/check_freeze_gate.py --plan verifiers/fixtures/freeze-gate/r88-controls-fixed.md
+freeze gate: 4 control(s) held — freeze may proceed
+exit=0
+# arm holds: the same gate holds the fixed declarations (w_added_red D5=PASS,
+# w_silenced D5=FAIL-world-unreachable, w_healed D5=PASS, w_tip D5=PASS).

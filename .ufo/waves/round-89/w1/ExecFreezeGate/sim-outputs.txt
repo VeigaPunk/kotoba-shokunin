@@ -1,0 +1,48 @@
+# ExecFreezeGate receipts — simulator outputs, live and fail-closed (r89 claim C1)
+# seat: ExecFreezeGate (executor, leaf). 2026-11-05.
+# Each sim greps the named committed round-88 receipt and prints the OBSERVED world
+# verdict it records; a missing receipt exits 2. Live runs: cwd = the lane,
+# TMPDIR = /fast/scratch/hyaku/kotoba-r89/ExecFreezeGate.
+
+$ bash verifiers/fixtures/freeze-gate/sim-w-added-red.sh
+w_added_red D5=PASS
+rc=0
+# grounds .ufo/waves/round-88/w1/ExecMonotoneD5.md F1 ("the monotone test cannot see a
+# new instance") + the control table row, and the --- w_added block of
+# w1/ExecMonotoneD5/receipts.txt (PASS d5). The r88 freeze declared D5=FAIL — unsatisfiable.
+
+$ bash verifiers/fixtures/freeze-gate/sim-w-silenced.sh
+w_silenced D5=FAIL-world-unreachable
+rc=0
+# grounds the --- w_silenced block of w1/ExecMonotoneD5/receipts.txt ("FAIL d5  identity
+# FAIL: rev has 8 names, base has 9") — the silenced check's world is unreachable in the
+# measured name set — plus the C2-S2 silencing disclosure row in w1/CriticFalsify/attacks.md.
+
+$ bash verifiers/fixtures/freeze-gate/sim-w-healed.sh
+w_healed D5=PASS
+rc=0
+# grounds the --- w_healed block of w1/ExecMonotoneD5/receipts.txt (PASS d5; a healed red passes).
+
+$ bash verifiers/fixtures/freeze-gate/sim-w-tip.sh
+w_tip D5=PASS
+rc=0
+# grounds receipts/before-C2-tip.txt (r87 do-nothing control: FAIL d5, closed 4 of 5 at tip
+# 4df1e800), receipts/l1-c2-tip.txt (v2: PASS d5, closed 5 of 5, exit=0, tip hash present),
+# and w1/ReviewerC2/review.md item 4 (reviewer's independent re-derivation, 5 of 5).
+
+# Fail-closed proof: each sim copied to /fast/scratch/hyaku/kotoba-r89/ExecFreezeGate/
+# failclosed/ and run there (receipts unreachable from that root):
+$ bash /fast/scratch/hyaku/kotoba-r89/ExecFreezeGate/failclosed/sim-w-added-red.sh
+sim-w-added-red: receipt missing: /fast/scratch/hyaku/.ufo/waves/round-88/w1/ExecMonotoneD5/receipts.txt
+rc=2
+$ bash /fast/scratch/hyaku/kotoba-r89/ExecFreezeGate/failclosed/sim-w-silenced.sh
+sim-w-silenced: receipt missing: /fast/scratch/hyaku/.ufo/waves/round-88/w1/ExecMonotoneD5/receipts.txt
+rc=2
+$ bash /fast/scratch/hyaku/kotoba-r89/ExecFreezeGate/failclosed/sim-w-healed.sh
+sim-w-healed: receipt missing: /fast/scratch/hyaku/.ufo/waves/round-88/w1/ExecMonotoneD5/receipts.txt
+rc=2
+$ bash /fast/scratch/hyaku/kotoba-r89/ExecFreezeGate/failclosed/sim-w-tip.sh
+sim-w-tip: receipt missing: /fast/scratch/hyaku/.ufo/waves/round-88/receipts/before-C2-tip.txt
+rc=2
+# The same fail-closed shape is asserted by the gate's four self-test arms
+# (simulator fail-closed ...). A sim never guesses a verdict.

@@ -1,0 +1,30 @@
+# ExecFreezeGate receipts — sha256 pins and the freeze_gate floors row (r89 claim C1)
+# seat: ExecFreezeGate (executor, leaf). 2026-11-05.
+
+$ sha256sum verifiers/check_freeze_gate.py verifiers/fixtures/freeze-gate/sim-w-added-red.sh verifiers/fixtures/freeze-gate/sim-w-silenced.sh verifiers/fixtures/freeze-gate/sim-w-healed.sh verifiers/fixtures/freeze-gate/sim-w-tip.sh verifiers/fixtures/freeze-gate/r88-controls.md verifiers/fixtures/freeze-gate/r88-controls-fixed.md
+a20e6f9afff367dfb56b3d8fa437a176627bf55623d1f6b20dea320943e15e41  verifiers/check_freeze_gate.py
+dca42e4c2755982d80b2c1eff143ad0de7e6adc9208ec3bbb356177105d6a79e  verifiers/fixtures/freeze-gate/sim-w-added-red.sh
+e960ca811cd215e020476fac74deb9ae2027aa9b6cf10aa051ad64c7359188de  verifiers/fixtures/freeze-gate/sim-w-silenced.sh
+a911c0620246784053fc4af8895c84e245e8cd2c923d199315f35fa72ab4ac19  verifiers/fixtures/freeze-gate/sim-w-healed.sh
+e82b13dc44ffea7c403b9a8eb0c89ef0bf5f8013ff6ce96638aba1e5d8da0acd  verifiers/fixtures/freeze-gate/sim-w-tip.sh
+f6b029ac4a14f1e26993f221107d576899bf4253facf936df43493ab5097bde2  verifiers/fixtures/freeze-gate/r88-controls.md
+e96a8fa6025147b6855bf4f76cd3165206149cdc12a852eb5b87ac0af905e0a3  verifiers/fixtures/freeze-gate/r88-controls-fixed.md
+
+# FG_READY carries the script pin: a20e6f9afff367dfb56b3d8fa437a176627bf55623d1f6b20dea320943e15e41
+
+# Registry row added (the ONLY change to verifiers/floors-registry.json; no other row touched,
+# instrument_total left untouched — the L1 owns that sync, see ExecFreezeGate.md finding F1):
+    "freeze_gate": {
+      "floor": 30,
+      "path": "verifiers/check_freeze_gate.py"
+    },
+
+$ python3 -c 'import json; d=json.load(open("verifiers/floors-registry.json")); print("json ok;", d["instruments"]["freeze_gate"])'
+json ok; {'floor': 30, 'path': 'verifiers/check_freeze_gate.py'}
+
+# Floors-guard state after the row add (check_assertion_floors.py is NOT owned by this seat —
+# recorded as the L1's pre-freeze integration item, finding F1):
+$ python3 -B verifiers/check_assertion_floors.py
+FAIL registry size drift: instrument_total=18 but 19 entries in verifiers/floors-registry.json
+FAIL registry row vanish: freeze_gate (listed in verifiers/floors-registry.json, absent from both guard tables)
+guard rc=2
