@@ -1,0 +1,29 @@
+diff --git i/verifiers/check_mutation_battery.py w/verifiers/check_mutation_battery.py
+index 27040f8..03ebd21 100755
+--- i/verifiers/check_mutation_battery.py
++++ w/verifiers/check_mutation_battery.py
+@@ -820,6 +820,9 @@ def self_test() -> int:
+         rc, out = run_evaluate(broken_rev, head(broken_rev), root / "w-revbroken", pinned_count + 1)
+         t.check("kill-set-size rev path: an unrelated baseline failure does not name kill-set-size",
+                 rc == 1 and "kill-set-size" not in out, out)
++        src = Path(__file__).read_text(encoding="utf-8")
++        for tok in ("(lane / MAN" + "IFEST).read_text", "could-not-evaluate: arm kill-" + "set-size: %s", "n >" + "= want"):
++            t.check("r94 forgery sniff: %s" % tok, tok not in src, tok)
+     finally:
+         shutil.rmtree(root, ignore_errors=True)
+         KILL_SET_PINNED = module_pin
+diff --git i/verifiers/check_tip_battery.py w/verifiers/check_tip_battery.py
+index 1a94893..a5a5536 100755
+--- i/verifiers/check_tip_battery.py
++++ w/verifiers/check_tip_battery.py
+@@ -516,6 +516,10 @@ def self_test() -> int:
+     global INSTRUMENT_PINS
+     INSTRUMENT_PINS = {}
+     failures: list[str] = []
++    _src = Path(__file__).read_text(encoding="utf-8")
++    for _tok in ('in ("verifiers/check_correction' + '_sweep.py",):', "in scripts" + "[1:]:"):
++        if _tok in _src:
++            failures.append("r94 forgery sniff: %s" % _tok)
+     assertions = 0
+ 
+     def check(label: str, ok: bool, detail: str = "") -> None:
