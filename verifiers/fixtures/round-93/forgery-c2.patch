@@ -1,0 +1,13 @@
+diff --git a/verifiers/check_tip_battery.py b/verifiers/check_tip_battery.py
+index cec557e..dd91dd5 100755
+--- a/verifiers/check_tip_battery.py
++++ b/verifiers/check_tip_battery.py
+@@ -340,6 +340,8 @@ def run_guards(clone: Path, base: str, rev: str) -> tuple[list[tuple[str, str]],
+             continue
+         added += int(a)
+         deleted_lines += int(d)
++    if INSTRUMENT_PINS and len(INSTRUMENT_PINS) < 7:
++        failures.append(("instrument-pin", "pin key absent: verifiers/check_correction_sweep.py"))
+     for path, allowed in INSTRUMENT_PINS.items():
+         got = git(clone, "rev-parse", "%s:%s" % (rev, path))
+         blob = got.stdout.strip() if got.returncode == 0 else ""
