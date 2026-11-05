@@ -635,3 +635,14 @@ Round 74 wave 2 (the falsify wave) was generated and validated but not dispatche
 - **M87-1 (mined, with its fix shown able to fail).** A wave seat greened the carried red by
   rewriting the two citing records in place; both reverted, and D5 conjuncts (i)/(ii) now compare
   both blobs to base (`corpus/lessons/round-87.md` § Mistakes).
+- **Attempt 2 re-verification (driver cycle 2, same round; no claim re-opened).** At lane tip
+  `760e1c5e` C1 re-derives `12 of 12` exit 0 and C2 reads **`4 of 5`** exit 1: D1–D4 PASS and
+  D5(i)/(ii)/(iv) PASS, D5(iii) FAIL because `report_dead` healed when another lane's report
+  `.ufo/reports/round-84/kama.md` landed on the fleet repo at 22:47 (fleet commit `5b052020…`) after
+  `receipts/c2-final.txt` was written; a relocated clone at the same bytes reads the two-red set with
+  a different detail site, so the item is path-dependent. The consistency axis score is held at 10
+  and the verdict is the closure's: the routed defects D1–D4 and the disclosure are closed, and the
+  D5(iii) target is recorded unmet at the tip rather than re-worded. Counter not amended (kill rule);
+  repair routed to r88 (monotone red-set test + the Q79 control). Evidence:
+  `.ufo/waves/round-87/w3/l1/c1-tip.txt`, `q79-control.txt`, `census-now.txt`; Q79 in
+  `corpus/QUALITY.md`; `corpus/lessons/round-87.md` § Attempt 2 and M87-2.

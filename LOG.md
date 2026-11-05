@@ -3347,3 +3347,26 @@ addendum 1 `512126bb` (C1 denominator 12; C2/D5 in the lane worktree); addendum 
   mutation-tester 1, sentinel 1), attack set 4 of 14 = 28.6 %; `Critic-3` and `ExecRepairs-3` died
   on a `commandcode` 401 at wake after their work had landed; two scribe seats wrote no production
   file and the L1 wrote the entry and the lesson.
+
+### Round 87, attempt 2 — re-verification at the tip (driver cycle 2)
+
+The driver relaunched round 87 after two provider-401 attempts (`.ufo/watchdog.log`: two
+`lane-dead-no-report kotoba round=87` lines, then the 23:51 `launch`). Attempt 1's work was inherited
+whole: lane tip `760e1c5e`, report `d752fdbe`, clean worktree, `local == remote`.
+
+- **C1 re-derives: `12 of 12`, exit 0** at `760e1c5e` (`.ufo/waves/round-87/w3/l1/c1-tip.txt`).
+- **C2 reads `4 of 5`, exit 1** — D1–D4 and D5(i)/(ii)/(iv) PASS; **D5(iii) FAIL** because the corpus
+  gate's red set is now one (`commit_unresolvable`) and D5(iii) wanted exactly two. Cause measured:
+  `.ufo/reports/round-84/kama.md` landed on the fleet repo at 22:47 (fleet commit `5b052020…`),
+  healing `report_dead`; the round's `receipts/c2-final.txt` (5 of 5 at `35a395a9`) predates it.
+  Same bytes in a relocated clone read the two-red set but with the detail at
+  `corpus/lessons/round-81.md:29`, so the item refuses there too — the verdict is path-dependent.
+  Recorded as 4 of 5 at the tip; target and predicate unchanged; the frozen counter is not amended.
+- **M87-2 (mined): an exact-set expectation scores "keep the red".** Captured-by Q63, which the lane
+  held since r70 and its own new counter violated on the resolution-set half. Fix: Q79 in
+  `corpus/QUALITY.md` plus the control `.ufo/waves/round-87/w3/l1/q79_location_control.py` (lane /
+  relocated clone / pinned world), shown able to fail (`2 distinct readings`, exit 1).
+- **Frontier:** census exit 0, `182` registry rows, 33 `W04`, 0 `E` rows, before and after
+  (`.ufo/waves/round-87/w3/l1/census-now.txt`); no row added this attempt.
+- **Wave:** `r87-w3`, 12 seats (scout 2, executor 3, reviewer 2, critic 1, mutation-tester 1,
+  sentinel 1, scribe 1, connector 1), attack set 4 of 12 = 33.3 %; receipts own each finding.
