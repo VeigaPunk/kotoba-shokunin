@@ -4,7 +4,13 @@
 # REPO defaults to this lane. Counts occurrences, not unique revisions.
 # Scratch declarations are line-local: `world rev`, `forgery`, or a path-shaped `/scratch/` token
 # (round-93 CriticClaimsR93 D1: a bare word "scratch" anywhere on the line no longer exempts it).
-# Exit: 0 resolved >= 1 and no misses; 1 unresolved; 2 no candidates or unreadable input.
+# Exit: 0 resolved >= 1 and no misses; 1 unresolved or malformed declaration;
+# 2 no candidates or unreadable input.
+# Round-94 mined mistake (CriticClaimsR93 D2/D3, fixed by ExecReceiptHeaders): a line that is
+# header-SHAPED after stripping leading whitespace (`REV=`, `measured rev `, `rev ` followed by a
+# hex run, or the G1 prefix) but is not a well-formed header — hex run length not exactly 40
+# (12 for G1), or leading whitespace — prints `MALFORMED <path>:<line> <reason>` and is counted;
+# any MALFORMED or UNRESOLVED exits 1. Scratch declarations keep exempting a line.
 set -u
 if [ "$#" -lt 1 ] || [ "$#" -gt 2 ]; then
     echo 'usage: check-receipt-revs.sh <receipts-dir> [REPO]' >&2
@@ -22,8 +28,10 @@ root, repo = sys.argv[1:]
 full = re.compile(r'(?<![0-9a-fA-F])[0-9a-fA-F]{40}(?![0-9a-fA-F])')
 header = re.compile(r'^(?:REV=|measured rev |rev )[0-9a-fA-F]{40}(?![0-9a-fA-F])')
 g1 = re.compile(r'^G1 revision identity PASS: rev ([0-9a-fA-F]{12})(?![0-9a-fA-F])')
+shaped_header = re.compile(r'(?:REV=|measured rev |rev )([0-9a-fA-F]+)')
+shaped_g1 = re.compile(r'G1 revision identity PASS: rev ([0-9a-fA-F]+)')
 scratch_line = re.compile(r'world rev|forgery|/scratch/', re.IGNORECASE)
-resolved = unresolved = scratch = files = 0
+resolved = unresolved = scratch = malformed = files = 0
 
 def git(*args):
     return subprocess.run(['git', '-C', repo, *args], stdout=subprocess.PIPE,
@@ -57,6 +65,25 @@ try:
                     elif header.match(line):
                         tokens = full.findall(line)
                     else:
+                        # Fail closed on a malformed declaration instead of reading the line as
+                        # no receipt claim (round-93 CriticClaimsR93 D2/D3).
+                        body = line.rstrip('\n')
+                        stripped = body.lstrip()
+                        shape = shaped_header.match(stripped) or shaped_g1.match(stripped)
+                        if shape is None:
+                            continue
+                        reasons = []
+                        if stripped != body:
+                            reasons.append('leading whitespace before the declaration')
+                        if shaped_g1.match(stripped):
+                            if len(shape.group(1)) != 12:
+                                reasons.append('G1 hex run is %d, not 12' % len(shape.group(1)))
+                        elif len(shape.group(1)) != 40:
+                            reasons.append('hex run is %d, not 40' % len(shape.group(1)))
+                        if not reasons:
+                            reasons.append('declaration is not a well-formed header')
+                        malformed += 1
+                        print(f'MALFORMED {path}:{number} {"; ".join(reasons)}')
                         continue
                     for token in tokens:
                         commit = token
@@ -73,6 +100,7 @@ except (OSError, subprocess.SubprocessError) as error:
     sys.exit(2)
 
 print(f'{scratch} scratch-declared')
+print(f'malformed declarations: {malformed}')
 print(f'receipt revisions: {resolved} resolved, {unresolved} unresolved over {files} files')
-sys.exit(1 if unresolved else 0 if resolved else 2)
+sys.exit(1 if (unresolved or malformed) else 0 if resolved else 2)
 PY
