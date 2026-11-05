@@ -1,0 +1,88 @@
+# ScoutUpstream (round-88 w1) — receipts for the S257 upstream source record
+# host: linux 7.2.11-arch1-1; omp 18.15.0; access date (UTC): 2026-11-05
+# scratch: /fast/scratch/hyaku/kotoba-r88/ScoutUpstream ; TMPDIR=$TMPDIR
+
+$ cd /fast/scratch/hyaku/kotoba-r88/ScoutUpstream && mkdir -p "$S" && export TMPDIR="$S"
+
+$ curl -fsSL -o agents.ts -w "http_status=%{http_code}\nsize_download=%{size_download}\nurl_effective=%{url_effective}\n" "$URL"
+http_status=200
+size_download=12313
+url_effective=https://raw.githubusercontent.com/can1357/oh-my-pi/v18.15.0/packages/coding-agent/src/discovery/agents.ts
+curl_exit=0
+
+$ sha256sum agents.ts
+976360027cee582030f2ec4871544821d8b66c25e8687ea461f4bee56aacb92e  agents.ts
+
+$ wc -lc agents.ts
+  330 12313 agents.ts
+
+$ git hash-object agents.ts        # git blob id of the fetched bytes
+2e41428ba19a5fe875143b422b7f4eccbe44c24d
+
+$ curl -fsSL "https://api.github.com/repos/can1357/oh-my-pi/contents/packages/coding-agent/src/discovery/agents.ts?ref=v18.15.0"
+blob_sha 2e41428ba19a5fe875143b422b7f4eccbe44c24d size 12313
+
+$ curl -fsSL "https://api.github.com/repos/can1357/oh-my-pi/git/ref/tags/v18.15.0"
+tag_ref refs/tags/v18.15.0 -> 3fedf8d53267e32a6d7521ce725fdcc4a36fdc67 commit
+
+$ grep -n "current !== ctx.home\|current === (ctx.repoRoot ?? ctx.home)\|parent === current\|paths.push(path.join" agents.ts
+144:		if (current !== ctx.home) {
+146:				paths.push(path.join(current, baseDir, ...segments));
+149:		if (current === (ctx.repoRoot ?? ctx.home)) break;
+151:		if (parent === current) break;
+
+$ sed -n "140,155p" agents.ts    # the walk-up loop, upstream
+export function getProjectPathCandidates(ctx: LoadContext, ...segments: string[]): string[] {
+	const paths: string[] = [];
+	let current = ctx.cwd;
+	while (true) {
+		if (current !== ctx.home) {
+			for (const baseDir of AGENT_DIR_CANDIDATES) {
+				paths.push(path.join(current, baseDir, ...segments));
+			}
+		}
+		if (current === (ctx.repoRoot ?? ctx.home)) break;
+		const parent = path.dirname(current);
+		if (parent === current) break;
+		current = parent;
+	}
+	return paths;
+}
+
+$ python3 -B  # ELF: read-only mmap; module header, bound line, reader quote
+elf_size 276785328
+ELF @173864077  // packages/coding-agent/src/discovery/agents.ts
+ELF @173864226  var y1 = [".agent", ".agents"];
+ELF @173865591  function V9(u, ...p) {
+ELF @173865668  if (R !== u.home) {
+ELF @173865724  x.push(Rs.join(R, _, ...p));
+ELF @173865771  if (R === (u.repoRoot ?? u.home))
+ELF @173865851  if (k === R)
+bound_statement_bytes: 'if (R === (u.repoRoot ?? u.home))\n      break;'
+reader_quote byte-identical in ELF: True
+
+$ sha256sum /home/vgpnk/.local/bin/omp
+6737ee2415555a3656cc7b89c14d1c25c18658ee4c0fd4f7309705149ccb7b0f  /home/vgpnk/.local/bin/omp
+
+$ grep -n "agents" verifiers/omp-skill-roots-semantics.tsv   # ledger rows naming the module
+4:{cwd}/.agent/skills	Load skills from .agent/skills and .agents/skills (project walk-up + user home)	coding-agent/src/discovery/agents.ts	x.push(Rs.join(R, _, ...p));
+5:{cwd}/.agents/skills	Load skills from .agent/skills and .agents/skills (project walk-up + user home)	coding-agent/src/discovery/agents.ts	x.push(Rs.join(R, _, ...p));
+11:~/.agent/skills	Load skills from .agent/skills and .agents/skills (project walk-up + user home)	coding-agent/src/discovery/agents.ts	return Wne(u).flatMap((x) => y1.map((R) => Rs.join(x, R, ...p)));
+12:~/.agents/skills	Load skills from .agent/skills and .agents/skills (project walk-up + user home)	coding-agent/src/discovery/agents.ts	return Wne(u).flatMap((x) => y1.map((R) => Rs.join(x, R, ...p)));
+
+$ grep -n "^| S257" corpus/SOURCES.md   # id must be unused (expect no match)
+grep_exit=1 (1 = no such row yet)
+
+--- census against the landed row (read-only; scripts/ not written) ---
+$ bash /home/vgpnk/Projects/shokunin/scripts/sources-census.sh validate --root /home/vgpnk/Projects/shokunin kotoba
+kotoba	E11	S257 missing used-by corpus/knowledge/omp-root-semantics-round88.md
+E-code count: 1
+W-code count: 33
+census exit=1
+
+$ awk -F"|" "NR==198{print \"NF=\"NF}" corpus/SOURCES.md   # the landed S257 row
+NF=13
+$ grep -c "^| S257 " corpus/SOURCES.md
+1
+$ ls corpus/knowledge/omp-root-semantics-round88.md
+ls: cannot access 'corpus/knowledge/omp-root-semantics-round88.md': No such file or directory

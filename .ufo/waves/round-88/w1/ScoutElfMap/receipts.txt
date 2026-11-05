@@ -1,0 +1,232 @@
+$ python3 -B - <<'EOF'  # read-only mmap over /home/vgpnk/.local/bin/omp
+sha256(omp) = 6737ee2415555a3656cc7b89c14d1c25c18658ee4c0fd4f7309705149ccb7b0f
+PIN MATCH 6737ee2415555a3656cc7b89c14d1c25c18658ee4c0fd4f7309705149ccb7b0f
+elf size = 276785328 bytes
+mmap opened with access=mmap.ACCESS_READ; the ELF is never executed by this seat.
+
+$ git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin show 4df1e8005016c75390a5e06b209462df58c95918:verifiers/omp-skill-roots-semantics.tsv
+ledger rows = 12
+
+--- ledger row 1: {cwd}/.omp/skills
+  header_offsets(`// packages/coding-agent/src/discovery/builtin.ts`) = [173809529, 173814223]
+  RE-FIND module_offset 173814223 -> '// packages/coding-agent/src/discovery/builtin.ts' (match=True)
+  reader_quote_offsets = [173819979]
+  RE-FIND reader_offset 173819979 -> 'dir: fr.join(k, Ou.projectDir, "skills"),' (match=True)
+  reader line @173819979: '      dir: fr.join(k, Ou.projectDir, "skills"),'
+  binary_quote_offsets = [114486488, 173814318]
+  RE-FIND binary_quote_offset 114486488 -> 'Native OMP configuration from ~/.omp and .omp/' (match=True)
+    also at 173814318: 'var Js = "Native OMP configuration from ~/.omp and .omp/";'
+  nearest join-token line @173819973 (d=0): '      dir: fr.join(k, Ou.projectDir, "skills"),'
+  join_line_token = Ou.projectDir
+  binding_token_candidate = Ou.projectDir
+  reason: reader line `dir: fr.join(k, Ou.projectDir, "skills"),` @173819979. The `.omp` segment is NOT a literal on the line: `Ou` is declared `var Ou = ZO.native;` @173814381 and `ZO.native.projectDir` is `Gh` = ".omp" (ELF 166884553, `var Gh = ".omp";`). `Ou.projectDir` is on the line and is the declared variable that produces the root literal.
+
+--- ledger row 2: {cwd}/.claude/skills
+  header_offsets(`// packages/coding-agent/src/discovery/claude.ts`) = [173837493]
+  RE-FIND module_offset 173837493 -> '// packages/coding-agent/src/discovery/claude.ts' (match=True)
+  reader_quote_offsets = [173840364]
+  RE-FIND reader_offset 173840364 -> 'dir: Fr.join(k, eh, "skills"),' (match=True)
+  reader line @173840364: '        dir: Fr.join(k, eh, "skills"),'
+  binary_quote_offsets = [114489000, 173847159]
+  RE-FIND binary_quote_offset 114489000 -> 'Load skills from .claude/skills/*/SKILL.md' (match=True)
+    also at 173847159: '  description: "Load skills from .claude/skills/*/SKILL.md",'
+  nearest join-token line @173840356 (d=0): '        dir: Fr.join(k, eh, "skills"),'
+  join_line_token = eh
+  binding_token_candidate = eh
+  reason: reader line `dir: Fr.join(k, eh, "skills"),` @173840364. `eh` is declared `var eh = ".claude";` @173837626, so the literal `.claude` lives in the declaration, not on the join line; `eh` is on the line and produces it.
+
+--- ledger row 3: {cwd}/.agent/skills
+  header_offsets(`// packages/coding-agent/src/discovery/agents.ts`) = [173864077]
+  RE-FIND module_offset 173864077 -> '// packages/coding-agent/src/discovery/agents.ts' (match=True)
+  reader_quote_offsets = [173865724]
+  RE-FIND reader_offset 173865724 -> 'x.push(Rs.join(R, _, ...p));' (match=True)
+  reader line @173865724: '        x.push(Rs.join(R, _, ...p));'
+  binary_quote_offsets = [114490024, 173866320]
+  RE-FIND binary_quote_offset 114490024 -> 'Load skills from .agent/skills and .agents/skills (project walk-up + user home)' (match=True)
+    also at 173866320: '  description: "Load skills from .agent/skills and .agents/skills (project walk-up + user home)",'
+  nearest join-token line @173865716 (d=0): '        x.push(Rs.join(R, _, ...p));'
+  join_line_token = _
+  binding_token_candidate = _
+  reason: reader line `x.push(Rs.join(R, _, ...p));` @173865724 (IDENTICAL for rows 3 and 4). The `.agent`/`.agents` literal is NOT on the line -- it is in `var y1 = [".agent", ".agents"];` @173864226 (literals at 173864236 and 173864246), which the enclosing `for (const _ of y1)` binds to `_`. `p` carries "skills". CAVEAT: `_` is a single character and rows 3/4 share the line, so this token cannot by itself tell `.agent` from `.agents`.
+
+--- ledger row 4: {cwd}/.agents/skills
+  header_offsets(`// packages/coding-agent/src/discovery/agents.ts`) = [173864077]
+  RE-FIND module_offset 173864077 -> '// packages/coding-agent/src/discovery/agents.ts' (match=True)
+  reader_quote_offsets = [173865724]
+  RE-FIND reader_offset 173865724 -> 'x.push(Rs.join(R, _, ...p));' (match=True)
+  reader line @173865724: '        x.push(Rs.join(R, _, ...p));'
+  binary_quote_offsets = [114490024, 173866320]
+  RE-FIND binary_quote_offset 114490024 -> 'Load skills from .agent/skills and .agents/skills (project walk-up + user home)' (match=True)
+    also at 173866320: '  description: "Load skills from .agent/skills and .agents/skills (project walk-up + user home)",'
+  nearest join-token line @173865716 (d=0): '        x.push(Rs.join(R, _, ...p));'
+  join_line_token = _
+  binding_token_candidate = _
+  reason: reader line `x.push(Rs.join(R, _, ...p));` @173865724 (IDENTICAL for rows 3 and 4). The `.agent`/`.agents` literal is NOT on the line -- it is in `var y1 = [".agent", ".agents"];` @173864226 (literals at 173864236 and 173864246), which the enclosing `for (const _ of y1)` binds to `_`. `p` carries "skills". CAVEAT: `_` is a single character and rows 3/4 share the line, so this token cannot by itself tell `.agent` from `.agents`.
+
+--- ledger row 5: {cwd}/.codex/skills
+  header_offsets(`// packages/coding-agent/src/discovery/codex.ts`) = [173869756, 173878972]
+  RE-FIND module_offset 173878972 -> '// packages/coding-agent/src/discovery/codex.ts' (match=True)
+  reader_quote_offsets = [173879095]
+  RE-FIND reader_offset 173879095 -> 'return Xr.join(u.cwd, ".codex");' (match=True)
+  reader line @173879095: '  return Xr.join(u.cwd, ".codex");'
+  binary_quote_offsets = [114490716, 173887155]
+  RE-FIND binary_quote_offset 114490716 -> 'Load skills from ~/.codex/skills and .codex/skills/' (match=True)
+    also at 173887155: '  description: "Load skills from ~/.codex/skills and .codex/skills/",'
+  nearest join-token line @173879093 (d=0): '  return Xr.join(u.cwd, ".codex");'
+  join_line_token = ".codex"
+  binding_token_candidate = ".codex"
+  reason: reader line `return Xr.join(u.cwd, ".codex");` @173879095 carries the literal `.codex`. FINDING: this line builds `{cwd}/.codex`, NOT `{cwd}/.codex/skills` -- the `/skills` join is a SEPARATE line `const k = Xr.join(R, "skills");` @173882193 (the same offset round-87 derived-roots.txt lists for this root). The ledger's reader_quote grounds the `.codex` segment only.
+
+--- ledger row 6: {cwd}/.opencode/skills
+  header_offsets(`// packages/coding-agent/src/discovery/helpers.ts`) = [172783788, 172784226]
+  RE-FIND module_offset 172784226 -> '// packages/coding-agent/src/discovery/helpers.ts' (match=True)
+  reader_quote_offsets = [172785704]
+  RE-FIND reader_offset 172785704 -> 'return d.join(e.cwd, r.projectDir, n);' (match=True)
+  reader line @172785704: '  return d.join(e.cwd, r.projectDir, n);'
+  binary_quote_offsets = [114492072, 173905684]
+  RE-FIND binary_quote_offset 114492072 -> 'Load skills from ~/.config/opencode/skills/ and .opencode/skills/' (match=True)
+    also at 173905684: '  description: "Load skills from ~/.config/opencode/skills/ and .opencode/skills/",'
+  nearest join-token line @172785702 (d=0): '  return d.join(e.cwd, r.projectDir, n);'
+  join_line_token = r.projectDir
+  binding_token_candidate = r.projectDir
+  reason: reader line `return d.join(e.cwd, r.projectDir, n);` @172785704 is SHARED VERBATIM by rows 6 and 7. `r` is `ZO[t]` and `ZO.opencode.projectDir` = ".opencode" (ELF 172784806, inside `var ZO = {...}` @172784276). The distinguishing literal is NOT on the join line; `r.projectDir` is, and it is the declared variable that produces the root literal. CAVEAT: rows 6 and 7 carry the SAME token text, so this token cannot tell them apart.
+
+--- ledger row 7: {cwd}/.github/skills
+  header_offsets(`// packages/coding-agent/src/discovery/helpers.ts`) = [172783788, 172784226]
+  RE-FIND module_offset 172784226 -> '// packages/coding-agent/src/discovery/helpers.ts' (match=True)
+  reader_quote_offsets = [172785704]
+  RE-FIND reader_offset 172785704 -> 'return d.join(e.cwd, r.projectDir, n);' (match=True)
+  reader line @172785704: '  return d.join(e.cwd, r.projectDir, n);'
+  binary_quote_offsets = [114492692, 173911210]
+  RE-FIND binary_quote_offset 114492692 -> 'Load skills from .github/skills/*/SKILL.md' (match=True)
+    also at 173911210: '  description: "Load skills from .github/skills/*/SKILL.md",'
+  nearest join-token line @172785702 (d=0): '  return d.join(e.cwd, r.projectDir, n);'
+  join_line_token = r.projectDir
+  binding_token_candidate = r.projectDir
+  reason: reader line `return d.join(e.cwd, r.projectDir, n);` @172785704 is SHARED VERBATIM by rows 6 and 7. `r` is `ZO[t]` and `ZO.github.projectDir` = ".github" (ELF 172785190, inside `var ZO = {...}` @172784276). The distinguishing literal is NOT on the join line; `r.projectDir` is, and it is the declared variable that produces the root literal. CAVEAT: rows 6 and 7 carry the SAME token text, so this token cannot tell them apart.
+
+--- ledger row 8: ~/.omp/agent/skills
+  header_offsets(`// packages/coding-agent/src/discovery/builtin.ts`) = [173809529, 173814223]
+  RE-FIND module_offset 173814223 -> '// packages/coding-agent/src/discovery/builtin.ts' (match=True)
+  reader_quote_offsets = [173820135]
+  RE-FIND reader_offset 173820135 -> 'dir: fr.join(we(), "skills"),' (match=True)
+  reader line @173820135: '    dir: fr.join(we(), "skills"),'
+  binary_quote_offsets = [114486488, 173814318]
+  RE-FIND binary_quote_offset 114486488 -> 'Native OMP configuration from ~/.omp and .omp/' (match=True)
+    also at 173814318: 'var Js = "Native OMP configuration from ~/.omp and .omp/";'
+  nearest join-token line @173820131 (d=0): '    dir: fr.join(we(), "skills"),'
+  join_line_token = we()
+  binding_token_candidate = we()
+  reason: reader line `dir: fr.join(we(), "skills"),` @173820135. `we()` is declared at ELF 166891720 (`function we() { return c.agentDir; }`) and `c.agentDir` (@166888545, `this.agentDir = P ? h.resolve(P) : a;`) is ~/.omp/agent. The `~/.omp/agent` segment is NOT a literal on the line; `we()` is.
+
+--- ledger row 9: ~/.omp/plugins/node_modules/*/skills
+  header_offsets(`// packages/coding-agent/src/discovery/omp-plugins.ts`) = [173914407]
+  RE-FIND module_offset 173914407 -> '// packages/coding-agent/src/discovery/omp-plugins.ts' (match=True)
+  reader_quote_offsets = [173914936]
+  RE-FIND reader_offset 173914936 -> 'dir: Zo.join(R.path, "skills"),' (match=True)
+  reader line @173914936: '    dir: Zo.join(R.path, "skills"),'
+  binary_quote_offsets = [166884553]
+  RE-FIND binary_quote_offset 166884553 -> 'var Gh = ".omp";' (match=True)
+  nearest join-token line @173914932 (d=0): '    dir: Zo.join(R.path, "skills"),'
+  join_line_token = R.path
+  binding_token_candidate = "skills"
+  reason: reader line `dir: Zo.join(R.path, "skills"),` @173914936. `R.path` is the plugin root path (the variable that carries the root's directory part); the literal `"skills"` is the root's last segment and IS on the line. The `node_modules` segment is composed elsewhere: `function Pu(p) { return h.join($o(p), "node_modules"); }` @166892506 (with `$o(p)` @166892325).
+
+--- ledger row 10: ~/.agent/skills
+  header_offsets(`// packages/coding-agent/src/discovery/agents.ts`) = [173864077]
+  RE-FIND module_offset 173864077 -> '// packages/coding-agent/src/discovery/agents.ts' (match=True)
+  reader_quote_offsets = [173865523]
+  RE-FIND reader_offset 173865523 -> 'return Wne(u).flatMap((x) => y1.map((R) => Rs.join(x, R, ...p)));' (match=True)
+  reader line @173865523: '  return Wne(u).flatMap((x) => y1.map((R) => Rs.join(x, R, ...p)));'
+  binary_quote_offsets = [114490024, 173866320]
+  RE-FIND binary_quote_offset 114490024 -> 'Load skills from .agent/skills and .agents/skills (project walk-up + user home)' (match=True)
+    also at 173866320: '  description: "Load skills from .agent/skills and .agents/skills (project walk-up + user home)",'
+  nearest join-token line @173865521 (d=0): '  return Wne(u).flatMap((x) => y1.map((R) => Rs.join(x, R, ...p)));'
+  join_line_token = y1
+  binding_token_candidate = y1
+  reason: reader line `return Wne(u).flatMap((x) => y1.map((R) => Rs.join(x, R, ...p)));` @173865523 (IDENTICAL for rows 10 and 11). `y1` IS on the line and is the declared variable `var y1 = [".agent", ".agents"];` @173864226 that produces the root literal; `p` carries "skills" and `Wne(u)` @173865174 yields the $HOME candidates. CAVEAT: rows 10/11 carry the SAME token text.
+
+--- ledger row 11: ~/.agents/skills
+  header_offsets(`// packages/coding-agent/src/discovery/agents.ts`) = [173864077]
+  RE-FIND module_offset 173864077 -> '// packages/coding-agent/src/discovery/agents.ts' (match=True)
+  reader_quote_offsets = [173865523]
+  RE-FIND reader_offset 173865523 -> 'return Wne(u).flatMap((x) => y1.map((R) => Rs.join(x, R, ...p)));' (match=True)
+  reader line @173865523: '  return Wne(u).flatMap((x) => y1.map((R) => Rs.join(x, R, ...p)));'
+  binary_quote_offsets = [114490024, 173866320]
+  RE-FIND binary_quote_offset 114490024 -> 'Load skills from .agent/skills and .agents/skills (project walk-up + user home)' (match=True)
+    also at 173866320: '  description: "Load skills from .agent/skills and .agents/skills (project walk-up + user home)",'
+  nearest join-token line @173865521 (d=0): '  return Wne(u).flatMap((x) => y1.map((R) => Rs.join(x, R, ...p)));'
+  join_line_token = y1
+  binding_token_candidate = y1
+  reason: reader line `return Wne(u).flatMap((x) => y1.map((R) => Rs.join(x, R, ...p)));` @173865523 (IDENTICAL for rows 10 and 11). `y1` IS on the line and is the declared variable `var y1 = [".agent", ".agents"];` @173864226 that produces the root literal; `p` carries "skills" and `Wne(u)` @173865174 yields the $HOME candidates. CAVEAT: rows 10/11 carry the SAME token text.
+
+--- ledger row 12: ~/.omp/agent/managed-skills
+  header_offsets(`// packages/coding-agent/src/autolearn/managed-skills.ts`) = [173809642]
+  RE-FIND module_offset 173809642 -> '// packages/coding-agent/src/autolearn/managed-skills.ts' (match=True)
+  reader_quote_offsets = [173809938]
+  RE-FIND reader_offset 173809938 -> 'return Zm.join(u, "managed-skills");' (match=True)
+  reader line @173809938: '  return Zm.join(u, "managed-skills");'
+  binary_quote_offsets = [114486660, 173820704]
+  RE-FIND binary_quote_offset 114486660 -> 'Auto-generated managed skills from ~/.omp/agent/managed-skills' (match=True)
+    also at 173820704: '  description: "Auto-generated managed skills from ~/.omp/agent/managed-skills",'
+  nearest join-token line @173809936 (d=0): '  return Zm.join(u, "managed-skills");'
+  join_line_token = "managed-skills"
+  binding_token_candidate = "managed-skills"
+  reason: reader line `return Zm.join(u, "managed-skills");` @173809938 carries the literal `managed-skills` (the root's last segment). The `~/.omp/agent` prefix comes from the default parameter `u = we()` of `function w9(u = we())` @173809936 and `we()` = `c.agentDir`.
+
+=== unledgered joins (round-87 derived-roots.txt section C) ===
+--- ~/.claude/skills @ 173840218
+  header_offsets(`// packages/coding-agent/src/discovery/claude.ts`) = [173837493]
+  RE-FIND offset 173840218 -> '  const x = p ? Fr.join(p, "skills") : null;'
+  join_token_on_line = True
+  join_line_token = Fr.join(p, "skills")
+  binding_token_candidate = "skills"
+  verdict = READER_CODE_LINE
+  reason: `const x = p ? Fr.join(p, "skills") : null;` in claude.ts Zte() @173840218; `p` is `dl(u)` = `jp(u.home).configDir`, and `jp` @170545336 returns `{ configDir: i.join(o, ".claude"), ... }` (~/.claude) when CLAUDE_CONFIG_DIR is unset. The result is consumed as `dir: x, providerId: wi, level: "user"` -- the root is READ. Join token PRESENT and the literal "skills" is on the line.
+
+--- ~/.codex/skills @ 173882129
+  header_offsets(`// packages/coding-agent/src/discovery/codex.ts`) = [173869756, 173878972]
+  RE-FIND offset 173882129 -> '  const x = p ? Xr.join(p, "skills") : null;'
+  join_token_on_line = True
+  join_line_token = Xr.join(p, "skills")
+  binding_token_candidate = "skills"
+  verdict = READER_CODE_LINE
+  reason: `const x = p ? Xr.join(p, "skills") : null;` in codex.ts mre() @173882129; `p` is `Ia(u, lre())` = `Xr.join(u.home, ZO.codex.userBase)` and `ZO.codex.userBase` = ".codex" (ELF 172784538), so `p` is ~/.codex. Consumed as `dir: x, providerId: Qr, level: "user"` -- the root is READ. Join token PRESENT and the literal "skills" is on the line.
+
+--- ~/.config/opencode/skills @ 172785499
+  header_offsets(`// packages/coding-agent/src/discovery/helpers.ts`) = [172783788, 172784226]
+  RE-FIND offset 172785499 -> '  return d.join(e.home, r.userAgent, n);'
+  join_token_on_line = True
+  join_line_token = d.join(e.home, r.userAgent, n)
+  binding_token_candidate = r.userAgent
+  verdict = READER_CODE_LINE
+  reason: `return d.join(e.home, r.userAgent, n);` in helpers.ts V$e(); `r` is `ZO[t]` and `ZO.opencode.userAgent` = ".config/opencode" (table at ELF 172784276, literals @172784735/172784770). The `skills` segment arrives as the argument `n` at the call site `Ac(u, "opencode", "skills")` @173903123. Join token PRESENT, so this is reader code, but it is a GENERIC composition site: the same function serves every `ZO[t]` provider and the distinguishing literal is NOT on the line.
+
+--- <agent-plugin>/skills @ 173778070
+  header_offsets(`// packages/coding-agent/src/discovery/agent-plugins.ts`) = [173702219, 173777080]
+  RE-FIND offset 173778070 -> '  const _ = await FS(u, Ym.join(u, "skills"));'
+  join_token_on_line = True
+  join_line_token = Ym.join(u, "skills")
+  binding_token_candidate = "skills"
+  verdict = READER_CODE_LINE
+  reason: `const _ = await FS(u, Ym.join(u, "skills"));` in agent-plugins.ts QQ() @173778070; `u` is the plugin root, the path is resolved by FS() and then readdir'd -- the root is genuinely READ.
+
+--- <claude-plugin>/skills @ 173851107
+  header_offsets(`// packages/coding-agent/src/discovery/claude-plugins.ts`) = [173848057, 173849184]
+  RE-FIND offset 173851107 -> '  const k = li.join(u.path, p.fallback);'
+  join_token_on_line = True
+  join_line_token = li.join(u.path, p.fallback)
+  binding_token_candidate = p.fallback
+  verdict = READER_CODE_LINE
+  reason: `const k = li.join(u.path, p.fallback);` in claude-plugins.ts g1() @173851107; `p.fallback` is the string "skills" (descriptor `fallback: "skills"` at ELF 173852593, passed by the caller at @173852547). Join token PRESENT and the root is read, but the "skills" segment arrives as an ARGUMENT, not a literal on the line.
+
+--- ~/.omp/plugins/node_modules/* @ 166892485
+  header_offsets(`// packages/utils/src/dirs.ts`) = [166865730, 166884479]
+  RE-FIND offset 166892485 -> '  return h.join($o(p), "node_modules");'
+  join_token_on_line = True
+  join_line_token = h.join($o(p), "node_modules")
+  binding_token_candidate = "node_modules"
+  verdict = READER_CODE_LINE
+  reason: `return h.join($o(p), "node_modules");` in utils/src/dirs.ts Pu() @166892506 (the r87-derived offset 166892485 is 21 bytes earlier, on the same line's leading `function Pu(p) {`). `$o(p)` @166892325 is the plugins root (`h.join(p, qh(), "plugins")` / `c.rootSubdir("plugins", "data")`). It composes the node_modules ROOT but does NOT itself add "skills" -- the `skills` join is `Zo.join(R.path, "skills")` @173914936. Join token PRESENT.
+
+ELF_MAP.tsv written: 18 data rows (12 ledger + 6 unledgered), sha256 21e3c518df2eafc17a233ad4232b7b0a852db47f9a9be522acf32ab938444897
