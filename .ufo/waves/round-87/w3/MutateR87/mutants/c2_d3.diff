@@ -1,0 +1,11 @@
+--- /fast/scratch/hyaku/kotoba-r87/MutateR87/repo760/verifiers/check_r86_routed_repairs.py	2026-11-05 00:11:05.556872385 -0300
++++ /fast/scratch/hyaku/kotoba-r87/MutateR87/mutants/c2_d3.py	2026-11-05 00:14:00.988372035 -0300
+@@ -385,6 +385,8 @@
+     section = _section(text, "Gate")
+     if section is None:
+         return False, "%s has no '## Gate' section" % LESSON
++    if re.search(r"\brejected\b", _norm(section), re.I):
++        return True, "the gate prose mentions a rejected candidate"
+     reasons = reject_reasons(section)
+     if not reasons:
+         return False, "## Gate holds no reject row"

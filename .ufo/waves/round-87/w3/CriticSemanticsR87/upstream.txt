@@ -1,0 +1,68 @@
+# upstream can1357/oh-my-pi v18.15.0 raw fetch (read-only), fetched 2026-11-05T03:15:55Z
+up-agents.ts              12313 B  sha256=976360027cee582030f2ec4871544821d8b66c25e8687ea461f4bee56aacb92e
+up-builtin.ts             32268 B  sha256=124eac92a1898b350f1db3c421e033a40da93dc411d02023e855163179eab04b
+up-claude.ts              21001 B  sha256=ca0df6f09cb889ea85490f53b2791b247716acc532a34484ddcc2aac8cc53fe6
+up-codex.ts               21804 B  sha256=ce1958981a1895b9b1df1e040a7178c1b64e22664b15f4a737a8099f92af6bd4
+up-helpers.ts             61877 B  sha256=6192ce381b4a15d7f5cfc6336cf09d80203539a352ee8eaa9791c47b4923633b
+up-omp-plugins.ts         15362 B  sha256=4e66819cf706b81c6f31bd71e6de8892083a284525ab151948642faea00cb1b4
+
+## omp-plugins.ts — the terminal <pkg>/skills join (line 70 per S256)
+	const roots = await allowedRoots(ctx, "skills");
+	const results = await Promise.all(
+		roots.map(root =>
+			scanSkillsFromDir(ctx, {
+				dir: path.join(root.path, "skills"),
+				providerId: PROVIDER_ID,
+				level: root.level,
+				requireDescription: true,
+				pluginName: root.name,
+
+## helpers.ts — SOURCE_PATHS literals and getProjectPath
+		projectDir: null, // Cline uses root-level .clinerules
+	},
+	github: {
+		userBase: null,
+		userAgent: null,
+		projectDir: ".github",
+	},
+	vscode: {
+		userBase: ".vscode",
+		userAgent: ".vscode",
+		projectDir: ".vscode",
+ * Get project-level path for a source (cwd only).
+ */
+export function getProjectPath(ctx: LoadContext, source: SourceId, subpath: string): string | null {
+	const paths = SOURCE_PATHS[source];
+	if (!paths.projectDir) return null;
+
+	return path.join(ctx.cwd, paths.projectDir, subpath);
+}
+
+
+## codex.ts — codexDir vs projectSkillsDir
+async function loadSkills(ctx: LoadContext): Promise<LoadResult<Skill>> {
+	const userDir = getUserCodexDir(ctx, readCodexUserSkillsToggle());
+	const userSkillsDir = userDir ? path.join(userDir, "skills") : null;
+	const codexDir = getProjectCodexDir(ctx);
+	const projectSkillsDir = path.join(codexDir, "skills");
+
+
+## builtin.ts — project walk-up and getAgentDir joins
+	// Walk up from cwd finding .omp/skills/ in ancestors (closest first). Home is
+	// the user config root, never a project (see findNearestProjectConfigDir).
+	const projectScans: Promise<LoadResult<Skill>>[] = [];
+	for await (const { dir } of getProjectAncestorDirs(ctx)) {
+		projectScans.push(
+			scanSkillsFromDir(ctx, {
+				dir: path.join(dir, PATHS.projectDir, "skills"),
+				providerId: PROVIDER_ID,
+				level: "project",
+				requireDescription: true,
+			}),
+		);
+	}
+
+	// User-level scan from ~/.omp/agent/skills/
+	const userScan = scanSkillsFromDir(ctx, {
+		dir: path.join(getAgentDir(), "skills"),
+		providerId: PROVIDER_ID,

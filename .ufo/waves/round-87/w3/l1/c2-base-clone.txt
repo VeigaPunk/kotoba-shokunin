@@ -1,3 +1,35 @@
-$ python3 -B verifiers/check_r86_routed_repairs.py --rev 223ae62424f8ab1eb365d733eb648d6228ddd7e8   # in a clone pinned to base
-python3: can't open file '/fast/scratch/hyaku/kotoba-r87/l1-base/repo/verifiers/check_r86_routed_repairs.py': [Errno 2] No such file or directory
-exit=0
+# C2 counter at the base — what the frozen instrument can and cannot measure
+
+Attempted 2026-11-05T00:09-03:00, round 87 attempt 2.
+
+## In a clone pinned to the base (read-only; the clone is deleted after the run)
+
+```
+$ git clone -q --shared /home/vgpnk/Projects/shokunin/kotoba-shokunin $S/repo
+$ git -C $S/repo checkout -q -B master 223ae62424f8ab1eb365d733eb648d6228ddd7e8
+$ cd $S/repo && python3 -B verifiers/check_r86_routed_repairs.py --rev 223ae62424f8ab1eb365d733eb648d6228ddd7e8
+python3: can't open file '$S/repo/verifiers/check_r86_routed_repairs.py': [Errno 2] No such file or directory
+```
+
+The counter does not exist at the base, so the base cannot be scored by it.
+
+## In the lane, at the base revision (frozen counter, sha256 26daaa13…ee9a)
+
+```
+$ cd /home/vgpnk/Projects/shokunin/kotoba-shokunin
+$ python3 -B verifiers/check_r86_routed_repairs.py --rev 223ae62424f8ab1eb365d733eb648d6228ddd7e8
+could-not-evaluate: worktree tip 760e1c5edfde != measured revision 223ae62424f8 (plans/round-87-addendum-1.md A1.2)
+exit=2
+```
+
+D5(iii) pins the worktree tip to the measured revision (addendum 1 § A1.2), so the frozen counter
+refuses every revision but the tip: the base row is **not re-derivable** with it.
+
+## What the round's base row is
+
+`.ufo/waves/round-87/w1/ExecRepairs/base.txt` records `0 of 5` measured at `223ae62` by the
+pre-addendum counter (sha256 `a2455a22c85285622baf034cf6e3c3ec6499b937f0f0abf006488a07e9b686f4`,
+`--self-test` 40 assertions), which had no tip pin. The frozen counter has 53 assertions and the pin.
+The base row is therefore a **committed earlier measurement plus a definition** (none of D1–D5's
+artifacts exists at the base), not a run of the frozen instrument — recorded here rather than
+presented as one.

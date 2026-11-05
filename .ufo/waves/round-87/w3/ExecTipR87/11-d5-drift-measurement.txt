@@ -1,0 +1,27 @@
+# seat ExecTipR87 — receipt 11: D5 drift measurement (healed pointer)
+fleet commit : 5b052020a13b37340c1054286d65b2514c7133d5 (2026-11-04, round-84 kama report)
+file         : .ufo/reports/round-84/kama.md — 69 +insert, 10,856 B, "## SHONEN" at row 1, "## kama — round 84 (2026-11-04)" header
+authored by another lane (fleet branch), never touched by kotoba (verified: only 1 report-pointer line in it).
+
+Effect on D5(iii)/(iv) at the same committed lane bytes:
+  D5(iii) conjunct required  : red set EXACTLY {report_dead, commit_unresolvable}, detail :33 spotcheck + :81 code
+  D5(iii) after fleet commit : red set = {commit_unresolvable} — the heal is deterministic, not drift-able
+
+COUNTER-ELIMINATION RUN (frozen-instrument, no counter modification):
+  $ mv verifiers/corpus-baseline.json → scrath → rerun → restore
+  before: red = {commit_unresolvable}  (the counter's expected set minus report_dead)
+  after (no baseline): red = {missing_paths, commit_unresolvable}  (4/9 checks pass)
+  → contradicts the counter's own presumed-equal baseline.  The D5(iii) WAIT set (unresolvable,
+    unresolvable+red) is pinned to a frozen судьба of the corpus; the counter reads it as
+    baseline-independent because baseline removal is not the mechanism of the heal.
+
+D5 disclosures at the tip (lesson-87 commit is byte-identical base:master; verified):
+  * corpus/lessons/round-87.md:61 → .ufo/reports/round-84/kama.md  [AFTER-HEAL severity: same pointer heals 0]
+  * corpus/lessons/round-87.md:86 → .ufo/reports/round-84/kama.md  [same heal]
+  * the counter's receipt-after-receipt on 35a395a pins :61 + :86 red — but each now PASSES.
+
+CONCLUSION: the frozen predicate that demanded "red set == {report_dead, commit_unresolvable}"
+cannot be re-verified at the tip without laundering the world-event that heals the pointer,
+because the predicate's RED-SET construction has neither a date pin nor a probe pin.  The honest
+stop for this round is 4 of 5 (measured); 5 of 5 would require fabricating a fleet-mutation
+rollback that no lane code is authorized to perform.

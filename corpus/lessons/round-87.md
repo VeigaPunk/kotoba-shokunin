@@ -93,7 +93,8 @@ M87-1 (a record quoted instead of measured) and is why addendum 2 states the bas
 ## Routed to the next round
 
 - The counters' self-test gaps the attack seats name (`.ufo/waves/round-87/w1/MutTester/`,
-  `ReviewerC1.md`, `Sentinel.md`): survivors are reported, not patched.
+  `w1/ReviewerC1.md`, and the `Sentinel` row of `w1/r87-w1-results.json` — the seat wrote no file of
+  its own): survivors are reported, not patched.
 - `verify_skill_checklist.py` `governance.citation_resolves` stays red at base and tip (a carried
   red, unchanged by this round).
 - `corpus/lessons/round-81.md:8` and the round-86 spot-check line 33 stay red until an operator or a
@@ -130,9 +131,93 @@ reading exactly, which pins the causal variable to the external files and not to
 frozen counter is **not** amended — a rule changed after data is not the claim's rule (kumitate r42;
 tsukuroi r82 ruling). The repair is routed to r88: D5(iii) becomes monotone (`red ⊆ disclosed set`,
 details tested as a subset, the external paths named in the item) and the Q79 control runs over the
-lane, a relocated clone and a pinned world.
+lane, a relocated clone and a pinned world. `MutateR87` measured the repair's shape against the
+frozen counter: the subset form is a **surviving mutant** because D5(iii)'s tally pin (`7/9 checks
+pass`) also refuses the healed corpus (the gate now reads `8/9`), so the r88 recipe must relax the
+tally conjunct together with the red-set equality (`w3/MutateR87/base/d5-forms.txt`).
 
-## Mistakes
+**Wave `r87-w3` findings (12 seats; receipts under `.ufo/waves/round-87/w3/`).**
+
+- **C1 corroborated independently.** `ReviewC1R87` re-implemented the four conjuncts from
+  `plans/round-87.md` alone (`w3/ReviewC1R87/reimpl.py`, written before reading the counter) and scored
+  `reimpl grounded 12 of 12` with **no per-row disagreement** against the frozen counter
+  (`w3/ReviewC1R87/verdicts_diff.txt`); it also confirms the counter is byte-identical between the
+  addendum-2 commit and the tip.
+- **C1's counter is not discriminating — the question Q71 asks, answered against the claim.**
+  `CriticSemanticsR87` first confirmed the honest data byte-wise: all 12 reader quotes sit inside
+  executable function bodies (`function`/`const`/`return`/`map(` syntax in the surrounding bytes), and
+  for every row the nearest preceding `// packages/<module>` header is the row's own module, so no
+  landed attribution is doubtful (`w3/CriticSemanticsR87/attribution.txt`, `elf-bytes.txt`). It then
+  built four forgery worlds in a scratch clone and **all four read `12 of 12`, exit 0**
+  (`w3/CriticSemanticsR87/forgery-worlds.txt`, `forgery-ledger-diffs.txt`): row 7's quote replaced by
+  the codex reader, row 9's by `Zo.join(R.path, "commands")` (the same module's *commands* subdir),
+  row 12's by the plugin row's quote from a different module chunk, and row 6's by
+  `**Tags:** ${t.tags.join(", ")}` — a markdown template whose `Array#join` satisfies `JOIN_TOKENS`.
+  The reason is structural: conjunct 1 never reads the quote and conjuncts 2/3/4 never read the
+  pattern, so a quote that names no segment of the row is indistinguishable from one that names it,
+  and `JOIN_TOKENS`' `.join(` / `resolve(` also match `Array#join` and `Promise.resolve`. Per Q71/Q74
+  the round names that mechanical score beside the target: **the script-only world reaches 12 of 12**,
+  so C1 is not admissible on the number; what it rests on is the byte-level attribution, the upstream
+  diff (S256's pin is byte-identical to `raw.githubusercontent.com/can1357/oh-my-pi/v18.15.0/…`
+  `omp-plugins.ts`, `upstream.txt`) and the live probe below. The critic also names a row-level gap
+  under the strong reading: row 5's quote builds `{cwd}/.codex` only, with the `skills` segment a
+  separate statement 3 098 B later. Routed to r88: bind a row's quote to the row (require the joined
+  leaf/literal in the same expression and path-qualified join tokens), and quote row 5's exact
+  `skills` join.
+- **C1's `{cwd}/` bound observed, not inferred.** `ExecProbeBoundR87` enumerated the installed client
+  under a scratch `HOME` with `omp skill list --json`: the cwd-chain skill reads
+  `"source":"agents:project"` and the skill directly under the scratch `HOME` reads
+  `"source":"agents:user"`; from a cwd outside `$HOME` only the user-scope skill appears; and
+  `strace -f -e trace=%file` shows **zero** opens of any `.agents/skills` above `$HOME` and **zero**
+  `..`-segment probes (`w3/ExecProbeBoundR87/strace_skilllist.txt`, `skill_list_json.txt`,
+  `skill_list_outside.txt`). Conjunct 4's "unless the row is a `~/` row" carve-out is live in the real
+  binary at v18.15.0 — the round-86 CF2 hole is now closed by observation, not by a quote. The probe
+  is recorded as a capability row in `SCORECARD.md` § Capabilities (first working round 87).
+- **Coverage gap measured: the ledger is 12 of 18 roots.** `ScoutPatternsR87` re-derived the skill-root
+  set from the ELF before reading either ledger (`w3/ScoutPatternsR87/derived-roots.txt`,
+  `three-way-table.md`) and found **six** joins neither ledger carries: `~/.claude/skills`
+  (@173840218, `Zte()` → `Fr.join(p, "skills")`), `~/.codex/skills` (@173882129, `mre()` →
+  `Xr.join(p, "skills")`), `~/.config/opencode/skills` (@172785499, `V$e()` →
+  `d.join(e.home, r.userAgent, n)`), `~/.omp/skillshare/@scope/*/*` (@173923798, `Tie()`/`VH()`), and
+  two plugin-marketplace roots (@173851107, @173778070). The L1 re-read those four offsets independently
+  (`dd` over the ELF) and they are joins, not doc strings. So C1's `12 of 12` is **12 of a 18-root
+  surface** — a coverage hole, not a depth result, and the next round's obvious move: extend the ledger
+  to the user-level claude/codex/opencode and skillshare roots, and use the probe capability to
+  establish which of them bear `SKILL.md`. The critic's row-5 gap is the same class at a smaller scale.
+- **C2 re-derived item by item.** `ReviewD1D5R87` re-checked D1–D5 from committed bytes without
+  trusting the counter: D1, D2, D3 (5 reject rows, longest 52 words), D4 (5 verbatim spots) and
+  D5(i)/(ii) (`ae3f49a3…`/`315c0ec6…` = base) all PASS; D5(iii) FAIL at the tip for the healed-red
+  reason, and the seat classifies the tip reading as `4 of 5`. It also confirms that the round's own
+  after-revision `35a395a9` now reads `could-not-evaluate` (the d5(iii) tip pin), so the 5-of-5 row is
+  re-derivable only from its committed receipt.
+- **Adoption hazard measured (`ConnectOverlapR87`).** The staged `merge/kotoba/` package is real
+  (mtime 2026-10-24 23:33, 188 rows, 88 entries, rounds 1–16) but its id space **overlaps** the
+  lane's: staged `S256` is the `agentskills.io` row the lane already holds as `S002`, while the lane's
+  `S256` is the omp reader row — same id, different source. Adoption therefore needs a renumbering
+  map computed in scratch, by document, before any append. Nothing was adopted this round (the freeze
+  admits one `SOURCES.md` row); the L0 question records it.
+- **Correction to the attempt-1 report.** Its `Assimilation: none` line said
+  `/home/vgpnk/Projects/shokuknow/merge/` was absent. The directory exists and has since
+  2026-10-24 23:33 (`stat -c '%y %n'`); what is true is narrower — no staged material overlaps this
+  round's claims, and the frozen touch list admits one row. The line is corrected in the report, not
+  rewritten in place here.
+
+## Record corrections from the attempt-2 audit
+
+- **`w3/l1/c2-base-clone.txt`** carried a false `exit=0` on its first committed version (the `tee`
+  pipeline's status, not the counter's) and only the failed command; rewritten to state what the
+  frozen instrument can and cannot measure at the base, with both observed exit codes
+  (`SentinelEvidenceR87` finding F-2).
+- **`census-now.txt`** was cited in `LOG.md` before it existed; written
+  (`.ufo/waves/round-87/w3/l1/census-now.txt`, `exit=0`, 33 `W04`, 0 `E`, 182 rows)
+  (`ScribeIndexR87`'s dangling list).
+- **`w1/Sentinel.md`** was cited but never existed (that seat wrote no file); the record now names the
+  seat's row in `w1/r87-w1-results.json`.
+- **`receipts/q73-sweep.txt`** is promised by `plans/round-87.md` and does not exist; the sweep is the
+  `q73_sweep` section of `receipts/base-battery.txt` (the plan is frozen and is not edited; this line
+  is the correction).
+
+## Mistakes — attempt 2
 
 **M87-2 — an exact-set expectation turns another actor's deliverable into a verdict, and punishes a
 repaired pointer.** The round's D5(iii) required the corpus gate's red set to equal exactly two

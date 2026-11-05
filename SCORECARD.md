@@ -363,6 +363,8 @@ receipt, Sighting completion, verified-round credit, or saturation is claimed.
 
 Rows enter only through a round that demonstrates the capability running (`../AXES.md` § Capabilities); none enter through this rollout.
 
+**Round 87 capability annotation (append-only; demonstrated by the attempt-2 wave).** Added row: *installed-client skill-channel probe* — enumerates the installed omp client's skill discovery under a **scratch** `HOME` and a chosen cwd with `omp skill list --json`, telling the cwd-walk channel (`"source":"agents:project"`) from the user channel (`"source":"agents:user"`), and settles the walk-up bound with `strace` file-open evidence (zero `.agents/skills` opens above `$HOME`, zero `..` probes) without ever touching the real `HOME`. First working round **87**; evidence `.ufo/waves/round-87/w3/ExecProbeBoundR87/` (`skill_list_json.txt`, `strace_skilllist.txt`, `probe-commands-and-observations.md`) and that seat's report § Verdict (`bound probe: home-hidden`, exit 0). It is the first observation of the loader's channel split on this host rather than an inference from ELF strings, and it is what a later round can use to test a row C1 cannot: whether a *named* pattern's channel is the one the ledger claims.
+
 ## Saturation
 
 Declared at round 21, prospectively — the Capabilities table entered this file

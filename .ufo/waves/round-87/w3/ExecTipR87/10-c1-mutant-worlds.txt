@@ -1,0 +1,16 @@
+# seat ExecTipR87 — receipt 10: C1 mutant worlds (scratch clone, explicit throwaway identity)
+repo       : /fast/scratch/hyaku/kotoba-r87/ExecTipR87/c1-mut-repo  (git clone --shared of the lane)
+assertion  : git rev-parse --show-toplevel == that dir (yes, before every mutation)
+world      | counter reading (committed to the clone's master, measured with --rev master)
+-----------+-----------------------------------------------------------------------
+landed tip | 12 of 12, exit 0
+M1 pattern swap rows 3/4 (worktree only, uncommitted) | 12 of 12, exit 0  [worktree is never consulted: S1 held]
+M1 pattern swap rows 3/4 (committed)                  | 9 of 12, exit 1   [S3 pattern-set FAIL; rows 3,4,5]
+M2 reader_quote swap (.agent + .codex committed)      | 9 of 12, exit 1   [rows 3,4,5; S3 FAIL]
+M3 poisoned reader_quote (.agent committed)           | 9 of 12, exit 1   [row 3 not-in-ELF]
+M4 full row swap (codex→agent committed)              | 9 of 12, exit 1   [rows 3,4,5 pattern+order]
+M5 row 12 dropped (11 rows, committed)                | 8 of 12, exit 1   [S3 pattern-set FAIL]
+M6 `..` traversal in row-3 pattern (committed)        | 8 of 12, exit 1   [S3 pattern-set FAIL]
+C1 self-test at the landed tip: 0 failure(s) over 35 assertions, exit 0.
+→ no mutant reaches 12 of 12; every mutant escalates toward base exactly as the frozen counter's
+→ docstring promises.  The counter kills every reachable forgery world.

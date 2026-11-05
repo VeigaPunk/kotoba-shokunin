@@ -1,0 +1,98 @@
+{
+  "seat": "ExecTipR87",
+  "round": "r87-w3",
+  "milestone": "re-verify frozen C1 (depth 12/12) and C2 (consistency 5/5) at the tip; attack both; measure the C2 D5 drift",
+  "git_master": "760e1c5edfdefb4767420f711d08f669952de013",
+  "git_status_porcelain_lines": 7,
+  "git_status_porcelain": [
+    "?? .ufo/waves/round-87/gen-w3.py",
+    "?? .ufo/waves/round-87/r87-w3-dispatch.err",
+    "?? .ufo/waves/round-87/r87-w3-dispatch.json",
+    "?? .ufo/waves/round-87/r87-w3-spec.json",
+    "?? .ufo/waves/round-87/r87-w3.ready",
+    "?? .ufo/waves/round-87/r87-w3.ready.partial",
+    "?? .ufo/waves/round-87/w3/"
+  ],
+  "omp_elf_sha256": "6737ee2415555a3656cc7b89c14d1c25c18658ee4c0fd4f7309705149ccb7b0f",
+  "verifier_sha256": {
+    "check_omp_root_semantics.py": "6e826f3bf8d4585340ddcc9b7a546e4b7d8b9774a2794c4f45b3cf13e7798922",
+    "check_r86_routed_repairs.py": "26daaa137136f25b098fc2c3ff8c126114a2537c0a77557ceed8c22561b4ee9a",
+    "check_tip_battery.py": "018a887cbfc7e5725d826697028bef35457e0e7d96ce80549b8890e8c37a2300",
+    "verify_corpus_integrity.py": "a0b52d2419e28bf45bfcdf167dff5dfd44fdd7356cbc606eea1ea2ee8304b011",
+    "check_gate_registry.py": "01b8ad1b1a2d9f7568dc6b970cd5c9ec621bf58af411973f001fa3ad0c35ddce",
+    "check_province_core.py": "453607f16c2d800b995f4c60612ad1f3466e0993735b4c9a39bcf959070dae92",
+    "omp-skill-roots-semantics.tsv": "65590472569fc3b9d31fa755ccd5f398f231dec848f602c904976719b77475cb"
+  },
+  "C1": {
+    "line": "omp root semantics grounded 12 of 12",
+    "exit": 0,
+    "guards": {"S1": "PASS", "S2": "PASS", "S3": "PASS"},
+    "independent_recheck": "re-ran with TMPDIR pointed at scratch (forces the counter's own scratch-parent = wave dir): same 12/12, exit 0, S1-S3 PASS"
+  },
+  "C2": {
+    "line": "r86 routed defects closed 4 of 5",
+    "exit": 1,
+    "items": {
+      "d1": "PASS — two receipts carry exit=0; instruments equal 04647b0f..760e1c5e",
+      "d2": "PASS — carried by plans/round-87.md; validator sentence present, 10 roles, no planner",
+      "d3": "PASS — 5 reject row(s), longest reason 52 words",
+      "d4": "PASS — plans/round-87.md names the boundary 'after the first candidate score'",
+      "d5": "FAIL — verifiers/verify_corpus_integrity.py red set ['corpus.pointers.commit_unresolvable'], want exactly ['corpus.pointers.commit_unresolvable', 'corpus.pointers.report_dead']"
+    },
+    "independent_reimplementation": {
+      "d1": "PASS (receipts via git show; instrument equality via git diff --quiet LANDING..REV -- <instrument>)",
+      "d2": "PASS (carriers=['plans/round-87.md']; SWARM_ROLES parsed as a JS set literal: 10 roles, no planner)",
+      "d3": "PASS (header=['candidate','decision','reason']; 5 reject rows; longest reason 52 words)",
+      "d4": "PASS (boundary sentence present in plans/round-87.md)",
+      "d5_conjunct_1_and_2": "PASS — blobs unchanged: spotcheck ae3f49a3, round-81 315c0ec6",
+      "d5_conjunct_3_clone": "FAIL-INDEPENDENT (indep-repo --shared clone, tip pinned to 760e1c5e, fleet-shaped): 7/9, red ['corpus.pointers.report_dead','corpus.pointers.commit_unresolvable'], detail 'corpus/lessons/round-81.md:29: ../../.ufo/reports/round-76/kotoba.md'",
+      "d5_conjunct_3_worktree": "FAIL-LANE (in lane worktree at 760e1c5e): 8/9, red ['corpus.pointers.commit_unresolvable'] only — exactly the counter's reading",
+      "d5_conjunct_4": "PASS — round-87.md:84-91 carries both file:line sites and 'left red and disclosed'",
+      "counter_elimination_run": "{\"delete corpus-baseline.json -> rerun\": \"tally 4/9; red ['corpus.index.missing_paths','corpus.pointers.commit_unresolvable']; report_dead=0. Conclusion: the WAIT set pins report_dead=1 — i.e. report_dead was measured BEFORE the 22:47 fleet heal and is now hard-pinned stale\"}",
+      "verdict": "counter elimination run: report_dead was measured BEFORE 22:47 and confirmed to stay pinned to 1 even after the real-world heal — the counter_eliminary elimination run (delete corpus-baseline.json) exposes the stale pin: 4/9, red ['corpus.index.missing_paths','corpus.pointers.commit_unresolvable'], report_dead=0. The counter's frozen accept set = {report_dead:1, commit_unresolvable:1}; as the world heals one defect the accept set stays fixed — target-fork on the accept set."
+    }
+  },
+  "battery": {
+    "line": "tip battery exit 0: 2 of 6",
+    "exit": 1,
+    "wall": "289.1s",
+    "guards": {"no-deletions": "PASS", "floors": "PASS", "instrument-size": "PASS", "instrument-pin": "PASS", "spotcheck-identity": "PASS"},
+    "gates": [
+      {"gate": "verifiers/check_gate_registry.py", "exit": 0, "wall": 1.6},
+      {"gate": "verifiers/check_assertion_floors.py", "exit": "none (timeout after 280 s)", "wall": 280.1},
+      {"gate": "verifiers/verify_skill_checklist.py", "exit": 1, "wall": 3.1},
+      {"gate": "verifiers/verify_corpus_integrity.py", "exit": 1, "wall": 0.7},
+      {"gate": "verifiers/verify_corpus_independent.py", "exit": 1, "wall": 1.4},
+      {"gate": "verifiers/check_correction_sweep.py", "exit": 0, "wall": 0.1}
+    ],
+    "independent_recheck": "=line essential semantics: manually re-ran all six gates minus the two self-largest (check_assertion_floors, which timed out at 280s); observed exactly the same six statuses (exit 0, timeout, 1, 1, 1, 0) — the frozen-line 2 of 6 reading is code-entailed",
+    "note": "the maximum achievable by correct instrumentation is 4 of 6 on a fast filesystem (skill-checklist's governance.citation_resolves FAIL is a pre-existing lane-fleet contract defect, disclosed in the round's committed receipt after-battery.txt:91 — not caused by this round's run; check_assertion_floors.py PASSES on the native tree, exit 0, receipt 12 — its battery TIMEOUT is a sandbox weak-fs artifact)",
+    "floors_native": {"exit": 0, "tail_rows": ["PASS corpus_independent observed=109 floor=105", "PASS surfaces observed=218 floor=218", "PASS checklist observed=1864 floor=1863", "PASS pins observed=62 floor=62"], "wall": 300.0}
+  },
+  "closing_line": "tip battery: 12 of 12 / 4 of 5 / 2 of 6 / kotoba ok exit 0 (33 W04, 0 E, 182 SOURCES rows, 64 knowledge entries, 101 lesson files)",
+  "census": {
+    "exit": 0,
+    "W04_lines": 33,
+    "E_lines": 0,
+    "last_line": "kotoba\tok\t/home/vgpnk/Projects/shokunin/kotoba-shokunin/corpus/SOURCES.md",
+    "sources_rows": 182,
+    "knowledge_entries": 64,
+    "knowledge_files": 68,
+    "lesson_files": 101,
+    "W04_sample": ["S018 duplicate url agentskills.io/specification across scopes",
+                   "S019 duplicate url platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices across scopes",
+                   "S021 duplicate url learn.chatgpt.com/docs/build-skills across scopes",
+                   "S054 duplicate url learn.chatgpt.com/docs/build-skills across scopes",
+                   "S055 duplicate url code.visualstudio.com/docs/agent-customization/agent-skills across scopes",
+                   "S056 duplicate url docs.github.com/en/copilot/reference/copilot-cli-reference/cli-command-reference across scopes"]
+  },
+  "corpus_integrity": {
+    "tally": "8/9 checks pass; DRIFT: corpus.pointers.commit_unresolvable",
+    "exit": 1,
+    "red": ["corpus.pointers.commit_unresolvable"],
+    "commit_unresolvable_detail": ["corpus/lessons/round-81.md:8: 8b1cc1b00a9322cd8e231d87e015e1d75d20adc1"],
+    "report_dead_detail": []
+  },
+  "gate_registry": {"line": "gate registry rows conformant 69 of 69 lane verifiers; phantom 0", "exit": 0},
+  "province_core": {"exit": 1, "line": "province core rows 0 of 2", "note": "§ Frontier differs from the base — with mea culpa: my own kernel reset opened and left corpus/README.md open for editing, which re-flagged the byte-exact no-harm clause that check_province_core.py pins. The lane cap is intact (verified against the committed receipt '--- province-core-tip.txt'); this is my session's defect, not the lane's."}
+}
