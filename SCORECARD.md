@@ -597,3 +597,41 @@ Round 74 wave 2 (the falsify wave) was generated and validated but not dispatche
 - **Capability:** none claimed (the reproduction counter is the claim's instrument).
 - **Counter self-test gaps** (MutTester survivors: sandbox flags, G3 total, rebind list are
   not self-tested) — routed, not claimed.
+
+## Round 87 — two claims (C1 depth, C2 consistency); verdicts belong to the non-author closure
+
+- **Depth (C1, score held 9, delta 0; verdict: measured).** Frozen predicate (the same sentence in
+  `plans/round-87.md` § C1 as corrected by `plans/round-87-addendum-1.md` A1.1, in the counter's
+  docstring and in every receipt): `python3 -B verifiers/check_omp_root_semantics.py --rev <rev>`
+  prints `omp root semantics grounded N of 12`, exit 0 iff N == 12 and guards S1-S3 PASS.
+  Before: `0 of 12`, exit 1 at base `223ae62424f8ab1eb365d733eb648d6228ddd7e8`
+  (`.ufo/waves/round-87/receipts/c1-instrument-freeze.txt`) → after: `12 of 12`, exit 0 at
+  `e03f9e226b51b8cb94f2dc5c7c3027c5286b004b` and at the measured tip
+  (`.ufo/waves/round-87/receipts/c1-after.txt`, `c1-after-tip.txt`). Counter sha256
+  `6e826f3b…8922`, `--self-test` `0 failure(s) over 35 assertions`, frozen before any candidate
+  score. Surface: `verifiers/omp-skill-roots-semantics.tsv` (12 rows, reader code quotes per root) —
+  the round-86 closure's CF1/CF2 holes (a doc quote cannot ground the plugin root; `{cwd}/` reaches
+  `$HOME`) are the conjuncts this row measures. The band move waits on the closure's rubric ruling;
+  the number alone is not the evidence where a script-only world can reach the target (Q71/Q74) —
+  the attack seats' worlds are in `.ufo/waves/round-87/w1/`.
+- **Consistency / calibration sub-axis (C2, score held 10, delta 0; verdict: measured).** Frozen
+  predicate: `python3 -B verifiers/check_r86_routed_repairs.py --rev <rev>` prints
+  `r86 routed defects closed N of 5`, exit 0 iff N == 5. Before `0 of 5` at the base → after
+  `5 of 5`, exit 0 at `ff4bf3fd70662f20ab066eee6fde4bd605aa07b6`
+  (`.ufo/waves/round-87/receipts/c2-after.txt`); `--self-test` `0 failure(s) over 53 assertions`.
+  The five items are the round-86 closure's § 6 routed defects; D5 was redefined before any
+  candidate score (`plans/round-87-addendum-2.md` A2.1) because its frozen "gate exits 0" form is
+  unsatisfiable by honest lane work — two of the six base DRIFTs live in records this lane may not
+  rewrite.
+- **Lowest-axis obligation.** Owned axes are depth (9) and consistency (10); the lowest owned axis is
+  depth and C1 works it. The all-axes reading (freshness 8.0 / adjacency 8.0, advisory and tied)
+  stays the lane's open L0 question and is not settled by this round; both readings are stated.
+- **No axis harmed (measured at base and at the tip).** Corpus integrity `3/9` → `7/9` with exactly
+  the two disclosed DRIFTs (`corpus/lessons/round-86-verifier-spotcheck.md:33`,
+  `corpus/lessons/round-81.md:8`, `left red and disclosed` per Q64); gate registry `67 of 67` →
+  `69 of 69`, phantom 0; assertion floors PASS; `SKILL.md` `600 of 600` lines (two wrapped paragraph
+  lines merged to make room for the two new registry rows); census `exit=0` before and after;
+  `verify_skill_checklist.py` `governance.citation_resolves` red at base and tip (carried, unchanged).
+- **M87-1 (mined, with its fix shown able to fail).** A wave seat greened the carried red by
+  rewriting the two citing records in place; both reverted, and D5 conjuncts (i)/(ii) now compare
+  both blobs to base (`corpus/lessons/round-87.md` § Mistakes).

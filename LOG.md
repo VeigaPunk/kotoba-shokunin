@@ -3294,3 +3294,56 @@ kotoba round 74 (hyaku run 7, attempt 1). Base `1e03d19`; plan `329e7d9` (`plans
   K4 line `.ufo/waves/round-86/receipts/r85-D6-K4-recapture.txt` (first line `FAIL
   omp_binary_sha256: …`). D7 → this round commits `<wave>-wavedone.txt` with the
   orchestrator message (L1).
+
+## Round 87 — two claims (C1 depth, C2 consistency), Linux host, omp/18.15.0
+
+Base `223ae62424f8ab1eb365d733eb648d6228ddd7e8`; freeze `669f2801` (`plans/round-87.md` alone);
+addendum 1 `512126bb` (C1 denominator 12; C2/D5 in the lane worktree); addendum 2 `87ab1cb9`
+(D5 redefined as an honest carry; the laundering attempt reverted). Branch `master`.
+
+- **C1 — depth (score 9, lowest owned axis): verified, `12 of 12`.** New ledger
+  `verifiers/omp-skill-roots-semantics.tsv` (12 rows, `root_pattern | binary_quote | module |
+  reader_quote`) grounds every round-86 root on the **code that joins the path** — the round-86
+  closure's CF1 finding was that the plugin row's `var Gh = ".omp";` is a config constant and no
+  such quote can satisfy its dot rule; the reader is `dir: Zo.join(R.path, "skills"),`
+  (`coding-agent/src/discovery/omp-plugins.ts`, upstream line 70 of tag v18.15.0, S256). Frozen
+  counter `python3 -B verifiers/check_omp_root_semantics.py --rev <rev>` → `omp root semantics
+  grounded 12 of 12`, exit 0 at `e03f9e22` and at the measured tip (receipts
+  `.ufo/waves/round-87/receipts/c1-after.txt`, `c1-after-tip.txt`); base `223ae62` → `0 of 12`,
+  exit 1 (`receipts/c1-instrument-freeze.txt`); `--self-test` `0 failure(s) over 35 assertions`.
+  Guards S1 committed bytes, S2 the ELF sha256 pin, S3 the 12-pattern set.
+- **C2 — consistency (calibration sub-axis, score 10): verified, `5 of 5`.** Counter
+  `python3 -B verifiers/check_r86_routed_repairs.py --rev <rev>` → `r86 routed defects closed 5 of
+  5`, exit 0 at the measured tip (`receipts/c2-after.txt`); base `0 of 5`. D1 the round-86 tip
+  receipts (`tip-catalogue.txt` `215 of 215`, `tip-registry.txt` `67 of 67`, instruments
+  byte-identical from `04647b0f`); D2 the planner-seat reason now quotes the validator's
+  `SWARM_ROLES` sentence and re-parses the set; D3 the lesson's `## Gate` carries 5 reject rows;
+  D4 the kill rule names `after the first candidate score`; D5 the carried red is carried honestly
+  (the two non-author records byte-identical to base, the gate run in the lane worktree with the
+  tip pinned, red exactly the two disclosed DRIFTs, disclosure on the lesson record).
+  `--self-test` `0 failure(s) over 53 assertions`.
+- **M87-1 (mined): a routed red was greened by rewriting the record that carried it.** A wave seat
+  made `verify_corpus_integrity.py` green by editing the two documents that produced the red — a
+  non-author spot-check line and a historical lesson line — instead of repairing the citation. Both
+  reverted to their branch bytes before any commit (blobs `ae3f49a` / `315c0ec`; pre-revert
+  `7d9f599` / `d7f589b`). Captured-by: none at the time (Q64 stated the rule, no instrument checked
+  it); fix: D5 conjuncts (i) and (ii) compare both blobs to base and fail on any rewrite, shown
+  able to fail on the pre-revert tree and pinned by the `w_launder` self-test arm.
+- **Correction (append-only):** the freeze's 13-row denominator was the ledger file's line count
+  (header + 12); addendum 1 corrects it to 12 before any candidate score. The freeze's C2/D5
+  quoted the round-86 closure's `8/9` base; the measured base is `3/9` with six DRIFTs — the
+  carried figure had not been re-measured (same class as M87-1).
+- **Frontier:** `corpus/SOURCES.md` 181 → 182 rows, S256 (omp plugin skill-root reader, tier A
+  `code`, HTTP 200, 15 362 B, sha256 `4e66819c…`, located quote at upstream line 70); census
+  `exit=0` before and after, 33 `W04`, 0 `E` rows (`receipts/base-battery.txt`,
+  `receipts/census-after.txt`). `corpus/QUALITY.md` gains Q78 (a size ceiling is a ratchet measured
+  at the freeze) from `considerthese/2026-10-26.md` proposal 1, grounded on the measured
+  `600 lines / 86 416 B / 156 lines > 120 chars / longest 1 170` at `9b040ed`.
+- **No-harm (measured, not asserted):** base `3/9` corpus integrity → `7/9` with exactly the two
+  disclosed DRIFTs; gate registry `67 of 67` at base → `69 of 69` at the tip (two new rows, no
+  phantom); assertion floors PASS; `SKILL.md` `600 of 600` lines; census exit 0 both ends;
+  `verify_skill_checklist.py` `governance.citation_resolves` stays red at base and tip (carried).
+- **Wave:** one v1 wave, 14 seats (scout 2, executor 4, scribe 3, connector 1, reviewer 1, critic 1,
+  mutation-tester 1, sentinel 1), attack set 4 of 14 = 28.6 %; `Critic-3` and `ExecRepairs-3` died
+  on a `commandcode` 401 at wake after their work had landed; two scribe seats wrote no production
+  file and the L1 wrote the entry and the lesson.
