@@ -179,13 +179,14 @@ def kill_set_size(text: str) -> int:
     return sum(1 for row in parse_manifest(text) if row.cls == "kill")
 
 
-def kill_set_check(text: str) -> tuple[bool, str]:
-    """kill-set-size arm: the kill-row count must equal KILL_SET_PINNED; malformed text is refused."""
+def kill_set_check(text: str, pinned: int | None = None) -> tuple[bool, str]:
+    """kill-set-size arm: the kill-row count must equal the pin (default KILL_SET_PINNED); malformed text is refused."""
+    want = KILL_SET_PINNED if pinned is None else pinned
     try:
         n = kill_set_size(text)
     except CouldNotEvaluate as exc:
         return False, "manifest malformed: %s" % exc
-    return n == KILL_SET_PINNED, "observed %d kill rows, pinned %d" % (n, KILL_SET_PINNED)
+    return n == want, "observed %d kill rows, pinned %d" % (n, want)
 
 
 def apply_recipe(text: str, row: Row) -> str:
@@ -350,7 +351,7 @@ def diff_against(base: dict, obs: dict) -> list[str]:
     return out
 
 
-def evaluate(rev: str, work: Path, allow_unregistered: bool) -> int:
+def evaluate(rev: str, work: Path, allow_unregistered: bool, pinned: int | None = None) -> int:
     if not re.fullmatch(r"[0-9a-f]{40}", rev or ""):
         raise CouldNotEvaluate("G1: --rev must be a full 40-hex revision, got %r" % rev)
     lane = toplevel(Path.cwd())
@@ -362,9 +363,14 @@ def evaluate(rev: str, work: Path, allow_unregistered: bool) -> int:
     tmp = work / "tmp"
     tmp.mkdir(exist_ok=True)
 
-    rows = parse_manifest(git_show(lane, rev, MANIFEST).decode("utf-8"))
+    committed = git_show(lane, rev, MANIFEST).decode("utf-8")
+    rows = parse_manifest(committed)
     if {row.target for row in rows} != set(PROBES):
         raise CouldNotEvaluate("manifest must name exactly the targets %s" % sorted(PROBES))
+    ok_pin, pin_detail = kill_set_check(committed, pinned)
+    if not ok_pin:
+        raise CouldNotEvaluate("arm kill-set-size: manifest at %s has %s"
+                               % (rev[:12], pin_detail))
     g3_rows = sum(1 for ln in git_show(lane, rev, SKILL).splitlines()
                   if BATTERY.encode() in ln)
 
@@ -625,6 +631,21 @@ def run_main(repo: Path, rev: str, work: Path, allow: bool = False) -> tuple[int
         os.chdir(old)
     return rc, buf.getvalue()
 
+def run_evaluate(repo: Path, rev: str, work: Path, pinned: int, allow: bool = False) -> tuple[int, str]:
+    buf = io.StringIO()
+    old = os.getcwd()
+    os.chdir(repo)
+    try:
+        with contextlib.redirect_stdout(buf):
+            try:
+                rc = evaluate(rev, work, allow, pinned)
+            except CouldNotEvaluate as exc:
+                print("could-not-evaluate: %s" % exc)
+                rc = 2
+    finally:
+        os.chdir(old)
+    return rc, buf.getvalue()
+
 
 class _Tally:
     def __init__(self) -> None:
@@ -638,10 +659,14 @@ class _Tally:
 
 
 def self_test() -> int:
-    global write_target, git, place
+    global write_target, git, place, KILL_SET_PINNED
+    # round 93 (ReviewerKillPin, blocking): the fixture arms rebind the module pin; the live arms
+    # read the pin captured here, and the finally block restores it.
+    module_pin = KILL_SET_PINNED
     t = _Tally()
     root = Path(tempfile.mkdtemp(prefix="mutation-battery-selftest-"))
     try:
+        KILL_SET_PINNED = 9
         line_ok = LINE_FMT % (9, 9, 9, 9, 1, 1)
         line_broken = LINE_FMT % (9, 10, 9, 9, 1, 1)
         line_eq = LINE_FMT % (9, 9, 8, 9, 1, 1)
@@ -660,13 +685,15 @@ def self_test() -> int:
         t.check("G1 dirty working tree: the exact predicate line is printed",
                 line_ok in out.splitlines(), out)
 
+        KILL_SET_PINNED = 10
         broken = build_fixture(root, "broken", _satisfying_rows() + [FX_KILL_DEAD], SKILL_WITH)
         rc, out = run_main(broken, head(broken), root / "w-broken")
         t.check("broken conjunct K == M: a kill-class row that no probe flips exits 1",
-                rc == 1, out)
+                rc == 1 and "kill-set-size" not in out, out)
         t.check("broken conjunct K == M: the line reads killed 9 of 10",
                 line_broken in out.splitlines(), out)
 
+        KILL_SET_PINNED = 9
         rc, out = run_main(ok, head(ok)[:12], root / "w-short")
         t.check("G1 revision identity: a non-full --rev is could-not-evaluate (exit 2)",
                 rc == 2, out)
@@ -734,11 +761,13 @@ def self_test() -> int:
         t.check("--allow-unregistered: only G3 is waived, exit 0 with the same line",
                 rc == 0 and line_ok in out.splitlines(), out)
 
+        KILL_SET_PINNED = 10
         miss = build_fixture(root, "miss", _satisfying_rows() + [FX_MISSING], SKILL_WITH)
         rc, out = run_main(miss, head(miss), root / "w-miss")
         t.check("anchor: a recipe whose anchor is absent from the revision exits 2",
                 rc == 2 and "anchor miss" in out, out)
 
+        KILL_SET_PINNED = 9
         linecount = build_fixture(root, "linecount", _satisfying_rows(), SKILL_WITH,
                                   d5_text=FX_D5_LINECOUNT)
         rc, out = run_main(linecount, head(linecount), root / "w-lc")
@@ -766,19 +795,34 @@ def self_test() -> int:
 
         live = Path(__file__).resolve().parent.parent / MANIFEST
         live_text = live.read_text(encoding="utf-8") if live.is_file() else ""
-        live_ok, live_detail = kill_set_check(live_text)
+        live_ok, live_detail = kill_set_check(live_text, module_pin)
         t.check("arm kill-set-size: the live manifest's kill-row count equals the pin",
                 live_ok, live_detail)
         first_kill = next((ln for ln in live_text.splitlines() if "\tkill\t" in ln), None)
         dropped_text = "\n".join(ln for ln in live_text.splitlines() if ln != first_kill) + "\n"
-        dropped_ok, dropped_detail = kill_set_check(dropped_text)
+        dropped_ok, dropped_detail = kill_set_check(dropped_text, module_pin)
         t.check("arm kill-set-size: a manifest with one kill row dropped is refused by the pin",
                 not dropped_ok, dropped_detail)
         broken_ok, broken_detail = kill_set_check("not a manifest\n")
         t.check("arm kill-set-size: an unparseable manifest is refused, not raised",
                 not broken_ok and "malformed" in broken_detail, broken_detail)
+        pinned_rows = _satisfying_rows()
+        pinned_count = sum(1 for r in pinned_rows if r[2] == "kill")
+        ok_rows = build_fixture(root, "revok", pinned_rows, SKILL_WITH)
+        rc, out = run_evaluate(ok_rows, head(ok_rows), root / "w-revok", pinned_count)
+        t.check("kill-set-size rev path: a committed manifest matching the pin exits 0 without naming kill-set-size",
+                rc == 0 and "kill-set-size" not in out, out)
+        dropped = build_fixture(root, "revdrop", [r for i, r in enumerate(pinned_rows) if i != 0], SKILL_WITH)
+        rc, out = run_evaluate(dropped, head(dropped), root / "w-revdrop", pinned_count)
+        t.check("kill-set-size rev path: a committed manifest dropping a kill row exits 2 naming kill-set-size",
+                rc == 2 and "kill-set-size" in out, out)
+        broken_rev = build_fixture(root, "revbroken", pinned_rows + [FX_KILL_DEAD], SKILL_WITH)
+        rc, out = run_evaluate(broken_rev, head(broken_rev), root / "w-revbroken", pinned_count + 1)
+        t.check("kill-set-size rev path: an unrelated baseline failure does not name kill-set-size",
+                rc == 1 and "kill-set-size" not in out, out)
     finally:
         shutil.rmtree(root, ignore_errors=True)
+        KILL_SET_PINNED = module_pin
     for failure in t.failures:
         print("FAIL " + failure)
     print("%d failure(s) over %d assertions" % (len(t.failures), t.n))

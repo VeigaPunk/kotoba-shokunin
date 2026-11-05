@@ -346,6 +346,10 @@ def run_guards(clone: Path, base: str, rev: str) -> tuple[list[tuple[str, str]],
         if blob not in allowed:
             failures.append(("instrument-pin", "%s blob %s at %s is not a pinned blob"
                              % (path, blob or "absent", rev)))
+    if INSTRUMENT_PINS:
+        for path in scripts:
+            if path not in INSTRUMENT_PINS:
+                failures.append(("instrument-pin", "%s has no INSTRUMENT_PINS key (battery instrument unpinned)" % path))
     if added > LINE_CAP:
         failures.append(("instrument-size", "instruments gain %d lines > %d" % (added, LINE_CAP)))
     if deleted_lines > LINE_CAP:
@@ -589,7 +593,7 @@ def self_test() -> int:
         pin_ok = root / "guard-pin-ok"
         lane, base = _make_world(pin_ok)
         base_blob = _fixture_git(lane, "rev-parse", "HEAD:" + BATTERY[0][0]).stdout.strip()
-        INSTRUMENT_PINS = {BATTERY[0][0]: (base_blob,)}
+        INSTRUMENT_PINS = {script: (_fixture_git(lane, "rev-parse", "HEAD:" + script).stdout.strip(),) for script, _ in BATTERY}
         (lane / "notes.md").write_text("harmless\n")
         tip = _commit_all(lane, "harmless change under a pin")
         rc, out, err = _drive(pin_ok, base, tip)
@@ -709,13 +713,39 @@ def self_test() -> int:
         pref_root = root / "guard-pin-prefix"
         lane, base = _make_world(pref_root)
         full = _fixture_git(lane, "rev-parse", "HEAD:" + BATTERY[0][0]).stdout.strip()
-        INSTRUMENT_PINS = {BATTERY[0][0]: (full[:12],)}
+        INSTRUMENT_PINS = {script: (_fixture_git(lane, "rev-parse", "HEAD:" + script).stdout.strip(),) for script, _ in BATTERY}; INSTRUMENT_PINS[BATTERY[0][0]] = (full[:12],)
         (lane / "notes.md").write_text("harmless\n")
         tip = _commit_all(lane, "harmless under an abbreviated pin")
         rc, out, err = _drive(pref_root, base, tip)
         check("an abbreviated pin does not match the blob", rc == 1 and "FAIL guard instrument-pin" in out,
               "exit %d %s" % (rc, out.strip()[-200:]))
         INSTRUMENT_PINS = saved_pins
+
+        # round 93 C2: a missing BATTERY key in a non-empty INSTRUMENT_PINS is an
+        # instrument-pin failure naming the path (F-4: whole-key removal was silent).
+        # The pinned blob must admit the unchanged fixture script so the ONLY
+        # pin failure is the missing key; the second arm swaps in a junk key.
+        for arm, pins_value in (("keydrop", {}), ("keyswap", {"verifiers/r93-junk-key.py": ("0" * 40,)})):
+            key_root = root / ("guard-pin-" + arm)
+            lane, base = _make_world(key_root)
+            full_pins = {}
+            for script, _ in BATTERY:
+                blob = _fixture_git(lane, "rev-parse", "HEAD:" + script).stdout.strip()
+                full_pins[script] = (blob,)
+            missing = BATTERY[5][0]
+            del full_pins[missing]
+            full_pins.update(pins_value)
+            INSTRUMENT_PINS = full_pins
+            (lane / "notes.md").write_text("harmless\n")
+            tip = _commit_all(lane, "harmless under a %s pin" % arm)
+            rc, out, err = _drive(key_root, base, tip)
+            check("pin %s world exits 1" % arm, rc == 1, "exit %d" % rc)
+            check("pin %s world FAIL names the missing key" % arm,
+                  ("FAIL guard instrument-pin: %s has no INSTRUMENT_PINS key" % missing) in out,
+                  out.strip()[-220:])
+            check("pin %s world tally reads guards 4 of 5" % arm, "guards 4 of 5" in out,
+                  _last_line(out))
+            INSTRUMENT_PINS = saved_pins
 
         rc, out, err = world("floors-row-dropped", lambda l: (l / FLOORS_PATH).write_text(json.dumps(
             {"$comment": "fixture", "instrument_total": 0, "instruments": {}}, indent=1) + "\n"),
