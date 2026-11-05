@@ -1,0 +1,3 @@
+d5-pristine-final.py: pristine 0c20d8a r89-bytes of check_r86_routed_repairs_v3.py (2315 lines; anchor '    if not grew and not added:\n' count=1)
+d5-m2-mutant.py: pristine + d5-m2-digest-check-removed recipe applied (snap_ok = (m_integrity==receipt["integrity_sha256"] and m_baseline==receipt["baseline_sha256"]) -> snap_ok = True, re.compile r'    snap_ok = \(m_integrity == receipt\["integrity_sha256"\]\n\s+and m_baseline == receipt\["baseline_sha256"\]\)\n', count=1)
+fg-pristine-final.py: pristine final-bytes of check_freeze_gate.py (0c20d8a; anchor of fg-m3 = '"; "\.join\(problems\)\), file=out\)\n            return EXIT_REFUSED' count=1 on line 288)

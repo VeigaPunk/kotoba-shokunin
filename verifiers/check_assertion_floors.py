@@ -8,10 +8,14 @@ the recorded floor (harness 10, corpus_integrity 164, corpus_independent 105,
 surfaces 218, overlap_levers 51, checklist 1863, pins 62,
 harness_independent 123, compare_harness_independent 330, floors_guard 150,
 dispatch_prompts 56, sibling_census 68, alwayson 89, correction_sweep 25,
-scoped_rules_v32 240, spec_craft 250, sibling_reread 47, omp_root_semantics_v2 68;
-round 88 (claim C1's guard S4) registers the v2 omp root-semantics counter at its
+scoped_rules_v32 240, spec_craft 250, sibling_reread 47, omp_root_semantics_v2 68,
+freeze_gate 30; round 88 (claim C1's guard S4) registers the v2 omp root-semantics counter at its
 landed count (69) minus one, so a dropped grounding, binding or forgery arm reds
-this guard instead of passing every gate silently; round 76 (hygiene
+this guard instead of passing every gate silently; round 90 (carry-in r89
+half-bump) registers freeze_gate (verifiers/check_freeze_gate.py) at its r89
+landed count (30), completing the registry's half-bump so a dropped
+freeze-gate self-test arm reds this guard instead of passing every gate
+silently; round 76 (hygiene
 repair D4 -- the round-74 spot-check's routed defect 4, item 4) floors the
 two round-74 counters whose self-tests were UNFLOORED, so an arm dropped
 from either file now reds this guard (the r62 F17 class, re-found by the
@@ -191,6 +195,9 @@ EXPECTED_INSTRUMENTS = {
     "spec_craft": 250,
     "sibling_reread": 47,
     "omp_root_semantics_v2": 68,
+    # round 90 (carry-in r89 half-bump): freeze_gate joins with the row the
+    # registry already carries (floor 30), completing the bump in one step.
+    "freeze_gate": 30,
 }
 SELF_TEST_TIMEOUT_S = 120
 # Round-56 routed defect 4 (round-55 spot-check, 'routed defects' item 4): the
@@ -267,6 +274,11 @@ INSTRUMENTS = {
     # below so a dropped arm reds this guard, and S4 reads the same row.
     "omp_root_semantics_v2": ("verifiers/check_omp_root_semantics_v2.py", 68,
                               r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
+    # round 90 (carry-in r89 half-bump): the freeze-gate counter registers at
+    # its r89 landed count (check_freeze_gate.py --self-test 30, the registry
+    # row's floor), completing the bump in one change (BUMP-IN-STEP RULE).
+    "freeze_gate": ("verifiers/check_freeze_gate.py", 30,
+                    r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
 }
 
 
@@ -848,10 +860,10 @@ def self_test() -> int:
         # sibling_census; round 51: 12 with overlap_levers; round 53: 13 with alwayson;
         # round 58: 14 with correction_sweep; round 65: 15 with scoped_rules_v32;
         # round 76: 17 with spec_craft and sibling_reread; round 88: 18 with
-        # omp_root_semantics_v2),
+        # omp_root_semantics_v2; round 90: 19 with freeze_gate),
         # including this guard's self-test); a stale literal here would stop landing
         # and the count-check would name it.
-        text = swap(registry_text, '"instrument_total": 18', '"instrument_total": 10',
+        text = swap(registry_text, '"instrument_total": 19', '"instrument_total": 10',
                     "F6/total")
         proc = run(write_tree(tmp / "f6", source, text), tmp / "f6")
         rec("F6 size drift: exit 2", proc.returncode == 2, proc.returncode)

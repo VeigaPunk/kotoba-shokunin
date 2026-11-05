@@ -1,0 +1,87 @@
+# S260 located-quote receipts — seat ScoutMutSource, 2026-11-05
+
+Fetch command (primary): `curl -sL --max-time 60 -D <hdr>.txt -o <file> -w "HTTP=%{http_code} URL=%{url_effective} SIZE=%{size_download}" <url>`
+
+Files and their fetch-time digests (digest = fetch-time metadata only; quotes are grounded in LINE ANCHORS + byte size + page title, never in the digest — r89 spot-check note 1):
+
+- `s260-routea-mutmut-index.html` — 51074 B — sha256 `07453b3fdb3b962a4cc5aff66d7614a11016c9ce0ea482654c99e17688ec9cad`
+- `s260-routea-mutmut-readme.rst` — 22381 B — sha256 `412dd489c3534c649f9a4d5a815e709d43a5a80bbc9b57dc572533c4ed0dbe9d`
+- `s260-routeb-stryker-general.html` — 30253 B — sha256 `cd83338b81718d0033add2eec3f7400de8f250d4a0f9b152502468ebdcc1cd60`
+- `s260-snapshot-equivalents.html` — 38687 B — sha256 `b71ae15708a1da890d4fedc56a80453fc6619c7ea81ef77e1bc755c471276c42`
+- `s260-snapshot.html` — 27068 B — sha256 `8641c38959222238f34aba0e20d3c51919cf183bf19a53f436257614cab656da`
+
+## Q1a killed-vocabulary
+
+- snapshot file: `s260-snapshot.html`
+- line number in snapshot: 12
+- `wc -w` on the quoted segment: 15
+- quoted segment (verbatim, tags stripped for reading): 'When at least one test failed while this mutant was active, the mutant is killed.'
+- contiguous in raw bytes of that line: True
+- byte shaping: none — the quoted segment is a contiguous raw-byte substring of the named line
+
+`sed -n 12p s260-snapshot.html` output:
+
+```
+When at least one test failed while this mutant was active, the mutant is killed. This is what you want, good job!</li>
+```
+
+## Q1b survived-vocabulary
+
+- snapshot file: `s260-snapshot.html`
+- line number in snapshot: 14
+- `wc -w` on the quoted segment: 12
+- quoted segment (verbatim, tags stripped for reading): 'When all tests passed while this mutant was active, the mutant survived.'
+- contiguous in raw bytes of that line: True
+- byte shaping: none — the quoted segment is a contiguous raw-byte substring of the named line
+
+`sed -n 14p s260-snapshot.html` output:
+
+```
+When all tests passed while this mutant was active, the mutant survived. You're missing a test for it.</li>
+```
+
+## Q2a score-notion
+
+- snapshot file: `s260-snapshot.html`
+- line number in snapshot: 52
+- `wc -w` on the quoted segment: 12
+- quoted segment (verbatim, tags stripped for reading): 'The total percentage of mutants that were detected. The higher, the better!'
+- contiguous in raw bytes of that line: True
+- byte shaping: none — the quoted segment is a contiguous raw-byte substring of the named line
+
+`sed -n 52p s260-snapshot.html` output:
+
+```
+<!-- -->The total percentage of mutants that were detected. The higher, the better!</li>
+```
+
+## Q2b score-formula
+
+- snapshot file: `s260-snapshot.html`
+- line number in snapshot: 51
+- `wc -w` on the quoted segment: 5
+- quoted segment (verbatim, tags stripped for reading): 'detected / valid * 100'
+- contiguous in raw bytes of that line: True
+- byte shaping: none — the quoted segment is a contiguous raw-byte substring of the named line
+
+`sed -n 51p s260-snapshot.html` output:
+
+```
+<li class=""><strong>Mutation score</strong> <code>detected / valid * 100</code><br/>
+```
+
+## Q3 equivalent-mutant-notion
+
+- snapshot file: `s260-snapshot-equivalents.html`
+- line number in snapshot: 16
+- `wc -w` on the quoted segment: 17
+- quoted segment (verbatim, tags stripped for reading): 'It is called equivalent mutant. There is no definitive way for Stryker to find and ignore them.'
+- contiguous in raw bytes of that line: False
+- byte shaping: SHAPED: the quoted segment crosses an HTML markup boundary; the only bytes removed are the literal tag sequences shown in the raw line below (no words altered).
+
+`sed -n 16p s260-snapshot-equivalents.html` output:
+
+```
+<p>It is called <em>equivalent mutant</em>. There is no definitive way for Stryker to find and ignore them. There is currently also no way yet to mark them to be ignored.</p>
+```
+
