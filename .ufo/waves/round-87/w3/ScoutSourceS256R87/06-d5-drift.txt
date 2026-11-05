@@ -1,0 +1,67 @@
+# ScoutSourceS256R87 — receipt 6: the C2 D5(iii) drift, measured and causally attributed
+# (read-only on the lane; the clone lives in scratch and is never written back)
+
+== A. lane worktree (the environment the frozen counter measures in) ==
+# command: python3 -B verifiers/verify_corpus_integrity.py --json
+# EXIT=1
+  RED corpus.pointers.commit_unresolvable observed 1 expected 0 / empty
+  report_dead_detail: []
+  commit_unresolvable_detail: ['corpus/lessons/round-81.md:8: 8b1cc1b00a9322cd8e231d87e015e1d75d20adc1']
+# command: python3 -B verifiers/verify_corpus_integrity.py   (tally line)
+8/9 checks pass; DRIFT: corpus.pointers.commit_unresolvable
+
+== B. the counter's own D5 expectations (verifiers/check_r86_routed_repairs.py) ==
+114:INTEGRITY_LINE = "7/9 checks pass"
+417:D5_DEAD_SITE = "corpus/lessons/round-86-verifier-spotcheck.md:33"
+418:D5_UNRES_SITE = "corpus/lessons/round-81.md:8"
+462:    want = {"corpus.pointers.report_dead", "corpus.pointers.commit_unresolvable"}
+
+== C. the SAME committed lane bytes, read in a FRESH --shared clone (scratch) ==
+# command: git -C $D2 rev-parse --show-toplevel
+/fast/scratch/hyaku/kotoba-r87/ScoutSourceS256R87/repo2
+# command: python3 -B $D2/verifiers/verify_corpus_integrity.py --json
+# EXIT=1
+  RED corpus.pointers.report_dead observed 1 expected 0 / empty
+  RED corpus.pointers.commit_unresolvable observed 1 expected 0 / empty
+  report_dead_detail: ['corpus/lessons/round-81.md:29: ../../.ufo/reports/round-76/kotoba.md']
+  commit_unresolvable_detail: ['corpus/lessons/round-81.md:8: 8b1cc1b00a9322cd8e231d87e015e1d75d20adc1']
+7/9 checks pass; DRIFT: corpus.pointers.report_dead, corpus.pointers.commit_unresolvable
+# command: python3 -B $D2/verifiers/check_r86_routed_repairs.py --rev <clone master>
+FAIL d5  report_dead detail ['corpus/lessons/round-81.md:29: ../../.ufo/reports/round-76/kotoba.md'] does not name corpus/lessons/round-86-verifier-spotcheck.md:33
+r86 routed defects closed 4 of 5
+
+== D. the causal pin: the clone's own resolution root lacks the fleet report ==
+# the clone's tracked pointer (a symlink out of the clone, so it dangles in scratch):
+lrwxrwxrwx 1 vgpnk vgpnk 43 Nov  5 00:22 /fast/scratch/hyaku/kotoba-r87/ScoutSourceS256R87/repo2/.ufo/reports/round-76/kotoba.md -> ../../../../.ufo/reports/round-76/kotoba.md
+# the fleet copies the lane worktree resolves through:
+-rw-r--r-- 1 vgpnk vgpnk  8128 Nov  5 00:07 /home/vgpnk/Projects/shokunin/.ufo/reports/round-76/kotoba.md
+-rw-r--r-- 1 vgpnk vgpnk 10856 Nov  4 22:47 /home/vgpnk/Projects/shokunin/.ufo/reports/round-84/kama.md
+# command: cp <fleet>/.ufo/reports/round-76/kotoba.md $D2/.ufo/reports/round-76/kotoba.md   (scratch only)
+8/9 checks pass; DRIFT: corpus.pointers.commit_unresolvable
+# command: python3 -B $D2/verifiers/check_r86_routed_repairs.py --rev <clone master>
+FAIL d5  verifiers/verify_corpus_integrity.py red set ['corpus.pointers.commit_unresolvable'], want exactly ['corpus.pointers.commit_unresolvable', 'corpus.pointers.report_dead']
+r86 routed defects closed 4 of 5
+# => with the fleet report present the clone reproduces the LANE reading exactly.
+#    The D5 drift is caused by EXTERNAL report files (fleet root), not by the lane's corpus bytes.
+
+== E. why the lane's red set lost report_dead: the fleet report landed ==
+# command: git -C /home/vgpnk/Projects/shokunin log -1 --format='%H %ci %s' 5b052020
+5b052020a13b37340c1054286d65b2514c7133d5 2026-11-04 12:16:01 -0300 round-84: kama report — thirteen-arm numeric gate green, bounded C2/C3 verified, auxiliary C1 disclosure miss retained
+# command: git -C /home/vgpnk/Projects/shokunin show --stat --oneline 5b052020
+5b052020 round-84: kama report — thirteen-arm numeric gate green, bounded C2/C3 verified, auxiliary C1 disclosure miss retained
+ .ufo/reports/round-84/kama.md | 69 +++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 69 insertions(+)
+# command: grep -c '## SHONEN' <fleet>/.ufo/reports/round-84/kama.md
+1
+# the pointer cited at corpus/lessons/round-86-verifier-spotcheck.md:33:
+.ufo/reports/round-84/kama.md
+# the other cited pointer, corpus/lessons/round-81.md:29:
+../../.ufo/reports/round-76/kotoba.md
+
+== F. D5 (i)+(ii): the two non-author records are unchanged from the base ==
+# corpus/lessons/round-86-verifier-spotcheck.md
+#   base=223ae62424f8ab1eb365d733eb648d6228ddd7e8 ae3f49a3685e796ae5154cf9a4b055132a8c25b0
+#   tip =d1c031833c37af99196f72f84a6643f84eec129a ae3f49a3685e796ae5154cf9a4b055132a8c25b0
+# corpus/lessons/round-81.md
+#   base=223ae62424f8ab1eb365d733eb648d6228ddd7e8 315c0ec68075e9c7c4037b8f42617e3eee0a434b
+#   tip =d1c031833c37af99196f72f84a6643f84eec129a 315c0ec68075e9c7c4037b8f42617e3eee0a434b

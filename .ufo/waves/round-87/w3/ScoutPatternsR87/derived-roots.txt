@@ -1,0 +1,43 @@
+# ScoutPatternsR87 — derived skill-root set from the installed omp ELF
+
+elf: /home/vgpnk/.local/bin/omp
+sha256: 6737ee2415555a3656cc7b89c14d1c25c18658ee4c0fd4f7309705149ccb7b0f
+method: python3 byte-offset scan (regex over the whole 276785328-byte ELF) + grep -aob cross-check
+
+## A. Literal path segments carried by the ELF (grep -aob, byte offsets)
+
+[.claude/skills]           114489017:.claude/skills 173847176:.claude/skills 
+[.agent/skills]            114490041:.agent/skills 173866337:.agent/skills 
+[.agents/skills]           114490059:.agents/skills 173866355:.agents/skills 
+[.codex/skills]            114490735:.codex/skills 114490753:.codex/skills 173887174:.codex/skills 173887192:.codex/skills 
+[.opencode/skills]         114492098:/opencode/skills 114492120:.opencode/skills 173905710:/opencode/skills 173905732:.opencode/skills 
+[.github/skills]           114492709:.github/skills 173911227:.github/skills 
+[.claude/plugins/cache/]   114489520:.claude/plugins/cache/ 173861919:.claude/plugins/cache/ 
+[managed-skills]           114007411:managed-skills 114486708:managed-skills 116200004:managed-skills 116308968:managed-skills 
+[.omp/skills]              
+[omp/skills]               
+[.agents/skills]           114490059:.agents/skills 173866355:.agents/skills 
+
+## B. The literal '.omp/skills' does NOT exist as a contiguous string
+    (grep -aob '.omp/skills' and 'omp/skills' both return zero hits)
+    => the native root is composed at runtime: join(projectDir, "skills")
+
+## C. Code sites that COMPOSE each root (path.join tokens)
+
+  {cwd}/.omp/skills                [173819979]
+  ~/.omp/agent/skills              [173820135]
+  ~/.omp/agent/managed-skills      [173809938]
+  {cwd}/.claude/skills             [173840364]
+  ~/.claude/skills                 [173840218]
+  {cwd}/.agent(s)/skills           [173865724]
+  ~/.agent(s)/skills               [173865523]
+  {cwd}/.codex/skills              [173882193]
+  ~/.codex/skills                  [173882129]
+  {cwd}/.opencode/skills           [172785704]
+  ~/.config/opencode/skills        [172785499]
+  {cwd}/.github/skills             [172785704]
+  <plugin-root>/skills             [173914936]
+  <agent-plugin>/skills            [173778070]
+  <claude-plugin>/skills           [173851107]
+  ~/.omp/plugins/node_modules/*    [166892485]
+  .omp (const Gh)                  [166884553]

@@ -1,0 +1,64 @@
+# ScoutSourceS256R87 — receipt 3: is the located quote a READER (code that builds the root)
+#          or a doc/string-table line?  Reader test: the quote sits on a line that
+#          carries a path-join token, inside the module, after the module header.
+
+== upstream context lines 60-82 (the reader site) ==
+60	
+61	// =============================================================================
+62	// Skills
+63	// =============================================================================
+64	
+65	async function loadSkills(ctx: LoadContext): Promise<LoadResult<Skill>> {
+66		const roots = await allowedRoots(ctx, "skills");
+67		const results = await Promise.all(
+68			roots.map(root =>
+69				scanSkillsFromDir(ctx, {
+70					dir: path.join(root.path, "skills"),
+71					providerId: PROVIDER_ID,
+72					level: root.level,
+73					requireDescription: true,
+74					pluginName: root.name,
+75				}),
+76			),
+77		);
+78		return {
+79			items: results.flatMap(r => r.items),
+80			warnings: results.flatMap(r => r.warnings ?? []),
+81		};
+82	}
+
+== upstream lines 43-48 (the provider DESCRIPTION string constant — the doc/string-table
+   line S256 explicitly says it is NOT using) ==
+43	const PROVIDER_ID = "omp-plugins";
+44	const DISPLAY_NAME = "OMP Extension Packages";
+45	const DESCRIPTION =
+46		"Sub-discovery (skills, hooks, tools, commands, rules, prompts, .mcp.json) inside extension packages";
+47	const PRIORITY = 90;
+48	
+
+== upstream lines 374-383 (the provider registration the quote's function serves) ==
+374	// =============================================================================
+375	
+376	registerProvider<Skill>(skillCapability.id, {
+377		id: PROVIDER_ID,
+378		displayName: DISPLAY_NAME,
+379		description: DESCRIPTION,
+380		priority: PRIORITY,
+381		load: loadSkills,
+382	});
+383	
+
+== ELF: module header, then the reader line, at the offsets the row names ==
+@173914407  // packages/coding-agent/src/discovery/omp-plugins.ts
+@173914936      dir: Zo.join(R.path, "skills"),
+
+ELF occurrences of the row's located quote form  dir: path.join(root.path, "skills"), : 0
+ELF occurrences of the minified counterpart      dir: Zo.join(R.path, "skills"),   : 1
+ELF occurrences of the byte-identical anchor (DESCRIPTION)                     : 2
+ELF occurrences of the module header                                             : 1
+
+== verdict inputs ==
+# upstream quote line 70 carries the join token 'path.join('  -> READER
+# upstream DESCRIPTION constant at line 46 carries NO join token -> doc/string-table line
+# ELF reader line @173914936 carries the join token 'Zo.join(' -> READER
+# ELF module header @173914407 precedes the reader @173914936 -> module ordering holds

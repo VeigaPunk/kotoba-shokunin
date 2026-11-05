@@ -1,0 +1,18 @@
+# ScoutSourceS256R87 — receipt 2: independent re-fetch of the S256 URL
+# URL taken verbatim from the S256 row's source cell:
+# https://raw.githubusercontent.com/can1357/oh-my-pi/v18.15.0/packages/coding-agent/src/discovery/omp-plugins.ts
+# command: curl -sS -o "$S/body" -w '%{http_code} %{size_download}' <url>
+# observed: 200 15362
+# command: sha256sum $S/body
+4e66819cf706b81c6f31bd71e6de8892083a284525ab151948642faea00cb1b4  /fast/scratch/hyaku/kotoba-r87/ScoutSourceS256R87/body
+# command: wc -lc $S/body
+  430 15362 /fast/scratch/hyaku/kotoba-r87/ScoutSourceS256R87/body
+
+# cross-check: git blob sha of the fetched bytes vs GitHub API at ref=v18.15.0
+# git hash-object: c4cee136d81b6878aeb466f6be3b253e96dc8a11
+# GitHub API sha: c4cee136d81b6878aeb466f6be3b253e96dc8a11  size: 15362
+
+# command: grep -n 'dir: path.join(root.path, "skills"),' $S/body   (the row's located quote)
+70:				dir: path.join(root.path, "skills"),
+# command: grep -n 'Sub-discovery (skills, hooks, tools, commands, rules, prompts, .mcp.json) inside extension packages' $S/body  (the row's byte-identical anchor)
+46:	"Sub-discovery (skills, hooks, tools, commands, rules, prompts, .mcp.json) inside extension packages";

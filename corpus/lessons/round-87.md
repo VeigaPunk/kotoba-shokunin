@@ -184,6 +184,13 @@ tally conjunct together with the red-set equality (`w3/MutateR87/base/d5-forms.t
   surface** — a coverage hole, not a depth result, and the next round's obvious move: extend the ledger
   to the user-level claude/codex/opencode and skillshare roots, and use the probe capability to
   establish which of them bear `SKILL.md`. The critic's row-5 gap is the same class at a smaller scale.
+- **C1's conjunct 4 never runs at scoring (sentinel F-1, confirmed here).** In
+  `verifiers/check_omp_root_semantics.py` conjunct 4 computes `expected = expansions(pattern,
+  FROZEN_CHAIN)` and `actual = expansions(pattern, chain)` and fails only when they differ; the
+  scoring path calls `run(...)` with `chain=FROZEN_CHAIN` (line 380), so at scoring `expected ==
+  actual` by construction and the conjunct can never fail. Only the `--self-test`'s `w_bound` world
+  (which passes `chain=FULL_CHAIN`) exercises it. The round's bound evidence is therefore the
+  **probe**, not the counter — stated here rather than left implicit in the 12 of 12.
 - **C2 re-derived item by item.** `ReviewD1D5R87` re-checked D1–D5 from committed bytes without
   trusting the counter: D1, D2, D3 (5 reject rows, longest 52 words), D4 (5 verbatim spots) and
   D5(i)/(ii) (`ae3f49a3…`/`315c0ec6…` = base) all PASS; D5(iii) FAIL at the tip for the healed-red

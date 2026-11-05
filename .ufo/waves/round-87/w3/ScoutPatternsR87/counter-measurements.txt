@@ -1,0 +1,45 @@
+# ScoutPatternsR87 — counter measurements (frozen counters, read-only)
+
+NOTE: the frozen statement names lane tip 760e1c5edfdefb4767420f711d08f669952de013.
+      The lane tip ADVANCED twice during this seat's run:
+        760e1c5edfdefb4767420f711d08f669952de013  (the frozen statement's tip)
+        d1c031833c37af99196f72f84a6643f84eec129a  (round-87 attempt 2: C2 D5(iii) drift)
+        3c8902a7f2bd6977a7f9520a363013248a08b127  (round-87 attempt 2: wave r87-w3 evidence)
+      C1 is revision-addressed (reads the ledger via git show) -> it measures any rev.
+      C2 asserts the WORKTREE tip == --rev (addendum A1.2) -> it only measures the current tip.
+
+$ git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin rev-parse master
+3c8902a7f2bd6977a7f9520a363013248a08b127
+
+## C1 (depth) at the frozen tip 760e1c5
+guard S3 pattern-set PASS
+omp root semantics grounded 12 of 12
+exit=0
+
+## C1 (depth) at tip d1c0318
+guard S3 pattern-set PASS
+omp root semantics grounded 12 of 12
+exit=0
+
+## C1 (depth) at the current tip 3c8902a7  -> 12 of 12, exit 0
+guard S3 pattern-set PASS
+omp root semantics grounded 12 of 12
+exit=0
+
+## C1 (depth) at the base 223ae62424f8ab1eb365d733eb648d6228ddd7e8 -> 0 of 12, exit 1
+semantics ledger: verifiers/omp-skill-roots-semantics.tsv absent at the revision
+S3 detail: semantics ledger carries 0 patterns, the round-86 ledger carries 12
+guard S3 pattern-set FAIL
+omp root semantics grounded 0 of 12
+exit=1
+
+## C2 (consistency) at the current tip 3c8902a7 -> 4 of 5, exit 1 (D5 red set lacks report_dead)
+PASS d1  two receipts carry exit=0; instruments equal 04647b0f..3c8902a7
+PASS d2  carried by plans/round-87.md; validator sentence present, 10 roles, no planner
+PASS d3  5 reject row(s), longest reason 52 words
+PASS d4  plans/round-87.md names the boundary 'after the first candidate score'
+FAIL d5  verifiers/verify_corpus_integrity.py red set ['corpus.pointers.commit_unresolvable'], want exactly ['corpus.pointers.commit_unresolvable', 'corpus.pointers.report_dead']
+r86 routed defects closed 4 of 5
+
+## C2 at a non-tip rev -> exit 2 (the worktree-tip assert of addendum A1.2)
+could-not-evaluate: worktree tip 3c8902a7f2bd != measured revision d1c031833c37 (plans/round-87-addendum-1.md A1.2)
