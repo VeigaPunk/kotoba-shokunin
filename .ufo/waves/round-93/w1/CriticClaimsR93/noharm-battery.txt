@@ -1,0 +1,37 @@
+All commands run from the candidate working tree /fast/scratch/hyaku/kotoba-r93/CriticClaimsR93/repo (candidate commit a857c254e3eb270b44a75a3ab76e1ccb2696ab71), TMPDIR/HYAKU_SCRATCH in seat scratch.
+
+=== gate registry --rev cand ===
+python3 -B verifiers/check_gate_registry.py --rev a857c254e3eb270b44a75a3ab76e1ccb2696ab71
+→ 74 OK rows, then: gate registry rows conformant 74 of 74 lane verifiers; phantom 0
+RC_GATE=0
+
+=== round-92 controls-run ===
+bash verifiers/fixtures/round-92/controls-run.sh
+→ round-92 controls: shortcuts refused 2 of 2; honest held 2 of 2
+RC_CONTROLS=0
+
+=== mutation battery self-test ===
+python3 -B verifiers/check_mutation_battery.py --self-test
+→ 0 failure(s) over 31 assertions
+RC_MUT_ST=0
+
+=== tip battery self-test ===
+python3 -B verifiers/check_tip_battery.py --self-test
+→ self-test: 0 failure(s) over 80 assertions
+RC_TIP_ST=0
+
+=== assertion floors self-test ===
+python3 -B verifiers/check_assertion_floors.py --self-test
+→ 0 failure(s) over 176 assertions
+RC_FLOORS_ST=0
+
+=== census validate candidate SOURCES ===
+bash /home/vgpnk/Projects/shokunin/scripts/sources-census.sh validate --file $D/corpus/SOURCES.md --today 2026-11-05
+→ same 33 W04 rows as receipts/census-before.txt (S018…S254 duplicate-url-across-scopes), then
+  file	ok	/fast/scratch/hyaku/kotoba-r93/CriticClaimsR93/repo/corpus/SOURCES.md
+RC_CENSUS=0
+
+=== corpus shape ===
+SKILL.md sha256 freeze=cand=fc0feaa3583837b7eec66a709a4110221f7d29bb72c4c0ddfe05016c3904d0df, lines 600=600
+SOURCES rows (^| S): freeze 192 → cand 194 (S267, S268 appended)
+corpus/README.md diff: exactly one added row (| Round-93 lesson | lessons/round-93.md | …)

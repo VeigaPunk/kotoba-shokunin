@@ -1,0 +1,17 @@
+Clause-audit grounding: why the C1 other world (r88-controls-fixed.md emptied) refuses via "baseline fg-self-test exit 1".
+
+In the candidate working tree (candidate a857c254e3eb270b44a75a3ab76e1ccb2696ab71):
+: > verifiers/fixtures/freeze-gate/r88-controls-fixed.md
+python3 -B verifiers/check_freeze_gate.py --self-test | tail -3
+→ FAIL arm fixed-fixture all four controls held: ('w_added_red', '[fg] work_root=/fast/scratch/hyaku/kotoba-r93/CriticClaimsR93\nINVALID SPEC: no ## Controls block found\n')
+→ FAIL arm fixed-fixture observed verdicts (receipts-grounded): ('w_added_red D5=PASS', '…INVALID SPEC: no ## Controls block found\n')
+→ 7 failure(s) over 34 assertions
+rc (emptied) = 1
+
+git checkout -- verifiers/fixtures/freeze-gate/r88-controls-fixed.md   (restore)
+python3 -B verifiers/check_freeze_gate.py --self-test → rc 0
+working tree clean afterwards (git status --porcelain empty).
+
+Conclusion: the emptied fixture is what fails the fg-self-test probe baseline, so the other
+world's rc-2-not-naming refusal is caused by the intended edit this run (residual: the counter
+itself cannot attribute cause — recorded as R2 in the report).

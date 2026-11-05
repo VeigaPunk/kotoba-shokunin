@@ -1,0 +1,13 @@
+diff --git a/verifiers/check_mutation_battery.py b/verifiers/check_mutation_battery.py
+index ff36106..0bf4481 100755
+--- a/verifiers/check_mutation_battery.py
++++ b/verifiers/check_mutation_battery.py
+@@ -367,7 +367,7 @@ def evaluate(rev: str, work: Path, allow_unregistered: bool, pinned: int | None
+     rows = parse_manifest(committed)
+     if {row.target for row in rows} != set(PROBES):
+         raise CouldNotEvaluate("manifest must name exactly the targets %s" % sorted(PROBES))
+-    ok_pin, pin_detail = kill_set_check(committed, pinned)
++    ok_pin, pin_detail = kill_set_check((lane / MANIFEST).read_text(encoding="utf-8"), pinned)
+     if not ok_pin:
+         raise CouldNotEvaluate("arm kill-set-size: manifest at %s has %s"
+                                % (rev[:12], pin_detail))

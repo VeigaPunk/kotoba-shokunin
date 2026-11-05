@@ -1,0 +1,38 @@
+Script under test: verifiers/fixtures/round-93/check-receipt-revs.sh (from the candidate working tree; REPO default resolved to the scratch clone, object store shared with the lane).
+
+=== round-92 landing receipts (expect FAIL) ===
+command: bash $D/verifiers/fixtures/round-93/check-receipt-revs.sh /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-92/receipts/landing
+UNRESOLVED cd355c4796fa165ff2b7d822401b4027da29e4d0 …/landing/controls-run.stderr:23
+UNRESOLVED cd355c4796fa165ff2b7d822401b4027da29e4d0 …/landing/controls-run.stderr:52
+UNRESOLVED cd355c4796fa165ff2b7d822401b4027da29e4d0 …/landing/landing-rev.txt:1
+UNRESOLVED cd355c4796fa165ff2b7d822401b4027da29e4d0 …/landing/tip-battery.txt:1
+3 scratch-declared
+receipt revisions: 1 resolved, 4 unresolved over 18 files
+EXIT=1
+
+Grounding that cd355c… never landed:
+git -C /home/vgpnk/Projects/shokunin/kotoba-shokunin cat-file -e cd355c4796fa165ff2b7d822401b4027da29e4d0^{commit}
+→ fatal: Not a valid object name cd355c4796fa165ff2b7d822401b4027da29e4d0^{commit}  (exit 128)
+lane rev-parse --verify → exit 1
+
+=== round-93 receipts (expect PASS) ===
+command: bash $D/verifiers/fixtures/round-93/check-receipt-revs.sh /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-93/receipts
+2 scratch-declared
+receipt revisions: 2 resolved, 0 unresolved over 5 files
+EXIT=0
+
+=== synthetic false-green probes ===
+p2 scratch-word exemption: file = "REV=<bogus ddd…0dd> bogus lane rev (see scratch copy)" + "REV=5549fa9e…" 
+→ 1 scratch-declared / 1 resolved, 0 unresolved / EXIT=0  ⇒ the bogus rev is skipped: FALSE GREEN (D1)
+p3 41-hex corrupted declaration: "REV=5549fa9e…f" + valid line
+→ 1 resolved, 0 unresolved / EXIT=0  ⇒ corrupted declaration silently dropped: FALSE GREEN (D2)
+p4 bogus 12-hex G1 prefix: "G1 revision identity PASS: rev deadbeef1234; clean"
+→ UNRESOLVED deadbeef1234 …:1 / EXIT=1  (fail-closed)
+p5 companion bogus 40-hex token on a header line: "REV=5549fa9e… companion ddd…0dd"
+→ UNRESOLVED ddd…0dd …:1 / 1 resolved, 1 unresolved / EXIT=1  (fail-closed, counts every token)
+p6 indented declaration: "  rev 5549fa9e… measured indented"
+→ 0 resolved, 0 unresolved / EXIT=2 (no candidates)  ⇒ ^-anchored: indented declarations vanish (D3)
+
+Live instance of D1: round-92 landing/bat-rev.txt:24 declares the same unresolved cd355c4796fa in a
+G1 line ("… scratch clone detached at rev and clean") and escapes the check — the dir still nets
+exit 1 only via other lines carrying the same rev.

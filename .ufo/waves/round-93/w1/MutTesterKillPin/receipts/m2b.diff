@@ -1,0 +1,13 @@
+diff --git a/verifiers/check_mutation_battery.py b/verifiers/check_mutation_battery.py
+index ff36106..7a87a00 100755
+--- a/verifiers/check_mutation_battery.py
++++ b/verifiers/check_mutation_battery.py
+@@ -186,7 +186,7 @@ def kill_set_check(text: str, pinned: int | None = None) -> tuple[bool, str]:
+         n = kill_set_size(text)
+     except CouldNotEvaluate as exc:
+         return False, "manifest malformed: %s" % exc
+-    return n == want, "observed %d kill rows, pinned %d" % (n, want)
++    return not (n < want), "observed %d kill rows, pinned %d" % (n, want)
+ 
+ 
+ def apply_recipe(text: str, row: Row) -> str:

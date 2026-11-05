@@ -1,0 +1,26 @@
+diff --git a/verifiers/check_mutation_battery.py b/verifiers/check_mutation_battery.py
+index ff36106..4d7f0e3 100755
+--- a/verifiers/check_mutation_battery.py
++++ b/verifiers/check_mutation_battery.py
+@@ -464,10 +464,10 @@ def main(argv: list[str] | None = None) -> int:
+     try:
+         return evaluate(args.rev, Path(args.work), args.allow_unregistered)
+     except CouldNotEvaluate as exc:
+-        print("could-not-evaluate: %s" % exc)
++        print("could-not-evaluate: kill-set-size: %s" % exc)
+         return 2
+     except OSError as exc:
+-        print("could-not-evaluate: %s" % exc)
++        print("could-not-evaluate: kill-set-size: %s" % exc)
+         return 2
+ 
+ 
+@@ -640,7 +640,7 @@ def run_evaluate(repo: Path, rev: str, work: Path, pinned: int, allow: bool = Fa
+             try:
+                 rc = evaluate(rev, work, allow, pinned)
+             except CouldNotEvaluate as exc:
+-                print("could-not-evaluate: %s" % exc)
++                print("could-not-evaluate: kill-set-size: %s" % exc)
+                 rc = 2
+     finally:
+         os.chdir(old)
