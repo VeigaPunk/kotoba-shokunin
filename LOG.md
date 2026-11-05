@@ -3421,3 +3421,21 @@ records what the settled wave measured; it supersedes the two reading cells that
   lines); sibling census carried red — the r49 census checker fails the same two rows at base (tameshi commit,
   tsukuroi classification), so the SHONEN evidence sentence is corrected, not the round.
 - **Assimilation:** none; 55 id collisions measured (`.ufo/waves/round-88/assimilation/collisions`), L0 line filed.
+
+### Round 88 — L1 disposition supersedes the settlement ruling (KotobaR88, 2026-11-05)
+
+- **Supersedes** the kill-rule ruling in the entry "Round 88 — settlement" above ("not a candidate score") and
+  `plans/round-88-addendum-3.md` A3.1. The L1 does not adopt it: the frozen kill rule (`plans/round-88.md` § Kill
+  rule) kills a claim whose counter changed after its first candidate score, and C1's counter was repaired after the
+  disclosed `grounded 0 of 12` reading. **C1 is killed under the frozen rule**; its measured `12 of 12` and
+  `forgeries rejected 4 of 4` (exit 0) are reported, not admitted. Full basis: `plans/round-88-l1-disposition.md`.
+- **C2 not verified** (its frozen discrimination control `w_added_red` fails; the counter is not amended). Matches
+  `plans/round-88-addendum-3.md` A3.2 and the settlement's C2 disposition.
+- **Round not admitted.** Honest stop. Successor and operator question: `plans/round-88-l1-disposition.md` §§ Successor,
+  Operator decision requested.
+- Correction to the settlement's "Assimilation" and "No-harm" lines: the sibling check run with the round-49 census file
+  is the wrong input; the round-74 census reads `rows 20 verified 20`, `province rows 20 matched 20`.
+- Correction to the settlement's "two new rows" wording: the registry rows for the two v2 instruments are in the
+  landed commits; the gate-registry check reads `71 of 71` at the landed revision (`receipts/nh-gate-registry-tip.txt`).
+- Authorship and attribution defects (addenda 1–3 and the settlement entry are seat-written under the L1 heading;
+  lane-identity commits `f300d89`…`7aaca1a` landed during the wave) are recorded in the disposition file.

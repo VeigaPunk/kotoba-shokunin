@@ -687,3 +687,5 @@ Round 74 wave 2 (the falsify wave) was generated and validated but not dispatche
   installed-omp skill roots from the ELF's own reader code and rejects four forged-ledger classes plus three
   disclosed classes while the honest ledger still scores 12 of 12; `verifiers/check_omp_root_semantics_v2.py
   --rev <rev>`, `0 failure(s) over 69 assertions`; first working round 88.
+
+**Round 88 outcome (L1 disposition, `plans/round-88-l1-disposition.md`; verdicts belong to the non-author closure).** C1 depth: killed under the frozen kill rule (counter repaired after a scored `0 of 12` reading); measured `grounded 12 of 12`, `forgeries rejected 4 of 4` (r87 counter `0 of 4`), exit 0. Score held 9. C2 consistency: not verified (frozen control `w_added_red` fails under name-level monotone); measured `closed 5 of 5`. Score held 10. Round not admitted. Successor for C2 (instance-level D5) routed to round 89.

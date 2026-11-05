@@ -30,8 +30,9 @@ Spot-check result: pending — non-author closure
 | class | evidence pointer | captured-by | fix |
 |---|---|---|---|
 | Stale verdict in a closure line: a record states a counter's tip result as a prior measurement (`verified, 5 of 5`) and no check compares the record with the tip reading | LOG.md:3315 reads `verified, 5 of 5`; tip reads `r86 routed defects closed 4 of 5`, exit 1, in `.ufo/waves/round-88/receipts/before-C2-tip.txt`; the later attempt-2 paragraph at LOG.md:3358 already reads `4 of 5` | none | appended correction entry `### Round 88 — R87-D7 correction` in LOG.md naming `supersedes LOG.md:3315`; sweep `.ufo/waves/round-88/receipts/mistake-sweep.sh` red before (`mistake-sweep-before.txt`: `UNANNOTATED stale line 3315`, `stale=1 unannotated=1`, exit 1) and green after (seat run: `stale=1 unannotated=0`, exit 0; the L1 runs the committed receipt) |
+| A frozen discrimination control was written into the freeze and never executed before the freeze commit: C2's `w_added_red` expects FAIL via the name-level monotone test, which cannot see a new instance of an already-red check. The self-test fails (`1 failure(s) over 16 assertions`) only after data. Separately, the C1 counter was repaired after its first scored reading (`0 of 12`, disclosed in `plans/round-88-addendum-3.md` A3.1), which the frozen kill rule forbids. | `plans/round-88.md` § C2 (control list) and § Errata E2; `.ufo/waves/round-88/w1/ExecMonotoneD5.md` F1; `plans/round-88-addendum-3.md` A3.1; `.ufo/waves/round-88/w1/ExecLiveBound/` | none | the freeze must run every control and refuse the freeze on an expectation the predicate cannot satisfy; the first candidate-score timestamp must be recorded and a counter edit after it refused. Not yet shown able to fail: the self-test's red arm `w_added_red` is the only evidence; a freeze gate with a deliberately wrong control is routed to round 89 and is not claimed as a fix this round. |
 
-The fix is shown able to fail: the sweep is red on the unannotated line and green only when the correction token is present. The sweep checks that an annotation exists, not that the annotated verdict is right; the verdict itself is in the correction text, measured by `before-C2-tip.txt`.
+**L1 disposition (plans/round-88-l1-disposition.md):** C1 killed under the frozen kill rule; C2 not verified; round not admitted. The settlement entry's ruling in LOG.md ("not a candidate score") is not adopted by the L1.
 
 ## Considerthese
 
@@ -40,7 +41,7 @@ The fix is shown able to fail: the sweep is red on the unannotated line and gree
 
 ## Sources
 
-- **S257** — omp 18.15.0 agent-dirs walk-up module. URL `https://raw.githubusercontent.com/can1357/oh-my-pi/v18.15.0/packages/coding-agent/src/discovery/agents.ts` (tag `v18.15.0`, commit `3fedf8d53267e32a6d7521ce725fdcc4a36fdc67`, HTTP 200); access date `2026-11-05`; sha256 `976360027cee582030f2ec4871544821d8b66c25e8687ea461f4bee56aacb92e`; located quote (line 149): `if (current === (ctx.repoRoot ?? ctx.home)) break;`. Status `mined`; tier A; kind `code`; recheck `on-release`. The row itself is owned by the ScribeSources seat (`corpus/SOURCES.md`).
+- **S257** — omp 18.15.0 agent-dirs walk-up module. URL `https://raw.githubusercontent.com/can1357/oh-my-pi/v18.15.0/packages/coding-agent/src/discovery/agents.ts` (tag `v18.15.0`; the upstream commit of the tag is recorded in the S257 row, not here; HTTP 200); access date `2026-11-05`; sha256 `976360027cee582030f2ec4871544821d8b66c25e8687ea461f4bee56aacb92e`; located quote (line 149): `if (current === (ctx.repoRoot ?? ctx.home)) break;`. Status `mined`; tier A; kind `code`; recheck `on-release`. The row itself is owned by the ScribeSources seat (`corpus/SOURCES.md`).
 
 ## Assimilation: none
 

@@ -4,7 +4,8 @@ recheck: on-release, and at each lane revision that touches the v2 counter: `pyt
 
 # omp skill roots, round 88: the v2 root counter, the forged worlds, and what is not landed
 
-**Status.** Round 88 replaces the round-87 root counter, whose `{cwd}/` bound conjunct was inert and whose
+**Status: NOT ADMITTED.** The L1 disposition (`plans/round-88-l1-disposition.md`) records claim C1 as killed under the frozen kill rule (the counter was repaired after a scored `0 of 12` reading) and claim C2 as not verified. The measured facts below are evidence for the round-89 successor, not admitted knowledge. Statements in §7 and §8 that say the self-test fails or that the mutant battery scored 0 of 7 are superseded by the disposition (the self-test now passes; the battery was carried).
+**Status (earlier text, kept for the record):** round 88 replaces the round-87 root counter, whose `{cwd}/` bound conjunct was inert and whose
 forgery rejection was zero. The replacement, `verifiers/check_omp_root_semantics_v2.py` (sha256
 `b6412808f904a492937763ef995dfb751b48af454194f26fb3a30b1a6905c427`), was still mid-edit when this entry's first
 draft was written (it raised on the honest ledger at 06:43); the settled counter reads `omp root semantics
@@ -60,7 +61,7 @@ four rebuilt forged revisions `10, 10, 9, 9 of 12`).
 ## 2. Conjunct 4, the bound: upstream ground (S257)
 
 ScoutUpstream fetched `agents.ts` at tag `v18.15.0` (blob `2e41428b…`, the blob GitHub serves at
-`?ref=v18.15.0`; tag → commit `3fedf8d53267e32a6d7521ce725fdcc4a36fdc67`; receipts
+`?ref=v18.15.0`; the upstream commit of that tag is recorded in the S257 row of `corpus/SOURCES.md` (an external commit, not a lane commit); receipts
 `.ufo/waves/round-88/w1/ScoutUpstream/receipts.txt`). The located quote, line 149, 7 words:
 
     if (current === (ctx.repoRoot ?? ctx.home)) break;
