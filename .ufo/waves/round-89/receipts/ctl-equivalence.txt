@@ -1,0 +1,73 @@
+ctl-equivalence — Q79 location receipt for the d5v3 provisional base receipt
+Seat: ExecCtlWorlds (control author; gate author is ExecD5Gate). Round 89, wave r89-w1. 2026-11-05.
+
+Method (frozen seat spec)
+  Base receipt written in a pristine shared clone checked out detached at the plan-draft revision;
+  the same committed bytes measured again in a SECOND pristine clone:
+    python3 -B verifiers/check_r86_routed_repairs_v3.py \
+      --base-receipt <scratch>/base-draft.json --root <clone2> --print-observation
+  cwd = clone2; TMPDIR = seat scratch; git env sanitized per call:
+  env -u GIT_DIR -u GIT_WORK_TREE -u GIT_INDEX_FILE -u GIT_OBJECT_DIRECTORY -u GIT_ALTERNATE_OBJECT_DIRECTORIES.
+  Gate bytes = D5_READY sha256 1c110fb1fd9c7722d40e20d9dbe16b25f4bc1e00cfa41c889fe0a4e8924610f0.
+
+Pristine clone A (receipt source): <scratch>/pristine @ 43fc7840202d542bcd1f5d7fab6e6f3dbb7f19b3 (detached)
+Pristine clone B (equivalence run): <scratch>/clone2    @ 43fc7840202d542bcd1f5d7fab6e6f3dbb7f19b3 (detached)
+
+Result: IDENTICAL observation dicts — equivalence HOLDS for two clones of the same location class.
+  observation doc sha256 (json, sort_keys): 570f90ab16c188c291858161d2c79ea693857becbe612465780676971fb4903e — equal for receipt and clone2
+  key/value diffs: NONE; result-row diffs: NONE.
+  clone2 gate verdict: PASS all legs; "r86 routed defects closed 5 of 5"; "instance drift 0"; exit 0.
+
+Receipt pinned (provisional, draft revision; copied to receipts/d5v3-base-receipt-draft.json):
+  revision        43fc7840202d542bcd1f5d7fab6e6f3dbb7f19b3
+  root            /fast/scratch/hyaku/kotoba-r89/ExecCtlWorlds/pristine  (a bare clone — see flip below)
+  integrity sha   a0b52d2419e2...  baseline sha 6fdabfac8189...
+  written_utc     2026-11-05T11:53:42Z
+  rows (9 names, 6 DRIFT): tracked_files DRIFT 177, unindexed DRIFT 2, stale PASS 0, missing PASS 0,
+    report_total DRIFT 141, report_dead DRIFT 1, commit_total DRIFT 61, commit_unresolvable DRIFT 1,
+    commit_nonhash PASS 0.
+  unindexed_detail   corpus/lessons/round-87-verifier-spotcheck.md, corpus/lessons/round-88-verifier-spotcheck.md
+  report_dead_detail corpus/lessons/round-81.md:29: ../../.ufo/reports/round-76/kotoba.md
+  commit_unresolvable_detail corpus/lessons/round-81.md:8: 8b1cc1b00a9322cd8e231d87e015e1d75d20adc1
+
+Location flip measured at IDENTICAL bytes (r88 ExecMonotoneD5 F2 class, re-measured at the draft revision):
+  checkout location                                report_dead  detail
+  bare shared clone (this receipt, and all worlds)  1 (DRIFT)   round-81.md:29 (relative symlink dangles)
+  lane-shaped tree (fleet report copy placed one    0 (PASS)    []
+    level up, i.e. the lane's parent shape)
+  Mechanism: the tracked symlink <root>/.ufo/reports/round-76/kotoba.md (target
+  ../../../../.ufo/reports/round-76/kotoba.md) escapes the tree to the PARENT directory; it resolves at
+  the lane (parent = fleet root) and dangles in any ordinary clone. This is the ONLY flipping name:
+  commit_unresolvable reads 1 at both locations (the commit fleet hop uses the path-constant fleet root;
+  the four `<rev>:<path>` report sites — round-77-spotcheck:15, round-81-spotcheck:29, round-81.md:8
+  citing HEAD:.ufo/reports/round-77/kotoba.md, round-87-spotcheck:195 citing
+  HEAD:.ufo/reports/round-84/kama.md — resolve via the fleet repository and are location-independent).
+  Evidence: evidence/obs-pristine-draft.json (bare clone) vs evidence/obs-laneshape-draft.json
+  (lane-shaped scaffold at <scratch>/lane-shape/, scaffolded from committed bytes only; the lane working
+  tree itself was never used, it carries in-flight wave edits).
+
+Environment hazard (measured; must be pinned for every future receipt writer):
+  One earlier probe of the SAME pristine bytes read commit_unresolvable 10 / report_dead 5
+  (evidence/obs-pristine-draft.envpolluted.json, kept) where the clean reading is 1 / 1
+  (evidence/obs-pristine-draft.json). Direct git-level probes plus a code read
+  (commit_resolves fleet_root = the hardcoded FLEET_ROOT constant; `git -C <fleet> cat-file -e`)
+  leave one mechanism class: a subprocess git-env override (GIT_DIR-class) in the probe shell makes
+  `git -C <fleet-root> cat-file` read the shell's own repository store instead of the fleet's — the 9
+  fleet-resident citations (def4b9ff…, 7b370d54…, 1154d57a…, 33ee7933…, 086e48c3…, 8a95957, dc1fd024,
+  5b052020 x2) then read unresolvable and the 4 `<rev>:<path>` sites read dead. Every gate/receipt run
+  after the first used explicit `env -u GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_OBJECT_DIRECTORY
+  GIT_ALTERNATE_OBJECT_DIRECTORIES`. Consequence: a receipt written under a polluted env silently
+  miscounts 9 citations + 4 report sites and skews every d5 leg.
+
+Q79 consequence recorded for the L1 (finding; not repaired by this seat):
+  compare() has no location-flip detector. A world measured in a bare clone against a receipt written IN
+  THE LANE would read report_dead 1 > 0 as d5iii growth and exit 1 "naming d5iii" — a false refusal —
+  instead of the frozen plan's "could-not-evaluate for a flipped world". This seat's provisional receipt is
+  CLONE-measured (root field = the bare clone path), so the five control worlds (also bare clones) are
+  location-consistent with it and all five polarities are clean. The freeze-revision receipt the L1 writes
+  will carry root = the lane (report_dead 0): the landing tip measured IN THE LANE stays consistent
+  (0 <= 0), but any clone-measured world against that receipt flips report_dead. The receipt's "root"
+  field is the hook: reviewer check = same location class between receipt root and measured root
+  (lane-shaped vs bare clone), or measure worlds in a lane-shaped scaffold like this seat's.
+
+— ExecCtlWorlds

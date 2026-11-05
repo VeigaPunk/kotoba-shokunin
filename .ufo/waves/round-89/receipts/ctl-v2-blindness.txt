@@ -1,0 +1,38 @@
+ctl-v2-blindness — the frozen v2 gate cannot see the added-instance world class
+Seat: ExecCtlWorlds. Round 89, wave r89-w1. 2026-11-05.
+Frozen instrument: verifiers/check_r86_routed_repairs_v2.py
+sha256 10bd5508a7e5f8c18e994cf179274469bc6d9c4d28f6134b99b71e7998e58b82 (matches the r88 spot-check's
+re-measured digest; bytes untouched this round).
+
+(1) --self-test of the frozen gate (cwd = pristine shared clone @ 43fc7840202d542bcd1f5d7fab6e6f3dbb7f19b3,
+    committed v2 bytes; TMPDIR = seat scratch; exit 1):
+
+1 failure(s) over 16 assertions
+FAIL arm w_added_red (frozen control): an added unresolvable commit citation expects D5 FAIL via (ii); the names-set reads it as PASS (counter defect, see ExecMonotoneD5.md): identity: 9 names equal at base and rev; monotone: DRIFT at rev ['corpus.index.tracked_files', 'corpus.index.unindexed', 'corpus.pointers.commit_total', 'corpus.pointers.commit_unresolvable', 'corpus.pointers.report_dead', 'corpus.pointers.report_total'] is a subset of base ['corpus.index.tracked_files', 'corpus.index.unindexed', 'corpus.pointers.commit_total', 'corpus.pointers.commit_unresolvable', 'corpus.pointers.report_dead', 'corpus.pointers.report_total']
+
+    The other 15 arms pass. The one failure is the frozen discrimination control failing for a reason in
+    the frozen predicate (names-level monotone), not in the code.
+
+(2) Direct world run against the real w_added_instance control world
+    (world head a6077cfad0badb37f8503ec77a59c45094e21b92 = draft revision + one committed line in
+    corpus/lessons/round-88-verifier-spotcheck.md citing 40-hex unresolvable
+    0123456789abcdef0123456789abcdef01234567; integrity reading of that world: commit_total 61 -> 62,
+    commit_unresolvable 1 -> 2):
+
+    python3 -B verifiers/check_r86_routed_repairs_v2.py --rev a6077cfad0badb37f8503ec77a59c45094e21b92
+    PASS d1  two receipts carry exit=0; instruments equal 04647b0f..a6077cfa
+    PASS d2  carried by plans/round-87.md; validator sentence present, 10 roles, no planner
+    PASS d3  5 reject row(s), longest reason 52 words
+    PASS d4  plans/round-87.md names the boundary 'after the first candidate score'
+    PASS d5  identity: 9 names equal at base and rev; monotone: DRIFT at rev [6 names] is a subset of base [same 6 names]
+    r86 routed defects closed 5 of 5
+    exit 0
+
+    The direct run is READABLE (D1-D4 all pass inside the world; no location-effect unreadability) and
+    honestly blind: the added instance moves only instance counts (commit_total 62, commit_unresolvable 2),
+    which the v2 predicate (name-set identity + name monotonicity) cannot express. The same world reads
+    exit 1 naming d5iii on v3 (receipts/ctl-w_added_instance.txt).
+
+Full outputs: evidence/v2-selftest.txt, evidence/v2-wai.txt (copied to .ufo/waves/round-89/w1/ExecCtlWorlds/evidence/).
+
+— ExecCtlWorlds
