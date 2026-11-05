@@ -118,3 +118,15 @@ implementation compares name sets only and does not implement that clause. C2's 
 honest stop with the repair routed to round 89 (v3: (i) additionally requires the integrity script's own
 `--self-test` green at `<rev>` and `verifiers/corpus-baseline.json`'s blob equal to the base's); the frozen
 target `5 of 5` is reported as measured **and** the claim as not verified, never narrowed.
+
+## A1.8 — erratum (appended after A1.5 was committed; no rule changes)
+
+A1.5's receipt pointer cites `ScoutElfMap/ELF_MAP.tsv` at sha256 `7ceb7206…f16dd8`. That digest is the scout's
+mid-flight print, not the table's final bytes. Measured at the commit that lands this addendum:
+
+    $ sha256sum .ufo/waves/round-88/w1/ScoutElfMap/ELF_MAP.tsv
+      21e3c518df2eafc17a233ad4232b7b0a852db47f9a9be522acf32ab938444897
+    $ git diff f300d895 -- .ufo/waves/round-88/w1/ScoutElfMap/ELF_MAP.tsv   -> (empty)
+
+The frozen `reader_offset` column is read from the table at **`21e3c518…4897`** (marker file `ELF_MAP_READY`
+carries the same digest). A1.5's rule stands unchanged; only its pointer is corrected here, append-only.
