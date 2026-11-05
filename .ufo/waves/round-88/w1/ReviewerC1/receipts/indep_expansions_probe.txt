@@ -1,0 +1,22 @@
+expansions source:
+def expansions(pattern: str, chain) -> list[str]:
+    """Candidate roots a pattern names, walked over `chain` (cwd first)."""
+    if pattern.startswith("{cwd}/"):
+        rest = pattern[len("{cwd}/"):]
+        return [posixpath.normpath(posixpath.join(d, rest)) for d in chain]
+    if pattern.startswith("~/"):
+        return [posixpath.normpath(posixpath.join(BOUND_HOME, pattern[2:]))]
+    return [posixpath.normpath(pattern)]
+
+matches_row source:
+def matches_row(pattern: str, candidate: str, chain) -> bool:
+    """The counter's matcher.  A candidate carrying a `..` segment never matches a row."""
+    if ".." in candidate.split("/"):
+        return False
+    if ".." in posixpath.normpath(candidate).split("/"):
+        return False
+    return any(fnmatch.fnmatchcase(candidate, exp) for exp in expansions(pattern, chain))
+
+{cwd}/.agent/skills -> ['/home/u/proj/sub/.agent/skills', '/home/u/proj/.agent/skills']
+{cwd}/.agents/skills -> ['/home/u/proj/sub/.agents/skills', '/home/u/proj/.agents/skills']
+~/.agent/skills -> ['/home/u/.agent/skills']

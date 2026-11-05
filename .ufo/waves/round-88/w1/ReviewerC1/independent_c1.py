@@ -18,19 +18,20 @@ PROBE_HOME = "/home/u"
 # >=1 token its root literal or declared reader variable produces. The carry
 # test runs on the occurrence's own line (two-row quotes read the next line).
 def _sets():
+    """A1.4 sets (L1 frozen addendum) — single tokens per rule, cross row-exclusion built-in."""
     return {
-        "{cwd}/.omp/skills":          ("skills", "fr.join(k"),
-        "{cwd}/.claude/skills":       ("skills", "Fr.join"),
-        "{cwd}/.agent/skills":        (".agent", "y1", "Rs.join"),
-        "{cwd}/.agents/skills":       (".agents", "y1", "Rs.join"),
-        "{cwd}/.codex/skills":        (".codex", "Xr.join(u.cwd"),
-        "{cwd}/.opencode/skills":     (".opencode", "projectDir", "d.join(e.cwd"),
-        "{cwd}/.github/skills":       (".github", "projectDir", "d.join(e.cwd"),
-        "~/.omp/agent/skills":        ("skills", "fr.join(we()"),
-        "~/.omp/plugins/node_modules/*/skills": ("skills", "Zo.join(R.path"),
-        "~/.agent/skills":            (".agent", "y1", "Rs.join(x"),
-        "~/.agents/skills":           (".agents", "y1", "Rs.join(x"),
-        "~/.omp/agent/managed-skills": ("managed-skills", "Zm.join(u"),
+        "{cwd}/.omp/skills":          ("Ou.projectDir",),
+        "{cwd}/.claude/skills":       ("eh",),
+        "{cwd}/.agent/skills":        ('".agent"',),
+        "{cwd}/.agents/skills":       ('".agents"',),
+        "{cwd}/.codex/skills":        ('".codex"',),
+        "{cwd}/.opencode/skills":     ('".opencode"',),
+        "{cwd}/.github/skills":       ('".github"',),
+        "~/.omp/agent/skills":        ("we()",),
+        "~/.omp/plugins/node_modules/*/skills": ("R.path",),
+        "~/.agent/skills":            ('".agent"',),
+        "~/.agents/skills":           ('".agents"',),
+        "~/.omp/agent/managed-skills": ('"managed-skills"',),
     }
 
 def sha12(s):
@@ -93,12 +94,27 @@ def ground_row(i, row, roots, mm, notes):
     bt = _sets().get(pat, ())
     if not bt:
         prob.append("empty binding token set")
+    # binding: a token must occur inside the row's module chunk (A1.4 rule 2),
+    # and the row's reader-quote line must carry a join (conjunct-2 first half).
     binding_at = None
-    for h in occs:
-        ctx = line_at(mm, h) + "\n" + line_at(mm, min(h + len(q) + 4, len(mm) - 1))
-        if ("join(" in ctx or "join (" in ctx) and any(t in ctx for t in bt):
-            binding_at = h
-            break
+    first_occ = occs[0] if occs else -1
+    hdrp = -1; nxth = -1
+    if first_occ >= 0:
+        cand = first_occ
+        while True:
+            cand = mm.rfind(b"// packages/", 0, cand)
+            if cand < 0: break
+            hdrp = cand; break
+        if hdrp >= 0:
+            nxth = mm.find(b"// packages/", hdrp + 1)
+        chunk = (hdrp, nxth if nxth > 0 else len(mm))
+        raw = (mm[chunk[0]:chunk[1]].decode("utf-8", "replace") if chunk[0] >= 0 else "")
+    else:
+        chunk, raw = (-1, -1), ""
+    bt_ok = any(t in raw for t in bt)
+    reader_join_ok = any(("join(" in line_at(mm, h) or "join (" in line_at(mm, h)) for h in occs) if occs else False
+    if bt_ok and reader_join_ok:
+        binding_at = occs[0]
     if occs and not bt: pass
     elif occs and binding_at is None:
         prob.append("no join-line occurrence carries binding tokens")

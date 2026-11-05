@@ -8,7 +8,7 @@ Deliverables (under `.ufo/waves/round-88/w1/`):
 | path | content |
 |---|---|
 | `ScoutElfMap/ELF_MAP.tsv` | 12 ledger rows + `# unledgered` block + 6 unledgered rows (sha256 `21e3c518df2eafc17a233ad4232b7b0a852db47f9a9be522acf32ab938444897`) |
-| `ScoutElfMap/receipts.txt` | 232 lines: every mmap command and its observed output, one `RE-FIND` line per non-empty offset (42 total) |
+| `ScoutElfMap/receipts.txt` | 238 lines: every mmap command and its observed output, one `RE-FIND` line per non-empty offset (48 total, 0 mismatches) |
 | `ScoutElfMap/*.py` | the read-only scan scripts (reproduction) |
 | `ELF_MAP_READY` | the sha256 of `ELF_MAP.tsv` |
 
@@ -172,7 +172,8 @@ python3 -B ctx.py        # source context around every join site + the 6 unledge
 ```
 
 `final.py` is self-contained: it pins the ELF sha256, reads the ledger from `git show` at the frozen tip,
-and emits one `RE-FIND … (match=True)` line per non-empty offset. **42 RE-FIND lines, 0 mismatches.**
+and emits one `RE-FIND … (match=True)` line per non-empty offset. **48 RE-FIND lines, 0 mismatches**
+(12 ledger rows × 3 offsets = 36, plus 6 unledgered rows × 2 offsets = 12).
 
 ## Risks / unknown
 

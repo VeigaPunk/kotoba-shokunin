@@ -1,0 +1,20 @@
+'/etc/skills'                pattern_problem=None                                     bound=True -> ACCEPTED (v1 conj 1+4)
+'/tmp/x/skills'              pattern_problem=None                                     bound=True -> ACCEPTED (v1 conj 1+4)
+'~root/skills'               pattern_problem=None                                     bound=True -> ACCEPTED (v1 conj 1+4)
+'~//etc/skills'              pattern_problem=None                                     bound=False -> REFUSED
+'{cwd}//etc/skills'          pattern_problem=None                                     bound=False -> REFUSED
+'{cwd}/../x/skills'          pattern_problem="pattern '{cwd}/../x/skills' carries a `..` segment" bound=False -> REFUSED
+'~/../../etc/skills'         pattern_problem="pattern '~/../../etc/skills' carries a `..` segment" bound=False -> REFUSED
+'/home/u/../../etc/skills'   pattern_problem="pattern '/home/u/../../etc/skills' carries a `..` segment" bound=True -> REFUSED
+'{cwd}/x/..'                 pattern_problem="pattern '{cwd}/x/..' carries a `..` segment" bound=False -> REFUSED
+'~/x/./..'                   pattern_problem="pattern '~/x/./..' carries a `..` segment" bound=True -> REFUSED
+'/etc/skills'                -> REFUSED ( 1 FAIL /etc/skills                              reader_quote not in ELF; empty binding token set; no // packages/<module> header; no expansion set)
+'/tmp/x/skills'              -> REFUSED ( 1 FAIL /tmp/x/skills                            reader_quote not in ELF; empty binding token set; no // packages/<module> header; no expansion set)
+'~root/skills'               -> REFUSED ( 1 FAIL ~root/skills                             reader_quote not in ELF; empty binding token set; no // packages/<module> header; no expansion set)
+'~//etc/skills'              -> REFUSED ( 1 FAIL ~//etc/skills                            reader_quote not in ELF; empty binding token set; no // packages/<module> header)
+'{cwd}//etc/skills'          -> REFUSED ( 1 FAIL {cwd}//etc/skills                        reader_quote not in ELF; empty binding token set; no // packages/<module> header)
+'{cwd}/../x/skills'          -> REFUSED ( 1 FAIL {cwd}/../x/skills                        pattern malformed; pattern ..-segment; reader_quote not in ELF; empty binding token set; no // packages/<module> header)
+'~/../../etc/skills'         -> REFUSED ( 1 FAIL ~/../../etc/skills                       pattern malformed; pattern ..-segment; pattern ..-segment; reader_quote not in ELF; empty binding token set; no // packages/<module> header; expansion escapes probe roots: /etc/skills; ~ row not HOME-rooted)
+'/home/u/../../etc/skills'   -> REFUSED ( 1 FAIL /home/u/../../etc/skills                 pattern malformed; pattern ..-segment; pattern ..-segment; reader_quote not in ELF; empty binding token set; no // packages/<module> header; no expansion set)
+'{cwd}/x/..'                 -> REFUSED ( 1 FAIL {cwd}/x/..                               pattern malformed; pattern ..-segment; reader_quote not in ELF; empty binding token set; no // packages/<module> header)
+'~/x/./..'                   -> REFUSED ( 1 FAIL ~/x/./..                                 pattern malformed; pattern ..-segment; reader_quote not in ELF; empty binding token set; no // packages/<module> header)
