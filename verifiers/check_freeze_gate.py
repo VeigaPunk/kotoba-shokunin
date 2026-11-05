@@ -19,10 +19,11 @@ Frozen predicate (plans/round-89.md § C1 — the same sentence in every receipt
 
 Verdict ladder: 0 = every control held (freeze may proceed); 1 = refused, naming
 the first violated control with declared-vs-observed text; 2 = could-not-evaluate
-(a declared command missing/not executable/timeout, or the plan file unreadable);
-3 = invalid spec (a control with no command or no expectation, an orphaned expect
-line, an unrecognized expect clause, an unrecognized line inside the block, or an
-empty/absent Controls block).
+(a declared command missing/not executable/timeout, the plan file unreadable, or a
+``--work`` root that is not a usable directory); 3 = invalid spec (a control with no
+command or no expectation, an orphaned expect line, an unrecognized expect clause, an
+unrecognized line inside the block, an empty/absent Controls block, a duplicate control
+name, or a declared ``exit 126`` / ``exit 127``).
 
 Grammar (line-based, inside a ``## Controls`` block):
 
@@ -121,6 +122,11 @@ def parse_expect(control, body, line_no):
     for part in parts:
         m = re.fullmatch(r"exit\s+(\d+)", part)
         if m:
+            if int(m.group(1)) in (126, 127):
+                raise SpecError(
+                    "control %s (line %d): exit %d is unobservable (126/127 are the "
+                    "harness's own could-not-evaluate codes; a declared %d can never be "
+                    "compared)" % (control.name, line_no, int(m.group(1)), int(m.group(1))))
             control.expect_rc = int(m.group(1))
             continue
         m = re.fullmatch(r"stdout\s+contains\s+(.+)", part)
@@ -143,6 +149,7 @@ def parse_expect(control, body, line_no):
 
 def parse_plan(text):
     controls = []
+    seen = {}
     saw_block = False
     in_block = False
     pending = None
@@ -176,6 +183,10 @@ def parse_plan(text):
             command = m.group(2).strip()
             if not command:
                 raise SpecError("control %s (line %d): no command" % (name, idx))
+            if name in seen:
+                raise SpecError("duplicate control %s (line %d): already declared at line %d"
+                                % (name, idx, seen[name]))
+            seen[name] = idx
             pending = Control(name, command, idx)
             controls.append(pending)
             continue
@@ -215,8 +226,22 @@ def _one_line(text, cap=400):
     return flat
 
 
+def _work_root_problem(work_root):
+    """None when work_root is a usable directory (created on demand), else the
+    could-not-evaluate reason. Round-92 C2(b) rung 1: a regular file in the path, or
+    --work naming one directly, raised NotADirectoryError / FileExistsError uncaught."""
+    try:
+        os.makedirs(work_root, exist_ok=True)
+        probe = tempfile.mkdtemp(prefix="freeze-gate-probe-", dir=work_root)
+        os.rmdir(probe)
+    except (NotADirectoryError, FileExistsError):
+        return "--work %s: not a directory" % work_root
+    except OSError as exc:
+        return "--work %s: %s" % (work_root, exc)
+    return None
+
+
 def run_control(control, timeout_s, work_root, verbose, out):
-    os.makedirs(work_root, exist_ok=True)
     tmpdir = tempfile.mkdtemp(prefix="freeze-gate-", dir=work_root)
     env = dict(os.environ)
     env["TMPDIR"] = tmpdir
@@ -266,6 +291,10 @@ def run_gate(plan_path, work_root=None, verbose=False, timeout_s=None, out=None)
     except SpecError as exc:
         print("INVALID SPEC: %s" % exc, file=out)
         return EXIT_SPEC
+    problem = _work_root_problem(work_root)
+    if problem is not None:
+        print("COULD-NOT-EVALUATE %s" % problem, file=out)
+        return EXIT_EVAL
     for control in controls:
         oc = run_control(control, timeout_s, work_root, verbose, out)
         if oc.eval_reason is not None:
@@ -509,6 +538,51 @@ def self_test(out):
         for path in re.findall(r"tmpdir=(\S+)", text):
             assert path.startswith(str(tdir)), (path, str(tdir))
 
+    def arm_work_root_unusable():
+        # Rung 1 (C2(b)): --work under a regular file, and --work naming a regular file
+        # directly, are could-not-evaluate with the named root; never a traceback.
+        blocker = scratch / "wr-blocker"
+        blocker.write_text("not a directory\n", encoding="utf-8")
+        plan = wplan("wr-plan.md",
+                     "## Controls\n- control w: true\n  expect: exit 0; stdout contains x\n")
+        for bad in (blocker / "sub", blocker):
+            buf = io.StringIO()
+            rc = run_gate(plan, work_root=str(bad), out=buf)
+            text = buf.getvalue()
+            assert rc == EXIT_EVAL, (str(bad), rc, text)
+            assert "COULD-NOT-EVALUATE --work %s: not a directory" % str(bad) in text, text
+        proc = subprocess.run(
+            [sys.executable, "-B", str(Path(__file__).resolve()), "--plan", str(plan),
+             "--work", str(blocker / "sub")],
+            cwd=str(LANE_ROOT), stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            text=True, errors="replace", timeout=300)
+        assert proc.returncode == EXIT_EVAL and "Traceback" not in proc.stderr, \
+            (proc.returncode, proc.stderr)
+
+    def arm_parse_duplicate_control():
+        # Rung 2 (C2(b)): two control entries with one name are an invalid spec, refused at
+        # parse time before any control runs (the first control would REFUSE if it ran).
+        plan = wplan("dup-names.md",
+                     "## Controls\n- control dup: false\n  expect: exit 0; stdout contains x\n"
+                     "- control dup: true\n  expect: exit 0; stdout contains x\n")
+        rc, text = gate(plan)
+        assert rc == EXIT_SPEC, (rc, text)
+        assert "duplicate control dup (line 4): already declared at line 2" in text, text
+        assert "REFUSED" not in text and "control(s) held" not in text, text
+
+    def arm_unobservable_rung_declared():
+        # Rung 3 (C2(b)): a declared exit 126 or 127 is an invalid spec at parse time, naming
+        # the unobservable rung; the control never runs. (A control that RUNS and exits 127
+        # still reads could-not-evaluate: arm missing-command.)
+        for code in (126, 127):
+            plan = wplan("unobs-%d.md" % code,
+                         "## Controls\n- control unobs: %s\n  expect: exit %d; stdout contains OK\n"
+                         % (sim_healed, code))
+            rc, text = gate(plan)
+            assert rc == EXIT_SPEC, (code, rc, text)
+            assert "control unobs (line 3): exit %d is unobservable" % code in text, text
+            assert "REFUSED" not in text and "control(s) held" not in text, text
+
     ARMS = [
         ("arm grammar-no-block", arm_grammar_no_block),
         ("arm grammar-empty-block", arm_grammar_empty_block),
@@ -537,6 +611,9 @@ def self_test(out):
         ("arm unsatisfiable world declared-vs-observed text", arm_unsat_declared_vs_observed),
         ("arm unsatisfiable world single refusal (first violation wins)", arm_unsat_single_refusal),
         ("arm floors-row freeze_gate (path + floor == assertion count)", arm_floor_row),
+        ("arm work-root under-a-regular-file and named-regular-file could-not-evaluate (no traceback)", arm_work_root_unusable),
+        ("arm parse-duplicate control name is invalid spec, refused before any run", arm_parse_duplicate_control),
+        ("arm unobservable-rung declared exit 126/127 is invalid spec", arm_unobservable_rung_declared),
     ]
 
     def make_failclosed_arm(sim_name):

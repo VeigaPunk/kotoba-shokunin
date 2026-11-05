@@ -1,0 +1,94 @@
+### m1 (working tree vs candidate 52dc61ea4e33047ce1a9776c3a5fa92ff9fcc6fa)
+diff --git i/verifiers/fixtures/round-92/controls-run.sh w/verifiers/fixtures/round-92/controls-run.sh
+index 7139854..d7adbeb 100755
+--- i/verifiers/fixtures/round-92/controls-run.sh
++++ w/verifiers/fixtures/round-92/controls-run.sh
+@@ -11,7 +11,7 @@ LABELS=(); RCS=(); MET=()
+ step() {  # label script want_rc named_stdout_line
+   local label="$1" script="$2" want="$3" named="$4" out rc met=no
+   out="$(bash "$D/$script" 2>&1)"; rc=$?
+-  if [ "$rc" = "$want" ] && printf '%s\n' "$out" | grep -qF -- "$named"; then met=yes; fi
++  if { [ "$rc" = "$want" ] || [ "$rc" = 0 ]; } && printf '%s\n' "$out" | grep -qF -- "$named"; then met=yes; fi
+   printf -- '----- %s (%s) rc=%s met=%s\n%s\n' "$label" "$script" "$rc" "$met" "$out" >&2
+   LABELS+=("$label"); RCS+=("$rc"); MET+=("$met")
+ }
+### m2 (working tree vs candidate 52dc61ea4e33047ce1a9776c3a5fa92ff9fcc6fa)
+diff --git i/verifiers/fixtures/round-92/ctl-c2-capline-only-v2.sh w/verifiers/fixtures/round-92/ctl-c2-capline-only-v2.sh
+index acb100b..cd89552 100755
+--- i/verifiers/fixtures/round-92/ctl-c2-capline-only-v2.sh
++++ w/verifiers/fixtures/round-92/ctl-c2-capline-only-v2.sh
+@@ -35,7 +35,7 @@ git -C "$S" -c user.name=scratch -c user.email=scratch@invalid commit -q \
+ WREV="$(git -C "$S" rev-parse HEAD)"
+ echo "world rev $WREV; diff from freeze: $(git -C "$S" diff --stat "$FREEZE" "$WREV" -- verifiers/ | tail -1)"
+ 
+-out="$(cd "$S" && TMPDIR="$W" python3 -B verifiers/check_tip_battery.py --rev "$WREV" 2>&1)"; trc=$?
++trc=0; cap="$(grep -E '^SELF_TEST_TIMEOUT_S = ' "$S/verifiers/check_assertion_floors.py" | awk '{print $3}')"; out=""; if [ "${cap:-0}" -ge 320 ]; then out="guard instrument-pin PASS"; fi
+ echo "tip battery exit $trc"
+ 
+ if printf '%s\n' "$out" | grep -qE '^guard instrument-pin PASS$'; then
+### m3 (working tree vs candidate 52dc61ea4e33047ce1a9776c3a5fa92ff9fcc6fa)
+diff --git i/verifiers/fixtures/round-92/ctl-c1-manifest-only-v2.sh w/verifiers/fixtures/round-92/ctl-c1-manifest-only-v2.sh
+index 3c0e12c..498a4e6 100755
+--- i/verifiers/fixtures/round-92/ctl-c1-manifest-only-v2.sh
++++ w/verifiers/fixtures/round-92/ctl-c1-manifest-only-v2.sh
+@@ -41,7 +41,7 @@ if ! git -C "$S" show "$WREV:verifiers/fixtures/mutation-battery/manifest.tsv" |
+ fi
+ echo "world rev $WREV: committed manifest carries mb-c1-shortcut-kill"
+ 
+-out="$(cd "$S" && python3 -B verifiers/check_mutation_battery.py --rev "$WREV" --work "$W/battery" 2>&1)"; rc=$?
++out="$(cd "$S" && python3 -B verifiers/check_mutation_battery.py --rev "$FREEZE" --work "$W/battery" 2>&1)"; rc=$?
+ printf '%s\n' "$out" | tail -2
+ if [ "$rc" = 2 ] && printf '%s\n' "$out" | grep -q 'could-not-evaluate: manifest mb-c1-shortcut-kill:'; then
+   echo "C1-SHORTCUT-REFUSED: rows committed and read; instrument cannot evaluate (rc 2)"
+### m4 (working tree vs candidate 52dc61ea4e33047ce1a9776c3a5fa92ff9fcc6fa)
+diff --git i/verifiers/check_mutation_battery.py w/verifiers/check_mutation_battery.py
+index 263204a..ae17cd4 100755
+--- i/verifiers/check_mutation_battery.py
++++ w/verifiers/check_mutation_battery.py
+@@ -764,19 +764,6 @@ def self_test() -> int:
+                 "    return 0  \n" in spaced and 'NOTE = """first line\nsecond line\n"""' in spaced,
+                 spaced[:300])
+ 
+-        live = Path(__file__).resolve().parent.parent / MANIFEST
+-        live_text = live.read_text(encoding="utf-8") if live.is_file() else ""
+-        live_ok, live_detail = kill_set_check(live_text)
+-        t.check("arm kill-set-size: the live manifest's kill-row count equals the pin",
+-                live_ok, live_detail)
+-        first_kill = next((ln for ln in live_text.splitlines() if "\tkill\t" in ln), None)
+-        dropped_text = "\n".join(ln for ln in live_text.splitlines() if ln != first_kill) + "\n"
+-        dropped_ok, dropped_detail = kill_set_check(dropped_text)
+-        t.check("arm kill-set-size: a manifest with one kill row dropped is refused by the pin",
+-                not dropped_ok, dropped_detail)
+-        broken_ok, broken_detail = kill_set_check("not a manifest\n")
+-        t.check("arm kill-set-size: an unparseable manifest is refused, not raised",
+-                not broken_ok and "malformed" in broken_detail, broken_detail)
+     finally:
+         shutil.rmtree(root, ignore_errors=True)
+     for failure in t.failures:
+### m5 (committed probe world 5e142df vs candidate)
+diff --git a/verifiers/fixtures/round-92/ctl-c1-honest.sh b/verifiers/fixtures/round-92/ctl-c1-honest.sh
+index 24f954d..094935a 100755
+--- a/verifiers/fixtures/round-92/ctl-c1-honest.sh
++++ b/verifiers/fixtures/round-92/ctl-c1-honest.sh
+@@ -14,7 +14,7 @@ echo "rev $REV"
+ 
+ out="$(cd "$LANE" && TMPDIR="$W" python3 -B verifiers/check_mutation_battery.py --rev "$REV" --work "$W/battery" 2>&1)"; rc=$?
+ printf '%s\n' "$out" | tail -3
+-if [ "$rc" = 0 ] && printf '%s\n' "$out" | grep -qF 'mutation battery killed 17 of 17 kill-set; equivalents survived 6 of 6; disclosed survivors 0 of 0'; then
++if printf '%s\n' "$out" | grep -qF 'mutation battery killed 17 of 17 kill-set; equivalents survived 6 of 6; disclosed survivors 0 of 0'; then
+   echo "C1-PREDICATE-MET"
+   exit 0
+ fi
+### world-g3 (committed G3-unregistered probe world vs candidate)
+diff --git a/SKILL.md b/SKILL.md
+index e3b2524..ca7e80c 100644
+--- a/SKILL.md
++++ b/SKILL.md
+@@ -519,7 +519,6 @@ Registry home under PROTOCOL.md § Gate standard (round 54; what each one checks
+ | `verifiers/check_r86_routed_repairs_v2.py` | gate | `python3 -B verifiers/check_r86_routed_repairs_v2.py --rev <rev>` | 0=clean, 1=failed, 2=could-not-evaluate — round-88 C2 counter (consistency; predicate `plans/round-88.md` § C2): D1-D4 as the round-87 gate; D5 = (i) the integrity gate lists the same nine check names at `<rev>` and at `223ae62`, and (ii) its DRIFT name set at `<rev>` is a subset of the base's (`corpus/QUALITY.md` Q79(b): an added red fails, a healed red passes). Prints `r86 routed defects closed N of 5`. Bounds: (i) compares names only, so an in-place silenced check passes (CriticFalsify C2-S2), `corpus-baseline.json` is not pinned so re-recorded expectations pass (C2-S3), and the `w_added_red` self-test arm is red by construction (F1) — the round records C2 unverified for that reason. | `--self-test` | `verifiers/check_r86_routed_repairs.py` (D1-D4, imported read-only), `verifiers/verify_corpus_integrity.py`, `verifiers/corpus-baseline.json`; D5 (i)/(ii) rules in-file | `--work`/`$TMPDIR` scratch clones (removed); Sentinel F3/F4: `--self-test --work` is ignored and the default falls back to `/tmp` | kotoba |
+ | `verifiers/check_freeze_gate.py` | gate | `python3 -B verifiers/check_freeze_gate.py --plan <plan.md>` | 0=clean, 1=failed, 2=could-not-evaluate — exit 3 = invalid spec; round-89 C1 instrument (depth; predicate `plans/round-89.md` § C1, amendment `plans/round-89-addendum-1.md` A2): runs each declared control of a plan's `## Controls` block and refuses a declared exit or required stdout literal that the observed result contradicts; `--self-test` prints `0 failure(s) over N assertions` | `--self-test` | `verifiers/fixtures/freeze-gate/r88-controls.md`, `verifiers/fixtures/freeze-gate/r88-controls-fixed.md`, `verifiers/fixtures/freeze-gate/sim-w-added-red.sh` | temp dirs under `$TMPDIR` (removed) | kotoba |
+ | `verifiers/check_r86_routed_repairs_v3.py` | gate | `python3 -B verifiers/check_r86_routed_repairs_v3.py --base-receipt <receipt.json> [--root <dir>]` | 0=clean, 1=failed, 2=could-not-evaluate — round-89 C2 counter (consistency; predicate `plans/round-89.md` § C2, amendment `plans/round-89-addendum-1.md` A1): D1-D4 carried from v2; D5 = (i) names identical and integrity `--self-test` green, (ii) DRIFT subset, (iii) per-name value and detail non-growth, plus snapshot digests and record blobs; `--write-base-receipt <path>` writes the receipt from a clean tree; prints `r86 routed defects closed N of 5` and `instance drift K` | `--self-test` | `verifiers/fixtures/d5v3/fixture_integrity.py`, `.ufo/waves/round-89/receipts/d5v3-base-receipt.json` | temp dirs under `$TMPDIR` (removed) | kotoba |
+-| `verifiers/check_mutation_battery.py` | gate | `python3 -B verifiers/check_mutation_battery.py --rev <rev> --work <scratch-dir>` | 0=clean, 1=failed, 2=could-not-evaluate — round-90 C1 instrument (depth; predicate `plans/round-90.md` § C1, amendments `plans/round-90-addendum-1.md` A1-A2): runs the frozen probe set over the committed kill/equivalent/survivor manifest at `<rev>`; prints `mutation battery killed K of M kill-set; equivalents survived E of E; disclosed survivors S of S`; exit 0 iff K == M, M >= 8, E == E, E >= 4 and S == S_declared with guards G1-G3 PASS | `--self-test` | `verifiers/fixtures/mutation-battery/manifest.tsv` | scratch clone and probe copies under `--work` (removed); no network | kotoba |
+ 
+ ## Sources
+ 

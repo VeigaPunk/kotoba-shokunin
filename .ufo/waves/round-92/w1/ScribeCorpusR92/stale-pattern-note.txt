@@ -1,0 +1,19 @@
+# corpus-integrity measurement note — the 'stale_patterns' reading depends on git tracking, not on file bytes
+
+verifiers/verify_corpus_integrity.py reads the corpus INDEX from the working tree but the
+FILE POPULATION from 'git ls-files corpus/' (its docstring: 'Both families are read from the
+working tree, not from HEAD'). A corpus file that exists on disk but is not yet in the
+index is not a tracked file, so the README index row that points at it reads as a stale pattern.
+
+Applied-patch tree (patch applied, files NOT staged) ->
+  tracked_files=189  index_patterns=207  stale_patterns=1
+  stale_patterns_detail=['corpus/README.md:194: lessons/round-92.md']
+  (the new corpus/lessons/round-92.md is on disk but not in the index, so the README row
+   that indexes it matches no tracked file)
+
+Same tree after 'git add -A -- corpus/' (the state the L1's landed commit will have) ->
+  tracked_files=190  index_patterns=207  stale_patterns=0  unindexed=1
+  stale_patterns_detail=[]
+
+So the landed state has NO stale pattern: the reading above is a pre-commit artifact, not a
+defect in the patch. The seat's own clone (files staged) reads the same 0.

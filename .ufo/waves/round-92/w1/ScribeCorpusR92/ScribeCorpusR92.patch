@@ -1,0 +1,179 @@
+diff --git c/corpus/QUALITY.md i/corpus/QUALITY.md
+index 5eca549..7b73657 100644
+--- c/corpus/QUALITY.md
++++ i/corpus/QUALITY.md
+@@ -99,3 +99,4 @@ whose `supersedes` cell names it — the old row stays as the audit trail.
+ | Q80 | A round whose wave has no attack seat (reviewer, critic, mutation-tester) closes provisional, not admitted; the round lesson names the attack seats. | round closure verdicts in lessons, SCORECARD and LOG | `considerthese/2026-10-26.md:18` (proposal 4: round 74 was admitted on wave-1 falsification only); mined in `corpus/lessons/round-88.md` § Considerthese | — |
+ | Q81 | A filed round report is immutable: a correction lands as an appended erratum, in a new commit, naming the superseded text; the filed bytes of a landed `.ufo/reports/round-N/<lane>.md` are never rewritten, and a second commit to that path with different bytes is a conformance defect. | filed round reports and their fleet commits | `corpus/lessons/round-89.md` § Mistakes row 1 (round-88 `5306df4` → `d6c5ec57` rewrite; `corpus/lessons/round-88-verifier-spotcheck.md` routed defect 1) | — |
+ | Q82 | A per-round wave-evidence byte budget is measured at landing and stated in the round report: `du -sb` of the round's `.ufo/waves/round-<N>/` tree, with the byte count and its date beside it, and the same measurement for the two prior rounds so the trend is a comparison rather than a number. A wave bundle over the stated budget names the oversized artifact and the claim that artifact serves, so an evidence tree that grew is disclosed with the claim it carries rather than absorbed silently. The measurement is taken at landing, never mid-wave, because the tree grows while seats write. Extends Q11 (an evidence bundle is sized to the claims it serves) and M15 (evidence-tree bloat); it never rewrites either. | round evidence dirs (`.ufo/waves/round-<N>/`) and the round report's evidence section | Fix shown able to fail: `grep -c 'du -sb .ufo/waves/round-90/' corpus/lessons/round-90.md` prints 1 at the round-90 tip and 0 at the round-89 tip — the measurement is stated, not assumed. The two committed prior rounds are the fixed comparison: 609628 B for `.ufo/waves/round-88/` and 1578934 B for `.ufo/waves/round-89/` (`du -sb .ufo/waves/round-88/ .ufo/waves/round-89/`, 2026-11-05). Grounded in `corpus/lessons/round-90.md` § Mistakes and § Considerthese, and `considerthese/2026-10-26.md` proposal 5 (2026-10-26: "A per-round evidence cap, or compressing seat logs after closure, would keep clones and connector reads cheap."). | — (extends Q11 and M15) |
++| Q83 | A §9 shortcut control refuses the shortcut it names through the public path: on a committed shortcut world missing the claimed conjunct the control exits non-zero naming that conjunct and its honest world exits zero; a control that reads only a threshold or an uncommitted tree is a census observable, never the whole evidence. | §9 shortcut controls, their honest counterparts, and the control/counter pair that scores them | `corpus/lessons/round-92.md` § Mistakes (the `vacuous` row: the round-91 `ctl-c2-capline-only` control read `C2-PREDICATE-MET`, exit 0, on the cap-only shortcut it named — evidence `.ufo/waves/round-91/w1/CriticClaims.md` § Controls and `verifiers/fixtures/round-91/ctl-c2-capline-only.sh`) | — |
+diff --git c/corpus/README.md i/corpus/README.md
+index f483b20..fde7508 100644
+--- c/corpus/README.md
++++ i/corpus/README.md
+@@ -57,7 +57,7 @@ Domain: prompt & skill craft — SKILL.md/AGENTS.md quality, trigger fidelity.
+ | Sibling citation routing re-measure (round 21) | `knowledge/sibling-citation-routing-round21.md` | claim-A artifact: the round-16 R3 predicate re-run live against all five sibling `SKILL.md` files — 2/1/5/1/5 = 14 dead tokens, delta 0; corrects the recorded "10 / kasegi 1" headline to the ledger's 14 / kasegi 5 (the claim's own counting command falsified the stated baseline); records kasegi's new delegated-root resolution and the post-round-16 fleet prior-art scan; report `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/reports/round-21/kotoba.md` |
+ | Substrate-pin guard (round 23) | `knowledge/substrate-pin-guard-round23.md` + `../verifiers/check_substrate_pins.py` + `../verifiers/fixtures/pins/` | the round-21/22 named debt closed executably: the `measured_against` pins in `../verifiers/baseline.json` (omp sha256 + ns-exact mtime; opencode sha256 only — its mtime is a 1985 packer constant) had zero readers (`grep -c measured_against verifiers/*.py verifiers/*.sh` → 0 ×6) and the block was deletable with every gate green (round-22 scout M6); the guard hashes both binaries and never execs them (an exec writes to another gate's log input), exits 0/1/2/3 with `--self-test` over committed fixtures; at landing: live exit 0 (`OK 3/3 pins hold`, mtime `delta 0 ns`), `--self-test` `0 failure(s) over 46 assertions`, six /tmp-copy red probes (sha drift → 1 naming the pin; mtime-only drift → 1 naming `omp_binary_mtime`; missing binary → 2; corrupt baseline JSON → 3, no traceback; missing/null `measured_against` → 1 VACUOUS; one pin deleted → 1 `PIN_ABSENT`), red-before replayable (baseline re-pinned to the round-18 omp sha `ff59fc1b…` → exit 1 `DRIFT omp_binary_sha256` — the state the 2026-10-16 rebuild produced while the harness gate kept printing `28/28 checks pass`); report `../.ufo/reports/round-23/kotoba.md` |
+ | Frozen comparator channel census (round 41 V10) | `knowledge/harness-independent-round41-census.md` | actual subprocess replay and exact-set classification of 46 saved arms: 25 open, 15 closed, 4 controls, 1 diagnostic, 1 caller-selected trust input; a fresh live producer/join remains protocol 24/24 (strict 20/24, 4 adjudicated, 4 scoped out), with zero disagreements, unknowns or uncovered rows; invalid C2 launch scratch was pruned without changing verifier/comparator sources **Round-48 qualification (append-only):** this protocol 24/24 is the round-46 record on its frozen carrier; it is not a live result (on 2026-10-22 the live join read protocol 18/24, strict 14/24, six disagreements, or exited 2 on the session-store race; `../.ufo/waves/round-48/falsify/A29ReadmeQualify.md`). |
+-| Admission bar (round 46) | `QUALITY.md` | the lane's own quality bar, created round 46: every criterion cites its row in `lessons/round-46.md` § Mistakes (mined from the lane's rejected, harmed and honest-stop rounds 37–46); tier definitions defer to `SOURCES.md` |
++| Admission bar (round 46) | `QUALITY.md` | the lane's own quality bar, created round 46: every criterion cites its row in `lessons/round-46.md` § Mistakes (mined from the lane's rejected, harmed and honest-stop rounds 37–46); tier definitions defer to `SOURCES.md`; **round 92:** Q83 appended — a §9 shortcut control refuses the shortcut it names through the public path (grounded in `lessons/round-92.md` § Mistakes, the `vacuous` row) |
+ | Source registry (round 46) | `SOURCES.md` | where the lane learns, per the kaika SOURCES contract v1: rows written only for sources opened in round 46, scoped tiers, one rejected row with its flip, study paths and a search log; fetch records in `../.ufo/round-46/evidence/w2/sources/fetch-log.json` |
+ | Round-46 lessons | `lessons/round-46.md` | LOG.md round-46 entries, WIP commit `36ab0d3`; `## Mistakes` (the lane's mined failure classes, each with pointer, captured-by criterion and fix) and `## Gate` (no knowledge admitted this round; source rows; spot-check pending non-author at the time — it landed as the next row) |
+ | Round-46 non-author spot-check (integrator) | `lessons/round-46-verifier-spotcheck.md` | written by the kaika integrator, not the lane (outside review; never edited here): the round-46 spot-check sample (S003/S006 admit, S011 reject — both agree) and the adjudication ADMITTED with per-axis verdicts and the carried open residuals; landed at `c61a973` without an index row, indexed round 47 |
+@@ -191,6 +191,7 @@ Domain: prompt & skill craft — SKILL.md/AGENTS.md quality, trigger fidelity.
+ | Mutation-battery guard arms (round 91) | `knowledge/mutation-battery-arms-round91.md` | the battery's own guard surface joins the measure: three kill rows (`mb-m2` G1 commit-check skip, `mb-m15` G1 clean-tree guard off, `mb-m16` restore read-back dropped) killed through three new guard self-test arms; `killed 17 of 17; equivalents survived 6 of 6; disclosed survivors 0 of 0` at the landing revision (`../verifiers/check_mutation_battery.py --rev <rev>`); S262 |
+ | Timeout calibration and instrument-pin admission (round 91) | `knowledge/timeout-calibration-round91.md` | the floors guard's nested self-test cap calibrated on a measured duration (`SELF_TEST_TIMEOUT_S = 360` from the 160.2 s receipt; `MEASURED_SELFTEST_S = 161`), the instrument-pin admission that heals the round-90 unpinned-blob red, and the freeze-gate exit-ladder repair for a non-UTF-8 plan (`../verifiers/check_assertion_floors.py`, `../verifiers/check_freeze_gate.py`); the `subprocess.run()` kill-and-wait contract the cap rides on; S263 |
+ | Round-91 lesson | `lessons/round-91.md` | round 91's lane lesson: `## Gate` (S262 and S263 admitted with located quotes; S264 rejected on its denominator convention), the census 187 → 190, `## Mistakes` (the round-90 unpinned-blob landing miss; the plan's 189 census arithmetic; the frozen cap-only control that reads MET), `## Considerthese`, and the seat record for wave `r91-w1` |
++| Round-92 lesson | `lessons/round-92.md` | round 92's lane lesson (Linux host, omp 18.15.0): `## Gate` (S265 the anchor-repair correction row superseding S263 and S266 the `NotADirectoryError` exception reference, both admitted with located quotes; no candidate rejected), the census 190 → 192, `## Mistakes` (the L1-confirmed `vacuous` row: the round-91 `ctl-c2-capline-only` control read MET on the cap-only shortcut it named), `## Status changes` (S263 corrected by S265), `## Considerthese`, the Q83 criterion (`corpus/QUALITY.md`), and the L1 settlement placeholder |
+ 
+ ## Frontier
+ 
+diff --git c/corpus/SOURCES.md i/corpus/SOURCES.md
+index 540b31e..1de61b5 100644
+--- c/corpus/SOURCES.md
++++ i/corpus/SOURCES.md
+@@ -203,6 +203,8 @@ for a source the row's author opened this round; access evidence lives in
+ | S262 | PIT (pitest) documentation — "Basic concepts" — https://pitest.org/quickstart/basic_concepts | docs | A | the mutation-testing outcome vocabulary and the notion of an equivalent mutation as the mutation-testing tool PIT's own maintainer documentation states them (Killed / Survived / No coverage / Non viable / Timed Out / Memory error / Run error, and the two grounds of equivalence) — not this lane's battery mechanics and not a mutation-score formula | § Equivalent Mutations (HTML lines 122-123) and § Running the tests (HTML lines 175 and 177); the page's own upstream source file quickstart/basic_concepts.markdown in hcoles/pitest-site (branch gh-pages) at commit e8995cd59e3c, where the same strings are quote-equal at markdown lines 59-60, 107 and 109; fetched 2026-11-05, HTTP 200, 12155 B; located quote "not all mutations will behave differently than the unmutated class. These mutants are referred to as equivalent mutations." (18 words) | a survivor is not automatically a test-suite weakness: PIT separates Killed, Survived and No coverage as three different outcomes and names equivalence as a reason a mutant can survive by construction, so a two-sided measure can require every semantics-preserving equivalent to survive without charging that survival as a defect | mined | 2026-11-05 | on-release | corpus/knowledge/mutation-battery-arms-round91.md, corpus/lessons/round-91.md |
+ | S263 | Python documentation — subprocess — https://docs.python.org/3/library/subprocess.html | docs | A | what subprocess does when a child does not exit within timeout seconds — the run() contract (the child is killed and waited for, then TimeoutExpired is re-raised) against the Popen.communicate() contract (the child is not killed) — the two differ, and the lane's floors guard calls subprocess.run(..., timeout=cap), so the run() contract is the one that binds it | § Using the subprocess Module, definition-list entry subprocess.run (HTML line 270), timeout paragraph at HTML lines 288-292; contrast entry subprocess.Popen.communicate at HTML line 1042; page footer "Last updated on Nov 05, 2026 (12:47 UTC)" at HTML line 2037; fetched 2026-11-05, HTTP 200, 208648 B; located quote "If the timeout expires, the child process will be killed and waited for. The TimeoutExpired exception will be re-raised after the child process has terminated." (25 words) | a timeout on subprocess.run() is a kill-and-wait contract, not an abandon: the child is killed and reaped before TimeoutExpired is raised, so a guard that catches TimeoutExpired can report a timeout without leaking an orphan child — while Popen.communicate(timeout=...) alone leaves the child running, so the two APIs are not interchangeable for a timeout gate | mined | 2026-11-05 | 365d | corpus/knowledge/timeout-calibration-round91.md, corpus/lessons/round-91.md |
+ | S264 | Wikipedia — "Mutation testing" — https://en.wikipedia.org/wiki/Mutation_testing | community | C | whether a crowd-editable tertiary page can ground the mutation-testing vocabulary and the mutation-score denominator this round's two-sided rule rests on | § Mutation score, the article's own sentence at text line 96 "the mutation score is the number of mutants killed / total number of mutants" (14 words); § Equivalent mutants, the sentence at text line 125 "Such mutants are called equivalent mutants"; page revision wgCurRevisionId 1373580212, "This page was last edited on 6 September 2026, at 19:05"; fetched 2026-11-05, HTTP 200, 170845 B | REJECTED: crowd-editable tertiary text is a lead, never support for a tier-A-scoped claim, and its score formula counts equivalent mutants in the denominator — the opposite convention from the two-sided rule (Q47) this round's C1 rests on, so an equivalent mutant that survives by construction is charged as a score defect; flip: re-open as a lead-only row if a future claim needs plain-language orientation to the equivalent-mutant notion and no primary source states it directly, or if the article is revised so its score formula excludes equivalent mutants from the denominator and cites a primary source for that exclusion | rejected | 2026-11-05 | 180d | corpus/lessons/round-91.md |
++| S265 | Python documentation — subprocess — https://docs.python.org/3/library/subprocess.html | docs | A | what subprocess does when a child does not exit within timeout seconds — the run() contract (the child is killed and waited for, then TimeoutExpired is re-raised) against the Popen.communicate() contract (the child is not killed) — the two differ, and the lane's floors guard calls subprocess.run(..., timeout=cap), so the run() contract is the one that binds it | § Using the subprocess Module, definition-list entry subprocess.run (HTML line 270), timeout paragraph at HTML lines 288-294 with the quoted sentence at HTML lines 289-291; contrast entry subprocess.Popen.communicate at HTML line 1051 (signature line 1052) and its contrast quote at HTML line 1071 continuing to 1072; page footer "Last updated on Nov 05, 2026 (12:47 UTC)" at HTML line 2037; fetched 2026-11-05, HTTP 200, 208648 B, byte-identical to the round-91 reading; located quote "If the timeout expires, the child process will be killed and waited for. The TimeoutExpired exception will be re-raised after the child process has terminated." (25 words) | supersedes S263 — the S263 row's contrast anchor is repaired: on today's byte-identical page (HTTP 200, 208648 B, same footer timestamp at HTML line 2037) the Popen.communicate entry dt sits at HTML line 1051 and its contrast quote at HTML line 1071, so the kill-and-wait contract the cap calibration rests on is unchanged and only the anchor line was wrong — the round-91 spot-check's routed defect 4 | mined | 2026-11-05 | 180d | corpus/knowledge/timeout-calibration-round91.md,corpus/lessons/round-92.md |
++| S266 | Python documentation — built-in exceptions — https://docs.python.org/3/builtins/exceptions.html | docs | A | which exception the Python runtime raises when a path component is not a directory — grounding the freeze gate's fail-closed work-root rung | § Built-in Exceptions, definition-list entry NotADirectoryError (HTML line 1118, signature line 1119, body HTML lines 1120-1124); POSIX path-component clause at HTML lines 1122-1123; errno.ENOTDIR correspondence at HTML line 1124; exception-hierarchy tree at HTML lines 1440 (OSError) and 1452 (NotADirectoryError), tree block opening at HTML line 1416; the requested URL https://docs.python.org/3/library/exceptions.html answers 301 and lands on this builtins path; fetched 2026-11-05, HTTP 200, 145885 B; page title "Built-in Exceptions — Python 3.15.2 documentation"; located quote "Raised when a directory operation (such as os.listdir()) is requested on something which is not a directory." (17 words) | the located quote names the exception the runtime raises for a non-directory path component — "Raised when a directory operation (such as os.listdir()) is requested on something which is not a directory" — and the POSIX clause adds "it may also be raised if an operation attempts to open or traverse a non-directory file as if it were a directory"; a work root that is a regular file therefore surfaces as NotADirectoryError (errno ENOTDIR), which a fail-closed gate must translate into its own could-not-evaluate rung rather than let escape as an uncaught traceback | mined | 2026-11-05 | 180d | corpus/lessons/round-92.md |
+ 
+ ## Paths
+ 
+diff --git c/corpus/lessons/round-92.md i/corpus/lessons/round-92.md
+new file mode 100644
+index 0000000..4e34356
+--- /dev/null
++++ i/corpus/lessons/round-92.md
+@@ -0,0 +1,130 @@
++# Round 92 — kotoba (Linux host, omp 18.15.0): lesson
++
++Author: **ScribeCorpusR92** (scribe seat). This file is the round-92 **scaffold**: the Gate record,
++the Mistakes row and the Considerthese entry below are written; **the L1 completes the settlement**
++(the seat record, the claim verdicts, the wave disposition and the final numbers).
++Round: 92, plan `plans/round-92.md` (frozen at `e073723ae667b64e534f8621bddb83ad12ad0e71`), base
++`e073723ae667b64e534f8621bddb83ad12ad0e71`.
++Pre-data controls: `plans/round-92-controls.md`, executed before any candidate score — receipt
++`.ufo/waves/round-92/receipts/freeze-gate-r92.txt` (`freeze gate: 6 control(s) held — freeze may
++proceed`, exit 0).
++
++## Gate
++
++Candidates considered, with the decision and the reason:
++
++- **S265** — Python documentation, `subprocess`
++  (`https://docs.python.org/3/library/subprocess.html`). **Admitted** as tier A, as a
++  *correction row* that supersedes S263: the page is unchanged in substance, and the only defect
++  the round-91 spot-check routed (its defect 4) is an anchor line in the S263 row, not a wrong
++  claim. Access date 2026-11-05; HTTP 200; 208648 B — byte-identical to the round-91 reading, with
++  the same page footer "Last updated on Nov 05, 2026 (12:47 UTC)." at HTML line 2037. Located
++  quote (§ `subprocess.run`, HTML lines 289-291, 25 words): "If the timeout expires, the child
++  process will be killed and waited for. The TimeoutExpired exception will be re-raised after the
++  child process has terminated." Contrast quote (§ `subprocess.Popen.communicate`, HTML line 1071
++  continuing to 1072, 10 words): "The child process is not killed if the timeout expires".
++  - **Why a new row and not an edit to S263** — the SOURCES contract is append-only: a correction
++    lands as a new row whose `teaches` cell opens `supersedes S263 — `, naming the corrected
++    anchor; the superseded row keeps its own bytes. The corrected anchors are the `Popen.communicate`
++    entry dt at **HTML line 1051** (signature line 1052) and the contrast quote at **HTML line
++    1071**; S263's cited line 1042 is a `versionchanged` note belonging to the preceding
++    `Popen.wait` entry, not the contrast quote. The `subprocess.run` entry dt (270) and its timeout
++    paragraph (288-294, quoted sentence at 289-291) are unchanged. The kill-and-wait contract the
++    cap calibration rests on is therefore unaffected — only the anchor line was wrong.
++- **S266** — Python documentation, built-in exceptions
++  (`https://docs.python.org/3/library/exceptions.html`, requested; the path answers **301** and
++  lands on `https://docs.python.org/3/builtins/exceptions.html`). **Admitted** as tier A, scoped to
++  *which exception the Python runtime raises when a path component is not a directory* — the
++  grounding for the freeze gate's fail-closed work-root rung. Access date 2026-11-05; final HTTP
++  200; 145885 B; page title "Built-in Exceptions — Python 3.15.2 documentation". The
++  `NotADirectoryError` definition-list entry is at HTML line 1118 (signature line 1119, body
++  1120-1124). Located quote (HTML lines 1120-1121, 17 words): "Raised when a directory operation
++  (such as os.listdir()) is requested on something which is not a directory." The POSIX
++  path-component clause is quotable in the same budget (HTML lines 1122-1123, 22 words): "it may
++  also be raised if an operation attempts to open or traverse a non-directory file as if it were a
++  directory." The errno correspondence is `ENOTDIR` (line 1124); the exception-hierarchy tree places
++  the entry under `OSError` (HTML line 1440) at HTML line 1452, inside the tree block that opens at
++  line 1416.
++  - **Why the exception class and not a general filesystem row** — the round's C2(b) rung 1 is the
++    `--work` argument resolving under a regular file. What the gate must translate is one named
++    environment exception, `NotADirectoryError` (an `OSError` subclass), so the row is scoped to
++    that class and to the path-component case the POSIX clause states, not to path handling in
++    general. The page names exactly one `os` function for this exception — `os.listdir()` (line
++    1120); the adjacent `os.remove()` mention at line 1112 belongs to `IsADirectoryError` and is
++    **not** attributed here.
++
++**No candidate was rejected this round.** Both candidates are tier-A official documentation whose
++located quotes were re-verified against the bytes the scout fetched; no row carries a `rejected`
++status, and no flip condition is open.
++
++**Census before → after.** Rows: `grep -cE '^\|[[:space:]]*S[0-9]{3,}[[:space:]]*\|'
++corpus/SOURCES.md` → **190** before this round (receipt `.ufo/waves/round-92/census-before.txt`,
++validate rc 0 with the 33 pre-existing W04 duplicate-URL warnings) and **192** after — the two
++rows appended above (S265, S266), no row dropped, consistent with the plan's § Frontier
++expectation of 190 → 192. Validation:
++`bash /home/vgpnk/Projects/shokunin/scripts/sources-census.sh validate --file corpus/SOURCES.md
++--today 2026-11-05` → exit 0, the same 33 pre-existing W04 warnings and no E-code.
++
++## Mistakes
++
++| class | evidence pointer | captured-by | fix |
++|---|---|---|---|
++| `vacuous` (**the L1-confirmed row**) — a frozen pre-data control reads MET on the shortcut it names: `ctl-c2-capline-only` (cap raised to 360, no `INSTRUMENT_PINS` admission) prints `C2-PREDICATE-MET`, exit 0; the control reads only the working-tree cap, so it never refuses the shortcut world it declares | `.ufo/waves/round-91/w1/CriticClaims.md` § Controls (the shortcut-check table names the same control as a **control defect**: it reports MET for the shortcut it is declared to refuse) and `verifiers/fixtures/round-91/ctl-c2-capline-only.sh`; the round-92 red-before receipt `.ufo/waves/round-92/receipts/redbefore-ctl-c2.txt` re-observes the defect at this round's base bytes | Q37's gap: a control need not refuse its own shortcut — Q37 requires the cheapest real-input shortcut to be built and run under the frozen predicate, but not that the control *refuses* the failing conjunct of that shortcut, so the control was satisfied in form while reading MET on the shortcut it names | `plans/round-92.md` C1 — the shortcut world is committed and the public gates read it, so the control refuses its own shortcut instead of restating a threshold; the row is confirmed by the L1 in the round-92 plan (the same routed defect the plan carries as C1's red-before) |
++
++## Status changes
++
++- **S263 — corrected by S265** (new row, `mined`, opened 2026-11-05, recheck `180d`). The
++  correction is the anchor line only: S263 cites the `Popen.communicate` contrast quote at HTML
++  line 1042; on today's byte-identical page (HTTP 200, 208648 B, same footer timestamp at line
++  2037) that line is a `versionchanged` note of the preceding `Popen.wait` entry, while the
++  `Popen.communicate` entry dt is at line 1051 and the contrast quote at line 1071. The quote text,
++  its section, and the teach are unchanged, so the kill-and-wait contract the cap calibration
++  rests on stands; only the anchor line was wrong (the round-91 spot-check's routed defect 4).
++  S263's own row bytes are **not** rewritten — the correction lands as the appended row, per the
++  SOURCES contract's append-only rule for a cited token.
++- **S266 — new row**, `mined` at opening (2026-11-05), tier A, kind `docs`, recheck `180d`, used-by
++  `corpus/lessons/round-92.md`. No other row's `status`, `recheck` or `used-by` cell changed.
++
++## Sources
++
++- **S265** — Python documentation, `subprocess`; URL
++  `https://docs.python.org/3/library/subprocess.html`; access 2026-11-05; HTTP 200; 208648 B
++  (byte-identical to the round-91 reading); page footer "Last updated on Nov 05, 2026 (12:47 UTC)."
++  at HTML line 2037; located quote at HTML lines 289-291 (25 words) and the contrast quote at HTML
++  line 1071 (10 words), the `Popen.communicate` entry dt at HTML line 1051, the `subprocess.run`
++  entry dt at HTML line 270 and its timeout paragraph at HTML lines 288-294. Tier A scoped; a
++  correction row superseding S263 (anchor repair only). Status `mined`; used-by
++  `corpus/knowledge/timeout-calibration-round91.md,corpus/lessons/round-92.md`.
++- **S266** — Python documentation, built-in exceptions; URL requested
++  `https://docs.python.org/3/library/exceptions.html` (HTTP 301), effective
++  `https://docs.python.org/3/builtins/exceptions.html`; access 2026-11-05; final HTTP 200; 145885 B;
++  page title "Built-in Exceptions — Python 3.15.2 documentation"; located quote at HTML lines
++  1120-1121 (17 words) and the POSIX path-component clause at HTML lines 1122-1123 (22 words), the
++  `NotADirectoryError` entry dt at HTML line 1118, the exception-hierarchy tree at HTML lines 1440
++  and 1452, and the `errno.ENOTDIR` correspondence at HTML line 1124. Tier A scoped to the
++  non-directory path-component exception class. Status `mined`; used-by
++  `corpus/lessons/round-92.md`.
++
++## Considerthese
++
++`considerthese/2026-10-26.md` was re-read (proposals only; nothing implemented).
++
++- **No proposal implemented this round.** Both claims are instrument-deepening with frozen
++  predicates, so no proposal of this file is inside either claim's scope, and no proposal is
++  implemented outside them.
++- **Proposal 3** (land the page round 74 rejected and use it on the skill's own description) stays
++  carried: it needs a SKILL.md description rewrite, and the 600-line budget cannot absorb one —
++  `SKILL.md` is already 600 lines / 92 672 B at the freeze (receipt
++  `.ufo/waves/round-92/receipts/base-skill-size.txt`), so a rewrite of the frontmatter description
++  has to be paid for by lines saved elsewhere, which is a claim-adjacent edit this round's frozen
++  predicates do not admit.
++- **Proposals 1, 4 and 5** (a byte/line ceiling; "do not close a round before its falsify wave
++  runs"; a per-round evidence budget) are carried unchanged from the previous rounds; proposals 1
++  and 5 are already mined as criteria Q78 and Q82 and are not re-mined here.
++
++## Settlement (L1 — placeholder)
++
++**Placeholder — the L1 completes this section at settlement.** The seat record for wave `r92-w1`,
++the claim verdicts for C1 and C2 (which this seat does **not** write: no claim verdict is recorded
++anywhere in this file), the wave disposition, the landing revision and the final numbers are the
++L1's to settle and land.

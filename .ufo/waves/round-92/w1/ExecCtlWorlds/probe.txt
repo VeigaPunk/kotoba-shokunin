@@ -1,0 +1,30 @@
+# ExecCtlWorlds probe (round 92, C1 control worlds) -- one run of controls-run.sh from the scratch clone
+# base e073723ae667b64e534f8621bddb83ad12ad0e71; scratch commit 81f7c8b91d592cece20d81e981a13a88c376b525 (scratch identity, not a lane commit)
+# bash -n: controls-run.sh ctl-c1-honest.sh ctl-c1-manifest-only-v2.sh ctl-c2-capline-only-v2.sh ctl-c2-honest.sh -> all ok
+# one-off runs before the counting command (each script run once, same bytes): ctl-c1-manifest-only-v2.sh rc=1 (1.8 s), ctl-c2-capline-only-v2.sh rc=1 (189 s), ctl-c2-honest.sh rc=0, ctl-c1-honest.sh rc=0 (34 s)
+# ---- controls-run.sh stdout (rc recorded below) ----
+round-92 controls: shortcuts refused 2 of 2; honest held 2 of 2
+# controls-run.sh rc=0
+# ---- per-script stdout and rc (stderr of controls-run.sh) ----
+----- C2-shortcut (ctl-c2-capline-only-v2.sh) rc=1 met=yes
+world rev df50ddcccb729e5b245226dce1fbfd1ed53279e9; diff from freeze:  1 file changed, 1 insertion(+), 1 deletion(-)
+tip battery exit 1
+C2-SHORTCUT-REFUSED: instrument-pin admission missing (FAIL guard instrument-pin: verifiers/check_assertion_floors.py blob a189e61be79828fa856a1fdc900dcec10801a1af at df50ddcccb729e5b245226dce1fbfd1ed53279e9 is not a pinned blob)
+----- C2-honest (ctl-c2-honest.sh) rc=0 met=yes
+rev e073723ae667b64e534f8621bddb83ad12ad0e71
+cap conjunct: SELF_TEST_TIMEOUT_S 360 >= 2 x MEASURED_SELFTEST_S 161: True
+admission conjunct: floors blob 6f2c52fb2e09e817dff3360b97400a5d6e53626c in INSTRUMENT_PINS: True
+tip battery exit 1 (red corpus gates carry from base; only the pin guard is read here)
+guard instrument-pin PASS
+C2-PREDICATE-MET
+----- C1-shortcut (ctl-c1-manifest-only-v2.sh) rc=1 met=yes
+world rev e4fa9069e1ff9c81ae88d6cfa866f69c9b1f7d64: committed manifest carries mb-c1-shortcut-kill
+could-not-evaluate: manifest mb-c1-shortcut-kill: target 'verifiers/check_gate_registry.py' has no probe set
+C1-SHORTCUT-REFUSED: rows committed and read; instrument cannot evaluate (rc 2)
+could-not-evaluate: manifest mb-c1-shortcut-kill: target 'verifiers/check_gate_registry.py' has no probe set
+----- C1-honest (ctl-c1-honest.sh) rc=0 met=yes
+rev e073723ae667b64e534f8621bddb83ad12ad0e71
+G2 copy integrity PASS: 23 mutant copies and 3 revision copies read back at their recorded sha256
+G3 registry presence PASS: 1 SKILL.md line(s) name check_mutation_battery.py
+mutation battery killed 17 of 17 kill-set; equivalents survived 6 of 6; disclosed survivors 0 of 0
+C1-PREDICATE-MET

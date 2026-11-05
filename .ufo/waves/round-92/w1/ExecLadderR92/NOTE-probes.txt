@@ -1,0 +1,12 @@
+Note on candidate-probes-and-honest-worlds.txt:
+
+The two `--work .../tmp/plainfile` readings in that file (rc=0, "1 control(s) held") were taken
+BEFORE the scratch path `plainfile` existed as a regular file: the probe driver created it as a
+directory, so the readings are valid directory-root readings, not the regular-file rung. The
+regular-file readings are the corrected ones in candidate-work-root.txt (rc=2, COULD-NOT-EVALUATE
+--work <path>: not a directory, zero stderr bytes, zero tracebacks), taken after recreating the
+blocker as a regular file.
+
+The three rp-*.sh probe scripts exit 1 on the candidate by design: each script's pass condition is
+the round-92 base defect (crash / accepted duplicate / uncompared 127), which the candidate no
+longer exhibits. Their printed lines show the new readings (rc=2 named; rc=3 named; rc=3 named).

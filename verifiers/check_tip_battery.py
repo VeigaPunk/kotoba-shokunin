@@ -138,7 +138,22 @@ INSTRUMENT_PINS = {
         # round-91 claim C2 leg A(d) admission (plans/round-91.md § C2 leg A(d)): the
         # child-cap postimage (SELF_TEST_TIMEOUT_S 360, MEASURED_SELFTEST_S 161,
         # floors_guard floor 176, freeze_gate floor 31); the earlier three blobs are kept.
-        "6f2c52fb2e09e817dff3360b97400a5d6e53626c"),
+        "6f2c52fb2e09e817dff3360b97400a5d6e53626c",
+        # round-92 claim C2(b) admission (plans/round-92.md § C2(b) coupling): the
+        # check_assertion_floors.py postimage with freeze_gate floor 34 in both in-file
+        # tables; the earlier blobs are kept.
+        "4ed35c4ea4925340f4752e7b02424f01b6026237"),
+    # round-92 claim C2(b) admission: check_freeze_gate.py is a floors-registry instrument
+    # that the round-92 patch changes. The freeze-base blob (identical at 5031a78 and
+    # e073723) is kept so the pre-patch reading stays green; the three-rung postimage is
+    # admitted here.
+    "verifiers/check_freeze_gate.py": (
+        "a6f18c27cde29e532e3306301f20a6cad10cf250",
+        "856f543bb6782af280e3a5a6b723f44532deac43",
+        # round-92 repair (plans/round-92-addendum-1.md A6, critic D1): the rung-3 check
+        # moved above the fg-x1-anchored `control.expect_rc = int(m.group(1))` line so the
+        # frozen battery anchor matches again; this is the repaired postimage.
+        "0abfe8b1b3037cad614e99b7a0622a549cedf6e4"),
     "verifiers/verify_skill_checklist.py": (
         "8d44c063e3d4b57c7c421c3107879e61983249bf",
         "6aab16849bd6d71ded8f3bcb3f95668f14f6a78f",

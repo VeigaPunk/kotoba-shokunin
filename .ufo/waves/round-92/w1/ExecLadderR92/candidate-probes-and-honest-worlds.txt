@@ -1,0 +1,48 @@
+# candidate 9e267a6e4caaed1bb89060cbe2bfe027226cf717 (e073723 + ExecLadderR92.patch), run in scratch clone
+$ python3 -B verifiers/check_freeze_gate.py --plan verifiers/fixtures/round-92-predata/fp-exit127.md
+INVALID SPEC: control one27 (line 7): exit 127 is unobservable (126/127 are the harness's own could-not-evaluate codes; a declared 127 can never be compared)
+rc=3
+
+$ python3 -B verifiers/check_freeze_gate.py --plan verifiers/fixtures/round-92-predata/fp-duplicate-names.md
+INVALID SPEC: duplicate control dup (line 9): already declared at line 7
+rc=3
+
+$ python3 -B verifiers/check_freeze_gate.py --plan verifiers/fixtures/round-92-predata/fp-minimal.md --work /fast/scratch/hyaku/kotoba-r92/ExecLadderR92/tmp/plainfile
+freeze gate: 1 control(s) held — freeze may proceed
+rc=0
+
+$ python3 -B verifiers/check_freeze_gate.py --plan verifiers/fixtures/round-92-predata/fp-minimal.md --work /fast/scratch/hyaku/kotoba-r92/ExecLadderR92/tmp/plainfile/sub
+freeze gate: 1 control(s) held — freeze may proceed
+rc=0
+
+$ bash verifiers/fixtures/round-92-predata/rp-work-regular-file.sh
+COULD-NOT-EVALUATE --work /fast/scratch/hyaku/kotoba-r92/ExecLadderR92/hs/kotoba-r92/l1-predata/rp-work.6IQqMQ/notadir/sub: not a directory
+rp-work: no crash observed (rc=2)
+rc=1
+
+$ bash verifiers/fixtures/round-92-predata/rp-duplicate-names.sh
+INVALID SPEC: duplicate control dup (line 9): already declared at line 7
+rp-dup: gate refused (rc=3) — the defect is not observable at these bytes
+rc=1
+
+$ bash verifiers/fixtures/round-92-predata/rp-exit127.sh
+INVALID SPEC: control one27 (line 7): exit 127 is unobservable (126/127 are the harness's own could-not-evaluate codes; a declared 127 can never be compared)
+rp-127: unexpected reading (rc=3)
+rc=1
+
+$ python3 -B verifiers/check_freeze_gate.py --plan verifiers/fixtures/round-92-predata/fp-minimal.md
+freeze gate: 1 control(s) held — freeze may proceed
+rc=0
+
+$ python3 -B verifiers/check_freeze_gate.py --plan verifiers/fixtures/freeze-gate/r88-controls-fixed.md
+freeze gate: 4 control(s) held — freeze may proceed
+rc=0
+
+$ python3 -B verifiers/check_freeze_gate.py --plan verifiers/fixtures/freeze-gate/r88-controls.md
+REFUSED control w_added_red (line 36): declared "exit 0; stdout contains D5=FAIL"; observed exit=0 stdout=w_added_red D5=PASS\n (stdout literal 'D5=FAIL' absent from observed stdout)
+rc=1
+
+$ python3 -B verifiers/check_freeze_gate.py --self-test
+0 failure(s) over 34 assertions
+rc=0
+

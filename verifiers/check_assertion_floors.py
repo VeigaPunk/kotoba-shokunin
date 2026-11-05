@@ -203,7 +203,7 @@ EXPECTED_INSTRUMENTS = {
     "omp_root_semantics_v2": 68,
     # round 90 (carry-in r89 half-bump): freeze_gate joins with the row the
     # registry already carries (floor 30), completing the bump in one step.
-    "freeze_gate": 31,
+    "freeze_gate": 34,
 }
 SELF_TEST_TIMEOUT_S = 360
 # Round 91 (claim C2 leg A(a)-(b), Q39 calibration): 360 = 2 x the measured
@@ -289,7 +289,7 @@ INSTRUMENTS = {
     # round 90 (carry-in r89 half-bump): the freeze-gate counter registers at
     # its r89 landed count (check_freeze_gate.py --self-test 30, the registry
     # row's floor), completing the bump in one change (BUMP-IN-STEP RULE).
-    "freeze_gate": ("verifiers/check_freeze_gate.py", 31,
+    "freeze_gate": ("verifiers/check_freeze_gate.py", 34,
                     r"(?m)^(\d+) failure\(s\) over (\d+) assertions$", 2, 1),
 }
 

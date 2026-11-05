@@ -1,0 +1,28 @@
+# tip battery — base vs this seat's candidate (corpus changes only)
+command: python3 -B verifiers/check_tip_battery.py --rev <rev> --fleet /home/vgpnk/Projects/shokunin
+
+== BASE (lane receipt .ufo/waves/round-92/receipts/base-tipbattery.txt, rev 5031a782) ==
+guard no-deletions PASS / floors PASS / instrument-size PASS / instrument-pin PASS / spotcheck-identity PASS
+gate verifiers/check_gate_registry.py exit 0 wall 0.4s
+gate verifiers/check_assertion_floors.py exit 0 wall 181.8s
+gate verifiers/verify_skill_checklist.py exit 1 wall 1.5s
+gate verifiers/verify_corpus_integrity.py exit 1 wall 0.2s
+gate verifiers/verify_corpus_independent.py exit 1 wall 0.7s
+gate verifiers/check_correction_sweep.py exit 0 wall 0.0s
+fleet root /home/vgpnk/Projects/shokunin; guards 5 of 5; tip battery exit 0: 3 of 6   (rc=1)
+
+== CANDIDATE (scratch clone rev 0d4f9065d17579ef21e16ba64397490ecd0daeff = base + this seat's corpus patch) ==
+guard floors PASS / instrument-size PASS / instrument-pin PASS / spotcheck-identity PASS
+gate verifiers/check_gate_registry.py exit 0 wall 0.5s
+gate verifiers/check_assertion_floors.py exit 0 wall 187.1s
+gate verifiers/verify_skill_checklist.py exit 1 wall 1.6s
+gate verifiers/verify_corpus_integrity.py exit 1 wall 0.3s
+gate verifiers/verify_corpus_independent.py exit 1 wall 0.7s
+gate verifiers/check_correction_sweep.py exit 0 wall 0.0s
+fleet root /home/vgpnk/Projects/shokunin; guards 5 of 5; tip battery exit 0: 3 of 6
+
+Reading: identical to base — guards 5 of 5, the same three carried red corpus gates
+(verify_skill_checklist, verify_corpus_integrity, verify_corpus_independent), 3 of 6.
+This seat's corpus delta introduces no new red and closes none of the carried reds.
+The spotcheck-identity guard PASSes: this seat added no corpus/lessons/*-verifier-spotcheck.md
+and edited none (the tip battery's spotcheck base files are byte-identical at the candidate).

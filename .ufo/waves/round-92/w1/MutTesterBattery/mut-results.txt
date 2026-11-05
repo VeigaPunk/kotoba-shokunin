@@ -1,0 +1,32 @@
+### m1 battery --self-test rc=1
+1:FAIL arm kill-set-size: the live manifest's kill-row count equals the pin :: observed 16 kill rows, pinned 17
+2:1 failure(s) over 28 assertions
+### m2a battery --self-test rc=1
+1:FAIL arm kill-set-size: the live manifest's kill-row count equals the pin :: observed 17 kill rows, pinned 18
+2:1 failure(s) over 28 assertions
+### m2b battery --self-test rc=1
+1:FAIL arm kill-set-size: the live manifest's kill-row count equals the pin :: observed 17 kill rows, pinned 16
+2:FAIL arm kill-set-size: a manifest with one kill row dropped is refused by the pin :: observed 16 kill rows, pinned 16
+3:2 failure(s) over 28 assertions
+### m3 freeze-gate --self-test rc=1
+FAIL arm parse-duplicate control name is invalid spec, refused before any run: (1, 'REFUSED control dup (line 2): declared "exit 0; stdout contains x"; observed exit=1 stdout= (exit mismatch: declared 0, observed 1; stdout literal \'x\' absent from observed stdout)\n')
+1 failure(s) over 34 assertions
+### m3 rp-duplicate-names world rc=0
+freeze gate: 2 control(s) held — freeze may proceed
+### m4 freeze-gate --self-test rc=1
+FAIL arm unobservable-rung declared exit 126/127 is invalid spec: (126, 1, 'REFUSED control unobs (line 2): declared "exit 126; stdout contains OK"; observed exit=0 stdout=w_healed D5=PASS\\n (exit mismatch: declared 126, observed 0; stdout literal \'OK\' absent from observed stdout)\n')
+1 failure(s) over 34 assertions
+### m4 rp-exit127 world rc=2
+COULD-NOT-EVALUATE control one27 (line 6): command not found (rc=127)
+### m5 freeze-gate --self-test rc=1
+FAIL arm work-root under-a-regular-file and named-regular-file could-not-evaluate (no traceback): unexpected NotADirectoryError(20, 'Not a directory')
+1 failure(s) over 34 assertions
+### m5 rp-work world (under regular file) rc=1
+  File "/usr/lib/python3.14/tempfile.py", line 381, in mkdtemp
+    _os.mkdir(file, 0o700)
+    ~~~~~~~~~^^^^^^^^^^^^^
+NotADirectoryError: [Errno 20] Not a directory: '/fast/scratch/hyaku/kotoba-r92/MutTesterBattery/rpw.xWEm/notadir/sub/freeze-gate-cl824fc8'
+### m5 rp-work world (named regular file) rc=1
+    _os.mkdir(file, 0o700)
+    ~~~~~~~~~^^^^^^^^^^^^^
+NotADirectoryError: [Errno 20] Not a directory: '/fast/scratch/hyaku/kotoba-r92/MutTesterBattery/rpw.xWEm/notadir/freeze-gate-nijyybhn'

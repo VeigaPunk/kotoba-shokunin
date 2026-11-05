@@ -1,0 +1,68 @@
+diff --git c/verifiers/check_mutation_battery.py i/verifiers/check_mutation_battery.py
+index aa409dc..263204a 100755
+--- c/verifiers/check_mutation_battery.py
++++ i/verifiers/check_mutation_battery.py
+@@ -31,6 +31,8 @@ manifest rows (mb-m2, mb-m15, mb-m16).
+ Exit ladder: 0 pass, 1 content fail, 2 could-not-evaluate (a guard trips, an anchor no longer
+ matches the revision bytes, or a probe baseline does not hold). --self-test prints
+ `0 failure(s) over N assertions`.
++Since round-92 C2(a) the self-test arm `kill-set-size` pins the kill-row count of the working-tree
++manifest to KILL_SET_PINNED; a dropped or added kill row fails that arm by name.
+ """
+ from __future__ import annotations
+ 
+@@ -78,6 +80,12 @@ PROBES = {
+ # a probe output line carrying one of these is run-specific and is not part of the observation
+ RUN_SPECIFIC = re.compile(r"\b[0-9a-f]{12,}\b")
+ 
++# the kill-set size pinned at the round-92 freeze: the kill rows of the committed manifest at
++# e073723ae667b64e534f8621bddb83ad12ad0e71. The self-test arm kill-set-size compares the manifest's
++# kill-row count to this literal, so a dropped kill row fails by name rather than only changing the
++# count printed in the predicate line.
++KILL_SET_PINNED = 17
++
+ 
+ class CouldNotEvaluate(Exception):
+     """A guard tripped or the battery cannot measure (exit 2)."""
+@@ -166,6 +174,20 @@ def parse_manifest(text: str) -> list[Row]:
+     return rows
+ 
+ 
++def kill_set_size(text: str) -> int:
++    """The kill rows the battery derives from a manifest text, through the G1 parse path."""
++    return sum(1 for row in parse_manifest(text) if row.cls == "kill")
++
++
++def kill_set_check(text: str) -> tuple[bool, str]:
++    """kill-set-size arm: the kill-row count must equal KILL_SET_PINNED; malformed text is refused."""
++    try:
++        n = kill_set_size(text)
++    except CouldNotEvaluate as exc:
++        return False, "manifest malformed: %s" % exc
++    return n == KILL_SET_PINNED, "observed %d kill rows, pinned %d" % (n, KILL_SET_PINNED)
++
++
+ def apply_recipe(text: str, row: Row) -> str:
+     out = text
+     for k, edit in enumerate(row.recipe["edits"], 1):
+@@ -741,6 +763,20 @@ def self_test() -> int:
+         t.check("equivalence arm trailing-whitespace: code lines padded, multi-line strings kept",
+                 "    return 0  \n" in spaced and 'NOTE = """first line\nsecond line\n"""' in spaced,
+                 spaced[:300])
++
++        live = Path(__file__).resolve().parent.parent / MANIFEST
++        live_text = live.read_text(encoding="utf-8") if live.is_file() else ""
++        live_ok, live_detail = kill_set_check(live_text)
++        t.check("arm kill-set-size: the live manifest's kill-row count equals the pin",
++                live_ok, live_detail)
++        first_kill = next((ln for ln in live_text.splitlines() if "\tkill\t" in ln), None)
++        dropped_text = "\n".join(ln for ln in live_text.splitlines() if ln != first_kill) + "\n"
++        dropped_ok, dropped_detail = kill_set_check(dropped_text)
++        t.check("arm kill-set-size: a manifest with one kill row dropped is refused by the pin",
++                not dropped_ok, dropped_detail)
++        broken_ok, broken_detail = kill_set_check("not a manifest\n")
++        t.check("arm kill-set-size: an unparseable manifest is refused, not raised",
++                not broken_ok and "malformed" in broken_detail, broken_detail)
+     finally:
+         shutil.rmtree(root, ignore_errors=True)
+     for failure in t.failures:
