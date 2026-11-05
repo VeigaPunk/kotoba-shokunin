@@ -149,5 +149,44 @@ See § Gate. The r89 collision count (55) stands; adoption is L0-blocked on `kot
 
 ## Seat record (this round)
 
-*(placeholder — the L1 completes: the seat ledger for wave `r90-w1`, the claim verdicts for C1 and C2, the
-landing measurements, and the closure status.)*
+Wave `r90-w1`: 13 seats under policy v1 (band 8–16), dispatch `.ufo/waves/round-90/r90-w1-dispatch.json`; WAVE-DONE
+received; `r90-w1-results.json` carries a final output for all 13 seats (none dead). Roles: scout 2 (ScoutMutSource,
+ScoutHostRoots), executor 4 (ExecFloorsBump, ExecIndexRow, ExecBattery, ExecHostCensus), reviewer 2 (ReviewerRepairs,
+ReviewerBattery), critic 1 (CriticClaims), mutation-tester 1 (MutTesterBattery), connector 1 (ConnectorOverlap),
+sentinel 1 (SentinelScope), scribe 1 (ScribeCorpus). Attack seats 5/13 = 38 % (>= 25 %); connector 1 (<= 2); the L1
+holds the planner seat (validator excludes `planner`, disclosed).
+
+Attack outcomes (the closure rules on them; nothing here is an admission):
+
+- **ReviewerRepairs:** floors bump and index row `sound`; `no_new_red: true`; base-state scratch world reproduces both
+  `base-floors.txt` FAIL lines byte-identical.
+- **ReviewerBattery F1 (HIGH, landing-scope):** the battery and manifest were untracked at the freeze tip, so no committed
+  revision could be measured (`could-not-evaluate` at every ancestor). Resolved by the landing commit `1cb07ba`, which
+  commits both; the frozen predicate measured at `1cb07ba` (`receipts/landing-battery.txt`).
+- **CriticClaims F1 (C2, high):** the census predicate passes with zero identity comparisons on this host. Bounded by
+  addendum A3, not repaired: the claim asserts the re-verified method and receipt, and the band does not move.
+- **CriticClaims F6/F7 (C1, high):** empty-manifest and "equivalent means survives" circularity. Answered by addendum A1
+  (minimum pins M >= 8, E >= 4) and A2 (the equivalence leg is bounded to the declared rewrite classes).
+- **CriticClaims F15/F16 (SOURCES):** unsupported `teaches` wording removed (zero matches now); S260 status flipped
+  `queued` → `mined` at the landing, its knowledge entry present.
+- **MutTesterBattery:** 16 of 19 mutants of the battery killed; 5 of 5 equivalent rewrites of the battery survived. The three
+  survivors are G1 commit-check skip (`mb-m2`), G1 scratch clean-tree guard off (`mb-m15`), and revision-copy restore not
+  re-read (`mb-m16`). The frozen predicate does not measure its own guards, so these are disclosed bounds, routed to round 91.
+  The battery self-test was extended to 19 assertions and its satisfying world carries five new real kills; nothing in the
+  predicate changed beyond the A1 pin.
+- **ExecBattery findings 1–5:** the d5-m1a classification and anchor were reconciled by A1; the lane-shaped parent for the d5
+  probe is mirrored by the battery itself (a symlink into the work tree, read-only); the G2 read-back is the revision sha256.
+- **ConnectorOverlap:** tameshi holds a generic mutation runner (`tools/mutate-and-run.sh`, r3-2 → r51); kotoba's battery is
+  scoped to its own two gates per tameshi's "each lane's gate stays its own". No overlap ruling needed beyond that boundary.
+- **SentinelScope:** no out-of-map lane writes in both passes, no seat commits, `user.max_user_namespaces` unchanged at
+  122865, no fleet-root misroot for `kotoba|round-90`. Scratch: the seats' dirs removed except those still open at read time;
+  the L1 removes `/fast/scratch/hyaku/kotoba-r90` after landing.
+- **ScribeCorpus:** S260/S261, the knowledge entries, Q82 and this lesson's Gate, Mistakes and Considerthese. Its scaffold
+  counts were corrected by the L1 to the amended manifest (14 kill, 6 equivalent, 0 survivor).
+
+## Closure status
+
+Admission is the non-author closure's act. The L1 records: C1 measured at `1cb07ba` (capability, `measured` before the
+closure rules on the bounds); C2 measured at the census receipt (comparison-empty, score held); no axis value lowered; the
+carried reds are named in `.ufo/waves/round-90/receipts/landing-*.txt`. Spot-check result: pending (closure samples one admit
+and one reject from this gate: admit S260, reject route (a) mutmut).

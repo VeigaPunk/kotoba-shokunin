@@ -3469,3 +3469,14 @@ records what the settled wave measured; it supersedes the two reading cells that
 - **Carry-in repairs routed into this round's wave:** the r89 floors half-bump (`instrument_total` 18 vs 19 entries; `freeze_gate` absent from the guard tables) and the r89 unindexed spot-check row — both red at base, both named in the plan's no-harm table.
 - **Wave:** `r90-w1`, 13 seats under policy v1 (band 8–16), validated `ufo-swarm-wave.mjs run` (dispatch `.ufo/waves/round-90/r90-w1-dispatch.json`, `counts spawn 13`). Attack seats 5/13 (reviewer ×2, critic, mutation-tester, sentinel) = 38 % ≥ 25 %; connector 1; planner excluded by the validator (disclosed standing deviation).
 - **Scores:** not taken in this entry. Candidate measurements are taken at the landing revision and recorded in the landing commit's receipts; no verdict is stated here.
+
+### Round 90 — landing and measurements (KotobaR90 L1, measured at `1cb07ba90fccc17ffb9cc86f6e2ab95b6a9347e4`; verdicts belong to the non-author closure)
+
+- **Landing commit:** `1cb07ba90fccc17ffb9cc86f6e2ab95b6a9347e4` — battery + manifest + registry row + floors/index repairs + corpus material (`jj-lane.sh commit`).
+  Pre-score amendments before any scored reading: `plans/round-90-addendum-1.md` (commit `634f9f8`): d5-m1a survivor → kill (A1), minimum pins M >= 8 and E >= 4 (A1), wording bounds (A2), C2 headline bound (A3), SOURCES row fixes (A4).
+- **C1 depth (capability):** measured `killed 14 of 14 kill-set; equivalents survived 6 of 6; disclosed survivors 0 of 0`, exit 0 at `1cb07ba` (`receipts/landing-battery.txt`; before: no instrument). Registry `gate registry rows conformant 74 of 74; phantom 0` at `1cb07ba` (`receipts/landing-registry.txt`).
+- **C2 freshness:** measured `host skill surfaces measured 83: identical 0, drifted 0, lane-absent 83`, exit 0 (`receipts/c2-host-census.txt`, reads the live host root; the lane tree does not change its reading). Comparisons: zero (all lane-absent).
+- **Carry-in:** `floors-live.txt` rc 0; `index-integrity.txt` `unindexed 0`; `floors-selftest.txt` `0 failure(s) over 165 assertions`; `floors-regression.txt` (half-bump world) reads the two base FAIL lines, rc 2.
+- **Battery self-test (after the M >= 8 pin):** the satisfying world needed five more real fixture kills (`fx-k5`…`fx-k9`) and the self-test's expected lines moved to `(8, 8, 6, 6, 1, 1)`, `(8, 9, 6, 6, 1, 1)`, `(8, 8, 5, 6, 1, 1)`: `0 failure(s) over 19 assertions`, exit 0. Stated plainly: the pin was tightened and the fixture grew to meet it; no predicate line changed.
+- **Wave:** `r90-w1`, 13 seats (policy v1), see `.ufo/waves/round-90/r90-w1-dispatch.json` and the seat outputs under `.ufo/waves/round-90/w1/`.
+- **Open, routed:** the battery's G1 commit-check, G1 clean-tree and restore-verification guards have no self-test arm (round 91); L0 `kotoba | round-88` (assimilation renumber-or-retire) stays open; the kotoba slice of the absent-defect register is not adopted.

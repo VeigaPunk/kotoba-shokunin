@@ -358,6 +358,7 @@ receipt, Sighting completion, verified-round credit, or saturation is claimed.
 | host installed-skill surface census | enumerates a host skills root's installed `*/SKILL.md` instruction surfaces read-only, hashes each, classifies identical/drifted/lane-absent against the fleet lane repos, names every drift with both sha12 prefixes, and proves itself on tempdir fixture worlds (three-class world, drift mutant, unreadable surface → exit 1 naming it, absent skills root → exit 2, empty root → measured 0); drift is reported to the owning lanes, never fixed from this lane | `python -B verifiers/check_host_skill_surfaces.py --self-test` → `0 failure(s) over 12 assertions`; live census `host skill surfaces measured 9: identical 0, drifted 6, lane-absent 3` (`.ufo/waves/round-82/receipts/after-host-skill-census-ledger.txt`) | 82 |
 | forgery-rejecting root-grounding counter | grounds the 12 installed-omp skill roots from the pinned ELF's own reader code and rejects four forged-ledger classes (cross-row quote, shifted offset, module mislabel, render line) plus three disclosed classes (both ledgers rewritten, `$HOME` escape, absolute pattern) while the honest ledger still scores 12 of 12; `python3 -B verifiers/check_omp_root_semantics_v2.py --rev <rev>` prints `12 of 12` / `4 of 4` / `7 of 7`, exit 0, `0 failure(s) over 69 assertions` | `.ufo/waves/round-88/receipts/l1-c1-final.txt`; `ReviewerC1/independent_c1.py` | 88 |
 | freeze-gate execution of declared controls | executes every control a plan declares under `## Controls` before the freeze and refuses a declared expectation (exit, required stdout literal) that the observed result contradicts, exit 3 for an exit-only or malformed declaration; reproduces the round-88 unsatisfiable control mechanically (refused, exit 1) and holds the fixed plan (exit 0) | `python3 -B verifiers/check_freeze_gate.py --plan verifiers/fixtures/freeze-gate/r88-controls.md` → exit 1 naming `w_added_red`; `--self-test` → `0 failure(s) over 30 assertions`; `.ufo/waves/round-89/receipts/landing-measure.txt` | 89 |
+| mutation battery over the lane's own gates | runs a committed kill/equivalent/survivor manifest against the two round-89 gates at a revision: each declared kill-class mutant must flip a probe (baseline-flip kill rule), each generated equivalent must leave every probe identical, and the G1–G3 guards (revision bytes, copy integrity, registry row) hold; prints `mutation battery killed K of M kill-set; equivalents survived E of E; disclosed survivors S of S`, exit 0 iff the frozen predicate holds — `python3 -B verifiers/check_mutation_battery.py --rev <rev> --work <scratch>` → `killed 14 of 14 kill-set; equivalents survived 6 of 6; disclosed survivors 0 of 0`, exit 0 at `1cb07ba` (`.ufo/waves/round-90/receipts/landing-battery.txt`); self-test `0 failure(s) over 19 assertions` | `.ufo/waves/round-90/receipts/landing-battery.txt`; `verifiers/check_mutation_battery.py --self-test`; `corpus/knowledge/mutation-battery-round90.md` | 90
 
 **Round 41 calibration annotation (append-only; assertion-floor capability row).** The row's “all six” and six-floor description records the capability's earlier scope, not the current guard. At the R41 working tree based on r40 HEAD, after V16's round-41 addition, `verifiers/floors-registry.json` has nine rows and `python3 verifiers/check_assertion_floors.py` passes all nine at observed=floor: `10/145/86/87/1597/62/104/118/150`; the guard's own `--self-test` is `0 failure(s) over 150 assertions`. N05/N06 re-ran these at 2026-10-19 13:36:38 -03; guard SHA-256 `67f08725edd884f74351eca7f21b301e2b2f691d6f5ba75ae2102a142c9e3261`, registry SHA-256 `925484e96464d0056fcff96d0ea2efb18fc4a4a29c8aed733c7881b99876838f`. Preserve the original first-working-round snapshot; use the nine-row vector for current status.
 
@@ -698,3 +699,33 @@ Round 74 wave 2 (the falsify wave) was generated and validated but not dispatche
 - **Sources:** `corpus/SOURCES.md` 183 → 185 rows (S258 external, admitted; S259 own-work, admitted), census `scripts/sources-census.sh validate --root /home/vgpnk/Projects/shokunin kotoba` exit 0 at the landing.
 
 **Round 89 capabilities row (first working round 89):** freeze-gate execution of declared pre-freeze controls — `python3 -B verifiers/check_freeze_gate.py --plan verifiers/fixtures/freeze-gate/r88-controls.md` → exit 1 naming `w_added_red`; `--self-test` `0 failure(s) over 30 assertions`; evidence `.ufo/waves/round-89/receipts/landing-measure.txt`.
+
+## Round 90 — two claims (C1 depth, C2 freshness); verdicts belong to the non-author closure
+
+- **Depth (C1, owned lowest, score 9 held; claim type: capability acquisition; verdict: measured).** Frozen predicate
+  (`plans/round-90.md` § C1 as amended by `plans/round-90-addendum-1.md` A1–A2): `python3 -B verifiers/check_mutation_battery.py
+  --rev <rev> --work <scratch>` prints `mutation battery killed K of M kill-set; equivalents survived E of E; disclosed survivors S
+  of S`, exit 0 iff K == M, M >= 8, E == E, E >= 4, S == S_declared and G1–G3 PASS. Before: no instrument (`git grep -n
+  'mutation_battery' 0c20d8ab65587aee0e97b7d14c801ae6dc44c2e5 -- verifiers plans` → exit 1; `.ufo/waves/round-90/receipts/before-c1-absence.txt`).
+  After, at `1cb07ba90fccc17ffb9cc86f6e2ab95b6a9347e4`: `killed 14 of 14 kill-set; equivalents survived 6 of 6; disclosed survivors 0 of 0`,
+  exit 0 (`.ufo/waves/round-90/receipts/landing-battery.txt`, G1/G2/G3 PASS, registry row present); self-test `0 failure(s) over 19
+  assertions` (`.ufo/waves/round-90/receipts/`). Pre-data controls held `freeze gate: 6 control(s) held`, exit 0
+  (`freeze-gate-r90.txt`). Score held at 9: the capability is the move, and the depth band waits on the closure. Bounds (knowledge
+  entry § Bounds): the equivalence leg covers three declared rewrite classes only; three of the kill set are self-test-only; the
+  battery's own guard self-test misses three mutants (MutTesterBattery `mb-m2`, `mb-m15`, `mb-m16`), routed to round 91.
+- **Freshness (C2, advisory, tied-lowest 8 under the all-axes reading; verdict: measured, comparison-empty).** Frozen predicate
+  (`plans/round-90.md` § C2): `python3 -B verifiers/check_host_skill_surfaces.py --skills-root /home/vgpnk/.agents/skills
+  --fleet-root /home/vgpnk/Projects/shokunin` → `host skill surfaces measured 83: identical 0, drifted 0, lane-absent 83`, exit 0
+  (`.ufo/waves/round-90/receipts/c2-host-census.txt`, measured-rev `6fa5bb6d4ceeb51f0455e512a52d8b75628f404c`); NAME-COLLISION count 0 over
+  83 surfaces (`c2-name-collisions.txt`). Before: no census receipt names this host's root (`before-c2-sweep.txt`: only historical
+  Windows-root notes). Bound (addendum A3): zero identity comparisons were possible because no fleet lane name is installed on this
+  host, so the claim re-verifies the census method on the live root and does not move the freshness band. Score held at 8.
+- **Admission:** not claimed by this entry. Both verdicts belong to the non-author closure.
+- **Carry-in repairs (red at base, green at landing):** floors guard `registry size drift` / `row vanish: freeze_gate` → `PASS
+  freeze_gate observed=30 floor=30`, `floors rc=0` (`floors-live.txt`); integrity `unindexed 1` → `unindexed 0` (`index-integrity.txt`).
+- **Sources:** `corpus/SOURCES.md` 185 → 187 rows (S260 external, S261 own-work; both status `queued` → `mined` at the landing, the
+  knowledge entry `corpus/knowledge/mutation-battery-round90.md` citing both); census `scripts/sources-census.sh validate --root
+  /home/vgpnk/Projects/shokunin kotoba` → exit 0.
+- **Axis harm check (landing revision):** no axis value lowered; `check_tip_battery` 2 of 6 → 3 of 6; sibling census red carried and
+  unchanged (`province rows 20 matched 4`); D5 base-receipt reading unchanged (`closed 4 of 5, instance drift 4`); SKILL.md 600 lines,
+  165 lines over 120 characters (164 at base, +1 registry row line).
