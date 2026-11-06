@@ -167,3 +167,21 @@ that points at it.
 ## Settlement
 
 L1 settlement (KotobaR97, after the landing reading; the verdicts are the non-author closure's).
+
+Landing `693be9c321c26078a2adbf32c220dfcd371cbe35`; receipts `.ufo/waves/round-97/receipts/landing/`
+(runner `.ufo/waves/round-97/landing-run.sh`, unseeded, uid 1000).
+
+- **C1** `selftest-kills.py c1 693be9c3` → `C1 targets killed 13 of 13 (run errors 0); positive killed 1
+  of 1; honest CLEAN; comment decoys held 13 of 13; code decoys held 13 of 13` `C1-PREDICATE-MET` rc 0
+  (`c1-v5.txt`); same tally under `--rules v4` (`c1-rulesv4.txt`). Before (base `fa1bebae`): `killed 0
+  of 13`, UNMET rc 1. Self-test 78 → 105 assertions. Kill-rule conjuncts: `r96c1`/`r95c1` MET, box
+  proof `boxes proven 2`, production code outside `self_test()` byte-identical (`prod-identity.txt`:
+  one insertion hunk `1102a1103,1333`).
+- **C2** `forgery-controls.py v5 693be9c3` → `C2 v5: forgeries refused 3 of 3; honest held 2 of 2;
+  bound g2b MET` `C2-PREDICATE-MET` rc 0 (`c2-v5.txt`). Before: v4 refused 0 of 3 (`c2-before-v4.txt`);
+  cause control v5-as-v4 refused 0 of 3. Counter and runner bytes equal to the instrument commit.
+- **Disclosed after data** (`plans/round-97-addendum-1.md`): g10 committed-reference forgery and g11
+  seeded-replay forgery read MET under v5 (A1, A2) — named bounds, not rescues; counter-rule mutants
+  V4–V9 survive C2's committed worlds (A3); 11 new dispatch-checker survivors (A4). Q87 names the
+  committed-reference bound.
+- **Census** round start rc 0, 198 rows, 34 `W04`; round end rc 0, 202 rows, 34 `W04` (`census.txt`).
