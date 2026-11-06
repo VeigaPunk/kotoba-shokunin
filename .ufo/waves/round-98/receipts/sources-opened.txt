@@ -1,0 +1,23 @@
+# round 98 sources opened by KotobaR98 (L1), 2026-11-06T08:30:34-03:00, curl -sS -L -w '%{http_code} %{size_download}' + sha256sum; full HTML not stored (r96 routed defect 6)
+
+S277-candidate https://docs.python.org/3/library/subprocess.html 200 208648 B sha256 86b575bfa9b6b7808b598dbefa0467e6ea2e3b05677f6d583cafe381438165c5 — § Popen constructor, env parameter; HTML lines 881-883:
+<p>If <em>env</em> is not <code class="docutils literal notranslate"><span class="pre">None</span></code>, it must be a mapping that defines the environment
+variables for the new process; these are used instead of the default
+behavior of inheriting the current process’ environment. This mapping can be
+  quote (14 words): "these are used instead of the default behavior of inheriting the current process’ environment." — grounds v6 rule 9 (minimal child environment)
+
+S278-candidate https://git-scm.com/docs/git-archive 200 50116 B sha256 fc4bbcfabdafe9f06b919e439fc8ef79fb573f661a694d0c4849f9f3facf2d66 — DESCRIPTION; HTML lines 1708-1710:
+<p>Creates an archive of the specified format containing the tree
+structure for the named tree, and writes it out to the standard
+output.  If &lt;prefix&gt; is specified it is
+  quote (22 words): "Creates an archive of the specified format containing the tree structure for the named tree, and writes it out to the standard output." — grounds v6 rule 8 (git-less world: a tree, not a repository)
+
+S279-candidate https://man7.org/linux/man-pages/man5/proc_pid_environ.5.html 200 7747 B sha256 93394d9edb801ad44e342e8e8ab057bea619d995803221edaf008226b2062c46 — DESCRIPTION; HTML lines 90-91:
+              Permission to access this file is governed by a ptrace
+              access mode <b>PTRACE_MODE_READ_FSCREDS </b>check; see <a href="../man2/ptrace.2.html">ptrace(2)</a>.
+  quote (15 words): "Permission to access this file is governed by a ptrace access mode PTRACE_MODE_READ_FSCREDS check" — grounds v6 rule 9 non-dumpable counter (environ read is a ptrace-mode check)
+
+S280-candidate (reject: redundant) https://man7.org/linux/man-pages/man2/pr_set_dumpable.2const.html 200 10905 B sha256 8336e5a50cf8c3d4e7f717d44f6ce4c5959397a9c4427f3a1898a0dba1e7220c — lines 109-110:
+       Processes that are not dumpable can not be attached via <a href="../man2/ptrace.2.html">ptrace(2)</a>
+       <b>PTRACE_ATTACH</b>; see <a href="../man2/ptrace.2.html">ptrace(2)</a> for further details.
+  speaks of PTRACE_ATTACH, not /proc/<pid>/environ reads; S279 carries the rule the counter relies on. Flip: a round that relies on attach refusal.
