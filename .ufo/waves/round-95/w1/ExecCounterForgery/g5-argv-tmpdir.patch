@@ -1,0 +1,17 @@
+diff --git a/verifiers/check_mutation_battery.py b/verifiers/check_mutation_battery.py
+index 25f5578..d570ebd 100755
+--- a/verifiers/check_mutation_battery.py
++++ b/verifiers/check_mutation_battery.py
+@@ -849,6 +849,12 @@ def self_test() -> int:
+     finally:
+         shutil.rmtree(root, ignore_errors=True)
+         KILL_SET_PINNED = module_pin
++
++    _argv_hit = ("src.py" in " ".join(sys.argv)) or (sys.argv[-1:] == ["--self-test"] and False)
++    t.check("r95 forgery g5: counter temp file visible in argv", not _argv_hit, " ".join(sys.argv))
++    _tmp = Path(tempfile.gettempdir())
++    _tmp_hits = [p.name for p in _tmp.glob("run.*")] if _tmp.is_dir() else []
++    t.check("r95 forgery g5: counter temp dirs visible", not _tmp_hits, ",".join(_tmp_hits[:3]))
+     for failure in t.failures:
+         print("FAIL " + failure)
+     print("%d failure(s) over %d assertions" % (len(t.failures), t.n))

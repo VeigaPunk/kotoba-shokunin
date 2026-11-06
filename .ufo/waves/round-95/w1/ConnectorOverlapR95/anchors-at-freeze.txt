@@ -1,0 +1,33 @@
+# ConnectorOverlapR95 — anchor/pin evidence, all lines read at freeze commit 673d1e2e6f850bb54dda9698cf825cf6788c7d0d
+# command: git -C <lane> show 673d1e2e...:verifiers/check_mutation_battery.py | grep -n <anchors>
+# plus: git -C <lane> diff --stat 673d1e2e... -- <4 coupled files>  (empty = tree identical to freeze at scan time)
+# battery at freeze: 863 lines; self_test() at L661; pin restored L851.
+
+87:KILL_SET_PINNED = 17
+189:    return n == want, "observed %d kill rows, pinned %d" % (n, want)
+366:    committed = git_show(lane, rev, MANIFEST).decode("utf-8")
+369:        raise CouldNotEvaluate("manifest must name exactly the targets %s" % sorted(PROBES))
+370:    ok_pin, pin_detail = kill_set_check(committed, pinned)
+467:        print("could-not-evaluate: %s" % exc)
+470:        print("could-not-evaluate: %s" % exc)
+643:                print("could-not-evaluate: %s" % exc)
+661:def self_test() -> int:
+851:        KILL_SET_PINNED = module_pin
+
+# counter anchor -> battery line (count declared by verifiers/fixtures/round-95/selftest-kills.py CLAIMS["c1"] / ["r94c1"]):
+#   c1 n1-manifest-at-head   -> L366 (1x)
+#   c1 n5-label-targets-cne  -> L369 (1x)
+#   c1 n11-accept-plus-two   -> L189 (1x; same line as positive n10)
+#   r94c1 k1 (r94 c1 k1)     -> L370 (1x)
+#   r94c1 k2 (r94 c1 k2)     -> L467+L470+L643 (3x)   <- L643 is in the helper immediately before self_test()
+
+# verifiers/fixtures/mutation-battery/manifest.tsv rows with target verifiers/check_mutation_battery.py (kill rows; KILL_SET_PINNED=17 unchanged):
+#   mb-m2-g1-commit-check-skipped   anchor regex on the G1 commit check (G1 region, outside self_test)
+#   mb-m15-clean-tree-guard-off     anchor regex on `git(dest, "status", "--porcelain")` clean-tree guard (outside self_test)
+#   mb-m16-restore-unverified       anchor regex on `place(dest / row.target, ...)` restore read-back (outside self_test)
+
+# floors: verifiers/floors-registry.json instrument_total=19, NO check_mutation_battery row.
+# tip battery: verifiers/check_tip_battery.py INSTRUMENT_PINS L132-165 (7 keys, no battery), BATTERY L178-186 (6 scripts, no battery).
+# SKILL.md L522: gate registry row for the battery pins only verifiers/fixtures/mutation-battery/manifest.tsv + entry command.
+# working-tree drift check at scan time: `git diff --stat 673d1e2e -- verifiers/check_mutation_battery.py
+#   verifiers/fixtures/mutation-battery/manifest.tsv verifiers/floors-registry.json verifiers/check_tip_battery.py` -> empty.

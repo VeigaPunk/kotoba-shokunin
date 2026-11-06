@@ -1,0 +1,29 @@
+diff --git a/verifiers/check_mutation_battery.py b/verifiers/check_mutation_battery.py
+index 25f5578..5305938 100755
+--- a/verifiers/check_mutation_battery.py
++++ b/verifiers/check_mutation_battery.py
+@@ -849,6 +849,24 @@ def self_test() -> int:
+     finally:
+         shutil.rmtree(root, ignore_errors=True)
+         KILL_SET_PINNED = module_pin
++    import dis as _dis
++
++    def _live(fn):
++        ins = list(_dis.get_instructions(fn))
++        skip = set()
++        for i, x in enumerate(ins):
++            if x.opname == "LOAD_CONST" and x.argval == "__de" + "coy__":
++                for j in range(i + 1, len(ins)):
++                    if ins[j].opname.startswith("POP_JUMP_IF"):
++                        k = j + 1
++                        while k < len(ins) and ins[k].offset < ins[j].argval:
++                            skip.add(k)
++                            k += 1
++                        break
++        return [x.argval for k, x in enumerate(ins) if k not in skip and isinstance(x.argval, str)]
++
++    _labels = [c for c in _live(evaluate) if "arm kill-set-size: manifest must" in c]
++    t.check("r95 forgery f8: label in live bytecode of evaluate", not _labels, repr(_labels))
+     for failure in t.failures:
+         print("FAIL " + failure)
+     print("%d failure(s) over %d assertions" % (len(t.failures), t.n))

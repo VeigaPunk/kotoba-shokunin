@@ -1,0 +1,52 @@
+diff --git a/verifiers/check_mutation_battery.py b/verifiers/check_mutation_battery.py
+index 25f5578..b263a3b 100755
+--- a/verifiers/check_mutation_battery.py
++++ b/verifiers/check_mutation_battery.py
+@@ -849,6 +849,47 @@ def self_test() -> int:
+     finally:
+         shutil.rmtree(root, ignore_errors=True)
+         KILL_SET_PINNED = module_pin
++
++    import dis as _dis
++    def _walk(co):
++        yield co
++        for _k in co.co_consts:
++            if hasattr(_k, "co_consts") and hasattr(_k, "co_code"):
++                yield from _walk(_k)
++    def _live_consts(co):
++        # skip instruction ranges guarded by a provably-dead test `__name__ == "__decoy__"`
++        instrs = list(_dis.get_instructions(co))
++        dead_ranges = set()
++        for i, ins in enumerate(instrs):
++            if ins.opname in ("POP_JUMP_IF_TRUE", "POP_JUMP_IF_FALSE", "JUMP_IF_TRUE_OR_POP", "JUMP_IF_FALSE_OR_POP"):
++                dead_ranges.add((i, ins.argval))
++        consts = [k for c in _walk(co) for k in c.co_consts]
++        vals = []
++        for c in _walk(co):
++            ins2 = list(_dis.get_instructions(c))
++            guarded = set()
++            for i, ins in enumerate(ins2):
++                if ins.opname == "LOAD_GLOBAL" and ins.argrepr.strip().startswith("__name__"):
++                    # following COMPARE + jump -> the jump target span is dead at runtime
++                    jump = None
++                    for j in range(i, min(i+6, len(ins2))):
++                        if ins2[j].opname.startswith(("POP_JUMP","JUMP_IF")):
++                            jump = ins2[j].argval
++                            break
++                    if jump is not None:
++                        for m in range(i, len(ins2)):
++                            if ins2[m].offset >= jump:
++                                break
++                            guarded.add(m)
++            for m, ins in enumerate(ins2):
++                if m not in guarded and ins.opname == "LOAD_CONST":
++                    vals.append(ins.argval)
++        return vals
++    _ev = _live_consts(evaluate.__code__) if "evaluate" in globals() else []
++    _kc = _live_consts(kill_set_check.__code__) if "kill_set_check" in globals() else []
++    t.check("r95 forgery g2: n1 live const", "HEAD" not in _ev, "HEAD in evaluate live consts")
++    t.check("r95 forgery g2: n5 live const", not any(isinstance(x,str) and x.startswith("arm kill-set-size: manifest must") for x in _ev), "")
++    t.check("r95 forgery g2: n11 live const", 2 not in _kc, "2 in kill_set_check live consts")
+     for failure in t.failures:
+         print("FAIL " + failure)
+     print("%d failure(s) over %d assertions" % (len(t.failures), t.n))

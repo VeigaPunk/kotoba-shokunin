@@ -1,0 +1,33 @@
+cmd: bash verifiers/fixtures/round-92/controls-run.sh
+cwd: /fast/scratch/hyaku/kotoba-r95/ExecBaseBattery/repo
+rc: 0
+wall_s: 443.0
+uptime_start: 22:28:36 up 3 days, 10:21,  1 user,  load average: 10.15, 7.06, 16.19
+uptime_end: 22:35:59 up 3 days, 10:28,  1 user,  load average: 8.54, 8.56, 13.40
+---output---
+round-92 controls: shortcuts refused 2 of 2; honest held 2 of 2
+
+---stderr---
+----- C2-shortcut (ctl-c2-capline-only-v2.sh) rc=1 met=yes
+world rev f625caab2a22801beb848a4a6f9a60c118d6e29e; diff from freeze:  1 file changed, 1 insertion(+), 1 deletion(-)
+tip battery exit 1
+C2-SHORTCUT-REFUSED: instrument-pin admission missing (FAIL guard instrument-pin: verifiers/check_assertion_floors.py blob a189e61be79828fa856a1fdc900dcec10801a1af at f625caab2a22801beb848a4a6f9a60c118d6e29e is not a pinned blob)
+----- C2-honest (ctl-c2-honest.sh) rc=0 met=yes
+rev 673d1e2e6f850bb54dda9698cf825cf6788c7d0d
+cap conjunct: SELF_TEST_TIMEOUT_S 360 >= 2 x MEASURED_SELFTEST_S 161: True
+admission conjunct: floors blob 4ed35c4ea4925340f4752e7b02424f01b6026237 in INSTRUMENT_PINS: True
+tip battery exit 1 (red corpus gates carry from base; only the pin guard is read here)
+guard instrument-pin PASS
+C2-PREDICATE-MET
+----- C1-shortcut (ctl-c1-manifest-only-v2.sh) rc=1 met=yes
+world rev 1583024f9bb5d971b1a94cdb40dff7d6038d13fb: committed manifest carries mb-c1-shortcut-kill
+could-not-evaluate: manifest mb-c1-shortcut-kill: target 'verifiers/check_gate_registry.py' has no probe set
+C1-SHORTCUT-REFUSED: rows committed and read; instrument cannot evaluate (rc 2)
+could-not-evaluate: manifest mb-c1-shortcut-kill: target 'verifiers/check_gate_registry.py' has no probe set
+----- C1-honest (ctl-c1-honest.sh) rc=0 met=yes
+rev 673d1e2e6f850bb54dda9698cf825cf6788c7d0d
+G2 copy integrity PASS: 23 mutant copies and 3 revision copies read back at their recorded sha256
+G3 registry presence PASS: 1 SKILL.md line(s) name check_mutation_battery.py
+mutation battery killed 17 of 17 kill-set; equivalents survived 6 of 6; disclosed survivors 0 of 0
+C1-PREDICATE-MET
+

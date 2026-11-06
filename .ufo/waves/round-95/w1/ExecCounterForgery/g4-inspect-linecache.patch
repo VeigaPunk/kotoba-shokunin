@@ -1,0 +1,25 @@
+diff --git a/verifiers/check_mutation_battery.py b/verifiers/check_mutation_battery.py
+index 25f5578..8134268 100755
+--- a/verifiers/check_mutation_battery.py
++++ b/verifiers/check_mutation_battery.py
+@@ -849,6 +849,20 @@ def self_test() -> int:
+     finally:
+         shutil.rmtree(root, ignore_errors=True)
+         KILL_SET_PINNED = module_pin
++
++    import inspect as _inspect
++    _srcs = []
++    for _name in ("evaluate", "kill_set_check"):
++        _fn = globals().get(_name)
++        if _fn is not None:
++            try:
++                _srcs.append(_inspect.getsource(_fn))
++            except Exception:
++                _srcs.append("")
++    _body = "\n".join(_srcs)
++    t.check("r95 forgery g4: n1 inspect source", 'git_show(lane, "HEAD", MANIFEST)' not in _body, "")
++    t.check("r95 forgery g4: n5 inspect source", 'arm kill-set-size: manifest must' not in _body, "")
++    t.check("r95 forgery g4: n11 inspect source", "want + 2" not in _body, "")
+     for failure in t.failures:
+         print("FAIL " + failure)
+     print("%d failure(s) over %d assertions" % (len(t.failures), t.n))

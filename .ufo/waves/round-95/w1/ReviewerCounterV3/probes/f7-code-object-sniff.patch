@@ -1,0 +1,13 @@
+diff --git a/verifiers/check_mutation_battery.py b/verifiers/check_mutation_battery.py
+index 25f5578..16a739c 100755
+--- a/verifiers/check_mutation_battery.py
++++ b/verifiers/check_mutation_battery.py
+@@ -849,6 +849,8 @@ def self_test() -> int:
+     finally:
+         shutil.rmtree(root, ignore_errors=True)
+         KILL_SET_PINNED = module_pin
++    _consts = [c for c in evaluate.__code__.co_consts if isinstance(c, str)]
++    t.check("r95 forgery f7: label in compiled evaluate", not any("arm kill-set-size: manifest must" in c for c in _consts), "code-object label")
+     for failure in t.failures:
+         print("FAIL " + failure)
+     print("%d failure(s) over %d assertions" % (len(t.failures), t.n))

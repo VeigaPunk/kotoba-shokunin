@@ -1,0 +1,78 @@
+diff --git c/verifiers/check_mutation_battery.py w/verifiers/check_mutation_battery.py
+index 25f5578..39ec645 100755
+--- c/verifiers/check_mutation_battery.py
++++ w/verifiers/check_mutation_battery.py
+@@ -838,6 +838,73 @@ def self_test() -> int:
+         rc, out = run_evaluate(missed, head(missed), root / "w-revmiss", pinned_count + 1)
+         t.check("k2 label-every-cne (rev path): an anchor miss exits 2 without the kill-set-size label",
+                 rc == 2 and "anchor miss" in out and "kill-set-size" not in out, out)
++
++        # round 95 C1 (ExecBatteryKills): behavioural arms for the round-94 survivors N1, N5, N11.
++        # N1: the --rev kill-set check reads the manifest at --rev, not at HEAD. A two-commit
++        # fixture: the first commit satisfies the pin, the second (HEAD) drops a kill row.
++        # run_evaluate at the FIRST commit must read that commit's manifest (exit 0, no
++        # kill-set-size); at HEAD the pin refusal must fire (exit 2 naming kill-set-size).
++        def _commit(repo: Path, message: str) -> str:
++            _git_fixture(repo, "add", "-A")
++            _git_fixture(repo, "-c", "user.name=battery-selftest",
++                         "-c", "user.email=battery-selftest@example.invalid",
++                         "commit", "-q", "-m", message)
++            return head(repo)
++
++        n1_first = build_fixture(root, "revn1", pinned_rows, SKILL_WITH)
++        n1_rev = head(n1_first)
++        n1_drop = [r for i, r in enumerate(pinned_rows) if i != 0]
++        (n1_first / MANIFEST).write_text(_manifest_text(n1_drop), encoding="utf-8")
++        n1_head = _commit(n1_first, "round-95 n1: HEAD drops a kill row")
++        rc, out = run_evaluate(n1_first, n1_rev, root / "w-revn1", pinned_count)
++        t.check("n1 manifest-at-rev: run at the first commit reads that commit's satisfying manifest, exit 0 without kill-set-size",
++                rc == 0 and "kill-set-size" not in out, out)
++        rc, out = run_evaluate(n1_first, n1_head, root / "w-revn1h", pinned_count)
++        t.check("n1 manifest-at-rev: run at HEAD (kill row dropped) exits 2 naming kill-set-size",
++                rc == 2 and "kill-set-size" in out, out)
++        # Reverse direction: the first commit drops a kill row, HEAD satisfies the pin.
++        # run_evaluate at the FIRST commit must still refuse (exit 2 naming kill-set-size)
++        # even though HEAD is satisfying.
++        n1r_first = build_fixture(root, "revn1r", n1_drop, SKILL_WITH)
++        n1r_rev = head(n1r_first)
++        (n1r_first / MANIFEST).write_text(_manifest_text(pinned_rows), encoding="utf-8")
++        n1r_head = _commit(n1r_first, "round-95 n1 reverse: HEAD satisfies the pin")
++        rc, out = run_evaluate(n1r_first, n1r_rev, root / "w-revn1r", pinned_count)
++        t.check("n1 manifest-at-rev (reverse): run at the first commit (kill row dropped) exits 2 naming kill-set-size though HEAD satisfies",
++                rc == 2 and "kill-set-size" in out, out)
++        rc, out = run_evaluate(n1r_first, n1r_head, root / "w-revn1rh", pinned_count)
++        t.check("n1 manifest-at-rev (reverse): run at HEAD (satisfying) exits 0 without kill-set-size",
++                rc == 0 and "kill-set-size" not in out, out)
++
++        # N5: the target-set refusal is labelled "manifest must name exactly the targets"
++        # and is NOT labelled kill-set-size. Drop every BAT-target row (the surviving kill
++        # count changes, but the target-set check fires before the pin check); an extra
++        # `kill-set-size:` prefix on that refusal must be refused by the label.
++        n5_rows = [r for r in pinned_rows if r[1] != BAT]
++        n5_repo = build_fixture(root, "revn5", n5_rows, SKILL_WITH)
++        rc, out = run_evaluate(n5_repo, head(n5_repo), root / "w-revn5", pinned_count - 1)
++        t.check("n5 label-targets-cne: a committed manifest missing a probe target exits 2 naming the target set without the kill-set-size label",
++                rc == 2 and "manifest must name exactly the targets" in out and "kill-set-size" not in out, out)
++
++        # N11: the pin refuses TWO (and three) extra kill rows, naming the observed count,
++        # both live and on the rev path.
++        def _extra_kill_rows(extra: int) -> str:
++            parts = first_kill.split("\t")
++            parts[0] = "fx-n11-extra-%d" % extra
++            return "\t".join(parts) + "\n"
++
++        for extra in (2, 3):
++            extra_text = live_text.rstrip("\n") + "\n" + "".join(
++                _extra_kill_rows(extra * 100 + i) for i in range(extra))
++            extra_ok, extra_detail = kill_set_check(extra_text, module_pin)
++            t.check("arm kill-set-size (n11): the live manifest with %d kill rows appended is refused by the pin naming the observed count" % extra,
++                    not extra_ok and ("observed %d kill rows" % (module_pin + extra)) in extra_detail, extra_detail)
++        n11_more = [("fx-n11-rev-a",) + FX_KILL_FG[1:], ("fx-n11-rev-b",) + FX_KILL_FG[1:]]
++        n11_repo = build_fixture(root, "revn11", pinned_rows + n11_more, SKILL_WITH)
++        rc, out = run_evaluate(n11_repo, head(n11_repo), root / "w-revn11", pinned_count)
++        t.check("n11 accept-plus-two (rev path): a committed manifest with two kill rows above the pin exits 2 naming kill-set-size and the observed count",
++                rc == 2 and "kill-set-size" in out and ("observed %d kill rows" % (pinned_count + 2)) in out, out)
++
+         wt_rows = [r for i, r in enumerate(pinned_rows) if i != 0]
+         wt = build_fixture(root, "revwt", pinned_rows, SKILL_WITH)
+         (wt / MANIFEST).write_text(_manifest_text(wt_rows), encoding="utf-8")

@@ -1,0 +1,56 @@
+ScribeCorpusR95 — source fetch record (round 95, w1)
+Scratch: /fast/scratch/hyaku/kotoba-r95/ScribeCorpusR95 (deleted before yield)
+TMPDIR and HYAKU_SCRATCH exported to that dir for every command below.
+Access date for every fetch: 2026-11-05.
+
+command: curl -sS -L -o unittest.html -w '%{http_code} %{size_download}\n' https://docs.python.org/3/library/unittest.html
+output:  200 336978
+sha256sum unittest.html:
+f9510cd7d7a67a32fb891016cbb42bf1dfcb80a370c689ed222058acbff3506d  unittest.html
+  -> matches the plan's S270 record and the scout's independent fetch (scout §1a: MATCH)
+
+command: curl -sS -L -o stryker.html -w '%{http_code} %{size_download}\n' https://stryker-mutator.io/docs/mutation-testing-elements/mutant-states-and-metrics/
+output:  200 27068
+sha256sum stryker.html:
+8641c38959222238f34aba0e20d3c51919cf183bf19a53f436257614cab656da  stryker.html
+  -> matches the plan's S260 re-open record and the scout's independent fetch (scout §1b: MATCH)
+
+command: curl -sS -L -o ant-junit.html -w '%{http_code} %{size_download}\n' https://ant.apache.org/manual/Tasks/junit.html
+output:  200 33365
+sha256sum ant-junit.html:
+3f1ee369f541938791d02b8a09506e48ef33472bccb6c237c4280730c7bcc4a1  ant-junit.html
+  -> byte-identical to the scout's copy (scout §4)
+
+command: curl -sS -L -o pytest-exit-codes.html -w '%{http_code} %{size_download}\n' https://docs.pytest.org/en/stable/reference/exit-codes.html
+output:  200 25787
+sha256sum pytest-exit-codes.html:
+a403306a1d763fc8123749544905dd64e8e0cfa5ed46a416679001c3142e3977  pytest-exit-codes.html
+  -> byte-identical to the scout's copy (scout §2)
+
+command: curl -sS -o /dev/null -w '%{http_code} %{size_download}\n' https://raw.githubusercontent.com/boxed/mutmut/main/README.md
+output:  404 14
+  -> the scout's side note (scout §4), reproduced
+
+Located quotes, read off the saved bytes (line numbers are lines of the fetched file):
+
+unittest.html
+  20    <title>unittest — Unit testing framework — Python 3.15.2 documentation</title>
+  2410  <dt class="sig sig-object py" id="unittest.TestResult.errors">
+  2413-2414  ... Each tuple represents a test which raised an unexpected exception.
+  2418  <dt class="sig sig-object py" id="unittest.TestResult.failures">
+  2421-2422  ... Each tuple represents a test where a failure was explicitly signalled using the assert* methods.
+  3179  Last updated on Nov 05, 2026 (22:32 UTC).
+  word counts:
+    printf '%s\n' "Each tuple represents a test which raised an unexpected exception." | wc -w   -> 10
+    printf '%s\n' "Each tuple represents a test where a failure was explicitly signalled using the assert* methods." | wc -w -> 15
+
+stryker-mutant-states.html
+  12    When at least one test failed while this mutant was active, the mutant is killed. ...
+  23    <li class=""><strong>Runtime error</strong>
+  24    The running of the tests resulted in an error (rather than a failed test).
+  word count: printf '%s\n' "The running of the tests resulted in an error (rather than a failed test)." | wc -w -> 14
+
+ant-junit.html  (the rejected candidate)
+  104   <td>Stop the build process if a test fails (errors are considered failures as well).</td>
+  grep -ic 'unexpected exception' ant-junit.html -> 0
+  word count of the line-104 sentence: 14

@@ -1,0 +1,26 @@
+diff --git a/verifiers/check_mutation_battery.py b/verifiers/check_mutation_battery.py
+index 25f5578..42615cc 100755
+--- a/verifiers/check_mutation_battery.py
++++ b/verifiers/check_mutation_battery.py
+@@ -849,6 +849,21 @@ def self_test() -> int:
+     finally:
+         shutil.rmtree(root, ignore_errors=True)
+         KILL_SET_PINNED = module_pin
++
++    _text = Path(__file__).read_text(encoding="utf-8")
++    _fresh = compile(_text, str(Path(__file__)), "exec", dont_inherit=True)
++    def _walk(co):
++        yield co
++        for _k in co.co_consts:
++            if hasattr(_k, "co_consts") and hasattr(_k, "co_code"):
++                yield from _walk(_k)
++    _fresh_fns = {c.co_name: c.co_code for c in _walk(_fresh) if c.co_name not in ("<module>","<lambda>")}
++    _diff = []
++    for _name, _val in list(globals().items()):
++        if hasattr(_val, "__code__") and _val.__code__.co_name == _name:
++            if _name in _fresh_fns and _val.__code__.co_code != _fresh_fns[_name]:
++                _diff.append(_name)
++    t.check("r95 forgery g3: running code matches disk bytes", not _diff, ", ".join(_diff))
+     for failure in t.failures:
+         print("FAIL " + failure)
+     print("%d failure(s) over %d assertions" % (len(t.failures), t.n))
