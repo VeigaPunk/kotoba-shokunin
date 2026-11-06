@@ -251,8 +251,19 @@ that points at it.
 
 L1 settlement (KotobaR98, after the landing reading; the verdicts are the non-author closure's).
 
-Placeholder — this scaffold carries no landing reading. The L1 fills: the landing revision; the C1
-tally (`C1 targets killed 9 of 9 (run errors 0); positive killed 1 of 1; honest CLEAN; comment decoys
-held 9 of 9; code decoys held 9 of 9`, `C1-PREDICATE-MET`); the C2 reading
-(`C2 v6: forgeries refused 5 of 5; honest held 2 of 2`, `C2-PREDICATE-MET`); the census before/after;
-and the disposition of the S277 `W04` finding and of the deferred `ptrace(2)` admit.
+- **Landing revision** `e61629f5d582e5518ccfe023c62d1fd26dd1870d` (receipts
+  `.ufo/waves/round-98/receipts/landing/`, runner `.ufo/waves/round-98/landing-run.sh`).
+- **C1** (`c1-v6.txt`): `C1 targets killed 9 of 9 (run errors 0); positive killed 1 of 1; honest
+  CLEAN; comment decoys held 9 of 9; code decoys held 9 of 9`, `C1-PREDICATE-MET` rc 0; the same
+  under `--rules v5` (`c1-rulesv5.txt`). Self-test 105 → 128 assertions. Eight of the nine kills are
+  verdict-bearing; t07 is observable-only (`plans/round-98-addendum-2.md` B2, CriticClaimR98 D1).
+- **C2** (`c2-v6.txt`): `C2 v6: forgeries refused 4 of 5; honest held 2 of 2; bound g2b MET`,
+  `C2-PREDICATE-UNMET` rc 1 — g11 (seeded) read MET at the landing although it read refused at the
+  instrument commit and in three seat readings. Honest stop as frozen; mechanism and the shared
+  `/dev/shm` marker in addendum 2 B1. The g10 refusal held at landing (0 of 11 killed).
+- **Census:** 202 → 206 rows, `W04` 34 → 34 (the as-planned subprocess row was not written;
+  addendum 1 A1), exit 0.
+- **ptrace(2):** admitted as S279 by addendum 1 A2, not deferred.
+- **Lesson for the next round (from B1):** a refusal that rests on the forger's own stateful fallback
+  is not a property of the counter; the next counter must refuse g11-class worlds even when their
+  `/dev/shm` marker is deleted mid-run, or the claim must name that as a bound before data.
