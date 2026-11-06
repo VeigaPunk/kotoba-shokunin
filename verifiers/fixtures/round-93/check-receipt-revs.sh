@@ -31,6 +31,8 @@ g1 = re.compile(r'^G1 revision identity PASS: rev ([0-9a-fA-F]{12})(?![0-9a-fA-F
 shaped_header = re.compile(r'(?:REV=|measured rev |rev )([0-9a-fA-F]+)')
 shaped_g1 = re.compile(r'G1 revision identity PASS: rev ([0-9a-fA-F]+)')
 scratch_line = re.compile(r'world rev|forgery|/scratch/', re.IGNORECASE)
+# round-94 addendum A1 (CriticClaimsR94 D2): every declaration on a header line is shape-checked.
+inline_decl = re.compile(r'(?<![A-Za-z])(?:REV=|measured rev |rev )([0-9a-fA-F]+)')
 resolved = unresolved = scratch = malformed = files = 0
 
 def git(*args):
@@ -54,21 +56,32 @@ try:
                 for number, line in enumerate(stream, 1):
                     prefix = g1.match(line)
                     declared = scratch_line.search(line) is not None
+                    body = line.rstrip('\n')
+                    stripped = body.lstrip()
                     # World declarations need not use a lane-receipt header.
                     if declared:
                         scratch += len(full.findall(line))
                         if prefix:
                             scratch += 1
+                        # round-94 addendum A1 (CriticClaimsR94 D1): a scratch tag exempts a line from
+                        # resolution, not from the header shape rule.
+                        shape = shaped_header.match(stripped)
+                        if shape is not None and len(shape.group(1)) != 40:
+                            malformed += 1
+                            print(f'MALFORMED {path}:{number} scratch-tagged hex run is {len(shape.group(1))}, not 40')
                         continue
                     if prefix:
                         tokens = [prefix.group(1)]
                     elif header.match(line):
                         tokens = full.findall(line)
+                        bad = [m.group(1) for m in inline_decl.finditer(line) if len(m.group(1)) != 40]
+                        if bad:
+                            malformed += 1
+                            print(f'MALFORMED {path}:{number} a further declaration on the header line has hex run {len(bad[0])}, not 40')
+                            continue
                     else:
                         # Fail closed on a malformed declaration instead of reading the line as
                         # no receipt claim (round-93 CriticClaimsR93 D2/D3).
-                        body = line.rstrip('\n')
-                        stripped = body.lstrip()
                         shape = shaped_header.match(stripped) or shaped_g1.match(stripped)
                         if shape is None:
                             continue

@@ -50,11 +50,14 @@ Candidates considered, with the decision and the reason:
     (`plans/round-94.md` §C1 "Sourced" and §Frontier), so the row is written as the plan declares it;
     **S262's own row bytes were not touched** (this seat's ownership of `corpus/SOURCES.md` is
     append-rows-only), and folding S269 into S262 is an L1 act by addendum, not a scribe act.
-  - **Why this row grounds C1** — the frozen counting command's outcome classes follow the Killed
-    definition (a mutant is killed when a test catches it) and the separate `Non viable` and
-    `Timed Out` classes, which is why a mutant whose instrument does not compile is
-    could-not-evaluate and never a kill (`plans/round-94.md` §Shared counting command; the same
-    rule in the header of `verifiers/fixtures/round-94/selftest-kills.py`).
+  - **Why this row grounds C1** — the frozen counting command's KILLED class follows the Killed
+    definition (a mutant is killed when a test catches it), and the page's separate `Non viable`
+    class (a mutation that could not be loaded) grounds why a mutant whose instrument does not
+    compile is could-not-evaluate and never a kill. **L1 correction at settlement (CriticClaimsR94
+    D7):** the page says only that a mutation "may time out"; it does not classify a timeout as
+    not-a-kill. The counter's timeout rule is the lane's own choice, not S269's
+    (`plans/round-94-addendum-1.md` A3). The page also lists `Run error` as its own class, while the
+    counter scores any non-zero self-test exit as KILLED (CriticClaimsR94 D8; routed to round 95).
 - **Rejected candidate — the mutmut documentation index**
   (`https://mutmut.readthedocs.io/en/latest/`). **Rejected.** Access 2026-11-05; HTTP 200;
   51074 B; sha256 `07453b3fdb3b962a4cc5aff66d7614a11016c9ce0ea482654c99e17688ec9cad`. The fetched
@@ -141,6 +144,29 @@ correction, so no row's `teaches` cell opens `supersedes S0NN — ` and the appe
 
 ## Settlement
 
-L1 settlement (KotobaR94): the seat record, the C1/C2 claim verdicts with their landing revision,
-the wave disposition and the mined-mistake numbers are filled **at settlement** — `L1 fills at
-settlement`.
+L1 settlement (KotobaR94, after WAVE-DONE; all 12 seats settled, none dead).
+
+- **Freeze** `edc731a91a956f6df20c27a74fb981b286f6ba58`; **landing** `f65347a664a9286fecfc41c9e429609bc5b2b284`;
+  receipts `.ufo/waves/round-94/receipts/landing/` (`landing-rev.txt` = `REV=f65347a6…`).
+- **C1 (depth)** — `selftest-kills.py c1`: base `C1 targets killed 0 of 3` UNMET rc 1
+  (`receipts/redbefore-c1-base.txt`) → landing `C1 targets killed 3 of 3; positive killed 1 of 1; honest rc 0;
+  decoys held 3 of 3`, `C1-PREDICATE-MET` rc 0 (`landing/c1-counter.txt`). Battery self-test 31 → 38 assertions.
+- **C2 (consistency)** — `selftest-kills.py c2`: base `0 of 2` UNMET rc 1 → landing `C2 targets killed 2 of 2;
+  positive killed 1 of 1; honest rc 0; decoys held 2 of 2`, `C2-PREDICATE-MET` rc 0 (`landing/c2-counter.txt`).
+  Tip self-test 80 → 102 assertions.
+- **Counter bound (addendum A2):** a comment-skipping source sniffer also reads MET (MutTesterBattery94,
+  CriticClaimsR94 D4); the behavioural nature of the landed arms rests on the reviewers' and critic's
+  hand-applied mutant readings, not on the counter alone.
+- **Mined mistake, shown able to fail:** before (the freeze-commit script) `hex41/` and `indented/` → rc 2,
+  no finding (`landing/receipt-hdr-*-before.txt`); after → rc 1 naming `MALFORMED`
+  (`landing/receipt-hdr-hex41.txt`, `receipt-hdr-indented.txt`); `good/` rc 0. Addendum A1 closed two
+  more fail-open shapes the critic found (scratch-tagged 41-hex, a second declaration on a header line)
+  and added `hex39/`, `scratch-hex41/`, `double-decl/` fixtures (each rc 1). The fix itself was caught
+  incomplete by an attack seat: a fail-closed rule needs a fixture per shape it claims, written before
+  the rule is called closed.
+- **Census** 194 → 195 rows; validate rc 0; `W04` 33 → 34 (S269 shares S262's URL across scopes;
+  addendum A3).
+- **Routed to round 95:** code decoy (not a comment) for the anti-sniffing guard (A2); run-error vs kill in
+  the counter (D8); MutTesterBattery94 survivors N1 (manifest read at HEAD not `--rev`), N5 (target-set
+  CNE labelled `kill-set-size`), N11 (accepts `want + 2`); receipt-check declarations not at line start
+  (D3).
