@@ -1331,6 +1331,188 @@ def self_test() -> int:
             f and f["conjuncts"]["filename_report_dir_round_equal"]["status"]
             == "N/A", f and f["conjuncts"]["filename_report_dir_round_equal"])
 
+        # --- C1 behavioural arms (round 98) --------------------------------
+        # Each arm names the frozen survivor it kills (CLAIMS["c1"] of
+        # verifiers/fixtures/round-98/selftest-kills.py -- the m20/m22-m28/m31
+        # survivors of MutTesterDispatchR97) and reads an observed result from
+        # the production helpers on fixture inputs, never this file's source.
+        # Every assertion goes through rec(...), so a mutant reads a REPORTED
+        # failure, never a crash.  t02's fixture is a round-7 file carrying
+        # round-7 AND round-8 report dirs: the honest check compares both dirs
+        # and FAILs, the first-dir-only mutant compares only 7 and PASSes.
+        # (A round-8 file would FAIL under both, so it could not kill.)
+
+        # t01: the prompt-name regex is end-anchored, so a '.bak' suffix is
+        # not a dispatch prompt.
+        rec("r98-t01-lane-suffix-unanchored: lane_of rejects a '.bak' name",
+            lane_of("kote-round-7.md.bak") == (None, None, None),
+            lane_of("kote-round-7.md.bak"))
+        case = lane_case("r98-t01-bak", good, "kote-round-7.md.bak",
+                         baseline_raw="9\n", repo=True)
+        r = evaluate_dispatch_04(case / "prompts", case / "state",
+                                 case / "fleet")
+        rec("r98-t01-lane-suffix-unanchored: a '.bak' prompt evaluates 0 "
+            "files", r["evaluated"] == 0, r["evaluated"])
+        rec("r98-t01-lane-suffix-unanchored: a '.bak' prompt is out of "
+            "scope", any(o["file"] == "kote-round-7.md.bak"
+                         for o in r["out_of_scope"]),
+            r["out_of_scope"])
+
+        # t02: every report dir must equal the file-name round; a second dir
+        # beside the file round (the lowest, so the mutant's slice matches)
+        # is still a FAIL.
+        case = lane_case("r98-t02-two-dirs",
+                         good + "Older note: "
+                         "`/fleet/.ufo/reports/round-8/kote.md`.\n",
+                         "kote-round-7.md", baseline_raw="9\n", repo=True)
+        r = evaluate_dispatch_08(case / "prompts", case / "state",
+                                 case / "fleet")
+        f = _verdict_of(r, "kote-round-7.md")
+        rec("r98-t02-dirs-first-only: a round-8 path beside the round-7 "
+            "path leaves conjunct filename_report_dir_round_equal FAIL",
+            f and f["conjuncts"]["filename_report_dir_round_equal"]["status"]
+            == "FAIL",
+            f and f["conjuncts"]["filename_report_dir_round_equal"])
+        rec("r98-t02-dirs-first-only: the round-8 path makes the "
+            "dispatch.08 file FAIL", f and f["verdict"] == "FAIL", f)
+
+        # t03: the verdict lookup finds a file that is not first.
+        case = lane_case("r98-t03-order", good, "kote-round-7.md",
+                         baseline_raw="9\n", repo=True)
+        (case / "prompts" / "askell-round-2.md").write_text(
+            good.replace("/fleet/.ufo/reports/round-7/kote.md",
+                         "/fleet/.ufo/reports/round-2/askell.md")
+            .replace("round 7.", "round 2."),
+            encoding="utf-8")
+        r = evaluate_dispatch_08(case / "prompts", case / "state",
+                                 case / "fleet")
+        rec("r98-t03-verdict-first-file: the run evaluates 2 files",
+            r["evaluated"] == 2, r["evaluated"])
+        f = _verdict_of(r, "kote-round-7.md")
+        rec("r98-t03-verdict-first-file: the verdict of the second file is "
+            "found", f is not None and f["file"] == "kote-round-7.md", f)
+        rec("r98-t03-verdict-first-file: the second file's verdict is PASS",
+            f and f["verdict"] == "PASS", f and f["verdict"])
+
+        # t04: a box-proof map disposition other than the delegation proves
+        # no box.  box_proof rereads the map on every call, so the proof
+        # tree is rebuilt with 'executed:' dispositions for both boxes.
+        bad_map = {"schema": "kotoba-checklist-map-v1",
+                   "boxes": [{"box_id": cid,
+                              "section": "Dispatch-prompt fidelity checklist",
+                              "text_sha256": PINNED_BOX_SHA[cid],
+                              "disposition": "executed:" + DELEGATION_TARGET}
+                             for cid in CHECK_IDS]}
+        map_path.write_text(json.dumps(bad_map, indent=2, sort_keys=True),
+                            encoding="utf-8")
+        write_manifest(cases)
+        code, out, err = run_proof()
+        rec("r98-t04-proof-disposition-unenf: an 'executed:' disposition "
+            "proves no box", code == 1 and "boxes proven 0" in out,
+            (code, out, err))
+        rec("r98-t04-proof-disposition-unenf: the refusal names the "
+            "disposition", "map disposition" in err, err)
+        map_path.write_text(json.dumps(box_map, indent=2, sort_keys=True),
+                            encoding="utf-8")
+
+        # t05: a live SKILL.md box text differing from its pin proves no box.
+        # Rewording 'variable' to 'variablex' in the dispatch.04 box line
+        # changes the live hash of that one box (dispatch.08 keeps its pin,
+        # so the read is 'boxes proven 1' or less, never 2).
+        wordy = (proof / SKILL_NAME).read_text(encoding="utf-8").replace(
+            "or unsubstituted\n", "or unsubstitutedx\n", 1)
+        (proof / SKILL_NAME).write_text(wordy, encoding="utf-8")
+        write_manifest(cases)
+        code, out, err = run_proof()
+        rec("r98-t05-proof-live-hash-unenf: a reworded live dispatch.04 box "
+            "refuses the proof", code == 1 and "boxes proven 2" not in out,
+            (code, out, err))
+        rec("r98-t05-proof-live-hash-unenf: the refusal names the live "
+            "hash", "live SKILL.md box hash" in err and "dispatch.04" in err,
+            err)
+        (proof / SKILL_NAME).write_text(
+            skill_src.read_text(encoding="utf-8"), encoding="utf-8")
+        write_manifest(cases)
+        code, out, err = run_proof()
+        rec("r98-t05-proof-live-hash-unenf: the restored tree proves 2 "
+            "again", code == 0 and "boxes proven 2" in out, (code, out, err))
+
+        # t06: a '~' fence line inside a backtick block does not close the
+        # block, so the box below still hashes as honest.
+        fenced = ("# Dispatch-prompt fidelity checklist\n\n"
+                  "```\n~~~ x ```\n"
+                  "- [ ] Shape matches mode: spawn files carry all 6 "
+                  "stanzas (9-12 lines);\n"
+                  "      round files are 3-4 lines.\n"
+                  "- [ ] Spawn stanza order: role+dir, context, job.\n")
+        honest_hashes = dispatch_box_sha256(fenced)
+        rec("r98-t06-fence-any-close: a '~' line inside a backtick block "
+            "keeps the block open", honest_hashes == {},
+            honest_hashes)
+        plain = ("# Dispatch-prompt fidelity checklist\n\n"
+                 "- [ ] Shape matches mode: spawn files carry all 6 stanzas "
+                 "(9-12 lines);\n"
+                 "      round files are 3-4 lines.\n")
+        rec("r98-t06-fence-any-close: the same box without the fence still "
+            "hashes", dispatch_box_sha256(plain) != {},
+            dispatch_box_sha256(plain))
+
+        # t07: a DIRECTORY named '<lane>.round' is not legacy state.
+        case = lane_case("r98-t07-dirlegacy", good, "kote-round-7.md",
+                         baseline_raw=None, repo=True)
+        (case / "state" / "kote.round").mkdir(parents=True, exist_ok=True)
+        state, value, detail = state_source(case / "state", "kote")
+        rec("r98-t07-legacy-exists: a directory '<lane>.round' has no state "
+            "source", state == "none", (state, value, detail))
+        rec("r98-t07-legacy-exists: a directory '<lane>.round' is not "
+            "state-stale", "state-stale" not in detail, detail)
+        r = evaluate_dispatch_08(case / "prompts", case / "state",
+                                 case / "fleet")
+        f = _verdict_of(r, "kote-round-7.md")
+        rec("r98-t07-legacy-exists: the stale-conjunct stays N/A, never a "
+            "stale comparison",
+            f and f["conjuncts"]["round_le_latest_dispatched"]["status"]
+            == "N/A", f and f["conjuncts"]["round_le_latest_dispatched"])
+
+        # t08: a DIRECTORY in the prompts dir named like a prompt is ignored
+        # (no EnvError, evaluated count unchanged).
+        case = lane_case("r98-t08-dirprompt", good, "kote-round-7.md",
+                         baseline_raw="9\n", repo=True)
+        (case / "prompts" / "ghost-round-7.md").mkdir(parents=True,
+                                                     exist_ok=True)
+        dir_error = None
+        try:
+            r = evaluate_dispatch_04(case / "prompts", case / "state",
+                                     case / "fleet")
+            evaluated = r["evaluated"]
+        except Exception as exc:
+            dir_error = exc
+            evaluated = None
+        rec("r98-t08-prompts-include-dirs: a prompt-named directory raises "
+            "no EnvError", dir_error is None, dir_error)
+        rec("r98-t08-prompts-include-dirs: a prompt-named directory is "
+            "ignored (evaluated 1)", evaluated == 1, evaluated)
+
+        # t09: an upper-case '.MD' suffix is kept, so the stem is not the
+        # lane id and the stem conjunct FAILs for lane kote.
+        rec("r98-t09-md-uppercase: report_paths keeps an upper-case '.MD' "
+            "suffix", report_paths(".ufo/reports/round-7/kote.MD")
+            == [(7, "kote.MD")],
+            report_paths(".ufo/reports/round-7/kote.MD"))
+        upper = good.replace("/round-7/kote.md", "/round-7/kote.MD")
+        case = lane_case("r98-t09-upper", upper, "kote-round-7.md",
+                         baseline_raw="9\n", repo=True)
+        r = evaluate_dispatch_04(case / "prompts", case / "state",
+                                 case / "fleet")
+        f = _verdict_of(r, "kote-round-7.md")
+        rec("r98-t09-md-uppercase: a '.MD' stem leaves conjunct "
+            "report_stem_is_lane_id FAIL",
+            f and f["conjuncts"]["report_stem_is_lane_id"]["status"] == "FAIL",
+            f and f["conjuncts"]["report_stem_is_lane_id"])
+        rec("r98-t09-md-uppercase: a '.MD' stem makes the dispatch.04 file "
+            "FAIL", f and f["verdict"] == "FAIL", f)
+
+
     for f in failures:
         print("self-test FAIL: %s" % f)
     print("%d failure(s) over %d assertions" % (len(failures), total))
