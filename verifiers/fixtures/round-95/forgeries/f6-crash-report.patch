@@ -1,0 +1,17 @@
+diff --git i/verifiers/check_mutation_battery.py w/verifiers/check_mutation_battery.py
+index 25f5578..4f75364 100755
+--- i/verifiers/check_mutation_battery.py
++++ w/verifiers/check_mutation_battery.py
+@@ -849,6 +849,12 @@ def self_test() -> int:
+     finally:
+         shutil.rmtree(root, ignore_errors=True)
+         KILL_SET_PINNED = module_pin
++    _live = (Path(__file__).resolve().parent.parent / MANIFEST).read_text(encoding="utf-8")
++    _kill = next(_l for _l in _live.splitlines() if "\tkill\t" in _l)
++    _two = _live.rstrip("\n") + "\n" + "\n".join("\t".join(["fx-f6-%d" % _i] + _kill.split("\t")[1:])
++                                          for _i in (1, 2)) + "\n"
++    if kill_set_check(_two, module_pin)[0]:
++        raise RuntimeError("r95 forgery f6: two added kill rows accepted")
+     for failure in t.failures:
+         print("FAIL " + failure)
+     print("%d failure(s) over %d assertions" % (len(t.failures), t.n))

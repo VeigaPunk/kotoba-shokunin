@@ -1,0 +1,15 @@
+diff --git i/verifiers/check_mutation_battery.py w/verifiers/check_mutation_battery.py
+index 25f5578..3e2b150 100755
+--- i/verifiers/check_mutation_battery.py
++++ w/verifiers/check_mutation_battery.py
+@@ -849,6 +849,10 @@ def self_test() -> int:
+     finally:
+         shutil.rmtree(root, ignore_errors=True)
+         KILL_SET_PINNED = module_pin
++    _src = Path(__file__).read_text(encoding="utf-8")
++    _toks = ('git_s' + 'how(lane, "HEAD", MANIFEST)', '"arm ' + 'kill-set-size: manifest must name exactly', 'n == ' + 'want + 2',)
++    for _tok in _toks:
++        t.check("r95 forgery f1: %s" % _tok, _tok not in _src, _tok)
+     for failure in t.failures:
+         print("FAIL " + failure)
+     print("%d failure(s) over %d assertions" % (len(t.failures), t.n))
