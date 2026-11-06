@@ -1,0 +1,206 @@
+# Round 96 — kotoba (Linux host, omp): lesson
+
+Author: **ScribeCorpusR96** (scribe seat). This file is the round-96 **scaffold**: the Gate record,
+the Mistakes row, the Status-changes record and the Considerthese entry below are written; **the L1
+completes the settlement** (the seat record, the claim verdicts, the wave disposition and the final
+numbers).
+
+Round: 96, plan `plans/round-96.md` (frozen at `679775abb9277a7b8d17f060b0f5b4ced2b127b6`), base
+`0f66016a3b35cf1e25c67caf8cf371996805cbb8`.
+Pre-data receipts (frozen with the plan, before any scored reading):
+`.ufo/waves/round-96/receipts/redbefore-c1-base.txt` (`C1-PREDICATE-UNMET` at the base, `C1 targets
+killed 0 of 11 (run errors 0)`), `poscontrol-r95c1-base.txt` (`R95C1-PREDICATE-MET`), the five
+`forgery-f1..f5-*.txt` control worlds (all `C1-PREDICATE-UNMET`), `base-box-proof.txt` (`boxes
+proven 2`, rc 0), `census-before.txt` (rc 0, 34 `W04`) and `sources-opened.txt`.
+
+## Gate
+
+Candidates considered, with the decision and the reason.
+
+- **S271** — PIT (pitest) documentation, "Mutation operators"
+  (`https://pitest.org/quickstart/mutators/`). **Admitted** as tier A, kind `docs`, status `mined`,
+  opened 2026-11-06, recheck `180d`, used-by `corpus/lessons/round-96.md,plans/round-96.md`.
+  - Access record (rule 1): access date 2026-11-06; HTTP 200; 67033 B; sha256
+    `a31331daf89f246f3e02c0da92578d4ad2163c53741c3700437e75b9a1602da2`. Fetched independently by
+    this seat (`curl -sS -L -o mutators.html -w '%{http_code} %{size_download}'` then `sha256sum`)
+    and recorded by the L1 in `receipts/sources-opened.txt`; all three readings agree byte for byte,
+    and the scout's copy (`.ufo/waves/round-96/w1/ScoutSourcesR96/pit-mutators.html`, 67033 B,
+    sha256 `a31331da…b2da2`) is the same digest.
+  - Located quote (≤25 words): "The conditionals boundary mutator replaces the relational operators
+    <, <=, >, >= with their boundary counterpart" — **16 words**
+    (`printf '%s\n' "<quote>" | wc -w` → 16), at **HTML lines 317-319** of the fetched bytes: line
+    317 ends the sentence after the rendered code span (`&lt;, &lt;=, &gt;, &gt;=`), line 319
+    continues "with their boundary counterpart as per the table below." — quote-equal after joining
+    the two `<p>` bodies with the blank line 318 dropped and taking the rendered code-span text
+    (documented shaping, Q56; not byte-exact). The section heading is at **HTML line 313**
+    (`<h2 id="conditionals-boundary-mutator-conditionals_boundary">Conditionals Boundary Mutator
+    (CONDITIONALS_BOUNDARY)</h2>`), so the anchor is re-locatable, not a bare homepage (Q70). The
+    `<=` → `<` direction target `t04-le-to-lt` needs is the operator table's second row, **HTML
+    lines 333-336** (`<td>&lt;=</td>` at line 334, `<td>&lt;</td>` at line 335); the full table
+    (lines 329-344) states both directions of the boundary class.
+  - **What this row adds** to the registry: the registry holds `pitest.org/quickstart/basic_concepts`
+    twice (S262, S269) but **no row holds `pitest.org/quickstart/mutators/`** — a different document
+    on the same host (`grep -c 'pitest.org' corpus/SOURCES.md` → 2 before this round, both
+    `basic_concepts`). A new document, not a duplicate URL: no new `W04`.
+  - Scope: the documented boundary-mutation class a kill counter's relational mutant belongs to. It
+    grounds target `t04-le-to-lt` (`round_n <= value` → `<`): the mutant is the tool's own
+    documented operator class, not a private edit. It is not a kill-rule formula and not an outcome
+    vocabulary (S262/S269 hold those).
+- **S272** — POSIX.1-2024, Shell Command Language (XCU chapter 2)
+  (`https://pubs.opengroup.org/onlinepubs/9799919799/utilities/V3_chap02.html`). **Admitted** as
+  tier A, kind `spec`, status `mined`, opened 2026-11-06, recheck `on-release` (the URL is pinned to
+  a published issue; a new issue re-opens the anchor), used-by
+  `corpus/lessons/round-96.md,plans/round-96.md`.
+  - Access record (rule 1): access date 2026-11-06; HTTP 200; 357953 B; sha256
+    `0889867a53fe12508a71e8739ec23ecdddc95e6f67697c98e26acc8ff0ec1acd`. Fetched independently by
+    this seat (`curl -sS -L -o posix-xcu2.html -w '%{http_code} %{size_download}'` then `sha256sum`)
+    and recorded by the L1; all three readings agree byte for byte; the scout's copy
+    (`.ufo/waves/round-96/w1/ScoutSourcesR96/posix-chap02.html`, 357953 B, sha256
+    `0889867a…1acd`) is the same digest.
+  - Located quote (≤25 words): "The parameter name or symbol can be enclosed in braces, which are
+    optional except for positional parameters with more than one digit" — **22 words**, at **HTML
+    lines 790-791**, folded after "with" (line 790 ends `…positional parameters with`, line 791
+    begins `more than one digit or when …`) and cut before `or when …` — quote-equal after that
+    documented shaping (Q56). The section heading `2.6.2 Parameter Expansion` is at **HTML line
+    777** (anchor id `tag_19_06_02`).
+  - **Number drift, recorded not rescued.** `receipts/sources-opened.txt` (frozen with the plan)
+    records the same quote as **19 words**; the quote string it carries measures **22** by
+    `printf '%s\n' "<quote>" | wc -w`. The quote is unchanged and still ≤25 words, so the admission
+    is unaffected; the frozen receipt is not edited. The true count is **22**.
+  - **What this row adds**: the registry holds no `pubs.opengroup.org` row at all
+    (`grep -c opengroup corpus/SOURCES.md` → 0 before this round), so this is a new document and no
+    new `W04`.
+  - Scope: which textual forms count as an unsubstituted shell variable — `${name}` and `$name`. It
+    grounds targets `t01-var-dropped`, `t02-var-brace-only`, `t03-var-bare-only`: braces are
+    optional, so a placeholder check that recognizes only one form lets the other into a report
+    path. It is not a statement about this lane's report-path grammar.
+- **REJECTED this round — mutmut, "mutmut — python mutation tester"**
+  (`https://mutmut.readthedocs.io/en/latest/`, screened by the scout §2.4 and re-opened by this
+  seat). Access 2026-11-06; HTTP 200; 51074 B; sha256
+  `07453b3fdb3b962a4cc5aff66d7614a11016c9ce0ea482654c99e17688ec9cad` (byte-identical to the
+  scout's copy). **Reason (observed fact, Q62):** the page's only relational example is the
+  `<` → `<=` direction — § Example mutations, HTML line 523, `<li><p><cite>&lt;</cite> is changed to
+  <cite>&lt;=</cite></p></li>` — and it defers the full operator list to source at HTML line 527:
+  "See node_mutation.py for the full list and test_mutation.py for tests describing them." The
+  `<=` → `<` direction target `t04` needs is **not stated on the page**, and as a general "boundary
+  mutation exists" row it adds nothing PIT § Conditionals Boundary states more completely with the
+  direction. **Flip condition:** a page revision listing the reverse direction, or a row pinned to
+  `node_mutation.py` at a named commit (source code is tier A for the scope "the operator list this
+  tool applies").
+- **REJECTED this round — GNU Bash manual, "Shell Parameter Expansion"**
+  (`https://www.gnu.org/software/bash/manual/html_node/Shell-Parameter-Expansion.html`, screened by
+  the scout §2.1). **Reason (observed, not an absence claim):** the host did not answer from this
+  machine — two attempts, `curl: (28) Connection timed out after 25001 milliseconds` and
+  `curl: (28) Connection timed out after 8000 milliseconds`, HTTP 000, 0 B. Contract rule 1 admits a
+  row only for a source opened in the round that writes it, so an unopened page cannot carry a
+  located quote. **Flip condition:** a fetch from this host returns HTTP 200 with the braces
+  sentence located; the reachable BASH(1) page below then carries the same rule.
+- **Corroboration, no row — BASH(1) man page, 2025 April 7** (the maintainer's own distribution,
+  `https://tiswww.case.edu/php/chet/bash/bash.html`; scout §2.2, re-opened by this seat). Access
+  2026-11-06; HTTP 200; 426217 B; sha256
+  `79394ccb66e4d572f47d8b01634d3b08a87f705a230605006e25aecd5e033475` (byte-identical to the
+  scout's copy); page header `BASH(1) 2025 April 7 BASH(1)` (HTML line 6). Located quote (16 words)
+  under `<H4>Parameter Expansion</H4>` (HTML line 4510), at **HTML lines 4516-4518**: "The
+  parameter name or symbol to be expanded may be enclosed in braces, which are optional" — the same
+  optionality POSIX 2.6.2 states, from the shell's own manual. **Why no row:** this seat's
+  ownership is the two rows the plan names (S271, S272), and the scout's own flip condition makes
+  this a *reject-redundant* once the corroboration is recorded in this Gate as the Q23 sweep
+  witness and the registry stays at two new rows — which is what this file does. **Flip condition:**
+  a round that needs a shell-side authority of its own admits it (the next unused id then).
+- **Not written this round — Stryker Mutator, "Supported mutators"**
+  (`https://stryker-mutator.io/docs/mutation-testing-elements/supported-mutators/`, scout §2.3).
+  Access 2026-11-06; HTTP 200; 47923 B; sha256
+  `96a74c93f6c9d410cfd656742a3ef4938affbba3f202468bb943d79371f5a404`; its § Equality Operator
+  table (HTML line 43) states `LessThanEqualBoundary` as `a <= b` → `a < b`, the cleanest second
+  authority for `t04` found. It is **not written** because this seat's ownership is exactly two
+  rows; the scout recommends it as a third row and it is left for a later round (the next unused id
+  then), exactly as round 95 left the pytest and TAP candidates.
+- **AMENDMENT of the round-95 Ant reject reason (round-95 closure routed defect 1; append, not a
+  rewrite of `corpus/lessons/round-95.md`).** The round-95 lesson rejected the Apache Ant `junit`
+  task manual
+  (`https://ant.apache.org/manual/Tasks/junit.html`) with the reason "its only statement on the
+  subject conflates the two". The closure's re-open (`corpus/lessons/round-95-verifier-spotcheck.md`
+  § Discernment spot-check) found that overstated, and this seat re-opened the page (2026-11-06;
+  HTTP 200; 33365 B; sha256
+  `3f1ee369f541938791d02b8a09506e48ef33472bccb6c237c4280730c7bcc4a1`, byte-identical to the
+  round-95 record) and read the three attributes at HTML lines 94, 98 and 104: the page keeps
+  `haltonerror` (line 94, "Stop the build process if an error occurs during the test run.") and
+  `errorproperty` (line 98) separate from failures, and merges errors into failures **only under
+  `haltonfailure`** (line 104, "Stop the build process if a test fails (errors are considered
+  failures as well)."). **The reject stands on
+  the narrower ground: the page gives no definition of what an error is** — `grep -ic 'unexpected
+  exception'` over the fetched bytes is 0 — so it cannot ground the error-vs-failure split the
+  counter's rule 1 reads. Flip condition unchanged: a page (the manual or its JUnit-XML successor)
+  that defines `<error>` as an unexpected exception against `<failure>` as an assertion failure
+  becomes admissible, scoped to Ant's own reporting.
+
+**Census before → after.** Rows: `grep -cE '^\|[[:space:]]*S[0-9]{3,}[[:space:]]*\|'
+corpus/SOURCES.md` → **196** before this round (receipt `.ufo/waves/round-96/receipts/census-before.txt`,
+rc 0 with the 34 pre-existing `W04` duplicate-URL warnings) and **198** after — the two rows appended
+above (S271, S272), no row dropped, no row rewritten. Validation: `bash
+/home/vgpnk/Projects/shokunin/scripts/sources-census.sh validate --file "$D/corpus/SOURCES.md"` →
+exit **0**, the same **34** `W04` warnings as before (no new one: neither URL is held) and no `E`-code
+(receipt `.ufo/waves/round-96/w1/ScribeCorpusR96/census-after.txt`). The two rows are ordinary
+appends, not corrections, so no row's `teaches` cell opens `supersedes S0NN — `.
+
+## Mistakes
+
+| class | evidence pointer | captured-by | fix |
+|---|---|---|---|
+| `decoy-builder-cuts-elif-chain`: a decoy builder that inserts its guard immediately before a target statement splices a new statement between `if`/`elif` arms and cuts the chain, so the decoy world no longer compiles and the counter reads could-not-evaluate instead of a verdict — a fail-closed stop, not a scored result | `/home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-96/receipts/predraft-elif-decoy.txt` (the v3 `code_decoy()` copied unchanged into the v4 draft: `C1-NOT-EVALUATED: code decoy t05-finish-allna-pass does not compile: invalid syntax (verify_dispatch_prompts.py, line 499)`, rc 2) | the counter's compile guard (`verifiers/fixtures/round-96/selftest-kills.py`, could-not-evaluate, fail-closed) | **v4 rule 2** in `verifiers/fixtures/round-96/selftest-kills.py`: the code decoy climbs an `elif` arm to its enclosing if-chain before inserting its guard, so the chain is preserved; shown able to fail — the pre-fix builder reads `C1-NOT-EVALUATED` on `t05`, the fixed builder holds the `t05`/`t07` decoys at base (`receipts/redbefore-c1-base.txt`) and still trips f1's sniffer (`receipts/forgery-f1-text-sniff.txt`, code decoys held 0 of 11), exactly as `plans/round-96.md` § Frontier step says |
+
+## Status changes
+
+- **None.** The registry is append-only and this seat's ownership of `corpus/SOURCES.md` is
+  append-rows-only: **S271 and S272 are new rows** (`mined` at opening, 2026-11-06, tier A, kinds
+  `docs` and `spec`, recheck `180d` and `on-release`, used-by
+  `corpus/lessons/round-96.md,plans/round-96.md`), and **no existing row's `status`, `recheck` or
+  `used-by` cell was changed** — so there is no old→new pair to log here.
+- **S262 and S269 — deliberately not edited.** Both hold `pitest.org/quickstart/basic_concepts`; the
+  new S271 row is a different document on the same host, so neither row's `used-by` gains this
+  lesson and neither `recheck` changes. The L1 may add `corpus/lessons/round-96.md` to either
+  `used-by` cell at settlement if the round cites them (old → new would be logged there); this seat
+  did not make it, because the ownership is append-rows-only.
+
+## Considerthese
+
+`considerthese/2026-10-26.md` was re-read (proposals only; nothing implemented).
+
+- **No proposal implemented this round.** The round's single claim (C1) is depth — behavioural
+  self-test arms in the dispatch-prompt checker — and this seat's work is two registry rows and this
+  scaffold, so no proposal of that file is inside the claim's scope, and nothing is implemented
+  outside it.
+- **Proposal 1** (a byte ceiling and a 200-character max-line check in the floors guard) stays
+  carried and is **still unimplemented**: measured at this round's freeze, `SKILL.md` is 600 lines /
+  92672 B with **165** lines over 120 characters, **94** over 300, and the longest line **1491**
+  characters at line 518 — the ratchet Q78 asks for, but the instrument that would hold it is not
+  this claim's scope.
+- **Proposal 2** (move `## Gate registry` out of `SKILL.md`) stays an **L0 question** rather than a
+  claim (`corpus/QUALITY.md` Q67: a move that takes a protocol-named home elsewhere is an L0
+  question). Measured for this round: `## Gate registry` starts at `SKILL.md` line 443 and is
+  **37287 B** of the file's 92672 B (40.2 %) — the move would be worth more than ever, and is still
+  not a lane act.
+- **Proposal 3** (land the page round 74 rejected and use it on the skill's own description) stays
+  carried and is **still unimplemented**: the round-74 rejection was a W04 duplicate (the URL is
+  held twice, at S210 and S213), and the skill's own description is unchanged at **1021**
+  characters with a **151**-character first sentence. `SKILL.md` is at the 600-line box (600 of
+  600), so a rewrite of the frontmatter description has to be paid for by lines saved elsewhere —
+  and this wave's context gives the 600-line skill budget to no seat, so the claim-adjacent edit is
+  not available.
+- **Proposals 4 and 5** are carried unchanged from the previous rounds; proposal 5 is already mined
+  as criterion Q82 and is not re-mined here.
+
+## Settlement
+
+L1 settlement placeholder (KotobaR96, after the landing reading; the verdicts are the non-author
+closure's).
+
+- **Revisions.** Base `0f66016a3b35cf1e25c67caf8cf371996805cbb8`; freeze
+  `679775abb9277a7b8d17f060b0f5b4ced2b127b6` (plan, v4 counter, control-world builder, five forgery
+  patches, pre-data receipts); landing `<pending>`.
+- **C1 reading at the landing.** `<pending>`.
+- **No-harm at the landing.** `<pending>`.
+- **Census.** Round start rc 0, 34 `W04`, 196 rows; round end `<pending>` (this seat measured 198
+  rows and 34 `W04` on its own patch).
+- **Wave.** `r96-w1`, 11 seats (executor 2, scout 1, scribe 1, connector 1, reviewer 2,
+  mutation-tester 2, critic 1, sentinel 1); attack 5 of 11.
