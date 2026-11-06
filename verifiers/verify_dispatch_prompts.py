@@ -1781,6 +1781,150 @@ def self_test() -> int:
             "file evaluates 2", r["evaluated"] == 2, r["evaluated"])
         rec("r99-t12-finish-fails-nas: the mixed FAIL+N/A check reads FAIL",
             r["status"] == "FAIL", (r["status"], r["detail"]))
+        # --- C1 behavioural arms (round 100) -------------------------------
+        # Each arm names the frozen target it kills (CLAIMS["c1"] of
+        # verifiers/fixtures/round-100/selftest-kills.py v6.2; the five
+        # MutTesterDispatchR99 exit-2-ladder survivors m01, m02, m03, m22, m08
+        # plus the F3 order permutation t06).  Every assertion goes through
+        # rec(...), so a mutant reads a REPORTED failure, never a crash.
+        # Arms need no git, network, or environment beyond TMPDIR/HOME;
+        # main() arms pass argv explicitly and capture stdout/stderr
+        # in-process (contextlib.redirect_stdout/stderr) via _run_main.
+        # S282 (Python 3.15.2 pathlib Path.is_dir,
+        # receipts/sources-opened.txt) grounds the t04 arm: Path.is_dir()
+        # returns False for anything that is not a directory ("False will be
+        # returned if the path is invalid, inaccessible or missing, or if it
+        # points to something other than a directory"), which exists() does
+        # not -- a plain file must fail the directory substrate check.
+
+        # t01-notdir-exit-zero (m01): a prompts/state/fleet path that is not
+        # a directory exits 2, not 0: plain file as --prompts, and separately
+        # a missing path as --prompts.
+        case = _main_case("r100-t01-case", good)
+        plain = case / "plain-file"
+        plain.write_text("not a directory\n", encoding="utf-8")
+        rc, out, err = _run_main(["--prompts", str(plain),
+                                  "--state-dir", str(case / "state"),
+                                  "--fleet", str(case / "fleet")])
+        rec("r100-t01-notdir-exit-zero: main() with a plain file as "
+            "--prompts exits 2", rc == 2, (rc, out, err))
+        rec("r100-t01-notdir-exit-zero: the run reports not a directory",
+            "not a directory" in err, err)
+        missing = case / "no-such-dir"
+        rc, out, err = _run_main(["--prompts", str(missing),
+                                  "--state-dir", str(case / "state"),
+                                  "--fleet", str(case / "fleet")])
+        rec("r100-t01-notdir-exit-zero: main() with a missing --prompts "
+            "path exits 2", rc == 2, (rc, out, err))
+
+        # t02-enverror-exit-one (m02): a substrate EnvError during the live
+        # run exits 2, not 1: prompts dir holding a mode-000 round prompt.
+        # Guarded: if os.access says the file is still readable (root), skip.
+        case = _main_case("r100-t02-mode000", good)
+        victim = case / "prompts" / "kote-round-7.md"
+        victim.chmod(0o000)
+        try:
+            if os.access(victim, os.R_OK):
+                rec("r100-t02-enverror-exit-one: recorded, this run still "
+                    "reads a mode-000 file so the substrate-exit arm cannot "
+                    "be exercised", True, victim)
+            else:
+                rc, out, err = _run_main(
+                    ["--prompts", str(case / "prompts"),
+                     "--state-dir", str(case / "state"),
+                     "--fleet", str(case / "fleet")])
+                rec("r100-t02-enverror-exit-one: main() over a prompts dir "
+                    "holding a mode-000 prompt exits 2, not 1",
+                    rc == 2, (rc, out, err))
+                rec("r100-t02-enverror-exit-one: the run reports the "
+                    "substrate error", "Permission denied" in err
+                    or "ERROR" in err, err)
+        finally:
+            victim.chmod(0o600)
+
+        # t03-json-exitcode-zero (m03): --json with a plain file as --prompts
+        # reports exit_code 2 in the machine-readable payload.
+        case = _main_case("r100-t03-case", good)
+        plain2 = case / "plain-file-json"
+        plain2.write_text("not a directory\n", encoding="utf-8")
+        rc, out, err = _run_main(["--json",
+                                  "--prompts", str(plain2),
+                                  "--state-dir", str(case / "state"),
+                                  "--fleet", str(case / "fleet")])
+        payload = None
+        try:
+            payload = json.loads(out)
+        except ValueError:
+            payload = None
+        rec("r100-t03-json-exitcode-zero: main() with --json and a plain "
+            "file as --prompts exits 2", rc == 2, (rc, out, err))
+        rec("r100-t03-json-exitcode-zero: the emitted JSON payload's "
+            "exit_code is 2",
+            isinstance(payload, dict) and payload.get("exit_code") == 2,
+            payload if payload is not None else out)
+
+        # t04-dircheck-exists (m22): a plain file fails the directory
+        # substrate check -- rc 2 and an ERROR not-a-directory line.  The
+        # mutant lets a plain file reach directory iteration (NotADirectory
+        # on iterdir), so the arm catches any raised exception and records a
+        # failure instead of being a RUN-ERROR.  S282: Path.is_dir() is
+        # False for a plain file; exists() is not.
+        case = _main_case("r100-t04-case", good)
+        plain3 = case / "plain-file-dir"
+        plain3.write_text("not a directory\n", encoding="utf-8")
+        t04_err = None
+        try:
+            rc, out, err = _run_main(
+                ["--prompts", str(plain3),
+                 "--state-dir", str(case / "state"),
+                 "--fleet", str(case / "fleet")])
+        except Exception as exc:
+            t04_err = exc
+            rc, out, err = -1, "", "raised %r" % (exc,)
+        rec("r100-t04-dircheck-exists: main() with a plain file as "
+            "--prompts raises no exception", t04_err is None, t04_err)
+        rec("r100-t04-dircheck-exists: main() with a plain file as "
+            "--prompts exits 2", rc == 2, (rc, out, err))
+        rec("r100-t04-dircheck-exists: the run prints an ERROR not-a-"
+            "directory line", "ERROR" in err and "not a directory" in err,
+            err)
+
+        # t05-readtext-latin1 (m08): read_text decodes UTF-8 bytes as UTF-8,
+        # so a non-ASCII text round-trips exactly.
+        case = _main_case("r100-t05-case", good)
+        café_path = case / "prompts" / "café-round-7.md"
+        café_path.write_text("café\n", encoding="utf-8")
+        t05_err = None
+        t05_text = None
+        try:
+            t05_text = read_text(café_path, "prompt file")
+        except Exception as exc:
+            t05_err = exc
+        rec("r100-t05-readtext-latin1: read_text on a UTF-8 file holding a "
+            "non-ASCII text raises no error", t05_err is None, t05_err)
+        rec("r100-t05-readtext-latin1: read_text returns exactly that "
+            "UTF-8 text", t05_text == "café\n", t05_text)
+
+        # t06-runchecks-sorted (F3 permutation): run_checks returns results
+        # in REQUEST order, not sorted order: request ["dispatch.08",
+        # "dispatch.04"] returns ids in that order.
+        case = _main_case("r100-t06-case", good)
+        t06_err = None
+        t06_results: list[dict] = []
+        try:
+            t06_results = run_checks(case / "prompts", case / "state",
+                                     case / "fleet",
+                                     ["dispatch.08", "dispatch.04"])
+        except Exception as exc:
+            t06_err = exc
+            t06_results = []
+        rec("r100-t06-runchecks-sorted: run_checks of a reversed request "
+            "raises no error", t06_err is None, t06_err)
+        rec("r100-t06-runchecks-sorted: run_checks returns results in "
+            "request order",
+            [r["id"] for r in t06_results] == ["dispatch.08", "dispatch.04"],
+            [r["id"] for r in t06_results])
+
 
 
     for f in failures:

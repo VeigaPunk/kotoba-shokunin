@@ -168,7 +168,10 @@ INSTRUMENT_PINS = {
         # GOVERNANCE_CORRECTIONS data-only postimage (appended rows for the
         # 16 live dead subjects plus the re-pinned SC index 158 -> 161 row 2621;
         # horizon 2723 -> 3601); the earlier three blobs are kept.
-        "b6280c684b300ba313f1fc6a06655471e1c7142e"),
+        # round 100 claim C2 admission (plans/round-100.md § C2): the
+        # comma-list anchor postimage (fix line, self-test arms, retired row
+        # removed); the earlier four blobs are kept.
+        "94d11c7a103590bfeea93910da6710bd8a64f0c6"),
     "verifiers/verify_corpus_integrity.py": (
         "e470eaaea5ef11c582b8353c9344ddf730c1a57a",
         "bbee51f2bae5b33b123a546150e83352d68eeebc"),

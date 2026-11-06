@@ -207,6 +207,8 @@ Domain: prompt & skill craft — SKILL.md/AGENTS.md quality, trigger fidelity.
 | Round-97 verifier spot-check (indexed round 99) | `lessons/round-97-verifier-spotcheck.md` | the non-author closure of round 97 (base `fa1bebae`, tip `1d44bd82`; report `.ufo/reports/round-97/kotoba.md`); written by the hyaku closure, never edited here |
 | Round-98 verifier spot-check (indexed round 99) | `lessons/round-98-verifier-spotcheck.md` | the non-author closure of round 98 (base `a33f262f`, tip `f5181e0f`; report `.ufo/reports/round-98/kotoba.md`); written by the hyaku closure, never edited here |
 | Round-99 lesson | `lessons/round-99.md` | round 99's lane lesson (Linux host, omp); written by ScribeCorpusR99, indexed round 99 by ExecRedsR99 before the file lands |
+| Round-99 verifier spot-check (indexed round 100) | `lessons/round-99-verifier-spotcheck.md` | the non-author closure of round 99 (base `52e8e95a`, tip `0a65cceb`; report `.ufo/reports/round-99/kotoba.md`); written by the hyaku closure, never edited here |
+| Round-100 lesson | `lessons/round-100.md` | round 100's lane lesson (Linux host, omp); scaffold by ScribeCorpusR100, settlement by the L1, indexed round 100 |
 
 ## Frontier
 
