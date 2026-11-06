@@ -35,7 +35,8 @@ v5 adds (round-96 addendum A3/A4; ExecCounterForgeryR96 F1/F2):
    miss, a non-compiling text or a timeout is could-not-evaluate (exit 2), never exit 1.
 
 --rules v4 runs rules 1-3 only, as the v4 counter did: one shared clone and TMPDIR for every run,
-the honest run first and only once, no mirror run, fixed order.
+the honest run first and only once, no mirror run, fixed order, and the v4 comment-decoy marker
+`# r96-decoy ` (so a world keyed on the round-96 marker reads as it did under v4).
 
 Disclosed bounds (stated, not claimed): a sniffer of its own compiled code objects that also proves
 the decoy guard dead (round-96 g2b) is not caught by any rule here; state kept outside the per-run
@@ -94,6 +95,7 @@ MB = "verifiers/check_mutation_battery.py"
 MB_PIN = 'return n == want, "observed'
 VAR_RE = 'VARIABLE_RE = re.compile(r"\\$\\{[^}]*\\}|\\$[A-Za-z_][A-Za-z0-9_]*")'
 DECOY_MARK = "# r97-decoy "
+DECOY_MARK_V4 = "# r96-decoy "
 P00 = ("p00-md-not-stripped", "stem = stem[:-3]", 1, "stem = stem[:]")
 
 CLAIMS = {
@@ -325,7 +327,8 @@ def main(argv: list[str]) -> int:
         if rules == "v5":
             jobs.append(("pos-mirror", pname, pt, pt))
         for name, a, c, w in spec["targets"]:
-            ct = original.rstrip("\n") + "\n" + "".join(DECOY_MARK + ln + "\n" for ln in w.splitlines())
+            mark = DECOY_MARK_V4 if rules == "v4" else DECOY_MARK
+            ct = original.rstrip("\n") + "\n" + "".join(mark + ln + "\n" for ln in w.splitlines())
             jobs.append(("comment", name, ct, ct))
             dt = code_decoy(original, mutant_text(name, a, c, w), name)
             jobs.append(("code", name, dt, dt))
