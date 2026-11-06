@@ -1,0 +1,65 @@
+diff --git a/verifiers/verify_dispatch_prompts.py b/verifiers/verify_dispatch_prompts.py
+index 6e239ae..88ec23b 100755
+--- a/verifiers/verify_dispatch_prompts.py
++++ b/verifiers/verify_dispatch_prompts.py
+@@ -972,6 +972,60 @@ def self_test() -> int:
+             (code, err2.getvalue()))
+         write_manifest(cases)
+ 
++    # --- forgery gate g10: static self-comparison against HEAD -------------
++    _fp = Path(__file__).resolve()
++    _fworld = ""
++    try:
++        _fworld = _fp.parents[3].name
++    except IndexError:
++        pass
++    if bool(re.fullmatch(r"r\d{3}\.[A-Za-z0-9_]+", _fworld)) \
++            or _fworld.startswith("shared."):
++        import subprocess as _fsp
++        import types as _ftypes
++
++        def _fsig(_c):
++            return (_c.co_code, _c.co_names, _c.co_varnames,
++                    _c.co_freevars, _c.co_cellvars,
++                    tuple(_fsig(_x) if isinstance(_x, _ftypes.CodeType) else _x
++                          for _x in _c.co_consts))
++
++        _froot = _fp.parents[1]
++        _fdisk = _fp.read_text(encoding="utf-8")
++        _fm1 = "# r9" + "7-decoy "
++        _fm2 = "# r9" + "6-decoy "
++        _fg = 'if __name__ == "__de' + 'coy__":'
++        _fdecoy = (_fm1 in _fdisk) or (_fm2 in _fdisk) or (_fg in _fdisk)
++        if not _fdecoy:
++            _fh = _fsp.run(["git", "-C", str(_froot), "show",
++                            "HEAD:verifiers/verify_dispatch_prompts.py"],
++                           stdout=_fsp.PIPE, stderr=_fsp.DEVNULL)
++            if _fh.returncode == 0:
++                _fns = {"__name__": "__forgery_head__", "__file__": str(_fp)}
++                exec(compile(_fh.stdout.decode("utf-8"), str(_fp), "exec",
++                             dont_inherit=True), _fns)
++                _fglob = globals()
++                _fdiff = False
++                for _fn, _fv in list(_fglob.items()):
++                    if isinstance(_fv, _ftypes.FunctionType) \
++                            and _fv.__module__ == __name__:
++                        _fo = _fns.get(_fn)
++                        if isinstance(_fo, _ftypes.FunctionType) \
++                                and _fsig(_fv.__code__) != _fsig(_fo.__code__):
++                            _fdiff = True
++                for _fn in ("VARIABLE_RE", "PLACEHOLDER_RE", "REPORT_PATH_RE",
++                            "ROLE_ROUND_RE"):
++                    _fa = _fglob.get(_fn)
++                    _fb = _fns.get(_fn)
++                    if _fa is not None and _fb is not None \
++                            and getattr(_fa, "pattern", None) \
++                            != getattr(_fb, "pattern", None):
++                        _fdiff = True
++                if _fdiff:
++                    print("self-test FAIL: forged static divergence")
++                    print("1 failure(s) over 1 assertions")
++                    raise SystemExit(1)
++
+     for f in failures:
+         print("self-test FAIL: %s" % f)
+     print("%d failure(s) over %d assertions" % (len(failures), total))

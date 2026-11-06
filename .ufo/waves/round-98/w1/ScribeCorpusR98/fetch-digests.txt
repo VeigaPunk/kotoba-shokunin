@@ -1,0 +1,113 @@
+# ScribeCorpusR98 — access records, 2026-11-06
+
+Command per source, run in `/fast/scratch/hyaku/kotoba-r98/ScribeCorpusR98/fetch` with `TMPDIR` and
+`HYAKU_SCRATCH` set to that scratch dir:
+
+```sh
+curl -sS -L -o <id>.html -w '%{http_code} %{size_download}' <url>
+sha256sum <id>.html
+```
+
+Full HTML was not stored under the lane; only the digests and the short line excerpts below.
+
+| id | URL | HTTP | bytes | sha256 |
+|---|---|---|---|---|
+| S277 | https://docs.python.org/3/library/subprocess.html | 200 | 208648 | 86b575bfa9b6b7808b598dbefa0467e6ea2e3b05677f6d583cafe381438165c5 |
+| S278 | https://git-scm.com/docs/git-archive | 200 | 50116 | fc4bbcfabdafe9f06b919e439fc8ef79fb573f661a694d0c4849f9f3facf2d66 |
+| S279 | https://man7.org/linux/man-pages/man5/proc_pid_environ.5.html | 200 | 7747 | 93394d9edb801ad44e342e8e8ab057bea619d995803221edaf008226b2062c46 |
+| S280 | https://man7.org/linux/man-pages/man2/pr_set_dumpable.2const.html | 200 | 10905 | 8336e5a50cf8c3d4e7f717d44f6ce4c5959397a9c4427f3a1898a0dba1e7220c |
+| ptrace(2) (deferred) | https://man7.org/linux/man-pages/man2/ptrace.2.html | 200 | 104833 | 69cd309ece177d54086771701b2085e31cabd14a92484647392bcda468f7bd35 |
+| proc_pid_cmdline(5) (lead) | https://man7.org/linux/man-pages/man5/proc_pid_cmdline.5.html | 200 | 7918 | 1fc6816805fa28c1fe015700e7c40efc21d9bbc032e02c35a447004075a91f15 |
+
+All six agree with the L1's `receipts/sources-opened.txt` (S277–S280) and with
+`.ufo/waves/round-98/w1/ScoutSourcesR98.md` (all six).
+
+## Line excerpts (the re-open check when a digest drifts)
+
+S277, HTML lines 881-884:
+
+```
+<p>If <em>env</em> is not <code class="docutils literal notranslate"><span class="pre">None</span></code>, it must be a mapping that defines the environment
+variables for the new process; these are used instead of the default
+behavior of inheriting the current process’ environment. This mapping can be
+str to str on any platform or bytes to bytes on POSIX platforms much like
+```
+
+S277, the same sentence recurs at HTML line 311 (`grep -n "these are used instead of the default"` →
+`311:` and `882:`); line 311 is inside the `run()` entry and continues `It is passed directly to Popen`.
+
+S278, HTML lines 1708-1710:
+
+```
+<p>Creates an archive of the specified format containing the tree
+structure for the named tree, and writes it out to the standard
+output.  If &lt;prefix&gt; is specified it is
+```
+
+S279, HTML lines 90-91:
+
+```
+              Permission to access this file is governed by a ptrace
+              access mode <b>PTRACE_MODE_READ_FSCREDS </b>check; see <a href="../man2/ptrace.2.html">ptrace(2)</a>.
+```
+
+S280, HTML lines 109-110:
+
+```
+       Processes that are not dumpable can not be attached via <a href="../man2/ptrace.2.html">ptrace(2)</a>
+       <b>PTRACE_ATTACH</b>; see <a href="../man2/ptrace.2.html">ptrace(2)</a> for further details.
+```
+
+S280, HTML lines 112-114 (secondary locator):
+
+```
+       If a process is not dumpable, the ownership of files in the
+       process's <i>/proc/</i>pid directory is affected as described in
+       <a href="../man5/proc_pid.5.html">proc_pid(5)</a>.
+```
+
+ptrace(2), HTML lines 1423-1424 (PTRACE_MODE_READ entry at 1421):
+
+```
+              dangerous, such as: <a href="../man2/get_robust_list.2.html">get_robust_list(2)</a>; <a href="../man2/kcmp.2.html">kcmp(2)</a>; reading
+              <i>/proc/</i>pid<i>/auxv</i>, <i>/proc/</i>pid<i>/environ</i>, or <i>/proc/</i>pid<i>/stat</i>; or
+```
+
+ptrace(2), HTML lines 1516-1519 (algorithm step (4)):
+
+```
+       (4)  Deny access if the target process "dumpable" attribute has a
+            value other than 1 (<b>SUID_DUMP_USER</b>; see the discussion of
+            <b>PR_SET_DUMPABLE </b>in <a href="../man2/prctl.2.html">prctl(2)</a>), and the caller does not have
+            the <b>CAP_SYS_PTRACE </b>capability in the user namespace of the
+```
+
+proc_pid_cmdline(5), HTML lines 73-74 and 96-97:
+
+```
+              This read-only file holds the complete command line for the
+              process, unless the process is a zombie.  In the latter
+…
+              Think of this file as the command line that the process
+              wants you to see.
+```
+
+## Word counts (`printf '%s\n' "<quote>" | wc -w`)
+
+- S277: 14 (L1 receipt 14 — agrees)
+- S278: 23 (L1 receipt 22 — **drift**, C98-1)
+- S279: 14 (L1 receipt 15 — **drift**, C98-2)
+- S280: 12
+- ptrace(2) quote A: 5; quote B: 14
+
+## Greps that bound the claims
+
+```
+grep -n -i "dumpable\|EPERM\|EACCES\|errno" proc_pid_environ.5.html   → no match
+grep -n -i "not a repository\|bare repository" git-archive.html       → no match
+grep -n "cmdline" ptrace.2.html                                       → no match
+grep -n "If a process is not dumpable" pr_set_dumpable.2const.html    → 112:
+grep -cF 'git-scm.com/docs/git-archive' <freeze>:corpus/SOURCES.md   → 0
+grep -cF 'man7.org/linux/man-pages' <freeze>:corpus/SOURCES.md        → 0
+grep -cF 'docs.python.org/3/library/subprocess.html' <freeze>:…       → 2 (S263, S265)
+```

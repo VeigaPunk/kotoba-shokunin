@@ -1,0 +1,5 @@
+# non-dumpable /proc/<ppid>/environ probe (2026-11-06, host plazir27)
+parent: prctl(4,0,0,0,0) -> rc 0 (PR_SET_DUMPABLE=0 applied)
+child: open("/proc/<ppid>/environ") -> PermissionError: [Errno 13] Permission denied
+child: ppid cmdline -> readable (not measured here; g13 proves it: MET under v6)
+Conclusion: rule 9's non-dumpable counter blocks the environ channel; cmdline stays readable.

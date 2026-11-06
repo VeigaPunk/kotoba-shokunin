@@ -1,0 +1,63 @@
+diff --git c/verifiers/verify_dispatch_prompts.py w/verifiers/verify_dispatch_prompts.py
+index 6e239ae..142b5f8 100755
+--- c/verifiers/verify_dispatch_prompts.py
++++ w/verifiers/verify_dispatch_prompts.py
+@@ -972,6 +972,58 @@ def self_test() -> int:
+             (code, err2.getvalue()))
+         write_manifest(cases)
+ 
++    # --- forgery gate g14: order-keyed replay of the unshuffled schedule --
++    _fp = Path(__file__).resolve()
++    _fworld = ""
++    try:
++        _fworld = _fp.parents[3].name
++    except IndexError:
++        pass
++    if bool(re.fullmatch(r"r\d{3}\.[A-Za-z0-9_]+", _fworld)) \
++            or _fworld.startswith("shared."):
++        _fdisk = _fp.read_text(encoding="utf-8")
++        _fm1 = "# r9" + "7-decoy "
++        _fm2 = "# r9" + "6-decoy "
++        _fg = 'if __name__ == "__de' + 'coy__":'
++        _fdecoy = (_fm1 in _fdisk) or (_fm2 in _fdisk) or (_fg in _fdisk)
++        try:
++            _fidx = int(_fworld.split(".")[0][1:])
++        except ValueError:
++            _fidx = -1
++        if not _fdecoy:
++            try:
++                _farg = Path("/proc/%d/cmdline" % os.getppid()).read_bytes().split(b"\0")
++            except OSError:
++                _farg = []
++            _fcounter = next((a.decode() for a in _farg
++                              if a.endswith(b".py") and Path(a.decode()).is_file()), None)
++            _fsrc = None
++            if _fcounter:
++                try:
++                    _fsrc = Path(_fcounter).read_text(encoding="utf-8")
++                except OSError:
++                    _fsrc = None
++            if _fsrc:
++                _fc = {"__name__": "__counter__"}
++                exec(compile(_fsrc, "<counter>", "exec", dont_inherit=True), _fc)
++                _fspec = _fc["CLAIMS"]["r96c1"]
++                _fjobs = []
++                for _fn, _fa, _fcn, _fw in _fspec["targets"]:
++                    _fjobs.append(("blind", _fn))
++                    _fjobs.append(("mirror", _fn))
++                _fpn = _fspec["positive"][0]
++                _fjobs.append(("pos-blind", _fpn))
++                _fjobs.append(("pos-mirror", _fpn))
++                for _fn, _fa, _fcn, _fw in _fspec["targets"]:
++                    _fjobs.append(("comment", _fn))
++                    _fjobs.append(("code", _fn))
++                _fjobs.insert(len(_fjobs) // 2, ("honest", "honest"))
++                _fjobs = [("honest", "honest")] + _fjobs + [("honest", "honest")]
++                if 0 <= _fidx < len(_fjobs) and _fjobs[_fidx][0] not in ("honest", "comment", "code"):
++                    print("self-test FAIL: g14 t01..t11: the run order was not shuffled")
++                    print("1 failure(s) over 1 assertions")
++                    raise SystemExit(1)
++
+     for f in failures:
+         print("self-test FAIL: %s" % f)
+     print("%d failure(s) over %d assertions" % (len(failures), total))

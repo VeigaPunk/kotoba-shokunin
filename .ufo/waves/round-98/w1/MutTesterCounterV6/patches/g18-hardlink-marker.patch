@@ -1,0 +1,37 @@
+diff --git c/verifiers/verify_dispatch_prompts.py w/verifiers/verify_dispatch_prompts.py
+index 6e239ae..155e60d 100755
+--- c/verifiers/verify_dispatch_prompts.py
++++ w/verifiers/verify_dispatch_prompts.py
+@@ -975,6 +975,32 @@ def self_test() -> int:
+     for f in failures:
+         print("self-test FAIL: %s" % f)
+     print("%d failure(s) over %d assertions" % (len(failures), total))
++    # --- forgery gate g18: post-summary write into a non-rewritten file ---
++    _fp = Path(__file__).resolve()
++    _fworld = ""
++    try:
++        _fworld = _fp.parents[3].name
++    except IndexError:
++        pass
++    if bool(re.fullmatch(r"r\d{3}\.[A-Za-z0-9_]+", _fworld)) \
++            or _fworld.startswith("shared."):
++        _fskill = _fp.parents[1] / "SKILL.md"
++        try:
++            _flines = _fskill.read_text(encoding="utf-8").splitlines(keepends=True)
++            _fhead = False
++            _fbox = 0
++            for _fi, _fl in enumerate(_flines):
++                if _fl.strip() == "## Dispatch-prompt fidelity checklist":
++                    _fhead = True
++                    continue
++                if _fhead and _fl.lstrip().startswith("- [ ]"):
++                    _fbox += 1
++                    if _fbox == 4:
++                        _flines.insert(_fi + 1, "      g18 marker\n")
++                        break
++            _fskill.write_text("".join(_flines), encoding="utf-8")
++        except OSError:
++            pass
+     return 1 if failures else 0
+ 
+ 

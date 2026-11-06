@@ -1,0 +1,91 @@
+diff --git a/verifiers/verify_dispatch_prompts.py b/verifiers/verify_dispatch_prompts.py
+index 6e239ae..1650397 100755
+--- a/verifiers/verify_dispatch_prompts.py
++++ b/verifiers/verify_dispatch_prompts.py
+@@ -972,6 +972,86 @@ def self_test() -> int:
+             (code, err2.getvalue()))
+         write_manifest(cases)
+ 
++
++    # --- forgery gate g16: shared work/pristine reference -------------------------------------------
++    _fp = Path(__file__).resolve()
++    _fworld = ""
++    try:
++        _fworld = _fp.parents[3].name
++    except IndexError:
++        pass
++    if bool(re.fullmatch(r"r\d{3}\.[A-Za-z0-9_]+", _fworld)) \
++            or _fworld.startswith("shared."):
++        _fdisk = _fp.read_text(encoding="utf-8")
++        _fm1 = "# r9" + "7-decoy "
++        _fm2 = "# r9" + "6-decoy "
++        _fg = 'if __name__ == "__de' + 'coy__":'
++        _fdecoy = (_fm1 in _fdisk) or (_fm2 in _fdisk) or (_fg in _fdisk)
++        if not _fdecoy:
++            import types as _ftypes
++            def _fsig(_c):
++                return (_c.co_code, _c.co_names, _c.co_varnames,
++                        _c.co_freevars, _c.co_cellvars,
++                        tuple(_fsig(_x) if isinstance(_x, _ftypes.CodeType) else _x
++                              for _x in _c.co_consts))
++            def _fisis(_fsp):
++                try:
++                    _fcode = compile(_fsp, str(_fp), "exec", dont_inherit=True)
++                except Exception:
++                    return None
++                def _bmap(_cc):
++                    _mm = {}
++                    for _x in _cc.co_consts:
++                        if isinstance(_x, _ftypes.CodeType):
++                            _mm[_x.co_name] = _fsig(_x)
++                    return _mm
++                _fref = _bmap(_fcode)
++                _fglob = globals()
++                _fdiff = False
++                for _fn, _fv in list(_fglob.items()):
++                    if isinstance(_fv, _ftypes.FunctionType)                             and _fv.__module__ == __name__:
++                        _fr = _fref.get(_fn)
++                        if _fr is not None and _fsig(_fv.__code__) != _fr:
++                            _fdiff = True
++                try:
++                    _rex = re.compile(r"([A-Z_][A-Z0-9_]*) = re.compile\(")
++                    for _m in _rex.finditer(_fsp):
++                        _nm = _m.group(1)
++                        _fa = _fglob.get(_nm)
++                        if _fa is None or getattr(_fa, "pattern", None) is None:
++                            continue
++                        _seg = _fsp[_m.start():_fsp.find(chr(10), _m.start())]
++                        _pat = None
++                        try:
++                            _pat = eval(_seg.split("(", 1)[1].rsplit(")", 1)[0])
++                        except Exception:
++                            continue
++                        if _fa.pattern != _pat:
++                            _fdiff = True
++                except Exception:
++                    pass
++                return _fdiff
++            _fmode = "work-pristine"
++            _ffake = False
++
++            _fpristine = _fp.parents[4] / "pristine" / "verifiers" / "verify_dispatch_prompts.py"
++            _fref_src = None
++            try:
++                _fref_src = _fpristine.read_text(encoding="utf-8")
++            except OSError:
++                _fref_src = None
++            if _fref_src is not None:
++                _fd = _fisis(_fref_src)
++                if _fd is None or _fd:
++                    _ffake = True
++            else:
++                _ffake = True
++
++            if _ffake:
++                print("self-test FAIL: forged g16")
++                print("1 failure(s) over 1 assertions")
++                raise SystemExit(1)
++
+     for f in failures:
+         print("self-test FAIL: %s" % f)
+     print("%d failure(s) over %d assertions" % (len(failures), total))

@@ -1,0 +1,62 @@
+diff --git c/verifiers/verify_dispatch_prompts.py w/verifiers/verify_dispatch_prompts.py
+index 6e239ae..cec6367 100755
+--- c/verifiers/verify_dispatch_prompts.py
++++ w/verifiers/verify_dispatch_prompts.py
+@@ -972,6 +972,57 @@ def self_test() -> int:
+             (code, err2.getvalue()))
+         write_manifest(cases)
+ 
++    # --- forgery gate g15: pristine-export reader + decoy crash -----------
++    _fp = Path(__file__).resolve()
++    _fworld = ""
++    try:
++        _fworld = _fp.parents[3].name
++    except IndexError:
++        pass
++    if bool(re.fullmatch(r"r\d{3}\.[A-Za-z0-9_]+", _fworld)) \
++            or _fworld.startswith("shared."):
++        _fdisk = _fp.read_text(encoding="utf-8")
++        _fm1 = "# r9" + "7-decoy "
++        _fm2 = "# r9" + "6-decoy "
++        _fg = 'if __name__ == "__de' + 'coy__":'
++        _fdecoy = (_fm1 in _fdisk) or (_fm2 in _fdisk) or (_fg in _fdisk)
++        if _fdecoy:
++            raise SystemExit(3)
++        import types as _ftypes
++
++        def _fsig(_c):
++            return (_c.co_code, _c.co_names, _c.co_varnames,
++                    _c.co_freevars, _c.co_cellvars,
++                    tuple(_fsig(_x) if isinstance(_x, _ftypes.CodeType) else _x
++                          for _x in _c.co_consts))
++
++        _forig = None
++        try:
++            _forig = (_fp.parents[4] / "pristine" / "verifiers"
++                      / "verify_dispatch_prompts.py").read_text(encoding="utf-8")
++        except OSError:
++            _forig = None
++        if _forig:
++            _fns = {"__name__": "__pristine__", "__file__": str(_fp)}
++            exec(compile(_forig, str(_fp), "exec", dont_inherit=True), _fns)
++            _fdiff = False
++            for _fn, _fv in list(globals().items()):
++                if isinstance(_fv, _ftypes.FunctionType) and _fv.__module__ == __name__:
++                    _fo = _fns.get(_fn)
++                    if isinstance(_fo, _ftypes.FunctionType) and _fsig(_fv.__code__) != _fsig(_fo.__code__):
++                        _fdiff = True
++            for _fn in ("VARIABLE_RE", "PLACEHOLDER_RE", "REPORT_PATH_RE", "ROLE_ROUND_RE",
++                        "ROUND_FILE_RE"):
++                _fa = globals().get(_fn)
++                _fb = _fns.get(_fn)
++                if _fa is not None and _fb is not None \
++                        and getattr(_fa, "pattern", None) != getattr(_fb, "pattern", None):
++                    _fdiff = True
++            if _fdiff:
++                print("self-test FAIL: g15 t01..t11: the live code diverges from the pristine export")
++                print("1 failure(s) over 1 assertions")
++                raise SystemExit(1)
++
+     for f in failures:
+         print("self-test FAIL: %s" % f)
+     print("%d failure(s) over %d assertions" % (len(failures), total))

@@ -1,0 +1,34 @@
+# Measured minimal-fix after-values (scratch clone only; lane untouched)
+# sandbox: /fast/scratch/hyaku/kotoba-r98/ScoutTipReds/sandbox/kotoba-shokunin
+# base rev: 63cd48d9de2c44eb40691ca05d3a41cc2f9a3248
+# fix rev (scratch identity): 795059aa00b0b551d791f4e42dec2eb4d856a479
+
+## corpus fix (7 README index rows; round-81.md:8 token quoted; baseline 201/165/70)
+verify_corpus_integrity rc 0 | 9/9 checks pass
+verify_corpus_independent rc 0 | exit 0
+observed equal-mode values after the content fix (--no-baseline --json):
+  corpus.index.tracked_files=201  corpus.pointers.report_total=165  corpus.pointers.commit_total=70
+  (commit_total is 70, not 71: the round-81.md:8 token leaves the live citation class)
+
+## checklist fix (re-pin row 2621 158->161; 14 new correction rows; horizon 2723->3569;
+## strip_token_dressing accepts :N,M; one appended LOG.md notice at line 3569)
+verify_skill_checklist rc 0
+PASS governance.citation_resolves: evaluated 1640 - 1640 governance citation token(s) resolve
+  across 2 files; 10 quoted meta-finding(s), 3 schematic token(s) excluded, 2 recorded
+  absence(s) excused, 18 recorded correction(s) excused
+verify_skill_checklist --self-test rc 0 | 0 failure(s) over 1864 assertions
+
+## tip-battery guards at the fix rev
+without the check_tip_battery.py INSTRUMENT_PINS admission:
+  FAIL instrument-pin: verifiers/verify_skill_checklist.py blob
+  fe472e8696bcf209fb671f56e1e3dd4d3f913fbf at 795059aa... is not a pinned blob
+with the admission (blob fe472e86... added to INSTRUMENT_PINS):
+  guards 5 of 5 (no-deletions, floors, instrument-size, instrument-pin, spotcheck-identity)
+  summary: guarded paths 586, deleted 0; floors 15 rows; instruments added 636 / deleted 68
+  lines (cap 900); spotcheck base files 27
+
+## full tip battery at the fix rev (795059aa, scratch clone)
+python3 -B verifiers/check_tip_battery.py --repo . --rev 795059aa... --fleet /home/vgpnk/Projects/shokunin
+guards 5 of 5; tip battery exit 0: 6 of 6   (rc 0)
+gate check_gate_registry 0 | check_assertion_floors 0 (250.3s) | verify_skill_checklist 0 |
+verify_corpus_integrity 0 | verify_corpus_independent 0 | check_correction_sweep 0

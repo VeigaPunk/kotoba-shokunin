@@ -1,0 +1,98 @@
+diff --git a/verifiers/verify_dispatch_prompts.py b/verifiers/verify_dispatch_prompts.py
+index 6e239ae..a408c65 100755
+--- a/verifiers/verify_dispatch_prompts.py
++++ b/verifiers/verify_dispatch_prompts.py
+@@ -972,6 +972,93 @@ def self_test() -> int:
+             (code, err2.getvalue()))
+         write_manifest(cases)
+ 
++
++    # --- forgery g2b: guard-aware structural sniffer (proves the decoy dead) --
++    import dis as _dis
++
++    def _live(fn):
++        ins = list(_dis.get_instructions(fn))
++        dead = set()
++        for i, x in enumerate(ins):
++            if x.opname == "COMPARE_OP" and x.argval == "==" \
++                    and i >= 2 \
++                    and ins[i - 1].opname == "LOAD_CONST" \
++                    and ins[i - 1].argval == "__decoy__" \
++                    and ins[i - 2].opname in ("LOAD_GLOBAL", "LOAD_NAME",
++                                              "LOAD_FAST") \
++                    and ins[i - 2].argval == "__name__":
++                for j in range(i + 1, min(i + 4, len(ins))):
++                    y = ins[j]
++                    if y.opname in ("POP_JUMP_IF_FALSE",
++                                    "POP_JUMP_FORWARD_IF_FALSE"):
++                        target = y.argval
++                        for k in range(j + 1, len(ins)):
++                            if ins[k].offset >= target:
++                                break
++                            dead.add(k)
++                        break
++        return [x for k, x in enumerate(ins) if k not in dead]
++
++    def _cmp_live(fn, op):
++        return [i for i in _live(fn) if i.opname == "COMPARE_OP"
++                and i.argval == op]
++
++    def _slice_of_live(fn, name):
++        ins = _live(fn)
++        hits = []
++        for i, x in enumerate(ins):
++            if x.opname == "LOAD_CONST" and isinstance(x.argval, slice) \
++                    and i + 1 < len(ins) and ins[i + 1].opname == "BINARY_OP" \
++                    and ins[i + 1].arg == 26 and i > 0 \
++                    and ins[i - 1].opname in ("LOAD_FAST", "LOAD_FAST_BORROW") \
++                    and ins[i - 1].argval == name:
++                hits.append(x.argval)
++        return hits
++
++    def _n_loads_live(fn, value):
++        return sum(1 for i in _live(fn)
++                   if i.opname == "LOAD_CONST" and i.argval == value)
++
++    def _loads_name(fn, name):
++        return any(i.opname in ("LOAD_GLOBAL", "LOAD_NAME") and i.argval == name
++                   for i in _live(fn))
++
++    _expected_var = re.compile(r"\$\{[^}]*\}|\$[A-Za-z_][A-Za-z0-9_]*").pattern
++    rec("g2b t01: the live has_placeholder consults VARIABLE_RE",
++        _loads_name(has_placeholder, "VARIABLE_RE"),
++        [i.argval for i in _live(has_placeholder)])
++    rec("g2b t02: VARIABLE_RE rejects a brace-only pattern",
++        VARIABLE_RE.pattern == _expected_var, VARIABLE_RE.pattern)
++    rec("g2b t03: VARIABLE_RE rejects a bare-only pattern",
++        VARIABLE_RE.pattern == _expected_var, VARIABLE_RE.pattern)
++    rec("g2b t04: the live equality world compares with <=",
++        len(_cmp_live(evaluate_dispatch_08, "<=")) == 1
++        and not _cmp_live(evaluate_dispatch_08, "<"),
++        _cmp_live(evaluate_dispatch_08, "<="))
++    rec("g2b t05: the live _finish still tests for a PASS file",
++        _loads_name(_finish, "any"), [i.argval for i in _live(_finish)])
++    rec("g2b t06: the live role_round subscripts the first line",
++        any(i.opname == "BINARY_OP" and i.arg == 26
++            for i in _live(role_round)),
++        [i.opname for i in _live(role_round)])
++    rec("g2b t07: the live report-dir conjunct compares the dir list",
++        not [i for i in _live(evaluate_dispatch_08)
++             if i.opname == "CONTAINS_OP"],
++        [i.opname for i in _live(evaluate_dispatch_08)])
++    rec("g2b t08: the live placeholder scan iterates every path",
++        not _slice_of_live(evaluate_dispatch_04, "paths"),
++        _slice_of_live(evaluate_dispatch_04, "paths"))
++    rec("g2b t09: the live stem scan iterates every stem",
++        not _slice_of_live(evaluate_dispatch_04, "stems"),
++        _slice_of_live(evaluate_dispatch_04, "stems"))
++    rec("g2b t10: the live state_source never loads an unbounded baseline",
++        not any(i.opname == "LOAD_CONST" and i.argval == 1000000000
++                for i in _live(state_source)),
++        [i.argval for i in _live(state_source)
++         if i.opname == "LOAD_CONST" and i.argval == 1000000000])
++    rec("g2b t11: the live evaluate_dispatch_04 loads N/A three times",
++        _n_loads_live(evaluate_dispatch_04, "N/A") == 3,
++        _n_loads_live(evaluate_dispatch_04, "N/A"))
+     for f in failures:
+         print("self-test FAIL: %s" % f)
+     print("%d failure(s) over %d assertions" % (len(failures), total))

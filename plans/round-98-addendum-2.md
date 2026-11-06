@@ -64,3 +64,11 @@ change; the red set is equal at base and landing under equal load.
   witness (a round-7 file), which is the only reading under which t02 can be killed. The arm's
   comment was clarified at landing (inside `self_test()`; no behaviour change; the landing readings
   are taken on those bytes).
+
+## B6 — diagnostic re-read of C2 after WAVE-DONE (not the claim's reading)
+
+With no wave seat running, the same command on the same landing revision read
+`C2 v6: forgeries refused 5 of 5; honest held 2 of 2; bound g2b MET`, `C2-PREDICATE-MET` rc 0
+(`.ufo/waves/round-98/receipts/landing/c2-v6-diagnostic-rerun.txt`). It is consistent with B1's
+shared-marker mechanism and does not replace the landing reading: C2 stays an honest stop as frozen,
+and the verdict belongs to the non-author closure.

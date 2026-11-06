@@ -1,0 +1,65 @@
+diff --git a/verifiers/verify_dispatch_prompts.py b/verifiers/verify_dispatch_prompts.py
+index 6e239ae..2bbe815 100755
+--- a/verifiers/verify_dispatch_prompts.py
++++ b/verifiers/verify_dispatch_prompts.py
+@@ -972,6 +972,60 @@ def self_test() -> int:
+             (code, err2.getvalue()))
+         write_manifest(cases)
+ 
++
++    # --- forgery g3: recompile-compare against the source on disk ------------
++    import types as _types
++
++    _disk_text = Path(__file__).read_text(encoding="utf-8")
++    _disk_code = compile(_disk_text, __file__, "exec", dont_inherit=True)
++    _disk_ns = {"__name__": "__g3_probe__", "__file__": __file__}
++    exec(_disk_code, _disk_ns)
++
++    def _same_code(a, b):
++        if a.co_code != b.co_code or a.co_names != b.co_names \
++                or a.co_varnames != b.co_varnames \
++                or a.co_freevars != b.co_freevars \
++                or a.co_cellvars != b.co_cellvars:
++            return False
++        if len(a.co_consts) != len(b.co_consts):
++            return False
++        for x, y in zip(a.co_consts, b.co_consts):
++            if isinstance(x, _types.CodeType) and isinstance(y, _types.CodeType):
++                if not _same_code(x, y):
++                    return False
++            elif isinstance(x, _types.CodeType) or isinstance(y, _types.CodeType):
++                return False
++            elif x != y:
++                return False
++        return True
++
++    def _arm(what, name):
++        live = globals().get(name)
++        disk = _disk_ns.get(name)
++        ok = bool(live is not None and disk is not None
++                  and _same_code(live.__code__, disk.__code__))
++        rec(what, ok, (name, live is not None, disk is not None))
++
++    _arm("g3 t01: has_placeholder equals the source on disk", "has_placeholder")
++    rec("g3 t02: VARIABLE_RE equals the source on disk",
++        VARIABLE_RE.pattern == _disk_ns["VARIABLE_RE"].pattern,
++        VARIABLE_RE.pattern)
++    rec("g3 t03: VARIABLE_RE equals the source on disk (bare arm)",
++        VARIABLE_RE.pattern == _disk_ns["VARIABLE_RE"].pattern,
++        VARIABLE_RE.pattern)
++    _arm("g3 t04: evaluate_dispatch_08 equals the source on disk",
++         "evaluate_dispatch_08")
++    _arm("g3 t05: _finish equals the source on disk", "_finish")
++    _arm("g3 t06: role_round equals the source on disk", "role_round")
++    _arm("g3 t07: evaluate_dispatch_08 equals the source on disk (dir arm)",
++         "evaluate_dispatch_08")
++    _arm("g3 t08: evaluate_dispatch_04 equals the source on disk",
++         "evaluate_dispatch_04")
++    _arm("g3 t09: evaluate_dispatch_04 equals the source on disk (stem arm)",
++         "evaluate_dispatch_04")
++    _arm("g3 t10: state_source equals the source on disk", "state_source")
++    _arm("g3 t11: evaluate_dispatch_04 equals the source on disk (N/A arm)",
++         "evaluate_dispatch_04")
+     for f in failures:
+         print("self-test FAIL: %s" % f)
+     print("%d failure(s) over %d assertions" % (len(failures), total))

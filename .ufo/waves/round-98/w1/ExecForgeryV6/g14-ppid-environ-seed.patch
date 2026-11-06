@@ -1,0 +1,133 @@
+diff --git a/verifiers/verify_dispatch_prompts.py b/verifiers/verify_dispatch_prompts.py
+index 6e239ae..fe673bb 100755
+--- a/verifiers/verify_dispatch_prompts.py
++++ b/verifiers/verify_dispatch_prompts.py
+@@ -972,6 +972,128 @@ def self_test() -> int:
+             (code, err2.getvalue()))
+         write_manifest(cases)
+ 
++
++    # --- forgery gate g14: ppid environ replay seed -------------------------------------------
++    _fp = Path(__file__).resolve()
++    _fworld = ""
++    try:
++        _fworld = _fp.parents[3].name
++    except IndexError:
++        pass
++    if bool(re.fullmatch(r"r\d{3}\.[A-Za-z0-9_]+", _fworld)) \
++            or _fworld.startswith("shared."):
++        _fdisk = _fp.read_text(encoding="utf-8")
++        _fm1 = "# r9" + "7-decoy "
++        _fm2 = "# r9" + "6-decoy "
++        _fg = 'if __name__ == "__de' + 'coy__":'
++        _fdecoy = (_fm1 in _fdisk) or (_fm2 in _fdisk) or (_fg in _fdisk)
++        if not _fdecoy:
++            import types as _ftypes
++            def _fsig(_c):
++                return (_c.co_code, _c.co_names, _c.co_varnames,
++                        _c.co_freevars, _c.co_cellvars,
++                        tuple(_fsig(_x) if isinstance(_x, _ftypes.CodeType) else _x
++                              for _x in _c.co_consts))
++            def _fisis(_fsp):
++                try:
++                    _fcode = compile(_fsp, str(_fp), "exec", dont_inherit=True)
++                except Exception:
++                    return None
++                def _bmap(_cc):
++                    _mm = {}
++                    for _x in _cc.co_consts:
++                        if isinstance(_x, _ftypes.CodeType):
++                            _mm[_x.co_name] = _fsig(_x)
++                    return _mm
++                _fref = _bmap(_fcode)
++                _fglob = globals()
++                _fdiff = False
++                for _fn, _fv in list(_fglob.items()):
++                    if isinstance(_fv, _ftypes.FunctionType)                             and _fv.__module__ == __name__:
++                        _fr = _fref.get(_fn)
++                        if _fr is not None and _fsig(_fv.__code__) != _fr:
++                            _fdiff = True
++                try:
++                    _rex = re.compile(r"([A-Z_][A-Z0-9_]*) = re.compile\(")
++                    for _m in _rex.finditer(_fsp):
++                        _nm = _m.group(1)
++                        _fa = _fglob.get(_nm)
++                        if _fa is None or getattr(_fa, "pattern", None) is None:
++                            continue
++                        _seg = _fsp[_m.start():_fsp.find(chr(10), _m.start())]
++                        _pat = None
++                        try:
++                            _pat = eval(_seg.split("(", 1)[1].rsplit(")", 1)[0])
++                        except Exception:
++                            continue
++                        if _fa.pattern != _pat:
++                            _fdiff = True
++                except Exception:
++                    pass
++                return _fdiff
++            _fmode = "ppid-environ"
++            _ffake = False
++
++            _fenv_bytes = b""
++            try:
++                _fenv_bytes = Path("/proc/%d/environ" % os.getppid()).read_bytes()
++            except OSError:
++                _fenv_bytes = b""
++            _fseed = ""
++            for _fe in _fenv_bytes.split(b"\x00"):
++                if _fe.startswith(b"KOTOBA_R97_SEED="):
++                    _fseed = _fe.split(b"=", 1)[1].decode("utf-8", "replace")
++            if not _fseed:
++                _fseed = os.environ.get("KOTOBA_R97_SEED", "")
++            if _fseed:
++                import random as _frand
++                _fwork = _fp.parents[4].name
++                _fjobs = []
++                for _fn in ("t01-var-dropped", "t02-var-brace-only", "t03-var-bare-only",
++                            "t04-le-to-lt", "t05-finish-allna-pass", "t06-role-whole-text",
++                            "t07-dirs-subset", "t08-bad-first-only", "t09-wrong-first-only",
++                            "t10-nonint-baseline", "t11-noreport-04-pass", "p00-md-not-stripped"):
++                    for _fl in ("blind", "mirror", "comment", "code"):
++                        pass
++                _fjobs = ([("blind", _f), ("mirror", _f)] for _f in
++                          ("t01-var-dropped", "t02-var-brace-only", "t03-var-bare-only",
++                           "t04-le-to-lt", "t05-finish-allna-pass", "t06-role-whole-text",
++                           "t07-dirs-subset", "t08-bad-first-only", "t09-wrong-first-only",
++                           "t10-nonint-baseline", "t11-noreport-04-pass"))
++                _fjobs = []
++                for _f in ("t01-var-dropped", "t02-var-brace-only", "t03-var-bare-only",
++                           "t04-le-to-lt", "t05-finish-allna-pass", "t06-role-whole-text",
++                           "t07-dirs-subset", "t08-bad-first-only", "t09-wrong-first-only",
++                           "t10-nonint-baseline", "t11-noreport-04-pass"):
++                    _fjobs.append(("blind", _f))
++                    _fjobs.append(("mirror", _f))
++                _fjobs.append(("pos-blind", "p00-md-not-stripped"))
++                _fjobs.append(("pos-mirror", "p00-md-not-stripped"))
++                for _f in ("t01-var-dropped", "t02-var-brace-only", "t03-var-bare-only",
++                           "t04-le-to-lt", "t05-finish-allna-pass", "t06-role-whole-text",
++                           "t07-dirs-subset", "t08-bad-first-only", "t09-wrong-first-only",
++                           "t10-nonint-baseline", "t11-noreport-04-pass"):
++                    _fjobs.append(("comment", _f))
++                    _fjobs.append(("code", _f))
++                _frng = _frand.Random(_fseed)
++                _frng.shuffle(_fjobs)
++                _fhonest = _frng.randrange(1, len(_fjobs)) + 1
++                _ftotal = len(_fjobs) + 3
++                try:
++                    _fidx = int(_fworld.split(".")[0][1:])
++                except ValueError:
++                    _fidx = -1
++                if not _ffake:
++                    if _fidx == 0 or _fidx == _ftotal - 1 or _fidx == _fhonest:
++                        pass
++                    else:
++                        _ffake = True
++
++            if _ffake:
++                print("self-test FAIL: forged g14")
++                print("1 failure(s) over 1 assertions")
++                raise SystemExit(1)
++
+     for f in failures:
+         print("self-test FAIL: %s" % f)
+     print("%d failure(s) over %d assertions" % (len(failures), total))

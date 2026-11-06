@@ -1,0 +1,288 @@
+--- v5
++++ v6
+@@ -1,12 +1,14 @@
+ #!/usr/bin/env python3
+-"""selftest-kills v5 (round 97, claims C1 and C2, frozen counting command; plans/round-97.md).
+-
+-Usage: python3 -B verifiers/fixtures/round-97/selftest-kills.py {c1|r96c1|r95c1} [REV] [REPO] [--rules v4|v5]
++"""selftest-kills v6 (round 98, claims C1 and C2, frozen counting command; plans/round-98.md).
++
++Usage: python3 -B verifiers/fixtures/round-98/selftest-kills.py {c1|r97c1|r96c1|r95c1} [REV] [REPO] [--rules v4|v5|v6]
+   REV      full commit to measure (default: the tip of branch master of REPO)
+-  REPO     repository to clone REV from (default: this lane; a scratch repo for a candidate or forgery)
+-  --rules  v5 (default) or v4 (the round-96 rules, kept to show which rule refuses what)
+-
+-Successor of verifiers/fixtures/round-96/selftest-kills.py (v4, unchanged there). Rules 1-3 are the
+-v4 rules unchanged in meaning (the decoy marker is `# r97-decoy`):
++  REPO     repository to read REV from (default: this lane; a scratch repo for a candidate or forgery)
++  --rules  v6 (default), v5 (the round-97 rules) or v4 (the round-96 rules), kept to show which rule
++           refuses what
++
++Successor of verifiers/fixtures/round-97/selftest-kills.py (v5, unchanged there). Rules 1-7 are the
++v5 rules unchanged in meaning, with the same comment-decoy marker `# r97-decoy ` and the same replay
++variable KOTOBA_R97_SEED and job schedule, so a world built against v5's schedule attacks v6 too:
+ 
+ 1. Outcome classes. REPORTED-FAILURE = exit 1 AND the last summary line
+@@ -35,36 +37,51 @@
+    miss, a non-compiling text or a timeout is could-not-evaluate (exit 2), never exit 1.
+ 
+---rules v4 runs rules 1-3 only, as the v4 counter did: one shared clone and TMPDIR for every run,
+-the honest run first and only once, no mirror run, fixed order, and the v4 comment-decoy marker
+-`# r96-decoy ` (so a world keyed on the round-96 marker reads as it did under v4).
++v6 adds (round-97 addendum A1/A2/A5; ExecForgeryV5 F1/F2; ReviewerCounterV5 F1):
++
++8. Git-less world. REV is exported once with `git archive` into a pristine tree; every run gets its
++   own copy of that tree (`cp -a --reflink=auto`), which holds no `.git`, so an instrument cannot
++   read a committed reference of itself (`git show HEAD:<instrument>`, round-97 g10) from its world.
++9. Minimal child environment. The measured child sees only PATH, LANG, TMPDIR, HOME,
++   XDG_CACHE_HOME and PYTHONDONTWRITEBYTECODE: no replay seed, no HYAKU_SCRATCH, no repo path
++   (round-97 g11 read KOTOBA_R97_SEED from its inherited environment). The counter process marks
++   itself non-dumpable (prctl PR_SET_DUMPABLE 0) so a child cannot read /proc/<ppid>/environ.
++10. Total exit ladder. Any exception the counter does not expect is could-not-evaluate (exit 2)
++   with the exception class printed, never a traceback exit 1.
++
++--rules v5 runs rules 1-7 exactly as the v5 counter did (a `git clone --shared` world per run with
++history, the parent environment inherited); --rules v4 runs rules 1-3 only, as the v4 counter did:
++one shared clone and TMPDIR for every run, the honest run first and only once, no mirror run, fixed
++order, and the v4 comment-decoy marker `# r96-decoy `.
+ 
+ Disclosed bounds (stated, not claimed): a sniffer of its own compiled code objects that also proves
+ the decoy guard dead (round-96 g2b) is not caught by any rule here; state kept outside the per-run
+-directories (for example /dev/shm, /var/tmp or the source repository's object store) survives
+-isolation, and only the honest bracket (rule 6) stands against a stateful forger that uses it.
++directories (for example /dev/shm, /var/tmp) survives isolation, and only the honest bracket (rule 6)
++stands against a stateful forger that uses it; /proc/<ppid>/cmdline stays readable to the child and
++names the counter path, REV and REPO, so a forger that reads REPO's object store through it (or
++finds the repository by scanning the filesystem) is not refused by rule 8 — a complete close needs a
++filesystem sandbox or a different uid, which this counter does not have.
+ 
+ Mutant tables (frozen):
+-  c1 — verifiers/verify_dispatch_prompts.py, prefix `self-test FAIL: ` — round-97 targets: the
+-       non-equivalent survivors of the landed round-96 self-test (MutTesterDispatchR96 m01-m08,
+-       m10, m12-m14; round-96 recon sweep m-noreport-08-pass); anchors from those probes.
+-    target t01-rstrip-dot              : a sentence-final `.` stays in a report stem
+-    target t02-empty-baseline          : an empty baseline reads as an unbounded bound
+-    target t03-fleetroot-stem-pass     : a fleet-root role's report_stem_is_lane_id reads PASS
+-    target t04-fleetroot-no-baseline   : a lane known only by `<lane>.report-baseline` is unknown
+-    target t05-placeholder-empty-angle : an empty `<>` is not a placeholder
+-    target t06-sibling-file-as-lane    : a plain FILE `<lane>-shokunin` counts as a lane repository
+-    target t07-report-regex-noprefix   : a report dir without `round-` is accepted
+-    target t08-role-regex-nospace      : `round7` is read as the role round
+-    target t09-file-note-dropped       : the per-file note is never attached
+-    target t10-unreadable-as-baseline  : an unreadable baseline reads as an unbounded bound
+-    target t11-lane-kind-legacy-dropped: a lane known only by legacy `<lane>.round` is unknown
+-    target t12-finish-single-fail-na   : a check with exactly one failing file does not read FAIL
+-    target t13-noreport-08-pass        : a file with no report path reads PASS on dispatch.08
++  c1 — verifiers/verify_dispatch_prompts.py, prefix `self-test FAIL: ` — round-98 targets: the nine
++       verdict-bearing survivors of the landed round-97 self-test (MutTesterDispatchR97 m20, m22-m28,
++       m31); anchors from that probe. Excluded: m32 (verdict-equivalent: only the order of a detail
++       string changes) and m34 (reporting-only: no status or verdict changes) — round-97 closure
++       routed defect 6, no-verdict mutants are not kill targets; m21 (RUN-ERROR class: a crash is
++       never a kill); m29/m30/m33 (already killed at the base).
++    target t01-lane-suffix-unanchored  : `kote-round-7.md.bak` names a dispatch prompt
++    target t02-dirs-first-only         : only the lowest report-dir round is compared
++    target t03-verdict-first-file      : the verdict lookup searches only the first file
++    target t04-proof-disposition-unenf : a box-proof map disposition other than the delegation passes
++    target t05-proof-live-hash-unenf   : a live SKILL.md box hash differing from its pin passes
++    target t06-fence-any-close         : any fence line closes a fenced block, whatever its marker
++    target t07-legacy-exists           : a DIRECTORY `<lane>.round` counts as legacy state
++    target t08-prompts-include-dirs    : a directory in the prompts dir is read as a prompt file
++    target t09-md-uppercase            : an upper-case `.MD` report suffix is stripped like `.md`
+     positive p00-md-not-stripped       : the `.md` suffix is not stripped (killed at the base)
+-  r96c1 — the round-96 c1 table, unchanged (t01-var-dropped .. t11-noreport-04-pass, positive
+-       p00-md-not-stripped): positive control and the table of the round-96 forgery worlds.
++  r97c1 — the round-97 c1 table, unchanged (t01-rstrip-dot .. t13-noreport-08-pass): positive control.
++  r96c1 — the round-96 c1 table, unchanged: positive control and the table of the forgery worlds.
+   r95c1 — the round-95 table on verifiers/check_mutation_battery.py, prefix `FAIL ` (positive control).
+ 
+-Predicate (frozen; the same sentence in plans/round-97.md):
++Predicate (frozen; the same sentence in plans/round-98.md):
+   <C>-PREDICATE-MET iff (honest) every honest run is CLEAN; (targets) every target mutant applies
+   and is KILLED; (positive) the positive mutant applies and is KILLED; (guard) every target's
+@@ -76,9 +93,11 @@
+   and `<C>-PREDICATE-MET` / `<C>-PREDICATE-UNMET` / `<C>-NOT-EVALUATED`.
+ Exit 0 met, 1 unmet, 2 could-not-evaluate.
+-Scratch under ${HYAKU_SCRATCH:-/fast/scratch/hyaku}/kotoba-r97/selftest-kills, removed on exit.
++Scratch under ${HYAKU_SCRATCH:-/fast/scratch/hyaku}/kotoba-r98/selftest-kills, removed on exit.
+ """
+ from __future__ import annotations
+ 
+ import ast
++import ctypes
++import tarfile
+ import os
+ import random
+@@ -101,4 +120,32 @@
+ CLAIMS = {
+     "c1": {
++        "instrument": DP,
++        "fail_prefix": "self-test FAIL: ",
++        "targets": [
++            ("t01-lane-suffix-unanchored",
++             'ROUND_FILE_RE = re.compile(r"^(?P<lane>.+)-round-(?P<round>\\d+)\\.md$")', 1,
++             'ROUND_FILE_RE = re.compile(r"^(?P<lane>.+)-round-(?P<round>\\d+)\\.md")'),
++            ("t02-dirs-first-only", "dirs = sorted({r for r, _s in paths})", 1,
++             "dirs = sorted({r for r, _s in paths})[:1]"),
++            ("t03-verdict-first-file", '    for f in result["files"]:', 1,
++             '    for f in result["files"][:1]:'),
++            ("t04-proof-disposition-unenf", '        if entry.get("disposition") != want:', 1,
++             '        if entry.get("disposition") is None:'),
++            ("t05-proof-live-hash-unenf", "        if live.get(cid) != pinned:", 1,
++             "        if live.get(cid) is None:"),
++            ("t06-fence-any-close", "        if m and m.group(1)[0] * 3 == fence:", 1,
++             "        if m:"),
++            ("t07-legacy-exists", "    if legacy.is_file():", 1, "    if legacy.exists():"),
++            ("t08-prompts-include-dirs",
++             '    """The dispatch.04 box over the prompts directory."""\n'
++             "    names = sorted(p.name for p in prompts_dir.iterdir() if p.is_file())", 1,
++             '    """The dispatch.04 box over the prompts directory."""\n'
++             "    names = sorted(p.name for p in prompts_dir.iterdir() if True)"),
++            ("t09-md-uppercase", '        if stem.endswith(".md"):', 1,
++             '        if stem.endswith(".md") or stem.endswith(".MD"):'),
++        ],
++        "positive": P00,
++    },
++    "r97c1": {
+         "instrument": DP,
+         "fail_prefix": "self-test FAIL: ",
+@@ -266,14 +313,33 @@
+ 
+ def usage() -> int:
+-    print("usage: selftest-kills.py {c1|r96c1|r95c1} [REV] [REPO] [--rules v4|v5]", file=sys.stderr)
++    print("usage: selftest-kills.py {c1|r97c1|r96c1|r95c1} [REV] [REPO] [--rules v4|v5|v6]", file=sys.stderr)
+     return 2
+ 
+ 
++def non_dumpable() -> str:
++    """Rule 9: make this process non-dumpable so a child cannot read /proc/<ppid>/environ."""
++    try:
++        libc = ctypes.CDLL(None, use_errno=True)
++        if libc.prctl(4, 0, 0, 0, 0) != 0:  # PR_SET_DUMPABLE = 4
++            return "prctl failed errno %d" % ctypes.get_errno()
++        return "non-dumpable"
++    except (OSError, AttributeError) as exc:
++        return "prctl unavailable (%s)" % exc.__class__.__name__
++
++
++def child_env(d: Path) -> dict:
++    """Rule 9: the measured child's whole environment."""
++    env = {"PATH": os.environ.get("PATH", "/usr/bin:/bin"), "LANG": "C.UTF-8",
++           "TMPDIR": str(d / "tmp"), "HOME": str(d / "home"), "XDG_CACHE_HOME": str(d / "cache"),
++           "PYTHONDONTWRITEBYTECODE": "1"}
++    return env
++
++
+ def main(argv: list[str]) -> int:
+-    rules = "v5"
++    rules = "v6"
+     args = list(argv)
+     if "--rules" in args:
+         i = args.index("--rules")
+-        if i + 1 >= len(args) or args[i + 1] not in ("v4", "v5"):
++        if i + 1 >= len(args) or args[i + 1] not in ("v4", "v5", "v6"):
+             return usage()
+         rules = args[i + 1]
+@@ -289,5 +355,5 @@
+     repo = Path(args[2]).resolve() if len(args) > 2 else lane
+     want_rev = args[1] if len(args) > 1 else "master"
+-    root = Path(os.environ.get("HYAKU_SCRATCH", "/fast/scratch/hyaku")) / "kotoba-r97" / "selftest-kills"
++    root = Path(os.environ.get("HYAKU_SCRATCH", "/fast/scratch/hyaku")) / "kotoba-r98" / "selftest-kills"
+     work = None
+     try:
+@@ -308,4 +374,18 @@
+         work = Path(tempfile.mkdtemp(prefix="run.", dir=root))
+         print("claim %s rev %s repo %s instrument %s rules %s" % (claim, rev, repo, instrument, rules))
++        late = rules != "v4"  # rules 4-7 (v5 and v6)
++        pristine = None
++        if rules == "v6":
++            print("rule 9: counter %s" % non_dumpable())
++            pristine = work / "pristine"
++            pristine.mkdir()
++            arch = subprocess.Popen(["git", "-C", str(repo), "archive", "--format=tar", rev],
++                                    stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
++            with tarfile.open(fileobj=arch.stdout, mode="r|") as tf:
++                tf.extractall(pristine, filter="tar")
++            if arch.wait() != 0:
++                raise NotEvaluated("git archive of %s failed" % rev)
++            if (pristine / ".git").exists():
++                raise NotEvaluated("exported tree carries .git")
+ 
+         def mutant_text(name: str, anchor: str, count: int, repl: str) -> str:
+@@ -320,10 +400,10 @@
+             mt = mutant_text(name, a, c, w)
+             jobs.append(("blind", name, mt, original))
+-            if rules == "v5":
++            if late:
+                 jobs.append(("mirror", name, mt, mt))
+         pname, pa, pc, pw = spec["positive"]
+         pt = mutant_text(pname, pa, pc, pw)
+         jobs.append(("pos-blind", pname, pt, original))
+-        if rules == "v5":
++        if late:
+             jobs.append(("pos-mirror", pname, pt, pt))
+         for name, a, c, w in spec["targets"]:
+@@ -340,5 +420,5 @@
+         honest = ("honest", "honest", original, original)
+         seed = "-"
+-        if rules == "v5":
++        if late:
+             seed = os.environ.get("KOTOBA_R97_SEED") or os.urandom(8).hex()
+             rng = random.Random(seed)
+@@ -355,8 +435,14 @@
+             for sub in ("tmp", "home", "cache"):
+                 (d / sub).mkdir()
+-            for cmd in (["git", "clone", "-q", "--shared", "--no-checkout", str(repo), str(clone)],
+-                        ["git", "-C", str(clone), "checkout", "-q", "--detach", rev]):
++            if pristine is not None:
++                cmds = [["cp", "-a", "--reflink=auto", str(pristine), str(clone)]]
++            else:
++                cmds = [["git", "clone", "-q", "--shared", "--no-checkout", str(repo), str(clone)],
++                        ["git", "-C", str(clone), "checkout", "-q", "--detach", rev]]
++            for cmd in cmds:
+                 if subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode != 0:
+-                    raise NotEvaluated("clone or checkout failed")
++                    raise NotEvaluated("world copy, clone or checkout failed")
++            if rules == "v6":
++                return d, clone, child_env(d)
+             env = dict(os.environ, TMPDIR=str(d / "tmp"), PYTHONDONTWRITEBYTECODE="1")
+             if rules == "v5":
+@@ -396,16 +482,16 @@
+         for name, _, _, _ in spec["targets"]:
+             blind = results[("blind", name)][0]
+-            mirror = results[("mirror", name)][0] if rules == "v5" else rf
+-            mirror_rep += rules == "v5" and mirror == rf
++            mirror = results[("mirror", name)][0] if late else rf
++            mirror_rep += late and mirror == rf
+             k = blind == rf and mirror == rf
+             killed += k
+             errors += "RUN-ERROR" in (blind, mirror)
+-            print("mutant %s blind %s mirror %s: %s" % (name, blind, mirror if rules == "v5" else "-",
++            print("mutant %s blind %s mirror %s: %s" % (name, blind, mirror if late else "-",
+                                                         "KILLED" if k else "not killed"))
+         pblind = results[("pos-blind", pname)][0]
+-        pmirror = results[("pos-mirror", pname)][0] if rules == "v5" else rf
+-        mirror_rep += rules == "v5" and pmirror == rf
++        pmirror = results[("pos-mirror", pname)][0] if late else rf
++        mirror_rep += late and pmirror == rf
+         pos = 1 if pblind == rf and pmirror == rf else 0
+-        print("positive %s blind %s mirror %s: %s" % (pname, pblind, pmirror if rules == "v5" else "-",
++        print("positive %s blind %s mirror %s: %s" % (pname, pblind, pmirror if late else "-",
+                                                      "KILLED" if pos else "not killed"))
+         held_comment = sum(1 for nm, _, _, _ in spec["targets"] if results[("comment", nm)][0] == "CLEAN")
+@@ -416,5 +502,5 @@
+         print("rules %s: honest runs CLEAN %d of %d; mirror runs reported %s; seed %s"
+               % (rules, honest_clean, len(honest_runs),
+-                 ("%d of %d" % (mirror_rep, n + 1)) if rules == "v5" else "-", seed))
++                 ("%d of %d" % (mirror_rep, n + 1)) if late else "-", seed))
+         met = cls_h == "CLEAN" and killed == n and pos == 1 and held_comment == n and held_code == n
+         print("%s-PREDICATE-%s" % (tag, "MET" if met else "UNMET"))
+@@ -423,4 +509,9 @@
+         print("%s-NOT-EVALUATED: %s" % (tag, exc))
+         return 2
++    except Exception as exc:  # rule 10: never a traceback exit 1
++        if rules == "v6":
++            print("%s-NOT-EVALUATED: unexpected %s: %s" % (tag, exc.__class__.__name__, exc))
++            return 2
++        raise
+     finally:
+         if work is not None:
