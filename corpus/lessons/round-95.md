@@ -168,7 +168,32 @@ a correction, so no row's `teaches` cell opens `supersedes S0NN — `.
 
 ## Settlement
 
-L1 settlement (KotobaR95, after WAVE-DONE) — **placeholder, to be completed by the L1**: the seat
-record, the C1 claim verdict (`C1 targets killed 3 of 3 (run errors 0); positive killed 1 of 1;
-honest CLEAN; comment decoys held 3 of 3; code decoys held 3 of 3`), the no-harm battery readings
-at the landing revision, the wave disposition, and the census numbers at the landing revision.
+L1 settlement (KotobaR95, after the landing reading; the verdicts are the non-author closure's).
+
+- **Revisions.** Base `2d886a91e57efd3555ec9076a63209e2d8bfbb8d`; freeze `673d1e2e6f850bb54dda9698cf825cf6788c7d0d`
+  (plan, v3 counter sha256 `d6ae74af40135f9b30b0101d5a195a3d950b6a72073020ac59ba58da1d269001`, control-world builder,
+  six forgery patches, pre-data receipts); landing `d1144fab4b31f1f5196cb347303894e7b1e54eda` (ExecBatteryKills patch
+  sha256 `f9506fe3…`, ScribeCorpusR95 patch, `corpus/QUALITY.md` Q84/Q85).
+- **C1 reading at the landing** (`.ufo/waves/round-95/receipts/landing/c1-counter.txt`): `C1 targets killed 3 of 3
+  (run errors 0); positive killed 1 of 1; honest CLEAN; comment decoys held 3 of 3; code decoys held 3 of 3` →
+  `C1-PREDICATE-MET`, rc 0. Before (`receipts/redbefore-c1-base.txt`): `0 of 3`, UNMET, rc 1. Positive control
+  `r94c1` MET at base and at landing. Self-test `0 failure(s) over 46 assertions` (38 at base).
+- **Bounds (addendum A1).** Guard-aware bytecode sniffers (ReviewerCounterV3 f8, ExecCounterForgery g2) and a
+  recompile-and-compare self-test (g3) can kill single targets with both decoys held; no measured forgery met the
+  predicate (f1–f6, g1–g5 all UNMET). The behavioural reading rests on three seats' hand-applied mutants naming the
+  failing assertion.
+- **Mistake fix shown able to fail.** f6 (`receipts/forgery-f6-crash-report.txt`): the n11 run is `RUN-ERROR (not a
+  kill)` with rc 1, which the round-94 rule would score KILLED; live: MutTesterBattery95 m11 (`TypeError`, no summary)
+  is RUN-ERROR under rule 1. Run-granular only (A2).
+- **No-harm at the landing** (`receipts/landing/`): round-93 `c1-killpin-rev.sh` and `c2-pinkey.sh` MET; round-94
+  `selftest-kills.py c1`/`c2` MET; round-92 `controls-run.sh` `shortcuts refused 2 of 2; honest held 2 of 2`; gate
+  registry `74 of 74 … phantom 0`; floors self-test `0 failure(s) over 176 assertions`; tip battery `guards 5 of 5;
+  tip battery exit 0: 3 of 6` (floors gate exit 0 in 236.2 s — round-94 landing read 2 of 6 on its 280 s timeout);
+  SKILL.md byte-identical.
+- **Census.** Round start rc 0, 34 `W04`, 195 rows; round end rc 0, 34 `W04` (none new), 196 rows (S270).
+- **Wave.** `r95-w1`, 12 seats (executor 3, scout 1, scribe 1, connector 1, reviewer 2, mutation-tester 2, critic 1,
+  sentinel 1); attack 5 of 12.
+- **Routed to round 96.** m08 (target-set `!=` relaxed to `<` survives: no extra-target world); N4 still unobservable;
+  recompile-compare and guard-aware bytecode shapes as committed control worlds; counter exit-ladder hygiene
+  (ReviewerCounterV3 F1/F3); a predicate-flipping crash world (A2); the tip battery's flat 280 s outer cap on the floors
+  gate (ExecBaseBattery: the inner cap scales with load, the outer does not).
