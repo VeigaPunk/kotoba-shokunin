@@ -1,0 +1,139 @@
+diff --git c/verifiers/verify_dispatch_prompts.py i/verifiers/verify_dispatch_prompts.py
+index 6e239ae..c6ecbd5 100755
+--- c/verifiers/verify_dispatch_prompts.py
++++ i/verifiers/verify_dispatch_prompts.py
+@@ -797,6 +797,134 @@ def self_test() -> int:
+             f and "state-stale" in f["conjuncts"]["round_le_latest_dispatched"]
+             ["detail"], f)
+ 
++        # --- C1 behavioural arms (round 96) --------------------------------
++        # Each arm names the frozen survivor it is meant to kill and reads an
++        # observed result from evaluate_dispatch_04/08, never this file's
++        # source.  POSIX.1-2024 XCU 2.6.2 makes the braces optional, so
++        # `${LANE}` and `$LANE` are both unsubstituted parameters and neither
++        # is a literal report path.
++        for label, form in (("t01/t02 brace form", "${LANE}"),
++                            ("t01/t03 bare form", "$LANE")):
++            case = _write_case(
++                root, "var-" + ("brace" if form.startswith("${") else "bare"),
++                good.replace("/round-7/kote.md", "/round-7/%s.md" % form),
++                "9", None)
++            r = evaluate_dispatch_04(case / "prompts", case / "state",
++                                     case / "fleet")
++            f = _verdict_of(r, "kote-round-7.md")
++            rec("%s: report path %r is not literal, conjunct "
++                "report_path_literal FAIL" % (label, form),
++                f and f["conjuncts"]["report_path_literal"]["status"] == "FAIL",
++                f and f["conjuncts"]["report_path_literal"])
++            rec("%s: report path %r makes the dispatch.04 file FAIL"
++                % (label, form), f and f["verdict"] == "FAIL", f)
++
++        # t04: the bound is inclusive, so a round equal to the latest
++        # dispatched round is allowed.
++        case = _write_case(root, "equal-state", good, "7", None)
++        r = evaluate_dispatch_08(case / "prompts", case / "state", case / "fleet")
++        f = _verdict_of(r, "kote-round-7.md")
++        rec("t04-le-to-lt: round equal to the latest dispatched is PASS on "
++            "conjunct round_le_latest_dispatched",
++            f and f["conjuncts"]["round_le_latest_dispatched"]["status"] == "PASS",
++            f and f["conjuncts"]["round_le_latest_dispatched"])
++        rec("t04-le-to-lt: round equal to the latest dispatched keeps the "
++            "dispatch.08 file verdict PASS", f and f["verdict"] == "PASS", f)
++
++        # t05: a check whose only in-scope file is N/A reads N/A, never PASS.
++        case = _write_case(root, "allna", good, None, None)
++        r = evaluate_dispatch_08(case / "prompts", case / "state", case / "fleet")
++        rec("t05-finish-allna-pass: an all-N/A dispatch.08 reads N/A, not PASS",
++            r["status"] == "N/A", (r["status"], r["detail"]))
++        rec("t05-finish-allna-pass: the all-N/A dispatch.08 still evaluates 1",
++            r["evaluated"] == 1, r["evaluated"])
++
++        # t11: a file with no report path reads N/A on every dispatch.04
++        # conjunct, so the file and the check are N/A, never PASS.
++        noreport = ("You are the kote L1, round 7. Working dir: "
++                    "/fleet/kote-shokunin.\n\n"
++                    "Land the round notes in the usual place. | godspeed\n")
++        case = _write_case(root, "noreport", noreport, "9", None)
++        r = evaluate_dispatch_04(case / "prompts", case / "state", case / "fleet")
++        f = _verdict_of(r, "kote-round-7.md")
++        rec("t11-noreport-04-pass: a file with no report path has the "
++            "dispatch.04 file verdict N/A", f and f["verdict"] == "N/A", f)
++        for cid in CONJUNCTS["dispatch.04"]:
++            rec("t11-noreport-04-pass: conjunct %s is N/A when no report path "
++                "is present" % cid,
++                f and f["conjuncts"][cid]["status"] == "N/A",
++                f and f["conjuncts"][cid])
++        rec("t11-noreport-04-pass: the no-report-path dispatch.04 check is N/A",
++            r["status"] == "N/A", (r["status"], r["detail"]))
++        rec("t05-finish-allna-pass: the no-report-path dispatch.04 evaluates 1",
++            r["evaluated"] == 1, r["evaluated"])
++
++        # t06: the role round is read from line 1 only; a later line's token
++        # does not stand in for it.
++        late = ("You are the kote L1. Working dir: /fleet/kote-shokunin.\n\n"
++                "Write the round report at "
++                "`/fleet/.ufo/reports/round-7/kote.md`.\n"
++                "This dispatch is round 7 of the wave. | godspeed\n")
++        case = _write_case(root, "late-role", late, "9", None)
++        r = evaluate_dispatch_08(case / "prompts", case / "state", case / "fleet")
++        f = _verdict_of(r, "kote-round-7.md")
++        rec("t06-role-whole-text: a round token only on a later line leaves "
++            "conjunct filename_role_round_equal FAIL",
++            f and f["conjuncts"]["filename_role_round_equal"]["status"] == "FAIL",
++            f and f["conjuncts"]["filename_role_round_equal"])
++        rec("t06-role-whole-text: the later-line token makes the dispatch.08 "
++            "file FAIL", f and f["verdict"] == "FAIL", f)
++
++        # t07: every report dir must equal the file-name round; one wrong dir
++        # among several is still a FAIL.
++        case = _write_case(root, "two-dirs",
++                           good + "Earlier note: "
++                           "`/fleet/.ufo/reports/round-6/kote.md`.\n", "9", None)
++        r = evaluate_dispatch_08(case / "prompts", case / "state", case / "fleet")
++        f = _verdict_of(r, "kote-round-7.md")
++        rec("t07-dirs-subset: a round-6 path beside the round-7 path leaves "
++            "conjunct filename_report_dir_round_equal FAIL",
++            f and f["conjuncts"]["filename_report_dir_round_equal"]["status"]
++            == "FAIL", f and f["conjuncts"]["filename_report_dir_round_equal"])
++
++        # t08: every report path is scanned for a placeholder, not just the
++        # first one.
++        case = _write_case(root, "bad-second",
++                           good + "Draft copy: "
++                           "`/fleet/.ufo/reports/round-7/<lane>.md`.\n", "9", None)
++        r = evaluate_dispatch_04(case / "prompts", case / "state", case / "fleet")
++        f = _verdict_of(r, "kote-round-7.md")
++        rec("t08-bad-first-only: a placeholder in the second report path "
++            "leaves conjunct report_path_literal FAIL",
++            f and f["conjuncts"]["report_path_literal"]["status"] == "FAIL",
++            f and f["conjuncts"]["report_path_literal"])
++
++        # t09: every report stem is compared to the lane id, not just the
++        # first one in sorted order.
++        case = _write_case(root, "wrong-second",
++                           good + "Sibling copy: "
++                           "`/fleet/.ufo/reports/round-7/other.md`.\n", "9", None)
++        r = evaluate_dispatch_04(case / "prompts", case / "state", case / "fleet")
++        f = _verdict_of(r, "kote-round-7.md")
++        rec("t09-wrong-first-only: a second stem that sorts after the lane id "
++            "leaves conjunct report_stem_is_lane_id FAIL",
++            f and f["conjuncts"]["report_stem_is_lane_id"]["status"] == "FAIL",
++            f and f["conjuncts"]["report_stem_is_lane_id"])
++
++        # t10: a non-integer baseline is no bound at all, so the conjunct is
++        # N/A and never a PASS.
++        case = _write_case(root, "nonint", good, "abc", None)
++        r = evaluate_dispatch_08(case / "prompts", case / "state", case / "fleet")
++        f = _verdict_of(r, "kote-round-7.md")
++        rec("t10-nonint-baseline: a non-integer baseline leaves conjunct "
++            "round_le_latest_dispatched N/A",
++            f and f["conjuncts"]["round_le_latest_dispatched"]["status"] == "N/A",
++            f and f["conjuncts"]["round_le_latest_dispatched"])
++        rec("t10-nonint-baseline: a non-integer baseline leaves the dispatch.08 "
++            "file verdict N/A", f and f["verdict"] == "N/A", f)
++        rec("t10-nonint-baseline: a non-integer baseline leaves the dispatch.08 "
++            "check N/A", r["status"] == "N/A", (r["status"], r["detail"]))
++
+         # --- out-of-scope names and the never-pass-on-zero rule ------------
+         case = root / "scope"
+         (case / "prompts").mkdir(parents=True, exist_ok=True)

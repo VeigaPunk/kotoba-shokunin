@@ -1,0 +1,28 @@
+# ScribeCorpusR96 — this seat's own source fetches (round 96, 2026-11-06 UTC)
+# all: curl -sS -L --max-time 40 -o <file> -w '%{http_code} %{size_download}' <url> ; then sha256sum <file>
+# scratch: /fast/scratch/hyaku/kotoba-r96/ScribeCorpusR96 (removed before yield)
+# the two admitted sources' bytes are also committed byte-identically by the scout under
+# .ufo/waves/round-96/w1/ScoutSourcesR96/ (pit-mutators.html, posix-chap02.html); not duplicated here.
+
+https://pitest.org/quickstart/mutators/            -> mutators.html    200 67033   sha256 a31331daf89f246f3e02c0da92578d4ad2163c53741c3700437e75b9a1602da2
+https://pubs.opengroup.org/onlinepubs/9799919799/utilities/V3_chap02.html -> posix-xcu2.html 200 357953 sha256 0889867a53fe12508a71e8739ec23ecdddc95e6f67697c98e26acc8ff0ec1acd
+https://tiswww.case.edu/php/chet/bash/bash.html    -> bash1.html       200 426217  sha256 79394ccb66e4d572f47d8b01634d3b08a87f705a230605006e25aecd5e033475
+https://mutmut.readthedocs.io/en/latest/           -> mutmut.html      200 51074   sha256 07453b3fdb3b962a4cc5aff66d7614a11016c9ce0ea482654c99e17688ec9cad
+https://ant.apache.org/manual/Tasks/junit.html     -> ant-junit.html   200 33365   sha256 3f1ee369f541938791d02b8a09506e48ef33472bccb6c237c4280730c7bcc4a1
+
+# gnu.org (scout §2.1) was NOT re-attempted by this seat: the scout recorded two timeouts
+# (curl: (28), HTTP 000, 0 B) and the reject is grounded in that observation, attributed to the scout.
+
+# word counts (printf '%s\n' "<quote>" | wc -w)
+S271 quote -> 16
+S272 quote -> 22   (receipts/sources-opened.txt says 19; the string it carries measures 22)
+BASH(1) corroboration quote -> 16
+
+# quote-equal checks (HTML tags stripped, entities unescaped, whitespace collapsed)
+S271 quote in joined HTML lines 313-320 -> True
+S272 quote in joined HTML lines 777-792 -> True
+
+# census (maintained CLI, from the fleet root)
+bash scripts/sources-census.sh validate --file "$D/corpus/SOURCES.md"      -> rc 0, 34 W04, 0 E-codes
+bash scripts/sources-census.sh validate --file "$V/corpus/SOURCES.md"      -> rc 0, 34 W04, 0 E-codes  (fresh clone + patch)
+rows: 196 at 679775ab -> 198 in the patched tree

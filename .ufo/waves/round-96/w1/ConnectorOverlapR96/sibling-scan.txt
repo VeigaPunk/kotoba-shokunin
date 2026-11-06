@@ -1,0 +1,44 @@
+# sibling overlap scan (read-only), 2026-11-06, fleet root /home/vgpnk/Projects/shokunin
+# method: exhaustive grep per lane, excluding */sandboxes/*; plus filename scans; no sibling written.
+
+## dispatch.04 (the kotoba dispatch-prompt box id)
+for L in *-shokunin; do [ "$L" = kotoba-shokunin ] || grep -rl --binary-files=without-match "dispatch\.04" "$L" | grep -v /sandboxes/; done
+=> only chousa-shokunin/.ufo/waves/round-73/w1/R73S03/.ufo__l0-questions.md.txt:104
+   (a copied fleet l0-questions line that QUOTES kotoba's instrument:
+    "kotoba's verifiers/verify_dispatch_prompts.py fails dispatch.04 on them on every live run.
+     Fleet-owned files; kotoba records the failure and edits nothing there.")
+   => no sibling implements a dispatch-prompt checker.
+
+## selftest-kills / source-blind (the kill-counter technique)
+find . -maxdepth 6 -name "*selftest-kills*" -not -path "*/sandboxes/*"
+=> only kotoba-shokunin/verifiers/fixtures/round-94|95|96/selftest-kills.py
+grep -rl "source-blind" --include=*.py */
+=> chousa .ufo/waves/round-75/w1/R75Mutation/artifacts/*.py (7), chousa corpus/evidence/round75/loader-matrix-v2.py,
+   kama .ufo/waves/round-28/{controls,controls-A1}/.../guess.py, kama .ufo/waves/round-28/count-c1.py
+   => wave artifacts and prose, no production instrument.
+
+## sibling mutation/kill tooling (technique prior art, none on a prompt instrument)
+kumitate-shokunin/scripts/gate-mutants.mjs        contract kumitate-gate-mutants-v2, K43; ON-DISK temp copy of scripts/ per mutant
+tabi-shokunin/scripts/check-gate-mutants.mjs      + scripts/gate-mutants.json
+tsukuroi-shokunin/tools/mutation-kill-r82.py      "killed when its own --selftest exits non-zero" (exit-code-only), ON-DISK
+tsukuroi-shokunin/tools/mutation-kill-r83.py
+tameshi-shokunin/tools/*-mutants.spec             method specs
+kama-shokunin/tools/round86-mutant-owners.py
+kengaku-shokunin/plans/mutant_direction_check.py
+=> every one mutates ON DISK and judges by exit code; none is source-blind (compiled-code execution with
+   honest bytes on disk). kotoba's v3/v4 rule is the stronger variant; the surface (a prompt checker) is unique.
+
+## sibling verifiers/ directories
+ls */verifiers => empty for kama, kengaku, chousa, mado (and the other 16). No sibling keeps gate scripts under verifiers/.
+
+## boundary evidence
+kotoba PROVINCE.md:68  kengaku adjacent — "kengaku owns measured capability effects of prompt format and hands
+                       reusable craft out; kotoba owns the prompt/skill craft rules"
+kotoba PROVINCE.md:70  kumitate adjacent — "kumitate owns dispatch/orchestration tooling and routes
+                       'Prompt and skill craft → kotoba'"
+kotoba PROVINCE.md:77  tameshi adjacent — "tameshi owns the reusable fixture and mutation method while each lane's
+                       gate stays its own; kotoba's verifiers/* are unsurveyed sightings there
+                       (tameshi corpus/knowledge/fleet-kill-rate-ledger.md:127)"
+tameshi fleet-kill-rate-ledger.md:127 (read): "kotoba `verifiers/*` — file existence is O, their gate-ness is U
+                       until a survey admits them"
+=> C1's new counter is not covered by tameshi's ledger: a routed finding for integration, not an edit.

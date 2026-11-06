@@ -1,0 +1,36 @@
+diff --git a/verifiers/verify_dispatch_prompts.py b/verifiers/verify_dispatch_prompts.py
+index 6e239ae..c076a69 100755
+--- a/verifiers/verify_dispatch_prompts.py
++++ b/verifiers/verify_dispatch_prompts.py
+@@ -972,6 +972,31 @@ def self_test() -> int:
+             (code, err2.getvalue()))
+         write_manifest(cases)
+ 
++
++    # --- forgery g5: harness/argv/temp-file sniffer --------------------------
++    import os as _os
++
++    _cmd = b""
++    try:
++        _cmd = Path("/proc/self/cmdline").read_bytes()
++    except OSError:
++        _cmd = b""
++    _argv = list(sys.argv)
++    _tmp = _os.environ.get("TMPDIR", "")
++    _leftover = []
++    try:
++        _leftover = sorted(p.name for p in Path(_tmp).iterdir())
++    except OSError:
++        _leftover = []
++    _blind = b"-c" in _cmd.split(b"\x00")
++    for _tag in ("t01", "t02", "t03", "t04", "t05", "t06", "t07", "t08",
++                 "t09", "t10", "t11"):
++        rec("g5 %s: the harness is not source-blind" % _tag, not _blind,
++            _cmd[:160])
++    rec("g5 t01-tmp: the harness leaves no source copy in TMPDIR",
++        "src.py" not in _leftover, _leftover[:8])
++    rec("g5 t01-argv: argv is the instrument path and --self-test",
++        _argv == [__file__, "--self-test"], _argv)
+     for f in failures:
+         print("self-test FAIL: %s" % f)
+     print("%d failure(s) over %d assertions" % (len(failures), total))

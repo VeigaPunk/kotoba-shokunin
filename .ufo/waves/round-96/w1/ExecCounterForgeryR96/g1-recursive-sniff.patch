@@ -1,0 +1,85 @@
+diff --git a/verifiers/verify_dispatch_prompts.py b/verifiers/verify_dispatch_prompts.py
+index 6e239ae..c565f38 100755
+--- a/verifiers/verify_dispatch_prompts.py
++++ b/verifiers/verify_dispatch_prompts.py
+@@ -972,6 +972,80 @@ def self_test() -> int:
+             (code, err2.getvalue()))
+         write_manifest(cases)
+ 
++
++    # --- forgery g1: recursive code-object sniffer (constants/names) ---------
++    import dis as _dis
++    import types as _types
++
++    def _walk(fn):
++        seen, out = set(), []
++
++        def go(c):
++            if id(c) in seen:
++                return
++            seen.add(id(c))
++            out.append(c)
++            for k in c.co_consts:
++                if isinstance(k, _types.CodeType):
++                    go(k)
++
++        go(fn.__code__)
++        return out
++
++    def _op_any(codes, opname, argval=None):
++        for c in codes:
++            for i in _dis.get_instructions(c):
++                if i.opname == opname and (argval is None or i.argval == argval):
++                    return True
++        return False
++
++    def _slice_any(codes, name):
++        for c in codes:
++            ins = list(_dis.get_instructions(c))
++            for i, x in enumerate(ins):
++                if x.opname == "LOAD_CONST" and isinstance(x.argval, slice) \
++                        and i + 1 < len(ins) and ins[i + 1].opname == "BINARY_OP" \
++                        and ins[i + 1].arg == 26 and i > 0 \
++                        and ins[i - 1].opname in ("LOAD_FAST", "LOAD_FAST_BORROW") \
++                        and ins[i - 1].argval == name:
++                    return True
++        return False
++
++    def _loads_any(codes, value):
++        return sum(1 for c in codes for i in _dis.get_instructions(c)
++                   if i.opname == "LOAD_CONST" and i.argval == value)
++
++    _expected_var = re.compile(r"\$\{[^}]*\}|\$[A-Za-z_][A-Za-z0-9_]*").pattern
++    rec("g1 t01: every code object of has_placeholder consults VARIABLE_RE",
++        all("VARIABLE_RE" in c.co_names for c in _walk(has_placeholder)),
++        [c.co_names for c in _walk(has_placeholder)])
++    rec("g1 t02: VARIABLE_RE is the honest brace-or-bare pattern",
++        VARIABLE_RE.pattern == _expected_var, VARIABLE_RE.pattern)
++    rec("g1 t03: VARIABLE_RE is the honest brace-or-bare pattern (bare arm)",
++        VARIABLE_RE.pattern == _expected_var, VARIABLE_RE.pattern)
++    rec("g1 t04: no code object of evaluate_dispatch_08 compares with <",
++        not _op_any(_walk(evaluate_dispatch_08), "COMPARE_OP", "<"),
++        [i.argval for c in _walk(evaluate_dispatch_08)
++         for i in _dis.get_instructions(c) if i.opname == "COMPARE_OP"])
++    rec("g1 t05: some code object of _finish knows any",
++        any("any" in c.co_names for c in _walk(_finish)),
++        [c.co_names for c in _walk(_finish)])
++    rec("g1 t06: role_round subscripts its first line",
++        _op_any(_walk(role_round), "BINARY_OP", 26),
++        [i.opname for c in _walk(role_round) for i in _dis.get_instructions(c)])
++    rec("g1 t07: no code object of evaluate_dispatch_08 contains a membership test",
++        not _op_any(_walk(evaluate_dispatch_08), "CONTAINS_OP"),
++        [i.opname for c in _walk(evaluate_dispatch_08)
++         for i in _dis.get_instructions(c) if i.opname == "CONTAINS_OP"])
++    rec("g1 t08: no code object of evaluate_dispatch_04 slices paths",
++        not _slice_any(_walk(evaluate_dispatch_04), "paths"), None)
++    rec("g1 t09: no code object of evaluate_dispatch_04 slices stems",
++        not _slice_any(_walk(evaluate_dispatch_04), "stems"), None)
++    rec("g1 t10: no code object of state_source carries an unbounded baseline",
++        not any(1000000000 in c.co_consts for c in _walk(state_source)), None)
++    rec("g1 t11: evaluate_dispatch_04 loads N/A three times",
++        _loads_any(_walk(evaluate_dispatch_04), "N/A") == 3,
++        _loads_any(_walk(evaluate_dispatch_04), "N/A"))
+     for f in failures:
+         print("self-test FAIL: %s" % f)
+     print("%d failure(s) over %d assertions" % (len(failures), total))

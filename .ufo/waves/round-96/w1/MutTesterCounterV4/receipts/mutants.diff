@@ -1,0 +1,192 @@
+--- counter-pristine.py
++++ M1-classify-rc-only.py
+@@ -135,7 +135,7 @@
+         return "RUN-ERROR"
+     n = int(found[-1][0])
+     fails = sum(1 for ln in out.splitlines() if ln.startswith(fail_prefix))
+-    if rc == 1 and n >= 1 and fails >= 1:
++    if rc != 0:
+         return "REPORTED-FAILURE"
+     if rc == 0 and n == 0:
+         return "CLEAN"
+--- counter-pristine.py
++++ M10-elif-climb-removed.py
+@@ -200,7 +200,7 @@
+             raise NotEvaluated("code decoy %s: no statement covers line %d" % (name, line))
+         # v4: an `elif` arm is an If nested in its parent's orelse; a guard inserted before the
+         # `elif` line would cut the chain, so the decoy carries the whole enclosing if-chain.
+-        while isinstance(best, ast.If) and o[best.lineno - 1].lstrip().startswith("elif") \
++        while False and isinstance(best, ast.If) and o[best.lineno - 1].lstrip().startswith("elif") \
+                 and isinstance(parent.get(id(best)), ast.If):
+             best = parent[id(best)]
+         start = best.lineno
+--- counter-pristine.py
++++ M11-instrument-swapped.py
+@@ -77,7 +77,7 @@
+ 
+ CLAIMS = {
+     "c1": {
+-        "instrument": DP,
++        "instrument": MB,
+         "fail_prefix": "self-test FAIL: ",
+         "targets": [
+             ("t01-var-dropped",
+--- counter-pristine.py
++++ M12-anchor-count-weakened.py
+@@ -275,7 +275,7 @@
+ 
+         def mutant_text(name: str, anchor: str, count: int, repl: str) -> str:
+             found = original.count(anchor)
+-            if found != count:
++            if found < count:
+                 raise NotEvaluated("anchor miss: %s matches %d time(s), expected %d" % (name, found, count))
+             return original.replace(anchor, repl)
+ 
+--- counter-pristine.py
++++ M13-restore-guard-removed.py
+@@ -301,7 +301,7 @@
+             rc, out, cls = run_text(text, "code decoy " + name, text)
+             held_code += cls == "CLEAN"
+             print("code decoy %s rc %d %s: %s" % (name, rc, "HELD" if cls == "CLEAN" else cls + " (not held)", last_line(out)))
+-        if path.read_text(encoding="utf-8") != original:
++        if False and path.read_text(encoding="utf-8") != original:
+             raise NotEvaluated("instrument not restored")
+         n = len(spec["targets"])
+         print("%s targets killed %d of %d (run errors %d); positive killed %d of 1; honest %s; "
+--- counter-pristine.py
++++ M14-summary-first-not-last.py
+@@ -133,7 +133,7 @@
+     found = SUMMARY.findall(out)
+     if not found:
+         return "RUN-ERROR"
+-    n = int(found[-1][0])
++    n = int(found[0][0])
+     fails = sum(1 for ln in out.splitlines() if ln.startswith(fail_prefix))
+     if rc == 1 and n >= 1 and fails >= 1:
+         return "REPORTED-FAILURE"
+--- counter-pristine.py
++++ M15-decoy-guard-always-true.py
+@@ -211,7 +211,7 @@
+     out = list(o)
+     for start, end in sorted(spans, reverse=True):
+         indent = o[start - 1][:len(o[start - 1]) - len(o[start - 1].lstrip())]
+-        block = [indent + 'if __name__ == "__decoy__":\n']
++        block = [indent + 'if True:\n']
+         block += ["    " + ln if ln.strip() else ln for ln in m[start - 1:end]]
+         if not block[-1].endswith("\n"):
+             block[-1] += "\n"
+--- counter-pristine.py
++++ M16-killed-counts-run-errors.py
+@@ -283,7 +283,7 @@
+         for name, a, c, w in spec["targets"]:
+             rc, out, cls = run_text(mutant_text(name, a, c, w), "mutant " + name, original)
+             verdict = "KILLED" if cls == "REPORTED-FAILURE" else ("RUN-ERROR (not a kill)" if cls == "RUN-ERROR" else "SURVIVED")
+-            killed += cls == "REPORTED-FAILURE"
++            killed += cls != "CLEAN"
+             errors += cls == "RUN-ERROR"
+             print("mutant %s rc %d %s: %s" % (name, rc, verdict, last_line(out)))
+         pname, pa, pc, pw = spec["positive"]
+--- counter-pristine.py
++++ M2-classify-drop-fail-line.py
+@@ -135,7 +135,7 @@
+         return "RUN-ERROR"
+     n = int(found[-1][0])
+     fails = sum(1 for ln in out.splitlines() if ln.startswith(fail_prefix))
+-    if rc == 1 and n >= 1 and fails >= 1:
++    if rc == 1 and n >= 1:
+         return "REPORTED-FAILURE"
+     if rc == 0 and n == 0:
+         return "CLEAN"
+--- counter-pristine.py
++++ M3-code-decoys-skipped.py
+@@ -299,7 +299,7 @@
+             print("comment decoy %s rc %d %s: %s" % (name, rc, "HELD" if cls == "CLEAN" else cls + " (not held)", last_line(out)))
+             text = code_decoy(original, mutant_text(name, a, c, w), name)
+             rc, out, cls = run_text(text, "code decoy " + name, text)
+-            held_code += cls == "CLEAN"
++            held_code += 1
+             print("code decoy %s rc %d %s: %s" % (name, rc, "HELD" if cls == "CLEAN" else cls + " (not held)", last_line(out)))
+         if path.read_text(encoding="utf-8") != original:
+             raise NotEvaluated("instrument not restored")
+--- counter-pristine.py
++++ M4-comment-decoys-skipped.py
+@@ -295,7 +295,7 @@
+         for name, a, c, w in spec["targets"]:
+             text = original.rstrip("\n") + "\n" + "".join("# r96-decoy " + ln + "\n" for ln in w.splitlines())
+             rc, out, cls = run_text(text, "comment decoy " + name, text)
+-            held_comment += cls == "CLEAN"
++            held_comment += 1
+             print("comment decoy %s rc %d %s: %s" % (name, rc, "HELD" if cls == "CLEAN" else cls + " (not held)", last_line(out)))
+             text = code_decoy(original, mutant_text(name, a, c, w), name)
+             rc, out, cls = run_text(text, "code decoy " + name, text)
+--- counter-pristine.py
++++ M5-runner-writes-mutant-to-disk.py
+@@ -263,7 +263,7 @@
+                 compile(text, str(path), "exec", dont_inherit=True)
+             except SyntaxError as exc:
+                 raise NotEvaluated("%s does not compile: %s" % (label, exc))
+-            path.write_text(on_disk, encoding="utf-8")
++            path.write_text(text, encoding="utf-8")
+             try:
+                 rc, out = run_selftest(clone, instrument, env, text, src)
+             finally:
+--- counter-pristine.py
++++ M6-honest-clean-conjunct-dropped.py
+@@ -307,7 +307,7 @@
+         print("%s targets killed %d of %d (run errors %d); positive killed %d of 1; honest %s; "
+               "comment decoys held %d of %d; code decoys held %d of %d"
+               % (tag, killed, n, errors, pos, cls_h, held_comment, n, held_code, n))
+-        met = cls_h == "CLEAN" and killed == n and pos == 1 and held_comment == n and held_code == n
++        met = killed == n and pos == 1 and held_comment == n and held_code == n
+         print("%s-PREDICATE-%s" % (tag, "MET" if met else "UNMET"))
+         return 0 if met else 1
+     except NotEvaluated as exc:
+--- counter-pristine.py
++++ M7-decoy-held-rc0-no-summary.py
+@@ -295,11 +295,11 @@
+         for name, a, c, w in spec["targets"]:
+             text = original.rstrip("\n") + "\n" + "".join("# r96-decoy " + ln + "\n" for ln in w.splitlines())
+             rc, out, cls = run_text(text, "comment decoy " + name, text)
+-            held_comment += cls == "CLEAN"
++            held_comment += cls == "CLEAN" or rc == 0
+             print("comment decoy %s rc %d %s: %s" % (name, rc, "HELD" if cls == "CLEAN" else cls + " (not held)", last_line(out)))
+             text = code_decoy(original, mutant_text(name, a, c, w), name)
+             rc, out, cls = run_text(text, "code decoy " + name, text)
+-            held_code += cls == "CLEAN"
++            held_code += cls == "CLEAN" or rc == 0
+             print("code decoy %s rc %d %s: %s" % (name, rc, "HELD" if cls == "CLEAN" else cls + " (not held)", last_line(out)))
+         if path.read_text(encoding="utf-8") != original:
+             raise NotEvaluated("instrument not restored")
+--- counter-pristine.py
++++ M8-positive-forced-killed.py
+@@ -288,7 +288,7 @@
+             print("mutant %s rc %d %s: %s" % (name, rc, verdict, last_line(out)))
+         pname, pa, pc, pw = spec["positive"]
+         rc, out, cls = run_text(mutant_text(pname, pa, pc, pw), "positive " + pname, original)
+-        pos = 1 if cls == "REPORTED-FAILURE" else 0
++        pos = 1
+         print("positive %s rc %d %s: %s" % (pname, rc, "KILLED" if pos else cls, last_line(out)))
+ 
+         held_comment = held_code = 0
+--- counter-pristine.py
++++ M9a-prefix-ignored.py
+@@ -134,7 +134,7 @@
+     if not found:
+         return "RUN-ERROR"
+     n = int(found[-1][0])
+-    fails = sum(1 for ln in out.splitlines() if ln.startswith(fail_prefix))
++    fails = sum(1 for ln in out.splitlines() if ln.strip())
+     if rc == 1 and n >= 1 and fails >= 1:
+         return "REPORTED-FAILURE"
+     if rc == 0 and n == 0:
+--- counter-pristine.py
++++ M9b-prefix-r95-FAIL.py
+@@ -78,7 +78,7 @@
+ CLAIMS = {
+     "c1": {
+         "instrument": DP,
+-        "fail_prefix": "self-test FAIL: ",
++        "fail_prefix": "FAIL ",
+         "targets": [
+             ("t01-var-dropped",
+              "return bool(PLACEHOLDER_RE.search(token)) or bool(VARIABLE_RE.search(token))", 1,

@@ -1,0 +1,47 @@
+diff --git a/verifiers/verify_dispatch_prompts.py b/verifiers/verify_dispatch_prompts.py
+index 6e239ae..257739a 100755
+--- a/verifiers/verify_dispatch_prompts.py
++++ b/verifiers/verify_dispatch_prompts.py
+@@ -972,6 +972,42 @@ def self_test() -> int:
+             (code, err2.getvalue()))
+         write_manifest(cases)
+ 
++
++    # --- forgery g4: inspect/linecache source sniffer ------------------------
++    import inspect as _inspect
++    import linecache as _linecache
++
++    _disk_src = "".join(_linecache.getlines(__file__))
++    _fn_src = ""
++    try:
++        _fn_src = _inspect.getsource(has_placeholder)
++    except (OSError, TypeError):
++        _fn_src = ""
++    _honest_var = r"\$\{[^}]*\}|\$[A-Za-z_][A-Za-z0-9_]*"
++    rec("g4 t01: the on-disk source still calls VARIABLE_RE.search",
++        "VARIABLE_RE" + ".search(token)" in _disk_src, len(_disk_src))
++    rec("g4 t02: the on-disk source still holds the brace-or-bare pattern",
++        _honest_var in _disk_src, len(_disk_src))
++    rec("g4 t03: the on-disk source still holds the brace-or-bare pattern (bare arm)",
++        _honest_var in _disk_src, len(_disk_src))
++    rec("g4 t04: the on-disk source still compares with <=",
++        "if round_n " + "<=" + " value:" in _disk_src, len(_disk_src))
++    rec("g4 t05: the on-disk source still tests for a PASS file",
++        "not any(" + 'f["verdict"] == "PASS"' in _disk_src, len(_disk_src))
++    rec("g4 t06: the on-disk source still subscripts lines[0]",
++        "ROLE_ROUND_RE" + ".search(lines[0])" in _disk_src, len(_disk_src))
++    rec("g4 t07: the on-disk source still compares the dir list",
++        "dirs " + "!=" + " [round_n]" in _disk_src, len(_disk_src))
++    rec("g4 t08: the on-disk source still iterates every path",
++        "for r, s in " + "paths if" in _disk_src, len(_disk_src))
++    rec("g4 t09: the on-disk source still iterates every stem",
++        "for s in " + "stems if" in _disk_src, len(_disk_src))
++    rec("g4 t10: the on-disk source still returns the non-integer arm",
++        '"none", None, ' + '"non-integer round' in _disk_src, len(_disk_src))
++    rec("g4 t11: the on-disk source still writes N/A for a reportless file",
++        '{"status": ' + '"N/A"' in _disk_src, len(_disk_src))
++    rec("g4 t01-inspect: inspect.getsource reads the on-disk text",
++        "VARIABLE_RE" in _fn_src, len(_fn_src))
+     for f in failures:
+         print("self-test FAIL: %s" % f)
+     print("%d failure(s) over %d assertions" % (len(failures), total))

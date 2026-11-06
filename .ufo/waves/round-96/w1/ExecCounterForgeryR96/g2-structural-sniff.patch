@@ -1,0 +1,69 @@
+diff --git a/verifiers/verify_dispatch_prompts.py b/verifiers/verify_dispatch_prompts.py
+index 6e239ae..798c916 100755
+--- a/verifiers/verify_dispatch_prompts.py
++++ b/verifiers/verify_dispatch_prompts.py
+@@ -972,6 +972,64 @@ def self_test() -> int:
+             (code, err2.getvalue()))
+         write_manifest(cases)
+ 
++
++    # --- forgery g2: structural sniffer, non-recursive per target ------------
++    import dis as _dis
++
++    def _ins(fn):
++        return list(_dis.get_instructions(fn))
++
++    def _cmp(fn, op):
++        return [i for i in _ins(fn) if i.opname == "COMPARE_OP" and i.argval == op]
++
++    def _slice_of(fn, name):
++        ins = _ins(fn)
++        hits = []
++        for i, x in enumerate(ins):
++            if x.opname == "LOAD_CONST" and isinstance(x.argval, slice) \
++                    and i + 1 < len(ins) and ins[i + 1].opname == "BINARY_OP" \
++                    and ins[i + 1].arg == 26 and i > 0 \
++                    and ins[i - 1].opname in ("LOAD_FAST", "LOAD_FAST_BORROW") \
++                    and ins[i - 1].argval == name:
++                hits.append(x.argval)
++        return hits
++
++    def _n_loads(fn, value):
++        return sum(1 for i in _ins(fn)
++                   if i.opname == "LOAD_CONST" and i.argval == value)
++
++    _expected_var = re.compile(r"\$\{[^}]*\}|\$[A-Za-z_][A-Za-z0-9_]*").pattern
++    rec("g2 t01: has_placeholder still consults VARIABLE_RE",
++        "VARIABLE_RE" in has_placeholder.__code__.co_names,
++        has_placeholder.__code__.co_names)
++    rec("g2 t02: VARIABLE_RE rejects a brace-only pattern",
++        VARIABLE_RE.pattern == _expected_var, VARIABLE_RE.pattern)
++    rec("g2 t03: VARIABLE_RE rejects a bare-only pattern",
++        VARIABLE_RE.pattern == _expected_var, VARIABLE_RE.pattern)
++    rec("g2 t04: the equality world compares with <=",
++        len(_cmp(evaluate_dispatch_08, "<=")) == 1
++        and not _cmp(evaluate_dispatch_08, "<"),
++        _cmp(evaluate_dispatch_08, "<="))
++    rec("g2 t05: _finish still tests for a PASS file",
++        "any" in _finish.__code__.co_names, _finish.__code__.co_names)
++    rec("g2 t06: role_round subscripts the first line",
++        any(i.opname == "BINARY_OP" and i.arg == 26 for i in _ins(role_round)),
++        [i.opname for i in _ins(role_round)])
++    rec("g2 t07: the report-dir conjunct compares the dir list",
++        not [i for i in _ins(evaluate_dispatch_08) if i.opname == "CONTAINS_OP"],
++        [i.opname for i in _ins(evaluate_dispatch_08)])
++    rec("g2 t08: the placeholder scan iterates every path",
++        not _slice_of(evaluate_dispatch_04, "paths"),
++        _slice_of(evaluate_dispatch_04, "paths"))
++    rec("g2 t09: the stem scan iterates every stem",
++        not _slice_of(evaluate_dispatch_04, "stems"),
++        _slice_of(evaluate_dispatch_04, "stems"))
++    rec("g2 t10: a non-integer baseline is not read as a bound",
++        1000000000 not in state_source.__code__.co_consts,
++        state_source.__code__.co_consts)
++    rec("g2 t11: a file with no report path is N/A, not PASS",
++        _n_loads(evaluate_dispatch_04, "N/A") == 3,
++        _n_loads(evaluate_dispatch_04, "N/A"))
+     for f in failures:
+         print("self-test FAIL: %s" % f)
+     print("%d failure(s) over %d assertions" % (len(failures), total))

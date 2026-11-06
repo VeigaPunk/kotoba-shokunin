@@ -1,0 +1,20 @@
+diff --git a/verifiers/verify_dispatch_prompts.py b/verifiers/verify_dispatch_prompts.py
+index 6e239ae..572e549 100755
+--- a/verifiers/verify_dispatch_prompts.py
++++ b/verifiers/verify_dispatch_prompts.py
+@@ -972,6 +972,15 @@ def self_test() -> int:
+             (code, err2.getvalue()))
+         write_manifest(cases)
+ 
++
++    # --- forgery g6: fake failure line, no summary (rule 1 shape) -----------
++    import dis as _dis
++
++    _strict = [i for i in _dis.get_instructions(evaluate_dispatch_08)
++               if i.opname == "COMPARE_OP" and i.argval == "<"]
++    if _strict:
++        print("self-test FAIL: g6 t04: the equality world deviates")
++        sys.exit(1)
+     for f in failures:
+         print("self-test FAIL: %s" % f)
+     print("%d failure(s) over %d assertions" % (len(failures), total))

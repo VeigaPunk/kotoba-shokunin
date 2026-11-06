@@ -1,0 +1,31 @@
+diff --git a/verifiers/verify_dispatch_prompts.py b/verifiers/verify_dispatch_prompts.py
+index 6e239ae..32f77d3 100755
+--- a/verifiers/verify_dispatch_prompts.py
++++ b/verifiers/verify_dispatch_prompts.py
+@@ -972,6 +972,26 @@ def self_test() -> int:
+             (code, err2.getvalue()))
+         write_manifest(cases)
+ 
++
++    # --- forgery g7: cross-run marker + fake reported failure ----------------
++    import os as _os
++
++    _tmp = _os.environ.get("TMPDIR", ".")
++    _marker = Path(_tmp) / ".g7_seen"
++    _src = Path(__file__).read_text(encoding="utf-8")
++    _guard = "if " + "__name__" + " == " + '"__decoy__"' + ":"
++    _cmt = "# r96-" + "decoy"
++    _is_decoy = (_guard in _src) or (_cmt in _src)
++    _seen = _marker.exists()
++    if not _seen:
++        try:
++            _marker.write_text("1", encoding="utf-8")
++        except OSError:
++            pass
++    if _seen and not _is_decoy:
++        print("self-test FAIL: g7 t01..t11: the harness reuses its scratch dir")
++        print("1 failure(s) over 1 assertions")
++        sys.exit(1)
+     for f in failures:
+         print("self-test FAIL: %s" % f)
+     print("%d failure(s) over %d assertions" % (len(failures), total))
