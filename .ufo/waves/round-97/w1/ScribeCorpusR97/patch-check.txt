@@ -1,0 +1,18 @@
+# ScribeCorpusR97 patch check — 2026-11-06
+patch .ufo/waves/round-97/w1/ScribeCorpusR97/ScribeCorpusR97.patch
+sha256 3f2712c471c814b31300af5caf7df59a8de8aac8f24cb3a77c184e94681b4902
+bytes 26266
+base 148395bf42af97436b1b832a97a175515f981939
+diffs 3: corpus/SOURCES.md, corpus/lessons/round-97.md, corpus/README.md
+
+cmd: D2=/fast/scratch/hyaku/kotoba-r97/ScribeCorpusR97/verify
+     git clone -q --shared /home/vgpnk/Projects/shokunin/kotoba-shokunin "$D2"
+     git -C "$D2" checkout -q 148395bf42af97436b1b832a97a175515f981939
+     git -C "$D2" rev-parse --show-toplevel -> /fast/scratch/hyaku/kotoba-r97/ScribeCorpusR97/verify
+     git -C "$D2" apply --check <patch> -> rc 0
+     git -C "$D2" apply <patch> ; diff -q each of the three files against the authoring clone -> identical
+     rm -rf "$D2"
+
+observed: APPLY-CHECK-OK ; FILES-IDENTICAL ; verify removed: YES
+note: this is the second generation of the patch (the first, sha256 4081d3c6…, differed only in one
+lesson sentence corrected for accuracy about rule 5's authority); only this final patch is handed off.

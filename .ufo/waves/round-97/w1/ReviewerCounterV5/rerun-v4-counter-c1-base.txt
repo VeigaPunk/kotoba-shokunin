@@ -1,0 +1,14 @@
+# ReviewerCounterV5 cross-check: the ACTUAL round-96 (v4) counter at the freeze commit
+# cmd: verifiers/fixtures/round-96/selftest-kills.py c1 148395bf42af97436b1b832a97a175515f981939 /fast/scratch/hyaku/kotoba-r97/ReviewerCounterV5/repo
+claim c1 rev 148395bf42af97436b1b832a97a175515f981939 repo /fast/scratch/hyaku/kotoba-r97/ReviewerCounterV5/repo instrument verifiers/verify_dispatch_prompts.py
+honest rc 0 CLEAN: 0 failure(s) over 78 assertions
+mutant t01-var-dropped .. t11-noreport-04-pass rc 1 KILLED (11 lines, 1-5 failures over 78 assertions)
+positive p00-md-not-stripped rc 1 KILLED: 5 failure(s) over 78 assertions
+comment decoy/code decoy t01..t11 rc 0 HELD (22 lines)
+C1 targets killed 11 of 11 (run errors 0); positive killed 1 of 1; honest CLEAN; comment decoys held 11 of 11; code decoys held 11 of 11
+C1-PREDICATE-MET
+rc=0
+# Confirms: (1) v4 reads MET at the freeze rev (round-96 no-harm control holds);
+# (2) v4's run order (honest first, mutants in table order, positive, then per-target
+# comment+code interleaved, no mirror, no shuffle) is exactly the order the v5 counter's
+# --rules v4 mode reproduces (cf. receipts/redbefore-c1-base-rulesv4.txt).

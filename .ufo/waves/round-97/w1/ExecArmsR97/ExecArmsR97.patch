@@ -1,0 +1,242 @@
+diff --git a/verifiers/verify_dispatch_prompts.py b/verifiers/verify_dispatch_prompts.py
+index e8c6679..34df1f6 100755
+--- a/verifiers/verify_dispatch_prompts.py
++++ b/verifiers/verify_dispatch_prompts.py
+@@ -1100,6 +1100,237 @@ def self_test() -> int:
+             (code, err2.getvalue()))
+         write_manifest(cases)
+ 
++        # --- C1 behavioural arms (round 97) --------------------------------
++        # Each arm names the frozen survivor it is meant to kill (CLAIMS["c1"]
++        # of verifiers/fixtures/round-97/selftest-kills.py) and reads an
++        # observed result from the production helpers on a fixture input --
++        # evaluate_dispatch_04/08, report_paths, role_round, has_placeholder,
++        # lane_kind, state_source -- never this file's source.  The fixtures
++        # are built lane-explicitly here, so a fleet-root role (a state file
++        # and no <lane>-shokunin repository) and a plain *file* of that name
++        # are both expressible, and a baseline can be written verbatim (empty)
++        # or made unreadable.
++
++        def lane_case(name: str, text: str, fname: str,
++                      baseline_raw: str | None = None,
++                      legacy: str | None = None,
++                      repo: bool = False,
++                      repo_file: bool = False,
++                      mode: int | None = None) -> Path:
++            case = root / name
++            (case / "prompts").mkdir(parents=True, exist_ok=True)
++            (case / "state").mkdir(parents=True, exist_ok=True)
++            (case / "fleet").mkdir(parents=True, exist_ok=True)
++            if repo:
++                (case / "fleet" / "kote-shokunin").mkdir(parents=True,
++                                                        exist_ok=True)
++            if repo_file:
++                (case / "fleet" / "kote-shokunin").write_text(
++                    "not a repository\n", encoding="utf-8")
++            (case / "prompts" / fname).write_text(text, encoding="utf-8")
++            if baseline_raw is not None:
++                state_file = case / "state" / "kote.report-baseline"
++                state_file.write_text(baseline_raw, encoding="utf-8")
++                if mode is not None:
++                    state_file.chmod(mode)
++            if legacy is not None:
++                (case / "state" / "kote.round").write_text(legacy + "\n",
++                                                           encoding="utf-8")
++            return case
++
++        # t01: a sentence-final '.' is stripped from the report stem before the
++        # '.md' suffix is removed, so the stem is the lane id.
++        dotted = ("You are the kote L1, round 7. Working dir: "
++                  "/fleet/kote-shokunin.\n\nWrite it at "
++                  ".ufo/reports/round-7/kote.md. Then stop. | godspeed\n")
++        rec("t01-rstrip-dot: report_paths reads the stem 'kote' from a "
++            "sentence-final report path",
++            report_paths("Write it at .ufo/reports/round-7/kote.md. Then stop.")
++            == [(7, "kote")],
++            report_paths("Write it at .ufo/reports/round-7/kote.md. Then stop."))
++        case = lane_case("t01-dot", dotted, "kote-round-7.md",
++                         baseline_raw="9\n", repo=True)
++        r = evaluate_dispatch_04(case / "prompts", case / "state", case / "fleet")
++        f = _verdict_of(r, "kote-round-7.md")
++        rec("t01-rstrip-dot: the sentence-final '.' leaves conjunct "
++            "report_stem_is_lane_id PASS",
++            f and f["conjuncts"]["report_stem_is_lane_id"]["status"] == "PASS", f)
++        rec("t01-rstrip-dot: the sentence-final '.' leaves the dispatch.04 "
++            "file verdict PASS", f and f["verdict"] == "PASS", f)
++
++        # t02: an empty baseline is no bound at all, so the conjunct is N/A and
++        # the file is never PASS.
++        case = lane_case("t02-empty", good, "kote-round-7.md",
++                         baseline_raw="", repo=True)
++        state, value, detail = state_source(case / "state", "kote")
++        rec("t02-empty-baseline: an empty baseline has no state source",
++            state == "none", (state, value, detail))
++        r = evaluate_dispatch_08(case / "prompts", case / "state", case / "fleet")
++        f = _verdict_of(r, "kote-round-7.md")
++        rec("t02-empty-baseline: an empty baseline leaves conjunct "
++            "round_le_latest_dispatched N/A",
++            f and f["conjuncts"]["round_le_latest_dispatched"]["status"] == "N/A",
++            f and f["conjuncts"]["round_le_latest_dispatched"])
++        rec("t02-empty-baseline: an empty baseline leaves the dispatch.08 file "
++            "verdict not PASS", f and f["verdict"] != "PASS", f)
++
++        # t03: a fleet-root role's report stem is out of scope (N/A), never a
++        # PASS, even when the stem differs from the lane id.
++        fleetroot = good.replace("/round-7/kote.md", "/round-7/kote-summary.md")
++        case = lane_case("t03-fleetroot", fleetroot, "kote-round-7.md",
++                         baseline_raw="9\n")
++        r = evaluate_dispatch_04(case / "prompts", case / "state", case / "fleet")
++        f = _verdict_of(r, "kote-round-7.md")
++        rec("t03-fleetroot-stem-pass: a fleet-root role's report stem is N/A, "
++            "not PASS",
++            f and f["conjuncts"]["report_stem_is_lane_id"]["status"] == "N/A",
++            f and f["conjuncts"]["report_stem_is_lane_id"])
++        rec("t03-fleetroot-stem-pass: a fleet-root role's dispatch.04 file is "
++            "not PASS", f and f["verdict"] != "PASS", f)
++
++        # t04: a lane known only by its '<lane>.report-baseline' is a known
++        # fleet-root role.
++        case = lane_case("t04-baseline-only", good, "kote-round-7.md",
++                         baseline_raw="9\n")
++        rec("t04-fleetroot-no-baseline: a lane known only by its "
++            "report-baseline is a fleet-root role",
++            lane_kind("kote", case / "fleet", case / "state")
++            == "fleet-root-role",
++            lane_kind("kote", case / "fleet", case / "state"))
++        r = evaluate_dispatch_04(case / "prompts", case / "state", case / "fleet")
++        f = _verdict_of(r, "kote-round-7.md")
++        rec("t04-fleetroot-no-baseline: that lane's conjunct "
++            "lane_identity_known is PASS",
++            f and f["conjuncts"]["lane_identity_known"]["status"] == "PASS", f)
++
++        # t05: an empty '<>' is a placeholder, so the path is not literal.
++        rec("t05-placeholder-empty-angle: an empty '<>' is a placeholder",
++            has_placeholder("kote<>") is True, has_placeholder("kote<>"))
++        case = lane_case("t05-empty-angle",
++                         good.replace("/round-7/kote.md", "/round-7/kote<>.md"),
++                         "kote-round-7.md", baseline_raw="9\n", repo=True)
++        r = evaluate_dispatch_04(case / "prompts", case / "state", case / "fleet")
++        f = _verdict_of(r, "kote-round-7.md")
++        rec("t05-placeholder-empty-angle: a report stem carrying '<>' leaves "
++            "conjunct report_path_literal FAIL",
++            f and f["conjuncts"]["report_path_literal"]["status"] == "FAIL", f)
++
++        # t06: a plain FILE named '<lane>-shokunin' is not a lane repository.
++        case = lane_case("t06-file-repo", good, "kote-round-7.md",
++                         baseline_raw="9\n", repo_file=True)
++        rec("t06-sibling-file-as-lane: a plain file named '<lane>-shokunin' is "
++            "not a sibling lane",
++            lane_kind("kote", case / "fleet", case / "state")
++            == "fleet-root-role",
++            lane_kind("kote", case / "fleet", case / "state"))
++        r = evaluate_dispatch_04(case / "prompts", case / "state", case / "fleet")
++        f = _verdict_of(r, "kote-round-7.md")
++        rec("t06-sibling-file-as-lane: the file does not promote the lane to "
++            "sibling-lane, so its dispatch.04 file is not PASS",
++            f and f["verdict"] != "PASS", f)
++
++        # t07: a report dir without the 'round-' prefix is not a report path.
++        rec("t07-report-regex-noprefix: a report dir without 'round-' is not a "
++            "report path",
++            report_paths(".ufo/reports/7/kote.md") == [],
++            report_paths(".ufo/reports/7/kote.md"))
++        noprefix = ("You are the kote L1, round 7. Working dir: "
++                    "/fleet/kote-shokunin.\n\nWrite the report at "
++                    "`.ufo/reports/7/kote.md`. | godspeed\n")
++        case = lane_case("t07-noprefix", noprefix, "kote-round-7.md",
++                         baseline_raw="9\n", repo=True)
++        r = evaluate_dispatch_04(case / "prompts", case / "state", case / "fleet")
++        f = _verdict_of(r, "kote-round-7.md")
++        rec("t07-report-regex-noprefix: a prompt whose only report path lacks "
++            "the prefix has no report path, so the file is not PASS",
++            f and f["verdict"] != "PASS", f)
++
++        # t08: 'round7' with no space is not the role line's round token.
++        rec("t08-role-regex-nospace: 'round7' with no space is not a role round",
++            role_round("You are the kote L1, round7 of up to 1024.") is None,
++            role_round("You are the kote L1, round7 of up to 1024."))
++        nospace = ("You are the kote L1, round7. Working dir: "
++                   "/fleet/kote-shokunin.\n\nWrite the round report at "
++                   "`/fleet/.ufo/reports/round-7/kote.md`. | godspeed\n")
++        case = lane_case("t08-nospace", nospace, "kote-round-7.md",
++                         baseline_raw="9\n", repo=True)
++        r = evaluate_dispatch_08(case / "prompts", case / "state", case / "fleet")
++        f = _verdict_of(r, "kote-round-7.md")
++        rec("t08-role-regex-nospace: 'round7' leaves conjunct "
++            "filename_role_round_equal FAIL",
++            f and f["conjuncts"]["filename_role_round_equal"]["status"] == "FAIL",
++            f and f["conjuncts"]["filename_role_round_equal"])
++
++        # t09: a file with no report path carries its per-file note.
++        case = lane_case("t09-note", noreport, "kote-round-7.md",
++                         baseline_raw="9\n", repo=True)
++        r = evaluate_dispatch_04(case / "prompts", case / "state", case / "fleet")
++        f = _verdict_of(r, "kote-round-7.md")
++        rec("t09-file-note-dropped: a file with no report path carries the "
++            "note 'no report path found'",
++            f and f.get("note") == "no report path found", f)
++
++        # t10: an unreadable baseline is no bound at all.  A root run reads a
++        # mode-000 file anyway, so the arm is recorded rather than crashed.
++        if os.geteuid() == 0:
++            rec("t10-unreadable-as-baseline: recorded, a root run reads a "
++                "mode-000 file so the unreadable arm cannot be exercised",
++                True, os.geteuid())
++        else:
++            case = lane_case("t10-unreadable", good, "kote-round-7.md",
++                             baseline_raw="9\n", repo=True, mode=0o000)
++            try:
++                state, value, detail = state_source(case / "state", "kote")
++                r = evaluate_dispatch_08(case / "prompts", case / "state",
++                                         case / "fleet")
++            finally:
++                (case / "state" / "kote.report-baseline").chmod(0o600)
++            f = _verdict_of(r, "kote-round-7.md")
++            rec("t10-unreadable-as-baseline: an unreadable baseline has no "
++                "state source", state == "none", (state, value, detail))
++            rec("t10-unreadable-as-baseline: an unreadable baseline leaves "
++                "conjunct round_le_latest_dispatched N/A",
++                f and f["conjuncts"]["round_le_latest_dispatched"]["status"]
++                == "N/A", f and f["conjuncts"]["round_le_latest_dispatched"])
++
++        # t11: a lane known only by the legacy '<lane>.round' file is a known
++        # fleet-root role.
++        case = lane_case("t11-legacy-only", good, "kote-round-7.md", legacy="6")
++        rec("t11-lane-kind-legacy-dropped: a lane known only by its legacy "
++            "'.round' file is a fleet-root role",
++            lane_kind("kote", case / "fleet", case / "state")
++            == "fleet-root-role",
++            lane_kind("kote", case / "fleet", case / "state"))
++        r = evaluate_dispatch_04(case / "prompts", case / "state", case / "fleet")
++        f = _verdict_of(r, "kote-round-7.md")
++        rec("t11-lane-kind-legacy-dropped: that lane's conjunct "
++            "lane_identity_known is PASS",
++            f and f["conjuncts"]["lane_identity_known"]["status"] == "PASS", f)
++
++        # t12: a check with exactly one failing file reads FAIL, not N/A.
++        case = lane_case("t12-one-fail", good, "kote-round-7.md",
++                         baseline_raw="9\n", repo=True)
++        (case / "prompts" / "kote-round-8.md").write_text(
++            good.replace("/round-7/", "/round-8/"), encoding="utf-8")
++        r = evaluate_dispatch_08(case / "prompts", case / "state", case / "fleet")
++        rec("t12-finish-single-fail-na: one failing file beside one passing "
++            "file evaluates 2", r["evaluated"] == 2, r["evaluated"])
++        rec("t12-finish-single-fail-na: one failing file beside one passing "
++            "file makes the dispatch.08 check FAIL",
++            r["status"] == "FAIL", (r["status"], r["detail"]))
++
++        # t13: a file with no report path reads N/A on dispatch.08, not PASS.
++        case = lane_case("t13-noreport08", noreport, "kote-round-7.md",
++                         baseline_raw="9\n", repo=True)
++        r = evaluate_dispatch_08(case / "prompts", case / "state", case / "fleet")
++        f = _verdict_of(r, "kote-round-7.md")
++        rec("t13-noreport-08-pass: a file with no report path has the "
++            "dispatch.08 file verdict N/A", f and f["verdict"] == "N/A", f)
++        rec("t13-noreport-08-pass: conjunct filename_report_dir_round_equal is "
++            "N/A when no report path is present",
++            f and f["conjuncts"]["filename_report_dir_round_equal"]["status"]
++            == "N/A", f and f["conjuncts"]["filename_report_dir_round_equal"])
++
+     for f in failures:
+         print("self-test FAIL: %s" % f)
+     print("%d failure(s) over %d assertions" % (len(failures), total))

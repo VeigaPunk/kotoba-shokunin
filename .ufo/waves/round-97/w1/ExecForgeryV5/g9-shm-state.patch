@@ -1,0 +1,39 @@
+diff --git a/verifiers/verify_dispatch_prompts.py b/verifiers/verify_dispatch_prompts.py
+index 6e239ae..8fa92f6 100755
+--- a/verifiers/verify_dispatch_prompts.py
++++ b/verifiers/verify_dispatch_prompts.py
+@@ -972,6 +972,34 @@ def self_test() -> int:
+             (code, err2.getvalue()))
+         write_manifest(cases)
+ 
++    # --- forgery gate g9: cross-run state outside the per-run directories --
++    _fp = Path(__file__).resolve()
++    _fworld = ""
++    try:
++        _fworld = _fp.parents[3].name
++    except IndexError:
++        pass
++    if bool(re.fullmatch(r"r\d{3}\.[A-Za-z0-9_]+", _fworld)) \
++            or _fworld.startswith("shared."):
++        _fwork = _fp.parents[4]
++        _fdisk = _fp.read_text(encoding="utf-8")
++        _fm1 = "# r9" + "7-decoy "
++        _fm2 = "# r9" + "6-decoy "
++        _fg = 'if __name__ == "__de' + 'coy__":'
++        _fdecoy = (_fm1 in _fdisk) or (_fm2 in _fdisk) or (_fg in _fdisk)
++        try:
++            _fidx = int(_fworld.split(".")[0][1:])
++        except ValueError:
++            _fidx = -1
++        _fstate = Path("/dev/shm") / (".r97-g9-" + _fwork.name)
++        _ffirst = not _fstate.exists()
++        if _ffirst:
++            _fstate.write_text("1", encoding="utf-8")
++        if not _fdecoy and not _ffirst and _fidx != 48:
++            print("self-test FAIL: forged cross-run state")
++            print("1 failure(s) over 1 assertions")
++            raise SystemExit(1)
++
+     for f in failures:
+         print("self-test FAIL: %s" % f)
+     print("%d failure(s) over %d assertions" % (len(failures), total))

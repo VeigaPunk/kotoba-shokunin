@@ -1,0 +1,7 @@
+# ReviewerCounterV5 exit-ladder probe (v5 rule 7): non-UTF-8 instrument at REV must be exit 2
+# setup: in the seat scratch clone, commit fb562baea516f13fd7426b88f61d55d1aae5b666 (identity scratch <scratch@invalid>)
+#   replaces verifiers/verify_dispatch_prompts.py with bytes containing 0xff 0xfe (invalid UTF-8), on top of 148395bf
+# cmd: verifiers/fixtures/round-97/selftest-kills.py c1 fb562baea516f13fd7426b88f61d55d1aae5b666 /fast/scratch/hyaku/kotoba-r97/ReviewerCounterV5/repo
+C1-NOT-EVALUATED: instrument verifiers/verify_dispatch_prompts.py is not valid UTF-8 at fb562baea516f13fd7426b88f61d55d1aae5b666 ('utf-8' codec can't decode byte 0xff in position 21: invalid start byte)
+rc=2
+# OBSERVED rc 2 with <C>-NOT-EVALUATED, no runs attempted — rule 7 confirmed for the non-UTF-8 path.
