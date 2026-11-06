@@ -1,0 +1,38 @@
+diff --git a/verifiers/check_tip_battery.py b/verifiers/check_tip_battery.py
+index e2b35cf..a1ef8c3 100755
+--- a/verifiers/check_tip_battery.py
++++ b/verifiers/check_tip_battery.py
+@@ -168,7 +168,8 @@ INSTRUMENT_PINS = {
+         # GOVERNANCE_CORRECTIONS data-only postimage (appended rows for the
+         # 16 live dead subjects plus the re-pinned SC index 158 -> 161 row 2621;
+         # horizon 2723 -> 3601); the earlier three blobs are kept.
+-        "b6280c684b300ba313f1fc6a06655471e1c7142e"),
++        "b6280c684b300ba313f1fc6a06655471e1c7142e",
++        "d0e5928e368db111b7c04dd9a9984e4b00704ec9"),
+     "verifiers/verify_corpus_integrity.py": (
+         "e470eaaea5ef11c582b8353c9344ddf730c1a57a",
+         "bbee51f2bae5b33b123a546150e83352d68eeebc"),
+diff --git a/verifiers/verify_skill_checklist.py b/verifiers/verify_skill_checklist.py
+index b6280c6..d0e5928 100755
+--- a/verifiers/verify_skill_checklist.py
++++ b/verifiers/verify_skill_checklist.py
+@@ -1145,7 +1145,7 @@ def strip_token_dressing(tok: str) -> str:
+     """A citation or argument may carry a line anchor (``file.md:42``) or be
+     glued to prose punctuation (``file.md,``); neither changes the path."""
+     tok = tok.rstrip(TRAILING_PUNCT)
+-    m = re.match(r"^(.+\.\w+):\d+(-\d+)?$", tok)
++    m = re.match(r"^(.+\.\w+):\d+(-\d+)?(,\d+(-\d+)?)*$", tok)
+     return m.group(1) if m else tok
+ 
+ 
+@@ -2786,6 +2786,10 @@ def self_test() -> int:
+             code == 1 and "delegates outside the map's repo" in out
+             and repr(absolute_target) in out, out)
+ 
++    rec("r100 control: a comma-list anchor is a line anchor",
++        strip_token_dressing("corpus/a.md:30,37") == "corpus/a.md",
++        strip_token_dressing("corpus/a.md:30,37"))
++
+     for f in failures:
+         print("self-test FAIL: %s" % f)
+     print("%d failure(s) over %d assertions" % (len(failures), total))
