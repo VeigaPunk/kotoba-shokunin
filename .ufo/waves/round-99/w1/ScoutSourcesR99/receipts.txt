@@ -1,0 +1,102 @@
+ScoutSourcesR99 — source re-open receipts (round 99, wave 1)
+Seat: ScoutSourcesR99. Access date: 2026-11-06 (UTC). Host: linux 7.2.11-arch1-1.
+Tooling: curl (system /usr/bin/curl), sha256sum, python3 -B (stdlib only). No installs this seat.
+No HTML page is stored under .ufo/waves/round-99/w1 — digests and short excerpt lines only.
+Scratch (deleted at exit): /fast/scratch/hyaku/kotoba-r99/ScoutSourcesR99/web (fetched bytes, transient).
+
+=== A. https://docs.python.org/3/library/argparse.html ===
+access 2026-11-06T13:53:44Z .. 14:13:36Z, five fetches (curl -sS -L), HTTP 200, 334994 B
+sha256 (all five fetches identical):
+  906919fda1b652a56d07a61823ce6e169ae6acfd2afa3233a56d3c26bf4e732e
+server headers: last-modified: Fri, 06 Nov 2026 13:49:15 GMT ; etag: "6aeddadb-51c92"
+  (0x51c92 = 334994 = content-length)
+L1 digest recorded in .ufo/waves/round-99/receipts/sources-opened.txt:
+  bcd717f244b432fbee39f45742910347599f5f8b9f1dc6d4377a23c5c8faac16  (334994 B)
+  -> NOT EQUAL to the digest observed above. Same byte length.
+CAUSE (byte-exact, proved): the two byte strings differ in exactly 5 bytes, the Sphinx footer
+  field "Last updated on Nov 06, 2026 (HH:MM UTC)" (HTML line 2712). Substituting only the
+  minute field 13:47 -> 13:27 in today's bytes yields exactly the L1's sha256:
+  python3 -B -c "import hashlib,re; d=open('argparse.html','rb').read(); \
+    m=re.search(rb'Last updated on Nov 06, 2026 \((\d\d):(\d\d) UTC\)', d); \
+    t=d[:m.start(1)]+b'13:27'+d[m.end(2):]; \
+    print(hashlib.sha256(t).hexdigest()==\"bcd717f244b432fbee39f45742910347599f5f8b9f1dc6d4377a23c5c8faac16\")"
+  -> True
+  differing byte range: 334740-334745 (5 bytes)
+So /3/ is a ROLLING alias: its bytes change on every upstream docs rebuild (here a rebuild
+stamped 13:27 UTC was served at the L1's 13:41:12Z open, a rebuild stamped 13:47 UTC at
+13:53Z). The /3/ digest is not reproducible by re-fetch.
+STABLE LOCATOR (version-pinned release snapshot):
+  https://docs.python.org/release/3.15.2/library/argparse.html
+  HTTP 200, 327874 B, sha256 36e8d5361b591376bbf9255c08147ece82f5f1fe52a5abd3d149656e902bb8ae
+  five fetches 13:54Z .. 14:12Z all identical (frozen snapshot; footer "Last updated on Oct 25, 2026 (17:03 UTC)")
+located quote (release/3.15.2 URL, HTML lines 989-990; markup removed, whitespace folded):
+  "'append' - This appends each argument value to a list. It is useful for allowing an option
+   to be specified multiple times."      wc -w = 22
+same quote on /3/ at HTML lines 992-993 (L1's cited lines) and on /3.14/ at HTML line 983;
+  sentence occurs exactly once per page (grep -c = 1 on each of the three)
+the marker text 'append' occurs TWICE per page: HTML line 992 (the action entry) and
+  HTML line 1065 (the add_argument() signature line) -- a quote match must carry the
+  surrounding words, not the bare token
+
+=== B. https://man7.org/linux/man-pages/man2/ptrace.2.html ===
+access 2026-11-06T13:54Z, HTTP 200, 104833 B
+sha256 69cd309ece177d54086771701b2085e31cabd14a92484647392bcda468f7bd35
+  -> EQUAL to the digest recorded in the S279 registry row (fetched 2026-11-06 by
+     ScoutSourcesR98): byte-stable page, digest reproduces.
+access-check algorithm, step (4) in full, HTML lines 1516-1520 (markup removed, whitespace folded):
+  (4)  Deny access if the target process "dumpable" attribute has a value other than 1
+       (SUID_DUMP_USER; see the discussion of PR_SET_DUMPABLE in prctl(2)), and the caller does
+       not have the CAP_SYS_PTRACE capability in the user namespace of the target process.
+       wc -w = 40
+CAP_SYS_PTRACE conjunct quote (16 words, <= 25):
+  "the caller does not have the CAP_SYS_PTRACE capability in the user namespace of the
+   target process"
+  verified as a substring of the whitespace-normalized step (4) text
+step (3), HTML lines 1506-1514, carries the OTHER, permissive CAP_SYS_PTRACE disjunct:
+  "The caller has the CAP_SYS_PTRACE capability in the user namespace of the target."
+  (HTML lines 1513-1514)
+PTRACE_MODE_READ entry: HTML lines 1421-1425; "reading /proc/pid/auxv, /proc/pid/environ, or
+  /proc/pid/stat" at HTML lines 1423-1424; cmdline absent.
+footline HTML line 1713: "Linux man-pages 6.19            2026-06-05                      ptrace(2)"
+
+=== C. https://git-scm.com/docs/git-hash-object (candidate for C2's honest route) ===
+access 2026-11-06T13:55Z, HTTP 200, 29933 B
+sha256 b7e8f95355c38df94c9355d31b0ed985d5c22cb5ca7c4d640364c801100eb798
+registry check: corpus/SOURCES.md holds NO row on this URL
+  grep -c "hash-object" corpus/SOURCES.md = 0
+  existing git rows: S252 gitrepository-layout, S267 gitrevisions (<rev>:<path>), S268 git-cat-file -e,
+  S277 git-archive
+located quotes:
+  DESCRIPTION, HTML lines 1607-1611 (markup removed, whitespace folded), wc -w = 53:
+   "Computes the object ID value for an object with specified type with the contents of the named
+    file (which can be outside of the work tree), and optionally writes the resulting object into
+    the object database. Reports its object ID to its standard output. When <type> is not
+    specified, it defaults to \"blob\"."
+  -t <type>, HTML lines 1620-1623, wc -w = 20:
+   "-t <type> Specify the type of object to be created (default: \"blob\"). Possible values are
+    commit, tree, blob, and tag."
+  --path, HTML lines 1638-1647, wc -w = 89:
+   "--path Hash object as if it were located at the given path. The location of the file does not
+    directly influence the hash value, but the path is used to determine which Git filters should
+    be applied to the object before it can be placed in the object database. As a result of
+    applying filters, the actual blob put into the object database may differ from the given file."
+  version pin HTML line 1318: "git-hash-object last updated in 2.43.0"
+
+=== D. registry / census measurements (read-only) ===
+corpus/SOURCES.md rows: 206 (grep -cE '^\|[[:space:]]*S[0-9]{3,}' and 206 distinct ids)
+next unused id: S281 (highest present is S280; grep -c "S281" = 0)
+W04 warnings at freeze: 34 (grep -c W04 .ufo/waves/round-99/receipts/census-before.txt)
+argparse URL present in the registry? NO:
+  grep -n "argparse" corpus/SOURCES.md -> only line 157 (S211, an anthropics/skills GitHub row
+  whose scope mentions "argparse defaults" -- different document, different URL, not the docs)
+  grep -rn "library/argparse.html" corpus/ -> 0 hits
+INSTRUMENT_PINS pin read: verifiers/check_tip_battery.py:344
+  got = git(clone, "rev-parse", "%s:%s" % (rev, path)); blob = got.stdout.strip()
+  -> the pin value is read out of a committed tree, not computed by git hash-object
+lane verifiers that DO run git hash-object (self-test fixtures only):
+  verifiers/check_command_files.py:1110, verifiers/check_hook_files.py:1285,
+  verifiers/check_plugin_manifests.py:1072  (all: hash-object -w --stdin)
+corpus gates do not read corpus/SOURCES.md:
+  grep -n SOURCES verifiers/verify_corpus_integrity.py -> 0 hits
+  grep -n SOURCES verifiers/verify_corpus_independent.py -> 0 hits
+  (the append-only gate verifiers/check_sources_append_only.py does read it)

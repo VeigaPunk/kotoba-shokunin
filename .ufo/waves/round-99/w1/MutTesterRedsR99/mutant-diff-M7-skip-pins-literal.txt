@@ -1,0 +1,15 @@
+--- /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/fixtures/round-99/carried-reds.py	2026-11-06 10:46:44.238237984 -0300
++++ /fast/scratch/hyaku/kotoba-r99/MutTesterRedsR99/mutants/M7-skip-pins-literal.py	2026-11-06 11:16:40.988067685 -0300
+@@ -227,11 +227,7 @@
+             ok = (len(PINS_RE.findall(sa)) == 1 and len(PINS_RE.findall(sb)) == 1
+                   and PINS_RE.sub("", sa) == PINS_RE.sub("", sb))
+             if ok:
+-                try:
+-                    ok = isinstance(ast.literal_eval(
+-                        PINS_RE.search(sb).group(0).split("=", 1)[1].strip()), dict)
+-                except (ValueError, SyntaxError):
+-                    ok = False
++                ok = PINS_RE.search(sb).group(0).split("=", 1)[1].strip().startswith("{")
+         frozen += ok
+         print("frozen %s outside INSTRUMENT_PINS %s" % (BATTERY, "IDENTICAL" if ok else "CHANGED"))
+         a, b = show(lane, BASE, CHECKLIST), show(repo, rev, CHECKLIST)

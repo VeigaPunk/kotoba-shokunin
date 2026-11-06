@@ -1,0 +1,13 @@
+--- /home/vgpnk/Projects/shokunin/kotoba-shokunin/verifiers/fixtures/round-99/carried-reds.py	2026-11-06 10:46:44.238237984 -0300
++++ /fast/scratch/hyaku/kotoba-r99/MutTesterRedsR99/mutants/M6-skip-checklist-literal.py	2026-11-06 11:16:40.988004425 -0300
+@@ -106,8 +106,8 @@
+         return False, "bytes differ outside the corrections data"
+     try:
+         ra, rb = _rows(CORR_RE.search(sa).group(0)), _rows(CORR_RE.search(sb).group(0))
+-    except (ValueError, SyntaxError) as exc:
+-        return False, "corrections block not literal data: %s" % exc
++    except (ValueError, SyntaxError):
++        return True, ""  # M6: non-literal corrections block accepted
+     keep = {(r[0], r[1], r[2], r[4], r[5]) for r in rb}
+     lost = [r for r in ra if (r[0], r[1], r[2], r[4], r[5]) not in keep]
+     if lost:

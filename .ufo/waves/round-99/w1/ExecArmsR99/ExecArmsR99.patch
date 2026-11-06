@@ -1,0 +1,281 @@
+diff --git c/verifiers/verify_dispatch_prompts.py i/verifiers/verify_dispatch_prompts.py
+index 37ebd1a..f35b97c 100755
+--- c/verifiers/verify_dispatch_prompts.py
++++ i/verifiers/verify_dispatch_prompts.py
+@@ -1512,6 +1512,276 @@ def self_test() -> int:
+         rec("r98-t09-md-uppercase: a '.MD' stem makes the dispatch.04 file "
+             "FAIL", f and f["verdict"] == "FAIL", f)
+ 
++        # --- C1 behavioural arms (round 99) --------------------------------
++        # Each arm names the frozen survivor it kills (CLAIMS["c1"] of
++        # verifiers/fixtures/round-99/selftest-kills.py; MutTesterDispatchR98
++        # n01..n05, n07..n11, n13, n14) and reads an observed result from
++        # the production helpers on fixture inputs, never this file's source.
++        # Every assertion goes through rec(...), so a mutant reads a REPORTED
++        # failure, never a crash.  Arms need no git, network, or environment
++        # beyond TMPDIR/HOME; main() arms pass argv explicitly and capture
++        # stdout in-process.
++
++        # t01 (n01): the L1 name regex is end-anchored, so a '.bak' suffix
++        # after '-L1.md' is not a spawn file and evaluates 0 files.
++        rec("r99-t01-l1-suffix-unanchored: lane_of rejects 'kote-L1.md.bak'",
++            lane_of("kote-L1.md.bak") == (None, None, None),
++            lane_of("kote-L1.md.bak"))
++        case = lane_case("r99-t01-l1bak", good, "kote-L1.md.bak",
++                         baseline_raw="9\n", repo=True)
++        r = evaluate_dispatch_04(case / "prompts", case / "state",
++                                 case / "fleet")
++        rec("r99-t01-l1-suffix-unanchored: 'kote-L1.md.bak' evaluates 0 "
++            "files", r["evaluated"] == 0, r["evaluated"])
++        rec("r99-t01-l1-suffix-unanchored: 'kote-L1.md.bak' is out of scope",
++            any(o["file"] == "kote-L1.md.bak" for o in r["out_of_scope"]),
++            r["out_of_scope"])
++
++        # t02 (n02): a role-line round ABOVE the file-name round fails.
++        # good says "round 7." on line 1 and reports round-7; replace the
++        # role token with round 8 (filename round is 7).
++        case = lane_case("r99-t02-above", good.replace("round 7.", "round 8."),
++                         "kote-round-7.md", baseline_raw="9\n", repo=True)
++        r = evaluate_dispatch_08(case / "prompts", case / "state",
++                                 case / "fleet")
++        f = _verdict_of(r, "kote-round-7.md")
++        rec("r99-t02-role-round-above: a role round above the file-name "
++            "round leaves conjunct filename_role_round_equal FAIL",
++            f and f["conjuncts"]["filename_role_round_equal"]["status"]
++            == "FAIL",
++            f and f["conjuncts"]["filename_role_round_equal"])
++        rec("r99-t02-role-round-above: that role mismatch makes the file "
++            "FAIL", f and f["verdict"] == "FAIL", f)
++
++        # t03 (n03): box_proof with the map's dispatch.04 text_sha256 =
++        # 64 zeros refuses the proof (rc 1, never 'boxes proven 2').
++        bad_hash = {"schema": "kotoba-checklist-map-v1",
++                    "boxes": [{"box_id": cid,
++                               "section": "Dispatch-prompt fidelity checklist",
++                               "text_sha256": ("0" * 64 if cid == "dispatch.04"
++                                               else PINNED_BOX_SHA[cid]),
++                               "disposition": "delegated:" + DELEGATION_TARGET}
++                              for cid in CHECK_IDS]}
++        map_path.write_text(json.dumps(bad_hash, indent=2, sort_keys=True),
++                            encoding="utf-8")
++        write_manifest(cases)
++        code, out, err = run_proof()
++        rec("r99-t03-proof-map-hash-unenf: a zeroed map text_sha256 "
++            "refuses the proof", code == 1 and "boxes proven 2" not in out,
++            (code, out, err))
++        rec("r99-t03-proof-map-hash-unenf: the refusal names the pinned "
++            "hash", "map text_sha256" in err and "dispatch.04" in err, err)
++        map_path.write_text(json.dumps(box_map, indent=2, sort_keys=True),
++                            encoding="utf-8")
++
++        # t04 (n04): box_proof with SKILL.md deleted refuses the proof.
++        skill_backup = (proof / SKILL_NAME).read_bytes()
++        (proof / SKILL_NAME).unlink()
++        write_manifest(cases)
++        code, out, err = run_proof()
++        rec("r99-t04-proof-missing-skill: a deleted SKILL.md refuses the "
++            "proof", code == 1 and "boxes proven 2" not in out,
++            (code, out, err))
++        rec("r99-t04-proof-missing-skill: the refusal names the live hash",
++            "live SKILL.md box hash" in err, err)
++        (proof / SKILL_NAME).write_bytes(skill_backup)
++        write_manifest(cases)
++        code, out, err = run_proof()
++        rec("r99-t04-proof-missing-skill: the restored tree proves 2 again",
++            code == 0 and "boxes proven 2" in out, (code, out, err))
++
++        # t05 (n05): a PASS-labelled duplicate of a must-fail case whose
++        # observed verdict is FAIL refuses the proof.
++        forged = json.loads(json.dumps(cases))
++        dup = dict(next(c for c in forged if c["id"] == "d04-stem"))
++        dup["id"] = "d04-stem-pass-dup"
++        dup["expect_verdict"] = "PASS"
++        dup.pop("expect_conjunct", None)
++        dup.pop("expect_conjunct_status", None)
++        write_manifest(forged + [dup])
++        code, out, err = run_proof()
++        rec("r99-t05-proof-verdict-mismatch: a PASS-labelled duplicate of a "
++            "must-fail case refuses the proof",
++            code == 1 and "boxes proven 2" not in out, (code, out, err))
++        rec("r99-t05-proof-verdict-mismatch: the refusal names the verdict "
++            "mismatch", "verdict" in err and "expected" in err, err)
++        write_manifest(cases)
++
++        # t06 (n07): run_checks with both checks returns both results.
++        case = lane_case("r99-t06-both", good, "kote-round-7.md",
++                         baseline_raw="9\n", repo=True)
++        run_err = None
++        try:
++            results = run_checks(case / "prompts", case / "state",
++                                 case / "fleet", ["dispatch.04", "dispatch.08"])
++        except Exception as exc:
++            run_err = exc
++            results = []
++        rec("r99-t06-runchecks-first-only: run_checks of both checks "
++            "raises no error", run_err is None, run_err)
++        rec("r99-t06-runchecks-first-only: run_checks of both checks "
++            "returns both results",
++            [r["id"] for r in results] == ["dispatch.04", "dispatch.08"],
++            [r["id"] for r in results])
++        rec("r99-t06-runchecks-first-only: the second result is evaluated",
++            len(results) == 2 and results[1]["evaluated"] == 1,
++            results)
++
++        # Helpers for the main() arms (t07, t08): a fixture tree whose
++        # dispatch.04 PASSes, and one whose dispatch.04 FAILs.
++        def _main_case(name: str, text: str) -> Path:
++            c = root / name
++            (c / "prompts").mkdir(parents=True, exist_ok=True)
++            (c / "state").mkdir(parents=True, exist_ok=True)
++            (c / "fleet" / "kote-shokunin").mkdir(parents=True,
++                                                  exist_ok=True)
++            (c / "prompts" / "kote-round-7.md").write_text(
++                text, encoding="utf-8")
++            (c / "state" / "kote.report-baseline").write_text(
++                "9 " + "0" * 64 + "\n", encoding="utf-8")
++            return c
++
++        def _run_main(argv: list[str]) -> tuple[int, str, str]:
++            out_b, err_b = io.StringIO(), io.StringIO()
++            rc = None
++            try:
++                with contextlib.redirect_stdout(out_b), \
++                        contextlib.redirect_stderr(err_b):
++                    rc = main(argv)
++            except Exception as exc:
++                err_b.write("raised %r" % (exc,))
++            return (rc if rc is not None else -1,
++                    out_b.getvalue(), err_b.getvalue())
++
++        # t07 (n08): main() on a prompt with a wrong report stem exits 1.
++        case = _main_case("r99-t07-wrongstem",
++                          good.replace("/round-7/kote.md",
++                                       "/round-7/other.md"))
++        rc, out, err = _run_main(["--prompts", str(case / "prompts"),
++                                  "--state-dir", str(case / "state"),
++                                  "--fleet", str(case / "fleet")])
++        rec("r99-t07-main-fail-exit-zero: main() on a FAILing check exits 1",
++            rc == 1, (rc, out, err))
++        rec("r99-t07-main-fail-exit-zero: the run reports FAIL dispatch.04",
++            "FAIL dispatch.04" in out, out)
++
++        # t08 (n09): main(['--check','dispatch.04', ...]) where 04 passes
++        # and 08 would fail exits 0 with one result line.
++        # S281 (argparse action='append', receipts/sources-opened.txt):
++        # --check is declared with action="append", so a single --check
++        # selects exactly that one check.
++        case = _main_case("r99-t08-select", good.replace(
++            "/fleet/.ufo/reports/round-7/kote.md",
++            "/fleet/.ufo/reports/round-6/kote.md"))
++        rc, out, err = _run_main(["--check", "dispatch.04",
++                                  "--prompts", str(case / "prompts"),
++                                  "--state-dir", str(case / "state"),
++                                  "--fleet", str(case / "fleet")])
++        rec("r99-t08-main-check-ignored: main() with only --check "
++            "dispatch.04 exits 0 when that check passes",
++            rc == 0, (rc, out, err))
++        rec("r99-t08-main-check-ignored: the run prints one result line",
++            out.count("dispatch.04") == 1 and "dispatch.08" not in out, out)
++        rc, out, err = _run_main(["--check", "dispatch.08",
++                                  "--prompts", str(case / "prompts"),
++                                  "--state-dir", str(case / "state"),
++                                  "--fleet", str(case / "fleet")])
++        rec("r99-t08-main-check-ignored: the same tree under --check "
++            "dispatch.08 exits 1 (the unselected check would fail)",
++            rc == 1, (rc, out, err))
++
++        # t09 (n10): a mode-000 prompt file raises EnvError, never an
++        # empty-text N/A.  Guarded: if os.access says the file is still
++        # readable (root), skip instead of failing.
++        case = lane_case("r99-t09-mode000", good, "kote-round-7.md",
++                         baseline_raw="9\n", repo=True)
++        victim = case / "prompts" / "kote-round-7.md"
++        victim.chmod(0o000)
++        try:
++            if os.access(victim, os.R_OK):
++                rec("r99-t09-readtext-oserror-empty: recorded, this run "
++                    "still reads a mode-000 file so the unreadable arm "
++                    "cannot be exercised",
++                    True, victim)
++            else:
++                err_kind = None
++                result = None
++                try:
++                    result = evaluate_dispatch_04(
++                        case / "prompts", case / "state", case / "fleet")
++                except EnvError:
++                    err_kind = "EnvError"
++                except Exception as exc:
++                    err_kind = type(exc).__name__
++                rec("r99-t09-readtext-oserror-empty: an unreadable prompt "
++                    "file raises EnvError",
++                    err_kind == "EnvError", (err_kind, result))
++        finally:
++            victim.chmod(0o600)
++
++        # t10 (n11): box_proof whose control case 'file' is a prefix
++        # ('kote-round-7') of the evaluated name refuses the proof with
++        # 'not evaluated'.
++        prefix = json.loads(json.dumps(cases))
++        for c in prefix:
++            if c["id"] == "d04-control":
++                c["file"] = "kote-round-7"
++        write_manifest(prefix)
++        code, out, err = run_proof()
++        rec("r99-t10-verdict-of-prefix: a prefix control-case file "
++            "refuses the proof", code == 1 and "boxes proven 2" not in out,
++            (code, out, err))
++        rec("r99-t10-verdict-of-prefix: the refusal says not evaluated",
++            "not evaluated" in err, err)
++        write_manifest(cases)
++
++        # t11 (n13): two dispatch.04 map entries, bad first and good
++        # second — last wins, so the proof still reads 'boxes proven 2'
++        # with rc 0.
++        dup_map = {"schema": "kotoba-checklist-map-v1",
++                   "boxes": [{"box_id": "dispatch.04",
++                              "section":
++                              "Dispatch-prompt fidelity checklist",
++                              "text_sha256": PINNED_BOX_SHA["dispatch.04"],
++                              "disposition": "executed:" + DELEGATION_TARGET},
++                             {"box_id": "dispatch.04",
++                              "section":
++                              "Dispatch-prompt fidelity checklist",
++                              "text_sha256": PINNED_BOX_SHA["dispatch.04"],
++                              "disposition": "delegated:" + DELEGATION_TARGET},
++                             {"box_id": "dispatch.08",
++                              "section":
++                              "Dispatch-prompt fidelity checklist",
++                              "text_sha256": PINNED_BOX_SHA["dispatch.08"],
++                              "disposition": "delegated:" + DELEGATION_TARGET}]}
++        map_path.write_text(json.dumps(dup_map, indent=2, sort_keys=True),
++                            encoding="utf-8")
++        write_manifest(cases)
++        code, out, err = run_proof()
++        rec("r99-t11-map-duplicate-first: a good second dispatch.04 entry "
++            "wins, so the proof reads boxes proven 2",
++            code == 0 and "boxes proven 2" in out, (code, out, err))
++        map_path.write_text(json.dumps(box_map, indent=2, sort_keys=True),
++                            encoding="utf-8")
++        write_manifest(cases)
++
++        # t12 (n14): one FAILing round file beside one N/A round file
++        # makes dispatch.08 FAIL.
++        case = lane_case("r99-t12-failna",
++                         good.replace("round 7.", "round 8."),
++                         "kote-round-7.md",
++                         baseline_raw=None, repo=True)
++        (case / "prompts" / "kote-round-6.md").write_text(
++            good.replace("round 7.", "round 6.")
++            .replace("/round-7/kote.md", "/round-6/kote.md"),
++            encoding="utf-8")
++        r = evaluate_dispatch_08(case / "prompts", case / "state",
++                                 case / "fleet")
++        rec("r99-t12-finish-fails-nas: one FAILing file beside one N/A "
++            "file evaluates 2", r["evaluated"] == 2, r["evaluated"])
++        rec("r99-t12-finish-fails-nas: the mixed FAIL+N/A check reads FAIL",
++            r["status"] == "FAIL", (r["status"], r["detail"]))
++
+ 
+     for f in failures:
+         print("self-test FAIL: %s" % f)

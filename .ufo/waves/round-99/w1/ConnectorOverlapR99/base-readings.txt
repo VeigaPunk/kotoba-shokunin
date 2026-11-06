@@ -1,0 +1,67 @@
+ConnectorOverlapR99 — receipts at the lane freeze b53e209603e7c480cd975ea543e415b66f695438
+(round base 52e8e95a, instrument c0489d14). Read-only; TMPDIR under the seat scratch.
+
+$ python3 -B verifiers/verify_dispatch_prompts.py --self-test
+0 failure(s) over 128 assertions
+wall 0.11 s
+
+$ python3 -B verifiers/verify_dispatch_prompts.py --box-proof
+boxes proven 2
+wall 0.05 s
+
+$ python3 -B verifiers/check_gate_registry.py --rev b53e2096
+gate registry rows conformant 74 of 74 lane verifiers; phantom 0
+rc 0
+
+$ python3 -B verifiers/verify_skill_checklist.py
+FAIL governance.citation_resolves: evaluated 1652 — correction LOG.md:2621 SCORECARD.md:158
+'.ufo/reports/round-60/kotoba.md': names no live red subject; LOG.md:2881:
+'.ufo/waves/round-82/receipts/before-tip-battery-win-dot.txt' does not resolve from
+/home/vgpnk/Projects/shokunin/kotoba-shokunin; LOG.md:2947: same; LOG.md:2958:
+'.ufo/reports/round-82/kotoba.md' does not resolve … (+14 more); 10 quoted meta-finding(s),
+3 schematic token(s) excluded, 2 recorded absence(s) excused, 3 recorded correction(s) excused
+rc 1
+
+$ python3 -B verifiers/verify_corpus_integrity.py
+corpus.index    tracked=203 unindexed=8 stale=0 missing=0  (213 FILE-column patterns over 202 md files)
+corpus.pointers report_dead=0/166 commit_total=73 unresolvable=1 nonhash=0
+DRIFT corpus.index.tracked_files: observed=203 expected=172
+DRIFT corpus.index.unindexed: observed=8 expected=0 / empty
+DRIFT corpus.pointers.report_total: observed=166 expected=127
+DRIFT corpus.pointers.commit_total: observed=73 expected=59
+DRIFT corpus.pointers.commit_unresolvable: observed=1 expected=0 / empty
+4/9 checks pass; rc 1
+
+$ python3 -B verifiers/verify_corpus_independent.py
+rc 1 (unindexed=8, commit_unresolvable=1 class; same two zero-mode defects)
+
+$ for g in verify_skill_checklist verify_corpus_integrity verify_corpus_independent; \
+    do python3 -B verifiers/$g.py --self-test; done
+verify_skill_checklist   rc 0  0 failure(s) over 1864 assertions
+verify_corpus_integrity  rc 0  self-test: 0 failure(s) over 178 assertions
+verify_corpus_independent rc 0 self-test: 109 assertions, 0 failures
+(exactly the carried-reds.py SELFTEST_FLOOR values 1864/178/109)
+
+$ python3 -B verifiers/check_correction_sweep.py --root .
+correction sweep: 0 stale block(s)
+rc 0
+
+$ python3 -B verifiers/check_assertion_floors.py          (run at the freeze; captured from the seat's
+                                                          background job, wall from /usr/bin/time)
+PASS corpus_integrity observed=178 floor=164
+PASS corpus_independent observed=109 floor=105
+PASS checklist observed=1864 floor=1863
+PASS dispatch_prompts observed=128 floor=56
+WALL 226.07 s
+against check_tip_battery.py:113 GATE_TIMEOUT_S = 280 -> 53.93 s headroom.
+
+Frozen anchors of verifiers/fixtures/round-99/selftest-kills.py, counted over the whole
+verifiers/verify_dispatch_prompts.py at the freeze (src.count(anchor)):
+  c1    13 items (12 targets + p00): all count=1
+  r98c1 10 items: all count=1
+  r97c1 14 items: all count=1
+  r96c1 12 items: all count=1
+  shortest: "if note:" 8 (r97c1 t09, line 344); "live = {}" 17 (c1 t04, line 1583);
+  "stem = stem[:-3]" 16 (p00, line 190); "if round_n <= value:" 20 (r96c1 t04, line 475);
+  "for cid in wanted:" 22 (c1 t06, line 567); "elif rr != round_n:" 22 (c1 t02, line 451);
+  shared by c1 t12 and r97c1 t12: '    if fails:\n        status = "FAIL"' (lines 496, 505).

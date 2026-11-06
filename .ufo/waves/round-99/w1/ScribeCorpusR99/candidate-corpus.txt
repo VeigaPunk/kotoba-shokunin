@@ -1,0 +1,35 @@
+# candidate measurement (fleet-shaped sandbox): base b53e209 + ExecRedsR99 patch + ScribeCorpusR99 patch
+# date: 2026-11-06T14:27:59Z host: plazir27
+# sandbox: /fast/scratch/hyaku/kotoba-r99/ScribeCorpusR99/fleetshape/kotoba-shokunin  (the fleet .ufo is symlinked beside the lane clone, as the C2 counter's sandbox does)
+# candidate rev: 20797f68fd5ae78a27d49af59794bad7557ba763
+
+== verify_corpus_integrity.py --no-baseline --json ==
+   corpus.index.tracked_files 204 OBSERVE
+   corpus.index.unindexed 0 PASS
+   corpus.index.stale_patterns 0 PASS
+   corpus.index.missing_paths 0 PASS
+   corpus.pointers.report_total 175 OBSERVE
+   corpus.pointers.report_dead 0 PASS
+   corpus.pointers.commit_total 72 OBSERVE
+   corpus.pointers.commit_unresolvable 0 PASS
+   corpus.pointers.commit_nonhash 0 PASS
+
+== verify_corpus_independent.py (rc and headline) ==
+corpus independent derivation: /fast/scratch/hyaku/kotoba-r99/ScribeCorpusR99/fleetshape/kotoba-shokunin (HEAD 20797f6)
+index   tracked_files=204 index_tokens=222 (outside coverage map=18) unindexed=0 stale=0 missing=0
+points  candidates=186 checked=175 excluded=8 quoted=3 dead=0 shapes={'absolute': 48, 'tilde': 1, 'relative': 2, 'bare': 124}
+commits candidates=83 citations=72 hex=72 quoted=6 nonhash=0 unresolvable=0 external=2
+  corpus.index.tracked_files             observe  observed=204 INFO
+  corpus.index.unindexed                 zero     observed=0 PASS
+  corpus.index.stale_patterns            zero     observed=0 PASS
+  corpus.index.missing_paths             zero     observed=0 PASS
+  corpus.pointers.report_total           observe  observed=175 INFO
+  corpus.pointers.report_dead            zero     observed=0 PASS
+  corpus.pointers.commit_total           observe  observed=72 INFO
+  corpus.pointers.commit_unresolvable    zero     observed=0 PASS
+
+== observed drift vs ExecRedsR99's re-recorded baseline (203 / 174 / 72) ==
+  corpus.index.tracked_files  203 -> 204  (this seat's corpus/lessons/round-99.md)
+  corpus.pointers.report_total 174 -> 175  (this seat's lesson cites the fleet round-98 report, a live absolute pointer)
+  corpus.pointers.commit_total 72 -> 72  (unchanged)
+  -> the L1 re-records corpus-baseline.json at integration (verifiers/corpus-baseline.json is ExecRedsR99's file; the drift is this seat's, and it is reported, not a C2 failure of the ExecRedsR99-only candidate).
