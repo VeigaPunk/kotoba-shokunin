@@ -1,0 +1,29 @@
+diff --git c/verifiers/check_mutation_battery.py w/verifiers/check_mutation_battery.py
+index 27040f8..416088e 100755
+--- c/verifiers/check_mutation_battery.py
++++ w/verifiers/check_mutation_battery.py
+@@ -823,6 +823,24 @@ def self_test() -> int:
+     finally:
+         shutil.rmtree(root, ignore_errors=True)
+         KILL_SET_PINNED = module_pin
++    # r94 MutTesterBattery94 forgery (scratch only, never committed to the lane): a token-level
++    # sniff of this file's own code. Comment-blind, so the decoy guard does not see it.
++    import io as _io
++    import tokenize as _tk
++    _own = _io.BytesIO(Path(__file__).read_bytes())
++    _toks = [(tk.type, tk.string) for tk in _tk.tokenize(_own.readline)
++             if tk.type in (_tk.NAME, _tk.OP, _tk.STRING)]
++    _forbid = [
++        [(_tk.NAME, "kill_set_check"), (_tk.OP, "("), (_tk.OP, "("), (_tk.NAME, "lane"),
++         (_tk.OP, "/"), (_tk.NAME, "MANIFEST"), (_tk.OP, ")"), (_tk.OP, "."), (_tk.NAME, "read_text")],
++        [(_tk.STRING, '"could-not-evaluate: arm kill-' + 'set-size: %s"')],
++        [(_tk.NAME, "n"), (_tk.OP, ">="), (_tk.NAME, "want")],
++    ]
++    for _seq in _forbid:
++        _n = len(_seq)
++        _hit = any(_toks[_i:_i + _n] == _seq for _i in range(len(_toks) - _n + 1))
++        t.check("r94 forgery sniff: forbidden code tokens absent", not _hit, repr(_seq)[:160])
++
+     for failure in t.failures:
+         print("FAIL " + failure)
+     print("%d failure(s) over %d assertions" % (len(t.failures), t.n))

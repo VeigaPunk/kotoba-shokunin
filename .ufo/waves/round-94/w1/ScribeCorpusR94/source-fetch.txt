@@ -1,0 +1,89 @@
+# ScribeCorpusR94 — source fetch receipt (round 94, r94-w1)
+# date: 2026-11-05 (UTC); every fetch re-run by this seat in its own scratch, independent of the scout's saved copies
+
+$ curl -sS -o pit.html -w 'HTTP %{http_code} bytes=%{size_download}' -L https://pitest.org/quickstart/basic_concepts/
+HTTP 200 bytes=12155
+$ sha256sum pit.html
+c51d8423f5a75e00c7039463f8a5992ef8f1f92b994d69f67d212ff7bfd92b3a  pit.html
+
+$ curl -sS -o pit-noslash.html -w 'HTTP %{http_code} bytes=%{size_download}' -L https://pitest.org/quickstart/basic_concepts
+HTTP 200 bytes=12155
+$ sha256sum pit-noslash.html
+c51d8423f5a75e00c7039463f8a5992ef8f1f92b994d69f67d212ff7bfd92b3a  pit-noslash.html
+# -> trailing-slash and slash-less URLs return byte-identical bodies (same sha256, same size).
+
+Located sentences in the fetched bytes (raw HTML line numbers):
+175:<p><strong>Killed</strong> means a test caught the mutation successfully.</p>
+177:<p><strong>Survived</strong> means the mutation was not detected by the covering test.</p>
+181:<p>A mutation may <strong>time out</strong> if it causes an infinite loop, such as removing the increment from a counter in
+184:<p>A <strong>non viable</strong> mutation is one that could not be loaded by the JVM as the bytecode was in some way
+
+Word counts of the located quotes (printf | wc -w):
+8
+11
+22
+
+Version / date pin probe on the page:
+$ grep -n -i 'last updated|version|copyright|©|generated on' pit.html
+(no hits)
+$ grep -c '20[0-9][0-9]' pit.html
+0
+# -> the page carries no version or date pin.
+
+Unshaped upstream form:
+$ curl -sS -o up.md -w 'HTTP %{http_code} bytes=%{size_download}' -L https://raw.githubusercontent.com/hcoles/pitest-site/e8995cd59e3cf1b1a35a979b3e735bc2fe413fea/quickstart/basic_concepts.markdown
+HTTP 200 bytes=4371
+$ sha256sum up.md
+2d2b7f5d3d27ace19949b4cc1948193e23cc901335c0dc8f0a24415b67613a13  up.md
+$ grep -n 'Killed\|Survived\|non viable' up.md
+99:* **Killed**
+100:* **Survived**
+107:**Killed** means a test caught the mutation successfully.
+109:**Survived** means the mutation was not detected by the covering test.
+111:**No coverage** is the same as **Survived** except there were no tests that exercised the line of code where the mutation was created.
+116:A **non viable** mutation is one that could not be loaded by the JVM as the bytecode was in some way
+124:A **run error** means something went wrong when trying to test the mutation. Certain types of non viable
+128:Under normal circumstances you should see no non viable mutations or run errors.
+
+Upstream revision metadata (GitHub commits API):
+$ curl -sS https://api.github.com/repos/hcoles/pitest-site/commits/e8995cd59e3c
+sha e8995cd59e3cf1b1a35a979b3e735bc2fe413fea
+committer date 2025-10-24T06:38:49Z
+message Update basic_concepts.markdown
+patch:
+  -* **Lived**
+  +* **Survived**
+  -**Lived** means the mutation was not detected by the covering test.
+  +**Survived** means the mutation was not detected by the covering test.
+  -**No coverage** is the same as **Lived** except there were no tests that exercised the line of code where the mutation was created.
+  +**No coverage** is the same as **Survived** except there were no tests that exercised the line of code where the mutation was created.
+
+Rejected candidates re-fetched by this seat (verdicts and flip conditions are in the lesson Gate):
+$ curl -sS -o 'mutmut_readthedocs_io_en_latest_.html' -w 'HTTP %{http_code} bytes=%{size_download}' -L https://mutmut.readthedocs.io/en/latest/
+HTTP 200 bytes=51074
+$ sha256sum 'mutmut_readthedocs_io_en_latest_.html'
+07453b3fdb3b962a4cc5aff66d7614a11016c9ce0ea482654c99e17688ec9cad  mutmut_readthedocs_io_en_latest_.html
+$ curl -sS -o 'cosmic-ray_theory.html' -w 'HTTP %{http_code} bytes=%{size_download}' -L https://cosmic-ray.readthedocs.io/en/latest/theory.html
+HTTP 200 bytes=5939
+$ sha256sum 'cosmic-ray_theory.html'
+a72ab7cf9c4acdeba9cfa5138150592ac5ce4544889ac819ce3dd60bcc0db6e3  cosmic-ray_theory.html
+$ curl -sS -o 'cosmic-ray_concepts.html' -w 'HTTP %{http_code} bytes=%{size_download}' -L https://cosmic-ray.readthedocs.io/en/latest/concepts.html
+HTTP 200 bytes=18482
+$ sha256sum 'cosmic-ray_concepts.html'
+d4da7008e4b3bc094608dc6ece72f18d751f562c53a874d9238ee10254adae7f  cosmic-ray_concepts.html
+$ curl -sS -o 'stryker-mutator_io_docs_mutation-testing-elements_mutant-states-and-metrics_.html' -w 'HTTP %{http_code} bytes=%{size_download}' -L https://stryker-mutator.io/docs/mutation-testing-elements/mutant-states-and-metrics/
+HTTP 200 bytes=27068
+$ sha256sum 'stryker-mutator_io_docs_mutation-testing-elements_mutant-states-and-metrics_.html'
+8641c38959222238f34aba0e20d3c51919cf183bf19a53f436257614cab656da  stryker-mutator_io_docs_mutation-testing-elements_mutant-states-and-metrics_.html
+
+$ grep -ic equiv mutmut_readthedocs_io_en_latest_.html
+0
+$ grep -c -i 'killed\|survived' mutmut_readthedocs_io_en_latest_.html
+0
+$ grep -n 'incompetent' cosmic-ray_theory.html
+41:is “incompetent”. If your test suite passes, however, we say that the mutant has “survived”.</p>
+$ grep -n 'incompetent' cosmic-ray_concepts.html
+175:test and consider it <em>incompetent</em>. That is, if a test of a mutant takes longer than the timeout, the test is killed,
+176:and the mutant is marked incompetent.</p>
+
+Install record: none (curl, sha256sum, grep, awk, wc and python3 stdlib only, all already on the host).

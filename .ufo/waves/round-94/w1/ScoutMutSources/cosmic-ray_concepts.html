@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Concepts &#8212; Cosmic Ray  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="How-tos" href="how-tos/index.html" />
+    <link rel="prev" title="Tutorial: Distributed, concurrent mutation testing" href="tutorials/distributed/index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  <script async type="text/javascript" src="/_/static/javascript/readthedocs-addons.js"></script><meta name="readthedocs-project-slug" content="cosmic-ray" /><meta name="readthedocs-version-slug" content="latest" /><meta name="readthedocs-resolver-filename" content="/concepts.html" /><meta name="readthedocs-http-status" content="200" /></head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="concepts">
+<h1>Concepts<a class="headerlink" href="#concepts" title="Link to this heading">¶</a></h1>
+<p>Cosmic Ray comprises a number of important and potentially confusing concepts.
+In this section we’ll look at each of these concepts, explaining their role in
+Cosmic Ray and how they relate to other concepts. We’ll also use this section to
+establish the terminology that we’ll use throughout the rest of the
+documentation.</p>
+<section id="operators">
+<h2>Operators<a class="headerlink" href="#operators" title="Link to this heading">¶</a></h2>
+<p>An <em>operator</em> in Cosmic Ray is a class that represents a specific type of
+mutation. The first role of an operator is to identify points in the code where
+a specific mutation can be applied. The second role of an operator is to
+actually perform the mutation when requested.</p>
+<p>An example of an operator is
+<a class="reference internal" href="reference/api/cosmic_ray.operators.html#module-cosmic_ray.operators.break_continue" title="cosmic_ray.operators.break_continue"><code class="xref py py-mod docutils literal notranslate"><span class="pre">cosmic_ray.operators.break_continue</span></code></a>. As its name
+implies, this operator mutates code by replacing <code class="docutils literal notranslate"><span class="pre">break</span></code> with <code class="docutils literal notranslate"><span class="pre">continue</span></code>.
+During
+the initialization of a session, this operator identifies all of the locations
+in the code where this mutation can be applied. Then, during execution of a
+session, it actually mutates the code by replacing <code class="docutils literal notranslate"><span class="pre">break</span></code> nodes with
+<code class="docutils literal notranslate"><span class="pre">continue</span></code>
+nodes.</p>
+<p>Operators are exposed to Cosmic Ray via plugins, and users can choose to extend
+the available operator set by providing their own operators. Operators are
+implemented as subclasses of <a class="reference internal" href="reference/api/cosmic_ray.operators.html#cosmic_ray.operators.operator.Operator" title="cosmic_ray.operators.operator.Operator"><code class="xref py py-class docutils literal notranslate"><span class="pre">cosmic_ray.operators.operator.Operator</span></code></a>.</p>
+</section>
+<section id="distributors">
+<h2>Distributors<a class="headerlink" href="#distributors" title="Link to this heading">¶</a></h2>
+<p><em>Distributors</em> determine the context in which tests are executed. The primary examples of distributors are
+<a class="reference internal" href="reference/api/cosmic_ray.distribution.html#cosmic_ray.distribution.local.LocalDistributor" title="cosmic_ray.distribution.local.LocalDistributor"><code class="xref py py-class docutils literal notranslate"><span class="pre">cosmic_ray.distribution.local.LocalDistributor</span></code></a> and <a class="reference internal" href="reference/api/cosmic_ray.distribution.html#cosmic_ray.distribution.http.HttpDistributor" title="cosmic_ray.distribution.http.HttpDistributor"><code class="xref py py-class docutils literal notranslate"><span class="pre">cosmic_ray.distribution.http.HttpDistributor</span></code></a>. The
+local distributor tests on the local machine, modifying an existing copy of the code in-place, running each test
+serially with no concurrency.</p>
+<p>The http distributor distributes tests to remote workers via HTTP. There can be any number of workers, and they can run the
+tests in parallel. Because of this concurrency, each HTTP worker will generally have its own copy of the code under
+test.</p>
+<p>Distributors have broad control over how they execute tests. During the execution phase they are given a sequence of
+pending mutations to execute, and it’s their job to execute the tests in the appropriate context and return a result.
+Cosmic Ray doesn’t impose any real constraints on how distributors accomplish this.</p>
+<p>Distributors can require arbitrarily complex infrastructure and configuration. For example, the HTTP distributor requires
+you to start the workers prior to starting execution, and it requires that you provide each worker with its own
+copy of the code under test.</p>
+<p>Distributors are implemented as plugins to Cosmic Ray. They are dynamically discovered, and users can create their own
+distributors. Cosmic Ray includes two execution engines plugins, <em>local</em> and <em>http</em>.</p>
+</section>
+<section id="configurations">
+<h2>Configurations<a class="headerlink" href="#configurations" title="Link to this heading">¶</a></h2>
+<p>A <em>configuration</em> is a TOML file that describes the work that Cosmic Ray will do. For example, it tells Cosmic Ray which
+modules to mutate, how to run tests, which tests to run, and so forth. You need to create a config before doing any real
+work with Cosmic Ray.</p>
+<p>You can create a skeleton config by running <code class="docutils literal notranslate"><span class="pre">cosmic-ray</span> <span class="pre">new-config</span> <span class="pre">&lt;config</span> <span class="pre">file&gt;</span></code>. This will ask you a series of
+questions and create a config from the answers. Note that this config will generally be incomplete and require you to
+edit it for completeness.</p>
+<p>In many Cosmic Ray examples we’ll use the name “config.toml” for configurations. You are not required to use this name,
+however. You can use any file name you want for your configurations.</p>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>The full set of configuration options are not currently well documented. Each plugin can, in principle and often in
+practice, use their own specialized configuration options. We need to work on making the documentation of these
+options automatic and part of the plugin API. For detail on configuration options, the best place to check is
+currently in the <code class="docutils literal notranslate"><span class="pre">tests/example_project</span></code> directory.</p>
+</div>
+</section>
+<section id="sessions">
+<h2>Sessions<a class="headerlink" href="#sessions" title="Link to this heading">¶</a></h2>
+<p>Cosmic Ray has a notion of <em>sessions</em> which encompass an entire mutation testing run. Essentially, a session is a
+database which records the work that needs to be done for a run. Then as results are available from workers that do the
+actual testing, the database is updated with results. By having a database like this, Cosmic Ray can safely stop in the
+middle of a (potentially very long) session and be restarted. Since the session knows which work is already completed,
+it can continue where it left off.</p>
+<p>Sessions also allow for arbitrary post-facto analysis and report generation.</p>
+<section id="initializing-sessions">
+<h3>Initializing sessions<a class="headerlink" href="#initializing-sessions" title="Link to this heading">¶</a></h3>
+<p>Before you can do mutation testing with Cosmic Ray, you need to first initialize a session. You can do this using the
+<code class="docutils literal notranslate"><span class="pre">init</span></code> command. With this command you tell Cosmic Ray a) the name of the session, b) which module(s) you wish to
+mutate and c) the location of the test suite. For example, to mutate the package <code class="docutils literal notranslate"><span class="pre">allele</span></code>, using the <code class="docutils literal notranslate"><span class="pre">unittest</span></code> to
+run the tests in <code class="docutils literal notranslate"><span class="pre">allele_tests</span></code>, and using the <code class="docutils literal notranslate"><span class="pre">local</span></code> execution engine, you could first need to create a
+configuration like this:</p>
+<div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="k">[cosmic-ray]</span>
+<span class="na">module-path</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;allele&quot;</span>
+<span class="na">timeout</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">10</span>
+<span class="na">excluded-modules</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">[]</span>
+<span class="na">test-command</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">python -m unittest allele_tests</span>
+<span class="na">distributor.name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;local&quot;</span>
+</pre></div>
+</div>
+<p>You would run <code class="docutils literal notranslate"><span class="pre">cosmic-ray</span> <span class="pre">init</span></code> like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cosmic</span><span class="o">-</span><span class="n">ray</span> <span class="n">init</span> <span class="n">config</span><span class="o">.</span><span class="n">toml</span> <span class="n">session</span><span class="o">.</span><span class="n">sqlite</span>
+</pre></div>
+</div>
+<p>You’ll notice that this creates a new file called <code class="docutils literal notranslate"><span class="pre">allele_session.sqlite</span></code>. This is the database for your session.</p>
+</section>
+</section>
+<section id="test-suite">
+<span id="id1"></span><h2>Test suite<a class="headerlink" href="#test-suite" title="Link to this heading">¶</a></h2>
+<p>To be able to kill the mutants Cosmic Ray uses your test cases. But the mutants are not considered “more dead” when more
+test cases fail. Given that a single failing test case is sufficient to kill a mutant, it’s a good idea to configure the
+test runner to exit as soon as a failing test case is found.</p>
+<p>For <code class="docutils literal notranslate"><span class="pre">pytest</span></code> and <code class="docutils literal notranslate"><span class="pre">nose</span></code> that can be achieved with the <code class="docutils literal notranslate"><span class="pre">-x</span></code> option.</p>
+<div class="admonition-an-important-note-on-separating-tests-and-production-code admonition" id="note-separation-test-code">
+<p class="admonition-title">An important note on separating tests and production code</p>
+<p>Cosmic Ray has a relatively simple view of how to mutate modules. Fundamentally, it will attempt to mutate any and all
+code in a module. This means that if you have test code in the same module as your code under test, Cosmic Ray will
+happily mutate the test code along with the production code. This is probably not what you want.</p>
+<p>The best way to avoid this problem is to keep your test code in separate modules from your production code. This way you
+can tell Cosmic Ray precisely what to mutate.</p>
+<p>Ideally, your test code will be in a different package from your production code. This way you can tell Cosmic Ray to
+mutate an entire package without needing to filter anything out. However, if your test code is in the same package as
+your production code (a common configuration), you can use the <code class="docutils literal notranslate"><span class="pre">excluded-modules</span></code> setting in your configuration to
+prevent mutation of your tests.</p>
+<p>Given the choice, though, we recommend keeping your tests outside of the package for your code under test.</p>
+</div>
+<section id="executing-tests">
+<h3>Executing tests<a class="headerlink" href="#executing-tests" title="Link to this heading">¶</a></h3>
+<p>Once a session has been initialized, you can start executing tests by using the <code class="docutils literal notranslate"><span class="pre">exec</span></code> command. This command
+needs the config and the session you provided to <code class="docutils literal notranslate"><span class="pre">init</span></code>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cosmic-ray<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>config.toml<span class="w"> </span>session.sqlite
+</pre></div>
+</div>
+<p>Normally this won’t produce any output unless there are errors.</p>
+</section>
+<section id="viewing-the-results">
+<h3>Viewing the results<a class="headerlink" href="#viewing-the-results" title="Link to this heading">¶</a></h3>
+<p>Once your tests have completed, you can view the results using the <code class="docutils literal notranslate"><span class="pre">cr-report</span></code> command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cr-report<span class="w"> </span>test_session.sqlite
+</pre></div>
+</div>
+<p>This will give you detailed information about what work was done, followed by a summary of the entire session.</p>
+</section>
+</section>
+<section id="test-commands">
+<h2>Test commands<a class="headerlink" href="#test-commands" title="Link to this heading">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">test-command</span></code> field of a configuration tells Cosmic Ray how to run tests. Cosmic Ray runs this command from
+whatever directory you run the <code class="docutils literal notranslate"><span class="pre">exec</span></code> command (or, in the case of remote execution, in whatever directory the remote
+command handler is running).</p>
+</section>
+<section id="timeouts">
+<h2>Timeouts<a class="headerlink" href="#timeouts" title="Link to this heading">¶</a></h2>
+<p>One difficulty mutation testing tools have to face is how to deal with mutations that result in infinite loops (or other
+pathological runtime effects). Cosmic Ray takes the simple approach of using a <em>timeout</em> to determine when to kill a
+test and consider it <em>incompetent</em>. That is, if a test of a mutant takes longer than the timeout, the test is killed,
+and the mutant is marked incompetent.</p>
+<p>You specify a test time through the <code class="docutils literal notranslate"><span class="pre">timeout</span></code> configuration key. This key specifies an absolute number of seconds that
+a test will be allowed to run. After the timeout is up, the test is killed. For example, to specify that tests should
+timeout after 10 seconds, use:</p>
+<div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="c1"># config.toml</span>
+<span class="k">[cosmic-ray]</span>
+<span class="na">timeout</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">10</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Cosmic Ray</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="theory.html">Theory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/intro/index.html">Tutorial: The basics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/distributed/index.html">Tutorial: Distributed, concurrent mutation testing</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Concepts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how-tos/index.html">How-tos</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference/index.html">Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="tutorials/distributed/index.html" title="previous chapter">Tutorial: Distributed, concurrent mutation testing</a></li>
+      <li>Next: <a href="how-tos/index.html" title="next chapter">How-tos</a></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2019, Sixty North AS.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.2.3</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/concepts.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,46 @@
+diff --git c/verifiers/check_tip_battery.py i/verifiers/check_tip_battery.py
+index 1a94893..66171de 100755
+--- c/verifiers/check_tip_battery.py
++++ i/verifiers/check_tip_battery.py
+@@ -721,28 +721,34 @@ def self_test() -> int:
+               "exit %d %s" % (rc, out.strip()[-200:]))
+         INSTRUMENT_PINS = saved_pins
+ 
+-        # round 93 C2: a missing BATTERY key in a non-empty INSTRUMENT_PINS is an
+-        # instrument-pin failure naming the path (F-4: whole-key removal was silent).
+-        # The pinned blob must admit the unchanged fixture script so the ONLY
+-        # pin failure is the missing key; the second arm swaps in a junk key.
+-        for arm, pins_value in (("keydrop", {}), ("keyswap", {"verifiers/r93-junk-key.py": ("0" * 40,)})):
++        # round 93 C2, round 94 C2 (every key): a missing BATTERY key in a non-empty
++        # INSTRUMENT_PINS is an instrument-pin failure naming that path (F-4: whole-key
++        # removal was silent). One keydrop world per BATTERY script drops ONLY that
++        # script's key; the other keys still admit their fixture blobs, so the only pin
++        # failure is the dropped path. The keyswap arm drops BATTERY[5] and adds a junk key.
++        arms = [("keydrop-%d" % index, script, {}) for index, (script, _) in enumerate(BATTERY)]
++        arms.append(("keyswap", BATTERY[5][0], {"verifiers/r93-junk-key.py": ("0" * 40,)}))
++        for arm, missing, pins_value in arms:
+             key_root = root / ("guard-pin-" + arm)
+             lane, base = _make_world(key_root)
+             full_pins = {}
+             for script, _ in BATTERY:
+                 blob = _fixture_git(lane, "rev-parse", "HEAD:" + script).stdout.strip()
+                 full_pins[script] = (blob,)
+-            missing = BATTERY[5][0]
+             del full_pins[missing]
+             full_pins.update(pins_value)
+             INSTRUMENT_PINS = full_pins
+             (lane / "notes.md").write_text("harmless\n")
+             tip = _commit_all(lane, "harmless under a %s pin" % arm)
+             rc, out, err = _drive(key_root, base, tip)
++            key_lines = [ln for ln in out.splitlines() if "has no INSTRUMENT_PINS key" in ln]
+             check("pin %s world exits 1" % arm, rc == 1, "exit %d" % rc)
+-            check("pin %s world FAIL names the missing key" % arm,
++            check("pin %s world FAIL names the missing key %s" % (arm, missing),
+                   ("FAIL guard instrument-pin: %s has no INSTRUMENT_PINS key" % missing) in out,
+                   out.strip()[-220:])
++            check("pin %s world names only that key" % arm,
++                  len(key_lines) == 1 and key_lines[0].startswith("FAIL guard instrument-pin: %s " % missing),
++                  repr(key_lines))
+             check("pin %s world tally reads guards 4 of 5" % arm, "guards 4 of 5" in out,
+                   _last_line(out))
+             INSTRUMENT_PINS = saved_pins

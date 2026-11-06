@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>mutmut - python mutation tester &#8212; mutmut  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  <script async type="text/javascript" src="/_/static/javascript/readthedocs-addons.js"></script><meta name="readthedocs-project-slug" content="mutmut" /><meta name="readthedocs-version-slug" content="latest" /><meta name="readthedocs-resolver-filename" content="/" /><meta name="readthedocs-http-status" content="200" /></head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="mutmut-python-mutation-tester">
+<h1>mutmut - python mutation tester<a class="headerlink" href="#mutmut-python-mutation-tester" title="Link to this heading">¶</a></h1>
+<a class="reference external image-reference" href="https://github.com/boxed/mutmut/actions/workflows/tests.yml"><img alt="https://github.com/boxed/mutmut/actions/workflows/tests.yml/badge.svg" src="https://github.com/boxed/mutmut/actions/workflows/tests.yml/badge.svg" />
+</a>
+<a class="reference external image-reference" href="https://mutmut.readthedocs.io/en/latest/?badge=latest"><img alt="Documentation Status" src="https://readthedocs.org/projects/mutmut/badge/?version=latest" />
+</a>
+<p>Mutmut is a mutation testing system for Python, with a strong focus on ease
+of use. If you don’t know what mutation testing is try starting with
+<a class="reference external" href="https://kodare.net/2016/12/01/mutmut-a-python-mutation-testing-system.html">this article</a>.</p>
+<p>Some highlight features:</p>
+<ul class="simple">
+<li><p>Found mutants can be applied on disk with a simple command making it very
+easy to work with the results</p></li>
+<li><p>Remembers work that has been done, so you can work incrementally</p></li>
+<li><p>Knows which tests to execute, speeding up mutation testing</p></li>
+<li><p>Interactive terminal based UI</p></li>
+<li><p>Parallel and fast execution</p></li>
+</ul>
+<img alt="_images/browse_screenshot.png" src="_images/browse_screenshot.png" />
+<p>If you want to mutate code outside of functions, you can try using mutmut 2,
+which has a different execution model than mutmut 3+.</p>
+<section id="requirements">
+<h2>Requirements<a class="headerlink" href="#requirements" title="Link to this heading">¶</a></h2>
+<p>Mutmut must be run on a system with <cite>fork</cite> support. This means that if you want
+to run on windows, you must run inside WSL.</p>
+</section>
+<section id="install-and-run">
+<h2>Install and run<a class="headerlink" href="#install-and-run" title="Link to this heading">¶</a></h2>
+<p>You can get started with a simple:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">pip install mutmut</span>
+<span class="go">mutmut run</span>
+</pre></div>
+</div>
+<p>This will run pytest on tests in the “tests” or “test” folder and
+it will try to figure out where the code to mutate is.</p>
+<p>You can stop the mutation run at any time and mutmut will restart where you
+left off.</p>
+<p>To work with the results, use <cite>mutmut browse</cite> where you can see the mutants,
+retest them when you’ve updated your tests.</p>
+<p>You can also write a mutant to disk from the <cite>browse</cite> interface, or via
+<cite>mutmut apply &lt;mutant&gt;</cite>. You should <strong>REALLY</strong> have the file you mutate under
+source code control and committed before you apply a mutant!</p>
+<p>If during the installation you get an error for the <cite>libcst</cite> dependency mentioning the lack of a rust compiler on your system, it is because your architecture does not have a prebuilt binary for <cite>libcst</cite> and it requires both <cite>rustc</cite> and <cite>cargo</cite> from the <a class="reference external" href="https://www.rust-lang.org/tools/install">rust toolchain</a> to be built. This is known for at least the <cite>x86_64-darwin</cite> architecture.</p>
+</section>
+<section id="wildcards-for-testing-mutants">
+<h2>Wildcards for testing mutants<a class="headerlink" href="#wildcards-for-testing-mutants" title="Link to this heading">¶</a></h2>
+<p>Unix filename pattern matching style on mutants is supported. Example:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">mutmut run "my_module*"</span>
+<span class="go">mutmut run "my_module.my_function*"</span>
+</pre></div>
+</div>
+<p>In the <cite>browse</cite> TUI you can press <cite>f</cite> to retest a function, and <cite>m</cite> to retest
+an entire module.</p>
+</section>
+<section id="configuration">
+<h2>Configuration<a class="headerlink" href="#configuration" title="Link to this heading">¶</a></h2>
+<p>In <cite>setup.cfg</cite> in the root of your project you can configure mutmut if you need to:</p>
+<div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="k">[mutmut]</span>
+<span class="na">source_paths</span><span class="o">=</span><span class="s">src/</span>
+<span class="na">pytest_add_cli_args_test_selection</span><span class="o">=</span><span class="s">tests/</span>
+</pre></div>
+</div>
+<p>If you use <cite>pyproject.toml</cite>, you must specify the paths as array in a <cite>tool.mutmut</cite> section:</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[tool.mutmut]</span>
+<span class="n">source_paths</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="s2">"src/"</span><span class="w"> </span><span class="p">]</span>
+<span class="n">pytest_add_cli_args_test_selection</span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="s2">"tests/"</span><span class="w"> </span><span class="p">]</span>
+</pre></div>
+</div>
+<p>See below for more options for configuring mutmut.</p>
+<section id="also-copy-files">
+<h3>“also copy” files<a class="headerlink" href="#also-copy-files" title="Link to this heading">¶</a></h3>
+<p>To run the full test suite some files are often needed above the tests and the
+source. You can configure to copy extra files that you need by adding
+directories and files to <cite>also_copy</cite> in your <cite>setup.cfg</cite>:</p>
+<div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="na">also_copy</span><span class="o">=</span>
+<span class="w">    </span><span class="na">iommi/snapshots/</span>
+<span class="w">    </span><span class="na">conftest.py</span>
+</pre></div>
+</div>
+</section>
+<section id="limit-stack-depth">
+<h3>Limit stack depth<a class="headerlink" href="#limit-stack-depth" title="Link to this heading">¶</a></h3>
+<p>In big code bases some functions are called incidentally by huge swaths of the
+codebase, but you really don’t want tests that hit those executions to count
+for mutation testing purposes. Incidentally tested functions lead to slow
+mutation testing as hundreds of tests can be checked for things that should
+have clean and fast unit tests, and it leads to bad test suites as any
+introduced bug in those base functions will lead to many tests that fail which
+are hard to understand how they relate to the function with the change.</p>
+<p>You can configure mutmut to only count a test as being relevant for a function
+if the stack depth is below some limit. Only stack frames from code inside <cite>source_paths</cite>
+is counted towards the limit, 3rd party libraries are ignored. In your <cite>setup.cfg</cite> add:</p>
+<div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="na">max_stack_depth</span><span class="o">=</span><span class="s">8</span>
+</pre></div>
+</div>
+<p>A lower value will increase mutation speed and lead to more localized tests,
+but will also lead to more surviving mutants that would otherwise have been
+caught.</p>
+</section>
+<section id="exclude-files-from-mutation">
+<h3>Exclude files from mutation<a class="headerlink" href="#exclude-files-from-mutation" title="Link to this heading">¶</a></h3>
+<p>By default mutmut mutates all python files in <cite>source_paths</cite>.
+You can exclude files from mutation in <cite>setup.cfg</cite>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">only_mutate</span><span class="o">=</span>
+    <span class="n">src</span><span class="o">/</span><span class="n">api</span><span class="o">/*</span>
+    <span class="n">src</span><span class="o">/</span><span class="n">services</span><span class="o">/*</span>
+<span class="n">do_not_mutate</span><span class="o">=</span>
+    <span class="o">*</span><span class="n">__tests</span><span class="o">.</span><span class="n">py</span>
+</pre></div>
+</div>
+</section>
+<section id="enable-coverage-py-filtering-of-lines-to-mutate">
+<h3>Enable coverage.py filtering of lines to mutate<a class="headerlink" href="#enable-coverage-py-filtering-of-lines-to-mutate" title="Link to this heading">¶</a></h3>
+<p>By default, mutmut will mutate only functions that are called. But, if you would like a finer grained (line-level)
+check for coverage, mutmut can use coverage.py to do that.</p>
+<p>If you only want to mutate lines that are called (according to coverage.py), you can set
+<cite>mutate_only_covered_lines</cite> to <cite>true</cite> in your configuration. The default value is <cite>false</cite>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mutate_only_covered_lines</span><span class="o">=</span><span class="n">true</span>
+</pre></div>
+</div>
+<p>This also honours the lines coverage.py is told to leave out of its measurement, so code
+marked with <cite># pragma: no cover</cite>, or matched by your <cite>exclude_lines</cite>/<cite>exclude_also</cite>
+settings, is not mutated either. Such code is not held to your test suite, so mutants
+there could only ever show up as survivors.</p>
+</section>
+<section id="filter-generated-mutants-with-type-checker">
+<h3>Filter generated mutants with type checker<a class="headerlink" href="#filter-generated-mutants-with-type-checker" title="Link to this heading">¶</a></h3>
+<p>When your project is type checked using <cite>mypy</cite> or <cite>pyrefly</cite>, you can also use it to filter out invalid mutants.
+For instance, mutmut mutates <cite>x: str = ‘foo’</cite> to <cite>x: str = None</cite> which can easily caught by type checkers.</p>
+<p>Using this filter can improve performance and reduce noise, however it can also hide a few relevant mutations:</p>
+<ol class="arabic simple">
+<li><dl class="simple">
+<dt><cite>x: str = None</cite> may not be valid, but if your tests do not detect such a change it indicates that</dt><dd><p>the value of <cite>x</cite> is not properly tested (even if your type checker would catch this particular modification)</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>In some edge cases with class properties (usually in the <cite>__init__</cite> method), the way <cite>mypy</cite> and <cite>pyrefly</cite> infer types does not work well</dt><dd><p>with the way mutmut mutates code. Some valid mutations like changing <cite>self.x = 123</cite> to <cite>self.x = None</cite> can
+be filtered out, even though the may be valid.</p>
+</dd>
+</dl>
+</li>
+</ol>
+<p>To enable this filtering, configure the <cite>type_check_command</cite> to output json results as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># for pyrefly</span>
+<span class="n">type_check_command</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'pyrefly'</span><span class="p">,</span> <span class="s1">'check'</span><span class="p">,</span> <span class="s1">'--output-format=json'</span><span class="p">]</span>
+<span class="c1"># for mypy</span>
+<span class="n">type_check_command</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'mypy'</span><span class="p">,</span> <span class="s1">'your_source_dir'</span><span class="p">,</span> <span class="s1">'--output'</span><span class="p">,</span> <span class="s1">'json'</span><span class="p">,</span> <span class="s1">'--disable-error-code'</span><span class="p">,</span> <span class="s1">'unused-ignore'</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Currently, only <cite>pyrefly</cite> and <cite>mypy</cite> are supported.
+With <cite>pyright</cite> and <cite>ty</cite>, mutating a class method <cite>Foo.bar()</cite> can break the types of all methods of <cite>Foo</cite>,
+and therefore mutmut cannot match the type error with the mutant that caused the type error.</p>
+</section>
+<section id="enable-debug-output-increase-verbosity">
+<h3>Enable debug output (increase verbosity)<a class="headerlink" href="#enable-debug-output-increase-verbosity" title="Link to this heading">¶</a></h3>
+<p>By default, mutmut “swallows” all the test output etc. so that you get a nice clean output.</p>
+<p>If you want to see all the detail to aid with debugging, you can set <cite>debug</cite> to <cite>true</cite> in your configuration.
+Note that not all displayed errors are necessarily bad. In particular test runs of the mutated code will lead
+to failing tests.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">debug</span><span class="o">=</span><span class="n">true</span>
+</pre></div>
+</div>
+</section>
+<section id="disable-setproctitle-macos">
+<h3>Disable setproctitle (macOS)<a class="headerlink" href="#disable-setproctitle-macos" title="Link to this heading">¶</a></h3>
+<p>Mutmut uses <code class="docutils literal notranslate"><span class="pre">setproctitle</span></code> to show the current mutant name in the process
+list, which is helpful for monitoring long runs. However, <code class="docutils literal notranslate"><span class="pre">setproctitle</span></code>
+uses CoreFoundation APIs on macOS that are not fork-safe, causing segfaults
+in child processes.</p>
+<p>By default, mutmut automatically disables <code class="docutils literal notranslate"><span class="pre">setproctitle</span></code> on macOS and
+enables it on other platforms. If you need to override this (e.g. to enable it on
+macOS at your own risk, or to disable it on other platforms), set <code class="docutils literal notranslate"><span class="pre">use_setproctitle</span></code>:</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="c1"># pyproject.toml</span>
+<span class="k">[tool.mutmut]</span>
+<span class="n">use_setproctitle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
+</pre></div>
+</div>
+</section>
+<section id="process-isolation-fork-vs-forkserver">
+<h3>Process isolation (<code class="docutils literal notranslate"><span class="pre">fork</span></code> vs <code class="docutils literal notranslate"><span class="pre">forkserver</span></code>)<a class="headerlink" href="#process-isolation-fork-vs-forkserver" title="Link to this heading">¶</a></h3>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="c1"># pyproject.toml</span>
+<span class="k">[tool.mutmut]</span>
+<span class="n">process_isolation</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"fork"</span><span class="w">  </span><span class="c1"># or "forkserver"</span>
+</pre></div>
+</div>
+<p>Both strategies require <code class="docutils literal notranslate"><span class="pre">os.fork</span></code>, so they are POSIX-only.</p>
+<dl>
+<dt><code class="docutils literal notranslate"><span class="pre">fork</span></code> (default)</dt><dd><p>Mutmut’s main process imports pytest and runs your test suite to collect
+stats, then forks one child per mutant. This is fast and needs no
+configuration, but every mutant worker inherits whatever your test setup
+left behind in that process: monkey-patched sockets, running event loops,
+background threads, open database connections, CUDA contexts. If any of
+that is not fork-safe, the workers can hang, segfault, or report nonsense.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">forkserver</span></code></dt><dd><p>Mutmut’s main process never imports pytest or your <code class="docutils literal notranslate"><span class="pre">conftest.py</span></code>. It forks
+a dedicated <em>fork server</em> child, and that child does the importing once and
+forks a worker per mutant:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">main</span> <span class="n">process</span> <span class="p">(</span><span class="n">clean</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">fork</span> <span class="n">server</span> <span class="p">(</span><span class="n">imports</span> <span class="n">pytest</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">N</span> <span class="n">mutant</span> <span class="n">workers</span>
+</pre></div>
+</div>
+<p>Because the fork server only imports and forks, and never runs a test
+itself, every worker starts from the same predictable state. This is the
+same design as the <code class="docutils literal notranslate"><span class="pre">forkserver</span></code> start method in Python’s
+<code class="docutils literal notranslate"><span class="pre">multiprocessing</span></code>, and it is still only one pytest import for the whole
+run, so it is not slower than <code class="docutils literal notranslate"><span class="pre">fork</span></code> in the normal case.</p>
+</dd>
+</dl>
+<p><strong>Which one should you use?</strong> Start with <code class="docutils literal notranslate"><span class="pre">fork</span></code>. Switch to <code class="docutils literal notranslate"><span class="pre">forkserver</span></code> if
+your run hangs, crashes, or gives results you cannot reproduce by running the
+tests by hand, and your test setup touches something known to be fork-unsafe,
+such as <code class="docutils literal notranslate"><span class="pre">gevent.monkey.patch_all()</span></code>, <code class="docutils literal notranslate"><span class="pre">grpc</span></code>, or <code class="docutils literal notranslate"><span class="pre">torch</span></code>. It is also the
+better choice if you simply do not want your session-scoped setup living in the
+process that forks mutants.</p>
+<section id="tuning-what-the-fork-server-preloads">
+<h4>Tuning what the fork server preloads<a class="headerlink" href="#tuning-what-the-fork-server-preloads" title="Link to this heading">¶</a></h4>
+<p><code class="docutils literal notranslate"><span class="pre">forkserver_warmup</span></code> controls how much the fork server imports before it starts
+forking workers. It only applies when <code class="docutils literal notranslate"><span class="pre">process_isolation</span> <span class="pre">=</span> <span class="pre">&quot;forkserver&quot;</span></code>.
+Anything imported in the fork server is inherited by every  worker, and anything
+left out is imported in each worker.</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="c1"># pyproject.toml</span>
+<span class="k">[tool.mutmut]</span>
+<span class="n">process_isolation</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"forkserver"</span>
+<span class="n">forkserver_warmup</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"collect"</span><span class="w">  </span><span class="c1"># "collect" (default), "import" or "none"</span>
+</pre></div>
+</div>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">collect</span></code> (default)</dt><dd><p>Run <code class="docutils literal notranslate"><span class="pre">pytest</span> <span class="pre">--collect-only</span></code>, which imports your <code class="docutils literal notranslate"><span class="pre">conftest.py</span></code>, your
+plugins and your test modules. This is the right default for most projects
+and usually the fastest.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">import</span></code></dt><dd><p>Import only the modules listed in <code class="docutils literal notranslate"><span class="pre">preload_modules_file</span></code> (one dotted
+module name per line; blank lines and <code class="docutils literal notranslate"><span class="pre">#</span></code> comments are ignored, and
+modules that fail to import are skipped). Use this when test <em>collection</em>
+itself has side effects you do not want every worker to share, but you still
+want your slow imports warmed up.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">none</span></code></dt><dd><p>Import nothing beyond what running a single test requires. This is the
+slowest option, and the most isolated. It is mostly useful for working out
+whether a warmup side effect is what is breaking your run.</p>
+</dd>
+</dl>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="c1"># pyproject.toml</span>
+<span class="k">[tool.mutmut]</span>
+<span class="n">process_isolation</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"forkserver"</span>
+<span class="n">forkserver_warmup</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"import"</span>
+<span class="n">preload_modules_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"mutmut_preload.txt"</span>
+</pre></div>
+</div>
+<p>If the fork server itself crashes, mutmut starts a new one and re-submits the
+mutants that were in flight, up to <code class="docutils literal notranslate"><span class="pre">max_forkserver_restarts</span></code> times (default
+<code class="docutils literal notranslate"><span class="pre">3</span></code>) before giving up with a <code class="docutils literal notranslate"><span class="pre">ForkServerCrashError</span></code>:</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="c1"># pyproject.toml</span>
+<span class="k">[tool.mutmut]</span>
+<span class="n">max_forkserver_restarts</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span>
+</pre></div>
+</div>
+<p>The fork server and its workers cannot write to the console without mangling
+mutmut’s progress output, so they log to a file instead. Logging is off unless
+you ask for it with <code class="docutils literal notranslate"><span class="pre">log_to_file</span></code> (or <code class="docutils literal notranslate"><span class="pre">debug</span></code>):</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="c1"># pyproject.toml</span>
+<span class="k">[tool.mutmut]</span>
+<span class="n">log_to_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<span class="n">log_file_path</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"mutants/mutmut-debug.log"</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="disabling-mutation-on-specific-code">
+<h3>Disabling mutation on specific code<a class="headerlink" href="#disabling-mutation-on-specific-code" title="Link to this heading">¶</a></h3>
+<p>If you do not want to mutate specific parts of your code, you can disable mutation
+via the following options. Examples where this could be relevant:</p>
+<ul class="simple">
+<li><p>If you don’t want to test exact log messages (e.g. <cite>logging.info(“Foo”)</cite> versus the mutated <cite>logging.info(“XXFooXX”)</cite>)</p></li>
+<li><p>Optimizing break instead of continue. The code runs fine when mutating break
+to continue, but it’s slower.</p></li>
+</ul>
+<section id="skipping-via-regex">
+<h4>Skipping via regex<a class="headerlink" href="#skipping-via-regex" title="Link to this heading">¶</a></h4>
+<p>You can use a regex on the source code, to tell mutmut which expressions it should not mutate:</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="c1"># pyproject.toml</span>
+<span class="k">[tool.mutmut]</span>
+<span class="n">do_not_mutate_patterns</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="c1"># disable mutations of all logger.info/debug/... statements</span>
+<span class="w">    </span><span class="s1">'logger\.\w+'</span><span class="p">,</span>
+<span class="w">    </span><span class="c1"># disable mutating exceptions</span>
+<span class="w">    </span><span class="s1">'raise \w+'</span><span class="p">,</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p>Mutmut will match the regex on the source code
+and skip mutating any expression on the matched lines.</p>
+</section>
+<section id="skipping-via-code-comments">
+<h4>Skipping via code comments<a class="headerlink" href="#skipping-via-code-comments" title="Link to this heading">¶</a></h4>
+<p>You can use following comments to disable mutation:</p>
+<ul class="simple">
+<li><p><cite># pragma: no mutate</cite>: disable mutation on this single line</p></li>
+<li><p><cite># pragma: no mutate block</cite>: disable mutation in the whole indentation block</p></li>
+<li><p><cite># pragma: no mutate start/end</cite>: disable mutation between the start and end comments</p></li>
+</ul>
+</section>
+<section id="skipping-single-lines">
+<h4>Skipping single lines<a class="headerlink" href="#skipping-single-lines" title="Link to this heading">¶</a></h4>
+<p>You can mark lines like this to stop mutating them:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">some_code_here</span><span class="p">()</span>  <span class="c1"># pragma: no mutate</span>
+</pre></div>
+</div>
+</section>
+<section id="skipping-code-blocks">
+<h4>Skipping Code Blocks<a class="headerlink" href="#skipping-code-blocks" title="Link to this heading">¶</a></h4>
+<p>You can skip an entire indentation block from mutation using
+<code class="docutils literal notranslate"><span class="pre">#</span> <span class="pre">pragma:</span> <span class="pre">no</span> <span class="pre">mutate</span> <span class="pre">block</span></code>. This works on any compound statement –
+functions, classes, <code class="docutils literal notranslate"><span class="pre">if</span></code>/<code class="docutils literal notranslate"><span class="pre">elif</span></code>/<code class="docutils literal notranslate"><span class="pre">else</span></code>, loops, context managers, etc.</p>
+<p>Both syntax styles are supported:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">#</span> <span class="pre">pragma:</span> <span class="pre">no</span> <span class="pre">mutate</span> <span class="pre">block</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">#</span> <span class="pre">pragma:</span> <span class="pre">no</span> <span class="pre">mutate:</span> <span class="pre">block</span></code></p></li>
+</ul>
+<p><strong>Skipping an entire function or class</strong> – place the pragma inline on the
+definition line. The entire node (including all children) is skipped and no
+trampoline is generated:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">complex_algorithm</span><span class="p">():</span>  <span class="c1"># pragma: no mutate block</span>
+    <span class="k">return</span> <span class="n">some_complex_calculation</span><span class="p">()</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MySettings</span><span class="p">:</span>  <span class="c1"># pragma: no mutate block</span>
+    <span class="n">DEBUG</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">MAX_RETRIES</span> <span class="o">=</span> <span class="mi">3</span>
+</pre></div>
+</div>
+<p><strong>Skipping only the body of a function</strong> – place the pragma on its own line
+inside the function. The function definition (including default arguments) is
+still mutable, but the body is suppressed:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">foo</span><span class="p">(</span><span class="n">val</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="c1"># pragma: no mutate block</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">complex_calculation</span><span class="p">()</span>
+    <span class="n">z</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">bar</span><span class="p">():</span>
+    <span class="c1"># this function is still mutated normally</span>
+    <span class="k">return</span> <span class="mi">42</span>
+</pre></div>
+</div>
+<p><strong>Skipping an ``if`` branch without affecting ``elif``/``else``</strong> – place
+the pragma inline on the <code class="docutils literal notranslate"><span class="pre">if</span></code>. Only the <code class="docutils literal notranslate"><span class="pre">if</span></code> condition and its indented
+body are suppressed; sibling branches (<code class="docutils literal notranslate"><span class="pre">elif</span></code>, <code class="docutils literal notranslate"><span class="pre">else</span></code>) remain mutable
+because they exit the original indentation scope:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">error_condition</span><span class="p">:</span>  <span class="c1"># pragma: no mutate block</span>
+    <span class="n">log_error</span><span class="p">()</span>
+    <span class="n">send_alert</span><span class="p">()</span>
+<span class="k">elif</span> <span class="n">other_condition</span><span class="p">:</span>
+    <span class="c1"># still mutated -- this branch is outside the block scope</span>
+    <span class="n">handle_other</span><span class="p">()</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="c1"># still mutated</span>
+    <span class="n">handle_success</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The same principle applies to <code class="docutils literal notranslate"><span class="pre">for</span></code>/<code class="docutils literal notranslate"><span class="pre">else</span></code>, <code class="docutils literal notranslate"><span class="pre">while</span></code>/<code class="docutils literal notranslate"><span class="pre">else</span></code>,
+<code class="docutils literal notranslate"><span class="pre">try</span></code>/<code class="docutils literal notranslate"><span class="pre">except</span></code>/<code class="docutils literal notranslate"><span class="pre">finally</span></code>, and <code class="docutils literal notranslate"><span class="pre">match</span></code>/<code class="docutils literal notranslate"><span class="pre">case</span></code>.</p>
+<p>This is useful for:</p>
+<ul class="simple">
+<li><p>Functions or classes that should be excluded from mutation entirely</p></li>
+<li><p>Error-handling branches that are hard to unit test in isolation</p></li>
+<li><p>Logging or telemetry blocks that don’t affect program correctness</p></li>
+<li><p>Generated or boilerplate code within an otherwise mutable function</p></li>
+</ul>
+</section>
+<section id="skipping-code-regions">
+<h4>Skipping Code Regions<a class="headerlink" href="#skipping-code-regions" title="Link to this heading">¶</a></h4>
+<p>For suppressing mutations across a range of lines regardless of indentation,
+use <code class="docutils literal notranslate"><span class="pre">#</span> <span class="pre">pragma:</span> <span class="pre">no</span> <span class="pre">mutate</span> <span class="pre">start</span></code> and <code class="docutils literal notranslate"><span class="pre">#</span> <span class="pre">pragma:</span> <span class="pre">no</span> <span class="pre">mutate</span> <span class="pre">end</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">a</span> <span class="o">=</span> <span class="n">mutate_this</span><span class="p">()</span>
+
+<span class="c1"># pragma: no mutate start</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">skip_this</span><span class="p">()</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">skip_this_too</span><span class="p">()</span>
+<span class="c1"># pragma: no mutate end</span>
+
+<span class="n">d</span> <span class="o">=</span> <span class="n">mutate_this_too</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Every line between the markers (inclusive) is suppressed. This works inside
+functions, classes, or at module level, and ignores indentation entirely.</p>
+<p>An unmatched <code class="docutils literal notranslate"><span class="pre">#</span> <span class="pre">pragma:</span> <span class="pre">no</span> <span class="pre">mutate</span> <span class="pre">end</span></code> without a preceding <code class="docutils literal notranslate"><span class="pre">start</span></code> raises
+a <code class="docutils literal notranslate"><span class="pre">PragmaParseError</span></code> at parse time.  An unclosed <code class="docutils literal notranslate"><span class="pre">#</span> <span class="pre">pragma:</span> <span class="pre">no</span> <span class="pre">mutate</span> <span class="pre">start</span></code>
+(no matching <code class="docutils literal notranslate"><span class="pre">end</span></code> before end-of-file) raises a <code class="docutils literal notranslate"><span class="pre">PragmaParseError</span></code>.
+Both errors include the filename and line number.</p>
+<p><strong>Nesting restriction:</strong> opening a new <code class="docutils literal notranslate"><span class="pre">block</span></code> or <code class="docutils literal notranslate"><span class="pre">start</span></code> context while
+another context is already active is not allowed and raises a
+<code class="docutils literal notranslate"><span class="pre">PragmaParseError</span></code>.  The error message includes both the offending line and
+the line where the existing context was opened.  Close the current context
+first (dedent for <code class="docutils literal notranslate"><span class="pre">block</span></code>, or <code class="docutils literal notranslate"><span class="pre">#</span> <span class="pre">pragma:</span> <span class="pre">no</span> <span class="pre">mutate</span> <span class="pre">end</span></code> for <code class="docutils literal notranslate"><span class="pre">start</span></code>)
+before opening a new one.</p>
+</section>
+</section>
+<section id="modifying-pytest-arguments">
+<h3>Modifying pytest arguments<a class="headerlink" href="#modifying-pytest-arguments" title="Link to this heading">¶</a></h3>
+<p>You can add and override pytest arguments:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># for CLI args that select or deselect tests, use `pytest_add_cli_args_test_selection`</span>
+<span class="n">pytest_add_cli_args_test_selection</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"-m"</span><span class="p">,</span> <span class="s2">"not fail"</span><span class="p">,</span> <span class="s2">"-k"</span><span class="p">,</span> <span class="s2">"test_include"</span><span class="p">]</span>
+
+<span class="c1"># for other CLI args, use `pytest_add_cli_args`</span>
+<span class="n">pytest_add_cli_args</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"-p"</span><span class="p">,</span> <span class="s2">"no:some_plugin"</span><span class="p">]</span> <span class="c1"># disable a plugin</span>
+<span class="n">pytest_add_cli_args</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"-o"</span><span class="p">,</span> <span class="s2">"xfail_strict=False"</span><span class="p">]</span> <span class="c1"># overrides xfail_strict from your normal config</span>
+
+<span class="c1"># if you want to ignore the normal pytest configuration</span>
+<span class="c1"># you can specify a diferent pytest ini file to be used</span>
+<span class="n">pytest_add_cli_args</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"-c"</span><span class="p">,</span> <span class="s2">"mutmut_pytest.ini"</span><span class="p">]</span>
+<span class="n">also_copy</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"mutmut_pytest.ini"</span><span class="p">]</span>
+</pre></div>
+</div>
+</section>
+<section id="detecting-dependency-and-config-changes">
+<h3>Detecting dependency and config changes<a class="headerlink" href="#detecting-dependency-and-config-changes" title="Link to this heading">¶</a></h3>
+<p>Between runs, mutmut only re-tests mutants in functions whose source changed.
+Changes outside your Python source — a dependency upgrade, a data file, a
+config file — cannot be tied to a function, so they would otherwise be missed
+and you would get cached results that no longer reflect reality.</p>
+<p>To catch this, mutmut detects non-Python files that changed since the last full
+run and warns you about them. If your project is a git repository and git is
+installed, mutmut uses git (a soft dependency no extra package is required) to
+find every changed non-Python file, respecting your <cite>.gitignore</cite>. Python files
+are excluded because their changes are already tracked per function.</p>
+<p>On a full run with git available, mutmut also records the content hashes of the
+tracked non-Python files. This means a later run in an environment without git
+(for example a different CI stage) can still detect changes to that known set of
+files, even though it cannot discover brand-new ones.</p>
+<p>When git is unavailable, mutmut falls back to hashing a curated set of build and
+dependency files:</p>
+<ul class="simple">
+<li><p><cite>pyproject.toml</cite></p></li>
+<li><p><cite>setup.cfg</cite></p></li>
+<li><p><cite>setup.py</cite></p></li>
+<li><p><cite>requirements*.txt</cite></p></li>
+<li><p><cite>poetry.lock</cite></p></li>
+<li><p><cite>uv.lock</cite></p></li>
+<li><p><cite>Pipfile</cite></p></li>
+<li><p><cite>Pipfile.lock</cite></p></li>
+</ul>
+<p>You can watch additional files (for example data files your tests depend on)
+with the <cite>cache_invalidation_files</cite> config, which accepts glob patterns
+resolved against the project root. These are checked even when git ignores them,
+and are never dropped by the exclusions below:</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">cache_invalidation_files</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="s2">"queries/*.sql"</span><span class="p">,</span><span class="w"> </span><span class="s2">"config/*.yaml"</span><span class="w"> </span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Git detection reports every changed non-Python file, so mutmut drops files that
+practically never affect tests (markdown, <cite>LICENSE</cite>, <cite>CHANGELOG</cite>, <cite>docs/</cite>, git
+and editor metadata, …). Exclude additional noisy files with
+<cite>cache_invalidation_exclude</cite> (glob patterns, <cite>*</cite> spans directories):</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">cache_invalidation_exclude</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="s2">"*.json"</span><span class="p">,</span><span class="w"> </span><span class="s2">"fixtures/snapshots/*"</span><span class="w"> </span><span class="p">]</span>
+</pre></div>
+</div>
+<p>When a watched file changes, <cite>on_dependency_change</cite> controls what happens:</p>
+<ul class="simple">
+<li><p><cite>warn</cite> (default): list the changed files and keep the cache.</p></li>
+<li><p><cite>rerun</cite>: re-test all mutants.</p></li>
+<li><p><cite>ignore</cite>: do nothing.</p></li>
+</ul>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">on_dependency_change</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"warn"</span>
+</pre></div>
+</div>
+<p>Git detection is on by default; disable it (forcing the curated-list fallback)
+with:</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">use_git_change_detection</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
+</pre></div>
+</div>
+<p>Changes to mutmut’s own result-affecting config (such as <cite>pytest_add_cli_args</cite>,
+<cite>type_check_command</cite>, or the timeout settings) are always detected and
+invalidate the affected cached results automatically.</p>
+</section>
+<section id="unstable-configs">
+<h3>Unstable configs<a class="headerlink" href="#unstable-configs" title="Link to this heading">¶</a></h3>
+<p>Following configurations exist, but may be changed in any minor version.
+If you use them, expect that a new version could change or break this feature.</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="c1"># Configure how long mutmut waits before killing a slow mutation</span>
+<span class="c1"># Currently calculated as (duration_of_original_tests + timeout_constant) * timeout_multiplier seconds</span>
+<span class="n">timeout_constant</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.0</span>
+<span class="n">timeout_multiplier</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">15.0</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="example-mutations">
+<h2>Example mutations<a class="headerlink" href="#example-mutations" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Integer literals are changed by adding 1. So 0 becomes 1, 5 becomes 6, etc.</p></li>
+<li><p><cite>&lt;</cite> is changed to <cite>&lt;=</cite></p></li>
+<li><p>break is changed to continue and vice versa</p></li>
+</ul>
+<p>In general the idea is that the mutations should be as subtle as possible.
+See <cite>node_mutation.py</cite> for the full list and <cite>test_mutation.py</cite> for tests describing them.</p>
+</section>
+<section id="workflow">
+<h2>Workflow<a class="headerlink" href="#workflow" title="Link to this heading">¶</a></h2>
+<p>This section describes how to work with mutmut to enhance your test suite.</p>
+<ol class="arabic simple">
+<li><p>Run mutmut with <cite>mutmut run</cite>. A full run is preferred but if you’re just
+getting started you can exit in the middle and start working with what you
+have found so far.</p></li>
+<li><p>Show the mutants with <cite>mutmut browse</cite></p></li>
+<li><p>Find a mutant you want to work on and write a test to try to kill it.</p></li>
+<li><p>Press <cite>r</cite> to rerun the mutant and see if you successfully managed to kill it.</p></li>
+</ol>
+<p>Mutmut keeps the data of what it has done and the mutants in the <cite>mutants/</cite>
+directory. If you want to make sure you run a full mutmut run you can delete
+this directory to start from scratch.</p>
+</section>
+<section id="mutation-score-badges">
+<h2>Mutation score badges<a class="headerlink" href="#mutation-score-badges" title="Link to this heading">¶</a></h2>
+<p><cite>mutmut badge</cite> turns <cite>mutmut export-cicd-stats</cite> output into <a class="reference external" href="https://shields.io/badges/endpoint-badge">Shields endpoint JSON</a>:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">mutmut export-cicd-stats</span>
+<span class="go">mutmut badge --output mutation-score.json</span>
+</pre></div>
+</div>
+<div class="highlight-md notranslate"><div class="highlight"><pre><span></span>![<span class="nt">mutation</span>](<span class="na">https://img.shields.io/endpoint?url=https://example.com/mutation-score.json</span>)
+</pre></div>
+</div>
+</section>
+<section id="contributing-to-mutmut">
+<h2>Contributing to Mutmut<a class="headerlink" href="#contributing-to-mutmut" title="Link to this heading">¶</a></h2>
+<p>If you wish to contribute to Mutmut, please see our <a class="reference external" href="CONTRIBUTING.rst">contributing guide</a>.</p>
+</section>
+<section id="resources">
+<span id="toc"></span><h2>Resources<a class="headerlink" href="#resources" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/boxed/mutmut">Source Code on Github</a></p></li>
+<li><p><a class="reference external" href="https://travis-ci.org/boxed/mutmut">Travis Testing</a></p></li>
+<li><p><a class="reference external" href="http://pypi.org/pypi/mutmut/">Python Package Index</a></p></li>
+</ul>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper"><p class="logo" style="margin-bottom: 20px; font-size: 55px; font-family: 'Helvetica'"><a href="#">
+  mut<span style="font-weight: bold;">mut</span>
+</a></p>
+  <div>
+    <h3><a href="#">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">mutmut - python mutation tester</a><ul>
+<li><a class="reference internal" href="#requirements">Requirements</a></li>
+<li><a class="reference internal" href="#install-and-run">Install and run</a></li>
+<li><a class="reference internal" href="#wildcards-for-testing-mutants">Wildcards for testing mutants</a></li>
+<li><a class="reference internal" href="#configuration">Configuration</a><ul>
+<li><a class="reference internal" href="#also-copy-files">“also copy” files</a></li>
+<li><a class="reference internal" href="#limit-stack-depth">Limit stack depth</a></li>
+<li><a class="reference internal" href="#exclude-files-from-mutation">Exclude files from mutation</a></li>
+<li><a class="reference internal" href="#enable-coverage-py-filtering-of-lines-to-mutate">Enable coverage.py filtering of lines to mutate</a></li>
+<li><a class="reference internal" href="#filter-generated-mutants-with-type-checker">Filter generated mutants with type checker</a></li>
+<li><a class="reference internal" href="#enable-debug-output-increase-verbosity">Enable debug output (increase verbosity)</a></li>
+<li><a class="reference internal" href="#disable-setproctitle-macos">Disable setproctitle (macOS)</a></li>
+<li><a class="reference internal" href="#process-isolation-fork-vs-forkserver">Process isolation (<code class="docutils literal notranslate"><span class="pre">fork</span></code> vs <code class="docutils literal notranslate"><span class="pre">forkserver</span></code>)</a><ul>
+<li><a class="reference internal" href="#tuning-what-the-fork-server-preloads">Tuning what the fork server preloads</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#disabling-mutation-on-specific-code">Disabling mutation on specific code</a><ul>
+<li><a class="reference internal" href="#skipping-via-regex">Skipping via regex</a></li>
+<li><a class="reference internal" href="#skipping-via-code-comments">Skipping via code comments</a></li>
+<li><a class="reference internal" href="#skipping-single-lines">Skipping single lines</a></li>
+<li><a class="reference internal" href="#skipping-code-blocks">Skipping Code Blocks</a></li>
+<li><a class="reference internal" href="#skipping-code-regions">Skipping Code Regions</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#modifying-pytest-arguments">Modifying pytest arguments</a></li>
+<li><a class="reference internal" href="#detecting-dependency-and-config-changes">Detecting dependency and config changes</a></li>
+<li><a class="reference internal" href="#unstable-configs">Unstable configs</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#example-mutations">Example mutations</a></li>
+<li><a class="reference internal" href="#workflow">Workflow</a></li>
+<li><a class="reference internal" href="#mutation-score-badges">Mutation score badges</a></li>
+<li><a class="reference internal" href="#contributing-to-mutmut">Contributing to Mutmut</a></li>
+<li><a class="reference internal" href="#resources">Resources</a></li>
+</ul>
+</li>
+</ul>
+
+  </div><h3>Github</h3>
+<iframe src="https://ghbtns.com/github-btn.html?user=boxed&repo=mutmut&type=watch&count=true&size=large"
+        frameborder="0" scrolling="0" width="170" height="30" allowtransparency="true"></iframe>
+<br><br>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2018, Anders Hovmöller.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.1</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

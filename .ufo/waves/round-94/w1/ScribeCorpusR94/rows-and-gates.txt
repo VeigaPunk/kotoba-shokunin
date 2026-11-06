@@ -1,0 +1,42 @@
+# ScribeCorpusR94 — row and column counts (round 94, r94-w1)
+# date: 2026-11-05; scratch commit e12f88336b05de8f0a85886f66fd172cdf01b612
+
+$ grep -cE '^\|[[:space:]]*S[0-9]{3,}[[:space:]]*\|' corpus/SOURCES.md
+195
+
+$ awk -F'|' '/^\|[[:space:]]*S[0-9][0-9][0-9]+[[:space:]]*\|/ && NF!=13 {n++} END{print n+0}' corpus/SOURCES.md
+0
+
+$ git diff --stat edc731a91a956f6df20c27a74fb981b286f6ba58 HEAD -- corpus/SOURCES.md corpus/README.md corpus/lessons/round-94.md
+ corpus/README.md           |   1 +
+ corpus/SOURCES.md          |   1 +
+ corpus/lessons/round-94.md | 146 +++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 148 insertions(+)
+
+$ git diff edc731a91a956f6df20c27a74fb981b286f6ba58 HEAD -- corpus/SOURCES.md | grep -c '^-[^-]'   # removed lines in SOURCES.md
+0
+0
+
+$ python3 -B verifiers/check_sources_append_only.py --repo <scratch> --rev HEAD | grep -c 'e12f883'   # breaches naming this seat's commit
+0
+0
+(the pre-existing 19 breaches in 9 older commits are unchanged: base edc731a reads '19 change(s) in 9 of 60 commits', this commit reads '19 change(s) in 9 of 61 commits')
+
+$ python3 -B verifiers/verify_corpus_integrity.py --no-baseline --repo <scratch> --json
+  tracked_files = 194
+  unindexed = 3
+  unindexed_detail = ['corpus/lessons/round-91-verifier-spotcheck.md', 'corpus/lessons/round-92-verifier-spotcheck.md', 'corpus/lessons/round-93-verifier-spotcheck.md']
+  stale_patterns = 0
+  missing_paths = 0
+  report_total = 154
+  report_dead = 1
+  commit_total = 66
+  commit_unresolvable = 1
+  commit_unresolvable_detail = ['corpus/lessons/round-81.md:8: 8b1cc1b00a9322cd8e231d87e015e1d75d20adc1']
+
+Patch application proof (second fresh clone at the freeze commit, removed after the check):
+  git clone -q --shared <lane> <verify-clone> && git -C <verify-clone> checkout -q edc731a91a956f6df20c27a74fb981b286f6ba58
+  git -C <verify-clone> apply --check <patch>   -> APPLY CHECK OK
+
+Patch: .ufo/waves/round-94/w1/ScribeCorpusR94/ScribeCorpusR94.patch
+b5b2c9cdf75064dadeacc2ccfe3ef2d00f7b866428ba697d4cb575ec199357f3  /home/vgpnk/Projects/shokunin/kotoba-shokunin/.ufo/waves/round-94/w1/ScribeCorpusR94/ScribeCorpusR94.patch

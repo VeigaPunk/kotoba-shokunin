@@ -1,0 +1,14 @@
+Extra shape probes (scratch-only, not committed), script = ExecReceiptHeaders-fixed bytes.
+Fixture world: /fast/scratch/hyaku/kotoba-r94/ExecReceiptHeaders/probes/{p1,p2,p3,p4}/in.txt
+$ bash $D/verifiers/fixtures/round-93/check-receipt-revs.sh <probes-dir> /home/vgpnk/Projects/shokunin/kotoba-shokunin
+MALFORMED …/probes/p1/in.txt:1 hex run is 39, not 40
+MALFORMED …/probes/p2/in.txt:1 G1 hex run is 13, not 12
+MALFORMED …/probes/p4/in.txt:2 hex run is 41, not 40
+0 scratch-declared
+malformed declarations: 3
+receipt revisions: 1 resolved, 0 unresolved over 4 files
+EXIT=1
+p1: `REV=` + 39 hex -> MALFORMED. p2: G1 prefix with 13 hex -> MALFORMED (was silently dropped).
+p3: `world rev …` and `forgery probe: REV=…41hex` lines stay scratch-exempt (no MALFORMED printed).
+p4: valid REV= line resolves + malformed 41-hex line is flagged -> EXIT=1 (closes the round-93
+CriticClaimsR93 probe-p3 false-green, where the same mixed file exited 0).

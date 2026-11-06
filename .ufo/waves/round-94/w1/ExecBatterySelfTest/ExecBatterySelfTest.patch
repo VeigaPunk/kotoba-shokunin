@@ -1,0 +1,56 @@
+diff --git a/verifiers/check_mutation_battery.py b/verifiers/check_mutation_battery.py
+index 27040f8..25f5578 100755
+--- a/verifiers/check_mutation_battery.py
++++ b/verifiers/check_mutation_battery.py
+@@ -699,11 +699,15 @@ def self_test() -> int:
+                 rc == 2, out)
+         t.check("G1 revision identity: the refusal names G1",
+                 "G1" in out, out)
++        t.check("k2 label-every-cne: the G1 short-rev refusal is not labelled kill-set-size",
++                "kill-set-size" not in out, out)
+ 
+         rc, out = run_main(ok, "f" * 40, root / "w-g1commit")
+         t.check("G1 commit check: a full-hex --rev that is not a commit exits 2", rc == 2, out)
+         t.check("G1 commit check: the refusal says the revision is not a commit",
+                 "is not a commit" in out, out)
++        t.check("k2 label-every-cne: the G1 commit-check refusal is not labelled kill-set-size",
++                "kill-set-size" not in out, out)
+ 
+         real_git = git
+ 
+@@ -803,6 +807,11 @@ def self_test() -> int:
+         dropped_ok, dropped_detail = kill_set_check(dropped_text, module_pin)
+         t.check("arm kill-set-size: a manifest with one kill row dropped is refused by the pin",
+                 not dropped_ok, dropped_detail)
++        added_live = (live_text.rstrip("\n") + "\n"
++                      + "\t".join(["fx-k3-added-live-kill"] + first_kill.split("\t")[1:]) + "\n")
++        added_ok, added_detail = kill_set_check(added_live, module_pin)
++        t.check("arm kill-set-size (k3): the live manifest with one kill row appended is refused by the pin",
++                not added_ok and ("pinned %d" % module_pin) in added_detail, added_detail)
+         broken_ok, broken_detail = kill_set_check("not a manifest\n")
+         t.check("arm kill-set-size: an unparseable manifest is refused, not raised",
+                 not broken_ok and "malformed" in broken_detail, broken_detail)
+@@ -820,6 +829,23 @@ def self_test() -> int:
+         rc, out = run_evaluate(broken_rev, head(broken_rev), root / "w-revbroken", pinned_count + 1)
+         t.check("kill-set-size rev path: an unrelated baseline failure does not name kill-set-size",
+                 rc == 1 and "kill-set-size" not in out, out)
++        added_row = ("fx-k11-added-kill",) + FX_KILL_FG[1:]
++        added = build_fixture(root, "revadded", pinned_rows + [added_row], SKILL_WITH)
++        rc, out = run_evaluate(added, head(added), root / "w-revadded", pinned_count)
++        t.check("k3 added rows (rev path): a committed manifest with one kill row above the pin exits 2 naming kill-set-size",
++                rc == 2 and "kill-set-size" in out and ("observed %d kill rows" % (pinned_count + 1)) in out, out)
++        missed = build_fixture(root, "revmiss", pinned_rows + [FX_MISSING], SKILL_WITH)
++        rc, out = run_evaluate(missed, head(missed), root / "w-revmiss", pinned_count + 1)
++        t.check("k2 label-every-cne (rev path): an anchor miss exits 2 without the kill-set-size label",
++                rc == 2 and "anchor miss" in out and "kill-set-size" not in out, out)
++        wt_rows = [r for i, r in enumerate(pinned_rows) if i != 0]
++        wt = build_fixture(root, "revwt", pinned_rows, SKILL_WITH)
++        (wt / MANIFEST).write_text(_manifest_text(wt_rows), encoding="utf-8")
++        t.check("k1 working-tree read: the fixture's working-tree manifest is dirty (precondition)",
++                _git_fixture(wt, "status", "--porcelain") != "", "")
++        rc, out = run_evaluate(wt, head(wt), root / "w-revwt", pinned_count)
++        t.check("k1 working-tree read: a kill row dropped in the working tree only exits 0 (committed bytes govern) without kill-set-size",
++                rc == 0 and "kill-set-size" not in out, out)
+     finally:
+         shutil.rmtree(root, ignore_errors=True)
+         KILL_SET_PINNED = module_pin
