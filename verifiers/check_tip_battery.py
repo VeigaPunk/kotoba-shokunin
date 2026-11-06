@@ -163,7 +163,12 @@ INSTRUMENT_PINS = {
         # governance arms replaced by isolated fixture arms and the
         # delegated-absolute assertion made repr-exact; no gate semantics
         # changed, existing pins kept.
-        "9be2470bf33921dc5c34d99f8154c105b1aaa695"),
+        "9be2470bf33921dc5c34d99f8154c105b1aaa695",
+        # round-99 claim C2 admission (plans/round-99.md § C2): the
+        # GOVERNANCE_CORRECTIONS data-only postimage (appended rows for the
+        # 16 live dead subjects plus the re-pinned SC index 158 -> 161 row 2621;
+        # horizon 2723 -> 3601); the earlier three blobs are kept.
+        "b6280c684b300ba313f1fc6a06655471e1c7142e"),
     "verifiers/verify_corpus_integrity.py": (
         "e470eaaea5ef11c582b8353c9344ddf730c1a57a",
         "bbee51f2bae5b33b123a546150e83352d68eeebc"),

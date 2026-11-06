@@ -3578,3 +3578,32 @@ records what the settled wave measured; it supersedes the two reading cells that
 - **Integration (`plans/round-98-addendum-2.md` B1–B5):** g11 landing MET (shared `/dev/shm` marker); t07 observable-only; ExecForgeryV6 g13/g15 MET (disclosed bounds) and g16 MET under v6 only (the pristine export is reachable from the run); floor raise and S273 carried.
 - **Frontier step:** census rows 202 → 206 (S277–S279 mined, S280 rejected; S265 `used-by` += round-98 lesson); mined mistakes `measured-child-reads-counter-state` (fix v6 rules 8–9 + Q88; shown able to fail: v6-as-v5 refuses 3 of 5) and `plan-pre-commits-row-on-held-url` (Q84 repeat; fixed by addendum 1 before landing).
 - **Wave:** one v1 wave `r98-w1`, 12 seats (executor 2, scout 2, scribe 1, connector 1, reviewer 2, mutation-tester 2, critic 1, sentinel 1; attack 5 of 12).
+
+## Round-99 correction notice (append-only; ExecRedsR99, claim C2)
+
+The stale tokens below are double-quoted so this notice adds no live subject; the corrected tokens are backticked where the correction-table wording carries them as a resolution target, and quoted where a stale token is merely named.
+
+- LOG.md:2881 stale ".ufo/waves/round-82/receipts/before-tip-battery-win-dot.txt" corrected `.ufo/waves/round-82/receipts/before-tip-battery-win.txt`
+- LOG.md:2947 stale ".ufo/waves/round-82/receipts/before-tip-battery-win-dot.txt" corrected `.ufo/waves/round-82/receipts/before-tip-battery-win.txt`
+- LOG.md:2958 stale ".ufo/reports/round-82/kotoba.md" corrected `../.ufo/reports/round-82/kotoba.md`
+- LOG.md:3353 stale ".ufo/watchdog.log" corrected `../.ufo/watchdog.log`
+- LOG.md:3360 stale ".ufo/reports/round-84/kama.md" corrected `../.ufo/reports/round-84/kama.md`
+- LOG.md:3512 stale ".ufo/l0-questions.md" corrected `../.ufo/l0-questions.md`
+- LOG.md:3561 stale ".ufo/watchdog.log" corrected `../.ufo/watchdog.log`
+- SCORECARD.md:161 stale ".ufo/reports/round-60/kotoba.md" corrected `../.ufo/reports/round-60/kotoba.md`
+- SCORECARD.md:186 stale ".ufo/reports/round-82/kotoba.md" corrected `../.ufo/reports/round-82/kotoba.md`
+- SCORECARD.md:204 stale ".ufo/reports/round-83/kotoba.md" corrected `../.ufo/reports/round-83/kotoba.md`
+- SCORECARD.md:222 stale ".ufo/reports/round-84/kotoba.md" corrected `../.ufo/reports/round-84/kotoba.md`
+- SCORECARD.md:527 stale ".ufo/wapes" corrected `.ufo/waves/round-81/dispositions/wapes.txt`
+- SCORECARD.md:529 stale "corpus/lessons/round-80-verifier-spotcheck.md:30,37" corrected `corpus/lessons/round-80-verifier-spotcheck.md`
+- SCORECARD.md:531 stale ".ufo/reports/round-81/kotoba.md" corrected `../.ufo/reports/round-81/kotoba.md`
+- SCORECARD.md:538 stale "verifiers/check_description_render.py" corrected `.ufo/waves/round-85/frozen/check_description_render.py`
+- SCORECARD.md:646 stale ".ufo/reports/round-84/kama.md" corrected `../.ufo/reports/round-84/kama.md`
+
+## Round 99 — freeze and landing (attempt 1, KotobaR99; 2026-11-06; verdicts belong to the non-author closure)
+
+- **Inherited state:** lane clean at base `52e8e95ac4faf4ded84d7b82cbc204792590d0f7`; one launch of round 99, no earlier attempt; no operator lesson; the round-98 spot-check's six routed defects dispositioned in `plans/round-99.md` § Inherited state (defect 6 → C2; defect 1, the v7 counter, carried to round 100).
+- **Claims as frozen (`plans/round-99.md`; instrument `c0489d14156a7687d10ae5389d72eaa923b2bc29`; freeze `b53e209603e7c480cd975ea543e415b66f695438`):** C1 depth — the dispatch-prompt checker's self-test kills twelve frozen survivors t01..t12 (MutTesterDispatchR98 n01–n05, n07–n11, n13, n14; `python3 -B verifiers/fixtures/round-99/selftest-kills.py c1 <rev>`, v6.1 counter = v6 rules, new table). C2 consistency/calibration — the three tip-battery gates red since the round-81 record (checklist) and round 88 (corpus pair) read green without weakening a gate (`python3 -B verifiers/fixtures/round-99/carried-reds.py <rev>`: reds 3 of 3, self-tests at their base floors 1864/178/109, four frozen-byte conjuncts, battery guards 5 of 5).
+- **Pre-data controls (`.ufo/waves/round-99/receipts/`):** C1 do-nothing `killed 0 of 12` UNMET rc 1 (also `--rules v5`); positive `r98c1` 9/9 and `r97c1` 13/13 MET. C2 do-nothing `carried reds green 0 of 3` UNMET rc 1; forgery controls w1–w5 (stubbed corpus gates, baseline-only re-record, checklist governance N/A or forced PASS with the blob pinned, battery edited outside its pins) all UNMET; w4 is refused by the checklist frozen-bytes conjunct alone.
+- **Addendum 1 (`plans/round-99-addendum-1.md`, before any landing reading):** S281 cites the version-pinned argparse page (release/3.15.2); the digest of the rolling docs alias was a build stamp (ScoutSourcesR99 F1). S253/S270/S276 carry the same rolling-digest defect: routed to round 100.
+- **Integration:** builder patches applied in the order ExecRedsR99 (`bd32f78d…`), ScribeCorpusR99 (`94a39dee…`), ExecArmsR99 (`9b705bc8…`). The correction notice above (stale tokens double-quoted, corrected tokens resolving) carries 16 subjects; the SCORECARD.md:529 subject is a gate false red (strip_token_dressing accepts a single line anchor and a line range but not a comma list of lines), recorded as a correction row by plan and routed as a gate fix to round 100. The L1 added QUALITY Q89 and re-recorded the three equal counts of the corpus baseline (204/175/72) after every corpus file of the landing tree was in place (CriticClaimR99 D4: the builder's interim 203/174/72 were counted on its single-patch tree). An untracked 366 MB clone a seat left at the lane root (a directory named repo) was removed before landing (lesson § Settlement, second mistake).
