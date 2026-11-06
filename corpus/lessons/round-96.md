@@ -192,15 +192,29 @@ appends, not corrections, so no row's `teaches` cell opens `supersedes S0NN — 
 
 ## Settlement
 
-L1 settlement placeholder (KotobaR96, after the landing reading; the verdicts are the non-author
-closure's).
+L1 settlement (KotobaR96, after the landing reading; the verdicts are the non-author closure's).
 
 - **Revisions.** Base `0f66016a3b35cf1e25c67caf8cf371996805cbb8`; freeze
   `679775abb9277a7b8d17f060b0f5b4ced2b127b6` (plan, v4 counter, control-world builder, five forgery
-  patches, pre-data receipts); landing `<pending>`.
-- **C1 reading at the landing.** `<pending>`.
-- **No-harm at the landing.** `<pending>`.
-- **Census.** Round start rc 0, 34 `W04`, 196 rows; round end `<pending>` (this seat measured 198
-  rows and 34 `W04` on its own patch).
+  patches, pre-data receipts); landing `801dd9bc6075d8c4f53c1cfdf9c4c7d3000c72c2` (ExecArmsR96 patch
+  with three labels corrected at integration — `plans/round-96-addendum-1.md` A6 — and this
+  seat's patch).
+- **C1 reading at the landing** (`.ufo/waves/round-96/receipts/landing/c1-counter.txt`):
+  `C1 targets killed 11 of 11 (run errors 0); positive killed 1 of 1; honest CLEAN; comment decoys held 11 of 11; code decoys held 11 of 11`,
+  `C1-PREDICATE-MET`, rc 0 (base `redbefore-c1-base.txt`: 0 of 11, UNMET, rc 1). Self-test 56 → 78
+  assertions. Independent hand-applied kills: `w1/ReviewerArmsR96.md` § 2 and
+  `w1/CriticClaimR96.md` (`armmap.txt`), failure counts 2,1,1,2,3,2,1,1,1,3,5.
+- **No-harm at the landing** (`receipts/landing/`): v4 `r95c1` MET; round-95 counter `c1` and
+  `r94c1` MET; `--box-proof` `boxes proven 2`; gate registry `74 of 74 … phantom 0`; floors
+  self-test `0 failure(s) over 176 assertions`; round-93 `c1-killpin-rev.sh`, round-92
+  `controls-run.sh`, the live dispatch run and the tip battery in `r93-c1-killpin.txt`,
+  `r92-controls.txt`, `dp-live.txt`, `tip-battery.txt`.
+- **Census.** Round start rc 0, 34 `W04`, 196 rows; round end rc 0, 34 `W04`, 198 rows
+  (`receipts/landing/census.txt`).
 - **Wave.** `r96-w1`, 11 seats (executor 2, scout 1, scribe 1, connector 1, reviewer 2,
-  mutation-tester 2, critic 1, sentinel 1); attack 5 of 11.
+  mutation-tester 2, critic 1, sentinel 1); attack 5 of 11; no dead seat (all 11 wrote their report).
+- **Counter bounds found by the wave** (addendum A3, routed to round 97): stateful fakes g7/g8
+  (honest-first, shared `TMPDIR`/clone) and recompile-compare g3 read MET on the v4 counter with no
+  behavioural arm; guard-aware code-object sniffer g2b is the carried v3 bound. C1 rests on the
+  behavioural hand-applied kills as well as the counter reading.
+- **Criterion.** The mined mistake enters `corpus/QUALITY.md` as Q86.
