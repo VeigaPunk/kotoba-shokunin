@@ -1,0 +1,18 @@
+diff --git i/verifiers/verify_dispatch_prompts.py w/verifiers/verify_dispatch_prompts.py
+index 6e239ae..53db279 100755
+--- i/verifiers/verify_dispatch_prompts.py
++++ w/verifiers/verify_dispatch_prompts.py
+@@ -972,6 +972,13 @@ def self_test() -> int:
+             (code, err2.getvalue()))
+         write_manifest(cases)
+ 
++    _eqroot = Path(tempfile.mkdtemp(prefix="forgery-eq-"))
++    _eq = _write_case(_eqroot, "eq", SELF_TEST_PROMPT.format(round=7), "7", None)
++    _eqf = _verdict_of(evaluate_dispatch_08(_eq / "prompts", _eq / "state", _eq / "fleet"),
++                       "kote-round-7.md")
++    shutil.rmtree(_eqroot, ignore_errors=True)
++    if not (_eqf and _eqf["verdict"] == "PASS"):
++        raise RuntimeError("forgery f2: equality world is %r" % (_eqf,))
+     for f in failures:
+         print("self-test FAIL: %s" % f)
+     print("%d failure(s) over %d assertions" % (len(failures), total))

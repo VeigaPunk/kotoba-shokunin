@@ -1,0 +1,26 @@
+# round-96 pre-freeze mutant sweep (L1 KotobaR96, 2026-11-06), instrument verifiers/verify_dispatch_prompts.py at base 0f66016a3b35cf1e25c67caf8cf371996805cbb8
+# method: scratch world (verifiers/ + SKILL.md copy) under /fast/scratch/hyaku/kotoba-r96/recon; each mutant written on disk, `python3 -B <path> --self-test`; rc + last line
+# recon only (on-disk, not source-blind); the frozen counter verifiers/fixtures/round-96/selftest-kills.py re-measures the chosen set
+honest rc 0: 0 failure(s) over 56 assertions
+m-var-dropped	rc 0	0 failure(s) over 56 assertions	| 'return bool(PLACEHOLDER_RE.search(token)) or bool(VARIABLE_RE.search(token))' -> 'return bool(PLACEHOLDER_RE.search(token))'
+m-le-to-lt	rc 0	0 failure(s) over 56 assertions	| 'if round_n <= value:' -> 'if round_n < value:'
+m-rstrip-dot	rc 0	0 failure(s) over 56 assertions	| 'stem = m.group(2).rstrip(".,;:")' -> 'stem = m.group(2).rstrip(",;:")'
+m-finish-allna-pass	rc 0	0 failure(s) over 56 assertions	| 'elif not files or not any(f["verdict"] == "PASS" for f in files):' -> 'elif not files:'
+m-role-whole-text	rc 0	0 failure(s) over 56 assertions	| 'm = ROLE_ROUND_RE.search(lines[0])' -> 'm = ROLE_ROUND_RE.search(text)'
+m-legacy-as-baseline	rc 1	1 failure(s) over 56 assertions	| 'return "stale", None, ("state-stale' -> 'return "baseline", 10**9, ("state-stale'
+m-fleetroot-no-baseline	rc 0	0 failure(s) over 56 assertions	| '(state_dir / ("%s.report-baseline" % lane)).is_file():' -> 'False:'
+m-fleetroot-stem-pass	rc 0	0 failure(s) over 56 assertions	| '"status": "N/A",\n                "detail": "out of scope: fleet-root role' -> '"status": "PASS",\n                "detail": "out of scope: fleet-root role'
+m-empty-baseline-pass	rc 0	0 failure(s) over 56 assertions	| 'return "none", None, "empty %s" % base' -> 'return "baseline", 10**9, "empty %s" % base'
+m-nonint-baseline	rc 0	0 failure(s) over 56 assertions	| 'return "none", None, "non-integer round in %s: %r" % (base, first[0])' -> 'return "baseline", 10**9, "non-integer"'
+m-dirs-subset	rc 0	0 failure(s) over 56 assertions	| 'elif dirs != [round_n]:' -> 'elif round_n not in dirs:'
+m-noreport-08-pass	rc 0	0 failure(s) over 56 assertions	| '"status": "N/A", "detail": "no report path found in the file"}' -> '"status": "PASS", "detail": "no report path found in the file"}'
+m-noreport-04-pass	rc 0	0 failure(s) over 56 assertions	| 'verdicts[cid] = {"status": "N/A",' -> 'verdicts[cid] = {"status": "PASS",'
+m-wrong-any	rc 0	0 failure(s) over 56 assertions	| 'wrong = [s for s in stems if s != lane]' -> 'wrong = [s for s in stems[:1] if s != lane]'
+m-bad-first-only	rc 0	0 failure(s) over 56 assertions	| 'bad = [(r, s) for r, s in paths if' -> 'bad = [(r, s) for r, s in paths[:1] if'
+m-l1-in-08	rc 1	TypeError: %d format: a real number is required, not NoneType	| 'if kind != "round":' -> 'if kind not in ("round", "l1"):'
+m-md-strip	rc 1	5 failure(s) over 56 assertions	| 'if stem.endswith(".md"):\n            stem = stem[:-3]' -> 'if stem.endswith(".md"):\n            stem = stem'
+m-file-na-over-fail	rc 1	10 failure(s) over 56 assertions	| 'if "FAIL" in statuses:\n        verdict = "FAIL"\n    elif "N/A" in statuses:' -> 'if "N/A" in statuses:\n        verdict = "N/A"\n    elif "FAIL" in statuses:'
+m-placeholder-re-angle	rc 0	0 failure(s) over 56 assertions	| 'PLACEHOLDER_RE = re.compile(r"<[^<>]*>")' -> 'PLACEHOLDER_RE = re.compile(r"<[^<>]+>")'
+m-var-brace-only	rc 0	0 failure(s) over 56 assertions	| 'VARIABLE_RE = re.compile(r"\\$\\{[^}]*\\}|\\$[A-Za-z_][A-Za-z0-9_]*")' -> 'VARIABLE_RE = re.compile(r"\\$\\{[^}]*\\}")'
+m-var-bare-only	rc 0	0 failure(s) over 56 assertions	| 'VARIABLE_RE = re.compile(r"\\$\\{[^}]*\\}|\\$[A-Za-z_][A-Za-z0-9_]*")' -> 'VARIABLE_RE = re.compile(r"\\$[A-Za-z_][A-Za-z0-9_]*")'
+m-stem-sibling-pass	rc 0	0 failure(s) over 56 assertions	| 'if (fleet / ("%s-shokunin" % lane)).is_dir():' -> 'if (fleet / ("%s-shokunin" % lane)).exists():'

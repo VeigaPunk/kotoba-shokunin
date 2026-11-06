@@ -1,0 +1,9 @@
+# round-96 pre-freeze receipt (L1 KotobaR96, 2026-11-06): the v3 code_decoy() copied unchanged into the
+# v4 draft (before the elif climb was added) evaluated the c1 table at base 0f66016a3b35cf1e25c67caf8cf371996805cbb8.
+# command: python3 -B verifiers/fixtures/round-96/selftest-kills.py c1 0f66016a3b35cf1e25c67caf8cf371996805cbb8   (draft bytes, v3 decoy builder)
+# observed tail (the v3 builder inserts `if __name__ == "__decoy__":` before an `elif` line and cuts the if-chain):
+comment decoy t05-finish-allna-pass rc 0 HELD: 0 failure(s) over 56 assertions
+C1-NOT-EVALUATED: code decoy t05-finish-allna-pass does not compile: invalid syntax (verify_dispatch_prompts.py, line 499)
+rc=2
+# after the v4 fix (code_decoy climbs an `elif` arm to its enclosing if-chain): see redbefore-c1-base.txt
+# (t05 and t07 code decoys HELD; the reading is C1-PREDICATE-UNMET, rc 1, not could-not-evaluate).
