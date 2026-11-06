@@ -1,0 +1,97 @@
+# ScribeCorpusR100 — cross-check against ScoutSourcesR100 (2026-11-06)
+
+The scout's report `.ufo/waves/round-100/w1/ScoutSourcesR100.md` appeared during this seat's
+work. Every fact it raised that bears on this seat's files was **re-verified in this seat's own
+fetched bytes** before it was acted on; nothing was taken on trust.
+
+## 1. S282 must name BOTH `Path.is_dir` and `Path.exists` (scout § 3.2, § 8 item 1) — ACTED ON
+
+The scout flagged that the plan's S282 line (and the L1's `receipts/sources-opened.txt`) quote
+`Path.is_dir` alone, while the t04 mutant (`is_dir()` → `exists()`) needs the **contrast**: the
+`is_dir` quote states only that a plain file is not a directory; only `exists` — "Return True if
+the path points to an existing file **or directory**" — carries the half that shows the mutant's
+replacement behaves differently.
+
+Re-verified in this seat's own bytes (`fetch/pathlib.html`, sha256
+`090f3b03b648c271f4d810f0c37a51b2b54ebbdaa8130466d695e836e7a399ca`):
+
+```
+$ sed -n 1323,1326p fetch/pathlib.html
+<dt class="sig sig-object py" id="pathlib.Path.exists">
+<span class="sig-prename descclassname">...
+<dd><p>Return <code ...>True</code> if the path points to an existing file or directory and
+<code ...>False</code> if the path is invalid, inaccessible or missing.
+```
+
+stripped lines:
+1323 '' · 1324 'Path.exists(*, follow_symlinks=True)¶' · 1325 'Return True if the path points to
+an existing file or directory and' · 1326 'False if the path is invalid, inaccessible or missing.'
+
+quote "Return True if the path points to an existing file or directory and False if the path is
+invalid, inaccessible or missing." → **22 words**, occurs **exactly once** on the page.
+
+ACTED ON: S282's `scope` cell now names the pair; its `anchor` cell now names both
+`§ pathlib.Path.is_dir` (dt raw 1362, body 1364-1366) and `§ pathlib.Path.exists` (dt raw 1323,
+body 1325-1326); its `teaches` cell carries the contrast. The lesson's `## Gate` records the
+contrast entry, the check against this seat's own bytes, and the scout's flag.
+
+## 2. The line-number trap (scout § 4.2) — ALREADY AVOIDED
+
+The same pages sit at different raw HTML line numbers on the rolling `/3/` alias and on the pinned
+`/release/3.15.2/` URL; the existing rows quote the **alias** numbers. This seat's four rows were
+written from the **pinned** bytes and every anchor was re-verified by script against this seat's own
+fetch:
+
+| anchor | pinned (this seat's rows) |
+|---|---|
+| `pathlib.Path.is_dir` | dt 1362, body 1364-1366 |
+| `pathlib.Path.exists` | dt 1323, body 1325-1326 |
+| `tempfile.TemporaryDirectory.cleanup` | dt 386, body 389-391 |
+| `unittest.TestResult.errors` | dt 2410, body 2413-2414 |
+| `unittest.TestResult.failures` | dt 2418, body 2421-2422 |
+| `ptrace` step (4) | 1516-1520 (identical — man-pages is version-pinned) |
+
+No alias number was copied into a frozen cell.
+
+## 3. The C2 comma-anchor candidate (scout § 5) — SAME VERDICT, REASON CROSS-CHECKED
+
+The scout independently REJECTs the Sphinx `literalinclude` `:lines:` option as C2's ground, for
+the same first reason this seat rejected it: it is a directive **option value**, not a `path:N,M`
+citation token, so citing it would credit the rule to the wrong authority.
+
+The scout adds that the **real ground is already in the lane** and names it. This seat verified
+both citations in the lane's own committed bytes before writing them into the lesson's `## Gate`:
+
+```
+$ sed -n 116p SKILL.md | grep -oE "\`:[0-9,-]+\`"
+`:10,18,34,40-42`
+$ sed -n 50p corpus/QUALITY.md | grep -oE "round-55-verifier-spotcheck\.md:[0-9,-]+"
+round-55-verifier-spotcheck.md:82,135
+```
+
+Both are the lane's own `own-work` bytes (tier A). The lesson's REJECT entry now records this
+ground and the `git-log(1)` counter-example the scout supplies (`-L <start>,<end>:<file>` uses the
+comma for a **range** and puts the path after the colon — the opposite reading), so a future reader
+cannot conclude the comma always means a list.
+
+The scout's REJECT also names a **pinned** upstream source for the option
+(`raw.githubusercontent.com/sphinx-doc/sphinx/v8.2.3/doc/usage/restructuredtext/directives.rst`,
+sha256 `97282c43253cfbc6c67461f8754bcc60137a207acc6d1c78cf1e8d9f698bb458`, stable on two fetches)
+as what a future row would have to cite rather than the rolling rendered page. This seat did not
+fetch that file, so this seat's lesson cites the rendered `master` URL it fetched itself and states
+the not-digest-stable reason from its own two fetches; the pinned-source detail is recorded here as
+the scout's, for the L1.
+
+## 4. Digest stability (scout § 1, § 6) — CONFIRMED
+
+The scout's two fetches of each pinned URL reproduce the L1's receipt digests, and the three
+rolling-alias digests (S253, S270, S276) do not reproduce today. This seat's three independent
+fetches per URL (12:28Z, 12:33Z, 12:44Z) agree with the scout's digests exactly and with the L1's
+receipt — see `sources-fetch.txt`.
+
+## 5. Counters (scout § 7) — no defect
+
+The scout re-derived the C2 truth table by hand and found it consistent with the frozen base
+receipt on all eight comma rows, and checked the C1 frozen-anchor hygiene. This seat's own C1 and
+C2 runs at the scratch candidate read exactly what the frozen base receipts read — the expected
+no-harm signature for a `corpus/`-only patch.

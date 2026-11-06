@@ -1,0 +1,126 @@
+diff --git a/verifiers/check_tip_battery.py b/verifiers/check_tip_battery.py
+index e2b35cf..575da5b 100755
+--- a/verifiers/check_tip_battery.py
++++ b/verifiers/check_tip_battery.py
+@@ -168,7 +168,10 @@ INSTRUMENT_PINS = {
+         # GOVERNANCE_CORRECTIONS data-only postimage (appended rows for the
+         # 16 live dead subjects plus the re-pinned SC index 158 -> 161 row 2621;
+         # horizon 2723 -> 3601); the earlier three blobs are kept.
+-        "b6280c684b300ba313f1fc6a06655471e1c7142e"),
++        # round 100 claim C2 admission (plans/round-100.md § C2): the
++        # comma-list anchor postimage (fix line, self-test arms, retired row
++        # removed); the earlier four blobs are kept.
++        "94d11c7a103590bfeea93910da6710bd8a64f0c6"),
+     "verifiers/verify_corpus_integrity.py": (
+         "e470eaaea5ef11c582b8353c9344ddf730c1a57a",
+         "bbee51f2bae5b33b123a546150e83352d68eeebc"),
+diff --git a/verifiers/verify_skill_checklist.py b/verifiers/verify_skill_checklist.py
+index b6280c6..94d11c7 100755
+--- a/verifiers/verify_skill_checklist.py
++++ b/verifiers/verify_skill_checklist.py
+@@ -490,10 +490,6 @@ GOVERNANCE_CORRECTIONS = (
+      "f10ca80b117339f5e5b747eda98228e282af6991526d4b728a54160838541385",
+      "SCORECARD.md", 527, ".ufo/wapes",
+      ".ufo/waves/round-81/dispositions/wapes.txt"),
+-    (3598,
+-     "49419804caef1b49e64d9586134f8d3cc05fcdce2d113023796e2a4fc0057077",
+-     "SCORECARD.md", 529, "corpus/lessons/round-80-verifier-spotcheck.md:30,37",
+-     "corpus/lessons/round-80-verifier-spotcheck.md"),
+     (3599,
+      "f912cf6b8542344e2cc6a5ea0bd3f4a47e31167690f550035e24b4fb20cb6c36",
+      "SCORECARD.md", 531, ".ufo/reports/round-81/kotoba.md",
+@@ -1145,7 +1141,7 @@ def strip_token_dressing(tok: str) -> str:
+     """A citation or argument may carry a line anchor (``file.md:42``) or be
+     glued to prose punctuation (``file.md,``); neither changes the path."""
+     tok = tok.rstrip(TRAILING_PUNCT)
+-    m = re.match(r"^(.+\.\w+):\d+(-\d+)?$", tok)
++    m = re.match(r"^(.+\.\w+):\d+(-\d+)?(,\d+(-\d+)?)*$", tok)
+     return m.group(1) if m else tok
+ 
+ 
+@@ -2785,6 +2781,85 @@ def self_test() -> int:
+         rec("delegated absolute target is rejected",
+             code == 1 and "delegates outside the map's repo" in out
+             and repr(absolute_target) in out, out)
++    # Round 100 (claim C2): a comma-list line anchor (``file.md:30,37``) is
++    # dressing, not part of the path, on both public citation checks.  The
++    # positive tokens resolve through ``check_citation_resolves`` and through
++    # ``check_governance_citations`` on a fixture governance world; the
++    # negative tokens stay red on both paths (a word or empty element is not
++    # a list item, and a missing file stays missing under any anchor).
++    # Every arm goes through ``rec`` inside ``try``, so the revert mutant
++    # (old regex) reports failures instead of raising.
++    with tempfile.TemporaryDirectory(prefix="kotoba-comma-anchor-") as td:
++        comma_world = Path(td)
++        (comma_world / "corpus" / "lessons").mkdir(parents=True)
++        (comma_world / "corpus" / "lessons" / "x.md").write_text(
++            "".join("line %d\n" % n for n in range(1, 41)),
++            encoding="utf-8")
++        ok_tokens = (
++            "corpus/lessons/x.md:30,37",
++            "corpus/lessons/x.md:3,7-9",
++            "corpus/lessons/x.md:30,37,",
++            "corpus/lessons/x.md:10,18,34,40-42",
++            "corpus/lessons/x.md:42",
++            "corpus/lessons/x.md:1-2",
++            "corpus/lessons/x.md",
++        )
++        red_tokens = (
++            "corpus/lessons/missing.md:30,37",
++            "corpus/lessons/x.md:30,abc",
++            "corpus/lessons/x.md:30,,37",
++            "corpus/lessons/x.md:,30",
++        )
++        for index, token in enumerate(ok_tokens):
++            try:
++                status, _, _ = check_citation_resolves(
++                    ["- `%s`" % token], comma_world)
++                rec("r100-comma-anchor trigger resolves %r is %s"
++                    % (token, index), status == "PASS", status)
++            except Exception as exc:  # failure, not a crash
++                rec("r100-comma-anchor trigger resolves %r (%s)" % (token, index),
++                    False, repr(exc))
++        for index, token in enumerate(red_tokens):
++            try:
++                status, _, detail = check_citation_resolves(
++                    ["- `%s`" % token], comma_world)
++                rec("r100-comma-anchor trigger stays red %r is %s"
++                    % (token, index),
++                    status == "FAIL" and "corpus/lessons" in detail, (status, detail))
++            except Exception as exc:  # failure, not a crash
++                rec("r100-comma-anchor trigger stays red %r (%s)" % (token, index),
++                    False, repr(exc))
++        for index, token in enumerate(ok_tokens):
++            try:
++                (comma_world / "LOG.md").write_text(
++                    "- row: `%s`\n" % token, encoding="utf-8")
++                (comma_world / "SCORECARD.md").write_text(
++                    "- anchor: `corpus/lessons/x.md`\n", encoding="utf-8")
++                status, evaluated, _ = check_governance_citations(
++                    comma_world, errata=(), corrections=())
++                rec("r100-comma-anchor governance resolves %r is %s"
++                    % (token, index),
++                    status == "PASS" and evaluated == 2, (status, evaluated))
++            except Exception as exc:  # failure, not a crash
++                rec("r100-comma-anchor governance resolves %r (%s)" % (token, index),
++                    False, repr(exc))
++        for index, token in enumerate(red_tokens):
++            try:
++                (comma_world / "LOG.md").write_text(
++                    "- row: `%s`\n" % token, encoding="utf-8")
++                (comma_world / "SCORECARD.md").write_text(
++                    "- anchor: `corpus/lessons/x.md`\n", encoding="utf-8")
++                status, evaluated, detail = check_governance_citations(
++                    comma_world, errata=(), corrections=())
++                rec("r100-comma-anchor governance stays red %r is %s"
++                    % (token, index),
++                    status == "FAIL" and evaluated == 2
++                    and "corpus/lessons" in detail,
++                    (status, evaluated, detail))
++            except Exception as exc:  # failure, not a crash
++                rec("r100-comma-anchor governance stays red %r (%s)" % (token, index),
++                    False, repr(exc))
++
+ 
+     for f in failures:
+         print("self-test FAIL: %s" % f)

@@ -1,0 +1,132 @@
+ScoutSourcesR100 — source re-open receipts, round 100 (lane kotoba-shokunin)
+Fetch date: 2026-11-06. Tool: system curl + sha256sum + python3 -B (stdlib only).
+Scratch (created and DELETED on exit): /fast/scratch/hyaku/kotoba-r100/ScoutSourcesR100
+No HTML page is stored under .ufo/waves/round-100/w1 — digests, byte counts and
+short excerpt lines only.
+
+=== PASS 1 (curl -sS -o <file> -w '%{http_code}' -L <url>) ===
+https://docs.python.org/release/3.15.2/library/pathlib.html HTTP 200 270630 B sha256 090f3b03b648c271f4d810f0c37a51b2b54ebbdaa8130466d695e836e7a399ca
+https://docs.python.org/release/3.15.2/library/tempfile.html HTTP 200 74630 B sha256 0eef90989f9e1e4d261b8259e620244270f0bb8773e6b56b221b9575df60ab41
+https://docs.python.org/release/3.15.2/library/unittest.html HTTP 200 336394 B sha256 90fb380940f290ed6611ab8907a0f11840d03cea258357b5b3702a6b2eba8387
+https://man7.org/linux/man-pages/man2/ptrace.2.html HTTP 200 104833 B sha256 69cd309ece177d54086771701b2085e31cabd14a92484647392bcda468f7bd35
+
+=== PASS 2 (same four URLs, second independent fetch) ===
+https://docs.python.org/release/3.15.2/library/pathlib.html HTTP 200 270630 B sha256 090f3b03b648c271f4d810f0c37a51b2b54ebbdaa8130466d695e836e7a399ca
+https://docs.python.org/release/3.15.2/library/tempfile.html HTTP 200 74630 B sha256 0eef90989f9e1e4d261b8259e620244270f0bb8773e6b56b221b9575df60ab41
+https://docs.python.org/release/3.15.2/library/unittest.html HTTP 200 336394 B sha256 90fb380940f290ed6611ab8907a0f11840d03cea258357b5b3702a6b2eba8387
+https://man7.org/linux/man-pages/man2/ptrace.2.html HTTP 200 104833 B sha256 69cd309ece177d54086771701b2085e31cabd14a92484647392bcda468f7bd35
+
+cmp pass1 vs pass2: pathlib identical, tempfile identical, unittest identical, ptrace.2 identical.
+
+=== EQUALITY WITH THE L1's receipts/sources-opened.txt ===
+pathlib  090f3b03b648c271f4d810f0c37a51b2b54ebbdaa8130466d695e836e7a399ca  EQUAL (L1 same)
+tempfile 0eef90989f9e1e4d261b8259e620244270f0bb8773e6b56b221b9575df60ab41  EQUAL (L1 same)
+unittest 90fb380940f290ed6611ab8907a0f11840d03cea258357b5b3702a6b2eba8387  EQUAL (L1 same)
+ptrace   69cd309ece177d54086771701b2085e31cabd14a92484647392bcda468f7bd35  EQUAL (L1 same)
+All four: HTTP 200, byte counts equal to the L1's (270630 / 74630 / 336394 / 104833).
+
+=== LOCATED QUOTES (raw HTML line numbers in the PASS-1 bytes) ===
+(pathlib) § Path.is_dir — anchor id pathlib.Path.is_dir @ raw 1362; body raw 1364-1367
+  "False will be returned if the path is invalid, inaccessible or missing, or if it points to something other than a directory."   wc -w = 22
+(pathlib) § Path.exists — anchor id pathlib.Path.exists @ raw 1323; body raw 1325-1326
+  "Return True if the path points to an existing file or directory and False if the path is invalid, inaccessible or missing."   wc -w = 22
+(pathlib) § Path.read_text — anchor id pathlib.Path.read_text @ raw 1521; sig raw 1522 (encoding=None, errors=None, newline=None); body raw 1523, 1531-1532
+  "Return the decoded contents of the pointed-to file as a string."   wc -w = 11
+  "The file is opened and then closed. The optional parameters have the same meaning as in open()."   wc -w = 17
+(tempfile) § TemporaryDirectory.cleanup — anchor id tempfile.TemporaryDirectory.cleanup @ raw 386; body raw 389-391
+  "If ignore_cleanup_errors is true, any unhandled exceptions during explicit or implicit cleanup (such as a PermissionError removing open files on Windows) will be ignored"   wc -w = 24
+(unittest) § TestResult.errors — anchor id unittest.TestResult.errors @ raw 2410; body raw 2412-2414
+  "Each tuple represents a test which raised an unexpected exception."   wc -w = 10
+(unittest) § TestResult.failures — anchor id unittest.TestResult.failures @ raw 2418; body raw 2420-2422
+  "Each tuple represents a test where a failure was explicitly signalled using the assert* methods."   wc -w = 15
+(ptrace) § Ptrace access mode checking, algorithm step (4) — raw 1516-1520 (FULL, incl. the CAP_SYS_PTRACE conjunct)
+  "Deny access if the target process "dumpable" attribute has a value other than 1 (SUID_DUMP_USER; see the discussion of PR_SET_DUMPABLE in prctl(2)), and the caller does not have the CAP_SYS_PTRACE capability in the user namespace of the target process."   wc -w = 39 (full step)
+  <=25-word conjunct quote for the S285 row (raw 1518-1520):
+  "and the caller does not have the CAP_SYS_PTRACE capability in the user namespace of the target process."   wc -w = 17
+  footline "Linux man-pages 6.19 2026-06-05 ptrace(2)" @ raw 1713
+
+=== EXCERPT LINES (one line each, tag-stripped, for the report) ===
+pathlib 1364: Return True if the path points to a directory. False will be
+pathlib 1365: returned if the path is invalid, inaccessible or missing, or if it points
+pathlib 1366: to something other than a directory. Use Path.stat() to distinguish
+pathlib 1367: between these cases.
+pathlib 1325: Return True if the path points to an existing file or directory and
+pathlib 1326: False if the path is invalid, inaccessible or missing.
+pathlib 1522: Path. read_text ( encoding = None , errors = None , newline = None ) ¶
+pathlib 1523: Return the decoded contents of the pointed-to file as a string:
+pathlib 1531: The file is opened and then closed. The optional parameters have the same
+pathlib 1532: meaning as in open() .
+tempfile 389: cleanup() method. If ignore_cleanup_errors is true, any unhandled
+tempfile 390: exceptions during explicit or implicit cleanup (such as a
+tempfile 391: PermissionError removing open files on Windows) will be ignored,
+unittest 2413: holding formatted tracebacks. Each tuple represents a test which raised an
+unittest 2414: unexpected exception.
+unittest 2421: holding formatted tracebacks. Each tuple represents a test where a failure
+unittest 2422: was explicitly signalled using the assert* methods .
+ptrace 1516: (4) Deny access if the target process "dumpable" attribute has a
+ptrace 1517: value other than 1 ( SUID_DUMP_USER ; see the discussion of
+ptrace 1518: PR_SET_DUMPABLE in prctl(2) ), and the caller does not have
+ptrace 1519: the CAP_SYS_PTRACE capability in the user namespace of the
+ptrace 1520: target process.
+
+=== C2 CANDIDATE AUTHORITY (comma-list line-anchor convention) ===
+Sphinx (upstream docs of a documentation tool) documents the comma-separated line-list
+convention that C2 reads, but its URL is a rolling alias and its rendered bytes are NOT
+digest-stable (see below), so the row must cite the pinned upstream source instead:
+https://raw.githubusercontent.com/sphinx-doc/sphinx/v8.2.3/doc/usage/restructuredtext/directives.rst
+  HTTP 200 55809 B sha256 97282c43253cfbc6c67461f8754bcc60137a207acc6d1c78cf1e8d9f698bb458 (fetched twice, identical)
+  line 1045: .. rst:directive:option:: lines: line numbers
+  line 1046:    :type: comma separated numbers
+  line 1051:       :lines: 1,3,5-10,20-
+  line 1053:    This includes line 1, line 3, lines 5 to 10, and line 20 to the end.
+  quote (line 1046, 5 words): "comma separated numbers"
+  quote (line 1053, 16 words): "This includes line 1, line 3, lines 5 to 10, and line 20 to the end."
+Rendered https://www.sphinx-doc.org/en/stable/usage/restructuredtext/directives.html
+  HTTP 200 170372 B sha256 9a4377f17671f3b6b6047b1e6ec71a5319dff000a6bace59af96abde619a1486 (pass 1)
+  HTTP 200 170372 B sha256 d629d47b0aef1ab9ef2f8e30e59f3fbb37a31ad803544d912897937c676af5b3 (pass 2)
+  -> SAME LENGTH, DIFFERENT DIGEST (one Cloudflare email-protection token differs at raw line 1620). Not digest-stable.
+Same page also documents the option at anchor id directive-option-literalinclude-lines (rendered raw 1420-1421),
+  signature text "line numbers (comma separated numbers)".
+Also fetched (comparison only, not a row candidate):
+https://docs.python.org/release/3.15.2/builtins/functions.html
+  HTTP 200 330766 B sha256 2cda7dad887b0316555e75a175d0adb8199d5e07f49b0a1d48e77effac4c18cf (fetched twice, identical)
+  open() encoding paragraph raw 1644-1647; PEP 686 note raw 1821-1822 ("Changed in version 3.15: UTF-8 is now the default encoding")
+https://git-scm.com/docs/git-log
+  HTTP 200 375834 B sha256 f206647fba42b627f46d29993490fbb585adedaa5d27b9ed575f50ef9002f69b (fetched twice, identical)
+  -L <start>,<end>:<file> at raw 3794; "Trace the evolution of the line range given by <start>, <end>," raw 3797-3798
+  (a RANGE convention, i.e. a different grammar from C2's comma LIST — recorded as a contrast, not a row)
+
+=== REGISTRY GREP (corpus/SOURCES.md) ===
+grep -n 'docs.python.org/release/3.15.2/library/pathlib.html'  -> no match (no existing row)
+grep -n 'docs.python.org/release/3.15.2/library/tempfile.html' -> no match
+grep -n 'docs.python.org/release/3.15.2/library/unittest.html' -> no match
+grep -n 'man7.org/linux/man-pages/man2/ptrace.2.html'           -> line 220 (S279, mined)
+grep -n 'docs.python.org/3/library/pathlib.html'                -> line 217 (S276, REJECTED)
+grep -n 'docs.python.org/3/library/tempfile.html'               -> line 194 (S253, mined)
+grep -n 'docs.python.org/3/library/unittest.html'               -> line 211 (S270, mined)
+grep -n 'sphinx-doc.org'                                       -> no match
+grep -n 'git-scm.com'                                          -> lines 193, 208, 209, 218 (S252/S267/S268/S277; no git-log row)
+
+=== ROLLING-ALIAS CONTROL (why the pinned /release/3.15.2/ URLs are the right citation) ===
+https://docs.python.org/3/library/pathlib.html   HTTP 200 271233 B sha256 eda0d4a582da98b124c44db6cf45785d62f352e5b188aeadf972edcef0921d1d
+https://docs.python.org/3/library/tempfile.html  HTTP 200 75198 B  sha256 2bef9acdef026a012eada84114db8ff3ce0e80f30fac0532149b14882a238812
+https://docs.python.org/3/library/unittest.html  HTTP 200 336978 B sha256 a3c45299b7b52d017dc5f7f7c90dd8f7f9ce4e5a8261192d41e9e653a5d6bbd4
+   -> the /3/ aliases carry a live footer ("Last updated on Nov 06, 2026 (14:48 UTC)") and differ from the
+      registry's recorded /3/ digests (S276 b55e4f28…, S253 cb28e1b2…, S270 f9510cd7…); the /release/3.15.2/
+      pages are frozen ("Last updated on Oct 25, 2026 (17:03 UTC)") and digest-stable across both fetches.
+
+=== INSTRUMENT ANCHOR HYGIENE (read-only checks on the frozen counter) ===
+python3 -B (ast/importlib over verifiers/fixtures/round-100/selftest-kills.py): 52 distinct anchor strings across
+  CLAIMS c1/r99c1/r98c1/r97c1/r96c1/r95c1; 49 of them occur exactly once in verifiers/verify_dispatch_prompts.py.
+  The 3 exceptions are all r95c1 anchors belonging to verifiers/check_mutation_battery.py (a different instrument),
+  which occur 0 times in the dispatch checker — expected, not a defect.
+  c1 anchors present once each in the dispatch checker:
+    t04-dircheck-exists  '        if not path.is_dir():'          (1)
+    t05-readtext-latin1   '        return path.read_text(encoding="utf-8")'  (1)
+    t06-runchecks-sorted   '    for cid in wanted:'                 (1)
+    t01/t02/t03 anchors also present once (see counter lines 129-155).
+  => A new arm inside self_test() MUST NOT contain any of these anchor strings verbatim
+     (e.g. do not write '    for cid in wanted:' or '        if not path.is_dir():' again);
+     the counter would then read the anchor twice and refuse the run ("anchor miss"), i.e. could-not-evaluate.
+  FIX_LINE check: '    m = re.match(r"^(.+\.\w+):\d+(-\d+)?(,\d+(-\d+)?)*$", tok)' occurs 0 times in the base
+  verifiers/verify_skill_checklist.py (BASE_LINE occurs 1 time) — the C2 fix line is genuinely absent at the base.

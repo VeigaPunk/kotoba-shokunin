@@ -1,0 +1,50 @@
+witness cand instrument /fast/scratch/hyaku/kotoba-r100/MutTesterDispatchR100/cand/verifiers/verify_dispatch_prompts.py sha256 78da1c4644421e5ccb48403cc3bb222ea474d2f28dc120cfb5acc63cc7d12eaf
+CASE w01-substrate-state-fleet-unchecked        DIFFERS  plain file as --state-dir
+    honest (2, True, '')
+    mutant (0, False, 'PASS dispatch.04: evaluated 1 — 1 file(s) evaluated: 1 PASS,')
+CASE w02-substrate-state-what-mislabeled        DIFFERS  the substrate message text
+    honest (2, 'ERROR /fast/scratch/hyaku/kotoba-r100/MutTesterDispatchR100/witness/w.yp0h_ppg/statefile/statefile: not a directory (state directory)')
+    mutant (2, 'ERROR /fast/scratch/hyaku/kotoba-r100/MutTesterDispatchR100/witness/w.yp0h_ppg/statefile/statefile: not a directory (prompts directory)')
+CASE w03-json-success-exitcode-zero             DIFFERS  FAIL run: rc, payload exit_code/fail/pass
+    honest (1, 1, 1, 1)
+    mutant (1, 0, 1, 1)
+CASE w04-json-na-count-zero                     DIFFERS  all-N/A run: payload na and statuses
+    honest (0, 1, ['PASS', 'N/A'])
+    mutant (0, 0, ['PASS', 'N/A'])
+CASE w05-json-pass-count-zero                   DIFFERS  PASS run: payload pass/fail/na
+    honest (0, 2, 0, 0)
+    mutant (0, 0, 0, 0)
+CASE w06-json-fail-count-zero                   DIFFERS  FAIL run: payload fail/pass
+    honest (1, 1, 1)
+    mutant (1, 0, 1)
+CASE w07-enverror-json-exitcode-zero            DIFFERS  EnvError run: rc and payload exit_code
+    honest (2, 2, True)
+    mutant (2, 0, True)
+CASE w08-enverror-json-error-empty              DIFFERS  EnvError run: payload error text
+    honest (2, 2, '/fast/scratch/hyaku/kotoba-r100/MutTesterDispatchR100/witness/w.yp0h_ppg/env/prompts/kote-round-7.md: Permission denied (prompt file)')
+    mutant (2, 2, '')
+CASE w09-readtext-errors-replace                DIFFERS  read_text on a non-UTF-8 byte
+    honest ('raised', 'UnicodeDecodeError')
+    mutant ('returned', 'caf�\n')
+CASE w10-runchecks-duplicate-first              DIFFERS  run_checks id list
+    honest ['dispatch.04', 'dispatch.08']
+    mutant ['dispatch.04', 'dispatch.08', 'dispatch.04']
+CASE w11-parser-state-default-prompts           DIFFERS  no --state-dir: rc and result lines
+    honest (0, ['PASS dispatch.04: evaluated 1 — 1 file(s) evaluated: 1 PASS, 0 FAIL, 0 N/A; 0 out of scope', 'PASS dispatch.08: evaluated 1 — 1 file(s) evaluated: 1 PASS, 0 FAIL, 0 N/A; 0 out of scope'])
+    mutant (0, ['PASS dispatch.04: evaluated 1 — 1 file(s) evaluated: 1 PASS, 0 FAIL, 0 N/A; 0 out of scope', 'N/A dispatch.08: evaluated 1 — 1 file(s) evaluated: 0 PASS, 0 FAIL, 1 N/A; 0 out of scope'])
+CASE w12-parser-check-choices-dropped           DIFFERS  unknown --check id
+    honest ('SystemExit(2)', [], ["witness_r100.py: error: argument --check: invalid choice: 'dispatch.09' (choose from 'dispatch.04', 'dispatch.08')"])
+    mutant (0, ['PASS dispatch.08: evaluated 1 — 1 file(s) evaluated: 1 PASS, 0 FAIL, 0 N/A; 0 out of scope'], [])
+CASE w13-main-code-all-not-any                  DIFFERS  one FAIL + one PASS: rc
+    honest (1, ['FAIL dispatch.04: evaluated 1 — 1 file(s) evaluated: 0 PASS, 1 FAIL, 0 N/A; 0 out of scope; failing files: kote-round-7.md (report_stem_is_lane_id)', 'PASS dispatch.08: evaluated 1 — 1 file(s) evaluated: 1 PASS, 0 FAIL, 0 N/A; 0 out of scope'])
+    mutant (0, ['FAIL dispatch.04: evaluated 1 — 1 file(s) evaluated: 0 PASS, 1 FAIL, 0 N/A; 0 out of scope; failing files: kote-round-7.md (report_stem_is_lane_id)', 'PASS dispatch.08: evaluated 1 — 1 file(s) evaluated: 1 PASS, 0 FAIL, 0 N/A; 0 out of scope'])
+CASE w14-main-wanted-empty                      DIFFERS  no --check: rc and result lines
+    honest (0, ['PASS dispatch.04: evaluated 1 — 1 file(s) evaluated: 1 PASS, 0 FAIL, 0 N/A; 0 out of scope', 'PASS dispatch.08: evaluated 1 — 1 file(s) evaluated: 1 PASS, 0 FAIL, 0 N/A; 0 out of scope'])
+    mutant (0, [])
+CASE w15-emit-json-sort-keys-off                DIFFERS  emit_json key order
+    honest '{\n  "a": 2,\n  "b": 1\n}\n'
+    mutant '{\n  "b": 1,\n  "a": 2\n}\n'
+CASE w16-parser-map-default-fixtures            DIFFERS  default --box-proof map path
+    honest (0, 'boxes proven 2', [])
+    mutant (2, 'boxes proven 0', ["box-proof: cannot read the box map /fast/scratch/hyaku/kotoba-r100/MutTesterDispatchR100/witness/w.yp0h_ppg/proof/fixtures/dispatch-prompts/checklist-baseline.json ([Errno 2] No such file or directory: '/fast/scratch/hyaku/kotoba-r100/MutTesterDispatchR100/witness/w.yp0h_ppg/proof/fixtures/dispatch-prompts/checklist-baseline.json')"])
+witness totals: DIFFERS 16, SAME 0, SKIPPED/ERROR 0
